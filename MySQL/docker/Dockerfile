@@ -21,19 +21,25 @@ RUN make
 WORKDIR /home/mysql
 RUN git clone https://github.com/mysql/mysql-server.git
 
-WORKDIR /home/mysql/mysql-server 
+WORKDIR /home/mysql/mysql-server
+RUN git checkout dab95781a1244104d6b87020ac2fc4d190ba2946
 RUN mkdir bld
 
 
 WORKDIR /home/mysql/mysql-server/bld
 ENV CC=/home/mysql/AFL/afl-clang-fast
 ENV CXX=/home/mysql/AFL/afl-clang-fast++
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_ASAN=1 -DWITH_ASAN_SCOPE=1 -DWITH_DEBUG=1 -DCPACK_MONOLITHIC_INSTALL=1 && make -j20
+RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_DEBUG=1 -DCPACK_MONOLITHIC_INSTALL=1 && make -j15
 USER root
 RUN make install
 
 WORKDIR /usr/local/mysql
 USER root
+#RUN chmod 775 /usr
+#RUN chmod 775 /usr/local
+#RUN chmod 775 /usr/local/mysql
+#RUN mkdir -p data
+#RUN chmod 775 ./data
 RUN mkdir mysql-files && chown mysql:mysql mysql-files && chmod 750 mysql-files && bin/mysqld --initialize-insecure --user=mysql && bin/mysql_ssl_rsa_setup
 
 USER mysql
@@ -42,7 +48,7 @@ RUN mkdir /home/mysql/mysql-server/bld_orignal/
 WORKDIR /home/mysql/mysql-server/bld_orignal/
 ENV CC=
 ENV CXX=
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DCPACK_MONOLITHIC_INSTALL=1 && make -j20
+RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DCPACK_MONOLITHIC_INSTALL=1 && make -j16
 
 USER root 
 RUN apt-get -y update

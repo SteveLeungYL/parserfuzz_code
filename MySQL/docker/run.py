@@ -22,7 +22,7 @@ os.system("kill -9 `pidof mysqld`")
 afl_window = session.new_window(attach=False, window_name="afl")
 afl_pane = afl_window.attached_pane
 afl_pane.send_keys("export LD_LIBRARY_PATH=/home/mysql/mysql-server/bld_orignal/lib")
-afl_pane.send_keys("../afl-fuzz -i crashes -o ../fuzz_output aaa")
+afl_pane.send_keys("AFL_SKIP_CPUFREQ=1 AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1  ../afl-fuzz -i crashes -o ../fuzz_output aaa")
 time.sleep(15)
 result = afl_pane.cmd("capture-pane", "-p").stdout
 

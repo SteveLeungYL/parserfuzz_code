@@ -33,7 +33,7 @@ DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 PROGS       = afl-fuzz
 
 CC         = g++
-CFLAGS     ?= -fpermissive --std=c++17
+CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++
 CFLAGS     += -g -w \
 	      -DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 	      -DBIN_PATH=\"$(BIN_PATH)\"
@@ -53,8 +53,8 @@ COMM_HDR    = alloc-inl.h config.h debug.h types.h
 all: afl-fuzz
 
 
-afl-fuzz: afl-fuzz.c $(COMM_HDR)
-	$(CC) $(CFLAGS) -L$(MYSQL_LIB_PATH) -I$(MYSQL_HEADER_PATH) -I$(MYSQL_INSTALL_HEADER_PATH) -g $@.c $(DEPEN_PATH) -o $@ $(LDFLAGS)  -lmysqlclient 
+afl-fuzz: afl-fuzz.cpp $(COMM_HDR)
+	$(CC) $(CFLAGS) -L$(MYSQL_LIB_PATH) -I$(MYSQL_HEADER_PATH) -I$(MYSQL_INSTALL_HEADER_PATH) -g $@.cpp $(DEPEN_PATH) -o $@ $(LDFLAGS)  -lmysqlclient 
 
 .NOTPARALLEL: clean
 
