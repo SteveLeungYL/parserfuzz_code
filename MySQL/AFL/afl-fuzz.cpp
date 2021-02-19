@@ -66,6 +66,7 @@
 #include <sys/file.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include <sys/select.h>
 #include <errno.h>
 #include <cassert>
@@ -208,75 +209,54 @@ public:
 
   string get_rand_on_off_string()
   { 
-    std::uniform_int_distribution<int> distribution(0,1);
-
+    std::random_device dev;
+    std::mt19937 generator(dev());
+    std::uniform_int_distribution<std::mt19937::result_type> distribution(0,1);
     if (distribution(generator))
     {
-      return "on";
+        return "on";
     }
     else
     {
-      return "off";
+        return "off";
     }
   }
 
-  string get_random_optimization_string()
-  {
-    string optimization_cmd = "use test" + std::to_string(database_id) + ";";
-    optimization_cmd += "SET optimizer_switch='batched_key_access=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",block_nested_loop=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",condition_fanout_filter=";
-    optimization_cmd += get_rand_on_off_string();
-    // optimization_cmd += ",derived_condition_pushdown=";
-    // optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",derived_merge=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",subquery_to_derived=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",engine_condition_pushdown=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",hash_join=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",index_condition_pushdown=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",use_index_extensions=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",index_merge=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",index_merge_intersection=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",index_merge_sort_union=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",index_merge_union=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",use_invisible_indexes=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",prefer_ordering_index=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",mrr=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",mrr_cost_based=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",duplicateweedout=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",firstmatch=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",loosescan=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",semijoin=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",skip_scan=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",materialization=";
-    optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += ",subquery_materialization_cost_based=";
-    optimization_cmd += get_rand_on_off_string();
-    // optimization_cmd += ",subquery_to_derived=";
-    // optimization_cmd += get_rand_on_off_string();
-    optimization_cmd += "';";
+  string get_optimization_string(bool is_random, bool is_default, bool is_all_on)
+  { 
+    string optimization_cmd = "use test" + std::to_string(database_id) + "; \n";
 
+    vector<string> optimizer_name = {"batched_key_access","block_nested_loop",
+    "condition_fanout_filter","derived_merge","engine_condition_pushdown",
+    "index_condition_pushdown","use_index_extensions","index_merge",
+    "index_merge_intersection","index_merge_sort_union","index_merge_union",
+    "use_invisible_indexes","mrr","mrr_cost_based",
+    "duplicateweedout","firstmatch","loosescan","semijoin","skip_scan",
+    "materialization","subquery_materialization_cost_based"};
+
+    // optimizer_name.push_back("subquery_to_derived");
+    // optimizer_name.push_back("prefer_ordering_index");
+    // optimizer_name.push_back("hash_join");
+
+
+    if (is_random){
+      for (string& inserted_opt : optimizer_name){
+        optimization_cmd += "SET optimizer_switch='";
+        optimization_cmd += inserted_opt + "=" + get_rand_on_off_string();
+        optimization_cmd += "';\n";
+      }
+    } else if (is_default){
+        optimization_cmd += "SET optimizer_switch='";
+        optimization_cmd += "default";
+        optimization_cmd += "';\n";
+    } else {
+      for (string& inserted_opt : optimizer_name){
+        optimization_cmd += "SET optimizer_switch='";
+        if (is_all_on) optimization_cmd += inserted_opt + "=on";
+        else optimization_cmd += inserted_opt + "=off";
+        optimization_cmd += "';\n";
+      }
+    }
     return optimization_cmd;
   }
 
@@ -358,7 +338,7 @@ public:
     string cmd_string;
 
 
-    optimization_cmd = "use test" + std::to_string(database_id) + ";" + "SET optimizer_switch='batched_key_access=on,block_nested_loop=on,condition_fanout_filter=on," + "derived_merge=on,subquery_to_derived=on,engine_condition_pushdown=on,hash_join=on," + "index_condition_pushdown=on,use_index_extensions=on,index_merge=on,index_merge_intersection=on,index_merge_sort_union=on," + "index_merge_union=on,use_invisible_indexes=on,prefer_ordering_index=on,mrr=on,mrr_cost_based=on,duplicateweedout=on," + "firstmatch=on,loosescan=on,semijoin=on,skip_scan=on,materialization=on,subquery_materialization_cost_based=on';";
+    optimization_cmd = get_optimization_string(false, false, true);
     int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
     auto correctness = clean_up_connection(m_);
 
@@ -395,7 +375,7 @@ public:
     reset_database();
 
     /* Random Optimization CMD */
-    random_optimization_cmd = get_random_optimization_string();
+    optimization_cmd = get_optimization_string(true, false, false);
     server_response = mysql_real_query(&m_, random_optimization_cmd.c_str(), random_optimization_cmd.size());
     correctness = clean_up_connection(m_);
 
@@ -432,7 +412,7 @@ public:
     reset_database();
 
     /* Default optimization cmd */
-    optimization_cmd = "use test" + std::to_string(database_id) + ";" + "SET optimizer_switch='default'";
+    optimization_cmd = get_optimization_string(false, true, false);
     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
     correctness = clean_up_connection(m_);
 
@@ -468,7 +448,7 @@ public:
     reset_database();
 
     /* None optimization cmd */
-    optimization_cmd = "use test" + std::to_string(database_id) + ";" + "SET optimizer_switch='batched_key_access=off,block_nested_loop=off,condition_fanout_filter=off,derived_merge=off,subquery_to_derived=off,engine_condition_pushdown=off,hash_join=off,index_condition_pushdown=off,use_index_extensions=off,index_merge=off,index_merge_intersection=off,index_merge_sort_union=off,index_merge_union=off,use_invisible_indexes=off,prefer_ordering_index=off,mrr=off,mrr_cost_based=off,duplicateweedout=off,firstmatch=off,loosescan=off,semijoin=off,skip_scan=off,materialization=off,subquery_materialization_cost_based=off'";
+    optimization_cmd = get_optimization_string(false, false, false);  // is_random, is_default, is_all_on.
     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
     correctness = clean_up_connection(m_);
 
@@ -525,7 +505,7 @@ public:
       cerr << "\n\n\n";
     }
     else if (all_optimization_results_string != ""){
-    // // else {
+    // // // else {
       cerr << "--------------------------------------------\n";
       cerr << "Results matched: \n";
       cerr << "Query: \n";
@@ -603,7 +583,6 @@ private:
   char *passwd_;
   bool is_first_time;
   unsigned counter_; //odd for "test", even for "test2"
-  default_random_engine generator;
 };
 
 int is_server_up = -1;
