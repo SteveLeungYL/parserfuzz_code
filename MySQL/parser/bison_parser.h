@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.3.2.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2019 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -34,8 +34,8 @@
 /* Undocumented macros, especially those whose name start with YY_,
    are private implementation details.  Do not rely on them.  */
 
-#ifndef YY_FF_BISON_PARSER_H_INCLUDED
-# define YY_FF_BISON_PARSER_H_INCLUDED
+#ifndef YY_FF_Y_TAB_H_INCLUDED
+# define YY_FF_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef FF_DEBUG
 # if defined YYDEBUG
@@ -45,19 +45,19 @@
 #   define FF_DEBUG 0
 #  endif
 # else /* ! defined YYDEBUG */
-#  define FF_DEBUG 0
+#  define FF_DEBUG 1
 # endif /* ! defined YYDEBUG */
 #endif  /* ! defined FF_DEBUG */
 #if FF_DEBUG
 extern int ff_debug;
 #endif
 /* "%code requires" blocks.  */
-#line 8 "bison.y" /* yacc.c:1921  */
+#line 8 "bison.y"
 
 #include "../include/ast.h"
 #include "parser_typedef.h"
 
-#line 61 "bison_parser.h" /* yacc.c:1921  */
+#line 61 "y.tab.h"
 
 /* Token type.  */
 #ifndef FF_TOKENTYPE
@@ -207,70 +207,271 @@ extern int ff_debug;
     SQL_OP_RP = 398,
     SQL_IGNORE = 399,
     SQL_INT = 400,
-    SQL_MEDIUMTEXT = 401,
-    SQL_BOOLEAN = 402,
-    SQL_KEY = 403,
-    SQL_EACH = 404,
-    SQL_USING = 405,
-    SQL_RENAME = 406,
-    SQL_DO = 407,
-    SQL_OP_LP = 408,
-    SQL_CHARACTER = 409,
-    SQL_UMINUS = 410,
-    SQL_CAST = 411,
-    SQL_GROUPS = 412,
-    SQL_OUTER = 413,
-    SQL_NULL = 414,
-    SQL_SMALLINT = 415,
-    SQL_EXCLUSIVE = 416,
-    SQL_TEMPORARY = 417,
-    SQL_CONSTRAINT = 418,
-    SQL_CREATE = 419,
-    SQL_OP_LBRACKET = 420,
-    SQL_WHEN = 421,
-    SQL_IMMEDIATE = 422,
-    SQL_TO = 423,
-    SQL_BTREE = 424,
-    SQL_DAY = 425,
-    SQL_CONFLICT = 426,
-    SQL_ROW_FORMAT = 427,
-    SQL_OP_RBRACKET = 428,
-    SQL_EXISTS = 429,
-    SQL_INSERT = 430,
-    SQL_KEYS = 431,
-    SQL_INTO = 432,
-    SQL_OP_DIVIDE = 433,
-    SQL_CASCADED = 434,
-    SQL_ISNULL = 435,
-    SQL_AS = 436,
-    SQL_INNER = 437,
-    SQL_INTERSECT = 438,
-    SQL_IN = 439,
-    SQL_OP_EQUAL = 440,
-    SQL_VARCHAR = 441,
-    SQL_COPY = 442,
-    SQL_ALTER = 443,
-    SQL_DESC = 444,
-    SQL_FROM = 445,
-    SQL_TINYTEXT = 446,
-    SQL_FLOAT = 447,
-    SQL_SECOND = 448,
-    SQL_WINDOW = 449,
-    SQL_NOTHING = 450,
-    SQL_HAVING = 451,
-    SQL_INTLITERAL = 452,
-    SQL_FLOATLITERAL = 453,
-    SQL_IDENTIFIER = 454,
-    SQL_STRINGLITERAL = 455
+    SQL_UNSIGNED = 401,
+    SQL_MEDIUMTEXT = 402,
+    SQL_BOOLEAN = 403,
+    SQL_KEY = 404,
+    SQL_EACH = 405,
+    SQL_USING = 406,
+    SQL_RENAME = 407,
+    SQL_DO = 408,
+    SQL_OP_LP = 409,
+    SQL_CHARACTER = 410,
+    SQL_UMINUS = 411,
+    SQL_CAST = 412,
+    SQL_GROUPS = 413,
+    SQL_OUTER = 414,
+    SQL_NULL = 415,
+    SQL_SMALLINT = 416,
+    SQL_EXCLUSIVE = 417,
+    SQL_TEMPORARY = 418,
+    SQL_CONSTRAINT = 419,
+    SQL_CREATE = 420,
+    SQL_OP_LBRACKET = 421,
+    SQL_WHEN = 422,
+    SQL_IMMEDIATE = 423,
+    SQL_TO = 424,
+    SQL_BTREE = 425,
+    SQL_DAY = 426,
+    SQL_CONFLICT = 427,
+    SQL_ROW_FORMAT = 428,
+    SQL_OP_RBRACKET = 429,
+    SQL_EXISTS = 430,
+    SQL_INSERT = 431,
+    SQL_KEYS = 432,
+    SQL_INTO = 433,
+    SQL_OP_DIVIDE = 434,
+    SQL_CASCADED = 435,
+    SQL_ISNULL = 436,
+    SQL_AS = 437,
+    SQL_INNER = 438,
+    SQL_INTERSECT = 439,
+    SQL_IN = 440,
+    SQL_OP_EQUAL = 441,
+    SQL_VARCHAR = 442,
+    SQL_COPY = 443,
+    SQL_ALTER = 444,
+    SQL_DESC = 445,
+    SQL_FROM = 446,
+    SQL_TINYTEXT = 447,
+    SQL_FLOAT = 448,
+    SQL_SECOND = 449,
+    SQL_WINDOW = 450,
+    SQL_NOTHING = 451,
+    SQL_HAVING = 452,
+    SQL_INTLITERAL = 453,
+    SQL_FLOATLITERAL = 454,
+    SQL_IDENTIFIER = 455,
+    SQL_STRINGLITERAL = 456
   };
 #endif
+/* Tokens.  */
+#define SQL_OP_NOTEQUAL 258
+#define SQL_ENABLE 259
+#define SQL_SIMPLE 260
+#define SQL_TEXT 261
+#define SQL_OVER 262
+#define SQL_YEAR 263
+#define SQL_INSERT_METHOD 264
+#define SQL_OP_SEMI 265
+#define SQL_BIGINT 266
+#define SQL_LIMIT 267
+#define SQL_OP_GREATERTHAN 268
+#define SQL_WITH 269
+#define SQL_ORDER 270
+#define SQL_OPTION 271
+#define SQL_LAST 272
+#define SQL_UNBOUNDED 273
+#define SQL_PRECEDING 274
+#define SQL_EXCEPT 275
+#define SQL_NUMERIC 276
+#define SQL_OP_LESSTHAN 277
+#define SQL_ACTION 278
+#define SQL_BEFORE 279
+#define SQL_OP_GREATEREQ 280
+#define SQL_CHECK 281
+#define SQL_COMPACT 282
+#define SQL_FULL 283
+#define SQL_NATURAL 284
+#define SQL_BINARY 285
+#define SQL_NATIONAL 286
+#define SQL_ENUM 287
+#define SQL_REDUNDANT 288
+#define SQL_OP_ADD 289
+#define SQL_CURRENT 290
+#define SQL_MERGE 291
+#define SQL_TRIGGER 292
+#define SQL_COMPRESSED 293
+#define SQL_OP_SUB 294
+#define SQL_FALSE 295
+#define SQL_UNIQUE 296
+#define SQL_WHERE 297
+#define SQL_MINUTE 298
+#define SQL_FIRST 299
+#define SQL_ON 300
+#define SQL_PARTIAL 301
+#define SQL_DOUBLE 302
+#define SQL_AFTER 303
+#define SQL_PRIMARY 304
+#define SQL_MONTH 305
+#define SQL_DEFERRED 306
+#define SQL_VALUES 307
+#define SQL_LONGTEXT 308
+#define SQL_SQL 309
+#define SQL_SHARED 310
+#define SQL_VALIDATION 311
+#define SQL_OR 312
+#define SQL_VIEW 313
+#define SQL_INDEX 314
+#define SQL_GROUP 315
+#define SQL_OP_MUL 316
+#define SQL_INPLACE 317
+#define SQL_FOREIGN 318
+#define SQL_RESTRICT 319
+#define SQL_SPATIAL 320
+#define SQL_FOLLOWING 321
+#define SQL_DEC 322
+#define SQL_SELECT 323
+#define SQL_NONE 324
+#define SQL_DISTINCT 325
+#define SQL_TRUE 326
+#define SQL_DYNAMIC 327
+#define SQL_BY 328
+#define SQL_OP_MOD 329
+#define SQL_INTEGER 330
+#define SQL_SECURITY 331
+#define SQL_IS 332
+#define SQL_DEFINER 333
+#define SQL_ROW 334
+#define SQL_ENFORCED 335
+#define SQL_END 336
+#define SQL_RECURSIVE 337
+#define SQL_FOR 338
+#define SQL_TEMPTABLE 339
+#define SQL_UNION 340
+#define SQL_NULLS 341
+#define SQL_UPDATE 342
+#define SQL_ELSE 343
+#define SQL_RANGE 344
+#define SQL_SET 345
+#define SQL_INVOKER 346
+#define SQL_OFFSET 347
+#define SQL_INDEXED 348
+#define SQL_FORCE 349
+#define SQL_NCHAR 350
+#define SQL_AND 351
+#define SQL_INITIALLY 352
+#define SQL_PRECISION 353
+#define SQL_FILTER 354
+#define SQL_WITHOUT 355
+#define SQL_NOT 356
+#define SQL_DELETE 357
+#define SQL_DEFFERRABLE 358
+#define SQL_REAL 359
+#define SQL_THEN 360
+#define SQL_UNDEFINED 361
+#define SQL_DEFAULT 362
+#define SQL_CROSS 363
+#define SQL_CHAR 364
+#define SQL_REFERENCES 365
+#define SQL_OP_XOR 366
+#define SQL_CASE 367
+#define SQL_FIXED 368
+#define SQL_HOUR 369
+#define SQL_NO 370
+#define SQL_COLUMN 371
+#define SQL_LOCAL 372
+#define SQL_DROP 373
+#define SQL_REPLACE 374
+#define SQL_ASC 375
+#define SQL_OP_COMMA 376
+#define SQL_DISABLE 377
+#define SQL_TABLE 378
+#define SQL_ARRAY 379
+#define SQL_IF 380
+#define SQL_EXTRACT 381
+#define SQL_LEFT 382
+#define SQL_FULLTEXT 383
+#define SQL_HASH 384
+#define SQL_ALGORITHM 385
+#define SQL_LOCK 386
+#define SQL_DECIMAL 387
+#define SQL_PARTITION 388
+#define SQL_CASCADE 389
+#define SQL_ADD 390
+#define SQL_BETWEEN 391
+#define SQL_OP_LESSEQ 392
+#define SQL_MATCH 393
+#define SQL_ALL 394
+#define SQL_ROWS 395
+#define SQL_JOIN 396
+#define SQL_LIKE 397
+#define SQL_OP_RP 398
+#define SQL_IGNORE 399
+#define SQL_INT 400
+#define SQL_UNSIGNED 401
+#define SQL_MEDIUMTEXT 402
+#define SQL_BOOLEAN 403
+#define SQL_KEY 404
+#define SQL_EACH 405
+#define SQL_USING 406
+#define SQL_RENAME 407
+#define SQL_DO 408
+#define SQL_OP_LP 409
+#define SQL_CHARACTER 410
+#define SQL_UMINUS 411
+#define SQL_CAST 412
+#define SQL_GROUPS 413
+#define SQL_OUTER 414
+#define SQL_NULL 415
+#define SQL_SMALLINT 416
+#define SQL_EXCLUSIVE 417
+#define SQL_TEMPORARY 418
+#define SQL_CONSTRAINT 419
+#define SQL_CREATE 420
+#define SQL_OP_LBRACKET 421
+#define SQL_WHEN 422
+#define SQL_IMMEDIATE 423
+#define SQL_TO 424
+#define SQL_BTREE 425
+#define SQL_DAY 426
+#define SQL_CONFLICT 427
+#define SQL_ROW_FORMAT 428
+#define SQL_OP_RBRACKET 429
+#define SQL_EXISTS 430
+#define SQL_INSERT 431
+#define SQL_KEYS 432
+#define SQL_INTO 433
+#define SQL_OP_DIVIDE 434
+#define SQL_CASCADED 435
+#define SQL_ISNULL 436
+#define SQL_AS 437
+#define SQL_INNER 438
+#define SQL_INTERSECT 439
+#define SQL_IN 440
+#define SQL_OP_EQUAL 441
+#define SQL_VARCHAR 442
+#define SQL_COPY 443
+#define SQL_ALTER 444
+#define SQL_DESC 445
+#define SQL_FROM 446
+#define SQL_TINYTEXT 447
+#define SQL_FLOAT 448
+#define SQL_SECOND 449
+#define SQL_WINDOW 450
+#define SQL_NOTHING 451
+#define SQL_HAVING 452
+#define SQL_INTLITERAL 453
+#define SQL_FLOATLITERAL 454
+#define SQL_IDENTIFIER 455
+#define SQL_STRINGLITERAL 456
 
 /* Value type.  */
 #if ! defined FF_STYPE && ! defined FF_STYPE_IS_DECLARED
-#line 30 "bison.y" /* yacc.c:1921  */
+#line 30 "bison.y"
 union FF_STYPE
 {
-#line 30 "bison.y" /* yacc.c:1921  */
+#line 30 "bison.y"
 
 	long	ival;
 	char*	sval;
@@ -439,9 +640,10 @@ union FF_STYPE
 	TableConstraint *	table_constraint_t;
 	OptEnforced *	opt_enforced_t;
 
-#line 443 "bison_parser.h" /* yacc.c:1921  */
+#line 644 "y.tab.h"
+
 };
-#line 30 "bison.y" /* yacc.c:1921  */
+#line 30 "bison.y"
 typedef union FF_STYPE FF_STYPE;
 # define FF_STYPE_IS_TRIVIAL 1
 # define FF_STYPE_IS_DECLARED 1
@@ -465,4 +667,4 @@ struct FF_LTYPE
 
 int ff_parse (Program* result, yyscan_t scanner);
 
-#endif /* !YY_FF_BISON_PARSER_H_INCLUDED  */
+#endif /* !YY_FF_Y_TAB_H_INCLUDED  */

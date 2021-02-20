@@ -7454,6 +7454,9 @@ IR*  NumericType::translate(vector<IR *> &v_ir_collector){
 		CASESTART(12)
 		res = new IR(kNumericType, OP3("BOOLEAN","",""));
 		CASEEND
+		CASESTART(13)
+		res = new IR(kNumericType, OP3("UNSIGNED","",""));
+		CASEEND
 	SWITCHEND
 
 	TRANSLATEEND
