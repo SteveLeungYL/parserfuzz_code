@@ -1311,6 +1311,8 @@ public:
 
 	CastExpr * cast_expr_;
 	CoalesceExpr * coalesce_expr_;
+	MaxExpr * max_expr_;
+	MinExpr * min_expr_;
 	InExpr * in_expr_;
 	BetweenExpr * between_expr_;
 	Operand * operand_;
@@ -1354,6 +1356,24 @@ public:
 
 	Expr * expr_;
 	ExprList * expr_list_;
+};
+
+class MaxExpr:public Node {
+public:
+	virtual void deep_delete();
+	virtual IR* translate(vector<IR*> &v_ir_collector);
+	virtual void generate();
+
+	Expr * expr_;
+};
+
+class MinExpr:public Node {
+public:
+	virtual void deep_delete();
+	virtual IR* translate(vector<IR*> &v_ir_collector);
+	virtual void generate();
+
+	Expr * expr_;
 };
 
 class ScalarExpr:public Node {

@@ -146,6 +146,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	Operand *	operand_t;
 	CastExpr *	cast_expr_t;
 	CoalesceExpr *   coalesce_expr_t; 
+	MaxExpr *  max_expr_t;
+	MinExpr *  min_expr_t;
 	ScalarExpr *	scalar_expr_t;
 	UnaryExpr *	unary_expr_t;
 	BinaryExpr *	binary_expr_t;
@@ -221,7 +223,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token CONFLICT ROW_FORMAT OP_RBRACKET EXISTS INSERT KEYS INTO OP_DIVIDE
 %token CASCADED ISNULL AS INNER INTERSECT IN OP_EQUAL VARCHAR
 %token COPY ALTER DESC FROM TINYTEXT FLOAT SECOND WINDOW
-%token NOTHING HAVING
+%token NOTHING HAVING MAX MIN
 %token <ival> INTLITERAL
 
 %token <fval> FLOATLITERAL
@@ -346,6 +348,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <operand_t>	operand
 %type <cast_expr_t>	cast_expr
 %type <coalesce_expr_t> coalesce_expr
+%type <max_expr_t> max_expr
+%type <min_expr_t> min_expr
 %type <scalar_expr_t>	scalar_expr
 %type <unary_expr_t>	unary_expr
 %type <binary_expr_t>	binary_expr
@@ -2684,6 +2688,16 @@ expr:
 		$$->case_idx_ = CASE6;
 		$$->coalesce_expr_ = $1;
 	}
+	|   max_expr {
+		$$ = new Expr();
+		$$->case_idx_ = CASE7;
+		$$->max_expr_ = $1;
+	}
+	|   min_expr {
+		$$ = new Expr();
+		$$->case_idx_ = CASE8;
+		$$->min_expr_ = $1;
+	}
   ;
 
 operand:
@@ -2769,6 +2783,22 @@ coalesce_expr:
 		$$ = new CoalesceExpr();
 		$$->case_idx_ = CASE1;
 		$$->expr_list_ = $3;
+	}
+  ;
+
+max_expr:
+	MAX OP_LP expr OP_RP  {
+		$$ = new MaxExpr();
+		$$->case_idx_ = CASE0;
+		$$->expr_ = $3;
+	}
+  ;
+
+min_expr:
+	MIN OP_LP expr OP_RP  {
+		$$ = new MinExpr();
+		$$->case_idx_ = CASE0;
+		$$->expr_ = $3;
 	}
   ;
 

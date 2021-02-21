@@ -5338,6 +5338,14 @@ IR*  Expr::translate(vector<IR *> &v_ir_collector){
 		auto tmp1= SAFETRANSLATE(coalesce_expr_);
 		res = new IR(kExpr, OP3("","",""), tmp1);
 		CASEEND
+		CASESTART(7)
+		auto tmp1= SAFETRANSLATE(max_expr_);
+		res = new IR(kExpr, OP3("","",""), tmp1);
+		CASEEND
+		CASESTART(8)
+		auto tmp1= SAFETRANSLATE(min_expr_);
+		res = new IR(kExpr, OP3("","",""), tmp1);
+		CASEEND
 	SWITCHEND
 
 	TRANSLATEEND
@@ -5351,11 +5359,13 @@ void Expr::deep_delete(){
 	SAFEDELETE(exists_expr_);
 	SAFEDELETE(logic_expr_);
 	SAFEDELETE(coalesce_expr_);
+	SAFEDELETE(max_expr_);
+	SAFEDELETE(min_expr_);
 	delete this;
 };
 
 void Expr::generate(){
-	GENERATESTART(7)
+	GENERATESTART(9)
 
 	SWITCHSTART
 		CASESTART(0)
@@ -5385,6 +5395,14 @@ void Expr::generate(){
 		CASESTART(6)
 		coalesce_expr_= new CoalesceExpr();
 		coalesce_expr_->generate();
+		CASEEND
+		CASESTART(7)
+		max_expr_= new MaxExpr();
+		max_expr_->generate();
+		CASEEND
+		CASESTART(8)
+		min_expr_= new MinExpr();
+		min_expr_->generate();
 		CASEEND
 	SWITCHEND
 	GENERATEEND
@@ -5565,7 +5583,47 @@ void CoalesceExpr::generate(){
 	GENERATEEND
 }
 
+IR *MaxExpr::translate(vector<IR *> &v_ir_collector)
+{
+	TRANSLATESTART
+	auto tmp1 = SAFETRANSLATE(expr_);
+	res = new IR(kMaxExpr, OP3("MAX(", "", ")"), tmp1);
+	TRANSLATEEND
+}
 
+void MaxExpr::deep_delete()
+{
+	SAFEDELETE(expr_);
+	delete this;
+};
+
+void MaxExpr::generate()
+{
+	GENERATESTART(1)
+	expr_ = new Expr();
+	expr_->generate();
+}
+
+IR *MinExpr::translate(vector<IR *> &v_ir_collector)
+{
+	TRANSLATESTART
+	auto tmp1 = SAFETRANSLATE(expr_);
+	res = new IR(kMinExpr, OP3("MIN(", "", ")"), tmp1);
+	TRANSLATEEND
+}
+
+void MinExpr::deep_delete()
+{
+	SAFEDELETE(expr_);
+	delete this;
+};
+
+void MinExpr::generate()
+{
+	GENERATESTART(1)
+	expr_ = new Expr();
+	expr_->generate();
+}
 
 IR*  ScalarExpr::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
