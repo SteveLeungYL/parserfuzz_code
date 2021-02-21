@@ -78,8 +78,9 @@
 #include <random>
 
 //#include "../../mysql-server/include/mysql.h"
-#include <mysql/mysql.h>
-#include <mysql/mysqld_error.h>
+#include <mysql.h>
+#include <mysqld_error.h>
+#include <errmsg.h>
 using namespace std;
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>

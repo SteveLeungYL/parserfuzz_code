@@ -145,6 +145,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	Expr *	expr_t;
 	Operand *	operand_t;
 	CastExpr *	cast_expr_t;
+	CoalesceExpr *   coalesce_expr_t; 
 	ScalarExpr *	scalar_expr_t;
 	UnaryExpr *	unary_expr_t;
 	BinaryExpr *	binary_expr_t;
@@ -215,7 +216,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token LOCK DECIMAL PARTITION CASCADE ADD BETWEEN OP_LESSEQ MATCH
 %token ALL ROWS JOIN LIKE OP_RP IGNORE INT UNSIGNED MEDIUMTEXT
 %token BOOLEAN KEY EACH USING RENAME DO OP_LP CHARACTER
-%token UMINUS CAST GROUPS OUTER NULL SMALLINT EXCLUSIVE TEMPORARY
+%token UMINUS CAST COALESCE GROUPS OUTER NULL SMALLINT EXCLUSIVE TEMPORARY
 %token CONSTRAINT CREATE OP_LBRACKET WHEN IMMEDIATE TO BTREE DAY
 %token CONFLICT ROW_FORMAT OP_RBRACKET EXISTS INSERT KEYS INTO OP_DIVIDE
 %token CASCADED ISNULL AS INNER INTERSECT IN OP_EQUAL VARCHAR
@@ -344,6 +345,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <expr_t>	expr
 %type <operand_t>	operand
 %type <cast_expr_t>	cast_expr
+%type <coalesce_expr_t> coalesce_expr
 %type <scalar_expr_t>	scalar_expr
 %type <unary_expr_t>	unary_expr
 %type <binary_expr_t>	binary_expr
@@ -2677,6 +2679,11 @@ expr:
 		$$->logic_expr_ = $1;
 		
 	}
+	|   coalesce_expr {
+		$$ = new Expr();
+		$$->case_idx_ = CASE6;
+		$$->coalesce_expr_ = $1;
+	}
   ;
 
 operand:
@@ -2749,6 +2756,19 @@ cast_expr:
 		$$->expr_ = $3;
 		$$->type_name_ = $5;
 		
+	}
+  ;
+
+coalesce_expr:
+	COALESCE OP_LP expr OP_RP  {
+		$$ = new CoalesceExpr();
+		$$->case_idx_ = CASE0;
+		$$->expr_ = $3;
+	}
+	| COALESCE OP_LP expr_list OP_RP  {
+		$$ = new CoalesceExpr();
+		$$->case_idx_ = CASE1;
+		$$->expr_list_ = $3;
 	}
   ;
 
