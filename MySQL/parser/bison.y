@@ -188,6 +188,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	OptNot *	opt_not_t;
 	Name *	name_t;
 	TypeName *	type_name_t;
+	TypeNameList *  type_name_list_t;
 	CharacterType *	character_type_t;
 	CharacterWithLength *	character_with_length_t;
 	CharacterWithoutLength *	character_without_length_t;
@@ -390,6 +391,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_not_t>	opt_not
 %type <name_t>	name
 %type <type_name_t>	type_name
+%type <type_name_list_t> type_name_list
 %type <character_type_t>	character_type
 %type <character_with_length_t>	character_with_length
 %type <character_without_length_t>	character_without_length
@@ -2266,11 +2268,11 @@ column_def_list:
   ;
 
 column_def:
-	identifier type_name opt_column_constraint_list  {
+	identifier type_name_list opt_column_constraint_list  {
 		$$ = new ColumnDef();
 		$$->case_idx_ = CASE0;
 		$$->identifier_ = $1;
-		$$->type_name_ = $2;
+		$$->type_name_list_ = $2;
 		$$->opt_column_constraint_list_ = $3;
 		if($$){
 			auto tmp1 = $$->identifier_; 
@@ -3518,6 +3520,19 @@ type_name:
 		
 	}
   ;
+
+type_name_list:
+	type_name {
+		$$ = new TypeNameList();
+		$$->case_idx_ = CASE0;
+		$$->type_name_ = $1;
+	}
+	| type_name type_name_list {
+		$$ = new TypeNameList();
+		$$->case_idx_ = CASE1;
+		$$->type_name_ = $1;
+		$$->type_name_list_ = $2;
+	}
 
 character_type:
 	character_with_length  {

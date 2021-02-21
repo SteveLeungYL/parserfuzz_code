@@ -161,6 +161,7 @@
 	V(kOptNot) \
 	V(kName) \
 	V(kTypeName) \
+	V(kTypeNameList) \
 	V(kCharacterType) \
 	V(kCharacterWithLength) \
 	V(kCharacterWithoutLength) \
@@ -331,6 +332,7 @@
 	V(OptNot) \
 	V(Name) \
 	V(TypeName) \
+	V(TypeNameList) \
 	V(CharacterType) \
 	V(CharacterWithLength) \
 	V(CharacterWithoutLength) \

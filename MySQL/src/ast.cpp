@@ -4423,7 +4423,7 @@ IR*  ColumnDef::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
 
 		auto tmp1= SAFETRANSLATE(identifier_);
-		auto tmp2= SAFETRANSLATE(type_name_);
+		auto tmp2= SAFETRANSLATE(type_name_list_);
 		auto tmp3= SAFETRANSLATE(opt_column_constraint_list_);
 		auto tmp4 = new IR(kUnknown, OP3("","",""), tmp1, tmp2);
 		PUSH(tmp4);
@@ -4433,7 +4433,7 @@ IR*  ColumnDef::translate(vector<IR *> &v_ir_collector){
 }
 
 void ColumnDef::deep_delete(){
-	SAFEDELETE(type_name_);
+	SAFEDELETE(type_name_list_);
 	SAFEDELETE(identifier_);
 	SAFEDELETE(opt_column_constraint_list_);
 	delete this;
@@ -4444,8 +4444,8 @@ void ColumnDef::generate(){
 
 		identifier_ = new Identifier();
 		identifier_->generate();
-		type_name_ = new TypeName();
-		type_name_->generate();
+		type_name_list_ = new TypeNameList();
+		type_name_list_->generate();
 		opt_column_constraint_list_ = new OptColumnConstraintList();
 		opt_column_constraint_list_->generate();
 
@@ -7308,6 +7308,49 @@ void TypeName::generate(){
 		CASESTART(1)
 		character_type_ = new CharacterType();
 		character_type_->generate();
+		CASEEND
+	SWITCHEND
+
+	GENERATEEND
+}
+
+IR*  TypeNameList::translate(vector<IR *> &v_ir_collector){
+	TRANSLATESTART
+
+	SWITCHSTART
+		CASESTART(0)
+		auto tmp1= SAFETRANSLATE(type_name_);
+		res = new IR(kTypeNameList, OP3("","",""), tmp1);
+		CASEEND
+		CASESTART(1)
+		auto tmp1= SAFETRANSLATE(type_name_);
+		auto tmp2= SAFETRANSLATE(type_name_list_);
+		res = new IR(kTypeNameList, OP3("","",""), tmp1, tmp2);
+		CASEEND
+	SWITCHEND
+
+	TRANSLATEEND
+}
+
+void TypeNameList::deep_delete(){
+	SAFEDELETE(type_name_);
+	SAFEDELETE(type_name_list_);
+	delete this;
+};
+
+void TypeNameList::generate(){
+	GENERATESTART(2)
+
+	SWITCHSTART
+		CASESTART(0)
+		type_name_ = new TypeName();
+		type_name_->generate();
+		CASEEND
+		CASESTART(1)
+		type_name_ = new TypeName();
+		type_name_->generate();
+		type_name_list_ = new TypeNameList();
+		type_name_list_->generate();
 		CASEEND
 	SWITCHEND
 

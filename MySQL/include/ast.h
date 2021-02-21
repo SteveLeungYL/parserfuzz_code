@@ -1113,7 +1113,8 @@ public:
 	virtual IR* translate(vector<IR*> &v_ir_collector);
 	virtual void generate();
 
-	TypeName * type_name_;
+	// TypeNameList * type_name_list_;
+	TypeNameList * type_name_list_;
 	Identifier * identifier_;
 	OptColumnConstraintList * opt_column_constraint_list_;
 };
@@ -1756,6 +1757,16 @@ public:
 
 	NumericType * numeric_type_;
 	CharacterType * character_type_;
+};
+
+class TypeNameList:public Node {
+public:
+	virtual void deep_delete();
+	virtual IR* translate(vector<IR*> &v_ir_collector);
+	virtual void generate();
+
+	TypeNameList * type_name_list_;
+	TypeName * type_name_;
 };
 
 class CharacterType:public Node {
