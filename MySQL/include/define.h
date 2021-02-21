@@ -118,6 +118,7 @@
 	V(kExpr) \
 	V(kOperand) \
 	V(kCastExpr) \
+	V(kCoalesceExpr) \
 	V(kScalarExpr) \
 	V(kUnaryExpr) \
 	V(kBinaryExpr) \
@@ -285,6 +286,7 @@
 	V(Expr) \
 	V(Operand) \
 	V(CastExpr) \
+	V(CoalesceExpr) \
 	V(ScalarExpr) \
 	V(UnaryExpr) \
 	V(BinaryExpr) \

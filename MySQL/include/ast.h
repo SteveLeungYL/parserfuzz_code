@@ -1310,6 +1310,7 @@ public:
 	virtual void generate();
 
 	CastExpr * cast_expr_;
+	CoalesceExpr * coalesce_expr_;
 	InExpr * in_expr_;
 	BetweenExpr * between_expr_;
 	Operand * operand_;
@@ -1343,6 +1344,16 @@ public:
 
 	Expr * expr_;
 	TypeName * type_name_;
+};
+
+class CoalesceExpr:public Node {
+public:
+	virtual void deep_delete();
+	virtual IR* translate(vector<IR*> &v_ir_collector);
+	virtual void generate();
+
+	Expr * expr_;
+	ExprList * expr_list_;
 };
 
 class ScalarExpr:public Node {

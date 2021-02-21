@@ -5334,6 +5334,10 @@ IR*  Expr::translate(vector<IR *> &v_ir_collector){
 		auto tmp1= SAFETRANSLATE(logic_expr_);
 		res = new IR(kExpr, OP3("","",""), tmp1);
 		CASEEND
+		CASESTART(6)
+		auto tmp1= SAFETRANSLATE(coalesce_expr_);
+		res = new IR(kExpr, OP3("","",""), tmp1);
+		CASEEND
 	SWITCHEND
 
 	TRANSLATEEND
@@ -5346,11 +5350,12 @@ void Expr::deep_delete(){
 	SAFEDELETE(operand_);
 	SAFEDELETE(exists_expr_);
 	SAFEDELETE(logic_expr_);
+	SAFEDELETE(coalesce_expr_);
 	delete this;
 };
 
 void Expr::generate(){
-	GENERATESTART(6)
+	GENERATESTART(7)
 
 	SWITCHSTART
 		CASESTART(0)
@@ -5377,8 +5382,11 @@ void Expr::generate(){
 		logic_expr_ = new LogicExpr();
 		logic_expr_->generate();
 		CASEEND
+		CASESTART(6)
+		coalesce_expr_= new CoalesceExpr();
+		coalesce_expr_->generate();
+		CASEEND
 	SWITCHEND
-
 	GENERATEEND
 }
 
@@ -5496,15 +5504,11 @@ void Operand::generate(){
 	GENERATEEND
 }
 
-
-
 IR*  CastExpr::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
-
 		auto tmp1= SAFETRANSLATE(expr_);
 		auto tmp2= SAFETRANSLATE(type_name_);
 		res = new IR(kCastExpr, OP3("CAST (","AS",")"), tmp1, tmp2);
-
 	TRANSLATEEND
 }
 
@@ -5522,6 +5526,42 @@ void CastExpr::generate(){
 		type_name_ = new TypeName();
 		type_name_->generate();
 
+	GENERATEEND
+}
+
+IR* CoalesceExpr::translate(vector<IR *> &v_ir_collector){
+	TRANSLATESTART
+	SWITCHSTART
+		CASESTART(0)
+		auto tmp1= SAFETRANSLATE(expr_);
+		res = new IR(kCoalesceExpr, OP3("COALESCE(","",")"), tmp1);
+		CASEEND
+		CASESTART(1)
+		auto tmp1= SAFETRANSLATE(expr_list_);
+		res = new IR(kCoalesceExpr, OP3("COALESCE(","",")"), tmp1);
+		CASEEND
+	SWITCHEND
+	TRANSLATEEND
+}
+
+void CoalesceExpr::deep_delete(){
+	SAFEDELETE(expr_);
+	SAFEDELETE(expr_list_);
+	delete this;
+};
+
+void CoalesceExpr::generate(){
+	GENERATESTART(2)
+	SWITCHSTART
+		CASESTART(0)
+		expr_ = new Expr();
+		expr_->generate();
+		CASEEND
+		CASESTART(1)
+		expr_list_ = new ExprList();
+		expr_list_->generate();
+		CASEEND
+	SWITCHEND
 	GENERATEEND
 }
 
