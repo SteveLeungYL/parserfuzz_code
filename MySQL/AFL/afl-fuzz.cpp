@@ -78,9 +78,9 @@
 #include <random>
 
 //#include "../../mysql-server/include/mysql.h"
-#include <mysql.h>
-#include <mysqld_error.h>
-#include <errmsg.h>
+#include <mysql/mysql.h>
+#include <mysql/mysqld_error.h>
+#include <mysql/errmsg.h>
 using namespace std;
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>
@@ -233,7 +233,7 @@ public:
     "index_merge_intersection","index_merge_sort_union","index_merge_union",
     "use_invisible_indexes","mrr","mrr_cost_based",
     "duplicateweedout","firstmatch","loosescan","semijoin","skip_scan",
-    "materialization","subquery_materialization_cost_based"};
+    "materialization","subquery_materialization_cost_based", "apply_index"};
 
     // optimizer_name.push_back("subquery_to_derived");
     // optimizer_name.push_back("prefer_ordering_index");
@@ -250,6 +250,7 @@ public:
         optimization_cmd += "SET optimizer_switch='";
         optimization_cmd += "default";
         optimization_cmd += "';\n";
+        optimization_cmd += "SET optimizer_switch='apply_index=on';\n";
     } else {
       for (string& inserted_opt : optimizer_name){
         optimization_cmd += "SET optimizer_switch='";
@@ -301,7 +302,8 @@ public:
   }
 
   SQLSTATUS execute(char *cmd)
-  {
+  { 
+    fix_database(); // Fix the connection error1 misleading output.
     auto conn = connect();
 
     if (!conn)
@@ -335,7 +337,6 @@ public:
     reset_database();
 
     string optimization_cmd;
-    string random_optimization_cmd;
     string cmd_string;
 
 
@@ -349,10 +350,9 @@ public:
       disconnect();
       return kServerCrash;
     }
-    cmd_string = "use test" + std::to_string(database_id) + ";" + cmd;
+    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
     all_optimization_results_string = retrieve_query_results(m_);
-    // cerr << "Results retrived.\n";
     correctness = clean_up_connection(m_);
 
     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
@@ -377,7 +377,7 @@ public:
 
     /* Random Optimization CMD */
     optimization_cmd = get_optimization_string(true, false, false);
-    server_response = mysql_real_query(&m_, random_optimization_cmd.c_str(), random_optimization_cmd.size());
+    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
     correctness = clean_up_connection(m_);
 
     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
@@ -387,7 +387,7 @@ public:
       return kServerCrash;
     }
 
-    cmd_string = "use test" + std::to_string(database_id) + ";" + cmd;
+    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
     random_optimization_results_string = retrieve_query_results(m_);
     correctness = clean_up_connection(m_);
@@ -424,7 +424,7 @@ public:
       return kServerCrash;
     }
 
-    cmd_string = "use test" + std::to_string(database_id) + ";" + cmd;
+    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
     default_optimization_results_string = retrieve_query_results(m_);
     correctness = clean_up_connection(m_);
@@ -460,7 +460,7 @@ public:
       return kServerCrash;
     }
 
-    cmd_string = "use test" + std::to_string(database_id) + ";" + cmd;
+    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
     none_optimization_results_string = retrieve_query_results(m_);
     correctness = clean_up_connection(m_);
@@ -490,9 +490,9 @@ public:
         )
     {
       cerr << "--------------------------------------------\n";
-      cerr << "Results not matched!\n";
+      cerr << "Results not matched!!!!!!!!!!\n";
       cerr << "Query: \n";
-      cerr << cmd_string << "\n";
+      cerr << cmd << "\n";
       cerr << "All_optimization_Results_string: \n";
       cerr << all_optimization_results_string;
       cerr << "\nRandom_optimization_Results_string: \n";
@@ -501,28 +501,46 @@ public:
       cerr << default_optimization_results_string;
       cerr << "\nNone_optimization_Results_string: \n";
       cerr << none_optimization_results_string << "\n";
-      cerr << "Random Optimization options: \n";
-      cerr << random_optimization_cmd;
       cerr << "\n\n\n";
     }
     else if (all_optimization_results_string != ""){
     // // // else {
       cerr << "--------------------------------------------\n";
       cerr << "Results matched: \n";
-      cerr << "Query: \n";
-      cerr << cmd_string << "\n";
-      cerr << "Optimization_Results_string: \n";
-      cerr << all_optimization_results_string;
-      cerr << "\n\n\n";
-      cerr << "P";
+      // cerr << "Query: \n";
+      // cerr << cmd_string << "\n";
+      // cerr << "All_optimization_Results_string: \n";
+      // cerr << all_optimization_results_string;
+      // cerr << "\nRandom_optimization_Results_string: \n";
+      // cerr << random_optimization_results_string;
+      // cerr << "\nDefault_optimization_Results_string: \n";
+      // cerr << default_optimization_results_string;
+      // cerr << "\nNone_optimization_Results_string: \n";
+      // cerr << none_optimization_results_string << "\n";
+      // cerr << "Random Optimization options: \n";
+      // cerr << random_optimization_cmd;
+      // cerr << "\n\n\n";
     } 
-    // else {
-    //   cerr << "--------------------------------------------\n";
-    //   cerr << "Query not making sense.\n\n\n";
-    // }
+    else {
+      cerr << "--------------------------------------------\n";
+      cerr << "Query not making sense.\n";
+      // cerr << "Query: \n";
+      // cerr << cmd_string << "\n";
+      // cerr << "All_optimization_Results_string: \n";
+      // cerr << all_optimization_results_string;
+      // cerr << "\nRandom_optimization_Results_string: \n";
+      // cerr << random_optimization_results_string;
+      // cerr << "\nDefault_optimization_Results_string: \n";
+      // cerr << default_optimization_results_string;
+      // cerr << "\nNone_optimization_Results_string: \n";
+      // cerr << none_optimization_results_string << "\n";
+      // cerr << "Random Optimization options: \n";
+      // cerr << random_optimization_cmd;
+      // cerr << "\n\n\n";
+    }
 
     optimization_cmd.clear();
-    random_optimization_cmd.clear();
+    // random_optimization_cmd.clear();
     cmd_string.clear();
 
     all_optimization_results_string.clear();
@@ -2954,7 +2972,6 @@ static u8 run_target(char **argv, u32 timeout)
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 BEGIN:
-
   auto result = g_mysqlclient.execute(g_current_input);
 
 #ifdef COUNT_ERROR
@@ -3108,7 +3125,6 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
       show_stats();
 
     write_to_testcase(use_mem, q->len);
-
     fault = run_target(argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
@@ -3271,162 +3287,162 @@ static void perform_dry_run(char **argv)
     if (stop_soon)
       return;
 
-    if (res == crash_mode || res == FAULT_NOBITS)
-      SAYF(cGRA "    len = %u, map size = %u, exec speed = %llu us\n" cRST,
-           q->len, q->bitmap_size, q->exec_us);
+    // if (res == crash_mode || res == FAULT_NOBITS)
+    //   SAYF(cGRA "    len = %u, map size = %u, exec speed = %llu us\n" cRST,
+    //        q->len, q->bitmap_size, q->exec_us);
 
-    switch (res)
-    {
+//     switch (res)
+//     {
 
-    case FAULT_NONE:
+//     case FAULT_NONE:
 
-      if (q == queue)
-        check_map_coverage();
+//       if (q == queue)
+//         check_map_coverage();
 
-      if (crash_mode)
-        FATAL("Test case '%s' does *NOT* crash", fn);
+//       if (crash_mode)
+//         FATAL("Test case '%s' does *NOT* crash", fn);
 
-      break;
+//       break;
 
-    case FAULT_TMOUT:
+//     case FAULT_TMOUT:
 
-      if (timeout_given)
-      {
+//       if (timeout_given)
+//       {
 
-        /* The -t nn+ syntax in the command line sets timeout_given to '2' and
-             instructs afl-fuzz to tolerate but skip queue entries that time
-             out. */
+//         /* The -t nn+ syntax in the command line sets timeout_given to '2' and
+//              instructs afl-fuzz to tolerate but skip queue entries that time
+//              out. */
 
-        if (timeout_given > 1)
-        {
-          WARNF("Test case results in a timeout (skipping)");
-          q->cal_failed = CAL_CHANCES;
-          cal_failures++;
-          break;
-        }
+//         if (timeout_given > 1)
+//         {
+//           WARNF("Test case results in a timeout (skipping)");
+//           q->cal_failed = CAL_CHANCES;
+//           cal_failures++;
+//           break;
+//         }
 
-        SAYF("\n" cLRD "[-] " cRST
-             "The program took more than %u ms to process one of the initial test cases.\n"
-             "    Usually, the right thing to do is to relax the -t option - or to delete it\n"
-             "    altogether and allow the fuzzer to auto-calibrate. That said, if you know\n"
-             "    what you are doing and want to simply skip the unruly test cases, append\n"
-             "    '+' at the end of the value passed to -t ('-t %u+').\n",
-             exec_tmout,
-             exec_tmout);
+//         SAYF("\n" cLRD "[-] " cRST
+//              "The program took more than %u ms to process one of the initial test cases.\n"
+//              "    Usually, the right thing to do is to relax the -t option - or to delete it\n"
+//              "    altogether and allow the fuzzer to auto-calibrate. That said, if you know\n"
+//              "    what you are doing and want to simply skip the unruly test cases, append\n"
+//              "    '+' at the end of the value passed to -t ('-t %u+').\n",
+//              exec_tmout,
+//              exec_tmout);
 
-        FATAL("Test case '%s' results in a timeout", fn);
-      }
-      else
-      {
+//         FATAL("Test case '%s' results in a timeout", fn);
+//       }
+//       else
+//       {
 
-        SAYF("\n" cLRD "[-] " cRST
-             "The program took more than %u ms to process one of the initial test cases.\n"
-             "    This is bad news; raising the limit with the -t option is possible, but\n"
-             "    will probably make the fuzzing process extremely slow.\n\n"
+//         SAYF("\n" cLRD "[-] " cRST
+//              "The program took more than %u ms to process one of the initial test cases.\n"
+//              "    This is bad news; raising the limit with the -t option is possible, but\n"
+//              "    will probably make the fuzzing process extremely slow.\n\n"
 
-             "    If this test case is just a fluke, the other option is to just avoid it\n"
-             "    altogether, and find one that is less of a CPU hog.\n",
-             exec_tmout);
+//              "    If this test case is just a fluke, the other option is to just avoid it\n"
+//              "    altogether, and find one that is less of a CPU hog.\n",
+//              exec_tmout);
 
-        FATAL("Test case '%s' results in a timeout", fn);
-      }
+//         FATAL("Test case '%s' results in a timeout", fn);
+//       }
 
-    case FAULT_CRASH:
+//     case FAULT_CRASH:
 
-      if (crash_mode)
-        break;
+//       if (crash_mode)
+//         break;
 
-      if (skip_crashes)
-      {
-        WARNF("Test case results in a crash (skipping)");
-        q->cal_failed = CAL_CHANCES;
-        cal_failures++;
-        break;
-      }
+//       if (skip_crashes)
+//       {
+//         WARNF("Test case results in a crash (skipping)");
+//         q->cal_failed = CAL_CHANCES;
+//         cal_failures++;
+//         break;
+//       }
 
-      if (mem_limit)
-      {
+//       if (mem_limit)
+//       {
 
-        SAYF("\n" cLRD "[-] " cRST
-             "Oops, the program crashed with one of the test cases provided. There are\n"
-             "    several possible explanations:\n\n"
+//         SAYF("\n" cLRD "[-] " cRST
+//              "Oops, the program crashed with one of the test cases provided. There are\n"
+//              "    several possible explanations:\n\n"
 
-             "    - The test case causes known crashes under normal working conditions. If\n"
-             "      so, please remove it. The fuzzer should be seeded with interesting\n"
-             "      inputs - but not ones that cause an outright crash.\n\n"
+//              "    - The test case causes known crashes under normal working conditions. If\n"
+//              "      so, please remove it. The fuzzer should be seeded with interesting\n"
+//              "      inputs - but not ones that cause an outright crash.\n\n"
 
-             "    - The current memory limit (%s) is too low for this program, causing\n"
-             "      it to die due to OOM when parsing valid files. To fix this, try\n"
-             "      bumping it up with the -m setting in the command line. If in doubt,\n"
-             "      try something along the lines of:\n\n"
+//              "    - The current memory limit (%s) is too low for this program, causing\n"
+//              "      it to die due to OOM when parsing valid files. To fix this, try\n"
+//              "      bumping it up with the -m setting in the command line. If in doubt,\n"
+//              "      try something along the lines of:\n\n"
 
-#ifdef RLIMIT_AS
-             "      ( ulimit -Sv $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
-#else
-             "      ( ulimit -Sd $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
-#endif /* ^RLIMIT_AS */
+// #ifdef RLIMIT_AS
+//              "      ( ulimit -Sv $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
+// #else
+//              "      ( ulimit -Sd $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
+// #endif /* ^RLIMIT_AS */
 
-             "      Tip: you can use http://jwilk.net/software/recidivm to quickly\n"
-             "      estimate the required amount of virtual memory for the binary. Also,\n"
-             "      if you are using ASAN, see %s/notes_for_asan.txt.\n\n"
+//              "      Tip: you can use http://jwilk.net/software/recidivm to quickly\n"
+//              "      estimate the required amount of virtual memory for the binary. Also,\n"
+//              "      if you are using ASAN, see %s/notes_for_asan.txt.\n\n"
 
-#ifdef __APPLE__
+// #ifdef __APPLE__
 
-             "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
-             "      break afl-fuzz performance optimizations when running platform-specific\n"
-             "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
+//              "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
+//              "      break afl-fuzz performance optimizations when running platform-specific\n"
+//              "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
 
-#endif /* __APPLE__ */
+// #endif /* __APPLE__ */
 
-             "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
-             "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
-             DMS(mem_limit << 20), mem_limit - 1, doc_path);
-      }
-      else
-      {
+//              "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
+//              "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
+//              DMS(mem_limit << 20), mem_limit - 1, doc_path);
+//       }
+//       else
+//       {
 
-        SAYF("\n" cLRD "[-] " cRST
-             "Oops, the program crashed with one of the test cases provided. There are\n"
-             "    several possible explanations:\n\n"
+//         SAYF("\n" cLRD "[-] " cRST
+//              "Oops, the program crashed with one of the test cases provided. There are\n"
+//              "    several possible explanations:\n\n"
 
-             "    - The test case causes known crashes under normal working conditions. If\n"
-             "      so, please remove it. The fuzzer should be seeded with interesting\n"
-             "      inputs - but not ones that cause an outright crash.\n\n"
+//              "    - The test case causes known crashes under normal working conditions. If\n"
+//              "      so, please remove it. The fuzzer should be seeded with interesting\n"
+//              "      inputs - but not ones that cause an outright crash.\n\n"
 
-#ifdef __APPLE__
+// #ifdef __APPLE__
 
-             "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
-             "      break afl-fuzz performance optimizations when running platform-specific\n"
-             "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
+//              "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
+//              "      break afl-fuzz performance optimizations when running platform-specific\n"
+//              "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
 
-#endif /* __APPLE__ */
+// #endif /* __APPLE__ */
 
-             "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
-             "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
-      }
+//              "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
+//              "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
+//       }
 
-      FATAL("Test case '%s' results in a crash", fn);
+//       FATAL("Test case '%s' results in a crash", fn);
 
-    case FAULT_ERROR:
+//     case FAULT_ERROR:
 
-      FATAL("Unable to execute target application ('%s')", argv[0]);
+//       FATAL("Unable to execute target application ('%s')", argv[0]);
 
-    case FAULT_NOINST:
+//     case FAULT_NOINST:
 
-      FATAL("No instrumentation detected");
+//       FATAL("No instrumentation detected");
 
-    case FAULT_NOBITS:
+//     case FAULT_NOBITS:
 
-      useless_at_start++;
+//       useless_at_start++;
 
-      if (!in_bitmap && !shuffle_queue)
-        WARNF("No new instrumentation output, test case may be useless.");
+//       if (!in_bitmap && !shuffle_queue)
+//         WARNF("No new instrumentation output, test case may be useless.");
 
-      break;
-    }
+//       break;
+//     }
 
-    if (q->var_behavior)
-      WARNF("Instrumentation output varies across runs.");
+    // if (q->var_behavior)
+    //   WARNF("Instrumentation output varies across runs.");
 
     q = q->next;
   }
@@ -3442,8 +3458,8 @@ static void perform_dry_run(char **argv)
           ((double)cal_failures) * 100 / queued_paths,
           skip_crashes ? " or crashes" : "");
 
-    if (cal_failures * 5 > queued_paths)
-      WARNF(cLRD "High percentage of rejected test cases, check settings!");
+    // if (cal_failures * 5 > queued_paths)
+    //   WARNF(cLRD "High percentage of rejected test cases, check settings!");
   }
 
   OKF("All test cases processed.");
@@ -7479,7 +7495,7 @@ int main(int argc, char **argv)
   //char* tmp_argv[] = {g_server_path, NULL};
   //init_forkserver(tmp_argv);
   // to do
-  //perform_dry_run(use_argv);
+  perform_dry_run(use_argv);
 
   cull_queue();
 
