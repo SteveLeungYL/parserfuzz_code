@@ -346,10 +346,24 @@ public:
     regex_search(query, m, regex("WHERE|where"));
     size_t where_position = m.position();
 
-    string before_select_stmt = query.substr(0, select_position - 0);
-    string select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
-    string from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
-    string where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
+    if (select_position == query.size()) select_position = 0;
+    if (from_position == query.size()) from_position = -1;
+    if (where_position == query.size()) where_position = -1;
+
+    string before_select_stmt;
+    string select_stmt;
+    string from_stmt;
+    string where_stmt;
+
+    before_select_stmt = query.substr(0, select_position - 0);
+
+    select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
+
+    if (from_position == -1) from_stmt = "" ;
+    else from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
+
+    if (where_position == -1) where_stmt = "" ;
+    else where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
 
     if (select_stmt.find('*') != select_stmt.size() ) select_stmt = "";
 
