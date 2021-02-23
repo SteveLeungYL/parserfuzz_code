@@ -285,7 +285,7 @@ public:
       result = mysql_store_result(&m_);
       if (result)
       {
-        if ((row = mysql_fetch_row(result)) != NULL)
+        while ((row = mysql_fetch_row(result)) != NULL)
           result_count++;
       }
       /* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
@@ -388,7 +388,10 @@ public:
     if (select_stmt.find('*') != select_stmt.size())
       select_stmt = "";
 
-    string rewrited_string = before_select_stmt + " SELECT " + where_stmt + "  " + select_stmt + " FROM " + from_stmt;
+    string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt + "  " + select_stmt + ") != 0) ";
+    if (from_stmt != ""){
+      rewrited_string += " FROM " + from_stmt;
+    } 
     return rewrited_string;
   }
 
@@ -462,12 +465,12 @@ public:
 
       unoptimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + unoptimized_cmd_string;
       server_response = mysql_real_query(&m_, unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
-      unoptimized_result_string = retrieve_query_results(m_);
-      for (auto it = unoptimized_result_string.begin(); it != unoptimized_result_string.end(); it++)
-      {
-        if (*it == '1')
-          unoptimized_result++;
-      }
+      unoptimized_result = atoi(retrieve_query_results(m_).c_str());
+      // for (auto it = unoptimized_result_string.begin(); it != unoptimized_result_string.end(); it++)
+      // {
+      //   if (*it == '1')
+      //     unoptimized_result++;
+      // }
       correctness = clean_up_connection(m_);
 
       if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
