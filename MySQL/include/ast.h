@@ -1696,6 +1696,7 @@ public:
 	virtual void generate();
 
 	Identifier * identifier_;
+	TableName * table_name_;
 };
 
 class OptIndexKeyword:public Node {

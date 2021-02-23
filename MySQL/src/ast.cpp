@@ -7043,22 +7043,42 @@ void TableName::generate(){
 IR*  ColumnName::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
 
+	SWITCHSTART
+	CASESTART(0)
 		auto tmp1= SAFETRANSLATE(identifier_);
 		res = new IR(kColumnName, OP3("","",""), tmp1);
+	CASEEND
+	CASESTART(1)
+		auto tmp1= SAFETRANSLATE(table_name_);
+		auto tmp2= SAFETRANSLATE(identifier_);
+		res = new IR(kColumnName, OP3("",".",""), tmp1, tmp2);
+	CASEEND
+	SWITCHEND
 
 	TRANSLATEEND
 }
 
 void ColumnName::deep_delete(){
 	SAFEDELETE(identifier_);
+	SAFEDELETE(table_name_);
 	delete this;
 };
 
 void ColumnName::generate(){
-	GENERATESTART(1)
+	GENERATESTART(2)
 
+	SWITCHSTART
+	CASESTART(0)
 		identifier_ = new Identifier();
 		identifier_->generate();
+	CASEEND
+	CASESTART(1)
+		table_name_ = new TableName();
+		table_name_->generate();
+		identifier_ = new Identifier();
+		identifier_->generate();
+	CASEEND
+	SWITCHEND
 
 	GENERATEEND
 }

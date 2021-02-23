@@ -224,7 +224,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token CONFLICT ROW_FORMAT OP_RBRACKET EXISTS INSERT KEYS INTO OP_DIVIDE
 %token CASCADED ISNULL AS INNER INTERSECT IN OP_EQUAL VARCHAR
 %token COPY ALTER DESC FROM TINYTEXT FLOAT SECOND WINDOW
-%token NOTHING HAVING MAX MIN
+%token NOTHING HAVING MAX MIN DOT
 %token <ival> INTLITERAL
 
 %token <fval> FLOATLITERAL
@@ -414,7 +414,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %left  OP_XOR
 %right  UMINUS
 %left  OP_LBRACKET OP_RBRACKET
-%left  OP_RP OP_LP
+%left  OP_RP OP_LP DOT
 %nonassoc  JOIN
 %nonassoc  ON
 
@@ -3398,6 +3398,21 @@ column_name:
 		}
 
 
+	}
+
+	| table_name DOT identifier {
+		$$ = new ColumnName();
+		$$->case_idx_ = CASE1;
+		$$->table_name_ = $1;
+		$$->identifier_ = $3;
+		if($$){
+			auto tmp1 = $$->identifier_; 
+			if(tmp1){
+				tmp1->data_type_ = kDataColumnName; 
+				tmp1->scope_ = 2; 
+				tmp1->data_flag_ =(DATAFLAG)8; 
+			}
+		}
 	}
   ;
 
