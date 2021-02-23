@@ -398,9 +398,13 @@ public:
 
     int optimized_result = 0;
     int unoptimized_result = 0;
+    string unoptimized_result_string = "";
 
-    /* Optimized */
+    bool is_skip_no_rec = true;
 
+    SQLSTATUS res = kNormal;
+
+    /* Unoptimized */
     reset_database();
 
     string optimization_cmd = get_optimization_string(false, true, true);
@@ -415,58 +419,25 @@ public:
     }
 
     string optimized_cmd_string = cmd;
-    optimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimized_cmd_string;
-    server_response = mysql_real_query(&m_, optimized_cmd_string.c_str(), optimized_cmd_string.size());
-    optimized_result = retrieve_query_results_count(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
-    }
-
-    auto res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    auto check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-
-    reset_database();
-
-    /* Unoptimized */
-    optimization_cmd = get_optimization_string(false, true, true);
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    optimized_cmd_string = cmd;
     string unoptimized_cmd_string = "";
     vector<string> queries_vector = string_splitter(optimized_cmd_string, ";");
+    
     for (string & query:queries_vector) {
       if (
         ( (query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos ) &&
         ( (query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos )
         ) {
           unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
+          is_skip_no_rec = false;
       }
       else unoptimized_cmd_string += query + "; \n";
     }
+
+    if (!is_skip_no_rec){
+
     unoptimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + unoptimized_cmd_string;
     server_response = mysql_real_query(&m_, unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
-    string unoptimized_result_string = retrieve_query_results(m_);
+    unoptimized_result_string = retrieve_query_results(m_);
     for (auto it = unoptimized_result_string.begin(); it != unoptimized_result_string.end(); it++){
       if (*it == '1') unoptimized_result++;
     }
@@ -482,7 +453,7 @@ public:
 #ifdef COUNT_ERROR
     res = correctness;
 #endif
-    check_res = check_server_alive();
+    auto check_res = check_server_alive();
     if (check_res == false)
     {
       disconnect();
@@ -492,7 +463,47 @@ public:
 
     reset_database();
 
-    if (optimized_result != unoptimized_result){
+    /* Optimized */
+
+    optimization_cmd = get_optimization_string(false, true, true);
+    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
+    correctness = clean_up_connection(m_);
+
+    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+    {
+      cerr << "Optimization command error. \n\n";
+      disconnect();
+      return kServerCrash;
+    }
+
+    optimized_cmd_string = cmd;
+    optimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimized_cmd_string;
+    server_response = mysql_real_query(&m_, optimized_cmd_string.c_str(), optimized_cmd_string.size());
+    optimized_result = retrieve_query_results_count(m_);
+    correctness = clean_up_connection(m_);
+
+    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+    {
+      disconnect();
+      return kServerCrash;
+    }
+
+    auto res = kNormal;
+#ifdef COUNT_ERROR
+    res = correctness;
+#endif
+    check_res = check_server_alive();
+    if (check_res == false)
+    {
+      disconnect();
+      sleep(2); // waiting for server to be up again
+      return kServerCrash;
+    }
+
+    reset_database();
+    }
+
+    if (optimized_result != unoptimized_result && !is_skip_no_rec){
       cerr << "\n\n\n-------------------------------------------\n";
       cerr << "Result unmatched! \n";
       cerr << "Optimized cmd: \n";
@@ -504,13 +515,17 @@ public:
       cerr << "Unoptimized results: \n";
       cerr << unoptimized_result << "\n\n\n\n";
     }
-    else {
+    else if (!is_skip_no_rec){
       cerr << "P";
+    } else {
+      cerr << "C";
     }
 
-
+    unoptimized_result_string.clear();
     optimized_cmd_string.clear();
     unoptimized_cmd_string.clear();
+    
+    queries_vector.clear();
 
     counter_++;
     disconnect();
