@@ -352,6 +352,10 @@ public:
   {
     // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 
+    while(query[0] == ' ' || query[0] == '\n' || query[0] == '\t'){  // Delete duplicated whitespace at the beginning. 
+      query = query.substr(1, query.size()-1);
+    }
+
     size_t select_position = 0;
     size_t from_position = -1;
     size_t where_position = -1;
