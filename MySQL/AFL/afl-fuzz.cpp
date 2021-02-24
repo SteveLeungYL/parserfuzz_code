@@ -352,79 +352,164 @@ public:
   {
     // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 
-    while(query[0] == ' ' || query[0] == '\n' || query[0] == '\t'){  // Delete duplicated whitespace at the beginning. 
-      query = query.substr(1, query.size()-1);
+    while(query[0] == ' ' || query[0] == '\n' || query[0] == '\t'){  // Delete duplicated whitespace at the beginning.
+        query = query.substr(1, query.size()-1);
     }
-
+    
     size_t select_position = 0;
     size_t from_position = -1;
     size_t where_position = -1;
-
-    size_t tmp1 = -1, tmp2 = -1;
-
-    tmp1 = query.find("SELECT", query.size());
-    tmp2 = query.find("select", query.size());
+    
+    vector<size_t> op_lp_v;
+    vector<size_t> op_rp_v;
+    
+    size_t tmp1 = 0, tmp2 = 0;
+    while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos){
+        op_lp_v.push_back(tmp1);
+        tmp1++;
+        if (tmp1 == query.size()){
+            break;
+        }
+    }
+    while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos){
+        op_rp_v.push_back(tmp2);
+        tmp2++;
+        if (tmp2 == query.size()){
+            break;
+        }
+    }
+    
+    if (op_lp_v.size() != op_rp_v.size()) {  // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+        op_lp_v.clear();
+        op_rp_v.clear();
+    }
+    
+    for (int i = 0; i < op_lp_v.size(); i++){  // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+        if (op_lp_v[i] > op_rp_v[i]){
+            op_lp_v.clear();
+            op_rp_v.clear();
+        }
+    }
+    
+    tmp1 = -1; tmp2 = -1;
+    
+    tmp1 = query.find("SELECT", 0);   // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
+    tmp2 = query.find("select", 0);
     if (tmp1 != string::npos){
-      select_position = tmp1;
+        select_position = tmp1;
     }
     if (tmp2 != string::npos && tmp2 < tmp1){
-      select_position = tmp2;
+        select_position = tmp2;
     }
-
-    tmp1 = -1;
-    tmp2 = -1;
     
-    tmp1 = query.rfind("FROM", query.size());
-    tmp2 = query.rfind("from", query.size());
-    if (tmp1 != string::npos){
-      from_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 > tmp1){
-      from_position = tmp2;
-    }
-
-    tmp1 = -1;
-    tmp2 = -1;
-
-    tmp1 = query.rfind("WHERE", query.size());
-    tmp2 = query.rfind("where", query.size());
-    if (tmp1 != string::npos){
-      where_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 > tmp1){
-      where_position = tmp2;
-    }
-
+    
+    
+    tmp1 = 0; tmp2 = 0; from_position = -1;
+    
+    do {
+        if (tmp1 != string::npos) tmp1 = query.find("FROM", tmp1 + 4);
+        if (tmp2 != string::npos) tmp2 = query.find("from", tmp2 + 4);
+        
+        if (tmp1 != string::npos){
+            bool is_ignore = false;
+            for (int i = 0; i < op_lp_v.size(); i++){
+                if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i]) {
+                    is_ignore = true;
+                    break;
+                }
+            }
+            if (!is_ignore) {
+              from_position = tmp1;
+              break;  // from_position is found. Break the outter do...while loop. 
+            }
+        }
+        
+        if (tmp2 != string::npos){
+            bool is_ignore = false;
+            for (int i = 0; i < op_lp_v.size(); i++){
+                if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i]) {
+                    is_ignore = true;
+                    break;
+                }
+            }
+            if (!is_ignore) {
+              from_position = tmp2;
+              break; // from_position is found. Break the outter do...while loop. 
+            }
+        }
+        
+    } while (tmp1 != string::npos || tmp2 != string::npos);
+    
+    
+    
+    tmp1 = 0; tmp2 = 0; where_position = -1;
+    
+    do {
+        if (tmp1 != string::npos) tmp1 = query.find("WHERE", tmp1 + 5);
+        if (tmp2 != string::npos) tmp2 = query.find("where", tmp2 + 5);
+        
+        if (tmp1 != string::npos){
+            bool is_ignore = false;
+            for (int i = 0; i < op_lp_v.size(); i++){
+                if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i]) {
+                    is_ignore = true;
+                    break;
+                }
+            }
+            if (!is_ignore) {
+              where_position = tmp1;
+              break; // where_position is found. Break the outter do...while loop. 
+            }
+        }
+        
+        if (tmp2 != string::npos){
+            bool is_ignore = false;
+            for (int i = 0; i < op_lp_v.size(); i++){
+                if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i]) {
+                    is_ignore = true;
+                    break;
+                }
+            }
+            if (!is_ignore) {
+              where_position = tmp2;
+              break; // where_position is found. Break the outter do...while loop. 
+            }
+        }
+        
+    } while (tmp1 != string::npos || tmp2 != string::npos);
+    
     string before_select_stmt;
     string select_stmt;
     string from_stmt;
     string where_stmt;
-
+    
     before_select_stmt = query.substr(0, select_position - 0);
-
+    
     select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
-
+    
     if (from_position == -1)
-      from_stmt = "";
+        from_stmt = "";
     else
-      from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
-
+        from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
+    
     if (where_position == -1)
-      where_stmt = "";
+        where_stmt = "";
     else
-      where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
-
+        where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
+    
     if (select_stmt.find('*') != string::npos)
-      select_stmt = "";
-
+        select_stmt = "";
+    
     string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
     if (select_stmt != "" && select_stmt != " "){
-      rewrited_string += "  AND  " + select_stmt;
+        rewrited_string += "  AND  " + select_stmt;
     }
     rewrited_string += " ) != 0) ";
     if (from_stmt != ""){
-      rewrited_string += " FROM " + from_stmt;
-    } 
+        rewrited_string += " FROM " + from_stmt;
+    }
+
+    // The ";" is being taken care of after returnning from the rewrite function
     return rewrited_string;
   }
 
