@@ -410,7 +410,7 @@ public:
     else
       where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
 
-    if (select_stmt.find('*') != select_stmt.size())
+    if (select_stmt.find('*') != string::npos)
       select_stmt = "";
 
     string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt + "  " + select_stmt + ") != 0) ";
