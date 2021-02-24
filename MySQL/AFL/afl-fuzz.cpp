@@ -413,7 +413,11 @@ public:
     if (select_stmt.find('*') != string::npos)
       select_stmt = "";
 
-    string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt + "  " + select_stmt + ") != 0) ";
+    string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
+    if (select_stmt != "" && select_stmt != " "){
+      rewrited_string += "  AND  " + select_stmt;
+    }
+    rewrited_string += " ) != 0) ";
     if (from_stmt != ""){
       rewrited_string += " FROM " + from_stmt;
     } 
