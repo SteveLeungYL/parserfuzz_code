@@ -351,20 +351,45 @@ public:
   string rewrite_query_by_No_Rec(string query)
   {
     // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
-    smatch m;
-    regex_search(query, m, regex("SELECT|select"));
-    size_t select_position = m.position();
-    regex_search(query, m, regex("FROM|from"));
-    size_t from_position = m.position();
-    regex_search(query, m, regex("WHERE|where"));
-    size_t where_position = m.position();
 
-    if (select_position == query.size())
-      select_position = 0;
-    if (from_position == query.size())
-      from_position = -1;
-    if (where_position == query.size())
-      where_position = -1;
+    size_t select_position = 0;
+    size_t from_position = -1;
+    size_t where_position = -1;
+
+    size_t tmp1 = -1, tmp2 = -1;
+
+    tmp1 = query.find("SELECT", query.size());
+    tmp2 = query.find("select", query.size());
+    if (tmp1 != string::npos){
+      select_position = tmp1;
+    }
+    if (tmp2 != string::npos && tmp2 < tmp1){
+      select_position = tmp2;
+    }
+
+    tmp1 = -1;
+    tmp2 = -1;
+    
+    tmp1 = query.rfind("FROM", query.size());
+    tmp2 = query.rfind("from", query.size());
+    if (tmp1 != string::npos){
+      from_position = tmp1;
+    }
+    if (tmp2 != string::npos && tmp2 > tmp1){
+      from_position = tmp2;
+    }
+
+    tmp1 = -1;
+    tmp2 = -1;
+
+    tmp1 = query.rfind("WHERE", query.size());
+    tmp2 = query.rfind("where", query.size());
+    if (tmp1 != string::npos){
+      where_position = tmp1;
+    }
+    if (tmp2 != string::npos && tmp2 > tmp1){
+      where_position = tmp2;
+    }
 
     string before_select_stmt;
     string select_stmt;
@@ -450,8 +475,8 @@ public:
     for (string &query : queries_vector)
     {
       if (
-          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
-          ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos))
+          ( (query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos ) &&
+          ( (query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) )
       {
         unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
         is_skip_no_rec = false;
@@ -543,7 +568,7 @@ public:
       cerr << optimized_result << "\n";
       cerr << "Unoptimized cmd: \n";
       cerr << unoptimized_cmd_string << "\n";
-      cerr << "Unoptimized results: \n";
+      cerr << "Unoptimized results: \n"; 
       cerr << unoptimized_result << "\n\n\n\n";
     }
     else if (!is_skip_no_rec)
