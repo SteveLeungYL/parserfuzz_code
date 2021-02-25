@@ -2374,6 +2374,12 @@ constraint_type:
 		$$->case_idx_ = CASE2;
 		
 	}
+
+	|   DEFAULT  expr  {
+		$$ = new ConstraintType;
+		$$->case_idx_ = CASE3;
+		$$->expr_ = $2;
+	}
   ;
 
 reference_clause:

@@ -1175,6 +1175,7 @@ public:
 	virtual IR* translate(vector<IR*> &v_ir_collector);
 	virtual void generate();
 
+	Expr * expr_;
 };
 
 class ReferenceClause:public Node {

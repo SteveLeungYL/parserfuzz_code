@@ -4684,17 +4684,22 @@ IR*  ConstraintType::translate(vector<IR *> &v_ir_collector){
 		CASESTART(2)
 		res = new IR(kConstraintType, OP3("UNIQUE","",""));
 		CASEEND
+		CASESTART(3)
+		auto tmp1= SAFETRANSLATE(expr_);
+		res = new IR(kConstraintType, OP3("DEFAULT","",""), tmp1);
+		CASEEND
 	SWITCHEND
 
 	TRANSLATEEND
 }
 
 void ConstraintType::deep_delete(){
+	SAFEDELETE(expr_);
 	delete this;
 };
 
 void ConstraintType::generate(){
-	GENERATESTART(3)
+	GENERATESTART(4)
 
 	SWITCHSTART
 		CASESTART(0)
@@ -4702,6 +4707,10 @@ void ConstraintType::generate(){
 		CASESTART(1)
 		CASEEND
 		CASESTART(2)
+		CASEEND
+		CASESTART(3)
+		expr_ = new Expr();
+		expr_->generate();
 		CASEEND
 	SWITCHEND
 
