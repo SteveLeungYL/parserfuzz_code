@@ -298,7 +298,7 @@ public:
 	virtual IR* translate(vector<IR*> &v_ir_collector);
 	virtual void generate();
 
-	SelectClauseList * select_clause_list_;
+	SelectClause * select_clause_;
 	OptWithClause * opt_with_clause_;
 	OptOrderClause * opt_order_clause_;
 	OptLimitClause * opt_limit_clause_;
@@ -322,10 +322,8 @@ public:
 	virtual void generate();
 
 	OptGroupClause * opt_group_clause_;
-	OptAllOrDistinct * opt_all_or_distinct_;
 	OptFromClause * opt_from_clause_;
 	OptWindowClause * opt_window_clause_;
-	SelectTarget * select_target_;
 	OptWhereClause * opt_where_clause_;
 };
 

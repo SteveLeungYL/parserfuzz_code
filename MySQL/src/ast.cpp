@@ -535,7 +535,7 @@ IR*  SelectNoParens::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
 
 		auto tmp1= SAFETRANSLATE(opt_with_clause_);
-		auto tmp2= SAFETRANSLATE(select_clause_list_);
+		auto tmp2= SAFETRANSLATE(select_clause_);
 		auto tmp3= SAFETRANSLATE(opt_order_clause_);
 		auto tmp4= SAFETRANSLATE(opt_limit_clause_);
 		auto tmp5 = new IR(kUnknown, OP3("","",""), tmp1, tmp2);
@@ -548,7 +548,7 @@ IR*  SelectNoParens::translate(vector<IR *> &v_ir_collector){
 }
 
 void SelectNoParens::deep_delete(){
-	SAFEDELETE(select_clause_list_);
+	SAFEDELETE(select_clause_);
 	SAFEDELETE(opt_with_clause_);
 	SAFEDELETE(opt_order_clause_);
 	SAFEDELETE(opt_limit_clause_);
@@ -560,8 +560,8 @@ void SelectNoParens::generate(){
 
 		opt_with_clause_ = new OptWithClause();
 		opt_with_clause_->generate();
-		select_clause_list_ = new SelectClauseList();
-		select_clause_list_->generate();
+		select_clause_ = new SelectClause();
+		select_clause_->generate();
 		opt_order_clause_ = new OptOrderClause();
 		opt_order_clause_->generate();
 		opt_limit_clause_ = new OptLimitClause();
@@ -638,13 +638,11 @@ CASEEND
 IR*  SelectClause::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
 
-		auto tmp1= SAFETRANSLATE(opt_all_or_distinct_);
-		auto tmp2= SAFETRANSLATE(select_target_);
 		auto tmp3= SAFETRANSLATE(opt_from_clause_);
 		auto tmp4= SAFETRANSLATE(opt_where_clause_);
 		auto tmp5= SAFETRANSLATE(opt_group_clause_);
 		auto tmp6= SAFETRANSLATE(opt_window_clause_);
-		auto tmp7 = new IR(kUnknown, OP3("SELECT","",""), tmp1, tmp2);
+		auto tmp7 = new IR(kUnknown, OP3("SELECT","*",""));
 		PUSH(tmp7);
 		auto tmp8 = new IR(kUnknown, OP3("","",""), tmp7, tmp3);
 		PUSH(tmp8);
@@ -659,10 +657,8 @@ IR*  SelectClause::translate(vector<IR *> &v_ir_collector){
 
 void SelectClause::deep_delete(){
 	SAFEDELETE(opt_group_clause_);
-	SAFEDELETE(opt_all_or_distinct_);
 	SAFEDELETE(opt_from_clause_);
 	SAFEDELETE(opt_window_clause_);
-	SAFEDELETE(select_target_);
 	SAFEDELETE(opt_where_clause_);
 	delete this;
 };
@@ -670,10 +666,6 @@ void SelectClause::deep_delete(){
 void SelectClause::generate(){
 	GENERATESTART(1)
 
-		opt_all_or_distinct_ = new OptAllOrDistinct();
-		opt_all_or_distinct_->generate();
-		select_target_ = new SelectTarget();
-		select_target_->generate();
 		opt_from_clause_ = new OptFromClause();
 		opt_from_clause_->generate();
 		opt_where_clause_ = new OptWhereClause();

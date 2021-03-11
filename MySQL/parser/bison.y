@@ -589,11 +589,11 @@ select_with_parens:
   ;
 
 select_no_parens:
-	opt_with_clause select_clause_list opt_order_clause opt_limit_clause  {
+	opt_with_clause select_clause opt_order_clause opt_limit_clause  {
 		$$ = new SelectNoParens();
 		$$->case_idx_ = CASE0;
 		$$->opt_with_clause_ = $1;
-		$$->select_clause_list_ = $2;
+		$$->select_clause_ = $2;
 		$$->opt_order_clause_ = $3;
 		$$->opt_limit_clause_ = $4;
 		
@@ -618,15 +618,13 @@ select_clause_list:
   ;
 
 select_clause:
-	SELECT opt_all_or_distinct select_target opt_from_clause opt_where_clause opt_group_clause opt_window_clause  {
+	SELECT OP_MUL opt_from_clause opt_where_clause opt_group_clause opt_window_clause  {
 		$$ = new SelectClause();
 		$$->case_idx_ = CASE0;
-		$$->opt_all_or_distinct_ = $2;
-		$$->select_target_ = $3;
-		$$->opt_from_clause_ = $4;
-		$$->opt_where_clause_ = $5;
-		$$->opt_group_clause_ = $6;
-		$$->opt_window_clause_ = $7;
+		$$->opt_from_clause_ = $3;
+		$$->opt_where_clause_ = $4;
+		$$->opt_group_clause_ = $5;
+		$$->opt_window_clause_ = $6;
 		
 	}
   ;
