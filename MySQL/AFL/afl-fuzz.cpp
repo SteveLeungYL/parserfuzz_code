@@ -65,6 +65,7 @@
 #include <sys/ioctl.h>
 #include <sys/file.h>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <sys/select.h>
@@ -107,6 +108,7 @@ using namespace std;
    really makes no sense to haul them around as function parameters. */
 
 int crash_fd = -1;
+int bug_output_id = 0;
 
 #define INIT_LIB_PATH "./mysql_initlib"
 #define SAFE_GENERATE_PATH "./safe_generate_type_mysql"
@@ -131,6 +133,19 @@ static long correct_num;
 
 static SQLSTATUS execute_result;
 #endif
+
+extern int ff_debug;
+
+EXP_ST u8 *in_dir, /* Input directory with test cases  */
+    *out_file,     /* File to fuzz, if any             */
+    *out_dir,      /* Working & output directory       */
+    *sync_dir,     /* Synchronization directory        */
+    *sync_id,      /* Fuzzer ID                        */
+    *use_banner,   /* Display banner                   */
+    *in_bitmap,    /* Input bitmap                     */
+    *doc_path,     /* Path to documentation dir        */
+    *target_path,  /* Path to target binary            */
+    *orig_cmdline; /* Original command line            */
 
 deque<char *> g_previous_input;
 class MysqlClient
@@ -352,161 +367,311 @@ public:
   {
     // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 
-    while(query[0] == ' ' || query[0] == '\n' || query[0] == '\t'){  // Delete duplicated whitespace at the beginning.
-        query = query.substr(1, query.size()-1);
+    while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
+    { // Delete duplicated whitespace at the beginning.
+      query = query.substr(1, query.size() - 1);
     }
-    
+
     size_t select_position = 0;
     size_t from_position = -1;
     size_t where_position = -1;
-    
+    size_t group_by_position = -1;
+    size_t order_by_position = -1;
+
     vector<size_t> op_lp_v;
     vector<size_t> op_rp_v;
-    
+
     size_t tmp1 = 0, tmp2 = 0;
-    while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos){
-        op_lp_v.push_back(tmp1);
-        tmp1++;
-        if (tmp1 == query.size()){
-            break;
-        }
+    while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos)
+    {
+      op_lp_v.push_back(tmp1);
+      tmp1++;
+      if (tmp1 == query.size())
+      {
+        break;
+      }
     }
-    while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos){
-        op_rp_v.push_back(tmp2);
-        tmp2++;
-        if (tmp2 == query.size()){
-            break;
-        }
+    while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos)
+    {
+      op_rp_v.push_back(tmp2);
+      tmp2++;
+      if (tmp2 == query.size())
+      {
+        break;
+      }
     }
-    
-    if (op_lp_v.size() != op_rp_v.size()) {  // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+
+    if (op_lp_v.size() != op_rp_v.size())
+    { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+      op_lp_v.clear();
+      op_rp_v.clear();
+    }
+
+    for (int i = 0; i < op_lp_v.size(); i++)
+    { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+      if (op_lp_v[i] > op_rp_v[i])
+      {
         op_lp_v.clear();
         op_rp_v.clear();
+      }
     }
-    
-    for (int i = 0; i < op_lp_v.size(); i++){  // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-        if (op_lp_v[i] > op_rp_v[i]){
-            op_lp_v.clear();
-            op_rp_v.clear();
-        }
-    }
-    
-    tmp1 = -1; tmp2 = -1;
-    
-    tmp1 = query.find("SELECT", 0);   // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
+
+    tmp1 = -1;
+    tmp2 = -1;
+
+    tmp1 = query.find("SELECT", 0); // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
     tmp2 = query.find("select", 0);
-    if (tmp1 != string::npos){
-        select_position = tmp1;
+    if (tmp1 != string::npos)
+    {
+      select_position = tmp1;
     }
-    if (tmp2 != string::npos && tmp2 < tmp1){
-        select_position = tmp2;
+    if (tmp2 != string::npos && tmp2 < tmp1)
+    {
+      select_position = tmp2;
     }
-    
-    
-    
-    tmp1 = 0; tmp2 = 0; from_position = -1;
-    
-    do {
-        if (tmp1 != string::npos) tmp1 = query.find("FROM", tmp1 + 4);
-        if (tmp2 != string::npos) tmp2 = query.find("from", tmp2 + 4);
-        
-        if (tmp1 != string::npos){
-            bool is_ignore = false;
-            for (int i = 0; i < op_lp_v.size(); i++){
-                if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i]) {
-                    is_ignore = true;
-                    break;
-                }
-            }
-            if (!is_ignore) {
-              from_position = tmp1;
-              break;  // from_position is found. Break the outter do...while loop. 
-            }
+
+    tmp1 = 0;
+    tmp2 = 0;
+    from_position = -1;
+
+    do
+    {
+      if (tmp1 != string::npos)
+        tmp1 = query.find("FROM", tmp1 + 4);
+      if (tmp2 != string::npos)
+        tmp2 = query.find("from", tmp2 + 4);
+
+      if (tmp1 != string::npos)
+      {
+        bool is_ignore = false;
+        for (int i = 0; i < op_lp_v.size(); i++)
+        {
+          if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
+          {
+            is_ignore = true;
+            break;
+          }
         }
-        
-        if (tmp2 != string::npos){
-            bool is_ignore = false;
-            for (int i = 0; i < op_lp_v.size(); i++){
-                if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i]) {
-                    is_ignore = true;
-                    break;
-                }
-            }
-            if (!is_ignore) {
-              from_position = tmp2;
-              break; // from_position is found. Break the outter do...while loop. 
-            }
+        if (!is_ignore)
+        {
+          from_position = tmp1;
+          break; // from_position is found. Break the outter do...while loop.
         }
-        
+      }
+
+      if (tmp2 != string::npos)
+      {
+        bool is_ignore = false;
+        for (int i = 0; i < op_lp_v.size(); i++)
+        {
+          if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
+          {
+            is_ignore = true;
+            break;
+          }
+        }
+        if (!is_ignore)
+        {
+          from_position = tmp2;
+          break; // from_position is found. Break the outter do...while loop.
+        }
+      }
+
     } while (tmp1 != string::npos || tmp2 != string::npos);
-    
-    
-    
-    tmp1 = 0; tmp2 = 0; where_position = -1;
-    
-    do {
-        if (tmp1 != string::npos) tmp1 = query.find("WHERE", tmp1 + 5);
-        if (tmp2 != string::npos) tmp2 = query.find("where", tmp2 + 5);
-        
-        if (tmp1 != string::npos){
-            bool is_ignore = false;
-            for (int i = 0; i < op_lp_v.size(); i++){
-                if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i]) {
-                    is_ignore = true;
-                    break;
-                }
-            }
-            if (!is_ignore) {
-              where_position = tmp1;
-              break; // where_position is found. Break the outter do...while loop. 
-            }
+
+    tmp1 = 0;
+    tmp2 = 0;
+    where_position = -1;
+
+    do
+    {
+      if (tmp1 != string::npos)
+        tmp1 = query.find("WHERE", tmp1 + 5);
+      if (tmp2 != string::npos)
+        tmp2 = query.find("where", tmp2 + 5);
+
+      if (tmp1 != string::npos)
+      {
+        bool is_ignore = false;
+        for (int i = 0; i < op_lp_v.size(); i++)
+        {
+          if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
+          {
+            is_ignore = true;
+            break;
+          }
         }
-        
-        if (tmp2 != string::npos){
-            bool is_ignore = false;
-            for (int i = 0; i < op_lp_v.size(); i++){
-                if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i]) {
-                    is_ignore = true;
-                    break;
-                }
-            }
-            if (!is_ignore) {
-              where_position = tmp2;
-              break; // where_position is found. Break the outter do...while loop. 
-            }
+        if (!is_ignore)
+        {
+          where_position = tmp1;
+          break; // where_position is found. Break the outter do...while loop.
         }
-        
+      }
+
+      if (tmp2 != string::npos)
+      {
+        bool is_ignore = false;
+        for (int i = 0; i < op_lp_v.size(); i++)
+        {
+          if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
+          {
+            is_ignore = true;
+            break;
+          }
+        }
+        if (!is_ignore)
+        {
+          where_position = tmp2;
+          break; // where_position is found. Break the outter do...while loop.
+        }
+      }
+
     } while (tmp1 != string::npos || tmp2 != string::npos);
-    
+
+    /*** Taking care of GROUP BY stmt.   ***/
+    tmp1 = -1, tmp2 = -1;
+    size_t tmp = 0;
+    while ((tmp = query.find("GROUP BY", tmp + 8)) &&
+          (tmp != string::npos)  )
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore){
+        tmp1 = tmp;
+      }
+    } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+
+    tmp = -8;
+    while ((tmp = query.find("group by", tmp+8)) &&
+          (tmp != string::npos)   )
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore){
+        tmp2 = tmp;
+      }
+    } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+    if (tmp1 != string::npos)
+    {
+      group_by_position = tmp1;
+    }
+    if (tmp2 != string::npos && tmp2 > tmp1)
+    {
+      group_by_position = tmp2;
+    }
+
+    /*** Taking care of ORDER BY stmt.   ***/
+    tmp1 = -1, tmp2 = -1;
+    tmp = -8;
+    while ((tmp = query.find("ORDER BY", tmp + 8)) && 
+          (tmp != string::npos) )
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore){
+        tmp1 = tmp;
+      }
+    } // The last ORDER BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+    tmp = -8;
+    while ((tmp = query.find("order by", tmp+8))  && 
+          (tmp != string::npos)  )
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore){
+        tmp2 = tmp;
+      }
+    } // The last order by statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+    if (tmp1 != string::npos)
+    {
+      order_by_position = tmp1;
+    }
+    if (tmp2 != string::npos && tmp2 > tmp1)
+    {
+      order_by_position = tmp2;
+    }
+
+    size_t extra_stmt_position = -1;
+    if (group_by_position != string::npos && order_by_position != string::npos)
+      extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position );
+    else if (group_by_position != string::npos)
+      extra_stmt_position = group_by_position;
+    else if (order_by_position != string::npos)
+      extra_stmt_position = order_by_position;
+
+
     string before_select_stmt;
     string select_stmt;
     string from_stmt;
     string where_stmt;
-    
+    string extra_stmt;
+
     before_select_stmt = query.substr(0, select_position - 0);
-    
+
     select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
-    
+
     if (from_position == -1)
-        from_stmt = "";
+      from_stmt = "";
     else
-        from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
-    
+      from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
+
     if (where_position == -1)
-        where_stmt = "";
+      where_stmt = "";
+    else if (extra_stmt_position == -1)
+      where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
     else
-        where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
-    
+      where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
+
+    if (extra_stmt_position == -1)
+      extra_stmt = "";
+    else
+      extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
+
     if (select_stmt.find('*') != string::npos)
-        select_stmt = "";
-    
+      select_stmt = "";
+
     string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
-    if (select_stmt != "" && select_stmt != " "){
-        rewrited_string += "  AND  " + select_stmt;
+    if (select_stmt != "" && select_stmt != " ")
+    {
+      rewrited_string += "  AND  " + select_stmt;
     }
     rewrited_string += " ) != 0) ";
-    if (from_stmt != ""){
-        rewrited_string += " FROM " + from_stmt;
+    if (from_stmt != "")
+    {
+      rewrited_string += " FROM " + from_stmt;
+    }
+
+    if (extra_stmt != "")
+    {
+      rewrited_string += extra_stmt;
     }
 
     // The ";" is being taken care of after returnning from the rewrite function
@@ -568,8 +733,10 @@ public:
     for (string &query : queries_vector)
     {
       if (
-          ( (query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos ) &&
-          ( (query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) )
+          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
+          ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&
+          ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)
+          )
       {
         unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
         is_skip_no_rec = false;
@@ -611,7 +778,7 @@ public:
 
       reset_database();
 
-    /* Optimized */
+      /* Optimized */
 
       optimization_cmd = get_optimization_string(false, true, true);
       server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
@@ -651,6 +818,12 @@ public:
       reset_database();
     }
 
+    cerr << "Currently running: (DEBUG): \n";
+    cerr << "Optimized_cmd_string: \n"
+         << optimized_cmd_string << "\n";
+    cerr << "Unoptimized_cmd_string: \n"
+         << unoptimized_cmd_string << "\n";
+
     if (optimized_result != unoptimized_result && !is_skip_no_rec)
     {
       cerr << "\n\n\n-------------------------------------------\n";
@@ -661,8 +834,21 @@ public:
       cerr << optimized_result << "\n";
       cerr << "Unoptimized cmd: \n";
       cerr << unoptimized_cmd_string << "\n";
-      cerr << "Unoptimized results: \n"; 
+      cerr << "Unoptimized results: \n";
       cerr << unoptimized_result << "\n\n\n\n";
+
+      ofstream outputfile;
+      // string bug_output_dir = (char*)out_dir;
+      string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
+      cerr << "Bug output dir is: " << bug_output_dir << endl;
+      outputfile.open(bug_output_dir);
+      outputfile << "Optimized cmd: \n";
+      outputfile << optimized_cmd_string << "\n";
+      outputfile << "Unoptimized cmd: \n";
+      outputfile << unoptimized_cmd_string << "\n";
+
+      outputfile.close();
+      bug_output_id++;
     }
     else if (!is_skip_no_rec)
     {
@@ -995,17 +1181,6 @@ IR *g_current_ir = NULL;
 MysqlClient g_mysqlclient((char *)"localhost", (char *)"root", NULL);
 
 //MysqlClient g_psql_client;
-
-EXP_ST u8 *in_dir, /* Input directory with test cases  */
-    *out_file,     /* File to fuzz, if any             */
-    *out_dir,      /* Working & output directory       */
-    *sync_dir,     /* Synchronization directory        */
-    *sync_id,      /* Fuzzer ID                        */
-    *use_banner,   /* Display banner                   */
-    *in_bitmap,    /* Input bitmap                     */
-    *doc_path,     /* Path to documentation dir        */
-    *target_path,  /* Path to target binary            */
-    *orig_cmdline; /* Original command line            */
 
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
@@ -7537,6 +7712,7 @@ int main(int argc, char **argv)
 {
 
   //test_mutate();
+  ff_debug = 0;
 
   is_server_up = -1;
   s32 opt;
