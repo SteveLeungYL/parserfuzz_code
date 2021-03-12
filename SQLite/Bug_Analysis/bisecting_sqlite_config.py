@@ -1,0 +1,8 @@
+import os
+
+SQLITE_DIR = ""
+SQLITE_BLD_DIR = os.path.join(SQLITE_DIR, "bld")
+
+QUERY_SAMPLE_DIR = ""
+
+COMPILE_THREAD_COUNT = 12
