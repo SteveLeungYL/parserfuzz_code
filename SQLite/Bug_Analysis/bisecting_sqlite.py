@@ -4,6 +4,9 @@ import re
 from git import Repo
 import subprocess
 import re
+import shutil
+
+from git.objects import commit
 from bisecting_sqlite_config import *
 
 
@@ -62,10 +65,21 @@ def _setup_SQLITE_with_commit(hexsha:str):
     if not os.path.isdir(INSTALL_DEST_DIR):  # Not precompiled.
         _checkout_commit(hexsha=hexsha)
         _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR=INSTALL_DEST_DIR)
-    return INSTALL_DEST_DIR
+    elif not os.path.isfile(os.path.join(INSTALL_DEST_DIR, "sqlite3")):  # Probably not compiled completely.
+        print("Warning: For commit: %s, installed dir exists, but sqlite3 is not compiled probably. " % (hexsha))
+        shutil.rmtree(INSTALL_DEST_DIR)
+        _checkout_commit(hexsha=hexsha)
+        _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR=INSTALL_DEST_DIR)
 
-def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:str) -> bool:
+    if os.path.isfile(os.path.join(INSTALL_DEST_DIR, "sqlite3")):  # Compile successfully.
+        return INSTALL_DEST_DIR
+    else:   # Compile failed.
+        return ""
+
+def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:str) -> int:
     INSTALL_DEST_DIR = _setup_SQLITE_with_commit(hexsha=commit_ID)
+    if INSTALL_DEST_DIR == "":
+        return -1  # Failed to compile commit. 
     opt_queries = opt_unopt_queries[0]
     unopt_queries = opt_unopt_queries[1]
     
@@ -73,24 +87,48 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     unopt_result = _execute_queries(queries=unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=True)
     if opt_result == unopt_result:
         print("The result is correct!")
-        return True   # The result is correct.
+        return 1   # The result is correct.
     else:
         print("The result is BUGGY!")
-        return False  # THe result is buggy.
+        return 0  # THe result is buggy.
 
-def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags):
+def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):
     newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
     older_commit_str = ""  # The oldest correct commit.
     for current_tag in reversed(all_tags):   # From the latest tag to the earliest tag.
         current_commit_str = current_tag.commit.hexsha
-        if _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str):  # Execution is correct
-            older_commit_str = current_commit_str
+        current_commit_index = all_commits_str.index(current_commit_str)
+        is_successfully_executed = False
+        is_commit_found = False
+
+        while not is_successfully_executed:
+            current_commit_str = all_commits_str[current_commit_index]
+            if current_commit_str in ignored_commits_str:
+                current_commit_index -= 1
+                continue
+            rn_correctness =  _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str)  # Execution is correct
+            if rn_correctness == 1:
+                older_commit_str = current_commit_str
+                is_successfully_executed = True
+                is_commit_found = True
+                break
+            elif rn_correctness == 0:    # Execution is buggy
+                newer_commit_str = current_commit_str
+                is_successfully_executed = True
+                break
+            else:  # Compilation failed!!!
+                ignored_commits_str.append(current_commit_str)
+                if current_commit_index >= 0:
+                    current_commit_index -= 1
+                else:
+                    print("Error iterating the commit. Return None")
+                    return None
+        if is_commit_found:
             break
-        else:    # Execution is buggy
-            newer_commit_str = current_commit_str
+            
     
     if newer_commit_str == "":
-        print("The latest commit: %s already fix this bug. Opt: %s, unopt: %s. Return None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1]))
+        print("The latest commit: %s already fix this bug. Opt: %s, unopt: %s. Returning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1]))
         return None
     if older_commit_str == "":
         print("Cannot find the bug introduced commit for queries opt: %s, unopt: %s. Returning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
@@ -100,17 +138,38 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags):
     older_commit_index = all_commits_str.index(older_commit_str)
 
     is_buggy_commit_found = False
+    current_ignored_commit_number = 0
 
     while not is_buggy_commit_found:
-        if (newer_commit_index - older_commit_index) <= 1:
+        if (newer_commit_index - older_commit_index - current_ignored_commit_number) <= COMMIT_SEARCH_RANGE:
             is_buggy_commit_found = True
             break
         tmp_commit_index = int((newer_commit_index + older_commit_index) / 2 )
 
-        if _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=all_commits_str[tmp_commit_index]): # The correct version without the buggy code being added.
-            older_commit_index = tmp_commit_index
-        else:   # The fist buggy version. 
-            newer_commit_index = tmp_commit_index
+        is_successfully_executed = False
+        while not is_successfully_executed:
+            commit_ID = all_commits_str[tmp_commit_index]
+            if commit_ID in ignored_commits_str:  # Ignore unsuccessfully built commits.
+                tmp_commit_index -= 1
+                current_ignored_commit_number += 1
+                if tmp_commit_index <= older_commit_index:  
+                    return all_commits_str[newer_commit_index]
+                continue
+
+            rn_correctness = _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=commit_ID)
+            if rn_correctness == 1:  # The correct version.
+                older_commit_index = tmp_commit_index
+                is_successfully_executed = True
+                break
+            elif rn_correctness == 0:   # The buggy version. 
+                newer_commit_index = tmp_commit_index
+                is_successfully_executed = True
+                break
+            else:
+                ignored_commits_str.append(commit_ID)
+                tmp_commit_index -= 1
+                current_ignored_commit_number += 1
+
     
     if is_buggy_commit_found:
         return all_commits_str[newer_commit_index]
@@ -228,6 +287,7 @@ def cross_compare(all_results):
 repo = Repo(SQLITE_DIR)
 assert not repo.bare
 all_commits_hexsha, all_tags = _get_all_commits(repo=repo)
+ignored_commits_hexsha = []
 
 print("Getting %d number of commits, and %d number of tags. \n" % (len(all_commits_hexsha), len(all_tags)))
 
@@ -237,11 +297,13 @@ all_queries = read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
 all_queries = restructured_and_clean_all_queries(all_queries=all_queries)  # all_queries = [[opt_queries, unopt_queries]]
 
 all_results = []
-for idx, opt_unopt_queries in enumerate(all_queries):
-    first_buggy_commit_ID = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags)
+for idx, opt_unopt_queries in enumerate(all_queries):  # idx is the index for the all_queries struct, not for the all_commits_hexsha and all_tags. 
+    first_buggy_commit_ID = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags, ignored_commits_str = ignored_commits_hexsha)
     if first_buggy_commit_ID != None:
         current_result_l = [idx, first_buggy_commit_ID]
         all_results.append(current_result_l)
+    else:
+        print("For query Opt: %s, Unopt: %s. Error occurs in bug_analysis." % (opt_unopt_queries[0], opt_unopt_queries[1]))
 
 
 all_unique_bug_idx = cross_compare(all_results=all_results)
