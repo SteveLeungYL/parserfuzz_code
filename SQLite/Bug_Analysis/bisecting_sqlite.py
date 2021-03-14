@@ -1,11 +1,8 @@
 import os
 
 import re
-from sqlite.bisecting_sqlite_root.bisecting_sqlite_config import SQLITE_BLD_DIR
 from git import Repo
 import subprocess
-import signal
-import shutil
 import re
 from bisecting_sqlite_config import *
 
@@ -13,12 +10,22 @@ from bisecting_sqlite_config import *
 sqlite_process_id : subprocess.Popen = None
 
 def _get_all_commits(repo:Repo): 
-    # TODO:: Implement starting and ending searched commits.
+
+    repo.git.checkout(SQLITE_BRANCH)
+
     all_commits = repo.iter_commits()
     all_commits_hexsha = []
     for commit in all_commits:
         all_commits_hexsha.append(commit.hexsha)
     all_commits_hexsha.reverse()
+
+    if END_COMMIT_ID != "":
+        end_index = all_commits_hexsha.index(END_COMMIT_ID)
+        all_commits_hexsha = all_commits_hexsha[:end_index]
+    if BEGIN_COMMIT_ID != "":
+        begin_index = all_commits_hexsha.index(BEGIN_COMMIT_ID)
+        all_commits_hexsha = all_commits_hexsha[begin_index:]
+
     all_tags = sorted(repo.tags, key=lambda t: t.commit.committed_date)
     all_tags_output = []
     for tag in all_tags:
@@ -31,7 +38,7 @@ def _checkout_commit(hexsha:str):
     os.chdir(SQLITE_DIR)
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(['git', 'checkout', hexsha], stdout=devnull, stderr=subprocess.STDOUT)
-        subprocess.check_call(['git', 'clean', '-xdf'], stdout=devnull, stderr=subprocess.STDOUT)   # TODO:: Should we clean up the dir?
+        # subprocess.check_call(['git', 'clean', '-xdf'], stdout=devnull, stderr=subprocess.STDOUT)   # TODO:: Should we clean up the dir?
     print("Checkout commit completed. ")
 
 def _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR:str):
@@ -40,7 +47,7 @@ def _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR:str):
     os.chdir(CACHED_INSTALL_DEST_DIR)
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(["../../configure"], stdout=devnull, stderr=subprocess.STDOUT)
-        subprocess.check_call(["make", "-j" + str(COMPILE_THREAD_COUNT)], stdout=devnull, stderr=subprocess.STDOUT)
+        subprocess.check_call(["make", "-j", str(COMPILE_THREAD_COUNT)], stdout=devnull, stderr=subprocess.STDOUT)
     print("Compilation completed. ")
     
 
@@ -62,11 +69,13 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     opt_queries = opt_unopt_queries[0]
     unopt_queries = opt_unopt_queries[1]
     
-    opt_result = _execute_queries(queries=opt_queries, sqlite_install_dir = INSTALL_DEST_DIR)
-    unopt_result = _execute_queries(queries=unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR)
+    opt_result = _execute_queries(queries=opt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=False)
+    unopt_result = _execute_queries(queries=unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=True)
     if opt_result == unopt_result:
+        print("The result is correct!")
         return True   # The result is correct.
     else:
+        print("The result is BUGGY!")
         return False  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags):
@@ -121,14 +130,18 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
         if not is_transformed_no_rec:
             result_str = result[1]
             if result_str != "":
+                print("Opt result is: %s" % (result_str))
                 return result_str.count('\n') + 1  # Results count = newline sym + 1
             else:
+                print("Opt empty results.")
                 return 0    # Empty results.
         else:
             result_str = result[1]
             if result_str != "":
+                print("Unopt result is: %s" % (result_str))
                 return result_str.count('1') # Results count = num of 1.
             else:
+                print("Unopt empty results.")
                 return 0    # Empty results.
 
 
@@ -149,8 +162,8 @@ def restructured_and_clean_all_queries(all_queries):
 
     for queries in all_queries:
         current_queries_in = queries.split('\n')
-        current_opt_queries_out = []
-        current_unopt_queries_out = []
+        current_opt_queries_out = ""
+        current_unopt_queries_out = ""
         is_unopt = False
         for query in current_queries_in:
             if 'Unoptimized cmd' in query:
@@ -158,14 +171,14 @@ def restructured_and_clean_all_queries(all_queries):
                 continue
             if not re.search(r'\w', query):
                 continue
-            if 'Optimized cmd' in query or 'use test' in query or query == ';' or query == ' ' or query == '':
+            if 'Optimized cmd' in query or query == ';' or query == ' ' or query == '' or query == '\n':
                 continue
             # if 'SELECT' in query:
             #     query = "EXPLAIN " + query
             if not is_unopt:
-                current_opt_queries_out.append(query)
+                current_opt_queries_out += query
             else:
-                current_unopt_queries_out.append(query)
+                current_unopt_queries_out += query
         
         output_all_queries.append([current_opt_queries_out, current_unopt_queries_out])
 
