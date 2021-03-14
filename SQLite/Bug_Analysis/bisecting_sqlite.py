@@ -62,28 +62,29 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     opt_queries = opt_unopt_queries[0]
     unopt_queries = opt_unopt_queries[1]
     
-    opt_result = _execute_queries(queries=opt_queries)
-    unopt_result = _execute_queries(queries=unopt_queries)
-    if compare_mysql_results(opt_queries, unopt_result):
-        return True
+    opt_result = _execute_queries(queries=opt_queries, sqlite_install_dir = INSTALL_DEST_DIR)
+    unopt_result = _execute_queries(queries=unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR)
+    if opt_result == unopt_result:
+        return True   # The result is correct.
     else:
-        return False
+        return False  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags):
-    newer_commit_str = ""
-    older_commit_str = ""
+    newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
+    older_commit_str = ""  # The oldest correct commit.
     for current_tag in reversed(all_tags):   # From the latest tag to the earliest tag.
         current_commit_str = current_tag.commit.hexsha
-        if _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str):
+        if _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str):  # Execution is correct
             older_commit_str = current_commit_str
             break
-        else:
+        else:    # Execution is buggy
             newer_commit_str = current_commit_str
     
     if newer_commit_str == "":
-        newer_commit_str = all_commits_str[-1]
+        print("The latest commit: %s already fix this bug. Opt: %s, unopt: %s. Return None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1]))
+        return None
     if older_commit_str == "":
-        print("Cannot find the bug introduced commit for queries opt: %s, unopt: %s. Returning None. " % (opt_unopt_queries[0], opt_unopt_queries[1]))
+        print("Cannot find the bug introduced commit for queries opt: %s, unopt: %s. Returning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
         return None
     
     newer_commit_index = all_commits_str.index(newer_commit_str)
@@ -97,9 +98,9 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags):
             break
         tmp_commit_index = int((newer_commit_index + older_commit_index) / 2 )
 
-        if _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=all_commits_str[tmp_commit_index]):   # The buggy version.
+        if _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=all_commits_str[tmp_commit_index]): # The correct version without the buggy code being added.
             older_commit_index = tmp_commit_index
-        else:   # The correct version without the buggy code being added.
+        else:   # The fist buggy version. 
             newer_commit_index = tmp_commit_index
     
     if is_buggy_commit_found:
@@ -109,9 +110,27 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags):
 
 
 
-def _execute_queries(queries, cnx = None, params = None, is_destructive = True):
+def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:bool = False):
     # TODO:: execute_queries.
-    return results
+    os.chdir(sqlite_install_dir)
+    current_run_cmd = './sqlite3 file::memory: " ' + queries + ' "'
+    result = subprocess.getstatusoutput(current_run_cmd)
+    if result[0] != 0:
+        return None   # Error code found!
+    else:
+        if not is_transformed_no_rec:
+            result_str = result[1]
+            if result_str != "":
+                return result_str.count('\n') + 1  # Results count = newline sym + 1
+            else:
+                return 0    # Empty results.
+        else:
+            result_str = result[1]
+            if result_str != "":
+                return result_str.count('1') # Results count = num of 1.
+            else:
+                return 0    # Empty results.
+
 
 
 def read_queries_from_files(file_directory:str):
@@ -151,10 +170,6 @@ def restructured_and_clean_all_queries(all_queries):
         output_all_queries.append([current_opt_queries_out, current_unopt_queries_out])
 
     return output_all_queries
-
-def compare_sqlite_results(l_result, r_result) -> bool:
-        # TODO:: Implement compare results.
-        return False
 
 
 def cross_compare(all_results):
