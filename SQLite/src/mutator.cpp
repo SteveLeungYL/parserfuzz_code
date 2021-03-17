@@ -509,9 +509,11 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE
 
         if(cur->type_ == kStatementList){
             int size = left_lib[kStatementList].size();
-            auto new_right = deep_copy(left_lib[kStatementList][get_rand_int(size)]);
-            auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
-            return new_res;
+            if (size != 0)  {
+                auto new_right = deep_copy(left_lib[kStatementList][get_rand_int(size)]);
+                auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
+                return new_res;
+            }
         }
 
         if(res->right_ == NULL && res->left_ != NULL){
