@@ -64,8 +64,14 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <sys/file.h>
-
+#include <iostream>
 #include <fstream>
+#include <sstream>
+#include <vector>
+#include <sys/select.h>
+#include <errno.h>
+#include <cassert>
+#include <string>
 #include "../include/ast.h"
 #include "../include/mutator.h"
 #include "../include/define.h"
@@ -151,10 +157,14 @@ EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
            fast_cal;                  /* Try to calibrate faster?         */
 
 static s32 out_fd,                    /* Persistent fd for out_file       */
+           program_output_fd,
            dev_urandom_fd = -1,       /* Persistent fd for /dev/urandom   */
            dev_null_fd = -1,          /* Persistent fd for /dev/null      */
            fsrv_ctl_fd,               /* Fork server control pipe (write) */
            fsrv_st_fd;                /* Fork server status pipe (read)   */
+
+static string program_input_str;      /* String: query used to test sqlite   */
+static string program_output_str;     /* String: query results output from sqlite   */
 
 static s32 forksrv_pid,               /* PID of the fork server           */
            child_pid = -1,            /* PID of the fuzzed program        */
@@ -2059,7 +2069,7 @@ EXP_ST void init_forkserver(char** argv) {
 
     setsid();
 
-    dup2(dev_null_fd, 1);
+    dup2(program_output_fd, 1);
     dup2(dev_null_fd, 2);
 
     if (out_file) {
@@ -2084,6 +2094,7 @@ EXP_ST void init_forkserver(char** argv) {
     close(st_pipe[1]);
 
     close(out_dir_fd);
+    close(program_output_fd);
     close(dev_null_fd);
     close(dev_urandom_fd);
     close(fileno(plot_file));
@@ -2095,21 +2106,21 @@ EXP_ST void init_forkserver(char** argv) {
 
     /* Set sane defaults for ASAN if nothing else specified. */
 
-    setenv("ASAN_OPTIONS", "abort_on_error=1:"
-                           "detect_leaks=0:"
-                           "symbolize=0:"
-                           "allocator_may_return_null=1", 0);
+    // setenv("ASAN_OPTIONS", "abort_on_error=1:"
+    //                        "detect_leaks=0:"
+    //                        "symbolize=0:"
+    //                        "allocator_may_return_null=1", 0);
 
-    /* MSAN is tricky, because it doesn't support abort_on_error=1 at this
-       point. So, we do this in a very hacky way. */
+    // /* MSAN is tricky, because it doesn't support abort_on_error=1 at this
+    //    point. So, we do this in a very hacky way. */
 
-    setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-                           "symbolize=0:"
-                           "abort_on_error=1:"
-                           "allocator_may_return_null=1:"
-                           "msan_track_origins=0", 0);
+    // setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+    //                        "symbolize=0:"
+    //                        "abort_on_error=1:"
+    //                        "allocator_may_return_null=1:"
+    //                        "msan_track_origins=0", 0);
 
-    execv(target_path, argv);
+    execv(target_path, argv);   // Used for start up sqlite3 ???
 
     /* Use a distinctive bitmap signature to tell the parent about execv()
        falling through. */
@@ -2135,6 +2146,8 @@ EXP_ST void init_forkserver(char** argv) {
   setitimer(ITIMER_REAL, &it, NULL);
 
   rlen = read(fsrv_st_fd, &status, 4);
+  child_pid = status;
+  assert(child_pid != -1);
 
   it.it_value.tv_sec = 0;
   it.it_value.tv_usec = 0;
@@ -2278,6 +2291,21 @@ EXP_ST void init_forkserver(char** argv) {
 
 }
 
+static void read_sqlite_output_and_reset_output_file() {
+  program_output_str = "";
+  lseek(program_output_fd, 0, SEEK_SET);
+  char output_buf[1]; 
+  while (read(program_output_fd, output_buf, 1) && output_buf != '\0'){
+    program_output_str += output_buf;
+  }
+  lseek(program_output_fd, 0, SEEK_SET);
+  ftruncate(program_output_fd, 0);
+  lseek(program_output_fd, 0, SEEK_SET);
+
+  cerr << "Current output is: \n" << program_output_str << endl;
+  return;
+}
+
 
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
@@ -2340,7 +2368,7 @@ static u8 run_target(char** argv, u32 timeout) {
 
       setsid();
 
-      dup2(dev_null_fd, 1);
+      dup2(program_output_fd, 1);
       dup2(dev_null_fd, 2);
 
       if (out_file) {
@@ -2358,19 +2386,20 @@ static u8 run_target(char** argv, u32 timeout) {
 
       close(dev_null_fd);
       close(out_dir_fd);
+      close(program_output_fd);
       close(dev_urandom_fd);
       close(fileno(plot_file));
 
       /* Set sane defaults for ASAN if nothing else specified. */
 
-      setenv("ASAN_OPTIONS", "abort_on_error=1:"
-                             "detect_leaks=0:"
-                             "symbolize=0:"
-                             "allocator_may_return_null=1", 0);
+      // setenv("ASAN_OPTIONS", "abort_on_error=1:"
+      //                        "detect_leaks=0:"
+      //                        "symbolize=0:"
+      //                        "allocator_may_return_null=1", 0);
 
-      setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-                             "symbolize=0:"
-                             "msan_track_origins=0", 0);
+      // setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+      //                        "symbolize=0:"
+      //                        "msan_track_origins=0", 0);
 
       execv(target_path, argv);
 
@@ -2474,13 +2503,13 @@ static u8 run_target(char** argv, u32 timeout) {
 
   }
 
-  /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
-     must use a special exit code. */
+  // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
+  //    must use a special exit code. */
 
-  if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
-    kill_signal = 0;
-    return FAULT_CRASH;
-  }
+  // if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
+  //   kill_signal = 0;
+  //   return FAULT_CRASH;
+  // }
 
   if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
     return FAULT_ERROR;
@@ -2610,6 +2639,15 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
     write_to_testcase(use_mem, q->len);
 
     fault = run_target(argv, use_tmout);
+    program_input_str = "";
+    program_input_str += "current input: ";
+    for (int output_index = 0; output_index < q->len; output_index++){
+      program_input_str += use_mem[output_index];
+    }
+    cerr << program_input_str << endl;
+    read_sqlite_output_and_reset_output_file();
+
+
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3257,6 +3295,13 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         u8 new_fault;
         write_to_testcase(mem, len);
         new_fault = run_target(argv, hang_tmout);
+        program_input_str = "";
+        program_input_str += "current input: ";
+        for (int output_index = 0; output_index < len; output_index++){
+          program_input_str += ((char*)mem)[output_index];
+        } 
+        cerr << program_input_str << endl;
+        read_sqlite_output_and_reset_output_file();
 
         /* A corner case that one user reported bumping into: increasing the
            timeout actually uncovers a crash. Make sure we don't discard it if
@@ -4591,6 +4636,13 @@ static void show_stats(void) {
           write_with_gap(in_buf, q->len, remove_pos, trim_avail);
 
           fault = run_target(argv, exec_tmout);
+          program_input_str = "";
+          program_input_str += "current input: ";
+          for (int output_index = 0; output_index < q->len; output_index++){
+            program_input_str += in_buf[output_index];
+          }
+          cerr << program_input_str << endl;
+          read_sqlite_output_and_reset_output_file();
           trim_execs++;
 
           if (stop_soon || fault == FAULT_ERROR) goto abort_trimming;
@@ -4680,10 +4732,16 @@ static void show_stats(void) {
         if (!out_buf || !len) return 0;
 
       }
-
       write_to_testcase(out_buf, len);
       //fault = 0;
       fault = run_target(argv, exec_tmout);
+      program_input_str = "";
+      program_input_str += "current input: ";
+      for (int output_index = 0; output_index < len; output_index++){
+        program_input_str += out_buf[output_index];
+      }
+      cerr << program_input_str << endl;
+      read_sqlite_output_and_reset_output_file();
         
       if (stop_soon) return 1;
 
@@ -5160,7 +5218,8 @@ static void show_stats(void) {
       //[modify] add
       stage_name = "niubi_mutate";
 
-      int skip_count = 0;
+      int skip_count;
+      skip_count = 0;
       input = (const char *)out_buf;
       program_root = parser(input);
       if(program_root == NULL){
@@ -5347,6 +5406,13 @@ static void show_stats(void) {
         write_to_testcase(mem, st.st_size);
 
         fault = run_target(argv, exec_tmout);
+        program_input_str = "";
+        program_input_str += "current input: ";
+        for (int output_index = 0; output_index < st.st_size; output_index++){
+          program_input_str += mem[output_index];
+        }
+        cerr << program_input_str << endl;
+        read_sqlite_output_and_reset_output_file();
 
         if (stop_soon) return;
 
@@ -5827,12 +5893,18 @@ EXP_ST void setup_stdio_file(void) {
   u8* fn = alloc_printf("%s/.cur_input", out_dir);
 
   unlink(fn); /* Ignore errors */
-
   out_fd = open(fn, O_RDWR | O_CREAT | O_EXCL, 0600);
 
+  u8* fn2 = alloc_printf("%s/.cur_output", out_dir);
+
+  unlink(fn2); /* Ignore errors */
+  program_output_fd = open(fn2, O_RDWR | O_CREAT | O_EXCL | O_TRUNC, 0600);
+
   if (out_fd < 0) PFATAL("Unable to create '%s'", fn);
+  if (program_output_fd < 0) PFATAL("Unable to create '%s'", fn2);
 
   ck_free(fn);
+  ck_free(fn2);
 
 }
 
