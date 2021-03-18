@@ -194,8 +194,8 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
         else:
             result_str = result[1]
             if result_str != "":
-                print("Unopt result is: %s" % (result_str))
-                return result_str.count('1') # Results count = num of 1.
+                print("Unopt result is: %d" % (int(result_str)))
+                return int(result_str) # Results count = num of 1.
             else:
                 print("Unopt empty results.")
                 return 0    # Empty results.

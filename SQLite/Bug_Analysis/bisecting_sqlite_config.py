@@ -7,7 +7,7 @@ SQLITE_BRANCH = 'master'
 QUERY_SAMPLE_DIR = "/home/sqlite/sqlite/bisecting_sqlite_root/query_samples"  # Change to your own query_samples dir.
 
 COMPILE_THREAD_COUNT = 12
-COMMIT_SEARCH_RANGE = 10
+COMMIT_SEARCH_RANGE = 1
 
 BEGIN_COMMIT_ID = ""  # INCLUDED!!!   Earlier commit.
-END_COMMIT_ID = "9cb02640419614ae3771ebbffce076474380029b"   # EXCLUDED!!!   Later commit.
+END_COMMIT_ID = ""   # EXCLUDED!!!   Later commit.
