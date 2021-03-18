@@ -227,8 +227,10 @@ string Mutator::validate(IR * root){
     if(root == NULL) return "";
     try{
         string sql_str = root->to_string();
+        // cerr << "Mutated query string: " << sql_str << endl << endl;
         auto parsed_ir = parser(sql_str);
         if(parsed_ir == NULL)
+            // cerr << "Mutated query not passing parser!!!" << endl << endl;
             return "";
         parsed_ir->deep_delete();
 
@@ -236,6 +238,7 @@ string Mutator::validate(IR * root){
         vector<IR*> ordered_ir;
         auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
         fix_graph(graph, root, ordered_ir);
+        // cerr << "Mutated query ISSSSS  passing parser!!!" << endl << endl;
         return fix(root);
     }catch(...){
         // invalid sql , skip
