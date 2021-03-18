@@ -926,8 +926,13 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE
                 if(type_ == kCmdPragma){  
                     string res = "PRAGMA ";
                     int lib_size = cmds_.size();
-                    string &key = cmds_[get_rand_int(lib_size)];
-                    res += key;
+                    string key = "";
+                    if ( lib_size != 0 ){
+                        key = cmds_[get_rand_int(lib_size)];
+                        res += key;
+                    } else {
+                        return "";
+                    }
 
                     int value_size = m_cmd_value_lib_[key].size();
                     string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
