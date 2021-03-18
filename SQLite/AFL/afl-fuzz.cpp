@@ -2864,12 +2864,12 @@ string rewrite_query_by_No_Rec(string query)
   if (select_stmt.find('*') != string::npos)
     select_stmt = "";
 
-  string rewrited_string = before_select_stmt + " SELECT " + where_stmt;
+  string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
   if (select_stmt != "" && select_stmt != " ")
   {
     rewrited_string += "  AND  " + select_stmt;
   }
-  // rewrited_string += " ) != 0) ";
+  rewrited_string += " ) != 0) ";
   if (from_stmt != "")
   {
     rewrited_string += " FROM " + from_stmt;
@@ -2886,7 +2886,19 @@ string rewrite_query_by_No_Rec(string query)
 
 bool compare_No_Rec_result(string optimized_result_str, string unoptimized_result_str){
   int optimized_result_int = std::count(optimized_result_str.begin(), optimized_result_str.end(), '\n');
-  int unoptimized_result_int = std::count(unoptimized_result_str.begin(), unoptimized_result_str.end(), '1');
+  // int unoptimized_result_int = std::count(unoptimized_result_str.begin(), unoptimized_result_str.end(), '1');
+  int unoptimized_result_int = 0;
+  if (unoptimized_result_str != "")
+  {
+    try
+    {
+      unoptimized_result_int = stoi(unoptimized_result_str);
+    }
+    catch (std::invalid_argument &e)
+    {
+      unoptimized_result_int = 0;
+    }
+  }
 
   // cout << "Optimized_result_int is: " << optimized_result_int << " ; unoptimized_result_int is: " << unoptimized_result_int << ". " << endl;
 
