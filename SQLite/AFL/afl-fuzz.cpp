@@ -2864,12 +2864,12 @@ string rewrite_query_by_No_Rec(string query)
   if (select_stmt.find('*') != string::npos)
     select_stmt = "";
 
-  string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
+  string rewrited_string = before_select_stmt + " SELECT SUM(CAST((" + where_stmt;
   if (select_stmt != "" && select_stmt != " ")
   {
     rewrited_string += "  AND  " + select_stmt;
   }
-  rewrited_string += " ) != 0) ";
+  rewrited_string += ") AS BOOL)!=0) ";
   if (from_stmt != "")
   {
     rewrited_string += " FROM " + from_stmt;
