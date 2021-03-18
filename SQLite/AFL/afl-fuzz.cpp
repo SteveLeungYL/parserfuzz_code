@@ -2917,7 +2917,8 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
 
   string optimized_result_string = "", unoptimized_result_string = "";
 
-  bool is_skip_no_rec = true;
+  bool is_skip_no_rec = true;  // = true in case there are no select stmt in the query, directly skip the current query pairs.
+  bool is_first_select = true;   // used to mark whether there are multiple select stmt in the query pairs, if yes, ignore the current query pairs.
 
   /* Unoptimized */
   string unoptimized_cmd_string = "";
@@ -2925,17 +2926,34 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
 
   for (string &query : queries_vector)
   {
-    if (
-        ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
-        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&
+    if(
+        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&    // This is a SELECT stmt. Not INSERT or UPDATE stmts.
         ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
-        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos))
+        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)   )
     {
-      unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
-      is_skip_no_rec = false;
+      if(
+          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&    // This is a SELECT stmt that matching the requirments of NoREC.
+          ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)  ){
+            unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";    // Rewrite query to NoREC stmt.
+            if (is_first_select){             // This is the first select stmt. Valid!!! Confirming NoREC execution if no further SELECT stmt presented!!!
+              is_skip_no_rec = false;
+              is_first_select = false;
+            } else {
+              is_skip_no_rec = true;        // Found multiple select stmt. Ignore the current query pairs.
+            }
+      }
+      else if (is_first_select){
+        is_first_select = false;       // Found a SELECT stmt that is not matching the requirement of NoREC. Mark the select. Ignore the current query pairs.
+        is_skip_no_rec = true;
+        unoptimized_cmd_string += query + "; \n";
+      }
+      else{
+        is_skip_no_rec = true;  // Found multiple select stmt. Ignore the current query pairs.
+        unoptimized_cmd_string += query + "; \n";
+      }
     }
     else
-      unoptimized_cmd_string += query + "; \n";
+      unoptimized_cmd_string += query + "; \n";  // Not a SELECT stmt, push into the query string list as usual.
   }
 
   if (!is_skip_no_rec)
