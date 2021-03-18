@@ -2072,7 +2072,7 @@ EXP_ST void init_forkserver(char** argv) {
     setsid();
 
     dup2(program_output_fd, 1);
-    dup2(dev_null_fd, 2);
+    dup2(program_output_fd, 2);   // Redirect stdout and stderr to the output file.
 
     if (out_file) {
 
@@ -2884,7 +2884,13 @@ string rewrite_query_by_No_Rec(string query)
   return rewrited_string;
 }
 
-bool compare_No_Rec_result(string optimized_result_str, string unoptimized_result_str){
+int compare_No_Rec_result(string optimized_result_str, string unoptimized_result_str){
+  size_t opt_error = optimized_result_str.find("Error");
+  size_t unopt_error = unoptimized_result_str.find("Error");
+  if (opt_error != string::npos || unopt_error != string::npos) {
+        return -1;  // If 'Error' is return. Then ignore this query pairs. Return -1.
+  }
+
   int optimized_result_int = std::count(optimized_result_str.begin(), optimized_result_str.end(), '\n');
   // int unoptimized_result_int = std::count(unoptimized_result_str.begin(), unoptimized_result_str.end(), '1');
   int unoptimized_result_int = 0;
@@ -2902,8 +2908,8 @@ bool compare_No_Rec_result(string optimized_result_str, string unoptimized_resul
 
   // cout << "Optimized_result_int is: " << optimized_result_int << " ; unoptimized_result_int is: " << unoptimized_result_int << ". " << endl;
 
-  if (optimized_result_int == unoptimized_result_int) return true;
-  else return false;
+  if (optimized_result_int == unoptimized_result_int) return 1;
+  else return 0;
 }
 
 u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmout)
@@ -2922,6 +2928,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     if (
         ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
         ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&
+        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
         ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos))
     {
       unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
@@ -3010,7 +3017,9 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   // cerr << "Unoptimized_cmd_string: \n"
   //      << unoptimized_cmd_string << "\n";
 
-  if (!compare_No_Rec_result(optimized_result_string, unoptimized_result_string) && !is_skip_no_rec)
+  int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string);
+
+  if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
     // cerr << "\n\n\n-------------------------------------------\n";
     // cerr << "Result unmatched! \n";
@@ -3042,7 +3051,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
 
     cerr << "E";
   }
-  else if (!is_skip_no_rec)
+  else if (!is_skip_no_rec && compare_No_Rec_result_int == 1)
   {
     cerr << "P";
   }
