@@ -6,6 +6,10 @@ SQLITE_BRANCH = 'master'
 
 QUERY_SAMPLE_DIR = "/home/sqlite/sqlite/bisecting_sqlite_root/query_samples"  # Change to your own query_samples dir.
 
+LOG_OUTPUT_DIR = "/home/sqlite/sqlite/bisecting_sqlite_root"
+LOG_OUTPUT_FILE = os.path.join(LOG_OUTPUT_DIR, "bisecting_sqlite_log.txt")
+UNIQUE_BUG_OUTPUT_DIR = os.path.join(LOG_OUTPUT_DIR, "UniqBug_output")
+
 COMPILE_THREAD_COUNT = 12
 COMMIT_SEARCH_RANGE = 1
 

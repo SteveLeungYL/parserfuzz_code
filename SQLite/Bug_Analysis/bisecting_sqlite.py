@@ -5,6 +5,7 @@ from git import Repo
 import subprocess
 import re
 import shutil
+import time
 
 from git.objects import commit
 from bisecting_sqlite_config import *
@@ -41,7 +42,7 @@ def _checkout_commit(hexsha:str):
     os.chdir(SQLITE_DIR)
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(['git', 'checkout', hexsha, "--force"], stdout=devnull, stderr=subprocess.STDOUT)
-    print("Checkout commit completed. ")
+    log_output.write("Checkout commit completed. \n")
 
 def _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR:str):
     if not os.path.isdir(CACHED_INSTALL_DEST_DIR):
@@ -50,24 +51,24 @@ def _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR:str):
     with open(os.devnull, 'wb') as devnull:
         result = subprocess.getstatusoutput("chmod +x ../../configure")
         if result[0] != 0:
-            print("Compilation failed. Reason: %s. \n" % (result[1]))
+            log_output.write("Compilation failed. Reason: %s. \n" % (result[1]))
 
         result = subprocess.getstatusoutput("../../configure")
         if result[0] != 0:
-            print("Compilation failed. Reason: %s. \n" % (result[1]))
+            log_output.write("Compilation failed. Reason: %s. \n" % (result[1]))
             return -1
         
         result = subprocess.getstatusoutput("make -j" + str(COMPILE_THREAD_COUNT))
         if result[0] != 0:
-            print("Compilation failed. Reason: %s. \n" % (result[1]))
+            log_output.write("Compilation failed. Reason: %s. \n" % (result[1]))
             return -1
-    print("Compilation completed. ")
+    log_output.write("Compilation completed. ")
     return 0
     
 
 
 def _setup_SQLITE_with_commit(hexsha:str):
-    print("Setting up SQLite3 with commitID: %s" % (hexsha))
+    log_output.write("Setting up SQLite3 with commitID: %s. \n" % (hexsha))
     if not os.path.isdir(SQLITE_BLD_DIR):
         os.mkdir(SQLITE_BLD_DIR)
     INSTALL_DEST_DIR = os.path.join(SQLITE_BLD_DIR, hexsha)
@@ -77,7 +78,7 @@ def _setup_SQLITE_with_commit(hexsha:str):
         if result != 0:
             return ""  # Compile failed.
     elif not os.path.isfile(os.path.join(INSTALL_DEST_DIR, "sqlite3")):  # Probably not compiled completely.
-        print("Warning: For commit: %s, installed dir exists, but sqlite3 is not compiled probably. " % (hexsha))
+        log_output.write("Warning: For commit: %s, installed dir exists, but sqlite3 is not compiled probably. " % (hexsha))
         shutil.rmtree(INSTALL_DEST_DIR)
         _checkout_commit(hexsha=hexsha)
         result = _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR=INSTALL_DEST_DIR)
@@ -99,13 +100,13 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     opt_result = _execute_queries(queries=opt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=False)
     unopt_result = _execute_queries(queries=unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=True)
     if opt_result == None or unopt_result == None:
-        print("Getting results error!")
+        log_output.write("Getting results error!")
         return -1
     if opt_result == unopt_result:
-        print("The result is correct! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
+        log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
         return 1   # The result is correct.
     else:
-        print("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
+        log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
         return 0  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):   # Returns Bug introduce commit_ID:str, is_error_result:bool
@@ -139,22 +140,22 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 is_commit_found = True
                 is_error_result = True
                 break
-            else:  # Compilation failed!!!
+            else:  # Compilation failed!!!  rn_correctness == -2
                 ignored_commits_str.append(current_commit_str)
                 if current_commit_index > 0:
                     current_commit_index -= 1
                 else:
-                    print("Error iterating the commit. Returning None")
+                    log_output.write("Error iterating the commit. Returning None")
                     return None, False
         if is_commit_found:
             break
             
     
     if newer_commit_str == "":
-        print("The latest commit: %s already fix this bug. Opt: %s, unopt: %s. Returning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1]))
+        log_output.write("The latest commit: %s already fix this bug. \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1]))
         return None, False
     if older_commit_str == "":
-        print("Cannot find the bug introduced commit for queries opt: %s, unopt: %s. Returning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
+        log_output.write("Cannot find the bug introduced commit for queries opt: %s, unopt: %s. Returning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
         return None, False
     
     newer_commit_index = all_commits_str.index(newer_commit_str)
@@ -214,27 +215,27 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
     current_run_cmd = './sqlite3 file::memory: " ' + queries + ' "'
     result = subprocess.getstatusoutput(current_run_cmd)
     if result[0] != 0:
-        print("SQLite3 retunning non-zero: %d. \n" % (result[0]))
+        log_output.write("SQLite3 retunning non-zero: %d. \n" % (result[0]))
         return None   # Error code found!
     elif "Error" in result[1]:
-        print("SQLite3 retunning with Error information: %s. \n" % (result[1]))
+        log_output.write("SQLite3 retunning with Error information: %s. \n" % (result[1]))
         return None   # Error code found!
     else:
         if not is_transformed_no_rec:
             result_str = result[1]
             if result_str != "":
-                print("Opt result is: %s" % (result_str))
+                log_output.write("Opt result is: %s. \n" % (result_str))
                 return result_str.count('\n') + 1  # Results count = newline sym + 1
             else:
-                print("Opt empty results.")
+                log_output.write("Opt empty results. \n")
                 return 0    # Empty results.
         else:
             result_str = result[1]
             if result_str != "":
-                print("Unopt result is: %d" % (int(result_str)))
+                log_output.write("Unopt result is: %d" % (int(result_str)))
                 return int(result_str) # Results count = num of 1.
             else:
-                print("Unopt empty results.")
+                log_output.write("Unopt empty results. \n")
                 return 0    # Empty results.
 
 
@@ -242,7 +243,8 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
 def read_queries_from_files(file_directory:str):
     all_queries = []
     for current_file_d in sorted(os.listdir(file_directory)):
-        print("Filename: " + str(current_file_d))
+        time.sleep(0.1) # Sleep 0.1 seconds, let the afl-fuzz file writing complete. Might not be necessary
+        log_output.write("Filename: " + str(current_file_d) + ". \n")
         current_file = open(os.path.join(file_directory, current_file_d), 'r')
         current_file_str = current_file.read()
         current_file_str = re.sub(r'[^\x00-\x7F]+',' ', current_file_str)
@@ -259,6 +261,8 @@ def restructured_and_clean_all_queries(all_queries):
         current_unopt_queries_out = ""
         is_unopt = False
         for query in current_queries_in:
+            if 'Optimized results' in query or 'Unoptimized results' in query:
+                break
             if 'Unoptimized cmd' in query:
                 is_unopt = True
                 continue
@@ -280,10 +284,10 @@ def restructured_and_clean_all_queries(all_queries):
 
 def cross_compare(all_results):
     if all_results == [] or all_results == None or len(all_results) < 1:
-        print("All results are None.")
+        log_output.write("\nAll results are None. \n\n")
         return None
     elif len(all_results) < 2:
-        print("Very small amount of results got. (=1)")
+        log_output.write("\nVery small amount of results got. (=1)\n")
         return [all_results[0][0]]
     
     idx_l = 0
@@ -318,27 +322,51 @@ def cross_compare(all_results):
 
 ### Bi-sec inplementation
 
+log_output = open(LOG_OUTPUT_FILE, 'w')
+if os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
+    shutil.rmtree(UNIQUE_BUG_OUTPUT_DIR)
+os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
+
+
 repo = Repo(SQLITE_DIR)
 assert not repo.bare
 all_commits_hexsha, all_tags = _get_all_commits(repo=repo)
 ignored_commits_hexsha = []
 
-print("Getting %d number of commits, and %d number of tags. \n" % (len(all_commits_hexsha), len(all_tags)))
+log_output.write("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
+print("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
 
+print("Beginning reading the buggy query files. \n\n")
+log_output.write("Beginning reading the buggy query files. \n\n")
 all_queries = read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
 all_queries = restructured_and_clean_all_queries(all_queries=all_queries)  # all_queries = [[opt_queries, unopt_queries]]
+print("Finished reading the buggy query files. \n\n")
+log_output.write("Finished reading the buggy query files. \n\n")
 
+
+print("Beginning bisecting. \n\n")
+log_output.write("Beginning bisecting. \n\n")
 all_results = []
-for idx, opt_unopt_queries in enumerate(all_queries):  # idx is the index for the all_queries struct, not for the all_commits_hexsha and all_tags. 
+for all_queries_idx, opt_unopt_queries in enumerate(all_queries):  # idx is the index for the all_queries struct, not for the all_commits_hexsha and all_tags. 
     first_buggy_commit_ID, is_error_result = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags, ignored_commits_str = ignored_commits_hexsha)
     if first_buggy_commit_ID != None:
-        current_result_l = [idx, first_buggy_commit_ID]
+        current_result_l = [all_queries_idx, first_buggy_commit_ID, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result]
         all_results.append(current_result_l)
     else:
-        print("For query Opt: %s, Unopt: %s. Error occurs in bug_analysis." % (opt_unopt_queries[0], opt_unopt_queries[1]))
+        pass
+        # log_output.write("For query Opt: %s, Unopt: %s. Error occurs in bug_analysis. \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
+print("Finished bisecting. \n\n")
+log_output.write("Finished bisecting. \n\n")
 
 
-all_unique_bug_idx = cross_compare(all_results=all_results)
+print("Beginning cross_compare. \n\n")
+log_output.write("Beginning cross_compare. \n\n")
+all_unique_bug_idx = cross_compare(all_results=all_results)  # idx for all_results.
 if all_unique_bug_idx is not None:
-    for current_unique_bug_idx in all_unique_bug_idx:
-        print("\n\n\nUnique bug queries: " + str(all_queries[current_unique_bug_idx]) + "\n\n\n")
+    for bug_idx, current_unique_bug_idx in enumerate(all_unique_bug_idx):
+        current_bug_log_file = open(os.path.join( UNIQUE_BUG_OUTPUT_DIR, str(bug_idx) + ".txt" ), 'w')
+        current_bug_log_file.write("\n\n\nUnique bug queries: " + str(all_results[current_unique_bug_idx][3]) + "\n\n\n")
+        current_bug_log_file.close()
+print("Finished cross_compare. \n\n")
+log_output.write("Finished cross_compare. \n\n")
+log_output.close()
