@@ -41,7 +41,6 @@ def _checkout_commit(hexsha:str):
     os.chdir(SQLITE_DIR)
     with open(os.devnull, 'wb') as devnull:
         subprocess.check_call(['git', 'checkout', hexsha], stdout=devnull, stderr=subprocess.STDOUT)
-        # subprocess.check_call(['git', 'clean', '-xdf'], stdout=devnull, stderr=subprocess.STDOUT)   # TODO:: Should we clean up the dir?
     print("Checkout commit completed. ")
 
 def _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR:str):
@@ -57,8 +56,6 @@ def _compile_sqlite_binary(CACHED_INSTALL_DEST_DIR:str):
 
 def _setup_SQLITE_with_commit(hexsha:str):
     print("Setting up SQLite3 with commitID: %s" % (hexsha))
-    # if sqlite_process_id is not None:
-    #     os.killpg(os.getpgid(sqlite_process_id.pid), signal.SIGTERM)
     if not os.path.isdir(SQLITE_BLD_DIR):
         os.mkdir(SQLITE_BLD_DIR)
     INSTALL_DEST_DIR = os.path.join(SQLITE_BLD_DIR, hexsha)
@@ -94,7 +91,7 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):
     newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
-    older_commit_str = ""  # The oldest correct commit.
+    older_commit_str = ""  # The latest correct commit.
     for current_tag in reversed(all_tags):   # From the latest tag to the earliest tag.
         current_commit_str = current_tag.commit.hexsha
         current_commit_index = all_commits_str.index(current_commit_str)
@@ -107,21 +104,21 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 current_commit_index -= 1
                 continue
             rn_correctness =  _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str)  # Execution is correct
-            if rn_correctness == 1:
+            if rn_correctness == 1:   # Execution result is correct.
                 older_commit_str = current_commit_str
                 is_successfully_executed = True
                 is_commit_found = True
                 break
-            elif rn_correctness == 0:    # Execution is buggy
+            elif rn_correctness == 0:    # Execution result is buggy
                 newer_commit_str = current_commit_str
                 is_successfully_executed = True
                 break
             else:  # Compilation failed!!!
                 ignored_commits_str.append(current_commit_str)
-                if current_commit_index >= 0:
+                if current_commit_index > 0:
                     current_commit_index -= 1
                 else:
-                    print("Error iterating the commit. Return None")
+                    print("Error iterating the commit. Returning None")
                     return None
         if is_commit_found:
             break
@@ -290,8 +287,6 @@ all_commits_hexsha, all_tags = _get_all_commits(repo=repo)
 ignored_commits_hexsha = []
 
 print("Getting %d number of commits, and %d number of tags. \n" % (len(all_commits_hexsha), len(all_tags)))
-
-# _setup_MYSQL_with_commit(hexsha="7ed30a748964c009d4909cb8b4b22036ebdef239")
 
 all_queries = read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
 all_queries = restructured_and_clean_all_queries(all_queries=all_queries)  # all_queries = [[opt_queries, unopt_queries]]

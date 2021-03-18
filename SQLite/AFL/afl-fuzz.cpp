@@ -72,6 +72,7 @@
 #include <errno.h>
 #include <cassert>
 #include <string>
+#include <regex>
 #include "../include/ast.h"
 #include "../include/mutator.h"
 #include "../include/define.h"
@@ -165,6 +166,8 @@ static s32 out_fd,                    /* Persistent fd for out_file       */
 
 static string program_input_str;      /* String: query used to test sqlite   */
 static string program_output_str;     /* String: query results output from sqlite   */
+
+int bug_output_id = 0;
 
 static s32 forksrv_pid,               /* PID of the fork server           */
            child_pid = -1,            /* PID of the fuzzed program        */
@@ -806,7 +809,6 @@ static void mark_as_redundant(struct queue_entry* q, u8 state) {
   ck_free(fn);
 
 }
-
 
 /* Append new test case to the queue. */
 
@@ -2291,7 +2293,7 @@ EXP_ST void init_forkserver(char** argv) {
 
 }
 
-static void read_sqlite_output_and_reset_output_file() {
+static string read_sqlite_output_and_reset_output_file() {
   program_output_str = "";
   lseek(program_output_fd, 0, SEEK_SET);
   char output_buf[1]; 
@@ -2302,8 +2304,7 @@ static void read_sqlite_output_and_reset_output_file() {
   ftruncate(program_output_fd, 0);
   lseek(program_output_fd, 0, SEEK_SET);
 
-  cerr << "Current output is: \n" << program_output_str << endl;
-  return;
+  return program_output_str;
 }
 
 
@@ -2529,7 +2530,7 @@ static u8 run_target(char** argv, u32 timeout) {
    is unlinked and a new one is created. Otherwise, out_fd is rewound and
    truncated. */
 
-static void write_to_testcase(void* mem, u32 len) {
+static void write_to_testcase(const char* mem, u32 len) {
 
   s32 fd = out_fd;
 
@@ -2552,6 +2553,498 @@ static void write_to_testcase(void* mem, u32 len) {
 
   } else close(fd);
 
+}
+
+vector<string> string_splitter(string input_string, string delimiter_re = "\n")
+{
+  size_t pos = 0;
+  string token;
+  std::regex re(delimiter_re);
+  std::sregex_token_iterator first{input_string.begin(), input_string.end(), re, -1}, last; //the '-1' is what makes the regex split (-1 := what was not matched)
+  vector<string> split_string{first, last};
+
+  return split_string;
+}
+
+string rewrite_query_by_No_Rec(string query)
+{
+  // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
+
+  while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
+  { // Delete duplicated whitespace at the beginning.
+    query = query.substr(1, query.size() - 1);
+  }
+
+  size_t select_position = 0;
+  size_t from_position = -1;
+  size_t where_position = -1;
+  size_t group_by_position = -1;
+  size_t order_by_position = -1;
+
+  vector<size_t> op_lp_v;
+  vector<size_t> op_rp_v;
+
+  size_t tmp1 = 0, tmp2 = 0;
+  while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos)
+  {
+    op_lp_v.push_back(tmp1);
+    tmp1++;
+    if (tmp1 == query.size())
+    {
+      break;
+    }
+  }
+  while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos)
+  {
+    op_rp_v.push_back(tmp2);
+    tmp2++;
+    if (tmp2 == query.size())
+    {
+      break;
+    }
+  }
+
+  if (op_lp_v.size() != op_rp_v.size())
+  { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+    op_lp_v.clear();
+    op_rp_v.clear();
+  }
+
+  for (int i = 0; i < op_lp_v.size(); i++)
+  { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+    if (op_lp_v[i] > op_rp_v[i])
+    {
+      op_lp_v.clear();
+      op_rp_v.clear();
+    }
+  }
+
+  tmp1 = -1;
+  tmp2 = -1;
+
+  tmp1 = query.find("SELECT", 0); // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
+  tmp2 = query.find("select", 0);
+  if (tmp1 != string::npos)
+  {
+    select_position = tmp1;
+  }
+  if (tmp2 != string::npos && tmp2 < tmp1)
+  {
+    select_position = tmp2;
+  }
+
+  tmp1 = 0;
+  tmp2 = 0;
+  from_position = -1;
+
+  do
+  {
+    if (tmp1 != string::npos)
+      tmp1 = query.find("FROM", tmp1 + 4);
+    if (tmp2 != string::npos)
+      tmp2 = query.find("from", tmp2 + 4);
+
+    if (tmp1 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        from_position = tmp1;
+        break; // from_position is found. Break the outter do...while loop.
+      }
+    }
+
+    if (tmp2 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        from_position = tmp2;
+        break; // from_position is found. Break the outter do...while loop.
+      }
+    }
+
+  } while (tmp1 != string::npos || tmp2 != string::npos);
+
+  tmp1 = 0;
+  tmp2 = 0;
+  where_position = -1;
+
+  do
+  {
+    if (tmp1 != string::npos)
+      tmp1 = query.find("WHERE", tmp1 + 5);
+    if (tmp2 != string::npos)
+      tmp2 = query.find("where", tmp2 + 5);
+
+    if (tmp1 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        where_position = tmp1;
+        break; // where_position is found. Break the outter do...while loop.
+      }
+    }
+
+    if (tmp2 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        where_position = tmp2;
+        break; // where_position is found. Break the outter do...while loop.
+      }
+    }
+
+  } while (tmp1 != string::npos || tmp2 != string::npos);
+
+  /*** Taking care of GROUP BY stmt.   ***/
+  tmp1 = -1, tmp2 = -1;
+  size_t tmp = 0;
+  while ((tmp = query.find("GROUP BY", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp1 = tmp;
+    }
+  } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+
+  tmp = -8;
+  while ((tmp = query.find("group by", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp2 = tmp;
+    }
+  } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+  if (tmp1 != string::npos)
+  {
+    group_by_position = tmp1;
+  }
+  if (tmp2 != string::npos && tmp2 > tmp1)
+  {
+    group_by_position = tmp2;
+  }
+
+  /*** Taking care of ORDER BY stmt.   ***/
+  tmp1 = -1, tmp2 = -1;
+  tmp = -8;
+  while ((tmp = query.find("ORDER BY", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp1 = tmp;
+    }
+  } // The last ORDER BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+  tmp = -8;
+  while ((tmp = query.find("order by", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp2 = tmp;
+    }
+  } // The last order by statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+  if (tmp1 != string::npos)
+  {
+    order_by_position = tmp1;
+  }
+  if (tmp2 != string::npos && tmp2 > tmp1)
+  {
+    order_by_position = tmp2;
+  }
+
+  size_t extra_stmt_position = -1;
+  if (group_by_position != string::npos && order_by_position != string::npos)
+    extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position);
+  else if (group_by_position != string::npos)
+    extra_stmt_position = group_by_position;
+  else if (order_by_position != string::npos)
+    extra_stmt_position = order_by_position;
+
+  string before_select_stmt;
+  string select_stmt;
+  string from_stmt;
+  string where_stmt;
+  string extra_stmt;
+
+  before_select_stmt = query.substr(0, select_position - 0);
+
+  select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
+
+  if (from_position == -1)
+    from_stmt = "";
+  else
+    from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
+
+  if (where_position == -1)
+    where_stmt = "";
+  else if (extra_stmt_position == -1)
+    where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
+  else
+    where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
+
+  if (extra_stmt_position == -1)
+    extra_stmt = "";
+  else
+    extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
+
+  if (select_stmt.find('*') != string::npos)
+    select_stmt = "";
+
+  string rewrited_string = before_select_stmt + " SELECT " + where_stmt;
+  if (select_stmt != "" && select_stmt != " ")
+  {
+    rewrited_string += "  AND  " + select_stmt;
+  }
+  // rewrited_string += " ) != 0) ";
+  if (from_stmt != "")
+  {
+    rewrited_string += " FROM " + from_stmt;
+  }
+
+  if (extra_stmt != "")
+  {
+    rewrited_string += extra_stmt;
+  }
+  
+  // The ";" is being taken care of after returnning from the rewrite function
+  return rewrited_string;
+}
+
+bool compare_No_Rec_result(string optimized_result_str, string unoptimized_result_str){
+  int optimized_result_int = std::count(optimized_result_str.begin(), optimized_result_str.end(), '\n');
+  int unoptimized_result_int = std::count(unoptimized_result_str.begin(), unoptimized_result_str.end(), '1');
+
+  // cout << "Optimized_result_int is: " << optimized_result_int << " ; unoptimized_result_int is: " << unoptimized_result_int << ". " << endl;
+
+  if (optimized_result_int == unoptimized_result_int) return true;
+  else return false;
+}
+
+u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmout)
+{
+
+  string optimized_result_string = "", unoptimized_result_string = "";
+
+  bool is_skip_no_rec = true;
+
+  /* Unoptimized */
+  string unoptimized_cmd_string = "";
+  vector<string> queries_vector = string_splitter(optimized_cmd_string, ";");
+
+  for (string &query : queries_vector)
+  {
+    if (
+        ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
+        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&
+        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos))
+    {
+      unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
+      is_skip_no_rec = false;
+    }
+    else
+      unoptimized_cmd_string += query + "; \n";
+  }
+
+  if (!is_skip_no_rec)
+  {
+    u8 fault;
+
+    write_to_testcase(unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
+    fault = run_target(argv, tmout);
+
+    if (stop_soon)
+      return fault;
+
+    if (fault == FAULT_TMOUT)
+    {
+
+      if (subseq_tmouts++ > TMOUT_LIMIT)
+      {
+        cur_skipped_paths++;
+        return fault;
+      }
+    }
+    else
+      subseq_tmouts = 0;
+
+    /* Users can hit us with SIGUSR1 to request the current input
+         to be abandoned. */
+
+    if (skip_requested)
+    {
+
+      skip_requested = 0;
+      cur_skipped_paths++;
+      return fault;
+    }
+
+    unoptimized_result_string = read_sqlite_output_and_reset_output_file();
+
+    /* Optimized */
+    optimized_cmd_string = "";
+    for (string &query : queries_vector){
+      optimized_cmd_string += query + "; \n";
+    }
+
+    write_to_testcase(optimized_cmd_string.c_str(), optimized_cmd_string.size());
+    fault = run_target(argv, tmout);
+
+    if (stop_soon)
+      return fault;
+
+    if (fault == FAULT_TMOUT)
+    {
+
+      if (subseq_tmouts++ > TMOUT_LIMIT)
+      {
+        cur_skipped_paths++;
+        return fault;
+      }
+    }
+    else
+      subseq_tmouts = 0;
+
+    /* Users can hit us with SIGUSR1 to request the current input
+         to be abandoned. */
+
+    if (skip_requested)
+    {
+
+      skip_requested = 0;
+      cur_skipped_paths++;
+      return fault;
+    }
+
+    optimized_result_string = read_sqlite_output_and_reset_output_file();
+
+  }
+  // cerr << "\n\n\nCurrently running: (DEBUG): \n";
+  // cerr << "Optimized_cmd_string: \n"
+  //      << optimized_cmd_string << "\n";
+  // cerr << "Unoptimized_cmd_string: \n"
+  //      << unoptimized_cmd_string << "\n";
+
+  if (!compare_No_Rec_result(optimized_result_string, unoptimized_result_string) && !is_skip_no_rec)
+  {
+    // cerr << "\n\n\n-------------------------------------------\n";
+    // cerr << "Result unmatched! \n";
+    // cerr << "Optimized cmd: \n";
+    // cerr << optimized_cmd_string << "\n";
+    // cerr << "Optimized results: \n";
+    // cerr << optimized_result_string << "\n";
+    // cerr << "Unoptimized cmd: \n";
+    // cerr << unoptimized_cmd_string << "\n";
+    // cerr << "Unoptimized results: \n";
+    // cerr << unoptimized_result_string << "\n\n\n\n";
+
+    ofstream outputfile;
+    // string bug_output_dir = (char*)out_dir;
+    string bug_output_dir = "./bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
+    // cerr << "Bug output dir is: " << bug_output_dir << endl;
+    outputfile.open(bug_output_dir);
+    outputfile << "Optimized cmd: \n";
+    outputfile << optimized_cmd_string << "\n";
+    outputfile << "Unoptimized cmd: \n";
+    outputfile << unoptimized_cmd_string << "\n";
+    outputfile << "Optimized results: \n";
+    outputfile << optimized_result_string << "\n";
+    outputfile << "Unoptimized results: \n";
+    outputfile << unoptimized_result_string << "\n\n\n\n";
+
+    outputfile.close();
+    bug_output_id++;
+
+    cerr << "E";
+  }
+  else if (!is_skip_no_rec)
+  {
+    cerr << "P";
+  }
+  else
+  {
+    cerr << "C";
+  }
+
+  unoptimized_result_string.clear();
+  optimized_cmd_string.clear();
+  unoptimized_cmd_string.clear();
+  queries_vector.clear();
+
+  return 0;
 }
 
 
@@ -2636,18 +3129,13 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     if (!first_run && !(stage_cur % stats_update_freq)) show_stats();
 
-    write_to_testcase(use_mem, q->len);
-
-    fault = run_target(argv, use_tmout);
     program_input_str = "";
-    program_input_str += "current input: ";
     for (int output_index = 0; output_index < q->len; output_index++){
       program_input_str += use_mem[output_index];
     }
-    cerr << program_input_str << endl;
-    read_sqlite_output_and_reset_output_file();
-
-
+    // cerr << program_input_str << endl;
+    fault = execute_No_Rec(program_input_str, argv, use_tmout);
+    
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3300,7 +3788,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         for (int output_index = 0; output_index < len; output_index++){
           program_input_str += ((char*)mem)[output_index];
         } 
-        cerr << program_input_str << endl;
+        cerr << "\n\nRunning save_if_interesting with query: " << program_input_str << endl << endl;
         read_sqlite_output_and_reset_output_file();
 
         /* A corner case that one user reported bumping into: increasing the
@@ -4587,135 +5075,135 @@ static void show_stats(void) {
     } 
 
 
-    /* Trim all new test cases to save cycles when doing deterministic checks. The
-       trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
-       file size, to keep the stage short and sweet. */
+    // /* Trim all new test cases to save cycles when doing deterministic checks. The
+    //    trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
+    //    file size, to keep the stage short and sweet. */
 
-    static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
+    // static u8 trim_case(char** argv, struct queue_entry* q, u8* in_buf) {
 
-      static u8 tmp[64];
-      static u8 clean_trace[MAP_SIZE];
+    //   static u8 tmp[64];
+    //   static u8 clean_trace[MAP_SIZE];
 
-      u8  needs_write = 0, fault = 0;
-      u32 trim_exec = 0;
-      u32 remove_len;
-      u32 len_p2;
+    //   u8  needs_write = 0, fault = 0;
+    //   u32 trim_exec = 0;
+    //   u32 remove_len;
+    //   u32 len_p2;
 
-      /* Although the trimmer will be less useful when variable behavior is
-         detected, it will still work to some extent, so we don't check for
-         this. */
+    //   /* Although the trimmer will be less useful when variable behavior is
+    //      detected, it will still work to some extent, so we don't check for
+    //      this. */
 
-      if (q->len < 5) return 0;
+    //   if (q->len < 5) return 0;
 
-      stage_name = tmp;
-      bytes_trim_in += q->len;
+    //   stage_name = tmp;
+    //   bytes_trim_in += q->len;
 
-      /* Select initial chunk len, starting with large steps. */
+    //   /* Select initial chunk len, starting with large steps. */
 
-      len_p2 = next_p2(q->len);
+    //   len_p2 = next_p2(q->len);
 
-      remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
+    //   remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
 
-      /* Continue until the number of steps gets too high or the stepover
-         gets too small. */
+    //   /* Continue until the number of steps gets too high or the stepover
+    //      gets too small. */
 
-      while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES)) {
+    //   while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES)) {
 
-        u32 remove_pos = remove_len;
+    //     u32 remove_pos = remove_len;
 
-        sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
+    //     sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
 
-        stage_cur = 0;
-        stage_max = q->len / remove_len;
+    //     stage_cur = 0;
+    //     stage_max = q->len / remove_len;
 
-        while (remove_pos < q->len) {
+    //     while (remove_pos < q->len) {
 
-          u32 trim_avail = MIN(remove_len, q->len - remove_pos);
-          u32 cksum;
+    //       u32 trim_avail = MIN(remove_len, q->len - remove_pos);
+    //       u32 cksum;
 
-          write_with_gap(in_buf, q->len, remove_pos, trim_avail);
+    //       write_with_gap(in_buf, q->len, remove_pos, trim_avail);
 
-          fault = run_target(argv, exec_tmout);
-          program_input_str = "";
-          program_input_str += "current input: ";
-          for (int output_index = 0; output_index < q->len; output_index++){
-            program_input_str += in_buf[output_index];
-          }
-          cerr << program_input_str << endl;
-          read_sqlite_output_and_reset_output_file();
-          trim_execs++;
+    //       fault = run_target(argv, exec_tmout);
+    //       program_input_str = "";
+    //       program_input_str += "current input: ";
+    //       for (int output_index = 0; output_index < q->len; output_index++){
+    //         program_input_str += in_buf[output_index];
+    //       }
+    //       cerr << program_input_str << endl;
+    //       read_sqlite_output_and_reset_output_file();
+    //       trim_execs++;
 
-          if (stop_soon || fault == FAULT_ERROR) goto abort_trimming;
+    //       if (stop_soon || fault == FAULT_ERROR) goto abort_trimming;
 
-          /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
+    //       /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
 
-          cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
+    //       cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
 
-          /* If the deletion had no impact on the trace, make it permanent. This
-             isn't perfect for variable-path inputs, but we're just making a
-             best-effort pass, so it's not a big deal if we end up with false
-             negatives every now and then. */
+    //       /* If the deletion had no impact on the trace, make it permanent. This
+    //          isn't perfect for variable-path inputs, but we're just making a
+    //          best-effort pass, so it's not a big deal if we end up with false
+    //          negatives every now and then. */
 
-          if (cksum == q->exec_cksum) {
+    //       if (cksum == q->exec_cksum) {
 
-            u32 move_tail = q->len - remove_pos - trim_avail;
+    //         u32 move_tail = q->len - remove_pos - trim_avail;
 
-            q->len -= trim_avail;
-            len_p2  = next_p2(q->len);
+    //         q->len -= trim_avail;
+    //         len_p2  = next_p2(q->len);
 
-            memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail, 
-                    move_tail);
+    //         memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail, 
+    //                 move_tail);
 
-            /* Let's save a clean trace, which will be needed by
-               update_bitmap_score once we're done with the trimming stuff. */
+    //         /* Let's save a clean trace, which will be needed by
+    //            update_bitmap_score once we're done with the trimming stuff. */
 
-            if (!needs_write) {
+    //         if (!needs_write) {
 
-              needs_write = 1;
-              memcpy(clean_trace, trace_bits, MAP_SIZE);
+    //           needs_write = 1;
+    //           memcpy(clean_trace, trace_bits, MAP_SIZE);
 
-            }
+    //         }
 
-          } else remove_pos += remove_len;
+    //       } else remove_pos += remove_len;
 
-          /* Since this can be slow, update the screen every now and then. */
+    //       /* Since this can be slow, update the screen every now and then. */
 
-          if (!(trim_exec++ % stats_update_freq)) show_stats();
-          stage_cur++;
+    //       if (!(trim_exec++ % stats_update_freq)) show_stats();
+    //       stage_cur++;
 
-        }
+    //     }
 
-        remove_len >>= 1;
+    //     remove_len >>= 1;
 
-      }
+    //   }
 
-      /* If we have made changes to in_buf, we also need to update the on-disk
-         version of the test case. */
+    //   /* If we have made changes to in_buf, we also need to update the on-disk
+    //      version of the test case. */
 
-      if (needs_write) {
+    //   if (needs_write) {
 
-        s32 fd;
+    //     s32 fd;
 
-        unlink(q->fname); /* ignore errors */
+    //     unlink(q->fname); /* ignore errors */
 
-        fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
+    //     fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
 
-        if (fd < 0) PFATAL("Unable to create '%s'", q->fname);
+    //     if (fd < 0) PFATAL("Unable to create '%s'", q->fname);
 
-        ck_write(fd, in_buf, q->len, q->fname);
-        close(fd);
+    //     ck_write(fd, in_buf, q->len, q->fname);
+    //     close(fd);
 
-        memcpy(trace_bits, clean_trace, MAP_SIZE);
-        update_bitmap_score(q);
+    //     memcpy(trace_bits, clean_trace, MAP_SIZE);
+    //     update_bitmap_score(q);
 
-      }
+    //   }
 
-    abort_trimming:
+    // abort_trimming:
 
-      bytes_trim_out += q->len;
-      return fault;
+    //   bytes_trim_out += q->len;
+    //   return fault;
 
-    }
+    // }
 
 
     /* Write a modified test case, run program, process results. Handle
@@ -4732,39 +5220,15 @@ static void show_stats(void) {
         if (!out_buf || !len) return 0;
 
       }
-      write_to_testcase(out_buf, len);
-      //fault = 0;
-      fault = run_target(argv, exec_tmout);
+      
+
       program_input_str = "";
-      program_input_str += "current input: ";
       for (int output_index = 0; output_index < len; output_index++){
         program_input_str += out_buf[output_index];
       }
-      cerr << program_input_str << endl;
-      read_sqlite_output_and_reset_output_file();
-        
-      if (stop_soon) return 1;
-
-      if (fault == FAULT_TMOUT) {
-
-        if (subseq_tmouts++ > TMOUT_LIMIT) {
-          cur_skipped_paths++;
-          return 1;
-        }
-
-      } else subseq_tmouts = 0;
-
-      /* Users can hit us with SIGUSR1 to request the current input
-         to be abandoned. */
-
-      if (skip_requested) {
-
-         skip_requested = 0;
-         cur_skipped_paths++;
-         return 1;
-
-      }
-
+      // cerr << program_input_str << endl;
+      fault = execute_No_Rec(program_input_str, argv);
+      
       /* This handles FAULT_ERROR for us: */
 
       queued_discovered += save_if_interesting(argv, out_buf, len, fault);
@@ -5411,7 +5875,7 @@ static void show_stats(void) {
         for (int output_index = 0; output_index < st.st_size; output_index++){
           program_input_str += mem[output_index];
         }
-        cerr << program_input_str << endl;
+        cerr << "\n\nRunning sync_fuzzers: with query: " << program_input_str << endl << endl;
         read_sqlite_output_and_reset_output_file();
 
         if (stop_soon) return;
