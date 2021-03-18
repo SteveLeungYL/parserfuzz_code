@@ -708,7 +708,7 @@ IR* SelectClause::translate(vector<IR *> &v_ir_collector){
     auto tmp5 = SAFETRANSLATE(opt_where_);
     auto tmp6 = SAFETRANSLATE(opt_group_);
     
-    res = new IR(kUnknown, OPSTART("SELECT"));
+    res = new IR(kUnknown, OPSTART("SELECT * "));
     PUSH(res);
     res = new IR(kUnknown, OP0(), res, tmp4);
     PUSH(res);

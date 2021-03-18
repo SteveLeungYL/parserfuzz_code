@@ -19,7 +19,10 @@
 
 using std::string;
 
-#define get_rand_int(range) rand()%(range)
+inline int get_rand_int(int range) {
+    if (range != 0) return rand()%(range);
+    else return 0;
+}
 //#define vector_rand_ele(a) (a[get_rand_int(a.size())])
 #define vector_rand_ele(a) (a.size()!=0?a[get_rand_int(a.size())]:gen_id_name())
 IR * deep_copy(const IR * root);

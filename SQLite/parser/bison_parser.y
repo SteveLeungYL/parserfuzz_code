@@ -554,7 +554,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %left       '*' '/' '%' 
 %left       '^' 
 %left       CONCAT
-%left       OP_MUL
+%left       EXPR_ALL
 
 /* Unary Operators */
 %right  UMINUS
