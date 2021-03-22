@@ -97,6 +97,10 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 
 }
 
+int Mutator::get_ir_libary_2D_hash_size(){
+    return this->ir_libary_2D_hash_.size();
+}
+
 
 void Mutator::init(string f_testcase, string f_common_string, string pragma){
     ifstream input_test(f_testcase);

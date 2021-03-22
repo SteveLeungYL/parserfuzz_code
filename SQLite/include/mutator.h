@@ -37,6 +37,8 @@ public:
     void minimize(vector<IR*> &);
     bool lucky_enough_to_be_mutated(unsigned int mutated_times);
 
+    int get_ir_libary_2D_hash_size();
+
     void add_to_library(IR*);
     void add_to_library_core(IR*);
     IR* get_from_libary_3D(IR*);

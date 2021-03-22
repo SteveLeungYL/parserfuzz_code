@@ -2474,7 +2474,6 @@ static u8 run_target(char** argv, u32 timeout) {
 
   setitimer(ITIMER_REAL, &it, NULL);
 
-  total_execs++;
 
   /* Any subsequent operations on trace_bits must not be moved by the
      compiler below this point. Past this location, trace_bits[] behave
@@ -3047,6 +3046,8 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   //      << unoptimized_cmd_string << "\n";
   int optimized_result_int = 0, unoptimized_result_int = 0;
   int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int);
+
+  if (!is_skip_no_rec) total_execs++;
 
   if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
@@ -7001,6 +7002,7 @@ static void do_libary_initialize(){
     cerr << "init filename: " << string(g_libary_path) + "/" +f << endl;
     g_mutator.init(string(g_libary_path) + "/" +f);
   }
+  cout << "The g_mutator ir_libary_2D_hash_ size is: " << g_mutator.get_ir_libary_2D_hash_size() << endl;
 }
 
 int main(int argc, char** argv) {
