@@ -311,7 +311,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
 %token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME
 %token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY
-%token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO EXPR_ALL
+%token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE
 
@@ -554,7 +554,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %left       '*' '/' '%' 
 %left       '^' 
 %left       CONCAT
-%left       EXPR_ALL
 
 /* Unary Operators */
 %right  UMINUS
@@ -1645,21 +1644,27 @@ opt_all:
     ;
 
 select_clause:
-        SELECT EXPR_ALL opt_from_clause opt_where opt_group {
+        SELECT opt_top opt_distinct select_list opt_from_clause opt_where opt_group {
             $$ = new SelectClause();
             $$->sub_type_ = CASE0;
-            $$->opt_from_clause_ = $3;
-            $$->opt_where_ = $4;
-            $$->opt_group_ = $5;
+            $$->opt_top_ = $2;
+            $$->opt_distinct_ = $3;
+            $$->select_list_ = $4;
+            $$->opt_from_clause_ = $5;
+            $$->opt_where_ = $6;
+            $$->opt_group_ = $7;
         }
     
-    |   SELECT EXPR_ALL opt_from_clause opt_where opt_group window_clause {
+    |   SELECT opt_top opt_distinct select_list opt_from_clause opt_where opt_group window_clause {
             $$ = new SelectClause();
             $$->sub_type_ = CASE1;
-            $$->opt_from_clause_ = $3;
-            $$->opt_where_ = $4;
-            $$->opt_group_ = $5;
-            $$->window_clause_ = $6;
+            $$->opt_top_ = $2;
+            $$->opt_distinct_ = $3;
+            $$->select_list_ = $4;
+            $$->opt_from_clause_ = $5;
+            $$->opt_where_ = $6;
+            $$->opt_group_ = $7;
+            $$->window_clause_ = $8;
         }
     ;
 

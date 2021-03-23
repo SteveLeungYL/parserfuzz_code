@@ -113,6 +113,8 @@ IR* g_current_ir = NULL;
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
 
+extern int hsql_debug;
+
 EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *out_file,                  /* File to fuzz, if any             */
           *out_dir,                   /* Working & output directory       */
@@ -2296,11 +2298,11 @@ EXP_ST void init_forkserver(char** argv) {
 static string read_sqlite_output_and_reset_output_file() {
   program_output_str = "";
   lseek(program_output_fd, 0, SEEK_SET);
-  char output_buf[1]; 
+  char output_buf[1];
   while (read(program_output_fd, output_buf, 1) && output_buf != '\0'){
     program_output_str += output_buf;
   }
-  lseek(program_output_fd, 0, SEEK_SET);
+  // lseek(program_output_fd, 0, SEEK_SET);
   ftruncate(program_output_fd, 0);
   lseek(program_output_fd, 0, SEEK_SET);
 
@@ -2473,7 +2475,6 @@ static u8 run_target(char** argv, u32 timeout) {
   it.it_value.tv_usec = 0;
 
   setitimer(ITIMER_REAL, &it, NULL);
-
 
   /* Any subsequent operations on trace_bits must not be moved by the
      compiler below this point. Past this location, trace_bits[] behave
@@ -2969,7 +2970,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   if (!is_skip_no_rec)
   {
     u8 fault;
-
+    // unoptimized_cmd_string += " .quit "; 
     write_to_testcase(unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
     fault = run_target(argv, tmout);
 
@@ -3007,6 +3008,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
       optimized_cmd_string += query + "; \n";
     }
 
+    // optimized_cmd_string += " .quit ";
     write_to_testcase(optimized_cmd_string.c_str(), optimized_cmd_string.size());
     fault = run_target(argv, tmout);
 
@@ -3044,11 +3046,16 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   //      << optimized_cmd_string << "\n";
   // cerr << "Unoptimized_cmd_string: \n"
   //      << unoptimized_cmd_string << "\n";
+  // cerr << "Optimized results: \n"
+  //      << optimized_result_string << "\n"
+  //      << "Unoptimized results: \n"
+  //      << unoptimized_result_string << "\n\n\n\n";
+
   int optimized_result_int = 0, unoptimized_result_int = 0;
   int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int);
 
   if (!is_skip_no_rec) total_execs++;
-
+  
   if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
     // cerr << "\n\n\n-------------------------------------------\n";
@@ -3337,7 +3344,20 @@ static void perform_dry_run(char** argv) {
 
     close(fd);
 
-    res = calibrate_case(argv, q, use_mem, 0, 1);
+    string current_program_input_str = "";
+    for (int output_index = 0; output_index < q->len; output_index++){
+      current_program_input_str += use_mem[output_index];
+    }
+    auto test_ir_root = parser(current_program_input_str);
+    if (test_ir_root){
+      test_ir_root->deep_delete();
+      res = calibrate_case(argv, q, use_mem, 0, 1);
+    } else {
+      cout << "Query seed: '" << current_program_input_str << " is not passing the parser!" << endl;
+    }
+
+
+    current_program_input_str.clear();
     ck_free(use_mem);
 
     if (stop_soon) return;
@@ -3472,9 +3492,9 @@ static void perform_dry_run(char** argv) {
 
         FATAL("Unable to execute target application ('%s')", argv[0]);
 
-      case FAULT_NOINST:
+      // case FAULT_NOINST:
 
-        FATAL("No instrumentation detected");
+      //   FATAL("No instrumentation detected");
 
       case FAULT_NOBITS: 
 
@@ -5740,13 +5760,13 @@ static void show_stats(void) {
       int skip_count;
       skip_count = 0;
       input = (const char *)out_buf;
-      program_root = parser(input);
+      program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
       if(program_root == NULL){
         goto abandon_entry;
       }
 
       try{
-        program_root->translate(ir_set);
+        program_root->translate(ir_set);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
       }catch(...){
         for(auto ir: ir_set){
           delete ir;
@@ -5754,7 +5774,7 @@ static void show_stats(void) {
         program_root->deep_delete();
         goto abandon_entry;
       }
-      program_root->deep_delete();
+      program_root->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
 
       mutated_tree = g_mutator.mutate_all(ir_set);
       deep_delete(ir_set[ir_set.size()-1]);
@@ -7002,10 +7022,12 @@ static void do_libary_initialize(){
     cerr << "init filename: " << string(g_libary_path) + "/" +f << endl;
     g_mutator.init(string(g_libary_path) + "/" +f);
   }
-  cout << "The g_mutator ir_libary_2D_hash_ size is: " << g_mutator.get_ir_libary_2D_hash_size() << endl;
+  cout << "The size of ir_libary_2D_hash_ is: " << g_mutator.get_ir_libary_2D_hash_size() << endl;
 }
 
 int main(int argc, char** argv) {
+
+  // hsql_debug = 1;
     
   min_stab_radio = 100.0;
   s32 opt;

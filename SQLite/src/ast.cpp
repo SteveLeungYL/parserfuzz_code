@@ -704,11 +704,16 @@ IR* OptAll::translate(vector<IR *> &v_ir_collector){
 IR* SelectClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
+    auto tmp1 = SAFETRANSLATE(opt_top_);
+    auto tmp2 = SAFETRANSLATE(opt_distinct_);
+    auto tmp3 = SAFETRANSLATE(select_list_);
     auto tmp4 = SAFETRANSLATE(opt_from_clause_);
     auto tmp5 = SAFETRANSLATE(opt_where_);
     auto tmp6 = SAFETRANSLATE(opt_group_);
     
-    res = new IR(kUnknown, OPSTART("SELECT * "));
+    res = new IR(kUnknown, OPSTART("SELECT"), tmp1, tmp2);
+    PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp3);
     PUSH(res);
     res = new IR(kUnknown, OP0(), res, tmp4);
     PUSH(res);
@@ -1861,6 +1866,9 @@ void OptAll::deep_delete(){
 
 
 void SelectClause::deep_delete(){
+	SAFEDELETE(opt_top_);
+	SAFEDELETE(opt_distinct_);
+	SAFEDELETE(select_list_);
 	SAFEDELETE(opt_from_clause_);
 	SAFEDELETE(opt_where_);
 	SAFEDELETE(opt_group_);
