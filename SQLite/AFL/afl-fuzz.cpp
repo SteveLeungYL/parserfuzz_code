@@ -5776,7 +5776,14 @@ static void show_stats(void) {
       }
       program_root->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
 
-      mutated_tree = g_mutator.mutate_all(ir_set);
+      unsigned long prev_hash, current_hash;
+      prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
+      current_hash = 0;
+      do {
+        mutated_tree = g_mutator.mutate_all(ir_set);
+        current_hash = g_mutator.hash(mutated_tree[mutated_tree.size()-1]);
+      } while (current_hash == prev_hash);
+
       deep_delete(ir_set[ir_set.size()-1]);
       show_stats();
       stage_max = mutated_tree.size();
