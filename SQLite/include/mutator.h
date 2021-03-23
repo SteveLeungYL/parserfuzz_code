@@ -23,6 +23,8 @@ public:
 
     IR * ir_random_generator(vector<IR *> v_ir_collector);
 
+    bool make_current_node_as_norec_select_stmt(IR* root);
+    bool mark_all_norec_select_stmt(vector<IR *> &v_ir_collector);
     vector<IR *> mutate_all(vector<IR*> &v_ir_collector);
 
     vector<IR*> mutate(IR* input);  
@@ -32,6 +34,7 @@ public:
 
     bool replace(IR * root , IR* old_ir, IR* new_ir);
     IR * locate_parent(IR * root ,IR * old_ir);
+    IR * find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent);
     string validate(IR * root); 
 
     void minimize(vector<IR*> &);

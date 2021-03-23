@@ -3052,9 +3052,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   //      << unoptimized_result_string << "\n\n\n\n";
 
   int optimized_result_int = 0, unoptimized_result_int = 0;
-  int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int);
-
-  if (!is_skip_no_rec) total_execs++;
+  int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int); 
   
   if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
@@ -3090,15 +3088,17 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     outputfile.close();
     bug_output_id++;
 
-    cerr << "E";
+    // cerr << "E";
+    total_execs++;
   }
   else if (!is_skip_no_rec && compare_No_Rec_result_int == 1)
   {
-    cerr << "P";
+    // cerr << "P";
+    total_execs++;
   }
   else
   {
-    cerr << "C";
+    // cerr << "C";
   }
 
   unoptimized_result_string.clear();

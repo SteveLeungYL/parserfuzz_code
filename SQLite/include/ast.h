@@ -132,6 +132,7 @@ public:
     IROperator* op_;
     IR* left_;
     IR* right_;
+    bool is_norec_select_fixed;  // Do not mutate this IR if this set to be true. 
     int operand_num_;
     unsigned int mutated_times_ = 0;
     string to_string();

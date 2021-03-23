@@ -62,13 +62,65 @@ bool Mutator::check_node_num(IR * root, unsigned int limit){
     return is_good;
 }
 
+bool Mutator::make_current_node_as_norec_select_stmt(IR* root){
+    if (root == nullptr) return false;
+    /* the following types do not added to the norec_select_stmt list. They should be able to mutate as usual. */
+    if (root -> type_ == kExpr || root->type_ == kTableRef || root->type_ == kOptGroup || root-> type_ == kWindowClause) return false;
+    root -> is_norec_select_fixed = true;
+    if (root -> left_ != nullptr) this->make_current_node_as_norec_select_stmt(root->left_);
+    if (root -> right_ != nullptr) this->make_current_node_as_norec_select_stmt(root->right_);
+    return true;
+}
+
+bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
+{   
+    bool is_mark_successfully = false;
+
+    IR *root = v_ir_collector[v_ir_collector.size() - 1];
+    IR *par_ir = nullptr;
+    IR *par_par_ir = nullptr;
+    IR *par_par_par_ir = nullptr; // If we find the correct selectnoparen, this should be the statementlist.
+    for (auto ir : v_ir_collector){
+        if (ir != nullptr) ir -> is_norec_select_fixed = false;
+    }
+    for (auto ir : v_ir_collector)
+    {
+        if (ir != nullptr && ir->type_ == kSelectNoParen)
+        {
+            par_ir = locate_parent(root, ir);
+            if (par_ir != nullptr && par_ir->type_ == kSelectStatement)
+            {
+                par_par_ir = locate_parent(root, par_ir);
+                if (par_par_ir != nullptr && par_par_ir->type_ == kStatement)
+                {
+                    par_par_par_ir = locate_parent(root, par_par_ir);
+                    if (par_par_par_ir != nullptr && par_par_par_ir->type_ == kStatementList)
+                    {
+                        is_mark_successfully = make_current_node_as_norec_select_stmt(ir);
+                        // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << ". \n\n\n";
+                        par_ir -> is_norec_select_fixed = true;
+                        par_par_ir -> is_norec_select_fixed = true;
+                        par_par_par_ir -> is_norec_select_fixed = true;
+                    }
+                }
+            }
+        }
+    }
+    // cerr << "Norec select marked: " << is_mark_successfully << endl;
+    return is_mark_successfully;
+}
+
 vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
     vector<IR *> res;
     set<unsigned long> res_hash;
     IR * root = v_ir_collector[v_ir_collector.size()-1];
 
+    mark_all_norec_select_stmt(v_ir_collector);
+
     for(auto ir: v_ir_collector){
-        if(ir == root || ir->type_ == kProgram) continue;
+        if(ir == root || ir->type_ == kProgram 
+        || ir -> is_norec_select_fixed 
+        ) continue;
         vector<IR *> v_mutated_ir = mutate(ir);
 
         for(auto i: v_mutated_ir){
@@ -224,6 +276,16 @@ IR * Mutator::locate_parent(IR * root ,IR * old_ir){
         if(auto res = locate_parent(root->right_, old_ir)) return res;
 
     return NULL;
+}
+
+IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
+    IR * root = v_ir_collector[v_ir_collector.size()-1];
+    for(auto ir: v_ir_collector){
+        if (ir != nullptr && ir -> type_ == node_type && this->locate_parent(root, ir) == parent)
+            return ir;
+    }
+    cerr << "Error: Cannot find the child type from parent. " << endl;
+    return nullptr;
 }
 
 string Mutator::validate(IR * root){

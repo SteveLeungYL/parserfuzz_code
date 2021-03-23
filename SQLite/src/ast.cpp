@@ -653,7 +653,7 @@ IR* SelectNoParen::translate(vector<IR *> &v_ir_collector){
         CASESTART(1)
             res = SAFETRANSLATE(select_clause_);
             auto tmp = SAFETRANSLATE(set_operator_);
-            res = new IR(kUnknown, OP0(), res, tmp);
+            res = new IR(kSelectNoParen, OP0(), res, tmp);
             PUSH(res);
 
             tmp = SAFETRANSLATE(select_paren_or_clause_);
