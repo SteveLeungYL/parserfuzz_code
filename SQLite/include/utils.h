@@ -16,11 +16,23 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <random>
 
 using std::string;
 
+static std::random_device rd; // random device engine, usually based on /dev/random on UNIX-like systems
+// initialize Mersennes' twister using rd to generate the seed
+static std::mt19937 rng{rd()};
+
+// inline int get_rand_int(int range) {
+//     if (range != 0) return rand()%(range);
+//     else return 0;
+// }
 inline int get_rand_int(int range) {
-    if (range != 0) return rand()%(range);
+    if (range != 0) {
+        std::uniform_int_distribution<int> uid(0, range-1);
+        return uid(rng);
+    }
     else return 0;
 }
 //#define vector_rand_ele(a) (a[get_rand_int(a.size())])
