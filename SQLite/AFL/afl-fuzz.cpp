@@ -7022,14 +7022,14 @@ int run_testcase()
 
 static void do_libary_initialize(){
   if(g_libary_path == NULL) g_libary_path = INIT_LIB_PATH;
-  cerr <<"We should initialize the fucking libary" << endl;
+  cerr <<"We should initialize the libary" << endl;
   vector<IR*> ir_set;
   vector<string> file_list = get_all_files_in_dir(g_libary_path);
   for(auto &f : file_list){
     cerr << "init filename: " << string(g_libary_path) + "/" +f << endl;
     g_mutator.init(string(g_libary_path) + "/" +f);
   }
-  cout << "The size of ir_libary_2D_hash_ is: " << g_mutator.get_ir_libary_2D_hash_size() << endl;
+  cout << "The size of ir_libary_2D_hash_ for kStatement is: " << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
 }
 
 int main(int argc, char** argv) {

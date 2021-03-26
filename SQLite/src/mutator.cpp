@@ -106,7 +106,7 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
             }
         }
     }
-    // cerr << "Norec select marked: " << is_mark_successfully << endl;
+    // cerr << "Norec select marked (bool): " << is_mark_successfully << endl;
     return is_mark_successfully;
 }
 
@@ -149,8 +149,8 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 
 }
 
-int Mutator::get_ir_libary_2D_hash_size(){
-    return this->ir_libary_2D_hash_.size();
+int Mutator::get_ir_libary_2D_hash_kStatement_size(){
+    return this->ir_libary_2D_hash_[kStatement].size();
 }
 
 
@@ -215,7 +215,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma){
     
     ifstream input_pragma("./pragma");
     string s;
-    cout << "[fuck]start init pragma" << endl;
+    cout << "start init pragma" << endl;
     while(getline(input_pragma, s)){
         if(s.empty()) continue;
         auto pos = s.find('=');
