@@ -1046,6 +1046,10 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     vector<Identifier*> v_iden_comma_list_;
+    vector<OptCollate*> v_opt_collate_list_;
+    // IdentCommaList * ident_comma_list_;
+    // OptCollate * opt_collate_;
+    // Identifier * identifier_;
 };
 
 class OptColumnArglist: public Opt{

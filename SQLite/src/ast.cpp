@@ -1598,10 +1598,49 @@ IR* OptSemicolon::translate(vector<IR *> &v_ir_collector){
 }
 
 IR* IdentCommaList::translate(vector<IR *> &v_ir_collector){
+    
+    // TRANSLATELIST(kIdentCommaList, v_iden_comma_list_, ",")
+    // SWITCHSTART
+
+    // CASESTART(0)
+    // auto tmp0 = SAFETRANSLATE(identifier_);
+    // auto tmp1 = SAFETRANSLATE(opt_collate_);
+    // res = new IR(kIdentCommaList, OP0(), tmp0, tmp1);
+    // CASEEND
+
+    // CASESTART(1)
+    // auto tmp0 = SAFETRANSLATE(ident_comma_list_);
+    // auto tmp1 = SAFETRANSLATE(identifier_);
+    // auto tmp2 = SAFETRANSLATE(opt_collate_);
+    // res = new IR(kUnknown, OPMID(" , "), tmp0, tmp1);
+    // PUSH(res);
+    // res = new IR(kIdentCommaList, OP0(), res, tmp2);
+    // CASEEND
+
+    // SWITCHEND
+    
+    // TRANSLATEEND
+
     TRANSLATESTART
-    
-    TRANSLATELIST(kIdentCommaList, v_iden_comma_list_, ",")
-    
+    res = SAFETRANSLATE(v_iden_comma_list_[0]); 
+    res = new IR(kIdentCommaList, OP0(), res) ; 
+    v_ir_collector.push_back(res);
+    if (v_opt_collate_list_[0] != nullptr){
+        auto tmp = SAFETRANSLATE(v_opt_collate_list_[0]);
+        res = new IR(kIdentCommaList, OP0(), res, tmp);
+        v_ir_collector.push_back(res);
+    }
+
+    for(int i = 1; i < v_iden_comma_list_.size(); i++){ 
+        IR * tmp = SAFETRANSLATE(v_iden_comma_list_[i]); 
+        res = new IR(kIdentCommaList, OPMID(","), res, tmp); 
+        v_ir_collector.push_back(res); 
+        if (v_opt_collate_list_[i] != nullptr){
+            IR * tmp1 = SAFETRANSLATE(v_opt_collate_list_[i]); 
+            res = new IR(kIdentCommaList, OPMID(" "), res, tmp1); 
+            v_ir_collector.push_back(res); 
+        }
+    }
     TRANSLATEENDNOPUSH
 }
 
@@ -2276,6 +2315,10 @@ void OptSemicolon::deep_delete(){
 
 void IdentCommaList::deep_delete(){
 	SAFEDELETELIST(v_iden_comma_list_);
+    SAFEDELETELIST(v_opt_collate_list_);
+    // SAFEDELETE(ident_comma_list_);
+    // SAFEDELETE(identifier_);
+    // SAFEDELETE(opt_collate_);
 	delete this;
 }
 

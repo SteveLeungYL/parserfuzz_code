@@ -310,7 +310,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token OUTER RIGHT TABLE UNION USING WHERE CALL CASE CHAR DATE
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
 %token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME
-%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY
+%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE
@@ -1393,6 +1393,7 @@ column_type:
             $$->str_val_ = string("CHAR(") + to_string($3) + ")"; 
             } 
     |   TEXT { $$ = new ColumnType(); $$->str_val_ = string("TEXT"); }
+    |   REAL { $$ = new ColumnType(); $$->str_val_ = string("REAL"); }
     |   /* empty*/ { $$ = new ColumnType(); $$->str_val_ = string(""); }
     ;
 
@@ -2318,8 +2319,8 @@ opt_semicolon:
 
 
 ident_commalist:
-        IDENTIFIER { $$ = new IdentCommaList(); $$->v_iden_comma_list_.push_back(new Identifier($1)); free($1);}
-    |   ident_commalist ',' IDENTIFIER { $1->v_iden_comma_list_.push_back(new Identifier($3)); $$ = $1; free($3);}
+        IDENTIFIER opt_collate { $$ = new IdentCommaList(); $$->v_iden_comma_list_.push_back(new Identifier($1)); $$->v_opt_collate_list_.push_back($2);  free($1);}
+    |   ident_commalist ',' IDENTIFIER opt_collate{ $1->v_iden_comma_list_.push_back(new Identifier($3)); $1->v_opt_collate_list_.push_back($4); $$ = $1; free($3);}
     ;
 
 %%
