@@ -3069,7 +3069,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
 
     ofstream outputfile;
     // string bug_output_dir = (char*)out_dir;
-    string bug_output_dir = "./bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
+    string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir);
     outputfile << "Optimized cmd: \n";

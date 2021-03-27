@@ -49,7 +49,7 @@ all: afl-fuzz
 
 
 afl-fuzz: afl-fuzz.cpp $(COMM_HDR)
-	$(CC) $(CFLAGS) -g $@.cpp $(DEPEN_PATH) -o $@ $(LDFLAGS)  -lmysqlclient 
+	$(CC) $(CFLAGS) -g $@.cpp $(DEPEN_PATH) -o $@ $(LDFLAGS)
 
 .NOTPARALLEL: clean
 
