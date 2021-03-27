@@ -184,6 +184,7 @@
     V(kAssignClause) \
     V(kColumnNameList) \
     V(kCollationName) \
+    V(kOptWithoutRowID) \
     V(kOptUpsertClause)
 
 #define ALLCLASS(V) \
@@ -368,6 +369,7 @@
     V(AssignClause) \
     V(ColumnNameList) \
     V(CollationName) \
+    V(OptWithoutRowID) \
     V(OptUpsertClause)
 
 #define SWITCHSTART \

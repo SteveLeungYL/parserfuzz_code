@@ -122,6 +122,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     //OptColumnNullable* opt_column_nullable_t;
     DropStatement* drop_statement_t;
     OptExists* opt_exists_t;
+    OptWithoutRowID* opt_without_rowid_t;
     DeleteStatement* delete_statement_t;
     InsertStatement* insert_statement_t;
     OptColumnList* opt_column_list_t;
@@ -314,6 +315,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE
+%token WITHOUT ROWID
 
 /* For SQLite
 */
@@ -412,6 +414,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <with_description_t>	with_description
 %type <opt_semicolon_t>	opt_semicolon
 %type <ident_commalist_t>	ident_commalist
+%type <opt_without_rowid_t> opt_without_rowid
 
 %type <table_prefix_t> table_prefix
 %type <join_op_t> join_op
@@ -1145,29 +1148,32 @@ opt_column:
  * CREATE TABLE students FROM TBL FILE 'test/students.tbl'
  ******************************/
 create_statement:
-        CREATE TABLE opt_not_exists table_name FROM TBL FILE file_path {
+        CREATE TABLE opt_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE0;
             $$->opt_not_exists_ = $3;
             $$->table_name_ = $4;
             $$->file_path_ = $8;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->opt_without_rowid_ = $9;
         }
-    |   CREATE TABLE opt_not_exists table_name '(' column_def_commalist ')' {
+    |   CREATE TABLE opt_not_exists table_name '(' column_def_commalist ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE1;
             $$->opt_not_exists_ = $3;
             $$->table_name_ = $4;
             $$->column_def_comma_list_ = $6;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->opt_without_rowid_ = $8;
         }
-    |   CREATE TABLE opt_not_exists table_name AS select_statement {
+    |   CREATE TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE2;
             $$->opt_not_exists_ = $3;
             $$->table_name_ = $4;
             $$->select_statement_ = $6;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->opt_without_rowid_ = $7;
         }
     |   CREATE VIEW opt_not_exists table_name opt_column_list AS select_statement {
             $$ = new CreateStatement();
@@ -1198,15 +1204,16 @@ create_statement:
             }
             $$->opt_where_ = $11;
         }
-    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name {
+    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE5;
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->module_name_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->opt_without_rowid_ = $8;
         } 
-    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_def_commalist ')' {
+    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_def_commalist ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE6;
             $$->opt_not_exists_ = $4;
@@ -1214,6 +1221,7 @@ create_statement:
             $$->module_name_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->column_def_comma_list_ = $9;
+            $$->opt_without_rowid_ = $11;
         } 
     |   CREATE trigger_declare BEGIN trigger_cmd_list END {
             $$ = new CreateStatement();
@@ -1222,6 +1230,10 @@ create_statement:
             $$->trigger_cmd_list_ = $4;
         } 
     ;
+
+opt_without_rowid:
+        WITHOUT ROWID {$$ = new OptWithoutRowID(); $$->str_val_ = string("WITHOUT ROWID");}
+    |   /* empty */  {{$$ = new OptWithoutRowID(); $$->str_val_ = string("");}}
 
 opt_unique:
         UNIQUE {$$ = new OptUnique(); $$->str_val_ = string("UNIQUE");}

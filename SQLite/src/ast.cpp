@@ -314,6 +314,9 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             PUSH(tmp);
             auto tmp3 = SAFETRANSLATE(file_path_);
             res = new IR(kCreateStatement, OP2("CREATE TABLE", "FROM TBL FILE"), tmp, tmp3);
+            PUSH(res);
+            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
+            res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(1)
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
@@ -322,6 +325,9 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             PUSH(tmp);
             auto tmp3 = SAFETRANSLATE(column_def_comma_list_);
             res = new IR(kCreateStatement, OP3("CREATE TABLE", "(", ")"), tmp, tmp3);
+            PUSH(res);
+            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
+            res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(2)
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
@@ -330,6 +336,9 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             PUSH(tmp);
             auto tmp3 = SAFETRANSLATE(select_statement_);
             res = new IR(kCreateStatement, OP2("CREATE TABLE", "AS"), tmp, tmp3);
+            PUSH(res);
+            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
+            res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(3)
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
@@ -366,6 +375,9 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             PUSH(res);
             auto tmp3 = SAFETRANSLATE(module_name_);
             res = new IR(kCreateStatement, OPMID("USING"), res, tmp3);
+            PUSH(res);
+            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
+            res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(6)
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
@@ -377,6 +389,9 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             PUSH(res);
             auto tmp4 = SAFETRANSLATE(column_def_comma_list_);
             res = new IR(kCreateStatement, OP3("", "(", ")"), res, tmp4);
+            PUSH(res);
+            auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
+            res = new IR(kCreateStatement, OP0(), res, tmp5);
         CASEEND
         CASESTART(7)
             auto tmp1 = SAFETRANSLATE(trigger_declare_);
@@ -861,6 +876,16 @@ IR* OptOrderType::translate(vector<IR *> &v_ir_collector){
 
     res = new IR(kOptOrderType, str_val_);
 
+    TRANSLATEEND
+}
+
+void OptWithoutRowID::deep_delete(){
+	delete this;
+}
+
+IR* OptWithoutRowID::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    res = new IR(kOptWithoutRowID, str_val_);
     TRANSLATEEND
 }
 
@@ -1753,6 +1778,7 @@ void CreateStatement::deep_delete(){
     SAFEDELETE(module_name_);
     SAFEDELETE(trigger_declare_);
     SAFEDELETE(trigger_cmd_list_);
+    SAFEDELETE(opt_without_rowid_);
 	delete this;
 }
 

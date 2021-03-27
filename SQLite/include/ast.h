@@ -365,7 +365,7 @@ public:
     ModuleName * module_name_;
     TriggerDeclare * trigger_declare_;
     TriggerCmdList * trigger_cmd_list_;
-
+    OptWithoutRowID * opt_without_rowid_;
 };
 
 class InsertStatement: public PreparableStatement{
@@ -1035,6 +1035,13 @@ public:
 };
 
 class OptSemicolon: public OptString{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+};
+
+class OptWithoutRowID: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
