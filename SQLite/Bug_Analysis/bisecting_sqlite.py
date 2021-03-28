@@ -231,8 +231,8 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
         if not is_transformed_no_rec:
             result_str = result_out
             if result_str != "":
-                log_output.write("Opt result is: %s. \n" % (result_str))
-                return result_str.count('\n') + 1  # Results count = newline sym + 1
+                log_output.write("Opt result is: %s \n" % (result_str))
+                return result_str.count('\n')
             else:
                 log_output.write("Opt empty results. \n")
                 return 0    # Empty results.
