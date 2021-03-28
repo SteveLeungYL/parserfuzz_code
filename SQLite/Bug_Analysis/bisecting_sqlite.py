@@ -13,9 +13,6 @@ from threading import Thread
 from git.objects import commit
 from bisecting_sqlite_config import *
 
-
-sqlite_process_id : subprocess.Popen = None
-
 def _get_all_commits(repo:Repo): 
 
     _checkout_commit('master')
@@ -156,13 +153,13 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
             
     
     if newer_commit_str == "":
-        Error_reason = "Error: The latest commit: %s already fix this bug. \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
+        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!. \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
         log_output.write(Error_reason)
-        return None, False, Error_reason
+        return None, is_error_result, Error_reason
     if older_commit_str == "":
         Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version) for queries opt: %s, unopt: %s. Returning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
         log_output.write(Error_reason)
-        return None, False, Error_reason
+        return None, is_error_result, Error_reason
     
     newer_commit_index = all_commits_str.index(newer_commit_str)
     older_commit_index = all_commits_str.index(older_commit_str)
@@ -220,9 +217,9 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
     os.chdir(sqlite_install_dir)
     if os.path.isfile(os.path.join(sqlite_install_dir, "file::memory:")):
         os.remove(os.path.join(sqlite_install_dir, "file::memory:"))
-    current_run_cmd_list = ["./sqlite3", "file::memory:", "'" + queries + "'"]
-    child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE, errors="replace")
-    result_out, result_err = child.communicate()
+    current_run_cmd_list = ["./sqlite3"]
+    child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin = subprocess.PIPE, errors="replace")
+    result_out, result_err = child.communicate(queries)
 
     if child.returncode != 0:
         log_output.write("SQLite3 retunning non-zero %d: %s. \n" % (child.returncode, result_err))
