@@ -103,12 +103,12 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
         log_output.write("Getting results error!")
         return -1
     if opt_result == unopt_result:
-        # log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
-        log_output.write("The result is correct!\n")
+        log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n" % (opt_result, unopt_result))
+        # log_output.write("The result is correct!\n")
         return 1   # The result is correct.
     else:
-        # log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
-        log_output.write("The result is BUGGY!\n")
+        log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n" % (opt_result, unopt_result))
+        # log_output.write("The result is BUGGY!\n")
         return 0  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):   # Returns Bug introduce commit_ID:str, is_error_result:bool
@@ -331,15 +331,15 @@ def write_uniq_bugs_to_files(current_result): # [first_buggy_commit_ID, opt_unop
         append_or_write = 'w'
     bug_output_file = open(current_unique_bug_output, append_or_write)
     if current_result[4] != "Unknown":
-        bug_output_file.write("Bug ID: %d. \n" % current_result[4])
+        bug_output_file.write("Bug ID: %d. \n\n" % current_result[4])
     else:
-        bug_output_file.write("Bug ID: Unknown. \n")
-    bug_output_file.write("Opt queires: %s. \n" % current_result[1])
-    bug_output_file.write("Unopt queires: %s. \n" % current_result[2])
+        bug_output_file.write("Bug ID: Unknown. \n\n")
+    bug_output_file.write("Opt queires: %s. \n\n\n" % current_result[1])
+    bug_output_file.write("Unopt queires: %s. \n\n\n" % current_result[2])
     if current_result[0] != None:
-        bug_output_file.write("First buggy commit ID: %s. \n" % current_result[0])
+        bug_output_file.write("First buggy commit ID: %s. \n\n\n" % current_result[0])
     if len(current_result) == 6:
-        bug_output_file.write("Error reason: %s. \n" % current_result[5])
+        bug_output_file.write("Error reason: %s. \n\n\n" % current_result[5])
     bug_output_file.write("Is SQLite3 return error information: %s. \n\n\n\n" % str(current_result[3]))
     bug_output_file.close()
 
