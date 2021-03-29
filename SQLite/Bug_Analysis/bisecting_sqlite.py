@@ -104,11 +104,11 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
         return -1
     if opt_result == unopt_result:
         # log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
-        log_output.write("The result is correct!")
+        log_output.write("The result is correct!\n")
         return 1   # The result is correct.
     else:
         # log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
-        log_output.write("The result is BUGGY!")
+        log_output.write("The result is BUGGY!\n")
         return 0  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):   # Returns Bug introduce commit_ID:str, is_error_result:bool
@@ -147,8 +147,8 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 if current_commit_index > 0:
                     current_commit_index -= 1
                 else:
-                    log_output.write("Error: error iterating the commit. Compilation failed. Bug trigerred when running bug_deduplication. Raising error.")
-                    raise RuntimeError("Error compiling the released SQLite library with default tags! Error commit: " + str(current_commit_str))
+                    log_output.write("Error: error iterating the commit. Compilation failed. Bug trigerred when running bug_deduplication. Raising error.\n")
+                    raise RuntimeError("Error compiling the released SQLite library with default tags! Error commit: " + str(current_commit_str) + "\n")
                     return None, False
         if is_commit_found:
             break
@@ -156,12 +156,12 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
     
     if newer_commit_str == "":
         # Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!! \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
-        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!"
+        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!\n"
         log_output.write(Error_reason)
         return None, is_error_result, Error_reason
     if older_commit_str == "":
         # Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version for queries \nopt: %s, \nunopt: %s. \nReturning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
-        Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)"
+        Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)\n"
         log_output.write(Error_reason)
         return None, is_error_result, Error_reason
     
