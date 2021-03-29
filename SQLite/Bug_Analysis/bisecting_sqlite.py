@@ -103,10 +103,12 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
         log_output.write("Getting results error!")
         return -1
     if opt_result == unopt_result:
-        log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
+        # log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
+        log_output.write("The result is correct!")
         return 1   # The result is correct.
     else:
-        log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
+        # log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n\n\n" % (opt_result, unopt_result))
+        log_output.write("The result is BUGGY!")
         return 0  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):   # Returns Bug introduce commit_ID:str, is_error_result:bool
@@ -153,11 +155,13 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
             
     
     if newer_commit_str == "":
-        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!. \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
+        # Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!! \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
+        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!"
         log_output.write(Error_reason)
         return None, is_error_result, Error_reason
     if older_commit_str == "":
-        Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version) for queries opt: %s, unopt: %s. Returning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
+        # Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version for queries \nopt: %s, \nunopt: %s. \nReturning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
+        Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)"
         log_output.write(Error_reason)
         return None, is_error_result, Error_reason
     
@@ -231,18 +235,18 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
         if not is_transformed_no_rec:
             result_str = result_out
             if result_str != "":
-                log_output.write("Opt result is: %s \n" % (result_str))
+                # log_output.write("Opt result is: %s \n" % (result_str))
                 return result_str.count('\n')
             else:
-                log_output.write("Opt empty results. \n")
+                # log_output.write("Opt empty results. \n")
                 return 0    # Empty results.
         else:
             result_str = result_out
             if result_str != "":
-                log_output.write("Unopt result is: %d \n" % (int(result_str)))
+                # log_output.write("Unopt result is: %d \n" % (int(result_str)))
                 return int(result_str) # Results count = num of 1.
             else:
-                log_output.write("Unopt empty results. \n")
+                # log_output.write("Unopt empty results. \n")
                 return 0    # Empty results.
 
 
@@ -340,6 +344,7 @@ def write_uniq_bugs_to_files(current_result): # [first_buggy_commit_ID, opt_unop
     bug_output_file.close()
 
 def run_bisecting(opt_unopt_queries):
+    log_output.write("\n\n\nBeginning testing with query: \nOpt: %s \n Unopt: %s \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
     first_buggy_commit_ID, is_error_result, Error_reason = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags, ignored_commits_str = ignored_commits_hexsha)
     if first_buggy_commit_ID != None:
         current_result_l = [first_buggy_commit_ID, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result]
@@ -360,7 +365,7 @@ def status_print():
         else:
             tmp_percentage = total_processing_bug_count_int / total_bug_count_int * 100
             print("Currently, we have %d / %d being processed, %d percent. Total unique bug number: %d. \n" % (total_processing_bug_count_int, total_bug_count_int, tmp_percentage, uniq_bug_id_int))
-            log_output.write("Currently, we have %d/%d being processed, %d percent. Total unique bug number: %d. \n\n" % (total_processing_bug_count_int, total_bug_count_int, total_processing_bug_count_int/total_bug_count_int*100, uniq_bug_id_int))
+            # log_output.write("Currently, we have %d/%d being processed, %d percent. Total unique bug number: %d. \n\n" % (total_processing_bug_count_int, total_bug_count_int, total_processing_bug_count_int/total_bug_count_int*100, uniq_bug_id_int))
 
 ### Global Variable
 
