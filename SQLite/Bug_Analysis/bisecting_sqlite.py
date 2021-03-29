@@ -353,6 +353,7 @@ def run_bisecting(opt_unopt_queries):
     else:
         current_result_l = [None, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result, "Unknown", Error_reason]  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
         write_uniq_bugs_to_files(current_result_l)
+    log_output.flush()
 
 def status_print():
     global total_processing_bug_count_int
