@@ -2906,6 +2906,10 @@ int compare_No_Rec_result(string optimized_result_str, string unoptimized_result
     {
       unoptimized_result_int = 0;
     }
+    catch (std::out_of_range &e)
+    {
+      unoptimized_result_int = 0;
+    }
   }
 
   // cout << "Optimized_result_int is: " << optimized_result_int << " ; unoptimized_result_int is: " << unoptimized_result_int << ". " << endl;
@@ -2944,16 +2948,19 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
               is_first_select = false;
             } else {
               is_skip_no_rec = true;        // Found multiple select stmt. Ignore the current query pairs.
+              break;
             }
       }
       else if (is_first_select){
         is_first_select = false;       // Found a SELECT stmt that is not matching the requirement of NoREC. Mark the select. Ignore the current query pairs.
         is_skip_no_rec = true;
         unoptimized_cmd_string += query + "; \n";
+        break;
       }
       else{
         is_skip_no_rec = true;  // Found multiple select stmt. Ignore the current query pairs.
         unoptimized_cmd_string += query + "; \n";
+        break;
       }
     }
     else
