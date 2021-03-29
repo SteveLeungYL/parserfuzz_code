@@ -308,7 +308,7 @@ def restructured_and_clean_all_queries(all_queries):
 
 
 def cross_compare(current_result): # [first_buggy_commit_ID, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result]
-
+    global uniq_bug_id_int
     if current_result[0] not in all_unique_results_dict:
         all_unique_results_dict[current_result[0]] = []
         current_result.append(uniq_bug_id_int)
