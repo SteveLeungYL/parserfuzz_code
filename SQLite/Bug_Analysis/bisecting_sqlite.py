@@ -467,6 +467,8 @@ if __name__ == "__main__":
             continue
         all_new_queries = restructured_and_clean_all_queries(all_queries=all_new_queries)
         for all_queries_idx, opt_unopt_queries in enumerate(all_new_queries): 
+            if "randomblob" in opt_unopt_queries[0] or "random" in opt_unopt_queries[0]:
+                continue
             total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx + 1
             run_bisecting(opt_unopt_queries = opt_unopt_queries)
 
