@@ -2884,6 +2884,14 @@ string rewrite_query_by_No_Rec(string query)
   return rewrited_string;
 }
 
+bool check_whether_string_only_whitespace(string input_str){
+  for (int i = 0; i < input_str.size(); i++){
+    char c = input_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not only writespace
+  }
+  return true; // Only writespace
+}
+
 int compare_No_Rec_result(string optimized_result_str, string unoptimized_result_str, int& optimized_result_int, int& unoptimized_result_int){
   size_t opt_error = optimized_result_str.find("Error");
   size_t unopt_error = unoptimized_result_str.find("Error");
@@ -2891,12 +2899,27 @@ int compare_No_Rec_result(string optimized_result_str, string unoptimized_result
         return -1;  // If 'Error' is return. Then ignore this query pairs. Return -1.
   }
 
+  size_t opt_begin_idx = optimized_result_str.find("1234567") + 7;
+  size_t unopt_begin_idx = unoptimized_result_str.find("1234567") + 7;
+  if (opt_begin_idx == string::npos || unopt_begin_idx == string::npos) {
+        return -1;  // We do not detect the output from the norec select stmt. return -1
+  }
+
+  size_t opt_end_idx = optimized_result_str.find("7654321");
+  size_t unopt_end_idx = unoptimized_result_str.find("7654321");
+  if (opt_end_idx == string::npos || unopt_end_idx == string::npos) {
+        return -1;  // The output is not complete. We do not detect the ending signal from the norec select stmt. Return -1.
+  }
+
+  optimized_result_str = optimized_result_str.substr(opt_begin_idx, opt_end_idx-opt_begin_idx);
+  unoptimized_result_str = unoptimized_result_str.substr(unopt_begin_idx, unopt_end_idx - unopt_begin_idx); 
+
   optimized_result_int = 0;
-  if (optimized_result_str != "\n")
-    optimized_result_int = std::count(optimized_result_str.begin(), optimized_result_str.end(), '\n');
-  // int unoptimized_result_int = std::count(unoptimized_result_str.begin(), unoptimized_result_str.end(), '1');
+  if ( optimized_result_str != "\n" && !check_whether_string_only_whitespace(optimized_result_str) )
+    optimized_result_int = std::count(optimized_result_str.begin(), optimized_result_str.end(), '\n') - 1;
+
   unoptimized_result_int = 0;
-  if (unoptimized_result_str != "")
+  if (unoptimized_result_str != "" && !check_whether_string_only_whitespace(unoptimized_result_str) )
   {
     try
     {
@@ -2905,10 +2928,12 @@ int compare_No_Rec_result(string optimized_result_str, string unoptimized_result
     catch (std::invalid_argument &e)
     {
       unoptimized_result_int = 0;
+      return -1;
     }
     catch (std::out_of_range &e)
     {
       unoptimized_result_int = 0;
+      return -1;
     }
   }
 
@@ -2927,50 +2952,58 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   bool is_first_select = true;   // used to mark whether there are multiple select stmt in the query pairs, if yes, ignore the current query pairs.
 
   /* Unoptimized */
-  string unoptimized_cmd_string = "";
   vector<string> queries_vector = string_splitter(optimized_cmd_string, ";");
+  optimized_cmd_string = "";
+  string unoptimized_cmd_string = "";
+  
+
 
   for (string &query : queries_vector)
   {
+    // Added rules that exclude the query pairs with randombolb or random stmts.
     if(
-        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&    // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
-        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)   )
+      ((query.find("RANDOM")) != std::string::npos || (query.find("random") ) != std::string::npos) &&
+      ((query.find("RANDOMBOLB")) != std::string::npos || (query.find("randombolb") ) != std::string::npos)
+    )
     {
-      if(
-          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&    // This is a SELECT stmt that matching the requirments of NoREC.
-          ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)   &&
-          ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos)  // DEBUG LINE!!!!!!!!
-          ){
-            unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";    // Rewrite query to NoREC stmt.
-            if (is_first_select){             // This is the first select stmt. Valid!!! Confirming NoREC execution if no further SELECT stmt presented!!!
-              is_skip_no_rec = false;
-              is_first_select = false;
-            } else {
-              is_skip_no_rec = true;        // Found multiple select stmt. Ignore the current query pairs.
-              break;
-            }
-      }
-      else if (is_first_select){
-        is_first_select = false;       // Found a SELECT stmt that is not matching the requirement of NoREC. Mark the select. Ignore the current query pairs.
-        is_skip_no_rec = true;
-        unoptimized_cmd_string += query + "; \n";
-        break;
-      }
-      else{
-        is_skip_no_rec = true;  // Found multiple select stmt. Ignore the current query pairs.
-        unoptimized_cmd_string += query + "; \n";
-        break;
-      }
+      is_skip_no_rec = true;
+      return FAULT_NONE;
     }
-    else
-      unoptimized_cmd_string += query + "; \n";  // Not a SELECT stmt, push into the query string list as usual.
-
-    /* DEBUG CODE */
     if (query[0] == '!' || query[1] == '!' || query[2] == '!')  // If we see !... in the stmt, ignore the whole query pairs. 
     {
-      is_first_select = false;
       is_skip_no_rec = true;
+      return FAULT_NONE;
+    }
+
+    if (
+        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
+        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos))
+    {
+      if (
+          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) && // This is a SELECT stmt that matching the requirments of NoREC.
+          ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
+          ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // DEBUG LINE!!!!!!!!
+      )
+      {
+        optimized_cmd_string += "; SELECT 1234567; \n" + query + ";\n SELECT 7654321; \n";
+        unoptimized_cmd_string += "; SELECT 1234567; \n" + rewrite_query_by_No_Rec(query) + ";\n SELECT 7654321; \n"; // Rewrite query to NoREC stmt.
+        if (is_first_select) { // This is the first select stmt. Valid!!! Confirming NoREC execution if no further SELECT stmt presented!!!
+          is_skip_no_rec = false;
+          is_first_select = false;
+        }
+        else {
+          is_skip_no_rec = true; // Found multiple non-rec capabled select stmt. Ignore the current query pairs.
+          return FAULT_NONE;
+        }
+      } else {
+        optimized_cmd_string += query + "; \n";
+        unoptimized_cmd_string += query + "; \n"; // Non norec compatible select stmt, push into the query string list as usual.
+      }
+    } else
+    {
+      optimized_cmd_string += query + "; \n";
+      unoptimized_cmd_string += query + "; \n"; // Not a SELECT stmt, push into the query string list as usual.
     }
   }
 
@@ -3010,10 +3043,6 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     unoptimized_result_string = read_sqlite_output_and_reset_output_file();
 
     /* Optimized */
-    optimized_cmd_string = "";
-    for (string &query : queries_vector){
-      optimized_cmd_string += query + "; \n";
-    }
 
     // optimized_cmd_string += " .quit ";
     write_to_testcase(optimized_cmd_string.c_str(), optimized_cmd_string.size());
@@ -3048,6 +3077,10 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     optimized_result_string = read_sqlite_output_and_reset_output_file();
 
   }
+
+  int optimized_result_int = 0, unoptimized_result_int = 0;
+  int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int); 
+
   // cerr << "\n\n\nCurrently running: (DEBUG): \n";
   // cerr << "Optimized_cmd_string: \n"
   //      << optimized_cmd_string << "\n";
@@ -3055,11 +3088,15 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   //      << unoptimized_cmd_string << "\n";
   // cerr << "Optimized results: \n"
   //      << optimized_result_string << "\n"
+  //      << "Optimized results(int): "
+  //      << optimized_result_int << "\n"
   //      << "Unoptimized results: \n"
-  //      << unoptimized_result_string << "\n\n\n\n";
+  //      << unoptimized_result_string << "\n"
+  //      << "Unoptimized results(int): "
+  //      << unoptimized_result_int << "\n"
+  //      << "Compare Norec result: " << compare_No_Rec_result_int
+  //      << "\n\n\n";
 
-  int optimized_result_int = 0, unoptimized_result_int = 0;
-  int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int); 
   
   if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
