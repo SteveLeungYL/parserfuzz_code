@@ -2983,6 +2983,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
       if (
           ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) && // This is a SELECT stmt that matching the requirments of NoREC.
           ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
+          ( (query.find("*")) != std::string::npos ) &&    // Used for SELECT * FROM ... WHERE ...
           ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // DEBUG LINE!!!!!!!!
       )
       {
