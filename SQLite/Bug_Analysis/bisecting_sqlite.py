@@ -92,6 +92,7 @@ def _setup_SQLITE_with_commit(hexsha:str):
 
 def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:str) -> int:
     INSTALL_DEST_DIR = _setup_SQLITE_with_commit(hexsha=commit_ID)
+
     if INSTALL_DEST_DIR == "":
         return -2  # Failed to compile commit. 
     opt_queries = opt_unopt_queries[0]
@@ -100,21 +101,24 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     opt_result = _execute_queries(queries=opt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=False)
     unopt_result = _execute_queries(queries=unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR, is_transformed_no_rec=True)
     if opt_result == None or unopt_result == None:
-        log_output.write("Getting results error!")
-        return -1
+        log_output.write("Getting results error! \n")
+        return -1, opt_result, unopt_result
     if opt_result == unopt_result:
         log_output.write("The result is correct! The opt_result is: %d, the unopt_result is: %d\n" % (opt_result, unopt_result))
         # log_output.write("The result is correct!\n")
-        return 1   # The result is correct.
+        return 1, opt_result, unopt_result   # The result is correct.
     else:
         log_output.write("The result is BUGGY! The opt_result is: %d, the unopt_result is: %d\n" % (opt_result, unopt_result))
         # log_output.write("The result is BUGGY!\n")
-        return 0  # THe result is buggy.
+        return 0, opt_result, unopt_result  # THe result is buggy.
 
 def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_commits_str):   # Returns Bug introduce commit_ID:str, is_error_result:bool
     newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
     older_commit_str = ""  # The latest correct commit.
+    opt_result = -1
+    unopt_result = -1
     is_error_result = False
+    current_commit_str = ""
     for current_tag in reversed(all_tags):   # From the latest tag to the earliest tag.
         current_commit_str = current_tag.commit.hexsha
         current_commit_index = all_commits_str.index(current_commit_str)
@@ -126,7 +130,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
             if current_commit_str in ignored_commits_str:
                 current_commit_index -= 1
                 continue
-            rn_correctness =  _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str)  # Execution is correct
+            rn_correctness, opt_result, unopt_result =  _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=current_commit_str)  # Execution is correct
             if rn_correctness == 1:   # Execution result is correct.
                 older_commit_str = current_commit_str
                 is_successfully_executed = True
@@ -147,23 +151,22 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 if current_commit_index > 0:
                     current_commit_index -= 1
                 else:
-                    log_output.write("Error: error iterating the commit. Compilation failed. Bug trigerred when running bug_deduplication. Raising error.\n")
-                    raise RuntimeError("Error compiling the released SQLite library with default tags! Error commit: " + str(current_commit_str) + "\n")
-                    return None, False
+                    log_output.write("Error: error iterating the commit. Compilation failed. Bug trigerred when running bug_deduplication. Raising error.\n\n\n")
+                    raise RuntimeError("Error compiling the released SQLite library with default tags! Error commit: " + str(current_commit_str) + "\n\n\n")
         if is_commit_found:
             break
             
     
     if newer_commit_str == "":
         # Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!! \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
-        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!\n"
+        Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!\n\n\n" % (current_commit_str)
         log_output.write(Error_reason)
-        return None, is_error_result, Error_reason
+        return None, is_error_result, Error_reason, opt_result, unopt_result
     if older_commit_str == "":
         # Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version for queries \nopt: %s, \nunopt: %s. \nReturning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
-        Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)\n"
+        Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)!!!\n\n\n"
         log_output.write(Error_reason)
-        return None, is_error_result, Error_reason
+        return None, is_error_result, Error_reason, opt_result, unopt_result
     
     newer_commit_index = all_commits_str.index(newer_commit_str)
     older_commit_index = all_commits_str.index(older_commit_str)
@@ -184,10 +187,10 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 tmp_commit_index -= 1
                 current_ignored_commit_number += 1
                 if tmp_commit_index <= older_commit_index:  
-                    return all_commits_str[newer_commit_index], is_error_result, ""
+                    return all_commits_str[newer_commit_index], is_error_result, "", opt_result, unopt_result
                 continue
 
-            rn_correctness = _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=commit_ID)
+            rn_correctness, opt_result, unopt_result = _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=commit_ID)
             if rn_correctness == 1:  # The correct version.
                 older_commit_index = tmp_commit_index
                 is_successfully_executed = True
@@ -208,11 +211,12 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
 
     
     if is_buggy_commit_found:
-        return all_commits_str[newer_commit_index], is_error_result, ""
+        log_output.write("Found the bug introduced commit: %s \n\n\n" % (all_commits_str[newer_commit_index]))
+        return all_commits_str[newer_commit_index], is_error_result, "", opt_result, unopt_result
     else:
-        Error_reason = "Error: Returnning is_buggy_commit_found == False. Possibly related to compilation failure.\n"
+        Error_reason = "Error: Returnning is_buggy_commit_found == False. Possibly related to compilation failure. \n\n\n"
         log_output.write(Error_reason)
-        return None, False, Error_reason
+        return None, False, Error_reason, opt_result, unopt_result
 
 
 
@@ -223,7 +227,16 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
         os.remove(os.path.join(sqlite_install_dir, "file::memory:"))
     current_run_cmd_list = ["./sqlite3"]
     child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin = subprocess.PIPE, errors="replace")
-    result_out, result_err = child.communicate(queries)
+    try:
+        result_out, result_err = child.communicate(queries, timeout=3)
+        child.kill()
+        # child.wait()
+    except subprocess.TimeoutExpired:
+        child.kill()
+        log_output.write("ERROR: SQLite3 time out. \n")
+        print("ERROR: SQLite3 time out. ")
+        return None
+
 
     if child.returncode != 0:
         log_output.write("SQLite3 retunning non-zero %d: %s. \n" % (child.returncode, result_err))
@@ -330,36 +343,53 @@ def write_uniq_bugs_to_files(current_result): # [first_buggy_commit_ID, opt_unop
     else:
         append_or_write = 'w'
     bug_output_file = open(current_unique_bug_output, append_or_write)
-    if current_result[4] != "Unknown":
+    if current_result[6] != "Unknown":
         bug_output_file.write("Bug ID: %d. \n\n" % current_result[4])
     else:
         bug_output_file.write("Bug ID: Unknown. \n\n")
     bug_output_file.write("Opt queires: %s. \n\n\n" % current_result[1])
     bug_output_file.write("Unopt queires: %s. \n\n\n" % current_result[2])
+    if current_result[4] != None:
+        bug_output_file.write("Opt_result: %s\n\n\n" % current_result[4])
+    else:
+        bug_output_file.write("Opt_result: None\n\n\n")
+    if current_result[5] != None:
+        bug_output_file.write("Unopt_result: %s\n\n\n" % current_result[5])
+    else:
+        bug_output_file.write("Unopt_result: None\n\n\n")
     if current_result[0] != None:
         bug_output_file.write("First buggy commit ID: %s. \n\n\n" % current_result[0])
-    if len(current_result) == 6:
+    if len(current_result) == 8:
         bug_output_file.write("Error reason: %s. \n\n\n" % current_result[5])
     bug_output_file.write("Is SQLite3 return error information: %s. \n\n\n\n" % str(current_result[3]))
     bug_output_file.close()
 
 def run_bisecting(opt_unopt_queries):
-    log_output.write("\n\n\nBeginning testing with query: \nOpt: %s \n Unopt: %s \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
-    first_buggy_commit_ID, is_error_result, Error_reason = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags, ignored_commits_str = ignored_commits_hexsha)
-    if first_buggy_commit_ID != None:
-        current_result_l = [first_buggy_commit_ID, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result]
-        current_result_l = cross_compare(current_result_l)  # The unique bug id will be appended to current_result_l when running cross_compare
-        write_uniq_bugs_to_files(current_result_l)
-    else:
-        current_result_l = [None, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result, "Unknown", Error_reason]  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
-        write_uniq_bugs_to_files(current_result_l)
-    log_output.flush()
-
-def status_print():
     global total_processing_bug_count_int
     global total_processed_bug_count_int
     global total_bug_count_int
+    global uniq_bug_id_int
+    print("\n\n\nBeginning testing with query: \nOpt: %s \n Unopt: %s \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
+    log_output.write("\n\n\nBeginning testing with query: \nOpt: %s \n Unopt: %s \n" % (opt_unopt_queries[0], opt_unopt_queries[1]))
+    first_buggy_commit_ID, is_error_result, Error_reason, opt_result, unopt_result = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags, ignored_commits_str = ignored_commits_hexsha)
+    if first_buggy_commit_ID != None:
+        current_result_l = [first_buggy_commit_ID, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result, opt_result, unopt_result]
+        current_result_l = cross_compare(current_result_l)  # The unique bug id will be appended to current_result_l when running cross_compare
+        write_uniq_bugs_to_files(current_result_l)
+    else:
+        current_result_l = [None, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result, opt_result, unopt_result, "Unknown", Error_reason]  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
+        write_uniq_bugs_to_files(current_result_l)
+    log_output.flush()
+    tmp_percentage = total_processing_bug_count_int / total_bug_count_int * 100
+    print("Currently, we have %d / %d being processed, %d percent. Total unique bug number: %d. \n" % (total_processing_bug_count_int, total_bug_count_int, tmp_percentage, uniq_bug_id_int))
+
+
+def status_print():
     while True:
+        global total_processing_bug_count_int
+        global total_processed_bug_count_int
+        global total_bug_count_int
+        global uniq_bug_id_int
         time.sleep(1.0)  # Sleep 1 second.
         if total_bug_count_int == 0:
             print("Initializing...\n")
@@ -390,8 +420,8 @@ if __name__ == "__main__":
     repo = Repo(SQLITE_DIR)
     assert not repo.bare
 
-    thread = Thread(target = status_print)
-    thread.start()
+    # thread = Thread(target = status_print)
+    # thread.start()
 
     all_commits_hexsha, all_tags = _get_all_commits(repo=repo)
     log_output.write("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
@@ -403,16 +433,20 @@ if __name__ == "__main__":
     all_queries = restructured_and_clean_all_queries(all_queries=all_queries)  # all_queries = [[opt_queries, unopt_queries]]
     print("Finished reading the buggy query files. \n\n")
     log_output.write("Finished reading the buggy query files. \n\n")
+    log_output.flush()
 
 
     print("Beginning bisecting. \n\n")
     log_output.write("Beginning bisecting. \n\n")
     all_results = []
     for all_queries_idx, opt_unopt_queries in enumerate(all_queries):
-        total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx
+        if "randomblob" in opt_unopt_queries[0] or "random" in opt_unopt_queries[0]:
+            continue
+        total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx + 1
         run_bisecting(opt_unopt_queries = opt_unopt_queries)
     print("Finished bisecting. \n\n")
-    log_output.write("Finished bisecting. \n\n")
+    log_output.write("Finished bisecting already saved files. \n\n")
+    log_output.flush()
 
     all_queries.clear()
     all_results.clear()
@@ -426,6 +460,6 @@ if __name__ == "__main__":
             continue
         all_new_queries = restructured_and_clean_all_queries(all_queries=all_new_queries)
         for opt_unopt_queries in all_queries: 
-            total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx
+            total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx + 1
             run_bisecting(opt_unopt_queries = opt_unopt_queries)
 
