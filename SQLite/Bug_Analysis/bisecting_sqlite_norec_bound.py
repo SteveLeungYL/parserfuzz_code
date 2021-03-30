@@ -258,12 +258,20 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
         if not is_transformed_no_rec:
             result_str = result_out
             if result_str != "" and not check_whether_string_only_whitespace(result_str):
-                return result_str.count('\n')
+                if result_str.count("1234567") != 1 or result_str.count("7654321") != 1:
+                    return None
+                result_str = result_str.split("1234567")[1]
+                result_str = result_str.split("7654321")[0]
+                return result_str.count('\n') - 1
             else:
                 return 0    # Empty results.
         else:
             result_str = result_out
             if result_str != "" and result_str != "\n" and not check_whether_string_only_whitespace(result_str):
+                if result_str.count("1234567") != 1 or result_str.count("7654321") != 1:
+                    return None
+                result_str = result_str.split("1234567")[1]
+                result_str = result_str.split("7654321")[0]
                 return int(result_str) # Results count = num of 1.
             else:
                 # log_output.write("Unopt empty results. \n")
