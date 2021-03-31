@@ -5826,6 +5826,7 @@ static void show_stats(void) {
       current_hash = 0;
       do {
         mutated_tree = g_mutator.mutate_all(ir_set);
+        if (mutated_tree.size() == 0) continue;
         current_hash = g_mutator.hash(mutated_tree[mutated_tree.size()-1]);
       } while (current_hash == prev_hash);
 
