@@ -9,9 +9,28 @@ import re
 import shutil
 import time
 from threading import Thread
+import atexit
 
 from git.objects import commit
 from bisecting_sqlite_config import *
+
+### Global Variable
+
+all_commits_hexsha = []
+all_tags = []
+ignored_commits_hexsha = []
+all_files_fds = dict()
+all_unique_results_dict = dict()
+uniq_bug_id_int = 0
+total_processed_bug_count_int:int = 0
+total_processing_bug_count_int:int = 0
+total_bug_count_int:int = 0
+log_output = open(LOG_OUTPUT_FILE, 'w')
+
+# Fuzzing instances related. 
+all_fuzzing_instances_list = []
+
+
 
 def _get_all_commits(repo:Repo): 
 
@@ -413,20 +432,38 @@ def status_print():
             print("Currently, we have %d / %d being processed, %d percent. Total unique bug number: %d. \n" % (total_processing_bug_count_int, total_bug_count_int, tmp_percentage, uniq_bug_id_int))
             # log_output.write("Currently, we have %d/%d being processed, %d percent. Total unique bug number: %d. \n\n" % (total_processing_bug_count_int, total_bug_count_int, total_processing_bug_count_int/total_bug_count_int*100, uniq_bug_id_int))
 
-### Global Variable
 
-all_commits_hexsha = []
-all_tags = []
-ignored_commits_hexsha = []
-all_files_fds = dict()
-all_unique_results_dict = dict()
-uniq_bug_id_int = 0
-total_processed_bug_count_int:int = 0
-total_processing_bug_count_int:int = 0
-total_bug_count_int:int = 0
-log_output = open(LOG_OUTPUT_FILE, 'w')
+
+
+def setup_and_run_fuzzing():
+    global all_fuzzing_instances_list
+    os.chdir(FUZZING_ROOT_DIR)
+    for i in range(MAX_FUZZING_INSTANCE):
+        try:
+            shutil.rmtree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
+        except:
+            pass
+    
+    for i in range(MAX_FUZZING_INSTANCE):
+        shutil.copytree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root"), os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
+        os.chdir(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
+        p = subprocess.Popen([FUZZING_COMMAND], cwd=os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)), shell=True, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+        print("Fuzzing process running, PID is: %d" % (p.pid))
+        log_output.write("Fuzzing process running, PID is: %d \n" % (p.pid))
+        all_fuzzing_instances_list.append(p)
+        
+
+def exit_handler():
+    global all_fuzzing_instances_list
+    for fuzzing_instance in all_fuzzing_instances_list:
+        fuzzing_instance.kill()
 
 if __name__ == "__main__":
+
+    setup_and_run_fuzzing()
+    atexit.register(exit_handler)
+
+    os.chdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis")) # Change back to original workdir in case of errors. 
 
     if os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
         shutil.rmtree(UNIQUE_BUG_OUTPUT_DIR)
