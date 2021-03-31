@@ -540,8 +540,7 @@ INSERT INTO x ( x ) VALUES ( 'y' ) ,( 'y' ) ,( 'y' ) ,( 'y' ) ,( 'y' ) ,( 'y' ) 
 CREATE INDEX x ON x ( x ) WHERE datetime ( x , x ) IS NOT NULL ; 
 INSERT INTO x ( x ) VALUES ( 0.1 ) ; 
 INSERT INTO x ( x , x ) VALUES ( 0.1 , 'y' ) ; 
-INSERT INTO x ( x , x ) VALUES ( 'y' , 0.1 ) ; 
-CREATE TABLE x ( x , x AS( x + julianday ( 'y' ) ) ) ; 
+INSERT INTO x ( x , x ) VALUES ( 'y' , 0.1 ) ;  
 SELECT x , quote ( substr ( x , 10 , 10 ) ) FROM x 'y' ORDER BY x ; 
 SELECT x , quote ( substr ( x , 10 , 10 ) ) FROM x WHERE x = 10 ; 
 SELECT x , quote ( substr ( x , 10 , 10 ) ) FROM x 'y' ; 
