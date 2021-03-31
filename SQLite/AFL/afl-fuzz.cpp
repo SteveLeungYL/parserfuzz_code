@@ -3113,10 +3113,24 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     // cerr << unoptimized_result_string << "\n\n\n\n";
 
     ofstream outputfile;
-    // string bug_output_dir = (char*)out_dir;
+
+    int outputfile_fd = 0;
+    while (true){
+      DIR* dir = opendir("../bug_analysis/bug_samples/");
+      if (!dir) exit(1);
+      closedir(dir);
+      bug_output_id++;
+      string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
+      outputfile_fd = open(bug_output_dir.c_str(), O_CREAT | O_EXCL, 0666);   // Used to atomically create the file. We can make sure bug_output_id is unique across process. 
+      if (outputfile_fd == -1) continue;    // If the file is already exist. Switch to the next bug_output_id and try to create the file again.
+      else {
+        close(outputfile_fd);  // File created. We can use outputfile to write to the file now. 
+        break;
+      }
+    }
     string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
-    outputfile.open(bug_output_dir);
+    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     outputfile << "Optimized cmd: \n";
     outputfile << optimized_cmd_string << "\n";
     outputfile << "Unoptimized cmd: \n";
@@ -3131,7 +3145,6 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     outputfile << unoptimized_result_int << "\n\n\n\n";
 
     outputfile.close();
-    bug_output_id++;
 
     // cerr << "E";
     total_execs++;

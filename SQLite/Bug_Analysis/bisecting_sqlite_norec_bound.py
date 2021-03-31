@@ -362,8 +362,8 @@ def write_uniq_bugs_to_files(current_result):
         bug_output_file.write("Bug ID: %d. \n\n" % current_result[6])
     else:
         bug_output_file.write("Bug ID: Unknown. \n\n")
-    bug_output_file.write("Opt queires: %s. \n\n\n" % current_result[1])
-    bug_output_file.write("Unopt queires: %s. \n\n\n" % current_result[2])
+    bug_output_file.write("Opt queires: %s \n\n\n" % current_result[1])
+    bug_output_file.write("Unopt queires: %s \n\n\n" % current_result[2])
     if current_result[4] != None:
         bug_output_file.write("Opt_result: %s\n\n\n" % current_result[4])
     else:
