@@ -291,7 +291,13 @@ def _execute_queries(queries:str, sqlite_install_dir:str, is_transformed_no_rec:
                     return None
                 result_str = result_str.split("1234567")[1]
                 result_str = result_str.split("7654321")[0]
-                return int(result_str) # Results count = num of 1.
+                result_int = 0
+                try:
+                    result_int = int(result_str)
+                except ValueError:
+                    return None
+
+                return result_int
             else:
                 # log_output.write("Unopt empty results. \n")
                 return 0    # Empty results.
