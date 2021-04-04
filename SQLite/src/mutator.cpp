@@ -72,6 +72,18 @@ bool Mutator::make_current_node_as_norec_select_stmt(IR* root){
     return true;
 }
 
+bool Mutator::is_norec_compatible(const string& query){
+  if (
+        ((query.find("SELECT *")) != std::string::npos || (query.find("select *")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
+        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
+        ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&  // This is a SELECT stmt that matching the requirments of NoREC.
+        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&  
+        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later. 
+    ) return true;
+    return false;
+}
+
 bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
 {   
     bool is_mark_successfully = false;
@@ -96,8 +108,11 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
                     par_par_par_ir = locate_parent(root, par_par_ir);
                     if (par_par_par_ir != nullptr && par_par_par_ir->type_ == kStatementList)
                     {
+                        string query = extract_struct(ir);
+                        if (   !(this->is_norec_compatible(query))   )  continue;  // Not norec compatible. Jump to the next ir. 
+                        query.clear();
                         is_mark_successfully = make_current_node_as_norec_select_stmt(ir);
-                        // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << ". \n\n\n";
+                        // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << " \n\n\n";
                         par_ir -> is_norec_select_fixed = true;
                         par_par_ir -> is_norec_select_fixed = true;
                         par_par_par_ir -> is_norec_select_fixed = true;
@@ -1101,7 +1116,7 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE
             }
 
             string Mutator::extract_struct(IR * root){
-		static int counter = 0;
+		        static int counter = 0;
                 string res;
                 auto * right_ = root->right_, * left_ = root->left_;
                 auto * op_ = root->op_;

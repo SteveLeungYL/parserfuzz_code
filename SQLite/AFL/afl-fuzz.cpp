@@ -166,6 +166,8 @@ static s32 out_fd,                    /* Persistent fd for out_file       */
            fsrv_ctl_fd,               /* Fork server control pipe (write) */
            fsrv_st_fd;                /* Fork server status pipe (read)   */
 
+static s32 max_num_norec_select = 3;     /* Number of No-rec compatible selects in one run_through */
+
 static string program_input_str;      /* String: query used to test sqlite   */
 static string program_output_str;     /* String: query results output from sqlite   */
 
@@ -2566,6 +2568,38 @@ vector<string> string_splitter(string input_string, string delimiter_re = "\n")
   return split_string;
 }
 
+int count_and_get_norec_stmt_str(const string& input, string& norec_select_stmt){
+  vector<string> queries_vector = string_splitter(input, ";");
+  int norec_select_count = 0;
+  for (string &query : queries_vector)
+  {
+    if ( g_mutator.is_norec_compatible(query) ) {
+      norec_select_count++;
+      norec_select_stmt = query;
+    }
+  }
+  return norec_select_count;
+}
+
+string append_norec_select_stmts(string input){
+  for (auto iter = input.begin(); iter != input.end(); iter++){
+    if ((*iter) == '\0') *iter = '\n';
+  }
+
+  string copied_norec_select_stmts = "";
+  int num_of_norec_select = count_and_get_norec_stmt_str(input, copied_norec_select_stmts);
+  // cerr << "The current copied_norec_select_stmts is: " << copied_norec_select_stmts << endl;
+  if (num_of_norec_select == 0) {
+    copied_norec_select_stmts = "SELECT * FROM v0 WHERE v0.v1";   // Ad-hoc insert a norec select stmt into the query. Might not work. 
+  }
+  if (num_of_norec_select < max_num_norec_select) {
+    for (int i = 0; i < (max_num_norec_select - num_of_norec_select); i++){
+      input += copied_norec_select_stmts + "; ";
+    }
+  }
+  return input;
+}
+
 string rewrite_query_by_No_Rec(string query)
 {
   // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
@@ -2892,78 +2926,101 @@ bool check_whether_string_only_whitespace(string input_str){
   return true; // Only writespace
 }
 
-int compare_No_Rec_result(string optimized_result_str, string unoptimized_result_str, int& optimized_result_int, int& unoptimized_result_int){
-  size_t opt_error = optimized_result_str.find("Error");
-  size_t unopt_error = unoptimized_result_str.find("Error");
-  if (opt_error != string::npos || unopt_error != string::npos) {
-        return -1;  // If 'Error' is return. Then ignore this query pairs. Return -1.
+int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_vec, vector<int>& unopt_result_vec){
+
+  if(check_whether_string_only_whitespace(result_string)){
+    opt_result_vec.push_back(-1);
+    unopt_result_vec.push_back(-1);
+    return -1;
   }
 
-  size_t opt_begin_idx = optimized_result_str.find("1234567") + 7;
-  size_t unopt_begin_idx = unoptimized_result_str.find("1234567") + 7;
-  if (opt_begin_idx == string::npos || unopt_begin_idx == string::npos) {
-        return -1;  // We do not detect the output from the norec select stmt. return -1
-  }
+  /* Look throught the opt result first */
+  size_t begin_idx = result_string.find("13579", 0);
+  size_t end_idx = result_string.find("97531", 0);
 
-  size_t opt_end_idx = optimized_result_str.find("7654321");
-  size_t unopt_end_idx = unoptimized_result_str.find("7654321");
-  if (opt_end_idx == string::npos || unopt_end_idx == string::npos) {
-        return -1;  // The output is not complete. We do not detect the ending signal from the norec select stmt. Return -1.
-  }
+  while (begin_idx != string::npos){
+    if (end_idx != string::npos){
+      string current_opt_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+      begin_idx = result_string.find("13579", begin_idx+5);
+      end_idx = result_string.find("97531", end_idx+5);
 
-  optimized_result_str = optimized_result_str.substr(opt_begin_idx, opt_end_idx-opt_begin_idx);
-  unoptimized_result_str = unoptimized_result_str.substr(unopt_begin_idx, unopt_end_idx - unopt_begin_idx); 
-
-  optimized_result_int = 0;
-  if ( optimized_result_str != "\n" && !check_whether_string_only_whitespace(optimized_result_str) )
-    optimized_result_int = std::count(optimized_result_str.begin(), optimized_result_str.end(), '\n') - 1;
-
-  unoptimized_result_int = 0;
-  if (unoptimized_result_str != "" && !check_whether_string_only_whitespace(unoptimized_result_str) )
-  {
-    try
-    {
-      unoptimized_result_int = stoi(unoptimized_result_str);
+      if (current_opt_result_str.find("Error") != string::npos) {opt_result_vec.push_back(-1); continue; }   // If "Error" is found, return -1 as result. 
+      int current_opt_result_int = std::count(current_opt_result_str.begin(), current_opt_result_str.end(), '\n') - 1;
+      opt_result_vec.push_back(current_opt_result_int);
     }
-    catch (std::invalid_argument &e)
-    {
-      unoptimized_result_int = 0;
-      return -1;
-    }
-    catch (std::out_of_range &e)
-    {
-      unoptimized_result_int = 0;
-      return -1;
+    else {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
     }
   }
 
-  // cout << "Optimized_result_int is: " << optimized_result_int << " ; unoptimized_result_int is: " << unoptimized_result_int << ". " << endl;
+  /* Look throught the unopt result now */
+  begin_idx = result_string.find("24680", 0);
+  end_idx = result_string.find("86420", 0);   // Reset the idx first. 
 
-  if (optimized_result_int == unoptimized_result_int) return 1;
-  else return 0;
+  while (begin_idx != string::npos) {
+    if (end_idx != string::npos) {
+      string current_unopt_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+      begin_idx = result_string.find("24680", begin_idx+5);
+      end_idx = result_string.find("86420", end_idx+5);
+
+
+      if (current_unopt_result_str.find("Error") != string::npos) {unopt_result_vec.push_back(-1); continue; }   // If "Error" is found, return -1 as result.
+
+      int current_unopt_result_int = 0;
+      try
+      {
+        current_unopt_result_int = stoi(current_unopt_result_str);
+      }
+      catch (std::invalid_argument &e)
+      {
+        current_unopt_result_int = -1;
+      }
+      catch (std::out_of_range &e)
+      {
+        current_unopt_result_int = -1;
+      }
+      unopt_result_vec.push_back(current_unopt_result_int);
+    }
+    else {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
+    }
+  }
+
+  /* We have the opt_result_vec and the unopt_result_vec. Now we can compare the two and find whether there are inconsistant. */
+  bool is_all_results_errors = true;
+  if (opt_result_vec.size() == 0 || unopt_result_vec.size() == 0) return -1;
+  for (size_t idx = 0; idx < min(opt_result_vec.size(), unopt_result_vec.size()); idx++){
+    if (opt_result_vec[idx] == -1 || unopt_result_vec[idx] == -1) continue;  // Found error output. Skip the current query. 
+    else if (opt_result_vec[idx] != unopt_result_vec[idx]) return 0;  // Found inconsisitant. 
+  }
+  for (size_t idx = 0; idx < min(opt_result_vec.size(), unopt_result_vec.size()); idx++){
+    if (opt_result_vec[idx] == -1) continue;
+    else is_all_results_errors = false; 
+    if (unopt_result_vec[idx] == -1) continue;
+    else is_all_results_errors = false; 
+  }
+  if (!is_all_results_errors) return 1; // Both opt_result_vec and unopt_result_vec are consistant. No result mismatch found. 
+  else return -1;  // All results are errors. Return -1; 
 }
 
-u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmout)
+u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout)
 {
 
-  string optimized_result_string = "", unoptimized_result_string = "";
+  string result_string = "";
 
-  bool is_skip_no_rec = true;  // = true in case there are no select stmt in the query, directly skip the current query pairs.
+  bool is_skip_no_rec = true;    // = true in case there are no select stmt in the query, directly skip the current query pairs.
   bool is_first_select = true;   // used to mark whether there are multiple select stmt in the query pairs, if yes, ignore the current query pairs.
 
-  /* Unoptimized */
-  vector<string> queries_vector = string_splitter(optimized_cmd_string, ";");
-  optimized_cmd_string = "";
-  string unoptimized_cmd_string = "";
-  
-
+  vector<string> queries_vector = string_splitter(cmd_string, ";");
+  cmd_string = "";
 
   for (string &query : queries_vector)
   {
     // Added rules that exclude the query pairs with randombolb or random stmts.
     if(
       ((query.find("RANDOM")) != std::string::npos || (query.find("random") ) != std::string::npos) &&
-      ((query.find("RANDOMBOLB")) != std::string::npos || (query.find("randombolb") ) != std::string::npos)
+      ((query.find("RANDOMBOLB")) != std::string::npos || (query.find("randombolb") ) != std::string::npos) && 
+      ((query.find("JULIANDAY")) != std::string::npos || (query.find("julianday") ) != std::string::npos)
     )
     {
       is_skip_no_rec = true;
@@ -2975,36 +3032,12 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
       return FAULT_NONE;
     }
 
-    if (
-        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
-        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos))
-    {
-      if (
-          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) && // This is a SELECT stmt that matching the requirments of NoREC.
-          ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
-          ((query.find("SELECT *")) != std::string::npos || (query.find("select *")) != std::string::npos) &&   // Used for SELECT * FROM ... WHERE ...
-          ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // DEBUG LINE!!!!!!!!
-      )
-      {
-        optimized_cmd_string += "; SELECT 1234567; \n" + query + ";\n SELECT 7654321; \n";
-        unoptimized_cmd_string += "; SELECT 1234567; \n" + rewrite_query_by_No_Rec(query) + ";\n SELECT 7654321; \n"; // Rewrite query to NoREC stmt.
-        if (is_first_select) { // This is the first select stmt. Valid!!! Confirming NoREC execution if no further SELECT stmt presented!!!
-          is_skip_no_rec = false;
-          is_first_select = false;
-        }
-        else {
-          is_skip_no_rec = true; // Found multiple non-rec capabled select stmt. Ignore the current query pairs.
-          return FAULT_NONE;
-        }
-      } else {
-        optimized_cmd_string += query + "; \n";
-        unoptimized_cmd_string += query + "; \n"; // Non norec compatible select stmt, push into the query string list as usual.
-      }
-    } else
-    {
-      optimized_cmd_string += query + "; \n";
-      unoptimized_cmd_string += query + "; \n"; // Not a SELECT stmt, push into the query string list as usual.
+    if (g_mutator.is_norec_compatible(query)){
+      is_skip_no_rec = false;
+      cmd_string += "SELECT 13579; \n" + query + "; \nSELECT 97531; \n";
+      cmd_string += "SELECT 24680; \n" + rewrite_query_by_No_Rec(query) + "; \nSELECT 86420; \n";
+    } else {
+      cmd_string += query + "; \n";
     }
   }
 
@@ -3012,7 +3045,7 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   {
     u8 fault;
     // unoptimized_cmd_string += " .quit "; 
-    write_to_testcase(unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
+    write_to_testcase(cmd_string.c_str(), cmd_string.size());
     fault = run_target(argv, tmout);
 
     if (stop_soon)
@@ -3041,76 +3074,40 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
       return fault;
     }
 
-    unoptimized_result_string = read_sqlite_output_and_reset_output_file();
-
-    /* Optimized */
-
-    // optimized_cmd_string += " .quit ";
-    write_to_testcase(optimized_cmd_string.c_str(), optimized_cmd_string.size());
-    fault = run_target(argv, tmout);
-
-    if (stop_soon)
-      return fault;
-
-    if (fault == FAULT_TMOUT)
-    {
-
-      if (subseq_tmouts++ > TMOUT_LIMIT)
-      {
-        cur_skipped_paths++;
-        return fault;
-      }
-    }
-    else
-      subseq_tmouts = 0;
-
-    /* Users can hit us with SIGUSR1 to request the current input
-         to be abandoned. */
-
-    if (skip_requested)
-    {
-
-      skip_requested = 0;
-      cur_skipped_paths++;
-      return fault;
-    }
-
-    optimized_result_string = read_sqlite_output_and_reset_output_file();
-
+    result_string = read_sqlite_output_and_reset_output_file();
   }
 
-  int optimized_result_int = 0, unoptimized_result_int = 0;
-  int compare_No_Rec_result_int = compare_No_Rec_result(optimized_result_string, unoptimized_result_string, optimized_result_int, unoptimized_result_int); 
+  vector <int> opt_result_vec, unopt_result_vec;
+  int compare_No_Rec_result_int = compare_No_Rec_result(result_string, opt_result_vec, unopt_result_vec);
 
-  // cerr << "\n\n\nCurrently running: (DEBUG): \n";
-  // cerr << "Optimized_cmd_string: \n"
-  //      << optimized_cmd_string << "\n";
-  // cerr << "Unoptimized_cmd_string: \n"
-  //      << unoptimized_cmd_string << "\n";
-  // cerr << "Optimized results: \n"
-  //      << optimized_result_string << "\n"
-  //      << "Optimized results(int): "
-  //      << optimized_result_int << "\n"
-  //      << "Unoptimized results: \n"
-  //      << unoptimized_result_string << "\n"
-  //      << "Unoptimized results(int): "
-  //      << unoptimized_result_int << "\n"
-  //      << "Compare Norec result: " << compare_No_Rec_result_int
-  //      << "\n\n\n";
+  // cerr << "Query: \n";
+  // cerr << cmd_string << "\n";
+  // cerr << "Result string: \n";
+  // cerr << result_string << "\n";
+  // cerr << "Optimized results (int): \n";
+  // for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++)
+  //   cerr << *iter << "\n";
+  // cerr << "Unoptimized results (int): \n";
+  // for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++)
+  //   cerr << *iter << "\n";
+  // cerr << "Compare_No_Rec_result_int: \n" << compare_No_Rec_result_int;
+  // cerr << "\n\n\n\n";
 
-  
   if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
-    // cerr << "\n\n\n-------------------------------------------\n";
-    // cerr << "Result unmatched! \n";
-    // cerr << "Optimized cmd: \n";
-    // cerr << optimized_cmd_string << "\n";
-    // cerr << "Optimized results: \n";
-    // cerr << optimized_result_string << "\n";
-    // cerr << "Unoptimized cmd: \n";
-    // cerr << unoptimized_cmd_string << "\n";
-    // cerr << "Unoptimized results: \n";
-    // cerr << unoptimized_result_string << "\n\n\n\n";
+    // cerr << "Query: \n";
+    // cerr << cmd_string << "\n";
+    // cerr << "Result string: \n";
+    // cerr << result_string << "\n";
+    // cerr << "Optimized results (int): \n";
+    // for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++)
+    //   cerr << *iter << "\n";
+    // cerr << "Unoptimized results (int): \n";
+    // for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++)
+    //   cerr << *iter << "\n";
+    // cerr << "Compare_No_Rec_result_int: \n"
+    //      << compare_No_Rec_result_int;
+    // cerr << "\n\n\n\n";
 
     ofstream outputfile;
 
@@ -3131,18 +3128,16 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
-    outputfile << "Optimized cmd: \n";
-    outputfile << optimized_cmd_string << "\n";
-    outputfile << "Unoptimized cmd: \n";
-    outputfile << unoptimized_cmd_string << "\n";
-    outputfile << "Optimized results: \n";
-    outputfile << optimized_result_string << "\n";
+    outputfile << "Query: \n";
+    outputfile << cmd_string << "\n";
+    outputfile << "Result string: \n";
+    outputfile << result_string << "\n";
     outputfile << "Optimized results (int): \n";
-    outputfile << optimized_result_int << "\n";
-    outputfile << "Unoptimized results: \n";
-    outputfile << unoptimized_result_string << "\n\n\n\n";
+    for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++) outputfile << *iter << "\n";
     outputfile << "Unoptimized results (int): \n";
-    outputfile << unoptimized_result_int << "\n\n\n\n";
+    for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++) outputfile << *iter << "\n";
+    outputfile << "Compare_No_Rec_result_int: \n" << compare_No_Rec_result_int; 
+    outputfile << "\n\n\n\n";
 
     outputfile.close();
 
@@ -3152,6 +3147,20 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
   else if (!is_skip_no_rec && compare_No_Rec_result_int == 1)
   {
     // cerr << "P";
+    // cerr << "Query: \n";
+    // cerr << cmd_string << "\n";
+    // cerr << "Result string: \n";
+    // cerr << result_string << "\n";
+    // cerr << "Optimized results (int): \n";
+    // for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++)
+    //   cerr << *iter << "\n";
+    // cerr << "Unoptimized results (int): \n";
+    // for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++)
+    //   cerr << *iter << "\n";
+    // cerr << "Compare_No_Rec_result_int: \n"
+    //      << compare_No_Rec_result_int;
+    // cerr << "\n\n\n\n";
+
     total_execs++;
   }
   else
@@ -3159,10 +3168,11 @@ u8 execute_No_Rec(string optimized_cmd_string, char** argv, u32 tmout = exec_tmo
     // cerr << "C";
   }
 
-  unoptimized_result_string.clear();
-  optimized_cmd_string.clear();
-  unoptimized_cmd_string.clear();
+  result_string.clear();
+  cmd_string.clear();
   queries_vector.clear();
+  opt_result_vec.clear();
+  unopt_result_vec.clear();
 
   return 0;
 }
@@ -5691,9 +5701,12 @@ static void show_stats(void) {
       u32 a_len = 0;
 
       string input;
-      Program * program_root;
-      vector<IR *> ir_set, mutated_tree;
+      Program * program_root, *program_root_tmp;
+      vector<IR *> ir_set, ir_set_tmp, mutated_tree;
       char * tmp_name = stage_name;
+
+      IR* ir;
+      string ir_str;
 
 #ifdef IGNORE_FINDS
 
@@ -5818,6 +5831,32 @@ static void show_stats(void) {
       int skip_count;
       skip_count = 0;
       input = (const char *)out_buf;
+
+      /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
+      /* We can use the parser and the mutator to help us clean up the noise in the query. */
+
+      program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
+      if(program_root_tmp == NULL){
+        goto abandon_entry;
+      }
+      try{
+        program_root_tmp->translate(ir_set_tmp);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
+      }catch(...){
+        for(auto ir: ir_set_tmp){
+          delete ir;
+        }
+        program_root_tmp->deep_delete();
+        goto abandon_entry;
+      }
+      program_root_tmp->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
+      ir = ir_set_tmp[ir_set_tmp.size() - 1];
+      ir_str = g_mutator.validate(ir);
+      input = append_norec_select_stmts(ir_str);    // Append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency. 
+      // input = ir_str;
+
+      deep_delete(ir_set_tmp[ir_set_tmp.size()-1]);
+
+
       program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
       if(program_root == NULL){
         goto abandon_entry;
@@ -5837,33 +5876,44 @@ static void show_stats(void) {
       unsigned long prev_hash, current_hash;
       prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
       current_hash = 0;
+
+      bool is_mutation_succeed;
+      is_mutation_succeed = false;
       do {
         mutated_tree = g_mutator.mutate_all(ir_set);
-        if (mutated_tree.size() == 0) continue;
+        // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
+        if (mutated_tree.size() < 1) {is_mutation_succeed = false; continue;}
+        is_mutation_succeed = true;
         current_hash = g_mutator.hash(mutated_tree[mutated_tree.size()-1]);
-      } while (current_hash == prev_hash);
+      } while (current_hash == prev_hash || !is_mutation_succeed);
 
       deep_delete(ir_set[ir_set.size()-1]);
       show_stats();
       stage_max = mutated_tree.size();
       stage_cur = 0;
+
+      // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
       for(auto ir: mutated_tree){
+      // if (mutated_tree.size() > 0) {
+      //   ir = mutated_tree[mutated_tree.size() - 1];  // Only testing the program root. 
         stage_name = "niubi_fix";
 
-        string ir_str = g_mutator.validate(ir);
+        ir_str = g_mutator.validate(ir);
         g_current_ir = ir;
 
         if(ir_str == ""){
           skip_count++;
           continue;
+        } else {
+          show_stats();
+          stage_name = "niubi_fuzz";
+          // cerr << "IR_STR is: " << ir_str << endl;
+          if(common_fuzz_stuff(argv, ir_str.c_str(), ir_str.size())){
+            goto abandon_entry;
+          }
+          stage_cur++;
+          show_stats();
         }
-        show_stats();
-        stage_name = "niubi_fuzz";
-        if(common_fuzz_stuff(argv, ir_str.c_str(), ir_str.size())){
-          goto abandon_entry;
-        }
-        stage_cur++;
-        show_stats();
       }
       stage_cur = stage_max = 0;
       stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
