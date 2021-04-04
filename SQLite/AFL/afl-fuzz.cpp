@@ -5879,8 +5879,12 @@ static void show_stats(void) {
 
       bool is_mutation_succeed;
       is_mutation_succeed = false;
+      int mutation_trial_count;
+      mutation_trial_count = 0;
       do {
         mutated_tree = g_mutator.mutate_all(ir_set);
+        mutation_trial_count++;
+        if (mutation_trial_count >= 300) goto abandon_entry;
         // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
         if (mutated_tree.size() < 1) {is_mutation_succeed = false; continue;}
         is_mutation_succeed = true;
