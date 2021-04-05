@@ -176,7 +176,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
             elif rn_correctness == 0:    # Execution result is buggy
                 newer_commit_str = current_commit_str
                 is_successfully_executed = True
-                last_buggy_unopt_result = opt_result
+                last_buggy_opt_result = opt_result
                 last_buggy_unopt_result = unopt_result
                 break
             elif rn_correctness == -1:   # Execution queries all return errors. Treat it similar to execution result is correct.
@@ -263,6 +263,8 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
             elif rn_correctness == 0:   # The buggy version. 
                 newer_commit_index = tmp_commit_index
                 is_successfully_executed = True
+                last_buggy_opt_result = opt_result
+                last_buggy_unopt_result = unopt_result
                 break
             elif rn_correctness == -1:
                 older_commit_index = tmp_commit_index
@@ -321,9 +323,9 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
         log_output.write("ERROR: SQLite3 time out. \n")
         print("ERROR: SQLite3 time out. ")
         return None, None
-    if child.returncode != 0:
-        log_output.write("SQLite3 retunning non-zero %d: %s. \n" % (child.returncode, result_err))
-        return None, None  # Error code found! Even if there are errors in the query, it would not return non-zero to the system. If non-zero is returned, return None implying errors. 
+    # if child.returncode != 0:
+    #     log_output.write("SQLite3 retunning non-zero %d: %s. \n" % (child.returncode, result_err))
+    #     return None, None
 
 
     if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
@@ -407,17 +409,17 @@ def restructured_and_clean_all_queries(all_queries):
                 continue
             if 'Query:' in query or query == ';' or query == ' ' or query == '' or query == '\n':
                 continue
-            current_queries_out += query
+            current_queries_out += query + " \n"
 
         output_all_queries.append(current_queries_out)
 
     return output_all_queries
 
 
-def cross_compare(current_bisecting_result): # [first_buggy_commit_ID, opt_unopt_queries[0], opt_unopt_queries[1], is_error_result]
+def cross_compare(current_bisecting_result):
     global uniq_bug_id_int
     global all_unique_results_dict
-    current_commit_ID = current_bisecting_result.first_buggy_commit_ID
+    current_commit_ID = current_bisecting_result.first_buggy_commit_id
     if current_commit_ID not in all_unique_results_dict:
         all_unique_results_dict[current_commit_ID] = uniq_bug_id_int # all_unique_results_dict is a global variable, the changes is saved in program executions.
         current_bisecting_result.uniq_bug_id_int = uniq_bug_id_int
@@ -439,9 +441,9 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
     bug_output_file = open(current_unique_bug_output, append_or_write)
 
     if current_bisecting_result.uniq_bug_id_int != "Unknown":
-        bug_output_file.write("Bug ID: %d. \n" % current_bisecting_result.uniq_bug_id_int)
+        bug_output_file.write("Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int)
     else:
-        bug_output_file.write("Bug ID: Unknown. \n")
+        bug_output_file.write("Bug ID: Unknown. \n\n")
     bug_output_file.write("Query: %s \n\n" % current_bisecting_result.query)
     if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None:
         bug_output_file.write("Opt_result: %s\n\n" % str(current_bisecting_result.opt_result))
@@ -451,10 +453,10 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
         bug_output_file.write("Unopt_result: %s\n\n" % str(current_bisecting_result.unopt_result))
     else:
         bug_output_file.write("Unopt_result: None\n\n")
-    if current_bisecting_result.first_buggy_commit_ID != "":
-        bug_output_file.write("First buggy commit ID: %s. \n" % current_bisecting_result.first_buggy_commit_ID)
+    if current_bisecting_result.first_buggy_commit_id != "":
+        bug_output_file.write("First buggy commit ID: %s. \n\n" % current_bisecting_result.first_buggy_commit_id)
     else:
-        bug_output_file.write("First buggy commit ID: Unknown. \n")
+        bug_output_file.write("First buggy commit ID: Unknown. \n\n")
     if current_bisecting_result.is_bisecting_error == True and current_bisecting_result.bisecting_error_reason != "":
         bug_output_file.write("Besecting error reason: %s. \n\n\n\n" % current_bisecting_result.bisecting_error_reason)
 
@@ -468,7 +470,7 @@ def run_bisecting(opt_unopt_queries):
     print("\n\n\nBeginning testing with query: \n%s \n" % (opt_unopt_queries))
     log_output.write("\n\n\nBeginning testing with query: \n%s \n" % (opt_unopt_queries))
     current_bisecting_result = bi_secting_commits(opt_unopt_queries = opt_unopt_queries, all_commits_str = all_commits_hexsha, all_tags = all_tags, ignored_commits_str = ignored_commits_hexsha)
-    if current_bisecting_result.first_buggy_commit_ID != "":
+    if not current_bisecting_result.is_bisecting_error:
         current_bisecting_result = cross_compare(current_bisecting_result)  # The unique bug id will be appended to current_result_l when running cross_compare
         write_uniq_bugs_to_files(current_bisecting_result)
     else:
