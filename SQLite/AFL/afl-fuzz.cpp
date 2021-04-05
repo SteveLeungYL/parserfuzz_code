@@ -166,7 +166,7 @@ static s32 out_fd,                    /* Persistent fd for out_file       */
            fsrv_ctl_fd,               /* Fork server control pipe (write) */
            fsrv_st_fd;                /* Fork server status pipe (read)   */
 
-static s32 max_num_norec_select = 3;     /* Number of No-rec compatible selects in one run_through */
+static s32 max_num_norec_select = 2;     /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str;      /* String: query used to test sqlite   */
 static string program_output_str;     /* String: query results output from sqlite   */
@@ -3006,12 +3006,7 @@ int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_v
   for (size_t idx = 0; idx < min(opt_result_vec.size(), unopt_result_vec.size()); idx++){
     if (opt_result_vec[idx] == -1 || unopt_result_vec[idx] == -1) continue;  // Found error output. Skip the current query. 
     else if (opt_result_vec[idx] != unopt_result_vec[idx]) return 0;  // Found inconsisitant. 
-  }
-  for (size_t idx = 0; idx < min(opt_result_vec.size(), unopt_result_vec.size()); idx++){
-    if (opt_result_vec[idx] == -1) continue;
-    else is_all_results_errors = false; 
-    if (unopt_result_vec[idx] == -1) continue;
-    else is_all_results_errors = false; 
+    is_all_results_errors = false;
   }
   if (!is_all_results_errors) return 1; // Both opt_result_vec and unopt_result_vec are consistant. No result mismatch found. 
   else return -1;  // All results are errors. Return -1; 
