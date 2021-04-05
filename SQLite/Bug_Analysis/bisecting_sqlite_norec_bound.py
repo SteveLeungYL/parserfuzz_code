@@ -232,10 +232,10 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
     current_ignored_commit_number = 0
 
     while not is_buggy_commit_found:
-        if (newer_commit_index - older_commit_index - current_ignored_commit_number) <= COMMIT_SEARCH_RANGE:
+        if (newer_commit_index - older_commit_index) <= COMMIT_SEARCH_RANGE:
             is_buggy_commit_found = True
             break
-        tmp_commit_index = int((newer_commit_index + older_commit_index) / 2 )
+        tmp_commit_index = int((newer_commit_index + older_commit_index) / 2 )  # Approximate towards 0 (older).
 
         is_successfully_executed = False
         while not is_successfully_executed:
@@ -244,15 +244,9 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 tmp_commit_index -= 1
                 current_ignored_commit_number += 1
                 if tmp_commit_index <= older_commit_index:
-                    
-                    current_bisecting_result.query = opt_unopt_queries
-                    current_bisecting_result.first_buggy_commit_id = all_commits_str[newer_commit_index]
-                    current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
-                    current_bisecting_result.is_bisecting_error = False
-                    current_bisecting_result.opt_result = last_buggy_opt_result
-                    current_bisecting_result.unopt_result = last_buggy_unopt_result
-
-                    return current_bisecting_result
+                    older_commit_index = int((newer_commit_index + older_commit_index) / 2 )
+                    is_successfully_executed = True  # It is a hack here. The execution failed, but we can treat all the failed execution as executed CORRECT, and continue the outer loop. 
+                    break
                 continue
 
             rn_correctness, opt_result, unopt_result = _check_query_exec_correctness_under_commitID(opt_unopt_queries=opt_unopt_queries, commit_ID=commit_ID)
@@ -447,21 +441,25 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
         bug_output_file.write("Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int)
     else:
         bug_output_file.write("Bug ID: Unknown. \n\n")
+
     bug_output_file.write("Query: %s \n\n" % current_bisecting_result.query)
+
     if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None:
-        bug_output_file.write("Opt_result: %s\n\n" % str(current_bisecting_result.opt_result))
+        bug_output_file.write("Last buggy Opt_result: %s\n\n" % str(current_bisecting_result.opt_result))
     else:
-        bug_output_file.write("Opt_result: None\n\n")
+        bug_output_file.write("Last buggy Opt_result: None. Possibly because the latest commit already fix the bug. \n\n")
+
     if current_bisecting_result.unopt_result != [] and current_bisecting_result.unopt_result != None:
-        bug_output_file.write("Unopt_result: %s\n\n" % str(current_bisecting_result.unopt_result))
+        bug_output_file.write("Last buggy Unopt_result: %s\n\n" % str(current_bisecting_result.unopt_result))
     else:
-        bug_output_file.write("Unopt_result: None\n\n")
+        bug_output_file.write("Last buggy Unopt_result: None. Possibly because the latest commit already fix the bug. \n\n")
+
     if current_bisecting_result.first_buggy_commit_id != "":
         bug_output_file.write("First buggy commit ID: %s. \n\n" % current_bisecting_result.first_buggy_commit_id)
     else:
         bug_output_file.write("First buggy commit ID: Unknown. \n\n")
     if current_bisecting_result.is_bisecting_error == True and current_bisecting_result.bisecting_error_reason != "":
-        bug_output_file.write("Besecting error reason: %s. \n\n\n\n" % current_bisecting_result.bisecting_error_reason)
+        bug_output_file.write("Bisecting Error. \n\nBesecting error reason: %s. \n\n\n\n" % current_bisecting_result.bisecting_error_reason)
 
     bug_output_file.close()
 
