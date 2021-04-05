@@ -166,7 +166,7 @@ static s32 out_fd,                    /* Persistent fd for out_file       */
            fsrv_ctl_fd,               /* Fork server control pipe (write) */
            fsrv_st_fd;                /* Fork server status pipe (read)   */
 
-static s32 max_num_norec_select = 2;     /* Number of No-rec compatible selects in one run_through */
+static s32 max_num_norec_select = 10;     /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str;      /* String: query used to test sqlite   */
 static string program_output_str;     /* String: query results output from sqlite   */

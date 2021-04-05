@@ -24,8 +24,8 @@ vector<string> Mutator::v_table_names;
 IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
     IR * left = NULL, * right = NULL, * copy_res;
 
-    if(root->left_) left = deep_copy_with_record(root->left_, record); // do you have a second version for deep_copy that accept only one argument?                                                  
-    if(root->right_) right = deep_copy_with_record(root->right_, record);//no I forget to update here
+    if(root->left_) left = deep_copy_with_record(root->left_, record);                                             
+    if(root->right_) right = deep_copy_with_record(root->right_, record); 
 
     if(root->op_ != NULL)
         copy_res = new IR(root->type_, OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_), 
@@ -48,7 +48,7 @@ bool Mutator::check_node_num(IR * root, unsigned int limit){
     auto v_statements = extract_statement(root);
     bool is_good = true;
     
-    if(v_statements.size() > 5){
+    if(v_statements.size() > 50){
         is_good = false;
 
     }else
