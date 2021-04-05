@@ -2590,7 +2590,7 @@ string append_norec_select_stmts(string input){
   int num_of_norec_select = count_and_get_norec_stmt_str(input, copied_norec_select_stmts);
   // cerr << "The current copied_norec_select_stmts is: " << copied_norec_select_stmts << endl;
   if (num_of_norec_select == 0) {
-    copied_norec_select_stmts = "SELECT * FROM v0 WHERE v0.v1";   // Ad-hoc insert a norec select stmt into the query. Might not work. 
+    copied_norec_select_stmts = "SELECT COUNT ( * ) FROM v0 WHERE v0.v1";   // Ad-hoc insert a norec select stmt into the query. Might not work. 
   }
   if (num_of_norec_select < max_num_norec_select) {
     for (int i = 0; i < (max_num_norec_select - num_of_norec_select); i++){
@@ -2895,14 +2895,15 @@ string rewrite_query_by_No_Rec(string query)
   else
     extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
 
-  if (select_stmt.find('*') != string::npos)
-    select_stmt = "";
+  // if (select_stmt.find('*') != string::npos)
+  //   select_stmt = "";
 
+  /* Ignore the select_stmt. The select_stmt should always be SELECT COUNT ( * ). Otherwise, there will be errors. */
   string rewrited_string = before_select_stmt + " SELECT SUM(CAST((" + where_stmt;
-  if (select_stmt != "" && select_stmt != " ")
-  {
-    rewrited_string += "  AND  " + select_stmt;
-  }
+  // if (select_stmt != "" && select_stmt != " ")
+  // {
+  //   rewrited_string += "  AND  " + select_stmt;
+  // }
   rewrited_string += ") AS BOOL)!=0) ";
   if (from_stmt != "")
   {
@@ -2945,7 +2946,20 @@ int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_v
       end_idx = result_string.find("97531", end_idx+5);
 
       if (current_opt_result_str.find("Error") != string::npos) {opt_result_vec.push_back(-1); continue; }   // If "Error" is found, return -1 as result. 
-      int current_opt_result_int = std::count(current_opt_result_str.begin(), current_opt_result_str.end(), '\n') - 1;
+      
+      int current_opt_result_int = 0;
+      try
+      {
+        current_opt_result_int = stoi(current_opt_result_str);
+      }
+      catch (std::invalid_argument &e)
+      {
+        current_opt_result_int = -1;
+      }
+      catch (std::out_of_range &e)
+      {
+        current_opt_result_int = -1;
+      }
       opt_result_vec.push_back(current_opt_result_int);
     }
     else {

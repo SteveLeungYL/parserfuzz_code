@@ -344,7 +344,10 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
         if ("Error" in current_opt_result):
             opt_results.append(-1)
         else:
-            current_opt_result_int = current_opt_result.count('\n') - 1
+            try:
+                current_opt_result_int = int(current_opt_result)
+            except ValueError:
+                current_opt_result_int = -1
             opt_results.append(current_opt_result_int)
 
     # Grab all the unopt results.

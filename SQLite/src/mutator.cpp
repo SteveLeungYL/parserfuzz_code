@@ -74,8 +74,8 @@ bool Mutator::make_current_node_as_norec_select_stmt(IR* root){
 
 bool Mutator::is_norec_compatible(const string& query){
   if (
-        ((query.find("SELECT *")) != std::string::npos || (query.find("select *")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("SELECT *")) <= 5 || (query.find("select *")) <= 5) &&
+        ((query.find("SELECT COUNT ( * )")) != std::string::npos || (query.find("select count ( * )")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+        ((query.find("SELECT COUNT ( * )")) <= 5 || (query.find("select count ( * )")) <= 5) &&
         ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
         ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
         ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&  // This is a SELECT stmt that matching the requirments of NoREC.
