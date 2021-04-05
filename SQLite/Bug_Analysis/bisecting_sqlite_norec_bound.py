@@ -313,9 +313,9 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
     if os.path.isfile(os.path.join(sqlite_install_dir, "file::memory:")):
         os.remove(os.path.join(sqlite_install_dir, "file::memory:"))
     current_run_cmd_list = ["./sqlite3"]
-    child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin = subprocess.PIPE, errors="replace")
+    child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin = subprocess.PIPE, errors="replace")
     try:
-        result_str, result_err = child.communicate(queries, timeout=3)
+        result_str = child.communicate(queries, timeout=3)[0]
         child.kill()
         # child.wait()
     except subprocess.TimeoutExpired:
