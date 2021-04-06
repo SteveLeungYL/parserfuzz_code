@@ -3014,6 +3014,8 @@ int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_v
 
 u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
+  u8 fault;
+
   string result_string = "";
 
   bool is_skip_no_rec = true;    // = true in case there are no select stmt in the query, directly skip the current query pairs.
@@ -3055,7 +3057,7 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
   if (!is_skip_no_rec) {
 
-    u8 fault;
+    
     // unoptimized_cmd_string += " .quit "; 
     write_to_testcase(cmd_string.c_str(), cmd_string.size());
     fault = run_target(argv, tmout);
