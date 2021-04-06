@@ -3012,8 +3012,7 @@ int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_v
   else return -1;  // All results are errors. Return -1; 
 }
 
-u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout)
-{
+u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
   string result_string = "";
 
@@ -3023,35 +3022,39 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout)
   vector<string> queries_vector = string_splitter(cmd_string, ";");
   cmd_string = "";
 
-  for (string &query : queries_vector)
-  {
-    // Added rules that exclude the query pairs with randombolb or random stmts.
-    if(
-      ((query.find("RANDOM")) != std::string::npos || (query.find("random") ) != std::string::npos) &&
-      ((query.find("RANDOMBOLB")) != std::string::npos || (query.find("randombolb") ) != std::string::npos) && 
-      ((query.find("JULIANDAY")) != std::string::npos || (query.find("julianday") ) != std::string::npos)
-    )
-    {
+  for (string &query : queries_vector) {
+
+    // exclude the query pairs with random stmts, like 'randombolb', 'julianday'
+    if((query.find("RANDOM")) != std::string::npos || 
+       (query.find("random")) != std::string::npos ||
+       (query.find("JULIANDAY")) != std::string::npos ||
+       (query.find("julianday") ) != std::string::npos) {
+
       is_skip_no_rec = true;
       return FAULT_NONE;
     }
-    if (query[0] == '!' || query[1] == '!' || query[2] == '!')  // If we see !... in the stmt, ignore the whole query pairs. 
-    {
+    
+    // ignore the whole query pairs if !... in the stmt,  
+    if (query[0] == '!' || query[1] == '!' || query[2] == '!') {
+
       is_skip_no_rec = true;
       return FAULT_NONE;
     }
 
-    if (g_mutator.is_norec_compatible(query)){
+    if (g_mutator.is_norec_compatible(query)) {
+
       is_skip_no_rec = false;
-      cmd_string += "SELECT 13579; \n" + query + "; \nSELECT 97531; \n";
-      cmd_string += "SELECT 24680; \n" + rewrite_query_by_No_Rec(query) + "; \nSELECT 86420; \n";
+      cmd_string += "SELECT 13579;\n" + query + ";\nSELECT 97531; \n";
+      cmd_string += "SELECT 24680;\n" + rewrite_query_by_No_Rec(query) + ";\nSELECT 86420; \n";
+
     } else {
+
       cmd_string += query + "; \n";
     }
   }
 
-  if (!is_skip_no_rec)
-  {
+  if (!is_skip_no_rec) {
+
     u8 fault;
     // unoptimized_cmd_string += " .quit "; 
     write_to_testcase(cmd_string.c_str(), cmd_string.size());
@@ -3060,23 +3063,22 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout)
     if (stop_soon)
       return fault;
 
-    if (fault == FAULT_TMOUT)
-    {
+    if (fault == FAULT_TMOUT) {
 
-      if (subseq_tmouts++ > TMOUT_LIMIT)
-      {
+      if (subseq_tmouts++ > TMOUT_LIMIT) {
+
         cur_skipped_paths++;
         return fault;
       }
     }
-    else
+    else {
+
       subseq_tmouts = 0;
+    }
 
     /* Users can hit us with SIGUSR1 to request the current input
          to be abandoned. */
-
-    if (skip_requested)
-    {
+    if (skip_requested) {
 
       skip_requested = 0;
       cur_skipped_paths++;
@@ -3183,7 +3185,7 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout)
   opt_result_vec.clear();
   unopt_result_vec.clear();
 
-  return 0;
+  return fault;
 }
 
 
