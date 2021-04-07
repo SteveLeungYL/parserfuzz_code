@@ -3947,7 +3947,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         for (int output_index = 0; output_index < len; output_index++){
           program_input_str += ((char*)mem)[output_index];
         } 
-        cerr << "\n\nRunning save_if_interesting with query: " << program_input_str << endl << endl;
+        // cerr << "\n\nRunning save_if_interesting with query: " << program_input_str << endl << endl;
         read_sqlite_output_and_reset_output_file();
 
         /* A corner case that one user reported bumping into: increasing the
@@ -6086,7 +6086,7 @@ static void show_stats(void) {
         for (int output_index = 0; output_index < st.st_size; output_index++){
           program_input_str += mem[output_index];
         }
-        cerr << "\n\nRunning sync_fuzzers: with query: " << program_input_str << endl << endl;
+        // cerr << "\n\nRunning sync_fuzzers: with query: " << program_input_str << endl << endl;
         read_sqlite_output_and_reset_output_file();
 
         if (stop_soon) return;
