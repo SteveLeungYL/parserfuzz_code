@@ -3453,7 +3453,7 @@ static void perform_dry_run(char** argv) {
 
         if (q == queue) check_map_coverage();
 
-        if (crash_mode) FATAL("Test case '%s' does *NOT* crash", fn);
+        // if (crash_mode) FATAL("Test case '%s' does *NOT* crash", fn);
 
         break;
 
@@ -3480,7 +3480,8 @@ static void perform_dry_run(char** argv) {
                "    '+' at the end of the value passed to -t ('-t %u+').\n", exec_tmout,
                exec_tmout);
 
-          FATAL("Test case '%s' results in a timeout", fn);
+          // FATAL("Test case '%s' results in a timeout", fn);
+          break;
 
         } else {
 
@@ -3492,7 +3493,8 @@ static void perform_dry_run(char** argv) {
                "    If this test case is just a fluke, the other option is to just avoid it\n"
                "    altogether, and find one that is less of a CPU hog.\n", exec_tmout);
 
-          FATAL("Test case '%s' results in a timeout", fn);
+          // FATAL("Test case '%s' results in a timeout", fn);
+          break;
 
         }
 
@@ -3567,14 +3569,15 @@ static void perform_dry_run(char** argv) {
 
         }
 
-        FATAL("Test case '%s' results in a crash", fn);
+        // FATAL("Test case '%s' results in a crash", fn);
+        break;
 
       case FAULT_ERROR:
+        break;
+        // FATAL("Unable to execute target application ('%s')", argv[0]);
 
-        FATAL("Unable to execute target application ('%s')", argv[0]);
-
-      // case FAULT_NOINST:
-
+      case FAULT_NOINST:
+        break;
       //   FATAL("No instrumentation detected");
 
       case FAULT_NOBITS: 
@@ -3596,9 +3599,9 @@ static void perform_dry_run(char** argv) {
 
   if (cal_failures) {
 
-    if (cal_failures == queued_paths)
-      FATAL("All test cases time out%s, giving up!",
-            skip_crashes ? " or crash" : "");
+    // if (cal_failures == queued_paths)
+    //   FATAL("All test cases time out%s, giving up!",
+    //         skip_crashes ? " or crash" : "");
 
     WARNF("Skipped %u test cases (%0.02f%%) due to timeouts%s.", cal_failures,
           ((double)cal_failures) * 100 / queued_paths,
