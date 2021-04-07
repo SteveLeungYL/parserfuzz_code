@@ -2899,7 +2899,7 @@ string rewrite_query_by_No_Rec(string query)
   //   select_stmt = "";
 
   /* Ignore the select_stmt. The select_stmt should always be SELECT COUNT ( * ). Otherwise, there will be errors. */
-  string rewrited_string = before_select_stmt + " SELECT SUM(CAST((" + where_stmt;
+  string rewrited_string = before_select_stmt + " SELECT TOTAL(CAST((" + where_stmt;
   // if (select_stmt != "" && select_stmt != " ")
   // {
   //   rewrited_string += "  AND  " + select_stmt;
