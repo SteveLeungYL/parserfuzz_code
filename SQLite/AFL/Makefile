@@ -48,7 +48,7 @@ COMM_HDR    = alloc-inl.h config.h debug.h types.h
 all: afl-fuzz
 
 
-afl-fuzz: afl-fuzz.cpp $(COMM_HDR)
+afl-fuzz: afl-fuzz.cpp $(COMM_HDR) $(DEPEN_PATH)
 	$(CC) $(CFLAGS) -g $@.cpp $(DEPEN_PATH) -o $@ $(LDFLAGS)
 
 .NOTPARALLEL: clean
