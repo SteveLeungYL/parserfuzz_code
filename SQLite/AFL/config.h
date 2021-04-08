@@ -59,7 +59,7 @@
 #ifndef __x86_64__ 
 #  define MEM_LIMIT         25
 #else
-#  define MEM_LIMIT         50
+#  define MEM_LIMIT         200
 #endif /* ^!__x86_64__ */
 
 /* Default memory limit when running in QEMU mode (MB): */
