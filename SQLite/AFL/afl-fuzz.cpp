@@ -105,7 +105,7 @@
 double min_stab_radio;
 char * save_file_name = NULL;
 Mutator g_mutator;
-char* g_libary_path;
+char* g_library_path;
 char* g_current_input = NULL;
 IR* g_current_ir = NULL;
 
@@ -5697,279 +5697,279 @@ static void show_stats(void) {
     }
 
 
-    /* Take the current entry from the queue, fuzz it for a while. This
-       function is a tad too long... returns 0 if fuzzed successfully, 1 if
-       skipped or bailed out. */
+/* Take the current entry from the queue, fuzz it for a while. This
+   function is a tad too long... returns 0 if fuzzed successfully, 1 if
+   skipped or bailed out. */
 
-    static u8 fuzz_one(char** argv) {
+static u8 fuzz_one(char** argv) {
 
-      s32 len, fd, temp_len, i, j;
-      u8  *in_buf, *out_buf, *orig_in, *ex_tmp, *eff_map = 0;
-      u64 havoc_queued,  orig_hit_cnt, new_hit_cnt;
-      u32 splice_cycle = 0, perf_score = 100, orig_perf, prev_cksum, eff_cnt = 1;
+  s32 len, fd, temp_len, i, j;
+  u8  *in_buf, *out_buf, *orig_in, *ex_tmp, *eff_map = 0;
+  u64 havoc_queued,  orig_hit_cnt, new_hit_cnt;
+  u32 splice_cycle = 0, perf_score = 100, orig_perf, prev_cksum, eff_cnt = 1;
 
-      u8  ret_val = 1, doing_det = 0;
+  u8  ret_val = 1, doing_det = 0;
 
-      u8  a_collect[MAX_AUTO_EXTRA];
-      u32 a_len = 0;
+  u8  a_collect[MAX_AUTO_EXTRA];
+  u32 a_len = 0;
 
-      string input;
-      Program * program_root, *program_root_tmp;
-      vector<IR *> ir_set, ir_set_tmp, mutated_tree;
-      char * tmp_name = stage_name;
+  string input;
+  Program * program_root, *program_root_tmp;
+  vector<IR *> ir_set, ir_set_tmp, mutated_tree;
+  char * tmp_name = stage_name;
 
-      IR* ir;
-      string ir_str;
+  IR* ir;
+  string ir_str;
 
 #ifdef IGNORE_FINDS
 
-      /* In IGNORE_FINDS mode, skip any entries that weren't in the
-         initial data set. */
+  /* In IGNORE_FINDS mode, skip any entries that weren't in the
+     initial data set. */
 
-      if (queue_cur->depth > 1) return 1;
+  if (queue_cur->depth > 1) return 1;
 
 #else
 
-      if (pending_favored) {
+  if (pending_favored) {
 
-        /* If we have any favored, non-fuzzed new arrivals in the queue,
-           possibly skip to them at the expense of already-fuzzed or non-favored
-           cases. */
+    /* If we have any favored, non-fuzzed new arrivals in the queue,
+       possibly skip to them at the expense of already-fuzzed or non-favored
+       cases. */
 
-        if ((queue_cur->was_fuzzed || !queue_cur->favored) &&
-            UR(100) < SKIP_TO_NEW_PROB) return 1;
+    if ((queue_cur->was_fuzzed || !queue_cur->favored) &&
+        UR(100) < SKIP_TO_NEW_PROB) return 1;
 
-      } else if (!dumb_mode && !queue_cur->favored && queued_paths > 10) {
+  } else if (!dumb_mode && !queue_cur->favored && queued_paths > 10) {
 
-        /* Otherwise, still possibly skip non-favored cases, albeit less often.
-           The odds of skipping stuff are higher for already-fuzzed inputs and
-           lower for never-fuzzed entries. */
+    /* Otherwise, still possibly skip non-favored cases, albeit less often.
+       The odds of skipping stuff are higher for already-fuzzed inputs and
+       lower for never-fuzzed entries. */
 
-        if (queue_cycle > 1 && !queue_cur->was_fuzzed) {
+    if (queue_cycle > 1 && !queue_cur->was_fuzzed) {
 
-          if (UR(100) < SKIP_NFAV_NEW_PROB) return 1;
+      if (UR(100) < SKIP_NFAV_NEW_PROB) return 1;
 
-        } else {
+    } else {
 
-          if (UR(100) < SKIP_NFAV_OLD_PROB) return 1;
+      if (UR(100) < SKIP_NFAV_OLD_PROB) return 1;
 
-        }
+    }
 
-      }
+  }
 
 #endif /* ^IGNORE_FINDS */
 
-      if (not_on_tty) {
-        ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
-             current_entry, queued_paths, unique_crashes);
-        fflush(stdout);
-      }
+  if (not_on_tty) {
+    ACTF("Fuzzing test case #%u (%u total, %llu uniq crashes found)...",
+         current_entry, queued_paths, unique_crashes);
+    fflush(stdout);
+  }
 
-      /* Map the test case into memory. */
+  /* Map the test case into memory. */
 
-      fd = open(queue_cur->fname, O_RDONLY);
+  fd = open(queue_cur->fname, O_RDONLY);
 
-      if (fd < 0) PFATAL("Unable to open '%s'", queue_cur->fname);
+  if (fd < 0) PFATAL("Unable to open '%s'", queue_cur->fname);
 
-      len = queue_cur->len;
+  len = queue_cur->len;
 
-      orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+  orig_in = in_buf = mmap(0, len, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 
-      if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
+  if (orig_in == MAP_FAILED) PFATAL("Unable to mmap '%s'", queue_cur->fname);
 
-      close(fd);
+  close(fd);
 
-      /* We could mmap() out_buf as MAP_PRIVATE, but we end up clobbering every
-         single byte anyway, so it wouldn't give us any performance or memory usage
-         benefits. */
+  /* We could mmap() out_buf as MAP_PRIVATE, but we end up clobbering every
+     single byte anyway, so it wouldn't give us any performance or memory usage
+     benefits. */
 
-      out_buf = ck_alloc_nozero(len);
+  out_buf = ck_alloc_nozero(len);
 
-      subseq_tmouts = 0;
+  subseq_tmouts = 0;
 
-      cur_depth = queue_cur->depth;
+  cur_depth = queue_cur->depth;
 
-      /*******************************************
-       * CALIBRATION (only if failed earlier on) *
-       *******************************************/
+  /*******************************************
+   * CALIBRATION (only if failed earlier on) *
+   *******************************************/
 
-      if (queue_cur->cal_failed) {
+  if (queue_cur->cal_failed) {
 
-        u8 res = FAULT_TMOUT;
+    u8 res = FAULT_TMOUT;
 
-        if (queue_cur->cal_failed < CAL_CHANCES) {
+    if (queue_cur->cal_failed < CAL_CHANCES) {
 
-          res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
+      res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
 
-          if (res == FAULT_ERROR)
-            FATAL("Unable to execute target application");
+      if (res == FAULT_ERROR)
+        FATAL("Unable to execute target application");
 
-        }
+    }
 
-        if (stop_soon || res != crash_mode) {
-          cur_skipped_paths++;
-          goto abandon_entry;
-        }
+    if (stop_soon || res != crash_mode) {
+      cur_skipped_paths++;
+      goto abandon_entry;
+    }
 
-      }
+  }
 
-      /************
-       * TRIMMING *
-       ************/
-    /*
-      if (!dumb_mode && !queue_cur->trim_done) {
+  /************
+   * TRIMMING *
+   ************/
+  /*
+  if (!dumb_mode && !queue_cur->trim_done) {
 
-        u8 res = trim_case(argv, queue_cur, in_buf);
+    u8 res = trim_case(argv, queue_cur, in_buf);
 
-        if (res == FAULT_ERROR)
-          FATAL("Unable to execute target application");
+    if (res == FAULT_ERROR)
+      FATAL("Unable to execute target application");
 
-        if (stop_soon) {
-          cur_skipped_paths++;
-          goto abandon_entry;
-        }
-
-
-        queue_cur->trim_done = 1;
-
-        if (len != queue_cur->len) len = queue_cur->len;
-
-      }
-      */
-      memcpy(out_buf, in_buf, len);
-
-      //[modify] add
-      stage_name = "niubi_mutate";
-
-      int skip_count;
-      skip_count = 0;
-      input = (const char *)out_buf;
-
-      /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
-      /* We can use the parser and the mutator to help us clean up the noise in the query. */
-
-      program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-      if(program_root_tmp == NULL){
-        goto abandon_entry;
-      }
-      try{
-        program_root_tmp->translate(ir_set_tmp);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
-      }catch(...){
-        for(auto ir: ir_set_tmp){
-          delete ir;
-        }
-        program_root_tmp->deep_delete();
-        goto abandon_entry;
-      }
-      program_root_tmp->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
-      ir = ir_set_tmp[ir_set_tmp.size() - 1];
-      ir_str = g_mutator.validate(ir);
-      input = append_norec_select_stmts(ir_str);    // Append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency. 
-      // input = ir_str;
-
-      deep_delete(ir_set_tmp[ir_set_tmp.size()-1]);
+    if (stop_soon) {
+      cur_skipped_paths++;
+      goto abandon_entry;
+    }
 
 
-      program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-      if(program_root == NULL){
-        goto abandon_entry;
-      }
+    queue_cur->trim_done = 1;
 
-      try{
-        program_root->translate(ir_set);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
-      }catch(...){
-        for(auto ir: ir_set){
-          delete ir;
-        }
-        program_root->deep_delete();
-        goto abandon_entry;
-      }
-      program_root->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
+    if (len != queue_cur->len) len = queue_cur->len;
 
-      unsigned long prev_hash, current_hash;
-      prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
-      current_hash = 0;
+  }
+  */
+  memcpy(out_buf, in_buf, len);
 
-      bool is_mutation_succeed;
-      is_mutation_succeed = false;
-      int mutation_trial_count;
-      mutation_trial_count = 0;
-      do {
-        mutated_tree = g_mutator.mutate_all(ir_set);
-        mutation_trial_count++;
-        if (mutation_trial_count >= 300) goto abandon_entry;
-        // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
-        if (mutated_tree.size() < 1) {is_mutation_succeed = false; continue;}
-        is_mutation_succeed = true;
-        current_hash = g_mutator.hash(mutated_tree[mutated_tree.size()-1]);
-      } while (current_hash == prev_hash || !is_mutation_succeed);
+  //[modify] add
+  stage_name = "niubi_mutate";
 
-      deep_delete(ir_set[ir_set.size()-1]);
+  int skip_count;
+  skip_count = 0;
+  input = (const char *)out_buf;
+
+  /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
+  /* We can use the parser and the mutator to help us clean up the noise in the query. */
+
+  program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
+  if(program_root_tmp == NULL){
+    goto abandon_entry;
+  }
+  try{
+    program_root_tmp->translate(ir_set_tmp);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
+  }catch(...){
+    for(auto ir: ir_set_tmp){
+      delete ir;
+    }
+    program_root_tmp->deep_delete();
+    goto abandon_entry;
+  }
+  program_root_tmp->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
+  ir = ir_set_tmp[ir_set_tmp.size() - 1];
+  ir_str = g_mutator.validate(ir);
+  input = append_norec_select_stmts(ir_str);    // Append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency. 
+  // input = ir_str;
+
+  deep_delete(ir_set_tmp[ir_set_tmp.size()-1]);
+
+
+  program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
+  if(program_root == NULL){
+    goto abandon_entry;
+  }
+
+  try{
+    program_root->translate(ir_set);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
+  }catch(...){
+    for(auto ir: ir_set){
+      delete ir;
+    }
+    program_root->deep_delete();
+    goto abandon_entry;
+  }
+  program_root->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
+
+  unsigned long prev_hash, current_hash;
+  prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
+  current_hash = 0;
+
+  bool is_mutation_succeed;
+  is_mutation_succeed = false;
+  int mutation_trial_count;
+  mutation_trial_count = 0;
+  do {
+    mutated_tree = g_mutator.mutate_all(ir_set);
+    mutation_trial_count++;
+    if (mutation_trial_count >= 300) goto abandon_entry;
+    // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
+    if (mutated_tree.size() < 1) {is_mutation_succeed = false; continue;}
+    is_mutation_succeed = true;
+    current_hash = g_mutator.hash(mutated_tree[mutated_tree.size()-1]);
+  } while (current_hash == prev_hash || !is_mutation_succeed);
+
+  deep_delete(ir_set[ir_set.size()-1]);
+  show_stats();
+  stage_max = mutated_tree.size();
+  stage_cur = 0;
+
+  // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
+  for(auto ir: mutated_tree){
+  // if (mutated_tree.size() > 0) {
+  //   ir = mutated_tree[mutated_tree.size() - 1];  // Only testing the program root. 
+    stage_name = "niubi_fix";
+
+    ir_str = g_mutator.validate(ir);
+    g_current_ir = ir;
+
+    if(ir_str == ""){
+      skip_count++;
+      continue;
+    } else {
       show_stats();
-      stage_max = mutated_tree.size();
-      stage_cur = 0;
-
-      // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
-      for(auto ir: mutated_tree){
-      // if (mutated_tree.size() > 0) {
-      //   ir = mutated_tree[mutated_tree.size() - 1];  // Only testing the program root. 
-        stage_name = "niubi_fix";
-
-        ir_str = g_mutator.validate(ir);
-        g_current_ir = ir;
-
-        if(ir_str == ""){
-          skip_count++;
-          continue;
-        } else {
-          show_stats();
-          stage_name = "niubi_fuzz";
-          // cerr << "IR_STR is: " << ir_str << endl;
-          if(common_fuzz_stuff(argv, ir_str.c_str(), ir_str.size())){
-            goto abandon_entry;
-          }
-          stage_cur++;
-          show_stats();
-        }
+      stage_name = "niubi_fuzz";
+      // cerr << "IR_STR is: " << ir_str << endl;
+      if(common_fuzz_stuff(argv, ir_str.c_str(), ir_str.size())){
+        goto abandon_entry;
       }
-      stage_cur = stage_max = 0;
-      stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
-      stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
-      stage_name = tmp_name;
+      stage_cur++;
+      show_stats();
+    }
+  }
+  stage_cur = stage_max = 0;
+  stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
+  stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
+  stage_name = tmp_name;
 
-      new_hit_cnt = queued_paths + unique_crashes;
+  new_hit_cnt = queued_paths + unique_crashes;
 
-      ret_val = 0;
+  ret_val = 0;
 
-      //[modify] end
+  //[modify] end
 
-    abandon_entry:
+abandon_entry:
 
-      for(auto ir: mutated_tree){
-        deep_delete(ir);
-      }
-      splicing_with = -1;
+  for(auto ir: mutated_tree){
+    deep_delete(ir);
+  }
+  splicing_with = -1;
 
-      /* Update pending_not_fuzzed count if we made it through the calibration
-         cycle and have not seen this entry before. */
+  /* Update pending_not_fuzzed count if we made it through the calibration
+     cycle and have not seen this entry before. */
 
-      if (!stop_soon && !queue_cur->cal_failed && !queue_cur->was_fuzzed) {
-        queue_cur->was_fuzzed = 1;
-        pending_not_fuzzed--;
-        if (queue_cur->favored) pending_favored--;
-      }
+  if (!stop_soon && !queue_cur->cal_failed && !queue_cur->was_fuzzed) {
+    queue_cur->was_fuzzed = 1;
+    pending_not_fuzzed--;
+    if (queue_cur->favored) pending_favored--;
+  }
 
-      munmap(orig_in, queue_cur->len);
+  munmap(orig_in, queue_cur->len);
 
-      if (in_buf != orig_in) ck_free(in_buf);
-      ck_free(out_buf);
-      ck_free(eff_map);
+  if (in_buf != orig_in) ck_free(in_buf);
+  ck_free(out_buf);
+  ck_free(eff_map);
 
-      return ret_val;
+  return ret_val;
 
 #undef FLIP_BIT
 
-    }
+}
 
 
     /* Grab interesting test cases from other fuzzers. */
@@ -7144,18 +7144,23 @@ int run_testcase()
 
 */
 
+static void do_libary_initialize() {
 
+  if(g_library_path == NULL) 
+    g_library_path = INIT_LIB_PATH;
 
-static void do_libary_initialize(){
-  if(g_libary_path == NULL) g_libary_path = INIT_LIB_PATH;
-  cerr <<"We should initialize the libary" << endl;
-  vector<IR*> ir_set;
-  vector<string> file_list = get_all_files_in_dir(g_libary_path);
+  cerr << "We should initialize the libary" << endl;
+
+  vector<string> file_list = get_all_files_in_dir(g_library_path);
   for(auto &f : file_list){
-    cerr << "init filename: " << string(g_libary_path) + "/" +f << endl;
-    g_mutator.init(string(g_libary_path) + "/" +f);
+
+    string file_path = string(g_library_path) + "/" + f;
+    cerr << "init filename: " << file_path << endl;
+    g_mutator.init(file_path);
   }
-  cout << "The size of ir_libary_2D_hash_ for kStatement is: " << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
+
+  cout << "The size of ir_libary_2D_hash_ for kStatement is: " 
+       << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
 }
 
 int main(int argc, char** argv) {
