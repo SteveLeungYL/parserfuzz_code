@@ -5722,8 +5722,8 @@ static u8 fuzz_one(char** argv) {
   vector<IR *> ir_set, ir_set_tmp, mutated_tree;
   char * tmp_name = stage_name;
 
-  IR* root;
-  string ir_str;
+  IR* query_ir;
+  string query_str;
 
 #ifdef IGNORE_FINDS
 
@@ -5859,7 +5859,7 @@ static u8 fuzz_one(char** argv) {
     
     // Translate the parser representation to Intermediate Representation. 
     // After this operation, ir_set is the IR of current query. 
-    root = program_root_tmp->translate(ir_set_tmp);
+    query_ir = program_root_tmp->translate(ir_set_tmp);
 
   } catch (...) {
 
@@ -5870,14 +5870,16 @@ static u8 fuzz_one(char** argv) {
     goto abandon_entry;
   }
   
-  // We have the IR now, we can delete the bison parser version of the query representation. 
+  // We have the IR now, delete the bison  representation. 
   program_root_tmp->deep_delete();
 
-  ir_str = g_mutator.validate(root);
-  input = append_norec_select_stmts(ir_str);    // Append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency. 
-  // input = ir_str;
+  query_str = g_mutator.validate(query_ir);
 
-  deep_delete(ir_set_tmp[ir_set_tmp.size()-1]);
+  // Append multiple norec compatible select stmt to the end of the queries 
+  // to achieve better testing efficiency. 
+  input = append_norec_select_stmts(query_str);
+
+  deep_delete(query_ir);
 
   program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
   if (program_root == NULL) goto abandon_entry;
@@ -5925,17 +5927,17 @@ static u8 fuzz_one(char** argv) {
   //   ir = mutated_tree[mutated_tree.size() - 1];  // Only testing the program root. 
     stage_name = "niubi_fix";
 
-    ir_str = g_mutator.validate(ir);
+    query_str = g_mutator.validate(ir);
     g_current_ir = ir;
 
-    if(ir_str == ""){
+    if(query_str == ""){
       skip_count++;
       continue;
     } else {
       show_stats();
       stage_name = "niubi_fuzz";
-      // cerr << "IR_STR is: " << ir_str << endl;
-      if(common_fuzz_stuff(argv, ir_str.c_str(), ir_str.size())){
+      // cerr << "IR_STR is: " << query_str << endl;
+      if(common_fuzz_stuff(argv, query_str.c_str(), query_str.size())){
         goto abandon_entry;
       }
       stage_cur++;
