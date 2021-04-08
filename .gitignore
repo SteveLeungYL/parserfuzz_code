@@ -2,3 +2,11 @@ SQLite/AFL/afl-fuzz
 PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz
 .vscode
+*.swp
+
+# files automatically generated
+bison_parser.cpp
+bison_parser.h
+bison_parser.output
+flex_lexer.cpp
+flex_lexer.h

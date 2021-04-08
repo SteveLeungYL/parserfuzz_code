@@ -2581,7 +2581,8 @@ int count_and_get_norec_stmt_str(const string& input, string& norec_select_stmt)
   return norec_select_count;
 }
 
-string append_norec_select_stmts(string input){
+string append_norec_select_stmts(string input) {
+
   for (auto iter = input.begin(); iter != input.end(); iter++){
     if ((*iter) == '\0') *iter = '\n';
   }
@@ -5721,7 +5722,7 @@ static u8 fuzz_one(char** argv) {
   vector<IR *> ir_set, ir_set_tmp, mutated_tree;
   char * tmp_name = stage_name;
 
-  IR* ir;
+  IR* root;
   string ir_str;
 
 #ifdef IGNORE_FINDS
@@ -5852,38 +5853,44 @@ static u8 fuzz_one(char** argv) {
   /* We can use the parser and the mutator to help us clean up the noise in the query. */
 
   program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-  if(program_root_tmp == NULL){
-    goto abandon_entry;
-  }
-  try{
-    program_root_tmp->translate(ir_set_tmp);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
-  }catch(...){
-    for(auto ir: ir_set_tmp){
+  if (program_root_tmp == NULL) goto abandon_entry;
+
+  try {
+    
+    // Translate the parser representation to Intermediate Representation. 
+    // After this operation, ir_set is the IR of current query. 
+    root = program_root_tmp->translate(ir_set_tmp);
+
+  } catch (...) {
+
+    for (auto ir: ir_set_tmp)
       delete ir;
-    }
+
     program_root_tmp->deep_delete();
     goto abandon_entry;
   }
-  program_root_tmp->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
-  ir = ir_set_tmp[ir_set_tmp.size() - 1];
-  ir_str = g_mutator.validate(ir);
+  
+  // We have the IR now, we can delete the bison parser version of the query representation. 
+  program_root_tmp->deep_delete();
+
+  ir_str = g_mutator.validate(root);
   input = append_norec_select_stmts(ir_str);    // Append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency. 
   // input = ir_str;
 
   deep_delete(ir_set_tmp[ir_set_tmp.size()-1]);
 
-
   program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-  if(program_root == NULL){
-    goto abandon_entry;
-  }
+  if (program_root == NULL) goto abandon_entry;
 
-  try{
+  try {
+
     program_root->translate(ir_set);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
-  }catch(...){
-    for(auto ir: ir_set){
+
+  } catch(...) {
+
+    for(auto ir: ir_set)
       delete ir;
-    }
+
     program_root->deep_delete();
     goto abandon_entry;
   }
