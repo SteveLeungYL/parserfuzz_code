@@ -227,7 +227,6 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 		if( strcmp( filename->d_name , "." ) == 0 || 
 			strcmp( filename->d_name , "..") == 0    )
 			continue;
-		cout<<filename->d_name <<endl;
         file_list.push_back(string(filename->d_name));
 	}
 	closedir(dir);
@@ -236,28 +235,27 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 
 
 IR * deep_copy(const IR * root){
-    IR * left = NULL, * right = NULL, * copy_res;
 
-    if(root->left_) left = deep_copy(root->left_); // do you have a second version for deep_copy that accept only one argument?                                                  
-    if(root->right_) right = deep_copy(root->right_);//no I forget to update here
+  IR * left = NULL, * right = NULL, * copy_res;
+  IROperator * op = NULL;
 
-    if(root->op_ != NULL)
-        copy_res = new IR(root->type_, OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_), 
-                    left, right, root->f_val_, root->str_val_, root->name_, root->mutated_times_);
-    else
-        copy_res = new IR(root->type_, NULL, left, right, root->f_val_, root->str_val_, root->name_, root->mutated_times_);
-    
-    copy_res->id_type_ = root->id_type_;
+  if(root->left_) left = deep_copy(root->left_); // do you have a second version for deep_copy that accept only one argument?                                                  
+  if(root->right_) right = deep_copy(root->right_);//no I forget to update here
+  if(root->op_ != NULL) op = OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_);
 
-    return copy_res;
+  copy_res = new IR(root->type_, op, left, right, root->f_val_, root->str_val_, 
+      root->name_, root->mutated_times_);
+  copy_res->id_type_ = root->id_type_;
+
+  return copy_res;
 
 }
 
 void deep_delete(IR * root){
-    if(root->left_) deep_delete(root->left_);
-    if(root->right_) deep_delete(root->right_);
-    
-    if(root->op_) delete root->op_;
 
-    delete root;
+  if(root->left_) deep_delete(root->left_);
+  if(root->right_) deep_delete(root->right_);
+  if(root->op_) delete root->op_;
+
+  delete root;
 }
