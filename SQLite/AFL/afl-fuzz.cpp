@@ -2300,8 +2300,9 @@ EXP_ST void init_forkserver(char** argv) {
 static string read_sqlite_output_and_reset_output_file() {
   program_output_str = "";
   lseek(program_output_fd, 0, SEEK_SET);
-  char output_buf[1];
-  while (read(program_output_fd, output_buf, 1) && output_buf != '\0'){
+  char output_buf[2];
+  while (read(program_output_fd, output_buf, 1) && output_buf[0] != '\0'){
+    output_buf[1] = '\0';
     program_output_str += output_buf;
   }
   // lseek(program_output_fd, 0, SEEK_SET);

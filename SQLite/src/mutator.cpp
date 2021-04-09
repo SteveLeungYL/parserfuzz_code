@@ -787,7 +787,7 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
     return ;
 
   IR * ir_copy = deep_copy(ir);
-  bool ret = ADD_TO_LIBRARY_CORE(ir_copy);
+  ADD_TO_LIBRARY_CORE(ir_copy);
 
   real_ir_set.push_back(ir_copy);
 }

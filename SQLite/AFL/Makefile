@@ -28,7 +28,7 @@ DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 PROGS       = afl-fuzz
 
 CC         = g++
-CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++
+CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++ -fsanitize=address
 CFLAGS     += -g -w \
 	      -DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 	      -DBIN_PATH=\"$(BIN_PATH)\"
