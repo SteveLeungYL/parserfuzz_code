@@ -789,12 +789,11 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
   IR * ir_copy = deep_copy(ir);
   bool ret = ADD_TO_LIBRARY_CORE(ir_copy);
 
-  //if (ret != true) deep_delete(ir_copy);
+  if (ret != true) deep_delete(ir_copy);
+  else real_ir_set.push_back(ir_copy);
 }
 
 bool Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
-
-  bool ret = false;
 
   unsigned long p_hash = hash(ir->to_string());
   NODETYPE p_type = ir->type_;
@@ -811,13 +810,13 @@ bool Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
   if(ir->left_) {
 
     left_type = ir->left_->type_;
-    ADD_TO_LIBRARY(ir->left_);
+    ADD_TO_LIBRARY_CORE(ir->left_);
   }
 
   if(ir->right_) {
 
     right_type = ir->right_->type_;
-    ADD_TO_LIBRARY(ir->right_);
+    ADD_TO_LIBRARY_CORE(ir->right_);
   }
 
   //update right_lib, left_lib
@@ -866,11 +865,15 @@ Mutator::~Mutator(){
   //}
 
   //delete ir_libary_2D_
-  for(auto &i: ir_libary_2D_){
-    for(auto &ir: i.second){
-      deep_delete(ir);
-    }
-  }
+  //for(auto &i: ir_libary_2D_){
+  //  for(auto &ir: i.second){
+  //    deep_delete(ir);
+  //  }
+  //}
+
+  // delete the real ir copy
+  for (auto &ir : real_ir_set)
+    deep_delete(ir);
 
   //delete left_lib
   //for(auto &i: left_lib){
@@ -885,8 +888,6 @@ Mutator::~Mutator(){
   //    deep_delete(ir);
   //  }
   //}
-
-
 }
 
 
