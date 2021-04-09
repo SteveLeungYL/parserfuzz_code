@@ -789,11 +789,10 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
   IR * ir_copy = deep_copy(ir);
   bool ret = ADD_TO_LIBRARY_CORE(ir_copy);
 
-  if (ret != true) deep_delete(ir_copy);
-  else real_ir_set.push_back(ir_copy);
+  real_ir_set.push_back(ir_copy);
 }
 
-bool Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
+void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
 
   unsigned long p_hash = hash(ir->to_string());
   NODETYPE p_type = ir->type_;
@@ -802,7 +801,7 @@ bool Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
   //update library_2D
   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
       ir_libary_2D_hash_[p_type].end())
-    return false;
+    return;
 
   ir_libary_2D_hash_[p_type].insert(p_hash);
   ir_libary_2D_[p_type].push_back(DEEP_COPY(ir));
@@ -835,7 +834,7 @@ bool Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
   //ir_libary_3D_hash_[left_type][right_type].insert(p_hash);
   //ir_libary_3D_[left_type][right_type].push_back(DEEP_COPY(ir));
 
-  return true;
+  return;
 }
 
 unsigned long Mutator::hash(string sql){ 

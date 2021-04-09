@@ -44,7 +44,7 @@ public:
     int get_ir_libary_2D_hash_kStatement_size();
 
     void add_to_library(IR*);
-    bool add_to_library_core(IR*);
+    void add_to_library_core(IR*);
     //IR* get_from_libary_3D(IR*);
     IR* get_from_libary_2D(IR*);
 
