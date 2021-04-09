@@ -2569,13 +2569,17 @@ vector<string> string_splitter(string input_string, string delimiter_re = "\n")
 }
 
 int count_and_get_norec_stmt_str(const string& input, string& norec_select_stmt){
-  vector<string> queries_vector = string_splitter(input, ";");
+
   int norec_select_count = 0;
-  for (string &query : queries_vector)
-  {
-    if ( g_mutator.is_norec_compatible(query) ) {
+  vector<string> queries_vector = string_splitter(input, ";");
+  for (string &query : queries_vector) {
+
+    if (g_mutator.is_norec_compatible(query)) {
+
+      if (norec_select_count == 0)
+        norec_select_stmt = query;
+
       norec_select_count++;
-      norec_select_stmt = query;
     }
   }
   return norec_select_count;

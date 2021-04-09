@@ -486,286 +486,286 @@ bool Mutator::fix_back(map<IR**, IR*> &m_save){
 
 
 map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE> &relationmap, map<IDTYPE, IDTYPE> &cross_map, vector<IR*> &ordered_ir){
-    map<IR*, set<IR*>> graph;
-    set<IDTYPE> type_to_fix;
-    map<IR**, IR*> m_save;
-    for(auto &iter: relationmap){
-        type_to_fix.insert(iter.first);
-        type_to_fix.insert(iter.second);
+  map<IR*, set<IR*>> graph;
+  set<IDTYPE> type_to_fix;
+  map<IR**, IR*> m_save;
+  for(auto &iter: relationmap){
+    type_to_fix.insert(iter.first);
+    type_to_fix.insert(iter.second);
+  }
+
+  auto ir_list = cut_subquery(root, m_save);
+
+  for(auto stmt: ir_list){
+    vector<IR*> ir_to_fix;
+    collect_ir(stmt, type_to_fix, ir_to_fix);
+    for(auto ii: ir_to_fix){
+      ordered_ir.push_back(ii);
     }
+    cross_stmt_map(graph, ir_to_fix, cross_map);
+    vector<IR*> v_top_table;
+    toptable_map(graph, ir_to_fix, v_top_table);
+    for(auto ir: ir_to_fix){
 
-    auto ir_list = cut_subquery(root, m_save);
+      auto idtype = ir->id_type_;
+      graph[ir].empty();
+      if(relationmap.find(idtype) == relationmap.end()){
+        continue;
+      }
 
-    for(auto stmt: ir_list){
-        vector<IR*> ir_to_fix;
-        collect_ir(stmt, type_to_fix, ir_to_fix);
-        for(auto ii: ir_to_fix){
-            ordered_ir.push_back(ii);
+      auto curptr = ir;
+      bool flag = false;
+      while(true){
+        auto pptr = locate_parent(stmt, curptr);
+        if(pptr == NULL)break;
+        while(pptr->left_ == NULL || pptr->right_ == NULL){
+          curptr = pptr;
+          pptr = locate_parent(stmt, curptr);
+          if(pptr == NULL){
+            flag = true;
+            break;
+          }
         }
-        cross_stmt_map(graph, ir_to_fix, cross_map);
-        vector<IR*> v_top_table;
-        toptable_map(graph, ir_to_fix, v_top_table);
-        for(auto ir: ir_to_fix){
+        if(flag) break;
 
-            auto idtype = ir->id_type_;
-            graph[ir].empty();
-            if(relationmap.find(idtype) == relationmap.end()){
-                continue;
+        auto to_search_child = pptr->left_;
+        if(pptr->left_ == curptr){
+          to_search_child = pptr->right_;
+        }
+
+        auto match_ir = search_mapped_ir(to_search_child, relationmap[idtype]);
+        if(match_ir != NULL){
+          if(ir->type_ == kColumnName  && ir->left_ != NULL){
+            if(v_top_table.size() > 0)
+              match_ir = v_top_table[get_rand_int(v_top_table.size())];
+            graph[match_ir].insert(ir->left_);
+            if(ir->right_){
+              graph[match_ir].insert(ir->right_);
+              ir->left_->id_type_ = id_table_name;
+              ir->right_->id_type_ = id_column_name;
+              ir->id_type_ = id_whatever;
             }
-
-            auto curptr = ir;
-            bool flag = false;
-            while(true){
-                auto pptr = locate_parent(stmt, curptr);
-                if(pptr == NULL)break;
-                while(pptr->left_ == NULL || pptr->right_ == NULL){
-                    curptr = pptr;
-                    pptr = locate_parent(stmt, curptr);
-                    if(pptr == NULL){
-                        flag = true;
-                        break;
-                    }
-                }
-                if(flag) break;
-
-                auto to_search_child = pptr->left_;
-                if(pptr->left_ == curptr){
-                    to_search_child = pptr->right_;
-                }
-
-                auto match_ir = search_mapped_ir(to_search_child, relationmap[idtype]);
-                if(match_ir != NULL){
-                    if(ir->type_ == kColumnName  && ir->left_ != NULL){
-                        if(v_top_table.size() > 0)
-                            match_ir = v_top_table[get_rand_int(v_top_table.size())];
-                        graph[match_ir].insert(ir->left_);
-                        if(ir->right_){
-                            graph[match_ir].insert(ir->right_);
-                            ir->left_->id_type_ = id_table_name;
-                            ir->right_->id_type_ = id_column_name;
-                            ir->id_type_ = id_whatever;
-                        }
-                    }else
-                        graph[match_ir].insert(ir);
-                    break;
-                }
-                curptr = pptr;
-            }
-            }
+          }else
+            graph[match_ir].insert(ir);
+          break;
         }
-
-        fix_back(m_save);
-        return graph;
+        curptr = pptr;
+      }
     }
+  }
 
-    IR * Mutator::strategy_delete(IR * cur){
-        assert(cur);
-        MUTATESTART
+  fix_back(m_save);
+  return graph;
+}
 
-            DOLEFT
-            res = deep_copy(cur);
-        if(res->left_ != NULL)
-            deep_delete(res->left_);
-        res->left_ = NULL;
+IR * Mutator::strategy_delete(IR * cur){
+  assert(cur);
+  MUTATESTART
 
-        DORIGHT
-            res = deep_copy(cur);
-        if(res->right_ != NULL)
-            deep_delete(res->right_);
-        res->right_ = NULL;
+    DOLEFT
+    res = deep_copy(cur);
+  if(res->left_ != NULL)
+    deep_delete(res->left_);
+  res->left_ = NULL;
 
-        DOBOTH
-            res = deep_copy(cur);
-        if(res->left_ != NULL)
-            deep_delete(res->left_);
-        if(res->right_ != NULL)
-            deep_delete(res->right_);
-        res->left_ = res->right_ = NULL;
+  DORIGHT
+    res = deep_copy(cur);
+  if(res->right_ != NULL)
+    deep_delete(res->right_);
+  res->right_ = NULL;
 
-        MUTATEEND 
+  DOBOTH
+    res = deep_copy(cur);
+  if(res->left_ != NULL)
+    deep_delete(res->left_);
+  if(res->right_ != NULL)
+    deep_delete(res->right_);
+  res->left_ = res->right_ = NULL;
+
+  MUTATEEND 
+}
+
+
+IR * Mutator::strategy_insert(IR * cur){
+  assert(cur);
+
+
+  auto res = deep_copy(cur);
+
+
+  if(cur->type_ == kStatementList){
+    int size = left_lib[kStatementList].size();
+    if (size != 0)  {
+      auto new_right = deep_copy(left_lib[kStatementList][get_rand_int(size)]);
+      auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
+      return new_res;
     }
+  }
 
-
-    IR * Mutator::strategy_insert(IR * cur){
-        assert(cur);
-
-
-        auto res = deep_copy(cur);
-
-
-        if(cur->type_ == kStatementList){
-            int size = left_lib[kStatementList].size();
-            if (size != 0)  {
-                auto new_right = deep_copy(left_lib[kStatementList][get_rand_int(size)]);
-                auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
-                return new_res;
-            }
-        }
-
-        if(res->right_ == NULL && res->left_ != NULL){
-            auto left_type = res->left_->type_;
-            auto left_lib_size = left_lib[left_type].size();
-            if(left_lib_size != 0){
-                auto new_right = deep_copy(left_lib[left_type][get_rand_int(left_lib_size)]);
-                res->right_ = new_right;
-                return res;
-            } 
-        }
-        else if(res->right_ != NULL && res->left_ == NULL){
-            auto right_type = res->right_->type_;
-            auto right_lib_size = right_lib[right_type].size();
-            if(right_lib_size != 0){
-                auto new_left = deep_copy(right_lib[right_type][get_rand_int(right_lib_size)]);
-                res->left_ = new_left;
-                return res;
-            }
-        }
-
-        int lib_size = ir_libary_2D_[res->type_].size();
-        if(lib_size == 0) { deep_delete(res); return NULL;}
-
-        auto save = res;
-        res = deep_copy(ir_libary_2D_[res->type_][get_rand_int(lib_size)]);
-        deep_delete(save);
-
-        return res;
+  if(res->right_ == NULL && res->left_ != NULL){
+    auto left_type = res->left_->type_;
+    auto left_lib_size = left_lib[left_type].size();
+    if(left_lib_size != 0){
+      auto new_right = deep_copy(left_lib[left_type][get_rand_int(left_lib_size)]);
+      res->right_ = new_right;
+      return res;
+    } 
+  }
+  else if(res->right_ != NULL && res->left_ == NULL){
+    auto right_type = res->right_->type_;
+    auto right_lib_size = right_lib[right_type].size();
+    if(right_lib_size != 0){
+      auto new_left = deep_copy(right_lib[right_type][get_rand_int(right_lib_size)]);
+      res->left_ = new_left;
+      return res;
     }
+  }
 
-    IR * Mutator::strategy_replace(IR * cur){
-        assert(cur);
+  int lib_size = ir_libary_2D_[res->type_].size();
+  if(lib_size == 0) { deep_delete(res); return NULL;}
 
-        MUTATESTART
+  auto save = res;
+  res = deep_copy(ir_libary_2D_[res->type_][get_rand_int(lib_size)]);
+  deep_delete(save);
 
-            DOLEFT
-            res = deep_copy(cur);
+  return res;
+}
 
-        auto new_node = get_from_libary_2D(res->left_);
-	
-	if(new_node != NULL) {
-            new_node = deep_copy(new_node);
-            if(res->left_ != NULL){
-                new_node->id_type_ = res->left_->id_type_;
-            }
-        }
-	if(res->left_ != NULL) deep_delete(res->left_);
-        res->left_ = new_node;
+IR * Mutator::strategy_replace(IR * cur){
+  assert(cur);
 
-        DORIGHT
-            res = deep_copy(cur);
+  MUTATESTART
 
-        auto new_node = get_from_libary_2D(res->right_);
-        if(new_node != NULL) {
-            new_node = deep_copy(new_node);
-            if(res->right_ != NULL){
-                new_node->id_type_ = res->right_->id_type_;
-            }
-        }
-	if(res->right_ != NULL) deep_delete(res->right_);
-        res->right_ = new_node;
+    DOLEFT
+    res = deep_copy(cur);
 
-        DOBOTH
-            res = deep_copy(cur);
+  auto new_node = get_from_libary_2D(res->left_);
 
-        auto new_left = get_from_libary_2D(res->left_);
-        auto new_right = get_from_libary_2D(res->right_);
-
-        if(new_left != NULL){
-            new_left = deep_copy(new_left);
-            if(res->left_ != NULL){
-                new_left->id_type_ = res->left_->id_type_;
-
-            }
-        }
-
-        if(new_right != NULL){
-            new_right = deep_copy(new_right);
-            if(res->right_ != NULL){
-                new_right->id_type_ = res->right_->id_type_;
-            }
-        }
-
-	if(res->left_) deep_delete(res->left_);
-	if(res->right_) deep_delete(res->right_);
-        res->left_ = new_left;
-        res->right_ = new_right;
-
-        MUTATEEND
-
-            return res;
+  if(new_node != NULL) {
+    new_node = deep_copy(new_node);
+    if(res->left_ != NULL){
+      new_node->id_type_ = res->left_->id_type_;
     }
+  }
+  if(res->left_ != NULL) deep_delete(res->left_);
+  res->left_ = new_node;
 
-    bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
-        if(get_rand_int(mutated_times+1) < LUCKY_NUMBER){
-            return true;
-        }
-        return false;
+  DORIGHT
+    res = deep_copy(cur);
+
+  auto new_node = get_from_libary_2D(res->right_);
+  if(new_node != NULL) {
+    new_node = deep_copy(new_node);
+    if(res->right_ != NULL){
+      new_node->id_type_ = res->right_->id_type_;
     }
+  }
+  if(res->right_ != NULL) deep_delete(res->right_);
+  res->right_ = new_node;
 
-    IR* Mutator::get_from_libary_2D(IR* ir){
-	static IR* empty_str = new IR(kStringLiteral, "");
+  DOBOTH
+    res = deep_copy(cur);
 
-        if(!ir) return NULL;
+  auto new_left = get_from_libary_2D(res->left_);
+  auto new_right = get_from_libary_2D(res->right_);
 
-        auto &i = ir_libary_2D_[ir->type_];
-        if(i.size() == 0) return empty_str;
-        return i[get_rand_int(i.size())];
+  if(new_left != NULL){
+    new_left = deep_copy(new_left);
+    if(res->left_ != NULL){
+      new_left->id_type_ = res->left_->id_type_;
+
     }
+  }
 
-    IR* Mutator::get_from_libary_3D(IR* ir){
-        NODETYPE left_type = kEmpty, right_type = kEmpty;
-        if(ir->left_){
-            left_type = ir->left_->type_;
-        } 
-        if(ir->right_){
-            right_type = ir->right_->type_;
-        }
-        auto &i = ir_libary_3D_[left_type][right_type];
-        if(i.size() == 0) return new IR(kStringLiteral, "");
-        return i[get_rand_int(i.size())];
+  if(new_right != NULL){
+    new_right = deep_copy(new_right);
+    if(res->right_ != NULL){
+      new_right->id_type_ = res->right_->id_type_;
     }
+  }
 
-    string Mutator::get_a_string(){
-        unsigned com_size = common_string_libary.size();
-        unsigned lib_size = string_libary.size();
-        unsigned double_lib_size = lib_size * 2;
+  if(res->left_) deep_delete(res->left_);
+  if(res->right_) deep_delete(res->right_);
+  res->left_ = new_left;
+  res->right_ = new_right;
 
-        unsigned rand_int = get_rand_int(double_lib_size + com_size);
-        if(rand_int < double_lib_size){
-            return string_libary[rand_int >> 1];
-        }else{
-            rand_int -= double_lib_size;
-            return common_string_libary[rand_int];
-        }
+  MUTATEEND
+
+    return res;
+}
+
+bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
+  if(get_rand_int(mutated_times+1) < LUCKY_NUMBER){
+    return true;
+  }
+  return false;
+}
+
+IR* Mutator::get_from_libary_2D(IR* ir){
+  static IR* empty_str = new IR(kStringLiteral, "");
+
+  if(!ir) return NULL;
+
+  auto &i = ir_libary_2D_[ir->type_];
+  if(i.size() == 0) return empty_str;
+  return i[get_rand_int(i.size())];
+}
+
+IR* Mutator::get_from_libary_3D(IR* ir){
+  NODETYPE left_type = kEmpty, right_type = kEmpty;
+  if(ir->left_){
+    left_type = ir->left_->type_;
+  } 
+  if(ir->right_){
+    right_type = ir->right_->type_;
+  }
+  auto &i = ir_libary_3D_[left_type][right_type];
+  if(i.size() == 0) return new IR(kStringLiteral, "");
+  return i[get_rand_int(i.size())];
+}
+
+string Mutator::get_a_string(){
+  unsigned com_size = common_string_libary.size();
+  unsigned lib_size = string_libary.size();
+  unsigned double_lib_size = lib_size * 2;
+
+  unsigned rand_int = get_rand_int(double_lib_size + com_size);
+  if(rand_int < double_lib_size){
+    return string_libary[rand_int >> 1];
+  }else{
+    rand_int -= double_lib_size;
+    return common_string_libary[rand_int];
+  }
+}
+
+unsigned long Mutator::get_a_val(){
+  if(value_libary.size() == 0) return 0xdeadbeef;
+  return value_libary[get_rand_int(value_libary.size())];
+}
+
+unsigned long Mutator::get_library_size(){
+  unsigned long res = 0;
+
+  for(auto &i: ir_libary_2D_){
+    res += i.second.size();
+  }
+
+  for(auto &i: ir_libary_3D_){
+    for(auto &j: i.second){
+      res += j.second.size();
     }
+  }
 
-    unsigned long Mutator::get_a_val(){
-        if(value_libary.size() == 0) return 0xdeadbeef;
-        return value_libary[get_rand_int(value_libary.size())];
-    }
+  for(auto &i: left_lib){
+    res += i.second.size();
+  }
 
-    unsigned long Mutator::get_library_size(){
-	unsigned long res = 0;
+  for(auto &i: right_lib){
+    res += i.second.size();
+  }
 
-	for(auto &i: ir_libary_2D_){
-		res += i.second.size();
-	}
-	
-	for(auto &i: ir_libary_3D_){
-		for(auto &j: i.second){
-			res += j.second.size();
-		}
-	}
-	
-	for(auto &i: left_lib){
-                res += i.second.size();
-        }
-
-	for(auto &i: right_lib){
-                res += i.second.size();
-        }
-
-	return res;
-    }
+  return res;
+}
 
 #ifdef _NON_REPLACE_
 #define ADD_TO_LIBRARY        add_to_library
@@ -781,7 +781,7 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
   unsigned long p_hash = hash(ir->to_string());
 
   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
-     ir_libary_2D_hash_[p_type].end())
+      ir_libary_2D_hash_[p_type].end())
     return ;
 
   IR * ir_copy = deep_copy(ir);
@@ -796,7 +796,7 @@ void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
 
   //update library_2D
   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
-     ir_libary_2D_hash_[p_type].end())
+      ir_libary_2D_hash_[p_type].end())
     return;
 
   ir_libary_2D_hash_[p_type].insert(p_hash);
@@ -900,321 +900,321 @@ Mutator::~Mutator(){
 
 
 
-            void Mutator::fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visited){
-                if(fixed_key->id_type_ == id_create_table_name){
-                    string tablename = fixed_key->str_val_;
-                    auto &colums = m_tables[tablename];
-                    for(auto &val: graph[fixed_key]){
-                        if(val->id_type_ == id_create_column_name){
-                            string new_column = gen_id_name();
-                            colums.push_back(new_column);
-                            val->str_val_ = new_column;
-                            visited.insert(val);
-                        }else if(val->id_type_ == id_top_table_name){
-                            val->str_val_ = tablename;
-                            visited.insert(val);
-                            fix_one(graph, val, visited);
-                        }
-                    }
-                }
-                else if(fixed_key->id_type_ == id_top_table_name){
-                    string tablename = fixed_key->str_val_;
-                    auto &colums = m_tables[tablename];
+void Mutator::fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visited){
+  if(fixed_key->id_type_ == id_create_table_name){
+    string tablename = fixed_key->str_val_;
+    auto &colums = m_tables[tablename];
+    for(auto &val: graph[fixed_key]){
+      if(val->id_type_ == id_create_column_name){
+        string new_column = gen_id_name();
+        colums.push_back(new_column);
+        val->str_val_ = new_column;
+        visited.insert(val);
+      }else if(val->id_type_ == id_top_table_name){
+        val->str_val_ = tablename;
+        visited.insert(val);
+        fix_one(graph, val, visited);
+      }
+    }
+  }
+  else if(fixed_key->id_type_ == id_top_table_name){
+    string tablename = fixed_key->str_val_;
+    auto &colums = m_tables[tablename];
 
-                    for(auto &val: graph[fixed_key]){
-                        if(val->id_type_ == id_column_name){
-                            val->str_val_ = vector_rand_ele(colums);
-                            visited.insert(val);
-                        }else if(val->id_type_ == id_table_name){
-                            val->str_val_ = tablename;
-                            visited.insert(val);
-                        }else if(val->id_type_ == id_index_name){
-                            string new_index = gen_id_name();
-                            val->str_val_ = new_index;
-                            m_tables[new_index] = m_tables[tablename];
-                            v_table_names.push_back(new_index);
-                        }
-                    }
-                }
-            }
+    for(auto &val: graph[fixed_key]){
+      if(val->id_type_ == id_column_name){
+        val->str_val_ = vector_rand_ele(colums);
+        visited.insert(val);
+      }else if(val->id_type_ == id_table_name){
+        val->str_val_ = tablename;
+        visited.insert(val);
+      }else if(val->id_type_ == id_index_name){
+        string new_index = gen_id_name();
+        val->str_val_ = new_index;
+        m_tables[new_index] = m_tables[tablename];
+        v_table_names.push_back(new_index);
+      }
+    }
+  }
+}
 
-            void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordered_ir){
-                set<IR*> visited;
+void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordered_ir){
+  set<IR*> visited;
 
-                reset_database();
-                for(auto ir: ordered_ir){
-                    auto iter = make_pair(ir, graph[ir]);
+  reset_database();
+  for(auto ir: ordered_ir){
+    auto iter = make_pair(ir, graph[ir]);
 
-                    if(visited.find(iter.first) != visited.end()){
-                        continue;
-                    }
-                    visited.insert(iter.first);
-                    if(iter.second.empty()){
-                        if(iter.first->id_type_ == id_column_name){
-                            string tablename = vector_rand_ele(v_table_names);
-                            auto &colums = m_tables[tablename];
-                            iter.first->str_val_ = vector_rand_ele(colums);
-                            continue;
-                        }
-                    }
-                    if(iter.first->id_type_ == id_create_table_name || iter.first->id_type_ == id_top_table_name){
-                        if(iter.first->id_type_ == id_create_table_name ){
-                            string new_table_name = gen_id_name();
-                            v_table_names.push_back(new_table_name);
-                            iter.first->str_val_ = new_table_name;
-                        }else{
-                            iter.first->str_val_ = vector_rand_ele(v_table_names);
+    if(visited.find(iter.first) != visited.end()){
+      continue;
+    }
+    visited.insert(iter.first);
+    if(iter.second.empty()){
+      if(iter.first->id_type_ == id_column_name){
+        string tablename = vector_rand_ele(v_table_names);
+        auto &colums = m_tables[tablename];
+        iter.first->str_val_ = vector_rand_ele(colums);
+        continue;
+      }
+    }
+    if(iter.first->id_type_ == id_create_table_name || iter.first->id_type_ == id_top_table_name){
+      if(iter.first->id_type_ == id_create_table_name ){
+        string new_table_name = gen_id_name();
+        v_table_names.push_back(new_table_name);
+        iter.first->str_val_ = new_table_name;
+      }else{
+        iter.first->str_val_ = vector_rand_ele(v_table_names);
 
-                        }
-                        fix_one(graph, iter.first, visited);
-                    }
-                }
+      }
+      fix_one(graph, iter.first, visited);
+    }
+  }
 
-            }
-
-
-            /* tranverse ir in the order: _right ==> root ==> left_ */
-            string Mutator::fix(IR * root){
-
-                string res;
-                auto * right_ = root->right_, * left_ = root->left_;
-                auto * op_ = root->op_;
-                auto type_ = root->type_;
-                auto str_val_ = root->str_val_;
-                auto f_val_ = root->f_val_;
-                auto int_val_ = root->int_val_;
-                auto id_type_ = root->id_type_;
-
-                string tmp_right;
-                if(right_ != NULL)
-                    tmp_right = fix(right_);
-
-                if(type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)){
-                    if(get_rand_int(2) == 1)
-                        return string("main");
-                    else
-                        return string("temp");
-                }
-                
+}
 
 
-                if(type_ == kCmdPragma){  
-                    string res = "PRAGMA ";
-                    int lib_size = cmds_.size();
-                    string key = "";
-                    if ( lib_size != 0 ){
-                        key = cmds_[get_rand_int(lib_size)];
-                        res += key;
-                    } else {
-                        return "";
-                    }
+/* tranverse ir in the order: _right ==> root ==> left_ */
+string Mutator::fix(IR * root){
 
-                    int value_size = m_cmd_value_lib_[key].size();
-                    string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
-                    if(!value.compare("_int_")){
-                        value = string("=") + to_string(value_libary[get_rand_int(value_libary.size())]);
-                    }
-                    else if(!value.compare("_empty_")){
-                        value = "";
-                    }
-                    else if(!value.compare("_boolean_")){
-                        if(get_rand_int(2) == 0)
-                            value = "=false";
-                        else
-                            value = "=true";
-                    }
-                    else{
-                        value = "=" + value;
-                    }
-                    if(!value.empty()) res += value + ";";
-                    return res;
-                }
+  string res;
+  auto * right_ = root->right_, * left_ = root->left_;
+  auto * op_ = root->op_;
+  auto type_ = root->type_;
+  auto str_val_ = root->str_val_;
+  auto f_val_ = root->f_val_;
+  auto int_val_ = root->int_val_;
+  auto id_type_ = root->id_type_;
 
-                if(type_ == kFilePath || type_ == kPrepareTargetQuery || type_ == kOptOrderType
-                   || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType
-                   || type_ == kOptDistinct || type_ == kNullLiteral) return str_val_;
-                if(type_ == kStringLiteral) {auto s = string_libary[get_rand_int(string_libary.size())];  return "'" + s + "'";}
-                if(type_ == kIntLiteral) return std::to_string(value_libary[get_rand_int(value_libary.size())]);
-                if(type_ == kFloatLiteral || type_ == kconst_float) return std::to_string(float(value_libary[get_rand_int(value_libary.size())]) + 0.1);
-                if(type_ == kconst_str) return string_libary[get_rand_int(string_libary.size())];;
-                if(type_ == kconst_int)  return std::to_string(value_libary[get_rand_int(value_libary.size())]);
+  string tmp_right;
+  if(right_ != NULL)
+    tmp_right = fix(right_);
 
-                if(!str_val_.empty()) return str_val_;
-
-                if(op_!= NULL)
-                    res += op_->prefix_ + " ";
-                if(left_ != NULL)
-                    res += fix(left_) + " ";
-                if( op_!= NULL)
-                    res += op_->middle_ + " ";
-                if(right_ != NULL)
-                    res += tmp_right + " ";
-                if(op_!= NULL)
-                    res += op_->suffix_;
-
-                trim_string(res);
-                return res;
-            }
-
-            unsigned int Mutator::calc_node(IR * root){
-                unsigned int res = 0;
-                if(root->left_) res += calc_node(root->left_);
-                if(root->right_) res += calc_node(root->right_);
-
-                return res + 1;
-            }
-
-            string Mutator::extract_struct2(IR * root){
-		static int counter = 0;
-                string res;
-                auto * right_ = root->right_, * left_ = root->left_;
-                auto * op_ = root->op_;
-                auto type_ = root->type_;
-                auto str_val_ = root->str_val_;
-
-                if(type_ == kColumnName && str_val_ == "*") return str_val_;
-                if(type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType || type_ == kOptDistinct) return str_val_;
-                if(root->id_type_ != id_whatever && root->id_type_ != id_module_name) {return "x" + to_string(counter++);}
-                if(type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
-                    string str_val = str_val_;
-                    str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
-                    str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
-                    string magic_string = magic_string_generator(str_val);
-                    unsigned long h = hash(magic_string);
-                    if(string_libary_hash_.find(h) == string_libary_hash_.end()){
-                        string_libary.push_back(magic_string);
-                        string_libary_hash_.insert(h);
-
-                    }
-                    return "'y'";
-                }
-                if(type_ == kIntLiteral) {value_libary.push_back(root->int_val_); return "10";}
-                if(type_ == kFloatLiteral || type_ == kconst_float) {value_libary.push_back((unsigned long)root->f_val_); return "0.1";}
-                if(type_ == kconst_int)  {value_libary.push_back(root->int_val_); return "11";}
-                if(type_ == kFilePath) return "'file_name'";
-
-                if(!str_val_.empty()) return str_val_;
-                if(op_!= NULL)
-                    res += op_->prefix_ + " ";
-                if(left_ != NULL)
-                    res += extract_struct2(left_) + " ";
-                if( op_!= NULL)
-                    res += op_->middle_ + " ";
-                if(right_ != NULL)
-                    res += extract_struct2(right_) + " ";
-                if(op_!= NULL)
-                    res += op_->suffix_;
-
-                trim_string(res);
-                return res;
-            }
-
-            string Mutator::extract_struct(IR * root){
-		        static int counter = 0;
-                string res;
-                auto * right_ = root->right_, * left_ = root->left_;
-                auto * op_ = root->op_;
-                auto type_ = root->type_;
-                auto str_val_ = root->str_val_;
-
-                if(type_ == kColumnName && str_val_ == "*") return str_val_;
-                if(type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType || type_ == kOptDistinct) return str_val_;
-                if(root->id_type_ != id_whatever && root->id_type_ != id_module_name) {return "x";}
-                if(type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
-                    string str_val = str_val_;
-                    str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
-                    str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
-                    string magic_string = magic_string_generator(str_val);
-                    unsigned long h = hash(magic_string);
-                    if(string_libary_hash_.find(h) == string_libary_hash_.end()){
-                        string_libary.push_back(magic_string);
-                        string_libary_hash_.insert(h);
-
-                    }
-                    return "'y'";
-                }
-                if(type_ == kIntLiteral) {value_libary.push_back(root->int_val_); return "10";}
-                if(type_ == kFloatLiteral || type_ == kconst_float) {value_libary.push_back((unsigned long)root->f_val_); return "0.1";}
-                if(type_ == kconst_int)  {value_libary.push_back(root->int_val_); return "11";}
-                if(type_ == kFilePath) return "'file_name'";
-
-                if(!str_val_.empty()) return str_val_;
-                if(op_!= NULL)
-                    res += op_->prefix_ + " ";
-                if(left_ != NULL)
-                    res += extract_struct(left_) + " ";
-                if( op_!= NULL)
-                    res += op_->middle_ + " ";
-                if(right_ != NULL)
-                    res += extract_struct(right_) + " ";
-                if(op_!= NULL)
-                    res += op_->suffix_;
-
-                trim_string(res);
-                return res;
-            }
-
-            void Mutator::add_new_table(IR * root, string &table_name){
+  if(type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)){
+    if(get_rand_int(2) == 1)
+      return string("main");
+    else
+      return string("temp");
+  }
 
 
-                if(root->left_ != NULL)
-                    add_new_table(root->left_, table_name);
 
-                if(root->right_ != NULL)
-                    add_new_table(root->right_, table_name);
+  if(type_ == kCmdPragma){  
+    string res = "PRAGMA ";
+    int lib_size = cmds_.size();
+    string key = "";
+    if ( lib_size != 0 ){
+      key = cmds_[get_rand_int(lib_size)];
+      res += key;
+    } else {
+      return "";
+    }
 
-                //add to table_name_lib_ 
-                if(root->type_ == kTableName){
-                    if(root->operand_num_ == 1){
-                        table_name = root->left_->str_val_;
-                    }
-                    else if(root->operand_num_ == 2){
-                        table_name = root->left_->str_val_ + "." + root->right_->str_val_;            
-                    }
-                }
+    int value_size = m_cmd_value_lib_[key].size();
+    string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
+    if(!value.compare("_int_")){
+      value = string("=") + to_string(value_libary[get_rand_int(value_libary.size())]);
+    }
+    else if(!value.compare("_empty_")){
+      value = "";
+    }
+    else if(!value.compare("_boolean_")){
+      if(get_rand_int(2) == 0)
+        value = "=false";
+      else
+        value = "=true";
+    }
+    else{
+      value = "=" + value;
+    }
+    if(!value.empty()) res += value + ";";
+    return res;
+  }
 
-                //add to column_name_lib_
-                if(root->type_ == kColumnDef){
-                    auto tmp = root->left_;
-                    if(tmp->type_ == kIdentifier){
-                        if(!table_name.empty() && !tmp->str_val_.empty());
-                        m_tables[table_name].push_back(tmp->str_val_);
-                        if(find(v_table_names.begin(), v_table_names.end(), table_name) != v_table_names.end())
-                            v_table_names.push_back(table_name);
-                    }
-                }
+  if(type_ == kFilePath || type_ == kPrepareTargetQuery || type_ == kOptOrderType
+      || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType
+      || type_ == kOptDistinct || type_ == kNullLiteral) return str_val_;
+  if(type_ == kStringLiteral) {auto s = string_libary[get_rand_int(string_libary.size())];  return "'" + s + "'";}
+  if(type_ == kIntLiteral) return std::to_string(value_libary[get_rand_int(value_libary.size())]);
+  if(type_ == kFloatLiteral || type_ == kconst_float) return std::to_string(float(value_libary[get_rand_int(value_libary.size())]) + 0.1);
+  if(type_ == kconst_str) return string_libary[get_rand_int(string_libary.size())];;
+  if(type_ == kconst_int)  return std::to_string(value_libary[get_rand_int(value_libary.size())]);
 
-            }
+  if(!str_val_.empty()) return str_val_;
+
+  if(op_!= NULL)
+    res += op_->prefix_ + " ";
+  if(left_ != NULL)
+    res += fix(left_) + " ";
+  if( op_!= NULL)
+    res += op_->middle_ + " ";
+  if(right_ != NULL)
+    res += tmp_right + " ";
+  if(op_!= NULL)
+    res += op_->suffix_;
+
+  trim_string(res);
+  return res;
+}
+
+unsigned int Mutator::calc_node(IR * root){
+  unsigned int res = 0;
+  if(root->left_) res += calc_node(root->left_);
+  if(root->right_) res += calc_node(root->right_);
+
+  return res + 1;
+}
+
+string Mutator::extract_struct2(IR * root){
+  static int counter = 0;
+  string res;
+  auto * right_ = root->right_, * left_ = root->left_;
+  auto * op_ = root->op_;
+  auto type_ = root->type_;
+  auto str_val_ = root->str_val_;
+
+  if(type_ == kColumnName && str_val_ == "*") return str_val_;
+  if(type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType || type_ == kOptDistinct) return str_val_;
+  if(root->id_type_ != id_whatever && root->id_type_ != id_module_name) {return "x" + to_string(counter++);}
+  if(type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
+    string str_val = str_val_;
+    str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
+    str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
+    string magic_string = magic_string_generator(str_val);
+    unsigned long h = hash(magic_string);
+    if(string_libary_hash_.find(h) == string_libary_hash_.end()){
+      string_libary.push_back(magic_string);
+      string_libary_hash_.insert(h);
+
+    }
+    return "'y'";
+  }
+  if(type_ == kIntLiteral) {value_libary.push_back(root->int_val_); return "10";}
+  if(type_ == kFloatLiteral || type_ == kconst_float) {value_libary.push_back((unsigned long)root->f_val_); return "0.1";}
+  if(type_ == kconst_int)  {value_libary.push_back(root->int_val_); return "11";}
+  if(type_ == kFilePath) return "'file_name'";
+
+  if(!str_val_.empty()) return str_val_;
+  if(op_!= NULL)
+    res += op_->prefix_ + " ";
+  if(left_ != NULL)
+    res += extract_struct2(left_) + " ";
+  if( op_!= NULL)
+    res += op_->middle_ + " ";
+  if(right_ != NULL)
+    res += extract_struct2(right_) + " ";
+  if(op_!= NULL)
+    res += op_->suffix_;
+
+  trim_string(res);
+  return res;
+}
+
+string Mutator::extract_struct(IR * root){
+  static int counter = 0;
+  string res;
+  auto * right_ = root->right_, * left_ = root->left_;
+  auto * op_ = root->op_;
+  auto type_ = root->type_;
+  auto str_val_ = root->str_val_;
+
+  if(type_ == kColumnName && str_val_ == "*") return str_val_;
+  if(type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType || type_ == kOptDistinct) return str_val_;
+  if(root->id_type_ != id_whatever && root->id_type_ != id_module_name) {return "x";}
+  if(type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
+    string str_val = str_val_;
+    str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
+    str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
+    string magic_string = magic_string_generator(str_val);
+    unsigned long h = hash(magic_string);
+    if(string_libary_hash_.find(h) == string_libary_hash_.end()){
+      string_libary.push_back(magic_string);
+      string_libary_hash_.insert(h);
+
+    }
+    return "'y'";
+  }
+  if(type_ == kIntLiteral) {value_libary.push_back(root->int_val_); return "10";}
+  if(type_ == kFloatLiteral || type_ == kconst_float) {value_libary.push_back((unsigned long)root->f_val_); return "0.1";}
+  if(type_ == kconst_int)  {value_libary.push_back(root->int_val_); return "11";}
+  if(type_ == kFilePath) return "'file_name'";
+
+  if(!str_val_.empty()) return str_val_;
+  if(op_!= NULL)
+    res += op_->prefix_ + " ";
+  if(left_ != NULL)
+    res += extract_struct(left_) + " ";
+  if( op_!= NULL)
+    res += op_->middle_ + " ";
+  if(right_ != NULL)
+    res += extract_struct(right_) + " ";
+  if(op_!= NULL)
+    res += op_->suffix_;
+
+  trim_string(res);
+  return res;
+}
+
+void Mutator::add_new_table(IR * root, string &table_name){
 
 
-            void Mutator::reset_database(){
-                m_tables.clear();    
-                v_table_names.clear();
-            }
+  if(root->left_ != NULL)
+    add_new_table(root->left_, table_name);
 
-            int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
-                string sql(buf);
-                auto ast = parser(sql);
+  if(root->right_ != NULL)
+    add_new_table(root->right_, table_name);
 
-                new_buf = buf;
-                new_len = len;
-                if(ast == NULL) return 0;
+  //add to table_name_lib_ 
+  if(root->type_ == kTableName){
+    if(root->operand_num_ == 1){
+      table_name = root->left_->str_val_;
+    }
+    else if(root->operand_num_ == 2){
+      table_name = root->left_->str_val_ + "." + root->right_->str_val_;            
+    }
+  }
 
-                vector<IR *> v_ir;
-                auto ir_root = ast->translate(v_ir);
-                ast->deep_delete();
+  //add to column_name_lib_
+  if(root->type_ == kColumnDef){
+    auto tmp = root->left_;
+    if(tmp->type_ == kIdentifier){
+      if(!table_name.empty() && !tmp->str_val_.empty());
+      m_tables[table_name].push_back(tmp->str_val_);
+      if(find(v_table_names.begin(), v_table_names.end(), table_name) != v_table_names.end())
+        v_table_names.push_back(table_name);
+    }
+  }
 
-                if(ir_root == NULL) return 0;
-                auto fixed = validate(ir_root);
-                deep_delete(ir_root);
-                if(fixed.empty()) return 0;
+}
 
-                char * sfixed = (char *)malloc(fixed.size()+1);
-                memcpy(sfixed, fixed.c_str(), fixed.size());
-                sfixed[fixed.size()] = 0;
 
-                new_buf = sfixed;
-                new_len = fixed.size();
+void Mutator::reset_database(){
+  m_tables.clear();    
+  v_table_names.clear();
+}
 
-                return 1;
-            }
+int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
+  string sql(buf);
+  auto ast = parser(sql);
+
+  new_buf = buf;
+  new_len = len;
+  if(ast == NULL) return 0;
+
+  vector<IR *> v_ir;
+  auto ir_root = ast->translate(v_ir);
+  ast->deep_delete();
+
+  if(ir_root == NULL) return 0;
+  auto fixed = validate(ir_root);
+  deep_delete(ir_root);
+  if(fixed.empty()) return 0;
+
+  char * sfixed = (char *)malloc(fixed.size()+1);
+  memcpy(sfixed, fixed.c_str(), fixed.size());
+  sfixed[fixed.size()] = 0;
+
+  new_buf = sfixed;
+  new_len = fixed.size();
+
+  return 1;
+}
