@@ -44,8 +44,8 @@ public:
     int get_ir_libary_2D_hash_kStatement_size();
 
     void add_to_library(IR*);
-    void add_to_library_core(IR*);
-    IR* get_from_libary_3D(IR*);
+    bool  add_to_library_core(IR*);
+    //IR* get_from_libary_3D(IR*);
     IR* get_from_libary_2D(IR*);
 
     void init(string f_testcase, string f_common_string = "", string pragma = "");
@@ -78,8 +78,8 @@ public:
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 private:
     IR * record_ = NULL;
-    map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 
-    map<NODETYPE, map<NODETYPE, set<unsigned long>> > ir_libary_3D_hash_;
+    //map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 
+    //map<NODETYPE, map<NODETYPE, set<unsigned long>> > ir_libary_3D_hash_;
     map<NODETYPE, set<unsigned long> > ir_libary_2D_hash_;
     map<NODETYPE, vector<IR*> > ir_libary_2D_;
     map<NODETYPE, vector<IR *>> left_lib;

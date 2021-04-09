@@ -711,18 +711,18 @@ IR* Mutator::get_from_libary_2D(IR* ir){
   return i[get_rand_int(i.size())];
 }
 
-IR* Mutator::get_from_libary_3D(IR* ir){
-  NODETYPE left_type = kEmpty, right_type = kEmpty;
-  if(ir->left_){
-    left_type = ir->left_->type_;
-  } 
-  if(ir->right_){
-    right_type = ir->right_->type_;
-  }
-  auto &i = ir_libary_3D_[left_type][right_type];
-  if(i.size() == 0) return new IR(kStringLiteral, "");
-  return i[get_rand_int(i.size())];
-}
+//IR* Mutator::get_from_libary_3D(IR* ir){
+//  NODETYPE left_type = kEmpty, right_type = kEmpty;
+//  if(ir->left_){
+//    left_type = ir->left_->type_;
+//  } 
+//  if(ir->right_){
+//    right_type = ir->right_->type_;
+//  }
+//  auto &i = ir_libary_3D_[left_type][right_type];
+//  if(i.size() == 0) return new IR(kStringLiteral, "");
+//  return i[get_rand_int(i.size())];
+//}
 
 string Mutator::get_a_string(){
   unsigned com_size = common_string_libary.size();
@@ -750,11 +750,11 @@ unsigned long Mutator::get_library_size(){
     res += i.second.size();
   }
 
-  for(auto &i: ir_libary_3D_){
-    for(auto &j: i.second){
-      res += j.second.size();
-    }
-  }
+  //for(auto &i: ir_libary_3D_){
+  //  for(auto &j: i.second){
+  //    res += j.second.size();
+  //  }
+  //}
 
   for(auto &i: left_lib){
     res += i.second.size();
@@ -770,9 +770,11 @@ unsigned long Mutator::get_library_size(){
 #ifdef _NON_REPLACE_
 #define ADD_TO_LIBRARY        add_to_library
 #define ADD_TO_LIBRARY_CORE   add_to_library_core
+#define DEEP_COPY(x)          x
 #else
 #define ADD_TO_LIBRARY        add_to_library_core
 #define ADD_TO_LIBRARY_CORE   add_to_library
+#define DEEP_COPY(x)          deep_copy(x)
 #endif
 
 void Mutator::ADD_TO_LIBRARY(IR* ir) {
@@ -785,10 +787,14 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
     return ;
 
   IR * ir_copy = deep_copy(ir);
-  ADD_TO_LIBRARY_CORE(ir_copy);
+  bool ret = ADD_TO_LIBRARY_CORE(ir_copy);
+
+  //if (ret != true) deep_delete(ir_copy);
 }
 
-void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
+bool Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
+
+  bool ret = false;
 
   unsigned long p_hash = hash(ir->to_string());
   NODETYPE p_type = ir->type_;
@@ -797,55 +803,40 @@ void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
   //update library_2D
   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
       ir_libary_2D_hash_[p_type].end())
-    return;
+    return false;
 
   ir_libary_2D_hash_[p_type].insert(p_hash);
-
-#ifdef _NON_REPLACE_
-  ir_libary_2D_[p_type].push_back(ir);
-#else
-  ir_libary_2D_[p_type].push_back(deep_copy(ir));
-#endif
+  ir_libary_2D_[p_type].push_back(DEEP_COPY(ir));
 
   if(ir->left_) {
 
     left_type = ir->left_->type_;
-    ADD_TO_LIBRARY_CORE(ir->left_);
+    ADD_TO_LIBRARY(ir->left_);
   }
 
   if(ir->right_) {
 
     right_type = ir->right_->type_;
-    ADD_TO_LIBRARY_CORE(ir->right_);
+    ADD_TO_LIBRARY(ir->right_);
   }
 
   //update right_lib, left_lib
   if(ir->right_ && ir->left_){
 
-#ifdef _NON_REPLACE_
-    right_lib[right_type].push_back(ir->left_);
-    left_lib[left_type].push_back(ir->right_);
-#else
-    right_lib[right_type].push_back(deep_copy(ir->left_));
-    left_lib[left_type].push_back(deep_copy(ir->right_));
-#endif
+    right_lib[right_type].push_back(DEEP_COPY(ir->left_));
+    left_lib[left_type].push_back(DEEP_COPY(ir->right_));
   }
 
   //update library_3D
-  set<unsigned long> &hash_map = ir_libary_3D_hash_[left_type][right_type];
-  if(hash_map.find(p_hash) != hash_map.end()){
-    return;
-  }
+  //set<unsigned long> &hash_map = ir_libary_3D_hash_[left_type][right_type];
+  //if(hash_map.find(p_hash) != hash_map.end()){
+  //  return;
+  //}
 
-  ir_libary_3D_hash_[left_type][right_type].insert(p_hash);
+  //ir_libary_3D_hash_[left_type][right_type].insert(p_hash);
+  //ir_libary_3D_[left_type][right_type].push_back(DEEP_COPY(ir));
 
-#ifdef _NON_REPLACE_
-  ir_libary_3D_[left_type][right_type].push_back(ir);
-#else
-  ir_libary_3D_[left_type][right_type].push_back(deep_copy(ir));
-#endif
-
-  return;
+  return true;
 }
 
 unsigned long Mutator::hash(string sql){ 
@@ -866,13 +857,13 @@ void Mutator::debug(IR *root){
 Mutator::~Mutator(){
   cout << "HERE" << endl;
   // delete ir_libary_3D_
-  for(auto &i: ir_libary_3D_){
-    for(auto &j: i.second){
-      for(auto &ir: j.second){
-        deep_delete(ir);
-      }
-    }
-  }
+  //for(auto &i: ir_libary_3D_){
+  //  for(auto &j: i.second){
+  //    for(auto &ir: j.second){
+  //      deep_delete(ir);
+  //    }
+  //  }
+  //}
 
   //delete ir_libary_2D_
   for(auto &i: ir_libary_2D_){
@@ -882,18 +873,18 @@ Mutator::~Mutator(){
   }
 
   //delete left_lib
-  for(auto &i: left_lib){
-    for(auto &ir: i.second){
-      deep_delete(ir);
-    }
-  }
+  //for(auto &i: left_lib){
+  //  for(auto &ir: i.second){
+  //    deep_delete(ir);
+  //  }
+  //}
 
   //delete right_lib
-  for(auto &i: right_lib){
-    for(auto &ir: i.second){
-      deep_delete(ir);
-    }
-  }
+  //for(auto &i: right_lib){
+  //  for(auto &ir: i.second){
+  //    deep_delete(ir);
+  //  }
+  //}
 
 
 }
