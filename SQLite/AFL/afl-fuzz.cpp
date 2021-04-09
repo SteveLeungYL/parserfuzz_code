@@ -5792,7 +5792,7 @@ static u8 fuzz_one(char** argv) {
      single byte anyway, so it wouldn't give us any performance or memory usage
      benefits. */
 
-  out_buf = ck_alloc_nozero(len);
+  out_buf = ck_alloc_nozero(len + 1);
 
   subseq_tmouts = 0;
 
@@ -5846,6 +5846,7 @@ static u8 fuzz_one(char** argv) {
   }
   */
   memcpy(out_buf, in_buf, len);
+  out_buf[len] = '\0';
 
   //[modify] add
   stage_name = "niubi_mutate";
