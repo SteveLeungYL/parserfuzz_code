@@ -3,6 +3,9 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include <assert.h>
 #include <fstream>
 #include <cstdio>
@@ -22,6 +25,7 @@ vector<string> Mutator::v_table_names;
 
 
 IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
+
     IR * left = NULL, * right = NULL, * copy_res;
 
     if(root->left_) left = deep_copy_with_record(root->left_, record);                                             
@@ -786,10 +790,126 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
       ir_libary_2D_hash_[p_type].end())
     return ;
 
+#if 0
+  static unsigned long counter = 0;
+  static unsigned long total_size = 0;
+  unsigned long this_size = 0;
+  IR * ir_copy = deep_copy_size(ir, &this_size);
+  counter++;
+  total_size += this_size;
+
+  std::ofstream f;
+  f.rdbuf()->pubsetbuf(0, 0);
+  f.open("/tmp/memlog", std::ofstream::out | std::ofstream::app);
+  f << "add_to_lib[" << counter << "]: " 
+    << total_size / (1024 * 1024) << "M\t"
+    << this_size / (1024) << "K\n";;
+  f.close();
+#else
   IR * ir_copy = deep_copy(ir);
+#endif
+
   ADD_TO_LIBRARY_CORE(ir_copy);
 
   real_ir_set.push_back(ir_copy);
+
+
+  //get_memory_usage();
+
+}
+
+void Mutator::get_memory_usage() {
+
+  static unsigned long old_use = 0;
+
+  std::ofstream f;
+  f.rdbuf()->pubsetbuf(0, 0);
+  f.open("/tmp/memlog");
+
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+
+  unsigned long use = usage.ru_maxrss * 1024;
+
+  if (use - old_use < 1024 * 1024)
+    return;
+
+  f << "-------------------------------------\n";
+  f << "memory use:  " << use << "\n";
+  old_use = use;
+
+  unsigned long total_size = 0;
+
+  unsigned long size_2D_hash = 0;
+  for (auto &i : ir_libary_2D_hash_)
+    size_2D_hash += i.second.size() * 8;
+  f << "2D hash size:" << size_2D_hash 
+       << "\t - " << size_2D_hash * 1.0 / use << "\n";
+  total_size += size_2D_hash;
+
+  unsigned long size_2D = 0;
+  for(auto &i: ir_libary_2D_)
+    size_2D += i.second.size() * 8;
+  f << "2D size:     " << size_2D
+       << "\t - " << size_2D * 1.0 / use << "\n";
+  total_size += size_2D;
+
+  unsigned long size_left = 0;
+  for(auto &i: left_lib)
+    size_left += i.second.size() * 8;;
+  f << "left size:   " << size_left
+       << "\t - " << size_left * 1.0 / use << "\n";
+  total_size += size_left;
+
+  unsigned long size_right = 0;
+  for(auto &i: right_lib)
+    size_right += i.second.size();
+  f << "right size:  " << size_right
+       << "\t - " << size_right * 1.0 / use << "\n";
+  total_size += size_right;
+
+
+  unsigned long size_common_string_libary = 0;
+  for (auto &i : common_string_libary)
+    size_common_string_libary += i.capacity();
+  f << "common str:  " << size_common_string_libary
+       << "\t - " << size_common_string_libary * 1.0 / use << "\n";
+  total_size += size_common_string_libary;
+    
+  unsigned long size_value = 0;
+  size_value += value_libary.size() * 8;
+  f << "value size:   " << size_value
+       << "\t - " << size_value * 1.0 / use << "\n";
+  total_size += size_value;
+
+  unsigned long size_m_tables = 0;
+  for(auto &i: m_tables)
+    for(auto &j : i.second)
+      size_m_tables += j.capacity();;
+  f << "m_tables size:" << size_m_tables
+       << "\t - " << size_m_tables * 1.0 / use << "\n";
+  total_size += size_m_tables;
+
+  unsigned long size_v_table_names = 0;
+  for(auto &i: v_table_names)
+    size_left += i.capacity();;
+  f << "v_tbl size:   " << size_v_table_names
+       << "\t - " << size_v_table_names * 1.0 / use << "\n";
+  total_size += size_v_table_names;
+
+  unsigned long size_string_libary = 0;
+  for (auto &i : string_libary)
+    size_string_libary += i.capacity();
+  f << "str lib size :" << size_string_libary
+       << "\t - " << size_string_libary * 1.0 / use << "\n";
+  total_size += size_string_libary;
+    
+
+
+  f << "total size:  " << total_size
+       << "\t - " << total_size * 1.0 / use << "\n";
+
+  f.close();
 }
 
 void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {

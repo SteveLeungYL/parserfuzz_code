@@ -5913,6 +5913,9 @@ static u8 fuzz_one(char** argv) {
   int mutation_trial_count;
   mutation_trial_count = 0;
   do {
+    for(auto ir: mutated_tree)
+      deep_delete(ir);
+
     mutated_tree = g_mutator.mutate_all(ir_set);
     mutation_trial_count++;
     if (mutation_trial_count >= 300) goto abandon_entry;
