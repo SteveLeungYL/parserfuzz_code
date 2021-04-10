@@ -1,12 +1,10 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
+
 #include "define.h"
 #include "ast.h"
-#include <string>
-
 #include "../parser/bison_parser.h"
 #include "../parser/flex_lexer.h"
-//#include "/usr/local/mysql/include/mysql.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -17,6 +15,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <random>
+#include <string>
+#include <vector>
 
 using std::string;
 
@@ -48,6 +48,5 @@ uint64_t fucking_hash ( const void * key, int len );
 void trim_string(string &);
 vector<string> get_all_files_in_dir( const char * dir_name );
 string magic_string_generator(string& s);
-
 
 #endif

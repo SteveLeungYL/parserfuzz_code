@@ -23,15 +23,11 @@ DOC_PATH    = $(PREFIX)/share/doc/afl
 MISC_PATH   = $(PREFIX)/share/afl
 DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 
-# PROGS intentionally omit afl-as, which gets installed elsewhere.
-
-PROGS       = afl-fuzz
-
 CC         = g++
 CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++ -fsanitize=address
 CFLAGS     += -g -w \
-	      -DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
-	      -DBIN_PATH=\"$(BIN_PATH)\"
+	      			-DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
+	      			-DBIN_PATH=\"$(BIN_PATH)\"
 
 ifneq "$(filter Linux GNU%,$(shell uname))" ""
   LDFLAGS  += -ldl
@@ -43,15 +39,14 @@ else
   TEST_CC   = afl-clang
 endif
 
-COMM_HDR    = alloc-inl.h config.h debug.h types.h
+COMM_HDR    = alloc-inl.h config.h debug.h types.h hash.h
 
 all: afl-fuzz
 
-
 afl-fuzz: afl-fuzz.cpp $(COMM_HDR) $(DEPEN_PATH)
-	$(CC) $(CFLAGS) -g $@.cpp $(DEPEN_PATH) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) -g $< $(DEPEN_PATH) -o $@ $(LDFLAGS)
 
 .NOTPARALLEL: clean
 
 clean:
-	rm -f $(PROGS) afl-as as afl-g++ afl-clang afl-clang++ *.o *~ a.out core core.[1-9][0-9]* *.stackdump test .test test-instr .test-instr0 .test-instr1 qemu_mode/qemu-2.10.0.tar.bz2 afl-qemu-trace
+	rm -f afl-fuzz *.o *~ a.out core core.[1-9][0-9]* *.stackdump

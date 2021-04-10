@@ -75,6 +75,7 @@ public:
     
     void debug(IR * root);
     unsigned long get_library_size();
+    unsigned long get_2D_size();
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 private:
     IR * record_ = NULL;
