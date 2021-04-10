@@ -591,48 +591,41 @@ IR * Mutator::strategy_delete(IR * cur){
 
 
 IR * Mutator::strategy_insert(IR * cur){
+
   assert(cur);
-
-
-  auto res = deep_copy(cur);
-
 
   if(cur->type_ == kStatementList){
     int size = left_lib[kStatementList].size();
     if (size != 0)  {
+      auto res = deep_copy(cur);
       auto new_right = deep_copy(left_lib[kStatementList][get_rand_int(size)]);
       auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
       return new_res;
     }
   }
 
-  if(res->right_ == NULL && res->left_ != NULL){
-    auto left_type = res->left_->type_;
+  if(cur->right_ == NULL && cur->left_ != NULL){
+    auto left_type = cur->left_->type_;
     auto left_lib_size = left_lib[left_type].size();
     if(left_lib_size != 0){
+      auto res = deep_copy(cur);
       auto new_right = deep_copy(left_lib[left_type][get_rand_int(left_lib_size)]);
       res->right_ = new_right;
       return res;
     } 
   }
-  else if(res->right_ != NULL && res->left_ == NULL){
-    auto right_type = res->right_->type_;
+  else if(cur->right_ != NULL && cur->left_ == NULL){
+    auto right_type = cur->right_->type_;
     auto right_lib_size = right_lib[right_type].size();
     if(right_lib_size != 0){
+      auto res = deep_copy(cur);
       auto new_left = deep_copy(right_lib[right_type][get_rand_int(right_lib_size)]);
       res->left_ = new_left;
       return res;
     }
   }
 
-  int lib_size = ir_libary_2D_[res->type_].size();
-  if(lib_size == 0) { deep_delete(res); return NULL;}
-
-  auto save = res;
-  res = deep_copy(ir_libary_2D_[res->type_][get_rand_int(lib_size)]);
-  deep_delete(save);
-
-  return res;
+  return get_from_libary_2D(cur->type_);
 }
 
 IR * Mutator::strategy_replace(IR * cur){
@@ -643,7 +636,7 @@ IR * Mutator::strategy_replace(IR * cur){
     DOLEFT
     res = deep_copy(cur);
 
-  auto new_node = get_from_libary_2D(res->left_);
+  auto new_node = get_from_libary_2D(res->left_->type_);
 
   if(new_node != NULL) {
     new_node = deep_copy(new_node);
@@ -657,7 +650,7 @@ IR * Mutator::strategy_replace(IR * cur){
   DORIGHT
     res = deep_copy(cur);
 
-  auto new_node = get_from_libary_2D(res->right_);
+  auto new_node = get_from_libary_2D(res->right_->type_);
   if(new_node != NULL) {
     new_node = deep_copy(new_node);
     if(res->right_ != NULL){
@@ -670,8 +663,8 @@ IR * Mutator::strategy_replace(IR * cur){
   DOBOTH
     res = deep_copy(cur);
 
-  auto new_left = get_from_libary_2D(res->left_);
-  auto new_right = get_from_libary_2D(res->right_);
+  auto new_left = get_from_libary_2D(res->left_->type_);
+  auto new_right = get_from_libary_2D(res->right_->type_);
 
   if(new_left != NULL){
     new_left = deep_copy(new_left);
@@ -705,13 +698,13 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
   return false;
 }
 
-IR* Mutator::get_from_libary_2D(IR* ir){
+IR* Mutator::get_from_libary_2D(IRTYPE type_){
+
   static IR* empty_str = new IR(kStringLiteral, "");
 
-  if(!ir) return NULL;
-
-  auto &i = ir_libary_2D_[ir->type_];
+  auto &i = ir_libary_2D_[type_];
   if(i.size() == 0) return empty_str;
+
   return i[get_rand_int(i.size())];
 }
 

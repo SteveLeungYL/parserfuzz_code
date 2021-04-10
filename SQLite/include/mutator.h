@@ -46,7 +46,7 @@ public:
     void add_to_library(IR*);
     void add_to_library_core(IR*);
     //IR* get_from_libary_3D(IR*);
-    IR* get_from_libary_2D(IR*);
+    IR* get_from_libary_2D(IRTYPE);
 
     void init(string f_testcase, string f_common_string = "", string pragma = "");
     string fix(IR * root);

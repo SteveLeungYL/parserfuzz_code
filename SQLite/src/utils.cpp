@@ -261,6 +261,8 @@ IR * deep_copy_size(const IR * root, unsigned long *psize){
 
 IR * deep_copy(const IR * root){
 
+  if (root == NULL) return NULL;
+
   IR * left = NULL, * right = NULL, * copy_res;
   IROperator * op = NULL;
 
@@ -277,6 +279,8 @@ IR * deep_copy(const IR * root){
 }
 
 void deep_delete(IR * root){
+
+  if (root == NULL) return;
 
   if(root->left_) deep_delete(root->left_);
   if(root->right_) deep_delete(root->right_);
