@@ -697,129 +697,178 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
   return false;
 }
 
+IR* Mutator::retrive_IR_node_with_unique_id(IR* ir, int id_count_down){
+  /* The id_count_down has the opposite order of the actual unique_id for IR node. 
+      When in root node, the id_count_down = the unique id for nodes we are looking for.
+      When id_count_down = 0, the current IR node is the one we are looking for.
+  */
+  if (id_count_down == 0){
+    return ir;
+  }
+  id_count_down--;
+
+  if (ir->left_){
+    IR* result = retrive_IR_node_with_unique_id(ir->left_, id_count_down);
+    if (result != NULL) return result;
+  }
+
+  if (ir->right_){
+    IR* result = retrive_IR_node_with_unique_id(ir->right_, id_count_down);
+    if (result != NULL) return result;
+  }
+
+  return NULL; // Not found in the current path. Switch to another brand.
+
+}
+
 IR* Mutator::get_from_libary_with_type(IRTYPE type_){
 
-  vector<IR*> matching_ir_set;
-  for (int i = 0; i < 3000; i++){
-    vector<IR*> ir_set = get_random_query_IR_set();
-    for (auto ir: ir_set){
-      if (ir->type_ == type_) matching_ir_set.push_back(deep_copy(ir));
+  vector<IR*> current_ir_set;
+  IR* current_ir_root;
+  vector<pair<string*, int>>& all_matching_node = real_ir_set[type_];
+  IR* return_mached_ir_node = NULL;
+
+  if (all_matching_node.size() > 0){
+    /* Pick a random matching node from the library. */
+    std::pair<string*, int>& selected_matched_node = all_matching_node[get_rand_int(all_matching_node.size())];
+    string* p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    auto p_strip_sql = parser(*p_current_query_str);
+
+    if (p_strip_sql) {
+      try {
+        current_ir_root = p_strip_sql->translate(current_ir_set);
+      } catch (...) {
+        /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignoer the current string, and clean up. */
+        for (auto current_ir : current_ir_set) {
+          if (current_ir->op_ != NULL)
+            delete current_ir->op_;
+          delete current_ir;
+        }
+        p_strip_sql->deep_delete();
+        return new IR(kStringLiteral, "");
+      }
+      p_strip_sql->deep_delete();
     }
-    /* Clean up the whole generated query ir. Only return the deep_copied matching ir set. */
-    // for (auto ir: ir_set) delete ir; 
-    if(ir_set.size() > 0) deep_delete(ir_set[ir_set.size()-1]);
 
-    if (matching_ir_set.size() > 0) break;
-  }
+    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+    IR* matched_ir_node = retrive_IR_node_with_unique_id(current_ir_root, unique_node_id);
+    if (matched_ir_node != NULL){
+      return_mached_ir_node = deep_copy(matched_ir_node);
+    }
 
-  /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
-  if (matching_ir_set.size() > 0){
-    IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
-    for (auto ir:matching_ir_set) deep_delete(ir);
-    return selected_matching_ir;
-  }
-  else {
-    return new IR(kStringLiteral, "");
-  }
+    deep_delete(current_ir_root);
+
+    if (return_mached_ir_node != NULL) {
+      cerr << "\n\n\nSuccessfuly with_type: with string: " << return_mached_ir_node->to_string() << endl;
+      return return_mached_ir_node;
+    }
+
+  } 
+  
+  return new IR(kStringLiteral, "");
 }
 
 IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
 
-  vector<IR*> matching_ir_set;
-  for (int i = 0; i < 3000; i++){
-    vector<IR*> ir_set = get_random_query_IR_set();
-    for (auto ir: ir_set){
-      if (ir->left_ != NULL && ir->left_->type_ == type_) matching_ir_set.push_back(deep_copy(ir->right_));
+  vector<IR*> current_ir_set;
+  IR* current_ir_root;
+  vector<pair<string*, int>>& all_matching_node = left_lib_set[type_];
+  IR* return_mached_ir_node = NULL;
+
+  if (all_matching_node.size() > 0){
+    /* Pick a random matching node from the library. */
+    std::pair<string*, int>& selected_matched_node = all_matching_node[get_rand_int(all_matching_node.size())];
+    string* p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    auto p_strip_sql = parser(*p_current_query_str);
+
+    if (p_strip_sql) {
+      try {
+        current_ir_root = p_strip_sql->translate(current_ir_set);
+      } catch (...) {
+        /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignoer the current string, and clean up. */
+        for (auto current_ir : current_ir_set) {
+          if (current_ir->op_ != NULL)
+            delete current_ir->op_;
+          delete current_ir;
+        }
+        p_strip_sql->deep_delete();
+        return NULL;
+      }
+      p_strip_sql->deep_delete();
     }
-    /* Clean up the whole generated query ir. Only return the deep_copied matching ir set. */
-    // for (auto ir: ir_set) delete ir; 
-    if(ir_set.size() > 0) deep_delete(ir_set[ir_set.size()-1]);
 
-    if (matching_ir_set.size() > 0) break;
-  }
+    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+    IR* matched_ir_node = retrive_IR_node_with_unique_id(current_ir_root, unique_node_id);
+    if (matched_ir_node != NULL){
+      return_mached_ir_node = deep_copy(matched_ir_node->right_);  // Not returnning the matched_ir_node itself, but its right_ child node!
+    }
 
-  /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
-  if (matching_ir_set.size() > 0){
-    IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
-    for (auto ir:matching_ir_set) deep_delete(ir);
-    return selected_matching_ir;
-  }
-  else {
-    return NULL;
-  }
+    deep_delete(current_ir_root);
+
+    if (return_mached_ir_node != NULL) {
+      cerr << "\n\n\nSuccessfuly left_type: with string: " << return_mached_ir_node->to_string() << endl;
+      return return_mached_ir_node;
+    }
+
+  } 
+  
+  return NULL;
 }
 
 IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
 
-  vector<IR*> matching_ir_set;
-  for (int i = 0; i < 3000; i++){
-    vector<IR*> ir_set = get_random_query_IR_set();
-    for (auto ir: ir_set){
-      if (ir->right_ != NULL && ir->right_->type_ == type_) matching_ir_set.push_back(deep_copy(ir->left_));
+  vector<IR*> current_ir_set;
+  IR* current_ir_root;
+  vector<pair<string*, int>>& all_matching_node = right_lib_set[type_];
+  IR* return_mached_ir_node = NULL;
+
+  if (all_matching_node.size() > 0){
+    /* Pick a random matching node from the library. */
+    std::pair<string*, int>& selected_matched_node = all_matching_node[get_rand_int(all_matching_node.size())];
+    string* p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    auto p_strip_sql = parser(*p_current_query_str);
+
+    if (p_strip_sql) {
+      try {
+        current_ir_root = p_strip_sql->translate(current_ir_set);
+      } catch (...) {
+        /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignore the current string, and clean up. */
+        for (auto current_ir : current_ir_set) {
+          if (current_ir->op_ != NULL)
+            delete current_ir->op_;
+          delete current_ir;
+        }
+        p_strip_sql->deep_delete();
+        return NULL;
+      }
+      p_strip_sql->deep_delete();
     }
-    /* Clean up the whole generated query ir. Only return the deep_copied matching ir set. */
-    // for (auto ir: ir_set) delete ir; 
-    if(ir_set.size() > 0) deep_delete(ir_set[ir_set.size()-1]);
 
-    if (matching_ir_set.size() > 0) break;
-  }
-
-  /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
-  if (matching_ir_set.size() > 0){
-    IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
-    for (auto ir:matching_ir_set) deep_delete(ir);
-    return selected_matching_ir;
-  }
-  else {
-    return NULL;
-  }
-}
-
-vector<IR*> Mutator::get_random_query_IR_set(){
-  string random_query_str;
-  Program * program_root = NULL;
-  vector<IR*> ir_set;
-  int parser_trial_count = 0;
-
-  while (program_root == NULL){
-    /* Cannot find any string that is passing the parser after multiple trials. SHOULD NOT HAPPEN!!! Return empty ir_set. */
-    if (parser_trial_count > 3000) {cerr << " \nError: cannot find str that is passing the parser. \n"; return ir_set;} 
-    parser_trial_count++;
-
-    if (real_ir_set_str.size() == 0) return ir_set; 
-    random_query_str = real_ir_set_str[get_rand_int(real_ir_set_str.size())];
-    program_root = parser(random_query_str);
-
-    if (program_root == NULL) continue;
-    try {
-      program_root->translate(ir_set);
-    } catch(...) {
-      for(auto ir: ir_set) delete ir;
-      program_root->deep_delete();
-      program_root = NULL;
-      if (ir_set.size() != 0) ir_set.clear();
-      random_query_str = "";
-      continue;
+    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+    IR* matched_ir_node = retrive_IR_node_with_unique_id(current_ir_root, unique_node_id);
+    if (matched_ir_node != NULL){
+      return_mached_ir_node = deep_copy(matched_ir_node->left_);  // Not returnning the matched_ir_node itself, but its left_ child node!
     }
-    program_root->deep_delete(); 
-    break;
-  }
 
-  return ir_set;
+    deep_delete(current_ir_root);
+
+    if (return_mached_ir_node != NULL) {
+      return return_mached_ir_node;
+    }
+
+  } 
+  
+  return NULL;
 }
-
-//IR* Mutator::get_from_libary_3D(IR* ir){
-//  NODETYPE left_type = kEmpty, right_type = kEmpty;
-//  if(ir->left_){
-//    left_type = ir->left_->type_;
-//  } 
-//  if(ir->right_){
-//    right_type = ir->right_->type_;
-//  }
-//  auto &i = ir_libary_3D_[left_type][right_type];
-//  if(i.size() == 0) return new IR(kStringLiteral, "");
-//  return i[get_rand_int(i.size())];
-//}
 
 string Mutator::get_a_string(){
   unsigned com_size = common_string_libary.size();
@@ -843,25 +892,15 @@ unsigned long Mutator::get_a_val(){
 unsigned long Mutator::get_library_size(){
   unsigned long res = 0;
 
-  // for(auto &i: ir_libary_2D_){
-  //   res += i.second.size();
-  // }
+  for (auto &i: real_ir_set){
+    res += 1;
+  }
 
-  //for(auto &i: ir_libary_3D_){
-  //  for(auto &j: i.second){
-  //    res += j.second.size();
-  //  }
-  //}
+  for (auto &i: left_lib_set){
+    res += 1;
+  }
 
-  // for(auto &i: left_lib){
-  //   res += i.second.size();
-  // }
-
-  // for(auto &i: right_lib){
-  //   res += i.second.size();
-  // }
-
-  for (auto &i: real_ir_set_str){
+  for (auto &i: right_lib_set){
     res += 1;
   }
 
@@ -881,19 +920,52 @@ unsigned long Mutator::get_library_size(){
 void Mutator::ADD_TO_LIBRARY(IR* ir) {
 
   NODETYPE p_type = ir->type_;
-  string query_str = ir->to_string();
-  unsigned long p_hash = hash(query_str);
+  string * p_query_str = new string(ir->to_string());
+  vector<IR *> new_ir_set;
+  IR* new_ir_root;
 
-  if(ir_libary_2D_hash_[p_type].find(p_hash) != 
-      ir_libary_2D_hash_[p_type].end())
-    return ;
+  unsigned long p_hash = hash(*p_query_str);
+
+  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end() || *p_query_str == "" ){
+        /* p_query_str not interesting enough. Ignore it and clean up. */
+        delete p_query_str;
+        return;
+      }
 
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
-  real_ir_set_str.push_back(query_str);
-  query_str.clear();
+  /* In case of some mutations of IR could cause mismatch for the original IR trees. We regenerate the IR tree from the current p_query_str from scratch. */
+  auto p_strip_sql = parser(*p_query_str);
+
+  if (p_strip_sql)
+  {
+    try {
+      new_ir_root = p_strip_sql->translate(new_ir_set);
+    }
+    catch (...) {
+      /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignoer the current string, and clean up. */
+      for (auto new_ir : new_ir_set) {
+        if (new_ir->op_ != NULL)
+          delete new_ir->op_;
+        delete new_ir;
+      }
+      delete p_query_str;
+      p_strip_sql->deep_delete();
+      return;  
+    }
+    p_strip_sql->deep_delete();
+  } else {  // if p_strip_sql == NULL;
+    delete p_query_str;
+    return;
+  }
+
+  if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end())  all_string_in_lib_collection.insert(p_query_str);
+  ADD_TO_LIBRARY_CORE(new_ir_root, p_query_str);
+
+  deep_delete(new_ir_root);
   get_memory_usage();
   
+  return;
 
 // #if 0
 //   static unsigned long counter = 0;
@@ -914,14 +986,56 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
 //   IR * ir_copy = deep_copy(ir);
 // #endif
 
-//   ADD_TO_LIBRARY_CORE(ir_copy);
-
-//   real_ir_set.push_back(ir_copy);
-
-
-  //get_memory_usage();
-
 }
+
+void Mutator::ADD_TO_LIBRARY_CORE(IR * ir, string* p_query_str) {
+  /* The unique_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
+     However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
+     Therefore, this function become isolated from the rest of the IR instructions for now, the unique_id_in_tree_ variables in each node are 
+      only being checked when necessary by calling this funcion. We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
+    The unique_id_in_tree_ is left depth first in order.
+  */
+  if (ir->type_ == kProgram ) this->unique_id_for_ir_node = 0;
+
+  int current_unique_id = this->unique_id_for_ir_node;
+  this->unique_id_for_ir_node++;  // Static int. Saved globally. 
+  bool is_skip_saving_current_node = false;  //
+
+  unsigned long p_hash = hash(ir->to_string());
+  NODETYPE p_type = ir->type_;
+  NODETYPE left_type = kEmpty, right_type = kEmpty;
+
+  /* We do not skip the execution of the ADD_TO_LIBRARY_CORE, it will always iterate through the whole IR tree, 
+    even if the current node has been seen before. Using this way, we ensure correct and repeatable unique_id_for_ir_node assignment. 
+  */
+  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()) 
+    is_skip_saving_current_node = true;
+  else
+    ir_libary_2D_hash_[p_type].insert(p_hash);
+
+  if (!is_skip_saving_current_node)
+    real_ir_set[p_type].push_back( std::make_pair(p_query_str, current_unique_id) );
+
+  // Update right_lib, left_lib
+  if(ir->right_ && ir->left_ && !is_skip_saving_current_node){
+    left_type = ir->left_->type_;
+    right_type = ir->right_->type_;
+    left_lib_set[left_type].push_back( std::make_pair(p_query_str, current_unique_id) ); // Saving the parent node id. When fetching, use current_node->right.
+    right_lib_set[right_type].push_back( std::make_pair(p_query_str, current_unique_id) ); // Saving the parent node id. When fetching, use current_node->left.
+  }
+
+  if (ir->left_) {
+    ADD_TO_LIBRARY_CORE(ir->left_, p_query_str);
+  }
+
+  if(ir->right_) {
+    ADD_TO_LIBRARY_CORE(ir->right_, p_query_str);
+  }
+
+  return;
+}
+
+
 
 void Mutator::get_memory_usage() {
 
@@ -1010,9 +1124,9 @@ void Mutator::get_memory_usage() {
   total_size += size_string_libary;
 
   unsigned long size_real_ir_set_str_libary = 0;
-  for (auto &i : real_ir_set_str)
-    size_real_ir_set_str_libary += i.capacity();
-  f << "real_ir_set_str size :" << size_real_ir_set_str_libary
+  for (auto i : all_string_in_lib_collection)
+    size_real_ir_set_str_libary += i->capacity();
+  f << "all_saved_query_str size :" << size_real_ir_set_str_libary
        << "\t - " << size_real_ir_set_str_libary * 1.0 / use << "\n";
   total_size += size_real_ir_set_str_libary;
 
@@ -1021,51 +1135,6 @@ void Mutator::get_memory_usage() {
 
   f.close();
 }
-
-// void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
-
-//   unsigned long p_hash = hash(ir->to_string());
-//   NODETYPE p_type = ir->type_;
-//   NODETYPE left_type = kEmpty, right_type = kEmpty;
-
-//   //update library_2D
-//   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
-//       ir_libary_2D_hash_[p_type].end())
-//     return;
-
-//   ir_libary_2D_hash_[p_type].insert(p_hash);
-//   ir_libary_2D_[p_type].push_back(DEEP_COPY(ir));
-
-//   if(ir->left_) {
-
-//     left_type = ir->left_->type_;
-//     ADD_TO_LIBRARY_CORE(ir->left_);
-//   }
-
-//   if(ir->right_) {
-
-//     right_type = ir->right_->type_;
-//     ADD_TO_LIBRARY_CORE(ir->right_);
-//   }
-
-//   //update right_lib, left_lib
-//   if(ir->right_ && ir->left_){
-
-//     right_lib[right_type].push_back(DEEP_COPY(ir->left_));
-//     left_lib[left_type].push_back(DEEP_COPY(ir->right_));
-//   }
-
-//   //update library_3D
-//   //set<unsigned long> &hash_map = ir_libary_3D_hash_[left_type][right_type];
-//   //if(hash_map.find(p_hash) != hash_map.end()){
-//   //  return;
-//   //}
-
-//   //ir_libary_3D_hash_[left_type][right_type].insert(p_hash);
-//   //ir_libary_3D_[left_type][right_type].push_back(DEEP_COPY(ir));
-
-//   return;
-// }
 
 unsigned long Mutator::hash(string sql){ 
   return fucking_hash(sql.c_str(), sql.size());
@@ -1084,42 +1153,10 @@ void Mutator::debug(IR *root){
 
 Mutator::~Mutator(){
   cout << "HERE" << endl;
-  // delete ir_libary_3D_
-  //for(auto &i: ir_libary_3D_){
-  //  for(auto &j: i.second){
-  //    for(auto &ir: j.second){
-  //      deep_delete(ir);
-  //    }
-  //  }
-  //}
-
-  //delete ir_libary_2D_
-  //for(auto &i: ir_libary_2D_){
-  //  for(auto &ir: i.second){
-  //    deep_delete(ir);
-  //  }
-  //}
-
-  // delete the real ir copy
-  // for (auto &ir : real_ir_set)
-  //   deep_delete(ir);
-
-  /* Delete the real_ir_set_str vector. */
-  real_ir_set_str.clear();
-
-  //delete left_lib
-  //for(auto &i: left_lib){
-  //  for(auto &ir: i.second){
-  //    deep_delete(ir);
-  //  }
-  //}
-
-  //delete right_lib
-  //for(auto &i: right_lib){
-  //  for(auto &ir: i.second){
-  //    deep_delete(ir);
-  //  }
-  //}
+  
+  for (auto iter : all_string_in_lib_collection){
+    delete iter;
+  }
 }
 
 

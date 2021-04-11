@@ -21,8 +21,6 @@ public:
     unsigned long hash(IR* );
     unsigned long hash(string);
 
-    IR * ir_random_generator(vector<IR *> v_ir_collector);
-
     static bool is_norec_compatible(const string& query);
     bool make_current_node_as_norec_select_stmt(IR* root);
     bool mark_all_norec_select_stmt(vector<IR *> &v_ir_collector);
@@ -44,12 +42,11 @@ public:
     int get_ir_libary_2D_hash_kStatement_size();
 
     void add_to_library(IR*);
-    void add_to_library_core(IR*);
-    //IR* get_from_libary_3D(IR*);
+    void add_to_library_core(IR*, string*);
     IR* get_from_libary_with_type(IRTYPE);
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
-    vector<IR*> get_random_query_IR_set();
+    IR* retrive_IR_node_with_unique_id(IR* ir, int id_count_down);
 
     void init(string f_testcase, string f_common_string = "", string pragma = "");
     string fix(IR * root);
@@ -100,8 +97,18 @@ private:
     
     map<NODETYPE, int> type_counter_;
 
-    // vector<IR *> real_ir_set;
-    vector<string> real_ir_set_str;
+    /* The interface of saving the required context for the mutator. Giving the NODETYPE, we should be able to extract all the related IR nodes from this library.
+        The string* points to the string of the complete query stmt where the current NODE is from.
+        And the int is the unique ID for the specific node, 
+            can be used to identify and extract the specific node from the IR tree when the tree is being reconstructed. 
+    */
+    map<NODETYPE, vector<pair<string*, int>>> real_ir_set;
+    map<NODETYPE, vector<pair<string*, int>>> left_lib_set;
+    map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
+
+    set<string*> all_string_in_lib_collection;
+
+    inline static int unique_id_for_ir_node = 0;  // C++17.
 };
 
 
