@@ -21,7 +21,7 @@ using namespace std;
 vector<string> Mutator::common_string_libary;
 vector<unsigned long> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;
-vector<string> Mutator::v_table_names;
+vector<string> Mutator::v_table_names; 
 
 
 IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
@@ -595,10 +595,9 @@ IR * Mutator::strategy_insert(IR * cur){
   assert(cur);
 
   if(cur->type_ == kStatementList){
-    int size = left_lib[kStatementList].size();
-    if (size != 0)  {
+    auto new_right = get_from_libary_with_left_type(cur->type_);
+    if (new_right != NULL){
       auto res = deep_copy(cur);
-      auto new_right = deep_copy(left_lib[kStatementList][get_rand_int(size)]);
       auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
       return new_res;
     }
@@ -606,40 +605,40 @@ IR * Mutator::strategy_insert(IR * cur){
 
   if(cur->right_ == NULL && cur->left_ != NULL){
     auto left_type = cur->left_->type_;
-    auto left_lib_size = left_lib[left_type].size();
-    if(left_lib_size != 0){
+    auto new_right = get_from_libary_with_left_type(left_type);
+    if (new_right != NULL){
       auto res = deep_copy(cur);
-      auto new_right = deep_copy(left_lib[left_type][get_rand_int(left_lib_size)]);
       res->right_ = new_right;
       return res;
-    } 
+    }
   }
+  
   else if(cur->right_ != NULL && cur->left_ == NULL){
     auto right_type = cur->right_->type_;
-    auto right_lib_size = right_lib[right_type].size();
-    if(right_lib_size != 0){
+    auto new_left = get_from_libary_with_right_type(right_type);
+    if(new_left != NULL){
       auto res = deep_copy(cur);
-      auto new_left = deep_copy(right_lib[right_type][get_rand_int(right_lib_size)]);
       res->left_ = new_left;
       return res;
     }
   }
 
-  return get_from_libary_2D(cur->type_);
+  return get_from_libary_with_type(cur->type_);
 }
 
 IR * Mutator::strategy_replace(IR * cur){
   assert(cur);
 
   MUTATESTART
+  
 
     DOLEFT
     res = deep_copy(cur);
+    if (res->left_ == NULL) break;
 
-  auto new_node = get_from_libary_2D(res->left_->type_);
+  auto new_node = get_from_libary_with_type(res->left_->type_);
 
   if(new_node != NULL) {
-    new_node = deep_copy(new_node);
     if(res->left_ != NULL){
       new_node->id_type_ = res->left_->id_type_;
     }
@@ -649,10 +648,10 @@ IR * Mutator::strategy_replace(IR * cur){
 
   DORIGHT
     res = deep_copy(cur);
+    if (res->right_ == NULL) break;
 
-  auto new_node = get_from_libary_2D(res->right_->type_);
+  auto new_node = get_from_libary_with_type(res->right_->type_);
   if(new_node != NULL) {
-    new_node = deep_copy(new_node);
     if(res->right_ != NULL){
       new_node->id_type_ = res->right_->id_type_;
     }
@@ -662,12 +661,13 @@ IR * Mutator::strategy_replace(IR * cur){
 
   DOBOTH
     res = deep_copy(cur);
+    if ( res->left_ == NULL || res->right_ == NULL) break;
+    
 
-  auto new_left = get_from_libary_2D(res->left_->type_);
-  auto new_right = get_from_libary_2D(res->right_->type_);
+  auto new_left = get_from_libary_with_type(res->left_->type_);
+  auto new_right = get_from_libary_with_type(res->right_->type_);
 
   if(new_left != NULL){
-    new_left = deep_copy(new_left);
     if(res->left_ != NULL){
       new_left->id_type_ = res->left_->id_type_;
 
@@ -675,7 +675,6 @@ IR * Mutator::strategy_replace(IR * cur){
   }
 
   if(new_right != NULL){
-    new_right = deep_copy(new_right);
     if(res->right_ != NULL){
       new_right->id_type_ = res->right_->id_type_;
     }
@@ -698,14 +697,115 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
   return false;
 }
 
-IR* Mutator::get_from_libary_2D(IRTYPE type_){
+IR* Mutator::get_from_libary_with_type(IRTYPE type_){
 
-  static IR* empty_str = new IR(kStringLiteral, "");
+  vector<IR*> matching_ir_set;
+  for (int i = 0; i < 3000; i++){
+    vector<IR*> ir_set = get_random_query_IR_set();
+    for (auto ir: ir_set){
+      if (ir->type_ == type_) matching_ir_set.push_back(deep_copy(ir));
+    }
+    /* Clean up the whole generated query ir. Only return the deep_copied matching ir set. */
+    // for (auto ir: ir_set) delete ir; 
+    if(ir_set.size() > 0) deep_delete(ir_set[ir_set.size()-1]);
 
-  auto &i = ir_libary_2D_[type_];
-  if(i.size() == 0) return empty_str;
+    if (matching_ir_set.size() > 0) break;
+  }
 
-  return i[get_rand_int(i.size())];
+  /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
+  if (matching_ir_set.size() > 0){
+    IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
+    for (auto ir:matching_ir_set) delete ir;
+    return selected_matching_ir;
+  }
+  else {
+    return new IR(kStringLiteral, "");
+  }
+}
+
+IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
+
+  vector<IR*> matching_ir_set;
+  for (int i = 0; i < 3000; i++){
+    vector<IR*> ir_set = get_random_query_IR_set();
+    for (auto ir: ir_set){
+      if (ir->left_ != NULL && ir->left_->type_ == type_) matching_ir_set.push_back(deep_copy(ir->right_));
+    }
+    /* Clean up the whole generated query ir. Only return the deep_copied matching ir set. */
+    // for (auto ir: ir_set) delete ir; 
+    if(ir_set.size() > 0) deep_delete(ir_set[ir_set.size()-1]);
+
+    if (matching_ir_set.size() > 0) break;
+  }
+
+  /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
+  if (matching_ir_set.size() > 0){
+    IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
+    for (auto ir:matching_ir_set) delete ir;
+    return selected_matching_ir;
+  }
+  else {
+    return NULL;
+  }
+}
+
+IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
+
+  vector<IR*> matching_ir_set;
+  for (int i = 0; i < 3000; i++){
+    vector<IR*> ir_set = get_random_query_IR_set();
+    for (auto ir: ir_set){
+      if (ir->right_ != NULL && ir->right_->type_ == type_) matching_ir_set.push_back(deep_copy(ir->left_));
+    }
+    /* Clean up the whole generated query ir. Only return the deep_copied matching ir set. */
+    // for (auto ir: ir_set) delete ir; 
+    if(ir_set.size() > 0) deep_delete(ir_set[ir_set.size()-1]);
+
+    if (matching_ir_set.size() > 0) break;
+  }
+
+  /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
+  if (matching_ir_set.size() > 0){
+    IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
+    for (auto ir:matching_ir_set) delete ir;
+    return selected_matching_ir;
+  }
+  else {
+    return NULL;
+  }
+}
+
+vector<IR*> Mutator::get_random_query_IR_set(){
+  string random_query_str;
+  Program * program_root = NULL;
+  vector<IR*> ir_set;
+  int parser_trial_count = 0;
+
+  while (program_root == NULL){
+    /* Cannot find any string that is passing the parser after multiple trials. SHOULD NOT HAPPEN!!! Return empty ir_set. */
+    if (parser_trial_count > 3000) {cerr << " \nError: cannot find str that is passing the parser. \n"; return ir_set;} 
+    parser_trial_count++;
+
+    if (real_ir_set_str.size() == 0) return ir_set; 
+    random_query_str = real_ir_set_str[get_rand_int(real_ir_set_str.size())];
+    program_root = parser(random_query_str);
+
+    if (program_root == NULL) continue;
+    try {
+      program_root->translate(ir_set);
+    } catch(...) {
+      for(auto ir: ir_set) delete ir;
+      program_root->deep_delete();
+      program_root = NULL;
+      if (ir_set.size() != 0) ir_set.clear();
+      random_query_str = "";
+      continue;
+    }
+    program_root->deep_delete(); 
+    break;
+  }
+
+  return ir_set;
 }
 
 //IR* Mutator::get_from_libary_3D(IR* ir){
@@ -743,9 +843,9 @@ unsigned long Mutator::get_a_val(){
 unsigned long Mutator::get_library_size(){
   unsigned long res = 0;
 
-  for(auto &i: ir_libary_2D_){
-    res += i.second.size();
-  }
+  // for(auto &i: ir_libary_2D_){
+  //   res += i.second.size();
+  // }
 
   //for(auto &i: ir_libary_3D_){
   //  for(auto &j: i.second){
@@ -753,12 +853,16 @@ unsigned long Mutator::get_library_size(){
   //  }
   //}
 
-  for(auto &i: left_lib){
-    res += i.second.size();
-  }
+  // for(auto &i: left_lib){
+  //   res += i.second.size();
+  // }
 
-  for(auto &i: right_lib){
-    res += i.second.size();
+  // for(auto &i: right_lib){
+  //   res += i.second.size();
+  // }
+
+  for (auto &i: real_ir_set_str){
+    res += 1;
   }
 
   return res;
@@ -777,34 +881,42 @@ unsigned long Mutator::get_library_size(){
 void Mutator::ADD_TO_LIBRARY(IR* ir) {
 
   NODETYPE p_type = ir->type_;
-  unsigned long p_hash = hash(ir->to_string());
+  string query_str = ir->to_string();
+  unsigned long p_hash = hash(query_str);
 
   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
       ir_libary_2D_hash_[p_type].end())
     return ;
 
-#if 0
-  static unsigned long counter = 0;
-  static unsigned long total_size = 0;
-  unsigned long this_size = 0;
-  IR * ir_copy = deep_copy_size(ir, &this_size);
-  counter++;
-  total_size += this_size;
+  ir_libary_2D_hash_[p_type].insert(p_hash);
 
-  std::ofstream f;
-  f.rdbuf()->pubsetbuf(0, 0);
-  f.open("/tmp/memlog", std::ofstream::out | std::ofstream::app);
-  f << "add_to_lib[" << counter << "]: " 
-    << total_size / (1024 * 1024) << "M\t"
-    << this_size / (1024) << "K\n";;
-  f.close();
-#else
-  IR * ir_copy = deep_copy(ir);
-#endif
+  real_ir_set_str.push_back(query_str);
+  query_str.clear();
+  get_memory_usage();
+  
 
-  ADD_TO_LIBRARY_CORE(ir_copy);
+// #if 0
+//   static unsigned long counter = 0;
+//   static unsigned long total_size = 0;
+//   unsigned long this_size = 0;
+//   IR * ir_copy = deep_copy_size(ir, &this_size);
+//   counter++;
+//   total_size += this_size;
 
-  real_ir_set.push_back(ir_copy);
+//   std::ofstream f;
+//   f.rdbuf()->pubsetbuf(0, 0);
+//   f.open("/tmp/memlog", std::ofstream::out | std::ofstream::app);
+//   f << "add_to_lib[" << counter << "]: " 
+//     << total_size / (1024 * 1024) << "M\t"
+//     << this_size / (1024) << "K\n";;
+//   f.close();
+// #else
+//   IR * ir_copy = deep_copy(ir);
+// #endif
+
+//   ADD_TO_LIBRARY_CORE(ir_copy);
+
+//   real_ir_set.push_back(ir_copy);
 
 
   //get_memory_usage();
@@ -816,16 +928,16 @@ void Mutator::get_memory_usage() {
   static unsigned long old_use = 0;
 
   std::ofstream f;
-  f.rdbuf()->pubsetbuf(0, 0);
-  f.open("/tmp/memlog");
+  // f.rdbuf()->pubsetbuf(0, 0);
+  f.open("./memlog.txt", std::ofstream::out | std::ofstream::app);
 
   struct rusage usage;
   getrusage(RUSAGE_SELF, &usage);
 
   unsigned long use = usage.ru_maxrss * 1024;
 
-  if (use - old_use < 1024 * 1024)
-    return;
+  // if (use - old_use < 1024 * 1024)
+  //   return;
 
   f << "-------------------------------------\n";
   f << "memory use:  " << use << "\n";
@@ -833,33 +945,33 @@ void Mutator::get_memory_usage() {
 
   unsigned long total_size = 0;
 
-  unsigned long size_2D_hash = 0;
-  for (auto &i : ir_libary_2D_hash_)
-    size_2D_hash += i.second.size() * 8;
-  f << "2D hash size:" << size_2D_hash 
-       << "\t - " << size_2D_hash * 1.0 / use << "\n";
-  total_size += size_2D_hash;
+  // unsigned long size_2D_hash = 0;
+  // for (auto &i : ir_libary_2D_hash_)
+  //   size_2D_hash += i.second.size() * 8;
+  // f << "2D hash size:" << size_2D_hash 
+  //      << "\t - " << size_2D_hash * 1.0 / use << "\n";
+  // total_size += size_2D_hash;
 
-  unsigned long size_2D = 0;
-  for(auto &i: ir_libary_2D_)
-    size_2D += i.second.size() * 8;
-  f << "2D size:     " << size_2D
-       << "\t - " << size_2D * 1.0 / use << "\n";
-  total_size += size_2D;
+  // unsigned long size_2D = 0;
+  // for(auto &i: ir_libary_2D_)
+  //   size_2D += i.second.size() * 8;
+  // f << "2D size:     " << size_2D
+  //      << "\t - " << size_2D * 1.0 / use << "\n";
+  // total_size += size_2D;
 
-  unsigned long size_left = 0;
-  for(auto &i: left_lib)
-    size_left += i.second.size() * 8;;
-  f << "left size:   " << size_left
-       << "\t - " << size_left * 1.0 / use << "\n";
-  total_size += size_left;
+  // unsigned long size_left = 0;
+  // for(auto &i: left_lib)
+  //   size_left += i.second.size() * 8;;
+  // f << "left size:   " << size_left
+  //      << "\t - " << size_left * 1.0 / use << "\n";
+  // total_size += size_left;
 
-  unsigned long size_right = 0;
-  for(auto &i: right_lib)
-    size_right += i.second.size();
-  f << "right size:  " << size_right
-       << "\t - " << size_right * 1.0 / use << "\n";
-  total_size += size_right;
+  // unsigned long size_right = 0;
+  // for(auto &i: right_lib)
+  //   size_right += i.second.size();
+  // f << "right size:  " << size_right
+  //      << "\t - " << size_right * 1.0 / use << "\n";
+  // total_size += size_right;
 
 
   unsigned long size_common_string_libary = 0;
@@ -885,7 +997,7 @@ void Mutator::get_memory_usage() {
 
   unsigned long size_v_table_names = 0;
   for(auto &i: v_table_names)
-    size_left += i.capacity();;
+    size_v_table_names += i.capacity();;
   f << "v_tbl size:   " << size_v_table_names
        << "\t - " << size_v_table_names * 1.0 / use << "\n";
   total_size += size_v_table_names;
@@ -896,8 +1008,13 @@ void Mutator::get_memory_usage() {
   f << "str lib size :" << size_string_libary
        << "\t - " << size_string_libary * 1.0 / use << "\n";
   total_size += size_string_libary;
-    
 
+  unsigned long size_real_ir_set_str_libary = 0;
+  for (auto &i : real_ir_set_str)
+    size_real_ir_set_str_libary += i.capacity();
+  f << "real_ir_set_str size :" << size_real_ir_set_str_libary
+       << "\t - " << size_real_ir_set_str_libary * 1.0 / use << "\n";
+  total_size += size_real_ir_set_str_libary;
 
   f << "total size:  " << total_size
        << "\t - " << total_size * 1.0 / use << "\n";
@@ -905,50 +1022,50 @@ void Mutator::get_memory_usage() {
   f.close();
 }
 
-void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
+// void Mutator::ADD_TO_LIBRARY_CORE(IR * ir) {
 
-  unsigned long p_hash = hash(ir->to_string());
-  NODETYPE p_type = ir->type_;
-  NODETYPE left_type = kEmpty, right_type = kEmpty;
+//   unsigned long p_hash = hash(ir->to_string());
+//   NODETYPE p_type = ir->type_;
+//   NODETYPE left_type = kEmpty, right_type = kEmpty;
 
-  //update library_2D
-  if(ir_libary_2D_hash_[p_type].find(p_hash) != 
-      ir_libary_2D_hash_[p_type].end())
-    return;
+//   //update library_2D
+//   if(ir_libary_2D_hash_[p_type].find(p_hash) != 
+//       ir_libary_2D_hash_[p_type].end())
+//     return;
 
-  ir_libary_2D_hash_[p_type].insert(p_hash);
-  ir_libary_2D_[p_type].push_back(DEEP_COPY(ir));
+//   ir_libary_2D_hash_[p_type].insert(p_hash);
+//   ir_libary_2D_[p_type].push_back(DEEP_COPY(ir));
 
-  if(ir->left_) {
+//   if(ir->left_) {
 
-    left_type = ir->left_->type_;
-    ADD_TO_LIBRARY_CORE(ir->left_);
-  }
+//     left_type = ir->left_->type_;
+//     ADD_TO_LIBRARY_CORE(ir->left_);
+//   }
 
-  if(ir->right_) {
+//   if(ir->right_) {
 
-    right_type = ir->right_->type_;
-    ADD_TO_LIBRARY_CORE(ir->right_);
-  }
+//     right_type = ir->right_->type_;
+//     ADD_TO_LIBRARY_CORE(ir->right_);
+//   }
 
-  //update right_lib, left_lib
-  if(ir->right_ && ir->left_){
+//   //update right_lib, left_lib
+//   if(ir->right_ && ir->left_){
 
-    right_lib[right_type].push_back(DEEP_COPY(ir->left_));
-    left_lib[left_type].push_back(DEEP_COPY(ir->right_));
-  }
+//     right_lib[right_type].push_back(DEEP_COPY(ir->left_));
+//     left_lib[left_type].push_back(DEEP_COPY(ir->right_));
+//   }
 
-  //update library_3D
-  //set<unsigned long> &hash_map = ir_libary_3D_hash_[left_type][right_type];
-  //if(hash_map.find(p_hash) != hash_map.end()){
-  //  return;
-  //}
+//   //update library_3D
+//   //set<unsigned long> &hash_map = ir_libary_3D_hash_[left_type][right_type];
+//   //if(hash_map.find(p_hash) != hash_map.end()){
+//   //  return;
+//   //}
 
-  //ir_libary_3D_hash_[left_type][right_type].insert(p_hash);
-  //ir_libary_3D_[left_type][right_type].push_back(DEEP_COPY(ir));
+//   //ir_libary_3D_hash_[left_type][right_type].insert(p_hash);
+//   //ir_libary_3D_[left_type][right_type].push_back(DEEP_COPY(ir));
 
-  return;
-}
+//   return;
+// }
 
 unsigned long Mutator::hash(string sql){ 
   return fucking_hash(sql.c_str(), sql.size());
@@ -984,8 +1101,11 @@ Mutator::~Mutator(){
   //}
 
   // delete the real ir copy
-  for (auto &ir : real_ir_set)
-    deep_delete(ir);
+  // for (auto &ir : real_ir_set)
+  //   deep_delete(ir);
+
+  /* Delete the real_ir_set_str vector. */
+  real_ir_set_str.clear();
 
   //delete left_lib
   //for(auto &i: left_lib){

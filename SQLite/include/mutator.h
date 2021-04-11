@@ -46,7 +46,10 @@ public:
     void add_to_library(IR*);
     void add_to_library_core(IR*);
     //IR* get_from_libary_3D(IR*);
-    IR* get_from_libary_2D(IRTYPE);
+    IR* get_from_libary_with_type(IRTYPE);
+    IR* get_from_libary_with_left_type(IRTYPE);
+    IR* get_from_libary_with_right_type(IRTYPE);
+    vector<IR*> get_random_query_IR_set();
 
     void init(string f_testcase, string f_common_string = "", string pragma = "");
     string fix(IR * root);
@@ -82,9 +85,9 @@ private:
     //map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 
     //map<NODETYPE, map<NODETYPE, set<unsigned long>> > ir_libary_3D_hash_;
     map<NODETYPE, set<unsigned long> > ir_libary_2D_hash_;
-    map<NODETYPE, vector<IR*> > ir_libary_2D_;
-    map<NODETYPE, vector<IR *>> left_lib;
-    map<NODETYPE, vector<IR *>> right_lib;
+    // map<NODETYPE, vector<IR*> > ir_libary_2D_;
+    // map<NODETYPE, vector<IR *>> left_lib;
+    // map<NODETYPE, vector<IR *>> right_lib;
     vector<string> string_libary;
     map<IDTYPE, IDTYPE> relationmap;
     map<IDTYPE, IDTYPE> cross_map;
@@ -97,7 +100,8 @@ private:
     
     map<NODETYPE, int> type_counter_;
 
-    vector<IR *> real_ir_set;
+    // vector<IR *> real_ir_set;
+    vector<string> real_ir_set_str;
 };
 
 
