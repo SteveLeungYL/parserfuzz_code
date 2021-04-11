@@ -5870,7 +5870,7 @@ static u8 fuzz_one(char** argv) {
   } catch (...) {
 
     for (auto ir: ir_set_tmp){
-      if (ir->op != NULL) delete ir->op_;
+      if (ir->op_ != NULL) delete ir->op_;
       delete ir;
     }
 
@@ -5899,7 +5899,7 @@ static u8 fuzz_one(char** argv) {
   } catch(...) {
 
     for(auto ir: ir_set){
-      if (ir->op != NULL) delete ir->op_;
+      if (ir->op_ != NULL) delete ir->op_;
       delete ir;
     }
 
