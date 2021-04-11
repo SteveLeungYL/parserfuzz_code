@@ -762,7 +762,7 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
     deep_delete(current_ir_root);
 
     if (return_mached_ir_node != NULL) {
-      cerr << "\n\n\nSuccessfuly with_type: with string: " << return_mached_ir_node->to_string() << endl;
+      // cerr << "\n\n\nSuccessfuly with_type: with string: " << return_mached_ir_node->to_string() << endl;
       return return_mached_ir_node;
     }
 
@@ -812,7 +812,7 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
     deep_delete(current_ir_root);
 
     if (return_mached_ir_node != NULL) {
-      cerr << "\n\n\nSuccessfuly left_type: with string: " << return_mached_ir_node->to_string() << endl;
+      // cerr << "\n\n\nSuccessfuly left_type: with string: " << return_mached_ir_node->to_string() << endl;
       return return_mached_ir_node;
     }
 
@@ -862,6 +862,7 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
     deep_delete(current_ir_root);
 
     if (return_mached_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly right_type: with string: " << return_mached_ir_node->to_string() << endl;
       return return_mached_ir_node;
     }
 
@@ -963,7 +964,7 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
   ADD_TO_LIBRARY_CORE(new_ir_root, p_query_str);
 
   deep_delete(new_ir_root);
-  get_memory_usage();
+  // get_memory_usage();  // Debug purpose. 
   
   return;
 

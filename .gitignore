@@ -1,4 +1,5 @@
 SQLite/AFL/afl-fuzz
+SQLite/fuzz_root/fuzz_root
 PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz
 .vscode
