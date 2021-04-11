@@ -715,7 +715,7 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
   /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
   if (matching_ir_set.size() > 0){
     IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
-    for (auto ir:matching_ir_set) delete ir;
+    for (auto ir:matching_ir_set) deep_delete(ir);
     return selected_matching_ir;
   }
   else {
@@ -741,7 +741,7 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
   /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
   if (matching_ir_set.size() > 0){
     IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
-    for (auto ir:matching_ir_set) delete ir;
+    for (auto ir:matching_ir_set) deep_delete(ir);
     return selected_matching_ir;
   }
   else {
@@ -767,7 +767,7 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
   /* If current type_ cannot be found by the random queries by multiple trials. Return NULL */
   if (matching_ir_set.size() > 0){
     IR* selected_matching_ir = deep_copy(matching_ir_set[get_rand_int(matching_ir_set.size())]);
-    for (auto ir:matching_ir_set) delete ir;
+    for (auto ir:matching_ir_set) deep_delete(ir);
     return selected_matching_ir;
   }
   else {
