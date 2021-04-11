@@ -5869,8 +5869,10 @@ static u8 fuzz_one(char** argv) {
 
   } catch (...) {
 
-    for (auto ir: ir_set_tmp)
+    for (auto ir: ir_set_tmp){
+      if (ir->op != NULL) delete ir->op_;
       delete ir;
+    }
 
     program_root_tmp->deep_delete();
     goto abandon_entry;
@@ -5896,8 +5898,10 @@ static u8 fuzz_one(char** argv) {
 
   } catch(...) {
 
-    for(auto ir: ir_set)
+    for(auto ir: ir_set){
+      if (ir->op != NULL) delete ir->op_;
       delete ir;
+    }
 
     program_root->deep_delete();
     goto abandon_entry;
