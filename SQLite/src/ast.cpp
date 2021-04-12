@@ -1059,24 +1059,28 @@ IR* InExpr::translate(vector<IR *> &v_ir_collector){
             auto tmp1 = SAFETRANSLATE(operand_);
             auto tmp2 = SAFETRANSLATE(expr_list_);
             auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
+            PUSH(tmp3);
             res = new IR(kInExpr, OPMID("IN"), tmp1, tmp3);
         CASEEND
         CASESTART(1)
             auto tmp1 = SAFETRANSLATE(operand_);
             auto tmp2 = SAFETRANSLATE(expr_list_);
             auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
+            PUSH(tmp3);
             res = new IR(kInExpr, OPMID("NOT IN"), tmp1, tmp3);
         CASEEND
         CASESTART(2)
             auto tmp1 = SAFETRANSLATE(operand_);
             auto tmp2 = SAFETRANSLATE(select_no_paren_);
             auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
+            PUSH(tmp3);
             res = new IR(kInExpr, OPMID("IN"), tmp1, tmp3);
         CASEEND
         CASESTART(3)
             auto tmp1 = SAFETRANSLATE(operand_);
             auto tmp2 = SAFETRANSLATE(select_no_paren_);
             auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
+            PUSH(tmp3);
             res = new IR(kInExpr, OPMID("IN"), tmp1, tmp3);
         CASEEND
     SWITCHEND
