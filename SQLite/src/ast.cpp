@@ -420,7 +420,7 @@ IR* InsertStatement::translate(vector<IR *> &v_ir_collector){
             tmp = new IR(kUnknown, OP0(), tmp);
             PUSH(tmp);
             res = new IR(kInsertStatement, OPMID("VALUES"), res, tmp);
-            PUSH(tmp);
+            PUSH(res);
 
             tmp = SAFETRANSLATE(opt_upsert_clause_);
             res = new IR(kInsertStatement, OP0(), res, tmp);
@@ -437,7 +437,7 @@ IR* InsertStatement::translate(vector<IR *> &v_ir_collector){
 
             tmp = SAFETRANSLATE(select_no_paren_);
             res = new IR(kInsertStatement, OP0(), res, tmp);
-            PUSH(tmp);
+            PUSH(res);
 
             tmp = SAFETRANSLATE(opt_upsert_clause_);
             res = new IR(kInsertStatement, OP0(), res, tmp);
