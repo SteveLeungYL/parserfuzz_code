@@ -982,8 +982,35 @@ IR* ExprAlias::translate(vector<IR *> &v_ir_collector){
 }
 
 IR* Expr::translate(vector<IR *> &v_ir_collector){
-    
-    return NULL;
+    TRANSLATESTART
+    SWITCHSTART
+        CASESTART(0)
+            res = SAFETRANSLATE(operand_);
+            res = new IR(kExpr, OP0(), res);
+        CASEEND
+        CASESTART(1)
+            res = SAFETRANSLATE(between_expr_);
+            res = new IR(kExpr, OP0(), res);
+        CASEEND
+        CASESTART(2)
+            res = SAFETRANSLATE(logic_expr_);
+            res = new IR(kExpr, OP0(), res);
+        CASEEND
+        CASESTART(3)
+            res = SAFETRANSLATE(exists_expr_);
+            res = new IR(kExpr, OP0(), res);
+        CASEEND
+        CASESTART(4)
+            res = SAFETRANSLATE(in_expr_);
+            res = new IR(kExpr, OP0(), res);
+        CASEEND
+        CASESTART(5)
+            res = SAFETRANSLATE(cast_expr_);
+            res = new IR(kExpr, OP0(), res);
+        CASEEND
+        
+    SWITCHEND
+    TRANSLATEEND
 }
 
 IR* Operand::translate(vector<IR *> &v_ir_collector){
@@ -2051,6 +2078,12 @@ void Alias::deep_delete(){
 
 
 void Expr::deep_delete(){
+    SAFEDELETE(operand_);
+    SAFEDELETE(between_expr_);
+    SAFEDELETE(logic_expr_);
+    SAFEDELETE(exists_expr_);
+    SAFEDELETE(in_expr_);
+    SAFEDELETE(cast_expr_);
 	delete this;
 }
 

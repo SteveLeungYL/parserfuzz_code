@@ -141,9 +141,11 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
         if(ir == root || ir->type_ == kProgram 
         || ir -> is_norec_select_fixed 
         ) continue;
+        // cerr << "\n\n\nLooking at ir node: " << ir->to_string() << endl;
         vector<IR *> v_mutated_ir = mutate(ir);
 
         for(auto i: v_mutated_ir){
+            // cerr << "\n\n\nLooking at mutated i node: " << i->to_string() << endl;
             IR * new_ir_tree = deep_copy_with_record(root, ir);
             replace(new_ir_tree, this->record_, i);        
 
@@ -152,14 +154,14 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
                 continue;
             }
 
-            string tmp = extract_struct(new_ir_tree);
+            string tmp = new_ir_tree->to_string();
             unsigned tmp_hash = hash(tmp);
             if(res_hash.find(tmp_hash) != res_hash.end()){
                 deep_delete(new_ir_tree);
                 continue;
             }
 
-
+            // cerr << "\n\n\nLooking at mutated IR TREE: " << new_ir_tree->to_string() << endl;
             res_hash.insert(tmp_hash);
             res.push_back(new_ir_tree);
         }

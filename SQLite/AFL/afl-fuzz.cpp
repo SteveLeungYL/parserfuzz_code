@@ -5912,24 +5912,13 @@ static u8 fuzz_one(char** argv) {
   prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
   current_hash = 0;
 
-  bool is_mutation_succeed;
-  is_mutation_succeed = false;
-  int mutation_trial_count;
-  mutation_trial_count = 0;
-  do {
-    for(auto ir: mutated_tree)
-      deep_delete(ir);
+  mutated_tree = g_mutator.mutate_all(ir_set);
+  // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
+  if (mutated_tree.size() < 1) {
+    goto abandon_entry;
+  }
 
-    mutated_tree = g_mutator.mutate_all(ir_set);
-    mutation_trial_count++;
-    if (mutation_trial_count >= 300) goto abandon_entry;
-    // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
-    if (mutated_tree.size() < 1) {is_mutation_succeed = false; continue;}
-    is_mutation_succeed = true;
-    current_hash = g_mutator.hash(mutated_tree[mutated_tree.size()-1]);
-  } while (current_hash == prev_hash || !is_mutation_succeed);
-
-  deep_delete(ir_set[ir_set.size()-1]);
+  deep_delete(ir_set[ir_set.size() - 1]);
   show_stats();
   stage_max = mutated_tree.size();
   stage_cur = 0;

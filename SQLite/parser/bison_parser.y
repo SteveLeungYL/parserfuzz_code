@@ -1897,12 +1897,12 @@ expr_alias:
     ;
 
 expr:
-        operand {$$ = $1;}
-    |   between_expr {$$ = $1;}
-    |   logic_expr {$$ = $1;}
-    |   exists_expr {$$ = $1;}
-    |   in_expr {$$ = $1;}
-    |   cast_expr {$$ = $1;}
+        operand {$$ = new Expr(); $$->sub_type_ = CASE0; $$->operand_ = $1;}
+    |   between_expr {$$ = new Expr(); $$->sub_type_ = CASE1; $$->between_expr_ = $1;}
+    |   logic_expr {$$ = new Expr(); $$->sub_type_ = CASE2; $$->logic_expr_ = $1;}
+    |   exists_expr {$$ = new Expr(); $$->sub_type_ = CASE3; $$->exists_expr_ = $1;}
+    |   in_expr {$$ = new Expr(); $$->sub_type_ = CASE4; $$->in_expr_ = $1;}
+    |   cast_expr {$$ = new Expr(); $$->sub_type_ = CASE5; $$->cast_expr_ = $1;}
     ;
 
 operand: 

@@ -688,6 +688,12 @@ class Expr: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+    Operand* operand_;
+    BetweenExpr* between_expr_;
+    LogicExpr* logic_expr_;
+    ExistsExpr* exists_expr_;
+    InExpr* in_expr_;
+    CastExpr* cast_expr_;
 };
 
 class ExprAlias: public Expr{
