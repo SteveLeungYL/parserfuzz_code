@@ -976,7 +976,7 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
 
   deep_delete(new_ir_root);
 
-  get_memory_usage();  // Debug purpose. 
+  // get_memory_usage();  // Debug purpose. 
   
   return;
 
