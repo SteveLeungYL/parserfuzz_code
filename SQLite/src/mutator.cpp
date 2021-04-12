@@ -260,9 +260,9 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
 vector<IR *> Mutator::mutate(IR * input){
     vector<IR *> res;
 
-    if(!lucky_enough_to_be_mutated(input->mutated_times_)){
-        return res; // return a empty set if the IR is not mutated
-    }
+    // if(!lucky_enough_to_be_mutated(input->mutated_times_)){
+    //     return res; // return a empty set if the IR is not mutated
+    // }
 
     res.push_back(strategy_delete(input));
     res.push_back(strategy_insert(input));
@@ -697,30 +697,6 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
   return false;
 }
 
-IR* Mutator::retrive_IR_node_with_unique_id(IR* ir, int id_count_down){
-  /* The id_count_down has the opposite order of the actual unique_id for IR node. 
-      When in root node, the id_count_down = the unique id for nodes we are looking for.
-      When id_count_down = 0, the current IR node is the one we are looking for.
-  */
-  if (id_count_down == 0){
-    return ir;
-  }
-  id_count_down--;
-
-  if (ir->left_){
-    IR* result = retrive_IR_node_with_unique_id(ir->left_, id_count_down);
-    if (result != NULL) return result;
-  }
-
-  if (ir->right_){
-    IR* result = retrive_IR_node_with_unique_id(ir->right_, id_count_down);
-    if (result != NULL) return result;
-  }
-
-  return NULL; // Not found in the current path. Switch to another brand.
-
-}
-
 IR* Mutator::get_from_libary_with_type(IRTYPE type_){
 
   vector<IR*> current_ir_set;
@@ -730,7 +706,8 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
 
   if (all_matching_node.size() > 0){
     /* Pick a random matching node from the library. */
-    std::pair<string*, int>& selected_matched_node = all_matching_node[get_rand_int(all_matching_node.size())];
+    int random_idx = get_rand_int(all_matching_node.size());
+    std::pair<string*, int>& selected_matched_node = all_matching_node[random_idx];
     string* p_current_query_str = selected_matched_node.first;
     int unique_node_id = selected_matched_node.second;
 
@@ -751,12 +728,22 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
         return new IR(kStringLiteral, "");
       }
       p_strip_sql->deep_delete();
+    } else {
+      p_strip_sql->deep_delete();
+      return new IR(kStringLiteral, "");
     }
 
-    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
-    IR* matched_ir_node = retrive_IR_node_with_unique_id(current_ir_root, unique_node_id);
-    if (matched_ir_node != NULL){
-      return_mached_ir_node = deep_copy(matched_ir_node);
+    if (current_ir_set.size() > 0) {
+      /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+      IR *matched_ir_node = current_ir_set[unique_node_id];
+      if (matched_ir_node != NULL)
+      {
+        if (matched_ir_node->type_ != type_){
+          deep_delete(current_ir_root);
+          return new IR(kStringLiteral, "");
+        }
+        return_mached_ir_node = deep_copy(matched_ir_node);
+      }
     }
 
     deep_delete(current_ir_root);
@@ -780,7 +767,8 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
 
   if (all_matching_node.size() > 0){
     /* Pick a random matching node from the library. */
-    std::pair<string*, int>& selected_matched_node = all_matching_node[get_rand_int(all_matching_node.size())];
+    int random_idx = get_rand_int(all_matching_node.size());
+    std::pair<string*, int>& selected_matched_node = all_matching_node[random_idx];
     string* p_current_query_str = selected_matched_node.first;
     int unique_node_id = selected_matched_node.second;
 
@@ -801,12 +789,21 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
         return NULL;
       }
       p_strip_sql->deep_delete();
+    } else {
+      p_strip_sql->deep_delete();
+      return NULL;
     }
 
-    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
-    IR* matched_ir_node = retrive_IR_node_with_unique_id(current_ir_root, unique_node_id);
-    if (matched_ir_node != NULL){
-      return_mached_ir_node = deep_copy(matched_ir_node->right_);  // Not returnning the matched_ir_node itself, but its right_ child node!
+    if (current_ir_set.size() > 0) {
+      /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+      IR* matched_ir_node = current_ir_set[unique_node_id];
+      if (matched_ir_node != NULL){
+        if (matched_ir_node->left_->type_ != type_) {
+          deep_delete(current_ir_root);
+          return NULL;
+        }
+        return_mached_ir_node = deep_copy(matched_ir_node->right_);  // Not returnning the matched_ir_node itself, but its right_ child node!
+      }
     }
 
     deep_delete(current_ir_root);
@@ -851,12 +848,21 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
         return NULL;
       }
       p_strip_sql->deep_delete();
+    } else {
+      p_strip_sql->deep_delete();
+      return NULL;
     }
 
-    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
-    IR* matched_ir_node = retrive_IR_node_with_unique_id(current_ir_root, unique_node_id);
-    if (matched_ir_node != NULL){
-      return_mached_ir_node = deep_copy(matched_ir_node->left_);  // Not returnning the matched_ir_node itself, but its left_ child node!
+    if (current_ir_set.size() > 0) {
+      /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+      IR* matched_ir_node = current_ir_set[unique_node_id];
+      if (matched_ir_node != NULL){
+        if (matched_ir_node->right_->type_ != type_) {
+          deep_delete(current_ir_root);
+          return NULL;
+        }
+        return_mached_ir_node = deep_copy(matched_ir_node->left_);  // Not returnning the matched_ir_node itself, but its left_ child node!
+      }
     }
 
     deep_delete(current_ir_root);
@@ -961,10 +967,16 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
   }
 
   if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end())  all_string_in_lib_collection.insert(p_query_str);
+  int unique_id_for_node = 0;
+  for (auto new_ir : new_ir_set){
+    new_ir->uniq_id_in_tree_ = unique_id_for_node;
+    unique_id_for_node++;
+  }
   ADD_TO_LIBRARY_CORE(new_ir_root, p_query_str);
 
   deep_delete(new_ir_root);
-  // get_memory_usage();  // Debug purpose. 
+
+  get_memory_usage();  // Debug purpose. 
   
   return;
 
@@ -996,10 +1008,8 @@ void Mutator::ADD_TO_LIBRARY_CORE(IR * ir, string* p_query_str) {
       only being checked when necessary by calling this funcion. We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
     The unique_id_in_tree_ is left depth first in order.
   */
-  if (ir->type_ == kProgram ) this->unique_id_for_ir_node = 0;
 
-  int current_unique_id = this->unique_id_for_ir_node;
-  this->unique_id_for_ir_node++;  // Static int. Saved globally. 
+  int current_unique_id = ir->uniq_id_in_tree_;
   bool is_skip_saving_current_node = false;  //
 
   unsigned long p_hash = hash(ir->to_string());

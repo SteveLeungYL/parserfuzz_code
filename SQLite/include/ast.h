@@ -124,7 +124,8 @@ public:
         double f_val_;
         bool b_val_;
     };
-
+    
+    int    uniq_id_in_tree_;
     IDTYPE id_type_;
     IRTYPE type_;
     string name_;

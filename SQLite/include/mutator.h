@@ -46,7 +46,6 @@ public:
     IR* get_from_libary_with_type(IRTYPE);
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
-    IR* retrive_IR_node_with_unique_id(IR* ir, int id_count_down);
 
     void init(string f_testcase, string f_common_string = "", string pragma = "");
     string fix(IR * root);
@@ -107,8 +106,6 @@ private:
     map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
 
     set<string*> all_string_in_lib_collection;
-
-    inline static int unique_id_for_ir_node = 0;  // C++17.
 };
 
 
