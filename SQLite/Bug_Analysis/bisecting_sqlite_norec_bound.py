@@ -358,7 +358,7 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
             unopt_results.append(-1)
         else:
             try:
-                current_unopt_result_int = int(current_unopt_result)
+                current_unopt_result_int = int(float(current_unopt_result)+0.0001)  # Add 0.0001 to avoid inaccurate float to int transform. Transform are towards 0. 
             except ValueError:
                 current_unopt_result_int = -1
             unopt_results.append(current_unopt_result_int)
