@@ -427,7 +427,7 @@ def cross_compare(current_bisecting_result):
     
     return current_bisecting_result
 
-def pretty_print(query):
+def pretty_print(query, same_idx):
 
     start_of_norec = query.find("SELECT 13579")
 
@@ -439,10 +439,31 @@ def pretty_print(query):
     unopt_selects = lines[4::6]
 
     new_tail = ""
+    effect_idx = 0
     for idx in range(0, len(opt_selects)):
-        new_tail += (opt_selects[idx] + unopt_selects[idx] + "\n")
+        if idx in same_idx:
+            continue
+        effect_idx += 1
+        new_tail += ("SELECT \"--------- " + str(effect_idx) + ";" + opt_selects[idx] + unopt_selects[idx] + "\n")
 
     return header + new_tail
+
+def pretty_process(bisecting_result):
+
+    if bisecting_result.opt_result == [] or bisecting_result.opt_result == None or bisecting_result.unopt_result == [] or bisecting_result.unopt_result == None:
+        return bisecting_result
+
+    same_idx = []
+    for idx in range(0, len(bisecting_result.opt_result)):
+        if bisecting_result.opt_result[idx] == bisecting_result.unopt_result[idx]:
+            same_idx.append(idx)
+
+    bisecting_result.query = pretty_print(bisecting_result.query, same_idx)
+
+    same_idx.reverse()
+    for idx in same_idx:
+        bisecting_result.opt_result.pop(idx)
+        bisecting_result.unopt_result.pop(idx)
 
 def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults): 
     if not os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
@@ -453,6 +474,8 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
     else:
         append_or_write = 'w'
     bug_output_file = open(current_unique_bug_output, append_or_write)
+
+    pretty_process(current_bisecting_result)
 
     if current_bisecting_result.uniq_bug_id_int != "Unknown":
         bug_output_file.write("Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int)
