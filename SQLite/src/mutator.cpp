@@ -13,6 +13,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <deque>
+#include <regex>
 #define _NON_REPLACE_
 
 using namespace std;
@@ -169,6 +170,81 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 
     return res;
 
+}
+
+string Mutator::get_random_mutated_norec_select_stmt(){
+  bool is_success = false;
+  vector<IR*> ir_tree;
+  string new_generated_norec_select_stmt = "";
+  string new_fixed_norec_select_stmt = "";
+
+  while (!is_success){
+    string ori_norec_select = "";
+    if (norec_select_string_in_lib_collection.size() > 0)
+      ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
+    else 
+      ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
+    if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
+    ir_tree.clear();
+    ir_tree = parse_query_str_get_ir_set(ori_norec_select);
+    
+
+    /* Pick random ir node in the select stmt */
+    IR* mutate_ir_node = ir_tree[get_rand_int(ir_tree.size())];
+    IR* new_mutated_ir_node;
+    /* Pick random mutation methods. */
+    switch (get_rand_int(3)){
+      case 0:
+        new_mutated_ir_node = strategy_delete(mutate_ir_node);
+        break;
+      case 1:
+        new_mutated_ir_node = strategy_insert(mutate_ir_node);
+        break;
+      case 2:
+        new_mutated_ir_node = strategy_replace(mutate_ir_node);
+        break;
+    }
+
+    IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
+    replace(new_ir_root, this->record_, new_mutated_ir_node); 
+    deep_delete(ir_tree[ir_tree.size()-1]);
+    new_fixed_norec_select_stmt = new_ir_root->to_string();
+    new_generated_norec_select_stmt = validate(new_ir_root);
+    deep_delete(new_ir_root);
+    // cerr << "\n\n\nnew_fixed_norec_select_stmt\n" <<  new_fixed_norec_select_stmt   << ":END" << endl;
+    if (is_norec_compatible(new_generated_norec_select_stmt) && 
+      new_fixed_norec_select_stmt != ori_norec_select
+      ){
+      is_success = true;
+      return new_generated_norec_select_stmt;
+    } 
+    continue;
+  }
+}
+
+vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
+  vector<IR*> ir_set;
+  Program* p_strip_sql;
+  try {
+      p_strip_sql = parser(query_str);
+      if (p_strip_sql != NULL) {
+        auto root_ir = p_strip_sql->translate(ir_set);
+        p_strip_sql->deep_delete();
+        return ir_set;
+      } else {
+        ir_set.clear();
+        return ir_set;
+      }
+    } catch (...) {
+      p_strip_sql->deep_delete();
+      for (auto ir : ir_set) {
+        if (ir->op_)
+          delete ir->op_;
+        delete ir;
+      }
+      ir_set.clear();
+      return ir_set;
+    }
 }
 
 int Mutator::get_ir_libary_2D_hash_kStatement_size(){
@@ -898,6 +974,16 @@ unsigned long Mutator::get_a_val(){
   return value_libary[get_rand_int(value_libary.size())];
 }
 
+vector<string> Mutator::string_splitter(string input_string, string delimiter_re = "\n"){
+  size_t pos = 0;
+  string token;
+  std::regex re(delimiter_re);
+  std::sregex_token_iterator first{input_string.begin(), input_string.end(), re, -1}, last; //the '-1' is what makes the regex split (-1 := what was not matched)
+  vector<string> split_string{first, last};
+
+  return split_string;
+}
+
 unsigned long Mutator::get_library_size(){
   unsigned long res = 0;
 
@@ -925,6 +1011,20 @@ unsigned long Mutator::get_library_size(){
 #define ADD_TO_LIBRARY_CORE   add_to_library
 #define DEEP_COPY(x)          deep_copy(x)
 #endif
+
+void Mutator::add_all_to_library(IR* ir) {
+  string whole_query_str = ir->to_string();
+  vector<string> queries_vector = string_splitter(whole_query_str, ";");
+  vector<IR*> ir_set;
+  for (auto current_query : queries_vector){
+    ir_set.clear();
+    ir_set = parse_query_str_get_ir_set(current_query);
+    if (ir_set.size() == 0) continue;
+    ADD_TO_LIBRARY(ir_set[ir_set.size()-1]);
+    deep_delete(ir_set[ir_set.size()-1]);
+  }
+  queries_vector.clear();
+}
 
 void Mutator::ADD_TO_LIBRARY(IR* ir) {
 
@@ -968,7 +1068,16 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
     return;
   }
 
-  if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end())  all_string_in_lib_collection.insert(p_query_str);
+  if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end())  {
+    all_string_in_lib_collection.insert(p_query_str);
+    if (is_norec_compatible(*p_query_str)  && 
+      find(norec_select_string_in_lib_collection.begin(), norec_select_string_in_lib_collection.end(), p_query_str) != norec_select_string_in_lib_collection.end()
+    ){
+        norec_select_string_in_lib_collection.push_back(p_query_str);
+    }
+  }
+  
+
   int unique_id_for_node = 0;
   for (auto new_ir : new_ir_set){
     new_ir->uniq_id_in_tree_ = unique_id_for_node;

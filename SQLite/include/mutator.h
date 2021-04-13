@@ -17,6 +17,8 @@ public:
         srand(time(nullptr));
     }
 
+    vector<string> string_splitter(string, string);
+
     IR * deep_copy_with_record(const IR * root, const IR * record);
     unsigned long hash(IR* );
     unsigned long hash(string);
@@ -41,6 +43,10 @@ public:
 
     int get_ir_libary_2D_hash_kStatement_size();
 
+    vector<IR*> parse_query_str_get_ir_set(string query_str);
+    string get_random_mutated_norec_select_stmt();
+
+    void add_all_to_library(IR*);
     void add_to_library(IR*);
     void add_to_library_core(IR*, string*);
     IR* get_from_libary_with_type(IRTYPE);
@@ -106,6 +112,7 @@ private:
     map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
 
     set<string*> all_string_in_lib_collection;
+    vector<string*> norec_select_string_in_lib_collection;
 };
 
 

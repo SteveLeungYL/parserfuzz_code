@@ -2592,18 +2592,47 @@ string append_norec_select_stmts(string input) {
     if ((*iter) == '\0') *iter = '\n';
   }
 
-  string copied_norec_select_stmts = "";
-  int num_of_norec_select = count_and_get_norec_stmt_str(input, copied_norec_select_stmts);
-  // cerr << "The current copied_norec_select_stmts is: " << copied_norec_select_stmts << endl;
-  if (num_of_norec_select == 0) {
-    copied_norec_select_stmts = "SELECT COUNT ( * ) FROM v0 WHERE v0.v1";   // Ad-hoc insert a norec select stmt into the query. Might not work. 
-  }
-  if (num_of_norec_select < max_num_norec_select) {
-    for (int i = 0; i < (max_num_norec_select - num_of_norec_select); i++){
-      input += copied_norec_select_stmts + "; ";
+  vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
+  if (original_ir_tree.size() > 0) deep_delete(original_ir_tree[original_ir_tree.size()-1]);
+  else return "";
+
+  bool is_append_success = false;
+  string current_norec_select_string = input;
+  string tmp;
+
+  string new_norec_select_stmts = "";
+  int num_of_norec_select = count_and_get_norec_stmt_str(input, tmp);
+
+  int trial = 0;
+
+  while (num_of_norec_select < max_num_norec_select){
+    if (trial >= 3000) break;
+    trial++;
+    new_norec_select_stmts = g_mutator.get_random_mutated_norec_select_stmt();
+    string combine_string = current_norec_select_string + new_norec_select_stmts; // For debug purpose;
+    vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
+    if (new_ir_tree.size() > 0) {
+      string current_norec_select_string_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
+      deep_delete(new_ir_tree[new_ir_tree.size()-1]);
+      if (current_norec_select_string_tmp != "") {
+        current_norec_select_string = current_norec_select_string_tmp;
+        num_of_norec_select++;
+      }
     }
   }
-  return input;
+  return current_norec_select_string;
+  
+}
+
+string remove_No_Rec_stmts_from_whole_query(string query){
+  string output_query = "";
+  vector<string> queries_vector = string_splitter(query, ";");
+
+  for (auto current_stmt : queries_vector){
+    if(!g_mutator.is_norec_compatible(current_stmt)) output_query += current_stmt + "; ";
+  }
+
+  return output_query;
 }
 
 string rewrite_query_by_No_Rec(string query)
@@ -3864,13 +3893,14 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     // if it is interesting, we update our library with it.
     stage_name = "add_to_library";
     string strip_sql = g_mutator.extract_struct(g_current_ir); //g_current_ir will be deleted in fuzz_one's abandon_entry
-    auto p_strip_sql = parser(strip_sql);
-    if(p_strip_sql){
-      auto root_ir = p_strip_sql->translate(ir_set);
-      p_strip_sql->deep_delete();
-      g_mutator.add_to_library(root_ir);
-      deep_delete(root_ir);
+
+    vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(strip_sql);
+    if (ir_tree.size() > 0){
+      g_mutator.add_all_to_library(ir_tree[ir_tree.size()-1]);
+      deep_delete(ir_tree[ir_tree.size()-1]);
+      ir_tree.clear();
     }
+
     show_stats();
     stage_name = tmp_name;
     //[modify] end
@@ -4038,9 +4068,20 @@ keep_as_crash:
   /* If we're here, we apparently want to save the crash or hang
      test case, too. */
 
+  /* Do not push the add-on norec compatible select stmt to the queue. 
+      To avoid query length explosion.
+  */
+
+  string stripped_query_string = "";
+  for (size_t mem_idx = 0; mem_idx < len; mem_idx++){
+    stripped_query_string += ((char*)mem)[mem_idx];
+  }
+  
+  stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
+
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, mem, len, fn);
+  ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
   close(fd);
 
   ck_free(fn);
@@ -5858,36 +5899,36 @@ static u8 fuzz_one(char** argv) {
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
   /* We can use the parser and the mutator to help us clean up the noise in the query. */
 
-  program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-  if (program_root_tmp == NULL) goto abandon_entry;
+  // program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
+  // if (program_root_tmp == NULL) goto abandon_entry;
 
-  try {
+  // try {
     
-    // Translate the parser representation to Intermediate Representation. 
-    // After this operation, ir_set is the IR of current query. 
-    query_ir = program_root_tmp->translate(ir_set_tmp);
+  //   // Translate the parser representation to Intermediate Representation. 
+  //   // After this operation, ir_set is the IR of current query. 
+  //   query_ir = program_root_tmp->translate(ir_set_tmp);
 
-  } catch (...) {
+  // } catch (...) {
 
-    for (auto ir: ir_set_tmp){
-      if (ir->op_ != NULL) delete ir->op_;
-      delete ir;
-    }
+  //   for (auto ir: ir_set_tmp){
+  //     if (ir->op_ != NULL) delete ir->op_;
+  //     delete ir;
+  //   }
 
-    program_root_tmp->deep_delete();
-    goto abandon_entry;
-  }
+  //   program_root_tmp->deep_delete();
+  //   goto abandon_entry;
+  // }
   
-  // We have the IR now, delete the bison  representation. 
-  program_root_tmp->deep_delete();
+  // // We have the IR now, delete the bison  representation. 
+  // program_root_tmp->deep_delete();
 
-  query_str = g_mutator.validate(query_ir);
+  // query_str = g_mutator.validate(query_ir);
 
-  // Append multiple norec compatible select stmt to the end of the queries 
-  // to achieve better testing efficiency. 
-  input = append_norec_select_stmts(query_str);
+  // // Append multiple norec compatible select stmt to the end of the queries 
+  // // to achieve better testing efficiency. 
+  // input = append_norec_select_stmts(query_str);
 
-  deep_delete(query_ir);
+  // deep_delete(query_ir);
 
   program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
   if (program_root == NULL) goto abandon_entry;
@@ -5931,6 +5972,8 @@ static u8 fuzz_one(char** argv) {
 
     query_str = g_mutator.validate(ir);
     g_current_ir = ir;
+
+    query_str = append_norec_select_stmts(query_str);
 
     if(query_str == ""){
       skip_count++;
