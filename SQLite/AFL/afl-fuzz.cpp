@@ -5899,57 +5899,9 @@ static u8 fuzz_one(char** argv) {
   input = (const char *)out_buf;
 
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
-  /* We can use the parser and the mutator to help us clean up the noise in the query. */
 
-  // program_root_tmp = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-  // if (program_root_tmp == NULL) goto abandon_entry;
-
-  // try {
-    
-  //   // Translate the parser representation to Intermediate Representation. 
-  //   // After this operation, ir_set is the IR of current query. 
-  //   query_ir = program_root_tmp->translate(ir_set_tmp);
-
-  // } catch (...) {
-
-  //   for (auto ir: ir_set_tmp){
-  //     if (ir->op_ != NULL) delete ir->op_;
-  //     delete ir;
-  //   }
-
-  //   program_root_tmp->deep_delete();
-  //   goto abandon_entry;
-  // }
-  
-  // // We have the IR now, delete the bison  representation. 
-  // program_root_tmp->deep_delete();
-
-  // query_str = g_mutator.validate(query_ir);
-
-  // // Append multiple norec compatible select stmt to the end of the queries 
-  // // to achieve better testing efficiency. 
-  // input = append_norec_select_stmts(query_str);
-
-  // deep_delete(query_ir);
-
-  program_root = parser(input);    // Go through the parser. See whether the bison parser can successfully parse the query. 
-  if (program_root == NULL) goto abandon_entry;
-
-  try {
-
-    program_root->translate(ir_set);     // Translate the parser representation to Intermediate Representation. After this operation, ir_set is the IR of current query. 
-
-  } catch(...) {
-
-    for(auto ir: ir_set){
-      if (ir->op_ != NULL) delete ir->op_;
-      delete ir;
-    }
-
-    program_root->deep_delete();
-    goto abandon_entry;
-  }
-  program_root->deep_delete();      // We have the IR now, we can delete the bison parser version of the query representation. 
+  ir_set = g_mutator.parse_query_str_get_ir_set(input);
+  if (ir_set.size() == 0) goto abandon_entry;
 
   unsigned long prev_hash, current_hash;
   prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
@@ -5958,6 +5910,7 @@ static u8 fuzz_one(char** argv) {
   mutated_tree = g_mutator.mutate_all(ir_set);
   // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
   if (mutated_tree.size() < 1) {
+    deep_delete(ir_set[ir_set.size() - 1]);
     goto abandon_entry;
   }
 
