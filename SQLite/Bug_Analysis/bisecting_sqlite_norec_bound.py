@@ -427,6 +427,37 @@ def cross_compare(current_bisecting_result):
     
     return current_bisecting_result
 
+def retrive_all_opt_and_unopt_queries(query_str):
+
+    # Grab all the opt queries.
+    opt_queries = []
+    begin_idx = []
+    end_idx = []
+    for m in re.finditer('SELECT 13579;', query_str):
+        begin_idx.append(m.end())
+    for m in re.finditer('SELECT 97531;', query_str):
+        end_idx.append(m.start())
+    for i in range(min( len(begin_idx), len(end_idx) )):
+        current_opt_stmt = query_str[begin_idx[i]: end_idx[i]]
+        current_opt_stmt = current_opt_stmt.replace('\n', '')
+        opt_queries.append(current_opt_stmt)
+
+    # Grab all the opt queries.
+    unopt_queries = []
+    begin_idx = []
+    end_idx = []
+    for m in re.finditer('SELECT 24680;', query_str):
+        begin_idx.append(m.end())
+    for m in re.finditer('SELECT 86420;', query_str):
+        end_idx.append(m.start())
+    for i in range(min( len(begin_idx), len(end_idx) )):
+        current_unopt_stmt = query_str[begin_idx[i]: end_idx[i]]
+        current_unopt_stmt = current_unopt_stmt.replace('\n', '')
+        unopt_queries.append(current_unopt_stmt)
+    
+    return opt_queries, unopt_queries
+
+
 def pretty_print(query, same_idx):
 
     start_of_norec = query.find("SELECT 13579")
@@ -434,9 +465,10 @@ def pretty_print(query, same_idx):
     header = query[:start_of_norec]
     tail = query[start_of_norec:]
 
-    lines = tail.splitlines()
-    opt_selects = lines[1::6]
-    unopt_selects = lines[4::6]
+    # lines = tail.splitlines()
+    # opt_selects = lines[1::6]
+    # unopt_selects = lines[4::6]
+    opt_selects, unopt_selects = retrive_all_opt_and_unopt_queries(tail)
 
     new_tail = ""
     effect_idx = 0
