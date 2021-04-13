@@ -195,7 +195,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     IR* mutate_ir_node;
     IR* new_mutated_ir_node;
     while(!is_mutate_ir_node_chosen){
-      mutate_ir_node = ir_tree[get_rand_int(ir_tree.size())];
+      mutate_ir_node = ir_tree[get_rand_int(ir_tree.size()-1)];  // Do not choose the program_root to mutate.
       if (mutate_ir_node->is_norec_select_fixed) continue;
       is_mutate_ir_node_chosen = true;
       break;
@@ -215,7 +215,11 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     }
 
     IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
-    replace(new_ir_root, this->record_, new_mutated_ir_node); 
+    if (!replace(new_ir_root, this->record_, new_mutated_ir_node)){   // cannot replace the node with new mutated node. Error
+      deep_delete(ir_tree[ir_tree.size()-1]);
+      deep_delete(new_ir_root);
+      deep_delete(new_mutated_ir_node);
+    }
     deep_delete(ir_tree[ir_tree.size()-1]);
     new_fixed_norec_select_stmt = new_ir_root->to_string();
     new_generated_norec_select_stmt = validate(new_ir_root);
