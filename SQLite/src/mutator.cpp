@@ -237,27 +237,25 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
 vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
   vector<IR*> ir_set;
-  Program* p_strip_sql;
+
+  auto p_strip_sql = parser(query_str);
+  if (p_strip_sql == NULL) return ir_set;
+
   try {
-      p_strip_sql = parser(query_str);
-      if (p_strip_sql != NULL) {
-        auto root_ir = p_strip_sql->translate(ir_set);
-        p_strip_sql->deep_delete();
-        return ir_set;
-      } else {
-        ir_set.clear();
-        return ir_set;
-      }
-    } catch (...) {
-      p_strip_sql->deep_delete();
-      for (auto ir : ir_set) {
-        if (ir->op_)
-          delete ir->op_;
-        delete ir;
-      }
-      ir_set.clear();
-      return ir_set;
+    auto root_ir = p_strip_sql->translate(ir_set);
+  } catch (...) {
+    p_strip_sql->deep_delete();
+    for (auto ir : ir_set) {
+      if (ir->op_) delete ir->op_;
+      delete ir;
     }
+    ir_set.clear();
+    return ir_set;
+  }
+
+  p_strip_sql->deep_delete();
+  return ir_set;
+
 }
 
 int Mutator::get_ir_libary_2D_hash_kStatement_size(){
