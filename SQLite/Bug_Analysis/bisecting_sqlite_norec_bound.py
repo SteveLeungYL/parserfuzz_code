@@ -427,6 +427,23 @@ def cross_compare(current_bisecting_result):
     
     return current_bisecting_result
 
+def pretty_print(query):
+
+    start_of_norec = query.find("SELECT 13579")
+
+    header = query[:start_of_norec]
+    tail = query[start_of_norec:]
+
+    lines = tail.splitlines()
+    opt_selects = lines[1::6]
+    unopt_selects = lines[4::6]
+
+    new_tail = ""
+    for idx in range(0, len(opt_selects)):
+        new_tail += (opt_selects[idx] + unopt_selects[idx] + "\n")
+
+    return header + new_tail
+
 def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults): 
     if not os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
         os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
@@ -442,7 +459,7 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
     else:
         bug_output_file.write("Bug ID: Unknown. \n\n")
 
-    bug_output_file.write("Query: %s \n\n" % current_bisecting_result.query)
+    bug_output_file.write("Query: %s \n\n" % pretty_print(current_bisecting_result.query))
 
     if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None:
         bug_output_file.write("Last buggy Opt_result: %s\n\n" % str(current_bisecting_result.opt_result))
