@@ -2606,7 +2606,7 @@ string append_norec_select_stmts(string input) {
   int trial = 0;
 
   while (num_of_norec_select < max_num_norec_select){
-    if (trial >= 3000) break;
+    if (trial >= 300) break;
     trial++;
     new_norec_select_stmts = g_mutator.get_random_mutated_norec_select_stmt();
     string combine_string = current_norec_select_string + new_norec_select_stmts; // For debug purpose;
