@@ -192,7 +192,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
 
     /* If the choosen previously seen norec stmt does not pass the parser/IR tranlator, switch to standard template string.  */ 
-    if (ir_tree.size() == 0) ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";  
+    // if (ir_tree.size() == 0) ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; "; 
+    if (ir_tree.size() == 0) continue; 
     
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     mark_all_norec_select_stmt(ir_tree);
