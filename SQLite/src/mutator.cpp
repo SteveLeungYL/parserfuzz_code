@@ -173,6 +173,9 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 }
 
 string Mutator::get_random_mutated_norec_select_stmt(){
+  /* Read from the previously seen norec compatible select stmt. SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of 
+    the new generated norec compatible SELECT query. 
+  */
   bool is_success = false;
   vector<IR*> ir_tree;
   string new_generated_norec_select_stmt = "";
@@ -187,7 +190,11 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
+
+    /* If the choosen previously seen norec stmt does not pass the parser/IR tranlator, switch to standard template string.  */ 
+    if (ir_tree.size() == 0) ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";  
     
+    /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     mark_all_norec_select_stmt(ir_tree);
 
     /* Pick random ir node in the select stmt */
@@ -214,6 +221,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         break;
     }
 
+    /* Deep copy IR tree, replace with mutated node, and retrive the mutated string */
     IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
     if (!replace(new_ir_root, this->record_, new_mutated_ir_node)){   // cannot replace the node with new mutated node. Error
       deep_delete(ir_tree[ir_tree.size()-1]);
@@ -225,6 +233,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     new_generated_norec_select_stmt = validate(new_ir_root);
     deep_delete(new_ir_root);
     // cerr << "\n\n\nnew_fixed_norec_select_stmt\n" <<  new_fixed_norec_select_stmt   << ":END" << endl;
+
+    /* Final check and return string if compatible */
     if (is_norec_compatible(new_generated_norec_select_stmt) && 
       new_fixed_norec_select_stmt != ori_norec_select
       ){
@@ -245,10 +255,7 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
     auto root_ir = p_strip_sql->translate(ir_set);
   } catch (...) {
     p_strip_sql->deep_delete();
-    for (auto ir : ir_set) {
-      if (ir->op_) delete ir->op_;
-      delete ir;
-    }
+    deep_delete_ir_tree(ir_set);
     ir_set.clear();
     return ir_set;
   }
@@ -405,7 +412,7 @@ string Mutator::validate(IR * root){
         string sql_str = root->to_string();
         // cerr << "Mutated query string: " << sql_str << endl << endl;
         auto parsed_ir = parser(sql_str);
-        if(parsed_ir == NULL)
+        if(parsed_ir == NULL) 
             // cerr << "Mutated query not passing parser!!!" << endl << endl;
             return "";
         parsed_ir->deep_delete();
@@ -787,6 +794,9 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
 }
 
 IR* Mutator::get_from_libary_with_type(IRTYPE type_){
+  /* Given a data type, return a randomly selected prevously seen IR node that matched the given type.
+      If nothing has found, return an empty kStringLiteral. 
+  */
 
   vector<IR*> current_ir_set;
   IR* current_ir_root;
@@ -848,6 +858,9 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
 }
 
 IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
+  /* Given a left_ type, return a randomly selected prevously seen right_ node that share the same parent.
+      If nothing has found, return NULL. 
+  */
 
   vector<IR*> current_ir_set;
   IR* current_ir_root;
@@ -908,6 +921,9 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
 }
 
 IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
+  /* Given a right_ type, return a randomly selected prevously seen left_ node that share the same parent.
+      If nothing has found, return NULL. 
+  */
 
   vector<IR*> current_ir_set;
   IR* current_ir_root;
@@ -1024,6 +1040,10 @@ unsigned long Mutator::get_library_size(){
 #endif
 
 void Mutator::add_all_to_library(IR* ir) {
+  /* Since we design the add_to_library to support only one stmt at a time, add_all_to_library is responsible to split the 
+      the current IR tree into single query stmts. 
+      This function is not responsible to free the input IR tree. 
+  */
   string whole_query_str = ir->to_string();
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
   vector<IR*> ir_set;
@@ -1038,6 +1058,14 @@ void Mutator::add_all_to_library(IR* ir) {
 }
 
 void Mutator::ADD_TO_LIBRARY(IR* ir) {
+  /*  Save an interesting query stmt into the mutator library. 
+    The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
+    However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
+    Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary 
+        by calling this funcion and get_from_library_with_[_,left,right]_type. 
+    We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
+    The unique_id_in_tree_ is setup based on the order of the ir_set vector, returned from Program*->translate(ir_set).
+  */
 
   NODETYPE p_type = ir->type_;
   string * p_query_str = new string(ir->to_string());
@@ -1124,11 +1152,7 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
 }
 
 void Mutator::ADD_TO_LIBRARY_CORE(IR * ir, string* p_query_str) {
-  /* The unique_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
-     However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
-     Therefore, this function become isolated from the rest of the IR instructions for now, the unique_id_in_tree_ variables in each node are 
-      only being checked when necessary by calling this funcion. We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
-    The unique_id_in_tree_ is left depth first in order.
+  /* Save an interesting query stmt into the mutator library. Helper function for Mutator::ADD_TO_LIBRARY();
   */
 
   int current_unique_id = ir->uniq_id_in_tree_;

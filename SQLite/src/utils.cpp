@@ -288,3 +288,15 @@ void deep_delete(IR * root){
 
   delete root;
 }
+
+void deep_delete_ir_tree(const vector<IR*>& ir_set){
+  /* Deep delete an ir_tree. Does not need to guarantee the input tree is complete. */
+  if ( ir_set[ir_set.size()-1]->type_ == kProgram ) deep_delete(ir_set[ir_set.size()-1]);
+  else {
+    for (auto ir : ir_set){
+      if(ir->op_ != NULL) delete ir->op_;
+      delete ir;
+    }
+  }
+}
+

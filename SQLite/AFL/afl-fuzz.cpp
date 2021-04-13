@@ -3055,7 +3055,6 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   string result_string = "";
 
   bool is_skip_no_rec = true;    // = true in case there are no select stmt in the query, directly skip the current query pairs.
-  bool is_first_select = true;   // used to mark whether there are multiple select stmt in the query pairs, if yes, ignore the current query pairs.
 
   vector<string> queries_vector = string_splitter(cmd_string, ";");
   cmd_string = "";
@@ -3939,6 +3938,10 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
       stripped_query_string += ((char *)mem)[mem_idx];
     }
 
+    /* Do not save the whole queries with the appended norec select stmt back to the AFL queue. 
+        Since we will append new norec select stmt every time we retrive a new seed, we should 
+        delete all the norec stmts from the query before adding them to the query. 
+    */
     stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
 
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);

@@ -40,6 +40,7 @@ inline int get_rand_int(int range) {
 IR * deep_copy(const IR * root);
 IR * deep_copy_size(const IR * root, unsigned long *);
 void deep_delete(IR * root);
+void deep_delete_ir_tree(const vector<IR*>&);
 
 Program * parser(string sql);
 string get_string_by_type(IRTYPE);
