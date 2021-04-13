@@ -188,10 +188,19 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
     
+    mark_all_norec_select_stmt(ir_tree);
 
     /* Pick random ir node in the select stmt */
-    IR* mutate_ir_node = ir_tree[get_rand_int(ir_tree.size())];
+    bool is_mutate_ir_node_chosen = false;
+    IR* mutate_ir_node;
     IR* new_mutated_ir_node;
+    while(!is_mutate_ir_node_chosen){
+      mutate_ir_node = ir_tree[get_rand_int(ir_tree.size())];
+      if (mutate_ir_node->is_norec_select_fixed) continue;
+      is_mutate_ir_node_chosen = true;
+      break;
+    }
+
     /* Pick random mutation methods. */
     switch (get_rand_int(3)){
       case 0:

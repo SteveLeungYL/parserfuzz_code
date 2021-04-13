@@ -2606,9 +2606,10 @@ string append_norec_select_stmts(string input) {
   int trial = 0;
 
   while (num_of_norec_select < max_num_norec_select){
-    if (trial >= 300) break;
+    if (trial >= (max_num_norec_select - num_of_norec_select) * 3) break;    // Give on average 3 chances per select stmts.  
     trial++;
     new_norec_select_stmts = g_mutator.get_random_mutated_norec_select_stmt();
+    if (new_norec_select_stmts == "") continue;
     string combine_string = current_norec_select_string + new_norec_select_stmts; // For debug purpose;
     vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
     if (new_ir_tree.size() > 0) {
