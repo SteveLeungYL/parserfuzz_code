@@ -3934,9 +3934,17 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     if (res == FAULT_ERROR)
       FATAL("Unable to execute target application");
 
+    string stripped_query_string = "";
+    for (size_t mem_idx = 0; mem_idx < len; mem_idx++) {
+      stripped_query_string += ((char *)mem)[mem_idx];
+    }
+
+    stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
+
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
-    if (fd < 0) PFATAL("Unable to create '%s'", fn);
-    ck_write(fd, mem, len, fn);
+    if (fd < 0)
+      PFATAL("Unable to create '%s'", fn);
+    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
     close(fd);
 
     keeping = 1;
@@ -4073,16 +4081,9 @@ keep_as_crash:
       To avoid query length explosion.
   */
 
-  string stripped_query_string = "";
-  for (size_t mem_idx = 0; mem_idx < len; mem_idx++){
-    stripped_query_string += ((char*)mem)[mem_idx];
-  }
-  
-  stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
-
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
+  ck_write(fd, mem, len, fn);
   close(fd);
 
   ck_free(fn);
