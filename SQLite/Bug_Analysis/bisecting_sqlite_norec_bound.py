@@ -476,7 +476,7 @@ def pretty_print(query, same_idx):
         if idx in same_idx:
             continue
         effect_idx += 1
-        new_tail += ("SELECT \"--------- " + str(effect_idx) + ";" + opt_selects[idx] + unopt_selects[idx] + "\n")
+        new_tail += ("SELECT \"--------- " + str(effect_idx) + "\";" + opt_selects[idx] + unopt_selects[idx] + "\n")
 
     return header + new_tail
 
