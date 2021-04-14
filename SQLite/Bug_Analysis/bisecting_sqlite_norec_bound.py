@@ -442,7 +442,7 @@ def retrive_all_opt_and_unopt_queries(query_str):
         current_opt_stmt = current_opt_stmt.replace('\n', '')
         opt_queries.append(current_opt_stmt)
 
-    # Grab all the opt queries.
+    # Grab all the unopt queries.
     unopt_queries = []
     begin_idx = []
     end_idx = []
@@ -487,7 +487,8 @@ def pretty_process(bisecting_result):
 
     same_idx = []
     for idx in range(0, len(bisecting_result.opt_result)):
-        if bisecting_result.opt_result[idx] == bisecting_result.unopt_result[idx]:
+        # Ignore the result with the same output, and ignore the result that are negative. (-1 Error Execution for most cases)
+        if bisecting_result.opt_result[idx] == bisecting_result.unopt_result[idx] or bisecting_result.opt_result[idx] < 0 or bisecting_result.unopt_result[idx] < 0:
             same_idx.append(idx)
 
     bisecting_result.query = pretty_print(bisecting_result.query, same_idx)
