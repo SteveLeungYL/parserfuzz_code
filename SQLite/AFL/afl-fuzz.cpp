@@ -2586,6 +2586,17 @@ int count_and_get_norec_stmt_str(const string& input, string& norec_select_stmt)
   return norec_select_count;
 }
 
+string ensure_semicolon_at_query_end(string stmt){
+  for (auto idx = stmt.rbegin(); idx != stmt.rend(); idx++){
+    if (*idx != ' ' && *idx != ';' && *idx != '\n') {
+      stmt += "; ";
+      return stmt;
+    } else if (*idx == ';') {
+      return stmt;
+    }
+  }
+}
+
 string append_norec_select_stmts(string input) {
 
   for (auto iter = input.begin(); iter != input.end(); iter++){
@@ -2610,7 +2621,7 @@ string append_norec_select_stmts(string input) {
     trial++;
     new_norec_select_stmts = g_mutator.get_random_mutated_norec_select_stmt();
     if (new_norec_select_stmts == "") continue;
-    string combine_string = current_norec_select_string + new_norec_select_stmts; // For debug purpose;
+    string combine_string = ensure_semicolon_at_query_end(current_norec_select_string) + ensure_semicolon_at_query_end(new_norec_select_stmts);
     vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
     if (new_ir_tree.size() > 0) {
       string current_norec_select_string_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);

@@ -1410,9 +1410,9 @@ string Mutator::fix(IR * root){
 
   if(type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)){
     if(get_rand_int(2) == 1)
-      return string("main");
+      return string("v0");
     else
-      return string("temp");
+      return string("v1");
   }
 
 
