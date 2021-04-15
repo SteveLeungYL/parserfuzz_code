@@ -182,7 +182,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
   while (!is_success){
     string ori_norec_select = "";
-    if (norec_select_string_in_lib_collection.size() > 0)
+    if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) == 0))  
       ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     else 
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
@@ -197,51 +197,66 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     mark_all_norec_select_stmt(ir_tree);
 
-    /* Pick random ir node in the select stmt */
-    bool is_mutate_ir_node_chosen = false;
-    IR* mutate_ir_node;
-    IR* new_mutated_ir_node;
-    while(!is_mutate_ir_node_chosen){
-      mutate_ir_node = ir_tree[get_rand_int(ir_tree.size()-1)];  // Do not choose the program_root to mutate.
-      if (mutate_ir_node->is_norec_select_fixed) continue;
-      is_mutate_ir_node_chosen = true;
-      break;
-    }
+    /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
+        If failed, retrive another norec stmt from the library or from the template again.
+    */
+    for (int trial_count = 0; trial_count < 10; trial_count++){
 
-    /* Pick random mutation methods. */
-    switch (get_rand_int(3)){
-      case 0:
-        new_mutated_ir_node = strategy_delete(mutate_ir_node);
+      /* Pick random ir node in the select stmt */
+      bool is_mutate_ir_node_chosen = false;
+      IR* mutate_ir_node = NULL;
+      IR* new_mutated_ir_node = NULL;
+      int choose_node_trial = 0;
+      while(!is_mutate_ir_node_chosen){
+        if (choose_node_trial > 100) break;
+        choose_node_trial++;
+        mutate_ir_node = ir_tree[get_rand_int(ir_tree.size()-1)];  // Do not choose the program_root to mutate.
+        if (mutate_ir_node->is_norec_select_fixed) continue;
+        is_mutate_ir_node_chosen = true;
         break;
-      case 1:
-        new_mutated_ir_node = strategy_insert(mutate_ir_node);
-        break;
-      case 2:
-        new_mutated_ir_node = strategy_replace(mutate_ir_node);
-        break;
-    }
+      }
 
-    /* Deep copy IR tree, replace with mutated node, and retrive the mutated string */
-    IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
-    if (!replace(new_ir_root, this->record_, new_mutated_ir_node)){   // cannot replace the node with new mutated node. Error
-      deep_delete(ir_tree[ir_tree.size()-1]);
+      if (!is_mutate_ir_node_chosen) break;   // The current ir tree cannot even find the node to mutate. Ignored and retrive new norec stmt from lib or from library. 
+
+      /* Pick random mutation methods. */
+      switch (get_rand_int(3)){
+        case 0:
+          new_mutated_ir_node = strategy_delete(mutate_ir_node);
+          break;
+        case 1:
+          new_mutated_ir_node = strategy_insert(mutate_ir_node);
+          break;
+        case 2:
+          new_mutated_ir_node = strategy_replace(mutate_ir_node);
+          break;
+      }
+
+      /* Deep copy IR tree, replace with mutated node, and retrive the mutated string */
+      IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
+      if (!replace(new_ir_root, this->record_, new_mutated_ir_node)){   // cannot replace the node with new mutated node. Error
+        deep_delete(new_ir_root);
+        deep_delete(new_mutated_ir_node);
+        continue;
+      }
+      new_fixed_norec_select_stmt = new_ir_root->to_string();
+      new_generated_norec_select_stmt = validate(new_ir_root);
       deep_delete(new_ir_root);
-      deep_delete(new_mutated_ir_node);
+      // cerr << "\n\n\nnew_fixed_norec_select_stmt\n" <<  new_fixed_norec_select_stmt   << ":END" << endl;
+
+      /* Final check and return string if compatible */
+      if (is_norec_compatible(new_generated_norec_select_stmt) && 
+        new_fixed_norec_select_stmt != ori_norec_select
+        ){
+        deep_delete(ir_tree[ir_tree.size()-1]);
+        is_success = true;
+        return new_generated_norec_select_stmt;
+      }
+      continue;  // Retry mutating the current norec stmt and its IR tree.
     }
     deep_delete(ir_tree[ir_tree.size()-1]);
-    new_fixed_norec_select_stmt = new_ir_root->to_string();
-    new_generated_norec_select_stmt = validate(new_ir_root);
-    deep_delete(new_ir_root);
-    // cerr << "\n\n\nnew_fixed_norec_select_stmt\n" <<  new_fixed_norec_select_stmt   << ":END" << endl;
-
-    /* Final check and return string if compatible */
-    if (is_norec_compatible(new_generated_norec_select_stmt) && 
-      new_fixed_norec_select_stmt != ori_norec_select
-      ){
-      is_success = true;
-      return new_generated_norec_select_stmt;
-    } 
-    continue;
+    /* Repeat the retriving norec stmt loop. Do not give up until there are successful norec stmt mutations generated. 
+        If this funcion being treated incorrectly, could turns into dead loop. 
+    */
   }
 }
 
