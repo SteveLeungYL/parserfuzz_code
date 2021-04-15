@@ -118,7 +118,7 @@ private:
     map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
 
     map<unsigned long, bool> norec_hash;
-    vector<string*> all_string_in_lib_collection;
+    set<string*> all_string_in_lib_collection;
     vector<string*> norec_select_string_in_lib_collection;
 };
 

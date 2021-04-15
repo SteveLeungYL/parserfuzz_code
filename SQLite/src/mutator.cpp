@@ -1088,8 +1088,10 @@ void Mutator::add_to_norec_lib(IR * ir) {
   norec_hash[p_hash] = true;
 
   string * new_select = new string(select);
-  all_string_in_lib_collection.push_back(new_select);
-  norec_select_string_in_lib_collection.push_back(new_select);
+  if (all_string_in_lib_collection.find(new_select) == all_string_in_lib_collection.end()) {
+    all_string_in_lib_collection.insert(new_select);
+    norec_select_string_in_lib_collection.push_back(new_select);
+  }
 
   add_to_library_core(ir, new_select);
 
@@ -1120,7 +1122,10 @@ void Mutator::add_to_library(IR* ir) {
   }
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
-  all_string_in_lib_collection.push_back(p_query_str);
+  if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end()) {
+    all_string_in_lib_collection.insert(p_query_str);
+    norec_select_string_in_lib_collection.push_back(p_query_str);
+  }
   add_to_library_core(ir, p_query_str);
 
   // get_memory_usage();  // Debug purpose. 
