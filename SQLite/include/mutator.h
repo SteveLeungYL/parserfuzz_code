@@ -111,7 +111,7 @@ private:
     map<NODETYPE, vector<pair<string*, int>>> left_lib_set;
     map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
 
-    set<string*> all_string_in_lib_collection;
+    vector<string*> all_string_in_lib_collection;
     vector<string*> norec_select_string_in_lib_collection;
 };
 

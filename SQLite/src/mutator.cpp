@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <deque>
 #include <regex>
-#define _NON_REPLACE_
 
 using namespace std;
 
@@ -1030,16 +1029,6 @@ unsigned long Mutator::get_library_size(){
   return res;
 }
 
-#ifdef _NON_REPLACE_
-#define ADD_TO_LIBRARY        add_to_library
-#define ADD_TO_LIBRARY_CORE   add_to_library_core
-#define DEEP_COPY(x)          x
-#else
-#define ADD_TO_LIBRARY        add_to_library_core
-#define ADD_TO_LIBRARY_CORE   add_to_library
-#define DEEP_COPY(x)          deep_copy(x)
-#endif
-
 void Mutator::add_all_to_library(IR* ir) {
   /* Since we design the add_to_library to support only one stmt at a time, add_all_to_library is responsible to split the 
       the current IR tree into single query stmts. 
@@ -1052,13 +1041,13 @@ void Mutator::add_all_to_library(IR* ir) {
     ir_set.clear();
     ir_set = parse_query_str_get_ir_set(current_query);
     if (ir_set.size() == 0) continue;
-    ADD_TO_LIBRARY(ir_set[ir_set.size()-1]);
+    add_to_library(ir_set[ir_set.size()-1]);
     deep_delete(ir_set[ir_set.size()-1]);
   }
   queries_vector.clear();
 }
 
-void Mutator::ADD_TO_LIBRARY(IR* ir) {
+void Mutator::add_to_library(IR* ir) {
   /*  Save an interesting query stmt into the mutator library. 
     The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
     However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
@@ -1108,52 +1097,25 @@ void Mutator::ADD_TO_LIBRARY(IR* ir) {
     return;
   }
 
-  if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end())  {
-    all_string_in_lib_collection.insert(p_query_str);
-    if (is_norec_compatible(*p_query_str)  && 
-      find(norec_select_string_in_lib_collection.begin(), norec_select_string_in_lib_collection.end(), p_query_str) != norec_select_string_in_lib_collection.end()
-    ){
-        norec_select_string_in_lib_collection.push_back(p_query_str);
-    }
-  }
-  
+  all_string_in_lib_collection.push_back(p_query_str);
+
+  if (is_norec_compatible(*p_query_str))
+    norec_select_string_in_lib_collection.push_back(p_query_str);
 
   int unique_id_for_node = 0;
-  for (auto new_ir : new_ir_set){
-    new_ir->uniq_id_in_tree_ = unique_id_for_node;
-    unique_id_for_node++;
-  }
-  ADD_TO_LIBRARY_CORE(new_ir_root, p_query_str);
+  for (auto new_ir : new_ir_set)
+    new_ir->uniq_id_in_tree_ = unique_id_for_node++;
+  add_to_library_core(new_ir_root, p_query_str);
 
   deep_delete(new_ir_root);
 
   // get_memory_usage();  // Debug purpose. 
   
   return;
-
-// #if 0
-//   static unsigned long counter = 0;
-//   static unsigned long total_size = 0;
-//   unsigned long this_size = 0;
-//   IR * ir_copy = deep_copy_size(ir, &this_size);
-//   counter++;
-//   total_size += this_size;
-
-//   std::ofstream f;
-//   f.rdbuf()->pubsetbuf(0, 0);
-//   f.open("/tmp/memlog", std::ofstream::out | std::ofstream::app);
-//   f << "add_to_lib[" << counter << "]: " 
-//     << total_size / (1024 * 1024) << "M\t"
-//     << this_size / (1024) << "K\n";;
-//   f.close();
-// #else
-//   IR * ir_copy = deep_copy(ir);
-// #endif
-
 }
 
-void Mutator::ADD_TO_LIBRARY_CORE(IR * ir, string* p_query_str) {
-  /* Save an interesting query stmt into the mutator library. Helper function for Mutator::ADD_TO_LIBRARY();
+void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
+  /* Save an interesting query stmt into the mutator library. Helper function for Mutator::add_to_library();
   */
 
   int current_unique_id = ir->uniq_id_in_tree_;
@@ -1163,7 +1125,7 @@ void Mutator::ADD_TO_LIBRARY_CORE(IR * ir, string* p_query_str) {
   NODETYPE p_type = ir->type_;
   NODETYPE left_type = kEmpty, right_type = kEmpty;
 
-  /* We do not skip the execution of the ADD_TO_LIBRARY_CORE, it will always iterate through the whole IR tree, 
+  /* We do not skip the execution of the add_to_library_core, it will always iterate through the whole IR tree, 
     even if the current node has been seen before. Using this way, we ensure correct and repeatable unique_id_for_ir_node assignment. 
   */
   if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()) 
@@ -1183,11 +1145,11 @@ void Mutator::ADD_TO_LIBRARY_CORE(IR * ir, string* p_query_str) {
   }
 
   if (ir->left_) {
-    ADD_TO_LIBRARY_CORE(ir->left_, p_query_str);
+    add_to_library_core(ir->left_, p_query_str);
   }
 
   if(ir->right_) {
-    ADD_TO_LIBRARY_CORE(ir->right_, p_query_str);
+    add_to_library_core(ir->right_, p_query_str);
   }
 
   return;

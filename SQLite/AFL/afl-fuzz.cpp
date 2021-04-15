@@ -7469,7 +7469,9 @@ int main(int argc, char** argv) {
     use_argv = argv + optind;
 
 
+  u64 start_time = get_cur_time();
   do_libary_initialize();//[modify]
+  cerr << "do_library_initialize() takes " << (get_cur_time() - start_time) / 1000 << " seconds\n";
 
   perform_dry_run(use_argv);
 
