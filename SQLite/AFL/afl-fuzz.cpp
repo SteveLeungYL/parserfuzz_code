@@ -2599,9 +2599,9 @@ string ensure_semicolon_at_query_end(string stmt){
 
 string append_norec_select_stmts(string input) {
 
-  for (auto iter = input.begin(); iter != input.end(); iter++){
-    if ((*iter) == '\0') *iter = '\n';
-  }
+  // for (auto iter = input.begin(); iter != input.end(); iter++){
+  //   if ((*iter) == '\0') *iter = '\n';
+  // }
 
   vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
   if (original_ir_tree.size() > 0) deep_delete(original_ir_tree[original_ir_tree.size()-1]);
