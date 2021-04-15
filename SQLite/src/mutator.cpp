@@ -1034,7 +1034,11 @@ void Mutator::add_all_to_library(IR* ir) {
       the current IR tree into single query stmts. 
       This function is not responsible to free the input IR tree. 
   */
-  string whole_query_str = ir->to_string();
+  add_all_to_library(ir->to_string());
+}
+
+void Mutator::add_all_to_library(string whole_query_str) {
+
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
   vector<IR*> ir_set;
   for (auto current_query : queries_vector){
@@ -1490,6 +1494,22 @@ string Mutator::extract_struct2(IR * root){
   return res;
 }
 
+string Mutator::extract_struct(string query) {
+
+  vector<IR*> original_ir_tree = parse_query_str_get_ir_set(query);
+
+  string res = "";
+
+  if (original_ir_tree.size() > 0) {
+
+    IR * root = original_ir_tree[original_ir_tree.size()-1];
+    res = extract_struct(root);
+    deep_delete(root);
+  }
+
+  return res;
+}
+
 string Mutator::extract_struct(IR * root){
   static int counter = 0;
   string res;
@@ -1598,4 +1618,9 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
   new_len = fixed.size();
 
   return 1;
+}
+
+int Mutator::get_norec_select_collection_size() {
+
+  return norec_select_string_in_lib_collection.size();
 }
