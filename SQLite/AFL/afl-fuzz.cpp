@@ -2564,6 +2564,18 @@ static void write_to_testcase(const char* mem, u32 len) {
 
 }
 
+inline void print_norec_exec_debug_info(){
+  cerr << "\n"
+           << "total_input_failed:      " << total_input_failed << "\n"
+           << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
+           << "total_append_failed:     " << total_append_failed << "\n"
+           << "total_common_failed:     " << total_common_failed << "\n"
+           << "total_execute:           " << total_execute << "\n"
+           << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
+
+  return;
+}
+
 vector<string> string_splitter(string input_string, string delimiter_re = "\n")
 {
   size_t pos = 0;
@@ -5180,14 +5192,7 @@ static void show_stats(void) {
       /* Hallelujah! */
 
 
-      cerr << "total_input_failed:      " << total_input_failed << "\n"
-           << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
-           << "total_append_failed:     " << total_append_failed << "\n"
-           << "total_common_failed:     " << total_common_failed << "\n"
-           << "total_execute:           " << total_execute << "\n"
-           << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
-
-      fflush(0);
+      print_norec_exec_debug_info();
 
     }
 
