@@ -49,8 +49,6 @@ public:
 
     void add_all_to_library(IR*);
     void add_all_to_library(string);
-    void add_to_library(IR*);
-    void add_to_library_core(IR*, string*);
     IR* get_from_libary_with_type(IRTYPE);
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
@@ -85,7 +83,12 @@ public:
     unsigned long get_library_size();
     void get_memory_usage();
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
+
 private:
+    void add_to_norec_lib(string);
+    void add_to_library(IR*);
+    void add_to_library_core(IR*, string*);
+
     IR * record_ = NULL;
     //map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 
     //map<NODETYPE, map<NODETYPE, set<unsigned long>> > ir_libary_3D_hash_;
@@ -114,6 +117,7 @@ private:
     map<NODETYPE, vector<pair<string*, int>>> left_lib_set;
     map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
 
+    map<unsigned long, bool> norec_hash;
     vector<string*> all_string_in_lib_collection;
     vector<string*> norec_select_string_in_lib_collection;
 };

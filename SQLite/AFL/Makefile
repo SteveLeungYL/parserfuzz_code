@@ -24,7 +24,7 @@ MISC_PATH   = $(PREFIX)/share/afl
 DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 
 CC         = g++
-CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++ #-fsanitize=address
+CFLAGS     ?= -O3 -fpermissive --std=c++17 -static-libstdc++ #-fsanitize=address
 CFLAGS     += -w \
 	      			-DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 	      			-DBIN_PATH=\"$(BIN_PATH)\"

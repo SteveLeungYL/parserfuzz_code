@@ -260,6 +260,10 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
     return ir_set;
   }
 
+  int unique_id_for_node = 0;
+  for (auto ir : ir_set)
+    ir->uniq_id_in_tree_ = unique_id_for_node++;
+
   p_strip_sql->deep_delete();
   return ir_set;
 
@@ -294,7 +298,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
         res = p->translate(v_ir);
         p->deep_delete();
         p = NULL;
-        add_to_library(res);
+        add_all_to_library(res);
         deep_delete(res);;
     }
 
@@ -1029,89 +1033,77 @@ unsigned long Mutator::get_library_size(){
   return res;
 }
 
+/* add_to_library supports only one stmt at a time, 
+ * add_all_to_library is responsible to split the 
+ * the current IR tree into single query stmts. 
+ * This function is not responsible to free the input IR tree. 
+ */
 void Mutator::add_all_to_library(IR* ir) {
-  /* Since we design the add_to_library to support only one stmt at a time, add_all_to_library is responsible to split the 
-      the current IR tree into single query stmts. 
-      This function is not responsible to free the input IR tree. 
-  */
   add_all_to_library(ir->to_string());
 }
 
 void Mutator::add_all_to_library(string whole_query_str) {
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
-  vector<IR*> ir_set;
   for (auto current_query : queries_vector){
-    ir_set.clear();
-    ir_set = parse_query_str_get_ir_set(current_query);
+
+    // check the validity of the IR here
+    vector<IR*> ir_set = parse_query_str_get_ir_set(current_query);
     if (ir_set.size() == 0) continue;
-    add_to_library(ir_set[ir_set.size()-1]);
-    deep_delete(ir_set[ir_set.size()-1]);
+
+    IR * root = ir_set[ir_set.size()-1];
+
+    if (is_norec_compatible(current_query))
+      add_to_norec_lib(current_query);
+    else
+      add_to_library(root);
+
+    deep_delete(root);
   }
-  queries_vector.clear();
 }
 
+void Mutator::add_to_norec_lib(string select) {
+
+  unsigned long p_hash = hash(select);
+
+  if (norec_hash.find(p_hash) != norec_hash.end())
+    return;
+
+  norec_hash[p_hash] = true;
+
+  string * new_select = new string(select);
+  all_string_in_lib_collection.push_back(new_select);
+  norec_select_string_in_lib_collection.push_back(new_select);
+
+  return;
+}
+
+/*  Save an interesting query stmt into the mutator library. 
+ *
+ *   The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
+ *   However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
+ *   Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary 
+ *   by calling this funcion and get_from_library_with_[_,left,right]_type. 
+ *   We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
+ *   The unique_id_in_tree_ is setup based on the order of the ir_set vector, returned from Program*->translate(ir_set).
+ *
+ */
 void Mutator::add_to_library(IR* ir) {
-  /*  Save an interesting query stmt into the mutator library. 
-    The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
-    However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
-    Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary 
-        by calling this funcion and get_from_library_with_[_,left,right]_type. 
-    We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
-    The unique_id_in_tree_ is setup based on the order of the ir_set vector, returned from Program*->translate(ir_set).
-  */
 
   NODETYPE p_type = ir->type_;
   string * p_query_str = new string(ir->to_string());
-  vector<IR *> new_ir_set;
-  IR* new_ir_root;
 
   unsigned long p_hash = hash(*p_query_str);
 
   if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end() || *p_query_str == "" ){
-        /* p_query_str not interesting enough. Ignore it and clean up. */
-        delete p_query_str;
-        return;
-      }
-
-  ir_libary_2D_hash_[p_type].insert(p_hash);
-
-  /* In case of some mutations of IR could cause mismatch for the original IR trees. We regenerate the IR tree from the current p_query_str from scratch. */
-  auto p_strip_sql = parser(*p_query_str);
-
-  if (p_strip_sql)
-  {
-    try {
-      new_ir_root = p_strip_sql->translate(new_ir_set);
-    }
-    catch (...) {
-      /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignoer the current string, and clean up. */
-      for (auto new_ir : new_ir_set) {
-        if (new_ir->op_ != NULL)
-          delete new_ir->op_;
-        delete new_ir;
-      }
-      delete p_query_str;
-      p_strip_sql->deep_delete();
-      return;  
-    }
-    p_strip_sql->deep_delete();
-  } else {  // if p_strip_sql == NULL;
+    /* p_query_str not interesting enough. Ignore it and clean up. */
     delete p_query_str;
     return;
   }
+  ir_libary_2D_hash_[p_type].insert(p_hash);
 
   all_string_in_lib_collection.push_back(p_query_str);
-
-  if (is_norec_compatible(*p_query_str))
-    norec_select_string_in_lib_collection.push_back(p_query_str);
-
-  int unique_id_for_node = 0;
-  for (auto new_ir : new_ir_set)
-    new_ir->uniq_id_in_tree_ = unique_id_for_node++;
-  add_to_library_core(new_ir_root, p_query_str);
-
-  deep_delete(new_ir_root);
+  add_to_library_core(ir, p_query_str);
 
   // get_memory_usage();  // Debug purpose. 
   
