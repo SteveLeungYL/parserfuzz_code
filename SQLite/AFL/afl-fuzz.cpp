@@ -109,6 +109,12 @@ char* g_library_path;
 char* g_current_input = NULL;
 IR* g_current_ir = NULL;
 
+u64 total_input_failed = 0;
+u64 total_mutate_all_failed = 0;
+u64 total_append_failed = 0;
+u64 total_common_failed = 0;
+u64 total_execute = 0;
+
 
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
@@ -3889,6 +3895,11 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
   u8  keeping = 0, res;
   vector<IR *> ir_set;
 
+  string stripped_query_string = "";
+  for (size_t mem_idx = 0; mem_idx < len; mem_idx++) {
+    stripped_query_string += ((char *)mem)[mem_idx];
+  }
+
   if (fault == crash_mode) {
 
     /* Keep only if there are new bits in the map, add to queue for
@@ -3904,6 +3915,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     // if it is interesting, we update our library with it.
     stage_name = "add_to_library";
     string strip_sql = g_mutator.extract_struct(g_current_ir); //g_current_ir will be deleted in fuzz_one's abandon_entry
+    //string strip_sql = g_mutator.extract_struct(stripped_query_string);
 
     vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(strip_sql);
     if (ir_tree.size() > 0){
@@ -3943,11 +3955,6 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
     if (res == FAULT_ERROR)
       FATAL("Unable to execute target application");
-
-    string stripped_query_string = "";
-    for (size_t mem_idx = 0; mem_idx < len; mem_idx++) {
-      stripped_query_string += ((char *)mem)[mem_idx];
-    }
 
     /* Do not save the whole queries with the appended norec select stmt back to the AFL queue. 
         Since we will append new norec select stmt every time we retrive a new seed, we should 
@@ -5172,6 +5179,14 @@ static void show_stats(void) {
 
       /* Hallelujah! */
 
+
+      cerr << "total_input_failed:      " << total_input_failed << "\n"
+           << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
+           << "total_append_failed:     " << total_append_failed << "\n"
+           << "total_common_failed:     " << total_common_failed << "\n"
+           << "total_execute:           " << total_execute << "\n"
+           << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
+
       fflush(0);
 
     }
@@ -5915,7 +5930,10 @@ static u8 fuzz_one(char** argv) {
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
 
   ir_set = g_mutator.parse_query_str_get_ir_set(input);
-  if (ir_set.size() == 0) goto abandon_entry;
+  if (ir_set.size() == 0) {
+    total_input_failed++;
+    goto abandon_entry;
+  }
 
   unsigned long prev_hash, current_hash;
   prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
@@ -5924,6 +5942,7 @@ static u8 fuzz_one(char** argv) {
   mutated_tree = g_mutator.mutate_all(ir_set);
   // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
   if (mutated_tree.size() < 1) {
+    total_mutate_all_failed++;
     deep_delete(ir_set[ir_set.size() - 1]);
     goto abandon_entry;
   }
@@ -5945,6 +5964,7 @@ static u8 fuzz_one(char** argv) {
     query_str = append_norec_select_stmts(query_str);
 
     if(query_str == ""){
+      total_append_failed++;
       skip_count++;
       continue;
     } else {
@@ -5952,8 +5972,10 @@ static u8 fuzz_one(char** argv) {
       stage_name = "niubi_fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
       if(common_fuzz_stuff(argv, query_str.c_str(), query_str.size())){
+        total_common_failed++;
         goto abandon_entry;
       }
+      total_execute++;
       stage_cur++;
       show_stats();
     }
@@ -7469,7 +7491,9 @@ int main(int argc, char** argv) {
     use_argv = argv + optind;
 
 
+  u64 start_time = get_cur_time();
   do_libary_initialize();//[modify]
+  cerr << "do_library_initialize() takes " << (get_cur_time() - start_time) / 1000 << " seconds\n";
 
   perform_dry_run(use_argv);
 
