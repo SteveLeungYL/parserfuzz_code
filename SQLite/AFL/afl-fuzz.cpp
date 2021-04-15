@@ -3926,8 +3926,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     //[modify] add
     // if it is interesting, we update our library with it.
     stage_name = "add_to_library";
-    string strip_sql = g_mutator.extract_struct(g_current_ir); //g_current_ir will be deleted in fuzz_one's abandon_entry
-    //string strip_sql = g_mutator.extract_struct(stripped_query_string);
+    //string strip_sql = g_mutator.extract_struct(g_current_ir); //g_current_ir will be deleted in fuzz_one's abandon_entry
+    string strip_sql = g_mutator.extract_struct(stripped_query_string);
 
     vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(strip_sql);
     if (ir_tree.size() > 0){

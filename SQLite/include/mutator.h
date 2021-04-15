@@ -85,7 +85,7 @@ public:
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 
 private:
-    void add_to_norec_lib(string);
+    void add_to_norec_lib(IR*);
     void add_to_library(IR*);
     void add_to_library_core(IR*, string*);
 

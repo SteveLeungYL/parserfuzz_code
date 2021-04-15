@@ -1054,7 +1054,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
     IR * root = ir_set[ir_set.size()-1];
 
     if (is_norec_compatible(current_query))
-      add_to_norec_lib(current_query);
+      add_to_norec_lib(root);
     else
       add_to_library(root);
 
@@ -1062,8 +1062,9 @@ void Mutator::add_all_to_library(string whole_query_str) {
   }
 }
 
-void Mutator::add_to_norec_lib(string select) {
+void Mutator::add_to_norec_lib(IR * ir) {
 
+  string select = ir->to_string();
   unsigned long p_hash = hash(select);
 
   if (norec_hash.find(p_hash) != norec_hash.end())
@@ -1074,6 +1075,8 @@ void Mutator::add_to_norec_lib(string select) {
   string * new_select = new string(select);
   all_string_in_lib_collection.push_back(new_select);
   norec_select_string_in_lib_collection.push_back(new_select);
+
+  add_to_library_core(ir, new_select);
 
   return;
 }
