@@ -3951,7 +3951,13 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
 #endif /* ^!SIMPLE_FILES */
 
-    add_to_queue(fn, len, 0);
+    /* Do not save the whole queries with the appended norec select stmt back to the AFL queue. 
+        Since we will append new norec select stmt every time we retrive a new seed, we should 
+        delete all the norec stmts from the query before adding them to the query. 
+    */
+    stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
+
+    add_to_queue(fn, stripped_query_string.size(), 0);
 
     if (hnb == 2) {
       queue_top->has_new_cov = 1;
@@ -3968,11 +3974,6 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     if (res == FAULT_ERROR)
       FATAL("Unable to execute target application");
 
-    /* Do not save the whole queries with the appended norec select stmt back to the AFL queue. 
-        Since we will append new norec select stmt every time we retrive a new seed, we should 
-        delete all the norec stmts from the query before adding them to the query. 
-    */
-    stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
 
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
     if (fd < 0)
