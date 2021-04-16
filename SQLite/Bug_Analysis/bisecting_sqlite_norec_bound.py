@@ -457,18 +457,41 @@ def retrive_all_opt_and_unopt_queries(query_str):
     
     return opt_queries, unopt_queries
 
+def retrive_all_normal_queries(query_str):
+    start_of_norec = query_str.find("SELECT 13579")
+    normal_query = query_str[:start_of_norec]
+
+    begin_idx = []
+    end_idx = []
+
+    for m in re.finditer('SELECT 86420;', query_str):
+        begin_idx.append(m.end())
+    for m in re.finditer('SELECT 13579;', query_str):
+        end_idx.append(m.start())
+
+    for i in range(min( len(begin_idx), len(end_idx) )):
+        current_str = query_str[begin_idx[i]: end_idx[i]]
+        current_str = current_str.replace('\n', '')
+        normal_query += current_str
+
+    return normal_query
+
+
 
 def pretty_print(query, same_idx):
 
     start_of_norec = query.find("SELECT 13579")
 
-    header = query[:start_of_norec]
+    # header = query[:start_of_norec]
     tail = query[start_of_norec:]
 
     # lines = tail.splitlines()
     # opt_selects = lines[1::6]
     # unopt_selects = lines[4::6]
     opt_selects, unopt_selects = retrive_all_opt_and_unopt_queries(tail)
+
+    # It is possible to have multiple normal stmts between norec select stmts. Include them to put them into the header of the output. 
+    header = retrive_all_normal_queries(query)
 
     new_tail = ""
     effect_idx = 0
