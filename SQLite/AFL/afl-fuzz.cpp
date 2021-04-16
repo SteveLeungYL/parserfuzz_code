@@ -172,7 +172,7 @@ static s32 out_fd,                    /* Persistent fd for out_file       */
            fsrv_ctl_fd,               /* Fork server control pipe (write) */
            fsrv_st_fd;                /* Fork server status pipe (read)   */
 
-static s32 max_num_norec_select = 10;     /* Number of No-rec compatible selects in one run_through */
+static s32 max_norec = 10;     /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str;      /* String: query used to test sqlite   */
 static string program_output_str;     /* String: query results output from sqlite   */
@@ -2626,31 +2626,40 @@ string append_norec_select_stmts(string input) {
   else return "";
 
   bool is_append_success = false;
-  string current_norec_select_string = input;
+  string curr_norec_str = input;
   string tmp;
 
-  string new_norec_select_stmts = "";
-  int num_of_norec_select = count_and_get_norec_stmt_str(input, tmp);
+  string new_norec_stmts = "";
+  int num_norec = count_and_get_norec_stmt_str(input, tmp);
 
   int trial = 0;
+  int max_trial = (max_norec - num_norec) * 3;
 
-  while (num_of_norec_select < max_num_norec_select){
-    if (trial >= (max_num_norec_select - num_of_norec_select) * 3) break;    // Give on average 3 chances per select stmts.  
+  while (num_norec < max_norec){
+    if (trial >= max_trial) break;    // Give on average 3 chances per select stmts.  
     trial++;
-    new_norec_select_stmts = g_mutator.get_random_mutated_norec_select_stmt();
-    if (new_norec_select_stmts == "") continue;
-    string combine_string = ensure_semicolon_at_query_end(current_norec_select_string) + ensure_semicolon_at_query_end(new_norec_select_stmts);
+    new_norec_stmts = g_mutator.get_random_mutated_norec_select_stmt();
+    if (new_norec_stmts == "") continue;
+    string combine_string = ensure_semicolon_at_query_end(curr_norec_str) + ensure_semicolon_at_query_end(new_norec_stmts);
     vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
     if (new_ir_tree.size() > 0) {
-      string current_norec_select_string_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
+      string curr_norec_str_tmp;
+      if ( (num_norec < (max_norec - 1)) || (trial < max_trial ) ) {
+        /* Unless it is the very last stmt being appended, do not call validate to check, since validate() could be much computational heavier. */ 
+        curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1]->to_string();
+      }
+      else {
+        curr_norec_str_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
+      }
       deep_delete(new_ir_tree[new_ir_tree.size()-1]);
-      if (current_norec_select_string_tmp != "") {
-        current_norec_select_string = current_norec_select_string_tmp;
-        num_of_norec_select++;
+      if (curr_norec_str_tmp != "") {
+        curr_norec_str = curr_norec_str_tmp;
+        num_norec++;
       }
     }
+    /* Mutation failed. Retrive new norec query and try again. */
   }
-  return current_norec_select_string;
+  return curr_norec_str;
   
 }
 
@@ -3927,11 +3936,11 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     // if it is interesting, we update our library with it.
     stage_name = "add_to_library";
     //string strip_sql = g_mutator.extract_struct(g_current_ir); //g_current_ir will be deleted in fuzz_one's abandon_entry
-    string strip_sql = g_mutator.extract_struct(stripped_query_string);
+    // string strip_sql = g_mutator.extract_struct(stripped_query_string);
 
-    vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(strip_sql);
+    vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(stripped_query_string);
     if (ir_tree.size() > 0){
-      g_mutator.add_all_to_library(ir_tree[ir_tree.size()-1]);
+      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]));
       deep_delete(ir_tree[ir_tree.size()-1]);
       ir_tree.clear();
     } else {
@@ -5963,12 +5972,19 @@ static u8 fuzz_one(char** argv) {
 
   // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
   for(auto ir: mutated_tree){
-  // if (mutated_tree.size() > 0) {
-  //   ir = mutated_tree[mutated_tree.size() - 1];  // Only testing the program root. 
     stage_name = "niubi_fix";
 
-    query_str = g_mutator.validate(ir);
-    g_current_ir = ir;
+    if (ir == NULL) continue;
+
+    /* Use to_string() here, validate() will be called in append_norec_select_stmts. */
+    // query_str = g_mutator.validate(ir);
+    query_str = ir->to_string();
+
+    if(query_str == ""){
+      total_append_failed++;
+      skip_count++;
+      continue;
+    }
 
     query_str = append_norec_select_stmts(query_str);
 

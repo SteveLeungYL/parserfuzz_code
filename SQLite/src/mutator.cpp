@@ -183,8 +183,11 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   while (!is_success){
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
-    if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) < 1))  
+    int query_method = get_rand_int(3);
+    if (norec_select_string_in_lib_collection.size() > 0 && query_method == 0)  
       ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
+    else if (norec_select_string_in_lib_collection.size() > 0 && query_method == 1)
+      return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     else
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
@@ -259,8 +262,9 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     }
   /* The retrived query failed to mutate. If the retrived query itself can already pass the parser, then just return the original retrived query already.  
       For performance saving. 
+      Is it necessary?
   */ 
-    if (ori_norec_select != "") return ori_norec_select;
+    // if (ori_norec_select != "") return ori_norec_select;
   }
 }
 
