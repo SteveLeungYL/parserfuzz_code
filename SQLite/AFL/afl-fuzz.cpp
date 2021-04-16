@@ -111,7 +111,7 @@ IR* g_current_ir = NULL;
 
 u64 total_input_failed = 0;
 u64 total_mutate_all_failed = 0;
-u64 total_append_failed = 0;
+u64 total_mutate_failed = 0;
 u64 total_common_failed = 0;
 u64 total_execute = 0;
 
@@ -2568,7 +2568,7 @@ inline void print_norec_exec_debug_info(){
   cerr << "\n"
            << "total_input_failed:      " << total_input_failed << "\n"
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
-           << "total_append_failed:     " << total_append_failed << "\n"
+           << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_common_failed:     " << total_common_failed << "\n"
            << "total_execute:           " << total_execute << "\n"
            << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
@@ -5976,7 +5976,7 @@ static u8 fuzz_one(char** argv) {
     query_str = ir->to_string();
 
     if(query_str == ""){
-      total_append_failed++;
+      total_mutate_failed++;
       skip_count++;
       continue;
     }
@@ -5985,7 +5985,7 @@ static u8 fuzz_one(char** argv) {
     // query_str = g_mutator.validate(query_str);
 
     if(query_str == ""){
-      total_append_failed++;
+      total_mutate_failed++;
       skip_count++;
       continue;
     } else {
