@@ -181,8 +181,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
     int query_method = get_rand_int(3);
-    if (norec_select_string_in_lib_collection.size() > 0 && query_method < 1)  
-      ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
+    if (all_norec_pstr_vec.size() > 0 && query_method < 1)  
+      ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
     else
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
@@ -1132,8 +1132,8 @@ void Mutator::add_to_norec_lib(IR * ir) {
 
   string * new_select = new string(select);
 
-  all_string_in_lib_collection.insert(new_select);
-  norec_select_string_in_lib_collection.push_back(new_select);
+  all_query_pstr_set.insert(new_select);
+  all_norec_pstr_vec.push_back(new_select);
 
   add_to_library_core(ir, new_select);
 
@@ -1164,8 +1164,8 @@ void Mutator::add_to_library(IR* ir) {
   }
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
-  all_string_in_lib_collection.insert(p_query_str);
-  // norec_select_string_in_lib_collection.push_back(p_query_str);
+  all_query_pstr_set.insert(p_query_str);
+  all_norec_pstr_vec.push_back(p_query_str);
 
   add_to_library_core(ir, p_query_str);
 
@@ -1303,7 +1303,7 @@ void Mutator::get_memory_usage() {
   total_size += size_string_libary;
 
   unsigned long size_real_ir_set_str_libary = 0;
-  for (auto i : all_string_in_lib_collection)
+  for (auto i : all_query_pstr_set)
     size_real_ir_set_str_libary += i->capacity();
   f << "all_saved_query_str size :" << size_real_ir_set_str_libary
        << "\t - " << size_real_ir_set_str_libary * 1.0 / use << "\n";
@@ -1333,7 +1333,7 @@ void Mutator::debug(IR *root){
 Mutator::~Mutator(){
   cout << "HERE" << endl;
   
-  for (auto iter : all_string_in_lib_collection){
+  for (auto iter : all_query_pstr_set){
     delete iter;
   }
 }
@@ -1677,5 +1677,5 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
 
 int Mutator::get_norec_select_collection_size() {
 
-  return norec_select_string_in_lib_collection.size();
+  return all_norec_pstr_vec.size();
 }
