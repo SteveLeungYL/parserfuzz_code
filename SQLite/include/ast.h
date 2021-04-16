@@ -119,6 +119,13 @@ public:
 
         }
 
+    // delete this IR and necessary clean up
+    void drop();
+    // delete the IR tree
+    void deep_drop();
+    // copy the IR tree
+    IR * deep_copy();
+
     union{
         unsigned long int_val_;
         double f_val_;
