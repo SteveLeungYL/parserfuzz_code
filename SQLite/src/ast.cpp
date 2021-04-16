@@ -40,6 +40,37 @@ string IR::to_string(){
     return res;
 }
 
+void IR::drop() {
+
+  if (this->op_) delete this->op_;
+  delete this;
+}
+
+void IR::deep_drop() {
+
+  if (this->left_) this->left_->deep_drop();
+  if (this->right_) this->right_->deep_drop();
+
+  this->drop();
+}
+
+IR * IR::deep_copy() {
+
+  IR * left = NULL, * right = NULL, * copy_res;
+  IROperator * op = NULL;
+
+  if (this->left_) left = this->left_->deep_copy();
+  if (this->right_) right = this->right_->deep_copy();
+
+  if (this->op_ != NULL)
+    op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
+
+  copy_res = new IR(this->type_, op, left, right, this->f_val_, this->str_val_,
+      this->name_, this->mutated_times_);
+  copy_res->id_type_ = this->id_type_;
+
+  return copy_res;
+}
 
 IR* ShowStatement::translate(vector<IR *> &v_ir_collector){
 
