@@ -2617,23 +2617,20 @@ string ensure_semicolon_at_query_end(string stmt){
 
 string append_norec_select_stmts(string input) {
 
-  // for (auto iter = input.begin(); iter != input.end(); iter++){
-  //   if ((*iter) == '\0') *iter = '\n';
-  // }
-
+  /* Check whether the original query makes sense, if not, do not even consider appending anything */
   vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
   if (original_ir_tree.size() > 0) deep_delete(original_ir_tree[original_ir_tree.size()-1]);
   else return "";
 
   bool is_append_success = false;
   string curr_norec_str = input;
-  string tmp;
+  string tmp; // Not used. Just for dummpy passing into the help function. 
 
   string new_norec_stmts = "";
   int num_norec = count_and_get_norec_stmt_str(input, tmp);
 
   int trial = 0;
-  int max_trial = (max_norec - num_norec) * 3;
+  int max_trial = (max_norec - num_norec) * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
 
   while (num_norec < max_norec){
     if (trial >= max_trial) break;    // Give on average 3 chances per select stmts.  
@@ -2641,18 +2638,19 @@ string append_norec_select_stmts(string input) {
     new_norec_stmts = g_mutator.get_random_mutated_norec_select_stmt();
     if (new_norec_stmts == "") continue;
     string combine_string = ensure_semicolon_at_query_end(curr_norec_str) + ensure_semicolon_at_query_end(new_norec_stmts);
+    /* Reparse the combine_query_str to check whether the added norec_stmts is valide. */
     vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
     if (new_ir_tree.size() > 0) {
       string curr_norec_str_tmp;
       curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1] -> to_string();
-      // curr_norec_str_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
       deep_delete(new_ir_tree[new_ir_tree.size()-1]);
       if (curr_norec_str_tmp != "") {
+        /* Save the updated query_str */
         curr_norec_str = curr_norec_str_tmp;
         num_norec++;
       }
     }
-    /* Mutation failed. Retrive new norec query and try again. */
+    /* Return norec query does not pass the parser. Append failed. Retrive new norec query and try again. */
   }
   return curr_norec_str;
 }
@@ -2660,9 +2658,9 @@ string append_norec_select_stmts(string input) {
 bool is_str_empty(string input_str){
   for (int i = 0; i < input_str.size(); i++){
     char c = input_str[i];
-    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not only writespace
+    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not empty.
   }
-  return true; // Only writespace
+  return true; // Empty
 }
 
 string remove_No_Rec_stmts_from_whole_query(string query){
@@ -3161,6 +3159,7 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   vector <int> opt_result_vec, unopt_result_vec;
   int compare_No_Rec_result_int = compare_No_Rec_result(result_string, opt_result_vec, unopt_result_vec);
 
+  /* Some useful debug output. That could show what queries are being tested.  */
   // cerr << "Query: \n";
   // cerr << cmd_string << "\n";
   // cerr << "Result string: \n";
@@ -3176,19 +3175,6 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
   if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
   {
-    // cerr << "Query: \n";
-    // cerr << cmd_string << "\n";
-    // cerr << "Result string: \n";
-    // cerr << result_string << "\n";
-    // cerr << "Optimized results (int): \n";
-    // for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++)
-    //   cerr << *iter << "\n";
-    // cerr << "Unoptimized results (int): \n";
-    // for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++)
-    //   cerr << *iter << "\n";
-    // cerr << "Compare_No_Rec_result_int: \n"
-    //      << compare_No_Rec_result_int;
-    // cerr << "\n\n\n\n";
 
     ofstream outputfile;
 
@@ -3222,31 +3208,15 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
     outputfile.close();
 
-    // cerr << "E";
     total_execs++;
   }
   else if (!is_skip_no_rec && compare_No_Rec_result_int == 1)
   {
-    // cerr << "P";
-    // cerr << "Query: \n";
-    // cerr << cmd_string << "\n";
-    // cerr << "Result string: \n";
-    // cerr << result_string << "\n";
-    // cerr << "Optimized results (int): \n";
-    // for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++)
-    //   cerr << *iter << "\n";
-    // cerr << "Unoptimized results (int): \n";
-    // for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++)
-    //   cerr << *iter << "\n";
-    // cerr << "Compare_No_Rec_result_int: \n"
-    //      << compare_No_Rec_result_int;
-    // cerr << "\n\n\n\n";
-
     total_execs++;
   }
   else
   {
-    // cerr << "C";
+    /* Query being skipped, or all select stmts return error results. */ 
   }
 
   result_string.clear();
@@ -3916,7 +3886,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     stripped_query_string += ((char *)mem)[mem_idx];
   }
 
-  if (is_str_empty(stripped_query_string)) return keeping;
+  if (is_str_empty(stripped_query_string)) return keeping; // return 0; Empty string. Not added. 
 
   if (fault == crash_mode) {
 
@@ -3930,10 +3900,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
     char * tmp_name = stage_name;
     //[modify] add
-    // if it is interesting, we update our library with it.
+    // if it is interesting, we update our library with it. 
     stage_name = "add_to_library";
-    //string strip_sql = g_mutator.extract_struct(g_current_ir); //g_current_ir will be deleted in fuzz_one's abandon_entry
-    // string strip_sql = g_mutator.extract_struct(stripped_query_string);
 
     vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(stripped_query_string);
     if (ir_tree.size() > 0){
@@ -5938,7 +5906,7 @@ static u8 fuzz_one(char** argv) {
   out_buf[len] = '\0';
 
   //[modify] add
-  stage_name = "niubi_mutate";
+  stage_name = "mutate";
 
   int skip_count;
   skip_count = 0;
@@ -5957,7 +5925,6 @@ static u8 fuzz_one(char** argv) {
   current_hash = 0;
 
   mutated_tree = g_mutator.mutate_all(ir_set);
-  // cerr << "cccMutated_tree.size is: " << mutated_tree.size() << endl;
   if (mutated_tree.size() < 1) {
     total_mutate_all_failed++;
     deep_delete(ir_set[ir_set.size() - 1]);
@@ -5971,12 +5938,11 @@ static u8 fuzz_one(char** argv) {
 
   // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
   for(auto ir: mutated_tree){
-    stage_name = "niubi_fix";
+    stage_name = "query_fix";
 
     if (ir == NULL) continue;
 
-    /* Use to_string() here, validate() will be called in append_norec_select_stmts. */
-    // query_str = g_mutator.validate(ir);
+    /* Use to_string() here, validate() will be called just once, at the end of the query mutation. */
     query_str = ir->to_string();
 
     if(query_str == ""){

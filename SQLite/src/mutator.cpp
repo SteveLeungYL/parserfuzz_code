@@ -126,7 +126,6 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
             }
         }
     }
-    // cerr << "Norec select marked (bool): " << is_mark_successfully << endl;
     return is_mark_successfully;
 }
 
@@ -161,7 +160,6 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
                 continue;
             }
 
-            // cerr << "\n\n\nLooking at mutated IR TREE: " << new_ir_tree->to_string() << endl;
             res_hash.insert(tmp_hash);
             res.push_back(new_ir_tree);
         }
@@ -185,16 +183,12 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     int query_method = get_rand_int(3);
     if (norec_select_string_in_lib_collection.size() > 0 && query_method < 1)  
       ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
-    // // else if (norec_select_string_in_lib_collection.size() > 0 && query_method == 1)
-    // //   return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     else
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
 
-    /* If the choosen previously seen norec stmt does not pass the parser/IR tranlator, switch to standard template string.  */ 
-    // if (ir_tree.size() == 0) ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; "; 
     if (ir_tree.size() == 0) continue; 
     
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
@@ -257,10 +251,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         continue;
       }
 
-      string tmp = extract_struct(new_norec_select_str);
-
       if (is_norec_compatible(new_norec_select_str) && 
-        extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)
+        extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)  // Make sure the mutated structure is different. 
         ){
         deep_delete(ir_tree[ir_tree.size()-1]);
         is_success = true;
@@ -268,11 +260,9 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       }
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
-  /* The retrived query failed to mutate. If the retrived query itself can already pass the parser, then just return the original retrived query already.  
-      For performance saving. 
-      Is it necessary?
-  */ 
-    // if (ori_norec_select != "") return ori_norec_select;
+  /* Failed to mutate the retrived norec select stmt after 100 trials. Maybe it is because the norec select stmt is too complex the mutate. 
+      Grab another norec select stmt from the lib or from the template, try again. 
+  */
   }
 }
 
@@ -447,15 +437,6 @@ IR * Mutator::locate_parent(IR * root ,IR * old_ir){
     }
     /* Cannot find the parent node. */
     return NULL;
-
-    // if(root->left_ == old_ir || root->right_ == old_ir) return root;
-
-    // if(root->left_ != NULL) 
-    //     if(auto res = locate_parent(root->left_, old_ir))  return res;
-    // if(root->right_ != NULL)
-    //     if(auto res = locate_parent(root->right_, old_ir)) return res;
-
-    // return NULL;
 }
 
 IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
@@ -481,10 +462,8 @@ string Mutator::validate(IR * root){
     if(root == NULL) return "";
     try{
         string sql_str = root->to_string();
-        // cerr << "Mutated query string: " << sql_str << endl << endl;
         auto parsed_ir = parser(sql_str);
         if(parsed_ir == NULL) 
-            // cerr << "Mutated query not passing parser!!!" << endl << endl;
             return "";
         parsed_ir->deep_delete();
 
@@ -492,7 +471,6 @@ string Mutator::validate(IR * root){
         vector<IR*> ordered_ir;
         auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
         fix_graph(graph, root, ordered_ir);
-        // cerr << "Mutated query ISSSSS  passing parser!!!" << endl << endl;
         return fix(root);
     }catch(...){
         // invalid sql , skip
@@ -1111,21 +1089,23 @@ void Mutator::add_all_to_library(IR* ir) {
 
 void Mutator::add_all_to_library(string whole_query_str) {
 
-  bool is_only_whitespace = true;
+  /* If the query_str is empty. Ignored and return. */
+  bool is_empty = true;
   for (int i = 0; i < whole_query_str.size(); i++){
     char c = whole_query_str[i];
     if (!isspace(c) && c != '\n' && c != '\0') {
-      is_only_whitespace = false;
+      is_empty = false;  // Not empty.
       break;
-    } // Not only writespace
+    } // Empty
   }
 
-  if (is_only_whitespace) return;
+  if (is_empty) return;
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
   for (auto current_query : queries_vector){
 
     // check the validity of the IR here
+    // The unique_id_in_tree_ variable are being set inside the parsing func. 
     vector<IR*> ir_set = parse_query_str_get_ir_set(current_query);
     if (ir_set.size() == 0) continue;
 
@@ -1185,7 +1165,7 @@ void Mutator::add_to_library(IR* ir) {
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
   all_string_in_lib_collection.insert(p_query_str);
-  norec_select_string_in_lib_collection.push_back(p_query_str);
+  // norec_select_string_in_lib_collection.push_back(p_query_str);
 
   add_to_library_core(ir, p_query_str);
 
@@ -1205,11 +1185,10 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
   NODETYPE p_type = ir->type_;
   NODETYPE left_type = kEmpty, right_type = kEmpty;
 
-  /* We do not skip the execution of the add_to_library_core, it will always iterate through the whole IR tree, 
-    even if the current node has been seen before. Using this way, we ensure correct and repeatable unique_id_for_ir_node assignment. 
-  */
-  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()) 
+  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()) {
     is_skip_saving_current_node = true;
+    return;
+  }
   else
     ir_libary_2D_hash_[p_type].insert(p_hash);
 
