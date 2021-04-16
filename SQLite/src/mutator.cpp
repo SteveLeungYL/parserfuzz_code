@@ -177,17 +177,16 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   */
   bool is_success = false;
   vector<IR*> ir_tree;
-  string new_generated_norec_select_stmt = "";
-  string new_fixed_norec_select_stmt = "";
+  string new_norec_select_str = "";
 
   while (!is_success){
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
     int query_method = get_rand_int(3);
-    if (norec_select_string_in_lib_collection.size() > 0 && query_method == 0)  
+    if (norec_select_string_in_lib_collection.size() > 0 && query_method < 2)  
       ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
-    else if (norec_select_string_in_lib_collection.size() > 0 && query_method == 1)
-      return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
+    // // else if (norec_select_string_in_lib_collection.size() > 0 && query_method == 1)
+    // //   return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     else
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
@@ -204,7 +203,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
         If failed, retrive another norec stmt from the library or from the template again.
     */
-    for (int trial_count = 0; trial_count < 10; trial_count++){
+    for (int trial_count = 0; trial_count < 100; trial_count++){
 
       /* Pick random ir node in the select stmt */
       bool is_mutate_ir_node_chosen = false;
@@ -246,11 +245,11 @@ string Mutator::get_random_mutated_norec_select_stmt(){
           This function is an loop that would be called multiple times, if we use validate() each time to check the IR tree, it would introduce
           huge performance penalty.
        */
-      new_generated_norec_select_stmt = new_ir_root->to_string();
+      new_norec_select_str = new_ir_root->to_string();
       deep_delete(new_ir_root);
 
       /* Final check and return string if compatible */
-      vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_generated_norec_select_stmt);
+      vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_norec_select_str);
       if (new_ir_verified.size() > 0) {
         deep_delete(new_ir_verified[new_ir_verified.size()-1]);
       }
@@ -258,12 +257,14 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         continue;
       }
 
-      if (is_norec_compatible(new_generated_norec_select_stmt) && 
-        new_fixed_norec_select_stmt != ori_norec_select
+      string tmp = extract_struct(new_norec_select_str);
+
+      if (is_norec_compatible(new_norec_select_str) && 
+        extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)
         ){
         deep_delete(ir_tree[ir_tree.size()-1]);
         is_success = true;
-        return new_generated_norec_select_stmt;
+        return new_norec_select_str;
       }
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }

@@ -2644,8 +2644,8 @@ string append_norec_select_stmts(string input) {
     vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
     if (new_ir_tree.size() > 0) {
       string curr_norec_str_tmp;
-      // curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1] -> to_string();
-      curr_norec_str_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
+      curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1] -> to_string();
+      // curr_norec_str_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
       deep_delete(new_ir_tree[new_ir_tree.size()-1]);
       if (curr_norec_str_tmp != "") {
         curr_norec_str = curr_norec_str_tmp;
@@ -5982,7 +5982,7 @@ static u8 fuzz_one(char** argv) {
     }
 
     query_str = append_norec_select_stmts(query_str);
-    // query_str = g_mutator.validate(query_str);
+    query_str = g_mutator.validate(query_str);
 
     if(query_str == ""){
       total_mutate_failed++;
