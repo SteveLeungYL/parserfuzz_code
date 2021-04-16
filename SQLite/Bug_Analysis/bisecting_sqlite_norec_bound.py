@@ -469,10 +469,12 @@ def retrive_all_normal_queries(query_str):
     for m in re.finditer('SELECT 13579;', query_str):
         end_idx.append(m.start())
 
+    end_idx = end_idx[1:]  # Ignore the first one. The end_idx has 1 offset shift compare to begin_idx. 
+
     for i in range(min( len(begin_idx), len(end_idx) )):
         current_str = query_str[begin_idx[i]: end_idx[i]]
         current_str = current_str.replace('\n', '')
-        normal_query += current_str
+        normal_query += current_str + '\n'
 
     return normal_query
 
