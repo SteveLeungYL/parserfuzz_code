@@ -2644,13 +2644,8 @@ string append_norec_select_stmts(string input) {
     vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
     if (new_ir_tree.size() > 0) {
       string curr_norec_str_tmp;
-      if ( (num_norec < (max_norec - 1)) || (trial < max_trial ) ) {
-        /* Unless it is the very last stmt being appended, do not call validate to check, since validate() could be much computational heavier. */ 
-        curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1]->to_string();
-      }
-      else {
-        curr_norec_str_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
-      }
+      // curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1] -> to_string();
+      curr_norec_str_tmp = g_mutator.validate(new_ir_tree[new_ir_tree.size()-1]);
       deep_delete(new_ir_tree[new_ir_tree.size()-1]);
       if (curr_norec_str_tmp != "") {
         curr_norec_str = curr_norec_str_tmp;
@@ -2660,7 +2655,14 @@ string append_norec_select_stmts(string input) {
     /* Mutation failed. Retrive new norec query and try again. */
   }
   return curr_norec_str;
-  
+}
+
+bool check_whether_string_only_whitespace(string input_str){
+  for (int i = 0; i < input_str.size(); i++){
+    char c = input_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not only writespace
+  }
+  return true; // Only writespace
 }
 
 string remove_No_Rec_stmts_from_whole_query(string query){
@@ -2668,6 +2670,7 @@ string remove_No_Rec_stmts_from_whole_query(string query){
   vector<string> queries_vector = string_splitter(query, ";");
 
   for (auto current_stmt : queries_vector){
+    if (check_whether_string_only_whitespace(current_stmt)) continue;
     if(!g_mutator.is_norec_compatible(current_stmt)) output_query += current_stmt + "; ";
   }
 
@@ -2991,14 +2994,6 @@ string rewrite_query_by_No_Rec(string query)
   
   // The ";" is being taken care of after returnning from the rewrite function
   return rewrited_string;
-}
-
-bool check_whether_string_only_whitespace(string input_str){
-  for (int i = 0; i < input_str.size(); i++){
-    char c = input_str[i];
-    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not only writespace
-  }
-  return true; // Only writespace
 }
 
 int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_vec, vector<int>& unopt_result_vec){
@@ -5987,6 +5982,7 @@ static u8 fuzz_one(char** argv) {
     }
 
     query_str = append_norec_select_stmts(query_str);
+    // query_str = g_mutator.validate(query_str);
 
     if(query_str == ""){
       total_append_failed++;

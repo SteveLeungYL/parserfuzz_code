@@ -248,9 +248,16 @@ string Mutator::get_random_mutated_norec_select_stmt(){
        */
       new_generated_norec_select_stmt = new_ir_root->to_string();
       deep_delete(new_ir_root);
-      // cerr << "\n\n\nnew_fixed_norec_select_stmt\n" <<  new_fixed_norec_select_stmt   << ":END" << endl;
 
       /* Final check and return string if compatible */
+      vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_generated_norec_select_stmt);
+      if (new_ir_verified.size() > 0) {
+        deep_delete(new_ir_verified[new_ir_verified.size()-1]);
+      }
+      else {
+        continue;
+      }
+
       if (is_norec_compatible(new_generated_norec_select_stmt) && 
         new_fixed_norec_select_stmt != ori_norec_select
         ){
@@ -458,6 +465,14 @@ IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector
     }
     cerr << "Error: Cannot find the child type from parent. " << endl;
     return nullptr;
+}
+
+string Mutator::validate(string query){
+  vector<IR*> ir_set = parse_query_str_get_ir_set(query);
+  if (ir_set.size() == 0) return "";
+  else {
+    return validate(ir_set[ir_set.size()-1]);
+  }
 }
 
 string Mutator::validate(IR * root){
