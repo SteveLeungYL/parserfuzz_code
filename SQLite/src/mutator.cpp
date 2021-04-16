@@ -184,7 +184,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
     if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) < 1))  
-      return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
+      ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     else
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
@@ -201,7 +201,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
         If failed, retrive another norec stmt from the library or from the template again.
     */
-    for (int trial_count = 0; trial_count < 100; trial_count++){
+    for (int trial_count = 0; trial_count < 10; trial_count++){
 
       /* Pick random ir node in the select stmt */
       bool is_mutate_ir_node_chosen = false;
@@ -239,8 +239,11 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         deep_delete(new_mutated_ir_node);
         continue;
       }
-      new_fixed_norec_select_stmt = new_ir_root->to_string();
-      new_generated_norec_select_stmt = validate(new_ir_root);
+      /* Do not use validate here. Validate() could be very computational expensive, especially when they try to call fix_graph() or fix();
+          This function is an loop that would be called multiple times, if we use validate() each time to check the IR tree, it would introduce
+          huge performance penalty.
+       */
+      new_generated_norec_select_stmt = new_ir_root->to_string();
       deep_delete(new_ir_root);
       // cerr << "\n\n\nnew_fixed_norec_select_stmt\n" <<  new_fixed_norec_select_stmt   << ":END" << endl;
 
@@ -254,9 +257,10 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       }
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
-  /* Repeat the retriving norec stmt loop. 
-    If this funcion being treated incorrectly, could turns into dead loop. 
+  /* The retrived query failed to mutate. If the retrived query itself can already pass the parser, then just return the original retrived query already.  
+      For performance saving. 
   */ 
+    if (ori_norec_select != "") return ori_norec_select;
   }
 }
 
@@ -404,14 +408,42 @@ bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){
 
 IR * Mutator::locate_parent(IR * root ,IR * old_ir){
 
-    if(root->left_ == old_ir || root->right_ == old_ir) return root;
+    /* One of the biggest runtime performance bottlenet as shown by tool 'perf'. 
+        Reimplement this with non-recursion 
+    */
 
-    if(root->left_ != NULL) 
-        if(auto res = locate_parent(root->left_, old_ir))  return res;
-    if(root->right_ != NULL)
-        if(auto res = locate_parent(root->right_, old_ir)) return res;
+    vector<IR*> s;
+    IR* p = root;
+    while (p != NULL || !s.empty()){
+      while (p != NULL){
+        s.push_back(p);
+        p = p -> left_;
+      }
 
+      if (!s.empty()){
+        p = s[s.size()-1];
+
+        /* Implement the locate_parent logic here */
+        if (p->left_ == old_ir || p->right_ == old_ir) {
+          s.clear();
+          return p;
+        }
+
+        s.pop_back();
+        p = p -> right_;
+      }
+    }
+    /* Cannot find the parent node. */
     return NULL;
+
+    // if(root->left_ == old_ir || root->right_ == old_ir) return root;
+
+    // if(root->left_ != NULL) 
+    //     if(auto res = locate_parent(root->left_, old_ir))  return res;
+    // if(root->right_ != NULL)
+    //     if(auto res = locate_parent(root->right_, old_ir)) return res;
+
+    // return NULL;
 }
 
 IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
