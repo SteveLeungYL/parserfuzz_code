@@ -183,9 +183,9 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   while (!is_success){
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
-    if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) < 2))  
-      ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
-    else 
+    if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) < 1))  
+      return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
+    else
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
     ir_tree.clear();
@@ -201,7 +201,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
         If failed, retrive another norec stmt from the library or from the template again.
     */
-    for (int trial_count = 0; trial_count < 10; trial_count++){
+    for (int trial_count = 0; trial_count < 100; trial_count++){
 
       /* Pick random ir node in the select stmt */
       bool is_mutate_ir_node_chosen = false;
@@ -254,14 +254,9 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       }
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
-    string query_from_lib = validate(ir_tree[ir_tree.size()-1]);
-    deep_delete(ir_tree[ir_tree.size()-1]);
-    /*  Even if the retrived query is not successfully mutated, we can still use the one that is already being saved into the library, 
-          since it is already passing the parser.
-          Return the retrived query to the parent function.
-    */
-    if (query_from_lib == "") continue;
-    else return query_from_lib;
+  /* Repeat the retriving norec stmt loop. 
+    If this funcion being treated incorrectly, could turns into dead loop. 
+  */ 
   }
 }
 
