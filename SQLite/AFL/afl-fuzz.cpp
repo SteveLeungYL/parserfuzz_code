@@ -2657,7 +2657,7 @@ string append_norec_select_stmts(string input) {
   return curr_norec_str;
 }
 
-bool check_whether_string_only_whitespace(string input_str){
+bool is_str_empty(string input_str){
   for (int i = 0; i < input_str.size(); i++){
     char c = input_str[i];
     if (!isspace(c) && c != '\n' && c != '\0') return false; // Not only writespace
@@ -2670,7 +2670,7 @@ string remove_No_Rec_stmts_from_whole_query(string query){
   vector<string> queries_vector = string_splitter(query, ";");
 
   for (auto current_stmt : queries_vector){
-    if (check_whether_string_only_whitespace(current_stmt)) continue;
+    if (is_str_empty(current_stmt)) continue;
     if(!g_mutator.is_norec_compatible(current_stmt)) output_query += current_stmt + "; ";
   }
 
@@ -2998,7 +2998,7 @@ string rewrite_query_by_No_Rec(string query)
 
 int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_vec, vector<int>& unopt_result_vec){
 
-  if(check_whether_string_only_whitespace(result_string)){
+  if(is_str_empty(result_string)){
     opt_result_vec.push_back(-1);
     unopt_result_vec.push_back(-1);
     return -1;
@@ -3916,6 +3916,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     stripped_query_string += ((char *)mem)[mem_idx];
   }
 
+  if (is_str_empty(stripped_query_string)) return keeping;
+
   if (fault == crash_mode) {
 
     /* Keep only if there are new bits in the map, add to queue for
@@ -3963,6 +3965,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         delete all the norec stmts from the query before adding them to the query. 
     */
     stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
+
+    if (is_str_empty(stripped_query_string)) return keeping;
 
     add_to_queue(fn, stripped_query_string.size(), 0);
 

@@ -183,7 +183,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
     int query_method = get_rand_int(3);
-    if (norec_select_string_in_lib_collection.size() > 0 && query_method < 2)  
+    if (norec_select_string_in_lib_collection.size() > 0 && query_method < 1)  
       ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     // // else if (norec_select_string_in_lib_collection.size() > 0 && query_method == 1)
     // //   return *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
@@ -1110,6 +1110,17 @@ void Mutator::add_all_to_library(IR* ir) {
 }
 
 void Mutator::add_all_to_library(string whole_query_str) {
+
+  bool is_only_whitespace = true;
+  for (int i = 0; i < whole_query_str.size(); i++){
+    char c = whole_query_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0') {
+      is_only_whitespace = false;
+      break;
+    } // Not only writespace
+  }
+
+  if (is_only_whitespace) return;
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
   for (auto current_query : queries_vector){
