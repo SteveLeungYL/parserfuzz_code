@@ -3934,6 +3934,10 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
       g_mutator.add_all_to_library(ir_tree[ir_tree.size()-1]);
       deep_delete(ir_tree[ir_tree.size()-1]);
       ir_tree.clear();
+    } else {
+      deep_delete(ir_tree[ir_tree.size()-1]);
+      ir_tree.clear();
+      return keeping; // keep = 0, meaning nothing added to the queue. 
     }
 
     show_stats();

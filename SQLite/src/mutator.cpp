@@ -182,7 +182,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
   while (!is_success){
     string ori_norec_select = "";
-    if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) == 0))  
+    /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
+    if (norec_select_string_in_lib_collection.size() > 0 && (get_rand_int(3) < 2))  
       ori_norec_select = *(norec_select_string_in_lib_collection[get_rand_int(norec_select_string_in_lib_collection.size())]);
     else 
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
@@ -253,10 +254,14 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       }
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
+    string query_from_lib = validate(ir_tree[ir_tree.size()-1]);
     deep_delete(ir_tree[ir_tree.size()-1]);
-    /* Repeat the retriving norec stmt loop. Do not give up until there are successful norec stmt mutations generated. 
-        If this funcion being treated incorrectly, could turns into dead loop. 
+    /*  Even if the retrived query is not successfully mutated, we can still use the one that is already being saved into the library, 
+          since it is already passing the parser.
+          Return the retrived query to the parent function.
     */
+    if (query_from_lib == "") continue;
+    else return query_from_lib;
   }
 }
 
@@ -1088,10 +1093,9 @@ void Mutator::add_to_norec_lib(IR * ir) {
   norec_hash[p_hash] = true;
 
   string * new_select = new string(select);
-  if (all_string_in_lib_collection.find(new_select) == all_string_in_lib_collection.end()) {
-    all_string_in_lib_collection.insert(new_select);
-    norec_select_string_in_lib_collection.push_back(new_select);
-  }
+
+  all_string_in_lib_collection.insert(new_select);
+  norec_select_string_in_lib_collection.push_back(new_select);
 
   add_to_library_core(ir, new_select);
 
@@ -1122,10 +1126,9 @@ void Mutator::add_to_library(IR* ir) {
   }
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
-  if (all_string_in_lib_collection.find(p_query_str) == all_string_in_lib_collection.end()) {
-    all_string_in_lib_collection.insert(p_query_str);
-    norec_select_string_in_lib_collection.push_back(p_query_str);
-  }
+  all_string_in_lib_collection.insert(p_query_str);
+  norec_select_string_in_lib_collection.push_back(p_query_str);
+
   add_to_library_core(ir, p_query_str);
 
   // get_memory_usage();  // Debug purpose. 
