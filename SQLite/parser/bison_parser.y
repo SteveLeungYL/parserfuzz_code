@@ -585,8 +585,9 @@ statement_list:
             $$ = new StatementList();
             $$->v_statement_list_.push_back($1);
         }
-    |   statement_list ';' statement {
+    |   statement_list opt_semicolon statement {
             $1->v_statement_list_.push_back($3);
+            $1->opt_semicolon_=$2;
             $$ = $1;
         }
     ;
@@ -2324,7 +2325,7 @@ join_condition:
  ******************************/
 
 opt_semicolon:
-        ';' {$$ = new OptSemicolon(); $$->str_val_ = string(";");}
+        ';' opt_semicolon {$$ = new OptSemicolon(); $$->str_val_ = string(";"); $$->opt_semicolon_ = $2;}
     |   /* empty */{$$ = new OptSemicolon(); $$->str_val_ = string("");}
     ;
 

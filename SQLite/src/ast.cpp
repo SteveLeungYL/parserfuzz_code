@@ -1750,6 +1750,7 @@ void Program::deep_delete(){
 
 void StatementList::deep_delete(){
 	SAFEDELETELIST(v_statement_list_);
+    SAFEDELETE(opt_semicolon_);
 	delete this;
 }
 
@@ -2403,6 +2404,7 @@ void JoinCondition::deep_delete(){
 
 
 void OptSemicolon::deep_delete(){
+    SAFEDELETE(opt_semicolon_);
 	delete this;
 }
 
