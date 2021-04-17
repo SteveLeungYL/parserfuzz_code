@@ -6,6 +6,8 @@ MySQL/AFL/afl-fuzz
 .vscode
 *.swp
 
+afl-fuzz-asan
+
 # files automatically generated
 bison_parser.cpp
 bison_parser.h
