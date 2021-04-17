@@ -259,39 +259,9 @@ IR * deep_copy_size(const IR * root, unsigned long *psize){
 }
 
 
-IR * deep_copy(const IR * root){
-
-  if (root == NULL) return NULL;
-
-  IR * left = NULL, * right = NULL, * copy_res;
-  IROperator * op = NULL;
-
-  if(root->left_) left = deep_copy(root->left_); // do you have a second version for deep_copy that accept only one argument?                                                  
-  if(root->right_) right = deep_copy(root->right_);//no I forget to update here
-  if(root->op_ != NULL) op = OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_);
-
-  copy_res = new IR(root->type_, op, left, right, root->f_val_, root->str_val_, 
-      root->name_, root->mutated_times_);
-  copy_res->id_type_ = root->id_type_;
-
-  return copy_res;
-
-}
-
-void deep_delete(IR * root){
-
-  if (root == NULL) return;
-
-  if(root->left_) deep_delete(root->left_);
-  if(root->right_) deep_delete(root->right_);
-  if(root->op_) delete root->op_;
-
-  delete root;
-}
-
 void deep_delete_ir_tree(const vector<IR*>& ir_set){
   /* Deep delete an ir_tree. Does not need to guarantee the input tree is complete. */
-  if ( ir_set[ir_set.size()-1]->type_ == kProgram ) deep_delete(ir_set[ir_set.size()-1]);
+  if ( ir_set[ir_set.size()-1]->type_ == kProgram ) ir_set.back()->deep_drop();
   else {
     for (auto ir : ir_set){
       if(ir->op_ != NULL) delete ir->op_;

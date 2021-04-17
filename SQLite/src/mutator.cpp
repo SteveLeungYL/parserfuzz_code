@@ -137,9 +137,10 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
     mark_all_norec_select_stmt(v_ir_collector);
 
     for(auto ir: v_ir_collector){
-        if(ir == root || ir->type_ == kProgram 
-        || ir -> is_norec_select_fixed 
-        ) continue;
+
+        if(ir == root || ir->type_ == kProgram || ir -> is_norec_select_fixed )
+          continue;
+
         // cerr << "\n\n\nLooking at ir node: " << ir->to_string() << endl;
         vector<IR *> v_mutated_ir = mutate(ir);
 
@@ -149,14 +150,14 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
             replace(new_ir_tree, this->record_, i);        
 
             if(!check_node_num(new_ir_tree, 100)){
-                deep_delete(new_ir_tree);
+                new_ir_tree->deep_drop();
                 continue;
             }
 
             string tmp = new_ir_tree->to_string();
             unsigned tmp_hash = hash(tmp);
             if(res_hash.find(tmp_hash) != res_hash.end()){
-                deep_delete(new_ir_tree);
+                new_ir_tree->deep_drop();
                 continue;
             }
 
@@ -177,7 +178,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   vector<IR*> ir_tree;
   string new_norec_select_str = "";
 
-  while (!is_success){
+  while (!is_success) {
+
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
     int query_method = get_rand_int(3);
@@ -231,8 +233,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       /* Deep copy IR tree, replace with mutated node, and retrive the mutated string */
       IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
       if (!replace(new_ir_root, this->record_, new_mutated_ir_node)){   // cannot replace the node with new mutated node. Error
-        deep_delete(new_ir_root);
-        deep_delete(new_mutated_ir_node);
+        new_ir_root->deep_drop();
+        new_mutated_ir_node->deep_drop();
         continue;
       }
       /* Do not use validate here. Validate() could be very computational expensive, especially when they try to call fix_graph() or fix();
@@ -240,24 +242,24 @@ string Mutator::get_random_mutated_norec_select_stmt(){
           huge performance penalty.
        */
       new_norec_select_str = new_ir_root->to_string();
-      deep_delete(new_ir_root);
+      new_ir_root->deep_drop();
 
       /* Final check and return string if compatible */
       vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_norec_select_str);
-      if (new_ir_verified.size() > 0) {
-        deep_delete(new_ir_verified[new_ir_verified.size()-1]);
-      }
-      else {
-        continue;
-      }
+
+      if (new_ir_verified.size() <= 0) continue;
+      
+      new_ir_verified.back()->deep_drop();
 
       if (is_norec_compatible(new_norec_select_str) && 
-        extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)  // Make sure the mutated structure is different. 
-        ){
-        deep_delete(ir_tree[ir_tree.size()-1]);
+        extract_struct(new_norec_select_str) != // Make sure the mutated structure is different. 
+        extract_struct(ori_norec_select)) {
+
+        ir_tree.back()->deep_drop();
         is_success = true;
         return new_norec_select_str;
       }
+
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
   /* Failed to mutate the retrived norec select stmt after 100 trials. Maybe it is because the norec select stmt is too complex the mutate. 
@@ -311,7 +313,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
         p->deep_delete();
         p = NULL;
         string strip_sql = extract_struct(res);
-        deep_delete(res);
+        res->deep_drop();
 
         p = parser(strip_sql);
         if(p == NULL) continue;
@@ -320,7 +322,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
         p->deep_delete();
         p = NULL;
         add_all_to_library(res);
-        deep_delete(res);;
+        res->deep_drop();
     }
 
     //init utils::m_tables
@@ -402,8 +404,8 @@ vector<IR *> Mutator::mutate(IR * input){
 bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){ 
     auto parent_ir = locate_parent(root, old_ir);
     if(parent_ir == NULL) return false;
-    if(parent_ir->left_ == old_ir) { deep_delete(old_ir); parent_ir->left_ = new_ir; return true;}
-    else if(parent_ir->right_ == old_ir) { deep_delete(old_ir); parent_ir->right_ = new_ir; return true;}
+    if(parent_ir->left_ == old_ir) { old_ir->deep_drop(); parent_ir->left_ = new_ir; return true;}
+    else if(parent_ir->right_ == old_ir) { old_ir->deep_drop(); parent_ir->right_ = new_ir; return true;}
 
     return false;
 }
@@ -711,24 +713,24 @@ IR * Mutator::strategy_delete(IR * cur){
   assert(cur);
   MUTATESTART
 
-    DOLEFT
-    res = deep_copy(cur);
+  DOLEFT
+  res = cur->deep_copy();
   if(res->left_ != NULL)
-    deep_delete(res->left_);
+    res->left_->deep_drop();
   res->left_ = NULL;
 
   DORIGHT
-    res = deep_copy(cur);
+  res = cur->deep_copy();
   if(res->right_ != NULL)
-    deep_delete(res->right_);
+    res->right_->deep_drop();
   res->right_ = NULL;
 
   DOBOTH
-    res = deep_copy(cur);
+  res = cur->deep_copy();
   if(res->left_ != NULL)
-    deep_delete(res->left_);
+    res->left_->deep_drop();
   if(res->right_ != NULL)
-    deep_delete(res->right_);
+    res->right_->deep_drop();
   res->left_ = res->right_ = NULL;
 
   MUTATEEND 
@@ -742,7 +744,7 @@ IR * Mutator::strategy_insert(IR * cur){
   if(cur->type_ == kStatementList){
     auto new_right = get_from_libary_with_left_type(cur->type_);
     if (new_right != NULL){
-      auto res = deep_copy(cur);
+      auto res = cur->deep_copy();
       auto new_res = new IR(kStatementList, OPMID(";"), res, new_right);
       return new_res;
     }
@@ -752,7 +754,7 @@ IR * Mutator::strategy_insert(IR * cur){
     auto left_type = cur->left_->type_;
     auto new_right = get_from_libary_with_left_type(left_type);
     if (new_right != NULL){
-      auto res = deep_copy(cur);
+      auto res = cur->deep_copy();
       res->right_ = new_right;
       return res;
     }
@@ -762,7 +764,7 @@ IR * Mutator::strategy_insert(IR * cur){
     auto right_type = cur->right_->type_;
     auto new_left = get_from_libary_with_right_type(right_type);
     if(new_left != NULL){
-      auto res = deep_copy(cur);
+      auto res = cur->deep_copy();
       res->left_ = new_left;
       return res;
     }
@@ -777,9 +779,9 @@ IR * Mutator::strategy_replace(IR * cur){
   MUTATESTART
   
 
-    DOLEFT
-    res = deep_copy(cur);
-    if (res->left_ == NULL) break;
+  DOLEFT
+  res = cur->deep_copy();
+  if (res->left_ == NULL) break;
 
   auto new_node = get_from_libary_with_type(res->left_->type_);
 
@@ -788,12 +790,12 @@ IR * Mutator::strategy_replace(IR * cur){
       new_node->id_type_ = res->left_->id_type_;
     }
   }
-  if(res->left_ != NULL) deep_delete(res->left_);
+  if(res->left_ != NULL) res->left_->deep_drop();
   res->left_ = new_node;
 
   DORIGHT
-    res = deep_copy(cur);
-    if (res->right_ == NULL) break;
+  res = cur->deep_copy();
+  if (res->right_ == NULL) break;
 
   auto new_node = get_from_libary_with_type(res->right_->type_);
   if(new_node != NULL) {
@@ -801,12 +803,12 @@ IR * Mutator::strategy_replace(IR * cur){
       new_node->id_type_ = res->right_->id_type_;
     }
   }
-  if(res->right_ != NULL) deep_delete(res->right_);
+  if(res->right_ != NULL) res->right_->deep_drop();
   res->right_ = new_node;
 
   DOBOTH
-    res = deep_copy(cur);
-    if ( res->left_ == NULL || res->right_ == NULL) break;
+  res = cur->deep_copy();
+  if ( res->left_ == NULL || res->right_ == NULL) break;
     
 
   auto new_left = get_from_libary_with_type(res->left_->type_);
@@ -825,8 +827,8 @@ IR * Mutator::strategy_replace(IR * cur){
     }
   }
 
-  if(res->left_) deep_delete(res->left_);
-  if(res->right_) deep_delete(res->right_);
+  if(res->left_) res->left_->deep_drop();
+  if(res->right_) res->right_->deep_drop();
   res->left_ = new_left;
   res->right_ = new_right;
 
@@ -887,14 +889,14 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
       if (matched_ir_node != NULL)
       {
         if (matched_ir_node->type_ != type_){
-          deep_delete(current_ir_root);
+          current_ir_root->deep_drop();
           return new IR(kStringLiteral, "");
         }
-        return_mached_ir_node = deep_copy(matched_ir_node);
+        return_mached_ir_node = matched_ir_node->deep_copy();
       }
     }
 
-    deep_delete(current_ir_root);
+    current_ir_root->deep_drop();
 
     if (return_mached_ir_node != NULL) {
       // cerr << "\n\n\nSuccessfuly with_type: with string: " << return_mached_ir_node->to_string() << endl;
@@ -950,14 +952,14 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
       IR* matched_ir_node = current_ir_set[unique_node_id];
       if (matched_ir_node != NULL){
         if (matched_ir_node->left_->type_ != type_) {
-          deep_delete(current_ir_root);
+          current_ir_root->deep_drop();
           return NULL;
         }
-        return_mached_ir_node = deep_copy(matched_ir_node->right_);  // Not returnning the matched_ir_node itself, but its right_ child node!
+        return_mached_ir_node = matched_ir_node->right_->deep_copy();;  // Not returnning the matched_ir_node itself, but its right_ child node!
       }
     }
 
-    deep_delete(current_ir_root);
+    current_ir_root->deep_drop();
 
     if (return_mached_ir_node != NULL) {
       // cerr << "\n\n\nSuccessfuly left_type: with string: " << return_mached_ir_node->to_string() << endl;
@@ -1012,14 +1014,14 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
       IR* matched_ir_node = current_ir_set[unique_node_id];
       if (matched_ir_node != NULL){
         if (matched_ir_node->right_->type_ != type_) {
-          deep_delete(current_ir_root);
+          current_ir_root->deep_drop();
           return NULL;
         }
-        return_mached_ir_node = deep_copy(matched_ir_node->left_);  // Not returnning the matched_ir_node itself, but its left_ child node!
+        return_mached_ir_node = matched_ir_node->left_->deep_copy();  // Not returnning the matched_ir_node itself, but its left_ child node!
       }
     }
 
-    deep_delete(current_ir_root);
+    current_ir_root->deep_drop();
 
     if (return_mached_ir_node != NULL) {
       // cerr << "\n\n\nSuccessfuly right_type: with string: " << return_mached_ir_node->to_string() << endl;
@@ -1116,7 +1118,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
     else
       add_to_library(root);
 
-    deep_delete(root);
+    root->deep_drop();
   }
 }
 
@@ -1559,7 +1561,7 @@ string Mutator::extract_struct(string query) {
 
     IR * root = original_ir_tree[original_ir_tree.size()-1];
     res = extract_struct(root);
-    deep_delete(root);
+    root->deep_drop();
   }
 
   return res;
@@ -1662,7 +1664,7 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
 
   if(ir_root == NULL) return 0;
   auto fixed = validate(ir_root);
-  deep_delete(ir_root);
+  ir_root->deep_drop();
   if(fixed.empty()) return 0;
 
   char * sfixed = (char *)malloc(fixed.size()+1);

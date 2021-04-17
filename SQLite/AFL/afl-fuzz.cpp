@@ -2619,7 +2619,7 @@ string append_norec_select_stmts(string input) {
 
   /* Check whether the original query makes sense, if not, do not even consider appending anything */
   vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
-  if (original_ir_tree.size() > 0) deep_delete(original_ir_tree[original_ir_tree.size()-1]);
+  if (original_ir_tree.size() > 0) original_ir_tree.back()->deep_drop();
   else return "";
 
   bool is_append_success = false;
@@ -2643,7 +2643,7 @@ string append_norec_select_stmts(string input) {
     if (new_ir_tree.size() > 0) {
       string curr_norec_str_tmp;
       curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1] -> to_string();
-      deep_delete(new_ir_tree[new_ir_tree.size()-1]);
+      new_ir_tree.back()->deep_drop();
       if (curr_norec_str_tmp != "") {
         /* Save the updated query_str */
         curr_norec_str = curr_norec_str_tmp;
@@ -3906,10 +3906,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(stripped_query_string);
     if (ir_tree.size() > 0){
       g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]));
-      deep_delete(ir_tree[ir_tree.size()-1]);
-      ir_tree.clear();
+      ir_tree.back()->deep_drop();
     } else {
-      ir_tree.clear();
       return keeping; // keep = 0, meaning nothing added to the queue. 
     }
 
@@ -5927,11 +5925,11 @@ static u8 fuzz_one(char** argv) {
   mutated_tree = g_mutator.mutate_all(ir_set);
   if (mutated_tree.size() < 1) {
     total_mutate_all_failed++;
-    deep_delete(ir_set[ir_set.size() - 1]);
+    ir_set.back()->deep_drop();
     goto abandon_entry;
   }
 
-  deep_delete(ir_set[ir_set.size() - 1]);
+  ir_set.back()->deep_drop();
   show_stats();
   stage_max = mutated_tree.size();
   stage_cur = 0;
@@ -5985,7 +5983,7 @@ static u8 fuzz_one(char** argv) {
 abandon_entry:
 
   for(auto ir: mutated_tree){
-    deep_delete(ir);
+    ir->deep_drop();
   }
   splicing_with = -1;
 

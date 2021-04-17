@@ -37,9 +37,7 @@ inline int get_rand_int(int range) {
 }
 //#define vector_rand_ele(a) (a[get_rand_int(a.size())])
 #define vector_rand_ele(a) (a.size()!=0?a[get_rand_int(a.size())]:gen_id_name())
-IR * deep_copy(const IR * root);
 IR * deep_copy_size(const IR * root, unsigned long *);
-void deep_delete(IR * root);
 void deep_delete_ir_tree(const vector<IR*>&);
 
 Program * parser(string sql);
