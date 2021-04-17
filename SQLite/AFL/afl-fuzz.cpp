@@ -3916,6 +3916,10 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     show_stats();
     stage_name = tmp_name;
     //[modify] end
+
+    stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
+
+    if (is_str_empty(stripped_query_string)) return keeping;
     
 #ifndef SIMPLE_FILES
 
@@ -3932,9 +3936,6 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
         Since we will append new norec select stmt every time we retrive a new seed, we should 
         delete all the norec stmts from the query before adding them to the query. 
     */
-    stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
-
-    if (is_str_empty(stripped_query_string)) return keeping;
 
     add_to_queue(fn, stripped_query_string.size(), 0);
 
