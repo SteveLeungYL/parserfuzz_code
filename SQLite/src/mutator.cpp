@@ -192,7 +192,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
       if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
       use_temp = false;
-      //return ori_norec_select;
+      // return ori_norec_select;
     } else {
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
       use_temp = true;
@@ -1089,6 +1089,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
     IR * root = ir_set[ir_set.size()-1];
 
     if (is_norec_compatible(current_query))
+      all_norec_pstr_vec.push_back(new_select);
       add_to_norec_lib(root);
     else
       add_to_library(root);
@@ -1110,7 +1111,6 @@ void Mutator::add_to_norec_lib(IR * ir) {
   string * new_select = new string(select);
 
   all_query_pstr_set.insert(new_select);
-  all_norec_pstr_vec.push_back(new_select);
 
   std::ofstream f;
   f.open("./norec-select", std::ofstream::out | std::ofstream::app);
@@ -1159,9 +1159,15 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
   int current_unique_id = ir->uniq_id_in_tree_;
   bool is_skip_saving_current_node = false;  //
 
-  unsigned long p_hash = hash(ir->to_string());
   NODETYPE p_type = ir->type_;
   NODETYPE left_type = kEmpty, right_type = kEmpty;
+
+  unsigned long p_hash = hash(ir->to_string());
+  if(p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end() || *p_query_str == "" ){
+    /* current node not interesting enough. Ignore it and clean up. */
+    return;
+  }
+  if (p_type != kProgram) ir_libary_2D_hash_[p_type].insert(p_hash);
 
   if (!is_skip_saving_current_node)
     real_ir_set[p_type].push_back( std::make_pair(p_query_str, current_unique_id) );
@@ -1176,7 +1182,7 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
 
   std::ofstream f;
   f.open("./append-core", std::ofstream::out | std::ofstream::app);
-  f << *p_query_str << " id: " << current_unique_id << endl;
+  f << *p_query_str << " node_id: " << current_unique_id << endl;
   f.close();
 
   if (ir->left_) {
