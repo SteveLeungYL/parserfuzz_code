@@ -115,6 +115,7 @@ u64 total_mutate_all_failed = 0;
 u64 total_mutate_failed = 0;
 u64 total_common_failed = 0;
 u64 total_execute = 0;
+u64 total_add_to_queue = 0;
 
 
 map<IDTYPE, IDTYPE> relationmap;
@@ -2571,6 +2572,7 @@ inline void print_norec_exec_debug_info(){
            << "total_append_failed:     " << total_append_failed << "\n"
            << "total_random_norec:      " << g_mutator.total_random_norec << "\n"
            << "total_random_temp:       " << g_mutator.total_temp << " " << g_mutator.total_temp * 100.0 / g_mutator.total_random_norec  << "%\n"
+           << "total_add_to_queue:      " << total_add_to_queue << "\n"
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_common_failed:     " << total_common_failed << "\n"
@@ -3925,6 +3927,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
 
     if (is_str_empty(stripped_query_string)) return keeping;
+    if (g_mutator.is_stripped_str_in_lib(stripped_query_string)) return keeping;
     
 #ifndef SIMPLE_FILES
 
@@ -3943,6 +3946,8 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     */
 
     add_to_queue(fn, stripped_query_string.size(), 0);
+
+    total_add_to_queue++;
 
     if (hnb == 2) {
       queue_top->has_new_cov = 1;

@@ -54,6 +54,8 @@ public:
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
 
+    bool is_stripped_str_in_lib(string stripped_str);
+
     void init(string f_testcase, string f_common_string = "", string pragma = "");
     string fix(IR * root);
     string extract_struct(IR * root);
@@ -97,6 +99,7 @@ private:
     //map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 
     //map<NODETYPE, map<NODETYPE, set<unsigned long>> > ir_libary_3D_hash_;
     map<NODETYPE, set<unsigned long> > ir_libary_2D_hash_;
+    set<unsigned long> stripped_string_hash_;
     // map<NODETYPE, vector<IR*> > ir_libary_2D_;
     // map<NODETYPE, vector<IR *>> left_lib;
     // map<NODETYPE, vector<IR *>> right_lib;
