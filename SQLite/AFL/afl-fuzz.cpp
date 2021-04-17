@@ -110,6 +110,7 @@ char* g_current_input = NULL;
 IR* g_current_ir = NULL;
 
 u64 total_input_failed = 0;
+u64 total_append_failed = 0;
 u64 total_mutate_all_failed = 0;
 u64 total_mutate_failed = 0;
 u64 total_common_failed = 0;
@@ -2567,6 +2568,9 @@ static void write_to_testcase(const char* mem, u32 len) {
 inline void print_norec_exec_debug_info(){
   cerr << "\n"
            << "total_input_failed:      " << total_input_failed << "\n"
+           << "total_append_failed:     " << total_append_failed << "\n"
+           << "total_random_failed:     " << g_mutator.total_random_norec << "\n"
+           << "total_random_temp        " << g_mutator.total_temp << " " << g_mutator.total_temp * 100.0 / g_mutator.total_random_norec  << "%\n"
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_common_failed:     " << total_common_failed << "\n"
@@ -2633,7 +2637,10 @@ string append_norec_select_stmts(string input) {
   int max_trial = (max_norec - num_norec) * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
 
   while (num_norec < max_norec){
-    if (trial >= max_trial) break;    // Give on average 3 chances per select stmts.  
+    if (trial >= max_trial) { // Give on average 3 chances per select stmts.  
+      total_append_failed++;
+      break;
+    }
     trial++;
     new_norec_stmts = g_mutator.get_random_mutated_norec_select_stmt();
     if (new_norec_stmts == "") continue;

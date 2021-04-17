@@ -171,23 +171,32 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 }
 
 string Mutator::get_random_mutated_norec_select_stmt(){
-  /* Read from the previously seen norec compatible select stmt. SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of 
+  /* Read from the previously seen norec compatible select stmt. 
+   * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of 
     the new generated norec compatible SELECT query. 
   */
   bool is_success = false;
   vector<IR*> ir_tree;
   string new_norec_select_str = "";
 
+  total_random_norec += 1;
+
+  bool use_temp = false;
   while (!is_success) {
 
     string ori_norec_select = "";
     /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
     int query_method = get_rand_int(3);
-    if (all_norec_pstr_vec.size() > 0 && query_method < 1)  
+    if (all_norec_pstr_vec.size() > 0 && query_method < 1)  {
       ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
-    else
+      use_temp = false;
+    } else {
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
+      use_temp = true;
+    }
     if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
+
+
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
 
@@ -257,6 +266,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
         ir_tree.back()->deep_drop();
         is_success = true;
+
+        if (use_temp) total_temp += 1;
         return new_norec_select_str;
       }
 

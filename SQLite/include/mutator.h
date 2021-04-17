@@ -85,6 +85,9 @@ public:
     void get_memory_usage();
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 
+    unsigned long total_temp = 0;
+    unsigned long total_random_norec = 0;
+
 private:
     void add_to_norec_lib(IR*);
     void add_to_library(IR*);
