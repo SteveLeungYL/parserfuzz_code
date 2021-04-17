@@ -190,15 +190,25 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   while (!is_success) {
 
     string ori_norec_select = "";
-    /* One third of the time, we will grab one query from the query library, if the query library contians anything. */
-    int query_method = get_rand_int(3);
-    if (all_norec_pstr_vec.size() > 0 && query_method < 1)  {
+    /* One sixth of the time, we will grab one query from the query library, if the query library contians anything. 
+        Another one third of the time, we will grab one query from the query library, mutate them, and return the mutated version of the query.
+        At last, one half of the time, we grab query from the templates, "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return. 
+    */
+    int query_method = get_rand_int(6);
+    if (all_norec_pstr_vec.size() > 0 && query_method == 0)  {
+      /* Pick the query from the lib, pass to the mutator. */
+      ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
+      if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
+      use_temp = false;
+    }
+    else if (all_norec_pstr_vec.size() > 0 && query_method < 3) {
       /* Pick the query from the lib, directly return, do not mutate it. (If mutate, could have significantly performance penalty.) */
       ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
       if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
       use_temp = false;
-      // return ori_norec_select;
+      return ori_norec_select;  
     } else {
+      /* Pick the query from the template, pass to the mutator. */
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
       use_temp = true;
     }
@@ -215,7 +225,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
     */
-    for (int trial_count = 0; trial_count < 100; trial_count++){
+    for (int trial_count = 0; trial_count < 30; trial_count++){
 
       /* Pick random ir node in the select stmt */
       bool is_mutate_ir_node_chosen = false;
