@@ -40,6 +40,25 @@ string IR::to_string(){
     return res;
 }
 
+void IR::update_left(IR *new_left) {
+
+  //if (this->left_ && this->left_->parent_ == this)
+  //  this->left_->parent_ = NULL;
+
+  this->left_ = new_left;
+
+  if (new_left) new_left->parent_ = this;
+}
+
+void IR::update_right(IR *new_right) {
+
+  //if (this->right_ && this->right_->parent_ == this)
+  //  this->right_->parent_ = NULL;
+
+  this->right_ = new_right;
+  if (new_right) new_right->parent_ = this;
+}
+
 void IR::drop() {
 
   if (this->op_) delete this->op_;

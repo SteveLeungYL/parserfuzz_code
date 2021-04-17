@@ -232,28 +232,3 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 	closedir(dir);
     	return file_list;
 } 
-
-IR * deep_copy_size(const IR * root, unsigned long *psize){
-
-  IR * left = NULL, * right = NULL, * copy_res;
-  IROperator * op = NULL;
-
-  if(root->left_) left = deep_copy_size(root->left_, psize); // do you have a second version for deep_copy that accept only one argument?                                                  
-  if(root->right_) right = deep_copy_size(root->right_, psize);//no I forget to update here
-  if(root->op_ != NULL) op = OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_);
-
-  copy_res = new IR(root->type_, op, left, right, root->f_val_, root->str_val_, 
-      root->name_, root->mutated_times_);
-  copy_res->id_type_ = root->id_type_;
-
-  *psize += sizeof(IR);
-  if(root->op_ != NULL) {
-
-    *psize += root->op_->prefix_.capacity();
-    *psize += root->op_->middle_.capacity();
-    *psize += root->op_->suffix_.capacity();
-  }
-
-  return copy_res;
-
-}

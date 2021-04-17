@@ -37,6 +37,8 @@ public:
 
     bool replace(IR * root , IR* old_ir, IR* new_ir);
     IR * locate_parent(IR * root ,IR * old_ir);
+    IR * locate_parent_quick(IR * root ,IR * old_ir);
+    IR * locate_parent_slow(IR * root ,IR * old_ir);
     IR * find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent);
     string validate(string query);
     string validate(IR * root); 
