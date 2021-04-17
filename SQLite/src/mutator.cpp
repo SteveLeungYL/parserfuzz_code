@@ -192,7 +192,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
       if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
       use_temp = false;
-      return ori_norec_select;
+      //return ori_norec_select;
     } else {
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
       use_temp = true;
@@ -319,24 +319,18 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     //init lib from multiple sql
     while(getline(input_test, line)) {
 
-        auto p = parser(line) ;
-        if(p == NULL) continue;
+      vector<IR *> v_ir = parse_query_str_get_ir_set(line);
+      if (v_ir.size() <= 0) continue;
 
-        vector<IR *> v_ir;
-        auto res = p->translate(v_ir);
-        p->deep_delete();
-        p = NULL;
-        string strip_sql = extract_struct(res);
-        res->deep_drop();
+      string strip_sql = extract_struct(v_ir.back());
+      v_ir.back()->deep_drop();
+      v_ir.clear();
 
-        p = parser(strip_sql);
-        if(p == NULL) continue;
+      v_ir = parse_query_str_get_ir_set(strip_sql);
+      if (v_ir.size() <= 0) continue;
 
-        res = p->translate(v_ir);
-        p->deep_delete();
-        p = NULL;
-        add_all_to_library(res);
-        res->deep_drop();
+      add_all_to_library(v_ir.back());
+      v_ir.back()->deep_drop();
     }
 
     //init utils::m_tables
@@ -878,38 +872,20 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
     int unique_node_id = selected_matched_node.second;
 
     /* Reconstruct the IR tree. */
-    auto p_strip_sql = parser(*p_current_query_str);
+    current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
+    if (current_ir_set.size() <= 0)
+      return new IR(kStringLiteral, "");
+    current_ir_root = current_ir_set.back();
 
-    if (p_strip_sql) {
-      try {
-        current_ir_root = p_strip_sql->translate(current_ir_set);
-      } catch (...) {
-        /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignoer the current string, and clean up. */
-        for (auto current_ir : current_ir_set) {
-          if (current_ir->op_ != NULL)
-            delete current_ir->op_;
-          delete current_ir;
-        }
-        p_strip_sql->deep_delete();
+    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+    IR *matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL)
+    {
+      if (matched_ir_node->type_ != type_){
+        current_ir_root->deep_drop();
         return new IR(kStringLiteral, "");
       }
-      p_strip_sql->deep_delete();
-    } else {
-      p_strip_sql->deep_delete();
-      return new IR(kStringLiteral, "");
-    }
-
-    if (current_ir_set.size() > 0) {
-      /* Retrive the required node, deep copy it, clean up the IR tree and return. */
-      IR *matched_ir_node = current_ir_set[unique_node_id];
-      if (matched_ir_node != NULL)
-      {
-        if (matched_ir_node->type_ != type_){
-          current_ir_root->deep_drop();
-          return new IR(kStringLiteral, "");
-        }
-        return_mached_ir_node = matched_ir_node->deep_copy();
-      }
+      return_mached_ir_node = matched_ir_node->deep_copy();
     }
 
     current_ir_root->deep_drop();
@@ -942,37 +918,19 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
     int unique_node_id = selected_matched_node.second;
 
     /* Reconstruct the IR tree. */
-    auto p_strip_sql = parser(*p_current_query_str);
+    current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
+    if (current_ir_set.size() <= 0)
+      return NULL;
+    current_ir_root = current_ir_set.back();
 
-    if (p_strip_sql) {
-      try {
-        current_ir_root = p_strip_sql->translate(current_ir_set);
-      } catch (...) {
-        /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignoer the current string, and clean up. */
-        for (auto current_ir : current_ir_set) {
-          if (current_ir->op_ != NULL)
-            delete current_ir->op_;
-          delete current_ir;
-        }
-        p_strip_sql->deep_delete();
+    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+    IR* matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL){
+      if (matched_ir_node->left_->type_ != type_) {
+        current_ir_root->deep_drop();
         return NULL;
       }
-      p_strip_sql->deep_delete();
-    } else {
-      p_strip_sql->deep_delete();
-      return NULL;
-    }
-
-    if (current_ir_set.size() > 0) {
-      /* Retrive the required node, deep copy it, clean up the IR tree and return. */
-      IR* matched_ir_node = current_ir_set[unique_node_id];
-      if (matched_ir_node != NULL){
-        if (matched_ir_node->left_->type_ != type_) {
-          current_ir_root->deep_drop();
-          return NULL;
-        }
-        return_mached_ir_node = matched_ir_node->right_->deep_copy();;  // Not returnning the matched_ir_node itself, but its right_ child node!
-      }
+      return_mached_ir_node = matched_ir_node->right_->deep_copy();;  // Not returnning the matched_ir_node itself, but its right_ child node!
     }
 
     current_ir_root->deep_drop();
@@ -1004,37 +962,19 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
     int unique_node_id = selected_matched_node.second;
 
     /* Reconstruct the IR tree. */
-    auto p_strip_sql = parser(*p_current_query_str);
+    current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
+    if (current_ir_set.size() <= 0)
+      return NULL;
+    current_ir_root = current_ir_set.back();
 
-    if (p_strip_sql) {
-      try {
-        current_ir_root = p_strip_sql->translate(current_ir_set);
-      } catch (...) {
-        /* Failed to regenerate the IR tree from the string. The string might contains errors. Ignore the current string, and clean up. */
-        for (auto current_ir : current_ir_set) {
-          if (current_ir->op_ != NULL)
-            delete current_ir->op_;
-          delete current_ir;
-        }
-        p_strip_sql->deep_delete();
+    /* Retrive the required node, deep copy it, clean up the IR tree and return. */
+    IR* matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL){
+      if (matched_ir_node->right_->type_ != type_) {
+        current_ir_root->deep_drop();
         return NULL;
       }
-      p_strip_sql->deep_delete();
-    } else {
-      p_strip_sql->deep_delete();
-      return NULL;
-    }
-
-    if (current_ir_set.size() > 0) {
-      /* Retrive the required node, deep copy it, clean up the IR tree and return. */
-      IR* matched_ir_node = current_ir_set[unique_node_id];
-      if (matched_ir_node != NULL){
-        if (matched_ir_node->right_->type_ != type_) {
-          current_ir_root->deep_drop();
-          return NULL;
-        }
-        return_mached_ir_node = matched_ir_node->left_->deep_copy();  // Not returnning the matched_ir_node itself, but its left_ child node!
-      }
+      return_mached_ir_node = matched_ir_node->left_->deep_copy();  // Not returnning the matched_ir_node itself, but its left_ child node!
     }
 
     current_ir_root->deep_drop();
@@ -1153,6 +1093,11 @@ void Mutator::add_to_norec_lib(IR * ir) {
   all_query_pstr_set.insert(new_select);
   all_norec_pstr_vec.push_back(new_select);
 
+  std::ofstream f;
+  f.open("./norec-select", std::ofstream::out | std::ofstream::app);
+  f << *new_select << endl;
+  f.close();
+
   add_to_library_core(ir, new_select);
 
   return;
@@ -1184,6 +1129,11 @@ void Mutator::add_to_library(IR* ir) {
 
   all_query_pstr_set.insert(p_query_str);
   // all_norec_pstr_vec.push_back(p_query_str);
+
+  std::ofstream f;
+  f.open("./normal-lib", std::ofstream::out | std::ofstream::app);
+  f << *p_query_str << endl;
+  f.close();
 
   add_to_library_core(ir, p_query_str);
 
