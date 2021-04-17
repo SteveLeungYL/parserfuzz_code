@@ -180,16 +180,19 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   string new_norec_select_str = "";
 
   total_random_norec += 1;
-
   bool use_temp = false;
+
   while (!is_success) {
 
     string ori_norec_select = "";
-    /* Two third of the time, we will grab one query from the query library, if the query library contians anything. */
+    /* One third of the time, we will grab one query from the query library, if the query library contians anything. */
     int query_method = get_rand_int(3);
     if (all_norec_pstr_vec.size() > 0 && query_method < 1)  {
+      /* Pick the query from the lib, directly return, do not mutate it. (If mutate, could have significantly performance penalty.) */
       ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
+      if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
       use_temp = false;
+      return ori_norec_select;
     } else {
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
       use_temp = true;
@@ -206,7 +209,6 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     mark_all_norec_select_stmt(ir_tree);
 
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
-        If failed, retrive another norec stmt from the library or from the template again.
     */
     for (int trial_count = 0; trial_count < 100; trial_count++){
 
@@ -1181,7 +1183,7 @@ void Mutator::add_to_library(IR* ir) {
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
   all_query_pstr_set.insert(p_query_str);
-  all_norec_pstr_vec.push_back(p_query_str);
+  // all_norec_pstr_vec.push_back(p_query_str);
 
   add_to_library_core(ir, p_query_str);
 
