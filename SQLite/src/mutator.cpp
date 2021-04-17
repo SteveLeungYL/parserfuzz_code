@@ -1113,6 +1113,7 @@ void Mutator::add_to_norec_lib(IR * ir) {
   string * new_select = new string(select);
 
   all_query_pstr_set.insert(new_select);
+  all_norec_pstr_vec.push_back(new_select);
 
   std::ofstream f;
   f.open("./norec-select", std::ofstream::out | std::ofstream::app);
