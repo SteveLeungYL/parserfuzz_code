@@ -265,7 +265,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   /* Failed to mutate the retrived norec select stmt after 100 trials. Maybe it is because the norec select stmt is too complex the mutate. 
       Grab another norec select stmt from the lib or from the template, try again. 
   */
-    deep_delete(ir_tree[ir_tree.size()-1]);
+    ir_tree.back()->deep_drop();
   }
 }
 
@@ -457,7 +457,7 @@ string Mutator::validate(string query){
   if (ir_set.size() == 0) return "";
   else {
     string validated_str = validate(ir_set[ir_set.size()-1]);
-    deep_delete(ir_set[ir_set.size()-1]);
+    ir_set.back()->deep_drop();
     return validated_str;
   }
 }
