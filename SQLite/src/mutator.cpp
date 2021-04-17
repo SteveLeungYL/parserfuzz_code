@@ -1092,7 +1092,6 @@ void Mutator::add_all_to_library(string whole_query_str) {
     IR * root = ir_set[ir_set.size()-1];
 
     if (is_norec_compatible(current_query))
-      all_norec_pstr_vec.push_back(new_select);
       add_to_norec_lib(root);
     else
       add_to_library(root);
