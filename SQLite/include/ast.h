@@ -187,8 +187,8 @@ class StatementList: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    OptSemicolon* opt_semicolon_;
     vector<Statement*> v_statement_list_;
+    vector<OptSemicolon*> v_opt_semicolon_list_;
 };
 
 class Statement: public Node {

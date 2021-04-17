@@ -586,8 +586,8 @@ statement_list:
             $$->v_statement_list_.push_back($1);
         }
     |   statement_list opt_semicolon statement {
+            $1->v_opt_semicolon_list_.push_back($2);
             $1->v_statement_list_.push_back($3);
-            $1->opt_semicolon_=$2;
             $$ = $1;
         }
     ;

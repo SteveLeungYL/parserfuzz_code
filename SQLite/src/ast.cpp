@@ -1750,7 +1750,7 @@ void Program::deep_delete(){
 
 void StatementList::deep_delete(){
 	SAFEDELETELIST(v_statement_list_);
-    SAFEDELETE(opt_semicolon_);
+    SAFEDELETELIST(v_opt_semicolon_list_);
 	delete this;
 }
 
