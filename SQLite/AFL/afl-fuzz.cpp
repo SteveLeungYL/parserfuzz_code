@@ -142,6 +142,7 @@ EXP_ST u64 mem_limit  = MEM_LIMIT;    /* Memory cap for child (MB)        */
 static u32 stats_update_freq = 1;     /* Stats update frequency (execs)   */
 
 EXP_ST u8  skip_deterministic,        /* Skip deterministic stages?       */
+           dump_library,              /* Dump squirrel libraries          */
            force_deterministic,       /* Force deterministic stages?      */
            use_splicing,              /* Recombine input files?           */
            dumb_mode,                 /* Run in non-instrumented mode?    */
@@ -7237,7 +7238,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QD")) > 0)
 
     switch (opt) {
 
@@ -7358,6 +7359,11 @@ int main(int argc, char** argv) {
         use_splicing = 1;
         break;
 
+      case 'D': /* dump squirrel libraries */
+
+        dump_library = 1;
+        break;
+
       case 'B': /* load bitmap */
 
         /* This is a secret undocumented option! It is useful if you find
@@ -7410,6 +7416,8 @@ int main(int argc, char** argv) {
         usage(argv[0]);
 
     }
+
+  g_mutator.set_dump_library(dump_library);
 
   if (optind == argc || !in_dir || !out_dir) usage(argv[0]);
 

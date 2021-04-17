@@ -17,6 +17,8 @@ public:
         srand(time(nullptr));
     }
 
+    void set_dump_library(bool);
+
     vector<string> string_splitter(string, string);
 
     IR * deep_copy_with_record(const IR * root, const IR * record);
@@ -94,6 +96,8 @@ private:
     void add_to_norec_lib(IR*);
     void add_to_library(IR*);
     void add_to_library_core(IR*, string*);
+
+    bool dump_library = false;
 
     IR * record_ = NULL;
     //map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 

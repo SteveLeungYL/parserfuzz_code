@@ -23,6 +23,11 @@ vector<unsigned long> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;
 vector<string> Mutator::v_table_names; 
 
+void Mutator::set_dump_library(bool to_dump) {
+
+  this->dump_library = to_dump;
+
+}
 
 IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
 
@@ -1125,10 +1130,12 @@ void Mutator::add_to_norec_lib(IR * ir) {
   all_query_pstr_set.insert(new_select);
   all_norec_pstr_vec.push_back(new_select);
 
-  std::ofstream f;
-  f.open("./norec-select", std::ofstream::out | std::ofstream::app);
-  f << *new_select << endl;
-  f.close();
+  if (this->dump_library) {
+    std::ofstream f;
+    f.open("./norec-select", std::ofstream::out | std::ofstream::app);
+    f << *new_select << endl;
+    f.close();
+  }
 
   add_to_library_core(ir, new_select);
 
@@ -1153,10 +1160,12 @@ void Mutator::add_to_library(IR* ir) {
   all_query_pstr_set.insert(p_query_str);
   // all_norec_pstr_vec.push_back(p_query_str);
 
-  std::ofstream f;
-  f.open("./normal-lib", std::ofstream::out | std::ofstream::app);
-  f << *p_query_str << endl;
-  f.close();
+  if (this->dump_library) {
+    std::ofstream f;
+    f.open("./normal-lib", std::ofstream::out | std::ofstream::app);
+    f << *p_query_str << endl;
+    f.close();
+  }
 
   add_to_library_core(ir, p_query_str);
 
@@ -1193,10 +1202,13 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
     right_lib_set[right_type].push_back( std::make_pair(p_query_str, current_unique_id) ); // Saving the parent node id. When fetching, use current_node->left.
   }
 
-  std::ofstream f;
-  f.open("./append-core", std::ofstream::out | std::ofstream::app);
-  f << *p_query_str << " node_id: " << current_unique_id << endl;
-  f.close();
+  if (this->dump_library) {
+
+    std::ofstream f;
+    f.open("./append-core", std::ofstream::out | std::ofstream::app);
+    f << *p_query_str << " node_id: " << current_unique_id << endl;
+    f.close();
+  }
 
   if (ir->left_) {
     add_to_library_core(ir->left_, p_query_str);
