@@ -1096,6 +1096,14 @@ unsigned long Mutator::get_library_size(){
   return res;
 }
 
+bool Mutator::is_stripped_str_in_lib(string stripped_str){
+  stripped_str = extract_struct(stripped_str);
+  unsigned long str_hash = hash(stripped_str);
+  if (stripped_string_hash_.find(str_hash) != stripped_string_hash_.end()) return true;
+  stripped_string_hash_.insert(str_hash);
+  return false;
+}
+
 /* add_to_library supports only one stmt at a time, 
  * add_all_to_library is responsible to split the 
  * the current IR tree into single query stmts. 
@@ -1104,6 +1112,17 @@ unsigned long Mutator::get_library_size(){
 void Mutator::add_all_to_library(IR* ir) {
   add_all_to_library(ir->to_string());
 }
+
+/*  Save an interesting query stmt into the mutator library. 
+ *
+ *   The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
+ *   However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
+ *   Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary 
+ *   by calling this funcion and get_from_library_with_[_,left,right]_type. 
+ *   We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
+ *   The unique_id_in_tree_ is setup based on the order of the ir_set vector, returned from Program*->translate(ir_set).
+ *
+ */
 
 void Mutator::add_all_to_library(string whole_query_str) {
 
@@ -1158,16 +1177,7 @@ void Mutator::add_to_norec_lib(IR * ir) {
   return;
 }
 
-/*  Save an interesting query stmt into the mutator library. 
- *
- *   The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
- *   However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
- *   Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary 
- *   by calling this funcion and get_from_library_with_[_,left,right]_type. 
- *   We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
- *   The unique_id_in_tree_ is setup based on the order of the ir_set vector, returned from Program*->translate(ir_set).
- *
- */
+
 void Mutator::add_to_library(IR* ir) {
 
   NODETYPE p_type = ir->type_;
