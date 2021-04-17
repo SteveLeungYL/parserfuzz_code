@@ -292,7 +292,10 @@ vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
     auto root_ir = p_strip_sql->translate(ir_set);
   } catch (...) {
     p_strip_sql->deep_delete();
-    deep_delete_ir_tree(ir_set);
+
+    for (auto ir : ir_set)
+      ir->drop();
+
     ir_set.clear();
     return ir_set;
   }

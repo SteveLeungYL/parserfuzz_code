@@ -257,16 +257,3 @@ IR * deep_copy_size(const IR * root, unsigned long *psize){
   return copy_res;
 
 }
-
-
-void deep_delete_ir_tree(const vector<IR*>& ir_set){
-  /* Deep delete an ir_tree. Does not need to guarantee the input tree is complete. */
-  if ( ir_set[ir_set.size()-1]->type_ == kProgram ) ir_set.back()->deep_drop();
-  else {
-    for (auto ir : ir_set){
-      if(ir->op_ != NULL) delete ir->op_;
-      delete ir;
-    }
-  }
-}
-
