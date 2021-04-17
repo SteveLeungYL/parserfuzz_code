@@ -1080,7 +1080,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
   for (auto current_query : queries_vector){
-
+    current_query += ";";
     // check the validity of the IR here
     // The unique_id_in_tree_ variable are being set inside the parsing func. 
     vector<IR*> ir_set = parse_query_str_get_ir_set(current_query);
@@ -1163,13 +1163,6 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
   NODETYPE p_type = ir->type_;
   NODETYPE left_type = kEmpty, right_type = kEmpty;
 
-  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()) {
-    is_skip_saving_current_node = true;
-    return;
-  }
-  else
-    ir_libary_2D_hash_[p_type].insert(p_hash);
-
   if (!is_skip_saving_current_node)
     real_ir_set[p_type].push_back( std::make_pair(p_query_str, current_unique_id) );
 
@@ -1180,6 +1173,11 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
     left_lib_set[left_type].push_back( std::make_pair(p_query_str, current_unique_id) ); // Saving the parent node id. When fetching, use current_node->right.
     right_lib_set[right_type].push_back( std::make_pair(p_query_str, current_unique_id) ); // Saving the parent node id. When fetching, use current_node->left.
   }
+
+  std::ofstream f;
+  f.open("./append-core", std::ofstream::out | std::ofstream::app);
+  f << *p_query_str << " id: " << current_unique_id << endl;
+  f.close();
 
   if (ir->left_) {
     add_to_library_core(ir->left_, p_query_str);
