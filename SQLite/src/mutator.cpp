@@ -488,20 +488,8 @@ IR * Mutator::locate_parent_slow(IR *root, IR *old_ir) {
 
 IR * Mutator::locate_parent(IR * root, IR * old_ir){
 
-  IR *slow_parent = locate_parent_slow(root, old_ir);
-  IR *quick_parent = locate_parent_quick(root, old_ir);
-
-
-  if (slow_parent != quick_parent) {
-
-    cerr << "different parento\n"
-         << "from slow:  " << slow_parent << "\n"
-         << "from quick: " << quick_parent << "\n";
-    exit(0);
-  }
-
-
-  return quick_parent;
+  return locate_parent_quick(root, old_ir);
+  //return locate_parent_slow(root, old_ir);
 }
 
 IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
