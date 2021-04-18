@@ -9,7 +9,14 @@
 
 static string s_table_name;
 
-string IR::to_string(){
+string IR::to_string() {
+
+  string res = _to_string();
+  trim_string(res);
+  return res;
+}
+
+string IR::_to_string(){
     
     string res;
 
@@ -36,7 +43,6 @@ string IR::to_string(){
     if(op_!= NULL)
         res += op_->suffix_;
    
-    trim_string(res);
     return res;
 }
 

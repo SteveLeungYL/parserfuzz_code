@@ -1449,7 +1449,15 @@ void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordere
 
 
 /* tranverse ir in the order: _right ==> root ==> left_ */
-string Mutator::fix(IR * root){
+
+string Mutator::fix(IR *root) {
+
+  string res = _fix(root);
+  trim_string(res);
+  return res;
+}
+
+string Mutator::_fix(IR * root){
 
   string res;
   auto * right_ = root->right_, * left_ = root->left_;
@@ -1470,8 +1478,6 @@ string Mutator::fix(IR * root){
     else
       return string("v1");
   }
-
-
 
   if(type_ == kCmdPragma){  
     string res = "PRAGMA ";
@@ -1527,7 +1533,6 @@ string Mutator::fix(IR * root){
   if(op_!= NULL)
     res += op_->suffix_;
 
-  trim_string(res);
   return res;
 }
 
@@ -1600,7 +1605,14 @@ string Mutator::extract_struct(string query) {
   return res;
 }
 
-string Mutator::extract_struct(IR * root){
+string Mutator::extract_struct(IR *root) {
+
+  string res = _extract_struct(root);
+  trim_string(res);
+  return res;
+}
+
+string Mutator::_extract_struct(IR * root){
   static int counter = 0;
   string res;
   auto * right_ = root->right_, * left_ = root->left_;
@@ -1633,15 +1645,14 @@ string Mutator::extract_struct(IR * root){
   if(op_!= NULL)
     res += op_->prefix_ + " ";
   if(left_ != NULL)
-    res += extract_struct(left_) + " ";
+    res += _extract_struct(left_) + " ";
   if( op_!= NULL)
     res += op_->middle_ + " ";
   if(right_ != NULL)
-    res += extract_struct(right_) + " ";
+    res += _extract_struct(right_) + " ";
   if(op_!= NULL)
     res += op_->suffix_;
 
-  trim_string(res);
   return res;
 }
 

@@ -157,6 +157,7 @@ class IR{
     int operand_num_;
     unsigned int mutated_times_ = 0;
     string to_string();
+    string _to_string();
 };
 
 class IRCollector{
