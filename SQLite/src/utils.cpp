@@ -1,4 +1,5 @@
 #include "../include/utils.h"
+#include <algorithm>
 
 
 
@@ -168,26 +169,14 @@ uint64_t fucking_hash ( const void * key, int len )
 	return h;
 } 
 
+bool BothAreSpaces(char lhs, char rhs) {
+    return (lhs == rhs) && (lhs == ' ');
+}
+
 void trim_string(string &res){
-    int count = 0;
-    int idx = 0;
-    bool expect_space = false;
-    for(int i = 0, sz = res.size(); i < sz; i++){
-        if(res[i] == ' '){
-            if(expect_space == false){
-                continue;
-            }else{
-                expect_space = false;
-                res[idx++] = res[i];
-                count ++;
-            }
-        }else{
-            expect_space = true;
-            res[idx++] = res[i];
-            count ++;
-        }
-    }
-    res.resize(count);
+
+  string::iterator new_end = unique(res.begin(), res.end(), BothAreSpaces);
+  res.erase(new_end, res.end());
 }
 
 
