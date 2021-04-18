@@ -1470,7 +1470,7 @@ string Mutator::_fix(IR * root){
 
   string tmp_right;
   if(right_ != NULL)
-    tmp_right = fix(right_);
+    tmp_right = _fix(right_);
 
   if(type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)){
     if(get_rand_int(2) == 1)
@@ -1525,7 +1525,7 @@ string Mutator::_fix(IR * root){
   if(op_!= NULL)
     res += op_->prefix_ + " ";
   if(left_ != NULL)
-    res += fix(left_) + " ";
+    res += _fix(left_) + " ";
   if( op_!= NULL)
     res += op_->middle_ + " ";
   if(right_ != NULL)

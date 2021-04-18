@@ -35,11 +35,11 @@ string IR::_to_string(){
     if( op_!= NULL )
         res += op_->prefix_ + " ";
     if(left_ != NULL)
-        res += left_->to_string() + " ";
+        res += left_->_to_string() + " ";
     if( op_!= NULL)
         res += op_->middle_ + " ";
     if(right_ != NULL)
-        res += right_->to_string() + " ";
+        res += right_->_to_string() + " ";
     if(op_!= NULL)
         res += op_->suffix_;
    
