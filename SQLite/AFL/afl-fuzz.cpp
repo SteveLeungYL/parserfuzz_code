@@ -110,10 +110,9 @@ char* g_current_input = NULL;
 IR* g_current_ir = NULL;
 
 u64 total_input_failed = 0;
-u64 total_append_failed = 0;
 u64 total_mutate_all_failed = 0;
 u64 total_mutate_failed = 0;
-u64 total_common_failed = 0;
+u64 total_append_failed = 0;
 u64 total_execute = 0;
 u64 total_add_to_queue = 0;
 
@@ -2570,13 +2569,11 @@ static void write_to_testcase(const char* mem, u32 len) {
 inline void print_norec_exec_debug_info(){
   cerr << "\n"
            << "total_input_failed:      " << total_input_failed << "\n"
-           << "total_append_failed:     " << total_append_failed << "\n"
-           << "total_random_norec:      " << g_mutator.total_random_norec << "\n"
-           << "total_random_temp:       " << g_mutator.total_temp << " " << g_mutator.total_temp * 100.0 / g_mutator.total_random_norec  << "%\n"
+           << "total_random_norec:      " << g_mutator.total_random_norec << " / " <<  g_mutator.total_temp << " " << g_mutator.total_temp * 100.0 / g_mutator.total_random_norec  << "%\n"
            << "total_add_to_queue:      " << total_add_to_queue << "\n"
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
-           << "total_common_failed:     " << total_common_failed << "\n"
+           << "total_append_failed:     " << total_append_failed << "\n"
            << "total_execute:           " << total_execute << "\n"
            << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
 
@@ -2594,75 +2591,52 @@ vector<string> string_splitter(string input_string, string delimiter_re = "\n")
   return split_string;
 }
 
-int count_and_get_norec_stmt_str(const string& input, string& norec_select_stmt){
+int count_and_get_norec_stmt_str(const string& input){
 
   int norec_select_count = 0;
   vector<string> queries_vector = string_splitter(input, ";");
-  for (string &query : queries_vector) {
-
-    if (g_mutator.is_norec_compatible(query)) {
-
-      if (norec_select_count == 0)
-        norec_select_stmt = query;
-
+  for (string &query : queries_vector) 
+    if (g_mutator.is_norec_compatible(query))
       norec_select_count++;
-    }
-  }
   return norec_select_count;
 }
 
-string ensure_semicolon_at_query_end(string stmt){
-  for (auto idx = stmt.rbegin(); idx != stmt.rend(); idx++){
-    if (*idx != ' ' && *idx != ';' && *idx != '\n') {
-      stmt += "; ";
-      return stmt;
-    } else if (*idx == ';') {
-      return stmt;
-    }
-  }
+void  ensure_semicolon_at_query_end(string &stmt){
+  auto idx = stmt.rbegin();
+  if (*idx != ';') stmt += "; ";
 }
 
-string append_norec_select_stmts(string input) {
+void append_norec_select_stmts(string &input) {
 
-  /* Check whether the original query makes sense, if not, do not even consider appending anything */
-  vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
-  if (original_ir_tree.size() > 0) original_ir_tree.back()->deep_drop();
-  else return "";
-
-  bool is_append_success = false;
-  string curr_norec_str = input;
-  string tmp; // Not used. Just for dummpy passing into the help function. 
+  ensure_semicolon_at_query_end(input);
 
   string new_norec_stmts = "";
-  int num_norec = count_and_get_norec_stmt_str(input, tmp);
+  int num_norec = count_and_get_norec_stmt_str(input);
 
   int trial = 0;
   int max_trial = (max_norec - num_norec) * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
 
   while (num_norec < max_norec){
-    if (trial >= max_trial) { // Give on average 3 chances per select stmts.  
-      total_append_failed++;
+
+    if (trial++ >= max_trial) // Give on average 3 chances per select stmts.  
       break;
-    }
-    trial++;
+
     new_norec_stmts = g_mutator.get_random_mutated_norec_select_stmt();
     if (new_norec_stmts == "") continue;
-    string combine_string = ensure_semicolon_at_query_end(curr_norec_str) + ensure_semicolon_at_query_end(new_norec_stmts);
+
     /* Reparse the combine_query_str to check whether the added norec_stmts is valide. */
-    vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(combine_string);
-    if (new_ir_tree.size() > 0) {
-      string curr_norec_str_tmp;
-      curr_norec_str_tmp = new_ir_tree[new_ir_tree.size()-1] -> to_string();
-      new_ir_tree.back()->deep_drop();
-      if (curr_norec_str_tmp != "") {
-        /* Save the updated query_str */
-        curr_norec_str = curr_norec_str_tmp;
-        num_norec++;
-      }
-    }
+    ensure_semicolon_at_query_end(new_norec_stmts);
+    vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(new_norec_stmts);
+    if (new_ir_tree.size() == 0) continue;
+    new_ir_tree.back()->deep_drop();
+
+    input += new_norec_stmts;
+    num_norec++;
+
     /* Return norec query does not pass the parser. Append failed. Retrive new norec query and try again. */
   }
-  return curr_norec_str;
+
+  return;
 }
 
 bool is_str_empty(string input_str){
@@ -5781,7 +5755,6 @@ static u8 fuzz_one(char** argv) {
   u64 new_hit_cnt;
   u8  ret_val = 1;
 
-  string input;
   Program * program_root;
   vector<IR *> ir_set, mutated_tree;
   char * tmp_name = stage_name;
@@ -5886,7 +5859,7 @@ static u8 fuzz_one(char** argv) {
   stage_name = "mutate";
 
   int skip_count = 0;
-  input = (const char *)out_buf;
+  string input((const char *)out_buf);
 
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
 
@@ -5896,9 +5869,9 @@ static u8 fuzz_one(char** argv) {
     goto abandon_entry;
   }
 
-  unsigned long prev_hash, current_hash;
-  prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
-  current_hash = 0;
+  //unsigned long prev_hash, current_hash;
+  //prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
+  //current_hash = 0;
 
   mutated_tree = g_mutator.mutate_all(ir_set);
   if (mutated_tree.size() < 1) {
@@ -5920,18 +5893,27 @@ static u8 fuzz_one(char** argv) {
 
     /* Use to_string() here, validate() will be called just once, at the end of the query mutation. */
     query_str = ir->to_string();
-
     if(query_str == ""){
       total_mutate_failed++;
       skip_count++;
       continue;
     }
 
-    query_str = append_norec_select_stmts(query_str);
+    /* Check whether the original query makes sense, if not, do not even consider appending anything */
+    vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
+    if (original_ir_tree.size() > 0)
+      original_ir_tree.back()->deep_drop();
+    else {
+      total_mutate_failed++;
+      skip_count++;
+      continue;
+    }
+
+    append_norec_select_stmts(query_str);
     query_str = g_mutator.validate(query_str);
 
     if(query_str == ""){
-      total_mutate_failed++;
+      total_append_failed++;
       skip_count++;
       continue;
     } else {
@@ -5939,7 +5921,6 @@ static u8 fuzz_one(char** argv) {
       stage_name = "niubi_fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
       if(common_fuzz_stuff(argv, query_str.c_str(), query_str.size())){
-        total_common_failed++;
         goto abandon_entry;
       }
       total_execute++;
