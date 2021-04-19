@@ -9,7 +9,14 @@
 
 static string s_table_name;
 
-string IR::to_string(){
+string IR::to_string() {
+
+  string res = _to_string();
+  trim_string(res);
+  return res;
+}
+
+string IR::_to_string(){
     
     string res;
 
@@ -28,16 +35,34 @@ string IR::to_string(){
     if( op_!= NULL )
         res += op_->prefix_ + " ";
     if(left_ != NULL)
-        res += left_->to_string() + " ";
+        res += left_->_to_string() + " ";
     if( op_!= NULL)
         res += op_->middle_ + " ";
     if(right_ != NULL)
-        res += right_->to_string() + " ";
+        res += right_->_to_string() + " ";
     if(op_!= NULL)
         res += op_->suffix_;
    
-    trim_string(res);
     return res;
+}
+
+void IR::update_left(IR *new_left) {
+
+  //if (this->left_ && this->left_->parent_ == this)
+  //  this->left_->parent_ = NULL;
+
+  this->left_ = new_left;
+
+  if (new_left) new_left->parent_ = this;
+}
+
+void IR::update_right(IR *new_right) {
+
+  //if (this->right_ && this->right_->parent_ == this)
+  //  this->right_->parent_ = NULL;
+
+  this->right_ = new_right;
+  if (new_right) new_right->parent_ = this;
 }
 
 void IR::drop() {

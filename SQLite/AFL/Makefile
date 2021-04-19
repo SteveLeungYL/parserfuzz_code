@@ -34,7 +34,7 @@ ifneq "$(filter Linux GNU%,$(shell uname))" ""
   LDFLAGS  += -ldl
 endif
 
-COMM_HDR    = alloc-inl.h config.h debug.h types.h hash.h
+COMM_HDR    = alloc-inl.h config.h debug.h types.h hash.h ../include/*.h
 
 all: afl-fuzz
 

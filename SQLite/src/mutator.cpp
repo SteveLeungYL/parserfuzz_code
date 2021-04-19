@@ -301,10 +301,10 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   }
 }
 
-vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
+vector<IR*> Mutator::parse_query_str_get_ir_set(string &query_str){
   vector<IR*> ir_set;
 
-  auto p_strip_sql = parser(query_str);
+  auto p_strip_sql = parser(query_str.c_str());
   if (p_strip_sql == NULL) return ir_set;
 
   try {
@@ -434,41 +434,66 @@ vector<IR *> Mutator::mutate(IR * input){
 bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){ 
     auto parent_ir = locate_parent(root, old_ir);
     if(parent_ir == NULL) return false;
-    if(parent_ir->left_ == old_ir) { old_ir->deep_drop(); parent_ir->left_ = new_ir; return true;}
-    else if(parent_ir->right_ == old_ir) { old_ir->deep_drop(); parent_ir->right_ = new_ir; return true;}
+
+    if (parent_ir->left_ == old_ir) { 
+      
+      old_ir->deep_drop(); 
+      parent_ir->update_left(new_ir); 
+      return true;
+    
+    } else if (parent_ir->right_ == old_ir) { 
+      
+      old_ir->deep_drop(); 
+      parent_ir->update_right(new_ir); 
+      return true;
+    
+    }
 
     return false;
 }
 
-IR * Mutator::locate_parent(IR * root ,IR * old_ir){
+IR * Mutator::locate_parent_quick(IR *root, IR *old_ir) {
 
-    /* One of the biggest runtime performance bottlenet as shown by tool 'perf'. 
-        Reimplement this with non-recursion 
-    */
+  for (IR *p = old_ir; p; p = p->parent_)
+    if (p->parent_ == root) return old_ir->parent_;
 
-    vector<IR*> s;
-    IR* p = root;
-    while (p != NULL || !s.empty()){
-      while (p != NULL){
-        s.push_back(p);
-        p = p -> left_;
-      }
+  return NULL;
+}
 
-      if (!s.empty()){
-        p = s[s.size()-1];
+IR * Mutator::locate_parent_slow(IR *root, IR *old_ir) {
 
-        /* Implement the locate_parent logic here */
-        if (p->left_ == old_ir || p->right_ == old_ir) {
-          s.clear();
-          return p;
-        }
+  /* One of the biggest runtime performance bottlenet as shown by tool 'perf'. 
+   * Reimplement this with non-recursion 
+   */
 
-        s.pop_back();
-        p = p -> right_;
-      }
+  vector<IR*> s;
+  IR* p = root;
+  while (p != NULL || !s.empty()){
+    while (p != NULL){
+      s.push_back(p);
+      p = p -> left_;
     }
-    /* Cannot find the parent node. */
-    return NULL;
+
+    if (!s.empty()){
+      p = s[s.size()-1];
+
+      /* Implement the locate_parent logic here */
+      if (p->left_ == old_ir || p->right_ == old_ir) {
+        s.clear();
+        return p;
+      }
+
+      s.pop_back();
+      p = p -> right_;
+    }
+  }
+  return NULL;
+}
+
+IR * Mutator::locate_parent(IR * root, IR * old_ir){
+
+  return locate_parent_quick(root, old_ir);
+  //return locate_parent_slow(root, old_ir);
 }
 
 IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
@@ -496,7 +521,7 @@ string Mutator::validate(IR * root){
     if(root == NULL) return "";
     try{
         string sql_str = root->to_string();
-        auto parsed_ir = parser(sql_str);
+        auto parsed_ir = parser(sql_str.c_str());
         if(parsed_ir == NULL) 
             return "";
         parsed_ir->deep_delete();
@@ -636,7 +661,8 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
                 if(cur->left_->type_ == kSelectNoParen){
                     res.push_back(cur->left_);
                     m_save[&cur->left_] = cur->left_;
-                    cur->left_ = NULL;
+                    cur->left_->parent_ = NULL;
+                    cur->update_left(NULL);
                 }
             }
 
@@ -645,7 +671,8 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
                 if(cur->right_->type_ == kSelectNoParen){
                     res.push_back(cur->right_);
                     m_save[&cur->right_] = cur->right_;
-                    cur->right_ = NULL;
+                    cur->right_->parent_ = NULL;
+                    cur->update_right(NULL);
                 }
             }
 
@@ -749,13 +776,13 @@ IR * Mutator::strategy_delete(IR * cur){
   res = cur->deep_copy();
   if(res->left_ != NULL)
     res->left_->deep_drop();
-  res->left_ = NULL;
+  res->update_left(NULL);
 
   DORIGHT
   res = cur->deep_copy();
   if(res->right_ != NULL)
     res->right_->deep_drop();
-  res->right_ = NULL;
+  res->update_right(NULL);
 
   DOBOTH
   res = cur->deep_copy();
@@ -763,7 +790,8 @@ IR * Mutator::strategy_delete(IR * cur){
     res->left_->deep_drop();
   if(res->right_ != NULL)
     res->right_->deep_drop();
-  res->left_ = res->right_ = NULL;
+  res->update_left(NULL);
+  res->update_right(NULL);
 
   MUTATEEND 
 }
@@ -787,7 +815,7 @@ IR * Mutator::strategy_insert(IR * cur){
     auto new_right = get_from_libary_with_left_type(left_type);
     if (new_right != NULL){
       auto res = cur->deep_copy();
-      res->right_ = new_right;
+      res->update_right(new_right);
       return res;
     }
   }
@@ -797,7 +825,7 @@ IR * Mutator::strategy_insert(IR * cur){
     auto new_left = get_from_libary_with_right_type(right_type);
     if(new_left != NULL){
       auto res = cur->deep_copy();
-      res->left_ = new_left;
+      res->update_left(new_left);
       return res;
     }
   }
@@ -823,7 +851,7 @@ IR * Mutator::strategy_replace(IR * cur){
     }
   }
   if(res->left_ != NULL) res->left_->deep_drop();
-  res->left_ = new_node;
+  res->update_left(new_node);
 
   DORIGHT
   res = cur->deep_copy();
@@ -836,7 +864,7 @@ IR * Mutator::strategy_replace(IR * cur){
     }
   }
   if(res->right_ != NULL) res->right_->deep_drop();
-  res->right_ = new_node;
+  res->update_right(new_node);
 
   DOBOTH
   res = cur->deep_copy();
@@ -861,8 +889,8 @@ IR * Mutator::strategy_replace(IR * cur){
 
   if(res->left_) res->left_->deep_drop();
   if(res->right_) res->right_->deep_drop();
-  res->left_ = new_left;
-  res->right_ = new_right;
+  res->update_left(new_left);
+  res->update_right(new_right);
 
   MUTATEEND
 
@@ -1425,7 +1453,15 @@ void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordere
 
 
 /* tranverse ir in the order: _right ==> root ==> left_ */
-string Mutator::fix(IR * root){
+
+string Mutator::fix(IR *root) {
+
+  string res = _fix(root);
+  trim_string(res);
+  return res;
+}
+
+string Mutator::_fix(IR * root){
 
   string res;
   auto * right_ = root->right_, * left_ = root->left_;
@@ -1438,7 +1474,7 @@ string Mutator::fix(IR * root){
 
   string tmp_right;
   if(right_ != NULL)
-    tmp_right = fix(right_);
+    tmp_right = _fix(right_);
 
   if(type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)){
     if(get_rand_int(2) == 1)
@@ -1446,8 +1482,6 @@ string Mutator::fix(IR * root){
     else
       return string("v1");
   }
-
-
 
   if(type_ == kCmdPragma){  
     string res = "PRAGMA ";
@@ -1495,7 +1529,7 @@ string Mutator::fix(IR * root){
   if(op_!= NULL)
     res += op_->prefix_ + " ";
   if(left_ != NULL)
-    res += fix(left_) + " ";
+    res += _fix(left_) + " ";
   if( op_!= NULL)
     res += op_->middle_ + " ";
   if(right_ != NULL)
@@ -1503,7 +1537,6 @@ string Mutator::fix(IR * root){
   if(op_!= NULL)
     res += op_->suffix_;
 
-  trim_string(res);
   return res;
 }
 
@@ -1576,7 +1609,14 @@ string Mutator::extract_struct(string query) {
   return res;
 }
 
-string Mutator::extract_struct(IR * root){
+string Mutator::extract_struct(IR *root) {
+
+  string res = _extract_struct(root);
+  trim_string(res);
+  return res;
+}
+
+string Mutator::_extract_struct(IR * root){
   static int counter = 0;
   string res;
   auto * right_ = root->right_, * left_ = root->left_;
@@ -1609,15 +1649,14 @@ string Mutator::extract_struct(IR * root){
   if(op_!= NULL)
     res += op_->prefix_ + " ";
   if(left_ != NULL)
-    res += extract_struct(left_) + " ";
+    res += _extract_struct(left_) + " ";
   if( op_!= NULL)
     res += op_->middle_ + " ";
   if(right_ != NULL)
-    res += extract_struct(right_) + " ";
+    res += _extract_struct(right_) + " ";
   if(op_!= NULL)
     res += op_->suffix_;
 
-  trim_string(res);
   return res;
 }
 
@@ -1660,8 +1699,8 @@ void Mutator::reset_database(){
 }
 
 int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
-  string sql(buf);
-  auto ast = parser(sql);
+
+  auto ast = parser(buf);
 
   new_buf = buf;
   new_len = len;

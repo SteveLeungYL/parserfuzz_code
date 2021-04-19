@@ -1,4 +1,5 @@
 #include "../include/utils.h"
+#include <algorithm>
 
 
 
@@ -101,7 +102,7 @@ void print_ir(IR * ir){
 }
 
 
-Program * parser(string sql){
+Program * parser(const char * sql){
 
     yyscan_t scanner;
     YY_BUFFER_STATE state;
@@ -110,7 +111,7 @@ Program * parser(string sql){
     if (hsql_lex_init(&scanner)) {
         return NULL;
     }
-    state = hsql__scan_string(sql.c_str(), scanner);
+    state = hsql__scan_string(sql, scanner);
 
     int ret = hsql_parse(p, scanner);
 
@@ -168,26 +169,14 @@ uint64_t fucking_hash ( const void * key, int len )
 	return h;
 } 
 
+bool BothAreSpaces(char lhs, char rhs) {
+    return (lhs == rhs) && (lhs == ' ');
+}
+
 void trim_string(string &res){
-    int count = 0;
-    int idx = 0;
-    bool expect_space = false;
-    for(int i = 0, sz = res.size(); i < sz; i++){
-        if(res[i] == ' '){
-            if(expect_space == false){
-                continue;
-            }else{
-                expect_space = false;
-                res[idx++] = res[i];
-                count ++;
-            }
-        }else{
-            expect_space = true;
-            res[idx++] = res[i];
-            count ++;
-        }
-    }
-    res.resize(count);
+
+  string::iterator new_end = unique(res.begin(), res.end(), BothAreSpaces);
+  res.erase(new_end, res.end());
 }
 
 
@@ -232,28 +221,3 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 	closedir(dir);
     	return file_list;
 } 
-
-IR * deep_copy_size(const IR * root, unsigned long *psize){
-
-  IR * left = NULL, * right = NULL, * copy_res;
-  IROperator * op = NULL;
-
-  if(root->left_) left = deep_copy_size(root->left_, psize); // do you have a second version for deep_copy that accept only one argument?                                                  
-  if(root->right_) right = deep_copy_size(root->right_, psize);//no I forget to update here
-  if(root->op_ != NULL) op = OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_);
-
-  copy_res = new IR(root->type_, op, left, right, root->f_val_, root->str_val_, 
-      root->name_, root->mutated_times_);
-  copy_res->id_type_ = root->id_type_;
-
-  *psize += sizeof(IR);
-  if(root->op_ != NULL) {
-
-    *psize += root->op_->prefix_.capacity();
-    *psize += root->op_->middle_.capacity();
-    *psize += root->op_->suffix_.capacity();
-  }
-
-  return copy_res;
-
-}

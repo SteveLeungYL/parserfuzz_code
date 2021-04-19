@@ -37,6 +37,8 @@ public:
 
     bool replace(IR * root , IR* old_ir, IR* new_ir);
     IR * locate_parent(IR * root ,IR * old_ir);
+    IR * locate_parent_quick(IR * root ,IR * old_ir);
+    IR * locate_parent_slow(IR * root ,IR * old_ir);
     IR * find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent);
     string validate(string query);
     string validate(IR * root); 
@@ -47,7 +49,7 @@ public:
     int get_ir_libary_2D_hash_kStatement_size();
     int get_norec_select_collection_size();
 
-    vector<IR*> parse_query_str_get_ir_set(string query_str);
+    vector<IR*> parse_query_str_get_ir_set(string &query_str);
     string get_random_mutated_norec_select_stmt();
 
     void add_all_to_library(IR*);
@@ -60,7 +62,9 @@ public:
 
     void init(string f_testcase, string f_common_string = "", string pragma = "");
     string fix(IR * root);
+    string _fix(IR * root);
     string extract_struct(IR * root);
+    string _extract_struct(IR * root);
     string extract_struct(string);
     string extract_struct2(IR * root);
     void add_new_table(IR * root, string &table_name);

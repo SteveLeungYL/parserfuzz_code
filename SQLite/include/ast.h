@@ -76,9 +76,9 @@ enum IDTYPE{
 typedef NODETYPE IRTYPE;
 
 class IROperator{
-public:
+  public:
     IROperator(string prefix="", string middle="", string suffix=""): 
-        prefix_(prefix), middle_(middle), suffix_(suffix) {}
+      prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
     string prefix_;
     string middle_;
@@ -86,37 +86,46 @@ public:
 };
 
 class IR{
-public:
-    IR(IRTYPE type,  IROperator * op, IR * left=NULL,IR* right=NULL):
-        type_(type), op_(op), left_(left), right_(right), operand_num_((!!right)+(!!left)), id_type_(id_whatever){
+  public:
+    IR(IRTYPE type, IROperator *op, IR *left=NULL, IR *right=NULL):
+        type_(type), op_(op), left_(left), right_(right), parent_(NULL),
+        operand_num_((!!right)+(!!left)), id_type_(id_whatever) {
             GEN_NAME();
+            if (left_) left_->parent_ = this;
+            if (right_) right_->parent_ = this;
         }
 
     IR(IRTYPE type, string str_val, IDTYPE id_type=id_whatever):
-        type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL), operand_num_
-    (0), id_type_(id_type){
+        type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL), 
+        parent_(NULL), operand_num_(0), id_type_(id_type) {
             GEN_NAME();
         }
 
     IR(IRTYPE type, bool b_val):
-        type_(type), b_val_(b_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), id_type_(id_whatever){
-            GEN_NAME();
+        type_(type), b_val_(b_val),left_(NULL), op_(NULL), right_(NULL), 
+        parent_(NULL), operand_num_(0), id_type_(id_whatever) {
+          GEN_NAME();
         }
-    
+
     IR(IRTYPE type, unsigned long int_val):
-        type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), id_type_(id_whatever){
+        type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), 
+        parent_(NULL), operand_num_(0), id_type_(id_whatever) {
             GEN_NAME();
         }
 
     IR(IRTYPE type, double f_val):
-        type_(type), f_val_(f_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), id_type_(id_whatever){
+        type_(type), f_val_(f_val),left_(NULL), op_(NULL), right_(NULL), 
+        parent_(NULL), operand_num_(0), id_type_(id_whatever) {
             GEN_NAME();
         }
 
-    IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, string str_val, string name, unsigned int mutated_times):
-        type_(type), op_(op), left_(left), right_(right), operand_num_((!!right)+(!!left)), name_(name), str_val_(str_val),
-        f_val_(f_val), mutated_times_(mutated_times), id_type_(id_whatever){
-
+    IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, 
+        string str_val, string name, unsigned int mutated_times):
+        type_(type), op_(op), left_(left), right_(right), parent_(NULL),
+        operand_num_((!!right)+(!!left)), name_(name), str_val_(str_val),
+        f_val_(f_val), mutated_times_(mutated_times), id_type_(id_whatever) {
+            if (left_) left_->parent_ = this;
+            if (right_) right_->parent_ = this;
         }
 
     // delete this IR and necessary clean up
@@ -125,6 +134,9 @@ public:
     void deep_drop();
     // copy the IR tree
     IR * deep_copy();
+
+    void update_left(IR *);
+    void update_right(IR *);
 
     union{
         unsigned long int_val_;
@@ -138,12 +150,14 @@ public:
     string name_;
     string str_val_;
     IROperator* op_;
-    IR* left_;
-    IR* right_;
+    IR *left_;
+    IR *right_;
+    IR *parent_;
     bool is_norec_select_fixed;  // Do not mutate this IR if this set to be true. 
     int operand_num_;
     unsigned int mutated_times_ = 0;
     string to_string();
+    string _to_string();
 };
 
 class IRCollector{
