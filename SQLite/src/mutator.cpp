@@ -297,10 +297,10 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   }
 }
 
-vector<IR*> Mutator::parse_query_str_get_ir_set(string query_str){
+vector<IR*> Mutator::parse_query_str_get_ir_set(string &query_str){
   vector<IR*> ir_set;
 
-  auto p_strip_sql = parser(query_str);
+  auto p_strip_sql = parser(query_str.c_str());
   if (p_strip_sql == NULL) return ir_set;
 
   try {
@@ -517,7 +517,7 @@ string Mutator::validate(IR * root){
     if(root == NULL) return "";
     try{
         string sql_str = root->to_string();
-        auto parsed_ir = parser(sql_str);
+        auto parsed_ir = parser(sql_str.c_str());
         if(parsed_ir == NULL) 
             return "";
         parsed_ir->deep_delete();
@@ -1695,8 +1695,8 @@ void Mutator::reset_database(){
 }
 
 int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
-  string sql(buf);
-  auto ast = parser(sql);
+
+  auto ast = parser(buf);
 
   new_buf = buf;
   new_len = len;

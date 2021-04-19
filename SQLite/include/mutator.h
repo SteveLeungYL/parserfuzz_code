@@ -49,7 +49,7 @@ public:
     int get_ir_libary_2D_hash_kStatement_size();
     int get_norec_select_collection_size();
 
-    vector<IR*> parse_query_str_get_ir_set(string query_str);
+    vector<IR*> parse_query_str_get_ir_set(string &query_str);
     string get_random_mutated_norec_select_stmt();
 
     void add_all_to_library(IR*);

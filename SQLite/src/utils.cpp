@@ -102,7 +102,7 @@ void print_ir(IR * ir){
 }
 
 
-Program * parser(string sql){
+Program * parser(const char * sql){
 
     yyscan_t scanner;
     YY_BUFFER_STATE state;
@@ -111,7 +111,7 @@ Program * parser(string sql){
     if (hsql_lex_init(&scanner)) {
         return NULL;
     }
-    state = hsql__scan_string(sql.c_str(), scanner);
+    state = hsql__scan_string(sql, scanner);
 
     int ret = hsql_parse(p, scanner);
 

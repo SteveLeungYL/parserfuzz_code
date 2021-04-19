@@ -3466,27 +3466,22 @@ static void perform_dry_run(char** argv) {
     fd = open(q->fname, O_RDONLY);
     if (fd < 0) PFATAL("Unable to open '%s'", q->fname);
 
-    use_mem = ck_alloc_nozero(q->len);
+    use_mem = ck_alloc_nozero(q->len + 1);
 
     if (read(fd, use_mem, q->len) != q->len)
       FATAL("Short read from '%s'", q->fname);
+    use_mem[q->len] = '\0';
 
     close(fd);
 
-    string current_program_input_str = "";
-    for (int output_index = 0; output_index < q->len; output_index++){
-      current_program_input_str += use_mem[output_index];
-    }
-    auto test_ir_root = parser(current_program_input_str);
+    auto test_ir_root = parser(use_mem);
     if (test_ir_root){
       test_ir_root->deep_delete();
       res = calibrate_case(argv, q, use_mem, 0, 1);
     } else {
-      cout << "Query seed: '" << current_program_input_str << " is not passing the parser!" << endl;
+      cout << "Query seed: '" << use_mem<< " is not passing the parser!" << endl;
     }
 
-
-    current_program_input_str.clear();
     ck_free(use_mem);
 
     if (stop_soon) return;
