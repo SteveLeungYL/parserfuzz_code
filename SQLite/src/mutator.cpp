@@ -56,17 +56,15 @@ bool Mutator::check_node_num(IR * root, unsigned int limit){
     
     auto v_statements = extract_statement(root);
     bool is_good = true;
-    
-    if(v_statements.size() > 50){
-        is_good = false;
 
-    }else
-        for(auto stmt: v_statements){
-            if(calc_node(stmt) > limit){
-                is_good = false;
-                break;
-            }
-        }
+    for(auto stmt: v_statements){
+      // cerr << "For current query stmt: " << root->to_string() << endl;
+      // cerr << calc_node(stmt) << endl;
+      if (calc_node(stmt) > limit) {
+        is_good = false;
+        break;
+      }
+    }
 
     return is_good;
 }
@@ -154,7 +152,7 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
             IR * new_ir_tree = deep_copy_with_record(root, ir);
             replace(new_ir_tree, this->record_, i);        
 
-            if(!check_node_num(new_ir_tree, 100)){
+            if(!check_node_num(new_ir_tree, 300)){
                 new_ir_tree->deep_drop();
                 continue;
             }
@@ -219,6 +217,12 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
 
     if (ir_tree.size() == 0) continue; 
+
+    if ( !check_node_num(ir_tree.back(), 300) ){
+      /* The retrived norec stmt is too complicated to mutate, directly return the retrived query. */
+        ir_tree.back()->deep_drop();        
+        return ori_norec_select;
+    }
     
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     mark_all_norec_select_stmt(ir_tree);
