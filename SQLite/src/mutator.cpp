@@ -109,13 +109,13 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
     {
         if (ir != nullptr && ir->type_ == kSelectNoParen)
         {
-            par_ir = locate_parent(root, ir);
+            par_ir = root->locate_parent(ir);
             if (par_ir != nullptr && par_ir->type_ == kSelectStatement)
             {
-                par_par_ir = locate_parent(root, par_ir);
+                par_par_ir = root->locate_parent(par_ir);
                 if (par_par_ir != nullptr && par_par_ir->type_ == kStatement)
                 {
-                    par_par_par_ir = locate_parent(root, par_par_ir);
+                    par_par_par_ir = root->locate_parent(par_par_ir);
                     if (par_par_par_ir != nullptr && par_par_par_ir->type_ == kStatementList)
                     {
                         string query = extract_struct(ir);
@@ -428,7 +428,7 @@ vector<IR *> Mutator::mutate(IR * input){
 }
 
 bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){ 
-    auto parent_ir = locate_parent(root, old_ir);
+    auto parent_ir = root->locate_parent(old_ir);
     if(parent_ir == NULL) return false;
 
     if (parent_ir->left_ == old_ir) { 
@@ -448,54 +448,10 @@ bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){
     return false;
 }
 
-IR * Mutator::locate_parent_quick(IR *root, IR *old_ir) {
-
-  for (IR *p = old_ir; p; p = p->parent_)
-    if (p->parent_ == root) return old_ir->parent_;
-
-  return NULL;
-}
-
-IR * Mutator::locate_parent_slow(IR *root, IR *old_ir) {
-
-  /* One of the biggest runtime performance bottlenet as shown by tool 'perf'. 
-   * Reimplement this with non-recursion 
-   */
-
-  vector<IR*> s;
-  IR* p = root;
-  while (p != NULL || !s.empty()){
-    while (p != NULL){
-      s.push_back(p);
-      p = p -> left_;
-    }
-
-    if (!s.empty()){
-      p = s[s.size()-1];
-
-      /* Implement the locate_parent logic here */
-      if (p->left_ == old_ir || p->right_ == old_ir) {
-        s.clear();
-        return p;
-      }
-
-      s.pop_back();
-      p = p -> right_;
-    }
-  }
-  return NULL;
-}
-
-IR * Mutator::locate_parent(IR * root, IR * old_ir){
-
-  return locate_parent_quick(root, old_ir);
-  //return locate_parent_slow(root, old_ir);
-}
-
 IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
     IR * root = v_ir_collector[v_ir_collector.size()-1];
     for(auto ir: v_ir_collector){
-        if (ir != nullptr && ir -> type_ == node_type && this->locate_parent(root, ir) == parent)
+        if (ir != nullptr && ir -> type_ == node_type && root->locate_parent(ir) == parent)
             return ir;
     }
     cerr << "Error: Cannot find the child type from parent. " << endl;
@@ -722,11 +678,11 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE
       auto curptr = ir;
       bool flag = false;
       while(true){
-        auto pptr = locate_parent(stmt, curptr);
+        auto pptr = stmt->locate_parent(curptr);
         if(pptr == NULL)break;
         while(pptr->left_ == NULL || pptr->right_ == NULL){
           curptr = pptr;
-          pptr = locate_parent(stmt, curptr);
+          pptr = stmt->locate_parent(curptr);
           if(pptr == NULL){
             flag = true;
             break;

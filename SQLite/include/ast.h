@@ -158,6 +158,7 @@ class IR{
     unsigned int mutated_times_ = 0;
     string to_string();
     string _to_string();
+    IR * locate_parent(IR *child);
 };
 
 class IRCollector{

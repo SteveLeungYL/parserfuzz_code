@@ -46,6 +46,14 @@ string IR::_to_string(){
     return res;
 }
 
+IR * IR::locate_parent(IR *child) {
+
+  for (IR *p = child; p; p = p->parent_)
+    if (p->parent_ == this) return child->parent_;
+
+  return NULL;
+}
+
 void IR::update_left(IR *new_left) {
 
   //if (this->left_ && this->left_->parent_ == this)
