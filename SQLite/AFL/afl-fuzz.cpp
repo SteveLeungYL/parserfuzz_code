@@ -446,7 +446,7 @@ static void shuffle_ptrs(void** ptrs, u32 cnt) {
 /* Build a list of processes bound to specific cores. Returns -1 if nothing
    can be found. Assumes an upper bound of 4k CPUs. */
 
-static void bind_to_free_cpu(void) {
+static void bind_to_free_cpu(int bind_to_core_id = -1) {
 
   DIR* d;
   struct dirent* de;
@@ -542,8 +542,12 @@ static void bind_to_free_cpu(void) {
     FATAL("No more free CPU cores");
 
   }
-
-  OKF("Found a free CPU core, binding to #%u.", i);
+  if (bind_to_core_id < cpu_core_count && bind_to_core_id >= 0) {
+    i = u32(bind_to_core_id);
+    OKF("By command flags, binding to #%u.", i);
+  } else {
+    OKF("Found a free CPU core, binding to #%u.", i);
+  }
 
   cpu_aff = i;
 
@@ -5760,6 +5764,8 @@ static u8 fuzz_one(char** argv) {
   vector<string *> mutated_tree;
   char * tmp_name = stage_name;
   string query_str;
+  int skip_count;
+  string input;
 
 #ifdef IGNORE_FINDS
 
@@ -5859,8 +5865,8 @@ static u8 fuzz_one(char** argv) {
   //[modify] add
   stage_name = "mutate";
 
-  int skip_count = 0;
-  string input((const char *)out_buf);
+  skip_count = 0;
+  input = (const char *)out_buf;
 
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
 
@@ -7162,6 +7168,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   // hsql_debug = 1;
+  int bind_to_core_id = -1;
     
   min_stab_radio = 100.0;
   s32 opt;
@@ -7183,7 +7190,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QD")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:")) > 0)
 
     switch (opt) {
 
@@ -7309,6 +7316,9 @@ int main(int argc, char** argv) {
         dump_library = 1;
         break;
 
+      case 'c': /* bind to specific CPU core num */
+        bind_to_core_id = atoi(optarg);
+        break;
       case 'B': /* load bitmap */
 
         /* This is a secret undocumented option! It is useful if you find
@@ -7412,7 +7422,7 @@ int main(int argc, char** argv) {
   get_core_count();
 
 #ifdef HAVE_AFFINITY
-  bind_to_free_cpu();
+  bind_to_free_cpu(bind_to_core_id);
 #endif /* HAVE_AFFINITY */
 
   check_crash_handling();
