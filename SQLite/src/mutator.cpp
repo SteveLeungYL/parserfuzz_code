@@ -129,6 +129,7 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
             }
         }
     }
+
     return is_mark_successfully;
 }
 
@@ -188,9 +189,9 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   while (!is_success) {
 
     string ori_norec_select = "";
-    /* One sixth of the time, we will grab one query from the query library, if the query library contians anything. 
-        Another one third of the time, we will grab one query from the query library, mutate them, and return the mutated version of the query.
-        At last, one half of the time, we grab query from the templates, "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return. 
+    /* For 1/6 chance, grab one query from the norec library, mutate it, and return.
+       For 1/3 chance, grab one query from the norec library, and return.. 
+       For 1/2 chance, take the template "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return. 
     */
     int query_method = get_rand_int(6);
     if (all_norec_pstr_vec.size() > 0 && query_method == 0)  {
@@ -210,8 +211,6 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
       use_temp = true;
     }
-    if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
-
 
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
@@ -276,9 +275,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
       /* Final check and return string if compatible */
       vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_norec_select_str);
-
       if (new_ir_verified.size() <= 0) continue;
-      
       new_ir_verified.back()->deep_drop();
 
       if (is_norec_compatible(new_norec_select_str) && 
@@ -294,9 +291,11 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
-  /* Failed to mutate the retrived norec select stmt after 100 trials. Maybe it is because the norec select stmt is too complex the mutate. 
-      Grab another norec select stmt from the lib or from the template, try again. 
-  */
+
+    /* Failed to mutate the retrived norec select stmt after 100 trials. 
+     * Maybe it is because the norec select stmt is too complex the mutate. 
+     * Grab another norec select stmt from the lib or from the template, try again. 
+     */
     ir_tree.back()->deep_drop();
   }
 }
