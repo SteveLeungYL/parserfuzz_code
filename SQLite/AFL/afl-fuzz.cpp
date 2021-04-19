@@ -5759,6 +5759,8 @@ static u8 fuzz_one(char** argv) {
   vector<IR *> ir_set, mutated_tree;
   char * tmp_name = stage_name;
   string query_str;
+  int skip_count;
+  string input;
 
 #ifdef IGNORE_FINDS
 
@@ -5858,8 +5860,8 @@ static u8 fuzz_one(char** argv) {
   //[modify] add
   stage_name = "mutate";
 
-  int skip_count = 0;
-  string input((const char *)out_buf);
+  skip_count = 0;
+  input = (const char *)out_buf;
 
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
 
