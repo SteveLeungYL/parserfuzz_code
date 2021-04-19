@@ -21,7 +21,7 @@ using namespace std;
 vector<string> Mutator::common_string_libary;
 vector<unsigned long> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;
-vector<string> Mutator::v_table_names; 
+vector<string> Mutator::v_table_names;
 
 void Mutator::set_dump_library(bool to_dump) {
 
@@ -33,11 +33,11 @@ IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
 
     IR * left = NULL, * right = NULL, * copy_res;
 
-    if(root->left_) left = deep_copy_with_record(root->left_, record);                                             
-    if(root->right_) right = deep_copy_with_record(root->right_, record); 
+    if(root->left_) left = deep_copy_with_record(root->left_, record);
+    if(root->right_) right = deep_copy_with_record(root->right_, record);
 
     if(root->op_ != NULL)
-        copy_res = new IR(root->type_, OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_), 
+        copy_res = new IR(root->type_, OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_),
                     left, right, root->f_val_, root->str_val_, root->name_, root->mutated_times_);
     else
         copy_res = new IR(root->type_, NULL, left, right, root->f_val_, root->str_val_, root->name_, root->mutated_times_);
@@ -47,13 +47,13 @@ IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
     if(root == record && record != NULL){
         this->record_ = copy_res;
     }
-    
+
     return copy_res;
 
 }
 
 bool Mutator::check_node_num(IR * root, unsigned int limit){
-    
+
     auto v_statements = extract_statement(root);
     bool is_good = true;
 
@@ -86,14 +86,14 @@ bool Mutator::is_norec_compatible(const string& query){
         ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
         ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
         ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&  // This is a SELECT stmt that matching the requirments of NoREC.
-        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&  
-        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later. 
+        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
+        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later.
     ) return true;
     return false;
 }
 
 bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
-{   
+{
     bool is_mark_successfully = false;
 
     IR *root = v_ir_collector[v_ir_collector.size() - 1];
@@ -117,7 +117,7 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
                     if (par_par_par_ir != nullptr && par_par_par_ir->type_ == kStatementList)
                     {
                         string query = extract_struct(ir);
-                        if (   !(this->is_norec_compatible(query))   )  continue;  // Not norec compatible. Jump to the next ir. 
+                        if (   !(this->is_norec_compatible(query))   )  continue;  // Not norec compatible. Jump to the next ir.
                         query.clear();
                         is_mark_successfully = make_current_node_as_norec_select_stmt(ir);
                         // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << " \n\n\n";
@@ -182,9 +182,9 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 }
 
 string Mutator::get_random_mutated_norec_select_stmt(){
-  /* Read from the previously seen norec compatible select stmt. 
-   * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of 
-    the new generated norec compatible SELECT query. 
+  /* Read from the previously seen norec compatible select stmt.
+   * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of
+    the new generated norec compatible SELECT query.
   */
   bool is_success = false;
   vector<IR*> ir_tree;
@@ -198,8 +198,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
     string ori_norec_select = "";
     /* For 1/6 chance, grab one query from the norec library, mutate it, and return.
-       For 1/3 chance, grab one query from the norec library, and return.. 
-       For 1/2 chance, take the template "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return. 
+       For 1/3 chance, grab one query from the norec library, and return..
+       For 1/2 chance, take the template "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return.
     */
     int query_method = get_rand_int(6);
     if (all_norec_pstr_vec.size() > 0 && query_method == 0)  {
@@ -213,7 +213,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
       if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
       use_temp = false;
-      return ori_norec_select;  
+      return ori_norec_select;
     } else {
       /* Pick the query from the template, pass to the mutator. */
       ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
@@ -225,18 +225,18 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
     root = ir_tree.back();
 
-    if (ir_tree.size() == 0) continue; 
+    if (ir_tree.size() == 0) continue;
 
     if ( !check_node_num(ir_tree.back(), 300) ){
       /* The retrived norec stmt is too complicated to mutate, directly return the retrived query. */
-        ir_tree.back()->deep_drop();        
+        ir_tree.back()->deep_drop();
         return ori_norec_select;
     }
 
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     mark_all_norec_select_stmt(ir_tree);
 
-    /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate. 
+    /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate.
     */
     for (int trial_count = 0; trial_count < 30; trial_count++){
 
@@ -254,7 +254,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         break;
       }
 
-      if (!is_mutate_ir_node_chosen) break;   // The current ir tree cannot even find the node to mutate. Ignored and retrive new norec stmt from lib or from library. 
+      if (!is_mutate_ir_node_chosen) break;   // The current ir tree cannot even find the node to mutate. Ignored and retrive new norec stmt from lib or from library.
 
       /* Pick random mutation methods. */
       switch (get_rand_int(3)){
@@ -273,7 +273,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         new_mutated_ir_node->deep_drop();
         continue;
       }
-          
+
       new_norec_select_str = root->to_string();
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
       new_mutated_ir_node->deep_drop();
@@ -283,8 +283,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       if (new_ir_verified.size() <= 0) continue;
       new_ir_verified.back()->deep_drop();
 
-      if (is_norec_compatible(new_norec_select_str) && 
-        extract_struct(new_norec_select_str) != // Make sure the mutated structure is different. 
+      if (is_norec_compatible(new_norec_select_str) &&
+        extract_struct(new_norec_select_str) != // Make sure the mutated structure is different.
         extract_struct(ori_norec_select)) {
 
         root->deep_drop();
@@ -297,9 +297,9 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       continue;  // Retry mutating the current norec stmt and its IR tree.
     }
 
-    /* Failed to mutate the retrived norec select stmt after 100 trials. 
-     * Maybe it is because the norec select stmt is too complex the mutate. 
-     * Grab another norec select stmt from the lib or from the template, try again. 
+    /* Failed to mutate the retrived norec select stmt after 100 trials.
+     * Maybe it is because the norec select stmt is too complex the mutate.
+     * Grab another norec select stmt from the lib or from the template, try again.
      */
     root->deep_drop();
     root = NULL;
@@ -378,7 +378,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     value_libary.insert(value_libary.begin(), value_lib_init.begin(), value_lib_init.end());
 
 
-    //init common_string_libary 
+    //init common_string_libary
     common_string_libary.push_back("DO_NOT_BE_EMPTY");
     if(f_common_string != ""){
         ifstream input_string(f_common_string);
@@ -391,7 +391,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     string_libary.push_back("x");
     string_libary.push_back("v0");
     string_libary.push_back("v1");
-    
+
     ifstream input_pragma("./pragma");
     string s;
     cout << "start init pragma" << endl;
@@ -436,22 +436,22 @@ vector<IR *> Mutator::mutate(IR * input){
     return res;
 }
 
-bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){ 
+bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){
     auto parent_ir = root->locate_parent(old_ir);
     if(parent_ir == NULL) return false;
 
-    if (parent_ir->left_ == old_ir) { 
-      
-      old_ir->deep_drop(); 
-      parent_ir->update_left(new_ir); 
+    if (parent_ir->left_ == old_ir) {
+
+      old_ir->deep_drop();
+      parent_ir->update_left(new_ir);
       return true;
-    
-    } else if (parent_ir->right_ == old_ir) { 
-      
-      old_ir->deep_drop(); 
-      parent_ir->update_right(new_ir); 
+
+    } else if (parent_ir->right_ == old_ir) {
+
+      old_ir->deep_drop();
+      parent_ir->update_right(new_ir);
       return true;
-    
+
     }
 
     return false;
@@ -483,7 +483,7 @@ string Mutator::validate(IR * root){
     try{
         string sql_str = root->to_string();
         auto parsed_ir = parser(sql_str.c_str());
-        if(parsed_ir == NULL) 
+        if(parsed_ir == NULL)
             return "";
         parsed_ir->deep_delete();
 
@@ -569,7 +569,7 @@ void toptable_map(map<IR*, set<IR*>> &graph, vector<IR*> &ir_to_fix, vector<IR*>
             toptable.push_back(ir);
         }
     }
-    if(toptable.empty()) return;  
+    if(toptable.empty()) return;
     for(auto k: tablename){
         auto r = get_rand_int(toptable.size());
         graph[toptable[r]].insert(k);
@@ -752,7 +752,7 @@ IR * Mutator::strategy_delete(IR * cur){
   res->update_left(NULL);
   res->update_right(NULL);
 
-  MUTATEEND 
+  MUTATEEND
 }
 
 
@@ -778,7 +778,7 @@ IR * Mutator::strategy_insert(IR * cur){
       return res;
     }
   }
-  
+
   else if(cur->right_ != NULL && cur->left_ == NULL){
     auto right_type = cur->right_->type_;
     auto new_left = get_from_libary_with_right_type(right_type);
@@ -796,7 +796,7 @@ IR * Mutator::strategy_replace(IR * cur){
   assert(cur);
 
   MUTATESTART
-  
+
 
   DOLEFT
   res = cur->deep_copy();
@@ -828,7 +828,7 @@ IR * Mutator::strategy_replace(IR * cur){
   DOBOTH
   res = cur->deep_copy();
   if ( res->left_ == NULL || res->right_ == NULL) break;
-    
+
 
   auto new_left = get_from_libary_with_type(res->left_->type_);
   auto new_right = get_from_libary_with_type(res->right_->type_);
@@ -865,7 +865,7 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
 
 IR* Mutator::get_from_libary_with_type(IRTYPE type_){
   /* Given a data type, return a randomly selected prevously seen IR node that matched the given type.
-      If nothing has found, return an empty kStringLiteral. 
+      If nothing has found, return an empty kStringLiteral.
   */
 
   vector<IR*> current_ir_set;
@@ -906,14 +906,14 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
       return return_matched_ir_node;
     }
 
-  } 
-  
+  }
+
   return new IR(kStringLiteral, "");
 }
 
 IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
   /* Given a left_ type, return a randomly selected prevously seen right_ node that share the same parent.
-      If nothing has found, return NULL. 
+      If nothing has found, return NULL.
   */
 
   vector<IR*> current_ir_set;
@@ -953,14 +953,14 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
       return return_matched_ir_node;
     }
 
-  } 
-  
+  }
+
   return NULL;
 }
 
 IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
   /* Given a right_ type, return a randomly selected prevously seen left_ node that share the same parent.
-      If nothing has found, return NULL. 
+      If nothing has found, return NULL.
   */
 
   vector<IR*> current_ir_set;
@@ -999,8 +999,8 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
       return return_matched_ir_node;
     }
 
-  } 
-  
+  }
+
   return NULL;
 }
 
@@ -1059,22 +1059,22 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str){
   return false;
 }
 
-/* add_to_library supports only one stmt at a time, 
- * add_all_to_library is responsible to split the 
- * the current IR tree into single query stmts. 
- * This function is not responsible to free the input IR tree. 
+/* add_to_library supports only one stmt at a time,
+ * add_all_to_library is responsible to split the
+ * the current IR tree into single query stmts.
+ * This function is not responsible to free the input IR tree.
  */
 void Mutator::add_all_to_library(IR* ir) {
   add_all_to_library(ir->to_string());
 }
 
-/*  Save an interesting query stmt into the mutator library. 
+/*  Save an interesting query stmt into the mutator library.
  *
- *   The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed. 
+ *   The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged once an IR tree has been reconstructed.
  *   However, there are some difficulties there. For example, how to keep the uniqueness and the fix order of the unique_id_in_tree_ for each node in mutations.
- *   Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary 
- *   by calling this funcion and get_from_library_with_[_,left,right]_type. 
- *   We ignore this unique_id_in_tree_ in other operations of the IR nodes. 
+ *   Therefore, setting and checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only done when necessary
+ *   by calling this funcion and get_from_library_with_[_,left,right]_type.
+ *   We ignore this unique_id_in_tree_ in other operations of the IR nodes.
  *   The unique_id_in_tree_ is setup based on the order of the ir_set vector, returned from Program*->translate(ir_set).
  *
  */
@@ -1097,7 +1097,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
   for (auto current_query : queries_vector){
     current_query += ";";
     // check the validity of the IR here
-    // The unique_id_in_tree_ variable are being set inside the parsing func. 
+    // The unique_id_in_tree_ variable are being set inside the parsing func.
     vector<IR*> ir_set = parse_query_str_get_ir_set(current_query);
     if (ir_set.size() == 0) continue;
 
@@ -1166,8 +1166,8 @@ void Mutator::add_to_library(IR* ir) {
 
   add_to_library_core(ir, p_query_str);
 
-  // get_memory_usage();  // Debug purpose. 
-  
+  // get_memory_usage();  // Debug purpose.
+
   return;
 }
 
@@ -1245,7 +1245,7 @@ void Mutator::get_memory_usage() {
   // unsigned long size_2D_hash = 0;
   // for (auto &i : ir_libary_2D_hash_)
   //   size_2D_hash += i.second.size() * 8;
-  // f << "2D hash size:" << size_2D_hash 
+  // f << "2D hash size:" << size_2D_hash
   //      << "\t - " << size_2D_hash * 1.0 / use << "\n";
   // total_size += size_2D_hash;
 
@@ -1277,7 +1277,7 @@ void Mutator::get_memory_usage() {
   f << "common str:  " << size_common_string_libary
        << "\t - " << size_common_string_libary * 1.0 / use << "\n";
   total_size += size_common_string_libary;
-    
+
   unsigned long size_value = 0;
   size_value += value_libary.size() * 8;
   f << "value size:   " << size_value
@@ -1319,7 +1319,7 @@ void Mutator::get_memory_usage() {
   f.close();
 }
 
-unsigned long Mutator::hash(string sql){ 
+unsigned long Mutator::hash(string sql){
   return fucking_hash(sql.c_str(), sql.size());
 }
 
@@ -1336,7 +1336,7 @@ void Mutator::debug(IR *root){
 
 Mutator::~Mutator(){
   cout << "HERE" << endl;
-  
+
   for (auto iter : all_query_pstr_set){
     delete iter;
   }
@@ -1744,7 +1744,7 @@ void Mutator::add_new_table(IR * root, string &table_name){
 
 
 void Mutator::reset_database(){
-  m_tables.clear();    
+  m_tables.clear();
   v_table_names.clear();
 }
 
