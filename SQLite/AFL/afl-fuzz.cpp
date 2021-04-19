@@ -5756,7 +5756,8 @@ static u8 fuzz_one(char** argv) {
   u8  ret_val = 1;
 
   Program * program_root;
-  vector<IR *> ir_set, mutated_tree;
+  vector<IR *> ir_set;
+  vector<string *> mutated_tree;
   char * tmp_name = stage_name;
   string query_str;
 
@@ -5886,21 +5887,21 @@ static u8 fuzz_one(char** argv) {
   stage_cur = 0;
 
   // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
-  for(auto ir: mutated_tree){
+  for(auto ir_str: mutated_tree){
+
     stage_name = "query_fix";
 
-    if (ir == NULL) continue;
+    if (ir_str == NULL) continue;
 
     /* Use to_string() here, validate() will be called just once, at the end of the query mutation. */
-    query_str = ir->to_string();
-    if(query_str == ""){
+    if(ir_str->size() == 0){
       total_mutate_failed++;
       skip_count++;
       continue;
     }
 
     /* Check whether the original query makes sense, if not, do not even consider appending anything */
-    vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
+    vector<IR*> original_ir_tree = g_mutator.parse_query_str_get_ir_set(*ir_str);
     if (original_ir_tree.size() > 0)
       original_ir_tree.back()->deep_drop();
     else {
@@ -5909,8 +5910,8 @@ static u8 fuzz_one(char** argv) {
       continue;
     }
 
-    append_norec_select_stmts(query_str);
-    query_str = g_mutator.validate(query_str);
+    append_norec_select_stmts(*ir_str);
+    query_str = g_mutator.validate(*ir_str);
 
     if(query_str == ""){
       total_append_failed++;
@@ -5941,9 +5942,9 @@ static u8 fuzz_one(char** argv) {
 
 abandon_entry:
 
-  for(auto ir: mutated_tree){
-    ir->deep_drop();
-  }
+  for(auto ir: mutated_tree)
+    delete ir;
+
   splicing_with = -1;
 
   /* Update pending_not_fuzzed count if we made it through the calibration

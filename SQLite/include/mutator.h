@@ -28,7 +28,7 @@ public:
     static bool is_norec_compatible(const string& query);
     bool make_current_node_as_norec_select_stmt(IR* root);
     bool mark_all_norec_select_stmt(vector<IR *> &v_ir_collector);
-    vector<IR *> mutate_all(vector<IR*> &v_ir_collector);
+    vector<string *> mutate_all(vector<IR*> &v_ir_collector);
 
     vector<IR*> mutate(IR* input);  
     IR * strategy_delete(IR * cur);

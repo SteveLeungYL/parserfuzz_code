@@ -128,16 +128,6 @@ class IR{
             if (right_) right_->parent_ = this;
         }
 
-    // delete this IR and necessary clean up
-    void drop();
-    // delete the IR tree
-    void deep_drop();
-    // copy the IR tree
-    IR * deep_copy();
-
-    void update_left(IR *);
-    void update_right(IR *);
-
     union{
         unsigned long int_val_;
         double f_val_;
@@ -158,8 +148,23 @@ class IR{
     unsigned int mutated_times_ = 0;
     string to_string();
     string _to_string();
+
+    // delete this IR and necessary clean up
+    void drop();
+    // delete the IR tree
+    void deep_drop();
+    // copy the IR tree
+    IR * deep_copy();
+    // find the parent node of child inside this IR tree
     IR * locate_parent(IR *child);
+    // unlink the node from this IR tree, but keep the node
     bool detach_node(IR *node);
+    // swap the node, keep both
+    bool swap_node(IR *old_node, IR *new_node);
+
+    void update_left(IR *);
+    void update_right(IR *);
+
 };
 
 class IRCollector{

@@ -133,45 +133,52 @@ bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
     return is_mark_successfully;
 }
 
-vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
-    vector<IR *> res;
+vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
+    vector<string *> res;
     set<unsigned long> res_hash;
     IR * root = v_ir_collector[v_ir_collector.size()-1];
 
     mark_all_norec_select_stmt(v_ir_collector);
 
-    for(auto ir: v_ir_collector){
+    for(auto old_ir: v_ir_collector){
 
-        if(ir == root || ir->type_ == kProgram || ir -> is_norec_select_fixed )
+        if (old_ir == root || old_ir->type_ == kProgram || old_ir->is_norec_select_fixed)
           continue;
 
         // cerr << "\n\n\nLooking at ir node: " << ir->to_string() << endl;
-        vector<IR *> v_mutated_ir = mutate(ir);
+        vector<IR *> v_mutated_ir = mutate(old_ir);
 
-        for(auto i: v_mutated_ir){
-            // cerr << "\n\n\nLooking at mutated i node: " << i->to_string() << endl;
-            IR * new_ir_tree = deep_copy_with_record(root, ir);
-            replace(new_ir_tree, this->record_, i);        
+        for (auto new_ir: v_mutated_ir){
 
-            if(!check_node_num(new_ir_tree, 300)){
-                new_ir_tree->deep_drop();
-                continue;
-            }
+          if (!root->swap_node(old_ir, new_ir)) {
+            new_ir->deep_drop();
+            continue;
+          }
 
-            string tmp = new_ir_tree->to_string();
-            unsigned tmp_hash = hash(tmp);
-            if(res_hash.find(tmp_hash) != res_hash.end()){
-                new_ir_tree->deep_drop();
-                continue;
-            }
+          if(!check_node_num(root, 300)){
+            root->swap_node(new_ir, old_ir);
+            new_ir->deep_drop();
+            continue;
+          }
 
-            res_hash.insert(tmp_hash);
-            res.push_back(new_ir_tree);
+          string tmp = root->to_string();
+          unsigned tmp_hash = hash(tmp);
+          if(res_hash.find(tmp_hash) != res_hash.end()){
+            root->swap_node(new_ir, old_ir);
+            new_ir->deep_drop();
+            continue;
+          }
+
+          string *new_str = new string(tmp);
+          res_hash.insert(tmp_hash);
+          res.push_back(new_str);
+
+          root->swap_node(new_ir, old_ir);
+          new_ir->deep_drop();
         }
     }
 
     return res;
-
 }
 
 string Mutator::get_random_mutated_norec_select_stmt(){
@@ -181,6 +188,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
   */
   bool is_success = false;
   vector<IR*> ir_tree;
+  IR * root = NULL;
   string new_norec_select_str = "";
 
   total_random_norec += 1;
@@ -215,6 +223,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
 
+    root = ir_tree.back();
+
     if (ir_tree.size() == 0) continue; 
 
     if ( !check_node_num(ir_tree.back(), 300) ){
@@ -222,7 +232,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         ir_tree.back()->deep_drop();        
         return ori_norec_select;
     }
-    
+
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     mark_all_norec_select_stmt(ir_tree);
 
@@ -259,19 +269,14 @@ string Mutator::get_random_mutated_norec_select_stmt(){
           break;
       }
 
-      /* Deep copy IR tree, replace with mutated node, and retrive the mutated string */
-      IR * new_ir_root = deep_copy_with_record(ir_tree[ir_tree.size()-1], mutate_ir_node);
-      if (!replace(new_ir_root, this->record_, new_mutated_ir_node)){   // cannot replace the node with new mutated node. Error
-        new_ir_root->deep_drop();
+      if (!root->swap_node(mutate_ir_node, new_mutated_ir_node)) {
         new_mutated_ir_node->deep_drop();
         continue;
       }
-      /* Do not use validate here. Validate() could be very computational expensive, especially when they try to call fix_graph() or fix();
-          This function is an loop that would be called multiple times, if we use validate() each time to check the IR tree, it would introduce
-          huge performance penalty.
-       */
-      new_norec_select_str = new_ir_root->to_string();
-      new_ir_root->deep_drop();
+          
+      new_norec_select_str = root->to_string();
+      root->swap_node(new_mutated_ir_node, mutate_ir_node);
+      new_mutated_ir_node->deep_drop();
 
       /* Final check and return string if compatible */
       vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_norec_select_str);
@@ -282,7 +287,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
         extract_struct(new_norec_select_str) != // Make sure the mutated structure is different. 
         extract_struct(ori_norec_select)) {
 
-        ir_tree.back()->deep_drop();
+        root->deep_drop();
         is_success = true;
 
         if (use_temp) total_temp += 1;
@@ -296,7 +301,8 @@ string Mutator::get_random_mutated_norec_select_stmt(){
      * Maybe it is because the norec select stmt is too complex the mutate. 
      * Grab another norec select stmt from the lib or from the template, try again. 
      */
-    ir_tree.back()->deep_drop();
+    root->deep_drop();
+    root = NULL;
   }
 }
 
@@ -616,8 +622,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
                 if(cur->left_->type_ == kSelectNoParen){
                     res.push_back(cur->left_);
                     m_save[&cur->left_] = cur->left_;
-                    cur->left_->parent_ = NULL;
-                    cur->update_left(NULL);
+                    cur->detach_node(cur->left_);
                 }
             }
 
@@ -626,8 +631,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
                 if(cur->right_->type_ == kSelectNoParen){
                     res.push_back(cur->right_);
                     m_save[&cur->right_] = cur->right_;
-                    cur->right_->parent_ = NULL;
-                    cur->update_right(NULL);
+                    cur->detach_node(cur->right_);
                 }
             }
 

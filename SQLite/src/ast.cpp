@@ -47,15 +47,19 @@ string IR::_to_string(){
 }
 
 bool IR::detach_node(IR *node) {
+  return swap_node(node, NULL);
+}
 
-  IR * parent = this->locate_parent(node);
+bool IR::swap_node(IR *old_node, IR *new_node) {
+
+  IR *parent = this->locate_parent(old_node);
 
   if (parent == NULL) return false;
-  else if (parent->left_ == node) parent->update_left(NULL);
-  else if (parent->right_ == node) parent->update_right(NULL);
+  else if (parent->left_ == old_node) parent->update_left(new_node);
+  else if (parent->right_ == old_node) parent->update_right(new_node);
   else return false;
 
-  node->parent_ = NULL;
+  old_node->parent_ = NULL;
 
   return true;
 }
@@ -70,18 +74,17 @@ IR * IR::locate_parent(IR *child) {
 
 void IR::update_left(IR *new_left) {
 
-  //if (this->left_ && this->left_->parent_ == this)
-  //  this->left_->parent_ = NULL;
+  // we do not update the parent_ of the old left_
+  // we do not update the child of the old parent_ of new_left
 
   this->left_ = new_left;
-
   if (new_left) new_left->parent_ = this;
 }
 
 void IR::update_right(IR *new_right) {
 
-  //if (this->right_ && this->right_->parent_ == this)
-  //  this->right_->parent_ = NULL;
+  // we do not update the parent_ of the old right_
+  // we do not update the child of the old parent_ of new_right
 
   this->right_ = new_right;
   if (new_right) new_right->parent_ = this;
