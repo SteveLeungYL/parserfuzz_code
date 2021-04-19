@@ -1,4 +1,3 @@
-from SQLite.Bug_Analysis.bisecting_sqlite_config import FUZZING_COMMAND
 from configparser import Error
 from io import StringIO
 import os
@@ -610,7 +609,7 @@ def setup_and_run_fuzzing():
     for i in range(MAX_FUZZING_INSTANCE):
         shutil.copytree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root"), os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
         os.chdir(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
-        fuzzing_command = FUZZING_COMMAND + " -c " + str(i) + " -- " + SQLITE_FUZZING_BINARY_PATH
+        fuzzing_command = FUZZING_COMMAND + " -c " + str(i) + " -- " + SQLITE_FUZZING_BINARY_PATH + " &"
         p = subprocess.Popen([fuzzing_command], cwd=os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)), shell=True, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
         print("Fuzzing process running, PID is: %d" % (p.pid))
         log_output.write("Fuzzing process running, PID is: %d \n" % (p.pid))
