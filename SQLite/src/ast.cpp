@@ -46,6 +46,20 @@ string IR::_to_string(){
     return res;
 }
 
+bool IR::detach_node(IR *node) {
+
+  IR * parent = this->locate_parent(node);
+
+  if (parent == NULL) return false;
+  else if (parent->left_ == node) parent->update_left(NULL);
+  else if (parent->right_ == node) parent->update_right(NULL);
+  else return false;
+
+  node->parent_ = NULL;
+
+  return true;
+}
+
 IR * IR::locate_parent(IR *child) {
 
   for (IR *p = child; p; p = p->parent_)

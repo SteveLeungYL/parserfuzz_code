@@ -159,6 +159,7 @@ class IR{
     string to_string();
     string _to_string();
     IR * locate_parent(IR *child);
+    bool detach_node(IR *node);
 };
 
 class IRCollector{

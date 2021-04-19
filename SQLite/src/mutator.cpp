@@ -864,7 +864,7 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
   vector<IR*> current_ir_set;
   IR* current_ir_root;
   vector<pair<string*, int>>& all_matching_node = real_ir_set[type_];
-  IR* return_mached_ir_node = NULL;
+  IR* return_matched_ir_node = NULL;
 
   if (all_matching_node.size() > 0){
     /* Pick a random matching node from the library. */
@@ -887,14 +887,16 @@ IR* Mutator::get_from_libary_with_type(IRTYPE type_){
         current_ir_root->deep_drop();
         return new IR(kStringLiteral, "");
       }
-      return_mached_ir_node = matched_ir_node->deep_copy();
+      //return_matched_ir_node = matched_ir_node->deep_copy();
+      return_matched_ir_node = matched_ir_node;
+      current_ir_root->detach_node(return_matched_ir_node);
     }
 
     current_ir_root->deep_drop();
 
-    if (return_mached_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly with_type: with string: " << return_mached_ir_node->to_string() << endl;
-      return return_mached_ir_node;
+    if (return_matched_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly with_type: with string: " << return_matched_ir_node->to_string() << endl;
+      return return_matched_ir_node;
     }
 
   } 
@@ -910,7 +912,7 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
   vector<IR*> current_ir_set;
   IR* current_ir_root;
   vector<pair<string*, int>>& all_matching_node = left_lib_set[type_];
-  IR* return_mached_ir_node = NULL;
+  IR* return_matched_ir_node = NULL;
 
   if (all_matching_node.size() > 0){
     /* Pick a random matching node from the library. */
@@ -932,14 +934,16 @@ IR* Mutator::get_from_libary_with_left_type(IRTYPE type_){
         current_ir_root->deep_drop();
         return NULL;
       }
-      return_mached_ir_node = matched_ir_node->right_->deep_copy();;  // Not returnning the matched_ir_node itself, but its right_ child node!
+      //return_matched_ir_node = matched_ir_node->right_->deep_copy();;  // Not returnning the matched_ir_node itself, but its right_ child node!
+      return_matched_ir_node = matched_ir_node->right_;
+      current_ir_root->detach_node(return_matched_ir_node);
     }
 
     current_ir_root->deep_drop();
 
-    if (return_mached_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly left_type: with string: " << return_mached_ir_node->to_string() << endl;
-      return return_mached_ir_node;
+    if (return_matched_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly left_type: with string: " << return_matched_ir_node->to_string() << endl;
+      return return_matched_ir_node;
     }
 
   } 
@@ -955,7 +959,7 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
   vector<IR*> current_ir_set;
   IR* current_ir_root;
   vector<pair<string*, int>>& all_matching_node = right_lib_set[type_];
-  IR* return_mached_ir_node = NULL;
+  IR* return_matched_ir_node = NULL;
 
   if (all_matching_node.size() > 0){
     /* Pick a random matching node from the library. */
@@ -976,14 +980,16 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
         current_ir_root->deep_drop();
         return NULL;
       }
-      return_mached_ir_node = matched_ir_node->left_->deep_copy();  // Not returnning the matched_ir_node itself, but its left_ child node!
+      //return_matched_ir_node = matched_ir_node->left_->deep_copy();  // Not returnning the matched_ir_node itself, but its left_ child node!
+      return_matched_ir_node = matched_ir_node->left_;
+      current_ir_root->detach_node(return_matched_ir_node);
     }
 
     current_ir_root->deep_drop();
 
-    if (return_mached_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly right_type: with string: " << return_mached_ir_node->to_string() << endl;
-      return return_mached_ir_node;
+    if (return_matched_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly right_type: with string: " << return_matched_ir_node->to_string() << endl;
+      return return_matched_ir_node;
     }
 
   } 
