@@ -1421,14 +1421,14 @@ void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordere
 
 string Mutator::fix(IR *root) {
 
-  string res = _fix(root);
+  string res = "";
+  _fix(root, res);
   trim_string(res);
   return res;
 }
 
-string Mutator::_fix(IR * root){
+void Mutator::_fix(IR * root, string &res){
 
-  string res;
   auto * right_ = root->right_, * left_ = root->left_;
   auto * op_ = root->op_;
   auto type_ = root->type_;
@@ -1437,27 +1437,21 @@ string Mutator::_fix(IR * root){
   auto int_val_ = root->int_val_;
   auto id_type_ = root->id_type_;
 
-  string tmp_right;
-  if(right_ != NULL)
-    tmp_right = _fix(right_);
+  if (type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)) {
 
-  if(type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)){
-    if(get_rand_int(2) == 1)
-      return string("v0");
-    else
-      return string("v1");
+    if(get_rand_int(2) == 1) { res += "v0"; return; }
+    else { res += "v1"; return; }
   }
 
-  if(type_ == kCmdPragma){  
-    string res = "PRAGMA ";
-    int lib_size = cmds_.size();
+  if (type_ == kCmdPragma) {
+
     string key = "";
-    if ( lib_size != 0 ){
+    int lib_size = cmds_.size();
+    if (lib_size != 0) {
       key = cmds_[get_rand_int(lib_size)];
-      res += key;
-    } else {
-      return "";
+      res += ("PRAGMA " + key);
     }
+    else return;
 
     int value_size = m_cmd_value_lib_[key].size();
     string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
@@ -1477,28 +1471,69 @@ string Mutator::_fix(IR * root){
       value = "=" + value;
     }
     if(!value.empty()) res += value + ";";
-    return res;
+    return;
   }
 
-  if(type_ == kFilePath || type_ == kPrepareTargetQuery || type_ == kOptOrderType
-      || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType
-      || type_ == kOptDistinct || type_ == kNullLiteral) return str_val_;
-  if(type_ == kStringLiteral) {auto s = string_libary[get_rand_int(string_libary.size())];  return "'" + s + "'";}
-  if(type_ == kIntLiteral) return std::to_string(value_libary[get_rand_int(value_libary.size())]);
-  if(type_ == kFloatLiteral || type_ == kconst_float) return std::to_string(float(value_libary[get_rand_int(value_libary.size())]) + 0.1);
-  if(type_ == kconst_str) return string_libary[get_rand_int(string_libary.size())];;
-  if(type_ == kconst_int)  return std::to_string(value_libary[get_rand_int(value_libary.size())]);
+  if (type_ == kFilePath ||
+      type_ == kPrepareTargetQuery ||
+      type_ == kOptOrderType ||
+      type_ == kColumnType ||
+      type_ == kSetType ||
+      type_ == kOptJoinType ||
+      type_ == kOptDistinct ||
+      type_ == kNullLiteral) {
+    res += str_val_;
+    return;
+  }
 
-  if(!str_val_.empty()) return str_val_;
+  if (type_ == kStringLiteral) {
+    auto s = string_libary[get_rand_int(string_libary.size())];
+    res += "'" + s + "'";
+    return;
+  }
+
+  if (type_ == kIntLiteral) {
+    res += std::to_string(value_libary[get_rand_int(value_libary.size())]);
+    return;
+  }
+
+  if (type_ == kFloatLiteral ||
+      type_ == kconst_float) {
+    res += std::to_string(float(value_libary[get_rand_int(value_libary.size())]) + 0.1);
+    return;
+  }
+
+  if (type_ == kconst_str) {
+    res += string_libary[get_rand_int(string_libary.size())];
+    return;
+  }
+
+  if (type_ == kconst_int) {
+    res += std::to_string(value_libary[get_rand_int(value_libary.size())]);
+    return;
+  }
+
+  if(!str_val_.empty()) {
+    res += str_val_;
+    return;
+  }
 
   if(op_!= NULL)
     res += op_->prefix_ + " ";
-  if(left_ != NULL)
-    res += _fix(left_) + " ";
+
+  if(left_ != NULL) {
+    _fix(left_, res);
+    res += " ";
+  }
+
   if( op_!= NULL)
     res += op_->middle_ + " ";
-  if(right_ != NULL)
-    res += tmp_right + " ";
+
+  if(right_ != NULL) {
+    _fix(right_, res);
+    res += " ";
+  }
+
   if(op_!= NULL)
     res += op_->suffix_;
 
@@ -1576,53 +1611,103 @@ string Mutator::extract_struct(string query) {
 
 string Mutator::extract_struct(IR *root) {
 
-  string res = _extract_struct(root);
+  string res = "";
+  _extract_struct(root, res);
   trim_string(res);
   return res;
 }
 
-string Mutator::_extract_struct(IR * root){
+void Mutator::_extract_struct(IR * root, string &res) {
+
   static int counter = 0;
-  string res;
   auto * right_ = root->right_, * left_ = root->left_;
   auto * op_ = root->op_;
   auto type_ = root->type_;
   auto str_val_ = root->str_val_;
 
-  if(type_ == kColumnName && str_val_ == "*") return str_val_;
-  if(type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType || type_ == kOptDistinct) return str_val_;
-  if(root->id_type_ != id_whatever && root->id_type_ != id_module_name) {return "x";}
-  if(type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
+  if (type_ == kColumnName && str_val_ == "*") {
+    res += str_val_;
+    return;
+  }
+
+  if (type_ == kOptOrderType ||
+      type_ == kNullLiteral ||
+      type_ == kColumnType ||
+      type_ == kSetType ||
+      type_ == kOptJoinType ||
+      type_ == kOptDistinct) {
+    res += str_val_;
+    return res;
+  }
+
+  if (root->id_type_ != id_whatever && root->id_type_ != id_module_name) {
+    res += "x";
+    return;
+  }
+
+  if (type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
     string str_val = str_val_;
     str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
     str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
     string magic_string = magic_string_generator(str_val);
     unsigned long h = hash(magic_string);
-    if(string_libary_hash_.find(h) == string_libary_hash_.end()){
+    if(string_libary_hash_.find(h) == string_libary_hash_.end()) {
+
       string_libary.push_back(magic_string);
       string_libary_hash_.insert(h);
-
     }
-    return "'y'";
+    res += "'y'";
+    return;
   }
-  if(type_ == kIntLiteral) {value_libary.push_back(root->int_val_); return "10";}
-  if(type_ == kFloatLiteral || type_ == kconst_float) {value_libary.push_back((unsigned long)root->f_val_); return "0.1";}
-  if(type_ == kconst_int)  {value_libary.push_back(root->int_val_); return "11";}
-  if(type_ == kFilePath) return "'file_name'";
 
-  if(!str_val_.empty()) return str_val_;
+  if(type_ == kIntLiteral) {
+    value_libary.push_back(root->int_val_);
+    res += "10";
+    return;
+  }
+
+  if(type_ == kFloatLiteral || type_ == kconst_float) {
+    value_libary.push_back((unsigned long)root->f_val_);
+    res += "0.1";
+    return;
+  }
+
+  if(type_ == kconst_int) {
+    value_libary.push_back(root->int_val_); 
+    res += "11";
+    return;
+  }
+
+  if(type_ == kFilePath) {
+    res += "'file_name'";
+    return;
+  }
+
+  if(!str_val_.empty()) {
+    res += str_val_;
+    return;
+  }
+
   if(op_!= NULL)
     res += op_->prefix_ + " ";
-  if(left_ != NULL)
-    res += _extract_struct(left_) + " ";
+
+  if(left_ != NULL) {
+    _extract_struct(left_, res);
+    res += " ";
+  }
+
   if( op_!= NULL)
     res += op_->middle_ + " ";
-  if(right_ != NULL)
-    res += _extract_struct(right_) + " ";
+
+  if(right_ != NULL) {
+    _extract_struct(right_, res);
+    res += " ";
+  }
+
   if(op_!= NULL)
     res += op_->suffix_;
 
-  return res;
+  return;
 }
 
 void Mutator::add_new_table(IR * root, string &table_name){
@@ -1634,13 +1719,13 @@ void Mutator::add_new_table(IR * root, string &table_name){
   if(root->right_ != NULL)
     add_new_table(root->right_, table_name);
 
-  //add to table_name_lib_ 
+  //add to table_name_lib_
   if(root->type_ == kTableName){
     if(root->operand_num_ == 1){
       table_name = root->left_->str_val_;
     }
     else if(root->operand_num_ == 2){
-      table_name = root->left_->str_val_ + "." + root->right_->str_val_;            
+      table_name = root->left_->str_val_ + "." + root->right_->str_val_;
     }
   }
 

@@ -147,7 +147,7 @@ class IR{
     int operand_num_;
     unsigned int mutated_times_ = 0;
     string to_string();
-    string _to_string();
+    void _to_string(string &);
 
     // delete this IR and necessary clean up
     void drop();

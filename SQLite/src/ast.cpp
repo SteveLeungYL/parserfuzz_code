@@ -11,39 +11,72 @@ static string s_table_name;
 
 string IR::to_string() {
 
-  string res = _to_string();
+  string res = "";
+  _to_string(res);
   trim_string(res);
   return res;
 }
 
-string IR::_to_string(){
+// recursive function, frequently called. Must be very fast
+void IR::_to_string(string &res){
     
-    string res;
+    if (type_ == kColumnName && str_val_ == "*") {
+      res += str_val_;
+      return;
+    }
 
-    if(type_ == kColumnName && str_val_ == "*") return str_val_;
-    if(type_ == kFilePath || type_ == kPrepareTargetQuery || type_ == kStringLiteral || type_ == kIdentifier || type_ == kOptOrderType
-       || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType
-       || type_ == kOptDistinct || type_ == kNullLiteral) return str_val_;
-    if(type_ == kIntLiteral) return std::to_string(int_val_);
-    if(type_ == kFloatLiteral || type_ == kconst_float) return std::to_string(f_val_);
-    if(type_ == kconst_str) return str_val_;
-    if(type_ == kconst_int)  return std::to_string(int_val_);
-    
+    if (type_ == kFilePath ||
+        type_ == kPrepareTargetQuery ||
+        type_ == kStringLiteral ||
+        type_ == kIdentifier ||
+        type_ == kOptOrderType ||
+        type_ == kColumnType ||
+        type_ == kSetType ||
+        type_ == kOptJoinType ||
+        type_ == kOptDistinct ||
+        type_ == kNullLiteral ||
+        type_ == kconst_str) {
+      res += str_val_;
+      return;
+    }
 
-    if(!str_val_.empty()) return str_val_;
+    if (type_ == kIntLiteral ||
+        type_ == kconst_int) {
+      res += std::to_string(int_val_);
+      return;
+    }
+
+    if (type_ == kFloatLiteral ||
+        type_ == kconst_float) {
+      res += std::to_string(f_val_);
+      return;
+    }
+
+    if(!str_val_.empty()) {
+      res += str_val_;
+      return;
+    }
 
     if( op_!= NULL )
-        res += op_->prefix_ + " ";
-    if(left_ != NULL)
-        res += left_->_to_string() + " ";
+      res += op_->prefix_ + " ";
+
+    if(left_ != NULL) {
+      left_->_to_string(res);
+      res += " ";
+    }
+
     if( op_!= NULL)
-        res += op_->middle_ + " ";
-    if(right_ != NULL)
-        res += right_->_to_string() + " ";
+      res += op_->middle_ + " ";
+
+    if(right_ != NULL) {
+      right_->_to_string(res);
+      res += " ";
+    }
+
     if(op_!= NULL)
-        res += op_->suffix_;
-   
-    return res;
+      res += op_->suffix_;
+
+    return;
 }
 
 bool IR::detach_node(IR *node) {
