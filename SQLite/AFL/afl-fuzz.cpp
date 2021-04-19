@@ -5781,22 +5781,15 @@ static void show_stats(void) {
 
 static u8 fuzz_one(char** argv) {
 
-  s32 len, fd, temp_len, i, j;
-  u8  *in_buf, *out_buf, *orig_in, *ex_tmp, *eff_map = 0;
-  u64 havoc_queued,  orig_hit_cnt, new_hit_cnt;
-  u32 splice_cycle = 0, perf_score = 100, orig_perf, prev_cksum, eff_cnt = 1;
-
-  u8  ret_val = 1, doing_det = 0;
-
-  u8  a_collect[MAX_AUTO_EXTRA];
-  u32 a_len = 0;
+  s32 len, fd;
+  u8  *in_buf, *out_buf, *orig_in;
+  u64 new_hit_cnt;
+  u8  ret_val = 1;
 
   string input;
-  Program * program_root, *program_root_tmp;
-  vector<IR *> ir_set, ir_set_tmp, mutated_tree;
+  Program * program_root;
+  vector<IR *> ir_set, mutated_tree;
   char * tmp_name = stage_name;
-
-  IR* query_ir;
   string query_str;
 
 #ifdef IGNORE_FINDS
@@ -5891,37 +5884,13 @@ static u8 fuzz_one(char** argv) {
 
   }
 
-  /************
-   * TRIMMING *
-   ************/
-  /*
-  if (!dumb_mode && !queue_cur->trim_done) {
-
-    u8 res = trim_case(argv, queue_cur, in_buf);
-
-    if (res == FAULT_ERROR)
-      FATAL("Unable to execute target application");
-
-    if (stop_soon) {
-      cur_skipped_paths++;
-      goto abandon_entry;
-    }
-
-
-    queue_cur->trim_done = 1;
-
-    if (len != queue_cur->len) len = queue_cur->len;
-
-  }
-  */
   memcpy(out_buf, in_buf, len);
   out_buf[len] = '\0';
 
   //[modify] add
   stage_name = "mutate";
 
-  int skip_count;
-  skip_count = 0;
+  int skip_count = 0;
   input = (const char *)out_buf;
 
   /* Now we modify the input queries, append multiple norec compatible select stmt to the end of the queries to achieve better testing efficiency.  */
@@ -5984,7 +5953,7 @@ static u8 fuzz_one(char** argv) {
     }
   }
   stage_cur = stage_max = 0;
-  stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
+  stage_finds[STAGE_FLIP1] += new_hit_cnt;
   stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
   stage_name = tmp_name;
 
@@ -6014,7 +5983,6 @@ abandon_entry:
 
   if (in_buf != orig_in) ck_free(in_buf);
   ck_free(out_buf);
-  ck_free(eff_map);
 
   return ret_val;
 
