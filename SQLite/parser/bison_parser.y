@@ -1964,6 +1964,22 @@ unary_expr:
             $$->operand_ = $1;
             $$->operator_ = string("IS NOT NULL");
         }
+    |   operand IS IDENTIFIER {
+            $$ = new UnaryExpr();
+            $$->sub_type_ = CASE5;
+            $$->operand_ = $1;
+            $$->id_ = new Identifier($3);
+            free($3);
+            $$->operator_ = string("IS");
+        }
+    |   operand IS NOT IDENTIFIER {
+            $$ = new UnaryExpr();
+            $$->sub_type_ = CASE6;
+            $$->operand_ = $1;
+            $$->id_ = new Identifier($4);
+            free($4);
+            $$->operator_ = string("IS NOT");
+    }
     ;
 
 binary_expr:
@@ -2333,8 +2349,8 @@ opt_semicolon:
 
 
 ident_commalist:
-        IDENTIFIER opt_collate { $$ = new IdentCommaList(); $$->v_iden_comma_list_.push_back(new Identifier($1)); $$->v_opt_collate_list_.push_back($2);  free($1);}
-    |   ident_commalist ',' IDENTIFIER opt_collate{ $1->v_iden_comma_list_.push_back(new Identifier($3)); $1->v_opt_collate_list_.push_back($4); $$ = $1; free($3);}
+        IDENTIFIER opt_collate opt_order_type { $$ = new IdentCommaList(); $$->v_iden_comma_list_.push_back(new Identifier($1)); $$->v_opt_collate_list_.push_back($2); $$->v_opt_order_type_.push_back($3); free($1);}
+    |   ident_commalist ',' IDENTIFIER opt_collate opt_order_type { $1->v_iden_comma_list_.push_back(new Identifier($3)); $1->v_opt_collate_list_.push_back($4); $1->v_opt_order_type_.push_back($5); $$ = $1; free($3);}
     ;
 
 %%

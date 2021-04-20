@@ -1276,6 +1276,16 @@ IR* UnaryExpr::translate(vector<IR *> &v_ir_collector){
         CASESTART(4)
             res = new IR(kUnaryExpr, OPMID("IS NOT NULL"), res);
         CASEEND
+        CASESTART(5)
+            auto tmp = SAFETRANSLATE(id_);
+            tmp->id_type_ = id_whatever;
+            res = new IR(kUnaryExpr, OPMID("IS"), res, tmp);
+        CASEEND
+        CASESTART(6)
+            auto tmp = SAFETRANSLATE(id_);
+            tmp->id_type_ = id_whatever;
+            res = new IR(kUnaryExpr, OPMID("IS NOT"), res, tmp);
+        CASEEND
     SWITCHEND
 
     TRANSLATEEND
@@ -1805,6 +1815,9 @@ IR* IdentCommaList::translate(vector<IR *> &v_ir_collector){
         auto tmp = SAFETRANSLATE(v_opt_collate_list_[0]);
         res = new IR(kIdentCommaList, OP0(), res, tmp);
         v_ir_collector.push_back(res);
+        auto tmp2 = SAFETRANSLATE(v_opt_order_type_[0]);
+        res = new IR(kIdentCommaList, OP0(), res, tmp2);
+        v_ir_collector.push_back(res);
     }
 
     for(int i = 1; i < v_iden_comma_list_.size(); i++){ 
@@ -1814,6 +1827,11 @@ IR* IdentCommaList::translate(vector<IR *> &v_ir_collector){
         if (v_opt_collate_list_[i] != nullptr){
             IR * tmp1 = SAFETRANSLATE(v_opt_collate_list_[i]); 
             res = new IR(kIdentCommaList, OPMID(" "), res, tmp1); 
+            v_ir_collector.push_back(res); 
+        }
+        if (v_opt_order_type_[i] != nullptr){
+            IR * tmp2 = SAFETRANSLATE(v_opt_order_type_[i]); 
+            res = new IR(kIdentCommaList, OPMID(" "), res, tmp2); 
             v_ir_collector.push_back(res); 
         }
     }
@@ -2268,6 +2286,7 @@ void ScalarExpr::deep_delete(){
 
 void UnaryExpr::deep_delete(){
 	SAFEDELETE(operand_);
+    SAFEDELETE(id_);
 	delete this;
 }
 
@@ -2501,6 +2520,7 @@ void OptSemicolon::deep_delete(){
 void IdentCommaList::deep_delete(){
 	SAFEDELETELIST(v_iden_comma_list_);
     SAFEDELETELIST(v_opt_collate_list_);
+    SAFEDELETELIST(v_opt_order_type_);
     // SAFEDELETE(ident_comma_list_);
     // SAFEDELETE(identifier_);
     // SAFEDELETE(opt_collate_);

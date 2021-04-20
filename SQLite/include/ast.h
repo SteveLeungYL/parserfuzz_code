@@ -797,6 +797,7 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     Operand* operand_;
     string operator_;
+    Identifier* id_;
 };
 
 class BinaryExpr: public Operand{
@@ -1091,6 +1092,7 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     vector<Identifier*> v_iden_comma_list_;
     vector<OptCollate*> v_opt_collate_list_;
+    vector<OptOrderType*> v_opt_order_type_;
     // IdentCommaList * ident_comma_list_;
     // OptCollate * opt_collate_;
     // Identifier * identifier_;
