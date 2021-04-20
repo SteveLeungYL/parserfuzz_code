@@ -1105,17 +1105,16 @@ void Mutator::add_all_to_library(string whole_query_str) {
     IR * root = ir_set[ir_set.size()-1];
 
     if (is_norec_compatible(current_query))
-      add_to_norec_lib(root);
+      add_to_norec_lib(root, current_query);
     else
-      add_to_library(root);
+      add_to_library(root, current_query);
 
     root->deep_drop();
   }
 }
 
-void Mutator::add_to_norec_lib(IR * ir) {
+void Mutator::add_to_norec_lib(IR * ir, string &select) {
 
-  string select = ir->to_string();
   unsigned long p_hash = hash(select);
 
   if (norec_hash.find(p_hash) != norec_hash.end())
@@ -1141,20 +1140,20 @@ void Mutator::add_to_norec_lib(IR * ir) {
 }
 
 
-void Mutator::add_to_library(IR* ir) {
+void Mutator::add_to_library(IR* ir, string &query) {
+
+  if (query == "") return;
 
   NODETYPE p_type = ir->type_;
-  string * p_query_str = new string(ir->to_string());
+  unsigned long p_hash = hash(query);
 
-  unsigned long p_hash = hash(*p_query_str);
-
-  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end() || *p_query_str == "" ){
-    /* p_query_str not interesting enough. Ignore it and clean up. */
-    delete p_query_str;
+  if(ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()){
+    /* query not interesting enough. Ignore it and clean up. */
     return;
   }
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
+  string * p_query_str = new string(query);
   all_query_pstr_set.insert(p_query_str);
   // all_norec_pstr_vec.push_back(p_query_str);
 
@@ -1176,6 +1175,8 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
   /* Save an interesting query stmt into the mutator library. Helper function for Mutator::add_to_library();
   */
 
+  if (*p_query_str == "") return;
+
   int current_unique_id = ir->uniq_id_in_tree_;
   bool is_skip_saving_current_node = false;  //
 
@@ -1183,7 +1184,7 @@ void Mutator::add_to_library_core(IR * ir, string* p_query_str) {
   NODETYPE left_type = kEmpty, right_type = kEmpty;
 
   unsigned long p_hash = hash(ir->to_string());
-  if(p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end() || *p_query_str == "" ){
+  if(p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) != ir_libary_2D_hash_[p_type].end()){
     /* current node not interesting enough. Ignore it and clean up. */
     return;
   }

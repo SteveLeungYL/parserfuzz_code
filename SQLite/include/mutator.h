@@ -94,8 +94,8 @@ public:
     unsigned long total_random_norec = 0;
 
 private:
-    void add_to_norec_lib(IR*);
-    void add_to_library(IR*);
+    void add_to_norec_lib(IR*, string&);
+    void add_to_library(IR*, string&);
     void add_to_library_core(IR*, string*);
 
     bool dump_library = false;
