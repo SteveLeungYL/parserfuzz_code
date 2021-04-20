@@ -2097,6 +2097,7 @@ column_name:
     |   IDENTIFIER '.' IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE1; $$->identifier1_=new Identifier($1, id_table_name); $$->identifier2_=new Identifier($3, id_column_name); free($1); free($3);}
     |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
     |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
+    |   IDENTIFIER '.' ROWID {$$ = new ColumnName(); $$->sub_type_=CASE4; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     ;
 
 literal:
