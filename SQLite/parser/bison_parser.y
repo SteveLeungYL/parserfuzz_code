@@ -1370,6 +1370,7 @@ column_arg:
     |   AS '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE5; $$->expr_ = $3;}
     |   CHECK '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE6; $$->expr_ = $3;}
     |   REFERENCES IDENTIFIER {$$ = new ColumnArg(); $$->sub_type_ = CASE7; $$->id_ = new Identifier($2, id_create_column_name); }
+    |   opt_order_type {$$ = new ColumnArg(); $$->sub_type_ = CASE8; $$->opt_order_type_=$1;}
     ;
 
 

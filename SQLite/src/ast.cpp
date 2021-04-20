@@ -2814,6 +2814,14 @@ IR * ColumnArg::translate(vector<IR*> &v_ir_collector){
             res->id_type_ = id_collation_name;
             res = new IR(kColumnArg, OPSTART("REFERENCES"), res);
         CASEEND
+        CASESTART(8)
+            if (opt_order_type_ != NULL) {
+                res = SAFETRANSLATE(opt_order_type_);
+                res = new IR(kColumnArg, OP0(), res);
+            } else {
+                res = new IR(kColumnArg, "");
+            }
+        CASEEND
     SWITCHEND
 	TRANSLATEEND
 }
