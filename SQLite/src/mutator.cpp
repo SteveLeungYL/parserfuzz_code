@@ -181,6 +181,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
     return res;
 }
 
+// guarantee to generate grammarly correct query
 string Mutator::get_random_mutated_norec_select_stmt(){
   /* Read from the previously seen norec compatible select stmt.
    * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of

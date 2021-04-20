@@ -2627,12 +2627,12 @@ void append_norec_select_stmts(string &input) {
 
     new_norec_stmts = g_mutator.get_random_mutated_norec_select_stmt();
     if (new_norec_stmts == "") continue;
+    ensure_semicolon_at_query_end(new_norec_stmts);
 
     /* Reparse the combine_query_str to check whether the added norec_stmts is valide. */
-    ensure_semicolon_at_query_end(new_norec_stmts);
-    vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(new_norec_stmts);
-    if (new_ir_tree.size() == 0) continue;
-    new_ir_tree.back()->deep_drop();
+    //vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(new_norec_stmts);
+    //if (new_ir_tree.size() == 0) continue;
+    //new_ir_tree.back()->deep_drop();
 
     input += new_norec_stmts;
     num_norec++;
