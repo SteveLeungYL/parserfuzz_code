@@ -2783,6 +2783,10 @@ IR * ColumnArg::translate(vector<IR*> &v_ir_collector){
             res = SAFETRANSLATE(expr_);
             res = new IR(kColumnArg, OP2("CHECK(", ")"), res);
         CASEEND
+        CASESTART(7)
+            res = SAFETRANSLATE(id_);
+            res = new IR(kColumnArg, OPMID("REFERENCES"), res);
+        CASEEND
     SWITCHEND
 	TRANSLATEEND
 }
@@ -2792,6 +2796,7 @@ void ColumnArg::deep_delete(){
     SAFEDELETE(opt_order_type_);
     SAFEDELETE(opt_autoinc_);
     SAFEDELETE(expr_);
+    SAFEDELETE(id_);
 	delete this;
 }
 

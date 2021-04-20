@@ -319,7 +319,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /* For SQLite
 */
 
-%token  PRAGMA REINDEX GENERATED ALWAYS CHECK CONFLICT IGNORE REPLACE ROLLBACK
+%token  PRAGMA REINDEX GENERATED ALWAYS CHECK CONFLICT IGNORE REPLACE ROLLBACK REFERENCES
 %token ABORT FAIL AUTOINCR BEGIN TRIGGER TEMP INSTEAD EACH ROW OVER FILTER PARTITION
 %token  CURRENT EXCLUDE FOLLOWING GROUPS NO OTHERS PRECEDING RANGE ROWS TIES UNBOUNDED WINDOW
 %token  ATTACH DETACH DATABASE INDEXED CAST SAVEPOINT RELEASE VACUUM TRANSACTION DEFFERED EXCLUSIVE
@@ -1369,6 +1369,7 @@ column_arg:
     |   GENERATED ALWAYS AS '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE4; $$->expr_ = $5;}
     |   AS '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE5; $$->expr_ = $3;}
     |   CHECK '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE6; $$->expr_ = $3;}
+    |   REFERENCES IDENTIFIER {$$ = new ColumnArg(); $$->sub_type_ = CASE7; $$->id_ = new Identifier($2, id_create_column_name); }
     ;
 
 

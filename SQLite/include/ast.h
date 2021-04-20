@@ -1119,6 +1119,7 @@ public:
     OptOrderType * opt_order_type_;
     OptAutoinc * opt_autoinc_;
     Expr * expr_;
+    Identifier * id_;
 };
 
 class OptOnConflict: public Opt{
