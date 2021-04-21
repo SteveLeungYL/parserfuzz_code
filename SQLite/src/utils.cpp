@@ -1,5 +1,6 @@
 #include "../include/utils.h"
 #include <algorithm>
+#include <regex>
 
 
 
@@ -221,3 +222,18 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 	closedir(dir);
     	return file_list;
 } 
+
+void  ensure_semicolon_at_query_end(string &stmt){
+  auto idx = stmt.rbegin();
+  if (*idx != ';') stmt += "; ";
+}
+
+vector<string> string_splitter(string input_string, string delimiter_re = "\n"){
+  size_t pos = 0;
+  string token;
+  std::regex re(delimiter_re);
+  std::sregex_token_iterator first{input_string.begin(), input_string.end(), re, -1}, last; //the '-1' is what makes the regex split (-1 := what was not matched)
+  vector<string> split_string{first, last};
+
+  return split_string;
+}

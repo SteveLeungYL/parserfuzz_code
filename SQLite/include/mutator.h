@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
+#include "../oracle/sqlite_oracle.h"
 
 #define LUCKY_NUMBER 500
 
@@ -25,7 +26,6 @@ public:
     unsigned long hash(IR* );
     unsigned long hash(string);
 
-    static bool is_norec_compatible(const string& query);
     bool make_current_node_as_norec_select_stmt(IR* root);
     bool mark_all_norec_select_stmt(vector<IR *> &v_ir_collector);
     vector<string *> mutate_all(vector<IR*> &v_ir_collector);
@@ -47,7 +47,7 @@ public:
     int get_norec_select_collection_size();
 
     vector<IR*> parse_query_str_get_ir_set(string &query_str);
-    string get_random_mutated_norec_select_stmt();
+    string get_random_mutated_valid_stmt();
 
     void add_all_to_library(IR*);
     void add_all_to_library(string);
@@ -131,7 +131,9 @@ private:
 
     map<unsigned long, bool> norec_hash;
     set<string*> all_query_pstr_set;
-    vector<string*> all_norec_pstr_vec;
+    vector<string*> all_valid_pstr_vec;
+
+    SQL_ORACLE* p_oracle;
 };
 
 

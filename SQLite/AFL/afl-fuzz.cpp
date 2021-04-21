@@ -2595,53 +2595,7 @@ vector<string> string_splitter(string input_string, string delimiter_re = "\n")
   return split_string;
 }
 
-int count_and_get_norec_stmt_str(const string& input){
 
-  int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ";");
-  for (string &query : queries_vector) 
-    if (g_mutator.is_norec_compatible(query))
-      norec_select_count++;
-  return norec_select_count;
-}
-
-void  ensure_semicolon_at_query_end(string &stmt){
-  auto idx = stmt.rbegin();
-  if (*idx != ';') stmt += "; ";
-}
-
-void append_norec_select_stmts(string &input) {
-
-  ensure_semicolon_at_query_end(input);
-
-  string new_norec_stmts = "";
-  int num_norec = count_and_get_norec_stmt_str(input);
-
-  int trial = 0;
-  int max_trial = (max_norec - num_norec) * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
-
-  while (num_norec < max_norec){
-
-    if (trial++ >= max_trial) // Give on average 3 chances per select stmts.  
-      break;
-
-    new_norec_stmts = g_mutator.get_random_mutated_norec_select_stmt();
-    if (new_norec_stmts == "") continue;
-    ensure_semicolon_at_query_end(new_norec_stmts);
-
-    /* Reparse the combine_query_str to check whether the added norec_stmts is valide. */
-    //vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(new_norec_stmts);
-    //if (new_ir_tree.size() == 0) continue;
-    //new_ir_tree.back()->deep_drop();
-
-    input += new_norec_stmts;
-    num_norec++;
-
-    /* Return norec query does not pass the parser. Append failed. Retrive new norec query and try again. */
-  }
-
-  return;
-}
 
 bool is_str_empty(string input_str){
   for (int i = 0; i < input_str.size(); i++){
