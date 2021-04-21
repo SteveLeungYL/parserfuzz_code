@@ -5,6 +5,8 @@
 #include <vector>
 #include <cassert>
 #include <cstdio>
+#include <sstream>
+#include <iomanip>
 
 
 static string s_table_name;
@@ -48,7 +50,10 @@ void IR::_to_string(string &res){
 
     if (type_ == kFloatLiteral ||
         type_ == kconst_float) {
-      res += std::to_string(f_val_);
+      std::ostringstream oss;
+      oss << std::setprecision(8) << std::noshowpoint << f_val_;
+      std::string str = oss.str();
+      res += str;
       return;
     }
 
