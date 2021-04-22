@@ -78,6 +78,10 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
+#include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_norec.h"
+
+
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined (__OpenBSD__)
 #  include <sys/sysctl.h>
 #endif /* __APPLE__ || __FreeBSD__ || __OpenBSD__ */
@@ -104,7 +108,6 @@
 #define INIT_LIB_PATH "./init_lib"
 double min_stab_radio;
 char * save_file_name = NULL;
-Mutator g_mutator;
 char* g_library_path;
 char* g_current_input = NULL;
 IR* g_current_ir = NULL;
@@ -115,6 +118,9 @@ u64 total_mutate_failed = 0;
 u64 total_append_failed = 0;
 u64 total_execute = 0;
 u64 total_add_to_queue = 0;
+
+Mutator g_mutator;
+SQL_ORACLE* p_oracle;
 
 
 map<IDTYPE, IDTYPE> relationmap;
@@ -2584,441 +2590,112 @@ inline void print_norec_exec_debug_info(){
   return;
 }
 
-vector<string> string_splitter(string input_string, string delimiter_re = "\n")
-{
-  size_t pos = 0;
-  string token;
-  std::regex re(delimiter_re);
-  std::sregex_token_iterator first{input_string.begin(), input_string.end(), re, -1}, last; //the '-1' is what makes the regex split (-1 := what was not matched)
-  vector<string> split_string{first, last};
+string expand_valid_stmts_str(const string& query_str, const bool is_mark = false){
+  string current_output = "";
 
-  return split_string;
+  vector<string> queries_vector = string_splitter(query_str, ";");
+  for (string &query : queries_vector)
+  {
+    if (is_str_empty(query))
+      continue;
+    if (p_oracle->is_oracle_valid_stmt(query)) {
+      string rew_1 = "", rew_2 = "";
+      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2);
+
+      if (is_mark)
+        current_output += "SELECT 13579; ";
+      current_output += query;
+      if (is_mark)
+        current_output += "SELECT 97531; ";
+
+      if (rew_1 != "") {
+        if (is_mark)
+          current_output += "SELECT 24680; ";
+        current_output += rew_1;
+        if (is_mark)
+          current_output += "SELECT 86420; ";
+      }
+
+      if (rew_2 != "") {
+        if (is_mark)
+          current_output += "SELECT 77777; ";
+        current_output += rew_2;
+        if (is_mark)
+          current_output += "SELECT 88888; ";
+      }
+    }
+  }
+  return current_output;
 }
 
-
-
-bool is_str_empty(string input_str){
-  for (int i = 0; i < input_str.size(); i++){
-    char c = input_str[i];
-    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not empty.
-  }
-  return true; // Empty
-}
-
-string remove_No_Rec_stmts_from_whole_query(string query){
-  string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ";");
-
-  for (auto current_stmt : queries_vector){
-    if (is_str_empty(current_stmt)) continue;
-    if(!g_mutator.is_norec_compatible(current_stmt)) output_query += current_stmt + "; ";
-  }
-
-  return output_query;
-}
-
-string rewrite_query_by_No_Rec(string query)
-{
-  // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
-
-  while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
-  { // Delete duplicated whitespace at the beginning.
-    query = query.substr(1, query.size() - 1);
-  }
-
-  size_t select_position = 0;
-  size_t from_position = -1;
-  size_t where_position = -1;
-  size_t group_by_position = -1;
-  size_t order_by_position = -1;
-
-  vector<size_t> op_lp_v;
-  vector<size_t> op_rp_v;
-
-  size_t tmp1 = 0, tmp2 = 0;
-  while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos)
-  {
-    op_lp_v.push_back(tmp1);
-    tmp1++;
-    if (tmp1 == query.size())
-    {
-      break;
-    }
-  }
-  while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos)
-  {
-    op_rp_v.push_back(tmp2);
-    tmp2++;
-    if (tmp2 == query.size())
-    {
-      break;
-    }
-  }
-
-  if (op_lp_v.size() != op_rp_v.size())
-  { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-    op_lp_v.clear();
-    op_rp_v.clear();
-  }
-
-  for (int i = 0; i < op_lp_v.size(); i++)
-  { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-    if (op_lp_v[i] > op_rp_v[i])
-    {
-      op_lp_v.clear();
-      op_rp_v.clear();
-    }
-  }
-
-  tmp1 = -1;
-  tmp2 = -1;
-
-  tmp1 = query.find("SELECT", 0); // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
-  tmp2 = query.find("select", 0);
-  if (tmp1 != string::npos)
-  {
-    select_position = tmp1;
-  }
-  if (tmp2 != string::npos && tmp2 < tmp1)
-  {
-    select_position = tmp2;
-  }
-
-  tmp1 = 0;
-  tmp2 = 0;
-  from_position = -1;
-
-  do
-  {
-    if (tmp1 != string::npos)
-      tmp1 = query.find("FROM", tmp1 + 4);
-    if (tmp2 != string::npos)
-      tmp2 = query.find("from", tmp2 + 4);
-
-    if (tmp1 != string::npos)
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore)
-      {
-        from_position = tmp1;
-        break; // from_position is found. Break the outter do...while loop.
-      }
-    }
-
-    if (tmp2 != string::npos)
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore)
-      {
-        from_position = tmp2;
-        break; // from_position is found. Break the outter do...while loop.
-      }
-    }
-
-  } while (tmp1 != string::npos || tmp2 != string::npos);
-
-  tmp1 = 0;
-  tmp2 = 0;
-  where_position = -1;
-
-  do
-  {
-    if (tmp1 != string::npos)
-      tmp1 = query.find("WHERE", tmp1 + 5);
-    if (tmp2 != string::npos)
-      tmp2 = query.find("where", tmp2 + 5);
-
-    if (tmp1 != string::npos)
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore)
-      {
-        where_position = tmp1;
-        break; // where_position is found. Break the outter do...while loop.
-      }
-    }
-
-    if (tmp2 != string::npos)
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore)
-      {
-        where_position = tmp2;
-        break; // where_position is found. Break the outter do...while loop.
-      }
-    }
-
-  } while (tmp1 != string::npos || tmp2 != string::npos);
-
-  /*** Taking care of GROUP BY stmt.   ***/
-  tmp1 = -1, tmp2 = -1;
-  size_t tmp = 0;
-  while ((tmp = query.find("GROUP BY", tmp + 8)) &&
-         (tmp != string::npos))
-  {
-    bool is_ignore = false;
-    for (int i = 0; i < op_lp_v.size(); i++)
-    {
-      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-      {
-        is_ignore = true;
-        break;
-      }
-    }
-    if (!is_ignore)
-    {
-      tmp1 = tmp;
-    }
-  } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-
-  tmp = -8;
-  while ((tmp = query.find("group by", tmp + 8)) &&
-         (tmp != string::npos))
-  {
-    bool is_ignore = false;
-    for (int i = 0; i < op_lp_v.size(); i++)
-    {
-      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-      {
-        is_ignore = true;
-        break;
-      }
-    }
-    if (!is_ignore)
-    {
-      tmp2 = tmp;
-    }
-  } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-  if (tmp1 != string::npos)
-  {
-    group_by_position = tmp1;
-  }
-  if (tmp2 != string::npos && tmp2 > tmp1)
-  {
-    group_by_position = tmp2;
-  }
-
-  /*** Taking care of ORDER BY stmt.   ***/
-  tmp1 = -1, tmp2 = -1;
-  tmp = -8;
-  while ((tmp = query.find("ORDER BY", tmp + 8)) &&
-         (tmp != string::npos))
-  {
-    bool is_ignore = false;
-    for (int i = 0; i < op_lp_v.size(); i++)
-    {
-      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-      {
-        is_ignore = true;
-        break;
-      }
-    }
-    if (!is_ignore)
-    {
-      tmp1 = tmp;
-    }
-  } // The last ORDER BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-  tmp = -8;
-  while ((tmp = query.find("order by", tmp + 8)) &&
-         (tmp != string::npos))
-  {
-    bool is_ignore = false;
-    for (int i = 0; i < op_lp_v.size(); i++)
-    {
-      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-      {
-        is_ignore = true;
-        break;
-      }
-    }
-    if (!is_ignore)
-    {
-      tmp2 = tmp;
-    }
-  } // The last order by statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-  if (tmp1 != string::npos)
-  {
-    order_by_position = tmp1;
-  }
-  if (tmp2 != string::npos && tmp2 > tmp1)
-  {
-    order_by_position = tmp2;
-  }
-
-  size_t extra_stmt_position = -1;
-  if (group_by_position != string::npos && order_by_position != string::npos)
-    extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position);
-  else if (group_by_position != string::npos)
-    extra_stmt_position = group_by_position;
-  else if (order_by_position != string::npos)
-    extra_stmt_position = order_by_position;
-
-  string before_select_stmt;
-  string select_stmt;
-  string from_stmt;
-  string where_stmt;
-  string extra_stmt;
-
-  before_select_stmt = query.substr(0, select_position - 0);
-
-  select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
-
-  if (from_position == -1)
-    from_stmt = "";
-  else
-    from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
-
-  if (where_position == -1)
-    where_stmt = "";
-  else if (extra_stmt_position == -1)
-    where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
-  else
-    where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
-
-  if (extra_stmt_position == -1)
-    extra_stmt = "";
-  else
-    extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
-
-  // if (select_stmt.find('*') != string::npos)
-  //   select_stmt = "";
-
-  /* Ignore the select_stmt. The select_stmt should always be SELECT COUNT ( * ). Otherwise, there will be errors. */
-  string rewrited_string = before_select_stmt + " SELECT TOTAL(CAST((" + where_stmt;
-  // if (select_stmt != "" && select_stmt != " ")
-  // {
-  //   rewrited_string += "  AND  " + select_stmt;
-  // }
-  rewrited_string += ") AS BOOL)!=0) ";
-  if (from_stmt != "")
-  {
-    rewrited_string += " FROM " + from_stmt;
-  }
-
-  if (extra_stmt != "")
-  {
-    rewrited_string += extra_stmt;
-  }
-  
-  // The ";" is being taken care of after returnning from the rewrite function
-  return rewrited_string;
-}
-
-int compare_No_Rec_result(const string& result_string, vector<int>& opt_result_vec, vector<int>& unopt_result_vec){
+int compare_query_result(const string& result_string, vector<string>& result_1, vector<string>& result_2, vector<string>& result_3){
 
   if(is_str_empty(result_string)){
-    opt_result_vec.push_back(-1);
-    unopt_result_vec.push_back(-1);
     return -1;
   }
 
-  /* Look throught the opt result first */
+  /* Look throught first validation stmt's result_1 first */
   size_t begin_idx = result_string.find("13579", 0);
   size_t end_idx = result_string.find("97531", 0);
 
   while (begin_idx != string::npos){
     if (end_idx != string::npos){
-      string current_opt_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
       begin_idx = result_string.find("13579", begin_idx+5);
       end_idx = result_string.find("97531", end_idx+5);
 
-      if (current_opt_result_str.find("Error") != string::npos) {opt_result_vec.push_back(-1); continue; }   // If "Error" is found, return -1 as result. 
-      
-      int current_opt_result_int = 0;
-      try
-      {
-        current_opt_result_int = stoi(current_opt_result_str);
+      if (current_result_str.find("Error") != string::npos) {result_1.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      else {
+        result_1.push_back(current_result_str);
       }
-      catch (std::invalid_argument &e)
-      {
-        current_opt_result_int = -1;
-      }
-      catch (std::out_of_range &e)
-      {
-        current_opt_result_int = -1;
-      }
-      opt_result_vec.push_back(current_opt_result_int);
     }
     else {
       break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
     }
   }
 
-  /* Look throught the unopt result now */
+  /* Look throught the result_2 now */
   begin_idx = result_string.find("24680", 0);
   end_idx = result_string.find("86420", 0);   // Reset the idx first. 
 
-  while (begin_idx != string::npos) {
-    if (end_idx != string::npos) {
-      string current_unopt_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+  while (begin_idx != string::npos){
+    if (end_idx != string::npos){
+      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
       begin_idx = result_string.find("24680", begin_idx+5);
       end_idx = result_string.find("86420", end_idx+5);
 
-
-      if (current_unopt_result_str.find("Error") != string::npos) {unopt_result_vec.push_back(-1); continue; }   // If "Error" is found, return -1 as result.
-
-      int current_unopt_result_int = 0;
-      try
-      {
-        current_unopt_result_int = stoi(current_unopt_result_str);
+      if (current_result_str.find("Error") != string::npos) {result_2.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      else {
+        result_2.push_back(current_result_str);
       }
-      catch (std::invalid_argument &e)
-      {
-        current_unopt_result_int = -1;
-      }
-      catch (std::out_of_range &e)
-      {
-        current_unopt_result_int = -1;
-      }
-      unopt_result_vec.push_back(current_unopt_result_int);
     }
     else {
       break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
     }
   }
 
-  /* We have the opt_result_vec and the unopt_result_vec. Now we can compare the two and find whether there are inconsistant. */
-  bool is_all_results_errors = true;
-  if (opt_result_vec.size() == 0 || unopt_result_vec.size() == 0) return -1;
-  for (size_t idx = 0; idx < min(opt_result_vec.size(), unopt_result_vec.size()); idx++){
-    if (opt_result_vec[idx] == -1 || unopt_result_vec[idx] == -1) continue;  // Found error output. Skip the current query. 
-    else if (opt_result_vec[idx] != unopt_result_vec[idx]) return 0;  // Found inconsisitant. 
-    is_all_results_errors = false;
+  /* Look throught the result_3 now */
+  begin_idx = result_string.find("77777", 0);
+  end_idx = result_string.find("88888", 0);   // Reset the idx first. 
+
+  while (begin_idx != string::npos){
+    if (end_idx != string::npos){
+      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+      begin_idx = result_string.find("77777", begin_idx+5);
+      end_idx = result_string.find("88888", end_idx+5);
+
+      if (current_result_str.find("Error") != string::npos) {result_3.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      else {
+        result_3.push_back(current_result_str);
+      }
+    }
+    else {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
+    }
   }
-  if (!is_all_results_errors) return 1; // Both opt_result_vec and unopt_result_vec are consistant. No result mismatch found. 
-  else return -1;  // All results are errors. Return -1; 
+
+  /* Now we can compare the results and find whether there are inconsistant. */
+  return p_oracle->compare_results(result_1, result_2, result_3);
 }
 
 u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
@@ -3027,95 +2704,70 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
   string result_string = "";
 
-  bool is_skip_no_rec = true;    // = true in case there are no select stmt in the query, directly skip the current query pairs.
+  if (
+      (cmd_string.find("RANDOM")) != std::string::npos ||
+      (cmd_string.find("random")) != std::string::npos ||
+      (cmd_string.find("JULIANDAY")) != std::string::npos ||
+      (cmd_string.find("julianday")) != std::string::npos
+  ) {
+    return FAULT_ERROR;
+  }
 
   vector<string> queries_vector = string_splitter(cmd_string, ";");
-  cmd_string = "";
-
-  for (string &query : queries_vector) {
-
-    // exclude the query pairs with random stmts, like 'randombolb', 'julianday'
-    if((query.find("RANDOM")) != std::string::npos || 
-       (query.find("random")) != std::string::npos ||
-       (query.find("JULIANDAY")) != std::string::npos ||
-       (query.find("julianday") ) != std::string::npos) {
-
-      is_skip_no_rec = true;
-      return FAULT_NONE;
-    }
-    
+  for (string &query : queries_vector)
+  { 
     // ignore the whole query pairs if !... in the stmt,  
     if (query[0] == '!' || query[1] == '!' || query[2] == '!') {
-
-      is_skip_no_rec = true;
-      return FAULT_NONE;
-    }
-
-    if (g_mutator.is_norec_compatible(query)) {
-
-      is_skip_no_rec = false;
-      cmd_string += "SELECT 13579;\n" + query + ";\nSELECT 97531; \n";
-      cmd_string += "SELECT 24680;\n" + rewrite_query_by_No_Rec(query) + ";\nSELECT 86420; \n";
-
-    } else {
-
-      cmd_string += query + "; \n";
+      return FAULT_ERROR;
     }
   }
 
-  if (!is_skip_no_rec) {
+  cmd_string = expand_valid_stmts_str(cmd_string, true);
 
-    
-    // unoptimized_cmd_string += " .quit "; 
-    write_to_testcase(cmd_string.c_str(), cmd_string.size());
-    fault = run_target(argv, tmout);
-
-    if (stop_soon)
-      return fault;
-
-    if (fault == FAULT_TMOUT) {
-
-      if (subseq_tmouts++ > TMOUT_LIMIT) {
-
-        cur_skipped_paths++;
-        return fault;
-      }
-    }
-    else {
-
-      subseq_tmouts = 0;
-    }
-
-    /* Users can hit us with SIGUSR1 to request the current input
-         to be abandoned. */
-    if (skip_requested) {
-
-      skip_requested = 0;
+  write_to_testcase(cmd_string.c_str(), cmd_string.size());
+  fault = run_target(argv, tmout);
+  if (stop_soon)
+    return fault;
+  if (fault == FAULT_TMOUT) {
+    if (subseq_tmouts++ > TMOUT_LIMIT) {
       cur_skipped_paths++;
       return fault;
     }
-
-    result_string = read_sqlite_output_and_reset_output_file();
   }
+  else {
+    subseq_tmouts = 0;
+  }
+  /* Users can hit us with SIGUSR1 to request the current input
+       to be abandoned. */
+  if (skip_requested) {
+    skip_requested = 0;
+    cur_skipped_paths++;
+    return fault;
+  }
+  result_string = read_sqlite_output_and_reset_output_file();
 
-  vector <int> opt_result_vec, unopt_result_vec;
-  int compare_No_Rec_result_int = compare_No_Rec_result(result_string, opt_result_vec, unopt_result_vec);
+
+  vector<string> result_1, result_2, result_3;
+  int compare_No_Rec_result_int = compare_query_result(result_string, result_1, result_2, result_3);
 
   /* Some useful debug output. That could show what queries are being tested.  */
   // cerr << "Query: \n";
   // cerr << cmd_string << "\n";
   // cerr << "Result string: \n";
   // cerr << result_string << "\n";
-  // cerr << "Optimized results (int): \n";
-  // for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++)
+  // cerr << "Result_1 (str): \n";
+  // for (auto iter = result_1.begin(); iter != result_1.end(); iter++)
   //   cerr << *iter << "\n";
-  // cerr << "Unoptimized results (int): \n";
-  // for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++)
+  // cerr << "Result_2 (str): \n";
+  // for (auto iter = result_2.begin(); iter != result_2.end(); iter++)
+  //   cerr << *iter << "\n";
+  // cerr << "Result_3 (str): \n";
+  // for (auto iter = result_3.begin(); iter != result_3.end(); iter++)
   //   cerr << *iter << "\n";
   // cerr << "Compare_No_Rec_result_int: \n" << compare_No_Rec_result_int;
   // cerr << "\n\n\n\n";
 
-  if (compare_No_Rec_result_int == 0 && !is_skip_no_rec)
+  if (compare_No_Rec_result_int == 0)
   {
 
     ofstream outputfile;
@@ -3141,10 +2793,12 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     outputfile << cmd_string << "\n";
     outputfile << "Result string: \n";
     outputfile << result_string << "\n";
-    outputfile << "Optimized results (int): \n";
-    for (auto iter = opt_result_vec.begin(); iter != opt_result_vec.end(); iter++) outputfile << *iter << "\n";
-    outputfile << "Unoptimized results (int): \n";
-    for (auto iter = unopt_result_vec.begin(); iter != unopt_result_vec.end(); iter++) outputfile << *iter << "\n";
+    outputfile << "Result_1 is (str): \n";
+    for (auto iter = result_1.begin(); iter != result_1.end(); iter++) outputfile << *iter << "\n";
+    outputfile << "Result_2 is (str): \n";
+    for (auto iter = result_2.begin(); iter != result_2.end(); iter++) outputfile << *iter << "\n";
+    outputfile << "Result_3 is (str): \n";
+    for (auto iter = result_3.begin(); iter != result_3.end(); iter++) outputfile << *iter << "\n";
     outputfile << "Compare_No_Rec_result_int: \n" << compare_No_Rec_result_int; 
     outputfile << "\n\n\n\n";
 
@@ -3152,7 +2806,7 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
     total_execs++;
   }
-  else if (!is_skip_no_rec && compare_No_Rec_result_int == 1)
+  else if (compare_No_Rec_result_int == 1)
   {
     total_execs++;
   }
@@ -3164,8 +2818,10 @@ u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   result_string.clear();
   cmd_string.clear();
   queries_vector.clear();
-  opt_result_vec.clear();
-  unopt_result_vec.clear();
+  result_1.clear();
+  result_2.clear();
+  result_3.clear();
+
 
   return fault;
 }
@@ -3810,7 +3466,7 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
+static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
 
   u8  *fn = "";
   u8  hnb;
@@ -3818,12 +3474,9 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
   u8  keeping = 0, res;
   vector<IR *> ir_set;
 
-  string stripped_query_string = "";
-  for (size_t mem_idx = 0; mem_idx < len; mem_idx++) {
-    stripped_query_string += ((char *)mem)[mem_idx];
-  }
+  string stripped_query_string;
 
-  if (is_str_empty(stripped_query_string)) return keeping; // return 0; Empty string. Not added. 
+  if (is_str_empty(query_str)) return keeping; // return 0; Empty string. Not added. 
 
   if (fault == crash_mode) {
 
@@ -3840,7 +3493,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     // if it is interesting, we update our library with it. 
     stage_name = "add_to_library";
 
-    vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(stripped_query_string);
+    vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0){
       g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]));
       ir_tree.back()->deep_drop();
@@ -3852,7 +3505,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     stage_name = tmp_name;
     //[modify] end
 
-    stripped_query_string = remove_No_Rec_stmts_from_whole_query(stripped_query_string);
+    stripped_query_string = p_oracle->remove_valid_stmts_from_str(query_str);
 
     if (is_str_empty(stripped_query_string)) return keeping;
     if (g_mutator.is_stripped_str_in_lib(stripped_query_string)) return keeping;
@@ -3887,7 +3540,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
+    res = calibrate_case(argv, queue_top, stripped_query_string.c_str(), queue_cycle - 1, 0);
 
     if (res == FAULT_ERROR)
       FATAL("Unable to execute target application");
@@ -3937,14 +3590,9 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
       if (exec_tmout < hang_tmout) {
 
         u8 new_fault;
-        write_to_testcase(mem, len);
+        write_to_testcase(stripped_query_string.c_str(), stripped_query_string.size());
         new_fault = run_target(argv, hang_tmout);
-        program_input_str = "";
-        program_input_str += "current input: ";
-        for (int output_index = 0; output_index < len; output_index++){
-          program_input_str += ((char*)mem)[output_index];
-        } 
-        // cerr << "\n\nRunning save_if_interesting with query: " << program_input_str << endl << endl;
+
         read_sqlite_output_and_reset_output_file();
 
         /* A corner case that one user reported bumping into: increasing the
@@ -4035,7 +3683,7 @@ keep_as_crash:
 
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, mem, len, fn);
+  ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
   close(fd);
 
   ck_free(fn);
@@ -5371,28 +5019,16 @@ static void show_stats(void) {
        error conditions, returning 1 if it's time to bail out. This is
        a helper function for fuzz_one(). */
 
-    EXP_ST u8 common_fuzz_stuff(char** argv, u8* out_buf, u32 len) {
+    EXP_ST u8 common_fuzz_stuff(char** argv, string& query_str) {
 
       u8 fault;
 
-      if (post_handler) {
-
-        out_buf = post_handler(out_buf, &len);
-        if (!out_buf || !len) return 0;
-
-      }
-      
-
-      program_input_str = "";
-      for (int output_index = 0; output_index < len; output_index++){
-        program_input_str += out_buf[output_index];
-      }
-      // cerr << program_input_str << endl;
-      fault = execute_No_Rec(program_input_str, argv);
+      fault = execute_No_Rec(query_str, argv);
       
       /* This handles FAULT_ERROR for us: */
+      if (fault == FAULT_ERROR) return 0;
 
-      queued_discovered += save_if_interesting(argv, out_buf, len, fault);
+      queued_discovered += save_if_interesting(argv, query_str, fault);
 
       if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
         show_stats();
@@ -5870,7 +5506,7 @@ static u8 fuzz_one(char** argv) {
       continue;
     }
 
-    append_norec_select_stmts(*ir_str);
+    p_oracle -> append_ori_valid_stmts(*ir_str, 10);
     query_str = g_mutator.validate(*ir_str);
 
     if(query_str == ""){
@@ -5881,7 +5517,7 @@ static u8 fuzz_one(char** argv) {
       show_stats();
       stage_name = "niubi_fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
-      if(common_fuzz_stuff(argv, query_str.c_str(), query_str.size())){
+      if(common_fuzz_stuff(argv, query_str)){
         goto abandon_entry;
       }
       total_execute++;
@@ -6044,8 +5680,13 @@ abandon_entry:
 
         if (stop_soon) return;
 
+        string saved_str = "";
+        for (int output_index = 0; output_index < st.st_size; output_index++) {
+          saved_str += mem[output_index];
+        }
+
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, mem, st.st_size, fault);
+        queued_imported += save_if_interesting(argv, saved_str, fault);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
@@ -7121,7 +6762,13 @@ static void do_libary_initialize() {
 
 int main(int argc, char** argv) {
 
-  // hsql_debug = 1;
+  /* Setup g_mutator and p_oracle; */
+  p_oracle = new SQL_NOREC();   // Set it to your own oracle class. 
+  p_oracle->set_mutator(&g_mutator);
+  g_mutator.set_p_oracle(p_oracle);
+
+
+  // hsql_debug = 1;   // For debugging parser. 
   int bind_to_core_id = -1;
     
   min_stab_radio = 100.0;

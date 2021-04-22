@@ -3,6 +3,9 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
+#include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_norec.h"
+
 #include <sys/time.h>
 #include <sys/resource.h>
 
@@ -77,7 +80,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
     set<unsigned long> res_hash;
     IR * root = v_ir_collector[v_ir_collector.size()-1];
 
-    mark_all_norec_select_stmt(v_ir_collector);
+    p_oracle->mark_all_valid_node(v_ir_collector);
 
     for(auto old_ir: v_ir_collector){
 
@@ -145,13 +148,13 @@ string Mutator::get_random_mutated_valid_stmt(){
     if (all_valid_pstr_vec.size() > 0 && query_method == 0)  {
       /* Pick the query from the lib, pass to the mutator. */
       ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
-      if (ori_norec_select == "" || !p_oracle->is_valid_stmt(ori_norec_select) ) continue;
+      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select) ) continue;
       use_temp = false;
     }
     else if (all_valid_pstr_vec.size() > 0 && query_method < 3) {
       /* Pick the query from the lib, directly return, do not mutate it. (If mutate, could have significantly performance penalty.) */
       ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
-      if (ori_norec_select == "" || !p_oracle->is_valid_stmt(ori_norec_select)) continue;
+      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select)) continue;
       use_temp = false;
       return ori_norec_select;
     } else {
@@ -223,7 +226,7 @@ string Mutator::get_random_mutated_valid_stmt(){
       if (new_ir_verified.size() <= 0) continue;
       new_ir_verified.back()->deep_drop();
 
-      if (is_norec_compatible(new_norec_select_str) &&
+      if (p_oracle->is_oracle_valid_stmt(new_norec_select_str) &&
         extract_struct(new_norec_select_str) != // Make sure the mutated structure is different.
         extract_struct(ori_norec_select)) {
 
@@ -1033,7 +1036,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
 
     IR * root = ir_set[ir_set.size()-1];
 
-    if (is_norec_compatible(current_query))
+    if (p_oracle->is_oracle_valid_stmt(current_query))
       add_to_norec_lib(root, current_query);
     else
       add_to_library(root, current_query);

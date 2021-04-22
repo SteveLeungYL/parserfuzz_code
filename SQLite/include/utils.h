@@ -47,7 +47,8 @@ void trim_string(string &);
 vector<string> get_all_files_in_dir( const char * dir_name );
 string magic_string_generator(string& s);
 void  ensure_semicolon_at_query_end(string&);
-vector<string> string_splitter(string input_string, string delimiter_re = "\n");
+vector<string> string_splitter(const string& input_string, string delimiter_re);
+bool is_str_empty(string input_str);
 
 
 #endif

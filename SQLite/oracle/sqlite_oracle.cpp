@@ -1,5 +1,5 @@
 #include "./sqlite_oracle.h"
-#include "ast.h"
+#include "../include/ast.h"
 
 bool SQL_ORACLE::mark_node_valid(IR *root) {
     if (root == nullptr)
@@ -14,3 +14,5 @@ bool SQL_ORACLE::mark_node_valid(IR *root) {
         this->mark_node_valid(root->right_);
     return true;
 }
+
+void SQL_ORACLE::set_mutator(Mutator* mutator) {this->g_mutator = mutator;}

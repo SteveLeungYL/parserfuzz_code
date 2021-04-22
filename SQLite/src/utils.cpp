@@ -228,7 +228,7 @@ void  ensure_semicolon_at_query_end(string &stmt){
   if (*idx != ';') stmt += "; ";
 }
 
-vector<string> string_splitter(string input_string, string delimiter_re = "\n"){
+vector<string> string_splitter(const string& input_string, string delimiter_re = "\n"){
   size_t pos = 0;
   string token;
   std::regex re(delimiter_re);
@@ -236,4 +236,12 @@ vector<string> string_splitter(string input_string, string delimiter_re = "\n"){
   vector<string> split_string{first, last};
 
   return split_string;
+}
+
+bool is_str_empty(string input_str){
+  for (int i = 0; i < input_str.size(); i++){
+    char c = input_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0') return false; // Not empty.
+  }
+  return true; // Empty
 }

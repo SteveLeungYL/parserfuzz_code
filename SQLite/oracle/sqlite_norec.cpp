@@ -3,34 +3,27 @@
 #include "../include/utils.h"
 #include "../include/mutator.h"
 
-void SQL_NOREC::append_valid_stmts(string &input) {
+#include <string>
 
-  ensure_semicolon_at_query_end(input);
+void SQL_NOREC::append_ori_valid_stmts(string query_str, int valid_max_num = 10) {
 
-  string new_norec_stmts = "";
-  int num_norec = count_valid_stmts(input);
 
   int trial = 0;
-  int max_trial = (max_norec - num_norec) * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
+  int num_norec = 0;
+  int max_trial = valid_max_num * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
 
-  while (num_norec < max_norec){
+  while (num_norec < valid_max_num){
 
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.  
       break;
 
-    new_norec_stmts = g_mutator->get_random_mutated_valid_stmt();
+    string new_norec_stmts = g_mutator->get_random_mutated_valid_stmt();
     if (new_norec_stmts == "") continue;
     ensure_semicolon_at_query_end(new_norec_stmts);
 
-    /* Reparse the combine_query_str to check whether the added norec_stmts is valide. */
-    //vector<IR*> new_ir_tree = g_mutator.parse_query_str_get_ir_set(new_norec_stmts);
-    //if (new_ir_tree.size() == 0) continue;
-    //new_ir_tree.back()->deep_drop();
+    query_str += new_norec_stmts;
 
-    input += new_norec_stmts;
     num_norec++;
-
-    /* Return norec query does not pass the parser. Append failed. Retrive new norec query and try again. */
   }
 
   return;
@@ -40,13 +33,13 @@ int SQL_NOREC::count_valid_stmts(const string& input){
   int norec_select_count = 0;
   vector<string> queries_vector = string_splitter(input, ";");
   for (string &query : queries_vector) 
-    if (this->is_valid_stmt(query))
+    if (this->is_oracle_valid_stmt(query))
       norec_select_count++;
   return norec_select_count;
 }
 
 
-bool SQL_NOREC::is_valid_stmt(const string& query){
+bool SQL_NOREC::is_oracle_valid_stmt(const string& query){
   if (
         ((query.find("SELECT COUNT ( * ) FROM")) != std::string::npos || (query.find("select count ( * ) from")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
         ((query.find("SELECT COUNT ( * ) FROM")) <= 5 || (query.find("select count ( * ) from")) <= 5) &&
@@ -83,8 +76,8 @@ bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector)
                     par_par_par_ir = root->locate_parent(par_par_ir);
                     if (par_par_par_ir != nullptr && par_par_par_ir->type_ == kStatementList)
                     {
-                        string query = extract_struct(ir);
-                        if (   !(this->is_valid_stmt(query))   )  continue;  // Not norec compatible. Jump to the next ir.
+                        string query = g_mutator->extract_struct(ir);
+                        if (   !(this->is_oracle_valid_stmt(query))   )  continue;  // Not norec compatible. Jump to the next ir.
                         query.clear();
                         is_mark_successfully = this->mark_node_valid(ir);
                         // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << " \n\n\n";
@@ -98,4 +91,359 @@ bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector)
     }
 
     return is_mark_successfully;
+}
+
+void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2)
+{
+  // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
+
+  while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
+  { // Delete duplicated whitespace at the beginning.
+    query = query.substr(1, query.size() - 1);
+  }
+
+  size_t select_position = 0;
+  size_t from_position = -1;
+  size_t where_position = -1;
+  size_t group_by_position = -1;
+  size_t order_by_position = -1;
+
+  vector<size_t> op_lp_v;
+  vector<size_t> op_rp_v;
+
+  size_t tmp1 = 0, tmp2 = 0;
+  while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos)
+  {
+    op_lp_v.push_back(tmp1);
+    tmp1++;
+    if (tmp1 == query.size())
+    {
+      break;
+    }
+  }
+  while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos)
+  {
+    op_rp_v.push_back(tmp2);
+    tmp2++;
+    if (tmp2 == query.size())
+    {
+      break;
+    }
+  }
+
+  if (op_lp_v.size() != op_rp_v.size())
+  { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+    op_lp_v.clear();
+    op_rp_v.clear();
+  }
+
+  for (int i = 0; i < op_lp_v.size(); i++)
+  { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
+    if (op_lp_v[i] > op_rp_v[i])
+    {
+      op_lp_v.clear();
+      op_rp_v.clear();
+    }
+  }
+
+  tmp1 = -1;
+  tmp2 = -1;
+
+  tmp1 = query.find("SELECT", 0); // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
+  tmp2 = query.find("select", 0);
+  if (tmp1 != string::npos)
+  {
+    select_position = tmp1;
+  }
+  if (tmp2 != string::npos && tmp2 < tmp1)
+  {
+    select_position = tmp2;
+  }
+
+  tmp1 = 0;
+  tmp2 = 0;
+  from_position = -1;
+
+  do
+  {
+    if (tmp1 != string::npos)
+      tmp1 = query.find("FROM", tmp1 + 4);
+    if (tmp2 != string::npos)
+      tmp2 = query.find("from", tmp2 + 4);
+
+    if (tmp1 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        from_position = tmp1;
+        break; // from_position is found. Break the outter do...while loop.
+      }
+    }
+
+    if (tmp2 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        from_position = tmp2;
+        break; // from_position is found. Break the outter do...while loop.
+      }
+    }
+
+  } while (tmp1 != string::npos || tmp2 != string::npos);
+
+  tmp1 = 0;
+  tmp2 = 0;
+  where_position = -1;
+
+  do
+  {
+    if (tmp1 != string::npos)
+      tmp1 = query.find("WHERE", tmp1 + 5);
+    if (tmp2 != string::npos)
+      tmp2 = query.find("where", tmp2 + 5);
+
+    if (tmp1 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        where_position = tmp1;
+        break; // where_position is found. Break the outter do...while loop.
+      }
+    }
+
+    if (tmp2 != string::npos)
+    {
+      bool is_ignore = false;
+      for (int i = 0; i < op_lp_v.size(); i++)
+      {
+        if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
+        {
+          is_ignore = true;
+          break;
+        }
+      }
+      if (!is_ignore)
+      {
+        where_position = tmp2;
+        break; // where_position is found. Break the outter do...while loop.
+      }
+    }
+
+  } while (tmp1 != string::npos || tmp2 != string::npos);
+
+  /*** Taking care of GROUP BY stmt.   ***/
+  tmp1 = -1, tmp2 = -1;
+  size_t tmp = 0;
+  while ((tmp = query.find("GROUP BY", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp1 = tmp;
+    }
+  } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+
+  tmp = -8;
+  while ((tmp = query.find("group by", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp2 = tmp;
+    }
+  } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+  if (tmp1 != string::npos)
+  {
+    group_by_position = tmp1;
+  }
+  if (tmp2 != string::npos && tmp2 > tmp1)
+  {
+    group_by_position = tmp2;
+  }
+
+  /*** Taking care of ORDER BY stmt.   ***/
+  tmp1 = -1, tmp2 = -1;
+  tmp = -8;
+  while ((tmp = query.find("ORDER BY", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp1 = tmp;
+    }
+  } // The last ORDER BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+  tmp = -8;
+  while ((tmp = query.find("order by", tmp + 8)) &&
+         (tmp != string::npos))
+  {
+    bool is_ignore = false;
+    for (int i = 0; i < op_lp_v.size(); i++)
+    {
+      if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
+      {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore)
+    {
+      tmp2 = tmp;
+    }
+  } // The last order by statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
+  if (tmp1 != string::npos)
+  {
+    order_by_position = tmp1;
+  }
+  if (tmp2 != string::npos && tmp2 > tmp1)
+  {
+    order_by_position = tmp2;
+  }
+
+  size_t extra_stmt_position = -1;
+  if (group_by_position != string::npos && order_by_position != string::npos)
+    extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position);
+  else if (group_by_position != string::npos)
+    extra_stmt_position = group_by_position;
+  else if (order_by_position != string::npos)
+    extra_stmt_position = order_by_position;
+
+  string before_select_stmt;
+  string select_stmt;
+  string from_stmt;
+  string where_stmt;
+  string extra_stmt;
+
+  before_select_stmt = query.substr(0, select_position - 0);
+
+  select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
+
+  if (from_position == -1)
+    from_stmt = "";
+  else
+    from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
+
+  if (where_position == -1)
+    where_stmt = "";
+  else if (extra_stmt_position == -1)
+    where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
+  else
+    where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
+
+  if (extra_stmt_position == -1)
+    extra_stmt = "";
+  else
+    extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
+
+  // if (select_stmt.find('*') != string::npos)
+  //   select_stmt = "";
+
+  /* Ignore the select_stmt. The select_stmt should always be SELECT COUNT ( * ). Otherwise, there will be errors. */
+  string rewrited_string = before_select_stmt + " SELECT TOTAL(CAST((" + where_stmt;
+  // if (select_stmt != "" && select_stmt != " ")
+  // {
+  //   rewrited_string += "  AND  " + select_stmt;
+  // }
+  rewrited_string += ") AS BOOL)!=0) ";
+  if (from_stmt != "")
+  {
+    rewrited_string += " FROM " + from_stmt;
+  }
+
+  if (extra_stmt != "")
+  {
+    rewrited_string += extra_stmt;
+  }
+  
+  rew_1 = rewrited_string + "; ";
+  rew_2 = "";
+}
+
+string SQL_NOREC::remove_valid_stmts_from_str(string query){
+  string output_query = "";
+  vector<string> queries_vector = string_splitter(query, ";");
+
+  for (auto current_stmt : queries_vector){
+    if (is_str_empty(current_stmt)) continue;
+    if(!is_oracle_valid_stmt(current_stmt)) output_query += current_stmt + "; ";
+  }
+
+  return output_query;
+}
+
+int SQL_NOREC::compare_results(const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3){
+  
+  bool is_all_errors = true;
+  int current_opt_result_int;
+  int current_unopt_result_int;
+  for (int i = 0; i < min(result_1.size(), result_2.size()); i++){
+    try {
+      current_opt_result_int = stoi(result_1[i]);
+      current_unopt_result_int = stoi(result_2[i]);
+    }
+    catch (std::invalid_argument &e) {
+      continue;
+    } catch (std::out_of_range &e) {
+      continue;
+    }
+    is_all_errors = false;
+    if (current_opt_result_int != current_unopt_result_int) return 0; // Found mismatched. 
+  }
+
+  if (is_all_errors) return -1; // All errors.
+  else return 0; // Consistant results. 
+
 }
