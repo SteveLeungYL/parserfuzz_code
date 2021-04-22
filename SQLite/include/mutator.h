@@ -85,7 +85,7 @@ public:
     static vector<string> v_table_names;
     ~Mutator();
     
-    void debug(IR * root);
+    void debug(IR * root, unsigned level);
     unsigned long get_library_size();
     void get_memory_usage();
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);

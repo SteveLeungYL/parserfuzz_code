@@ -71,6 +71,8 @@ enum IDTYPE{
     id_savepoint_name,
     id_collation_name,
     id_database_name,
+
+    id_alias_name,
 };
 
 typedef NODETYPE IRTYPE;

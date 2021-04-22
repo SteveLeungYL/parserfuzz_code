@@ -2272,7 +2272,7 @@ table_name:
     ;
 
 alias:
-        AS IDENTIFIER { $$ = new Alias(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($2); free($2); }
+        AS IDENTIFIER { $$ = new Alias(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($2, id_alias_name); free($2); }
     ;
 
 
