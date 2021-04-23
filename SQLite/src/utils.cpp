@@ -174,12 +174,54 @@ bool BothAreSpaces(char lhs, char rhs) {
     return (lhs == rhs) && (lhs == ' ');
 }
 
+// remove leading and ending spaces
+ // reduce 2+ spaces to one
+ // change ' ;' to ';'
 void trim_string(string &res){
 
-  string::iterator new_end = unique(res.begin(), res.end(), BothAreSpaces);
-  res.erase(new_end, res.end());
-}
+    //string::iterator new_end = unique(res.begin(), res.end(), BothAreSpaces);
+    //res.erase(new_end, res.end());
 
+    //res.erase(0, res.find_first_not_of(' '));
+    //res.erase(res.find_last_not_of(' ') + 1);
+
+    int effect_idx = 0, idx = 0;
+    bool prev_is_space = false;
+    int sz = res.size();
+
+    // skip leading spaces
+    for (; idx < sz && res[idx] == ' '; idx++) {}
+
+    // now idx points to the first non-space character
+    for (; idx < sz; idx++) {
+        char &c = res[idx];
+
+        if (c == ' ') {
+            if (prev_is_space)
+                continue;
+
+            prev_is_space = true;
+            res[effect_idx++] = c;
+        }
+        else if (c == ';') {
+            if (prev_is_space)
+                res[effect_idx - 1] = c;
+            else
+                res[effect_idx++] = c;
+
+            prev_is_space = false;
+        }
+        else {
+            prev_is_space = false;
+            res[effect_idx++] = c;
+        }
+    }
+
+    if (res[effect_idx - 1] == ' ')
+        effect_idx--;
+
+    res.resize(effect_idx);
+}
 
 vector<string> get_all_files_in_dir( const char * dir_name )
 {
