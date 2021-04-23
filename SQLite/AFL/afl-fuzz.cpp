@@ -80,6 +80,7 @@
 
 #include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_norec.h"
+#include "../oracle/sqlite_likely.h"
 
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined (__OpenBSD__)
