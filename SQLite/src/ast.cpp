@@ -1466,7 +1466,7 @@ IR* ColumnName::translate(vector<IR *> &v_ir_collector){
         CASESTART(4)
             res = SAFETRANSLATE(identifier1_);
             res->id_type_ = id_whatever;
-            IR * res = new IR(kColumnName, OPEND(".ROWID"), res);
+            res = new IR(kColumnName, OPEND(".ROWID"), res);
             res->id_type_ = id_column_name;
         CASEEND
     SWITCHEND
