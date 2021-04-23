@@ -1277,11 +1277,15 @@ unsigned long Mutator::hash(IR * root){
   return this->hash(root->to_string());
 }
 
-void Mutator::debug(IR *root){
+void Mutator::debug(IR *root, unsigned level){
+
+  for (unsigned i = 0; i < level; i++)
+    cout << " ";
+
   cout << get_string_by_type(root->type_) << endl;
-  if(root->left_) debug(root->left_);
-  if(root->right_) debug(root->right_);
-}
+  if (root->left_) debug(root->left_, level + 1);
+  if (root->right_) debug(root->right_, level + 1);
+ }
 
 
 Mutator::~Mutator(){
