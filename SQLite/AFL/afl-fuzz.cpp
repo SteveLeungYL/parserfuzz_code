@@ -2719,8 +2719,9 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   for (string &query : queries_vector)
   { 
     // ignore the whole query pairs if !... in the stmt,  
-    if (query[0] == '!' || query[1] == '!' || query[2] == '!') {
-      return FAULT_ERROR;
+    for (auto iter = query.begin(); iter != query.end(); iter++){
+      if (*iter == '!') return FAULT_ERROR;
+      else if (*iter != ' ') break;
     }
   }
 
@@ -3544,8 +3545,8 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
 
     res = calibrate_case(argv, queue_top, stripped_query_string.c_str(), queue_cycle - 1, 0);
 
-    if (res == FAULT_ERROR)
-      FATAL("Unable to execute target application");
+    // if (res == FAULT_ERROR)
+    //   FATAL("Unable to execute target application");
       
 
 
