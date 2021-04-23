@@ -13,7 +13,7 @@ class Mutator;
 
 class SQL_ORACLE {
 public:
-    virtual void append_ori_valid_stmts(string query_str, int valid_max_num) = 0;
+    virtual void append_ori_valid_stmts(string& query_str, int valid_max_num) = 0;
 
     virtual int count_valid_stmts(const string& input) = 0;
     virtual bool is_oracle_valid_stmt(const string& query) = 0;

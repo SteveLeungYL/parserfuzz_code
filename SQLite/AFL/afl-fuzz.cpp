@@ -2603,26 +2603,28 @@ string expand_valid_stmts_str(const string& query_str, const bool is_mark = fals
       p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2);
 
       if (is_mark)
-        current_output += "SELECT 13579; ";
-      current_output += query;
+        current_output += "SELECT 13579; \n";
+      current_output += query + "; \n";
       if (is_mark)
-        current_output += "SELECT 97531; ";
+        current_output += "SELECT 97531; \n";
 
       if (rew_1 != "") {
         if (is_mark)
-          current_output += "SELECT 24680; ";
-        current_output += rew_1;
+          current_output += "SELECT 24680; \n";
+        current_output += rew_1 + "; \n";
         if (is_mark)
-          current_output += "SELECT 86420; ";
+          current_output += "SELECT 86420; \n";
       }
 
       if (rew_2 != "") {
         if (is_mark)
-          current_output += "SELECT 77777; ";
-        current_output += rew_2;
+          current_output += "SELECT 77777; \n";
+        current_output += rew_2 + "; \n";
         if (is_mark)
-          current_output += "SELECT 88888; ";
+          current_output += "SELECT 88888; \n";
       }
+    } else {
+      current_output += query + "; \n";
     }
   }
   return current_output;
@@ -2698,17 +2700,17 @@ int compare_query_result(const string& result_string, vector<string>& result_1, 
   return p_oracle->compare_results(result_1, result_2, result_3);
 }
 
-u8 execute_No_Rec(string cmd_string, char** argv, u32 tmout = exec_tmout) {
+u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
 
   u8 fault;
 
   string result_string = "";
 
   if (
-      (cmd_string.find("RANDOM")) != std::string::npos ||
-      (cmd_string.find("random")) != std::string::npos ||
-      (cmd_string.find("JULIANDAY")) != std::string::npos ||
-      (cmd_string.find("julianday")) != std::string::npos
+      (cmd_string.find("RANDOM") != std::string::npos) ||
+      (cmd_string.find("random") != std::string::npos) ||
+      (cmd_string.find("JULIANDAY") != std::string::npos) ||
+      (cmd_string.find("julianday") != std::string::npos)
   ) {
     return FAULT_ERROR;
   }
@@ -2913,7 +2915,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
       program_input_str += use_mem[output_index];
     }
     // cerr << program_input_str << endl;
-    fault = execute_No_Rec(program_input_str, argv, use_tmout);
+    fault = execute_cmd_string(program_input_str, argv, use_tmout);
     
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
@@ -3544,6 +3546,7 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
 
     if (res == FAULT_ERROR)
       FATAL("Unable to execute target application");
+      
 
 
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
@@ -5023,7 +5026,7 @@ static void show_stats(void) {
 
       u8 fault;
 
-      fault = execute_No_Rec(query_str, argv);
+      fault = execute_cmd_string(query_str, argv);
       
       /* This handles FAULT_ERROR for us: */
       if (fault == FAULT_ERROR) return 0;
@@ -5515,7 +5518,7 @@ static u8 fuzz_one(char** argv) {
       continue;
     } else {
       show_stats();
-      stage_name = "niubi_fuzz";
+      stage_name = "fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
       if(common_fuzz_stuff(argv, query_str)){
         goto abandon_entry;

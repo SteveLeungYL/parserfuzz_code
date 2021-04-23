@@ -5,7 +5,7 @@
 
 #include <string>
 
-void SQL_NOREC::append_ori_valid_stmts(string query_str, int valid_max_num = 10) {
+void SQL_NOREC::append_ori_valid_stmts(string& query_str, int valid_max_num = 10) {
 
 
   int trial = 0;
@@ -408,7 +408,8 @@ void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string
     rewrited_string += extra_stmt;
   }
   
-  rew_1 = rewrited_string + "; ";
+  // The ";" symbol should be taken cared of by the caller function. 
+  rew_1 = rewrited_string;
   rew_2 = "";
 }
 
