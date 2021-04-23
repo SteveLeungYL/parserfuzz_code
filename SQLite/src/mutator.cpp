@@ -228,7 +228,7 @@ string Mutator::get_random_mutated_valid_stmt(){
       if (new_ir_verified.size() <= 0) continue;
       new_ir_verified.back()->deep_drop();
 
-      if (is_norec_compatible(new_norec_select_str) ) {
+      if (p_oracle->is_oracle_valid_stmt(new_norec_select_str) ) {
         // Make sure the mutated structure is different.
         if (extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)) {
 

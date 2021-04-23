@@ -1529,7 +1529,11 @@ IR* NullLiteral::translate(vector<IR *> &v_ir_collector){
 
 
 IR* ParamExpr::translate(vector<IR *> &v_ir_collector){
-    return NULL;
+     TRANSLATESTART
+
+     res = new IR(kParamExpr, string("?"));
+
+     TRANSLATEEND
 }
 
 IR* Identifier::translate(vector<IR *> &v_ir_collector){
@@ -2569,7 +2573,7 @@ IR* CmdReindex::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = new IR(kCmdReindex, "REINDEX");
+            res = new IR(kCmdReindex, OP1("REINDEX"));
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(table_name_);
