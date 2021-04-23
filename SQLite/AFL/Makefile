@@ -44,6 +44,9 @@ afl-fuzz: afl-fuzz.cpp $(COMM_HDR) $(DEPEN_PATH)
 afl-fuzz-asan: afl-fuzz.cpp $(COMM_HDR) $(DEPEN_PATH)
 	$(CC) $(CFLAGS) $(ASAN_FLAG) -g $< $(DEPEN_PATH) -o $@ $(LDFLAGS)
 
+test-parser: test-parser.cpp $(COMM_HDR) $(DEPEN_PATH)
+	$(CC) $(CFLAGS) -g $< $(DEPEN_PATH) -o $@ $(LDFLAGS)
+
 
 .NOTPARALLEL: clean
 
