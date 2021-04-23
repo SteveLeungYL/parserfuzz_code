@@ -159,7 +159,7 @@ string Mutator::get_random_mutated_valid_stmt(){
       return ori_norec_select;
     } else {
       /* Pick the query from the template, pass to the mutator. */
-      ori_norec_select = "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ";
+      ori_norec_select = p_oracle->get_temp_valid_stmts();
       use_temp = true;
     }
 
@@ -221,20 +221,26 @@ string Mutator::get_random_mutated_valid_stmt(){
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
       new_mutated_ir_node->deep_drop();
 
+      if (new_norec_select_str == ori_norec_select) continue;
+
       /* Final check and return string if compatible */
       vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_norec_select_str);
       if (new_ir_verified.size() <= 0) continue;
       new_ir_verified.back()->deep_drop();
 
-      if (p_oracle->is_oracle_valid_stmt(new_norec_select_str) &&
-        extract_struct(new_norec_select_str) != // Make sure the mutated structure is different.
-        extract_struct(ori_norec_select)) {
+      if (is_norec_compatible(new_norec_select_str) ) {
+        // Make sure the mutated structure is different.
+        if (extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)) {
 
-        root->deep_drop();
-        is_success = true;
+          root->deep_drop();
+          is_success = true;
 
-        if (use_temp) total_temp += 1;
-        return new_norec_select_str;
+          if (use_temp) total_temp += 1;
+          return new_norec_select_str;
+         }
+         //else
+         //  cout << "new|" << new_norec_select_str << "|\n"
+         //       << "old|" << ori_norec_select << "|\n";;
       }
 
       continue;  // Retry mutating the current norec stmt and its IR tree.
@@ -290,14 +296,23 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     while(getline(input_test, line)) {
 
       vector<IR *> v_ir = parse_query_str_get_ir_set(line);
-      if (v_ir.size() <= 0) continue;
+      if (v_ir.size() <= 0) {
+         cerr << "failed to parse: " << line << endl;
+         continue;
+       }
 
       string strip_sql = extract_struct(v_ir.back());
       v_ir.back()->deep_drop();
       v_ir.clear();
 
       v_ir = parse_query_str_get_ir_set(strip_sql);
-      if (v_ir.size() <= 0) continue;
+      if (v_ir.size() <= 0) {
+         cerr << "failed to parse after extract_struct:" << endl
+              << line << endl
+              << strip_sql << endl;
+         continue;
+
+       }
 
       add_all_to_library(v_ir.back());
       v_ir.back()->deep_drop();
@@ -1028,6 +1043,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
   for (auto current_query : queries_vector){
+    trim_string(current_query);
     current_query += ";";
     // check the validity of the IR here
     // The unique_id_in_tree_ variable are being set inside the parsing func.

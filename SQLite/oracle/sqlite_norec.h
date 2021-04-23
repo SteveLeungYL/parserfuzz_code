@@ -20,6 +20,10 @@ public:
     string remove_valid_stmts_from_str(string query) override;
     int compare_results(const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3) override;
     void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2) override;
+
+    string get_temp_valid_stmts() override {return temp_valid_stmts;};
+private:
+    string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
 };
 
 

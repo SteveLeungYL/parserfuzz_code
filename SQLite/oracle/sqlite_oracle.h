@@ -23,6 +23,8 @@ public:
     virtual int compare_results(const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3) = 0;
     void set_mutator(Mutator* mutator);
     bool mark_node_valid(IR *root);
+
+    virtual string get_temp_valid_stmts() = 0;
 protected:
     Mutator* g_mutator;
 };
