@@ -3430,7 +3430,7 @@ IR*  TableRef::translate(vector<IR *> &v_ir_collector){
             PUSH(res);
 
 	        auto tmp3 = SAFETRANSLATE(expr_list_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
+            res = new IR(kTableRef, OP3("", "(", ")"), res, tmp3);
             PUSH(res);
     
 	        auto tmp4 = SAFETRANSLATE(opt_alias_);
@@ -3447,7 +3447,7 @@ IR*  TableRef::translate(vector<IR *> &v_ir_collector){
 	    CASESTART(2)
 	        auto tmp1 = SAFETRANSLATE(table_prefix_);
 	        auto tmp2 = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kTableRef, OP0(), tmp1, tmp2);
+            res = new IR(kTableRef, OP3("", "(", ")"), tmp1, tmp2);
             PUSH(res);
 
 	        auto tmp3 = SAFETRANSLATE(opt_alias_);
@@ -3465,7 +3465,7 @@ IR*  TableRef::translate(vector<IR *> &v_ir_collector){
 	    CASESTART(3)
 	        auto tmp1 = SAFETRANSLATE(table_prefix_);
 	        auto tmp2 = SAFETRANSLATE(table_ref_);
-            res = new IR(kTableRef, OP0(), tmp1, tmp2);
+            res = new IR(kTableRef, OP3("", "(", ")"), tmp1, tmp2);
             PUSH(res);
     
 	        auto tmp3 = SAFETRANSLATE(opt_alias_);
