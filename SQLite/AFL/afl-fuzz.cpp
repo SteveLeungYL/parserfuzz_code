@@ -126,7 +126,7 @@ SQL_ORACLE* p_oracle;
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
 
-extern int hsql_debug;
+// extern int hsql_debug;
 
 EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *out_file,                  /* File to fuzz, if any             */
