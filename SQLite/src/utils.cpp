@@ -203,7 +203,7 @@ void trim_string(string &res){
             prev_is_space = true;
             res[effect_idx++] = c;
         }
-        else if (c == ';') {
+        else if (c == ';' || c == ',') {
             if (prev_is_space)
                 res[effect_idx - 1] = c;
             else
