@@ -25,19 +25,21 @@ int main(int argc, char *argv[]) {
 
   while(getline(input_test, line)) {
 
+    cout << "----------------------------------------" << endl;
+
       vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(line);
-      if (v_ir.size() <= 0) {
-        cerr << "failed to parse: " << line << endl;
-        continue;
-      }
+    if (v_ir.size() <= 0) {
+      cerr << "failed to parse: " << line << endl;
+      continue;
+    }
 
-      IR *root = v_ir.back();
+    IR *root = v_ir.back();
 
-      cout << line << endl;
-      cout << root->to_string() << endl;
-      cout << mutator.extract_struct(line) << endl;
+    cout << line << endl;
+    cout << root->to_string() << endl;
+    cout << mutator.extract_struct(line) << endl;
 
-      root->deep_drop();
+    root->deep_drop();
 
   }
 
