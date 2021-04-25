@@ -476,6 +476,8 @@ string Mutator::validate(string query){
   fix_graph(graph, root, ordered_ir);
 
   string tmp = fix(root);
+
+  root->deep_drop();
   return tmp;
 }
 
