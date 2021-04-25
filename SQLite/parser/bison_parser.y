@@ -1108,23 +1108,28 @@ alter_statement:
 	ALTER TABLE table_name RENAME TO table_name {
 		$$ = new AlterStatement();
 		$$->sub_type_ = CASE0;
-        $$->table_name1_ = $3;
-        $$->table_name2_ = $6;
+    $$->table_name1_ = $3;
+    $$->table_name2_ = $6;
+    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
+    $$->table_name2_->table_name_->id_type_ = id_create_table_name;
 	}
  |	ALTER TABLE table_name RENAME opt_column column_name TO column_name {
 		$$ = new AlterStatement();
 		$$->sub_type_ = CASE1;
-        $$->table_name1_ = $3;
-        $$->opt_column_ = $5;
-        $$->column_name1_ = $6;
-        $$->column_name2_ = $8;
+    $$->table_name1_ = $3;
+    $$->opt_column_ = $5;
+    $$->column_name1_ = $6;
+    $$->column_name2_ = $8;
+    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
+    $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
 	}
  |	ALTER TABLE table_name ADD opt_column column_def {
 		$$ = new AlterStatement();
 		$$->sub_type_ = CASE2;
-        $$->table_name1_ = $3;
-        $$->opt_column_ = $5;
-        $$->column_def_ = $6;
+    $$->table_name1_ = $3;
+    $$->opt_column_ = $5;
+    $$->column_def_ = $6;
+    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
 	}
  ;
 
