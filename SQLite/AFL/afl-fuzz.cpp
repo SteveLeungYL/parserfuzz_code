@@ -2571,7 +2571,7 @@ static void write_to_testcase(const char* mem, u32 len) {
 }
 
 inline void print_norec_exec_debug_info(){
-  cerr << "\n"
+  cout << "\n"
            << "total_input_failed:      " << total_input_failed << "\n"
            << "total_random_norec:      " << g_mutator.total_random_norec << " / " <<  g_mutator.total_temp << " " << g_mutator.total_temp * 100.0 / g_mutator.total_random_norec  << "%\n"
            << "total_add_to_queue:      " << total_add_to_queue << "\n"

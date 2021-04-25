@@ -639,11 +639,11 @@ bool Mutator::add_back(TmpRecord &m_save){
   for(auto &i: m_save){
 
     IR *parent = i.first;
-    int is_left = i.second.first;
+    int is_right = i.second.first;
     IR *child = i.second.second;
 
-    if (is_left) parent->update_left(child);
-    else         parent->update_right(child);
+    if (is_right) parent->update_right(child);
+    else          parent->update_left(child);
   }
 
   return true;
