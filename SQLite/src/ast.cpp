@@ -110,7 +110,7 @@ IR * IR::locate_parent(IR *child) {
   return NULL;
 }
 
-IR * IR::locate_root() {
+IR * IR::get_root() {
 
   IR *node = this;
 
@@ -118,6 +118,11 @@ IR * IR::locate_root() {
     node = node->parent_;
 
   return node;
+}
+
+IR * IR::get_parent() {
+
+  return this->parent_;
 }
 
 void IR::update_left(IR *new_left) {

@@ -159,8 +159,10 @@ class IR{
     IR * deep_copy();
     // find the parent node of child inside this IR tree
     IR * locate_parent(IR *child);
-    // find the root node of this IR tree
-    IR * locate_root();
+    // find the root node of this node
+    IR * get_root();
+    // find the parent node of this node
+    IR * get_parent();
     // unlink the node from this IR tree, but keep the node
     bool detach_node(IR *node);
     // swap the node, keep both
