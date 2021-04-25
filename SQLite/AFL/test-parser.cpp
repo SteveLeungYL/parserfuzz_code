@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
 
     cout << "----------------------------------------" << endl;
 
-      vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(line);
+    vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(line);
     if (v_ir.size() <= 0) {
       cerr << "failed to parse: " << line << endl;
       continue;
@@ -35,11 +35,27 @@ int main(int argc, char *argv[]) {
 
     IR *root = v_ir.back();
 
+    string tostring = root->to_string();
+    string structure = mutator.extract_struct(line);
+
     cout << line << endl;
-    cout << root->to_string() << endl;
-    cout << mutator.extract_struct(line) << endl;
+    cout << tostring << endl;
+    cout << structure << endl;
 
     root->deep_drop();
+    v_ir.clear();
+
+    v_ir = mutator.parse_query_str_get_ir_set(structure);
+    if (v_ir.size() <= 0) {
+      cerr << "failed to paser the extracted structure" << endl;
+      continue;
+    }
+
+    root = v_ir.back();
+    if (root->to_string() != structure) {
+      cerr << "extract_structure is no idempotent" << endl;
+      continue;
+    }
 
   }
 
