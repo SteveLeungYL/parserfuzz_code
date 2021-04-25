@@ -52,12 +52,12 @@ enum IDTYPE{
 
     id_top_table_name,
     id_column_name,
-    id_table_name,
+    /* 3 */ id_table_name,
     id_create_table_name,
-    id_create_column_name,
+    /* 5 */ id_create_column_name,
 
     id_schema_name,
-    id_pragma_name,
+    /* 7 */ id_pragma_name,
     id_pragma_value,
 
     id_index_name,
@@ -159,6 +159,8 @@ class IR{
     IR * deep_copy();
     // find the parent node of child inside this IR tree
     IR * locate_parent(IR *child);
+    // find the root node of this IR tree
+    IR * locate_root();
     // unlink the node from this IR tree, but keep the node
     bool detach_node(IR *node);
     // swap the node, keep both
