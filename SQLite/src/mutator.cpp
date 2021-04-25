@@ -1404,8 +1404,8 @@ void Mutator::fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visite
       }else if(val->id_type_ == id_index_name){
         string new_index = gen_id_name();
         val->str_val_ = new_index;
-        m_tables[new_index] = m_tables[tablename];
-        v_table_names.push_back(new_index);
+        //m_tables[new_index] = m_tables[tablename];
+        //v_table_names.push_back(new_index);
       }
     }
   }
