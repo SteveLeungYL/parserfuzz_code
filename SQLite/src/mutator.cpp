@@ -1488,10 +1488,16 @@ void Mutator::_fix(IR * root, string &res){
   auto int_val_ = root->int_val_;
   auto id_type_ = root->id_type_;
 
-  if (type_ == kIdentifier && (id_type_ == id_database_name || id_type_ == id_schema_name)) {
+  if (type_ == kIdentifier && id_type_ == id_database_name) {
 
-    if(get_rand_int(2) == 1) { res += "v0"; return; }
-    else { res += "v1"; return; }
+    res += "main";
+    return;
+  }
+
+  if (type_ == kIdentifier && id_type_ == id_schema_name) {
+
+    res += "sqlite_master";
+    return;
   }
 
   if (type_ == kCmdPragma) {
