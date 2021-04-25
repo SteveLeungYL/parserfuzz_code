@@ -93,7 +93,7 @@ bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector)
     return is_mark_successfully;
 }
 
-void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2)
+void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3)
 {
   // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 
@@ -411,6 +411,7 @@ void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string
   // The ";" symbol should be taken cared of by the caller function. 
   rew_1 = rewrited_string;
   rew_2 = "";
+  rew_3 = "";
 }
 
 string SQL_NOREC::remove_valid_stmts_from_str(string query){
@@ -425,15 +426,15 @@ string SQL_NOREC::remove_valid_stmts_from_str(string query){
   return output_query;
 }
 
-int SQL_NOREC::compare_results(const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3){
+int SQL_NOREC::compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str){
   
   bool is_all_errors = true;
   int current_opt_result_int;
   int current_unopt_result_int;
-  for (int i = 0; i < min(result_1.size(), result_2.size()); i++){
+  for (int i = 0; i < min(result_0.size(), result_1.size()); i++){
     try {
-      current_opt_result_int = stoi(result_1[i]);
-      current_unopt_result_int = stoi(result_2[i]);
+      current_opt_result_int = stoi(result_0[i]);
+      current_unopt_result_int = stoi(result_1[i]);
     }
     catch (std::invalid_argument &e) {
       continue;

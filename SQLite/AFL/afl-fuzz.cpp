@@ -2600,8 +2600,8 @@ string expand_valid_stmts_str(const string& query_str, const bool is_mark = fals
     if (is_str_empty(query))
       continue;
     if (p_oracle->is_oracle_valid_stmt(query)) {
-      string rew_1 = "", rew_2 = "";
-      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2);
+      string rew_1 = "", rew_2 = "", rew_3 = "";
+      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3);
 
       if (is_mark)
         current_output += "SELECT 13579; \n";
@@ -2624,6 +2624,14 @@ string expand_valid_stmts_str(const string& query_str, const bool is_mark = fals
         if (is_mark)
           current_output += "SELECT 88888; \n";
       }
+
+      if (rew_3 != "") {
+        if (is_mark)
+          current_output += "SELECT 55555; \n";
+        current_output += rew_3 + "; \n";
+        if (is_mark)
+          current_output += "SELECT 66666; \n";
+      }
     } else {
       current_output += query + "; \n";
     }
@@ -2631,7 +2639,7 @@ string expand_valid_stmts_str(const string& query_str, const bool is_mark = fals
   return current_output;
 }
 
-int compare_query_result(const string& result_string, vector<string>& result_1, vector<string>& result_2, vector<string>& result_3){
+int compare_query_result(const string& cmd_string, const string& result_string, vector<string>& result_0, vector<string>& result_1, vector<string>& result_2, vector<string>& result_3){
 
   if(is_str_empty(result_string)){
     return -1;
@@ -2647,9 +2655,9 @@ int compare_query_result(const string& result_string, vector<string>& result_1, 
       begin_idx = result_string.find("13579", begin_idx+5);
       end_idx = result_string.find("97531", end_idx+5);
 
-      if (current_result_str.find("Error") != string::npos) {result_1.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      if (current_result_str.find("Error") != string::npos) {result_0.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
-        result_1.push_back(current_result_str);
+        result_0.push_back(current_result_str);
       }
     }
     else {
@@ -2667,9 +2675,9 @@ int compare_query_result(const string& result_string, vector<string>& result_1, 
       begin_idx = result_string.find("24680", begin_idx+5);
       end_idx = result_string.find("86420", end_idx+5);
 
-      if (current_result_str.find("Error") != string::npos) {result_2.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      if (current_result_str.find("Error") != string::npos) {result_1.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
-        result_2.push_back(current_result_str);
+        result_1.push_back(current_result_str);
       }
     }
     else {
@@ -2687,6 +2695,25 @@ int compare_query_result(const string& result_string, vector<string>& result_1, 
       begin_idx = result_string.find("77777", begin_idx+5);
       end_idx = result_string.find("88888", end_idx+5);
 
+      if (current_result_str.find("Error") != string::npos) {result_2.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      else {
+        result_2.push_back(current_result_str);
+      }
+    }
+    else {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
+    }
+  }
+
+  begin_idx = result_string.find("55555", 0);
+  end_idx = result_string.find("66666", 0);   // Reset the idx first. 
+
+  while (begin_idx != string::npos){
+    if (end_idx != string::npos){
+      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+      begin_idx = result_string.find("55555", begin_idx+5);
+      end_idx = result_string.find("66666", end_idx+5);
+
       if (current_result_str.find("Error") != string::npos) {result_3.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
         result_3.push_back(current_result_str);
@@ -2698,7 +2725,7 @@ int compare_query_result(const string& result_string, vector<string>& result_1, 
   }
 
   /* Now we can compare the results and find whether there are inconsistant. */
-  return p_oracle->compare_results(result_1, result_2, result_3);
+  return p_oracle->compare_results(result_0, result_1, result_2, result_3, cmd_string);
 }
 
 u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
@@ -2751,14 +2778,17 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   result_string = read_sqlite_output_and_reset_output_file();
 
 
-  vector<string> result_1, result_2, result_3;
-  int compare_No_Rec_result_int = compare_query_result(result_string, result_1, result_2, result_3);
+  vector<string> result_0, result_1, result_2, result_3;
+  int compare_No_Rec_result_int = compare_query_result(cmd_string, result_string, result_0, result_1, result_2, result_3);
 
   /* Some useful debug output. That could show what queries are being tested.  */
   // cerr << "Query: \n";
   // cerr << cmd_string << "\n";
   // cerr << "Result string: \n";
   // cerr << result_string << "\n";
+  // cerr << "Result_0 (str): \n";
+  // for (auto iter = result_0.begin(); iter != result_0.end(); iter++)
+  //   cerr << *iter << "\n";
   // cerr << "Result_1 (str): \n";
   // for (auto iter = result_1.begin(); iter != result_1.end(); iter++)
   //   cerr << *iter << "\n";

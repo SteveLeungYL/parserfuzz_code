@@ -27,11 +27,11 @@ public:
     virtual string remove_valid_stmts_from_str(string query) = 0;
 
     /* Given the validation statement ori, rewrite the ori to validation statement to rewrite_1 and rewrite_2. */
-    virtual void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2) = 0;
+    virtual void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2, string& rew_3) = 0;
 
     /* Compare the results from validation statements ori, rewrite_1 and rewrite_2. 
         If the results are all errors, return -1, all consistent, return 1, found inconsistent, return 0. */
-    virtual int compare_results(const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3) = 0;
+    virtual int compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str) = 0;
 
     /* Helper function. */ 
     void set_mutator(Mutator* mutator);
@@ -41,7 +41,7 @@ public:
 protected:
     Mutator* g_mutator;
 
-    bool mark_node_valid(IR *root);
+    virtual bool mark_node_valid(IR *root);
 };
 
 
