@@ -37,8 +37,6 @@ public:
     IR * strategy_insert(IR * cur);
     IR * strategy_replace(IR * cur);
 
-    bool replace(IR * root , IR* old_ir, IR* new_ir);
-    IR * find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent);
     string validate(string query);
     string validate(IR * root); 
 
@@ -65,7 +63,6 @@ public:
     string extract_struct(IR * root);
     void _extract_struct(IR * root, string &);
     string extract_struct(string);
-    string extract_struct2(IR * root);
     void add_new_table(IR * root, string &table_name);
     void reset_database();
 

@@ -455,37 +455,6 @@ vector<IR *> Mutator::mutate(IR * input){
     return res;
 }
 
-bool Mutator::replace(IR * root , IR* old_ir, IR* new_ir){
-    auto parent_ir = root->locate_parent(old_ir);
-    if(parent_ir == NULL) return false;
-
-    if (parent_ir->left_ == old_ir) {
-
-      old_ir->deep_drop();
-      parent_ir->update_left(new_ir);
-      return true;
-
-    } else if (parent_ir->right_ == old_ir) {
-
-      old_ir->deep_drop();
-      parent_ir->update_right(new_ir);
-      return true;
-
-    }
-
-    return false;
-}
-
-IR * Mutator::find_child_with_type_and_parent(const vector<IR *> &v_ir_collector, NODETYPE node_type, IR * parent){
-    IR * root = v_ir_collector[v_ir_collector.size()-1];
-    for(auto ir: v_ir_collector){
-        if (ir != nullptr && ir -> type_ == node_type && root->locate_parent(ir) == parent)
-            return ir;
-    }
-    cerr << "Error: Cannot find the child type from parent. " << endl;
-    return nullptr;
-}
-
 string Mutator::validate(string query){
   vector<IR*> ir_set = parse_query_str_get_ir_set(query);
   if (ir_set.size() == 0) return "";
@@ -1593,51 +1562,6 @@ unsigned int Mutator::calc_node(IR * root){
   if(root->right_) res += calc_node(root->right_);
 
   return res + 1;
-}
-
-string Mutator::extract_struct2(IR * root){
-  static int counter = 0;
-  string res;
-  auto * right_ = root->right_, * left_ = root->left_;
-  auto * op_ = root->op_;
-  auto type_ = root->type_;
-  auto str_val_ = root->str_val_;
-
-  if(type_ == kColumnName && str_val_ == "*") return str_val_;
-  if(type_ == kOptOrderType || type_ == kNullLiteral || type_ == kColumnType || type_ == kSetType || type_ == kOptJoinType || type_ == kOptDistinct) return str_val_;
-  if(root->id_type_ != id_whatever && root->id_type_ != id_module_name) {return "x" + to_string(counter++);}
-  if(type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
-    string str_val = str_val_;
-    str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
-    str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
-    string magic_string = magic_string_generator(str_val);
-    unsigned long h = hash(magic_string);
-    if(string_libary_hash_.find(h) == string_libary_hash_.end()){
-      string_libary.push_back(magic_string);
-      string_libary_hash_.insert(h);
-
-    }
-    return "'y'";
-  }
-  if(type_ == kIntLiteral) {value_libary.push_back(root->int_val_); return "10";}
-  if(type_ == kFloatLiteral || type_ == kconst_float) {value_libary.push_back((unsigned long)root->f_val_); return "0.1";}
-  if(type_ == kconst_int)  {value_libary.push_back(root->int_val_); return "11";}
-  if(type_ == kFilePath) return "'file_name'";
-
-  if(!str_val_.empty()) return str_val_;
-  if(op_!= NULL)
-    res += op_->prefix_ + " ";
-  if(left_ != NULL)
-    res += extract_struct2(left_) + " ";
-  if( op_!= NULL)
-    res += op_->middle_ + " ";
-  if(right_ != NULL)
-    res += extract_struct2(right_) + " ";
-  if(op_!= NULL)
-    res += op_->suffix_;
-
-  trim_string(res);
-  return res;
 }
 
 string Mutator::extract_struct(string query) {
