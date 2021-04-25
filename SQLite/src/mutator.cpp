@@ -298,9 +298,6 @@ string Mutator::get_random_mutated_norec_select_stmt(){
           if (use_temp) total_temp += 1;
           return new_norec_select_str;
         }
-        //else
-        //  cout << "new|" << new_norec_select_str << "|\n"
-        //       << "old|" << ori_norec_select << "|\n";;
 
       }
 
@@ -387,15 +384,19 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     m_tables["haha3"] = {"fucking_column0_3", "fucking_column1_3", "fucking_column2_3"};
 
     //init value_libary
-    vector<unsigned long> value_lib_init = {0, (unsigned long)LONG_MAX, (unsigned long)ULONG_MAX,
-        (unsigned long)CHAR_BIT, (unsigned long)SCHAR_MIN, (unsigned long)SCHAR_MAX, (unsigned long)UCHAR_MAX,
-        (unsigned long)CHAR_MIN, (unsigned long)CHAR_MAX, (unsigned long)MB_LEN_MAX, (unsigned long)SHRT_MIN,
-        (unsigned long)INT_MIN, (unsigned long)INT_MAX, (unsigned long)SCHAR_MIN, (unsigned long)SCHAR_MIN,
-        (unsigned long)UINT_MAX, (unsigned long)FLT_MAX, (unsigned long)DBL_MAX, (unsigned long)LDBL_MAX,
-        (unsigned long)FLT_MIN, (unsigned long)DBL_MIN, (unsigned long)LDBL_MIN };
-
+    vector<unsigned long> value_lib_init = { 0,
+      (unsigned long)LONG_MAX, (unsigned long)ULONG_MAX,
+      (unsigned long)CHAR_BIT, (unsigned long)SCHAR_MIN,
+      (unsigned long)SCHAR_MAX, (unsigned long)UCHAR_MAX,
+      (unsigned long)CHAR_MIN, (unsigned long)CHAR_MAX,
+      (unsigned long)MB_LEN_MAX, (unsigned long)SHRT_MIN,
+      (unsigned long)INT_MIN, (unsigned long)INT_MAX, 
+      (unsigned long)SCHAR_MIN, (unsigned long)SCHAR_MIN,
+      (unsigned long)UINT_MAX, (unsigned long)FLT_MAX, 
+      (unsigned long)DBL_MAX, (unsigned long)LDBL_MAX,
+      (unsigned long)FLT_MIN, (unsigned long)DBL_MIN, 
+      (unsigned long)LDBL_MIN };
     value_libary.insert(value_libary.begin(), value_lib_init.begin(), value_lib_init.end());
-
 
     //init common_string_libary
     common_string_libary.push_back("DO_NOT_BE_EMPTY");
@@ -455,38 +456,34 @@ vector<IR *> Mutator::mutate(IR * input){
     return res;
 }
 
-string Mutator::validate(string query){
-  vector<IR*> ir_set = parse_query_str_get_ir_set(query);
-  if (ir_set.size() == 0) return "";
-  else {
-    string validated_str = validate(ir_set[ir_set.size()-1]);
-    ir_set.back()->deep_drop();
-    return validated_str;
-  }
-}
-
 string Mutator::validate(IR * root){
 
-    if(root == NULL) return "";
-    try{
-        string sql_str = root->to_string();
-        auto parsed_ir = parser(sql_str.c_str());
-        if(parsed_ir == NULL)
-            return "";
-        parsed_ir->deep_delete();
+  if (root == NULL) return "";
 
-        reset_counter();
-        vector<IR*> ordered_ir;
-        auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
-        fix_graph(graph, root, ordered_ir);
-        return fix(root);
-    }catch(...){
-        // invalid sql , skip
-    }
-    return "";
+  return validate(root->to_string());
 }
 
-static void collect_ir(IR* root,set<IDTYPE> &type_to_fix, vector<IR*> &ir_to_fix){
+string Mutator::validate(string query){
+
+  vector<IR*> ir_set = parse_query_str_get_ir_set(query);
+  if (ir_set.size() == 0) return "";
+
+  IR *root = ir_set.back();
+
+  reset_counter();
+  vector<IR*> ordered_ir;
+  auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
+  fix_graph(graph, root, ordered_ir);
+
+  string tmp = fix(root);
+  return tmp;
+}
+
+// find tree node whose identifier type can be handled
+//
+// NOTE: identifier type is different from IR type
+//
+static void collect_ir(IR* root, set<IDTYPE> &type_to_fix, vector<IR*> &ir_to_fix) {
     auto idtype = root->id_type_;
 
     if(root->left_){
@@ -524,6 +521,14 @@ static IR* search_mapped_ir(IR* ir, IDTYPE idtype){
     return NULL;
 }
 
+
+// propagate relionship between subqueries
+//
+// FIXME: the key/value seems to be reversed, unless the cross_map defines the
+// relationship in a different direction as in relationmap ...
+//
+// To be confirmed
+//
 void cross_stmt_map(map<IR*, set<IR*>> &graph, vector<IR*> &ir_to_fix, map<IDTYPE, IDTYPE> &cross_map){
     for(auto m: cross_map){
         vector<IR*> value;
@@ -548,6 +553,11 @@ void cross_stmt_map(map<IR*, set<IR*>> &graph, vector<IR*> &ir_to_fix, map<IDTYP
     }
 }
 
+// randomly build connection between top_table_name and table_name
+//
+// top_table_name does not rely on others, while table_name relies on some
+// top_table_name
+//
 void toptable_map(map<IR*, set<IR*>> &graph, vector<IR*> &ir_to_fix, vector<IR*> &toptable){
     vector<IR*> tablename;
     for(auto ir: ir_to_fix){
@@ -694,12 +704,15 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root,
 
       auto curptr = ir;
       bool flag = false;
-      while(true){
-        auto pptr = stmt->locate_parent(curptr);
+
+      while (true) {
+
+        IR *pptr = subquery->locate_parent(curptr);
         if(pptr == NULL)break;
+
         while(pptr->left_ == NULL || pptr->right_ == NULL){
           curptr = pptr;
-          pptr = stmt->locate_parent(curptr);
+          pptr = subquery->locate_parent(curptr);
           if(pptr == NULL){
             flag = true;
             break;
@@ -1398,35 +1411,57 @@ void Mutator::fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visite
   }
 }
 
+
+//    relationmap[id_column_name] = id_top_table_name;
+//    relationmap[id_table_name] = id_top_table_name;
+//    relationmap[id_index_name] = id_top_table_name;
+//    relationmap[id_create_column_name] = id_create_table_name;
+//    relationmap[id_pragma_value] = id_pragma_name;
+//
 void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordered_ir){
   set<IR*> visited;
 
   reset_database();
   for(auto ir: ordered_ir){
-    auto iter = make_pair(ir, graph[ir]);
 
-    if(visited.find(iter.first) != visited.end()){
-      continue;
-    }
-    visited.insert(iter.first);
-    if(iter.second.empty()){
-      if(iter.first->id_type_ == id_column_name){
+    if (visited.find(ir) != visited.end()) continue;
+    visited.insert(ir);
+
+    auto dependencies = graph[ir];
+    if (dependencies.empty()) {
+
+      if (ir->id_type_ == id_column_name) {
+
         string tablename = vector_rand_ele(v_table_names);
         auto &colums = m_tables[tablename];
-        iter.first->str_val_ = vector_rand_ele(colums);
+        ir->str_val_ = vector_rand_ele(colums);
         continue;
       }
     }
-    if(iter.first->id_type_ == id_create_table_name || iter.first->id_type_ == id_top_table_name){
-      if(iter.first->id_type_ == id_create_table_name ){
-        string new_table_name = gen_id_name();
-        v_table_names.push_back(new_table_name);
-        iter.first->str_val_ = new_table_name;
-      }else{
-        iter.first->str_val_ = vector_rand_ele(v_table_names);
 
-      }
-      fix_one(graph, iter.first, visited);
+    switch (ir->id_type_) {
+      
+      case id_create_table_name:
+
+        ir->str_val_ = gen_id_name();
+        v_table_names.push_back(ir->str_val_);
+        fix_one(graph, ir, visited);
+        break;
+
+      case id_top_table_name:
+
+        ir->str_val_ = vector_rand_ele(v_table_names);
+        fix_one(graph, ir, visited);
+        break;
+
+      case id_index_name:
+        
+        // FIXME: handle index name
+        break;
+
+      default:
+
+        break;
     }
   }
 
