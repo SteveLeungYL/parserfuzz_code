@@ -612,7 +612,12 @@ vector<IR *> Mutator::extract_statement(IR * root){
     return res;
 }
 
-vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
+// find all subqueries (SELECT statement)
+//
+// find all SelectNoParent subtree, and save them in the returned vector
+// save the mapping from the subtree address to subtree into 2nd arg
+//
+vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
 
     vector<IR *> res;
     vector<IR *> v_statements;
@@ -640,7 +645,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
                 q_bfs.push_back(cur->left_);
                 if(cur->left_->type_ == kSelectNoParen){
                     res.push_back(cur->left_);
-                    m_save[&cur->left_] = cur->left_;
+                    m_save[cur] = make_pair(0, cur->left_);
                     cur->detach_node(cur->left_);
                 }
             }
@@ -649,7 +654,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
                 q_bfs.push_back(cur->right_);
                 if(cur->right_->type_ == kSelectNoParen){
                     res.push_back(cur->right_);
-                    m_save[&cur->right_] = cur->right_;
+                    m_save[cur] = make_pair(1, cur->right_);
                     cur->detach_node(cur->right_);
                 }
             }
@@ -660,33 +665,50 @@ vector<IR *> Mutator::cut_subquery(IR * program, map<IR**, IR*> &m_save){
 }
 
 
+bool Mutator::add_back(TmpRecord &m_save){
 
-bool Mutator::fix_back(map<IR**, IR*> &m_save){
-    for(auto &i: m_save){
-        if(*(i.first) != NULL) return false;
-        *(i.first) = i.second;
-    }
+  for(auto &i: m_save){
 
-    return true;
+    IR *parent = i.first;
+    int is_left = i.second.first;
+    IR *child = i.second.second;
+
+    if (is_left) parent->update_left(child);
+    else         parent->update_right(child);
+  }
+
+  return true;
 }
 
 
 
 
-map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE> &relationmap, map<IDTYPE, IDTYPE> &cross_map, vector<IR*> &ordered_ir){
+// build the dependency graph between names, for example, the column name 
+// should belong to one column of one already created table. The dependency
+// is denfined in the "relationmap" global variable
+//
+// The result is a map, where the value is a set of IRs, which are dependents
+// of the key
+map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, 
+    map<IDTYPE, IDTYPE> &relationmap, 
+    map<IDTYPE, IDTYPE> &cross_map, 
+    vector<IR*> &ordered_ir) {
+
   map<IR*, set<IR*>> graph;
+  TmpRecord m_save;
   set<IDTYPE> type_to_fix;
-  map<IR**, IR*> m_save;
+
   for(auto &iter: relationmap){
     type_to_fix.insert(iter.first);
     type_to_fix.insert(iter.second);
   }
 
-  auto ir_list = cut_subquery(root, m_save);
+  vector<IR *> subqueries = cut_subquery(root, m_save);
 
-  for(auto stmt: ir_list){
+  for(IR * subquery: subqueries){
+
     vector<IR*> ir_to_fix;
-    collect_ir(stmt, type_to_fix, ir_to_fix);
+    collect_ir(subquery, type_to_fix, ir_to_fix);
     for(auto ii: ir_to_fix){
       ordered_ir.push_back(ii);
     }
@@ -742,7 +764,7 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root, map<IDTYPE, IDTYPE
     }
   }
 
-  fix_back(m_save);
+  add_back(m_save);
   return graph;
 }
 

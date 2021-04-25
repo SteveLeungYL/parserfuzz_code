@@ -17,6 +17,8 @@ public:
         srand(time(nullptr));
     }
 
+    typedef map<IR*, pair<int, IR*>> TmpRecord;
+
     void set_dump_library(bool);
 
     vector<string> string_splitter(string, string);
@@ -72,8 +74,8 @@ public:
     unsigned int calc_node(IR * root);
 
     map<IR*, set<IR*>> build_dependency_graph(IR* root, map<IDTYPE,IDTYPE> &relationmap, map<IDTYPE,IDTYPE> &crssmap, vector<IR*>& ordered_ir);
-    vector<IR *> cut_subquery(IR * program, map<IR**, IR*> &m_save);
-    bool fix_back(map<IR**, IR*> &m_save);
+    vector<IR *> cut_subquery(IR * program, TmpRecord &m_save);
+    bool add_back(TmpRecord &m_save);
     void fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visited);
     void fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*>& ordered_ir);
 
