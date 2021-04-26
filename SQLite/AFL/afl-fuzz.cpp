@@ -2827,6 +2827,8 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     outputfile << cmd_string << "\n";
     outputfile << "Result string: \n";
     outputfile << result_string << "\n";
+    outputfile << "Result_0 is (str): \n";
+    for (auto iter = result_0.begin(); iter != result_0.end(); iter++) outputfile << *iter << "\n";
     outputfile << "Result_1 is (str): \n";
     for (auto iter = result_1.begin(); iter != result_1.end(); iter++) outputfile << *iter << "\n";
     outputfile << "Result_2 is (str): \n";
