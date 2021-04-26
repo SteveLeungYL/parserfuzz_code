@@ -1,31 +1,41 @@
-.NOTPARALLEL:
+SUB_DIRS := oracle src AFL
 
-SUB_DIRS := parser oracle src AFL
-
-LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(wildcard parser/*.cpp)
+PARSER_SRCS := $(patsubst %.y,%.cpp,$(wildcard parser/*.y))
+PARSER_SRCS += $(patsubst %.l,%.cpp,$(wildcard parser/*.l))
+LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 
 export CC = g++
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS)
 LDFLAGS = -ldl
 
 
-all: afl-fuzz #test-parser
+all: afl-fuzz test-parser
 
-$(SUB_DIRS):
+parser:
+	@$(MAKE) -C $@
+
+$(SUB_DIRS): parser
 	@$(MAKE) -C $@
 
 afl-fuzz: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(AFL_OBJS) -o $@ $(LDFLAGS)
 
-.PHONY: all $(SUB_DIRS)
+test-parser: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(TEST_OBJS) -o $@ $(LDFLAGS)
+
+asan: ASAN_FLAGS := -fsanitize=address
+asan:
+	$(MAKE) -B -e ASAN_FLAGS=-fsanitize=address
+
+.PHONY: parser $(SUB_DIRS)
 
 clean:
+	@make clean -C parser
+	@make clean -C src
+	@make clean -C oracle
+	@make clean -C AFL
 	rm -rf afl-fuzz test-parser
-	cd parser && make clean && cd ..
-	cd src && make clean && cd ..
-	cd oracle && make clean && cd ..
-	cd AFL && make clean && cd ..
