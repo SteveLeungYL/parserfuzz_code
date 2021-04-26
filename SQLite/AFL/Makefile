@@ -21,7 +21,7 @@ BIN_PATH    = $(PREFIX)/bin
 HELPER_PATH = $(PREFIX)/lib/afl
 DOC_PATH    = $(PREFIX)/share/doc/afl
 MISC_PATH   = $(PREFIX)/share/afl
-DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
+DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp ../oracle/*.cpp
 
 CC          = g++
 CFLAGS     ?= -O3 -fpermissive --std=c++17 -static-libstdc++
@@ -34,7 +34,7 @@ ifneq "$(filter Linux GNU%,$(shell uname))" ""
   LDFLAGS  += -ldl
 endif
 
-COMM_HDR    = alloc-inl.h config.h debug.h types.h hash.h ../include/*.h
+COMM_HDR    = alloc-inl.h config.h debug.h types.h hash.h ../include/*.h ../oracle/*.h
 
 all: afl-fuzz
 

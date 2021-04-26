@@ -3,6 +3,9 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
+#include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_norec.h"
+
 #include <sys/time.h>
 #include <sys/resource.h>
 
@@ -13,7 +16,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <deque>
-#include <regex>
+
 
 using namespace std;
 
@@ -69,76 +72,15 @@ bool Mutator::check_node_num(IR * root, unsigned int limit){
     return is_good;
 }
 
-bool Mutator::make_current_node_as_norec_select_stmt(IR* root){
-    if (root == nullptr) return false;
-    /* the following types do not added to the norec_select_stmt list. They should be able to mutate as usual. */
-    if (root -> type_ == kExpr || root->type_ == kTableRef || root->type_ == kOptGroup || root-> type_ == kWindowClause) return false;
-    root -> is_norec_select_fixed = true;
-    if (root -> left_ != nullptr) this->make_current_node_as_norec_select_stmt(root->left_);
-    if (root -> right_ != nullptr) this->make_current_node_as_norec_select_stmt(root->right_);
-    return true;
-}
 
-bool Mutator::is_norec_compatible(const string& query){
-  if (
-        ((query.find("SELECT COUNT ( * ) FROM")) != std::string::npos || (query.find("select count ( * ) from")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("SELECT COUNT ( * ) FROM")) <= 5 || (query.find("select count ( * ) from")) <= 5) &&
-        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
-        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
-        ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&  // This is a SELECT stmt that matching the requirments of NoREC.
-        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
-        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later.
-    ) return true;
-    return false;
-}
 
-bool Mutator::mark_all_norec_select_stmt(vector<IR *> &v_ir_collector)
-{
-    bool is_mark_successfully = false;
-
-    IR *root = v_ir_collector[v_ir_collector.size() - 1];
-    IR *par_ir = nullptr;
-    IR *par_par_ir = nullptr;
-    IR *par_par_par_ir = nullptr; // If we find the correct selectnoparen, this should be the statementlist.
-    for (auto ir : v_ir_collector){
-        if (ir != nullptr) ir -> is_norec_select_fixed = false;
-    }
-    for (auto ir : v_ir_collector)
-    {
-        if (ir != nullptr && ir->type_ == kSelectNoParen)
-        {
-            par_ir = root->locate_parent(ir);
-            if (par_ir != nullptr && par_ir->type_ == kSelectStatement)
-            {
-                par_par_ir = root->locate_parent(par_ir);
-                if (par_par_ir != nullptr && par_par_ir->type_ == kStatement)
-                {
-                    par_par_par_ir = root->locate_parent(par_par_ir);
-                    if (par_par_par_ir != nullptr && par_par_par_ir->type_ == kStatementList)
-                    {
-                        string query = extract_struct(ir);
-                        if (   !(this->is_norec_compatible(query))   )  continue;  // Not norec compatible. Jump to the next ir.
-                        query.clear();
-                        is_mark_successfully = make_current_node_as_norec_select_stmt(ir);
-                        // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << " \n\n\n";
-                        par_ir -> is_norec_select_fixed = true;
-                        par_par_ir -> is_norec_select_fixed = true;
-                        par_par_par_ir -> is_norec_select_fixed = true;
-                    }
-                }
-            }
-        }
-    }
-
-    return is_mark_successfully;
-}
 
 vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
     vector<string *> res;
     set<unsigned long> res_hash;
     IR * root = v_ir_collector[v_ir_collector.size()-1];
 
-    mark_all_norec_select_stmt(v_ir_collector);
+    p_oracle->mark_all_valid_node(v_ir_collector);
 
     for(auto old_ir: v_ir_collector){
 
@@ -182,7 +124,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 }
 
 // guarantee to generate grammarly correct query
-string Mutator::get_random_mutated_norec_select_stmt(){
+string Mutator::get_random_mutated_valid_stmt(){
   /* Read from the previously seen norec compatible select stmt.
    * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of
     the new generated norec compatible SELECT query.
@@ -203,21 +145,21 @@ string Mutator::get_random_mutated_norec_select_stmt(){
        For 1/2 chance, take the template "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return.
     */
     int query_method = get_rand_int(6);
-    if (all_norec_pstr_vec.size() > 0 && query_method == 0)  {
+    if (all_valid_pstr_vec.size() > 0 && query_method == 0)  {
       /* Pick the query from the lib, pass to the mutator. */
-      ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
-      if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
+      ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
+      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select) ) continue;
       use_temp = false;
     }
-    else if (all_norec_pstr_vec.size() > 0 && query_method < 3) {
+    else if (all_valid_pstr_vec.size() > 0 && query_method < 3) {
       /* Pick the query from the lib, directly return, do not mutate it. (If mutate, could have significantly performance penalty.) */
-      ori_norec_select = *(all_norec_pstr_vec[get_rand_int(all_norec_pstr_vec.size())]);
-      if (ori_norec_select == "" || !is_norec_compatible(ori_norec_select)) continue;
+      ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
+      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select)) continue;
       use_temp = false;
       return ori_norec_select;
     } else {
       /* Pick the query from the template, pass to the mutator. */
-      ori_norec_select = "SELECT COUNT ( * ) FROM x WHERE x;";
+      ori_norec_select = p_oracle->get_temp_valid_stmts();
       use_temp = true;
     }
 
@@ -237,7 +179,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
     }
 
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
-    mark_all_norec_select_stmt(ir_tree);
+    p_oracle->mark_all_valid_node(ir_tree);
 
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate.
     */
@@ -288,7 +230,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
       if (new_ir_verified.size() <= 0) continue;
       new_ir_verified.back()->deep_drop();
 
-      if (is_norec_compatible(new_norec_select_str) ) {
+      if (p_oracle->is_oracle_valid_stmt(new_norec_select_str) ) {
         // Make sure the mutated structure is different.
         if (extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)) {
 
@@ -297,8 +239,7 @@ string Mutator::get_random_mutated_norec_select_stmt(){
 
           if (use_temp) total_temp += 1;
           return new_norec_select_str;
-        }
-
+         }
       }
 
       continue;  // Retry mutating the current norec stmt and its IR tree.
@@ -1048,16 +989,6 @@ unsigned long Mutator::get_a_val(){
   return value_libary[get_rand_int(value_libary.size())];
 }
 
-vector<string> Mutator::string_splitter(string input_string, string delimiter_re = "\n"){
-  size_t pos = 0;
-  string token;
-  std::regex re(delimiter_re);
-  std::sregex_token_iterator first{input_string.begin(), input_string.end(), re, -1}, last; //the '-1' is what makes the regex split (-1 := what was not matched)
-  vector<string> split_string{first, last};
-
-  return split_string;
-}
-
 unsigned long Mutator::get_library_size(){
   unsigned long res = 0;
 
@@ -1129,7 +1060,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
 
     IR * root = ir_set[ir_set.size()-1];
 
-    if (is_norec_compatible(current_query))
+    if (p_oracle->is_oracle_valid_stmt(current_query))
       add_to_norec_lib(root, current_query);
     else
       add_to_library(root, current_query);
@@ -1150,7 +1081,7 @@ void Mutator::add_to_norec_lib(IR * ir, string &select) {
   string * new_select = new string(select);
 
   all_query_pstr_set.insert(new_select);
-  all_norec_pstr_vec.push_back(new_select);
+  all_valid_pstr_vec.push_back(new_select);
 
   if (this->dump_library) {
     std::ofstream f;
@@ -1180,7 +1111,7 @@ void Mutator::add_to_library(IR* ir, string &query) {
 
   string * p_query_str = new string(query);
   all_query_pstr_set.insert(p_query_str);
-  // all_norec_pstr_vec.push_back(p_query_str);
+  // all_valid_pstr_vec.push_back(p_query_str);
 
   if (this->dump_library) {
     std::ofstream f;
@@ -1360,9 +1291,9 @@ void Mutator::debug(IR *root, unsigned level){
     cout << " ";
 
   cout << get_string_by_type(root->type_) << endl;
-  if(root->left_) debug(root->left_, level + 1);
-  if(root->right_) debug(root->right_, level + 1);
-}
+  if (root->left_) debug(root->left_, level + 1);
+  if (root->right_) debug(root->right_, level + 1);
+ }
 
 
 Mutator::~Mutator(){
@@ -1791,5 +1722,5 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
 
 int Mutator::get_norec_select_collection_size() {
 
-  return all_norec_pstr_vec.size();
+  return all_valid_pstr_vec.size();
 }

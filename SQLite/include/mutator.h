@@ -10,6 +10,8 @@
 
 using namespace std;
 
+class SQL_ORACLE;
+
 class Mutator{
 
 public:
@@ -21,15 +23,10 @@ public:
 
     void set_dump_library(bool);
 
-    vector<string> string_splitter(string, string);
-
     IR * deep_copy_with_record(const IR * root, const IR * record);
     unsigned long hash(IR* );
     unsigned long hash(string);
 
-    static bool is_norec_compatible(const string& query);
-    bool make_current_node_as_norec_select_stmt(IR* root);
-    bool mark_all_norec_select_stmt(vector<IR *> &v_ir_collector);
     vector<string *> mutate_all(vector<IR*> &v_ir_collector);
 
     vector<IR*> mutate(IR* input);  
@@ -47,7 +44,7 @@ public:
     int get_norec_select_collection_size();
 
     vector<IR*> parse_query_str_get_ir_set(string &query_str);
-    string get_random_mutated_norec_select_stmt();
+    string get_random_mutated_valid_stmt();
 
     void add_all_to_library(IR*);
     void add_all_to_library(string);
@@ -92,6 +89,8 @@ public:
     unsigned long total_temp = 0;
     unsigned long total_random_norec = 0;
 
+    void set_p_oracle(SQL_ORACLE* oracle) {this->p_oracle = oracle;}
+
 private:
     void add_to_norec_lib(IR*, string&);
     void add_to_library(IR*, string&);
@@ -130,7 +129,9 @@ private:
 
     map<unsigned long, bool> norec_hash;
     set<string*> all_query_pstr_set;
-    vector<string*> all_norec_pstr_vec;
+    vector<string*> all_valid_pstr_vec;
+
+    SQL_ORACLE* p_oracle;
 };
 
 

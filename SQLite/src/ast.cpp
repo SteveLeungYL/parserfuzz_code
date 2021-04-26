@@ -1544,11 +1544,11 @@ IR* NullLiteral::translate(vector<IR *> &v_ir_collector){
 
 
 IR* ParamExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
+     TRANSLATESTART
 
-    res = new IR(kParamExpr, string("?"));
+     res = new IR(kParamExpr, string("?"));
 
-    TRANSLATEEND
+     TRANSLATEEND
 }
 
 IR* Identifier::translate(vector<IR *> &v_ir_collector){
