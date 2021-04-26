@@ -36,7 +36,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
-%.o : $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
+%.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
 
 $(DEPDIR): ; @mkdir -p $@

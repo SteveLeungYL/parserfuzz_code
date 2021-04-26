@@ -2,9 +2,8 @@
 
 SUB_DIRS := parser oracle src AFL
 
-LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp)
+LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(wildcard parser/*.cpp)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
-COMM_OBJS += parser/flex_lexer.cpp parser/bison_parser.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
