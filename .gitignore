@@ -6,6 +6,7 @@ MySQL/AFL/afl-fuzz
 .vscode
 *.swp
 
+afl-fuzz
 afl-fuzz-asan
 test-parser
 
@@ -15,3 +16,6 @@ bison_parser.h
 bison_parser.output
 flex_lexer.cpp
 flex_lexer.h
+
+.deps
+*.o

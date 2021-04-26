@@ -3098,9 +3098,11 @@ static void perform_dry_run(char** argv) {
 
     close(fd);
 
-    auto test_ir_root = parser(use_mem);
-    if (test_ir_root){
-      test_ir_root->deep_delete();
+    string query_str = (char *)use_mem;
+
+    vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
+    if (ir_tree.size() != 0){
+      ir_tree.back()->deep_drop();
       res = calibrate_case(argv, q, use_mem, 0, 1);
     } else {
       cout << "Query seed: '" << use_mem<< " is not passing the parser!" << endl;

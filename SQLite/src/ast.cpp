@@ -1,6 +1,5 @@
 #include  "../include/ast.h"
 #include  "../include/utils.h"
-#include "../include/mutator.h"
 #include <iostream>
 #include <vector>
 #include <cassert>
@@ -10,6 +9,17 @@
 
 
 static string s_table_name;
+
+string get_string_by_type(IRTYPE type){
+    
+#define DECLARE_CASE(classname) \
+    if (type == k##classname) return #classname ;
+    
+    ALLCLASS(DECLARE_CASE);
+#undef DECLARE_CASE
+
+    return "";
+}
 
 string IR::to_string() {
 
@@ -173,6 +183,47 @@ IR * IR::deep_copy() {
   copy_res->id_type_ = this->id_type_;
 
   return copy_res;
+}
+
+// move it here. seems no active use
+void IR::print_ir() {
+
+  if(this->left_ != NULL) this->left_->print_ir();
+  if(this->right_ != NULL) this->right_->print_ir();
+
+  if(this->operand_num_ == 0){
+    if(this->type_ == kconst_int)
+      cout << this->name_ << " = .int." << this->int_val_ << endl;
+    else if(this->type_ == kconst_float)
+      cout << this->name_ << " = .float." << this->f_val_ << endl;
+    else if(this->type_ == kBoolLiteral)
+      cout << this->name_ << " = .bool." << this->b_val_ << endl; 
+    else
+      cout << this->name_ << " = .str." << this->str_val_ << endl;
+  }
+  else if(this->operand_num_ == 1){      
+    string res = "";        
+    if(this->op_ != NULL){
+      res += this->op_->prefix_ + " ";
+      res += this->left_->name_ + " ";
+      res += this->op_->middle_ + " ";
+      res += this->op_->suffix_ + " ";
+    }
+    cout << this->name_ << " = " << res << endl;
+  }
+  else if(this->operand_num_ == 2){
+    string res = "";
+    if(this->op_ != NULL){
+      res += this->op_->prefix_ + " ";
+      res += this->left_->name_ + " ";
+      res += this->op_->middle_ + " ";
+      res += this->right_->name_ + " ";
+      res += this->op_->suffix_ + " ";
+    }
+    cout << this->name_ << " = " << res << endl;
+  }
+
+  return;
 }
 
 IR* ShowStatement::translate(vector<IR *> &v_ir_collector){

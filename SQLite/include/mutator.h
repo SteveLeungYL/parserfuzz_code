@@ -132,6 +132,8 @@ private:
     vector<string*> all_valid_pstr_vec;
 
     SQL_ORACLE* p_oracle;
+
+    Program *parser(const char * sql);
 };
 
 

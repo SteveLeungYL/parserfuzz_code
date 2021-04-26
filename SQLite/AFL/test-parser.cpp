@@ -18,12 +18,15 @@ int main(int argc, char *argv[]) {
   }
 
   Mutator mutator;
+  mutator.init("");
 
   string input(argv[1]);
   ifstream input_test(input);
   string line;
 
   while(getline(input_test, line)) {
+
+    if (line.find_first_of("--") == 0) continue;
 
     cout << "----------------------------------------" << endl;
 
@@ -57,6 +60,10 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
+    string validity = mutator.validate(root);
+    cout << validity << endl;
+
+    root->deep_drop();
   }
 
   return 0;

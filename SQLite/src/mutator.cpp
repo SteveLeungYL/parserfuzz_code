@@ -3,6 +3,9 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
+#include "../parser/bison_parser.h"
+#include "../parser/flex_lexer.h"
+
 #include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_norec.h"
 
@@ -1278,7 +1281,7 @@ void Mutator::get_memory_usage() {
 }
 
 unsigned long Mutator::hash(string sql){
-  return fucking_hash(sql.c_str(), sql.size());
+  return fuzzing_hash(sql.c_str(), sql.size());
 }
 
 unsigned long Mutator::hash(IR * root){
@@ -1527,7 +1530,7 @@ void Mutator::_fix(IR * root, string &res){
   if(op_!= NULL)
     res += op_->suffix_;
 
-  return res;
+  return;
 }
 
 unsigned int Mutator::calc_node(IR * root){
@@ -1582,7 +1585,7 @@ void Mutator::_extract_struct(IR * root, string &res) {
       type_ == kOptJoinType ||
       type_ == kOptDistinct) {
     res += str_val_;
-    return res;
+    return;
   }
 
   if (root->id_type_ != id_whatever && root->id_type_ != id_module_name) {
@@ -1723,4 +1726,27 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
 int Mutator::get_norec_select_collection_size() {
 
   return all_valid_pstr_vec.size();
+}
+
+Program * Mutator::parser(const char * sql) {
+
+  yyscan_t scanner;
+  YY_BUFFER_STATE state;
+  Program * p = new Program();
+
+  if (hsql_lex_init(&scanner)) {
+    return NULL;
+  }
+  state = hsql__scan_string(sql, scanner);
+
+  int ret = hsql_parse(p, scanner);
+
+  hsql__delete_buffer(state, scanner);
+  hsql_lex_destroy(scanner);
+  if(ret != 0){
+    p->deep_delete();
+    return NULL;
+  }
+
+  return p;
 }

@@ -8,7 +8,6 @@
 #include <iostream>
 #include "define.h"
 
-
 using namespace std;
 
 #define DECLARE_CLASS(v) \
@@ -16,6 +15,9 @@ using namespace std;
 
 ALLCLASS(DECLARE_CLASS);
 #undef DECLARE_CLASS
+
+//#include "../parser/bison_parser.h"
+//#include "../parser/flex_lexer.h"
 
 #define GEN_NAME() \
     name_ = gen_id_name();
@@ -170,6 +172,8 @@ class IR{
 
     void update_left(IR *);
     void update_right(IR *);
+
+    void print_ir();
 
 };
 
@@ -1601,5 +1605,7 @@ public:
         virtual IR* translate(vector<IR*> &v_ir_collector);
         Identifier * id_;
 };
+
+string get_string_by_type(IRTYPE);
 
 #endif

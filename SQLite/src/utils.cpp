@@ -2,133 +2,15 @@
 #include <algorithm>
 #include <regex>
 
-
-
-
-string get_string_by_type(IRTYPE type){
-    
-#define DECLARE_CASE(classname) \
-    if (type == k##classname) return #classname ;
-    
-    ALLCLASS(DECLARE_CASE);
-#undef DECLARE_CASE
-
-    return "";
-}
-
 string magic_string_generator(string &s){
     unsigned int i = get_rand_int(100);
     if(i < 80) return s;
     return "**%s**";
 }
 
-void print_v_ir(vector<IR *> &v_ir_collector){
-    for(auto ir: v_ir_collector){
-        if(ir->operand_num_ == 0){
-            if(ir->type_ == kconst_int)
-                cout << ir->name_ << " = .int." << ir->int_val_ << endl;
-            else if(ir->type_ == kconst_float)
-                cout << ir->name_ << " = .float." << ir->f_val_ << endl;
-            else if(ir->type_ == kBoolLiteral)
-                cout << ir->name_ << " = .bool." << ir->b_val_ << endl; 
-            else
-                cout << ir->name_ << " = .str." << ir->str_val_ << endl;
-            
-        }
-        else if(ir->operand_num_ == 1){      
-            string res = "";        
-            if(ir->op_ != NULL){
-                res += ir->op_->prefix_ + " ";
-                res += ir->left_->name_ + " ";
-                res += ir->op_->middle_ + " ";
-                res += ir->op_->suffix_ + " ";
-            } 
-            cout << ir->name_ << " = " << res << endl;
-        }
-        else if(ir->operand_num_ == 2){
-            string res = "";
-            if(ir->op_ != NULL){
-                res += ir->op_->prefix_ + " ";
-                res += ir->left_->name_ + " ";
-                res += ir->op_->middle_ + " ";
-                res += ir->right_->name_ + " ";
-                res += ir->op_->suffix_ + " ";
-            }
-            cout << ir->name_ << " = " << res << endl;
-        }
-    } 
-
-    return;  
-}
-
-void print_ir(IR * ir){
-    
-    if(ir->left_ != NULL) print_ir(ir->left_);
-    if(ir->right_ != NULL) print_ir(ir->right_);
-    
-    if(ir->operand_num_ == 0){
-        if(ir->type_ == kconst_int)
-                cout << ir->name_ << " = .int." << ir->int_val_ << endl;
-            else if(ir->type_ == kconst_float)
-                cout << ir->name_ << " = .float." << ir->f_val_ << endl;
-            else if(ir->type_ == kBoolLiteral)
-                cout << ir->name_ << " = .bool." << ir->b_val_ << endl; 
-            else
-                cout << ir->name_ << " = .str." << ir->str_val_ << endl;
-    }
-    else if(ir->operand_num_ == 1){      
-        string res = "";        
-        if(ir->op_ != NULL){
-            res += ir->op_->prefix_ + " ";
-            res += ir->left_->name_ + " ";
-            res += ir->op_->middle_ + " ";
-            res += ir->op_->suffix_ + " ";
-        }
-        cout << ir->name_ << " = " << res << endl;
-    }
-    else if(ir->operand_num_ == 2){
-        string res = "";
-        if(ir->op_ != NULL){
-            res += ir->op_->prefix_ + " ";
-            res += ir->left_->name_ + " ";
-            res += ir->op_->middle_ + " ";
-            res += ir->right_->name_ + " ";
-            res += ir->op_->suffix_ + " ";
-        }
-        cout << ir->name_ << " = " << res << endl;
-    }
-
-
-    return;
-}
-
-
-Program * parser(const char * sql){
-
-    yyscan_t scanner;
-    YY_BUFFER_STATE state;
-    Program * p = new Program();
-
-    if (hsql_lex_init(&scanner)) {
-        return NULL;
-    }
-    state = hsql__scan_string(sql, scanner);
-
-    int ret = hsql_parse(p, scanner);
-
-    hsql__delete_buffer(state, scanner);
-    hsql_lex_destroy(scanner);
-    if(ret != 0){
-        p->deep_delete();
-        return NULL;
-    }
-    
-    return p;
-}
-
 typedef unsigned long uint64_t;
 
-uint64_t fucking_hash ( const void * key, int len )
+uint64_t fuzzing_hash ( const void * key, int len )
 {
 	const uint64_t m = 0xc6a4a7935bd1e995;
 	const int r = 47;
@@ -233,7 +115,7 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 	// check the parameter !
 	if( NULL == dir_name )
 	{
-		cout<<" dir_name is null ! "<<endl;
+    cout<<" dir_name is null ! "<<endl;
 		return file_list;
 	}
  
@@ -242,7 +124,7 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 	lstat( dir_name , &s );
 	if( ! S_ISDIR( s.st_mode ) )
 	{
-		cout<<"dir_name is not a valid directory !"<<endl;
+    cout<<"dir_name is not a valid directory !"<<endl;
 		return file_list;
 	}
 	
@@ -251,10 +133,10 @@ vector<string> get_all_files_in_dir( const char * dir_name )
 	dir = opendir( dir_name );
 	if( NULL == dir )
 	{
-		cout<<"Can not open dir "<<dir_name<<endl;
+    cout<<"Can not open dir "<<dir_name<<endl;
 		return file_list;
 	}
-	cout<<"Successfully opened the dir !"<<endl;
+  cout<<"Successfully opened the dir !"<<endl;
 	
 	/* read all the files in the dir ~ */
 	while( ( filename = readdir(dir) ) != NULL )
