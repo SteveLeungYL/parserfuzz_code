@@ -446,6 +446,6 @@ int SQL_NOREC::compare_results(const vector<string>& result_0, const vector<stri
   }
 
   if (is_all_errors) return -1; // All errors.
-  else return 0; // Consistant results. 
+  else return 1; // Consistant results. 
 
 }
