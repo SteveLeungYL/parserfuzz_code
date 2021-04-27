@@ -35,20 +35,23 @@ public:
     string get_temp_valid_stmts() override { return temp_valid_stmts[get_rand_int(temp_valid_stmts.size())]; }
 private:
     vector<string> temp_valid_stmts = {
-        "SELECT x FROM x;", 
-        "SELECT x FROM WHERE x;", 
-        "SELECT x FROM x WHERE x GROUP BY x;",
-        // "SELECT x FROM x WHERE x HAVING x;", // TODO:: Implement HAVING. 
-        "SELECT DISTINCT x FROM x WHERE x;",
-        "SELECT MIN(x) FROM x WHERE x;",
-        "SELECT MAX(x) FROM x WHERE x;",
-        "SELECT SUM(x) FROM x WHERE x;",
-        "SELECT COUNT(x) FROM x WHERE x;",
-        "SELECT AVG(x) FROM x WHERE x;"
+        /* Complete set */
+        // "SELECT x FROM x;", 
+        // "SELECT x FROM WHERE x;", 
+        // "SELECT x FROM x WHERE x GROUP BY x;",
+        // // "SELECT x FROM x WHERE x HAVING x;", // TODO:: Implement HAVING. 
+        // "SELECT DISTINCT x FROM x WHERE x;",
+        // "SELECT MIN(x) FROM x WHERE x;",
+        // "SELECT MAX(x) FROM x WHERE x;",
+        // "SELECT SUM(x) FROM x WHERE x;",
+        // "SELECT COUNT(x) FROM x WHERE x;",
+        // "SELECT AVG(x) FROM x WHERE x;" 
+
+        /* Simplified set */
+        "SELECT COUNT(x) FROM x WHERE x;"
     };
 
-    string rewrite_where_union_all(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt);
-    string rewrite_where_union(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt);
+    void rewrite_where(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt, const bool is_union_all);
 
 
 // TODO: Implement HAVING stmts.

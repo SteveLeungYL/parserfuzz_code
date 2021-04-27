@@ -81,6 +81,7 @@
 #include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_likely.h"
+#include "../oracle/sqlite_tlp.h"
 
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined (__OpenBSD__)
@@ -2754,6 +2755,8 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   }
 
   cmd_string = expand_valid_stmts_str(cmd_string, true);
+
+  trim_string(cmd_string);
 
   write_to_testcase(cmd_string.c_str(), cmd_string.size());
   fault = run_target(argv, tmout);
@@ -6802,7 +6805,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_NOREC();   // Set it to your own oracle class. 
+  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
 

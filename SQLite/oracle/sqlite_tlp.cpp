@@ -41,12 +41,24 @@ int SQL_TLP::count_valid_stmts(const string& input){
 
 
 bool SQL_TLP::is_oracle_valid_stmt(const string& query){
+  /* Complete version. More flexible query restrictions. */
+  // if (
+  //       ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+  //       ((query.find("SELECT")) <= 5 || (query.find("select")) <= 5) &&
+  //       ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
+  //       ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
+  //       ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)
+  //   ) return true;
+  //   return false;
+
+  /* Simplified version */
   if (
-        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("SELECT")) <= 5 || (query.find("select")) <= 5) &&
+        ((query.find("SELECT COUNT ( * ) FROM")) != std::string::npos || (query.find("select count ( * ) from")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+        ((query.find("SELECT COUNT ( * ) FROM")) <= 5 || (query.find("select count ( * ) from")) <= 5) &&
         ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
         ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
-        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)
+        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
+        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later.
     ) return true;
     return false;
 }
@@ -395,11 +407,11 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
     )
     {
 
-      rewrite_where_union_all(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, extra_stmt);
+      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, extra_stmt, true);
 
     } else {
 
-      rewrite_where_union(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, extra_stmt);
+      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, extra_stmt, false);
 
     }
 
@@ -412,43 +424,25 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
 
 }
 
-string SQL_TLP::rewrite_where_union_all(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt){
+void SQL_TLP::rewrite_where(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt, const bool is_union_all){
   /* Taking care of TLP select stmt: SELECT x FROM x [joins] */
   if (where_stmt == ""){
     rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE " + extra_stmt;
-    rew_1 += " UNION ALL ";
+    if (is_union_all) rew_1 += " UNION ALL ";
+    else rew_1 += " UNION ";
     rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT TRUE " + extra_stmt;
-    rew_1 += " UNION ALL ";
+    if (is_union_all) rew_1 += " UNION ALL ";
+    else rew_1 += " UNION ";
     rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE IS NULL " + extra_stmt;
 
   } else {
 
     rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE " + where_stmt + " " + extra_stmt;
-    rew_1 += " UNION ALL ";
+    if (is_union_all) rew_1 += " UNION ALL ";
+    else rew_1 += " UNION ";
     rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT (" + where_stmt + ") " + extra_stmt;
-    rew_1 += " UNION ALL ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") IS NULL " + extra_stmt;
-
-    ori = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " " + extra_stmt;
-
-  }
-}
-
-string SQL_TLP::rewrite_where_union(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt){
-  /* Taking care of TLP select stmt: SELECT x FROM x [joins] */
-  if (where_stmt == ""){
-    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE " + extra_stmt;
-    rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT TRUE " + extra_stmt;
-    rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE IS NULL " + extra_stmt;
-
-  } else {
-
-    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE " + where_stmt + " " + extra_stmt;
-    rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT (" + where_stmt + ") " + extra_stmt;
-    rew_1 += " UNION ";
+    if (is_union_all) rew_1 += " UNION ALL ";
+    else rew_1 += " UNION ";
     rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") IS NULL " + extra_stmt;
 
     ori = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " " + extra_stmt;
@@ -483,13 +477,18 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
   vector<valid_type> v_valid_type;
   get_v_valid_type(cmd_str, v_valid_type);
 
+  // for (auto &r : v_valid_type)
+  //   cerr << "v_valid_type is: " << r << endl;
+
   string result_a, result_b;
   vector<string> v_result_a, v_result_b;
-  int out_a = 0, out_b = 0;
+  int res_a = 0, res_b = 0;
 
   for (int i = 0; i < min({result_0.size(), result_1.size(), v_valid_type.size()}); i++){
     result_a = ""; result_b = ""; 
     v_result_a.clear(); v_result_b.clear();
+
+    bool is_cur_err = false;
 
     switch (v_valid_type[i])
     {
@@ -501,96 +500,130 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
 
     case valid_type::MIN:
     /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
-      result_a = result_0[i]; result_b = result_1[i];
-      v_result_a = string_splitter(result_a, "\n");
-      v_result_b = string_splitter(result_b, "\n");
-
-      out_a = INT32_MAX, out_b = INT32_MAX;
-
-      for (int j = 0; j < min(v_result_a.size(), v_result_b.size() ); j++){
-        int cur_a = 0, cur_b = 0;
-        try {
-          cur_a = stoi(v_result_a[j]);
-          cur_b = stoi(v_result_b[j]);
-        }
-        catch (std::invalid_argument &e) {
-          continue;
-        }
-        catch (std::out_of_range &e) {
-          continue;
-        }
-        is_all_errors = false;
-        out_a = (out_a > cur_a) ? cur_a : out_a;
-        out_b = (out_b > cur_b) ? cur_b : out_b;
-      }
-      if (out_a != out_b) return 0; // Found inconsistent. 
-      break;
-
+      // Fallthrough!!!
+      [[fallthrough]];
     case valid_type::MAX:
     /* Handle MAX valid stmt: SELECT MAX(*) FROM ...; */
       result_a = result_0[i]; result_b = result_1[i];
       v_result_a = string_splitter(result_a, "\n");
       v_result_b = string_splitter(result_b, "\n");
 
-      out_a = INT32_MIN; out_b = INT32_MIN;
+      res_a = INT32_MIN; res_b = INT32_MIN;
 
-      for (int j = 0; j < min(v_result_a.size(), v_result_b.size() ); j++){
-        int cur_a = 0, cur_b = 0;
-        try {
-          cur_a = stoi(v_result_a[j]);
-          cur_b = stoi(v_result_b[j]);
-        }
-        catch (std::invalid_argument &e) {
+      is_cur_err = false;
+
+      for (string& r : v_result_a){
+        int cur_res = 0;
+        try{
+          if (r.find("Error") != string::npos){
+            is_cur_err = true;
+            break; // Break reading from v_result_a;
+          }
+          cur_res = stoi(r);
+        } catch (std::invalid_argument &e) {
           continue;
+        } catch (std::out_of_range &e) {
+          is_cur_err = true;
+          break;
         }
-        catch (std::out_of_range &e) {
-          continue;
-        }
-        is_all_errors = false;
-        out_a = (out_a < cur_a) ? cur_a : out_a;
-        out_b = (out_b < cur_b) ? cur_b : out_b;
+        if (v_valid_type[i] == valid_type::MAX)
+          res_a = (res_a < cur_res ) ? cur_res : res_a;
+        if (v_valid_type[i] == valid_type::MIN)
+          res_a = (res_a > cur_res ) ? cur_res : res_a;
       }
-      if (out_a != out_b) return 0; // Found inconsistent. 
-      break;
+
+      for (string& r : v_result_b){
+        int cur_res = 0;
+        try{
+          if (r.find("Error") != string::npos){
+            is_cur_err = true;
+            break; // Break reading from v_result_b;
+          }
+          cur_res = stoi(r);
+        } catch (std::invalid_argument &e) {
+          continue;
+        } catch (std::out_of_range &e) {
+          is_cur_err = true;
+          break;
+        }
+        if (v_valid_type[i] == valid_type::MAX)
+          res_b = (res_b < cur_res ) ? cur_res : res_b;
+        if (v_valid_type[i] == valid_type::MIN)
+          res_b = (res_b > cur_res ) ? cur_res : res_b;
+      }
+
+      if (is_cur_err) continue;
+      is_all_errors = false;
+      if (res_a != res_b) return 0; // Found inconsistent. 
+      break;  // Break the switch. Continue to the next stmt. 
+
     case valid_type::COUNT:
     /* Handle SELECT COUNT(*) FROM x...; */
     // Fallthrough!!!
       [[fallthrough]];
     case valid_type::SUM:
-    /* Handle MAX valid stmt: SELECT MAX(*) FROM ...; */
+    /* Handle SUM valid stmt: SELECT SUM(*) FROM ...; */
       result_a = result_0[i]; result_b = result_1[i];
       v_result_a = string_splitter(result_a, "\n");
       v_result_b = string_splitter(result_b, "\n");
 
-      out_a = 0, out_b = 0;
+      res_a = 0, res_b = 0;
 
-      for (int j = 0; j < min(v_result_a.size(), v_result_b.size() ); j++){
-        int cur_a = 0, cur_b = 0;
-        try {
-          cur_a = stoi(v_result_a[j]);
-          cur_b = stoi(v_result_b[j]);
-        }
-        catch (std::invalid_argument &e) {
+      // for (auto &r:v_result_a) cerr << "v_result_a: " << r << endl;
+      // for (auto &r:v_result_b) cerr << "v_result_b: " << r << endl;
+
+      is_cur_err = false;
+
+      for (string& r : v_result_a){
+        int cur_res = 0;
+        try{
+          if (r.find("Error") != string::npos){
+            is_cur_err = true;
+            break; // Break reading from v_result_a;
+          }
+          cur_res = stoi(r);
+        } catch (std::invalid_argument &e) {
           continue;
+        } catch (std::out_of_range &e) {
+          is_cur_err = true;
+          break;
         }
-        catch (std::out_of_range &e) {
-          continue;
-        }
-        is_all_errors = false;
-        out_a += cur_a;
-        out_b += cur_b;
+        res_a += cur_res;
       }
-      if (out_a != out_b) return 0; // Found inconsistent. 
-      break;
+
+      for (string& r : v_result_b){
+        int cur_res = 0;
+        try{
+          if (r.find("Error") != string::npos){
+            is_cur_err = true;
+            break; // Break reading from v_result_b;
+          }
+          cur_res = stoi(r);
+        } catch (std::invalid_argument &e) {
+          continue;
+        } catch (std::out_of_range &e) {
+          is_cur_err = true;
+          break;
+        }
+        res_b += cur_res;
+      }
+
+      // cerr << "For result " << i << " res_a: " << res_a << " res_b: " << res_b << " is_cur_err:" << is_cur_err << endl;
+      if (is_cur_err) continue;
+      is_all_errors = false;
+      if (res_a != res_b) return 0; // Found inconsistent. 
+      break;  // Break the switch.  Continue to the next stmt. 
+
+
     // case valid_type::AVG: // TODO: Implement AVG. 
     default:
       cerr << "SQL_TLP::compare_results Error: Unknown valid_type. \n";
       break;
-    }
-  }
+    }  // Switch stmt. 
+  } // Result outer loop. 
 
   if (is_all_errors) return -1; // All errors.
-  else return 0; // Consistant results. 
+  else return 1; // Consistant results. 
 
 }
 
@@ -601,14 +634,14 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<valid_type>& v_vali
 
   while (begin_idx != string::npos){
     if (end_idx != string::npos){
-      string current_cmd_string = cmd_str.substr(begin_idx + 5, (end_idx - begin_idx - 5));
+      string current_cmd_string = cmd_str.substr(begin_idx + 8, (end_idx - begin_idx - 8 - 8));
       begin_idx = cmd_str.find("13579", begin_idx+5);
       end_idx = cmd_str.find("97531", end_idx+5);
 
-      if ( (current_cmd_string.find("MIN") != string::npos) || (current_cmd_string.find("min") != string::npos) ) v_valid_type.push_back(valid_type::MIN);
-      else if ( (current_cmd_string.find("MAX") != string::npos) || (current_cmd_string.find("max") != string::npos) ) v_valid_type.push_back(valid_type::MAX);
-      else if ( (current_cmd_string.find("SUM") != string::npos) || (current_cmd_string.find("sum") != string::npos) ) v_valid_type.push_back(valid_type::SUM);
-      else if ( (current_cmd_string.find("COUNT") != string::npos) || (current_cmd_string.find("count") != string::npos) ) v_valid_type.push_back(valid_type::COUNT);
+      if ( (current_cmd_string.find("SELECT MIN") < 3) || (current_cmd_string.find("select min") < 3) ) v_valid_type.push_back(valid_type::MIN);
+      else if ( (current_cmd_string.find("SELECT MAX") < 3) || (current_cmd_string.find("select max") < 3) ) v_valid_type.push_back(valid_type::MAX);
+      else if ( (current_cmd_string.find("SELECT SUM") < 3) || (current_cmd_string.find("select sum") < 3) ) v_valid_type.push_back(valid_type::SUM);
+      else if ( (current_cmd_string.find("SELECT COUNT") < 5) || (current_cmd_string.find("select count") < 5) ) v_valid_type.push_back(valid_type::COUNT);
       // else if ( (current_cmd_string.find("AVG") != string::npos) || (current_cmd_string.find("avg") != string::npos) ) v_valid_type.push_back(valid_type::AVG); // TODO:: Implement AVG. 
       else v_valid_type.push_back(valid_type::NORM);
     }
