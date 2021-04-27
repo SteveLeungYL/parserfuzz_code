@@ -1297,7 +1297,7 @@ void Mutator::debug(IR *root, unsigned level){
   for (unsigned i = 0; i < level; i++)
     cout << " ";
 
-  cout << get_string_by_type(root->type_) << endl;
+  cout << get_string_by_ir_type(root->type_) << endl;
   if (root->left_) debug(root->left_, level + 1);
   if (root->right_) debug(root->right_, level + 1);
  }
