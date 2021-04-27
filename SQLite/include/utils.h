@@ -19,7 +19,11 @@
 
 using namespace std;
 
-#define vector_rand_ele(a) (a.size()!=0?a[get_rand_int(a.size())]:gen_id_name())
+#define vector_rand_ele(a) \
+  (a.size() != 0? \
+   a[get_rand_int(a.size())]: \
+   (*a.insert(a.begin(),gen_id_name())) \
+  )
 
 static std::random_device rd; // random device engine, usually based on /dev/random on UNIX-like systems
 // initialize Mersennes' twister using rd to generate the seed

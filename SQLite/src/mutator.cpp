@@ -376,6 +376,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     relationmap[id_create_column_name] = id_create_table_name;
     relationmap[id_pragma_value] = id_pragma_name;
     cross_map[id_top_table_name] = id_create_table_name;
+    relationmap_alternate[id_create_column_name] = id_top_table_name;
     return;
 }
 
@@ -468,12 +469,13 @@ static IR* search_mapped_ir(IR* ir, IDTYPE idtype){
 }
 
 
-// propagate relionship between subqueries
+// propagate relionship between subqueries. The logic is correct
 //
-// FIXME: the key/value seems to be reversed, unless the cross_map defines the
-// relationship in a different direction as in relationmap ...
+// graph.second relies on graph.first
+// crossmap.first relies on crossmap.second
 //
-// To be confirmed
+// so we should propagate the dependency via
+// graph.second -> graph.first = crossmap.first -> crossmap.second
 //
 void cross_stmt_map(map<IR*, set<IR*>> &graph, vector<IR*> &ir_to_fix, map<IDTYPE, IDTYPE> &cross_map){
     for(auto m: cross_map){
@@ -672,6 +674,8 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root,
         }
 
         auto match_ir = search_mapped_ir(to_search_child, relationmap[idtype]);
+        if (match_ir == NULL)
+          match_ir = search_mapped_ir(to_search_child, relationmap_alternate[idtype]);
         if(match_ir != NULL){
           if(ir->type_ == kColumnName  && ir->left_ != NULL){
             if(v_top_table.size() > 0)
@@ -1331,17 +1335,40 @@ void Mutator::fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visite
     auto &colums = m_tables[tablename];
 
     for(auto &val: graph[fixed_key]){
-      if(val->id_type_ == id_column_name){
-        val->str_val_ = vector_rand_ele(colums);
-        visited.insert(val);
-      }else if(val->id_type_ == id_table_name){
-        val->str_val_ = tablename;
-        visited.insert(val);
-      }else if(val->id_type_ == id_index_name){
-        string new_index = gen_id_name();
-        val->str_val_ = new_index;
-        //m_tables[new_index] = m_tables[tablename];
-        //v_table_names.push_back(new_index);
+
+      switch (val->id_type_) {
+
+        case id_column_name: 
+          {
+            val->str_val_ = vector_rand_ele(colums);
+            visited.insert(val);
+            break;
+          }
+      
+        case id_table_name:
+          {
+            val->str_val_ = tablename;
+            visited.insert(val);
+            break;
+          }
+
+        case id_index_name:
+          {
+            string new_index = gen_id_name();
+            val->str_val_ = new_index;
+            //m_tables[new_index] = m_tables[tablename];
+            //v_table_names.push_back(new_index);
+            break;
+          }
+
+        case id_create_column_name:
+          {
+            string new_column = gen_id_name();
+            colums.push_back(new_column);
+            val->str_val_ = new_column;
+            visited.insert(val);
+            break;
+          }
       }
     }
   }

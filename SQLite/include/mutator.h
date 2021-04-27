@@ -108,6 +108,7 @@ private:
     // map<NODETYPE, vector<IR *>> right_lib;
     vector<string> string_libary;
     map<IDTYPE, IDTYPE> relationmap;
+    map<IDTYPE, IDTYPE> relationmap_alternate;
     map<IDTYPE, IDTYPE> cross_map;
     set<unsigned long> string_libary_hash_;
 
