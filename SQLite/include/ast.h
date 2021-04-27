@@ -1606,6 +1606,7 @@ public:
         Identifier * id_;
 };
 
-string get_string_by_type(IRTYPE);
+string get_string_by_ir_type(IRTYPE);
+string get_string_by_id_type(IDTYPE);
 
 #endif

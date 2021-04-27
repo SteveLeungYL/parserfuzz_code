@@ -10,7 +10,7 @@
 
 static string s_table_name;
 
-string get_string_by_type(IRTYPE type){
+string get_string_by_ir_type(IRTYPE type){
     
 #define DECLARE_CASE(classname) \
     if (type == k##classname) return #classname ;
@@ -19,6 +19,32 @@ string get_string_by_type(IRTYPE type){
 #undef DECLARE_CASE
 
     return "";
+}
+
+string get_string_by_id_type(IDTYPE type) {
+
+  switch (type) {
+    case id_whatever:       return "id_whatever";
+    case id_top_table_name: return "id_top_table_name";
+    case id_column_name:    return "id_column_name";
+    case id_table_name:     return "id_table_name";
+    case id_create_table_name:  return "id_create_table_name";
+    case id_create_column_name: return "id_create_column_name";
+    case id_schema_name:        return "id_schema_name";
+    case id_pragma_name:        return "id_pragma_name";
+    case id_pragma_value:       return "id_pragma_value";
+    case id_index_name:         return "id_index_name";
+    case id_trigger_name:       return "id_trigger_name";
+    case id_module_name:        return "id_moudle_name";
+    case id_window_def_name:    return "id_window_def_name";
+    case id_window_name:        return "id_window_name";
+    case id_window_base_name:   return "id_window_base_name";
+    case id_savepoint_name:     return "id_savepoint_name";
+    case id_collation_name:     return "id_collation_name";
+    case id_database_name:      return "id_database_name";
+    case id_alias_name:         return "id_alias_name";
+    default:                    return "unknown identifier type";
+  }
 }
 
 string IR::to_string() {
