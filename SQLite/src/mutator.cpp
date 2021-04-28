@@ -674,8 +674,10 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root,
         }
 
         auto match_ir = search_mapped_ir(to_search_child, relationmap[idtype]);
-        if (match_ir == NULL)
+
+        if (match_ir == NULL && relationmap_alternate.find(idtype) != relationmap_alternate.end())
           match_ir = search_mapped_ir(to_search_child, relationmap_alternate[idtype]);
+
         if(match_ir != NULL){
           if(ir->type_ == kColumnName  && ir->left_ != NULL){
             if(v_top_table.size() > 0)
