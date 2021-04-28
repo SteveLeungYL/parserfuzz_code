@@ -242,7 +242,17 @@ string Mutator::get_random_mutated_valid_stmt(){
 
           if (use_temp) total_temp += 1;
           return new_norec_select_str;
-         }
+        }
+        //else {
+        //  cout << "new|" << new_norec_select_str << "|\n"
+        //       << "old|" << ori_norec_select << "|\n";;
+
+        //  if (new_norec_select_str.find(" d ") != string::npos) {
+        //    debug(root, 0);
+        //    exit(0);
+        //  }
+        //}
+
       }
 
       continue;  // Retry mutating the current norec stmt and its IR tree.
@@ -417,11 +427,11 @@ string Mutator::validate(string query){
 
   reset_counter();
   vector<IR*> ordered_ir;
+  //debug(root, 0);
   auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
   fix_graph(graph, root, ordered_ir);
 
   string tmp = fix(root);
-
   root->deep_drop();
   return tmp;
 }
@@ -632,7 +642,12 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root,
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
 
+  //cout << subqueries.size() << endl;
+
   for(IR * subquery: subqueries){
+
+    //cout << "subquery" << endl;
+    //debug(subquery, 0);
 
     vector<IR*> ir_to_fix;
     collect_ir(subquery, type_to_fix, ir_to_fix);
@@ -642,10 +657,17 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root,
     cross_stmt_map(graph, ir_to_fix, cross_map);
     vector<IR*> v_top_table;
     toptable_map(graph, ir_to_fix, v_top_table);
+
+    //cout << "size of ir_to_fix: " << ir_to_fix.size() << endl;
+
     for(auto ir: ir_to_fix){
 
       auto idtype = ir->id_type_;
-      graph[ir].empty();
+
+      // set.empty() returns whether the set is empty, 
+      // but the result is not used here
+      //graph[ir].empty();
+
       if(relationmap.find(idtype) == relationmap.end()){
         continue;
       }
@@ -689,8 +711,13 @@ map<IR*, set<IR*> > Mutator::build_dependency_graph(IR* root,
               ir->right_->id_type_ = id_column_name;
               ir->id_type_ = id_whatever;
             }
-          }else
+          }else {
+            //cout << "graph: " << endl;
+            //debug(match_ir, 0);
+            //debug(ir, 0);
+            //cout << endl << endl;
             graph[match_ir].insert(ir);
+          }
           break;
         }
         curptr = pptr;
@@ -1299,7 +1326,11 @@ void Mutator::debug(IR *root, unsigned level){
   for (unsigned i = 0; i < level; i++)
     cout << " ";
 
-  cout << get_string_by_ir_type(root->type_) << endl;
+  cout << get_string_by_ir_type(root->type_) 
+       << ": "
+       << get_string_by_id_type(root->id_type_)
+       << endl;
+
   if (root->left_) debug(root->left_, level + 1);
   if (root->right_) debug(root->right_, level + 1);
  }
@@ -1358,6 +1389,7 @@ void Mutator::fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visite
           {
             string new_index = gen_id_name();
             val->str_val_ = new_index;
+            //cout << "index name: " << new_index << endl;
             //m_tables[new_index] = m_tables[tablename];
             //v_table_names.push_back(new_index);
             break;
@@ -1397,9 +1429,20 @@ void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordere
 
       if (ir->id_type_ == id_column_name) {
 
+        // there are two possibllity we visit the column_name node first:
+        //
+        // 1. this is a standalone column_name -- it does not depend on others
+        //    in this case, likely wrong mutate, just allocate random name
+        //
+        // 2. we will find its dependecies later, like top_table_name, etc
+        //    in this case, we can skip the assignment, but it does not hurt
+        //    even if we assign it some value as it will be anyway overwritten
+        //
         string tablename = vector_rand_ele(v_table_names);
+        //cout << "tablename: " << tablename << endl;
         auto &colums = m_tables[tablename];
         ir->str_val_ = vector_rand_ele(colums);
+        //cout << "column name: " << ir->str_val_ << endl;
         continue;
       }
     }
@@ -1410,22 +1453,38 @@ void Mutator::fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*> &ordere
 
         ir->str_val_ = gen_id_name();
         v_table_names.push_back(ir->str_val_);
+        //cout << "create_table_name: " << ir->str_val_ << endl;
         fix_one(graph, ir, visited);
         break;
 
       case id_top_table_name:
 
         ir->str_val_ = vector_rand_ele(v_table_names);
+        //cout << "top_table_name: " << ir->str_val_ << endl;
         fix_one(graph, ir, visited);
         break;
 
       case id_index_name:
         
         // FIXME: handle index name
+        //cout << "id_index_name: " << endl;
         break;
 
       default:
 
+        //cerr << ir->id_type_ << endl;
+        //cerr << "this: " << ir->to_string() << endl;
+
+        //if (ir->get_parent()) {
+        //  cerr << "parent: " << ir->get_parent()->to_string() << endl;
+
+        //  if (ir->get_parent()->get_parent()) {
+        //    cerr << "p parent: " << ir->get_parent()->get_parent()->to_string() << endl;
+
+        //    if (ir->get_root()) 
+        //      cerr << "root: " << ir->get_root()->to_string() << endl;
+        //  }
+        //}
         break;
     }
   }
