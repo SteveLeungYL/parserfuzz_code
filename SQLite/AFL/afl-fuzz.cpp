@@ -2585,7 +2585,6 @@ inline void print_norec_exec_debug_info(){
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_append_failed:     " << total_append_failed << "\n"
-           << "total_execute:           " << total_execute << "\n"
            << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
 
   return;
@@ -4594,20 +4593,23 @@ static void show_stats(void) {
 
       SAYF("  new edges on : " cRST "%-22s " bSTG bV "\n", tmp);
 
+      sprintf(tmp, "%s/%s (%0.02f%%)", DI(total_execs), DI(total_execute),
+          ((double)total_execs) * 100 / total_execute);
+
+      SAYF(bV bSTOP " total execs : " cRST "%-21s " bSTG bV bSTOP, tmp);
+
       sprintf(tmp, "%s (%s%s unique)", DI(total_crashes), DI(unique_crashes),
               (unique_crashes >= KEEP_UNIQUE_CRASH) ? "+" : "");
 
       if (crash_mode) {
 
-        SAYF(bV bSTOP " total execs : " cRST "%-21s " bSTG bV bSTOP
-             "   new crashes : %s%-22s " bSTG bV "\n", DI(total_execs),
+        SAYF("   new crashes : %s%-22s " bSTG bV "\n",
              unique_crashes ? cLRD : cRST, tmp);
 
       } else {
 
-        SAYF(bV bSTOP " total execs : " cRST "%-21s " bSTG bV bSTOP
-             " total crashes : %s%-22s " bSTG bV "\n", DI(total_execs),
-             unique_crashes ? cLRD : cRST, tmp);
+        SAYF(" total crashes : %s%-22s " bSTG bV "\n",
+            unique_crashes ? cLRD : cRST, tmp);
 
       }
 
