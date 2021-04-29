@@ -572,10 +572,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 
 // Defines our general input.
 input:
-        statement_list opt_semicolon {
+        opt_semicolon statement_list opt_semicolon {
             $$ = NULL;
-            result->statement_list_ = $1;
-            result->opt_semicolon_ = $2;
+            result->opt_semicolon_prefix_ = $1;
+            result->statement_list_ = $2;
+            result->opt_semicolon_suffix_ = $3;
         }
     ;
 

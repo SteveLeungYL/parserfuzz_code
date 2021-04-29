@@ -208,8 +208,9 @@ class Program: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptSemicolon* opt_semicolon_prefix_;
     StatementList* statement_list_;
-    OptSemicolon* opt_semicolon_;
+    OptSemicolon* opt_semicolon_suffix_;
 };
 
 
