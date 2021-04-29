@@ -170,19 +170,20 @@ string Mutator::get_random_mutated_valid_stmt(){
 
     ir_tree.clear();
     ir_tree = parse_query_str_get_ir_set(ori_norec_select);
-
-    root = ir_tree.back();
-
     if (ir_tree.size() == 0) continue;
 
-    if ( !check_node_num(ir_tree.back(), 300) ){
+    root = ir_tree.back();
+    if ( !check_node_num(root, 300) ){
       /* The retrived norec stmt is too complicated to mutate, directly return the retrived query. */
-        ir_tree.back()->deep_drop();
+        root->deep_drop();
         return ori_norec_select;
     }
 
     /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
     p_oracle->mark_all_valid_node(ir_tree);
+
+    string ori_norec_select_struct = extract_struct(root);
+    string new_norec_select_struct = "";
 
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate.
     */
@@ -223,6 +224,11 @@ string Mutator::get_random_mutated_valid_stmt(){
       }
 
       new_norec_select_str = root->to_string();
+
+      if (new_norec_select_str != ori_norec_select) {
+        new_norec_select_struct = extract_struct(root);
+      }
+
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
       new_mutated_ir_node->deep_drop();
 
@@ -235,7 +241,7 @@ string Mutator::get_random_mutated_valid_stmt(){
 
       if (p_oracle->is_oracle_valid_stmt(new_norec_select_str) ) {
         // Make sure the mutated structure is different.
-        if (extract_struct(new_norec_select_str) != extract_struct(ori_norec_select)) {
+        if (new_norec_select_struct != ori_norec_select_struct) {
 
           root->deep_drop();
           is_success = true;
