@@ -42,6 +42,7 @@ std::vector<string> get_all_files_in_dir( const char * dir_name );
 string magic_string_generator(string& s);
 void  ensure_semicolon_at_query_end(string&);
 std::vector<string> string_splitter(const string& input_string, string delimiter_re);
+std::vector<string> string_splitter2(const string& input_string, const char delimiter_re);
 bool is_str_empty(string input_str);
 
 

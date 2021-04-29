@@ -2590,10 +2590,9 @@ inline void print_norec_exec_debug_info(){
   return;
 }
 
-string expand_valid_stmts_str(const string& query_str, const bool is_mark = false){
+string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false){
   string current_output = "";
 
-  vector<string> queries_vector = string_splitter(query_str, ";");
   for (string &query : queries_vector)
   {
     if (is_str_empty(query))
@@ -2742,7 +2741,8 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     return FAULT_ERROR;
   }
 
-  vector<string> queries_vector = string_splitter(cmd_string, ";");
+  //vector<string> queries_vector = string_splitter(cmd_string, ";");
+  vector<string> queries_vector = string_splitter2(cmd_string, ';');
   for (string &query : queries_vector)
   { 
     // ignore the whole query pairs if !... in the stmt,  
@@ -2752,7 +2752,7 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     }
   }
 
-  cmd_string = expand_valid_stmts_str(cmd_string, true);
+  cmd_string = expand_valid_stmts_str(queries_vector, true);
 
   write_to_testcase(cmd_string.c_str(), cmd_string.size());
   fault = run_target(argv, tmout);
@@ -5056,27 +5056,27 @@ static void show_stats(void) {
     // }
 
 
-    /* Write a modified test case, run program, process results. Handle
-       error conditions, returning 1 if it's time to bail out. This is
-       a helper function for fuzz_one(). */
+/* Write a modified test case, run program, process results. Handle
+   error conditions, returning 1 if it's time to bail out. This is
+   a helper function for fuzz_one(). */
 
-    EXP_ST u8 common_fuzz_stuff(char** argv, string& query_str) {
+EXP_ST u8 common_fuzz_stuff(char** argv, string& query_str) {
 
-      u8 fault;
+  u8 fault;
 
-      fault = execute_cmd_string(query_str, argv);
-      
-      /* This handles FAULT_ERROR for us: */
-      if (fault == FAULT_ERROR) return 0;
+  fault = execute_cmd_string(query_str, argv);
 
-      queued_discovered += save_if_interesting(argv, query_str, fault);
+  /* This handles FAULT_ERROR for us: */
+  if (fault == FAULT_ERROR) return 0;
 
-      if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
-        show_stats();
+  queued_discovered += save_if_interesting(argv, query_str, fault);
 
-      return 0;
+  if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
+    show_stats();
 
-    }
+  return 0;
+
+}
 
 
     /* Helper to choose random block len for block operations in fuzz_one().

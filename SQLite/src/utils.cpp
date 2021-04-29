@@ -166,6 +166,28 @@ vector<string> string_splitter(const string& input_string, string delimiter_re =
   return split_string;
 }
 
+// from http://www.cplusplus.com/forum/beginner/114790/
+vector<string> string_splitter2(const std::string& s, const char delimiter) {
+
+  size_t start = 0;
+  size_t end = s.find_first_of(delimiter);
+
+  vector<string> output;
+
+  while (end <= string::npos) {
+
+    output.emplace_back(s.substr(start, end - start));
+
+    if (end == string::npos)
+      break;
+
+    start = end + 1;
+    end = s.find_first_of(delimiter, start);
+  }
+
+  return output;
+}
+
 bool is_str_empty(string input_str){
   for (int i = 0; i < input_str.size(); i++){
     char c = input_str[i];
