@@ -394,7 +394,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <array_expr_t>	array_expr
 %type <array_index_t>	array_index
 %type <between_expr_t>	between_expr
-%type <column_name_t>	column_name
+%type <column_name_t>	column_name one_column_name
 %type <literal_t>	literal
 %type <string_literal_t>	string_literal
 %type <bool_literal_t>	bool_literal
@@ -1113,7 +1113,7 @@ alter_statement:
     $$->table_name1_->table_name_->id_type_ = id_top_table_name;
     $$->table_name2_->table_name_->id_type_ = id_create_table_name;
 	}
- |	ALTER TABLE table_name RENAME opt_column column_name TO column_name {
+ |	ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
 		$$ = new AlterStatement();
 		$$->sub_type_ = CASE1;
     $$->table_name1_ = $3;
@@ -2114,12 +2114,16 @@ between_expr:
         operand BETWEEN operand AND operand { $$ = new BetweenExpr(); $$->operand1_=$1; $$->operand2_=$3; $$->operand3_=$5;}
     ;
 
-column_name:
+one_column_name:
         IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE0; $$->identifier1_=new Identifier($1, id_column_name); free($1);}
     |   IDENTIFIER '.' IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE1; $$->identifier1_=new Identifier($1, id_table_name); $$->identifier2_=new Identifier($3, id_column_name); free($1); free($3);}
-    |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
     |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     |   IDENTIFIER '.' ROWID {$$ = new ColumnName(); $$->sub_type_=CASE4; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
+    ;
+
+column_name:
+        one_column_name { $$=$1; }
+    |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
     ;
 
 literal:
