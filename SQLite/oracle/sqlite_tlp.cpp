@@ -42,23 +42,12 @@ int SQL_TLP::count_valid_stmts(const string& input){
 
 bool SQL_TLP::is_oracle_valid_stmt(const string& query){
   /* Complete version. More flexible query restrictions. */
-  // if (
-  //       ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-  //       ((query.find("SELECT")) <= 5 || (query.find("select")) <= 5) &&
-  //       ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
-  //       ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
-  //       ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)
-  //   ) return true;
-  //   return false;
-
-  /* Simplified version */
   if (
-        ((query.find("SELECT COUNT ( * ) FROM")) != std::string::npos || (query.find("select count ( * ) from")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("SELECT COUNT ( * ) FROM")) <= 5 || (query.find("select count ( * ) from")) <= 5) &&
+        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+        ((query.find("SELECT")) <= 5 || (query.find("select")) <= 5) &&
         ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
         ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
-        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
-        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later.
+        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)
     ) return true;
     return false;
 }
@@ -474,7 +463,7 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
   int current_ori_result_int;
   int current_rew_result_int;
 
-  vector<valid_type> v_valid_type;
+  vector<VALID_STMT_TYPE> v_valid_type;
   get_v_valid_type(cmd_str, v_valid_type);
 
   // for (auto &r : v_valid_type)
@@ -492,19 +481,31 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
 
     switch (v_valid_type[i])
     {
-    case valid_type::NORM:
+    case VALID_STMT_TYPE::NORM:
       /* Handle normal valid stmt: SELECT * FROM ...; */
-      if (result_0[i] != result_1[i]) return 0;  // Found inconsistent. 
+      // if (result_0[i] != result_1[i]) return 0;   
+      if ( result_0[i].find("Error") != string::npos ||  result_1[i].find("Error") != string::npos ) {
+        is_cur_err = true;
+        break;
+      }
+      if (std::count(result_0[i].begin(), result_0[i].end(), '\n') != std::count (result_1[i].begin(), result_1[i].end(), '\n') ) { 
+        cerr << "Found inconsistent NORM: res_a: \n" << result_0[i] << " res_b: \n" << result_1[i] << endl;
+        return 0; // Found inconsistent. 
+      }
       is_all_errors = false;
       break;
 
-    case valid_type::MIN:
+    case VALID_STMT_TYPE::MIN:
     /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
       // Fallthrough!!!
       [[fallthrough]];
-    case valid_type::MAX:
+    case VALID_STMT_TYPE::MAX:
     /* Handle MAX valid stmt: SELECT MAX(*) FROM ...; */
       result_a = result_0[i]; result_b = result_1[i];
+      if (result_a.find("Error") != string::npos || result_b.find("Error") != string::npos){
+        is_cur_err = true;
+        break;
+      }
       v_result_a = string_splitter(result_a, "\n");
       v_result_b = string_splitter(result_b, "\n");
 
@@ -515,10 +516,6 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
       for (string& r : v_result_a){
         int cur_res = 0;
         try{
-          if (r.find("Error") != string::npos){
-            is_cur_err = true;
-            break; // Break reading from v_result_a;
-          }
           cur_res = stoi(r);
         } catch (std::invalid_argument &e) {
           continue;
@@ -526,19 +523,15 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
           is_cur_err = true;
           break;
         }
-        if (v_valid_type[i] == valid_type::MAX)
+        if (v_valid_type[i] == VALID_STMT_TYPE::MAX)
           res_a = (res_a < cur_res ) ? cur_res : res_a;
-        if (v_valid_type[i] == valid_type::MIN)
+        if (v_valid_type[i] == VALID_STMT_TYPE::MIN)
           res_a = (res_a > cur_res ) ? cur_res : res_a;
       }
 
       for (string& r : v_result_b){
         int cur_res = 0;
         try{
-          if (r.find("Error") != string::npos){
-            is_cur_err = true;
-            break; // Break reading from v_result_b;
-          }
           cur_res = stoi(r);
         } catch (std::invalid_argument &e) {
           continue;
@@ -546,24 +539,31 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
           is_cur_err = true;
           break;
         }
-        if (v_valid_type[i] == valid_type::MAX)
+        if (v_valid_type[i] == VALID_STMT_TYPE::MAX)
           res_b = (res_b < cur_res ) ? cur_res : res_b;
-        if (v_valid_type[i] == valid_type::MIN)
+        if (v_valid_type[i] == VALID_STMT_TYPE::MIN)
           res_b = (res_b > cur_res ) ? cur_res : res_b;
       }
 
       if (is_cur_err) continue;
       is_all_errors = false;
-      if (res_a != res_b) return 0; // Found inconsistent. 
+      if (res_a != res_b) {
+        cerr << "Found inconsistent MIN/MAX: res_a: " << res_a << " res_b: " << res_b << endl;
+        return 0; // Found inconsistent. 
+      }
       break;  // Break the switch. Continue to the next stmt. 
 
-    case valid_type::COUNT:
+    case VALID_STMT_TYPE::COUNT:
     /* Handle SELECT COUNT(*) FROM x...; */
     // Fallthrough!!!
       [[fallthrough]];
-    case valid_type::SUM:
+    case VALID_STMT_TYPE::SUM:
     /* Handle SUM valid stmt: SELECT SUM(*) FROM ...; */
       result_a = result_0[i]; result_b = result_1[i];
+      if (result_a.find("Error") != string::npos || result_b.find("Error") != string::npos){
+        is_cur_err = true;
+        break;
+      }
       v_result_a = string_splitter(result_a, "\n");
       v_result_b = string_splitter(result_b, "\n");
 
@@ -577,10 +577,6 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
       for (string& r : v_result_a){
         int cur_res = 0;
         try{
-          if (r.find("Error") != string::npos){
-            is_cur_err = true;
-            break; // Break reading from v_result_a;
-          }
           cur_res = stoi(r);
         } catch (std::invalid_argument &e) {
           continue;
@@ -594,10 +590,6 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
       for (string& r : v_result_b){
         int cur_res = 0;
         try{
-          if (r.find("Error") != string::npos){
-            is_cur_err = true;
-            break; // Break reading from v_result_b;
-          }
           cur_res = stoi(r);
         } catch (std::invalid_argument &e) {
           continue;
@@ -611,13 +603,16 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
       // cerr << "For result " << i << " res_a: " << res_a << " res_b: " << res_b << " is_cur_err:" << is_cur_err << endl;
       if (is_cur_err) continue;
       is_all_errors = false;
-      if (res_a != res_b) return 0; // Found inconsistent. 
+      if (res_a != res_b) {
+        cerr << "Found inconsistent(COUNT): res_a: " << res_a << " res_b: " << res_b << endl;
+        return 0; // Found inconsistent. 
+      }
       break;  // Break the switch.  Continue to the next stmt. 
 
 
-    // case valid_type::AVG: // TODO: Implement AVG. 
+    // case VALID_STMT_TYPE::AVG: // TODO: Implement AVG. 
     default:
-      cerr << "SQL_TLP::compare_results Error: Unknown valid_type. \n";
+      cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE. \n";
       break;
     }  // Switch stmt. 
   } // Result outer loop. 
@@ -627,7 +622,7 @@ int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string
 
 }
 
-void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<valid_type>& v_valid_type) {
+void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE>& v_valid_type) {
   /* Look throught first validation stmt's result_1 first */
   size_t begin_idx = cmd_str.find("13579", 0);
   size_t end_idx = cmd_str.find("97531", 0);
@@ -638,12 +633,12 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<valid_type>& v_vali
       begin_idx = cmd_str.find("13579", begin_idx+5);
       end_idx = cmd_str.find("97531", end_idx+5);
 
-      if ( (current_cmd_string.find("SELECT MIN") < 3) || (current_cmd_string.find("select min") < 3) ) v_valid_type.push_back(valid_type::MIN);
-      else if ( (current_cmd_string.find("SELECT MAX") < 3) || (current_cmd_string.find("select max") < 3) ) v_valid_type.push_back(valid_type::MAX);
-      else if ( (current_cmd_string.find("SELECT SUM") < 3) || (current_cmd_string.find("select sum") < 3) ) v_valid_type.push_back(valid_type::SUM);
-      else if ( (current_cmd_string.find("SELECT COUNT") < 5) || (current_cmd_string.find("select count") < 5) ) v_valid_type.push_back(valid_type::COUNT);
-      // else if ( (current_cmd_string.find("AVG") != string::npos) || (current_cmd_string.find("avg") != string::npos) ) v_valid_type.push_back(valid_type::AVG); // TODO:: Implement AVG. 
-      else v_valid_type.push_back(valid_type::NORM);
+      if ( (current_cmd_string.find("SELECT MIN") < 3) || (current_cmd_string.find("select min") < 3) ) v_valid_type.push_back(VALID_STMT_TYPE::MIN);
+      else if ( (current_cmd_string.find("SELECT MAX") < 3) || (current_cmd_string.find("select max") < 3) ) v_valid_type.push_back(VALID_STMT_TYPE::MAX);
+      else if ( (current_cmd_string.find("SELECT SUM") < 3) || (current_cmd_string.find("select sum") < 3) ) v_valid_type.push_back(VALID_STMT_TYPE::SUM);
+      else if ( (current_cmd_string.find("SELECT COUNT") < 5) || (current_cmd_string.find("select count") < 5) ) v_valid_type.push_back(VALID_STMT_TYPE::COUNT);
+      // else if ( (current_cmd_string.find("AVG") != string::npos) || (current_cmd_string.find("avg") != string::npos) ) v_valid_type.push_back(VALID_STMT_TYPE::AVG); // TODO:: Implement AVG. 
+      else v_valid_type.push_back(VALID_STMT_TYPE::NORM);
     }
     else {
       break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
