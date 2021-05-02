@@ -1971,22 +1971,6 @@ unary_expr:
             $$->operand_ = $1;
             $$->operator_ = string("IS NOT NULL");
         }
-    |   operand IS IDENTIFIER {
-            $$ = new UnaryExpr();
-            $$->sub_type_ = CASE5;
-            $$->operand_ = $1;
-            $$->id_ = new Identifier($3);
-            free($3);
-            $$->operator_ = string("IS");
-        }
-    |   operand IS NOT IDENTIFIER {
-            $$ = new UnaryExpr();
-            $$->sub_type_ = CASE6;
-            $$->operand_ = $1;
-            $$->id_ = new Identifier($4);
-            free($4);
-            $$->operator_ = string("IS NOT");
-    }
     ;
 
 binary_expr:
@@ -2045,6 +2029,7 @@ comp_expr:
     |   operand '>' operand         { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">"); }
     |   operand LESSEQ operand      { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<="); }//zr
     |   operand GREATEREQ operand   { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">="); }//zr
+    |   operand IS operand          { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("IS"); }
     ;
 
 function_expr: 

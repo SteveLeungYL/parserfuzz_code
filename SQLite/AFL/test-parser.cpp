@@ -28,6 +28,12 @@ int main(int argc, char *argv[]) {
 
     if (line.find_first_of("--") == 0) continue;
 
+    trim_string(line);
+
+    if (line.size() == 0) continue;
+
+    cout << "|" << line << "|\n";
+
     cout << "----------------------------------------" << endl;
 
     vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(line);
@@ -37,6 +43,8 @@ int main(int argc, char *argv[]) {
     }
 
     IR *root = v_ir.back();
+
+    mutator.debug(root, 0);
 
     string tostring = root->to_string();
     string structure = mutator.extract_struct(line);
