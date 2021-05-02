@@ -310,7 +310,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token OUTER RIGHT TABLE UNION USING WHERE CALL CASE CHAR DATE
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
 %token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME
-%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL
+%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE
@@ -1414,6 +1414,7 @@ column_type:
             } 
     |   TEXT { $$ = new ColumnType(); $$->str_val_ = string("TEXT"); }
     |   REAL { $$ = new ColumnType(); $$->str_val_ = string("REAL"); }
+    |   BOOL { $$ = new ColumnType(); $$->str_val_ = string("BOOL"); }
     |   /* empty*/ { $$ = new ColumnType(); $$->str_val_ = string(""); }
     ;
 
