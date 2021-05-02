@@ -7,6 +7,8 @@
 #include <fstream>
 #include <string>
 
+//extern int hsql_debug;
+
 using namespace std;
 
 int main(int argc, char *argv[]) {
@@ -16,6 +18,8 @@ int main(int argc, char *argv[]) {
     cout << "./test-parser sql-query-file" << endl;
     return -1;
   }
+
+  //hsql_debug = 1; 
 
   Mutator mutator;
   mutator.init("");

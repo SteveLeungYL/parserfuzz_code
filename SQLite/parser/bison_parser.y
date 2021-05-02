@@ -543,27 +543,18 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
  ******************************/
 
 %left       OR
-
 %left       AND
 %right      NOT
-%nonassoc   '=' EQUALS NOTEQUALS LIKE ILIKE GLOB MATCH REGEX
-%nonassoc   '<' '>' LESS GREATER LESSEQ GREATEREQ
-
-%nonassoc   NOTNULL 
-%nonassoc   ISNULL
-%nonassoc   IS              /* sets precedence for IS NULL, etc */
+%left       IS MATCH BETWEEN IN ISNULL NOTNULL NOTEQUALS EQUALS '=' LIKE ILIKE GLOB REGEX
+%left       LESSEQ GREATEREQ '<' '>'
+%right      ESCAPE
+%left       '&' /* BITAND */  '|' /* BITOR */ LSHIFT RSHIFT
 %left       '+' '-'
 %left       '*' '/' '%' 
-%left       '^' 
 %left       CONCAT
-
-/* Unary Operators */
-%right  UMINUS
-%left       '[' ']'
-%left       '(' ')'
-%left       '.'
-%right       JOIN
-
+%left       COLLATE
+%right      '~' /* BITNOT*/
+%nonassoc   ON
 
 %%
 /*********************************

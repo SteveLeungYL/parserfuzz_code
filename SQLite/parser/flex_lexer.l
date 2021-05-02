@@ -269,6 +269,9 @@ FALSE		{
 ">="		TOKEN(GREATEREQ)
 "||"		TOKEN(CONCAT)
 
+">>"    TOKEN(RSHIFT)
+"<<"    TOKEN(LSHIFT)
+
 [-+*/(){},.;<>=^%:?[\]|]	{ return yytext[0]; }
 
 -?[0-9]+"."[0-9]* |
