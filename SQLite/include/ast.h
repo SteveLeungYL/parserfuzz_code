@@ -733,7 +733,7 @@ public:
     LogicExpr* logic_expr_;
     ExistsExpr* exists_expr_;
     InExpr* in_expr_;
-    CastExpr* cast_expr_;
+    //CastExpr* cast_expr_;
 };
 
 class ExprAlias: public Expr{

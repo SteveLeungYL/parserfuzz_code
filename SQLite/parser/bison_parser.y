@@ -1903,7 +1903,6 @@ expr:
     |   logic_expr {$$ = new Expr(); $$->sub_type_ = CASE2; $$->logic_expr_ = $1;}
     |   exists_expr {$$ = new Expr(); $$->sub_type_ = CASE3; $$->exists_expr_ = $1;}
     |   in_expr {$$ = new Expr(); $$->sub_type_ = CASE4; $$->in_expr_ = $1;}
-    |   cast_expr {$$ = new Expr(); $$->sub_type_ = CASE5; $$->cast_expr_ = $1;}
     ;
 
 operand: 
@@ -1916,6 +1915,7 @@ operand:
     |   function_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   extract_expr    { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   array_expr  { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
+    |   cast_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   '(' select_no_paren ')' { $$ = new Operand(); $$->sub_type_ = CASE2; $$->select_no_paren_ = $2; }
     ;
 

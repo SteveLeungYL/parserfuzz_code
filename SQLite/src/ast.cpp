@@ -1215,10 +1215,10 @@ IR* Expr::translate(vector<IR *> &v_ir_collector){
             res = SAFETRANSLATE(in_expr_);
             res = new IR(kExpr, OP0(), res);
         CASEEND
-        CASESTART(5)
-            res = SAFETRANSLATE(cast_expr_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
+        //CASESTART(5)
+        //    res = SAFETRANSLATE(cast_expr_);
+        //    res = new IR(kExpr, OP0(), res);
+        //CASEEND
         
     SWITCHEND
     TRANSLATEEND
@@ -2324,7 +2324,7 @@ void Expr::deep_delete(){
     SAFEDELETE(logic_expr_);
     SAFEDELETE(exists_expr_);
     SAFEDELETE(in_expr_);
-    SAFEDELETE(cast_expr_);
+    //SAFEDELETE(cast_expr_);
 	delete this;
 }
 
