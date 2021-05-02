@@ -44,5 +44,26 @@ void  ensure_semicolon_at_query_end(string&);
 std::vector<string> string_splitter(const string& input_string, string delimiter_re);
 bool is_str_empty(string input_str);
 
+enum ORA_COMP_RES {
+  Pass = 1,
+  Fail = 0,
+  Error = -1,
+  ALL_Error = -1
+};
+
+struct COMP_RES{
+  string res_str_0 = "EMPTY", res_str_1 = "EMPTY", res_str_2 = "EMPTY", res_str_3 = "EMPTY";
+  int res_int_0 = -1, res_int_1 = -1, res_int_2 = -1, res_int_3 = -1;
+
+  ORA_COMP_RES comp_res;
+};
+
+struct ALL_COMP_RES {
+  vector<COMP_RES> v_res;
+  ORA_COMP_RES final_res = ORA_COMP_RES::Fail;
+  string cmd_str;
+  string res_str;
+};
+
 
 #endif

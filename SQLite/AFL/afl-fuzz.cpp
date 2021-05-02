@@ -73,6 +73,7 @@
 #include <cassert>
 #include <string>
 #include <regex>
+#include <algorithm>
 #include "../include/ast.h"
 #include "../include/mutator.h"
 #include "../include/define.h"
@@ -2639,13 +2640,16 @@ string expand_valid_stmts_str(const string& query_str, const bool is_mark = fals
   return current_output;
 }
 
-int compare_query_result(const string& cmd_string, const string& result_string, vector<string>& result_0, vector<string>& result_1, vector<string>& result_2, vector<string>& result_3){
+void compare_query_result(ALL_COMP_RES& all_comp_res){
 
+  const string& result_string = all_comp_res.res_str;
   if(is_str_empty(result_string)){
     return -1;
   }
 
-  /* Look throught first validation stmt's result_1 first */
+  vector<string> result_0, result_1, result_2, result_3;
+
+  /* Look throught first validation stmt's result_0 first */
   size_t begin_idx = result_string.find("13579", 0);
   size_t end_idx = result_string.find("97531", 0);
 
@@ -2665,7 +2669,7 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
     }
   }
 
-  /* Look throught the result_2 now */
+  /* Look throught the result_1 now */
   begin_idx = result_string.find("24680", 0);
   end_idx = result_string.find("86420", 0);   // Reset the idx first. 
 
@@ -2685,7 +2689,7 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
     }
   }
 
-  /* Look throught the result_3 now */
+  /* Look throught the result_2 now */
   begin_idx = result_string.find("77777", 0);
   end_idx = result_string.find("88888", 0);   // Reset the idx first. 
 
@@ -2705,6 +2709,7 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
     }
   }
 
+  /* Look throught the result_3 now */
   begin_idx = result_string.find("55555", 0);
   end_idx = result_string.find("66666", 0);   // Reset the idx first. 
 
@@ -2724,8 +2729,26 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
     }
   }
 
+  for (int idx = 0; idx < max({result_0.size(), result_1.size(), result_2.size(), result_3.size()}); idx++){
+    COMP_RES comp_res;
+    if (idx < result_0.size()){
+      comp_res.res_str_0 = result_0[idx];
+    }
+    if (idx < result_1.size()){
+      comp_res.res_str_1 = result_1[idx];
+    }
+    if (idx < result_2.size()){
+      comp_res.res_str_2 = result_2[idx];
+    }
+    if (idx < result_3.size()){
+      comp_res.res_str_3 = result_3[idx];
+    }
+    all_comp_res.v_res.push_back(std::move(comp_res));
+  }
+
   /* Now we can compare the results and find whether there are inconsistant. */
-  return p_oracle->compare_results(result_0, result_1, result_2, result_3, cmd_string);
+  p_oracle->compare_results(all_comp_res);
+  return;
 }
 
 u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
@@ -2780,30 +2803,30 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   result_string = read_sqlite_output_and_reset_output_file();
 
 
-  vector<string> result_0, result_1, result_2, result_3;
-  int compare_No_Rec_result_int = compare_query_result(cmd_string, result_string, result_0, result_1, result_2, result_3);
+  ALL_COMP_RES all_comp_res;
+  all_comp_res.cmd_str = std::move(cmd_string);
+  all_comp_res.res_str = std::move(result_string);
+  compare_query_result(all_comp_res);
 
   /* Some useful debug output. That could show what queries are being tested.  */
-  // cerr << "Query: \n";
-  // cerr << cmd_string << "\n";
-  // cerr << "Result string: \n";
-  // cerr << result_string << "\n";
-  // cerr << "Result_0 (str): \n";
-  // for (auto iter = result_0.begin(); iter != result_0.end(); iter++)
-  //   cerr << *iter << "\n";
-  // cerr << "Result_1 (str): \n";
-  // for (auto iter = result_1.begin(); iter != result_1.end(); iter++)
-  //   cerr << *iter << "\n";
-  // cerr << "Result_2 (str): \n";
-  // for (auto iter = result_2.begin(); iter != result_2.end(); iter++)
-  //   cerr << *iter << "\n";
-  // cerr << "Result_3 (str): \n";
-  // for (auto iter = result_3.begin(); iter != result_3.end(); iter++)
-  //   cerr << *iter << "\n";
-  // cerr << "Compare_No_Rec_result_int: \n" << compare_No_Rec_result_int;
-  // cerr << "\n\n\n\n";
+  cerr << "Query: \n";
+  cerr << all_comp_res.cmd_str << "\n";
+  cerr << "Result string: \n";
+  cerr << all_comp_res.res_str << "\n";
+  cerr << "Detailed result: " << "\n";
+  int iter = 0;
+  for (COMP_RES& res : all_comp_res.v_res){
+    cerr << "\nResult " << iter++ << ":\n";
+    cerr << all_comp_res.final_res << "\n";
+    cerr << "Result_0 is (str): \n" << res.res_str_0 << "\n" << "Result_0 is (int)" << res.res_int_0 << "\n" ;
+    cerr << "Result_1 is (str): \n" << res.res_str_1 << "\n" << "Result_1 is (int)" << res.res_int_1 << "\n" ;
+    cerr << "Result_2 is (str): \n" << res.res_str_2 << "\n" << "Result_2 is (int)" << res.res_int_2 << "\n" ;
+    cerr << "Result_3 is (str): \n" << res.res_str_3 << "\n" << "Result_3 is (int)" << res.res_int_3 << "\n" ;
+  }
+  cerr << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
+  cerr << "\n\n\n\n";
 
-  if (compare_No_Rec_result_int == 0)
+  if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
 
     ofstream outputfile;
@@ -2826,25 +2849,28 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     outputfile << "Query: \n";
-    outputfile << cmd_string << "\n";
+    outputfile << all_comp_res.cmd_str << "\n";
     outputfile << "Result string: \n";
-    outputfile << result_string << "\n";
-    outputfile << "Result_0 is (str): \n";
-    for (auto iter = result_0.begin(); iter != result_0.end(); iter++) outputfile << *iter << "\n";
-    outputfile << "Result_1 is (str): \n";
-    for (auto iter = result_1.begin(); iter != result_1.end(); iter++) outputfile << *iter << "\n";
-    outputfile << "Result_2 is (str): \n";
-    for (auto iter = result_2.begin(); iter != result_2.end(); iter++) outputfile << *iter << "\n";
-    outputfile << "Result_3 is (str): \n";
-    for (auto iter = result_3.begin(); iter != result_3.end(); iter++) outputfile << *iter << "\n";
-    outputfile << "Compare_No_Rec_result_int: \n" << compare_No_Rec_result_int; 
+    outputfile << all_comp_res.res_str << "\n";
+    outputfile << "Detailed result: " << "\n";
+    int iter = 0;
+    for (COMP_RES& res : all_comp_res.v_res){
+      outputfile << "\nResult " << iter++ << ":\n";
+      outputfile << all_comp_res.final_res << "\n";
+      outputfile << "Result_0 is (str): \n" << res.res_str_0 << "\n" << "Result_0 is (int)" << res.res_int_0 << "\n" ;
+      outputfile << "Result_1 is (str): \n" << res.res_str_1 << "\n" << "Result_1 is (int)" << res.res_int_1 << "\n" ;
+      outputfile << "Result_2 is (str): \n" << res.res_str_2 << "\n" << "Result_2 is (int)" << res.res_int_2 << "\n" ;
+      outputfile << "Result_3 is (str): \n" << res.res_str_3 << "\n" << "Result_3 is (int)" << res.res_int_3 << "\n" ;
+    }
+
+    outputfile << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
     outputfile << "\n\n\n\n";
 
     outputfile.close();
 
     total_execs++;
   }
-  else if (compare_No_Rec_result_int == 1)
+  else if (all_comp_res.final_res == ORA_COMP_RES::Pass)
   {
     total_execs++;
   }
@@ -2853,12 +2879,7 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     /* Query being skipped, or all select stmts return error results. */ 
   }
 
-  result_string.clear();
-  cmd_string.clear();
   queries_vector.clear();
-  result_1.clear();
-  result_2.clear();
-  result_3.clear();
 
 
   return fault;

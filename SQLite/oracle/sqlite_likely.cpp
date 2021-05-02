@@ -1,6 +1,5 @@
 #include <iostream>
 #include "./sqlite_likely.h"
-#include "../include/utils.h"
 #include "../include/mutator.h"
 
 #include <string>
@@ -409,16 +408,16 @@ string SQL_LIKELY::remove_valid_stmts_from_str(string query){
   return output_query;
 }
 
-int SQL_LIKELY::compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str){
+void SQL_LIKELY::compare_results(ALL_COMP_RES& res_out) {
   
   bool is_all_errors = true;
-  int current_result_int_0, current_result_int_1, current_result_int_2;
+  res_out.final_res = ORA_COMP_RES::Pass;
 
-  for (int i = 0; i < std::min({ result_0.size(), result_1.size(), result_2.size() }); i++){
+  for (COMP_RES& res : res_out.v_res) {
     try {
-      current_result_int_0 = stoi(result_0[i]);
-      current_result_int_1 = stoi(result_1[i]);
-      current_result_int_2 = stoi(result_2[i]);
+      res.res_int_0 = stoi(res.res_str_0);
+      res.res_int_1 = stoi(res.res_str_1);
+      res.res_int_2 = stoi(res.res_str_2);
     }
     catch (std::invalid_argument &e) {
       continue;
@@ -426,10 +425,13 @@ int SQL_LIKELY::compare_results(const vector<string>& result_0, const vector<str
       continue;
     }
     is_all_errors = false;
-    if (current_result_int_0 != current_result_int_1 || current_result_int_0 != current_result_int_2) return 0; // Found mismatched. 
+    if (res.res_int_0 != res.res_int_1|| res.res_int_0 != res.res_int_2 ) { // Found mismatched. 
+      res.comp_res = ORA_COMP_RES::Fail;
+      res_out.final_res = ORA_COMP_RES::Fail;
+    }
   }
 
-  if (is_all_errors) return -1; // All errors.
-  else return 1; // Consistant results. 
+  if (is_all_errors && res_out.final_res != ORA_COMP_RES::Fail) res_out.final_res = ORA_COMP_RES::ALL_Error; // All errors.
+  return;
 
 }

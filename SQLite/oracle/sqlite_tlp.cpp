@@ -1,6 +1,5 @@
 #include <iostream>
 #include "./sqlite_tlp.h"
-#include "../include/utils.h"
 #include "../include/mutator.h"
 
 #include <string>
@@ -457,168 +456,161 @@ string SQL_TLP::remove_valid_stmts_from_str(string query){
   return output_query;
 }
 
-int SQL_TLP::compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str){
-  
-  bool is_all_errors = true;
-  int current_ori_result_int;
-  int current_rew_result_int;
+bool SQL_TLP::compare_norm(COMP_RES& res) {
+
+  string& res_a = res.res_str_0;
+  string& res_b = res.res_str_1;
+  int& res_a_int = res.res_int_0;
+  int& res_b_int = res.res_int_1;
+
+  if (res_a.find("Error") != string::npos || res_b.find("Error") != string::npos) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
+  res_a_int = std::count(res_a.begin(), res_a.end(), '\n');
+  res_b_int = std::count(res_b.begin(), res_b.end(), '\n');
+
+  if (res_a_int != res_b_int) { // Found inconsistent. 
+    res.comp_res = ORA_COMP_RES::Fail;
+    return false; 
+  }
+  res.comp_res = ORA_COMP_RES::Pass;
+  return false;
+}
+
+
+/* Handle MIN valid stmt: SELECT MIN(*) FROM ...; and MAX valid stmt: SELECT MAX(*) FROM ...;  */
+bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type){ 
+  string& res_a = res.res_str_0;
+  string& res_b = res.res_str_1;
+  int& res_a_int = res.res_int_0;
+  int& res_b_int = res.res_int_1;
+
+  if (res_a.find("Error") != string::npos || res_b.find("Error") != string::npos)
+  {
+    res.comp_res = ORA_COMP_RES::Error;
+    return 1;
+  }
+  vector<string> v_res_a = string_splitter(res_a, "\n");
+  vector<string> v_res_b = string_splitter(res_b, "\n");
+
+  if (valid_type == VALID_STMT_TYPE::MAX){
+    res_a_int = INT32_MIN;
+    res_b_int = INT32_MIN;
+  } else if (valid_type == VALID_STMT_TYPE::MIN){
+    res_a_int = INT32_MAX;
+    res_b_int = INT32_MAX;
+  } else if (valid_type == VALID_STMT_TYPE::COUNT || valid_type == VALID_STMT_TYPE::SUM){
+    res_a_int = 0;
+    res_b_int = 0;
+  }
+
+  for (string &r : v_res_a)
+  {
+    int cur_res = 0;
+    try
+    {
+      cur_res = stoi(r);
+    }
+    catch (std::invalid_argument &e)
+    {
+      continue;
+    }
+    catch (std::out_of_range &e)
+    {
+      res.comp_res = ORA_COMP_RES::Error;
+      return 1;
+    }
+    if (valid_type == VALID_STMT_TYPE::MAX)
+      res_a_int = (res_a_int < cur_res) ? cur_res : res_a_int;
+    else if (valid_type == VALID_STMT_TYPE::MIN)
+      res_a_int = (res_a_int > cur_res) ? cur_res : res_a_int;
+    else if (valid_type == VALID_STMT_TYPE::COUNT || valid_type == VALID_STMT_TYPE::SUM)
+      res_a_int += cur_res;
+  }
+
+  for (string &r : v_res_b)
+  {
+    int cur_res = 0;
+    try
+    {
+      cur_res = stoi(r);
+    }
+    catch (std::invalid_argument &e)
+    {
+      continue;
+    }
+    catch (std::out_of_range &e)
+    {
+      res.comp_res = ORA_COMP_RES::Error;
+      return 1;
+    }
+    if (valid_type == VALID_STMT_TYPE::MAX)
+      res_b_int = (res_b_int < cur_res) ? cur_res : res_b_int;
+    else if (valid_type == VALID_STMT_TYPE::MIN)
+      res_b_int = (res_b_int > cur_res) ? cur_res : res_b_int;
+    else if (valid_type == VALID_STMT_TYPE::COUNT || valid_type == VALID_STMT_TYPE::SUM)
+      res_b_int += cur_res;
+  }
+
+  if (res_a_int != res_b_int)
+  {
+    res.comp_res = ORA_COMP_RES::Fail;
+    return 0; // Found inconsistent.
+  }
+  res.comp_res = ORA_COMP_RES::Pass;
+  return 0;
+}
+
+void SQL_TLP::compare_results(ALL_COMP_RES& res_out){
+
+  res_out.final_res = ORA_COMP_RES::Pass;
+  bool is_all_err = true;
 
   vector<VALID_STMT_TYPE> v_valid_type;
-  get_v_valid_type(cmd_str, v_valid_type);
+  get_v_valid_type(res_out.cmd_str, v_valid_type);
 
-  // for (auto &r : v_valid_type)
-  //   cerr << "v_valid_type is: " << r << endl;
+  int i = 0;
+  for (COMP_RES& res : res_out.v_res){
 
-  string result_a, result_b;
-  vector<string> v_result_a, v_result_b;
-  int res_a = 0, res_b = 0;
-
-  for (int i = 0; i < min({result_0.size(), result_1.size(), v_valid_type.size()}); i++){
-    result_a = ""; result_b = ""; 
-    v_result_a.clear(); v_result_b.clear();
-
-    bool is_cur_err = false;
-
-    switch (v_valid_type[i])
-    {
+    switch (v_valid_type[i++]) {
     case VALID_STMT_TYPE::NORM:
       /* Handle normal valid stmt: SELECT * FROM ...; */
-      // if (result_0[i] != result_1[i]) return 0;   
-      if ( result_0[i].find("Error") != string::npos ||  result_1[i].find("Error") != string::npos ) {
-        is_cur_err = true;
-        break;
-      }
-      if (std::count(result_0[i].begin(), result_0[i].end(), '\n') != std::count (result_1[i].begin(), result_1[i].end(), '\n') ) { 
-        cerr << "Found inconsistent NORM: res_a: \n" << result_0[i] << " res_b: \n" << result_1[i] << endl;
-        return 0; // Found inconsistent. 
-      }
-      is_all_errors = false;
-      break;
+      if(!compare_norm(res) ) is_all_err = false;
+      break; // Break the switch
 
     case VALID_STMT_TYPE::MIN:
     /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
-      // Fallthrough!!!
-      [[fallthrough]];
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::MIN)) is_all_err = false;
+      break; // Break the switch
+      
     case VALID_STMT_TYPE::MAX:
     /* Handle MAX valid stmt: SELECT MAX(*) FROM ...; */
-      result_a = result_0[i]; result_b = result_1[i];
-      if (result_a.find("Error") != string::npos || result_b.find("Error") != string::npos){
-        is_cur_err = true;
-        break;
-      }
-      v_result_a = string_splitter(result_a, "\n");
-      v_result_b = string_splitter(result_b, "\n");
-
-      res_a = INT32_MIN; res_b = INT32_MIN;
-
-      is_cur_err = false;
-
-      for (string& r : v_result_a){
-        int cur_res = 0;
-        try{
-          cur_res = stoi(r);
-        } catch (std::invalid_argument &e) {
-          continue;
-        } catch (std::out_of_range &e) {
-          is_cur_err = true;
-          break;
-        }
-        if (v_valid_type[i] == VALID_STMT_TYPE::MAX)
-          res_a = (res_a < cur_res ) ? cur_res : res_a;
-        if (v_valid_type[i] == VALID_STMT_TYPE::MIN)
-          res_a = (res_a > cur_res ) ? cur_res : res_a;
-      }
-
-      for (string& r : v_result_b){
-        int cur_res = 0;
-        try{
-          cur_res = stoi(r);
-        } catch (std::invalid_argument &e) {
-          continue;
-        } catch (std::out_of_range &e) {
-          is_cur_err = true;
-          break;
-        }
-        if (v_valid_type[i] == VALID_STMT_TYPE::MAX)
-          res_b = (res_b < cur_res ) ? cur_res : res_b;
-        if (v_valid_type[i] == VALID_STMT_TYPE::MIN)
-          res_b = (res_b > cur_res ) ? cur_res : res_b;
-      }
-
-      if (is_cur_err) continue;
-      is_all_errors = false;
-      if (res_a != res_b) {
-        cerr << "Found inconsistent MIN/MAX: res_a: " << res_a << " res_b: " << res_b << endl;
-        return 0; // Found inconsistent. 
-      }
-      break;  // Break the switch. Continue to the next stmt. 
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::MAX)) is_all_err = false;
+      break; // Break the switch
 
     case VALID_STMT_TYPE::COUNT:
     /* Handle SELECT COUNT(*) FROM x...; */
-    // Fallthrough!!!
-      [[fallthrough]];
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::COUNT)) is_all_err = false;
+      break; // Break the switch
+
     case VALID_STMT_TYPE::SUM:
     /* Handle SUM valid stmt: SELECT SUM(*) FROM ...; */
-      result_a = result_0[i]; result_b = result_1[i];
-      if (result_a.find("Error") != string::npos || result_b.find("Error") != string::npos){
-        is_cur_err = true;
-        break;
-      }
-      v_result_a = string_splitter(result_a, "\n");
-      v_result_b = string_splitter(result_b, "\n");
-
-      res_a = 0, res_b = 0;
-
-      // for (auto &r:v_result_a) cerr << "v_result_a: " << r << endl;
-      // for (auto &r:v_result_b) cerr << "v_result_b: " << r << endl;
-
-      is_cur_err = false;
-
-      for (string& r : v_result_a){
-        int cur_res = 0;
-        try{
-          cur_res = stoi(r);
-        } catch (std::invalid_argument &e) {
-          continue;
-        } catch (std::out_of_range &e) {
-          is_cur_err = true;
-          break;
-        }
-        res_a += cur_res;
-      }
-
-      for (string& r : v_result_b){
-        int cur_res = 0;
-        try{
-          cur_res = stoi(r);
-        } catch (std::invalid_argument &e) {
-          continue;
-        } catch (std::out_of_range &e) {
-          is_cur_err = true;
-          break;
-        }
-        res_b += cur_res;
-      }
-
-      // cerr << "For result " << i << " res_a: " << res_a << " res_b: " << res_b << " is_cur_err:" << is_cur_err << endl;
-      if (is_cur_err) continue;
-      is_all_errors = false;
-      if (res_a != res_b) {
-        cerr << "Found inconsistent(COUNT): res_a: " << res_a << " res_b: " << res_b << endl;
-        return 0; // Found inconsistent. 
-      }
-      break;  // Break the switch.  Continue to the next stmt. 
-
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::SUM)) is_all_err = false;
+      break; // Break the switch
 
     // case VALID_STMT_TYPE::AVG: // TODO: Implement AVG. 
     default:
       cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE. \n";
       break;
     }  // Switch stmt. 
+    if (res.comp_res == ORA_COMP_RES::Fail) res_out.final_res = ORA_COMP_RES::Fail; 
   } // Result outer loop. 
 
-  if (is_all_errors) return -1; // All errors.
-  else return 1; // Consistant results. 
+  if (is_all_err && res_out.final_res != ORA_COMP_RES::Fail) res_out.final_res = ORA_COMP_RES::ALL_Error;
+
+  return;
 
 }
 

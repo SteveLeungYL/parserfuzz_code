@@ -18,7 +18,7 @@ public:
     bool is_oracle_valid_stmt(const string& query) override;
     bool mark_all_valid_node(vector<IR *> &v_ir_collector) override;
     string remove_valid_stmts_from_str(string query) override;
-    int compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str) override;
+    void compare_results(ALL_COMP_RES& res_out) override;
     void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2, string& rew_3) override;
 
     string get_temp_valid_stmts() override {return temp_valid_stmts;};

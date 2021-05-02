@@ -1,6 +1,5 @@
 #include <iostream>
 #include "./sqlite_norec.h"
-#include "../include/utils.h"
 #include "../include/mutator.h"
 
 #include <string>
@@ -426,26 +425,31 @@ string SQL_NOREC::remove_valid_stmts_from_str(string query){
   return output_query;
 }
 
-int SQL_NOREC::compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str){
-  
-  bool is_all_errors = true;
-  int current_opt_result_int;
-  int current_unopt_result_int;
-  for (int i = 0; i < min(result_0.size(), result_1.size()); i++){
+void SQL_NOREC::compare_results(ALL_COMP_RES& res_out) {
+
+  res_out.final_res = ORA_COMP_RES::Pass;
+  bool is_all_err = true;
+
+  for (COMP_RES& res : res_out.v_res){
     try {
-      current_opt_result_int = stoi(result_0[i]);
-      current_unopt_result_int = stoi(result_1[i]);
+      res.res_int_0 = stoi(res.res_str_0);
+      res.res_int_1 = stoi(res.res_str_1);
     }
     catch (std::invalid_argument &e) {
+      res.comp_res = ORA_COMP_RES::Error;
       continue;
     } catch (std::out_of_range &e) {
       continue;
     }
-    is_all_errors = false;
-    if (current_opt_result_int != current_unopt_result_int) return 0; // Found mismatched. 
+    is_all_err = false;
+    if (res.res_int_0 != res.res_int_1) { // Found mismatched. 
+      res.comp_res = ORA_COMP_RES::Fail;
+      res_out.final_res = ORA_COMP_RES::Fail;
+    } else {
+      res.comp_res = ORA_COMP_RES::Pass;
+    }
   }
 
-  if (is_all_errors) return -1; // All errors.
-  else return 1; // Consistant results. 
-
+  if (is_all_err && res_out.final_res != ORA_COMP_RES::Fail) res_out.final_res = ORA_COMP_RES::ALL_Error;
+  return;
 }

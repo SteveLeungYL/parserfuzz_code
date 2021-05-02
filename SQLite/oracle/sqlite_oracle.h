@@ -3,6 +3,7 @@
 
 #include "../include/ast.h"
 #include "../include/define.h"
+#include "../include/utils.h"
 
 #include <string>
 #include <vector>
@@ -31,7 +32,7 @@ public:
 
     /* Compare the results from validation statements ori, rewrite_1 and rewrite_2. 
         If the results are all errors, return -1, all consistent, return 1, found inconsistent, return 0. */
-    virtual int compare_results(const vector<string>& result_0, const vector<string>& result_1, const vector<string>& result_2, const vector<string>& result_3, const string& cmd_str) = 0;
+    virtual void compare_results(ALL_COMP_RES& res_out) = 0;
 
     /* Helper function. */ 
     void set_mutator(Mutator* mutator);
