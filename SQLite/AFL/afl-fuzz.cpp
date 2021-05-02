@@ -6797,6 +6797,15 @@ static void do_libary_initialize() {
     g_mutator.init(file_path);
   }
 
+  char * in_dir_str = (char *)in_dir;
+  file_list = get_all_files_in_dir(in_dir_str);
+  for(auto &f : file_list){
+
+    string file_path = string(in_dir_str) + "/" + f;
+    cerr << "init filename: " << file_path << endl;
+    g_mutator.init(file_path);
+  }
+
   cout << "The size of ir_libary_2D_hash_ for kStatement is: " 
        << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
 }
