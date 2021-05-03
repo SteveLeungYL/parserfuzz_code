@@ -2642,9 +2642,12 @@ string expand_valid_stmts_str(const string& query_str, const bool is_mark = fals
 
 void compare_query_result(ALL_COMP_RES& all_comp_res){
 
+  all_comp_res.final_res = ORA_COMP_RES::Pass;
+
   const string& result_string = all_comp_res.res_str;
   if(is_str_empty(result_string)){
-    return -1;
+    all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+    return;
   }
 
   vector<string> result_0, result_1, result_2, result_3;
@@ -2809,22 +2812,22 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
   compare_query_result(all_comp_res);
 
   /* Some useful debug output. That could show what queries are being tested.  */
-  cerr << "Query: \n";
-  cerr << all_comp_res.cmd_str << "\n";
-  cerr << "Result string: \n";
-  cerr << all_comp_res.res_str << "\n";
-  cerr << "Detailed result: " << "\n";
-  int iter = 0;
-  for (COMP_RES& res : all_comp_res.v_res){
-    cerr << "\nResult " << iter++ << ":\n";
-    cerr << all_comp_res.final_res << "\n";
-    cerr << "Result_0 is (str): \n" << res.res_str_0 << "\n" << "Result_0 is (int)" << res.res_int_0 << "\n" ;
-    cerr << "Result_1 is (str): \n" << res.res_str_1 << "\n" << "Result_1 is (int)" << res.res_int_1 << "\n" ;
-    cerr << "Result_2 is (str): \n" << res.res_str_2 << "\n" << "Result_2 is (int)" << res.res_int_2 << "\n" ;
-    cerr << "Result_3 is (str): \n" << res.res_str_3 << "\n" << "Result_3 is (int)" << res.res_int_3 << "\n" ;
-  }
-  cerr << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
-  cerr << "\n\n\n\n";
+  // cerr << "Query: \n";
+  // cerr << all_comp_res.cmd_str << "\n";
+  // cerr << "Result string: \n";
+  // cerr << all_comp_res.res_str << "\n";
+  // cerr << "\nFinal_res: " << all_comp_res.final_res << "\n";
+  // cerr << "Detailed result: " << "\n";
+  // int iter = 0;
+  // for (COMP_RES& res : all_comp_res.v_res){
+  //   cerr << "\nResult NUM: " << iter++ << " res: " << res.comp_res << ":\n";
+  //   cerr << "First stmt res is (str): \n" << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
+  //   cerr << "Second stmt res is (str): \n" << res.res_str_1 << "\n" << "Second stmt res is (int): " << res.res_int_1 << "\n" ;
+  //   cerr << "Third stmt res is (str): \n" << res.res_str_2 << "\n" << "Third stmt res is (int): " << res.res_int_2 << "\n" ;
+  //   cerr << "Fourth stmt res is (str): \n" << res.res_str_3 << "\n" << "Fourth stmt res is (int): " << res.res_int_3 << "\n" ;
+  // }
+  // cerr << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
+  // cerr << "\n\n\n\n";
 
   if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
@@ -2852,15 +2855,15 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     outputfile << all_comp_res.cmd_str << "\n";
     outputfile << "Result string: \n";
     outputfile << all_comp_res.res_str << "\n";
+    outputfile << "\nFinal_res: " << all_comp_res.final_res << "\n";
     outputfile << "Detailed result: " << "\n";
     int iter = 0;
     for (COMP_RES& res : all_comp_res.v_res){
-      outputfile << "\nResult " << iter++ << ":\n";
-      outputfile << all_comp_res.final_res << "\n";
-      outputfile << "Result_0 is (str): \n" << res.res_str_0 << "\n" << "Result_0 is (int)" << res.res_int_0 << "\n" ;
-      outputfile << "Result_1 is (str): \n" << res.res_str_1 << "\n" << "Result_1 is (int)" << res.res_int_1 << "\n" ;
-      outputfile << "Result_2 is (str): \n" << res.res_str_2 << "\n" << "Result_2 is (int)" << res.res_int_2 << "\n" ;
-      outputfile << "Result_3 is (str): \n" << res.res_str_3 << "\n" << "Result_3 is (int)" << res.res_int_3 << "\n" ;
+      outputfile << "\nResult NUM: " << iter++ << " res: " << res.comp_res << ":\n";
+      outputfile << "First stmt res is (str): \n" << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
+      outputfile << "Second stmt res is (str): \n" << res.res_str_1 << "\n" << "Second stmt is (int): " << res.res_int_1 << "\n" ;
+      outputfile << "Third stmt res is (str): \n" << res.res_str_2 << "\n" << "Third stmt is (int): " << res.res_int_2 << "\n" ;
+      outputfile << "Fourth stmt res is (str): \n" << res.res_str_3 << "\n" << "Fourth stmt is (int): " << res.res_int_3 << "\n" ;
     }
 
     outputfile << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
@@ -6828,7 +6831,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
+  p_oracle = new SQL_NOREC();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
 
