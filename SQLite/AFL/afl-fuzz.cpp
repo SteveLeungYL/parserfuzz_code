@@ -5639,6 +5639,8 @@ abandon_entry:
   for(auto ir: mutated_tree)
     delete ir;
 
+  ori_valid_stmts.clear();
+  
   splicing_with = -1;
 
   /* Update pending_not_fuzzed count if we made it through the calibration
