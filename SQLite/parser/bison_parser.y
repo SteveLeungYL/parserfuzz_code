@@ -299,21 +299,23 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 
 /* SQL Keywords */
 %token DEALLOCATE PARAMETERS INTERSECT TEMPORARY TIMESTAMP
-%token DISTINCT NVARCHAR RESTRICT TRUNCATE ANALYZE BETWEEN
+%token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN
 %token CASCADE COLUMNS CONTROL DEFAULT EXECUTE EXPLAIN
 %token INTEGER NATURAL PREPARE PRIMARY SCHEMAS
-%token SPATIAL VARCHAR VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT
+%token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT
 %token DOUBLE ESCAPE EXCEPT EXISTS EXTRACT GLOBAL HAVING IMPORT
 %token INSERT ISNULL OFFSET RENAME SCHEMA SELECT SORTED
 %token TABLES UNIQUE UNLOAD UPDATE VALUES AFTER ALTER CROSS
 %token DELTA FLOAT GROUP INDEX INNER LIMIT LOCAL MERGE MINUS ORDER
-%token OUTER RIGHT TABLE UNION USING WHERE CALL CASE CHAR DATE
+%token OUTER RIGHT TABLE UNION USING WHERE CALL CASE DATE DATETIME
+%token CHAR CHARACTER NCHAR VARYING NATIVE VARCHAR NVARCHAR
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
-%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME
-%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL
+%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME BLOB CLOB
+%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL BOOLEAN
+%token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
-%token TRUE FALSE
+%token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
 %token WITHOUT ROWID
 
 /* For SQLite
@@ -1389,21 +1391,56 @@ opt_autoinc:
 
 
 column_type:
-        INT { $$ = new ColumnType(); $$->str_val_ = string("INT"); }
+           INT { $$ = new ColumnType(); $$->str_val_ = string("INT"); }
+    |   INT2 { $$ = new ColumnType(); $$->str_val_ = string("INT2"); }
+    |   INT8 { $$ = new ColumnType(); $$->str_val_ = string("INT8"); }
     |   INTEGER { $$ = new ColumnType(); $$->str_val_ = string("INTEGER"); }
+    |   TINYINT { $$ = new ColumnType(); $$->str_val_ = string("TINYINT"); }
+    |   SMALLINT { $$ = new ColumnType(); $$->str_val_ = string("SMALLINT"); }
+    |   MEDIUMINT { $$ = new ColumnType(); $$->str_val_ = string("MEDIUMINT"); }
+    |   BIGINT { $$ = new ColumnType(); $$->str_val_ = string("BIGINT"); }
+    |   UNSIGNED BIG INT { $$ = new ColumnType(); $$->str_val_ = string("UNSIGNED BIG INT"); }
     |   LONG { $$ = new ColumnType(); $$->str_val_ = string("LONG"); }
     |   FLOAT { $$ = new ColumnType(); $$->str_val_ = string("FLOAT"); }
     |   DOUBLE { $$ = new ColumnType(); $$->str_val_ = string("DOUBLE"); }
+    |   DOUBLE PRECISION { $$ = new ColumnType(); $$->str_val_ = string("DOUBLE PRECISION"); }
+    |   CHAR '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("CHAR(") + to_string($3) + ")"; 
+            } 
+    |   CHARACTER '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("CHARACTER(") + to_string($3) + ")"; 
+            } 
     |   VARCHAR '(' INTVAL ')' { 
             $$ = new ColumnType();
             $$->str_val_ = string("VARCHAR(") + to_string($3) + ")"; 
             }
-    |   CHAR '(' INTVAL ')' { $$ = new ColumnType(); 
-            $$->str_val_ = string("CHAR(") + to_string($3) + ")"; 
+    |   VARYING CHARACTER '(' INTVAL ')' { 
+            $$ = new ColumnType();
+            $$->str_val_ = string("VARYING CHARACTER(") + to_string($4) + ")"; 
+            }
+    |   NCHAR '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("NCHAR(") + to_string($3) + ")"; 
+            } 
+    |   NATIVE CHARACTER '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("NATIVE CHARACTER(") + to_string($4) + ")"; 
+            } 
+    |   NVARCHAR '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("NVARCHAR(") + to_string($3) + ")"; 
             } 
     |   TEXT { $$ = new ColumnType(); $$->str_val_ = string("TEXT"); }
+    |   CLOB { $$ = new ColumnType(); $$->str_val_ = string("CLOB"); }
+    |   BLOB { $$ = new ColumnType(); $$->str_val_ = string("BLOB"); }
     |   REAL { $$ = new ColumnType(); $$->str_val_ = string("REAL"); }
+    |   NUMERIC { $$ = new ColumnType(); $$->str_val_ = string("NUMERIC"); }
+    |   NUM     { $$ = new ColumnType(); $$->str_val_ = string("NUM"); }
     |   BOOL { $$ = new ColumnType(); $$->str_val_ = string("BOOL"); }
+    |   BOOLEAN { $$ = new ColumnType(); $$->str_val_ = string("BOOLEAN"); }
+    |   DECIMAL '(' INTVAL ',' INTVAL ')' {
+                $$ = new ColumnType();
+                $$->str_val_ = string("DECIMAL(") + to_string($3) + "," + to_string($5) + ")";
+            }
+    |   DATE { $$ = new ColumnType(); $$->str_val_ = string("DATE"); }
+    |   DATETIME { $$ = new ColumnType(); $$->str_val_ = string("DATETIME"); }
     |   /* empty*/ { $$ = new ColumnType(); $$->str_val_ = string(""); }
     ;
 
