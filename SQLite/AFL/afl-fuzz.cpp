@@ -2582,7 +2582,7 @@ static void write_to_testcase(const char* mem, u32 len) {
 inline void print_norec_exec_debug_info(){
   cout << "\n"
            << "total_input_failed:      " << total_input_failed << "\n"
-           << "total_random_norec:      " << g_mutator.total_random_norec << " / " <<  g_mutator.total_temp << " " << g_mutator.total_temp * 100.0 / g_mutator.total_random_norec  << "%\n"
+           << "total_random_VALID:      " << p_oracle->total_rand_valid << " / " <<  p_oracle->total_temp << " " << p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid  << "%\n"
            << "total_add_to_queue:      " << total_add_to_queue << "\n"
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
@@ -5405,6 +5405,30 @@ EXP_ST u8 common_fuzz_stuff(char** argv, string& query_str) {
 
     }
 
+void get_ori_valid_stmts(vector<string>& v_valid_stmts, int valid_max_num = 10) {
+
+
+  int trial = 0;
+  int num_norec = 0;
+  int max_trial = valid_max_num * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
+
+  while (num_norec < valid_max_num){
+
+    if (trial++ >= max_trial) // Give on average 3 chances per select stmts.  
+      break;
+
+    string new_norec_stmts = p_oracle->get_random_mutated_valid_stmt();
+    if (new_norec_stmts == "") continue;
+    ensure_semicolon_at_query_end(new_norec_stmts);
+
+    v_valid_stmts.push_back(std::move(new_norec_stmts));
+
+    num_norec++;
+  }
+
+  return;
+}
+
 
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
@@ -5420,6 +5444,7 @@ static u8 fuzz_one(char** argv) {
   Program * program_root;
   vector<IR *> ir_set;
   vector<string *> mutated_tree;
+  vector<string> ori_valid_stmts;
   char * tmp_name = stage_name;
   string query_str;
   int skip_count;
@@ -5550,6 +5575,9 @@ static u8 fuzz_one(char** argv) {
   stage_max = mutated_tree.size();
   stage_cur = 0;
 
+  ori_valid_stmts.clear();
+  get_ori_valid_stmts(ori_valid_stmts);
+
   // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
   for(auto ir_str: mutated_tree){
 
@@ -5574,7 +5602,9 @@ static u8 fuzz_one(char** argv) {
       continue;
     }
 
-    p_oracle -> append_ori_valid_stmts(*ir_str, 10);
+    for (string& app_str : ori_valid_stmts) {
+      *ir_str += app_str;  // Append the already generated and cached SELECT VALID stmts. 
+    }
     query_str = g_mutator.validate(*ir_str);
 
     if(query_str == ""){

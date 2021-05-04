@@ -12,7 +12,6 @@ using namespace std;
 
 class SQL_LIKELY: public SQL_ORACLE {
 public:
-    void append_ori_valid_stmts(string& query_str, int valid_max_num) override;
 
     int count_valid_stmts(const string& input) override;
     bool is_oracle_valid_stmt(const string& query) override;

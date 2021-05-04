@@ -44,13 +44,14 @@ public:
     int get_norec_select_collection_size();
 
     vector<IR*> parse_query_str_get_ir_set(string &query_str);
-    string get_random_mutated_valid_stmt();
 
     void add_all_to_library(IR*);
     void add_all_to_library(string);
     IR* get_from_libary_with_type(IRTYPE);
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
+
+    bool get_valid_str_from_lib(string&);
 
     bool is_stripped_str_in_lib(string stripped_str);
 
@@ -85,9 +86,7 @@ public:
     unsigned long get_library_size();
     void get_memory_usage();
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
-
-    unsigned long total_temp = 0;
-    unsigned long total_random_norec = 0;
+    
 
     void set_p_oracle(SQL_ORACLE* oracle) {this->p_oracle = oracle;}
 

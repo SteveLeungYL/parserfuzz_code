@@ -126,153 +126,6 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
     return res;
 }
 
-// guarantee to generate grammarly correct query
-string Mutator::get_random_mutated_valid_stmt(){
-  /* Read from the previously seen norec compatible select stmt.
-   * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the string of
-    the new generated norec compatible SELECT query.
-  */
-  bool is_success = false;
-  vector<IR*> ir_tree;
-  IR * root = NULL;
-  string new_norec_select_str = "";
-
-  total_random_norec += 1;
-  bool use_temp = false;
-
-  while (!is_success) {
-
-    string ori_norec_select = "";
-    /* For 1/6 chance, grab one query from the norec library, mutate it, and return.
-       For 1/3 chance, grab one query from the norec library, and return..
-       For 1/2 chance, take the template "SELECT COUNT ( * ) FROM v0 WHERE v1 ; ", mutate it, and return.
-    */
-    int query_method = get_rand_int(6);
-    if (all_valid_pstr_vec.size() > 0 && query_method == 0)  {
-      /* Pick the query from the lib, pass to the mutator. */
-      ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
-      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select) ) continue;
-      use_temp = false;
-    }
-    else if (all_valid_pstr_vec.size() > 0 && query_method < 3) {
-      /* Pick the query from the lib, directly return, do not mutate it. (If mutate, could have significantly performance penalty.) */
-      ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
-      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select)) continue;
-      use_temp = false;
-      return ori_norec_select;
-    } else {
-      /* Pick the query from the template, pass to the mutator. */
-      ori_norec_select = p_oracle->get_temp_valid_stmts();
-      use_temp = true;
-    }
-
-    trim_string(ori_norec_select);
-
-    ir_tree.clear();
-    ir_tree = parse_query_str_get_ir_set(ori_norec_select);
-    if (ir_tree.size() == 0) continue;
-
-    root = ir_tree.back();
-    if ( !check_node_num(root, 300) ){
-      /* The retrived norec stmt is too complicated to mutate, directly return the retrived query. */
-        root->deep_drop();
-        return ori_norec_select;
-    }
-
-    /* Restrict changes on the signiture norec select components. Could increase mutation efficiency. */
-    p_oracle->mark_all_valid_node(ir_tree);
-
-    string ori_norec_select_struct = extract_struct(root);
-    string new_norec_select_struct = "";
-
-    /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials to mutate.
-    */
-    for (int trial_count = 0; trial_count < 30; trial_count++){
-
-      /* Pick random ir node in the select stmt */
-      bool is_mutate_ir_node_chosen = false;
-      IR* mutate_ir_node = NULL;
-      IR* new_mutated_ir_node = NULL;
-      int choose_node_trial = 0;
-      while(!is_mutate_ir_node_chosen){
-        if (choose_node_trial > 100) break;
-        choose_node_trial++;
-        mutate_ir_node = ir_tree[get_rand_int(ir_tree.size()-1)];  // Do not choose the program_root to mutate.
-        if (mutate_ir_node->is_norec_select_fixed) continue;
-        is_mutate_ir_node_chosen = true;
-        break;
-      }
-
-      if (!is_mutate_ir_node_chosen) break;   // The current ir tree cannot even find the node to mutate. Ignored and retrive new norec stmt from lib or from library.
-
-      /* Pick random mutation methods. */
-      switch (get_rand_int(3)){
-        case 0:
-          new_mutated_ir_node = strategy_delete(mutate_ir_node);
-          break;
-        case 1:
-          new_mutated_ir_node = strategy_insert(mutate_ir_node);
-          break;
-        case 2:
-          new_mutated_ir_node = strategy_replace(mutate_ir_node);
-          break;
-      }
-
-      if (!root->swap_node(mutate_ir_node, new_mutated_ir_node)) {
-        new_mutated_ir_node->deep_drop();
-        continue;
-      }
-
-      new_norec_select_str = root->to_string();
-
-      if (new_norec_select_str != ori_norec_select) {
-        new_norec_select_struct = extract_struct(root);
-      }
-
-      root->swap_node(new_mutated_ir_node, mutate_ir_node);
-      new_mutated_ir_node->deep_drop();
-
-      if (new_norec_select_str == ori_norec_select) continue;
-
-      /* Final check and return string if compatible */
-      vector<IR*> new_ir_verified = parse_query_str_get_ir_set(new_norec_select_str);
-      if (new_ir_verified.size() <= 0) continue;
-      new_ir_verified.back()->deep_drop();
-
-      if (p_oracle->is_oracle_valid_stmt(new_norec_select_str) ) {
-        // Make sure the mutated structure is different.
-        if (new_norec_select_struct != ori_norec_select_struct) {
-
-          root->deep_drop();
-          is_success = true;
-
-          if (use_temp) total_temp += 1;
-          return new_norec_select_str;
-        }
-        //else {
-        //  cout << "new|" << new_norec_select_str << "|\n"
-        //       << "old|" << ori_norec_select << "|\n";;
-
-        //  if (new_norec_select_str.find(" d ") != string::npos) {
-        //    debug(root, 0);
-        //    exit(0);
-        //  }
-        //}
-
-      }
-
-      continue;  // Retry mutating the current norec stmt and its IR tree.
-    }
-
-    /* Failed to mutate the retrived norec select stmt after 100 trials.
-     * Maybe it is because the norec select stmt is too complex the mutate.
-     * Grab another norec select stmt from the lib or from the template, try again.
-     */
-    root->deep_drop();
-    root = NULL;
-  }
-}
-
 vector<IR*> Mutator::parse_query_str_get_ir_set(string &query_str){
   vector<IR*> ir_set;
 
@@ -1843,4 +1696,35 @@ Program * Mutator::parser(const char * sql) {
   }
 
   return p;
+}
+
+// Return use_temp or not. 
+bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
+  /* For 1/2 chance, grab one query from the norec library, and return.
+   * For 1/2 chance, take the template from the p_oracle and return.
+  */
+  bool is_succeed = false;
+
+  while (!is_succeed){  // Potential dead loop. Only escape through return. 
+    bool use_temp = false;
+    int query_method = get_rand_int(6);
+    if (all_valid_pstr_vec.size() > 0 && query_method < 3) {
+      /* Pick the query from the lib, pass to the mutator. */
+      ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
+      if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select))
+        continue;
+      use_temp = false;
+    }
+    else {
+      /* Pick the query from the template, pass to the mutator. */
+      ori_norec_select = p_oracle->get_temp_valid_stmts();
+      use_temp = true;
+    }
+
+    trim_string(ori_norec_select);
+    return use_temp;
+  }
+  fprintf(stderr, "*** FATAL ERROR: Unexpected code execution in the Mutator::get_valid_str_from_lib function. \n");
+  fflush(stderr);
+  abort();
 }

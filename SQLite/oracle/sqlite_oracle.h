@@ -4,6 +4,7 @@
 #include "../include/ast.h"
 #include "../include/define.h"
 #include "../include/utils.h"
+#include "../include/mutator.h"
 
 #include <string>
 #include <vector>
@@ -14,10 +15,6 @@ class Mutator;
 
 class SQL_ORACLE {
 public:
-    /* Generate the first query validation statement. 
-        This function is also resposible for mutating the original query validation statment. */
-    virtual void append_ori_valid_stmts(string& query_str, int valid_max_num) = 0;
-
     /* Functions to check and count how many query validation statements are in the string. */
     virtual int count_valid_stmts(const string& input) = 0;
     virtual bool is_oracle_valid_stmt(const string& query) = 0;
@@ -34,10 +31,16 @@ public:
         If the results are all errors, return -1, all consistent, return 1, found inconsistent, return 0. */
     virtual void compare_results(ALL_COMP_RES& res_out) = 0;
 
+    virtual string get_random_mutated_valid_stmt();
+
     /* Helper function. */ 
     void set_mutator(Mutator* mutator);
 
     virtual string get_temp_valid_stmts() = 0;
+
+    /* Debug */
+    unsigned long total_rand_valid = 0;
+    unsigned long total_temp = 0;
 
 protected:
     Mutator* g_mutator;

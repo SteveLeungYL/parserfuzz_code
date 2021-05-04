@@ -5,30 +5,6 @@
 #include <string>
 #include <algorithm>
 
-void SQL_LIKELY::append_ori_valid_stmts(string& query_str, int valid_max_num = 10) {
-
-
-  int trial = 0;
-  int num_norec = 0;
-  int max_trial = valid_max_num * 3;  // For each norec select stmt, we have on average 3 chances to append the stmt and check. 
-
-  while (num_norec < valid_max_num){
-
-    if (trial++ >= max_trial) // Give on average 3 chances per select stmts.  
-      break;
-
-    string new_norec_stmts = g_mutator->get_random_mutated_valid_stmt();
-    if (new_norec_stmts == "") continue;
-    ensure_semicolon_at_query_end(new_norec_stmts);
-
-    query_str += new_norec_stmts;
-
-    num_norec++;
-  }
-
-  return;
-}
-
 int SQL_LIKELY::count_valid_stmts(const string& input){
   int norec_select_count = 0;
   vector<string> queries_vector = string_splitter(input, ";");
