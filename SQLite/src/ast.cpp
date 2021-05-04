@@ -351,7 +351,7 @@ IR* Program::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     res = SAFETRANSLATE(statement_list_);
-    auto tmp = SAFETRANSLATE(opt_semicolon_);
+    auto tmp = SAFETRANSLATE(opt_semicolon_suffix_);
     res = new IR(kProgram, OP0(), res, tmp);
 
     TRANSLATEEND
@@ -1215,10 +1215,10 @@ IR* Expr::translate(vector<IR *> &v_ir_collector){
             res = SAFETRANSLATE(in_expr_);
             res = new IR(kExpr, OP0(), res);
         CASEEND
-        CASESTART(5)
-            res = SAFETRANSLATE(cast_expr_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
+        //CASESTART(5)
+        //    res = SAFETRANSLATE(cast_expr_);
+        //    res = new IR(kExpr, OP0(), res);
+        //CASEEND
         
     SWITCHEND
     TRANSLATEEND
@@ -1950,8 +1950,9 @@ void OptString::deep_delete(){
 
 
 void Program::deep_delete(){
+	SAFEDELETE(opt_semicolon_prefix_);
 	SAFEDELETE(statement_list_);
-	SAFEDELETE(opt_semicolon_);
+	SAFEDELETE(opt_semicolon_suffix_);
 	delete this;
 }
 
@@ -2323,7 +2324,7 @@ void Expr::deep_delete(){
     SAFEDELETE(logic_expr_);
     SAFEDELETE(exists_expr_);
     SAFEDELETE(in_expr_);
-    SAFEDELETE(cast_expr_);
+    //SAFEDELETE(cast_expr_);
 	delete this;
 }
 

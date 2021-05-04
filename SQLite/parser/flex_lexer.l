@@ -169,6 +169,7 @@ END			TOKEN(END)
 FOR			TOKEN(FOR)
 INT			TOKEN(INT)
 REAL		TOKEN(REAL)
+BOOL    TOKEN(BOOL)
 KEY			TOKEN(KEY)
 NOT			TOKEN(NOT)
 OFF			TOKEN(OFF)
@@ -267,6 +268,9 @@ FALSE		{
 "<="		TOKEN(LESSEQ)
 ">="		TOKEN(GREATEREQ)
 "||"		TOKEN(CONCAT)
+
+">>"    TOKEN(RSHIFT)
+"<<"    TOKEN(LSHIFT)
 
 [-+*/(){},.;<>=^%:?[\]|]	{ return yytext[0]; }
 

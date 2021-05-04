@@ -6,8 +6,77 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <ostream>
+
+//extern int hsql_debug;
 
 using namespace std;
+
+namespace Color {
+  enum Code {
+    FG_RED      = 31,
+    FG_GREEN    = 32,
+    FG_BLUE     = 34,
+    FG_DEFAULT  = 39,
+    BG_RED      = 41,
+    BG_GREEN    = 42,
+    BG_BLUE     = 44,
+    BG_DEFAULT  = 49
+  };
+  class Modifier {
+    Code code;
+    public:
+    Modifier(Code pCode) : code(pCode) {}
+    friend std::ostream&
+      operator<<(std::ostream& os, const Modifier& mod) {
+        return os << "\033[" << mod.code << "m";
+      }
+  };
+}
+
+Color::Modifier RED(Color::FG_RED);
+Color::Modifier DEF(Color::FG_DEFAULT);
+
+Mutator mutator;
+
+bool test_parse(string &query) {
+
+  vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(query);
+  if (v_ir.size() <= 0) {
+    cerr << RED << "parse failed" << DEF << endl;
+    return false;
+  }
+
+  IR *root = v_ir.back();
+
+  //mutator.debug(root, 0);
+
+  string tostring = root->to_string();
+  if (tostring.size() <= 0) {
+    cerr << RED << "tostring failed" << DEF << endl;
+    return false;
+  }
+  cout << "tostring: >" << tostring << "<" << endl;
+
+  string structure = mutator.extract_struct(root);
+  if (structure.size() <= 0) {
+    cerr << RED << "extract failed" << DEF << endl;
+    return false;
+  }
+  cout << "structur: >" << structure << "<" << endl;
+
+  string validity = mutator.validate(root);
+  if (validity.size() <= 0) {
+    cerr << RED << "validate failed" << DEF << endl;
+    return false;
+  }
+  cout << "validate: >" << validity << "<" << endl;
+
+  root->deep_drop();
+  v_ir.clear();
+
+  return true;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -17,7 +86,8 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  Mutator mutator;
+  //hsql_debug = 1; 
+
   mutator.init("");
 
   string input(argv[1]);
@@ -28,42 +98,16 @@ int main(int argc, char *argv[]) {
 
     if (line.find_first_of("--") == 0) continue;
 
+    trim_string(line);
+
+    if (line.size() == 0) continue;
+
     cout << "----------------------------------------" << endl;
+    cout << ">>>>>>>>>>>" << line << "<\n";
 
-    vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(line);
-    if (v_ir.size() <= 0) {
-      cerr << "failed to parse: " << line << endl;
-      continue;
-    }
+    bool is_valid = test_parse(line);
 
-    IR *root = v_ir.back();
-
-    string tostring = root->to_string();
-    string structure = mutator.extract_struct(line);
-
-    cout << line << endl;
-    cout << tostring << endl;
-    cout << structure << endl;
-
-    root->deep_drop();
-    v_ir.clear();
-
-    v_ir = mutator.parse_query_str_get_ir_set(structure);
-    if (v_ir.size() <= 0) {
-      cerr << "failed to paser the extracted structure" << endl;
-      continue;
-    }
-
-    root = v_ir.back();
-    if (root->to_string() != structure) {
-      cerr << "extract_structure is no idempotent" << endl;
-      continue;
-    }
-
-    string validity = mutator.validate(root);
-    cout << validity << endl;
-
-    root->deep_drop();
+    if (!is_valid) continue;
   }
 
   return 0;

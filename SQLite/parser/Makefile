@@ -19,7 +19,7 @@ SRCS = bison_parser.cpp flex_lexer.cpp
 all: $(SRCS:%.cpp=%.o)
 
 bison_parser.cpp: bison_parser.y
-	$(BISON) bison_parser.y --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr
+	$(BISON) bison_parser.y --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr # --debug
 
 flex_lexer.cpp: flex_lexer.l
 	$(FLEX) flex_lexer.l

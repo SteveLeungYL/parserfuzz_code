@@ -208,8 +208,9 @@ class Program: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptSemicolon* opt_semicolon_prefix_;
     StatementList* statement_list_;
-    OptSemicolon* opt_semicolon_;
+    OptSemicolon* opt_semicolon_suffix_;
 };
 
 
@@ -732,7 +733,7 @@ public:
     LogicExpr* logic_expr_;
     ExistsExpr* exists_expr_;
     InExpr* in_expr_;
-    CastExpr* cast_expr_;
+    //CastExpr* cast_expr_;
 };
 
 class ExprAlias: public Expr{

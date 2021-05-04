@@ -310,7 +310,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token OUTER RIGHT TABLE UNION USING WHERE CALL CASE CHAR DATE
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
 %token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME
-%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL
+%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE
@@ -543,27 +543,18 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
  ******************************/
 
 %left       OR
-
 %left       AND
 %right      NOT
-%nonassoc   '=' EQUALS NOTEQUALS LIKE ILIKE GLOB MATCH REGEX
-%nonassoc   '<' '>' LESS GREATER LESSEQ GREATEREQ
-
-%nonassoc   NOTNULL 
-%nonassoc   ISNULL
-%nonassoc   IS              /* sets precedence for IS NULL, etc */
+%left       IS MATCH BETWEEN IN ISNULL NOTNULL NOTEQUALS EQUALS '=' LIKE ILIKE GLOB REGEX
+%left       LESSEQ GREATEREQ '<' '>'
+%right      ESCAPE
+%left       '&' /* BITAND */  '|' /* BITOR */ LSHIFT RSHIFT
 %left       '+' '-'
 %left       '*' '/' '%' 
-%left       '^' 
 %left       CONCAT
-
-/* Unary Operators */
-%right  UMINUS
-%left       '[' ']'
-%left       '(' ')'
-%left       '.'
-%right       JOIN
-
+%left       COLLATE
+%right      '~' /* BITNOT*/
+%nonassoc   ON
 
 %%
 /*********************************
@@ -572,10 +563,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 
 // Defines our general input.
 input:
-        statement_list opt_semicolon {
+        opt_semicolon statement_list opt_semicolon {
             $$ = NULL;
-            result->statement_list_ = $1;
-            result->opt_semicolon_ = $2;
+            result->opt_semicolon_prefix_ = $1;
+            result->statement_list_ = $2;
+            result->opt_semicolon_suffix_ = $3;
         }
     ;
 
@@ -1413,6 +1405,7 @@ column_type:
             } 
     |   TEXT { $$ = new ColumnType(); $$->str_val_ = string("TEXT"); }
     |   REAL { $$ = new ColumnType(); $$->str_val_ = string("REAL"); }
+    |   BOOL { $$ = new ColumnType(); $$->str_val_ = string("BOOL"); }
     |   /* empty*/ { $$ = new ColumnType(); $$->str_val_ = string(""); }
     ;
 
@@ -1910,7 +1903,6 @@ expr:
     |   logic_expr {$$ = new Expr(); $$->sub_type_ = CASE2; $$->logic_expr_ = $1;}
     |   exists_expr {$$ = new Expr(); $$->sub_type_ = CASE3; $$->exists_expr_ = $1;}
     |   in_expr {$$ = new Expr(); $$->sub_type_ = CASE4; $$->in_expr_ = $1;}
-    |   cast_expr {$$ = new Expr(); $$->sub_type_ = CASE5; $$->cast_expr_ = $1;}
     ;
 
 operand: 
@@ -1923,6 +1915,7 @@ operand:
     |   function_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   extract_expr    { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   array_expr  { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
+    |   cast_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   '(' select_no_paren ')' { $$ = new Operand(); $$->sub_type_ = CASE2; $$->select_no_paren_ = $2; }
     ;
 
@@ -1970,22 +1963,6 @@ unary_expr:
             $$->operand_ = $1;
             $$->operator_ = string("IS NOT NULL");
         }
-    |   operand IS IDENTIFIER {
-            $$ = new UnaryExpr();
-            $$->sub_type_ = CASE5;
-            $$->operand_ = $1;
-            $$->id_ = new Identifier($3);
-            free($3);
-            $$->operator_ = string("IS");
-        }
-    |   operand IS NOT IDENTIFIER {
-            $$ = new UnaryExpr();
-            $$->sub_type_ = CASE6;
-            $$->operand_ = $1;
-            $$->id_ = new Identifier($4);
-            free($4);
-            $$->operator_ = string("IS NOT");
-    }
     ;
 
 binary_expr:
@@ -2044,6 +2021,7 @@ comp_expr:
     |   operand '>' operand         { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">"); }
     |   operand LESSEQ operand      { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<="); }//zr
     |   operand GREATEREQ operand   { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">="); }//zr
+    |   operand IS operand          { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("IS"); }
     ;
 
 function_expr: 
