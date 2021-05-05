@@ -3458,7 +3458,7 @@ IR * OptFrame::translate(vector<IR*> &v_ir_collector){
             auto frame_bound_s = SAFETRANSLATE(frame_bound_s_);
             auto opt_frame_exclude = SAFETRANSLATE(opt_frame_exclude_);
             res = SAFETRANSLATE(frame_bound_e_);
-            res = new IR(kUnknown, OP2("BEWTEEN", "AND"), frame_bound_s, res);
+            res = new IR(kUnknown, OP2("BETWEEN", "AND"), frame_bound_s, res);
             PUSH(res);
             res = new IR(kUnknown, OP0(), range_or_row, res);
             PUSH(res);
