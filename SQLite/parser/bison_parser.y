@@ -115,8 +115,12 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ShowStatement* show_statement_t;
     CreateStatement* create_statement_t;
     OptNotExists* opt_not_exists_t;
+    ColumnOrTableConstraintDefCommaList* column_or_table_constraint_def_comma_list_t;
     ColumnDefCommaList* column_def_comma_list_t;
     ColumnDef* column_def_t;
+    TableConstraintDef* table_constraint_def_t;
+    TableConstraintDefCommaList* table_constraint_def_comma_list_t;
+    OptConstraintName* opt_constraint_name_t;
     ColumnType* column_type_t;
     //OptColumnNullable* opt_column_nullable_t;
     DropStatement* drop_statement_t;
@@ -316,7 +320,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
-%token WITHOUT ROWID
+%token WITHOUT ROWID CONSTRAINT
 
 /* For SQLite
 */
@@ -343,7 +347,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
 %type <opt_not_exists_t>	opt_not_exists
+%type <opt_constraint_name_t> opt_constraint_name
 %type <column_def_comma_list_t>	column_def_commalist
+%type <table_constraint_def_t>	table_constraint_def
+%type <table_constraint_def_comma_list_t>	table_constraint_def_commalist
+%type <column_or_table_constraint_def_comma_list_t>	column_or_table_constraint_def_commalist
 %type <column_def_t>	column_def
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
@@ -1154,12 +1162,12 @@ create_statement:
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $9;
         }
-    |   CREATE TABLE opt_not_exists table_name '(' column_def_commalist ')' opt_without_rowid {
+    |   CREATE TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE1;
             $$->opt_not_exists_ = $3;
             $$->table_name_ = $4;
-            $$->column_def_comma_list_ = $6;
+            $$->column_or_table_constraint_def_comma_list_ = $6;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         }
@@ -1210,14 +1218,14 @@ create_statement:
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         } 
-    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_def_commalist ')' opt_without_rowid {
+    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE6;
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->module_name_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->column_def_comma_list_ = $9;
+            $$->column_or_table_constraint_def_comma_list_ = $9;
             $$->opt_without_rowid_ = $11;
         } 
     |   CREATE trigger_declare BEGIN trigger_cmd_list END {
@@ -1314,21 +1322,72 @@ opt_not_exists:
     |   /* empty */ { $$ = new OptNotExists(); $$->sub_type_ = CASE1; }
     ;
 
+column_or_table_constraint_def_commalist:
+        column_def_commalist {
+              $$ = new ColumnOrTableConstraintDefCommaList();
+              $$->sub_type_ = CASE0;
+              $$->column_def_comma_list_ = $1;
+            }
+    |   table_constraint_def_commalist {
+              $$ = new ColumnOrTableConstraintDefCommaList();
+              $$->sub_type_ = CASE1;
+              $$->table_constraint_def_comma_list_ = $1;
+            }
+    |   column_def_commalist ',' table_constraint_def_commalist {
+              $$ = new ColumnOrTableConstraintDefCommaList();
+              $$->sub_type_ = CASE2;
+              $$->column_def_comma_list_ = $1;
+              $$->table_constraint_def_comma_list_ = $3;
+            }
+
 column_def_commalist:
         column_def { 
             $$ = new ColumnDefCommaList(); 
             $$->v_column_def_comma_list_.push_back($1); 
             }
     |   column_def_commalist ',' column_def { 
-        $1->v_column_def_comma_list_.push_back($3); 
-        $$ = $1; 
-        }
+            $1->v_column_def_comma_list_.push_back($3); 
+            $$ = $1; 
+            }
     ;
+
+table_constraint_def_commalist:
+        table_constraint_def {
+            $$ = new TableConstraintDefCommaList();
+            $$->v_table_constraint_def_comma_list_.push_back($1);
+            }
+    |   table_constraint_def_commalist ',' table_constraint_def {
+            $1->v_table_constraint_def_comma_list_.push_back($3);
+            $$ = $1;
+            }
+
+table_constraint_def:
+        opt_constraint_name CHECK '(' expr ')' { 
+            $$ = new TableConstraintDef(); 
+            $$->sub_type_ = CASE0;
+            $$->opt_constraint_name_ = $1;
+            $$->expr_ = $4;
+          }
+    |   opt_constraint_name PRIMARY KEY '(' indexed_column_list ')' opt_on_conflict {
+            $$ = new TableConstraintDef();
+            $$->sub_type_ = CASE1;
+            $$->opt_constraint_name_ = $1;
+            $$->indexed_column_list_ = $5;
+            $$->opt_on_conflict_ = $7;
+          }
+    |   opt_constraint_name UNIQUE '(' indexed_column_list ')' opt_on_conflict {
+            $$ = new TableConstraintDef();
+            $$->sub_type_ = CASE2;
+            $$->opt_constraint_name_ = $1;
+            $$->indexed_column_list_ = $4;
+            $$->opt_on_conflict_ = $6;
+          }
+    /* | FOREIGN KEY CASE */
 
 column_def:
         IDENTIFIER column_type opt_column_arglist {
             $$ = new ColumnDef();
-			$$->id_ = new Identifier($1, id_create_column_name);
+			      $$->id_ = new Identifier($1, id_create_column_name);
             $$->column_type_ = $2;
             $$->opt_column_arglist_ = $3;
             free($1); 
@@ -1351,6 +1410,17 @@ column_arglist:
         $$->v_column_arg_.push_back($1);
         }
     ;
+
+opt_constraint_name:
+        CONSTRAINT IDENTIFIER {
+            $$ = new OptConstraintName();
+            $$->sub_type_ = CASE0;
+            $$->identifier_ = new Identifier($2, id_table_constraint_name); free($2);
+          }
+    |   /* empty */ {
+            $$ = new OptConstraintName();
+            $$->sub_type_ = CASE1;
+          }
 
 column_arg:
         NULL opt_on_conflict {$$ = new ColumnArg(); $$->sub_type_ = CASE0; $$->opt_on_conflict_ = $2;}
