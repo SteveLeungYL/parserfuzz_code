@@ -751,6 +751,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     Expr * expr_;
+    ExprList * expr_list_;
     SelectNoParen * select_no_paren_;
 };
 

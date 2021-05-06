@@ -2017,7 +2017,7 @@ expr:
     ;
 
 operand: 
-        '(' expr ')' { $$ = new Operand(); $$->sub_type_ = CASE0; $$->expr_ = $2; } 
+        '(' expr_list ')' { $$ = new Operand(); $$->sub_type_ = CASE0; $$->expr_list_ = $2; } 
     |   array_index { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   scalar_expr { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   unary_expr  { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }

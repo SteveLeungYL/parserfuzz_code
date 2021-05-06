@@ -1240,7 +1240,7 @@ IR* Operand::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(expr_);
+            res = SAFETRANSLATE(expr_list_);
             res = new IR(kOperand, OP2("(", ")"), res);
         CASEEND
         CASESTART(1)
@@ -2456,6 +2456,7 @@ void ExprAlias::deep_delete(){
 
 void Operand::deep_delete(){
 	SAFEDELETE(expr_);
+	SAFEDELETE(expr_list_);
 	SAFEDELETE(select_no_paren_);
 
 	delete this;
