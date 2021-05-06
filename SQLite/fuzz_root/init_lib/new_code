@@ -416,7 +416,6 @@ SELECT x , x , count ( * ) FROM x GROUP BY x , x ORDER BY x , x ;
 PRAGMA x = 'y' ; 
 SELECT * FROM x WHERE x < 'y' ; 
 SELECT x AS x FROM x WHERE x = 'y' ; 
-; 
 SELECT * FROM x , x , x WHERE x = x AND x = x AND x = 10 ; 
 INSERT INTO x ( x ) VALUES ( 10 ) ,( 10 ) ,( 10 ) ; 
 INSERT INTO x ( x , x ) VALUES ( 10 , 10 ) ,( 10 , 10 ) ,( 10 , 10 ) ; 

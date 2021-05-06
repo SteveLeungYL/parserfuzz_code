@@ -185,7 +185,11 @@
     V(kColumnNameList) \
     V(kCollationName) \
     V(kOptWithoutRowID) \
-    V(kOptUpsertClause)
+    V(kOptUpsertClause) \
+    V(kOptConstraintName) \
+    V(kTableConstraintDef) \
+    V(kTableConstraintDefCommaList) \
+    V(kColumnOrTableConstraintDefCommaList)
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -370,7 +374,11 @@
     V(ColumnNameList) \
     V(CollationName) \
     V(OptWithoutRowID) \
-    V(OptUpsertClause)
+    V(OptUpsertClause) \
+    V(OptConstraintName) \
+    V(TableConstraintDef) \
+    V(TableConstraintDefCommaList) \
+    V(ColumnOrTableConstraintDefCommaList)
 
 #define SWITCHSTART \
     switch(sub_type_){ 

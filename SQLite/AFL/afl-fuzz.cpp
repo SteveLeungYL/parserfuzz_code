@@ -1174,7 +1174,7 @@ static  u8 count_class_lookup8[256] = {0};
 
 static u16 count_class_lookup16[65536];
 
-void memset_fucking_array(){
+void memset_array(){
   simplify_lookup[0] = 1;
   memset(simplify_lookup+1, 128, 255);
 
@@ -4404,7 +4404,6 @@ static void show_stats(void) {
   else
         stab_ratio = 100;
 
-        //cout << "fuck " << endl;
       /* Roughly every minute, update fuzzer stats and save auto tokens. */
 
       if (cur_ms - last_stats_ms > STATS_UPDATE_SEC * 1000) {
@@ -4735,7 +4734,6 @@ static void show_stats(void) {
         min_stab_radio = stab_ratio;
         ofstream radio_file("/tmp/loss_stab", ios::app);
         if(radio_file.is_open() == false){
-            cout <<"WHAT THE FUCK??" << endl;
             cin >> lost;
         }
         radio_file << save_file_name << "\tlost: " << lost << endl;
@@ -6891,7 +6889,7 @@ int main(int argc, char** argv) {
 
   struct timeval tv;
   struct timezone tz;
-  memset_fucking_array();
+  memset_array();
 
   SAYF(cCYA "afl-fuzz " cBRI VERSION cRST " by <lcamtuf@google.com>\n");
 

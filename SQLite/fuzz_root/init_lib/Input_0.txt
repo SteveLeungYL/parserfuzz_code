@@ -102,4 +102,3 @@ SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex DESC;
 SELECT c2 FROM collate1t1 ORDER BY 1 COLLATE hex ASC;
 SELECT c1, c2 FROM collate1t1 ORDER BY 1 COLLATE numeric, 2 COLLATE hex;
 SELECT a COLLATE binary as c1, b as c2 FROM collate1t1 ORDER BY c1;
-

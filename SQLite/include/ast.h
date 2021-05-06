@@ -75,6 +75,7 @@ enum IDTYPE{
     id_database_name,
 
     id_alias_name,
+    id_table_constraint_name,
 };
 
 typedef NODETYPE IRTYPE;
@@ -396,7 +397,7 @@ public:
     OptNotExists * opt_not_exists_;
     TableName * table_name_;
     FilePath * file_path_;
-    ColumnDefCommaList * column_def_comma_list_;
+    ColumnOrTableConstraintDefCommaList * column_or_table_constraint_def_comma_list_;
     SelectStatement * select_statement_;
     OptColumnList * opt_column_list_;
     OptUnique * opt_unique_;
@@ -534,7 +535,8 @@ class UpdateClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    ColumnName* column_name_;
+    ColumnNameList * column_name_list_;
     Expr * expr_;
 };
 
@@ -749,6 +751,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     Expr * expr_;
+    ExprList * expr_list_;
     SelectNoParen * select_no_paren_;
 };
 
@@ -1133,6 +1136,31 @@ public:
     OptAutoinc * opt_autoinc_;
     Expr * expr_;
     Identifier * id_;
+};
+
+class ColumnOrTableConstraintDefCommaList: public Node {
+  public:
+    virtual void deep_delete();
+    virtual IR *translate(vector<IR *> &v_ir_collector);
+    ColumnDefCommaList * column_def_comma_list_;
+    TableConstraintDefCommaList *table_constraint_def_comma_list_;
+};
+
+class TableConstraintDefCommaList: public Node {
+  public:
+    virtual void deep_delete();
+    virtual IR *translate(vector<IR *> &v_ir_collector);
+    vector<TableConstraintDef *> v_table_constraint_def_comma_list_;
+};
+
+class TableConstraintDef: public Node {
+  public:
+    virtual void deep_delete();
+    virtual IR *translate(vector<IR*> &v_ir_collector);
+    OptConstraintName * opt_constraint_name_;
+    Expr * expr_;
+    OptOnConflict * opt_on_conflict_;
+    IndexedColumnList * indexed_column_list_;
 };
 
 class OptOnConflict: public Opt{
@@ -1598,6 +1626,13 @@ public:
         virtual void deep_delete();
         virtual IR* translate(vector<IR*> &v_ir_collector);
         vector<ColumnName *> v_column_name_list_;
+};
+
+class OptConstraintName: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR *translate(vector<IR *> &v_ir_collector);
+    Identifier * identifier_;
 };
 
 class CollationName: public Node{

@@ -115,8 +115,12 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ShowStatement* show_statement_t;
     CreateStatement* create_statement_t;
     OptNotExists* opt_not_exists_t;
+    ColumnOrTableConstraintDefCommaList* column_or_table_constraint_def_comma_list_t;
     ColumnDefCommaList* column_def_comma_list_t;
     ColumnDef* column_def_t;
+    TableConstraintDef* table_constraint_def_t;
+    TableConstraintDefCommaList* table_constraint_def_comma_list_t;
+    OptConstraintName* opt_constraint_name_t;
     ColumnType* column_type_t;
     //OptColumnNullable* opt_column_nullable_t;
     DropStatement* drop_statement_t;
@@ -299,22 +303,24 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 
 /* SQL Keywords */
 %token DEALLOCATE PARAMETERS INTERSECT TEMPORARY TIMESTAMP
-%token DISTINCT NVARCHAR RESTRICT TRUNCATE ANALYZE BETWEEN
+%token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN
 %token CASCADE COLUMNS CONTROL DEFAULT EXECUTE EXPLAIN
 %token INTEGER NATURAL PREPARE PRIMARY SCHEMAS
-%token SPATIAL VARCHAR VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT
+%token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT
 %token DOUBLE ESCAPE EXCEPT EXISTS EXTRACT GLOBAL HAVING IMPORT
 %token INSERT ISNULL OFFSET RENAME SCHEMA SELECT SORTED
 %token TABLES UNIQUE UNLOAD UPDATE VALUES AFTER ALTER CROSS
 %token DELTA FLOAT GROUP INDEX INNER LIMIT LOCAL MERGE MINUS ORDER
-%token OUTER RIGHT TABLE UNION USING WHERE CALL CASE CHAR DATE
+%token OUTER RIGHT TABLE UNION USING WHERE CALL CASE DATE DATETIME
+%token CHAR CHARACTER NCHAR VARYING NATIVE VARCHAR NVARCHAR
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
-%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME
-%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL
+%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME BLOB CLOB
+%token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL BOOLEAN
+%token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
-%token TRUE FALSE
-%token WITHOUT ROWID
+%token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
+%token WITHOUT ROWID CONSTRAINT
 
 /* For SQLite
 */
@@ -341,7 +347,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
 %type <opt_not_exists_t>	opt_not_exists
+%type <opt_constraint_name_t> opt_constraint_name
 %type <column_def_comma_list_t>	column_def_commalist
+%type <table_constraint_def_t>	table_constraint_def
+%type <table_constraint_def_comma_list_t>	table_constraint_def_commalist
+%type <column_or_table_constraint_def_comma_list_t>	column_or_table_constraint_def_commalist
 %type <column_def_t>	column_def
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
@@ -518,7 +528,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 
 
 %destructor{
-    cout << "FUCK here" << endl;
     if($$ != NULL){
         delete($$->id_);
     }
@@ -526,7 +535,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 } <hint_t> <with_description_t> <prepare_statement_t> <execute_statement_t> <column_def_t> <drop_statement_t> <update_clause_t> <function_expr_t> <table_alias_t> <alias_t>
 
 %destructor{
-    cout << "FUCK me" << endl;
     if($$ != NULL){
         for(auto &i: $$->v_expr_list_){
             delete(i);
@@ -1154,12 +1162,12 @@ create_statement:
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $9;
         }
-    |   CREATE TABLE opt_not_exists table_name '(' column_def_commalist ')' opt_without_rowid {
+    |   CREATE TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE1;
             $$->opt_not_exists_ = $3;
             $$->table_name_ = $4;
-            $$->column_def_comma_list_ = $6;
+            $$->column_or_table_constraint_def_comma_list_ = $6;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         }
@@ -1210,14 +1218,14 @@ create_statement:
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         } 
-    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_def_commalist ')' opt_without_rowid {
+    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE6;
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->module_name_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->column_def_comma_list_ = $9;
+            $$->column_or_table_constraint_def_comma_list_ = $9;
             $$->opt_without_rowid_ = $11;
         } 
     |   CREATE trigger_declare BEGIN trigger_cmd_list END {
@@ -1314,21 +1322,72 @@ opt_not_exists:
     |   /* empty */ { $$ = new OptNotExists(); $$->sub_type_ = CASE1; }
     ;
 
+column_or_table_constraint_def_commalist:
+        column_def_commalist {
+              $$ = new ColumnOrTableConstraintDefCommaList();
+              $$->sub_type_ = CASE0;
+              $$->column_def_comma_list_ = $1;
+            }
+    |   table_constraint_def_commalist {
+              $$ = new ColumnOrTableConstraintDefCommaList();
+              $$->sub_type_ = CASE1;
+              $$->table_constraint_def_comma_list_ = $1;
+            }
+    |   column_def_commalist ',' table_constraint_def_commalist {
+              $$ = new ColumnOrTableConstraintDefCommaList();
+              $$->sub_type_ = CASE2;
+              $$->column_def_comma_list_ = $1;
+              $$->table_constraint_def_comma_list_ = $3;
+            }
+
 column_def_commalist:
         column_def { 
             $$ = new ColumnDefCommaList(); 
             $$->v_column_def_comma_list_.push_back($1); 
             }
     |   column_def_commalist ',' column_def { 
-        $1->v_column_def_comma_list_.push_back($3); 
-        $$ = $1; 
-        }
+            $1->v_column_def_comma_list_.push_back($3); 
+            $$ = $1; 
+            }
     ;
+
+table_constraint_def_commalist:
+        table_constraint_def {
+            $$ = new TableConstraintDefCommaList();
+            $$->v_table_constraint_def_comma_list_.push_back($1);
+            }
+    |   table_constraint_def_commalist ',' table_constraint_def {
+            $1->v_table_constraint_def_comma_list_.push_back($3);
+            $$ = $1;
+            }
+
+table_constraint_def:
+        opt_constraint_name CHECK '(' expr ')' { 
+            $$ = new TableConstraintDef(); 
+            $$->sub_type_ = CASE0;
+            $$->opt_constraint_name_ = $1;
+            $$->expr_ = $4;
+          }
+    |   opt_constraint_name PRIMARY KEY '(' indexed_column_list ')' opt_on_conflict {
+            $$ = new TableConstraintDef();
+            $$->sub_type_ = CASE1;
+            $$->opt_constraint_name_ = $1;
+            $$->indexed_column_list_ = $5;
+            $$->opt_on_conflict_ = $7;
+          }
+    |   opt_constraint_name UNIQUE '(' indexed_column_list ')' opt_on_conflict {
+            $$ = new TableConstraintDef();
+            $$->sub_type_ = CASE2;
+            $$->opt_constraint_name_ = $1;
+            $$->indexed_column_list_ = $4;
+            $$->opt_on_conflict_ = $6;
+          }
+    /* | FOREIGN KEY CASE */
 
 column_def:
         IDENTIFIER column_type opt_column_arglist {
             $$ = new ColumnDef();
-			$$->id_ = new Identifier($1, id_create_column_name);
+			      $$->id_ = new Identifier($1, id_create_column_name);
             $$->column_type_ = $2;
             $$->opt_column_arglist_ = $3;
             free($1); 
@@ -1351,6 +1410,17 @@ column_arglist:
         $$->v_column_arg_.push_back($1);
         }
     ;
+
+opt_constraint_name:
+        CONSTRAINT IDENTIFIER {
+            $$ = new OptConstraintName();
+            $$->sub_type_ = CASE0;
+            $$->identifier_ = new Identifier($2, id_table_constraint_name); free($2);
+          }
+    |   /* empty */ {
+            $$ = new OptConstraintName();
+            $$->sub_type_ = CASE1;
+          }
 
 column_arg:
         NULL opt_on_conflict {$$ = new ColumnArg(); $$->sub_type_ = CASE0; $$->opt_on_conflict_ = $2;}
@@ -1391,21 +1461,56 @@ opt_autoinc:
 
 
 column_type:
-        INT { $$ = new ColumnType(); $$->str_val_ = string("INT"); }
+           INT { $$ = new ColumnType(); $$->str_val_ = string("INT"); }
+    |   INT2 { $$ = new ColumnType(); $$->str_val_ = string("INT2"); }
+    |   INT8 { $$ = new ColumnType(); $$->str_val_ = string("INT8"); }
     |   INTEGER { $$ = new ColumnType(); $$->str_val_ = string("INTEGER"); }
+    |   TINYINT { $$ = new ColumnType(); $$->str_val_ = string("TINYINT"); }
+    |   SMALLINT { $$ = new ColumnType(); $$->str_val_ = string("SMALLINT"); }
+    |   MEDIUMINT { $$ = new ColumnType(); $$->str_val_ = string("MEDIUMINT"); }
+    |   BIGINT { $$ = new ColumnType(); $$->str_val_ = string("BIGINT"); }
+    |   UNSIGNED BIG INT { $$ = new ColumnType(); $$->str_val_ = string("UNSIGNED BIG INT"); }
     |   LONG { $$ = new ColumnType(); $$->str_val_ = string("LONG"); }
     |   FLOAT { $$ = new ColumnType(); $$->str_val_ = string("FLOAT"); }
     |   DOUBLE { $$ = new ColumnType(); $$->str_val_ = string("DOUBLE"); }
+    |   DOUBLE PRECISION { $$ = new ColumnType(); $$->str_val_ = string("DOUBLE PRECISION"); }
+    |   CHAR '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("CHAR(") + to_string($3) + ")"; 
+            } 
+    |   CHARACTER '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("CHARACTER(") + to_string($3) + ")"; 
+            } 
     |   VARCHAR '(' INTVAL ')' { 
             $$ = new ColumnType();
             $$->str_val_ = string("VARCHAR(") + to_string($3) + ")"; 
             }
-    |   CHAR '(' INTVAL ')' { $$ = new ColumnType(); 
-            $$->str_val_ = string("CHAR(") + to_string($3) + ")"; 
+    |   VARYING CHARACTER '(' INTVAL ')' { 
+            $$ = new ColumnType();
+            $$->str_val_ = string("VARYING CHARACTER(") + to_string($4) + ")"; 
+            }
+    |   NCHAR '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("NCHAR(") + to_string($3) + ")"; 
+            } 
+    |   NATIVE CHARACTER '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("NATIVE CHARACTER(") + to_string($4) + ")"; 
+            } 
+    |   NVARCHAR '(' INTVAL ')' { $$ = new ColumnType(); 
+            $$->str_val_ = string("NVARCHAR(") + to_string($3) + ")"; 
             } 
     |   TEXT { $$ = new ColumnType(); $$->str_val_ = string("TEXT"); }
+    |   CLOB { $$ = new ColumnType(); $$->str_val_ = string("CLOB"); }
+    |   BLOB { $$ = new ColumnType(); $$->str_val_ = string("BLOB"); }
     |   REAL { $$ = new ColumnType(); $$->str_val_ = string("REAL"); }
+    |   NUMERIC { $$ = new ColumnType(); $$->str_val_ = string("NUMERIC"); }
+    |   NUM     { $$ = new ColumnType(); $$->str_val_ = string("NUM"); }
     |   BOOL { $$ = new ColumnType(); $$->str_val_ = string("BOOL"); }
+    |   BOOLEAN { $$ = new ColumnType(); $$->str_val_ = string("BOOLEAN"); }
+    |   DECIMAL '(' INTVAL ',' INTVAL ')' {
+                $$ = new ColumnType();
+                $$->str_val_ = string("DECIMAL(") + to_string($3) + "," + to_string($5) + ")";
+            }
+    |   DATE { $$ = new ColumnType(); $$->str_val_ = string("DATE"); }
+    |   DATETIME { $$ = new ColumnType(); $$->str_val_ = string("DATETIME"); }
     |   /* empty*/ { $$ = new ColumnType(); $$->str_val_ = string(""); }
     ;
 
@@ -1569,11 +1674,17 @@ update_clause_commalist:
     ;
 
 update_clause:
-        IDENTIFIER '=' expr {
+        one_column_name '=' expr {
             $$ = new UpdateClause();
-            $$->id_ = new Identifier($1, id_column_name);
+            $$->sub_type_ = CASE0;
+            $$->column_name_ = $1;
             $$->expr_ = $3;
-            free($1);
+        }
+    |   '(' column_name_list ')' '=' expr {
+            $$ = new UpdateClause();
+            $$->sub_type_ = CASE1;
+            $$->column_name_list_ = $2;
+            $$->expr_ = $5;
         }
     ;
 
@@ -1906,7 +2017,7 @@ expr:
     ;
 
 operand: 
-        '(' expr ')' { $$ = new Operand(); $$->sub_type_ = CASE0; $$->expr_ = $2; } 
+        '(' expr_list ')' { $$ = new Operand(); $$->sub_type_ = CASE0; $$->expr_list_ = $2; } 
     |   array_index { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   scalar_expr { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
     |   unary_expr  { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
@@ -2095,12 +2206,12 @@ between_expr:
 one_column_name:
         IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE0; $$->identifier1_=new Identifier($1, id_column_name); free($1);}
     |   IDENTIFIER '.' IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE1; $$->identifier1_=new Identifier($1, id_table_name); $$->identifier2_=new Identifier($3, id_column_name); free($1); free($3);}
-    |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     |   IDENTIFIER '.' ROWID {$$ = new ColumnName(); $$->sub_type_=CASE4; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     ;
 
 column_name:
         one_column_name { $$=$1; }
+    |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
     ;
 

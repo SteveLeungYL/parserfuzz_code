@@ -534,7 +534,7 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             auto tmp2 = SAFETRANSLATE(table_name_);
             auto tmp = new IR(kUnknown, OP0(), tmp1, tmp2);
             PUSH(tmp);
-            auto tmp3 = SAFETRANSLATE(column_def_comma_list_);
+            auto tmp3 = SAFETRANSLATE(column_or_table_constraint_def_comma_list_);
             res = new IR(kCreateStatement, OP3("CREATE TABLE", "(", ")"), tmp, tmp3);
             PUSH(res);
             auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
@@ -598,7 +598,7 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             auto tmp3 = SAFETRANSLATE(module_name_);
             res = new IR(kCreateStatement, OPMID("USING"), res, tmp3);
             PUSH(res);
-            auto tmp4 = SAFETRANSLATE(column_def_comma_list_);
+            auto tmp4 = SAFETRANSLATE(column_or_table_constraint_def_comma_list_);
             res = new IR(kCreateStatement, OP3("", "(", ")"), res, tmp4);
             PUSH(res);
             auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
@@ -819,10 +819,21 @@ IR* UpdateClauseCommalist::translate(vector<IR *> &v_ir_collector){
 
 IR* UpdateClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
+
+    SWITCHSTART
+      
+      CASESTART(0)
+        auto tmp1 = SAFETRANSLATE(column_name_);
+        auto tmp2 = SAFETRANSLATE(expr_);
+        res = new IR(kUpdateClause, OPMID("="), tmp1 ,tmp2);
+      CASEEND
+      CASESTART(1)
+        auto tmp1 = SAFETRANSLATE(column_name_list_);
+        auto tmp2 = SAFETRANSLATE(expr_);
+        res = new IR(kUpdateClause, OP2("(", ") ="), tmp1 ,tmp2);
+      CASEEND
     
-    auto tmp1 = SAFETRANSLATE(id_);
-    auto tmp2 = SAFETRANSLATE(expr_);
-    res = new IR(kUpdateClause, OPMID("="), tmp1 ,tmp2);
+    SWITCHEND
 
     TRANSLATEEND
 }
@@ -1229,7 +1240,7 @@ IR* Operand::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(expr_);
+            res = SAFETRANSLATE(expr_list_);
             res = new IR(kOperand, OP2("(", ")"), res);
         CASEEND
         CASESTART(1)
@@ -1526,6 +1537,112 @@ IR* DatetimeField::translate(vector<IR *> &v_ir_collector){
     res = new IR(kDatetimeField, str_val_);
 
     TRANSLATEEND
+}
+
+IR *ColumnOrTableConstraintDefCommaList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  SWITCHSTART
+
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(column_def_comma_list_);
+      res = new IR(kColumnOrTableConstraintDefCommaList, OP0(), tmp0, NULL);
+    CASEEND
+    CASESTART(1)
+      auto tmp1 = SAFETRANSLATE(table_constraint_def_comma_list_);
+      res = new IR(kColumnOrTableConstraintDefCommaList, OP0(), NULL, tmp1);
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(column_def_comma_list_);
+      auto tmp1 = SAFETRANSLATE(table_constraint_def_comma_list_);
+      res = new IR(kColumnOrTableConstraintDefCommaList, OPMID(","), tmp0, tmp1);
+    CASEEND
+
+  SWITCHEND
+
+  TRANSLATEEND
+}
+
+void ColumnOrTableConstraintDefCommaList::deep_delete() {
+  SAFEDELETE(column_def_comma_list_);
+  SAFEDELETE(table_constraint_def_comma_list_);
+  delete this;
+}
+
+IR *TableConstraintDefCommaList::translate(vector<IR *> &v_ir_collector) {
+    TRANSLATESTART
+
+    TRANSLATELIST(kTableConstraintDefCommaList, v_table_constraint_def_comma_list_, ",");
+
+    TRANSLATEEND
+}
+
+void TableConstraintDefCommaList::deep_delete(){
+	SAFEDELETELIST(v_table_constraint_def_comma_list_);
+	delete this;
+}
+
+IR *TableConstraintDef::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  SWITCHSTART
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
+      auto tmp1 = SAFETRANSLATE(expr_);
+      res = new IR(kTableConstraintDef, OP3("", "CHECK(", ")"), tmp0, tmp1);
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
+      auto tmp1 = SAFETRANSLATE(indexed_column_list_);
+      auto tmp2 = SAFETRANSLATE(opt_on_conflict_);
+      res = new IR(kUnknown, OP2("PRIMARY KEY (", ")"), tmp1, tmp2);
+      PUSH(res);
+      res = new IR(kTableConstraintDef, OP0(), tmp0, res);
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
+      auto tmp1 = SAFETRANSLATE(indexed_column_list_);
+      auto tmp2 = SAFETRANSLATE(opt_on_conflict_);
+      res = new IR(kUnknown, OP2("UNIQUE (", ")"), tmp1, tmp2);
+      PUSH(res);
+      res = new IR(kTableConstraintDef, OP0(), tmp0, res);
+    CASEEND
+
+  SWITCHEND
+
+  TRANSLATEEND
+}
+
+void TableConstraintDef::deep_delete() {
+  SAFEDELETE(opt_constraint_name_);
+  SAFEDELETE(expr_);
+  SAFEDELETE(opt_on_conflict_);
+  SAFEDELETE(indexed_column_list_);
+  delete this;
+}
+
+IR* OptConstraintName::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  SWITCHSTART
+
+    CASESTART(0)
+      res = SAFETRANSLATE(identifier_);
+      res = new IR(kOptConstraintName, OP1("CONSTRAINT"), res);
+    CASEEND
+
+    CASESTART(1)
+      res = new IR(kOptConstraintName, "");
+    CASEEND 
+
+  SWITCHEND
+
+  TRANSLATEEND
+}
+
+void OptConstraintName::deep_delete() {
+	SAFEDELETE(identifier_);
+  delete this;
 }
 
 IR* ColumnName::translate(vector<IR *> &v_ir_collector){
@@ -2040,7 +2157,7 @@ void CreateStatement::deep_delete(){
 	SAFEDELETE(opt_not_exists_);
 	SAFEDELETE(table_name_);
 	SAFEDELETE(file_path_);
-	SAFEDELETE(column_def_comma_list_);
+	SAFEDELETE(column_or_table_constraint_def_comma_list_);
 	SAFEDELETE(select_statement_);
 	SAFEDELETE(opt_column_list_);
     SAFEDELETE(opt_unique_);
@@ -2155,7 +2272,8 @@ void UpdateClauseCommalist::deep_delete(){
 
 
 void UpdateClause::deep_delete(){
-	SAFEDELETE(id_);
+	SAFEDELETE(column_name_);
+  SAFEDELETE(column_name_list_);
 	SAFEDELETE(expr_);
 	delete this;
 }
@@ -2338,6 +2456,7 @@ void ExprAlias::deep_delete(){
 
 void Operand::deep_delete(){
 	SAFEDELETE(expr_);
+	SAFEDELETE(expr_list_);
 	SAFEDELETE(select_no_paren_);
 
 	delete this;
@@ -3352,7 +3471,7 @@ IR * OptFrame::translate(vector<IR*> &v_ir_collector){
             auto frame_bound_s = SAFETRANSLATE(frame_bound_s_);
             auto opt_frame_exclude = SAFETRANSLATE(opt_frame_exclude_);
             res = SAFETRANSLATE(frame_bound_e_);
-            res = new IR(kUnknown, OP2("BEWTEEN", "AND"), frame_bound_s, res);
+            res = new IR(kUnknown, OP2("BETWEEN", "AND"), frame_bound_s, res);
             PUSH(res);
             res = new IR(kUnknown, OP0(), range_or_row, res);
             PUSH(res);
