@@ -2074,6 +2074,12 @@ unary_expr:
             $$->operand_ = $1;
             $$->operator_ = string("IS NOT NULL");
         }
+    |   '+' operand { 
+            $$ =new UnaryExpr(); 
+            $$->sub_type_ = CASE7;
+            $$->operand_ = $2;
+            $$->operator_ = string("+");
+            }
     ;
 
 binary_expr:

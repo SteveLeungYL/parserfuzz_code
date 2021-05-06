@@ -1394,6 +1394,9 @@ IR* UnaryExpr::translate(vector<IR *> &v_ir_collector){
             tmp->id_type_ = id_whatever;
             res = new IR(kUnaryExpr, OPMID("IS NOT"), res, tmp);
         CASEEND
+        CASESTART(7)           
+            res = new IR(kUnaryExpr, OP1("+"), res);
+        CASEEND
     SWITCHEND
 
     TRANSLATEEND
