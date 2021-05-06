@@ -819,10 +819,21 @@ IR* UpdateClauseCommalist::translate(vector<IR *> &v_ir_collector){
 
 IR* UpdateClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
+
+    SWITCHSTART
+      
+      CASESTART(0)
+        auto tmp1 = SAFETRANSLATE(column_name_);
+        auto tmp2 = SAFETRANSLATE(expr_);
+        res = new IR(kUpdateClause, OPMID("="), tmp1 ,tmp2);
+      CASEEND
+      CASESTART(1)
+        auto tmp1 = SAFETRANSLATE(column_name_list_);
+        auto tmp2 = SAFETRANSLATE(expr_);
+        res = new IR(kUpdateClause, OP2("(", ") ="), tmp1 ,tmp2);
+      CASEEND
     
-    auto tmp1 = SAFETRANSLATE(id_);
-    auto tmp2 = SAFETRANSLATE(expr_);
-    res = new IR(kUpdateClause, OPMID("="), tmp1 ,tmp2);
+    SWITCHEND
 
     TRANSLATEEND
 }
@@ -2261,7 +2272,8 @@ void UpdateClauseCommalist::deep_delete(){
 
 
 void UpdateClause::deep_delete(){
-	SAFEDELETE(id_);
+	SAFEDELETE(column_name_);
+  SAFEDELETE(column_name_list_);
 	SAFEDELETE(expr_);
 	delete this;
 }

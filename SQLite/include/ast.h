@@ -535,7 +535,8 @@ class UpdateClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    ColumnName* column_name_;
+    ColumnNameList * column_name_list_;
     Expr * expr_;
 };
 

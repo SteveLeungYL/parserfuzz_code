@@ -1674,11 +1674,17 @@ update_clause_commalist:
     ;
 
 update_clause:
-        IDENTIFIER '=' expr {
+        one_column_name '=' expr {
             $$ = new UpdateClause();
-            $$->id_ = new Identifier($1, id_column_name);
+            $$->sub_type_ = CASE0;
+            $$->column_name_ = $1;
             $$->expr_ = $3;
-            free($1);
+        }
+    |   '(' column_name_list ')' '=' expr {
+            $$ = new UpdateClause();
+            $$->sub_type_ = CASE1;
+            $$->column_name_list_ = $2;
+            $$->expr_ = $5;
         }
     ;
 
@@ -2200,12 +2206,12 @@ between_expr:
 one_column_name:
         IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE0; $$->identifier1_=new Identifier($1, id_column_name); free($1);}
     |   IDENTIFIER '.' IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE1; $$->identifier1_=new Identifier($1, id_table_name); $$->identifier2_=new Identifier($3, id_column_name); free($1); free($3);}
-    |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     |   IDENTIFIER '.' ROWID {$$ = new ColumnName(); $$->sub_type_=CASE4; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     ;
 
 column_name:
         one_column_name { $$=$1; }
+    |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
     |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
     ;
 
