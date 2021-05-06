@@ -2837,7 +2837,10 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     int outputfile_fd = 0;
     while (true){
       DIR* dir = opendir("../bug_analysis/bug_samples/");
-      if (!dir) exit(1);
+      if (!dir) {
+        cerr << "ERROR: ../bug_analysis/bug_samples/ folder doesn't exists. \n";
+        exit(1);
+      }
       closedir(dir);
       bug_output_id++;
       string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";

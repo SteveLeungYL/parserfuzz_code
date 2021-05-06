@@ -124,7 +124,6 @@ string SQL_ORACLE::get_random_mutated_valid_stmt(){
           is_success = true;
 
           if (use_temp) total_temp++;
-
           return new_valid_select_str;
         }
         //else {

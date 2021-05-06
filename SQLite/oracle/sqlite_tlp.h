@@ -35,7 +35,7 @@ public:
 private:
     vector<string> temp_valid_stmts = {
         /* Complete set */
-        "SELECT x FROM x;", 
+        // "SELECT x FROM x;", 
         "SELECT x FROM WHERE x;", 
         // "SELECT x FROM x WHERE x GROUP BY x;",
         // // "SELECT x FROM x WHERE x HAVING x;", // TODO:: Implement HAVING. 

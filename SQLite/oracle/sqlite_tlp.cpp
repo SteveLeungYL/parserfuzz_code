@@ -4,6 +4,7 @@
 
 #include <string>
 #include <algorithm>
+#include <regex>
 
 int SQL_TLP::count_valid_stmts(const string& input){
   int norec_select_count = 0;
@@ -18,12 +19,13 @@ int SQL_TLP::count_valid_stmts(const string& input){
 bool SQL_TLP::is_oracle_valid_stmt(const string& query){
   /* Complete version. More flexible query restrictions. */
   if (
-        ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
-        ((query.find("SELECT")) <= 5 || (query.find("select")) <= 5) &&
-        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
-        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
-        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos)
-    ) return true;
+        regex_match(query, regex("^\\s*SELECT(.*?)FROM(.*?)WHERE(.*?)$", regex::icase)) &&
+        !regex_match(query, regex("(.*?)INTERSECT(.*?)", regex::icase)) &&
+        !regex_match(query, regex("(.*?)EXCEPT(.*?)", regex::icase)) &&
+        !regex_match(query, regex("(.*?)UNION ALL(.*?)", regex::icase))
+  ) {
+      return true;
+  }
     return false;
 }
 
@@ -401,7 +403,7 @@ void SQL_TLP::rewrite_where(string& ori, string& rew_1, const string& bef_sel_st
 
   } else {
 
-    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE " + where_stmt + " " + extra_stmt;
+    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") " + extra_stmt;
     if (is_union_all) rew_1 += " UNION ALL ";
     else rew_1 += " UNION ";
     rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT (" + where_stmt + ") " + extra_stmt;
@@ -601,12 +603,27 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE>& v
       begin_idx = cmd_str.find("13579", begin_idx+5);
       end_idx = cmd_str.find("97531", end_idx+5);
 
-      if ( (current_cmd_string.find("SELECT MIN") < 3) || (current_cmd_string.find("select min") < 3) ) v_valid_type.push_back(VALID_STMT_TYPE::MIN);
-      else if ( (current_cmd_string.find("SELECT MAX") < 3) || (current_cmd_string.find("select max") < 3) ) v_valid_type.push_back(VALID_STMT_TYPE::MAX);
-      else if ( (current_cmd_string.find("SELECT SUM") < 3) || (current_cmd_string.find("select sum") < 3) ) v_valid_type.push_back(VALID_STMT_TYPE::SUM);
-      else if ( (current_cmd_string.find("SELECT COUNT") < 5) || (current_cmd_string.find("select count") < 5) ) v_valid_type.push_back(VALID_STMT_TYPE::COUNT);
-      // else if ( (current_cmd_string.find("AVG") != string::npos) || (current_cmd_string.find("avg") != string::npos) ) v_valid_type.push_back(VALID_STMT_TYPE::AVG); // TODO:: Implement AVG. 
-      else v_valid_type.push_back(VALID_STMT_TYPE::NORM);
+      if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*MIN(.*?)", regex::icase))){
+        v_valid_type.push_back(VALID_STMT_TYPE::MIN);
+        // cerr << "query: " << current_cmd_string << " \nMIN. \n"; 
+      }
+      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*MAX(.*?)", regex::icase))){
+        v_valid_type.push_back(VALID_STMT_TYPE::MAX);
+        // cerr << "query: " << current_cmd_string << " \nMAX. \n"; 
+      }
+      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*SUM(.*?)", regex::icase))){
+        v_valid_type.push_back(VALID_STMT_TYPE::SUM);
+        // cerr << "query: " << current_cmd_string << " \nSUM. \n"; 
+      }
+      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*COUNT(.*?)", regex::icase))){
+        v_valid_type.push_back(VALID_STMT_TYPE::COUNT);
+        // cerr << "query: " << current_cmd_string << " \nCOUNT. \n"; 
+      }
+      else{
+        v_valid_type.push_back(VALID_STMT_TYPE::NORM);
+        // cerr << "query: " << current_cmd_string << " \nNORM. \n"; 
+      }
+      
     }
     else {
       break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
