@@ -408,6 +408,7 @@ public:
     TriggerDeclare * trigger_declare_;
     TriggerCmdList * trigger_cmd_list_;
     OptWithoutRowID * opt_without_rowid_;
+    OptTmp * opt_tmp_;
 };
 
 class InsertStatement: public PreparableStatement{

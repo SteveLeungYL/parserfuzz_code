@@ -1146,39 +1146,41 @@ opt_column:
 	}
  ;
 
-
 /******************************
  * Create Statement
  * CREATE TABLE students (name TEXT, student_number INTEGER, city TEXT, grade DOUBLE)
  * CREATE TABLE students FROM TBL FILE 'test/students.tbl'
  ******************************/
 create_statement:
-        CREATE TABLE opt_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
+        CREATE opt_tmp TABLE opt_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE0;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->file_path_ = $8;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
+            $$->file_path_ = $9;
+            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->opt_without_rowid_ = $10;
+        }
+    |   CREATE opt_tmp TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
+            $$ = new CreateStatement();
+            $$->sub_type_ = CASE1;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
+            $$->column_or_table_constraint_def_comma_list_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $9;
         }
-    |   CREATE TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->column_or_table_constraint_def_comma_list_ = $6;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $8;
-        }
-    |   CREATE TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
+    |   CREATE opt_tmp TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE2;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->select_statement_ = $6;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
+            $$->select_statement_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $7;
+            $$->opt_without_rowid_ = $8;
         }
     |   CREATE VIEW opt_not_exists table_name opt_column_list AS select_statement {
             $$ = new CreateStatement();
@@ -1265,6 +1267,7 @@ trigger_declare:
 
 opt_tmp:
         TEMP {$$ = new OptTmp(); $$->str_val_ = string("TEMP");}
+    |   TEMPORARY {$$ = new OptTmp(); $$->str_val_ = string("TEMPORARY");}
     |   /* empty */  {$$ = new OptTmp(); $$->str_val_ = string("");}
     ;
 
