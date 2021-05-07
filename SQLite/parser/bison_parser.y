@@ -2097,7 +2097,7 @@ binary_expr:
     |   operand LIKE operand        { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("LIKE");}
     |   operand NOT LIKE operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $4; $$->operator_ = string("NOT LIKE");}
     |   operand ILIKE operand       { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("ILIKE");}
-    |   operand CONCAT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("CONCAT");}
+    |   operand CONCAT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("||");}
     |   operand GLOB operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("GLOB");}
     |   operand MATCH operand   { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("MATCH");}
     |   operand REGEX operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("REGEX");}

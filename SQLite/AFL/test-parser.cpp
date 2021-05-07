@@ -54,6 +54,7 @@ bool test_parse(string &query) {
   string tostring = root->to_string();
   if (tostring.size() <= 0) {
     cerr << RED << "tostring failed" << DEF << endl;
+    root->deep_drop();
     return false;
   }
   cout << "tostring: >" << tostring << "<" << endl;
@@ -61,6 +62,7 @@ bool test_parse(string &query) {
   string structure = mutator.extract_struct(root);
   if (structure.size() <= 0) {
     cerr << RED << "extract failed" << DEF << endl;
+    root->deep_drop();
     return false;
   }
   cout << "structur: >" << structure << "<" << endl;
@@ -68,6 +70,7 @@ bool test_parse(string &query) {
   string validity = mutator.validate(root);
   if (validity.size() <= 0) {
     cerr << RED << "validate failed" << DEF << endl;
+    root->deep_drop();
     return false;
   }
   cout << "validate: >" << validity << "<" << endl;
