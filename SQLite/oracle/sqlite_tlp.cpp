@@ -383,6 +383,8 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
 
   } else {
     // TODO:: Handling HAVING stmt. 
+    query = "";
+    rew_1 = "";
   }
 
   rew_2 = "";
@@ -465,7 +467,7 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
   int& res_a_int = res.res_int_0;
   int& res_b_int = res.res_int_1;
 
-  if (!regex_match(res_a, regex("^[\\d\\s]*$")) || !regex_match(res_b, regex("^[\\d\\s]*$")))
+  if (!regex_match(res_a, regex("^[\\d\\s\\.]*$")) || !regex_match(res_b, regex("^[\\d\\s]*$")))
   {
     res.comp_res = ORA_COMP_RES::Error;
     return 1;
