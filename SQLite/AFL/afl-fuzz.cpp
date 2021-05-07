@@ -2862,11 +2862,11 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     outputfile << "Detailed result: " << "\n";
     int iter = 0;
     for (COMP_RES& res : all_comp_res.v_res){
-      outputfile << "\nResult NUM: " << iter++ << " res: " << res.comp_res << ":\n";
-      outputfile << "First stmt res is (str): \n" << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
-      outputfile << "Second stmt res is (str): \n" << res.res_str_1 << "\n" << "Second stmt is (int): " << res.res_int_1 << "\n" ;
-      outputfile << "Third stmt res is (str): \n" << res.res_str_2 << "\n" << "Third stmt is (int): " << res.res_int_2 << "\n" ;
-      outputfile << "Fourth stmt res is (str): \n" << res.res_str_3 << "\n" << "Fourth stmt is (int): " << res.res_int_3 << "\n" ;
+      outputfile << "\n\nResult NUM: " << iter++ << " \nRESULT FOR NUM: " << res.comp_res << "\n";
+      outputfile << "First stmt res is (str): " << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
+      outputfile << "Second stmt res is (str): " << res.res_str_1 << "\n" << "Second stmt is (int): " << res.res_int_1 << "\n" ;
+      outputfile << "Third stmt res is (str): " << res.res_str_2 << "\n" << "Third stmt is (int): " << res.res_int_2 << "\n" ;
+      outputfile << "Fourth stmt res is (str): " << res.res_str_3 << "\n" << "Fourth stmt is (int): " << res.res_int_3 << "\n" ;
     }
 
     outputfile << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
@@ -6873,7 +6873,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_NOREC();   // Set it to your own oracle class. 
+  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
 
