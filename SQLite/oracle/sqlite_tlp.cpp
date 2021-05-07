@@ -465,7 +465,7 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
   int& res_a_int = res.res_int_0;
   int& res_b_int = res.res_int_1;
 
-  if (res_a.find("Error") != string::npos || res_b.find("Error") != string::npos)
+  if (!regex_match(res_a, regex("^[\\d\\s]*$")) || !regex_match(res_b, regex("^[\\d\\s]*$")))
   {
     res.comp_res = ORA_COMP_RES::Error;
     return 1;
