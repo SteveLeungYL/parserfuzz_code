@@ -584,7 +584,7 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             auto tmp4 = SAFETRANSLATE(table_name_);
             res = new IR(kUnknown, OPMID("ON"), res, tmp4);
             PUSH(res);
-            auto tmp5 = SAFETRANSLATE(ident_commalist_);
+            auto tmp5 = SAFETRANSLATE(indexed_column_list_);
             res = new IR(kCreateStatement, OP3("", "(", ")"), res, tmp5);
             PUSH(res);
             auto tmp6 = SAFETRANSLATE(opt_where_);
@@ -2177,7 +2177,7 @@ void CreateStatement::deep_delete(){
 	SAFEDELETE(opt_column_list_);
     SAFEDELETE(opt_unique_);
     SAFEDELETE(index_name_);
-    SAFEDELETE(ident_commalist_);
+    SAFEDELETE(indexed_column_list_);
     SAFEDELETE(opt_where_);
     SAFEDELETE(module_name_);
     SAFEDELETE(trigger_declare_);

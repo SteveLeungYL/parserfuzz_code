@@ -402,7 +402,7 @@ public:
     OptColumnList * opt_column_list_;
     OptUnique * opt_unique_;
     IndexName * index_name_;
-    IdentCommaList * ident_commalist_;
+    IndexedColumnList * indexed_column_list_;
     OptWhere * opt_where_;
     ModuleName * module_name_;
     TriggerDeclare * trigger_declare_;

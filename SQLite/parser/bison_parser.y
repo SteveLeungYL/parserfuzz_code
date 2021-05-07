@@ -1198,7 +1198,7 @@ create_statement:
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
         }
     //add 2
-    |   CREATE opt_unique INDEX opt_not_exists index_name ON table_name '(' ident_commalist ')' opt_where {
+    |   CREATE opt_unique INDEX opt_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE4;
             $$->opt_unique_ = $2;
@@ -1206,10 +1206,7 @@ create_statement:
             $$->index_name_ = $5;   
             $$->table_name_ = $7;
             $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->ident_commalist_ = $9;
-            for(auto &i: $$->ident_commalist_->v_iden_comma_list_){
-                i->id_type_ = id_column_name;
-            }
+            $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
         }
     |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name opt_without_rowid {
@@ -2101,6 +2098,8 @@ binary_expr:
     |   operand GLOB operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("GLOB");}
     |   operand MATCH operand   { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("MATCH");}
     |   operand REGEX operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("REGEX");}
+    |   operand LSHIFT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<<");}
+    |   operand RSHIFT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">>");}
     ;
 
 logic_expr:
