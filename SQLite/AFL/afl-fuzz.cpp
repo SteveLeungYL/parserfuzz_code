@@ -2602,12 +2602,14 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
     if (p_oracle->is_oracle_valid_stmt(query)) {
       string rew_1 = "", rew_2 = "", rew_3 = "";
       p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3);
-
-      if (is_mark)
-        current_output += "SELECT 13579; \n";
-      current_output += query + "; \n";
-      if (is_mark)
-        current_output += "SELECT 97531; \n";
+      
+      if (query != ""){
+        if (is_mark)
+          current_output += "SELECT 13579; \n";
+        current_output += query + "; \n";
+        if (is_mark)
+          current_output += "SELECT 97531; \n";
+      }
 
       if (rew_1 != "") {
         if (is_mark)

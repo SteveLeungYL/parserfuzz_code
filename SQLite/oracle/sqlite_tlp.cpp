@@ -368,8 +368,18 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
 
   if ( !regex_match(extra_stmt, regex("^(.*?)HAVING(.*?)$", regex::icase)) ) {  // This is not a having stmts. Handle with where stmt.
     if (
-        !regex_match(select_stmt, regex("^\\s*SELECT\\s*DISTINCT(.*?)$", regex::icase))  &&
-        !regex_match(extra_stmt, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase))
+        (
+          /* If we have SELECT (DISTINCT) COUNT/MAX/MIN/SUM, even if we have GROUP BY or DISTINCT, we still use UNION ALL. */
+          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)", regex::icase)) ||
+          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)", regex::icase)) ||
+          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)", regex::icase)) ||
+          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)", regex::icase))
+        )
+        ||
+        (
+          !regex_match(select_stmt, regex("^\\s*SELECT\\s*DISTINCT(.*?)$", regex::icase))  &&
+          !regex_match(extra_stmt, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase))
+        )
     )
     {
 
