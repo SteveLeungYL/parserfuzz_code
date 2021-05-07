@@ -560,15 +560,18 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(3)
+            auto tmp0 = SAFETRANSLATE(opt_tmp_);
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
+            res = new IR(kUnknown, OPMID("VIEW"), tmp0, tmp1);
+            PUSH(res);
             auto tmp2 = SAFETRANSLATE(table_name_);
-            auto tmp = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(tmp);
+            res = new IR(kUnknown, OP0(), res, tmp2);
+            PUSH(res);
             auto tmp3 = SAFETRANSLATE(opt_column_list_);
-            auto tmp4 = new IR(kUnknown, OP0(), tmp, tmp3);
-            PUSH(tmp4);
+            res = new IR(kUnknown, OP0(), res, tmp3);
+            PUSH(res);
             auto tmp5 = SAFETRANSLATE(select_statement_);
-            res = new IR(kCreateStatement, OP2("CREATE VIEW", "AS"), tmp4, tmp5);
+            res = new IR(kCreateStatement, OP2("CREATE", "AS"), res, tmp5);
         CASEEND
         CASESTART(4)
             auto tmp1 = SAFETRANSLATE(opt_unique_);

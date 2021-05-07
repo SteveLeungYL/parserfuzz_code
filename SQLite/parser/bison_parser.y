@@ -1182,18 +1182,19 @@ create_statement:
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         }
-    |   CREATE VIEW opt_not_exists table_name opt_column_list AS select_statement {
+    |   CREATE opt_tmp VIEW opt_not_exists table_name opt_column_list AS select_statement {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE3;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_column_list_ = $5;
+            $$->opt_column_list_ = $6;
             if($$->opt_column_list_->sub_type_ == CASE0)
                 for(auto &i: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
                     i->id_type_ = id_create_column_name;
                 }
-            $$->select_statement_ = $7;
+            $$->select_statement_ = $8;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
         }
     //add 2
