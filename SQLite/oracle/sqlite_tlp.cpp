@@ -74,6 +74,8 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
 {
   // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 
+  string ori_query = query;
+
   while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
   { // Delete duplicated whitespace at the beginning.
     query = query.substr(1, query.size() - 1);
@@ -330,19 +332,37 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
     order_by_position = tmp2;
   }
 
-  size_t extra_stmt_position = -1;
-  if (group_by_position != string::npos && order_by_position != string::npos)
-    extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position);
-  else if (group_by_position != string::npos)
-    extra_stmt_position = group_by_position;
-  else if (order_by_position != string::npos)
-    extra_stmt_position = order_by_position;
+  size_t order_by_len = 0, group_by_len = 0;
+  if (group_by_position != string::npos && order_by_position != string::npos){
+    if (group_by_position < order_by_position){
+      group_by_len = order_by_position - group_by_position;
+      order_by_len = ori_query.size() - order_by_position;
+    } else {
+      order_by_len = group_by_position - order_by_position;
+      group_by_len = ori_query.size() - group_by_position;
+    }
+  } else if (group_by_position != string::npos){
+    group_by_len = ori_query.size() - group_by_position;
+  } else if (order_by_position != string::npos){
+    order_by_len = ori_query.size() - order_by_position;
+  }
+
+  size_t extra_stmt_position = min((size_t)(group_by_position), (size_t)(order_by_position));
+  // size_t extra_stmt_position = -1;
+  // if (group_by_position != string::npos && order_by_position != string::npos)
+  //   extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position);
+  // else if (group_by_position != string::npos)
+  //   extra_stmt_position = group_by_position;
+  // else if (order_by_position != string::npos)
+  //   extra_stmt_position = order_by_position;
 
   string before_select_stmt;
   string select_stmt;
   string from_stmt;
   string where_stmt;
-  string extra_stmt;
+  // string extra_stmt;
+  string group_by_stmt;
+  string order_by_stmt;
 
   before_select_stmt = query.substr(0, select_position - 0);
 
@@ -360,39 +380,60 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
   else
     where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
 
-  if (extra_stmt_position == -1)
-    extra_stmt = "";
+  if (order_by_position == string::npos)
+    order_by_stmt = "";
   else
-    extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
+    order_by_stmt = query.substr(order_by_position, order_by_len);
+
+  if (group_by_position == string::npos)
+    group_by_stmt = "";
+  else
+    group_by_stmt = query.substr(group_by_position, group_by_len);
+
+  // if (extra_stmt_position == -1)
+  //   extra_stmt = "";
+  // else
+  //   extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
 
 
-  if ( !regex_match(extra_stmt, regex("^(.*?)HAVING(.*?)$", regex::icase)) ) {  // This is not a having stmts. Handle with where stmt.
+  if ( !regex_match(ori_query, regex("^(.*?)HAVING(.*?)$", regex::icase)) ) {  // This is not a having stmts. Handle with where stmt.
     if (
         (
           /* If we have SELECT (DISTINCT) COUNT/MAX/MIN/SUM, even if we have GROUP BY or DISTINCT, we still use UNION ALL. */
-          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)", regex::icase)) ||
-          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)", regex::icase)) ||
-          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)", regex::icase)) ||
-          regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)", regex::icase))
+          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)$", regex::icase)) ||
+          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)$", regex::icase)) ||
+          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)$", regex::icase)) ||
+          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)$", regex::icase))
         )
         ||
         (
-          !regex_match(select_stmt, regex("^\\s*SELECT\\s*DISTINCT(.*?)$", regex::icase))  &&
-          !regex_match(extra_stmt, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase))
+          !regex_match(ori_query, regex("^\\s*SELECT\\s*DISTINCT(.*?)$", regex::icase))  &&
+          !regex_match(ori_query, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase))
         )
     )
     {
 
-      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, extra_stmt, true);
+      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, group_by_stmt, order_by_stmt, true);
 
     } else {
 
-      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, extra_stmt, false);
+      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, group_by_stmt, order_by_stmt, false);
 
     }
 
+    // if (group_by_stmt != "")
+    //   cerr << "GROUP BY stmt is: " << group_by_stmt << endl;
+    // if (order_by_stmt != "")
+    //   cerr << "ORDER BY stmt is: " << order_by_stmt << endl;
+
   } else {
     // TODO:: Handling HAVING stmt. 
+    query = "";
+    rew_1 = "";
+  }
+
+  /* For now, do not process the SELECT AVG stmt. */
+  if (regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?AVG(.*?)$", regex::icase))){
     query = "";
     rew_1 = "";
   }
@@ -402,28 +443,28 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
 
 }
 
-void SQL_TLP::rewrite_where(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt, const bool is_union_all){
+void SQL_TLP::rewrite_where(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& group_by_stmt, const string& order_by_stmt, const bool is_union_all){
   /* Taking care of TLP select stmt: SELECT x FROM x [joins] */
   if (where_stmt == ""){
-    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE " + extra_stmt;
+    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE " + group_by_stmt;
     if (is_union_all) rew_1 += " UNION ALL ";
     else rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT TRUE " + extra_stmt;
+    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT TRUE " + group_by_stmt;
     if (is_union_all) rew_1 += " UNION ALL ";
     else rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE IS NULL " + extra_stmt;
+    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE TRUE IS NULL " + group_by_stmt + " " + order_by_stmt;
 
   } else {
 
-    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") " + extra_stmt;
+    rew_1 = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") " + group_by_stmt;
     if (is_union_all) rew_1 += " UNION ALL ";
     else rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT (" + where_stmt + ") " + extra_stmt;
+    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE NOT (" + where_stmt + ") " + group_by_stmt;
     if (is_union_all) rew_1 += " UNION ALL ";
     else rew_1 += " UNION ";
-    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") IS NULL " + extra_stmt;
+    rew_1 += bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " WHERE (" + where_stmt + ") IS NULL " + group_by_stmt + " " + order_by_stmt;
 
-    ori = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " " + extra_stmt;
+    ori = bef_sel_stmt + " SELECT " + sel_stmt + " FROM " + from_stmt + " " + group_by_stmt + " " + order_by_stmt;
 
   }
 }
@@ -458,8 +499,27 @@ bool SQL_TLP::compare_norm(COMP_RES& res) {
     return true;
   }
 
-  res_a_int = std::count(res_a.begin(), res_a.end(), '\n');
-  res_b_int = std::count(res_b.begin(), res_b.end(), '\n');
+  res_a_int = 0;
+  res_b_int = 0;
+
+  vector<string> v_res_a = string_splitter(res_a, "\n");
+  vector<string> v_res_b = string_splitter(res_b, "\n");
+
+  /* Remove NULL results */
+  for (string& r: v_res_a){
+    if (regex_match(r, regex("^[\\|\\s]*$", regex::icase))) res_a_int--;
+  }
+
+  for (string& r: v_res_b){
+    if (regex_match(r, regex("^[\\|\\s]*$", regex::icase))) res_b_int--;
+  }
+
+  v_res_a.clear();
+  v_res_b.clear();
+
+
+  res_a_int += std::count(res_a.begin(), res_a.end(), '\n');
+  res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
 
   if (res_a_int != res_b_int) { // Found inconsistent. 
     res.comp_res = ORA_COMP_RES::Fail;
@@ -477,6 +537,7 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
   int& res_a_int = res.res_int_0;
   int& res_b_int = res.res_int_1;
 
+  /* Do not allow any alphabet characters. */
   if (!regex_match(res_a, regex("^[\\d\\s\\.]*$")) || !regex_match(res_b, regex("^[\\d\\s]*$")))
   {
     res.comp_res = ORA_COMP_RES::Error;

@@ -48,7 +48,7 @@ private:
         
     };
 
-    void rewrite_where(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& extra_stmt, const bool is_union_all);
+    void rewrite_where(string& ori, string& rew_1, const string& bef_sel_stmt, const string& sel_stmt, const string& from_stmt, const string& where_stmt, const string& group_by_stmt, const string& order_by_stmt, const bool is_union_all);
 
 
 // TODO: Implement HAVING stmts.
