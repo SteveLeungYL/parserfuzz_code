@@ -676,19 +676,19 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE>& v
       begin_idx = cmd_str.find("13579", begin_idx+5);
       end_idx = cmd_str.find("97531", end_idx+5);
 
-      if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)", regex::icase))){
+      if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)$", regex::icase))){
         v_valid_type.push_back(VALID_STMT_TYPE::MIN);
         // cerr << "query: " << current_cmd_string << " \nMIN. \n"; 
       }
-      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)", regex::icase))){
+      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)$", regex::icase))){
         v_valid_type.push_back(VALID_STMT_TYPE::MAX);
         // cerr << "query: " << current_cmd_string << " \nMAX. \n"; 
       }
-      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)", regex::icase))){
+      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)$", regex::icase))){
         v_valid_type.push_back(VALID_STMT_TYPE::SUM);
         // cerr << "query: " << current_cmd_string << " \nSUM. \n"; 
       }
-      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)", regex::icase))){
+      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)$", regex::icase))){
         v_valid_type.push_back(VALID_STMT_TYPE::COUNT);
         // cerr << "query: " << current_cmd_string << " \nCOUNT. \n"; 
       }
