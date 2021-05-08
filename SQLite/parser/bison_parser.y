@@ -103,10 +103,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     Statement* statement_t;
     PreparableStatement* preparable_statement_t;
     OptionalHints* optional_hints_t;
-    HintList* hint_list_t;
-    Hint* hint_t;
-    PrepareStatement* prepare_statement_t;
-    PrepareTargetQuery* prepare_target_query_t;
+    /* HintList* hint_list_t; */
+    /* Hint* hint_t; */
+    /* PrepareStatement* prepare_statement_t; */
+    /* PrepareTargetQuery* prepare_target_query_t; */
     ExecuteStatement* execute_statement_t;
     ImportStatement* import_statement_t;
     ImportFileType* import_file_type_t;
@@ -335,11 +335,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <statement_list_t>	statement_list
 %type <statement_t>	statement
 %type <preparable_statement_t>	preparable_statement
-%type <optional_hints_t>	opt_hints
-%type <hint_list_t>	hint_list
-%type <hint_t>	hint
-%type <prepare_statement_t>	prepare_statement
-%type <prepare_target_query_t>	prepare_target_query
+/* %type <optional_hints_t>	opt_hints */
+/* %type <hint_list_t>	hint_list */
+/* %type <hint_t>	hint */
+/* %type <prepare_statement_t>	prepare_statement */
+/* %type <prepare_target_query_t>	prepare_target_query */
 %type <execute_statement_t>	execute_statement
 %type <import_statement_t>	import_statement
 %type <import_file_type_t>	import_file_type
@@ -593,18 +593,19 @@ statement_list:
     ;
 
 statement:
-        prepare_statement opt_hints {
-            $$ = new Statement();
-            $$->sub_type_ = CASE1;
-            $$->prepare_statement_ = $1;
-            $$->optional_hints_ = $2;
-        }
-    |   preparable_statement opt_hints {
+        preparable_statement {
             $$ = new Statement();
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
-            $$->optional_hints_ = $2;
+            //$$->optional_hints_ = $2;
         }
+    /*|    prepare_statement opt_hints {
+     *        $$ = new Statement();
+     *        $$->sub_type_ = CASE1;
+     *        $$->prepare_statement_ = $1;
+     *        $$->optional_hints_ = $2;
+     *    }
+     */
     |   show_statement {
             $$ = new Statement();
             $$->sub_type_ = CASE2;
@@ -977,60 +978,61 @@ collation_name:
  * Hints
  ******************************/
 
-opt_hints:
-    WITH HINT '(' hint_list ')' { 
-        $$ = new OptionalHints();
-        $$->sub_type_ = CASE0;
-        $$->hint_list_ = $4; 
-        }
-  | /* empty */ { $$ = new OptionalHints(); $$->sub_type_ = CASE1;}
-  ;
-
-
-hint_list:
-      hint { 
-          $$ = new HintList();
-          $$->v_hint_list_.push_back($1); 
-          }
-    | hint_list ',' hint { $1->v_hint_list_.push_back($3); $$ = $1; }
-    ;
-
-hint:
-        IDENTIFIER {
-            $$ = new Hint();
-            $$->sub_type_ = CASE1;
-            $$->id_ = new Identifier($1);
-            free($1);
-        }
-    | IDENTIFIER '(' literal_list ')' {
-            $$ = new Hint();
-            $$->sub_type_ = CASE0;
-            $$->id_ = new Identifier($1);
-            $$->literal_list_ = $3;
-            free($1);
-        }
-    ;
-
+/*  opt_hints:
+ *      WITH HINT '(' hint_list ')' { 
+ *          $$ = new OptionalHints();
+ *          $$->sub_type_ = CASE0;
+ *          $$->hint_list_ = $4; 
+ *          }
+ *    | { $$ = new OptionalHints(); $$->sub_type_ = CASE1;}
+ *    ;
+ *  
+ *  
+ *  hint_list:
+ *        hint { 
+ *            $$ = new HintList();
+ *            $$->v_hint_list_.push_back($1); 
+ *            }
+ *      | hint_list ',' hint { $1->v_hint_list_.push_back($3); $$ = $1; }
+ *      ;
+ *  
+ *  hint:
+ *          IDENTIFIER {
+ *              $$ = new Hint();
+ *              $$->sub_type_ = CASE1;
+ *              $$->id_ = new Identifier($1);
+ *              free($1);
+ *          }
+ *      | IDENTIFIER '(' literal_list ')' {
+ *              $$ = new Hint();
+ *              $$->sub_type_ = CASE0;
+ *              $$->id_ = new Identifier($1);
+ *              $$->literal_list_ = $3;
+ *              free($1);
+ *          }
+ *      ;
+ */
 
 /******************************
  * Prepared Statement
  ******************************/
-prepare_statement:
-        PREPARE IDENTIFIER FROM prepare_target_query {
-            $$ = new PrepareStatement();
-            $$->id_ = new Identifier($2);
-            $$->prep_target_que_ = $4;
-            free($2);
-        }
-    ;
-
-prepare_target_query: STRING 
-        {
-            $$ = new PrepareTargetQuery();
-            $$->prep_target_que_ = "'" + string($1) + "'";
-            free($1);
-        }
-    ;
+/* prepare_statement:
+ *         PREPARE IDENTIFIER FROM prepare_target_query {
+ *             $$ = new PrepareStatement();
+ *             $$->id_ = new Identifier($2);
+ *             $$->prep_target_que_ = $4;
+ *             free($2);
+ *         }
+ *     ;
+ * 
+ * prepare_target_query: STRING 
+ *         {
+ *             $$ = new PrepareTargetQuery();
+ *             $$->prep_target_que_ = "'" + string($1) + "'";
+ *             free($1);
+ *         }
+ *     ;
+ */
 
 execute_statement:
         EXECUTE IDENTIFIER {
@@ -1047,7 +1049,6 @@ execute_statement:
             free($2);
         }
     ;
-
 
 /******************************
  * Import Statement

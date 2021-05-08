@@ -371,14 +371,14 @@ IR* Statement::translate(vector<IR *> &v_ir_collector){
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(preparable_statement_);
-            auto tmp = SAFETRANSLATE(optional_hints_);
-            res = new IR(kStatement, OP0(), res, tmp);
+            //auto tmp = SAFETRANSLATE(optional_hints_);
+            res = new IR(kStatement, OP0(), res);
         CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(prepare_statement_);
-            auto tmp = SAFETRANSLATE(optional_hints_);
-            res = new IR(kStatement, OP0(), res, tmp);
-        CASEEND
+        //CASESTART(1)
+        //    res = SAFETRANSLATE(prepare_statement_);
+        //    auto tmp = SAFETRANSLATE(optional_hints_);
+        //    res = new IR(kStatement, OP0(), res, tmp);
+        //CASEEND
         CASESTART(2)
             res = SAFETRANSLATE(show_statement_);
             res = new IR(kStatement, OP0(), res);
