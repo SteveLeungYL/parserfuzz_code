@@ -1711,6 +1711,14 @@ IR* StringLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
+IR* BlobLiteral::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    res = new IR(kBlobLiteral, "x'" + str_val_ + "'");
+
+    TRANSLATEEND
+}
+
 IR* BoolLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
@@ -2608,6 +2616,9 @@ void StringLiteral::deep_delete(){
 	delete this;
 }
 
+void BlobLiteral::deep_delete(){
+	delete this;
+}
 
 void BoolLiteral::deep_delete(){
 	delete this;

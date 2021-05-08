@@ -179,6 +179,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ColumnName* column_name_t;
     Literal* literal_t;
     StringLiteral* string_literal_t;
+    BlobLiteral * blob_literal_t;
     BoolLiteral* bool_literal_t;
     NumLiteral* num_literal_t;
     IntLiteral* int_literal_t;
@@ -296,7 +297,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /*********************************
  ** Token Definition
  *********************************/
-%token <sval> STRING IDENTIFIER
+%token <sval> STRING IDENTIFIER BLOBSTRING
 %token <fval> FLOATVAL
 %token <ival> INTVAL
 //%token <identifier_t> IDENTIFIER
@@ -320,7 +321,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
-%token WITHOUT ROWID CONSTRAINT
+%token WITHOUT ROWID CONSTRAINT BLOBSTART
 
 /* For SQLite
 */
@@ -407,6 +408,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <column_name_t>	column_name one_column_name
 %type <literal_t>	literal
 %type <string_literal_t>	string_literal
+%type <blob_literal_t>	blob_literal
 %type <bool_literal_t>	bool_literal
 %type <num_literal_t>	num_literal
 %type <int_literal_t>	int_literal
@@ -2227,6 +2229,7 @@ column_name:
 
 literal:
         string_literal  {$$=$1;}
+    |   blob_literal { $$ = $1; }
     |   bool_literal  {$$=$1;}
     |   num_literal  {$$=$1;}
     |   null_literal  {$$=$1;}
@@ -2252,8 +2255,11 @@ int_literal:
     ;
 
 null_literal:
-            NULL { $$ = new NullLiteral(); }
+        NULL { $$ = new NullLiteral(); }
     ;
+
+blob_literal:
+        BLOBSTRING { $$ = new BlobLiteral(); $$->str_val_ = string($1); free($1); }
 
 param_expr:
         '?' {

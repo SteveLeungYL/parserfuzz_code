@@ -912,6 +912,13 @@ public:
     string str_val_;
 };
 
+class BlobLiteral: public Literal{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+};
+
 class BoolLiteral: public Literal{
 public:
     virtual void deep_delete();
