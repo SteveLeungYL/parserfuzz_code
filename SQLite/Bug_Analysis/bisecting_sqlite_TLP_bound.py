@@ -12,6 +12,7 @@ import time
 from threading import Thread
 import atexit
 from enum import Enum
+from sys import maxsize
 
 from git.objects import commit
 from bisecting_sqlite_config import *
@@ -134,13 +135,92 @@ def _setup_SQLITE_with_commit(hexsha:str):
     else:   # Compile failed.
         return ""
 
-def check_result_norm(opt, unopt) -> RESULT:
+def is_string_only_whitespace (input_str: str):
+    if re.match(r"""^[\s]*$"""):
+        return True  # Only whitespace
+    return False # Not only whitespace
+
+def check_result_norm(opt:str, unopt:str) -> RESULT:
+    if opt == "Error" or unopt == "Error":
+        return RESULT.ERROR
     
+    opt_out_int = 0
+    unopt_out_int = 0
+
+    for cur_opt in opt.split('\n'):
+        if (re.match(r"""^[\|\s]*$"""), cur_opt):  # Only spaces or | (separator)
+            opt_out_int -= 1
+    for cur_unopt in unopt.split('\n'):
+        if (re.match(r"""^[\|\s]*$"""), cur_unopt):  # Only spaces or | (separator)
+            unopt_out_int -= 1
+    
+    opt_out_int += len(opt_list)
+    unopt_out_int += len(unopt_list)
+
+    if opt_out_int != unopt_out_int:
+        return RESULT.FAIL
+    else:
+        return RESULT.PASS
+
 
 def check_result_minmax_count_sum(opt, unopt, valid_type)-> RESULT:
+    if opt == "Error" or unopt == "Error":
+        return RESULT.ERROR
+
+    opt_out_int:int = 0
+    unopt_out_int:int = 0
+    if valid_type == VALID_TYPE.MAX:
+        opt_out_int = 0
+        unopt_out_int = 0
+    elif valid_type == VALID_TYPE.MIN:
+        opt_out_int = maxsize
+        unopt_out_int = maxsize
+    elif valid_type == VALID_TYPE.COUNT or valid_type == VALID_TYPE.SUM:
+        opt_out_int = 0
+        unopt_out_int = 0
+    else:
+        raise ValueError("Cannot handle valid_type: " + str(valid_type) + " in the check_result function. ")
+    
+    for cur_opt in opt.split('\n'):
+        if is_string_only_whitespace(cur_opt):
+            continue
+        cur_res = 0
+        try:
+            cur_res = int(cur_opt)
+        except ValueError:
+            return RESULT.ERROR
+        
+        if valid_type == VALID_TYPE.COUNT or valid_type == VALID_TYPE.SUM:
+            opt_out_int += cur_res
+        elif valid_type == VALID_TYPE.MAX and cur_res > opt_out_int:
+            opt_out_int = cur_res
+        elif valid_type == VALID_TYPE.MIN and cur_res < opt_out_int:
+            opt_out_int = cur_res
 
 
-def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:str) -> int:
+    for cur_unopt in unopt.split('\n'):
+        if is_string_only_whitespace(cur_unopt):
+            continue
+        cur_res = 0
+        try:
+            cur_res = int(cur_unopt)
+        except ValueError:
+            return RESULT.ERROR
+        
+        if valid_type == VALID_TYPE.COUNT or valid_type == VALID_TYPE.SUM:
+            unopt_out_int += cur_res
+        elif valid_type == VALID_TYPE.MAX and cur_res > unopt_out_int:
+            unopt_out_int = cur_res
+        elif valid_type == VALID_TYPE.MIN and cur_res < unopt_out_int:
+            unopt_out_int = cur_res
+
+    if opt_out_int != unopt_out_int:
+        return RESULT.FAIL
+    else:
+        return RESULT.PASS
+    
+
+def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:str):
     INSTALL_DEST_DIR = _setup_SQLITE_with_commit(hexsha=commit_ID)
 
     if INSTALL_DEST_DIR == "":
@@ -328,12 +408,6 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
         current_bisecting_result.unopt_result = last_buggy_unopt_result
 
         return current_bisecting_result
-
-def is_string_only_whitespace (input_str: str):
-    for c in input_str:
-        if c != "\n" and c != " " and c != "\0": 
-            return False  # Not only whitespace
-    return True  # Only whitespace
 
 def get_valid_type(query:str):
     if re.match(r"""^\s*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query):
