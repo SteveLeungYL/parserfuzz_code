@@ -240,14 +240,17 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     final_res = RESULT.PASS
 
     for idx, valid_type in enumerate(valid_type_list):
-        if idx >= len(opt_result) or idx >= len(unopt_result):
-            break
+        # print(opt_result)
+        # if idx >= len(opt_result) or idx >= len(unopt_result):
+        #     break
         if valid_type == VALID_TYPE.NORM:
             curr_res = check_result_norm(opt_result[idx], unopt_result[idx])
             all_res_out.append(curr_res)
         elif valid_type == VALID_TYPE.COUNT or valid_type == VALID_TYPE.SUM or valid_type == VALID_TYPE.MIN or valid_type == VALID_TYPE.MAX:
             curr_res = check_result_minmax_count_sum(opt_result[idx], unopt_result[idx], valid_type)
             all_res_out.append(curr_res)
+        else:
+            raise ValueError("Encounter unknown VALID_TYPE in the check_query_exec_correctness_under_commitID func. ")
     
     for curr_res_out in all_res_out:
         if curr_res_out == RESULT.FAIL:
@@ -469,10 +472,8 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
         log_output.write("ERROR: SQLite3 time out. \n")
         print("ERROR: SQLite3 time out. ")
         return None, None
-    # if child.returncode != 0:
-    #     log_output.write("SQLite3 retunning non-zero %d: %s. \n" % (child.returncode, result_err))
-    #     return None, None
-
+    print("Query is: \n%s\n\n\n\n\n\n" % (queries))
+    print("Result_str is: \n%s\n\n\n\n\n\n\n\n" % (result_str))
 
     if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
         return None, None  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
