@@ -103,10 +103,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     Statement* statement_t;
     PreparableStatement* preparable_statement_t;
     OptionalHints* optional_hints_t;
-    HintList* hint_list_t;
-    Hint* hint_t;
-    PrepareStatement* prepare_statement_t;
-    PrepareTargetQuery* prepare_target_query_t;
+    /* HintList* hint_list_t; */
+    /* Hint* hint_t; */
+    /* PrepareStatement* prepare_statement_t; */
+    /* PrepareTargetQuery* prepare_target_query_t; */
     ExecuteStatement* execute_statement_t;
     ImportStatement* import_statement_t;
     ImportFileType* import_file_type_t;
@@ -179,6 +179,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ColumnName* column_name_t;
     Literal* literal_t;
     StringLiteral* string_literal_t;
+    BlobLiteral * blob_literal_t;
     BoolLiteral* bool_literal_t;
     NumLiteral* num_literal_t;
     IntLiteral* int_literal_t;
@@ -296,7 +297,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /*********************************
  ** Token Definition
  *********************************/
-%token <sval> STRING IDENTIFIER
+%token <sval> STRING IDENTIFIER BLOBSTRING
 %token <fval> FLOATVAL
 %token <ival> INTVAL
 //%token <identifier_t> IDENTIFIER
@@ -320,7 +321,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
-%token WITHOUT ROWID CONSTRAINT
+%token WITHOUT ROWID CONSTRAINT BLOBSTART
 
 /* For SQLite
 */
@@ -335,11 +336,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <statement_list_t>	statement_list
 %type <statement_t>	statement
 %type <preparable_statement_t>	preparable_statement
-%type <optional_hints_t>	opt_hints
-%type <hint_list_t>	hint_list
-%type <hint_t>	hint
-%type <prepare_statement_t>	prepare_statement
-%type <prepare_target_query_t>	prepare_target_query
+/* %type <optional_hints_t>	opt_hints */
+/* %type <hint_list_t>	hint_list */
+/* %type <hint_t>	hint */
+/* %type <prepare_statement_t>	prepare_statement */
+/* %type <prepare_target_query_t>	prepare_target_query */
 %type <execute_statement_t>	execute_statement
 %type <import_statement_t>	import_statement
 %type <import_file_type_t>	import_file_type
@@ -407,6 +408,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <column_name_t>	column_name one_column_name
 %type <literal_t>	literal
 %type <string_literal_t>	string_literal
+%type <blob_literal_t>	blob_literal
 %type <bool_literal_t>	bool_literal
 %type <num_literal_t>	num_literal
 %type <int_literal_t>	int_literal
@@ -593,18 +595,19 @@ statement_list:
     ;
 
 statement:
-        prepare_statement opt_hints {
-            $$ = new Statement();
-            $$->sub_type_ = CASE1;
-            $$->prepare_statement_ = $1;
-            $$->optional_hints_ = $2;
-        }
-    |   preparable_statement opt_hints {
+        preparable_statement {
             $$ = new Statement();
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
-            $$->optional_hints_ = $2;
+            //$$->optional_hints_ = $2;
         }
+    /*|    prepare_statement opt_hints {
+     *        $$ = new Statement();
+     *        $$->sub_type_ = CASE1;
+     *        $$->prepare_statement_ = $1;
+     *        $$->optional_hints_ = $2;
+     *    }
+     */
     |   show_statement {
             $$ = new Statement();
             $$->sub_type_ = CASE2;
@@ -977,60 +980,61 @@ collation_name:
  * Hints
  ******************************/
 
-opt_hints:
-    WITH HINT '(' hint_list ')' { 
-        $$ = new OptionalHints();
-        $$->sub_type_ = CASE0;
-        $$->hint_list_ = $4; 
-        }
-  | /* empty */ { $$ = new OptionalHints(); $$->sub_type_ = CASE1;}
-  ;
-
-
-hint_list:
-      hint { 
-          $$ = new HintList();
-          $$->v_hint_list_.push_back($1); 
-          }
-    | hint_list ',' hint { $1->v_hint_list_.push_back($3); $$ = $1; }
-    ;
-
-hint:
-        IDENTIFIER {
-            $$ = new Hint();
-            $$->sub_type_ = CASE1;
-            $$->id_ = new Identifier($1);
-            free($1);
-        }
-    | IDENTIFIER '(' literal_list ')' {
-            $$ = new Hint();
-            $$->sub_type_ = CASE0;
-            $$->id_ = new Identifier($1);
-            $$->literal_list_ = $3;
-            free($1);
-        }
-    ;
-
+/*  opt_hints:
+ *      WITH HINT '(' hint_list ')' { 
+ *          $$ = new OptionalHints();
+ *          $$->sub_type_ = CASE0;
+ *          $$->hint_list_ = $4; 
+ *          }
+ *    | { $$ = new OptionalHints(); $$->sub_type_ = CASE1;}
+ *    ;
+ *  
+ *  
+ *  hint_list:
+ *        hint { 
+ *            $$ = new HintList();
+ *            $$->v_hint_list_.push_back($1); 
+ *            }
+ *      | hint_list ',' hint { $1->v_hint_list_.push_back($3); $$ = $1; }
+ *      ;
+ *  
+ *  hint:
+ *          IDENTIFIER {
+ *              $$ = new Hint();
+ *              $$->sub_type_ = CASE1;
+ *              $$->id_ = new Identifier($1);
+ *              free($1);
+ *          }
+ *      | IDENTIFIER '(' literal_list ')' {
+ *              $$ = new Hint();
+ *              $$->sub_type_ = CASE0;
+ *              $$->id_ = new Identifier($1);
+ *              $$->literal_list_ = $3;
+ *              free($1);
+ *          }
+ *      ;
+ */
 
 /******************************
  * Prepared Statement
  ******************************/
-prepare_statement:
-        PREPARE IDENTIFIER FROM prepare_target_query {
-            $$ = new PrepareStatement();
-            $$->id_ = new Identifier($2);
-            $$->prep_target_que_ = $4;
-            free($2);
-        }
-    ;
-
-prepare_target_query: STRING 
-        {
-            $$ = new PrepareTargetQuery();
-            $$->prep_target_que_ = "'" + string($1) + "'";
-            free($1);
-        }
-    ;
+/* prepare_statement:
+ *         PREPARE IDENTIFIER FROM prepare_target_query {
+ *             $$ = new PrepareStatement();
+ *             $$->id_ = new Identifier($2);
+ *             $$->prep_target_que_ = $4;
+ *             free($2);
+ *         }
+ *     ;
+ * 
+ * prepare_target_query: STRING 
+ *         {
+ *             $$ = new PrepareTargetQuery();
+ *             $$->prep_target_que_ = "'" + string($1) + "'";
+ *             free($1);
+ *         }
+ *     ;
+ */
 
 execute_statement:
         EXECUTE IDENTIFIER {
@@ -1047,7 +1051,6 @@ execute_statement:
             free($2);
         }
     ;
-
 
 /******************************
  * Import Statement
@@ -1146,56 +1149,59 @@ opt_column:
 	}
  ;
 
-
 /******************************
  * Create Statement
  * CREATE TABLE students (name TEXT, student_number INTEGER, city TEXT, grade DOUBLE)
  * CREATE TABLE students FROM TBL FILE 'test/students.tbl'
  ******************************/
 create_statement:
-        CREATE TABLE opt_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
+        CREATE opt_tmp TABLE opt_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE0;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->file_path_ = $8;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
+            $$->file_path_ = $9;
+            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->opt_without_rowid_ = $10;
+        }
+    |   CREATE opt_tmp TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
+            $$ = new CreateStatement();
+            $$->sub_type_ = CASE1;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
+            $$->column_or_table_constraint_def_comma_list_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $9;
         }
-    |   CREATE TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
+    |   CREATE opt_tmp TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
             $$ = new CreateStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->column_or_table_constraint_def_comma_list_ = $6;
+            $$->sub_type_ = CASE2;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
+            $$->select_statement_ = $7;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         }
-    |   CREATE TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE2;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->select_statement_ = $6;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $7;
-        }
-    |   CREATE VIEW opt_not_exists table_name opt_column_list AS select_statement {
+    |   CREATE opt_tmp VIEW opt_not_exists table_name opt_column_list AS select_statement {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE3;
-            $$->opt_not_exists_ = $3;
-            $$->table_name_ = $4;
+            $$->opt_tmp_ = $2;
+            $$->opt_not_exists_ = $4;
+            $$->table_name_ = $5;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_column_list_ = $5;
+            $$->opt_column_list_ = $6;
             if($$->opt_column_list_->sub_type_ == CASE0)
                 for(auto &i: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
                     i->id_type_ = id_create_column_name;
                 }
-            $$->select_statement_ = $7;
+            $$->select_statement_ = $8;
             $$->table_name_->table_name_->id_type_ = id_create_table_name;
         }
     //add 2
-    |   CREATE opt_unique INDEX opt_not_exists index_name ON table_name '(' ident_commalist ')' opt_where {
+    |   CREATE opt_unique INDEX opt_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE4;
             $$->opt_unique_ = $2;
@@ -1203,10 +1209,7 @@ create_statement:
             $$->index_name_ = $5;   
             $$->table_name_ = $7;
             $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->ident_commalist_ = $9;
-            for(auto &i: $$->ident_commalist_->v_iden_comma_list_){
-                i->id_type_ = id_column_name;
-            }
+            $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
         }
     |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name opt_without_rowid {
@@ -1265,6 +1268,7 @@ trigger_declare:
 
 opt_tmp:
         TEMP {$$ = new OptTmp(); $$->str_val_ = string("TEMP");}
+    |   TEMPORARY {$$ = new OptTmp(); $$->str_val_ = string("TEMPORARY");}
     |   /* empty */  {$$ = new OptTmp(); $$->str_val_ = string("");}
     ;
 
@@ -2074,6 +2078,12 @@ unary_expr:
             $$->operand_ = $1;
             $$->operator_ = string("IS NOT NULL");
         }
+    |   '+' operand { 
+            $$ =new UnaryExpr(); 
+            $$->sub_type_ = CASE7;
+            $$->operand_ = $2;
+            $$->operator_ = string("+");
+            }
     ;
 
 binary_expr:
@@ -2087,10 +2097,12 @@ binary_expr:
     |   operand LIKE operand        { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("LIKE");}
     |   operand NOT LIKE operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $4; $$->operator_ = string("NOT LIKE");}
     |   operand ILIKE operand       { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("ILIKE");}
-    |   operand CONCAT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("CONCAT");}
+    |   operand CONCAT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("||");}
     |   operand GLOB operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("GLOB");}
     |   operand MATCH operand   { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("MATCH");}
     |   operand REGEX operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("REGEX");}
+    |   operand LSHIFT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<<");}
+    |   operand RSHIFT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">>");}
     ;
 
 logic_expr:
@@ -2217,6 +2229,7 @@ column_name:
 
 literal:
         string_literal  {$$=$1;}
+    |   blob_literal { $$ = $1; }
     |   bool_literal  {$$=$1;}
     |   num_literal  {$$=$1;}
     |   null_literal  {$$=$1;}
@@ -2242,8 +2255,11 @@ int_literal:
     ;
 
 null_literal:
-            NULL { $$ = new NullLiteral(); }
+        NULL { $$ = new NullLiteral(); }
     ;
+
+blob_literal:
+        BLOBSTRING { $$ = new BlobLiteral(); $$->str_val_ = string($1); free($1); }
 
 param_expr:
         '?' {

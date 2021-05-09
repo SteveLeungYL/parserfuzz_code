@@ -371,14 +371,14 @@ IR* Statement::translate(vector<IR *> &v_ir_collector){
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(preparable_statement_);
-            auto tmp = SAFETRANSLATE(optional_hints_);
-            res = new IR(kStatement, OP0(), res, tmp);
+            //auto tmp = SAFETRANSLATE(optional_hints_);
+            res = new IR(kStatement, OP0(), res);
         CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(prepare_statement_);
-            auto tmp = SAFETRANSLATE(optional_hints_);
-            res = new IR(kStatement, OP0(), res, tmp);
-        CASEEND
+        //CASESTART(1)
+        //    res = SAFETRANSLATE(prepare_statement_);
+        //    auto tmp = SAFETRANSLATE(optional_hints_);
+        //    res = new IR(kStatement, OP0(), res, tmp);
+        //CASEEND
         CASESTART(2)
             res = SAFETRANSLATE(show_statement_);
             res = new IR(kStatement, OP0(), res);
@@ -516,51 +516,62 @@ IR* ImportStatement::translate(vector<IR *> &v_ir_collector){
 IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    
     SWITCHSTART
         CASESTART(0)
+            auto tmp0 = SAFETRANSLATE(opt_tmp_);
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
+            res = new IR(kUnknown, OPMID("TABLE"), tmp0, tmp1);
+            PUSH(res);
             auto tmp2 = SAFETRANSLATE(table_name_);
-            auto tmp = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(tmp);
+            res = new IR(kUnknown, OP0(), res, tmp2);
+            PUSH(res);
             auto tmp3 = SAFETRANSLATE(file_path_);
-            res = new IR(kCreateStatement, OP2("CREATE TABLE", "FROM TBL FILE"), tmp, tmp3);
+            res = new IR(kCreateStatement, OP2("CREATE", "FROM TBL FILE"), res, tmp3);
             PUSH(res);
             auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
             res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(1)
+            auto tmp0 = SAFETRANSLATE(opt_tmp_);
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
+            res = new IR(kUnknown, OPMID("TABLE"), tmp0, tmp1);
+            PUSH(res);
             auto tmp2 = SAFETRANSLATE(table_name_);
-            auto tmp = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(tmp);
+            res = new IR(kUnknown, OP0(), res, tmp2);
+            PUSH(res);
             auto tmp3 = SAFETRANSLATE(column_or_table_constraint_def_comma_list_);
-            res = new IR(kCreateStatement, OP3("CREATE TABLE", "(", ")"), tmp, tmp3);
+            res = new IR(kCreateStatement, OP3("CREATE", "(", ")"), res, tmp3);
             PUSH(res);
             auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
             res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(2)
+            auto tmp0 = SAFETRANSLATE(opt_tmp_);
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
+            res = new IR(kUnknown, OPMID("TABLE"), tmp0, tmp1);
+            PUSH(res);
             auto tmp2 = SAFETRANSLATE(table_name_);
-            auto tmp = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(tmp);
+            res = new IR(kUnknown, OP0(), res, tmp2);
+            PUSH(res);
             auto tmp3 = SAFETRANSLATE(select_statement_);
-            res = new IR(kCreateStatement, OP2("CREATE TABLE", "AS"), tmp, tmp3);
+            res = new IR(kCreateStatement, OP2("CREATE", "AS"), res, tmp3);
             PUSH(res);
             auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
             res = new IR(kCreateStatement, OP0(), res, tmp4);
         CASEEND
         CASESTART(3)
+            auto tmp0 = SAFETRANSLATE(opt_tmp_);
             auto tmp1 = SAFETRANSLATE(opt_not_exists_);
+            res = new IR(kUnknown, OPMID("VIEW"), tmp0, tmp1);
+            PUSH(res);
             auto tmp2 = SAFETRANSLATE(table_name_);
-            auto tmp = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(tmp);
+            res = new IR(kUnknown, OP0(), res, tmp2);
+            PUSH(res);
             auto tmp3 = SAFETRANSLATE(opt_column_list_);
-            auto tmp4 = new IR(kUnknown, OP0(), tmp, tmp3);
-            PUSH(tmp4);
+            res = new IR(kUnknown, OP0(), res, tmp3);
+            PUSH(res);
             auto tmp5 = SAFETRANSLATE(select_statement_);
-            res = new IR(kCreateStatement, OP2("CREATE VIEW", "AS"), tmp4, tmp5);
+            res = new IR(kCreateStatement, OP2("CREATE", "AS"), res, tmp5);
         CASEEND
         CASESTART(4)
             auto tmp1 = SAFETRANSLATE(opt_unique_);
@@ -573,7 +584,7 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             auto tmp4 = SAFETRANSLATE(table_name_);
             res = new IR(kUnknown, OPMID("ON"), res, tmp4);
             PUSH(res);
-            auto tmp5 = SAFETRANSLATE(ident_commalist_);
+            auto tmp5 = SAFETRANSLATE(indexed_column_list_);
             res = new IR(kCreateStatement, OP3("", "(", ")"), res, tmp5);
             PUSH(res);
             auto tmp6 = SAFETRANSLATE(opt_where_);
@@ -1394,6 +1405,9 @@ IR* UnaryExpr::translate(vector<IR *> &v_ir_collector){
             tmp->id_type_ = id_whatever;
             res = new IR(kUnaryExpr, OPMID("IS NOT"), res, tmp);
         CASEEND
+        CASESTART(7)           
+            res = new IR(kUnaryExpr, OP1("+"), res);
+        CASEEND
     SWITCHEND
 
     TRANSLATEEND
@@ -1693,6 +1707,14 @@ IR* StringLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     res = new IR(kStringLiteral, "'" + str_val_ + "'");
+
+    TRANSLATEEND
+}
+
+IR* BlobLiteral::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    res = new IR(kBlobLiteral, "x'" + str_val_ + "'");
 
     TRANSLATEEND
 }
@@ -2154,6 +2176,7 @@ void ImportStatement::deep_delete(){
 
 
 void CreateStatement::deep_delete(){
+  SAFEDELETE(opt_tmp_);
 	SAFEDELETE(opt_not_exists_);
 	SAFEDELETE(table_name_);
 	SAFEDELETE(file_path_);
@@ -2162,7 +2185,7 @@ void CreateStatement::deep_delete(){
 	SAFEDELETE(opt_column_list_);
     SAFEDELETE(opt_unique_);
     SAFEDELETE(index_name_);
-    SAFEDELETE(ident_commalist_);
+    SAFEDELETE(indexed_column_list_);
     SAFEDELETE(opt_where_);
     SAFEDELETE(module_name_);
     SAFEDELETE(trigger_declare_);
@@ -2593,6 +2616,9 @@ void StringLiteral::deep_delete(){
 	delete this;
 }
 
+void BlobLiteral::deep_delete(){
+	delete this;
+}
 
 void BoolLiteral::deep_delete(){
 	delete this;

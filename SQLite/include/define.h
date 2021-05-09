@@ -80,6 +80,7 @@
     V(kColumnName) \
     V(kLiteral) \
     V(kStringLiteral) \
+    V(kBlobLiteral) \
     V(kBoolLiteral) \
     V(kNumLiteral) \
     V(kIntLiteral) \
@@ -269,6 +270,7 @@
     V(ColumnName) \
     V(Literal) \
     V(StringLiteral) \
+    V(BlobLiteral) \
     V(BoolLiteral) \
     V(NumLiteral) \
     V(IntLiteral) \

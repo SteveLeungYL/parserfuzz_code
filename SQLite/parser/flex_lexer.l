@@ -17,10 +17,11 @@
 
 #define TOKEN(name) { return SQL_##name; }
 
-static thread_local std::stringstream strbuf;
+static thread_local std::stringstream strbuf, blobstrbuf;
 char* substr(const char* source, int from, int to);
 %}
 %x singlequotedstring
+%x blobstring
 
 /***************************
  ** Section 2: Rules
@@ -311,6 +312,12 @@ FALSE		{
 	yylval->sval = substr(yytext, 1, strlen(yytext)-1);
 	return SQL_IDENTIFIER;
 }
+
+x\'                 { BEGIN blobstring; blobstrbuf = std::stringstream{}; }
+<blobstring>\'\'    { blobstrbuf << '\''; }
+<blobstring>[^']*   { blobstrbuf << yytext; }
+<blobstring>\'      { BEGIN 0; yylval->sval = strdup(blobstrbuf.str().c_str()); return SQL_BLOBSTRING; }
+<blobstring><<EOF>> {  /*fprintf(stdout, "[SQL-Lexer-Error] Unterminated string\n"); */ return 0; }
 
 [A-Za-z][A-Za-z0-9_]* {
 	yylval->sval = strdup(yytext);
