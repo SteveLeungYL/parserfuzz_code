@@ -54,7 +54,6 @@
     V(kOrderList) \
     V(kOrderDesc) \
     V(kOptOrderType) \
-    V(kOptTop) \
     V(kOptLimit) \
     V(kExprList) \
     V(kLiteralList) \
@@ -249,7 +248,6 @@
     V(OrderList) \
     V(OrderDesc) \
     V(OptOrderType) \
-    V(OptTop) \
     V(OptLimit) \
     V(ExprList) \
     V(LiteralList) \

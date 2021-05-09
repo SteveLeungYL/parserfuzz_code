@@ -952,16 +952,13 @@ IR* OptAll::translate(vector<IR *> &v_ir_collector){
 IR* SelectClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    auto tmp1 = SAFETRANSLATE(opt_top_);
     auto tmp2 = SAFETRANSLATE(opt_distinct_);
     auto tmp3 = SAFETRANSLATE(select_list_);
     auto tmp4 = SAFETRANSLATE(opt_from_clause_);
     auto tmp5 = SAFETRANSLATE(opt_where_);
     auto tmp6 = SAFETRANSLATE(opt_group_);
     
-    res = new IR(kUnknown, OPSTART("SELECT"), tmp1, tmp2);
-    PUSH(res);
-    res = new IR(kUnknown, OP0(), res, tmp3);
+    res = new IR(kUnknown, OPSTART("SELECT"), tmp2, tmp3);
     PUSH(res);
     res = new IR(kUnknown, OP0(), res, tmp4);
     PUSH(res);
@@ -1139,23 +1136,6 @@ void OptWithoutRowID::deep_delete(){
 IR* OptWithoutRowID::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     res = new IR(kOptWithoutRowID, str_val_);
-    TRANSLATEEND
-}
-
-IR* OptTop::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp = SAFETRANSLATE(int_literal_);
-            res = new IR(kOptTop, OPSTART("TOP"), tmp);
-        CASEEND
-
-        CASESTART(1)
-            res = new IR(kOptTop, "");
-        CASEEND
-    SWITCHEND
-
     TRANSLATEEND
 }
 
@@ -2399,7 +2379,6 @@ void OptAll::deep_delete(){
 
 
 void SelectClause::deep_delete(){
-	SAFEDELETE(opt_top_);
 	SAFEDELETE(opt_distinct_);
 	SAFEDELETE(select_list_);
 	SAFEDELETE(opt_from_clause_);
@@ -2468,12 +2447,6 @@ void OrderDesc::deep_delete(){
 
 
 void OptOrderType::deep_delete(){
-	delete this;
-}
-
-
-void OptTop::deep_delete(){
-	SAFEDELETE(int_literal_);
 	delete this;
 }
 

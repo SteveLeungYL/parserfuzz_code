@@ -152,7 +152,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OrderList* order_list_t;
     OrderDesc* order_desc_t;
     OptOrderType* opt_order_type_t;
-    OptTop* opt_top_t;
     OptLimit* opt_limit_t;
     ExprList* expr_list_t;
     OptLiteralList* opt_literal_list_t;
@@ -381,7 +380,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <order_list_t>	order_list
 %type <order_desc_t>	order_desc
 %type <opt_order_type_t>	opt_order_type
-%type <opt_top_t>	opt_top
 %type <opt_limit_t>	opt_limit
 %type <expr_list_t>	expr_list
 %type <opt_literal_list_t>	opt_literal_list
@@ -1775,27 +1773,25 @@ opt_all:
     ;
 
 select_clause:
-        SELECT opt_top opt_distinct select_list opt_from_clause opt_where opt_group {
+        SELECT opt_distinct select_list opt_from_clause opt_where opt_group {
             $$ = new SelectClause();
             $$->sub_type_ = CASE0;
-            $$->opt_top_ = $2;
-            $$->opt_distinct_ = $3;
-            $$->select_list_ = $4;
-            $$->opt_from_clause_ = $5;
-            $$->opt_where_ = $6;
-            $$->opt_group_ = $7;
+            $$->opt_distinct_ = $2;
+            $$->select_list_ = $3;
+            $$->opt_from_clause_ = $4;
+            $$->opt_where_ = $5;
+            $$->opt_group_ = $6;
         }
     
-    |   SELECT opt_top opt_distinct select_list opt_from_clause opt_where opt_group window_clause {
+    |   SELECT opt_distinct select_list opt_from_clause opt_where opt_group window_clause {
             $$ = new SelectClause();
             $$->sub_type_ = CASE1;
-            $$->opt_top_ = $2;
-            $$->opt_distinct_ = $3;
-            $$->select_list_ = $4;
-            $$->opt_from_clause_ = $5;
-            $$->opt_where_ = $6;
-            $$->opt_group_ = $7;
-            $$->window_clause_ = $8;
+            $$->opt_distinct_ = $2;
+            $$->select_list_ = $3;
+            $$->opt_from_clause_ = $4;
+            $$->opt_where_ = $5;
+            $$->opt_group_ = $6;
+            $$->window_clause_ = $7;
         }
     ;
 
@@ -1891,6 +1887,7 @@ frame_exclude:
 
 opt_distinct:
         DISTINCT { $$ = new OptDistinct();  $$->str_val_ = string("DISTINCT");}
+    |   ALL { $$ = new OptDistinct();  $$->str_val_ = string("ALL");}
     |   /* empty */ { $$ = new OptDistinct();  $$->str_val_ = string("");}
     ;
 
@@ -1948,19 +1945,6 @@ opt_order_type:
         ASC { $$ = new OptOrderType(); $$->str_val_ = string("ASC"); }
     |   DESC { $$ = new OptOrderType(); $$->str_val_ = string("DESC"); }
     |   /* empty */ { $$ = new OptOrderType(); $$->str_val_ = string(""); }
-    ;
-
-
-opt_top:
-        TOP int_literal { 
-            $$ = new OptTop(); 
-            $$->sub_type_ = CASE0;
-            $$->int_literal_ = $2;
-            }
-    |   /* empty */ { 
-            $$ = new OptTop(); 
-            $$->sub_type_ = CASE1;
-            }
     ;
 
 opt_limit:

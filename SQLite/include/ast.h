@@ -594,7 +594,6 @@ class SelectClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    OptTop * opt_top_;
     OptDistinct * opt_distinct_;
     SelectList * select_list_;
     OptFromClause * opt_from_clause_;
@@ -683,13 +682,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     string str_val_;
-};
-
-class OptTop: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    IntLiteral * int_literal_;
 };
 
 class OptLimit: public Opt{
