@@ -140,7 +140,7 @@ def _setup_SQLITE_with_commit(hexsha:str):
         return ""
 
 def is_string_only_whitespace (input_str: str):
-    if re.match(r"""^[\s]*$""", input_str, re.MULTILINE):
+    if re.match(r"""^[\s]*$""", input_str, re.MULTILINE | re.IGNORECASE):
         return True  # Only whitespace
     return False # Not only whitespace
 
@@ -155,11 +155,11 @@ def check_result_norm(opt:str, unopt:str) -> RESULT:
     unopt_list = unopt.split('\n')
 
     for cur_opt in opt_list:
-        if re.match(r"""^[\|\s]*$""", cur_opt, re.MULTILINE):  # Only spaces or | (separator)
+        if re.match(r"""^[\|\s]*$""", cur_opt, re.MULTILINE | re.IGNORECASE):  # Only spaces or | (separator)
             continue
         opt_out_int += 1
     for cur_unopt in unopt_list:
-        if re.match(r"""^[\|\s]*$""", cur_unopt, re.MULTILINE):  # Only spaces or | (separator)
+        if re.match(r"""^[\|\s]*$""", cur_unopt, re.MULTILINE | re.IGNORECASE):  # Only spaces or | (separator)
             continue
         unopt_out_int += 1
 
@@ -436,20 +436,20 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
         return current_bisecting_result
 
 def get_valid_type(query:str):
-    if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.MULTILINE):
+    if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
         # print("For query: %s, returning valid_type: MIN" % (query))
         return VALID_TYPE.MIN
-    elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.MULTILINE):
+    elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
         # print("For query: %s, returning valid_type: MAX" % (query))
         return VALID_TYPE.MAX
-    elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.MULTILINE):
+    elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
         # print("For query: %s, returning valid_type: SUM" % (query))
         return VALID_TYPE.SUM
-    elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.MULTILINE):
+    elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
         # print("For query: %s, returning valid_type: COUNT" % (query))
         return VALID_TYPE.COUNT
     else:
-        # print("For query: %s, returning valid_type: NORM" % (query), re.MULTILINE)
+        # print("For query: %s, returning valid_type: NORM" % (query))
         return VALID_TYPE.NORM
 
 def get_valid_type_list(query:str):
