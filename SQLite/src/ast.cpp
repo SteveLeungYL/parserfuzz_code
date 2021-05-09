@@ -953,7 +953,7 @@ IR* SelectClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
     auto tmp2 = SAFETRANSLATE(opt_distinct_);
-    auto tmp3 = SAFETRANSLATE(select_list_);
+    auto tmp3 = SAFETRANSLATE(result_column_list_);
     auto tmp4 = SAFETRANSLATE(opt_from_clause_);
     auto tmp5 = SAFETRANSLATE(opt_where_);
     auto tmp6 = SAFETRANSLATE(opt_group_);
@@ -1836,16 +1836,39 @@ IR* TableRefNameNoAlias::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
+IR* ColumnAlias::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+        CASESTART(0)
+            res = SAFETRANSLATE(alias_id_);
+            res = new IR(kColumnAlias, OP0(), res);
+        CASEEND
+        CASESTART(1)
+            res = SAFETRANSLATE(alias_id_);
+            res = new IR(kColumnAlias, OP1("AS"), res);
+        CASEEND
+    SWITCHEND
+
+    TRANSLATEEND
+}
+
+void ColumnAlias::deep_delete() {
+  SAFEDELETE(alias_id_);
+	delete this;
+}
+
+
 IR* TableAlias::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(table_name_);
+            res = SAFETRANSLATE(alias_id_);
             res = new IR(kTableAlias, OP0(), res);
         CASEEND
         CASESTART(1)
-            res = SAFETRANSLATE(table_name_);
+            res = SAFETRANSLATE(alias_id_);
             res = new IR(kTableAlias, OP1("AS"), res);
         CASEEND
     SWITCHEND
@@ -1854,8 +1877,69 @@ IR* TableAlias::translate(vector<IR *> &v_ir_collector){
 }
 
 void TableAlias::deep_delete() {
-  SAFEDELETE(table_name_);
+  SAFEDELETE(alias_id_);
 	delete this;
+}
+
+IR* OptColumnAlias::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+        CASESTART(0)
+            res = SAFETRANSLATE(column_alias_);
+            res = new IR(kOptColumnAlias, OP0(), res);
+        CASEEND
+        CASESTART(1)
+            res = new IR(kOptColumnAlias, "");
+        CASEEND
+    SWITCHEND
+
+    TRANSLATEEND
+}
+
+void OptColumnAlias::deep_delete(){
+	SAFEDELETE(column_alias_);
+	delete this;
+}
+
+
+IR *ResultColumnList::translate(vector<IR *> &v_ir_collector){
+  TRANSLATESTART
+  TRANSLATELIST(kResultColumnList, v_result_column_list_, ",");
+  TRANSLATEEND
+}
+
+void ResultColumnList::deep_delete() {
+  SAFEDELETELIST(v_result_column_list_);
+  delete this;
+}
+
+IR *ResultColumn::translate(vector<IR *> &v_ir_collector){
+  TRANSLATESTART
+
+  SWITCHSTART
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(expr_);
+      auto tmp1 = SAFETRANSLATE(opt_column_alias_);
+      res = new IR(kResultColumn, OP0(), tmp0, tmp1);
+    CASEEND
+    CASESTART(1)
+      res = new IR(kResultColumn, OP1("*"));
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(table_name_);
+      res = new IR(kResultColumn, OPMID(". *"), tmp0);
+    CASEEND
+  SWITCHEND
+
+  TRANSLATEEND
+}
+
+void ResultColumn::deep_delete() {
+  SAFEDELETE(expr_);
+  SAFEDELETE(opt_column_alias_);
+  SAFEDELETE(table_name_);
+  delete this;
 }
 
 
@@ -2380,7 +2464,7 @@ void OptAll::deep_delete(){
 
 void SelectClause::deep_delete(){
 	SAFEDELETE(opt_distinct_);
-	SAFEDELETE(select_list_);
+	SAFEDELETE(result_column_list_);
 	SAFEDELETE(opt_from_clause_);
 	SAFEDELETE(opt_where_);
 	SAFEDELETE(opt_group_);

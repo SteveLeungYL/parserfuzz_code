@@ -142,7 +142,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     IdentCommaList* ident_commalist_t;
     SelectClause* select_clause_t;
     OptDistinct* opt_distinct_t;
-    SelectList* select_list_t;
+    ResultColumnList* result_column_list_t;
+    ResultColumn* result_column_t;
     OptFromClause* opt_from_clause_t;
     FromClause* from_clause_t;
     OptWhere* opt_where_t;
@@ -193,6 +194,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     TableName* table_name_t;
     TableAlias* table_alias_t;
     OptTableAlias* opt_table_alias_t;
+    ColumnAlias* column_alias_t;
+    OptColumnAlias* opt_column_alias_t;
     Alias* alias_t;
     OptAlias* opt_alias_t;
     OptWithClause* opt_with_clause_t;
@@ -370,7 +373,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_all_t>	opt_all
 %type <select_clause_t>	select_clause
 %type <opt_distinct_t>	opt_distinct
-%type <select_list_t>	select_list
+%type <result_column_list_t>	result_column_list
+%type <result_column_t> result_column
 %type <opt_from_clause_t>	opt_from_clause
 %type <from_clause_t>	from_clause
 %type <opt_where_t>	opt_where
@@ -417,6 +421,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <table_name_t>	table_name
 %type <table_alias_t> table_alias
 %type <opt_table_alias_t> opt_table_alias
+%type <column_alias_t> column_alias
+%type <opt_column_alias_t> opt_column_alias
 %type <alias_t>	alias
 %type <opt_alias_t>	opt_alias
 %type <opt_with_clause_t>	opt_with_clause
@@ -1773,21 +1779,21 @@ opt_all:
     ;
 
 select_clause:
-        SELECT opt_distinct select_list opt_from_clause opt_where opt_group {
+        SELECT opt_distinct result_column_list opt_from_clause opt_where opt_group {
             $$ = new SelectClause();
             $$->sub_type_ = CASE0;
             $$->opt_distinct_ = $2;
-            $$->select_list_ = $3;
+            $$->result_column_list_ = $3;
             $$->opt_from_clause_ = $4;
             $$->opt_where_ = $5;
             $$->opt_group_ = $6;
         }
     
-    |   SELECT opt_distinct select_list opt_from_clause opt_where opt_group window_clause {
+    |   SELECT opt_distinct result_column_list opt_from_clause opt_where opt_group window_clause {
             $$ = new SelectClause();
             $$->sub_type_ = CASE1;
             $$->opt_distinct_ = $2;
-            $$->select_list_ = $3;
+            $$->result_column_list_ = $3;
             $$->opt_from_clause_ = $4;
             $$->opt_where_ = $5;
             $$->opt_group_ = $6;
@@ -1891,11 +1897,17 @@ opt_distinct:
     |   /* empty */ { $$ = new OptDistinct();  $$->str_val_ = string("");}
     ;
 
-select_list:
-        expr_list {
-            $$ = new SelectList();
-            $$->expr_list_ = $1;
+result_column_list:
+        result_column { $$ = new ResultColumnList(); $$->v_result_column_list_.push_back($1); }
+    |   result_column_list ',' result_column {
+          $1->v_result_column_list_.push_back($3);
+          $$ = $1;
         }
+
+result_column:
+        expr opt_column_alias { $$ = new ResultColumn(); $$->sub_type_ = CASE0; $$->expr_ = $1; $$->opt_column_alias_ = $2; }
+    |   '*' { $$ = new ResultColumn(); $$->sub_type_ = CASE1; }
+    |   table_name '.' '*' { $$ = new ResultColumn(); $$->sub_type_ = CASE2; $$->table_name_ = $1; }
     ;
 
 opt_from_clause:
@@ -2276,6 +2288,7 @@ table_ref_name_no_alias:
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
         }
     ;
+
 table_name:
         IDENTIFIER { 
           $$ = new TableName(); 
@@ -2295,17 +2308,17 @@ table_name:
     ;
 
 table_alias:
-        table_name {
+        IDENTIFIER {
           $$ = new TableAlias();
           $$->sub_type_ = CASE0;
-          $1->table_id_->id_type_ = id_alias_name;
-          $$->table_name_ = $1;
+          $$->alias_id_ = new Identifier($1, id_table_alias_name);
+          free($1);
         }
-    |   AS table_name {
+    |   AS IDENTIFIER {
           $$ = new TableAlias();
           $$->sub_type_ = CASE1; 
-          $2->table_id_->id_type_ = id_alias_name;
-          $$->table_name_ = $2;
+          $$->alias_id_ = new Identifier($2, id_table_alias_name);
+          free($2);
         }
     ;
 
@@ -2314,6 +2327,26 @@ opt_table_alias:
     |    /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; }
     ;
 
+/* column alias is independent from column */
+column_alias:
+        IDENTIFIER {
+          $$ = new ColumnAlias();
+          $$->sub_type_ = CASE0;
+          $$->alias_id_ = new Identifier($1, id_column_alias_name);
+          free($1);
+        }
+    |   AS IDENTIFIER {
+          $$ = new ColumnAlias();
+          $$->sub_type_ = CASE1; 
+          $$->alias_id_ = new Identifier($2, id_column_alias_name);
+          free($2);
+        }
+    ;
+
+opt_column_alias:
+         column_alias { $$ = new OptColumnAlias(); $$->sub_type_ = CASE0; $$->column_alias_ = $1; }
+    |    /* empty */ { $$ = new OptColumnAlias(); $$->sub_type_ = CASE1; }
+    ;
 
 alias:
         AS IDENTIFIER { $$ = new Alias(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($2, id_alias_name); free($2); }

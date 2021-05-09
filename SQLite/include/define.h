@@ -96,6 +96,10 @@
     V(kTableName) \
     V(kTableAlias) \
     V(kOptTableAlias) \
+    V(kColumnAlias) \
+    V(kOptColumnAlias) \
+    V(kResultColumn) \
+    V(kResultColumnList) \
     V(kAlias) \
     V(kOptAlias) \
     V(kWithClause) \
@@ -288,6 +292,10 @@
     V(TableName) \
     V(TableAlias) \
     V(OptTableAlias) \
+    V(ColumnAlias) \
+    V(OptColumnAlias) \
+    V(ResultColumn) \
+    V(ResultColumnList) \
     V(Alias) \
     V(OptAlias) \
     V(WithClause) \

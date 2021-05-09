@@ -75,6 +75,8 @@ enum IDTYPE{
     id_database_name,
 
     id_alias_name,
+    id_table_alias_name,
+    id_column_alias_name,
     id_table_constraint_name,
 };
 
@@ -595,7 +597,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     OptDistinct * opt_distinct_;
-    SelectList * select_list_;
+    ResultColumnList * result_column_list_;
     OptFromClause * opt_from_clause_;
     OptWhere * opt_where_;
     OptGroup * opt_group_;
@@ -1001,6 +1003,22 @@ public:
     TableName* table_name_;
 };
 
+class ResultColumnList: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    vector<ResultColumn *> v_result_column_list_;
+};
+
+class ResultColumn: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    Expr *expr_;
+    OptColumnAlias *opt_column_alias_;
+    TableName *table_name_;
+};
+
 class TableName: public Node{
 public:
     virtual void deep_delete();
@@ -1009,11 +1027,25 @@ public:
     Identifier* table_id_;
 };
 
+class OptColumnAlias: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    ColumnAlias * column_alias_;;
+};
+
+class ColumnAlias: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    Identifier * alias_id_;
+};
+
 class TableAlias: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableName * table_name_;
+    Identifier * alias_id_;
 };
 
 class OptTableAlias: public Opt {
