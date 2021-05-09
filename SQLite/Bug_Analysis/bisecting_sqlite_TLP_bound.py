@@ -303,7 +303,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 last_buggy_unopt_result = unopt_result
                 last_buggy_all_result_flags = all_results_flag
                 break
-            elif rn_correctness == RESULT.ERROR:   # Execution queries all return errors. Treat it similar to execution result is correct.
+            elif rn_correctness == RESULT.ALL_ERROR:   # Execution queries all return errors. Treat it similar to execution result is correct.
                 older_commit_str = current_commit_str
                 is_successfully_executed = True
                 is_commit_found = True
@@ -466,14 +466,19 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
     child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin = subprocess.PIPE, errors="replace")
     try:
         result_str = child.communicate(queries, timeout=3)[0]
-        child.kill()
     except subprocess.TimeoutExpired:
         child.kill()
         log_output.write("ERROR: SQLite3 time out. \n")
         print("ERROR: SQLite3 time out. ")
         return None, None
-    print("Query is: \n%s\n\n\n\n\n\n" % (queries))
-    print("Result_str is: \n%s\n\n\n\n\n\n\n\n" % (result_str))
+    # print("Query is: \n%s\n\n\n\n\n\n" % (queries))
+    # print("Result_str is: \n%s\n\n\n\n\n\n\n\n" % (result_str))
+    # print("sqlite_install_dir: %s" % (sqlite_install_dir))
+    # print("return code: %d" % (child.returncode))
+
+    if (child.returncode != 0 and child.returncode != 1):  # 1 is the default return code if we terminate the SQLite3. 
+        return None, None
+    
 
     if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
         return None, None  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
@@ -799,6 +804,7 @@ if __name__ == "__main__":
     log_output.write("Beginning bisecting. \n\n")
     all_results = []
     for all_queries_idx, opt_unopt_queries in enumerate(all_queries):
+        # print("\n\n\n Query index: %d" % (all_queries_idx))
         if "randomblob" in opt_unopt_queries or "random" in opt_unopt_queries or "julianday" in opt_unopt_queries:
             continue
         total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx + 1
