@@ -310,16 +310,15 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
     child = subprocess.Popen(current_run_cmd_list, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin = subprocess.PIPE, errors="replace")
     try:
         result_str = child.communicate(queries, timeout=3)[0]
-        child.kill()
-        # child.wait()
     except subprocess.TimeoutExpired:
         child.kill()
         log_output.write("ERROR: SQLite3 time out. \n")
         print("ERROR: SQLite3 time out. ")
         return None, None
-    # if child.returncode != 0:
-    #     log_output.write("SQLite3 retunning non-zero %d: %s. \n" % (child.returncode, result_err))
-    #     return None, None
+
+    if (child.returncode != 0 and child.returncode != 1):  # 1 is the default return code if we terminate the SQLite3. 
+        return None, None
+    child.kill()
 
 
     if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":

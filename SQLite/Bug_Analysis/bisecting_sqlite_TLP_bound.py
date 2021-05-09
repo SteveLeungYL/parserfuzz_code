@@ -43,6 +43,7 @@ class RESULT(Enum):
     ERROR = -1
     ALL_ERROR = -1
     FAIL_TO_COMPILE = -2
+    SEG_FAULT = -2
 
 # Fuzzing instances related. 
 all_fuzzing_instances_list = []
@@ -50,6 +51,8 @@ all_fuzzing_instances_list = []
 class BisectingResults:
     query: str = ""
     first_buggy_commit_id: str = ""
+    first_corr_commit_id: str = ""
+    final_res_flag:RESULT = RESULT.PASS
     is_error_returned_from_exec: bool = ""
     opt_result = []
     unopt_result = []
@@ -229,9 +232,12 @@ def _check_query_exec_correctness_under_commitID(opt_unopt_queries, commit_ID:st
     if INSTALL_DEST_DIR == "":
         return RESULT.FAIL_TO_COMPILE, None, None, None  # Failed to compile commit. 
     
-    opt_result, unopt_result = _execute_queries(queries=opt_unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR)
+    opt_result, unopt_result, res = _execute_queries(queries=opt_unopt_queries, sqlite_install_dir = INSTALL_DEST_DIR)
 
-    if opt_result == None or unopt_result == None:
+    if res == RESULT.SEG_FAULT:
+        return RESULT.SEG_FAULT, None, None, None
+
+    if opt_result == None or unopt_result == None or res == RESULT.ALL_ERROR:
         return RESULT.ALL_ERROR, None, None, None
 
     valid_type_list = get_valid_type_list(opt_unopt_queries)
@@ -276,6 +282,8 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
     last_buggy_all_result_flags = None
     is_error_returned_from_exec = False
     current_commit_str = ""
+
+    rn_correctness = RESULT.PASS
     
     current_bisecting_result = BisectingResults()
 
@@ -309,13 +317,11 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 is_commit_found = True
                 is_error_returned_from_exec = True
                 break
-            else:  # Compilation failed!!!  rn_correctness == -2
-                ignored_commits_str.append(current_commit_str)
-                if current_commit_index > 0:
-                    current_commit_index -= 1
-                else:
-                    log_output.write("Error: error iterating the commit. Compilation failed. Bug trigerred when running bug_deduplication. Raising error.\n\n\n")
-                    raise RuntimeError("Error compiling the released SQLite library with default tags! Error commit: " + str(current_commit_str) + "\n\n\n")
+            else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as passing without mismatched. 
+                older_commit_str = current_commit_str
+                is_successfully_executed = False
+                is_commit_found = True
+                break
         if is_commit_found:
             break
             
@@ -333,6 +339,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
         current_bisecting_result.opt_result = last_buggy_opt_result
         current_bisecting_result.unopt_result = last_buggy_unopt_result
         current_bisecting_result.all_result_flags = last_buggy_all_result_flags
+        current_bisecting_result.final_res_flag = rn_correctness
 
         return current_bisecting_result
 
@@ -348,6 +355,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
         current_bisecting_result.opt_result = last_buggy_opt_result
         current_bisecting_result.unopt_result = last_buggy_unopt_result
         current_bisecting_result.all_result_flags = last_buggy_all_result_flags
+        current_bisecting_result.final_res_flag = rn_correctness
 
         return current_bisecting_result
     
@@ -392,10 +400,10 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
                 is_successfully_executed = True
                 is_error_returned_from_exec = True
                 break
-            else:
-                ignored_commits_str.append(commit_ID)
-                tmp_commit_index -= 1
-                current_ignored_commit_number += 1
+            else: # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as Passing with no mismatched. 
+                older_commit_index = tmp_commit_index
+                is_successfully_executed = False
+                break
 
     
     if is_buggy_commit_found:
@@ -403,11 +411,13 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
 
         current_bisecting_result.query = opt_unopt_queries
         current_bisecting_result.first_buggy_commit_id = all_commits_str[newer_commit_index]
+        current_bisecting_result.first_corr_commit_id = all_commits_str[older_commit_index]
         current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
         current_bisecting_result.is_bisecting_error = False
         current_bisecting_result.opt_result = last_buggy_opt_result
         current_bisecting_result.unopt_result = last_buggy_unopt_result
         current_bisecting_result.all_result_flags = last_buggy_all_result_flags
+        current_bisecting_result.final_res_flag = rn_correctness
 
         return current_bisecting_result
     else:
@@ -421,6 +431,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
         current_bisecting_result.opt_result = last_buggy_opt_result
         current_bisecting_result.unopt_result = last_buggy_unopt_result
         current_bisecting_result.all_result_flags = last_buggy_all_result_flags
+        current_bisecting_result.final_res_flag = rn_correctness
 
         return current_bisecting_result
 
@@ -463,7 +474,6 @@ def get_valid_type_list(query:str):
 
 
 def _execute_queries(queries:str, sqlite_install_dir:str):
-    # TODO:: execute_queries.
     os.chdir(sqlite_install_dir)
     if os.path.isfile(os.path.join(sqlite_install_dir, "file::memory:")):
         os.remove(os.path.join(sqlite_install_dir, "file::memory:"))
@@ -482,11 +492,13 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
     # print("return code: %d" % (child.returncode))
 
     if (child.returncode != 0 and child.returncode != 1):  # 1 is the default return code if we terminate the SQLite3. 
-        return None, None
+        child.kill()
+        return None, None, RESULT.SEG_FAULT  # Is segmentation fault
+    child.kill()
     
 
     if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
-        return None, None  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
+        return None, None, RESULT.ALL_ERROR  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
 
     # Grab all the opt results.
     opt_results_str = []
@@ -518,7 +530,7 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
         else:
             unopt_results_str.append(current_unopt_result)
 
-    return opt_results_str, unopt_results_str
+    return opt_results_str, unopt_results_str, RESULT.PASS
 
 
 
@@ -697,6 +709,9 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
 
     bug_output_file.write("Query: %s \n\n" % current_bisecting_result.query)
 
+    if current_bisecting_result.final_res_flag == RESULT.SEG_FAULT:
+        bug_output_file.write("Error: The early commit failed to compile, or crashing. Failed to find the bug introduced commit. \n")
+
     if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None \
         and current_bisecting_result.unopt_result != [] and current_bisecting_result.unopt_result != None:
         for idx in range(min(len(current_bisecting_result.opt_result), len(current_bisecting_result.unopt_result))):
@@ -710,8 +725,14 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
         bug_output_file.write("First buggy commit ID: %s. \n\n" % current_bisecting_result.first_buggy_commit_id)
     else:
         bug_output_file.write("First buggy commit ID: Unknown. \n\n")
+    if current_bisecting_result.first_corr_commit_id != "":
+        bug_output_file.write("First correct (or crashing) commit ID: %s. \n\n" % current_bisecting_result.first_corr_commit_id)
+    else:
+        bug_output_file.write("First correct commit ID: Unknown. \n\n")
     if current_bisecting_result.is_bisecting_error == True and current_bisecting_result.bisecting_error_reason != "":
         bug_output_file.write("Bisecting Error. \n\nBesecting error reason: %s. \n\n\n\n" % current_bisecting_result.bisecting_error_reason)
+
+    bug_output_file.write("\n\n\n")
 
     bug_output_file.close()
 
