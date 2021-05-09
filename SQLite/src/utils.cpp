@@ -103,7 +103,7 @@ void trim_string(string &res){
     }
   }
 
-  if (res[effect_idx - 1] == ' ')
+  if (effect_idx > 0 && res[effect_idx - 1] == ' ')
     effect_idx--;
 
   res.resize(effect_idx);

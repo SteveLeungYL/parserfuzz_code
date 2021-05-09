@@ -278,12 +278,12 @@ IR * TableName::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            IR * tmp1 = SAFETRANSLATE(table_name_);
+            IR * tmp1 = SAFETRANSLATE(table_id_);
             res = new IR(kTableName, OP0(), tmp1);
         CASEEND
         CASESTART(1)
-            IR * tmp1 = SAFETRANSLATE(database_name_);
-            IR * tmp2 = SAFETRANSLATE(table_name_);
+            IR * tmp1 = SAFETRANSLATE(database_id_);
+            IR * tmp2 = SAFETRANSLATE(table_id_);
             res = new IR(kTableName, OPMID("."), tmp1, tmp2);
         CASEEND        
     SWITCHEND
@@ -996,10 +996,30 @@ IR* SelectList::translate(vector<IR *> &v_ir_collector){
 IR* FromClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    res = SAFETRANSLATE(table_ref_);
-    res = new IR(kFromClause, OPSTART("FROM"), res);
+    //res = SAFETRANSLATE(table_ref_);
+    //res = new IR(kFromClause, OPSTART("FROM"), res);
+    
+    SWITCHSTART
+
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(join_clause_);
+      res = new IR(kFromClause, OPSTART("FROM"), tmp0);
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(table_or_subquery_list_);
+      res = new IR(kFromClause, OPSTART("FROM"), tmp0);
+    CASEEND
+
+    SWITCHEND
 
     TRANSLATEEND
+}
+
+void FromClause::deep_delete(){
+	//SAFEDELETE(table_ref_);
+  SAFEDELETE(join_clause_);
+  SAFEDELETE(table_or_subquery_list_);
+	delete this;
 }
 
 IR* OptFromClause::translate(vector<IR *> &v_ir_collector){
@@ -1841,18 +1861,23 @@ IR* TableAlias::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(alias_);
+            res = SAFETRANSLATE(table_name_);
             res = new IR(kTableAlias, OP0(), res);
         CASEEND
         CASESTART(1)
-            IR* id = SAFETRANSLATE(id_);
-            IR* tmp = SAFETRANSLATE(ident_comma_list_);
-            res = new IR(kTableAlias, OP3("AS", "(", ")"), id, tmp);
+            res = SAFETRANSLATE(table_name_);
+            res = new IR(kTableAlias, OP1("AS"), res);
         CASEEND
     SWITCHEND
 
     TRANSLATEEND
 }
+
+void TableAlias::deep_delete() {
+  SAFEDELETE(table_name_);
+	delete this;
+}
+
 
 IR* OptTableAlias::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -1869,6 +1894,12 @@ IR* OptTableAlias::translate(vector<IR *> &v_ir_collector){
 
     TRANSLATEEND
 }
+
+void OptTableAlias::deep_delete(){
+	SAFEDELETE(table_alias_);
+	delete this;
+}
+
 
 IR* Alias::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -1946,57 +1977,61 @@ IR* WithDescription::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
+IR *JoinSuffix::translate(vector<IR *> &v_ir_collector) {
+
+  TRANSLATESTART
+
+  auto tmp0 = SAFETRANSLATE(join_op_);
+  auto tmp1 = SAFETRANSLATE(table_or_subquery_);
+  res = new IR(kJoinOpAndTable, OP0(), tmp0, tmp1);
+  PUSH(res);
+  auto tmp2 = SAFETRANSLATE(join_constraint_);
+  res = new IR(kJoinSuffix, OP0(), res, tmp2);
+  TRANSLATEEND
+}
+
+void JoinSuffix::deep_delete() {
+  SAFEDELETE(join_op_);
+  SAFEDELETE(table_or_subquery_);
+  SAFEDELETE(join_constraint_);
+  delete this;
+}
+
+IR *JoinSuffixList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  TRANSLATELIST(kJoinSuffixList, v_join_suffix_list_, " ");
+  TRANSLATEEND
+}
+
+void JoinSuffixList::deep_delete() {
+  SAFEDELETELIST(v_join_suffix_list_);
+  delete this;
+}
+
 IR* JoinClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     SWITCHSTART
-        CASESTART(0)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(nonjoin_table_ref_atomic_);
-            res = new IR(kJoinClause, OPMID("NATURAL JOIN"), tmp, tmp2);
-        CASEEND
-        CASESTART(1)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(opt_join_type_);
-            res = new IR(kUnknown, OP0(), tmp, tmp2);
-            PUSH(res);
 
-            IR * tmp3 = SAFETRANSLATE(table_ref_atomic2_);
-            res = new IR(kUnknown, OPMID("JOIN"), res, tmp3);
-            PUSH(res);
+      CASESTART(0)
+        auto tmp0 = SAFETRANSLATE(table_or_subquery_);
+        res = new IR(kJoinClause, OP0(), tmp0);
+      CASEEND
+      CASESTART(1)
+        auto tmp0 = SAFETRANSLATE(table_or_subquery_);
+        auto tmp1 = SAFETRANSLATE(join_suffix_list_);
+        res = new IR(kJoinClause, OP0(), tmp0, tmp1);
+      CASEEND
 
-            IR * tmp4 = SAFETRANSLATE(join_condition_);
-            res = new IR(kJoinClause, OPMID("ON"), res, tmp4);
-        CASEEND
-        CASESTART(2)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(opt_join_type_);
-            res = new IR(kUnknown, OP0(), tmp, tmp2);
-            PUSH(res);
-
-            IR * tmp3 = SAFETRANSLATE(table_ref_atomic2_);
-            res = new IR(kUnknown, OPMID("JOIN"), res, tmp3);
-            PUSH(res);
-
-            IR * tmp4 = SAFETRANSLATE(column_name_);
-            IR * tmp5 = new IR(kUnknown, OP3("(", "", ")"), tmp4);
-            PUSH(res);
-            res = new IR(kJoinClause, OP3("", "USING", ""), res, tmp5);
-        CASEEND
-        CASESTART(3)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(opt_join_type_);
-            res = new IR(kUnknown, OP0(), tmp, tmp2);
-            PUSH(res);
-
-            IR * tmp3 = SAFETRANSLATE(table_ref_atomic2_);
-            res = new IR(kJoinClause, OPMID("JOIN"), res, tmp3);
-        CASEEND
     SWITCHEND
-
     TRANSLATEEND
-
 }
+
+void JoinClause::deep_delete(){
+  SAFEDELETE(table_or_subquery_);
+  SAFEDELETE(join_suffix_list_);
+	delete this;
+}
+
 
 IR* OptJoinType::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2006,14 +2041,34 @@ IR* OptJoinType::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* JoinCondition::translate(vector<IR *> &v_ir_collector){
+IR* JoinConstraint::translate(vector<IR *> &v_ir_collector) {
     TRANSLATESTART
 
-    res = SAFETRANSLATE(expr_);
-    res = new IR(kJoinCondition, OP0(), res);
+    SWITCHSTART
+
+      CASESTART(0)
+        res = SAFETRANSLATE(on_expr_);
+        res = new IR(kJoinConstraint, OP0(), res);
+      CASEEND
+      CASESTART(1)
+        res = SAFETRANSLATE(column_name_list_);
+        res = new IR(kJoinConstraint, OP2("USING (", ")"), res);
+      CASEEND
+      CASESTART(2)
+        res = new IR(kJoinConstraint, "");
+      CASEEND
+
+    SWITCHEND
 
     TRANSLATEEND
 }
+
+void JoinConstraint::deep_delete(){
+	SAFEDELETE(on_expr_);
+  SAFEDELETE(column_name_list_);
+	delete this;
+}
+
 
 IR* OptSemicolon::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2366,11 +2421,6 @@ void SelectList::deep_delete(){
 }
 
 
-void FromClause::deep_delete(){
-	SAFEDELETE(table_ref_);
-	delete this;
-}
-
 
 void OptFromClause::deep_delete(){
 	SAFEDELETE(from_clause_);
@@ -2649,7 +2699,6 @@ void Identifier::deep_delete(){
 	delete this;
 }
 
-
 void TableRefCommaList::deep_delete(){
 	SAFEDELETELIST(v_table_ref_comma_list_);
 	delete this;
@@ -2685,22 +2734,8 @@ void TableRefNameNoAlias::deep_delete(){
 
 
 void TableName::deep_delete(){
-	SAFEDELETE(table_name_);
-	SAFEDELETE(database_name_);
-	delete this;
-}
-
-
-void TableAlias::deep_delete(){
-	SAFEDELETE(alias_);
-	SAFEDELETE(ident_comma_list_);
-	SAFEDELETE(id_);
-	delete this;
-}
-
-
-void OptTableAlias::deep_delete(){
-	SAFEDELETE(table_alias_);
+	SAFEDELETE(table_id_);
+	SAFEDELETE(database_id_);
 	delete this;
 }
 
@@ -2736,24 +2771,7 @@ void WithDescription::deep_delete(){
 }
 
 
-void JoinClause::deep_delete(){
-	SAFEDELETE(table_ref_atomic1_);
-	SAFEDELETE(nonjoin_table_ref_atomic_);
-	SAFEDELETE(opt_join_type_);
-	SAFEDELETE(table_ref_atomic2_);
-	SAFEDELETE(column_name_);
-	SAFEDELETE(join_condition_);
-	delete this;
-}
-
-
 void OptJoinType::deep_delete(){
-	delete this;
-}
-
-
-void JoinCondition::deep_delete(){
-	SAFEDELETE(expr_);
 	delete this;
 }
 
@@ -3081,7 +3099,6 @@ void ColumnArg::deep_delete(){
     SAFEDELETE(id_);
 	delete this;
 }
-
 
 IR * OptOnConflict::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
@@ -3645,139 +3662,66 @@ void SuperList::deep_delete(){
 	delete this;
 }
 
-IR*  TableRef::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
+IR *TableOrSubqueryList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
 
-	SWITCHSTART
-	    CASESTART(0)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kTableRef, OP0(), tmp1, tmp2);
-            PUSH(res);
+  TRANSLATELIST(kTableOrSubqueryList, v_table_or_subquery_list_, ",");
 
-	        auto tmp3 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
-            PUSH(res);
-    
-	        auto tmp4 = SAFETRANSLATE(opt_index_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-
-	        auto tmp5 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-            PUSH(res);
-
-	        auto tmp6 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp6);
-	    CASEEND
-	    CASESTART(1)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(res);
-
-	        auto tmp3 = SAFETRANSLATE(expr_list_);
-            res = new IR(kTableRef, OP3("", "(", ")"), res, tmp3);
-            PUSH(res);
-    
-	        auto tmp4 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-
-	        auto tmp5 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-            PUSH(res);
-
-	        auto tmp6 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp6);
-	    CASEEND
-	    CASESTART(2)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kTableRef, OP3("", "(", ")"), tmp1, tmp2);
-            PUSH(res);
-
-	        auto tmp3 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
-            PUSH(res);
-    
-	        auto tmp4 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-    
-	        auto tmp5 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-
-	    CASEEND
-	    CASESTART(3)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(table_ref_);
-            res = new IR(kTableRef, OP3("", "(", ")"), tmp1, tmp2);
-            PUSH(res);
-    
-	        auto tmp3 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
-            PUSH(res);
-
-	        auto tmp4 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-    
-	        auto tmp5 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-    
-	    CASEEND
-	SWITCHEND
-	TRANSLATEEND
+  TRANSLATEEND
 }
 
-
-IR*  TablePrefix::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-
-	SWITCHSTART
-	    CASESTART(0)
-	        auto tmp1 = SAFETRANSLATE(table_ref_);
-	        auto tmp2 = SAFETRANSLATE(join_op_);
-            res = new IR(kTablePrefix, OP0(), tmp1, tmp2);
-	    CASEEND
-	    CASESTART(1)
-            res = new IR(kTablePrefix, string(""));
-	    CASEEND
-	SWITCHEND
-    
-	TRANSLATEEND
+void TableOrSubqueryList::deep_delete() {
+	SAFEDELETELIST(v_table_or_subquery_list_);
+  delete this;
 }
 
+IR *TableOrSubquery::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  SWITCHSTART
+
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(select_statement_);
+      auto tmp1 = SAFETRANSLATE(opt_table_alias_);
+      res = new IR(kTableOrSubquery, OP2("(", ")"), tmp0, tmp1);
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(table_or_subquery_list_);
+      res = new IR(kTableOrSubquery, OP0(), tmp0);
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(table_name_);
+      auto tmp1 = SAFETRANSLATE(opt_table_alias_);
+      res = new IR(kTableNameAndOptTableAlias, OP0(), tmp0, tmp1);
+      PUSH(res);
+      auto tmp2 = SAFETRANSLATE(opt_index_);
+      res = new IR(kTableOrSubquery, OP0(), res, tmp2);
+    CASEEND
+    CASESTART(3)
+      auto tmp0 = SAFETRANSLATE(join_clause_);
+      res = new IR(kTableOrSubquery, OP0(), tmp0);
+    CASEEND
+
+  SWITCHEND
+
+  TRANSLATEEND
+}
+
+void TableOrSubquery::deep_delete() {
+  SAFEDELETE(select_statement_);
+  SAFEDELETE(opt_table_alias_);
+  SAFEDELETE(table_or_subquery_list_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(opt_index_);
+  SAFEDELETE(join_clause_);
+  delete this;
+}
 
 IR*  JoinOp::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
 
-	SWITCHSTART
-	CASESTART(0)
-    res = new IR(kJoinOp, string(","));
-	CASEEND
-	CASESTART(1)
-    res = new IR(kJoinOp, string("JOIN"));
-	CASEEND
-	CASESTART(2)
-	auto tmp = SAFETRANSLATE(join_kw_);
-    res = new IR(kJoinOp, OPEND("JOIN"), tmp);
-	CASEEND
-	CASESTART(3)
-	auto tmp = SAFETRANSLATE(join_kw_);
-	auto tmp2 = SAFETRANSLATE(id1_);
-    res = new IR(kJoinOp, OPEND("JOIN"), tmp, tmp2);
-	CASEEND
-	CASESTART(4)
-	auto tmp = SAFETRANSLATE(join_kw_);
-	auto tmp1 = SAFETRANSLATE(id1_);
-	auto tmp2 = SAFETRANSLATE(id2_);
-    res = new IR(kUnknown, OP0(), tmp1, tmp2);
-    PUSH(res);
-    res = new IR(kJoinOp, OPEND("JOIN"), tmp, res);
-	CASEEND
-	SWITCHEND
+  res = new IR(kJoinOp, str_val_);
+
 	TRANSLATEEND
 }
 
@@ -3800,87 +3744,26 @@ IR*  OptIndex::translate(vector<IR *> &v_ir_collector){
 	TRANSLATEEND
 }
 
+IR *OnExpr::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
 
-IR*  OptOn::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
+  res = SAFETRANSLATE(expr_);
+  res = new IR(kOnExpr, OP1("ON"),  res);
 
-	SWITCHSTART
-	CASESTART(0)
-	auto tmp = SAFETRANSLATE(expr_);
-    res = new IR(kOptOn, OP1("ON"), tmp);
-	CASEEND
-	CASESTART(1)
-    res = new IR(kOptOn, string(""));
-	CASEEND
-	SWITCHEND
-	TRANSLATEEND
+  TRANSLATEEND
 }
 
-
-IR*  OptUsing::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-
-	SWITCHSTART
-	CASESTART(0)
-	auto tmp = SAFETRANSLATE(ident_commalist_);
-    res = new IR(kOptUsing, OP3("USING", "(", ")"), NULL, tmp);
-	CASEEND
-	CASESTART(1)
-    res = new IR(kOptUsing, string(""));
-	CASEEND
-	SWITCHEND
-	TRANSLATEEND
-}
-
-
-IR*  JoinKw::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-    res = new IR(kJoinKw, str_val_);
-	TRANSLATEEND
-}
-
-void TableRef::deep_delete(){
-	SAFEDELETE(opt_on_);
-	SAFEDELETE(opt_alias_);
-	SAFEDELETE(expr_list_);
-	SAFEDELETE(opt_using_);
-	SAFEDELETE(table_name_);
-	SAFEDELETE(table_prefix_);
-	SAFEDELETE(table_ref_);
-	SAFEDELETE(opt_index_);
-	SAFEDELETE(select_no_paren_);
-	delete this;
-}
-
-void TablePrefix::deep_delete(){
-	SAFEDELETE(table_ref_);
-	SAFEDELETE(join_op_);
-	delete this;
+void OnExpr::deep_delete() {
+  SAFEDELETE(expr_);
+  delete this;
 }
 
 void JoinOp::deep_delete(){
-	SAFEDELETE(join_kw_);
-	SAFEDELETE(id1_);
-	SAFEDELETE(id2_);
 	delete this;
 }
 
 void OptIndex::deep_delete(){
 	SAFEDELETE(column_name_);
-	delete this;
-}
-
-void OptOn::deep_delete(){
-	SAFEDELETE(expr_);
-	delete this;
-}
-
-void OptUsing::deep_delete(){
-	SAFEDELETE(ident_commalist_);
-	delete this;
-}
-
-void JoinKw::deep_delete(){
 	delete this;
 }
 

@@ -621,7 +621,9 @@ class FromClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableRef * table_ref_;
+    //TableRef * table_ref_;
+    JoinClause * join_clause_;
+    TableOrSubqueryList * table_or_subquery_list_;
 };
 
 class OptFromClause: public Opt{
@@ -1011,17 +1013,15 @@ class TableName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier* database_name_;
-    Identifier* table_name_;
+    Identifier* database_id_;
+    Identifier* table_id_;
 };
 
 class TableAlias: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Alias* alias_;
-    IdentCommaList* ident_comma_list_;
-    Identifier* id_;
+    TableName * table_name_;
 };
 
 class OptTableAlias: public Opt {
@@ -1067,16 +1067,29 @@ public:
     Identifier* id_;
 };
 
+class JoinSuffix: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    JoinOp * join_op_;
+    TableOrSubquery * table_or_subquery_;
+    JoinConstraint * join_constraint_;
+};
+
+class JoinSuffixList: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    vector<JoinSuffix *> v_join_suffix_list_;
+};
+
+
 class JoinClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableRefAtomic* table_ref_atomic1_;
-    NonjoinTableRefAtomic* nonjoin_table_ref_atomic_;
-    OptJoinType* opt_join_type_;
-    TableRefAtomic* table_ref_atomic2_;
-    ColumnName* column_name_;
-    JoinCondition * join_condition_;
+    TableOrSubquery * table_or_subquery_;
+    JoinSuffixList * join_suffix_list_;
 };
 
 class OptJoinType:public OptString{
@@ -1086,11 +1099,12 @@ public:
     string str_val_;
 };
 
-class JoinCondition:public Node{
+class JoinConstraint:public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Expr* expr_;
+    OnExpr * on_expr_;
+    ColumnNameList *column_name_list_;
 };
 
 class OptSemicolon: public OptString{
@@ -1409,43 +1423,30 @@ public:
     ResolveType * resolve_type_;
 };
 
-class TableRef: public Node{
+class TableOrSubquery: public Node {
 public:
 	virtual void deep_delete();
 	virtual IR* translate(vector<IR*> &v_ir_collector);
-	OptAlias * opt_alias_;
-	OptIndex * opt_index_;
-	ExprList * expr_list_;
-	TablePrefix * table_prefix_;
-	OptOn * opt_on_;
-	SelectNoParen * select_no_paren_;
-	OptUsing * opt_using_;
-	TableName * table_name_;
-	TableRef * table_ref_;
+  SelectStatement * select_statement_;
+  OptTableAlias * opt_table_alias_;
+  TableOrSubqueryList * table_or_subquery_list_;
+  TableName * table_name_;
+  OptIndex * opt_index_;
+  JoinClause * join_clause_;
 };
 
-class TablePrefix: public Node{
+class TableOrSubqueryList: public Node {
 public:
 	virtual void deep_delete();
 	virtual IR* translate(vector<IR*> &v_ir_collector);
-	JoinOp * join_op_;
-	TableRef * table_ref_;
+  vector<TableOrSubquery *> v_table_or_subquery_list_;
 };
 
 class JoinOp: public Node{
 public:
 	virtual void deep_delete();
 	virtual IR* translate(vector<IR*> &v_ir_collector);
-	JoinKw * join_kw_;
-	Identifier * id1_;
-	Identifier * id2_;
-};
-
-class JoinKw: public Node{
-public:
-    virtual void deep_delete();
-	virtual IR* translate(vector<IR*> &v_ir_collector);
-    string str_val_;
+  string str_val_;
 };
 
 class OptIndex: public Node{
@@ -1455,20 +1456,12 @@ public:
 	ColumnName * column_name_;
 };
 
-class OptOn: public Node{
+class OnExpr: public Node {
 public:
 	virtual void deep_delete();
 	virtual IR* translate(vector<IR*> &v_ir_collector);
-	Expr * expr_;
+  Expr *expr_;
 };
-
-class OptUsing: public Node{
-public:
-	virtual void deep_delete();
-	virtual IR* translate(vector<IR*> &v_ir_collector);
-	IdentCommaList * ident_commalist_;
-};
-
 
 class CastExpr: public Expr{
 public:

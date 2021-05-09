@@ -185,7 +185,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     IntLiteral* int_literal_t;
     NullLiteral* null_literal_t;
     ParamExpr* param_expr_t;
-    TableRef* table_ref_t;
+    TableOrSubquery * table_or_subquery_t;
+    TableOrSubqueryList * table_or_subquery_list_t;
     TableRefAtomic* table_ref_atomic_t;
     NonjoinTableRefAtomic* nonjoin_table_ref_atomic_t;
     TableRefName* table_ref_name_t;
@@ -200,8 +201,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     WithDescriptionList* with_description_list_t;
     WithDescription* with_description_t;
     JoinClause* join_clause_t;
+    JoinSuffix* join_suffix_t;
+    JoinSuffixList* join_suffix_list_t;
     OptJoinType* opt_join_type_t;
-    JoinCondition* join_condition_t;
+    JoinConstraint* join_constraint_t;
     OptSemicolon* opt_semicolon_t;
     Identifier* identifier_t;
     Cmd * cmd_t;
@@ -249,13 +252,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	FrameExclude*	frame_exclude_t;
     InsertType * insert_type_t;
     SuperList * super_list_t;
-    JoinKw* join_kw_t;
 
-    TablePrefix * table_prefix_t;
     JoinOp * join_op_t;
     OptIndex * opt_index_t;
-    OptOn * opt_on_t;
-    OptUsing * opt_using_t;
+    OnExpr* on_expr_t;
 
     CastExpr * cast_expr_t;
     AlterStatement * alter_statement_t;
@@ -281,7 +281,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptUpsertClause * opt_upsert_clause_t;
 
     std::vector<char*>* str_vec;
-    std::vector<TableRef*>* table_vec;
     std::vector<ColumnDef*>* column_vec;
     std::vector<UpdateClause*>* update_vec;
     std::vector<Expr*>* expr_vec;
@@ -414,9 +413,12 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <int_literal_t>	int_literal
 %type <null_literal_t>	null_literal
 %type <param_expr_t>	param_expr
-%type <table_ref_t>	    table_ref
+%type <table_or_subquery_t> table_or_subquery
+%type <table_or_subquery_list_t> table_or_subquery_list
 %type <table_ref_name_no_alias_t>	table_ref_name_no_alias
 %type <table_name_t>	table_name
+%type <table_alias_t> table_alias
+%type <opt_table_alias_t> opt_table_alias
 %type <alias_t>	alias
 %type <opt_alias_t>	opt_alias
 %type <opt_with_clause_t>	opt_with_clause
@@ -427,12 +429,13 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <ident_commalist_t>	ident_commalist
 %type <opt_without_rowid_t> opt_without_rowid
 
-%type <table_prefix_t> table_prefix
 %type <join_op_t> join_op
+%type <join_constraint_t> join_constraint
+%type <join_clause_t> join_clause
+%type <join_suffix_t> join_suffix
+%type <join_suffix_list_t> join_suffix_list
 %type <opt_index_t> opt_index
-%type <opt_on_t> opt_on
-%type <opt_using_t> opt_using
-%type <join_kw_t> join_kw
+%type <on_expr_t> on_expr
 
 %type <cmd_t> cmd
 %type <cmd_attach_t> cmd_attach
@@ -678,12 +681,12 @@ cmd_pragma:
 
 cmd_reindex:
        REINDEX {$$ = new CmdReindex(); $$->sub_type_ = CASE0;}
-    |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_name_->id_type_ = id_top_table_name;}
+    |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
     ;
 
 cmd_analyze:
        ANALYZE {$$ = new CmdAnalyze(); $$->sub_type_ = CASE0;}
-    |   ANALYZE table_name {$$ = new CmdAnalyze(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_name_->id_type_ = id_top_table_name;}
+    |   ANALYZE table_name {$$ = new CmdAnalyze(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
     ;
 
 cmd_attach:
@@ -1091,13 +1094,13 @@ show_statement:
             $$ = new ShowStatement();
             $$->sub_type_ = CASE1;
             $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
         }
     |   DESCRIBE table_name {
             $$ = new ShowStatement();
             $$->sub_type_ = CASE2;
             $$->table_name_ = $2;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
         }
     ;
 
@@ -1113,8 +1116,8 @@ alter_statement:
 		$$->sub_type_ = CASE0;
     $$->table_name1_ = $3;
     $$->table_name2_ = $6;
-    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
-    $$->table_name2_->table_name_->id_type_ = id_create_table_name;
+    $$->table_name1_->table_id_->id_type_ = id_top_table_name;
+    $$->table_name2_->table_id_->id_type_ = id_create_table_name;
 	}
  |	ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
 		$$ = new AlterStatement();
@@ -1123,7 +1126,7 @@ alter_statement:
     $$->opt_column_ = $5;
     $$->column_name1_ = $6;
     $$->column_name2_ = $8;
-    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
+    $$->table_name1_->table_id_->id_type_ = id_top_table_name;
     $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
 	}
  |	ALTER TABLE table_name ADD opt_column column_def {
@@ -1132,7 +1135,7 @@ alter_statement:
     $$->table_name1_ = $3;
     $$->opt_column_ = $5;
     $$->column_def_ = $6;
-    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
+    $$->table_name1_->table_id_->id_type_ = id_top_table_name;
 	}
  ;
 
@@ -1162,7 +1165,7 @@ create_statement:
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->file_path_ = $9;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $10;
         }
     |   CREATE opt_tmp TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
@@ -1172,7 +1175,7 @@ create_statement:
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->column_or_table_constraint_def_comma_list_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $9;
         }
     |   CREATE opt_tmp TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
@@ -1182,7 +1185,7 @@ create_statement:
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->select_statement_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         }
     |   CREATE opt_tmp VIEW opt_not_exists table_name opt_column_list AS select_statement {
@@ -1191,14 +1194,14 @@ create_statement:
             $$->opt_tmp_ = $2;
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_column_list_ = $6;
             if($$->opt_column_list_->sub_type_ == CASE0)
                 for(auto &i: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
                     i->id_type_ = id_create_column_name;
                 }
             $$->select_statement_ = $8;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
         }
     //add 2
     |   CREATE opt_unique INDEX opt_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
@@ -1208,7 +1211,7 @@ create_statement:
             $$->opt_not_exists_ = $4;
             $$->index_name_ = $5;   
             $$->table_name_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
         }
@@ -1218,7 +1221,7 @@ create_statement:
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->module_name_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         } 
     |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
@@ -1227,7 +1230,7 @@ create_statement:
             $$->opt_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->module_name_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
+            $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->column_or_table_constraint_def_comma_list_ = $9;
             $$->opt_without_rowid_ = $11;
         } 
@@ -1530,7 +1533,7 @@ drop_statement:
             $$->sub_type_ = CASE0;
             $$->opt_exists_ = $3;
             $$->table_name_ = $4;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->id_ = NULL;
         }
     |   DROP VIEW opt_exists table_name {
@@ -1538,7 +1541,7 @@ drop_statement:
             $$->sub_type_ = CASE1;
             $$->opt_exists_ = $3;
             $$->table_name_ = $4;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->id_ = NULL;
         }
     |   DEALLOCATE PREPARE IDENTIFIER {
@@ -1578,7 +1581,7 @@ delete_statement:
             $$ = new DeleteStatement();
             $$->sub_type_ = CASE0;
             $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->opt_where_ = $4;
         }
     ;
@@ -1588,7 +1591,7 @@ truncate_statement:
             $$ = new DeleteStatement();
             $$->sub_type_ = CASE1;
             $$->table_name_ = $2;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
 
         }
     ;
@@ -1604,7 +1607,7 @@ insert_statement:
             $$->sub_type_ = CASE0;
             $$->insert_type_ = $1;
             $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->opt_column_list_ = $4;
             $$->super_list_ = $6;
             $$->opt_upsert_clause_ = $7;
@@ -1619,7 +1622,7 @@ insert_statement:
             $$->sub_type_ = CASE1;
             $$->insert_type_ = $1;
             $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->opt_column_list_ = $4;
             $$->select_no_paren_ = $5;
             $$->opt_upsert_clause_ = $6;
@@ -1904,9 +1907,9 @@ opt_from_clause:
     ;
 
 from_clause:
-        FROM table_ref { $$ = new FromClause(); $$->table_ref_ = $2;}
+        FROM join_clause { $$ = new FromClause(); $$->sub_type_ = CASE0; $$->join_clause_ = $2; }
+    |   FROM table_or_subquery_list { $$ = new FromClause(); $$->sub_type_ = CASE1; $$->table_or_subquery_list_ = $2; }
     ;
-
 
 opt_where:
         WHERE expr { $$ = new OptWhere(); $$->sub_type_ = CASE0; $$->expr_ = $2; }
@@ -2128,7 +2131,7 @@ case_expr:
 
 case_list:
         WHEN expr THEN expr              { $$ = new CaseList(); $$->v_case_list_.push_back(new CaseClause($2,$4)); }
-    |   case_list WHEN expr THEN expr    { $$->v_case_list_.push_back(new CaseClause($3, $5)); $$ = $1; }
+    |   case_list WHEN expr THEN expr    { $1->v_case_list_.push_back(new CaseClause($3, $5)); $$ = $1; }
     ;
 
 exists_expr:
@@ -2272,118 +2275,61 @@ param_expr:
  * Table
  ******************************/
 
-
-table_ref:
-        table_prefix table_name opt_alias opt_index opt_on opt_using{
-            $$ = new TableRef();
-            $$->sub_type_ = CASE0;
-            $$->table_prefix_ = $1;
-            $$->table_name_ = $2;
-            $$->opt_alias_ = $3;
-            $$->opt_index_ = $4;
-            $$->opt_on_ = $5;
-            $$->opt_using_ = $6;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-        }
-    |   table_prefix table_name '(' expr_list ')' opt_alias opt_on opt_using{
-            $$ = new TableRef();
-            $$->sub_type_ = CASE1;
-            $$->table_prefix_ = $1;
-            $$->table_name_ = $2;
-            $$->expr_list_ = $4;
-            $$->opt_alias_  = $6;
-            $$->opt_on_ = $7;
-            $$->opt_using_ = $8;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-    }
-    |   table_prefix '(' select_no_paren ')' opt_alias opt_on opt_using {
-            $$ = new TableRef();
-            $$->sub_type_ = CASE2;
-            $$->table_prefix_ = $1;
-            $$->select_no_paren_ = $3;
-            $$->opt_alias_ = $5;
-            $$->opt_on_ = $6;
-            $$->opt_using_ = $7;
-    }
-    |   table_prefix '(' table_ref ')' opt_alias opt_on opt_using{
-            $$ = new TableRef();
-            $$->sub_type_ = CASE3;
-            $$->table_prefix_ = $1;
-            $$->table_ref_ = $3;
-            $$->opt_alias_ = $5;
-            $$->opt_on_ = $6;
-            $$->opt_using_ = $7;
-    }
-    ;
-
-table_prefix:
-        table_ref join_op{
-            $$ = new TablePrefix();
-            $$->sub_type_ = CASE0;
-            $$->table_ref_ = $1;
-            $$->join_op_ = $2;
-        }
-    |   /*empty*/ {
-            $$ = new TablePrefix();
-            $$->sub_type_ = CASE1;
-        }
-    ;
-join_op:
-        ',' {$$ = new JoinOp(); $$->sub_type_ = CASE0; }
-    |   JOIN {$$ = new JoinOp(); $$->sub_type_ = CASE1; }
-    |   join_kw JOIN {$$ = new JoinOp(); $$->sub_type_ = CASE2; $$->join_kw_ = $1;}
-    |   join_kw IDENTIFIER JOIN {
-            $$ = new JoinOp(); 
-            $$->sub_type_ = CASE3; 
-            $$->id1_ = new Identifier($2, id_top_table_name); 
-            $$->join_kw_ = $1; 
-            free($2);}
-    |   join_kw IDENTIFIER IDENTIFIER JOIN {
-            $$ = new JoinOp(); 
-            $$->sub_type_ = CASE4; 
-            $$->id1_ = new Identifier($2);
-            $$->id2_ = new Identifier($3);
-            $$->join_kw_ = $1;
-            free($2);
-            free($3);
-        }
-    ;
-    
 opt_index:
         INDEXED BY column_name {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->column_name_ = $3; }
     |   NOT INDEXED {$$ = new OptIndex(); $$->sub_type_ = CASE1; }
     |   /*empty*/ {$$ = new OptIndex(); $$->sub_type_ = CASE2; }
     ;
 
-opt_on:
-        ON expr{$$ = new OptOn(); $$->sub_type_ = CASE0; $$->expr_ = $2; }
-    |   /*empty*/ {$$ = new OptOn(); $$->sub_type_ = CASE1; }
+on_expr:
+        ON expr { $$ = new OnExpr(); $$->expr_ = $2; }
     ;
-
-opt_using:
-        USING '(' ident_commalist ')' {$$ = new OptUsing(); $$->sub_type_ = CASE0; $$->ident_commalist_ = $3; }
-    |   /*empty*/ {$$ = new OptUsing(); $$->sub_type_ = CASE1; }
-    ; 
-
 
 table_ref_name_no_alias:
         table_name {
             $$ = new TableRefNameNoAlias();
             $$->table_name_ = $1;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->table_id_->id_type_ = id_top_table_name;
         }
     ;
 table_name:
-        IDENTIFIER                { $$ = new TableName(); $$->sub_type_ = CASE0; $$->table_name_ = new Identifier($1, id_table_name); $$->database_name_ = NULL; free($1);}
+        IDENTIFIER { 
+          $$ = new TableName(); 
+          $$->sub_type_ = CASE0; 
+          $$->table_id_ = new Identifier($1, id_table_name); 
+          $$->database_id_ = NULL; 
+          free($1);
+        }
     |   IDENTIFIER '.' IDENTIFIER { 
-			$$ = new TableName(); 
-			$$->sub_type_ = CASE1; 
-			$$->database_name_ = new Identifier($1,id_database_name); 
-			$$->table_name_ = new Identifier($3, id_table_name);
-            free($1);
-            free($3);
-		}
+          $$ = new TableName(); 
+          $$->sub_type_ = CASE1; 
+          $$->database_id_ = new Identifier($1,id_database_name); 
+          $$->table_id_ = new Identifier($3, id_table_name);
+          free($1);
+          free($3);
+        }
     ;
+
+table_alias:
+        table_name {
+          $$ = new TableAlias();
+          $$->sub_type_ = CASE0;
+          $1->table_id_->id_type_ = id_alias_name;
+          $$->table_name_ = $1;
+        }
+    |   AS table_name {
+          $$ = new TableAlias();
+          $$->sub_type_ = CASE1; 
+          $2->table_id_->id_type_ = id_alias_name;
+          $$->table_name_ = $2;
+        }
+    ;
+
+opt_table_alias:
+         table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE0; $$->table_alias_ = $1; }
+    |    /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; }
+    ;
+
 
 alias:
         AS IDENTIFIER { $$ = new Alias(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($2, id_alias_name); free($2); }
@@ -2433,25 +2379,82 @@ with_description:
  * Join Statements
  ******************************/
 
-join_kw:
-        INNER       { $$ = new JoinKw(); $$->str_val_ = string("INNER"); }
-    |   LEFT OUTER  { $$ = new JoinKw(); $$->str_val_ = string("LEFT OUTER"); }
-    |   LEFT        { $$ = new JoinKw(); $$->str_val_ = string("LEFT"); }
-    |   RIGHT OUTER { $$ = new JoinKw(); $$->str_val_ = string("RIGHT OUTER"); }
-    |   RIGHT       { $$ = new JoinKw(); $$->str_val_ = string("RIGHT"); }
-    |   FULL OUTER  { $$ = new JoinKw(); $$->str_val_ = string("FULL OUTER"); }
-    |   OUTER       { $$ = new JoinKw(); $$->str_val_ = string("OUTER"); }
-    |   FULL        { $$ = new JoinKw(); $$->str_val_ = string("FULL"); }
-    |   CROSS       { $$ = new JoinKw(); $$->str_val_ = string("CROSS"); }
-    |   NATURAL     {$$ = new JoinKw(); $$->str_val_ = string("NATURAL");}
-    //|   /* empty, default */    { $$ = new JoinKw(); $$->str_val_ = string(""); }
+join_op:
+        ','                     { $$ = new JoinOp(); $$->str_val_ = string(","); }
+    |                      JOIN { $$ = new JoinOp(); $$->str_val_ = string("JOIN"); }
+    |           LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = string("LEFT JOIN"); }
+    |           LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = string("LEFT OUTER JOIN"); }
+    |           INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = string("INNER JOIN"); }
+    |           CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = string("CROSS JOIN"); }
+    |   NATURAL            JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL JOIN"); }
+    |   NATURAL LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL LEFT JOIN"); }
+    |   NATURAL LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL LEFT OUTER JOIN"); }
+    |   NATURAL INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL INNER JOIN"); }
+    |   NATURAL CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL CROSS JOIN"); }
     ;
 
-/*
-join_condition:
-        expr { $$ = new JoinCondition(); $$->expr_ = $1;}
-        ;
-*/
+join_constraint:
+        on_expr  { $$ = new JoinConstraint(); $$->sub_type_ = CASE0; $$->on_expr_ = $1; }
+    |   USING '(' column_name_list ')' { $$ = new JoinConstraint(); $$->sub_type_ = CASE1; $$->column_name_list_ = $3; }
+    |   /* empty */ { $$ = new JoinConstraint(); $$->sub_type_ = CASE2; }
+    ;
+
+join_suffix:
+        join_op table_or_subquery join_constraint {
+          $$ = new JoinSuffix();
+          $$->join_op_ = $1;
+          $$->table_or_subquery_ = $2;
+          $$->join_constraint_ = $3;
+        }
+    ;
+
+join_suffix_list:
+        join_suffix { $$ = new JoinSuffixList(); $$->v_join_suffix_list_.push_back($1); }
+    |   join_suffix_list join_suffix { $1->v_join_suffix_list_.push_back($2); $$ = $1; }
+    ;
+
+join_clause:
+        table_or_subquery { $$ = new JoinClause(); $$->sub_type_ = CASE0; $$->table_or_subquery_ = $1; }
+    |   table_or_subquery join_suffix_list { 
+          $$ = new JoinClause(); 
+          $$->sub_type_ = CASE1;
+          $$->table_or_subquery_ = $1;
+          $$->join_suffix_list_ = $2;
+        }
+    ;
+
+
+table_or_subquery_list:
+        table_or_subquery { $$ = new TableOrSubqueryList(); $$->v_table_or_subquery_list_.push_back($1); }
+    |   table_or_subquery_list ',' table_or_subquery { $1->v_table_or_subquery_list_.push_back($3); $$ = $1; }
+
+table_or_subquery:
+        '(' select_statement ')' opt_table_alias { 
+          $$ = new TableOrSubquery(); 
+          $$->sub_type_ = CASE0; 
+          $$->select_statement_ = $2;
+          $$->opt_table_alias_ = $4;
+        }
+    |   '(' table_or_subquery_list ')' {
+          $$ = new TableOrSubquery();
+          $$->sub_type_ = CASE1;
+          $$->table_or_subquery_list_ = $2;
+        }
+    |   table_name opt_table_alias opt_index {
+          $$ = new TableOrSubquery();
+          $$->sub_type_ = CASE2;
+          $1->table_id_->id_type_ = id_top_table_name;
+          $$->table_name_ = $1;
+          $$->opt_table_alias_ = $2;
+          $$->opt_index_ = $3;
+        }
+    |   '(' join_clause ')' {
+          $$ = new TableOrSubquery();
+          $$->sub_type_ = CASE3;
+          $$->join_clause_ = $2;
+        }
+    /* |   table_function_name '(' expr_list ')' {} */ // TODO
+    ;
 
 /******************************
  * Misc

@@ -87,7 +87,8 @@
     V(kNullLiteral) \
     V(kParamExpr) \
     V(kIdentifier) \
-    V(kTableRef) \
+    V(kTableOrSubquery) \
+    V(kTableOrSubqueryList) \
     V(kTableRefCommaList) \
     V(kTableRefAtomic) \
     V(kNonjoinTableRefAtomic) \
@@ -104,7 +105,7 @@
     V(kWithDescription) \
     V(kJoinClause) \
     V(kOptJoinType) \
-    V(kJoinCondition) \
+    V(kJoinConstraint) \
     V(kOptSemicolon) \
     V(kIdentCommaList) \
     V(kFloatLiteral) \
@@ -158,12 +159,9 @@
     V(kCmdReindex) \
     V(kCmdAnalyze) \
     V(kSuperList)  \
-    V(kTablePrefix) \
-    V(kOptOn) \
-    V(kOptUsing) \
+    V(kOnExpr) \
     V(kOptIndex) \
     V(kJoinOp)   \
-    V(kJoinKw)   \
     V(kCastExpr) \
     V(kAlterStatement) \
     V(kOptColumn) \
@@ -190,7 +188,14 @@
     V(kOptConstraintName) \
     V(kTableConstraintDef) \
     V(kTableConstraintDefCommaList) \
-    V(kColumnOrTableConstraintDefCommaList)
+    V(kColumnOrTableConstraintDefCommaList) \
+    V(kJoinSuffix) \
+    V(kJoinSuffixList) \
+    \
+    /* the following type does not has corresponding class*/ \
+    \
+    V(kTableNameAndOptTableAlias) \
+    V(kJoinOpAndTable)
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -293,7 +298,7 @@
     V(WithDescription) \
     V(JoinClause) \
     V(OptJoinType) \
-    V(JoinCondition) \
+    V(JoinConstraint) \
     V(OptSemicolon) \
     V(IdentCommaList) \
     V(FloatLiteral) \
@@ -347,9 +352,7 @@
     V(CmdReindex) \
     V(CmdAnalyze) \
     V(SuperList) \
-    V(TablePrefix) \
-    V(OptOn) \
-    V(OptUsing) \
+    V(OnExpr) \
     V(OptIndex) \
     V(CastExpr) \
     V(AlterStatement) \
@@ -364,8 +367,8 @@
     V(BeginStatement) \
     V(CommitStatement) \
     V(JoinOp)   \
-    V(JoinKw)   \
-    V(TableRef) \
+    V(TableOrSubquery) \
+    V(TableOrSubqueryList) \
     V(UpsertClause) \
     V(IndexedColumnList) \
     V(IndexedColumn) \
@@ -380,7 +383,9 @@
     V(OptConstraintName) \
     V(TableConstraintDef) \
     V(TableConstraintDefCommaList) \
-    V(ColumnOrTableConstraintDefCommaList)
+    V(ColumnOrTableConstraintDefCommaList) \
+    V(JoinSuffix) \
+    V(JoinSuffixList)
 
 #define SWITCHSTART \
     switch(sub_type_){ 
