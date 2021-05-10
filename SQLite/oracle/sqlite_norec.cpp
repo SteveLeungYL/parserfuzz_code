@@ -18,8 +18,16 @@ int SQL_NOREC::count_valid_stmts(const string& input){
 bool SQL_NOREC::is_oracle_valid_stmt(const string& query){
   if (
         /* By enforcing SELECT COUNT(*) FROM ... WHERE ... seems to lose some performance. */ 
-        regex_match(query, regex("^\\s*SELECT\\s*COUNT\\s*\\(\\s*\\*\\s*\\)\\s*FROM(.*?)WHERE(.*?)$", regex::icase)) &&
-        !regex_match(query, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase))
+        // regex_match(query, regex("^\\s*SELECT\\s*COUNT\\s*\\(\\s*\\*\\s*\\)\\s*FROM(.*?)WHERE(.*?)$", regex::icase | regex::optimize)) &&
+        // !regex_match(query, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase | regex::optimize))
+
+        ((query.find("SELECT COUNT ( * ) FROM")) != std::string::npos || (query.find("select count ( * ) from")) != std::string::npos) && // This is a SELECT stmt. Not INSERT or UPDATE stmts.
+        ((query.find("SELECT COUNT ( * ) FROM")) <= 5 || (query.find("select count ( * ) from")) <= 5) &&
+        ((query.find("INSERT")) == std::string::npos && (query.find("insert")) == std::string::npos) &&
+        ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)  &&
+        ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&  // This is a SELECT stmt that matching the requirments of NoREC.
+        ((query.find("FROM")) != std::string::npos || (query.find("from")) != std::string::npos) &&
+        ((query.find("GROUP BY")) == std::string::npos && (query.find("group by")) == std::string::npos) // TODO:: Should support group by a bit later.
     ) return true;
     return false;
 }
