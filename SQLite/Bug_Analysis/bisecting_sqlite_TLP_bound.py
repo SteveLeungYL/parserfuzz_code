@@ -781,7 +781,7 @@ def setup_and_run_fuzzing():
         except:
             pass
     
-    for i in range(MAX_FUZZING_INSTANCE):
+    for i in range(CORE_ID_BEGIN, CORE_ID_BEGIN + MAX_FUZZING_INSTANCE):
         shutil.copytree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root"), os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
         os.chdir(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
         fuzzing_command = FUZZING_COMMAND + " -c " + str(i) + " -- " + SQLITE_FUZZING_BINARY_PATH + " &"

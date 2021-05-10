@@ -18,6 +18,7 @@ END_COMMIT_ID = ""   # EXCLUDED!!!   Later commit.
 
 
 # For fuzzing
+CORE_ID_BEGIN = 0
 MAX_FUZZING_INSTANCE = 3
 FUZZING_ROOT_DIR = "/home/sqlite/fuzz_parallel_1/"
 SQLITE_FUZZING_BINARY_PATH = "/home/sqlite/sqlite/sqlite/bld/3ddc3809bf6148d09ea02345deade44873b9064f_AFL/sqlite3"
