@@ -463,7 +463,7 @@ def retrive_all_normal_queries(query_str):
     begin_idx = []
     end_idx = []
 
-    for m in re.finditer('SELECT 86420;', query_str):
+    for m in re.finditer('SELECT 44444;', query_str):
         begin_idx.append(m.end())
     for m in re.finditer('SELECT 13579;', query_str):
         end_idx.append(m.start())
