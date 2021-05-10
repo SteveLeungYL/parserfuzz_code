@@ -2592,7 +2592,7 @@ inline void print_norec_exec_debug_info(){
   return;
 }
 
-string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false){
+string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false, const bool is_explain = false){
   string current_output = "";
 
   for (string &query : queries_vector)
@@ -2609,6 +2609,14 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         current_output += query + "; \n";
         if (is_mark)
           current_output += "SELECT 97531; \n";
+        /* Use the EXPLAIN QUERY PLAN to see whether the query triggers critical optimization changes. */
+        if (is_explain) {
+          if (is_mark)
+            current_output += "SELECT 11111; \n";
+          current_output += "EXPLAIN QUERY PLAN " + query + "; \n";
+          if (is_mark)
+            current_output += "SELECT 22222; \n";
+        }
       }
 
       if (rew_1 != "") {
@@ -2617,6 +2625,13 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         current_output += rew_1 + "; \n";
         if (is_mark)
           current_output += "SELECT 86420; \n";
+        if (is_explain) {
+          if (is_mark)
+            current_output += "SELECT 33333; \n";
+          current_output += "EXPLAIN QUERY PLAN " + rew_1 + "; \n";
+          if (is_mark)
+            current_output += "SELECT 44444; \n";
+        }
       }
 
       if (rew_2 != "") {
@@ -2625,6 +2640,13 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         current_output += rew_2 + "; \n";
         if (is_mark)
           current_output += "SELECT 88888; \n";
+        if (is_explain) {
+          if (is_mark)
+            current_output += "SELECT 77889; \n";
+          current_output += "EXPLAIN QUERY PLAN " + rew_2 + "; \n";
+          if (is_mark)
+            current_output += "SELECT 99887; \n";
+        }
       }
 
       if (rew_3 != "") {
@@ -2633,6 +2655,14 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         current_output += rew_3 + "; \n";
         if (is_mark)
           current_output += "SELECT 66666; \n";
+
+        if (is_explain) {
+          if (is_mark)
+            current_output += "SELECT 11223; \n";
+          current_output += "EXPLAIN QUERY PLAN " + rew_3 + "; \n";
+          if (is_mark)
+            current_output += "SELECT 33221; \n";
+        }
       }
     } else {
       current_output += query + "; \n";
@@ -2641,111 +2671,78 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
   return current_output;
 }
 
-void compare_query_result(ALL_COMP_RES& all_comp_res){
+void extract_query_result(const string& res, vector<string>& res_vec_out, const string& begin_sign, const string& end_sign){
+  res_vec_out.clear();
+
+  size_t begin_idx = res.find(begin_sign, 0);
+  size_t end_idx = res.find(end_sign, 0);
+
+  while (begin_idx != string::npos){
+    if (end_idx != string::npos){
+      string cur_res_str = res.substr(begin_idx + begin_sign.size(), (end_idx - begin_idx - begin_sign.size()));
+      begin_idx = res.find(begin_sign, begin_idx+begin_sign.size());
+      end_idx = res.find(end_sign, end_idx+end_sign.size());
+
+      if (cur_res_str.find("Error") != string::npos) {res_vec_out.push_back("Error"); continue; }   // If "Error" is found, return "Error" as result. 
+      else {
+        res_vec_out.push_back(cur_res_str);
+      }
+    }
+    else {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
+    }
+  }
+}
+
+void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
 
   all_comp_res.final_res = ORA_COMP_RES::Pass;
 
-  const string& result_string = all_comp_res.res_str;
-  if(is_str_empty(result_string)){
+  const string& res_str = all_comp_res.res_str;
+  if(is_str_empty(res_str)){
     all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
     return;
   }
 
-  vector<string> result_0, result_1, result_2, result_3;
+  vector<string> res_vec_0, res_vec_1, res_vec_2, res_vec_3, exp_vec_0, exp_vec_1, exp_vec_2, exp_vec_3;
 
-  /* Look throught first validation stmt's result_0 first */
-  size_t begin_idx = result_string.find("13579", 0);
-  size_t end_idx = result_string.find("97531", 0);
+  /* Look throught first validation stmt's res_0 first */
+  extract_query_result(res_str, res_vec_0, "13579", "97531");
 
-  while (begin_idx != string::npos){
-    if (end_idx != string::npos){
-      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
-      begin_idx = result_string.find("13579", begin_idx+5);
-      end_idx = result_string.find("97531", end_idx+5);
+  /* EXPLAIN QUERY PLAN. First validation stmt. */
+  extract_query_result(res_str, exp_vec_0, "11111", "22222");
 
-      if (current_result_str.find("Error") != string::npos) {result_0.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
-      else {
-        result_0.push_back(current_result_str);
-      }
-    }
-    else {
-      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
-    }
-  }
+  /* Second validation stmt... etc*/
+  extract_query_result(res_str, res_vec_1, "24680", "86420");
 
-  /* Look throught the result_1 now */
-  begin_idx = result_string.find("24680", 0);
-  end_idx = result_string.find("86420", 0);   // Reset the idx first. 
+  extract_query_result(res_str, exp_vec_1, "33333", "44444");
 
-  while (begin_idx != string::npos){
-    if (end_idx != string::npos){
-      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
-      begin_idx = result_string.find("24680", begin_idx+5);
-      end_idx = result_string.find("86420", end_idx+5);
+  extract_query_result(res_str, res_vec_2, "77777", "88888");
 
-      if (current_result_str.find("Error") != string::npos) {result_1.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
-      else {
-        result_1.push_back(current_result_str);
-      }
-    }
-    else {
-      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
-    }
-  }
+  extract_query_result(res_str, exp_vec_2, "77889", "99887");
 
-  /* Look throught the result_2 now */
-  begin_idx = result_string.find("77777", 0);
-  end_idx = result_string.find("88888", 0);   // Reset the idx first. 
+  extract_query_result(res_str, res_vec_3, "55555", "66666");
 
-  while (begin_idx != string::npos){
-    if (end_idx != string::npos){
-      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
-      begin_idx = result_string.find("77777", begin_idx+5);
-      end_idx = result_string.find("88888", end_idx+5);
+  extract_query_result(res_str, exp_vec_2, "11223", "33221");
 
-      if (current_result_str.find("Error") != string::npos) {result_2.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
-      else {
-        result_2.push_back(current_result_str);
-      }
-    }
-    else {
-      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
-    }
-  }
-
-  /* Look throught the result_3 now */
-  begin_idx = result_string.find("55555", 0);
-  end_idx = result_string.find("66666", 0);   // Reset the idx first. 
-
-  while (begin_idx != string::npos){
-    if (end_idx != string::npos){
-      string current_result_str = result_string.substr(begin_idx + 5, (end_idx - begin_idx - 5));
-      begin_idx = result_string.find("55555", begin_idx+5);
-      end_idx = result_string.find("66666", end_idx+5);
-
-      if (current_result_str.find("Error") != string::npos) {result_3.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
-      else {
-        result_3.push_back(current_result_str);
-      }
-    }
-    else {
-      break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
-    }
-  }
-
-  for (int idx = 0; idx < max({result_0.size(), result_1.size(), result_2.size(), result_3.size()}); idx++){
+  for (int idx = 0; idx < max({res_vec_0.size(), res_vec_1.size(), res_vec_2.size(), res_vec_3.size()}); idx++){
     COMP_RES comp_res;
-    if (idx < result_0.size()){
-      comp_res.res_str_0 = result_0[idx];
+    if (idx < res_vec_0.size()){
+      comp_res.res_str_0 = res_vec_0[idx];
     }
-    if (idx < result_1.size()){
-      comp_res.res_str_1 = result_1[idx];
+    if (idx < res_vec_1.size()){
+      comp_res.res_str_1 = res_vec_1[idx];
     }
-    if (idx < result_2.size()){
-      comp_res.res_str_2 = result_2[idx];
+    if (idx < res_vec_2.size()){
+      comp_res.res_str_2 = res_vec_2[idx];
     }
-    if (idx < result_3.size()){
-      comp_res.res_str_3 = result_3[idx];
+    if (idx < res_vec_3.size()){
+      comp_res.res_str_3 = res_vec_3[idx];
+    }
+    if (idx < exp_vec_0.size()){
+      if (idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true;}
+      if (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true;}
+      if (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true;}
     }
     all_comp_res.v_res.push_back(std::move(comp_res));
   }
@@ -2755,11 +2752,11 @@ void compare_query_result(ALL_COMP_RES& all_comp_res){
   return;
 }
 
-u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
+u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32 tmout = exec_tmout) {
 
   u8 fault;
 
-  string result_string = "";
+  string res_str = "";
 
   if (
       (cmd_string.find("RANDOM") != std::string::npos) ||
@@ -2805,13 +2802,13 @@ u8 execute_cmd_string(string cmd_string, char** argv, u32 tmout = exec_tmout) {
     cur_skipped_paths++;
     return fault;
   }
-  result_string = read_sqlite_output_and_reset_output_file();
+  res_str = read_sqlite_output_and_reset_output_file();
 
 
   ALL_COMP_RES all_comp_res;
   all_comp_res.cmd_str = std::move(cmd_string);
-  all_comp_res.res_str = std::move(result_string);
-  compare_query_result(all_comp_res);
+  all_comp_res.res_str = std::move(res_str);
+  compare_query_result(all_comp_res, is_explain_diff);
 
   /* Some useful debug output. That could show what queries are being tested.  */
   // cerr << "Query: \n";
@@ -2980,7 +2977,8 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
       program_input_str += use_mem[output_index];
     }
     // cerr << program_input_str << endl;
-    fault = execute_cmd_string(program_input_str, argv, use_tmout);
+    bool dummy_bool = false;
+    fault = execute_cmd_string(program_input_str, dummy_bool, argv, use_tmout);
     
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
@@ -3535,7 +3533,7 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
+static u8 save_if_interesting(char** argv, string& query_str, u8 fault, const bool is_explain_diff = false) {
 
   u8  *fn = "";
   u8  hnb;
@@ -3564,7 +3562,7 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
 
     vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0){
-      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]));
+      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]), is_explain_diff);
       ir_tree.back()->deep_drop();
     } else {
       return keeping; // keep = 0, meaning nothing added to the queue. 
@@ -5094,12 +5092,14 @@ EXP_ST u8 common_fuzz_stuff(char** argv, string& query_str) {
 
   u8 fault;
 
-  fault = execute_cmd_string(query_str, argv);
+  bool is_explain_diff = false;
+
+  fault = execute_cmd_string(query_str, is_explain_diff, argv, exec_tmout);
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR) return 0;
 
-  queued_discovered += save_if_interesting(argv, query_str, fault);
+  queued_discovered += save_if_interesting(argv, query_str, fault, is_explain_diff);
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -6878,6 +6878,7 @@ int main(int argc, char** argv) {
   p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
+  g_mutator.set_use_cri_val(true);
 
 
   // hsql_debug = 1;   // For debugging parser. 

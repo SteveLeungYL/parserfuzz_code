@@ -185,7 +185,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
 
       }
 
-      add_all_to_library(v_ir.back());
+      add_all_to_library(v_ir.back(), false);
       v_ir.back()->deep_drop();
     }
 
@@ -915,8 +915,8 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str){
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR* ir) {
-  add_all_to_library(ir->to_string());
+void Mutator::add_all_to_library(IR* ir, const bool is_explain_diff = false) {
+  add_all_to_library(ir->to_string(), is_explain_diff);
 }
 
 /*  Save an interesting query stmt into the mutator library.
@@ -930,7 +930,7 @@ void Mutator::add_all_to_library(IR* ir) {
  *
  */
 
-void Mutator::add_all_to_library(string whole_query_str) {
+void Mutator::add_all_to_library(string whole_query_str, const bool is_explain_diff = false) {
 
   /* If the query_str is empty. Ignored and return. */
   bool is_empty = true;
@@ -956,7 +956,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
     IR * root = ir_set[ir_set.size()-1];
 
     if (p_oracle->is_oracle_valid_stmt(current_query))
-      add_to_norec_lib(root, current_query);
+      add_to_valid_lib(root, current_query, is_explain_diff);
     else
       add_to_library(root, current_query);
 
@@ -964,7 +964,7 @@ void Mutator::add_all_to_library(string whole_query_str) {
   }
 }
 
-void Mutator::add_to_norec_lib(IR * ir, string &select) {
+void Mutator::add_to_valid_lib(IR * ir, string &select, const bool is_explain_diff) {
 
   unsigned long p_hash = hash(select);
 
@@ -977,6 +977,8 @@ void Mutator::add_to_norec_lib(IR * ir, string &select) {
 
   all_query_pstr_set.insert(new_select);
   all_valid_pstr_vec.push_back(new_select);
+
+  if (is_explain_diff && use_cri_val) all_cri_valid_pstr_vec.push_back(new_select);
 
   if (this->dump_library) {
     std::ofstream f;
@@ -1707,10 +1709,14 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
 
   while (!is_succeed){  // Potential dead loop. Only escape through return. 
     bool use_temp = false;
-    int query_method = get_rand_int(6);
-    if (all_valid_pstr_vec.size() > 0 && query_method < 3) {
+    int query_method = get_rand_int(2);
+    if (all_valid_pstr_vec.size() > 0 && query_method < 1) {
       /* Pick the query from the lib, pass to the mutator. */
-      ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
+      if (use_cri_val && all_cri_valid_pstr_vec.size() > 0 && get_rand_int(3) < 2){
+        ori_norec_select = *(all_cri_valid_pstr_vec[get_rand_int(all_cri_valid_pstr_vec.size())]);
+      } else {
+        ori_norec_select = *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
+      }
       if (ori_norec_select == "" || !p_oracle->is_oracle_valid_stmt(ori_norec_select))
         continue;
       use_temp = false;

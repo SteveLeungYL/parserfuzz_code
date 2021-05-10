@@ -57,6 +57,7 @@ struct COMP_RES{
   int res_int_0 = -1, res_int_1 = -1, res_int_2 = -1, res_int_3 = -1;
 
   ORA_COMP_RES comp_res;
+  bool is_explain_diff = false;
 };
 
 struct ALL_COMP_RES {

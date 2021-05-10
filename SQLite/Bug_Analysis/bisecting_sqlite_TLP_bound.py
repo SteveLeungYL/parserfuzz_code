@@ -798,8 +798,8 @@ def exit_handler():
 
 if __name__ == "__main__":
 
-    # setup_and_run_fuzzing()
-    # atexit.register(exit_handler)
+    setup_and_run_fuzzing()
+    atexit.register(exit_handler)
 
     os.chdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis")) # Change back to original workdir in case of errors. 
 

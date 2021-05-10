@@ -45,8 +45,8 @@ public:
 
     vector<IR*> parse_query_str_get_ir_set(string &query_str);
 
-    void add_all_to_library(IR*);
-    void add_all_to_library(string);
+    void add_all_to_library(IR*, const bool);
+    void add_all_to_library(string, const bool);
     IR* get_from_libary_with_type(IRTYPE);
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
@@ -90,12 +90,15 @@ public:
 
     void set_p_oracle(SQL_ORACLE* oracle) {this->p_oracle = oracle;}
 
+    void set_use_cri_val(const bool is_use) {this->use_cri_val = is_use;}
+
 private:
-    void add_to_norec_lib(IR*, string&);
+    void add_to_valid_lib(IR*, string&, const bool);
     void add_to_library(IR*, string&);
     void add_to_library_core(IR*, string*);
 
     bool dump_library = false;
+    bool use_cri_val = false;
 
     IR * record_ = NULL;
     //map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_; 
@@ -128,8 +131,11 @@ private:
     map<NODETYPE, vector<pair<string*, int>>> right_lib_set;
 
     map<unsigned long, bool> norec_hash;
+    
     set<string*> all_query_pstr_set;
     vector<string*> all_valid_pstr_vec;
+
+    vector<string*> all_cri_valid_pstr_vec;
 
     SQL_ORACLE* p_oracle;
 
