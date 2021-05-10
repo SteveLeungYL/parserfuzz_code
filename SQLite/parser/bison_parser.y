@@ -180,9 +180,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     Literal* literal_t;
     StringLiteral* string_literal_t;
     BlobLiteral * blob_literal_t;
-    BoolLiteral* bool_literal_t;
-    NumLiteral* num_literal_t;
     IntLiteral* int_literal_t;
+    NumericLiteral* numeric_literal_t;
     NullLiteral* null_literal_t;
     ParamExpr* param_expr_t;
     TableOrSubquery * table_or_subquery_t;
@@ -298,13 +297,14 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /*********************************
  ** Token Definition
  *********************************/
-%token <sval> STRING IDENTIFIER BLOBSTRING
+%token <sval> STRING IDENTIFIER BLOBSTRING HEXVAL EXPVAL;
 %token <fval> FLOATVAL
 %token <ival> INTVAL
 //%token <identifier_t> IDENTIFIER
 
 /* SQL Keywords */
 %token DEALLOCATE PARAMETERS INTERSECT TEMPORARY TIMESTAMP
+%token CURRENT_TIME CURRENT_DATE CURRENT_TIMESTAMP
 %token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN
 %token CASCADE COLUMNS CONTROL DEFAULT EXECUTE EXPLAIN
 %token INTEGER NATURAL PREPARE PRIMARY SCHEMAS
@@ -410,9 +410,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <literal_t>	literal
 %type <string_literal_t>	string_literal
 %type <blob_literal_t>	blob_literal
-%type <bool_literal_t>	bool_literal
-%type <num_literal_t>	num_literal
 %type <int_literal_t>	int_literal
+%type <numeric_literal_t> numeric_literal
 %type <null_literal_t>	null_literal
 %type <param_expr_t>	param_expr
 %type <table_or_subquery_t> table_or_subquery
@@ -727,7 +726,7 @@ pragma_key:
     ;
 
 pragma_value:
-        num_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE0; $$->num_literal_ = $1;}
+        numeric_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE0; $$->numeric_literal_ = $1;}
     |   string_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE1; $$->string_literal_ = $1;}
     |   IDENTIFIER {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->id_ = new Identifier($1, id_pragma_value); free($1);}
     |   ON {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->id_ = new Identifier("ON", id_pragma_value); }
@@ -2227,26 +2226,27 @@ column_name:
     ;
 
 literal:
-        string_literal  {$$=$1;}
-    |   blob_literal { $$ = $1; }
-    |   bool_literal  {$$=$1;}
-    |   num_literal  {$$=$1;}
-    |   null_literal  {$$=$1;}
-    |   param_expr  {$$=$1;}
+        numeric_literal { $$ = $1; }
+    |   string_literal  { $$ = $1; }
+    |   blob_literal    { $$ = $1; }
+    |   null_literal    { $$ = $1; }
+    |   param_expr      { $$ = $1; }
     ;
 
 string_literal:
         STRING { $$ = new StringLiteral(); $$->str_val_ = $1; free($1);}
     ;
 
-bool_literal:
-        TRUE { $$ = new BoolLiteral(); $$->b_val_=true; }
-    |   FALSE { $$ = new BoolLiteral(); $$->b_val_=false; }
-    ;
-
-num_literal:
-        FLOATVAL { $$ = new NumLiteral(); $$->sub_type_=CASE0; $$->f_val_ = $1; }
-    |   int_literal {$$ = new NumLiteral(); $$->sub_type_=CASE1; $$->int_literal_ = $1;}
+numeric_literal:
+        FLOATVAL { $$ = new NumericLiteral(); $$->value_ = std::to_string($1); }
+    |   INTVAL { $$ = new NumericLiteral(); $$->value_ = std::to_string($1); }
+    |   HEXVAL { $$ = new NumericLiteral(); $$->value_ = $1; free($1); }
+    |   EXPVAL { $$ = new NumericLiteral(); $$->value_ = $1; free($1); }
+    |   TRUE { $$ = new NumericLiteral(); $$->value_ = "TRUE"; }
+    |   FALSE { $$ = new NumericLiteral(); $$->value_ = "FALSE"; }
+    |   CURRENT_TIME { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIME"; }
+    |   CURRENT_DATE { $$ = new NumericLiteral(); $$->value_ = "CURRENT_DATE"; }
+    |   CURRENT_TIMESTAMP { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIMESTAMP"; }
     ;
 
 int_literal:

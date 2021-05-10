@@ -80,9 +80,8 @@
     V(kLiteral) \
     V(kStringLiteral) \
     V(kBlobLiteral) \
-    V(kBoolLiteral) \
-    V(kNumLiteral) \
     V(kIntLiteral) \
+    V(kNumericLiteral) \
     V(kNullLiteral) \
     V(kParamExpr) \
     V(kIdentifier) \
@@ -111,7 +110,6 @@
     V(kJoinConstraint) \
     V(kOptSemicolon) \
     V(kIdentCommaList) \
-    V(kFloatLiteral) \
     V(kInit) \
     V(kStatementList) \
     V(kCompExpr) \
@@ -278,9 +276,8 @@
     V(Literal) \
     V(StringLiteral) \
     V(BlobLiteral) \
-    V(BoolLiteral) \
-    V(NumLiteral) \
     V(IntLiteral) \
+    V(NumericLiteral) \
     V(NullLiteral) \
     V(ParamExpr) \
     V(Identifier) \
@@ -307,7 +304,6 @@
     V(JoinConstraint) \
     V(OptSemicolon) \
     V(IdentCommaList) \
-    V(FloatLiteral) \
     V(Init) \
     V(StatementList) \
     V(CompExpr) \

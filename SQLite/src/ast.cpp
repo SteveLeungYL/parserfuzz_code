@@ -66,6 +66,7 @@ void IR::_to_string(string &res){
     if (type_ == kFilePath ||
         type_ == kPrepareTargetQuery ||
         type_ == kStringLiteral ||
+        type_ == kNumericLiteral ||
         type_ == kIdentifier ||
         type_ == kOptOrderType ||
         type_ == kColumnType ||
@@ -75,21 +76,6 @@ void IR::_to_string(string &res){
         type_ == kNullLiteral ||
         type_ == kconst_str) {
       res += str_val_;
-      return;
-    }
-
-    if (type_ == kIntLiteral ||
-        type_ == kconst_int) {
-      res += std::to_string(int_val_);
-      return;
-    }
-
-    if (type_ == kFloatLiteral ||
-        type_ == kconst_float) {
-      std::ostringstream oss;
-      oss << std::setprecision(8) << std::noshowpoint << f_val_;
-      std::string str = oss.str();
-      res += str;
       return;
     }
 
@@ -218,14 +204,7 @@ void IR::print_ir() {
   if(this->right_ != NULL) this->right_->print_ir();
 
   if(this->operand_num_ == 0){
-    if(this->type_ == kconst_int)
-      cout << this->name_ << " = .int." << this->int_val_ << endl;
-    else if(this->type_ == kconst_float)
-      cout << this->name_ << " = .float." << this->f_val_ << endl;
-    else if(this->type_ == kBoolLiteral)
-      cout << this->name_ << " = .bool." << this->b_val_ << endl; 
-    else
-      cout << this->name_ << " = .str." << this->str_val_ << endl;
+    cout << this->name_ << " = .str." << this->str_val_ << endl;
   }
   else if(this->operand_num_ == 1){      
     string res = "";        
@@ -1719,27 +1698,14 @@ IR* BlobLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* BoolLiteral::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kBoolLiteral, b_val_);
-
-    TRANSLATEEND
+IR *NumericLiteral::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  res = new IR(kNumericLiteral, value_);
+  TRANSLATEEND
 }
 
-IR* NumLiteral::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = new IR(kFloatLiteral, f_val_);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(int_literal_);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
+void NumericLiteral::deep_delete() {
+  delete this;
 }
 
 IR* IntLiteral::translate(vector<IR *> &v_ir_collector){
@@ -2727,17 +2693,6 @@ void BlobLiteral::deep_delete(){
 	delete this;
 }
 
-void BoolLiteral::deep_delete(){
-	delete this;
-}
-
-
-void NumLiteral::deep_delete(){
-	SAFEDELETE(int_literal_);
-	delete this;
-}
-
-
 void IntLiteral::deep_delete(){
 	delete this;
 }
@@ -3010,7 +2965,7 @@ IR* PragmaKey::translate(vector<IR*> &v_ir_collector){
 }
 
 void PragmaValue::deep_delete(){
-    SAFEDELETE(num_literal_);
+    SAFEDELETE(numeric_literal_);
     SAFEDELETE(string_literal_);
     SAFEDELETE(id_);
     delete this;
@@ -3021,7 +2976,7 @@ IR* PragmaValue::translate(vector<IR*> &v_ir_collector){
     
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(num_literal_);
+            res = SAFETRANSLATE(numeric_literal_);
             res = new IR(kPragmaValue, OP0(), res);
         CASEEND
         CASESTART(1)

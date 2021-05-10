@@ -73,10 +73,7 @@ public:
     void fix_one(map<IR*, set<IR*>> &graph, IR* fixed_key, set<IR*> &visited);
     void fix_graph(map<IR*, set<IR*>> &graph, IR* root, vector<IR*>& ordered_ir);
 
-    string get_a_string(); 
-    unsigned long get_a_val();
-    static vector<string> common_string_libary;
-    static vector<unsigned long> value_libary;
+    static vector<string> value_libary;
     static map<string, vector<string>> m_tables;
     static vector<string> v_table_names;
     ~Mutator();
@@ -111,6 +108,7 @@ private:
     map<IDTYPE, IDTYPE> relationmap_alternate;
     map<IDTYPE, IDTYPE> cross_map;
     set<unsigned long> string_libary_hash_;
+    set<unsigned long> value_library_hash_;
 
     vector<string> cmds_;
     map<string, vector<string>> m_cmd_value_lib_;

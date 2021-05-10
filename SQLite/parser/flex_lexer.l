@@ -67,6 +67,9 @@ PARAMETERS	TOKEN(PARAMETERS)
 INTERSECT	TOKEN(INTERSECT)
 TEMPORARY	TOKEN(TEMPORARY)
 TIMESTAMP	TOKEN(TIMESTAMP)
+CURRENT_TIME TOKEN(CURRENT_TIME)
+CURRENT_DATE TOKEN(CURRENT_DATE)
+CURRENT_TIMESTAMP TOKEN(CURRENT_TIMESTAMP)
 DESCRIBE	TOKEN(DESCRIBE)
 DISTINCT	TOKEN(DISTINCT)
 RESTRICT	TOKEN(RESTRICT)
@@ -275,14 +278,9 @@ WITHOUT		TOKEN(WITHOUT)
 ROWID		TOKEN(ROWID)
 
 
-TRUE		{
-	yylval->ival = 1;
-	return SQL_INTVAL;
-}
-FALSE		{
-	yylval->ival = 0;
-	return SQL_INTVAL;
-}
+TRUE		TOKEN(TRUE)
+FALSE		TOKEN(FALSE)
+
                 /* Allow =/== see https://sqlite.org/lang_expr.html#collateop */
 "=="		TOKEN(EQUALS)
 "!=" 		TOKEN(NOTEQUALS)
@@ -296,15 +294,27 @@ FALSE		{
 
 [-+*/(){},.;<>=^%:?[\]|]	{ return yytext[0]; }
 
--?[0-9]+"."[0-9]* |
-"."[0-9]*	{
+[0-9]+"."[0-9]*[eE][+-]?[0-9]+ |
+"."[0-9]+[eE][+-]?[0-9]+ |
+[0-9]+[eE][+-]?[0-9]+ {   /* exponentiation clause */
+  yylval->sval = strdup(yytext);
+  return SQL_EXPVAL;
+}
+
+[0-9]+	{   /* Integer */
+	yylval->ival = atol(yytext);
+	return SQL_INTVAL;
+}
+
+[0-9]+"."[0-9]* |
+"."[0-9]+	{ /* Floating point */
 	yylval->fval = atof(yytext);
 	return SQL_FLOATVAL;
 }
 
--?[0-9]+	{
-	yylval->ival = atol(yytext);
-	return SQL_INTVAL;
+0x[0-9A-Fa-f]+ {
+  yylval->sval = strdup(yytext);
+  return SQL_HEXVAL;
 }
 
 \"[^\"\n]+\" {
@@ -313,7 +323,7 @@ FALSE		{
 	return SQL_IDENTIFIER;
 }
 
-x\'                 { BEGIN blobstring; blobstrbuf = std::stringstream{}; }
+[xX]\'                 { BEGIN blobstring; blobstrbuf = std::stringstream{}; }
 <blobstring>\'\'    { blobstrbuf << '\''; }
 <blobstring>[^']*   { blobstrbuf << yytext; }
 <blobstring>\'      { BEGIN 0; yylval->sval = strdup(blobstrbuf.str().c_str()); return SQL_BLOBSTRING; }

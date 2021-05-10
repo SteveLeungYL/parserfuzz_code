@@ -308,7 +308,7 @@ class PragmaValue: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    NumLiteral * num_literal_;
+    NumericLiteral * numeric_literal_;
     StringLiteral * string_literal_;
     Identifier * id_;
 };
@@ -915,19 +915,11 @@ public:
     string str_val_;
 };
 
-class BoolLiteral: public Literal{
+class NumericLiteral: public Literal{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    bool b_val_;
-};
-
-class NumLiteral: public Literal{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    double f_val_;
-    IntLiteral* int_literal_;
+    string value_;
 };
 
 class IntLiteral: public Literal{
@@ -935,12 +927,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     unsigned long int_val_;
-};
-
-class FloatLiteral: public NumLiteral{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
 };
 
 class NullLiteral:public Literal{
