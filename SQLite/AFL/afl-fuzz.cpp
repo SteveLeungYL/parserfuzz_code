@@ -6883,7 +6883,7 @@ int main(int argc, char** argv) {
   p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
-  g_mutator.set_use_cri_val(true);
+  g_mutator.set_use_cri_val(false);
 
 
   // hsql_debug = 1;   // For debugging parser. 
@@ -6909,7 +6909,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:E")) > 0)
 
     switch (opt) {
 
@@ -7038,6 +7038,10 @@ int main(int argc, char** argv) {
       case 'c': /* bind to specific CPU core num */
         bind_to_core_id = atoi(optarg);
         break;
+
+      case 'E': /* use EXPLAIN QUERY PLAN to determine critical validation statements or not. */
+        g_mutator.set_use_cri_val(true);
+      
       case 'B': /* load bitmap */
 
         /* This is a secret undocumented option! It is useful if you find
