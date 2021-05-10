@@ -7041,6 +7041,7 @@ int main(int argc, char** argv) {
 
       case 'E': /* use EXPLAIN QUERY PLAN to determine critical validation statements or not. */
         g_mutator.set_use_cri_val(true);
+        break;
       
       case 'B': /* load bitmap */
 
