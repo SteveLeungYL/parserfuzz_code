@@ -1672,7 +1672,11 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
   return 1;
 }
 
-int Mutator::get_norec_select_collection_size() {
+int Mutator::get_cri_valid_collection_size() {
+  return all_cri_valid_pstr_vec.size();
+}
+
+int Mutator::get_valid_collection_size() {
 
   return all_valid_pstr_vec.size();
 }

@@ -2587,12 +2587,14 @@ inline void print_norec_exec_debug_info(){
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_append_failed:     " << total_append_failed << "\n"
-           << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
+           << "total_cri_valid_stmts:   " << g_mutator.get_cri_valid_collection_size() << "\n"
+           << "total_valid_stmts:       " << g_mutator.get_valid_collection_size() << "\n";
 
   return;
 }
 
-string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false, const bool is_explain = false){
+string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false){
+  bool is_explain = g_mutator.get_is_use_cri_val();
   string current_output = "";
 
   for (string &query : queries_vector)
@@ -2725,6 +2727,9 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
 
   extract_query_result(res_str, exp_vec_2, "11223", "33221");
 
+  // cerr << "Size of res_vec_0: " << res_vec_0.size() << "   1: " << res_vec_1.size() << endl;
+  // cerr << "Size of exp_vec_0: " << exp_vec_0.size() << "   1: " << exp_vec_1.size() << endl;
+
   for (int idx = 0; idx < max({res_vec_0.size(), res_vec_1.size(), res_vec_2.size(), res_vec_3.size()}); idx++){
     COMP_RES comp_res;
     if (idx < res_vec_0.size()){
@@ -2740,9 +2745,9 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
       comp_res.res_str_3 = res_vec_3[idx];
     }
     if (idx < exp_vec_0.size()){
-      if (idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true;}
-      if (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true;}
-      if (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true;}
+      if (idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true; }
+      if (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true; }
+      if (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true; }
     }
     all_comp_res.v_res.push_back(std::move(comp_res));
   }

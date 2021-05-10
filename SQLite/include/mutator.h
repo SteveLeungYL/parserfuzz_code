@@ -41,7 +41,8 @@ public:
     bool lucky_enough_to_be_mutated(unsigned int mutated_times);
 
     int get_ir_libary_2D_hash_kStatement_size();
-    int get_norec_select_collection_size();
+    int get_valid_collection_size();
+    int get_cri_valid_collection_size();
 
     vector<IR*> parse_query_str_get_ir_set(string &query_str);
 
@@ -91,6 +92,7 @@ public:
     void set_p_oracle(SQL_ORACLE* oracle) {this->p_oracle = oracle;}
 
     void set_use_cri_val(const bool is_use) {this->use_cri_val = is_use;}
+    bool get_is_use_cri_val() {return this->use_cri_val;}
 
 private:
     void add_to_valid_lib(IR*, string&, const bool);
