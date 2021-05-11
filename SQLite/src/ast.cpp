@@ -75,7 +75,7 @@ void IR::_to_string(string &res){
         type_ == kIdentifier ||
         type_ == kOptOrderType ||
         type_ == kColumnType ||
-        type_ == kSetType ||
+        type_ == kSetOperator ||
         type_ == kOptJoinType ||
         type_ == kOptDistinct ||
         type_ == kNullLiteral ||
@@ -912,26 +912,8 @@ IR* SelectNoParen::translate(vector<IR *> &v_ir_collector){
 
 IR* SetOperator::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
-    res = SAFETRANSLATE(set_type_);
-    auto tmp = SAFETRANSLATE(opt_all_);
-    res = new IR(kSetOperator, OP0(), res, tmp);
     
-    TRANSLATEEND
-}
-
-IR* SetType::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = new IR(kSetType, str_val_);
-
-    TRANSLATEEND
-}
-
-IR* OptAll::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = new IR(kOptAll, str_val_);
+    res = new IR(kSetOperator, str_val_);
 
     TRANSLATEEND
 }
@@ -1933,8 +1915,8 @@ IR* WithDescription::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
     IR* id = SAFETRANSLATE(id_);
-    IR* tmp = SAFETRANSLATE(select_with_paren_);
-    res = new IR(kWithDescription, OPMID("AS"), id, tmp);
+    IR* tmp = SAFETRANSLATE(select_no_paren_);
+    res = new IR(kWithDescription, OP3("", "AS (", ")"), id, tmp);
 
     TRANSLATEEND
 }
@@ -2344,18 +2326,6 @@ void SelectNoParen::deep_delete(){
 
 
 void SetOperator::deep_delete(){
-	SAFEDELETE(set_type_);
-	SAFEDELETE(opt_all_);
-	delete this;
-}
-
-
-void SetType::deep_delete(){
-	delete this;
-}
-
-
-void OptAll::deep_delete(){
 	delete this;
 }
 
@@ -2561,7 +2531,7 @@ void WithDescriptionList::deep_delete(){
 
 
 void WithDescription::deep_delete(){
-	SAFEDELETE(select_with_paren_);
+	SAFEDELETE(select_no_paren_);
 	SAFEDELETE(id_);
 	delete this;
 }
@@ -3158,15 +3128,8 @@ IR * OptOverClause::translate(vector<IR*> &v_ir_collector){
             res = new IR(kOptOverClause, OP1("OVER"), res);
         CASEEND
         CASESTART(1)
-            auto tmp0 = SAFETRANSLATE(opt_base_window_name_);
-            auto tmp1 = SAFETRANSLATE(opt_partition_by_);
-            res = new IR(kBaseWindowPartition, OP0(), tmp0, tmp1);
-            PUSH(res);
-            auto tmp2 = SAFETRANSLATE(opt_order_);
-            res = new IR(kBaseWindowPartitionOrder, OP0(), res, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(opt_frame_);
-            res = new IR(kOptOverClause, OP3("OVER(", "", ")"), res, tmp3);
+            auto tmp3 = SAFETRANSLATE(window_);
+            res = new IR(kOptOverClause, OP2("OVER (", ")"), tmp3);
         CASEEND
         CASESTART(2)
             res = new IR(kOptOverClause, string(""));
@@ -3177,10 +3140,7 @@ IR * OptOverClause::translate(vector<IR*> &v_ir_collector){
 
 void OptOverClause::deep_delete(){
   SAFEDELETE(window_name_);;
-  SAFEDELETE(opt_base_window_name_);
-  SAFEDELETE(opt_partition_by_);
-  SAFEDELETE(opt_order_);
-  SAFEDELETE(opt_frame_);
+  SAFEDELETE(window_);
 	delete this;
 }
 
@@ -3267,33 +3227,21 @@ void WindowDefn::deep_delete(){
 
 IR * Window::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-
-    auto windowname = SAFETRANSLATE(opt_base_window_name_);
-    auto opt_order = SAFETRANSLATE(opt_order_);
-    auto opt_frame = SAFETRANSLATE(opt_frame_);
-
-    SWITCHSTART
-        CASESTART(0)
-        auto expr_list = SAFETRANSLATE(expr_list_);
-        auto tmp = new IR(kUnknown, OPMID("PARTITION BY"), windowname, expr_list);
-        PUSH(tmp);
-        tmp = new IR(kUnknown, OP0(), tmp, opt_order);
-        PUSH(tmp);
-        res = new IR(kWindow, OP0(), tmp, opt_frame);
-        CASEEND
-        CASESTART(1)
-        auto tmp = new IR(kUnknown, OP0(), windowname, opt_order);
-        PUSH(tmp);
-        res = new IR(kWindow, OP0(), tmp, opt_frame);
-        CASEEND
-    SWITCHEND
-
+  auto tmp0 = SAFETRANSLATE(opt_base_window_name_);
+  auto tmp1 = SAFETRANSLATE(opt_partition_by_);
+  res = new IR(kBaseWindowPartition, OP0(), tmp0, tmp1);
+  PUSH(res);
+  auto tmp2 = SAFETRANSLATE(opt_order_);
+  res = new IR(kBaseWindowPartitionOrder, OP0(), res, tmp2);
+  PUSH(res);
+  auto tmp3 = SAFETRANSLATE(opt_frame_);
+  res = new IR(kOptOverClause, OP0(), res, tmp3);
 	TRANSLATEEND
 }
 
 void Window::deep_delete(){
     SAFEDELETE(opt_base_window_name_);
-    SAFEDELETE(expr_list_);
+    SAFEDELETE(opt_partition_by_);
     SAFEDELETE(opt_order_);
     SAFEDELETE(opt_frame_);
 	delete this;

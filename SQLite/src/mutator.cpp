@@ -1528,7 +1528,7 @@ void Mutator::_fix(IR * root, string &res){
       type_ == kPrepareTargetQuery ||
       type_ == kOptOrderType ||
       type_ == kColumnType ||
-      type_ == kSetType ||
+      type_ == kSetOperator ||
       type_ == kOptJoinType ||
       type_ == kOptDistinct ||
       type_ == kNullLiteral) {
@@ -1627,7 +1627,7 @@ void Mutator::_extract_struct(IR * root, string &res) {
   if (type_ == kOptOrderType ||
       type_ == kNullLiteral ||
       type_ == kColumnType ||
-      type_ == kSetType ||
+      type_ == kSetOperator ||
       type_ == kOptJoinType ||
       type_ == kOptDistinct) {
     res += str_val_;

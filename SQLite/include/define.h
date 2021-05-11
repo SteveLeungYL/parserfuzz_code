@@ -42,8 +42,6 @@
     V(kSelectParenOrClause) \
     V(kSelectNoParen) \
     V(kSetOperator) \
-    V(kSetType) \
-    V(kOptAll) \
     V(kSelectClause) \
     V(kOptDistinct) \
     V(kSelectList) \
@@ -260,8 +258,6 @@
     V(SelectParenOrClause) \
     V(SelectNoParen) \
     V(SetOperator) \
-    V(SetType) \
-    V(OptAll) \
     V(SelectClause) \
     V(OptDistinct) \
     V(SelectList) \
