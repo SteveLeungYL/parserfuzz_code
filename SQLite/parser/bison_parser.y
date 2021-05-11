@@ -2081,7 +2081,7 @@ function_name:
 ;
 
 function_args:
-        DISTINCT expr_list { $$ = new FunctionArgs(); $$->sub_type_ = CASE0; $$->expr_list_ = $2; }
+        opt_distinct expr_list { $$ = new FunctionArgs(); $$->sub_type_ = CASE0; $$->opt_distinct_ = $1; $$->expr_list_ = $2; }
     |   '*' { $$ = new FunctionArgs(); $$->sub_type_ = CASE1; $$->str_val_ = string("*"); }
     |   /* empty */ { $$ = new FunctionArgs(); $$->sub_type_ = CASE1; $$->str_val_ = string(""); }
 

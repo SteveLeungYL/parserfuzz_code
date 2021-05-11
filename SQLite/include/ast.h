@@ -1687,6 +1687,7 @@ public:
     virtual IR *translate(vector<IR *> &v_ir_collector);
     string str_val_;
     ExprList * expr_list_;
+    OptDistinct * opt_distinct_;
 };
 
 class OptNot: public Node {

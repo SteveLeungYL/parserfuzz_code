@@ -417,7 +417,26 @@
     V(PartitionBy) \
     V(OptPartitionBy) \
     V(OptNot) \
-    V(RaiseFunction)
+    V(RaiseFunction) \
+    \
+    /* the following type does not has corresponding class*/ \
+    \
+    V(InExpr) \
+    V(BetweenExpr) \
+    V(TableNameAndOptTableAlias) \
+    V(JoinOpAndTable) \
+    V(BinaryExprHead) \
+    V(ExprCollate) \
+    V(ExprCollateOrderType) \
+    V(BaseWindowPartition) \
+    V(BaseWindowPartitionOrder) \
+    V(FunctionNameArgs) \
+    V(ExprOptNot) \
+    V(ExprOptNotBop) \
+    V(ExprOptNotBopExpr) \
+    V(FunctionNameArgsFilter) \
+    V(CaseConditionListElse)
+
 
 #define SWITCHSTART \
     switch(sub_type_){ 

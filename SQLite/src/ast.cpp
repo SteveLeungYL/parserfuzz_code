@@ -38,11 +38,16 @@ string get_string_by_id_type(IDTYPE type) {
     case id_module_name:        return "id_moudle_name";
     case id_window_def_name:    return "id_window_def_name";
     case id_window_name:        return "id_window_name";
+    case id_base_window_name:   return "id_base_window_name";
     case id_window_base_name:   return "id_window_base_name";
     case id_savepoint_name:     return "id_savepoint_name";
     case id_collation_name:     return "id_collation_name";
     case id_database_name:      return "id_database_name";
     case id_alias_name:         return "id_alias_name";
+    case id_table_alias_name:       return "id_table_alias_name";
+    case id_column_alias_name:      return "id_column_alias_name";
+    case id_function_name:          return "id_function_name";
+    case id_table_constraint_name:  return "id_table_constraint_name";
     default:                    return "unknown identifier type";
   }
 }
@@ -1333,9 +1338,9 @@ IR* NewExpr::translate(vector<IR *> &v_ir_collector){
       CASESTART(13)
         auto tmp0 = SAFETRANSLATE(opt_expr_);
         auto tmp1 = SAFETRANSLATE(case_condition_list_);
-        res = new IR(kCaseConditionListElse, OP0(), tmp0, tmp1);
-        PUSH(res);
         auto tmp2 = SAFETRANSLATE(opt_else_expr_);
+        res = new IR(kCaseConditionListElse, OP0(), tmp1, tmp2);
+        PUSH(res);
         res = new IR(kNewExpr, OP3("CASE", "", "END"), tmp0, res);
       CASEEND
       CASESTART(14)
@@ -1594,8 +1599,9 @@ IR *FunctionArgs::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   SWITCHSTART
   CASESTART(0)
-    auto tmp = SAFETRANSLATE(expr_list_);
-    res = new IR(kFunctionArgs, OP1("DISTINCT"), tmp);
+    auto tmp0 = SAFETRANSLATE(opt_distinct_);
+    auto tmp1 = SAFETRANSLATE(expr_list_);
+    res = new IR(kFunctionArgs, OP0(), tmp0, tmp1);
   CASEEND
   CASESTART(1)
     res = new IR(kFunctionArgs, str_val_);
@@ -1605,6 +1611,7 @@ IR *FunctionArgs::translate(vector<IR *> &v_ir_collector) {
 }
 
 void FunctionArgs::deep_delete() {
+  SAFEDELETE(opt_distinct_);
   SAFEDELETE(expr_list_);
   delete this;
 }
