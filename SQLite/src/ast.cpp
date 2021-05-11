@@ -1401,17 +1401,6 @@ void OptExpr::deep_delete(){
 }
 
 
-IR* LogicExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    auto tmp1 = SAFETRANSLATE(expr1_);
-    auto tmp2 = SAFETRANSLATE(expr2_);
-
-    res = new IR(kLogicExpr, OPMID(operator_), tmp1, tmp2);
-    TRANSLATEEND    
-}
-
-
 IR* UnaryOp::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     res = new IR(kUnaryOp, value_);
@@ -1481,13 +1470,6 @@ IR* CaseConditionList::translate(vector<IR *> &v_ir_collector){
     TRANSLATEENDNOPUSH
 }
 
-IR* DatetimeField::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kDatetimeField, str_val_);
-
-    TRANSLATEEND
-}
 
 IR *ColumnOrTableConstraintDefCommaList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
@@ -1698,13 +1680,6 @@ void NumericLiteral::deep_delete() {
   delete this;
 }
 
-IR* IntLiteral::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kIntLiteral, int_val_);
-
-    TRANSLATEEND
-}
 
 IR* NullLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -1920,39 +1895,6 @@ void OptTableAlias::deep_delete(){
 	delete this;
 }
 
-
-IR* Alias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kAlias, OPSTART("AS"),res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kAlias, OP0(), res);
-        CASEEND
-    SWITCHEND
-    
-    TRANSLATEEND
-}
-
-IR* OptAlias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(alias_);
-            res = new IR(kOptAlias, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptAlias, "");
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
 
 IR* WithClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2511,19 +2453,6 @@ void OptLiteralList::deep_delete(){
 }
 
 
-void Alias::deep_delete(){
-	SAFEDELETE(id_);
-	delete this;
-}
-
-
-void LogicExpr::deep_delete(){
-	SAFEDELETE(expr1_);
-	SAFEDELETE(expr2_);
-	delete this;
-}
-
-
 void CaseCondition::deep_delete(){
 	SAFEDELETE(when_expr_);
 	SAFEDELETE(then_expr_);
@@ -2533,11 +2462,6 @@ void CaseCondition::deep_delete(){
 
 void CaseConditionList::deep_delete(){
 	SAFEDELETELIST(v_case_condition_list_);
-	delete this;
-}
-
-
-void DatetimeField::deep_delete(){
 	delete this;
 }
 
@@ -2562,9 +2486,6 @@ void BlobLiteral::deep_delete(){
 	delete this;
 }
 
-void IntLiteral::deep_delete(){
-	delete this;
-}
 
 void NullLiteral::deep_delete(){
 	delete this;
@@ -2617,12 +2538,6 @@ void TableRefNameNoAlias::deep_delete(){
 void TableName::deep_delete(){
 	SAFEDELETE(table_id_);
 	SAFEDELETE(database_id_);
-	delete this;
-}
-
-
-void OptAlias::deep_delete(){
-	SAFEDELETE(alias_);
 	delete this;
 }
 

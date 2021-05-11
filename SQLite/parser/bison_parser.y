@@ -166,17 +166,14 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     UnaryOp* unary_op_t;
     BinaryOp* binary_op_t;
     InTarget* in_target_t;
-    LogicExpr* logic_expr_t;
     CaseCondition* case_condition_t;
     CaseConditionList* case_condition_list_t;
-    DatetimeField* datetime_field_t;
     ColumnName* column_name_t;
     FunctionName* function_name_t;
     FunctionArgs* function_args_t;
     Literal* literal_t;
     StringLiteral* string_literal_t;
     BlobLiteral * blob_literal_t;
-    IntLiteral* int_literal_t;
     NumericLiteral* numeric_literal_t;
     NullLiteral* null_literal_t;
     ParamExpr* param_expr_t;
@@ -191,8 +188,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptTableAlias* opt_table_alias_t;
     ColumnAlias* column_alias_t;
     OptColumnAlias* opt_column_alias_t;
-    Alias* alias_t;
-    OptAlias* opt_alias_t;
     OptWithClause* opt_with_clause_t;
     WithClause* with_clause_t;
     WithDescriptionList* with_description_list_t;
@@ -403,17 +398,14 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <unary_op_t> unary_op
 %type <binary_op_t> binary_op similar_bop in_op
 %type <in_target_t> in_target
-%type <logic_expr_t>	logic_expr
 %type <case_condition_t> case_condition
 %type <case_condition_list_t>	case_condition_list
-%type <datetime_field_t>	datetime_field
 %type <column_name_t>	column_name one_column_name
 %type <function_name_t> function_name
 %type <function_args_t> function_args
 %type <literal_t>	literal
 %type <string_literal_t>	string_literal
 %type <blob_literal_t>	blob_literal
-%type <int_literal_t>	int_literal
 %type <numeric_literal_t> numeric_literal
 %type <null_literal_t>	null_literal
 %type <param_expr_t>	param_expr
@@ -425,8 +417,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_table_alias_t> opt_table_alias
 %type <column_alias_t> column_alias
 %type <opt_column_alias_t> opt_column_alias
-%type <alias_t>	alias
-%type <opt_alias_t>	opt_alias
 %type <opt_with_clause_t>	opt_with_clause
 %type <with_clause_t>	with_clause
 %type <with_description_list_t>	with_description_list
@@ -2280,11 +2270,6 @@ opt_expr:
     |   /* empty */ { $$ = new OptExpr(); $$->sub_type_ = CASE1; }
     ;
                                                       
-logic_expr:
-        new_expr AND new_expr   { $$ = new LogicExpr(); $$->expr1_=$1; $$->expr2_=$3; $$->operator_=string("AND"); }
-    |   new_expr OR new_expr    { $$ = new LogicExpr(); $$->expr1_=$1; $$->expr2_=$3; $$->operator_=string("OR"); }
-    ;
-
 case_condition:
         WHEN new_expr THEN new_expr { $$ = new CaseCondition(); $$->when_expr_ = $2; $$->then_expr_ = $4; }
     ;
@@ -2313,15 +2298,6 @@ filter_clause:
 opt_filter_clause:
         filter_clause { $$ = new OptFilterClause(); $$->sub_type_ = CASE0; $$->filter_clause_ = $1; }
     |   /* emtpy */ {$$ = new OptFilterClause(); $$->sub_type_ = CASE1;}
-    ;
-
-datetime_field:
-        SECOND { $$ = new DatetimeField(); $$->str_val_ = string("SECOND"); }
-    |   MINUTE { $$ = new DatetimeField(); $$->str_val_ = string("MINUTE"); }
-    |   HOUR { $$ = new DatetimeField(); $$->str_val_ = string("HOUR"); }
-    |   DAY { $$ = new DatetimeField(); $$->str_val_ = string("DAY"); }
-    |   MONTH { $$ = new DatetimeField(); $$->str_val_ = string("MONTH"); }
-    |   YEAR { $$ = new DatetimeField(); $$->str_val_ = string("YEAR"); }
     ;
 
 one_column_name:
@@ -2358,10 +2334,6 @@ numeric_literal:
     |   CURRENT_TIME { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIME"; }
     |   CURRENT_DATE { $$ = new NumericLiteral(); $$->value_ = "CURRENT_DATE"; }
     |   CURRENT_TIMESTAMP { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIMESTAMP"; }
-    ;
-
-int_literal:
-        INTVAL {$$ = new IntLiteral(); $$->int_val_=$1; }
     ;
 
 null_literal:
@@ -2468,16 +2440,6 @@ column_alias:
 opt_column_alias:
          column_alias { $$ = new OptColumnAlias(); $$->sub_type_ = CASE0; $$->column_alias_ = $1; }
     |    /* empty */ { $$ = new OptColumnAlias(); $$->sub_type_ = CASE1; }
-    ;
-
-alias:
-        AS IDENTIFIER { $$ = new Alias(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($2, id_alias_name); free($2); }
-    ;
-
-
-opt_alias:
-        alias { $$ = new OptAlias(); $$->sub_type_ = CASE0; $$->alias_=$1;}
-    |   /* empty */ { $$ = new OptAlias(); $$->sub_type_ = CASE1; }
     ;
 
 /******************************

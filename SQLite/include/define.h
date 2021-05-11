@@ -61,7 +61,6 @@
     V(kLiteralList) \
     V(kOptLiteralList) \
     V(kNewExpr) \
-    V(kLogicExpr) \
     V(kExistsExpr) \
     V(kElseExpr) \
     V(kOptElseExpr) \
@@ -75,7 +74,6 @@
     V(kArrayExpr) \
     V(kCaseCondition) \
     V(kCaseConditionList) \
-    V(kDatetimeField) \
     V(kColumnName) \
     V(kLiteral) \
     V(kStringLiteral) \
@@ -281,7 +279,6 @@
     V(LiteralList) \
     V(OptLiteralList) \
     V(NewExpr) \
-    V(LogicExpr) \
     V(ElseExpr) \
     V(OptElseExpr) \
     V(OptExpr) \
@@ -290,14 +287,12 @@
     V(InTarget) \
     V(CaseCondition) \
     V(CaseConditionList) \
-    V(DatetimeField) \
     V(ColumnName) \
     V(FunctionName) \
     V(FunctionArgs) \
     V(Literal) \
     V(StringLiteral) \
     V(BlobLiteral) \
-    V(IntLiteral) \
     V(NumericLiteral) \
     V(NullLiteral) \
     V(ParamExpr) \
@@ -314,8 +309,6 @@
     V(OptColumnAlias) \
     V(ResultColumn) \
     V(ResultColumnList) \
-    V(Alias) \
-    V(OptAlias) \
     V(WithClause) \
     V(OptWithClause) \
     V(WithDescriptionList) \

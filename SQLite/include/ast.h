@@ -733,14 +733,6 @@ public:
     LiteralList * literal_list_;
 };
 
-class Alias: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    bool has_as_;
-    Identifier* id_;
-};
-
 class NewExpr: public Node {
 public:
     virtual void deep_delete();
@@ -776,15 +768,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     NewExpr * expr_;
-};
-
-class LogicExpr: public NewExpr{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    NewExpr * expr1_;
-    NewExpr * expr2_;
-    string operator_;
 };
 
 class UnaryOp: public Node {
@@ -824,13 +807,6 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     vector<CaseCondition *> v_case_condition_list_;
 
-};
-
-class DatetimeField: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    string str_val_;
 };
 
 class FunctionName: public Node{
@@ -874,13 +850,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     string value_;
-};
-
-class IntLiteral: public Literal{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    unsigned long int_val_;
 };
 
 class NullLiteral:public Literal{
@@ -993,13 +962,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     TableAlias* table_alias_;
-};
-
-class OptAlias: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    Alias* alias_;
 };
 
 class WithClause: public Node{
