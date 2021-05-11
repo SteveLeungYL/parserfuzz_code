@@ -6880,7 +6880,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_NOREC();   // Set it to your own oracle class. 
+  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   g_mutator.set_use_cri_val(false);

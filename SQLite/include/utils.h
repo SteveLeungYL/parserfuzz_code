@@ -45,6 +45,9 @@ std::vector<string> string_splitter(const string& input_string, string delimiter
 std::vector<string> string_splitter2(const string& input_string, const char delimiter_re);
 bool is_str_empty(string input_str);
 
+string::const_iterator findStringIter(const std::string & strHaystack, const std::string & strNeedle);
+bool findStringIn(const std::string & strHaystack, const std::string & strNeedle);
+
 enum ORA_COMP_RES {
   Pass = 1,
   Fail = 0,

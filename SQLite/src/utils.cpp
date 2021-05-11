@@ -193,3 +193,17 @@ bool is_str_empty(string input_str){
   }
   return true; // Empty
 }
+
+string::const_iterator findStringIter(const std::string & strHaystack, const std::string & strNeedle)
+{
+  auto it = std::search(
+    strHaystack.begin(), strHaystack.end(),
+    strNeedle.begin(),   strNeedle.end(),
+    [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+  );
+  return it;
+}
+
+bool findStringIn(const std::string & strHaystack, const std::string & strNeedle){
+  return (findStringIter(strHaystack, strNeedle) != strHaystack.end());
+}

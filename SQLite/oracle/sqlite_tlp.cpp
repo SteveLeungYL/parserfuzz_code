@@ -17,15 +17,31 @@ int SQL_TLP::count_valid_stmts(const string& input){
 
 
 bool SQL_TLP::is_oracle_valid_stmt(const string& query){
-  /* Complete version. More flexible query restrictions. */
+
   if (
-        regex_match(query, regex("^\\s*SELECT(.*?)FROM(.*?)WHERE(.*?)$", regex::icase | regex::optimize)) &&
-        !regex_match(query, regex("(.*?)INTERSECT(.*?)", regex::icase | regex::optimize)) &&
-        !regex_match(query, regex("(.*?)EXCEPT(.*?)", regex::icase | regex::optimize)) &&
-        !regex_match(query, regex("(.*?)UNION ALL(.*?)", regex::icase | regex::optimize))
-  ) {
-      return true;
-  }
+        (
+          ((findStringIter(query, "SELECT DISTINCT") - query.begin()) < 5 ) ||
+          ((findStringIter(query, "SELECT") - query.begin()) < 5 )
+        )
+        && 
+        findStringIn(query, "FROM")
+        && 
+        findStringIn(query, "WHERE")
+        && 
+        !findStringIn(query, "INSERT")
+        &&
+        !findStringIn(query, "UPDATE")
+  ) return true;
+
+  // /* Complete version. More flexible query restrictions. */
+  // if (
+  //       regex_match(query, regex("^\\s*SELECT(.*?)FROM(.*?)WHERE(.*?)$", regex::icase | regex::optimize)) &&
+  //       !regex_match(query, regex("(.*?)INTERSECT(.*?)", regex::icase | regex::optimize)) &&
+  //       !regex_match(query, regex("(.*?)EXCEPT(.*?)", regex::icase | regex::optimize)) &&
+  //       !regex_match(query, regex("(.*?)UNION ALL(.*?)", regex::icase | regex::optimize))
+  // ) {
+  //     return true;
+  // }
     return false;
 }
 
@@ -396,19 +412,24 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
   //   extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
 
 
-  if ( !regex_match(ori_query, regex("^(.*?)HAVING(.*?)$", regex::icase | regex::optimize)) ) {  // This is not a having stmts. Handle with where stmt.
+  if ( !findStringIn(ori_query, "HAVING") ) {  // This is not a having stmts. Handle with where stmt.
     if (
         (
           /* If we have SELECT (DISTINCT) COUNT/MAX/MIN/SUM, even if we have GROUP BY or DISTINCT, we still use UNION ALL. */
-          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)$", regex::icase | regex::optimize)) ||
-          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)$", regex::icase | regex::optimize)) ||
-          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)$", regex::icase | regex::optimize)) ||
-          regex_match(ori_query, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)$", regex::icase | regex::optimize))
+          ((findStringIter(ori_query, "SELECT DISTINCT COUNT") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT COUNT") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT DISTINCT MAX") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT MAX") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT DISTINCT MIN") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT MIN") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT DISTINCT SUM") - ori_query.begin()) < 5 ) ||
+          ((findStringIter(ori_query, "SELECT SUM") - ori_query.begin()) < 5 )
         )
         ||
         (
-          !regex_match(ori_query, regex("^\\s*SELECT\\s*DISTINCT(.*?)$", regex::icase | regex::optimize))  &&
-          !regex_match(ori_query, regex("^(.*?)GROUP\\s*BY(.*?)$", regex::icase | regex::optimize))
+          /* Do not use UNION ALL, if we have SELECT DISTINCT and GROUP BY. */
+          !((findStringIter(ori_query, "SELECT DISTINCT") - ori_query.begin()) < 5 ) &&
+          !findStringIn(ori_query, "GROUP BY")
         )
     )
     {
@@ -433,7 +454,11 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
   }
 
   /* For now, do not process the SELECT AVG stmt. */
-  if (regex_match(select_stmt, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?AVG(.*?)$", regex::icase | regex::optimize))){
+  if (
+      ((findStringIter(ori_query, "SELECT DISTINCT AVG") - ori_query.begin()) < 5) ||
+      ((findStringIter(ori_query, "SELECT AVG") - ori_query.begin()) < 5)
+    )
+  {
     query = "";
     rew_1 = "";
   }
@@ -507,11 +532,11 @@ bool SQL_TLP::compare_norm(COMP_RES& res) {
 
   /* Remove NULL results */
   for (string& r: v_res_a){
-    if (regex_match(r, regex("^[\\|\\s]*$", regex::icase | regex::optimize))) res_a_int--;
+    if (is_str_empty(r)) res_a_int--;
   }
 
   for (string& r: v_res_b){
-    if (regex_match(r, regex("^[\\|\\s]*$", regex::icase | regex::optimize))) res_b_int--;
+    if (is_str_empty(r)) res_b_int--;
   }
 
   v_res_a.clear();
@@ -538,7 +563,7 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
   int& res_b_int = res.res_int_1;
 
   /* Do not allow any alphabet characters. */
-  if (!regex_match(res_a, regex("^[\\d\\s\\.]*$", regex::optimize)) || !regex_match(res_b, regex("^[\\d\\s]*$", regex::optimize)))
+  if (is_str_empty(res_a) || is_str_empty(res_b))
   {
     res.comp_res = ORA_COMP_RES::Error;
     return 1;
@@ -672,29 +697,41 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE>& v
 
   while (begin_idx != string::npos){
     if (end_idx != string::npos){
-      string current_cmd_string = cmd_str.substr(begin_idx + 8, (end_idx - begin_idx - 8 - 8));
+      string cur_cmd_str = cmd_str.substr(begin_idx + 8, (end_idx - begin_idx - 8 - 8));
       begin_idx = cmd_str.find("13579", begin_idx+5);
       end_idx = cmd_str.find("97531", end_idx+5);
 
-      if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MIN(.*?)$", regex::icase | regex::optimize))){
+      if (
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") - cur_cmd_str.begin()) < 5 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT MIN") - cur_cmd_str.begin()) < 5 )
+      ){
         v_valid_type.push_back(VALID_STMT_TYPE::MIN);
-        // cerr << "query: " << current_cmd_string << " \nMIN. \n"; 
+        // cerr << "query: " << cur_cmd_str << " \nMIN. \n"; 
       }
-      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?MAX(.*?)$", regex::icase | regex::optimize))){
+      else if (
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT MAX") - cur_cmd_str.begin()) < 5 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT MAX") - cur_cmd_str.begin()) < 5 )
+      ){
         v_valid_type.push_back(VALID_STMT_TYPE::MAX);
-        // cerr << "query: " << current_cmd_string << " \nMAX. \n"; 
+        // cerr << "query: " << cur_cmd_str << " \nMAX. \n"; 
       }
-      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?SUM(.*?)$", regex::icase | regex::optimize))){
+      else if (
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT SUM") - cur_cmd_str.begin()) < 5 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT SUM") - cur_cmd_str.begin()) < 5 )
+      ){
         v_valid_type.push_back(VALID_STMT_TYPE::SUM);
-        // cerr << "query: " << current_cmd_string << " \nSUM. \n"; 
+        // cerr << "query: " << cur_cmd_str << " \nSUM. \n"; 
       }
-      else if (regex_match(current_cmd_string, regex("^\\s*SELECT\\s*(DISTINCT\\s*)?COUNT(.*?)$", regex::icase | regex::optimize))){
+      else if (
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT COUNT") - cur_cmd_str.begin()) < 5 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT COUNT") - cur_cmd_str.begin()) < 5 )
+      ){
         v_valid_type.push_back(VALID_STMT_TYPE::COUNT);
-        // cerr << "query: " << current_cmd_string << " \nCOUNT. \n"; 
+        // cerr << "query: " << cur_cmd_str << " \nCOUNT. \n"; 
       }
       else{
         v_valid_type.push_back(VALID_STMT_TYPE::NORM);
-        // cerr << "query: " << current_cmd_string << " \nNORM. \n"; 
+        // cerr << "query: " << cur_cmd_str << " \nNORM. \n"; 
       }
       
     }
