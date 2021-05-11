@@ -27,12 +27,14 @@
     V(kExecuteStatement) \
     V(kImportFileType) \
     V(kFilePath) \
-    V(kOptNotExists) \
+    V(kOptIfNotExists) \
     V(kColumnDefCommaList) \
     V(kColumnDef) \
     V(kColumnType) \
     V(kOptColumnNullable) \
-    V(kOptExists) \
+    V(kOptIfExists) \
+    V(kExistsOrNot) \
+    V(kOptExistsOrNot) \
     V(kOptColumnList) \
     V(kUpdateClauseCommalist) \
     V(kUpdateClause) \
@@ -52,29 +54,27 @@
     V(kOptHaving) \
     V(kOptOrder) \
     V(kOrderList) \
-    V(kOrderDesc) \
+    V(kOrderTerm) \
     V(kOptOrderType) \
     V(kOptLimit) \
     V(kExprList) \
     V(kLiteralList) \
     V(kOptLiteralList) \
-    V(kExprAlias) \
-    V(kExpr) \
-    V(kOperand) \
-    V(kBetweenExpr) \
+    V(kNewExpr) \
     V(kLogicExpr) \
     V(kExistsExpr) \
-    V(kInExpr) \
-    V(kArrayIndex) \
+    V(kElseExpr) \
+    V(kOptElseExpr) \
+    V(kOptExpr) \
     V(kScalarExpr) \
-    V(kUnaryExpr) \
-    V(kBinaryExpr) \
-    V(kCaseExpr) \
+    V(kUnaryOp) \
+    V(kBinaryOp) \
+    V(kInTarget) \
     V(kFunctionExpr) \
     V(kExtractExpr) \
     V(kArrayExpr) \
-    V(kCaseClause) \
-    V(kCaseList) \
+    V(kCaseCondition) \
+    V(kCaseConditionList) \
     V(kDatetimeField) \
     V(kColumnName) \
     V(kLiteral) \
@@ -112,7 +112,6 @@
     V(kIdentCommaList) \
     V(kInit) \
     V(kStatementList) \
-    V(kCompExpr) \
     V(kUnknown)  \
     V(kEmpty)   \
     V(kCmdPragma) \
@@ -141,18 +140,20 @@
 	V(kModuleName) \
 	V(kOptOverClause) \
 	V(kOptFilterClause) \
+	V(kFilterClause) \
 	V(kWindowClause) \
 	V(kWindowDefnList) \
 	V(kWindowDefn) \
 	V(kWindow) \
+	V(kWindowName) \
 	V(kOptBaseWindowName) \
 	V(kOptFrame) \
 	V(kRangeOrRows) \
 	V(kFrameBoundS) \
 	V(kFrameBoundE) \
 	V(kFrameBound) \
-	V(kOptFrameExclude) \
 	V(kFrameExclude) \
+	V(kOptFrameExclude) \
     V(kInsertType) \
     V(kCmd) \
     V(kCmdAttach) \
@@ -161,9 +162,11 @@
     V(kCmdAnalyze) \
     V(kSuperList)  \
     V(kOnExpr) \
+    V(kEscapeExpr) \
+    V(kOptEscapeExpr) \
+    V(kWhereExpr) \
     V(kOptIndex) \
     V(kJoinOp)   \
-    V(kCastExpr) \
     V(kAlterStatement) \
     V(kOptColumn) \
     V(kCmdRelease)  \
@@ -179,10 +182,14 @@
     V(kIndexedColumnList) \
     V(kIndexedColumn) \
     V(kOptCollate) \
+    V(kCollate) \
     V(kAssignList) \
-    V(kOptNull) \
+    V(kOptOrderOfNull) \
+    V(kNullOfExpr) \
     V(kAssignClause) \
     V(kColumnNameList) \
+    V(kFunctionName) \
+    V(kFunctionArgs) \
     V(kCollationName) \
     V(kOptWithoutRowID) \
     V(kOptUpsertClause) \
@@ -192,11 +199,28 @@
     V(kColumnOrTableConstraintDefCommaList) \
     V(kJoinSuffix) \
     V(kJoinSuffixList) \
+    V(kPartitionBy) \
+    V(kOptPartitionBy) \
+    V(kOptNot) \
+    V(kRaiseFunction) \
     \
     /* the following type does not has corresponding class*/ \
     \
+    V(kInExpr) \
+    V(kBetweenExpr) \
     V(kTableNameAndOptTableAlias) \
-    V(kJoinOpAndTable)
+    V(kJoinOpAndTable) \
+    V(kBinaryExprHead) \
+    V(kExprCollate) \
+    V(kExprCollateOrderType) \
+    V(kBaseWindowPartition) \
+    V(kBaseWindowPartitionOrder) \
+    V(kFunctionNameArgs) \
+    V(kExprOptNot) \
+    V(kExprOptNotBop) \
+    V(kExprOptNotBopExpr) \
+    V(kFunctionNameArgsFilter) \
+    V(kCaseConditionListElse)
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -223,12 +247,14 @@
     V(ExecuteStatement) \
     V(ImportFileType) \
     V(FilePath) \
-    V(OptNotExists) \
+    V(OptIfNotExists) \
     V(ColumnDefCommaList) \
     V(ColumnDef) \
     V(ColumnType) \
     V(OptColumnNullable) \
-    V(OptExists) \
+    V(OptIfExists) \
+    V(ExistsOrNot) \
+    V(OptExistsOrNot) \
     V(OptColumnList) \
     V(UpdateClauseCommalist) \
     V(UpdateClause) \
@@ -248,31 +274,26 @@
     V(OptHaving) \
     V(OptOrder) \
     V(OrderList) \
-    V(OrderDesc) \
+    V(OrderTerm) \
     V(OptOrderType) \
     V(OptLimit) \
     V(ExprList) \
     V(LiteralList) \
     V(OptLiteralList) \
-    V(ExprAlias) \
-    V(Expr) \
-    V(Operand) \
-    V(BetweenExpr) \
+    V(NewExpr) \
     V(LogicExpr) \
-    V(ExistsExpr) \
-    V(InExpr) \
-    V(ArrayIndex) \
-    V(ScalarExpr) \
-    V(UnaryExpr) \
-    V(BinaryExpr) \
-    V(CaseExpr) \
-    V(FunctionExpr) \
-    V(ExtractExpr) \
-    V(ArrayExpr) \
-    V(CaseClause) \
-    V(CaseList) \
+    V(ElseExpr) \
+    V(OptElseExpr) \
+    V(OptExpr) \
+    V(UnaryOp) \
+    V(BinaryOp) \
+    V(InTarget) \
+    V(CaseCondition) \
+    V(CaseConditionList) \
     V(DatetimeField) \
     V(ColumnName) \
+    V(FunctionName) \
+    V(FunctionArgs) \
     V(Literal) \
     V(StringLiteral) \
     V(BlobLiteral) \
@@ -306,7 +327,6 @@
     V(IdentCommaList) \
     V(Init) \
     V(StatementList) \
-    V(CompExpr) \
     V(Unknown) \
     V(Empty)    \
     V(CmdPragma) \
@@ -335,18 +355,20 @@
 	V(ModuleName) \
 	V(OptOverClause) \
 	V(OptFilterClause) \
+	V(FilterClause) \
 	V(WindowClause) \
 	V(WindowDefnList) \
 	V(WindowDefn) \
 	V(Window) \
+	V(WindowName) \
 	V(OptBaseWindowName) \
 	V(OptFrame) \
 	V(RangeOrRows) \
 	V(FrameBoundS) \
 	V(FrameBoundE) \
 	V(FrameBound) \
-	V(OptFrameExclude) \
 	V(FrameExclude) \
+	V(OptFrameExclude) \
     V(InsertType)\
     V(Cmd) \
     V(CmdAttach) \
@@ -355,8 +377,10 @@
     V(CmdAnalyze) \
     V(SuperList) \
     V(OnExpr) \
+    V(EscapeExpr) \
+    V(OptEscapeExpr) \
+    V(WhereExpr) \
     V(OptIndex) \
-    V(CastExpr) \
     V(AlterStatement) \
     V(OptColumn) \
     V(CmdRelease) \
@@ -375,8 +399,10 @@
     V(IndexedColumnList) \
     V(IndexedColumn) \
     V(OptCollate) \
+    V(Collate) \
     V(AssignList) \
-    V(OptNull) \
+    V(OptOrderOfNull) \
+    V(NullOfExpr) \
     V(AssignClause) \
     V(ColumnNameList) \
     V(CollationName) \
@@ -387,7 +413,11 @@
     V(TableConstraintDefCommaList) \
     V(ColumnOrTableConstraintDefCommaList) \
     V(JoinSuffix) \
-    V(JoinSuffixList)
+    V(JoinSuffixList) \
+    V(PartitionBy) \
+    V(OptPartitionBy) \
+    V(OptNot) \
+    V(RaiseFunction)
 
 #define SWITCHSTART \
     switch(sub_type_){ 
