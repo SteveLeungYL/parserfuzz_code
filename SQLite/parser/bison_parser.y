@@ -139,8 +139,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     SelectParenOrClause* select_paren_or_clause_t;
     SelectNoParen* select_no_paren_t;
     SetOperator* set_operator_t;
-    SetType* set_type_t;
-    OptAll* opt_all_t;
     IdentCommaList* ident_commalist_t;
     SelectClause* select_clause_t;
     OptDistinct* opt_distinct_t;
@@ -372,8 +370,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <select_paren_or_clause_t>	select_paren_or_clause
 %type <select_no_paren_t>	select_no_paren
 %type <set_operator_t>	set_operator
-%type <set_type_t>	set_type
-%type <opt_all_t>	opt_all
 %type <select_clause_t>	select_clause
 %type <opt_distinct_t>	opt_distinct
 %type <result_column_list_t>	result_column_list
@@ -1796,22 +1792,10 @@ select_no_paren:
     ;
 
 set_operator:
-        set_type opt_all {
-            $$ = new SetOperator();
-            $$->set_type_ = $1;
-            $$->opt_all_ = $2;
-            }
-    ;
-
-set_type:
-        UNION {$$ = new SetType(); $$->str_val_ = string("UNION");}
-    |   INTERSECT {$$ = new SetType(); $$->str_val_ = string("INTERSECT");}
-    |   EXCEPT  {$$ = new SetType(); $$->str_val_ = string("EXCEPT");}
-    ;
-
-opt_all:
-        ALL {$$ = new OptAll(); $$->str_val_ = string("ALL");}
-    |   /* empty */ {$$ = new OptAll(); $$->str_val_ = string("");}
+        UNION {$$ = new SetOperator(); $$->str_val_ = string("UNION");}
+    |   UNION ALL {$$ = new SetOperator(); $$->str_val_ = string("UNION ALL");}
+    |   INTERSECT {$$ = new SetOperator(); $$->str_val_ = string("INTERSECT");}
+    |   EXCEPT  {$$ = new SetOperator(); $$->str_val_ = string("EXCEPT");}
     ;
 
 select_clause:
@@ -1851,20 +1835,13 @@ windowdefn:
     ;
 
 window:
-        opt_base_window_name PARTITION BY expr_list opt_order opt_frame {
+        opt_base_window_name opt_partition_by opt_order opt_frame {
             $$ = new Window();
             $$->sub_type_ = CASE0;
             $$->opt_base_window_name_ = $1;
-            $$->expr_list_ = $4;
-            $$->opt_order_ = $5;
-            $$->opt_frame_ = $6;
-        }
-    |   opt_base_window_name opt_order opt_frame {
-            $$ = new Window();
-            $$->sub_type_ = CASE1;
-            $$->opt_base_window_name_ = $1;
-            $$->opt_order_ = $2;
-            $$->opt_frame_ = $3;
+            $$->opt_partition_by_ = $2;
+            $$->opt_order_ = $3;
+            $$->opt_frame_ = $4;
         }
     ;
 
@@ -2281,13 +2258,10 @@ case_condition_list:
 
 opt_over_clause:
         OVER window_name { $$ = new OptOverClause(); $$->sub_type_ = CASE0; $$->window_name_ = $2; }
-    |   OVER '(' opt_base_window_name opt_partition_by opt_order opt_frame ')' {
+    |   OVER '(' window ')' {
           $$ = new OptOverClause();
           $$->sub_type_ = CASE1;
-          $$->opt_base_window_name_ = $3;
-          $$->opt_partition_by_ = $4;
-          $$->opt_order_ = $5;
-          $$->opt_frame_ = $6;
+          $$->window_ = $3;
         }
     |   /* emtpy */ {$$ = new OptOverClause(); $$->sub_type_ = CASE2;}
     ;
@@ -2467,10 +2441,10 @@ with_description_list:
     ;
 
 with_description:
-        IDENTIFIER AS select_with_paren {
+        IDENTIFIER AS '(' select_no_paren ')' {
             $$ = new WithDescription();
             $$->id_ = new Identifier($1);
-            $$->select_with_paren_ = $3;
+            $$->select_no_paren_ = $4;
             free($1);
         }
     ;

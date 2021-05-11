@@ -577,21 +577,6 @@ class SetOperator: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    SetType * set_type_;
-    OptAll * opt_all_;
-};
-
-class SetType: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    string str_val_;
-};
-
-class OptAll: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
     string str_val_;
 };
 
@@ -989,7 +974,7 @@ class WithDescription: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    SelectWithParen* select_with_paren_;
+    SelectNoParen* select_no_paren_;
     Identifier* id_;
 };
 
@@ -1237,10 +1222,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     WindowName * window_name_;
-    OptBaseWindowName * opt_base_window_name_;
-    OptPartitionBy * opt_partition_by_;
-    OptOrder * opt_order_;
-    OptFrame * opt_frame_;
+    Window * window_;
 };
 
 class FilterClause: public Opt{
@@ -1284,7 +1266,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     OptBaseWindowName * opt_base_window_name_;
-    ExprList * expr_list_;
+    OptPartitionBy * opt_partition_by_;
     OptOrder * opt_order_;
     OptFrame * opt_frame_;
 };
