@@ -782,7 +782,7 @@ public:
     NullOfExpr* null_of_expr_;
     InTarget * in_target_;
     SelectStatement * select_statement_;
-    OptExistsOrNot * opt_exists_or_not_;
+    ExistsOrNot * exists_or_not_;
     OptExpr * opt_expr_;
     CaseConditionList * case_condition_list_;
     OptElseExpr * opt_else_expr_;

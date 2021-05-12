@@ -1756,7 +1756,7 @@ opt_set_select_core_list:
 
 set_select_core_list:
         set_select_core { $$ = new SetSelectCoreList(); $$->v_set_select_core_list_.push_back($1); }
-    |   set_select_core_list set_select_core { $1->v_set_select_core_list_.push_back($2); }
+    |   set_select_core_list set_select_core { $1->v_set_select_core_list_.push_back($2); $$ = $1; }
     ;
 
 set_select_core:
@@ -2148,10 +2148,10 @@ new_expr:
           $$->binary_op_ = $3;
           $$->in_target_ = $4;
         }
-    |   opt_exists_or_not '(' select_statement ')' {
+    |   exists_or_not '(' select_statement ')' {
           $$ = new NewExpr();
           $$->sub_type_ = CASE12;
-          $$->opt_exists_or_not_ = $1;
+          $$->exists_or_not_ = $1;
           $$->select_statement_ = $3;
         }
     |   CASE opt_expr case_condition_list opt_else_expr END {
@@ -2166,6 +2166,11 @@ new_expr:
           $$->sub_type_ = CASE14;
           $$->raise_function_ = $1;
           }
+    |   '(' select_statement ')' {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE15;
+          $$->select_statement_ = $2;
+        }
     ;
 
 unary_op:

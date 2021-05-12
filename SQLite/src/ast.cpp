@@ -1341,7 +1341,7 @@ IR* NewExpr::translate(vector<IR *> &v_ir_collector){
       CASESTART(6)
         auto tmp0 = SAFETRANSLATE(new_expr1_);
         auto tmp1 = SAFETRANSLATE(column_type_);
-        res = new IR(kNewExpr, OP3("CASE (", "AS", ")"), tmp0, tmp1);
+        res = new IR(kNewExpr, OP3("CAST (", "AS", ")"), tmp0, tmp1);
       CASEEND
       CASESTART(7)
         auto tmp0 = SAFETRANSLATE(new_expr1_);
@@ -1390,7 +1390,7 @@ IR* NewExpr::translate(vector<IR *> &v_ir_collector){
         res = new IR(kNewExpr, OP0(), res, tmp4);
       CASEEND
       CASESTART(12)
-        auto tmp0 = SAFETRANSLATE(opt_exists_or_not_);
+        auto tmp0 = SAFETRANSLATE(exists_or_not_);
         auto tmp1 = SAFETRANSLATE(select_statement_);
         res = new IR(kNewExpr, OP3("", "(", ")"), tmp0, tmp1);
       CASEEND
@@ -1405,6 +1405,10 @@ IR* NewExpr::translate(vector<IR *> &v_ir_collector){
       CASESTART(14)
         auto tmp = SAFETRANSLATE(raise_function_);
         res = new IR(kNewExpr, OP0(), tmp);
+      CASEEND
+      CASESTART(15)
+        auto tmp0 = SAFETRANSLATE(select_statement_);
+        res = new IR(kNewExpr, OP2("(", ")"), tmp0);
       CASEEND
     SWITCHEND
 
@@ -1431,7 +1435,7 @@ void NewExpr::deep_delete() {
     SAFEDELETE(null_of_expr_);
     SAFEDELETE(in_target_);
     SAFEDELETE(select_statement_);
-    SAFEDELETE(opt_exists_or_not_);
+    SAFEDELETE(exists_or_not_);
     SAFEDELETE(opt_expr_);
     SAFEDELETE(case_condition_list_);
     SAFEDELETE(opt_else_expr_);
