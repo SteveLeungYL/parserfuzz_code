@@ -546,7 +546,7 @@ vector<IR *> Mutator::extract_statement(IR * root){
 
 // find all subqueries (SELECT statement)
 //
-// find all SelectNoParent subtree, and save them in the returned vector
+// find all SelectCore subtree, and save them in the returned vector
 // save the mapping from the subtree address to subtree into 2nd arg
 //
 vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
@@ -575,7 +575,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
 
             if(cur->left_){
                 q_bfs.push_back(cur->left_);
-                if(cur->left_->type_ == kSelectNoParen){
+                if(cur->left_->type_ == kSelectCore){
                     res.push_back(cur->left_);
                     m_save[cur] = make_pair(0, cur->left_);
                     cur->detach_node(cur->left_);
@@ -584,7 +584,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
 
             if(cur->right_){
                 q_bfs.push_back(cur->right_);
-                if(cur->right_->type_ == kSelectNoParen){
+                if(cur->right_->type_ == kSelectCore){
                     res.push_back(cur->right_);
                     m_save[cur] = make_pair(1, cur->right_);
                     cur->detach_node(cur->right_);

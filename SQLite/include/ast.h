@@ -421,7 +421,7 @@ public:
     TableName * table_name_;
     OptColumnListParen * opt_column_list_paren_;
     SuperList * super_list_;
-    SelectNoParen * select_no_paren_;
+    SelectStatement * select_statement_;
     OptUpsertClause * opt_upsert_clause_;
 };
 
@@ -548,33 +548,6 @@ public:
     ColumnName* column_name_;
     ColumnNameList * column_name_list_;
     NewExpr * expr_;
-};
-
-class SelectWithParen: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    SelectNoParen * select_no_paren_;
-    SelectWithParen * select_with_paren_;
-};
-
-class SelectParenOrClause: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    SelectWithParen * select_with_paren_;
-    SelectCore * select_core_;
-};
-
-class SelectNoParen: public SelectWithParen{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    SelectCore * select_core_;
-    OptOrder * opt_order_;
-    OptLimit * opt_limit_;
-    SetOperator * set_operator_;
-    SelectParenOrClause * select_paren_or_clause_;
 };
 
 class SetSelectCore: public Node{
@@ -1609,13 +1582,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     string str_val_;
-};
-
-class OptExistsOrNot: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    ExistsOrNot * exists_or_not_;
 };
 
 class ExistsOrNot: public Opt{

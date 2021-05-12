@@ -35,13 +35,9 @@
     V(kOptColumnNullable) \
     V(kOptIfExists) \
     V(kExistsOrNot) \
-    V(kOptExistsOrNot) \
     V(kOptColumnListParen) \
     V(kUpdateClauseCommalist) \
     V(kUpdateClause) \
-    V(kSelectWithParen) \
-    V(kSelectParenOrClause) \
-    V(kSelectNoParen) \
     V(kSetOperator) \
     V(kSetSelectCore) \
     V(kSetSelectCoreList) \
@@ -266,13 +262,9 @@
     V(OptColumnNullable) \
     V(OptIfExists) \
     V(ExistsOrNot) \
-    V(OptExistsOrNot) \
     V(OptColumnListParen) \
     V(UpdateClauseCommalist) \
     V(UpdateClause) \
-    V(SelectWithParen) \
-    V(SelectParenOrClause) \
-    V(SelectNoParen) \
     V(SetOperator) \
     V(SetSelectCore) \
     V(SetSelectCoreList) \

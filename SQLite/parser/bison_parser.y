@@ -136,9 +136,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     UpdateClauseCommalist* update_clause_commalist_t;
     UpdateClause* update_clause_t;
     SelectStatement* select_statement_t;
-    SelectWithParen* select_with_paren_t;
-    SelectParenOrClause* select_paren_or_clause_t;
-    SelectNoParen* select_no_paren_t;
     SetOperator* set_operator_t;
     SetSelectCore* set_select_core_t;
     SetSelectCoreList * set_select_core_list_t;
@@ -279,7 +276,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptOrderOfNull * opt_order_of_null_t;
     NullOfExpr* null_of_expr_t;
     ExistsOrNot* exists_or_not_t;
-    OptExistsOrNot* opt_exists_or_not_t;
     AssignClause * assign_clause_t;
     ColumnNameList * column_name_list_t;
     CollationName * collation_name_t;
@@ -373,9 +369,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <update_clause_commalist_t>	update_clause_commalist
 %type <update_clause_t>	update_clause
 %type <select_statement_t>	select_statement
-%type <select_with_paren_t>	select_with_paren
-%type <select_paren_or_clause_t>	select_paren_or_clause
-%type <select_no_paren_t>	select_no_paren
 %type <select_core_t> select_core
 %type <set_operator_t>	set_operator
 %type <set_select_core_t>	set_select_core
@@ -515,7 +508,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_order_of_null_t> opt_order_of_null
 %type <null_of_expr_t> null_of_expr
 %type <exists_or_not_t> exists_or_not
-%type <opt_exists_or_not_t> opt_exists_or_not
 %type <assign_clause_t> assign_clause
 %type <column_name_list_t> column_name_list
 %type <collation_name_t> collation_name
@@ -991,11 +983,6 @@ exists_or_not:
         EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = string("EXISTS"); }
     |   NOT EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = string("NOT EXISTS"); }
     ;
-
-opt_exists_or_not:
-        exists_or_not { $$ = new OptExistsOrNot(); $$->sub_type_ = CASE0; $$->exists_or_not_ = $1; }
-    |   /* empty */   { $$ = new OptExistsOrNot(); $$->sub_type_ = CASE1; }
-    ; 
 
 assign_clause:
         column_name_list '=' new_expr {
@@ -1661,14 +1648,14 @@ insert_statement:
             $$->super_list_ = $6;
             $$->opt_upsert_clause_ = $7;
         }
-    |   insert_type INTO table_name opt_column_list_paren select_no_paren opt_upsert_clause{
+    |   insert_type INTO table_name opt_column_list_paren select_statement opt_upsert_clause{
             $$ = new InsertStatement();
             $$->sub_type_ = CASE1;
             $$->insert_type_ = $1;
             $$->table_name_ = $3;
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->opt_column_list_paren_ = $4;
-            $$->select_no_paren_ = $5;
+            $$->select_statement_ = $5;
             $$->opt_upsert_clause_ = $6;
         }
     ;
@@ -1761,35 +1748,6 @@ set_select_core_list:
 
 set_select_core:
         set_operator select_core { $$ = new SetSelectCore(); $$->set_operator_ = $1; $$->select_core_ = $2; }
-    ;
-
-select_with_paren:
-        '(' select_no_paren ')' { $$ = new SelectWithParen(); $$->sub_type_ = CASE0; $$->select_no_paren_=$2;}
-    |   '(' select_with_paren ')' { $$ = new SelectWithParen(); $$->sub_type_ = CASE1; $$->select_with_paren_=$2;}
-    ;
-
-select_paren_or_clause:
-        select_with_paren {$$ = new SelectParenOrClause(); $$->sub_type_=CASE0; $$->select_with_paren_=$1;}
-    |   select_core {$$=new SelectParenOrClause(); $$->sub_type_=CASE1; $$->select_core_=$1;}
-    ;
-
-select_no_paren:
-        select_core opt_order opt_limit {
-            $$ = new SelectNoParen();
-            $$->sub_type_ = CASE0;
-            $$->select_core_ = $1;
-            $$->opt_order_ = $2;
-            $$->opt_limit_ = $3;
-        }
-    |   select_core set_operator select_paren_or_clause opt_order opt_limit {
-            $$ = new SelectNoParen();
-            $$->sub_type_ = CASE1;
-            $$->select_core_ = $1;
-            $$->set_operator_ = $2;
-            $$->select_paren_or_clause_ = $3;
-            $$->opt_order_ = $4;
-            $$->opt_limit_ = $5;    
-        }
     ;
 
 set_operator:

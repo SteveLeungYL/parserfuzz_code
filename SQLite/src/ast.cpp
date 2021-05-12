@@ -622,7 +622,7 @@ IR* InsertStatement::translate(vector<IR *> &v_ir_collector){
             res = new IR(kUnknown, OP0(), res, tmp);
             PUSH(res);
 
-            tmp = SAFETRANSLATE(select_no_paren_);
+            tmp = SAFETRANSLATE(select_statement_);
             res = new IR(kInsertStatement, OP0(), res, tmp);
             PUSH(res);
 
@@ -837,79 +837,6 @@ IR* UpdateClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* SelectWithParen::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kSelectWithParen, OP3("(","",")"), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_with_paren_);
-            res = new IR(kSelectWithParen, OP3("(","",")"), res);
-        CASEEND
-    SWITCHEND
-        
-    TRANSLATEEND
-}
-
-IR* SelectParenOrClause::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_with_paren_);
-            res = new IR(kSelectParenOrClause, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_core_);
-            res = new IR(kSelectParenOrClause, OP0(), res);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
-IR* SelectNoParen::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_core_);
-            auto tmp = SAFETRANSLATE(opt_order_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);
-            
-            if(opt_limit_ != NULL){
-                PUSH(res);
-                tmp = SAFETRANSLATE(opt_limit_);
-                res = new IR(kSelectNoParen, OP0(), res, tmp);
-            }
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_core_);
-            auto tmp = SAFETRANSLATE(set_operator_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);
-            PUSH(res);
-
-            tmp = SAFETRANSLATE(select_paren_or_clause_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);
-            PUSH(res);
-
-            tmp = SAFETRANSLATE(opt_order_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);  
-            
-            if(opt_limit_ != NULL){
-                PUSH(res);
-                tmp = SAFETRANSLATE(opt_limit_);
-                res = new IR(kSelectNoParen, OP0(), res, tmp);
-            }
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-           
-}
 
 IR * OptSetSelectCoreList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
@@ -2293,7 +2220,7 @@ void InsertStatement::deep_delete(){
 	SAFEDELETE(table_name_);
 	SAFEDELETE(opt_column_list_paren_);
 	SAFEDELETE(super_list_);
-	SAFEDELETE(select_no_paren_);
+	SAFEDELETE(select_statement_);
     SAFEDELETE(opt_upsert_clause_);
 	delete this;
 }
@@ -2380,30 +2307,6 @@ void UpdateClause::deep_delete(){
 	SAFEDELETE(column_name_);
   SAFEDELETE(column_name_list_);
 	SAFEDELETE(expr_);
-	delete this;
-}
-
-
-void SelectWithParen::deep_delete(){
-	SAFEDELETE(select_no_paren_);
-	SAFEDELETE(select_with_paren_);
-	delete this;
-}
-
-
-void SelectParenOrClause::deep_delete(){
-	SAFEDELETE(select_with_paren_);
-	SAFEDELETE(select_core_);
-	delete this;
-}
-
-
-void SelectNoParen::deep_delete(){
-	SAFEDELETE(select_core_);
-	SAFEDELETE(opt_order_);
-	SAFEDELETE(opt_limit_);
-	SAFEDELETE(set_operator_);
-	SAFEDELETE(select_paren_or_clause_);
 	delete this;
 }
 
@@ -4060,27 +3963,6 @@ IR*  AssignList::translate(vector<IR *> &v_ir_collector){
     TRANSLATELIST(kAssignList, v_assign_list_, ",");
 
     TRANSLATEENDNOPUSH
-}
-
-IR*  OptExistsOrNot::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp0 = SAFETRANSLATE(exists_or_not_);
-            res = new IR(kOptExistsOrNot, OP0(), tmp0);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptExistsOrNot, string(""));
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
-void OptExistsOrNot::deep_delete(){
-    SAFEDELETE(exists_or_not_);
-    delete this;
 }
 
 IR*  ExistsOrNot::translate(vector<IR *> &v_ir_collector){
