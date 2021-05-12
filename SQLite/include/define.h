@@ -138,9 +138,10 @@
 	V(kOptFilterClause) \
 	V(kFilterClause) \
 	V(kWindowClause) \
+  V(kOptWindowClause) \
 	V(kWindowDefnList) \
 	V(kWindowDefn) \
-	V(kWindow) \
+	V(kWindowBody) \
 	V(kWindowName) \
 	V(kOptBaseWindowName) \
 	V(kOptFrame) \
@@ -346,9 +347,10 @@
 	V(OptFilterClause) \
 	V(FilterClause) \
 	V(WindowClause) \
+  V(OptWindowClause) \
 	V(WindowDefnList) \
 	V(WindowDefn) \
-	V(Window) \
+	V(WindowBody) \
 	V(WindowName) \
 	V(OptBaseWindowName) \
 	V(OptFrame) \

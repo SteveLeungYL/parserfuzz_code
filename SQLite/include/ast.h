@@ -67,11 +67,10 @@ enum IDTYPE{
     id_trigger_name,
     id_module_name,
 
-    id_window_def_name,
+    id_create_window_name,
     id_window_name,
     id_base_window_name,
 
-    id_window_base_name,
     id_savepoint_name,
     id_collation_name,
     id_database_name,
@@ -1222,7 +1221,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     WindowName * window_name_;
-    Window * window_;
+    WindowBody * window_body_;
 };
 
 class FilterClause: public Opt{
@@ -1236,6 +1235,13 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     FilterClause *filter_clause_;
+};
+
+class OptWindowClause: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    WindowClause * window_clause_;
 };
 
 
@@ -1257,11 +1263,11 @@ class WindowDefn: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
-    Window * window_;
+    WindowName * window_name_;
+    WindowBody * window_body_;
 };
 
-class Window: public Node{
+class WindowBody: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);

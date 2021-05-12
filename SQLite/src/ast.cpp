@@ -36,10 +36,9 @@ string get_string_by_id_type(IDTYPE type) {
     case id_index_name:         return "id_index_name";
     case id_trigger_name:       return "id_trigger_name";
     case id_module_name:        return "id_moudle_name";
-    case id_window_def_name:    return "id_window_def_name";
+    case id_create_window_name:    return "id_create_window_name";
     case id_window_name:        return "id_window_name";
     case id_base_window_name:   return "id_base_window_name";
-    case id_window_base_name:   return "id_window_base_name";
     case id_savepoint_name:     return "id_savepoint_name";
     case id_collation_name:     return "id_collation_name";
     case id_database_name:      return "id_database_name";
@@ -3128,7 +3127,7 @@ IR * OptOverClause::translate(vector<IR*> &v_ir_collector){
             res = new IR(kOptOverClause, OP1("OVER"), res);
         CASEEND
         CASESTART(1)
-            auto tmp3 = SAFETRANSLATE(window_);
+            auto tmp3 = SAFETRANSLATE(window_body_);
             res = new IR(kOptOverClause, OP2("OVER (", ")"), tmp3);
         CASEEND
         CASESTART(2)
@@ -3140,7 +3139,7 @@ IR * OptOverClause::translate(vector<IR*> &v_ir_collector){
 
 void OptOverClause::deep_delete(){
   SAFEDELETE(window_name_);;
-  SAFEDELETE(window_);
+  SAFEDELETE(window_body_);
 	delete this;
 }
 
@@ -3186,12 +3185,13 @@ void OptFilterClause::deep_delete(){
 
 IR * WindowClause::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    
+  auto tmp = SAFETRANSLATE(windowdefn_list_);
+  res = new IR(kWindowClause, OP1("WINDOW"), tmp);
 	TRANSLATEEND
 }
 
 void WindowClause::deep_delete(){
-    SAFEDELETE(windowdefn_list_);
+  SAFEDELETE(windowdefn_list_);
 	delete this;
 }
 
@@ -3210,22 +3210,20 @@ void WindowDefnList::deep_delete(){
 
 IR * WindowDefn::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    auto id_ir = SAFETRANSLATE(id_);
-    auto win_ir = SAFETRANSLATE(window_);
-    auto tmp_ir = new IR(kUnknown, OP2("(", ")"), win_ir);
-    PUSH(tmp_ir);
-    res = new IR(kWindowDefn, OPMID("AS"), id_ir, tmp_ir);
+    auto win_name = SAFETRANSLATE(window_name_);
+    auto win_ir = SAFETRANSLATE(window_body_);
+    res = new IR(kWindowDefn, OP3("", "AS (", ")"), win_name, win_ir);
 	TRANSLATEEND
 }
 
 void WindowDefn::deep_delete(){
-    SAFEDELETE(id_);
-    SAFEDELETE(window_);
+    SAFEDELETE(window_name_);
+    SAFEDELETE(window_body_);
 	delete this;
 }
 
 
-IR * Window::translate(vector<IR*> &v_ir_collector){
+IR * WindowBody::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
   auto tmp0 = SAFETRANSLATE(opt_base_window_name_);
   auto tmp1 = SAFETRANSLATE(opt_partition_by_);
@@ -3239,7 +3237,7 @@ IR * Window::translate(vector<IR*> &v_ir_collector){
 	TRANSLATEEND
 }
 
-void Window::deep_delete(){
+void WindowBody::deep_delete(){
     SAFEDELETE(opt_base_window_name_);
     SAFEDELETE(opt_partition_by_);
     SAFEDELETE(opt_order_);

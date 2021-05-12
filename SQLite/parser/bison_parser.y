@@ -232,7 +232,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	WindowClause*	window_clause_t;
 	WindowDefnList*	window_defn_list_t;
 	WindowDefn*	window_defn_t;
-	Window*	window_t;
+	WindowBody*	window_body_t;
 	OptBaseWindowName*	opt_base_window_name_t;
   WindowName* window_name_t;
 	OptFrame*	opt_frame_t;
@@ -468,7 +468,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <window_clause_t>	window_clause
 %type <window_defn_list_t>	windowdefn_list
 %type <window_defn_t>	windowdefn
-%type <window_t>	window
+%type <window_body_t>	window_body
 %type <opt_base_window_name_t>	opt_base_window_name
 %type <window_name_t> window_name
 %type <opt_frame_t>	opt_frame
@@ -1831,12 +1831,17 @@ windowdefn_list:
     ;
 
 windowdefn:
-        IDENTIFIER AS '(' window ')' {$$ = new WindowDefn(); $$->id_ = new Identifier($1); $$->window_ = $4; free($1);}
+        window_name AS '(' window_body ')' {
+          $$ = new WindowDefn();
+          $1->id_->id_type_ = id_create_window_name;
+          $$->window_name_ = $1;
+          $$->window_body_ = $4;
+        }
     ;
 
-window:
+window_body:
         opt_base_window_name opt_partition_by opt_order opt_frame {
-            $$ = new Window();
+            $$ = new WindowBody();
             $$->sub_type_ = CASE0;
             $$->opt_base_window_name_ = $1;
             $$->opt_partition_by_ = $2;
@@ -2258,10 +2263,10 @@ case_condition_list:
 
 opt_over_clause:
         OVER window_name { $$ = new OptOverClause(); $$->sub_type_ = CASE0; $$->window_name_ = $2; }
-    |   OVER '(' window ')' {
+    |   OVER '(' window_body ')' {
           $$ = new OptOverClause();
           $$->sub_type_ = CASE1;
-          $$->window_ = $3;
+          $$->window_body_ = $3;
         }
     |   /* emtpy */ {$$ = new OptOverClause(); $$->sub_type_ = CASE2;}
     ;
