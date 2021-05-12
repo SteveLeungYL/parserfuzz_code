@@ -22,12 +22,9 @@ from bisecting_sqlite_config import *
 all_commits_hexsha = []
 all_tags = []
 ignored_commits_hexsha = []
-all_files_fds = dict()
 all_unique_results_dict = dict()
 uniq_bug_id_int = 0
 total_processed_bug_count_int:int = 0
-total_processing_bug_count_int:int = 0
-total_bug_count_int:int = 0
 log_output = open(LOG_OUTPUT_FILE, 'w')
 
 class VALID_TYPE(Enum):
@@ -535,17 +532,15 @@ def _execute_queries(queries:str, sqlite_install_dir:str):
 
 
 def read_queries_from_files(file_directory:str):
-    global total_processing_bug_count_int
     global total_processed_bug_count_int
-    global total_bug_count_int
 
     all_queries = []
     all_files_in_dir = os.listdir(file_directory)
-    total_bug_count_int = len(all_files_in_dir)
-    total_processed_bug_count_int = len(all_files_fds)
-    total_processing_bug_count_int = total_processed_bug_count_int
+
+    total_processed_bug_count_int += 1
+
     for current_file_d in sorted(all_files_in_dir):
-        if current_file_d in all_files_fds:
+        if os.path.isdir(os.path.join(file_directory, current_file_d)) or current_file_d == "." or current_file_d == "..":
             continue
         # time.sleep(0.1) # Sleep 0.1 seconds, let the afl-fuzz file writing complete. Might not be necessary
         log_output.write("Filename: " + str(current_file_d) + ". \n")
@@ -555,7 +550,9 @@ def read_queries_from_files(file_directory:str):
         current_file_str = current_file_str.replace(u'\ufffd', ' ')
         all_queries.append(current_file_str)
         current_file.close()
-        all_files_fds[current_file_d] = 1  # This is changing the global all_current_files variable. The changes will pass on in the program execution. 
+        os.remove(os.path.join(file_directory, current_file_d))
+        if len(all_queries) != 0:
+            break
 
     return all_queries
 
@@ -729,7 +726,7 @@ def write_uniq_bugs_to_files(current_bisecting_result: BisectingResults):
         bug_output_file.write("First correct (or crashing) commit ID: %s. \n\n" % current_bisecting_result.first_corr_commit_id)
     else:
         bug_output_file.write("First correct commit ID: Unknown. \n\n")
-    if current_bisecting_result.is_bisecting_error == True and current_bisecting_result.bisecting_error_reason != "":
+    if current_bisecting_result.is_bisecting_error == True or current_bisecting_result.bisecting_error_reason != "":
         bug_output_file.write("Bisecting Error. \n\nBesecting error reason: %s. \n\n\n\n" % current_bisecting_result.bisecting_error_reason)
 
     bug_output_file.write("\n\n\n")
@@ -751,22 +748,18 @@ def run_bisecting(opt_unopt_queries):
         current_bisecting_result.uniq_bug_id_int = "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
         write_uniq_bugs_to_files(current_bisecting_result)
     log_output.flush()
-    tmp_percentage = total_processing_bug_count_int / total_bug_count_int * 100
-    print("Currently, we have %d / %d being processed, %d percent. Total unique bug number: %d. \n" % (total_processing_bug_count_int, total_bug_count_int, tmp_percentage, uniq_bug_id_int))
+    print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (total_processed_bug_count_int, uniq_bug_id_int))
 
 
 def status_print():
     while True:
-        global total_processing_bug_count_int
         global total_processed_bug_count_int
-        global total_bug_count_int
         global uniq_bug_id_int
         time.sleep(1.0)  # Sleep 1 second.
         if total_bug_count_int == 0:
             print("Initializing...\n")
         else:
-            tmp_percentage = total_processing_bug_count_int / total_bug_count_int * 100
-            print("Currently, we have %d / %d being processed, %d percent. Total unique bug number: %d. \n" % (total_processing_bug_count_int, total_bug_count_int, tmp_percentage, uniq_bug_id_int))
+            print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (total_processed_bug_count_int, uniq_bug_id_int))
             # log_output.write("Currently, we have %d/%d being processed, %d percent. Total unique bug number: %d. \n\n" % (total_processing_bug_count_int, total_bug_count_int, total_processing_bug_count_int/total_bug_count_int*100, uniq_bug_id_int))
 
 
@@ -817,34 +810,11 @@ if __name__ == "__main__":
     log_output.write("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
     print("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
 
-    print("Beginning reading the buggy query files. \n\n")
-    log_output.write("Beginning reading the buggy query files. \n\n")
-    all_queries = read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
-    all_queries = restructured_and_clean_all_queries(all_queries=all_queries)  # all_queries = [[opt_queries, unopt_queries]]
-    print("Finished reading the buggy query files. \n\n")
-    log_output.write("Finished reading the buggy query files. \n\n")
-    log_output.flush()
 
-
-    print("Beginning bisecting. \n\n")
-    log_output.write("Beginning bisecting. \n\n")
-    all_results = []
-    for all_queries_idx, opt_unopt_queries in enumerate(all_queries):
-        # print("\n\n\n Query index: %d" % (all_queries_idx))
-        if "randomblob" in opt_unopt_queries or "random" in opt_unopt_queries or "julianday" in opt_unopt_queries:
-            continue
-        total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx + 1
-        run_bisecting(opt_unopt_queries = opt_unopt_queries)
-    print("Finished bisecting. \n\n")
-    log_output.write("Finished bisecting already saved files. \n\n")
-    log_output.flush()
-
-    all_queries.clear()
-    all_results.clear()
-
-    print("Beginning processing the new files being generated during the time of cross comparing. (Infinite Loop) \n\n")
-    log_output.write("Beginning processing the new files being generated during the time of cross comparing. (Infinite Loop) \n\n")
+    print("Beginning processing files in the target folder. (Infinite Loop) \n\n")
+    log_output.write("Beginning processing files in the target folder. (Infinite Loop) \n\n")
     while True:
+        # Read one file at a time. 
         all_new_queries = read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
         if all_new_queries == []:
             time.sleep(1.0)
@@ -853,6 +823,5 @@ if __name__ == "__main__":
         for all_queries_idx, opt_unopt_queries in enumerate(all_new_queries): 
             if "randomblob" in opt_unopt_queries or "random" in opt_unopt_queries or "julianday" in opt_unopt_queries:
                 continue
-            total_processing_bug_count_int = total_processed_bug_count_int + all_queries_idx + 1
             run_bisecting(opt_unopt_queries = opt_unopt_queries)
 
