@@ -332,7 +332,7 @@ def bi_secting_commits(opt_unopt_queries, all_commits_str, all_tags, ignored_com
         log_output.write(Error_reason)
 
         current_bisecting_result.query = opt_unopt_queries
-        current_bisecting_result.first_buggy_commit_id = current_commit_str
+        current_bisecting_result.first_corr_commit_id = current_commit_str
         current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
         current_bisecting_result.is_bisecting_error = True
         current_bisecting_result.bisecting_error_reason = Error_reason
