@@ -33,16 +33,7 @@ bool SQL_TLP::is_oracle_valid_stmt(const string& query){
         !findStringIn(query, "UPDATE")
   ) return true;
 
-  // /* Complete version. More flexible query restrictions. */
-  // if (
-  //       regex_match(query, regex("^\\s*SELECT(.*?)FROM(.*?)WHERE(.*?)$", regex::icase | regex::optimize)) &&
-  //       !regex_match(query, regex("(.*?)INTERSECT(.*?)", regex::icase | regex::optimize)) &&
-  //       !regex_match(query, regex("(.*?)EXCEPT(.*?)", regex::icase | regex::optimize)) &&
-  //       !regex_match(query, regex("(.*?)UNION ALL(.*?)", regex::icase | regex::optimize))
-  // ) {
-  //     return true;
-  // }
-    return false;
+  return false;
 }
 
 bool SQL_TLP::mark_all_valid_node(vector<IR *> &v_ir_collector)
@@ -453,10 +444,14 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
     rew_1 = "";
   }
 
-  /* For now, do not process the SELECT AVG stmt. */
+  /* For now, do not process the stmt with the following contents. . */
   if (
       ((findStringIter(ori_query, "SELECT DISTINCT AVG") - ori_query.begin()) < 5) ||
-      ((findStringIter(ori_query, "SELECT AVG") - ori_query.begin()) < 5)
+      ((findStringIter(ori_query, "SELECT AVG") - ori_query.begin()) < 5) ||
+      findStringIn(ori_query, "UNION") ||
+      findStringIn(ori_query, "EXCEPT") ||
+      findStringIn(ori_query, "OVER") ||
+      findStringIn(ori_query, "INTERSECT")
     )
   {
     query = "";
