@@ -28,6 +28,7 @@
     V(kImportFileType) \
     V(kFilePath) \
     V(kOptIfNotExists) \
+    V(kOptRecursive) \
     V(kColumnDefCommaList) \
     V(kColumnDef) \
     V(kColumnType) \
@@ -35,14 +36,17 @@
     V(kOptIfExists) \
     V(kExistsOrNot) \
     V(kOptExistsOrNot) \
-    V(kOptColumnList) \
+    V(kOptColumnListParen) \
     V(kUpdateClauseCommalist) \
     V(kUpdateClause) \
     V(kSelectWithParen) \
     V(kSelectParenOrClause) \
     V(kSelectNoParen) \
     V(kSetOperator) \
-    V(kSelectClause) \
+    V(kSetSelectCore) \
+    V(kSetSelectCoreList) \
+    V(kOptSetSelectCoreList) \
+    V(kSelectCore) \
     V(kOptDistinct) \
     V(kSelectList) \
     V(kFromClause) \
@@ -56,6 +60,8 @@
     V(kOptOrderType) \
     V(kOptLimit) \
     V(kExprList) \
+    V(kExprListParen) \
+    V(kExprListParenList) \
     V(kLiteralList) \
     V(kOptLiteralList) \
     V(kNewExpr) \
@@ -99,8 +105,8 @@
     V(kOptAlias) \
     V(kWithClause) \
     V(kOptWithClause) \
-    V(kWithDescriptionList) \
-    V(kWithDescription) \
+    V(kCommonTableExpr) \
+    V(kCommonTableExprList) \
     V(kJoinClause) \
     V(kOptJoinType) \
     V(kJoinConstraint) \
@@ -217,7 +223,15 @@
     V(kExprOptNotBop) \
     V(kExprOptNotBopExpr) \
     V(kFunctionNameArgsFilter) \
-    V(kCaseConditionListElse)
+    V(kCaseConditionListElse) \
+    V(kDistinctResultList) \
+    V(kDistinctResultListFrom) \
+    V(kDistinctResultListFromWhere) \
+    V(kDistinctResultListFromWhereGroup) \
+    V(kTableNameOptColumnListParen) \
+    V(kWithSelectCore) \
+    V(kWithSelectCoreSetList) \
+    V(kWithSelectCoreSetListOrder)
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -245,6 +259,7 @@
     V(ImportFileType) \
     V(FilePath) \
     V(OptIfNotExists) \
+    V(OptRecursive) \
     V(ColumnDefCommaList) \
     V(ColumnDef) \
     V(ColumnType) \
@@ -252,14 +267,17 @@
     V(OptIfExists) \
     V(ExistsOrNot) \
     V(OptExistsOrNot) \
-    V(OptColumnList) \
+    V(OptColumnListParen) \
     V(UpdateClauseCommalist) \
     V(UpdateClause) \
     V(SelectWithParen) \
     V(SelectParenOrClause) \
     V(SelectNoParen) \
     V(SetOperator) \
-    V(SelectClause) \
+    V(SetSelectCore) \
+    V(SetSelectCoreList) \
+    V(OptSetSelectCoreList) \
+    V(SelectCore) \
     V(OptDistinct) \
     V(SelectList) \
     V(FromClause) \
@@ -273,6 +291,8 @@
     V(OptOrderType) \
     V(OptLimit) \
     V(ExprList) \
+    V(ExprListParen) \
+    V(ExprListParenList) \
     V(LiteralList) \
     V(OptLiteralList) \
     V(NewExpr) \
@@ -308,8 +328,8 @@
     V(ResultColumnList) \
     V(WithClause) \
     V(OptWithClause) \
-    V(WithDescriptionList) \
-    V(WithDescription) \
+    V(CommonTableExpr) \
+    V(CommonTableExprList) \
     V(JoinClause) \
     V(OptJoinType) \
     V(JoinConstraint) \
@@ -426,7 +446,15 @@
     V(ExprOptNotBop) \
     V(ExprOptNotBopExpr) \
     V(FunctionNameArgsFilter) \
-    V(CaseConditionListElse)
+    V(CaseConditionListElse) \
+    V(DistinctResultList) \
+    V(DistinctResultListFrom) \
+    V(DistinctResultListFromWhere) \
+    V(DistinctResultListFromWhereGroup) \
+    V(TableNameOptColumnListParen) \
+    V(WithSelectCore) \
+    V(WithSelectCoreSetList) \
+    V(WithSelectCoreSetListOrder)
 
 
 #define SWITCHSTART \

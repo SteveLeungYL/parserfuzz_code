@@ -377,10 +377,8 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     OptWithClause * opt_with_clause_;
-    SelectWithParen * select_with_paren_;
-    SelectNoParen * select_no_paren_;
-    SetOperator * set_operator_;
-    SelectParenOrClause * select_paren_or_clause_;
+    SelectCore * select_core_;
+    OptSetSelectCoreList * opt_set_select_core_list_;
     OptOrder * opt_order_;
     OptLimit * opt_limit_;
 };
@@ -403,7 +401,7 @@ public:
     FilePath * file_path_;
     ColumnOrTableConstraintDefCommaList * column_or_table_constraint_def_comma_list_;
     SelectStatement * select_statement_;
-    OptColumnList * opt_column_list_;
+    OptColumnListParen * opt_column_list_paren_;
     OptUnique * opt_unique_;
     IndexName * index_name_;
     IndexedColumnList * indexed_column_list_;
@@ -421,7 +419,7 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     InsertType * insert_type_;
     TableName * table_name_;
-    OptColumnList * opt_column_list_;
+    OptColumnListParen * opt_column_list_paren_;
     SuperList * super_list_;
     SelectNoParen * select_no_paren_;
     OptUpsertClause * opt_upsert_clause_;
@@ -477,6 +475,13 @@ public:
     string str_val_;
 };
 
+class OptRecursive: public Opt{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+};
+
 class OptIfNotExists: public Opt{
 public:
     virtual void deep_delete();
@@ -522,11 +527,11 @@ public:
     string str_val_;
 };
 
-class OptColumnList: public Opt{
+class OptColumnListParen: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    IdentCommaList * ident_comma_list_;
+    ColumnNameList * column_name_list_;
 };
 
 class UpdateClauseCommalist: public Node{
@@ -558,18 +563,40 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     SelectWithParen * select_with_paren_;
-    SelectClause * select_clause_;
+    SelectCore * select_core_;
 };
 
 class SelectNoParen: public SelectWithParen{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    SelectClause * select_clause_;
+    SelectCore * select_core_;
     OptOrder * opt_order_;
     OptLimit * opt_limit_;
     SetOperator * set_operator_;
     SelectParenOrClause * select_paren_or_clause_;
+};
+
+class SetSelectCore: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    SetOperator * set_operator_;
+    SelectCore * select_core_;
+};
+
+class SetSelectCoreList: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    vector<SetSelectCore *> v_set_select_core_list_;
+};
+
+class OptSetSelectCoreList: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    SetSelectCoreList * set_select_core_list_;
 };
 
 class SetOperator: public Node{
@@ -579,7 +606,7 @@ public:
     string str_val_;
 };
 
-class SelectClause: public Node{
+class SelectCore: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
@@ -588,7 +615,8 @@ public:
     OptFromClause * opt_from_clause_;
     OptWhere * opt_where_;
     OptGroup * opt_group_;
-    WindowClause * window_clause_;
+    OptWindowClause * opt_window_clause_;
+    ExprListParenList * expr_list_paren_list_;
 };
 
 class OptDistinct: public Opt{
@@ -701,6 +729,20 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     vector<NewExpr *> v_expr_list_;
+};
+
+class ExprListParen: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    ExprList * expr_list_;
+};
+
+class ExprListParenList: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    vector<ExprListParen *> v_expr_list_paren_list_;
 };
 
 class LiteralList: public Opt{
@@ -952,7 +994,8 @@ class WithClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    WithDescriptionList* with_description_list_;
+    OptRecursive * opt_recursive_;
+    CommonTableExprList * common_table_expr_list_;
 };
 
 class OptWithClause:public Opt{
@@ -962,19 +1005,20 @@ public:
     WithClause* with_clause_;
 };
 
-class WithDescriptionList: public Node{
+class CommonTableExprList: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<WithDescription*> v_with_description_list_;
+    vector<CommonTableExpr *> v_common_table_expr_list_;
 };
 
-class WithDescription: public Node{
+class CommonTableExpr: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    SelectNoParen* select_no_paren_;
-    Identifier* id_;
+    TableName * table_name_;
+    SelectStatement * select_statement_;
+    OptColumnListParen * opt_column_list_paren_;
 };
 
 class JoinSuffix: public Node {

@@ -116,6 +116,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ShowStatement* show_statement_t;
     CreateStatement* create_statement_t;
     OptIfNotExists* opt_if_not_exists_t;
+    OptRecursive* opt_recursive_t;
     OptNot* opt_not_t;
     ColumnOrTableConstraintDefCommaList* column_or_table_constraint_def_comma_list_t;
     ColumnDefCommaList* column_def_comma_list_t;
@@ -130,7 +131,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptWithoutRowID* opt_without_rowid_t;
     DeleteStatement* delete_statement_t;
     InsertStatement* insert_statement_t;
-    OptColumnList* opt_column_list_t;
+    OptColumnListParen * opt_column_list_paren_t;
     UpdateStatement* update_statement_t;
     UpdateClauseCommalist* update_clause_commalist_t;
     UpdateClause* update_clause_t;
@@ -139,8 +140,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     SelectParenOrClause* select_paren_or_clause_t;
     SelectNoParen* select_no_paren_t;
     SetOperator* set_operator_t;
+    SetSelectCore* set_select_core_t;
+    SetSelectCoreList * set_select_core_list_t;
+    OptSetSelectCoreList * opt_set_select_core_list_t;
     IdentCommaList* ident_commalist_t;
-    SelectClause* select_clause_t;
+    SelectCore* select_core_t;
     OptDistinct* opt_distinct_t;
     ResultColumnList* result_column_list_t;
     ResultColumn* result_column_t;
@@ -157,6 +161,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptOrderType* opt_order_type_t;
     OptLimit* opt_limit_t;
     ExprList* expr_list_t;
+    ExprListParen* expr_list_paren_t;
+    ExprListParenList* expr_list_paren_list_t;
     OptLiteralList* opt_literal_list_t;
     LiteralList* literal_list_t;
     OptExpr* opt_expr_t;
@@ -188,8 +194,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptColumnAlias* opt_column_alias_t;
     OptWithClause* opt_with_clause_t;
     WithClause* with_clause_t;
-    WithDescriptionList* with_description_list_t;
-    WithDescription* with_description_t;
+    CommonTableExpr* common_table_expr_t;
+    CommonTableExprList* common_table_expr_list_t;
     JoinClause* join_clause_t;
     JoinSuffix* join_suffix_t;
     JoinSuffixList* join_suffix_list_t;
@@ -230,6 +236,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	OptFilterClause*	opt_filter_clause_t;
   FilterClause* filter_clause_t;
 	WindowClause*	window_clause_t;
+  OptWindowClause * opt_window_clause_t;
 	WindowDefnList*	window_defn_list_t;
 	WindowDefn*	window_defn_t;
 	WindowBody*	window_body_t;
@@ -286,7 +293,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     std::vector<UpdateClause*>* update_vec;
     std::vector<NewExpr*>* expr_vec;
     std::vector<OrderTerm*>* order_vec;
-    std::vector<WithDescription*>* with_description_vec;
 }
 
 
@@ -331,7 +337,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token ABORT FAIL AUTOINCR BEGIN TRIGGER TEMP INSTEAD EACH ROW OVER FILTER PARTITION
 %token  CURRENT EXCLUDE FOLLOWING GROUPS NO OTHERS PRECEDING RANGE ROWS TIES UNBOUNDED WINDOW
 %token  ATTACH DETACH DATABASE INDEXED CAST SAVEPOINT RELEASE VACUUM TRANSACTION DEFFERED EXCLUSIVE
-%token IMEDIATE COMMIT GLOB MATCH REGEXP NOTHING NULLS LAST FIRST DO COLLATE RAISE
+%token IMEDIATE COMMIT GLOB MATCH REGEXP NOTHING NULLS LAST FIRST DO COLLATE RAISE RECURSIVE
 
 %type <program_t>	input
 %type <statement_list_t>	statement_list
@@ -349,6 +355,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
 %type <opt_if_not_exists_t>	opt_if_not_exists
+%type <opt_recursive_t> opt_recursive
 %type <opt_not_t> opt_not
 %type <opt_constraint_name_t> opt_constraint_name
 %type <column_def_comma_list_t>	column_def_commalist
@@ -361,7 +368,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_if_exists_t>	opt_if_exists
 %type <delete_statement_t>	delete_statement	truncate_statement
 %type <insert_statement_t>	insert_statement
-%type <opt_column_list_t>	opt_column_list
+%type <opt_column_list_paren_t> opt_column_list_paren
 %type <update_statement_t>	update_statement
 %type <update_clause_commalist_t>	update_clause_commalist
 %type <update_clause_t>	update_clause
@@ -369,8 +376,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <select_with_paren_t>	select_with_paren
 %type <select_paren_or_clause_t>	select_paren_or_clause
 %type <select_no_paren_t>	select_no_paren
+%type <select_core_t> select_core
 %type <set_operator_t>	set_operator
-%type <select_clause_t>	select_clause
+%type <set_select_core_t>	set_select_core
+%type <set_select_core_list_t> set_select_core_list
+%type <opt_set_select_core_list_t> opt_set_select_core_list
 %type <opt_distinct_t>	opt_distinct
 %type <result_column_list_t>	result_column_list
 %type <result_column_t> result_column
@@ -387,6 +397,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_order_type_t>	opt_order_type
 %type <opt_limit_t>	opt_limit
 %type <expr_list_t>	expr_list
+%type <expr_list_paren_t> expr_list_paren
+%type <expr_list_paren_list_t> expr_list_paren_list
 %type <opt_literal_list_t>	opt_literal_list
 %type <literal_list_t>	literal_list
 %type <opt_expr_t> opt_expr
@@ -415,8 +427,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_column_alias_t> opt_column_alias
 %type <opt_with_clause_t>	opt_with_clause
 %type <with_clause_t>	with_clause
-%type <with_description_list_t>	with_description_list
-%type <with_description_t>	with_description
+%type <common_table_expr_t> common_table_expr
+%type <common_table_expr_list_t> common_table_expr_list
 %type <opt_semicolon_t>	opt_semicolon
 %type <ident_commalist_t>	ident_commalist
 %type <opt_without_rowid_t> opt_without_rowid
@@ -466,6 +478,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_filter_clause_t>	opt_filter_clause
 %type <filter_clause_t> filter_clause
 %type <window_clause_t>	window_clause
+%type <opt_window_clause_t> opt_window_clause
 %type <window_defn_list_t>	windowdefn_list
 %type <window_defn_t>	windowdefn
 %type <window_body_t>	window_body
@@ -1220,18 +1233,14 @@ create_statement:
             $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         }
-    |   CREATE opt_tmp VIEW opt_if_not_exists table_name opt_column_list AS select_statement {
+    |   CREATE opt_tmp VIEW opt_if_not_exists table_name opt_column_list_paren AS select_statement {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE3;
             $$->opt_tmp_ = $2;
             $$->opt_if_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->opt_column_list_ = $6;
-            if($$->opt_column_list_->sub_type_ == CASE0)
-                for(auto &i: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
-                    i->id_type_ = id_create_column_name;
-                }
+            $$->opt_column_list_paren_ = $6;
             $$->select_statement_ = $8;
             $$->table_name_->table_id_->id_type_ = id_create_table_name;
         }
@@ -1359,6 +1368,10 @@ opt_not:
         NOT { $$ = new OptNot(); $$->sub_type_ = CASE0; }
     |   /* empty */ { $$ = new OptNot(); $$->sub_type_ = CASE1; }
     ;
+
+opt_recursive:
+        RECURSIVE { $$ = new OptRecursive(); $$->sub_type_ = CASE0; }
+    |   /* empty */ { $$ = new OptRecursive(); $$->sub_type_ = CASE1; }
 
 opt_if_not_exists:
         IF NOT EXISTS { $$ = new OptIfNotExists(); $$->sub_type_ = CASE0; }
@@ -1638,35 +1651,25 @@ truncate_statement:
  * INSERT INTO employees SELECT * FROM stundents
  ******************************/
 insert_statement:
-        insert_type INTO table_name opt_column_list VALUES super_list opt_upsert_clause{
+        insert_type INTO table_name opt_column_list_paren VALUES super_list opt_upsert_clause{
             $$ = new InsertStatement();
             $$->sub_type_ = CASE0;
             $$->insert_type_ = $1;
             $$->table_name_ = $3;
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->opt_column_list_ = $4;
+            $$->opt_column_list_paren_ = $4;
             $$->super_list_ = $6;
             $$->opt_upsert_clause_ = $7;
-            if($$->opt_column_list_->sub_type_ == CASE0){
-                for(auto &cname: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
-                    cname->id_type_ = id_column_name;
-                }    
-            }
         }
-    |   insert_type INTO table_name opt_column_list select_no_paren opt_upsert_clause{
+    |   insert_type INTO table_name opt_column_list_paren select_no_paren opt_upsert_clause{
             $$ = new InsertStatement();
             $$->sub_type_ = CASE1;
             $$->insert_type_ = $1;
             $$->table_name_ = $3;
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->opt_column_list_ = $4;
+            $$->opt_column_list_paren_ = $4;
             $$->select_no_paren_ = $5;
             $$->opt_upsert_clause_ = $6;
-            if($$->opt_column_list_->sub_type_ == CASE0){
-                for(auto &cname: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
-                    cname->id_type_ = id_column_name;
-                }    
-            }
         }
     ;
 
@@ -1686,11 +1689,10 @@ insert_type:
         | INSERT OR resolve_type {$$ = new InsertType(); $$->sub_type_ = CASE2; $$->resolve_type_ = $3;}
         ;
 
-opt_column_list:
-        '(' ident_commalist ')' { $$ = new OptColumnList(); $$->sub_type_ = CASE0; $$->ident_comma_list_ = $2; }
-    |   /* empty */ { $$ = new OptColumnList(); $$->sub_type_ = CASE1; }
+opt_column_list_paren:
+        '(' column_name_list ')' { $$ = new OptColumnListParen(); $$->sub_type_ = CASE0; $$->column_name_list_ = $2; }
+    |   /* empty */ { $$ = new OptColumnListParen(); $$->sub_type_ = CASE1; }
     ;
-
 
 /******************************
  * Update Statement
@@ -1737,29 +1739,28 @@ update_clause:
  ******************************/
 
 select_statement:
-        opt_with_clause select_with_paren {
-            $$ = new SelectStatement();
-            $$->sub_type_ = CASE0;
-            $$->opt_with_clause_ = $1;
-            $$->select_with_paren_ = $2;
+        opt_with_clause select_core opt_set_select_core_list opt_order opt_limit {
+          $$ = new SelectStatement();
+          $$->opt_with_clause_ = $1;
+          $$->select_core_ = $2;
+          $$->opt_set_select_core_list_ = $3;
+          $$->opt_order_ = $4;
+          $$->opt_limit_ = $5;
         }
-    |   opt_with_clause select_no_paren {
-            $$ = new SelectStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_with_clause_ = $1;
-            $$->select_no_paren_ = $2;
-        }
-    |   opt_with_clause select_with_paren set_operator select_paren_or_clause opt_order opt_limit {
-            $$ = new SelectStatement();
-            $$->sub_type_ = CASE2;
-            $$->opt_with_clause_ = $1;
-            $$->select_with_paren_ = $2;
-            $$->set_operator_ = $3;
-            $$->select_paren_or_clause_ = $4;
-            $$->opt_order_ = $5;
-            $$->opt_limit_ = $6;
-            
-        }
+    ;
+
+opt_set_select_core_list:
+        set_select_core_list { $$ = new OptSetSelectCoreList(); $$->sub_type_ = CASE0; $$->set_select_core_list_ = $1; }
+    |   /* empty */ { $$ = new OptSetSelectCoreList(); $$->sub_type_ = CASE1; }
+    ;
+
+set_select_core_list:
+        set_select_core { $$ = new SetSelectCoreList(); $$->v_set_select_core_list_.push_back($1); }
+    |   set_select_core_list set_select_core { $1->v_set_select_core_list_.push_back($2); }
+    ;
+
+set_select_core:
+        set_operator select_core { $$ = new SetSelectCore(); $$->set_operator_ = $1; $$->select_core_ = $2; }
     ;
 
 select_with_paren:
@@ -1769,21 +1770,21 @@ select_with_paren:
 
 select_paren_or_clause:
         select_with_paren {$$ = new SelectParenOrClause(); $$->sub_type_=CASE0; $$->select_with_paren_=$1;}
-    |   select_clause {$$=new SelectParenOrClause(); $$->sub_type_=CASE1; $$->select_clause_=$1;}
+    |   select_core {$$=new SelectParenOrClause(); $$->sub_type_=CASE1; $$->select_core_=$1;}
     ;
 
 select_no_paren:
-        select_clause opt_order opt_limit {
+        select_core opt_order opt_limit {
             $$ = new SelectNoParen();
             $$->sub_type_ = CASE0;
-            $$->select_clause_ = $1;
+            $$->select_core_ = $1;
             $$->opt_order_ = $2;
             $$->opt_limit_ = $3;
         }
-    |   select_clause set_operator select_paren_or_clause opt_order opt_limit {
+    |   select_core set_operator select_paren_or_clause opt_order opt_limit {
             $$ = new SelectNoParen();
             $$->sub_type_ = CASE1;
-            $$->select_clause_ = $1;
+            $$->select_core_ = $1;
             $$->set_operator_ = $2;
             $$->select_paren_or_clause_ = $3;
             $$->opt_order_ = $4;
@@ -1798,27 +1799,27 @@ set_operator:
     |   EXCEPT  {$$ = new SetOperator(); $$->str_val_ = string("EXCEPT");}
     ;
 
-select_clause:
-        SELECT opt_distinct result_column_list opt_from_clause opt_where opt_group {
-            $$ = new SelectClause();
-            $$->sub_type_ = CASE0;
-            $$->opt_distinct_ = $2;
-            $$->result_column_list_ = $3;
-            $$->opt_from_clause_ = $4;
-            $$->opt_where_ = $5;
-            $$->opt_group_ = $6;
+select_core:
+        SELECT opt_distinct result_column_list opt_from_clause opt_where opt_group opt_window_clause {
+          $$ = new SelectCore();
+          $$->sub_type_ = CASE0;
+          $$->opt_distinct_ = $2;
+          $$->result_column_list_ = $3;
+          $$->opt_from_clause_ = $4;
+          $$->opt_where_ = $5;
+          $$->opt_group_ = $6;
+          $$->opt_window_clause_ = $7;
         }
-    
-    |   SELECT opt_distinct result_column_list opt_from_clause opt_where opt_group window_clause {
-            $$ = new SelectClause();
-            $$->sub_type_ = CASE1;
-            $$->opt_distinct_ = $2;
-            $$->result_column_list_ = $3;
-            $$->opt_from_clause_ = $4;
-            $$->opt_where_ = $5;
-            $$->opt_group_ = $6;
-            $$->window_clause_ = $7;
+    |   VALUES expr_list_paren_list { 
+          $$ = new SelectCore();
+          $$->sub_type_ = CASE1;
+          $$->expr_list_paren_list_ = $2;
         }
+    ;
+
+opt_window_clause:
+        window_clause { $$ = new OptWindowClause(); $$->sub_type_ = CASE0; $$->window_clause_ = $1; }
+    |   /* empty */ { $$ = new OptWindowClause(); $$->sub_type_ = CASE1; }
     ;
 
 window_clause:
@@ -2001,16 +2002,23 @@ opt_order_type:
 
 opt_limit:
         LIMIT new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE0; $$->expr1_ = $2;}
-    |   OFFSET new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE1; $$->expr1_ = $2;}
-    |   LIMIT new_expr OFFSET new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE2; $$->expr1_ = $2; $$->expr2_ = $4;}
-    |   LIMIT ALL { $$ = new OptLimit(); $$->sub_type_ = CASE3;}
-    |   LIMIT ALL OFFSET new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE4; $$->expr1_ = $4;}
-    |   /* empty */ { $$ = nullptr; }
+    |   LIMIT new_expr OFFSET new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE1; $$->expr1_ = $2; $$->expr2_ = $4; }
+    |   LIMIT new_expr ',' new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE2; $$->expr1_ = $2; $$->expr2_ = $4; }
+    |   /* empty */ { $$ = new OptLimit(); $$->sub_type_ = CASE3; }
     ;
 
 /******************************
  * Expressions
  ******************************/
+
+expr_list_paren_list:
+        expr_list_paren { $$ = new ExprListParenList(); $$->v_expr_list_paren_list_.push_back($1); }
+    |   expr_list_paren_list ',' expr_list_paren { $1->v_expr_list_paren_list_.push_back($3); $$ = $1; }
+    ;
+
+expr_list_paren:
+        '(' expr_list ')' { $$ = new ExprListParen(); $$->expr_list_ = $2; }
+
 expr_list:
         new_expr { 
           $$ = new ExprList(); 
@@ -2431,29 +2439,33 @@ opt_with_clause:
     ;
 
 with_clause:
-        WITH with_description_list { $$ = new WithClause(); $$->with_description_list_ = $2; }
-    ;
-
-with_description_list:
-        with_description {
-            $$ = new WithDescriptionList();
-            $$->v_with_description_list_.push_back($1);
-        }
-    |   with_description_list ',' with_description {
-            $1->v_with_description_list_.push_back($3);
-            $$ = $1;
+        WITH opt_recursive common_table_expr_list {
+          $$ = new WithClause();
+          $$->opt_recursive_ = $2;
+          $$->common_table_expr_list_ = $3;
         }
     ;
 
-with_description:
-        IDENTIFIER AS '(' select_no_paren ')' {
-            $$ = new WithDescription();
-            $$->id_ = new Identifier($1);
-            $$->select_no_paren_ = $4;
-            free($1);
+common_table_expr_list:
+        common_table_expr {
+          $$ = new CommonTableExprList();
+          $$->v_common_table_expr_list_.push_back($1);
+        }
+    |   common_table_expr_list ',' common_table_expr {
+          $1->v_common_table_expr_list_.push_back($3);
+          $$ = $1;
         }
     ;
 
+common_table_expr:
+        table_name opt_column_list_paren AS '(' select_statement ')' {
+          $$ = new CommonTableExpr();
+          $$->sub_type_ = CASE0;
+          $$->table_name_ = $1;
+          $$->opt_column_list_paren_ = $2;
+          $$->select_statement_ = $5;
+        }
+    ;
 
 /******************************
  * Join Statements
