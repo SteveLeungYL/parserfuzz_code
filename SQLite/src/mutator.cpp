@@ -87,7 +87,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
 
     for(auto old_ir: v_ir_collector){
 
-        if (old_ir == root || old_ir->type_ == kProgram || old_ir->is_norec_select_fixed)
+        if (old_ir == root || old_ir->type_ == kProgram || old_ir->is_node_struct_fixed)
           continue;
 
         // cerr << "\n\n\nLooking at ir node: " << ir->to_string() << endl;

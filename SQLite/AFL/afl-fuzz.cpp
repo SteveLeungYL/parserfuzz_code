@@ -2593,7 +2593,7 @@ inline void print_norec_exec_debug_info(){
   return;
 }
 
-string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false){
+string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark = false, const unsigned mul_run_id = 0){
   bool is_explain = g_mutator.get_is_use_cri_val();
   string current_output = "";
 
@@ -2603,7 +2603,7 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
       continue;
     if (p_oracle->is_oracle_valid_stmt(query)) {
       string rew_1 = "", rew_2 = "", rew_3 = "";
-      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3);
+      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3, mul_run_id);
       
       if (query != ""){
         if (is_mark)
@@ -2621,7 +2621,7 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         }
       }
 
-      if (rew_1 != "") {
+      if (rew_1 != "" && mul_run_id <= 1) {
         if (is_mark)
           current_output += "SELECT 24680; \n";
         current_output += rew_1 + "; \n";
@@ -2636,7 +2636,7 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         }
       }
 
-      if (rew_2 != "") {
+      if (rew_2 != "" && mul_run_id <= 1) {
         if (is_mark)
           current_output += "SELECT 77777; \n";
         current_output += rew_2 + "; \n";
@@ -2651,7 +2651,7 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
         }
       }
 
-      if (rew_3 != "") {
+      if (rew_3 != "" && mul_run_id <= 1) {
         if (is_mark)
           current_output += "SELECT 55555; \n";
         current_output += rew_3 + "; \n";
@@ -2666,6 +2666,9 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
             current_output += "SELECT 33221; \n";
         }
       }
+    } else if ( p_oracle->is_oracle_valid_stmt_2(query)) { // If required to rewrite non-select statement
+      p_oracle->rewrite_valid_stmt_from_ori_2(query, mul_run_id);
+      current_output += query + "; \n";
     } else {
       current_output += query + "; \n";
     }
@@ -2694,6 +2697,52 @@ void extract_query_result(const string& res, vector<string>& res_vec_out, const 
       break; // For the current begin_idx, we cannot find the end_idx. Ignore the current output. 
     }
   }
+}
+
+void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
+
+  if (p_oracle->get_mul_run_num() <= 1){
+    cerr << "Error: calling cross_run compare results function, when mul_run_num <= 1. Code logic error. \n";
+    abort();
+  }
+
+  all_comp_res.final_res = ORA_COMP_RES::Pass;
+  is_explain_diff = false;
+
+  vector<vector<string>> res_vec, exp_vec;
+
+  for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++){
+    if (idx >= all_comp_res.v_res_str.size()){
+      cerr << "Error: v_res_str overflow in the compare_query_results_cross_run func. \n";
+      abort();
+    }
+    const string &res_str = all_comp_res.v_res_str[idx];
+    if (is_str_empty(res_str)) {
+      all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+      return;
+    }
+
+    vector<string> cur_res_vec, cur_exp_vec;
+    /* Only takes one type of validation at a time in the query. */
+    extract_query_result(res_str, cur_res_vec, "13579", "97531");
+    extract_query_result(res_str, cur_exp_vec, "11111", "22222");
+    
+    res_vec.append(std::move(cur_res_vec));
+    exp_vec.append(std::move(cur_exp_vec));
+  }
+
+  /* Compare valid stat by valid stat between different runs. */
+  for (int j = 0; j < res_vec[0].size(); j++){
+    COMP_RES comp_res;
+    for (int i = 0; i < res_vec.size(); i++){
+      comp_res.v_res_str.append(res_vec[i][j]);
+      if (exp_vec[0][j] != exp_vec[i][j]) is_explain_diff = true;
+    }
+    all_comp_res.v_res.push_back(std::move(comp_res));
+  }
+
+  p_oracle->compare_results(all_comp_res);
+  return;
 }
 
 void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
@@ -2783,37 +2832,76 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
     }
   }
 
-  cmd_string = expand_valid_stmts_str(queries_vector, true);
+  ALL_COMP_RES all_comp_res;
 
-  trim_string(cmd_string);
+  if (p_oracle->get_mul_run_num() <= 1){
+    /* Compare results between different validation stmts in a single run. */
+    cmd_string = expand_valid_stmts_str(queries_vector, true);
 
-  write_to_testcase(cmd_string.c_str(), cmd_string.size());
-  fault = run_target(argv, tmout);
-  if (stop_soon)
-    return fault;
-  if (fault == FAULT_TMOUT) {
-    if (subseq_tmouts++ > TMOUT_LIMIT) {
+    trim_string(cmd_string);
+
+    write_to_testcase(cmd_string.c_str(), cmd_string.size());
+    fault = run_target(argv, tmout);
+    if (stop_soon)
+      return fault;
+    if (fault == FAULT_TMOUT) {
+      if (subseq_tmouts++ > TMOUT_LIMIT) {
+        cur_skipped_paths++;
+        return fault;
+      }
+    }
+    else {
+      subseq_tmouts = 0;
+    }
+    /* Users can hit us with SIGUSR1 to request the current input
+         to be abandoned. */
+    if (skip_requested) {
+      skip_requested = 0;
       cur_skipped_paths++;
       return fault;
     }
-  }
-  else {
-    subseq_tmouts = 0;
-  }
-  /* Users can hit us with SIGUSR1 to request the current input
-       to be abandoned. */
-  if (skip_requested) {
-    skip_requested = 0;
-    cur_skipped_paths++;
-    return fault;
-  }
-  res_str = read_sqlite_output_and_reset_output_file();
+    res_str = read_sqlite_output_and_reset_output_file();
 
 
-  ALL_COMP_RES all_comp_res;
-  all_comp_res.cmd_str = std::move(cmd_string);
-  all_comp_res.res_str = std::move(res_str);
-  compare_query_result(all_comp_res, is_explain_diff);
+    all_comp_res.cmd_str = std::move(cmd_string);
+    all_comp_res.res_str = std::move(res_str);
+    compare_query_result(all_comp_res, is_explain_diff);
+  } else {
+    /* Compare results of the same validation stmts in different runs. */
+    for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++){
+      cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
+
+      trim_string(cmd_string);
+
+      write_to_testcase(cmd_string.c_str(), cmd_string.size());
+      fault = run_target(argv, tmout);
+      if (stop_soon)
+        return fault;
+      if (fault == FAULT_TMOUT) {
+        if (subseq_tmouts++ > TMOUT_LIMIT) {
+          cur_skipped_paths++;
+          return fault;
+        }
+      }
+      else {
+        subseq_tmouts = 0;
+      }
+      /* Users can hit us with SIGUSR1 to request the current input
+           to be abandoned. */
+      if (skip_requested) {
+        skip_requested = 0;
+        cur_skipped_paths++;
+        return fault;
+      }
+      res_str = read_sqlite_output_and_reset_output_file();
+
+      all_comp_res.v_cmd_str.append(std::move(cmd_string));
+      all_comp_res.v_res_str.append(std::move(res_str));
+
+    } // End for run_id loop. 
+
+    compare_query_results_cross_run(all_comp_res, is_explain_diff);
+  }
 
   /* Some useful debug output. That could show what queries are being tested.  */
   // cerr << "Query: \n";

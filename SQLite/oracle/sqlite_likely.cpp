@@ -34,7 +34,7 @@ bool SQL_LIKELY::mark_all_valid_node(vector<IR *> &v_ir_collector)
     IR *par_par_ir = nullptr;
     IR *par_par_par_ir = nullptr; // If we find the correct selectnoparen, this should be the statementlist.
     for (auto ir : v_ir_collector){
-        if (ir != nullptr) ir -> is_norec_select_fixed = false;
+        if (ir != nullptr) ir -> is_node_struct_fixed = false;
     }
     for (auto ir : v_ir_collector)
     {
@@ -54,9 +54,9 @@ bool SQL_LIKELY::mark_all_valid_node(vector<IR *> &v_ir_collector)
                         query.clear();
                         is_mark_successfully = this->mark_node_valid(ir);
                         // cerr << "\n\n\nThe marked norec ir is: " << this->extract_struct(ir) << " \n\n\n";
-                        par_ir -> is_norec_select_fixed = true;
-                        par_par_ir -> is_norec_select_fixed = true;
-                        par_par_par_ir -> is_norec_select_fixed = true;
+                        par_ir -> is_node_struct_fixed = true;
+                        par_par_ir -> is_node_struct_fixed = true;
+                        par_par_par_ir -> is_node_struct_fixed = true;
                     }
                 }
             }
@@ -66,7 +66,7 @@ bool SQL_LIKELY::mark_all_valid_node(vector<IR *> &v_ir_collector)
     return is_mark_successfully;
 }
 
-void SQL_LIKELY::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3)
+void SQL_LIKELY::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_num)
 {
   // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 

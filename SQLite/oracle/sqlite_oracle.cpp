@@ -7,7 +7,7 @@ bool SQL_ORACLE::mark_node_valid(IR *root) {
     /* the following types do not added to the norec_select_stmt list. They should be able to mutate as usual. */
     if (root->type_ == kExpr || root->type_ == kTableRef || root->type_ == kOptGroup || root->type_ == kWindowClause)
         return false;
-    root->is_norec_select_fixed = true;
+    root->is_node_struct_fixed = true;
     if (root->left_ != nullptr)
         this->mark_node_valid(root->left_);
     if (root->right_ != nullptr)
@@ -75,7 +75,7 @@ string SQL_ORACLE::get_random_mutated_valid_stmt(){
         if (choose_node_trial > 100) break;
         choose_node_trial++;
         mutate_ir_node = ir_tree[get_rand_int(ir_tree.size()-1)];  // Do not choose the program_root to mutate.
-        if (mutate_ir_node->is_norec_select_fixed) continue;
+        if (mutate_ir_node->is_node_struct_fixed) continue;
         is_mutate_ir_node_chosen = true;
         break;
       }

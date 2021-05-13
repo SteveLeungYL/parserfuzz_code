@@ -29,7 +29,7 @@ public:
     bool mark_all_valid_node(vector<IR *> &v_ir_collector) override;
     string remove_valid_stmts_from_str(string query) override;
     void compare_results(ALL_COMP_RES& res_out) override;
-    void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2, string& rew_3) override;
+    void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_num) override;
 
     string get_temp_valid_stmts() override { return temp_valid_stmts[get_rand_int(temp_valid_stmts.size())]; }
 private:
