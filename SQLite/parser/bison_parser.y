@@ -324,7 +324,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
-%token WITHOUT ROWID CONSTRAINT BLOBSTART
+%token WITHOUT ROWID CONSTRAINT BLOBSTART BTWAND
 
 /* For SQLite
 */
@@ -1490,11 +1490,11 @@ opt_on_conflict:
     ;
 
 resolve_type:
-        IGNORE {$$ = new ResolveType(); $$->str_val_ = string("IGNORE");}
+        ABORT {$$ = new ResolveType(); $$->str_val_ = string("ABORT");}
+    |   FAIL {$$ = new ResolveType(); $$->str_val_ = string("FAIL");}
+    |   IGNORE {$$ = new ResolveType(); $$->str_val_ = string("IGNORE");}
     |   REPLACE {$$ = new ResolveType(); $$->str_val_ = string("REPLACE");}
     |   ROLLBACK {$$ = new ResolveType(); $$->str_val_ = string("ROLLBACK");}
-    |   ABORT {$$ = new ResolveType(); $$->str_val_ = string("ABORT");}
-    |   FAIL {$$ = new ResolveType(); $$->str_val_ = string("FAIL");}
     ;
 
 opt_autoinc:
@@ -1672,9 +1672,9 @@ super_list:
 
 insert_type:
         INSERT { $$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_ = string("INSERT"); }
-        | REPLACE {$$ = new InsertType(); $$->sub_type_ = CASE1; $$->str_val_  = string("REPLACE");}
-        | INSERT OR resolve_type {$$ = new InsertType(); $$->sub_type_ = CASE2; $$->resolve_type_ = $3;}
-        ;
+    |   REPLACE {$$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_  = string("REPLACE");}
+    |   INSERT OR resolve_type {$$ = new InsertType(); $$->sub_type_ = CASE1; $$->resolve_type_ = $3;}
+    ;
 
 opt_column_list_paren:
         '(' column_name_list ')' { $$ = new OptColumnListParen(); $$->sub_type_ = CASE0; $$->column_name_list_ = $2; }
@@ -1825,7 +1825,7 @@ opt_frame:
             $$->frame_bound_ = $2;
             $$->opt_frame_exclude_ = $3;
         }
-    |   range_or_rows BETWEEN frame_bound_s AND frame_bound_e opt_frame_exclude {
+    |   range_or_rows BETWEEN frame_bound_s BTWAND frame_bound_e opt_frame_exclude {
             $$ = new OptFrame();
             $$->sub_type_ = CASE1;
             $$->range_or_rows_ = $1;
@@ -2090,7 +2090,7 @@ new_expr:
         }
     /* covered by binary_op */
     /* |  new_expr IS opt_not new_expr */
-    |   new_expr opt_not BETWEEN new_expr AND new_expr {
+    |   new_expr opt_not BETWEEN new_expr BTWAND new_expr {
           $$ = new NewExpr();
           $$->sub_type_ = CASE10;
           $$->new_expr1_ = $1;

@@ -22,6 +22,7 @@ char* substr(const char* source, int from, int to);
 %}
 %x singlequotedstring
 %x blobstring
+%s btwand
 
 /***************************
  ** Section 2: Rules
@@ -75,7 +76,6 @@ DISTINCT	TOKEN(DISTINCT)
 RESTRICT	TOKEN(RESTRICT)
 TRUNCATE	TOKEN(TRUNCATE)
 ANALYZE		TOKEN(ANALYZE)
-BETWEEN		TOKEN(BETWEEN)
 CASCADE		TOKEN(CASCADE)
 COLUMNS		TOKEN(COLUMNS)
 CONTROL		TOKEN(CONTROL)
@@ -177,7 +177,6 @@ WHEN		TOKEN(WHEN)
 WITH		TOKEN(WITH)
 ADD			TOKEN(ADD)
 ALL			TOKEN(ALL)
-AND			TOKEN(AND)
 ASC			TOKEN(ASC)
 CSV			TOKEN(CSV)
 END			TOKEN(END)
@@ -278,7 +277,6 @@ ROWID		TOKEN(ROWID)
 RAISE   TOKEN(RAISE)
 RECURSIVE TOKEN(RECURSIVE)
 
-
 TRUE		TOKEN(TRUE)
 FALSE		TOKEN(FALSE)
 
@@ -292,6 +290,10 @@ FALSE		TOKEN(FALSE)
 
 ">>"    TOKEN(RSHIFT)
 "<<"    TOKEN(LSHIFT)
+
+BETWEEN	  { BEGIN btwand; return SQL_BETWEEN; }
+<btwand>AND  { BEGIN INITIAL; return SQL_BTWAND; }
+AND			{ return SQL_AND; }
 
 [-+*/(){},.;<>=^%:?[\]|]	{ return yytext[0]; }
 

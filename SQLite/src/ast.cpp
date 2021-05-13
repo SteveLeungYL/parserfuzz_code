@@ -641,9 +641,6 @@ IR* InsertType::translate(vector<IR *> &v_ir_collector){
             res = new IR(kInsertType, str_val_);
         CASEEND
         CASESTART(1)
-            res = new IR(kInsertType, str_val_);
-        CASEEND
-        CASESTART(2)
             res = SAFETRANSLATE(resolve_type_);
             res = new IR(kInsertType, OP1("INSERT OR"), res);
         CASEEND
