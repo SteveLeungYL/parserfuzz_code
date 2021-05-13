@@ -83,6 +83,7 @@
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_tlp.h"
+#include "../oracle/sqlite_rowid.h"
 
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined (__OpenBSD__)
@@ -2727,15 +2728,15 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, bool& is_explai
     extract_query_result(res_str, cur_res_vec, "13579", "97531");
     extract_query_result(res_str, cur_exp_vec, "11111", "22222");
     
-    res_vec.append(std::move(cur_res_vec));
-    exp_vec.append(std::move(cur_exp_vec));
+    res_vec.push_back(std::move(cur_res_vec));
+    exp_vec.push_back(std::move(cur_exp_vec));
   }
 
   /* Compare valid stat by valid stat between different runs. */
   for (int j = 0; j < res_vec[0].size(); j++){
     COMP_RES comp_res;
     for (int i = 0; i < res_vec.size(); i++){
-      comp_res.v_res_str.append(res_vec[i][j]);
+      comp_res.v_res_str.push_back(res_vec[i][j]);
       if (exp_vec[0][j] != exp_vec[i][j]) is_explain_diff = true;
     }
     all_comp_res.v_res.push_back(std::move(comp_res));
@@ -2806,6 +2807,48 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
   return;
 }
 
+void stream_output_res(ALL_COMP_RES all_comp_res, ostream& out){
+  if (p_oracle->get_mul_run_num() <= 1){
+    out << "Query: \n";
+    out << all_comp_res.cmd_str << "\n";
+    out << "Result string: \n";
+    out << all_comp_res.res_str << "\n";
+    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+    out << "Detailed result: " << "\n";
+    int iter = 0;
+    for (COMP_RES& res : all_comp_res.v_res){
+      out << "\n\nResult NUM: " << iter++ << " \nRESULT FLAGS: " << res.comp_res << "\n";
+      out << "First stmt res is (str): " << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
+      out << "Second stmt res is (str): " << res.res_str_1 << "\n" << "Second stmt is (int): " << res.res_int_1 << "\n" ;
+      out << "Third stmt res is (str): " << res.res_str_2 << "\n" << "Third stmt is (int): " << res.res_int_2 << "\n" ;
+      out << "Fourth stmt res is (str): " << res.res_str_3 << "\n" << "Fourth stmt is (int): " << res.res_int_3 << "\n" ;
+    }
+
+    out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
+    out << "\n\n\n\n";
+
+  } else { // multiple execute SQLite.
+    out << "Multiple execution of SQLite: \n";
+
+    for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++){
+      out << "Query " << i << ": \n";
+      out << all_comp_res.v_cmd_str[i] << "\n";
+      out << "Result string: \n";
+      out << all_comp_res.v_res_str[i] << "\n";
+    }
+    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+    out << "Detailed result: " << "\n";
+    int iter = 0;
+    for (COMP_RES& res : all_comp_res.v_res){
+      out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res << "\n";
+      out << "Str: " << res.v_res_str[iter] << " \n" << "Int: " << res.v_res_int[iter] << " \n" ;
+    }
+
+    out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
+    out << "\n\n\n\n";
+  }
+}
+
 u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32 tmout = exec_tmout) {
 
   u8 fault;
@@ -2873,6 +2916,7 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
 
       trim_string(cmd_string);
 
+      /* The trace_bits[] are effectively volatile after calling run_target */
       write_to_testcase(cmd_string.c_str(), cmd_string.size());
       fault = run_target(argv, tmout);
       if (stop_soon)
@@ -2895,8 +2939,8 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
       }
       res_str = read_sqlite_output_and_reset_output_file();
 
-      all_comp_res.v_cmd_str.append(std::move(cmd_string));
-      all_comp_res.v_res_str.append(std::move(res_str));
+      all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
+      all_comp_res.v_res_str.push_back(std::move(res_str));
 
     } // End for run_id loop. 
 
@@ -2904,22 +2948,7 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
   }
 
   /* Some useful debug output. That could show what queries are being tested.  */
-  // cerr << "Query: \n";
-  // cerr << all_comp_res.cmd_str << "\n";
-  // cerr << "Result string: \n";
-  // cerr << all_comp_res.res_str << "\n";
-  // cerr << "\nFinal_res: " << all_comp_res.final_res << "\n";
-  // cerr << "Detailed result: " << "\n";
-  // int iter = 0;
-  // for (COMP_RES& res : all_comp_res.v_res){
-  //   cerr << "\nResult NUM: " << iter++ << " res: " << res.comp_res << ":\n";
-  //   cerr << "First stmt res is (str): \n" << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
-  //   cerr << "Second stmt res is (str): \n" << res.res_str_1 << "\n" << "Second stmt res is (int): " << res.res_int_1 << "\n" ;
-  //   cerr << "Third stmt res is (str): \n" << res.res_str_2 << "\n" << "Third stmt res is (int): " << res.res_int_2 << "\n" ;
-  //   cerr << "Fourth stmt res is (str): \n" << res.res_str_3 << "\n" << "Fourth stmt res is (int): " << res.res_int_3 << "\n" ;
-  // }
-  // cerr << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
-  // cerr << "\n\n\n\n";
+  stream_output_res(all_comp_res, cerr);
 
   if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
@@ -2946,23 +2975,7 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
     string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
-    outputfile << "Query: \n";
-    outputfile << all_comp_res.cmd_str << "\n";
-    outputfile << "Result string: \n";
-    outputfile << all_comp_res.res_str << "\n";
-    outputfile << "\nFinal_res: " << all_comp_res.final_res << "\n";
-    outputfile << "Detailed result: " << "\n";
-    int iter = 0;
-    for (COMP_RES& res : all_comp_res.v_res){
-      outputfile << "\n\nResult NUM: " << iter++ << " \nRESULT FOR NUM: " << res.comp_res << "\n";
-      outputfile << "First stmt res is (str): " << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
-      outputfile << "Second stmt res is (str): " << res.res_str_1 << "\n" << "Second stmt is (int): " << res.res_int_1 << "\n" ;
-      outputfile << "Third stmt res is (str): " << res.res_str_2 << "\n" << "Third stmt is (int): " << res.res_int_2 << "\n" ;
-      outputfile << "Fourth stmt res is (str): " << res.res_str_3 << "\n" << "Fourth stmt is (int): " << res.res_int_3 << "\n" ;
-    }
-
-    outputfile << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
-    outputfile << "\n\n\n\n";
+    stream_output_res(all_comp_res, outputfile);
 
     outputfile.close();
 
@@ -6968,7 +6981,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
+  p_oracle = new SQL_ROWID();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   g_mutator.set_use_cri_val(false);

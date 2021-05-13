@@ -73,7 +73,7 @@ bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector)
     return is_mark_successfully;
 }
 
-void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_num)
+void SQL_NOREC::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_id)
 {
   // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 

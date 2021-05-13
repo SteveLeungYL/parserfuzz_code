@@ -77,7 +77,7 @@ bool SQL_TLP::mark_all_valid_node(vector<IR *> &v_ir_collector)
     return is_mark_successfully;
 }
 
-void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_num)
+void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_id)
 {
   // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
 
@@ -551,7 +551,7 @@ bool SQL_TLP::compare_norm(COMP_RES& res) {
 
 
 /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; and MAX valid stmt: SELECT MAX(*) FROM ...;  */
-bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type){ 
+bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE_TLP valid_type){ 
   string& res_a = res.res_str_0;
   string& res_b = res.res_str_1;
   int& res_a_int = res.res_int_0;
@@ -566,13 +566,13 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
   vector<string> v_res_a = string_splitter(res_a, "\n");
   vector<string> v_res_b = string_splitter(res_b, "\n");
 
-  if (valid_type == VALID_STMT_TYPE::MAX){
+  if (valid_type == VALID_STMT_TYPE_TLP::MAX){
     res_a_int = INT32_MIN;
     res_b_int = INT32_MIN;
-  } else if (valid_type == VALID_STMT_TYPE::MIN){
+  } else if (valid_type == VALID_STMT_TYPE_TLP::MIN){
     res_a_int = INT32_MAX;
     res_b_int = INT32_MAX;
-  } else if (valid_type == VALID_STMT_TYPE::COUNT || valid_type == VALID_STMT_TYPE::SUM){
+  } else if (valid_type == VALID_STMT_TYPE_TLP::COUNT || valid_type == VALID_STMT_TYPE_TLP::SUM){
     res_a_int = 0;
     res_b_int = 0;
   }
@@ -593,11 +593,11 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
       res.comp_res = ORA_COMP_RES::Error;
       return 1;
     }
-    if (valid_type == VALID_STMT_TYPE::MAX)
+    if (valid_type == VALID_STMT_TYPE_TLP::MAX)
       res_a_int = (res_a_int < cur_res) ? cur_res : res_a_int;
-    else if (valid_type == VALID_STMT_TYPE::MIN)
+    else if (valid_type == VALID_STMT_TYPE_TLP::MIN)
       res_a_int = (res_a_int > cur_res) ? cur_res : res_a_int;
-    else if (valid_type == VALID_STMT_TYPE::COUNT || valid_type == VALID_STMT_TYPE::SUM)
+    else if (valid_type == VALID_STMT_TYPE_TLP::COUNT || valid_type == VALID_STMT_TYPE_TLP::SUM)
       res_a_int += cur_res;
   }
 
@@ -617,11 +617,11 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE valid_type
       res.comp_res = ORA_COMP_RES::Error;
       return 1;
     }
-    if (valid_type == VALID_STMT_TYPE::MAX)
+    if (valid_type == VALID_STMT_TYPE_TLP::MAX)
       res_b_int = (res_b_int < cur_res) ? cur_res : res_b_int;
-    else if (valid_type == VALID_STMT_TYPE::MIN)
+    else if (valid_type == VALID_STMT_TYPE_TLP::MIN)
       res_b_int = (res_b_int > cur_res) ? cur_res : res_b_int;
-    else if (valid_type == VALID_STMT_TYPE::COUNT || valid_type == VALID_STMT_TYPE::SUM)
+    else if (valid_type == VALID_STMT_TYPE_TLP::COUNT || valid_type == VALID_STMT_TYPE_TLP::SUM)
       res_b_int += cur_res;
   }
 
@@ -639,41 +639,41 @@ void SQL_TLP::compare_results(ALL_COMP_RES& res_out){
   res_out.final_res = ORA_COMP_RES::Pass;
   bool is_all_err = true;
 
-  vector<VALID_STMT_TYPE> v_valid_type;
+  vector<VALID_STMT_TYPE_TLP> v_valid_type;
   get_v_valid_type(res_out.cmd_str, v_valid_type);
 
   int i = 0;
   for (COMP_RES& res : res_out.v_res){
 
     switch (v_valid_type[i++]) {
-    case VALID_STMT_TYPE::NORM:
+    case VALID_STMT_TYPE_TLP::NORM:
       /* Handle normal valid stmt: SELECT * FROM ...; */
       if(!compare_norm(res) ) is_all_err = false;
       break; // Break the switch
 
-    case VALID_STMT_TYPE::MIN:
+    case VALID_STMT_TYPE_TLP::MIN:
     /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
-      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::MIN)) is_all_err = false;
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::MIN)) is_all_err = false;
       break; // Break the switch
       
-    case VALID_STMT_TYPE::MAX:
+    case VALID_STMT_TYPE_TLP::MAX:
     /* Handle MAX valid stmt: SELECT MAX(*) FROM ...; */
-      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::MAX)) is_all_err = false;
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::MAX)) is_all_err = false;
       break; // Break the switch
 
-    case VALID_STMT_TYPE::COUNT:
+    case VALID_STMT_TYPE_TLP::COUNT:
     /* Handle SELECT COUNT(*) FROM x...; */
-      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::COUNT)) is_all_err = false;
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::COUNT)) is_all_err = false;
       break; // Break the switch
 
-    case VALID_STMT_TYPE::SUM:
+    case VALID_STMT_TYPE_TLP::SUM:
     /* Handle SUM valid stmt: SELECT SUM(*) FROM ...; */
-      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE::SUM)) is_all_err = false;
+      if(!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::SUM)) is_all_err = false;
       break; // Break the switch
 
-    // case VALID_STMT_TYPE::AVG: // TODO: Implement AVG. 
+    // case VALID_STMT_TYPE_TLP::AVG: // TODO: Implement AVG. 
     default:
-      cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE. \n";
+      cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE_TLP. \n";
       break;
     }  // Switch stmt. 
     if (res.comp_res == ORA_COMP_RES::Fail) res_out.final_res = ORA_COMP_RES::Fail; 
@@ -685,14 +685,14 @@ void SQL_TLP::compare_results(ALL_COMP_RES& res_out){
 
 }
 
-void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE>& v_valid_type) {
+void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_TLP>& v_valid_type) {
   /* Look throught first validation stmt's result_1 first */
   size_t begin_idx = cmd_str.find("13579", 0);
   size_t end_idx = cmd_str.find("97531", 0);
 
   while (begin_idx != string::npos){
     if (end_idx != string::npos){
-      string cur_cmd_str = cmd_str.substr(begin_idx + 8, (end_idx - begin_idx - 8 - 8));
+      string cur_cmd_str = cmd_str.substr(begin_idx + 7, (end_idx - begin_idx - 8 - 7));
       begin_idx = cmd_str.find("13579", begin_idx+5);
       end_idx = cmd_str.find("97531", end_idx+5);
 
@@ -700,32 +700,32 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE>& v
         ((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") - cur_cmd_str.begin()) < 5 ) ||
         ((findStringIter(cur_cmd_str, "SELECT MIN") - cur_cmd_str.begin()) < 5 )
       ){
-        v_valid_type.push_back(VALID_STMT_TYPE::MIN);
+        v_valid_type.push_back(VALID_STMT_TYPE_TLP::MIN);
         // cerr << "query: " << cur_cmd_str << " \nMIN. \n"; 
       }
       else if (
         ((findStringIter(cur_cmd_str, "SELECT DISTINCT MAX") - cur_cmd_str.begin()) < 5 ) ||
         ((findStringIter(cur_cmd_str, "SELECT MAX") - cur_cmd_str.begin()) < 5 )
       ){
-        v_valid_type.push_back(VALID_STMT_TYPE::MAX);
+        v_valid_type.push_back(VALID_STMT_TYPE_TLP::MAX);
         // cerr << "query: " << cur_cmd_str << " \nMAX. \n"; 
       }
       else if (
         ((findStringIter(cur_cmd_str, "SELECT DISTINCT SUM") - cur_cmd_str.begin()) < 5 ) ||
         ((findStringIter(cur_cmd_str, "SELECT SUM") - cur_cmd_str.begin()) < 5 )
       ){
-        v_valid_type.push_back(VALID_STMT_TYPE::SUM);
+        v_valid_type.push_back(VALID_STMT_TYPE_TLP::SUM);
         // cerr << "query: " << cur_cmd_str << " \nSUM. \n"; 
       }
       else if (
         ((findStringIter(cur_cmd_str, "SELECT DISTINCT COUNT") - cur_cmd_str.begin()) < 5 ) ||
         ((findStringIter(cur_cmd_str, "SELECT COUNT") - cur_cmd_str.begin()) < 5 )
       ){
-        v_valid_type.push_back(VALID_STMT_TYPE::COUNT);
+        v_valid_type.push_back(VALID_STMT_TYPE_TLP::COUNT);
         // cerr << "query: " << cur_cmd_str << " \nCOUNT. \n"; 
       }
       else{
-        v_valid_type.push_back(VALID_STMT_TYPE::NORM);
+        v_valid_type.push_back(VALID_STMT_TYPE_TLP::NORM);
         // cerr << "query: " << cur_cmd_str << " \nNORM. \n"; 
       }
       

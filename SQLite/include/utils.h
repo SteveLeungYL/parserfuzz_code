@@ -59,6 +59,7 @@ struct COMP_RES{
   string res_str_0 = "EMPTY", res_str_1 = "EMPTY", res_str_2 = "EMPTY", res_str_3 = "EMPTY";
   vector<string> v_res_str; 
   int res_int_0 = -1, res_int_1 = -1, res_int_2 = -1, res_int_3 = -1;
+  vector<int> v_res_int;
 
   ORA_COMP_RES comp_res;
   bool is_explain_diff = false; // Is EXPLAIN QUERY PLAN provides different execution plans between different validation. 

@@ -36,7 +36,7 @@ public:
     virtual void rewrite_valid_stmt_from_ori_2(string& query, const unsigned multi_run_id) 
         {return;}
     virtual void rewrite_valid_stmt_from_ori_2(string& query) 
-        {this->rewrite_valid_stmt_from_ori(query, 0);}
+        {this->rewrite_valid_stmt_from_ori_2(query, 0);}
 
     /* Compare the results from validation statements ori, rewrite_1 and rewrite_2. 
         If the results are all errors, return -1, all consistent, return 1, found inconsistent, return 0. */
