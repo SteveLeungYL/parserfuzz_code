@@ -417,10 +417,12 @@ class InsertStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptWithClause * opt_with_clause_;
     InsertType * insert_type_;
     TableName * table_name_;
+    OptTableAliasAs * opt_table_alias_as_;
     OptColumnListParen * opt_column_list_paren_;
-    SuperList * super_list_;
+    ExprListParenList * expr_list_paren_list_;
     SelectStatement * select_statement_;
     OptUpsertClause * opt_upsert_clause_;
 };
@@ -957,6 +959,13 @@ public:
 };
 
 class OptTableAlias: public Opt {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    TableAlias* table_alias_;
+};
+
+class OptTableAliasAs: public Opt {
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
@@ -1533,10 +1542,16 @@ class UpsertClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    IndexedColumnList * indexed_column_list_;
+    vector<UpsertItem *> v_upsert_item_list_;
+};
+
+class UpsertItem: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptConflictTarget * opt_conflict_target_;
     AssignList * assign_list_;
-    OptWhere * opt_where1_;
-    OptWhere * opt_where2_;
+    OptWhere * opt_where_;
 };
 
 class IndexedColumnList: public Node{
@@ -1602,6 +1617,7 @@ class AssignClause: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+    ColumnName * column_name_;
     ColumnNameList * column_name_list_;
     NewExpr * expr_;
 };
@@ -1662,6 +1678,21 @@ public:
     virtual IR *translate(vector<IR *> &v_ir_collector);
     string to_raise_;
     Identifier * error_msg_;
+};
+
+class ConflictTarget: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR *translate(vector<IR *> &v_ir_collector);
+    IndexedColumnList * indexed_column_list_;
+    OptWhere * opt_where_;
+};
+
+class OptConflictTarget: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR *translate(vector<IR *> &v_ir_collector);
+    ConflictTarget * conflict_target_;
 };
 
 string get_string_by_ir_type(IRTYPE);

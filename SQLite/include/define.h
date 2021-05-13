@@ -93,6 +93,7 @@
     V(kTableName) \
     V(kTableAlias) \
     V(kOptTableAlias) \
+    V(kOptTableAliasAs) \
     V(kColumnAlias) \
     V(kOptColumnAlias) \
     V(kResultColumn) \
@@ -178,6 +179,7 @@
     V(kBeginStatement) \
     V(kCommitStatement) \
     V(kUpsertClause) \
+    V(kUpsertItem) \
     V(kIndexedColumnList) \
     V(kIndexedColumn) \
     V(kOptCollate) \
@@ -202,6 +204,8 @@
     V(kOptPartitionBy) \
     V(kOptNot) \
     V(kRaiseFunction) \
+    V(kConflictTarget) \
+    V(kOptConflictTarget) \
     \
     /* the following type does not has corresponding class*/ \
     \
@@ -227,7 +231,10 @@
     V(kTableNameOptColumnListParen) \
     V(kWithSelectCore) \
     V(kWithSelectCoreSetList) \
-    V(kWithSelectCoreSetListOrder)
+    V(kWithSelectCoreSetListOrder) \
+    V(kWithInsertType) \
+    V(kConflictTargetAssignList) \
+    V(kTableNameAliasAs)
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -314,6 +321,7 @@
     V(TableName) \
     V(TableAlias) \
     V(OptTableAlias) \
+    V(OptTableAliasAs) \
     V(ColumnAlias) \
     V(OptColumnAlias) \
     V(ResultColumn) \
@@ -399,6 +407,7 @@
     V(TableOrSubquery) \
     V(TableOrSubqueryList) \
     V(UpsertClause) \
+    V(UpsertItem) \
     V(IndexedColumnList) \
     V(IndexedColumn) \
     V(OptCollate) \
@@ -421,6 +430,8 @@
     V(OptPartitionBy) \
     V(OptNot) \
     V(RaiseFunction) \
+    V(ConflictTarget) \
+    V(OptConflictTarget) \
     \
     /* the following type does not has corresponding class*/ \
     \
@@ -446,7 +457,10 @@
     V(TableNameOptColumnListParen) \
     V(WithSelectCore) \
     V(WithSelectCoreSetList) \
-    V(WithSelectCoreSetListOrder)
+    V(WithSelectCoreSetListOrder) \
+    V(WithInsertType) \
+    V(ConflictTargetAssignList) \
+    V(TableNameAliasAs)
 
 
 #define SWITCHSTART \

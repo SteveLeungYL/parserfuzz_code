@@ -187,6 +187,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     TableName* table_name_t;
     TableAlias* table_alias_t;
     OptTableAlias* opt_table_alias_t;
+    OptTableAliasAs * opt_table_alias_as_t;
     ColumnAlias* column_alias_t;
     OptColumnAlias* opt_column_alias_t;
     OptWithClause* opt_with_clause_t;
@@ -247,7 +248,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	FrameExclude*	frame_exclude_t;
   OptFrameExclude* opt_frame_exclude_t;
     InsertType * insert_type_t;
-    SuperList * super_list_t;
 
     JoinOp * join_op_t;
     OptIndex * opt_index_t;
@@ -268,6 +268,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     BeginStatement * begin_statement_t;
     CommitStatement * commit_statement_t;
     UpsertClause * upsert_clause_t;
+    UpsertItem * upsert_item_t;
     IndexedColumnList * indexed_column_list_t;
     IndexedColumn * indexed_column_t;
     OptCollate * opt_collate_t;
@@ -283,6 +284,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     PartitionBy* partition_by_t;
     OptPartitionBy* opt_partition_by_t;
     RaiseFunction * raise_function_t;
+    ConflictTarget* conflict_target_t;
+    OptConflictTarget * opt_conflict_target_t;
 
     std::vector<char*>* str_vec;
     std::vector<ColumnDef*>* column_vec;
@@ -416,6 +419,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <table_name_t>	table_name
 %type <table_alias_t> table_alias
 %type <opt_table_alias_t> opt_table_alias
+%type <opt_table_alias_as_t> opt_table_alias_as
 %type <column_alias_t> column_alias
 %type <opt_column_alias_t> opt_column_alias
 %type <opt_with_clause_t>	opt_with_clause
@@ -485,7 +489,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <frame_exclude_t>	frame_exclude
 %type <opt_frame_exclude_t>	opt_frame_exclude
 %type <insert_type_t> insert_type
-%type <super_list_t> super_list
 
 %type <alter_statement_t> alter_statement
 %type <opt_column_t> opt_column
@@ -499,6 +502,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <begin_statement_t> begin_statement
 %type <commit_statement_t> commit_statement
 %type <upsert_clause_t> upsert_clause
+%type <upsert_item_t> upsert_item
 %type <indexed_column_list_t> indexed_column_list
 %type <indexed_column_t> indexed_column
 %type <opt_collate_t> opt_collate
@@ -515,6 +519,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <partition_by_t> partition_by
 %type <opt_partition_by_t> opt_partition_by
 %type <raise_function_t> raise_function
+%type <conflict_target_t> conflict_target
+%type <opt_conflict_target_t> opt_conflict_target
 /*********************************
  ** Destructor symbols
  *********************************/
@@ -877,32 +883,38 @@ opt_upsert_clause:
     |   /* empty */ {$$ = new OptUpsertClause(); $$->sub_type_ = CASE1;}
 
 upsert_clause:
-        ON CONFLICT DO NOTHING {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE0;
+        upsert_item { $$ = new UpsertClause(); $$->v_upsert_item_list_.push_back($1); }
+    |   upsert_clause upsert_item { $1->v_upsert_item_list_.push_back($2); $$ = $1; }
+    ;
+
+upsert_item:
+        ON CONFLICT opt_conflict_target DO NOTHING {
+          $$ = new UpsertItem();
+          $$->sub_type_ = CASE0;
+          $$->opt_conflict_target_ = $3;
         }
-    |   ON CONFLICT DO UPDATE SET assign_list opt_where {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE1;
-            $$->assign_list_ = $6;
-            $$->opt_where1_ = $7;
+    |   ON CONFLICT opt_conflict_target UPDATE SET assign_list opt_where {
+          $$ = new UpsertItem();
+          $$->sub_type_ = CASE1;
+          $$->opt_conflict_target_ = $3;
+          $$->assign_list_ = $6;
+          $$->opt_where_ = $7;
         }
-    |   ON CONFLICT '(' indexed_column_list ')' opt_where DO NOTHING {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE2;
-            $$->indexed_column_list_ = $4;
-            $$->opt_where1_ = $6;
+    ;
+
+opt_conflict_target:
+        conflict_target { $$ = new OptConflictTarget(); $$->sub_type_ = CASE0; $$->conflict_target_ = $1; }
+    |   /* empty */ { $$ = new OptConflictTarget(); $$->sub_type_ = CASE1; }
+    ;
+
+conflict_target:
+        '(' indexed_column_list ')' opt_where {
+          $$ = new ConflictTarget();
+          $$->indexed_column_list_ = $2;
+          $$->opt_where_ = $4;
         }
-    |   ON CONFLICT '(' indexed_column_list ')' opt_where DO UPDATE SET assign_list opt_where {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE3;
-            $$->indexed_column_list_ = $4;
-            $$->opt_where1_ = $6;
-            $$->assign_list_ = $10;
-            $$->opt_where2_ = $11;
-        }
-    
- ;
+    ;
+
 
 indexed_column_list:
         indexed_column {
@@ -985,10 +997,18 @@ exists_or_not:
     ;
 
 assign_clause:
-        column_name_list '=' new_expr {
+        column_name '=' new_expr {
             $$ = new AssignClause();
-            $$->column_name_list_ = $1;
+            $$->sub_type_ = CASE0;
+            $$->column_name_ = $1;
             $$->expr_ = $3;
+        }
+
+    |   '(' column_name_list ')' '=' new_expr {
+            $$ = new AssignClause();
+            $$->sub_type_ = CASE1;
+            $$->column_name_list_ = $2;
+            $$->expr_ = $5;
         }
  ;
 
@@ -1638,35 +1658,29 @@ truncate_statement:
  * INSERT INTO employees SELECT * FROM stundents
  ******************************/
 insert_statement:
-        insert_type INTO table_name opt_column_list_paren VALUES super_list opt_upsert_clause{
+        opt_with_clause insert_type INTO table_name opt_table_alias_as opt_column_list_paren VALUES expr_list_paren_list opt_upsert_clause{
             $$ = new InsertStatement();
             $$->sub_type_ = CASE0;
-            $$->insert_type_ = $1;
-            $$->table_name_ = $3;
+            $$->opt_with_clause_ = $1;
+            $$->insert_type_ = $2;
+            $$->table_name_ = $4;
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->opt_column_list_paren_ = $4;
-            $$->super_list_ = $6;
-            $$->opt_upsert_clause_ = $7;
+            $$->opt_table_alias_as_ = $5;
+            $$->opt_column_list_paren_ = $6;
+            $$->expr_list_paren_list_ = $8;
+            $$->opt_upsert_clause_ = $9;
         }
-    |   insert_type INTO table_name opt_column_list_paren select_statement opt_upsert_clause{
+    |   opt_with_clause insert_type INTO table_name opt_table_alias_as opt_column_list_paren select_statement opt_upsert_clause{
             $$ = new InsertStatement();
             $$->sub_type_ = CASE1;
-            $$->insert_type_ = $1;
-            $$->table_name_ = $3;
+            $$->opt_with_clause_ = $1;
+            $$->insert_type_ = $2;
+            $$->table_name_ = $4;
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->opt_column_list_paren_ = $4;
-            $$->select_statement_ = $5;
-            $$->opt_upsert_clause_ = $6;
-        }
-    ;
-
-super_list:
-        '(' literal_list ')'{
-            $$ = new SuperList(); $$->v_super_list_.push_back($2);
-        }
-    |   super_list ',' '(' literal_list ')'{
-            $1->v_super_list_.push_back($4);
-            $$ = $1;
+            $$->opt_table_alias_as_ = $5;
+            $$->opt_column_list_paren_ = $6;
+            $$->select_statement_ = $7;
+            $$->opt_upsert_clause_ = $8;
         }
     ;
 
@@ -2358,17 +2372,17 @@ table_alias:
           $$->alias_id_ = new Identifier($1, id_table_alias_name);
           free($1);
         }
-    |   AS IDENTIFIER {
-          $$ = new TableAlias();
-          $$->sub_type_ = CASE1; 
-          $$->alias_id_ = new Identifier($2, id_table_alias_name);
-          free($2);
-        }
     ;
 
 opt_table_alias:
-         table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE0; $$->table_alias_ = $1; }
-    |    /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; }
+        table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE0; $$->table_alias_ = $1; }
+    |   AS table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; $$->table_alias_ = $2; }
+    |   /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE2; }
+    ;
+
+opt_table_alias_as:
+        AS table_alias { $$ = new OptTableAliasAs(); $$->sub_type_ = CASE0; $$->table_alias_ = $2; }
+    |   /* empty */ { $$ = new OptTableAliasAs(); $$->sub_type_ = CASE1; }
     ;
 
 /* column alias is independent from column */
