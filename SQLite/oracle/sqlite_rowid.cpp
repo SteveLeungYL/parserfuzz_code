@@ -218,31 +218,31 @@ bool SQL_ROWID::compare_uniq(COMP_RES& res){
         return true;
     }
     vector<string>& v_res_str = res.v_res_str;
-    vector<int>& v_res_int = res.v_res_int;
+    // vector<int>& v_res_int = res.v_res_int;
 
-    for (const string& res_str : v_res_str) {
-        if (res_str.find("Error") != string::npos){
-            res.comp_res = ORA_COMP_RES::Error;
-            return true;
-        }
+    // for (const string& res_str : v_res_str) {
+    //     if (res_str.find("Error") != string::npos){
+    //         res.comp_res = ORA_COMP_RES::Error;
+    //         return true;
+    //     }
 
-        int cur_res_int = 0;
-        try {
-            cur_res_int = stoi(res_str);
-        }
-        catch (std::invalid_argument &e) {
-            continue;
-        }
-        catch (std::out_of_range &e) {
-            res.comp_res = ORA_COMP_RES::Error;
-            return true;
-        }
+    //     int cur_res_int = 0;
+    //     try {
+    //         cur_res_int = stoi(res_str);
+    //     }
+    //     catch (std::invalid_argument &e) {
+    //         continue;
+    //     }
+    //     catch (std::out_of_range &e) {
+    //         res.comp_res = ORA_COMP_RES::Error;
+    //         return true;
+    //     }
 
-        v_res_int.push_back(cur_res_int);
-    }
+    //     v_res_int.push_back(cur_res_int);
+    // }
 
-    for (int i = 1; i < v_res_int.size(); i++){
-        if (v_res_int[0] != v_res_int[i]) res.comp_res = ORA_COMP_RES::Fail;
+    for (int i = 1; i < v_res_str.size(); i++){
+        if (v_res_str[0] != v_res_str[i]) res.comp_res = ORA_COMP_RES::Fail;
         return false;
     }
     
