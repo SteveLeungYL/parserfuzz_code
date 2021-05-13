@@ -24,6 +24,9 @@ char* substr(const char* source, int from, int to);
 %x blobstring
 %s btwand
 
+  int old_condition = 0;
+  int current_condition = 0;
+
 /***************************
  ** Section 2: Rules
  ***************************/
@@ -291,8 +294,9 @@ FALSE		TOKEN(FALSE)
 ">>"    TOKEN(RSHIFT)
 "<<"    TOKEN(LSHIFT)
 
-BETWEEN	  { BEGIN btwand; return SQL_BETWEEN; }
-<btwand>AND  { BEGIN INITIAL; return SQL_BTWAND; }
+BETWEEN	  { BEGIN btwand; current_condition = YY_START; return SQL_BETWEEN; }
+<btwand>AND  { BEGIN INITIAL; current_condition = YY_START; return SQL_BTWAND; }
+
 AND			{ return SQL_AND; }
 
 [-+*/(){},.;<>=^%:?[\]|]	{ return yytext[0]; }
@@ -326,10 +330,10 @@ AND			{ return SQL_AND; }
 	return SQL_IDENTIFIER;
 }
 
-[xX]\'                 { BEGIN blobstring; blobstrbuf = std::stringstream{}; }
+[xX]\'              { old_condition = current_condition; BEGIN blobstring; blobstrbuf = std::stringstream{}; }
 <blobstring>\'\'    { blobstrbuf << '\''; }
 <blobstring>[^']*   { blobstrbuf << yytext; }
-<blobstring>\'      { BEGIN 0; yylval->sval = strdup(blobstrbuf.str().c_str()); return SQL_BLOBSTRING; }
+<blobstring>\'      { current_condition = old_condition; BEGIN (old_condition); yylval->sval = strdup(blobstrbuf.str().c_str()); return SQL_BLOBSTRING; }
 <blobstring><<EOF>> {  /*fprintf(stdout, "[SQL-Lexer-Error] Unterminated string\n"); */ return 0; }
 
 [A-Za-z][A-Za-z0-9_]* {
@@ -337,10 +341,19 @@ AND			{ return SQL_AND; }
 	return SQL_IDENTIFIER;
 }
 
-\'                          { BEGIN singlequotedstring; strbuf = std::stringstream{}; }
+\'                          { old_condition = current_condition; 
+                              //printf("++ current_condition: %d, old_condition: %d\n", current_condition, old_condition); 
+                              BEGIN singlequotedstring; 
+                              strbuf = std::stringstream{}; 
+                            }
 <singlequotedstring>\'\'    { strbuf << '\''; }
 <singlequotedstring>[^']*   { strbuf << yytext; }
-<singlequotedstring>\'      { BEGIN 0; yylval->sval = strdup(strbuf.str().c_str()); return SQL_STRING; }
+<singlequotedstring>\'      { current_condition = old_condition; 
+                              //printf("-- current_condition: %d, old_condition: %d\n", current_condition, old_condition); 
+                              BEGIN (old_condition); 
+                              yylval->sval = strdup(strbuf.str().c_str()); 
+                              return SQL_STRING;
+                            }
 <singlequotedstring><<EOF>> {  /*fprintf(stdout, "[SQL-Lexer-Error] Unterminated string\n"); */ return 0; }
 
 . { /*fprintf(stdout, "[SQL-Lexer-Error] Unknown Character: %c\n", yytext[0]); */ return 0; }
