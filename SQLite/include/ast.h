@@ -438,8 +438,10 @@ class DeleteStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableName * table_name_;
+    OptWithClause * opt_with_clause_;
+    QualifiedTableName * qualified_table_name_;
     OptWhere * opt_where_;
+    OptReturningClause * opt_returning_clause_;
 };
 
 class UpdateStatement: public PreparableStatement{

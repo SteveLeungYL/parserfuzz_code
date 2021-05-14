@@ -19,7 +19,7 @@
 
 
 int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg) {
-    fprintf(stderr, "%s\n", msg);
+    //fprintf(stderr, "%s\n", msg);
     return 0;
 }
 
@@ -370,7 +370,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
 %type <opt_if_exists_t>	opt_if_exists
-%type <delete_statement_t>	delete_statement	truncate_statement
+%type <delete_statement_t>	delete_statement
 %type <insert_statement_t>	insert_statement
 %type <opt_column_list_paren_t> opt_column_list_paren
 %type <update_statement_t>	update_statement
@@ -662,11 +662,13 @@ release_statement:
             $$ = new ReleaseStatement();
             $$->sub_type_ = CASE0;
             $$->savepoint_name_ = new Identifier($3, id_savepoint_name);
+            free($3);
         }
     |   RELEASE IDENTIFIER {
             $$ = new ReleaseStatement();
             $$->sub_type_ = CASE1;
             $$->savepoint_name_ = new Identifier($2, id_savepoint_name);
+            free($2);
         }
     ;
 
@@ -760,12 +762,12 @@ preparable_statement:
     |   savepoint_statement { $$ = $1; }
     |   release_statement { $$ = $1; }
     |   rollback_statement {$$ = $1;}
-    |   import_statement { $$ = $1; }
-    /* above have been checked */
     |   delete_statement { $$ = $1; }
+    /* above have been checked */
+    |   delete_statement_limited { $$ = $1; }
     /* above being checked*/
+    |   import_statement { $$ = $1; }
     |   create_statement { $$ = $1; }
-    |   truncate_statement { $$ = $1; }
     |   update_statement { $$ = $1; }
     |   drop_statement { $$ = $1; }
     |   execute_statement { $$ = $1; }
@@ -773,7 +775,7 @@ preparable_statement:
     ;
 
 savepoint_statement:
-        SAVEPOINT IDENTIFIER { $$ = new SavepointStatement(); $$->savepoint_name_ = new Identifier($2, id_create_savepoint_name); }
+        SAVEPOINT IDENTIFIER { $$ = new SavepointStatement(); $$->savepoint_name_ = new Identifier($2, id_create_savepoint_name); free($2); }
     ;
 
 rollback_statement: // add z
@@ -802,11 +804,13 @@ opt_transaction: // add z
             $$ = new OptToSavepoint();
             $$->sub_type_ = CASE0;
             $$->savepoint_name_ = new Identifier($2, id_savepoint_name);
+            free($2);
         }
     |   TO SAVEPOINT IDENTIFIER {
             $$ = new OptToSavepoint();
             $$->sub_type_ = CASE1;
             $$->savepoint_name_ = new Identifier($3, id_savepoint_name);
+            free($3);
         }
     |   /* empty */{
             $$ = new OptToSavepoint();
@@ -946,6 +950,7 @@ collate:
         COLLATE IDENTIFIER {
             $$ = new Collate();
             $$->collate_name_ = new Identifier($2, id_collation_name);
+            free($2);
         }
     ;
 
@@ -1642,22 +1647,12 @@ opt_if_exists:
  * DELETE FROM students <=> TRUNCATE students
  ******************************/
 delete_statement:
-        DELETE FROM table_name opt_where {
+        opt_with_clause DELETE FROM qualified_table_name opt_where opt_returning_clause {
             $$ = new DeleteStatement();
-            $$->sub_type_ = CASE0;
-            $$->table_name_ = $3;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->opt_where_ = $4;
-        }
-    ;
-
-truncate_statement:
-        TRUNCATE table_name {
-            $$ = new DeleteStatement();
-            $$->sub_type_ = CASE1;
-            $$->table_name_ = $2;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
-
+            $$->opt_with_clause_ = $1;
+            $$->qualified_table_name_ = $4;
+            $$->opt_where_ = $5;
+            $$->opt_returning_clause_ = $6;
         }
     ;
 
@@ -2354,7 +2349,7 @@ param_expr:
  ******************************/
 
 opt_index:
-        INDEXED BY IDENTIFIER {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->index_name_ = new Identifier($3, id_index_name); }
+        INDEXED BY IDENTIFIER {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->index_name_ = new Identifier($3, id_index_name); free($3); }
     |   NOT INDEXED {$$ = new OptIndex(); $$->sub_type_ = CASE1; }
     |   /*empty*/ {$$ = new OptIndex(); $$->sub_type_ = CASE2; }
     ;
@@ -2387,7 +2382,7 @@ qualified_table_name:
           $$ = new QualifiedTableName();
           $1->table_id_->id_type_ = id_top_table_name;
           $$->table_name_ = $1;
-          $$->opt_table_alis_as_ = $2;
+          $$->opt_table_alias_as_ = $2;
           $$->opt_index_ = $3;
         }
 

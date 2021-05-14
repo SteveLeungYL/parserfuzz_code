@@ -23,6 +23,7 @@
     V(kCreateTableStatement) \
     V(kInsertStatement) \
     V(kDeleteStatement) \
+    V(kDeleteStatementLimited) \
     V(kUpdateStatement) \
     V(kDropStatement) \
     V(kExecuteStatement) \
@@ -231,6 +232,7 @@
     V(CreateTableStatement) \
     V(InsertStatement) \
     V(DeleteStatement) \
+    V(DeleteStatementLimited) \
     V(UpdateStatement) \
     V(DropStatement) \
     V(ExecuteStatement) \

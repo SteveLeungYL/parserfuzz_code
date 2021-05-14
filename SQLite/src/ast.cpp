@@ -705,17 +705,15 @@ void InsertType::deep_delete(){
 IR* DeleteStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    SWITCHSTART
-    CASESTART(0)
-        IR* tmp1 = SAFETRANSLATE(table_name_);
-        IR* tmp2 = SAFETRANSLATE(opt_where_);
-        res = new IR(kDeleteStatement, OPSTART("DELETE FROM"), tmp1, tmp2);
-    CASEEND
-    CASESTART(1)
-        IR * tmp1 = SAFETRANSLATE(table_name_);
-        res = new IR(kDeleteStatement, OPSTART("TRUNCATE"), tmp1);
-    CASEEND
-    SWITCHEND
+    IR* tmp0 = SAFETRANSLATE(opt_with_clause_);
+    IR* tmp1 = SAFETRANSLATE(qualified_table_name_);
+    IR* tmp2 = SAFETRANSLATE(opt_where_);
+    IR* tmp3 = SAFETRANSLATE(opt_returning_clause_);
+    res = new IR(kUnknown, OPMID("DELETE FROM"), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+    res = new IR(kDeleteStatement, OP0(), res, tmp3);
 
     TRANSLATEEND
 }
@@ -2311,8 +2309,10 @@ void InsertStatement::deep_delete(){
 
 
 void DeleteStatement::deep_delete(){
-	SAFEDELETE(table_name_);
+  SAFEDELETE(opt_with_clause_);
+	SAFEDELETE(qualified_table_name_);
 	SAFEDELETE(opt_where_);
+  SAFEDELETE(opt_returning_clause_);
 	delete this;
 }
 
