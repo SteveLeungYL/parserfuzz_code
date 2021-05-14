@@ -92,6 +92,7 @@
     V(kTableRefName) \
     V(kTableRefNameNoAlias) \
     V(kTableName) \
+    V(kQualifiedTableName) \
     V(kTableAlias) \
     V(kOptTableAlias) \
     V(kOptTableAliasAs) \
@@ -208,35 +209,6 @@
     V(kRaiseFunction) \
     V(kConflictTarget) \
     V(kOptConflictTarget) \
-    \
-    /* the following type does not has corresponding class*/ \
-    \
-    V(kInExpr) \
-    V(kBetweenExpr) \
-    V(kTableNameAndOptTableAlias) \
-    V(kJoinOpAndTable) \
-    V(kBinaryExprHead) \
-    V(kExprCollate) \
-    V(kExprCollateOrderType) \
-    V(kBaseWindowPartition) \
-    V(kBaseWindowPartitionOrder) \
-    V(kFunctionNameArgs) \
-    V(kExprOptNot) \
-    V(kExprOptNotBop) \
-    V(kExprOptNotBopExpr) \
-    V(kFunctionNameArgsFilter) \
-    V(kCaseConditionListElse) \
-    V(kDistinctResultList) \
-    V(kDistinctResultListFrom) \
-    V(kDistinctResultListFromWhere) \
-    V(kDistinctResultListFromWhereGroup) \
-    V(kTableNameOptColumnListParen) \
-    V(kWithSelectCore) \
-    V(kWithSelectCoreSetList) \
-    V(kWithSelectCoreSetListOrder) \
-    V(kWithInsertType) \
-    V(kConflictTargetAssignList) \
-    V(kTableNameAliasAs)
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -322,6 +294,7 @@
     V(TableRefName) \
     V(TableRefNameNoAlias) \
     V(TableName) \
+    V(QualifiedTableName) \
     V(TableAlias) \
     V(OptTableAlias) \
     V(OptTableAliasAs) \
@@ -436,36 +409,6 @@
     V(RaiseFunction) \
     V(ConflictTarget) \
     V(OptConflictTarget) \
-    \
-    /* the following type does not has corresponding class*/ \
-    \
-    V(InExpr) \
-    V(BetweenExpr) \
-    V(TableNameAndOptTableAlias) \
-    V(JoinOpAndTable) \
-    V(BinaryExprHead) \
-    V(ExprCollate) \
-    V(ExprCollateOrderType) \
-    V(BaseWindowPartition) \
-    V(BaseWindowPartitionOrder) \
-    V(FunctionNameArgs) \
-    V(ExprOptNot) \
-    V(ExprOptNotBop) \
-    V(ExprOptNotBopExpr) \
-    V(FunctionNameArgsFilter) \
-    V(CaseConditionListElse) \
-    V(DistinctResultList) \
-    V(DistinctResultListFrom) \
-    V(DistinctResultListFromWhere) \
-    V(DistinctResultListFromWhereGroup) \
-    V(TableNameOptColumnListParen) \
-    V(WithSelectCore) \
-    V(WithSelectCoreSetList) \
-    V(WithSelectCoreSetListOrder) \
-    V(WithInsertType) \
-    V(ConflictTargetAssignList) \
-    V(TableNameAliasAs)
-
 
 #define SWITCHSTART \
     switch(sub_type_){ 

@@ -63,6 +63,7 @@ enum IDTYPE{
     /* 7 */ id_pragma_name,
     id_pragma_value,
 
+    id_create_index_name,
     id_index_name,
     id_trigger_name,
     id_module_name,
@@ -942,6 +943,15 @@ public:
     TableName *table_name_;
 };
 
+class QualifiedTableName: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    TableName * table_name_;
+    OptTableAliasAs * opt_table_alias_as_;
+    OptIndex * opt_index_;
+};
+
 class TableName: public Node{
 public:
     virtual void deep_delete();
@@ -1435,7 +1445,7 @@ class OptIndex: public Node{
 public:
 	virtual void deep_delete();
 	virtual IR* translate(vector<IR*> &v_ir_collector);
-	ColumnName * column_name_;
+	Identifier * index_name_;
 };
 
 class WhereExpr: public Node {

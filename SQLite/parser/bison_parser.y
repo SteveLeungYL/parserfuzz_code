@@ -187,6 +187,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     TableRefName* table_ref_name_t;
     TableRefNameNoAlias* table_ref_name_no_alias_t;
     TableName* table_name_t;
+    QualifiedTableName * qualified_table_name_t;
     TableAlias* table_alias_t;
     OptTableAlias* opt_table_alias_t;
     OptTableAliasAs * opt_table_alias_as_t;
@@ -422,6 +423,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <table_or_subquery_list_t> table_or_subquery_list
 %type <table_ref_name_no_alias_t>	table_ref_name_no_alias
 %type <table_name_t>	table_name
+%type <qualified_table_name_t> qualified_table_name
 %type <table_alias_t> table_alias
 %type <opt_table_alias_t> opt_table_alias
 %type <opt_table_alias_as_t> opt_table_alias_as
@@ -754,18 +756,20 @@ pragma_name:
 
 preparable_statement:
         select_statement { $$ = $1; }  
-    |   import_statement { $$ = $1; }
-    |   create_statement { $$ = $1; }
     |   insert_statement { $$ = $1; }
+    |   savepoint_statement { $$ = $1; }
+    |   release_statement { $$ = $1; }
+    |   rollback_statement {$$ = $1;}
+    |   import_statement { $$ = $1; }
+    /* above have been checked */
     |   delete_statement { $$ = $1; }
+    /* above being checked*/
+    |   create_statement { $$ = $1; }
     |   truncate_statement { $$ = $1; }
     |   update_statement { $$ = $1; }
     |   drop_statement { $$ = $1; }
     |   execute_statement { $$ = $1; }
     |   alter_statement {$$ = $1;}
-    |   savepoint_statement { $$ = $1; }
-    |   release_statement { $$ = $1; }
-    |   rollback_statement {$$ = $1;}
     ;
 
 savepoint_statement:
@@ -2350,7 +2354,7 @@ param_expr:
  ******************************/
 
 opt_index:
-        INDEXED BY column_name {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->column_name_ = $3; }
+        INDEXED BY IDENTIFIER {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->index_name_ = new Identifier($3, id_index_name); }
     |   NOT INDEXED {$$ = new OptIndex(); $$->sub_type_ = CASE1; }
     |   /*empty*/ {$$ = new OptIndex(); $$->sub_type_ = CASE2; }
     ;
@@ -2377,6 +2381,15 @@ table_ref_name_no_alias:
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
         }
     ;
+
+qualified_table_name:
+        table_name opt_table_alias_as opt_index {
+          $$ = new QualifiedTableName();
+          $1->table_id_->id_type_ = id_top_table_name;
+          $$->table_name_ = $1;
+          $$->opt_table_alis_as_ = $2;
+          $$->opt_index_ = $3;
+        }
 
 table_name:
         IDENTIFIER { 
