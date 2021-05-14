@@ -1512,7 +1512,7 @@ public:
 };
 
 
-class VacuumStatement: public Cmd{
+class VacuumStatement: public PreparableStatement {
 public:
     virtual void deep_delete();
 	virtual IR* translate(vector<IR*> &v_ir_collector);
@@ -1549,14 +1549,14 @@ public:
     Identifier * savepoint_name_;
 };
 
-class BeginStatement: public Cmd{
+class BeginStatement: public PreparableStatement {
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     OptTransaction * opt_transaction_;
 };
 
-class CommitStatement: public Cmd{
+class CommitStatement: public PreparableStatement {
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);

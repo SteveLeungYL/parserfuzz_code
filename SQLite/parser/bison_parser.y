@@ -652,9 +652,6 @@ cmd:
     |   cmd_analyze {$$ = $1;}
     |   cmd_attach  {$$ = $1;}
     |   cmd_detach  {$$ = $1;}
-    |   vacuum_statement {$$ = $1;}
-    |   begin_statement {$$ = $1;}
-    |   commit_statement {$$ = $1;}
     ;
 
 release_statement:
@@ -757,21 +754,26 @@ pragma_name:
 
 
 preparable_statement:
+    /* have checked */
         select_statement { $$ = $1; }  
     |   insert_statement { $$ = $1; }
     |   savepoint_statement { $$ = $1; }
     |   release_statement { $$ = $1; }
     |   rollback_statement {$$ = $1;}
     |   delete_statement { $$ = $1; }
-    /* above have been checked */
-    |   delete_statement_limited { $$ = $1; }
-    /* above being checked*/
+    |   commit_statement {$$ = $1;}
+    |   begin_statement {$$ = $1;}
+    |   vacuum_statement {$$ = $1;}
+    /* being checked*/
+    /* to be checked*/
     |   import_statement { $$ = $1; }
     |   create_statement { $$ = $1; }
     |   update_statement { $$ = $1; }
     |   drop_statement { $$ = $1; }
     |   execute_statement { $$ = $1; }
     |   alter_statement {$$ = $1;}
+    /* to be supported */
+    /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
     ;
 
 savepoint_statement:

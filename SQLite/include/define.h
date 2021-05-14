@@ -232,7 +232,7 @@
     V(CreateTableStatement) \
     V(InsertStatement) \
     V(DeleteStatement) \
-    V(DeleteStatementLimited) \
+    /* V(DeleteStatementLimited) */ \
     V(UpdateStatement) \
     V(DropStatement) \
     V(ExecuteStatement) \
