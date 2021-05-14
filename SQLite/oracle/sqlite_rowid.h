@@ -30,10 +30,8 @@ public:
 
     string get_temp_valid_stmts() override {return temp_valid_stmts;};
 
-protected:
     /* Execute SQLite3 two times. Add or remove WITHOUT ROWID. Compare the results. */
-    unsigned mul_run_num = 2; 
-
+    unsigned get_mul_run_num() override {return 2;}
 
 private:
     string temp_valid_stmts = "SELECT * FROM x WHERE x;";

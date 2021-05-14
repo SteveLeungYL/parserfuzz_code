@@ -49,7 +49,7 @@ public:
 
     virtual string get_temp_valid_stmts() = 0;
 
-    virtual unsigned get_mul_run_num() {return this->mul_run_num;}
+    virtual unsigned get_mul_run_num() {return 1;}
 
     /* Debug */
     unsigned long total_rand_valid = 0;
@@ -57,8 +57,6 @@ public:
 
 protected:
     Mutator* g_mutator;
-
-    unsigned mul_run_num = 1;
 
     virtual bool mark_node_valid(IR *root);
 };

@@ -144,16 +144,15 @@ void SQL_ROWID::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_R
 
 void SQL_ROWID::compare_results(ALL_COMP_RES& res_out) {
     if ( (res_out.v_cmd_str.size() < 1) || (res_out.v_res_str.size() < 1) ){
-        cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. Code logic error. \n";
-        abort();
+        cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. Possibly processing only the seed files. \n";
+        res_out.final_res = ALL_Error;
+        return;
     }
 
-    res_out.final_res = ORA_COMP_RES::Pass;
+    res_out.final_res = Pass;
 
-    string cmd_str = res_out.v_cmd_str[0];
     vector<VALID_STMT_TYPE_ROWID> v_valid_type;
-    get_v_valid_type(res_out.cmd_str, v_valid_type);
-
+    get_v_valid_type(res_out.v_cmd_str[0], v_valid_type);
 
     bool is_all_errors = true;
     int i = 0;
@@ -240,10 +239,15 @@ bool SQL_ROWID::compare_uniq(COMP_RES& res){
 
     //     v_res_int.push_back(cur_res_int);
     // }
-
-    for (int i = 1; i < v_res_str.size(); i++){
-        if (v_res_str[0] != v_res_str[i]) res.comp_res = ORA_COMP_RES::Fail;
-        return false;
+    for (int i = 0; i < v_res_str.size(); i++){
+        if (v_res_str[i].find("Error") != string::npos){
+            res.comp_res = ORA_COMP_RES::Error;
+            return true;
+        }
+        if (v_res_str[0] != v_res_str[i]) {
+            res.comp_res = ORA_COMP_RES::Fail;
+            return false;
+        }
     }
     
     res.comp_res = ORA_COMP_RES::Pass;

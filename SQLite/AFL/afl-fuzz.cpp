@@ -2813,7 +2813,7 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, vector<int>& explain_diff_
   return;
 }
 
-void stream_output_res(ALL_COMP_RES all_comp_res, ostream& out){
+void stream_output_res(const ALL_COMP_RES& all_comp_res, ostream& out){
   if (p_oracle->get_mul_run_num() <= 1){
     out << "Query: \n";
     out << all_comp_res.cmd_str << "\n";
@@ -2822,7 +2822,7 @@ void stream_output_res(ALL_COMP_RES all_comp_res, ostream& out){
     out << "\nFinal_res: " << all_comp_res.final_res << "\n";
     out << "Detailed result: " << "\n";
     int iter = 0;
-    for (COMP_RES& res : all_comp_res.v_res){
+    for (const COMP_RES& res : all_comp_res.v_res){
       out << "\n\nResult NUM: " << iter++ << " \nRESULT FLAGS: " << res.comp_res << "\n";
       out << "First stmt res is (str): " << res.res_str_0 << "\n" << "First stmt res is (int): " << res.res_int_0 << "\n" ;
       out << "Second stmt res is (str): " << res.res_str_1 << "\n" << "Second stmt is (int): " << res.res_int_1 << "\n" ;
@@ -2845,9 +2845,13 @@ void stream_output_res(ALL_COMP_RES all_comp_res, ostream& out){
     out << "\nFinal_res: " << all_comp_res.final_res << "\n";
     out << "Detailed result: " << "\n";
     int iter = 0;
-    for (COMP_RES& res : all_comp_res.v_res){
+    for (const COMP_RES& res : all_comp_res.v_res){
       out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res << "\n";
-      out << "Str: " << res.v_res_str[iter] << " \n" << "Int: " << res.v_res_int[iter] << " \n" ;
+      if (iter < res.v_res_str.size())
+        out << "Str: " << res.v_res_str[iter] << " \n";
+      if (iter < res.v_res_int.size()) 
+        out << "Int: " << res.v_res_int[iter] << " \n" ;
+      iter++;
     }
 
     out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res; 
@@ -2954,7 +2958,7 @@ u8 execute_cmd_string(string cmd_string, vector<int>& explain_diff_id, char** ar
   }
 
   /* Some useful debug output. That could show what queries are being tested.  */
-  stream_output_res(all_comp_res, cerr);
+  // stream_output_res(all_comp_res, cerr);
 
   if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
