@@ -71,6 +71,7 @@ enum IDTYPE{
     id_window_name,
     id_base_window_name,
 
+    id_create_savepoint_name,
     id_savepoint_name,
     id_collation_name,
     id_database_name,
@@ -312,28 +313,28 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     NumericLiteral * numeric_literal_;
     StringLiteral * string_literal_;
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class PragmaName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class SchemaName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class PrepareStatement: public Statement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
     PrepareTargetQuery * prep_target_que_;
 };
 
@@ -355,7 +356,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     LiteralList * literal_list_;
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class HintList: public Node{
@@ -399,7 +400,7 @@ public:
     OptIfNotExists * opt_if_not_exists_;
     TableName * table_name_;
     FilePath * file_path_;
-    ColumnOrTableConstraintDefCommaList * column_or_table_constraint_def_comma_list_;
+    ColumnOrTableConstraintCommaList * column_or_table_constraint_comma_list_;
     SelectStatement * select_statement_;
     OptColumnListParen * opt_column_list_paren_;
     OptUnique * opt_unique_;
@@ -413,6 +414,12 @@ public:
     OptTmp * opt_tmp_;
 };
 
+class CreateTableStatement: public CreateStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+};
+
 class InsertStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
@@ -422,9 +429,8 @@ public:
     TableName * table_name_;
     OptTableAliasAs * opt_table_alias_as_;
     OptColumnListParen * opt_column_list_paren_;
-    ExprListParenList * expr_list_paren_list_;
-    SelectStatement * select_statement_;
-    OptUpsertClause * opt_upsert_clause_;
+    InsertValue * insert_value_;
+    OptReturningClause * opt_returning_clause_;
 };
 
 class DeleteStatement: public PreparableStatement{
@@ -450,7 +456,7 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     OptIfExists * opt_if_exists_;
     TableName * table_name_;
-    Identifier * id_;
+    Identifier * identifier_;
     SchemaName* schema_name_;
     TriggerName* trigger_name_;
 };
@@ -459,7 +465,7 @@ class ExecuteStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
     OptLiteralList * opt_literal_list_;
 };
 
@@ -502,9 +508,9 @@ class ColumnDef: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
     ColumnType * column_type_;
-    OptColumnArglist * opt_column_arglist_;
+    OptColumnConstraintlist * opt_column_constraintlist_;
 
 };
 
@@ -814,7 +820,7 @@ class FunctionName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier* id_;
+    Identifier* identifier_;
 };
 
 class ColumnName: public Node{
@@ -869,8 +875,8 @@ class Identifier: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier(string s, IDTYPE id_type=id_whatever):id_(s), id_type_(id_type){}
-    string id_;
+    Identifier(string s, IDTYPE id_type=id_whatever):id_str_(s), id_type_(id_type){}
+    string id_str_;
     IDTYPE id_type_; 
 };
 
@@ -911,6 +917,13 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     TableName* table_name_;
+};
+
+class OptReturningClause: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    ResultColumnList * returning_column_list_;
 };
 
 class ResultColumnList: public Node{
@@ -1070,58 +1083,58 @@ public:
     // Identifier * identifier_;
 };
 
-class OptColumnArglist: public Opt{
+class OptColumnConstraintlist: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    ColumnArglist * column_arglist_;
+    ColumnConstraintlist * column_constraintlist_;
 };
 
 
-class ColumnArglist: public Node{
+class ColumnConstraintlist: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<ColumnArg *> v_column_arg_;
+    vector<ColumnConstraint *> v_column_constraint_;
 };
 
-class ColumnArg: public Node{
+class ColumnConstraint: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    OptOnConflict * opt_on_conflict_;
+    OptConflictClause * opt_conflict_clause_;
     OptOrderType * opt_order_type_;
     OptAutoinc * opt_autoinc_;
     NewExpr * expr_;
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
-class ColumnOrTableConstraintDefCommaList: public Node {
+class ColumnOrTableConstraintCommaList: public Node {
   public:
     virtual void deep_delete();
     virtual IR *translate(vector<IR *> &v_ir_collector);
     ColumnDefCommaList * column_def_comma_list_;
-    TableConstraintDefCommaList *table_constraint_def_comma_list_;
+    TableConstraintCommaList *table_constraint_comma_list_;
 };
 
-class TableConstraintDefCommaList: public Node {
+class TableConstraintCommaList: public Node {
   public:
     virtual void deep_delete();
     virtual IR *translate(vector<IR *> &v_ir_collector);
-    vector<TableConstraintDef *> v_table_constraint_def_comma_list_;
+    vector<TableConstraint *> v_table_constraint_comma_list_;
 };
 
-class TableConstraintDef: public Node {
+class TableConstraint: public Node {
   public:
     virtual void deep_delete();
     virtual IR *translate(vector<IR*> &v_ir_collector);
     OptConstraintName * opt_constraint_name_;
     NewExpr * expr_;
-    OptOnConflict * opt_on_conflict_;
+    OptConflictClause * opt_conflict_clause_;
     IndexedColumnList * indexed_column_list_;
 };
 
-class OptOnConflict: public Opt{
+class OptConflictClause: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
@@ -1153,7 +1166,7 @@ class IndexName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class TriggerDeclare: public Node{
@@ -1181,7 +1194,7 @@ class TriggerName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class OptTriggerTime: public Opt{
@@ -1239,7 +1252,7 @@ class ModuleName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class OptOverClause: public Opt{
@@ -1307,14 +1320,14 @@ class WindowName: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class OptBaseWindowName: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
+    Identifier * identifier_;
 };
 
 class OptFrame: public Opt{
@@ -1373,6 +1386,15 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     FrameExclude * frame_exclude_;
+};
+
+class InsertValue: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    ExprListParenList * expr_list_paren_list_;
+    SelectStatement * select_statement_;
+    OptUpsertClause * opt_upsert_clause_;
 };
 
 class InsertType: public Node{
@@ -1444,6 +1466,20 @@ public:
   NewExpr *expr_;
 };
 
+class SavepointStatement: public PreparableStatement {
+public:
+	virtual void deep_delete();
+	virtual IR* translate(vector<IR*> &v_ir_collector);
+  Identifier * savepoint_name_;
+};
+
+class ReleaseStatement: public PreparableStatement {
+public:
+	virtual void deep_delete();
+	virtual IR* translate(vector<IR*> &v_ir_collector);
+  Identifier * savepoint_name_;
+};
+
 class AlterStatement: public PreparableStatement{
 public:
 	virtual void deep_delete();
@@ -1464,21 +1500,6 @@ public:
 };
 
 
-class CmdRelease: public Cmd{
-public:
-	virtual void deep_delete();
-	virtual IR* translate(vector<IR*> &v_ir_collector);
-    SavepointName * savepoint_name_;
-};
-
-
-class SavepointName: public Node{
-public:
-	virtual void deep_delete();
-	virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * id_;
-};
-
 class VacuumStatement: public Cmd{
 public:
     virtual void deep_delete();
@@ -1494,12 +1515,12 @@ public:
     SchemaName * schema_name_;
 };
 
-class RollbackStatement: public Cmd{
+class RollbackStatement: public PreparableStatement {
 public:
-        virtual void deep_delete();
-        virtual IR* translate(vector<IR*> &v_ir_collector);
-        OptTransaction * opt_transaction_;
-        OptToSavepoint * opt_to_savepoint_;
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptTransaction * opt_transaction_;
+    OptToSavepoint * opt_to_savepoint_;
 };
 
 class OptTransaction: public Opt{
@@ -1513,7 +1534,7 @@ class OptToSavepoint: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    SavepointName * savepoint_name_;
+    Identifier * savepoint_name_;
 };
 
 class BeginStatement: public Cmd{
@@ -1574,7 +1595,7 @@ class Collate: public Node {
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    CollationName * collation_name_;
+    Identifier* collate_name_;
 };
 
 class OptCollate: public Opt{
@@ -1634,13 +1655,6 @@ public:
     virtual void deep_delete();
     virtual IR *translate(vector<IR *> &v_ir_collector);
     Identifier * identifier_;
-};
-
-class CollationName: public Node{
-public:
-        virtual void deep_delete();
-        virtual IR* translate(vector<IR*> &v_ir_collector);
-        Identifier * id_;
 };
 
 class PartitionBy: public Node {

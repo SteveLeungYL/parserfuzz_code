@@ -20,6 +20,7 @@
     V(kSelectStatement) \
     V(kImportStatement) \
     V(kCreateStatement) \
+    V(kCreateTableStatement) \
     V(kInsertStatement) \
     V(kDeleteStatement) \
     V(kUpdateStatement) \
@@ -98,6 +99,7 @@
     V(kOptColumnAlias) \
     V(kResultColumn) \
     V(kResultColumnList) \
+    V(kOptReturningClause) \
     V(kAlias) \
     V(kOptAlias) \
     V(kWithClause) \
@@ -118,10 +120,10 @@
     V(kPragmaName) \
     V(kPragmaValue) \
     V(kSchemaName) \
-    V(kOptColumnArglist) \
-	V(kColumnArglist) \
-	V(kColumnArg) \
-	V(kOptOnConflict) \
+    V(kOptColumnConstraintlist) \
+	V(kColumnConstraintlist) \
+	V(kColumnConstraint) \
+	V(kOptConflictClause) \
 	V(kResolveType) \
 	V(kOptAutoinc) \
 	V(kOptUnique) \
@@ -155,6 +157,7 @@
 	V(kFrameExclude) \
 	V(kOptFrameExclude) \
     V(kInsertType) \
+    V(kInsertValue) \
     V(kCmd) \
     V(kCmdAttach) \
     V(kCmdDetach) \
@@ -168,9 +171,9 @@
     V(kOptIndex) \
     V(kJoinOp)   \
     V(kAlterStatement) \
+    V(kSavepointStatement) \
+    V(kReleaseStatement) \
     V(kOptColumn) \
-    V(kCmdRelease)  \
-    V(kSavepointName) \
     V(kVacuumStatement) \
     V(kOptSchemaName) \
     V(kRollbackStatement) \
@@ -191,13 +194,12 @@
     V(kColumnNameList) \
     V(kFunctionName) \
     V(kFunctionArgs) \
-    V(kCollationName) \
     V(kOptWithoutRowID) \
     V(kOptUpsertClause) \
     V(kOptConstraintName) \
-    V(kTableConstraintDef) \
-    V(kTableConstraintDefCommaList) \
-    V(kColumnOrTableConstraintDefCommaList) \
+    V(kTableConstraint) \
+    V(kTableConstraintCommaList) \
+    V(kColumnOrTableConstraintCommaList) \
     V(kJoinSuffix) \
     V(kJoinSuffixList) \
     V(kPartitionBy) \
@@ -254,6 +256,7 @@
     V(SelectStatement) \
     V(ImportStatement) \
     V(CreateStatement) \
+    V(CreateTableStatement) \
     V(InsertStatement) \
     V(DeleteStatement) \
     V(UpdateStatement) \
@@ -326,6 +329,7 @@
     V(OptColumnAlias) \
     V(ResultColumn) \
     V(ResultColumnList) \
+    V(OptReturningClause) \
     V(WithClause) \
     V(OptWithClause) \
     V(CommonTableExpr) \
@@ -344,10 +348,10 @@
     V(PragmaName) \
     V(PragmaValue) \
     V(SchemaName) \
-    V(OptColumnArglist) \
-	V(ColumnArglist) \
-	V(ColumnArg) \
-	V(OptOnConflict) \
+    V(OptColumnConstraintlist) \
+	V(ColumnConstraintlist) \
+	V(ColumnConstraint) \
+	V(OptConflictClause) \
 	V(ResolveType) \
 	V(OptAutoinc) \
 	V(OptUnique) \
@@ -381,6 +385,7 @@
 	V(FrameExclude) \
 	V(OptFrameExclude) \
     V(InsertType)\
+    V(InsertValue)\
     V(Cmd) \
     V(CmdAttach) \
     V(CmdDetach) \
@@ -393,9 +398,9 @@
     V(WhereExpr) \
     V(OptIndex) \
     V(AlterStatement) \
+    V(SavepointStatement) \
+    V(ReleaseStatement) \
     V(OptColumn) \
-    V(CmdRelease) \
-    V(SavepointName) \
     V(VacuumStatement) \
     V(OptSchemaName) \
     V(RollbackStatement) \
@@ -417,13 +422,12 @@
     V(NullOfExpr) \
     V(AssignClause) \
     V(ColumnNameList) \
-    V(CollationName) \
     V(OptWithoutRowID) \
     V(OptUpsertClause) \
     V(OptConstraintName) \
-    V(TableConstraintDef) \
-    V(TableConstraintDefCommaList) \
-    V(ColumnOrTableConstraintDefCommaList) \
+    V(TableConstraint) \
+    V(TableConstraintCommaList) \
+    V(ColumnOrTableConstraintCommaList) \
     V(JoinSuffix) \
     V(JoinSuffixList) \
     V(PartitionBy) \
