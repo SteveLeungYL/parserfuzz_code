@@ -2700,7 +2700,7 @@ void extract_query_result(const string& res, vector<string>& res_vec_out, const 
   }
 }
 
-void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
+void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& explain_diff_id){
 
   if (p_oracle->get_mul_run_num() <= 1){
     cerr << "Error: calling cross_run compare results function, when mul_run_num <= 1. Code logic error. \n";
@@ -2708,7 +2708,7 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, bool& is_explai
   }
 
   all_comp_res.final_res = ORA_COMP_RES::Pass;
-  is_explain_diff = false;
+  explain_diff_id.clear();
 
   vector<vector<string>> res_vec, exp_vec;
 
@@ -2737,7 +2737,10 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, bool& is_explai
     COMP_RES comp_res;
     for (int i = 0; i < res_vec.size(); i++){
       comp_res.v_res_str.push_back(res_vec[i][j]);
-      if (exp_vec[0][j] != exp_vec[i][j]) is_explain_diff = true;
+      if (exp_vec[0][j] != exp_vec[i][j]) {
+        comp_res.explain_diff_id.push_back(j);
+        explain_diff_id.push_back(j); /* Might contains duplicated IDs. But it should be OK. */
+      }
     }
     all_comp_res.v_res.push_back(std::move(comp_res));
   }
@@ -2746,9 +2749,10 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, bool& is_explai
   return;
 }
 
-void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
+void compare_query_result(ALL_COMP_RES& all_comp_res, vector<int>& explain_diff_id){
 
   all_comp_res.final_res = ORA_COMP_RES::Pass;
+  explain_diff_id.clear();
 
   const string& res_str = all_comp_res.res_str;
   if(is_str_empty(res_str)){
@@ -2795,9 +2799,11 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, bool& is_explain_diff){
       comp_res.res_str_3 = res_vec_3[idx];
     }
     if (idx < exp_vec_0.size()){
-      if (idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true; }
-      if (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true; }
-      if (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]) {comp_res.is_explain_diff = true; is_explain_diff = true; }
+      if ( 
+        (idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) ||
+        (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) ||
+        (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]) 
+      ) {comp_res.explain_diff_id.push_back(idx); explain_diff_id.push_back(idx); }   
     }
     all_comp_res.v_res.push_back(std::move(comp_res));
   }
@@ -2849,7 +2855,7 @@ void stream_output_res(ALL_COMP_RES all_comp_res, ostream& out){
   }
 }
 
-u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32 tmout = exec_tmout) {
+u8 execute_cmd_string(string cmd_string, vector<int>& explain_diff_id, char** argv, u32 tmout = exec_tmout) {
 
   u8 fault;
 
@@ -2908,7 +2914,7 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
 
     all_comp_res.cmd_str = std::move(cmd_string);
     all_comp_res.res_str = std::move(res_str);
-    compare_query_result(all_comp_res, is_explain_diff);
+    compare_query_result(all_comp_res, explain_diff_id);
   } else {
     /* Compare results of the same validation stmts in different runs. */
     for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++){
@@ -2944,7 +2950,7 @@ u8 execute_cmd_string(string cmd_string, bool& is_explain_diff, char** argv, u32
 
     } // End for run_id loop. 
 
-    compare_query_results_cross_run(all_comp_res, is_explain_diff);
+    compare_query_results_cross_run(all_comp_res, explain_diff_id);
   }
 
   /* Some useful debug output. That could show what queries are being tested.  */
@@ -3083,8 +3089,8 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
       program_input_str += use_mem[output_index];
     }
     // cerr << program_input_str << endl;
-    bool dummy_bool = false;
-    fault = execute_cmd_string(program_input_str, dummy_bool, argv, use_tmout);
+    vector<int> dummy_vec;
+    fault = execute_cmd_string(program_input_str, dummy_vec, argv, use_tmout);
     
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
@@ -3639,7 +3645,7 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char** argv, string& query_str, u8 fault, const bool is_explain_diff = false) {
+static u8 save_if_interesting(char** argv, string& query_str, u8 fault, const vector<int>& explain_diff_id = {}) {
 
   u8  *fn = "";
   u8  hnb;
@@ -3668,7 +3674,7 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault, const bo
 
     vector<IR*> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0){
-      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]), is_explain_diff);
+      g_mutator.add_all_to_library(g_mutator.extract_struct(ir_tree[ir_tree.size()-1]), explain_diff_id);
       ir_tree.back()->deep_drop();
     } else {
       return keeping; // keep = 0, meaning nothing added to the queue. 
@@ -5198,14 +5204,14 @@ EXP_ST u8 common_fuzz_stuff(char** argv, string& query_str) {
 
   u8 fault;
 
-  bool is_explain_diff = false;
+  vector<int> explain_diff_id;
 
-  fault = execute_cmd_string(query_str, is_explain_diff, argv, exec_tmout);
+  fault = execute_cmd_string(query_str, explain_diff_id, argv, exec_tmout);
 
   /* This handles FAULT_ERROR for us: */
   if (fault == FAULT_ERROR) return 0;
 
-  queued_discovered += save_if_interesting(argv, query_str, fault, is_explain_diff);
+  queued_discovered += save_if_interesting(argv, query_str, fault, explain_diff_id);
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();

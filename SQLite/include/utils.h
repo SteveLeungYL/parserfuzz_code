@@ -62,7 +62,7 @@ struct COMP_RES{
   vector<int> v_res_int;
 
   ORA_COMP_RES comp_res;
-  bool is_explain_diff = false; // Is EXPLAIN QUERY PLAN provides different execution plans between different validation. 
+  vector<int> explain_diff_id; // Is EXPLAIN QUERY PLAN provides different execution plans between different validation. 
 };
 
 struct ALL_COMP_RES {

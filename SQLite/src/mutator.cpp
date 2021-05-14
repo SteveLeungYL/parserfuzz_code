@@ -185,7 +185,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
 
       }
 
-      add_all_to_library(v_ir.back(), false);
+      add_all_to_library(v_ir.back());
       v_ir.back()->deep_drop();
     }
 
@@ -915,8 +915,8 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str){
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR* ir, const bool is_explain_diff = false) {
-  add_all_to_library(ir->to_string(), is_explain_diff);
+void Mutator::add_all_to_library(IR* ir, const vector<int>& explain_diff_id) {
+  add_all_to_library(ir->to_string(), explain_diff_id);
 }
 
 /*  Save an interesting query stmt into the mutator library.
@@ -930,7 +930,7 @@ void Mutator::add_all_to_library(IR* ir, const bool is_explain_diff = false) {
  *
  */
 
-void Mutator::add_all_to_library(string whole_query_str, const bool is_explain_diff = false) {
+void Mutator::add_all_to_library(string whole_query_str, const vector<int>& explain_diff_id) {
 
   /* If the query_str is empty. Ignored and return. */
   bool is_empty = true;
@@ -945,6 +945,7 @@ void Mutator::add_all_to_library(string whole_query_str, const bool is_explain_d
   if (is_empty) return;
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
+  int i = 0; // For counting oracle valid stmt IDs.
   for (auto current_query : queries_vector){
     trim_string(current_query);
     current_query += ";";
@@ -955,10 +956,17 @@ void Mutator::add_all_to_library(string whole_query_str, const bool is_explain_d
 
     IR * root = ir_set[ir_set.size()-1];
 
-    if (p_oracle->is_oracle_valid_stmt(current_query))
-      add_to_valid_lib(root, current_query, is_explain_diff);
-    else
+    if (p_oracle->is_oracle_valid_stmt(current_query)) {
+      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) != explain_diff_id.end()) {
+        add_to_valid_lib(root, current_query, true);
+      } else {
+        add_to_valid_lib(root, current_query, false);
+      }
+      ++i; // For counting oracle valid stmt IDs.
+    }
+    else {
       add_to_library(root, current_query);
+    }
 
     root->deep_drop();
   }

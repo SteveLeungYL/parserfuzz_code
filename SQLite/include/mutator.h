@@ -6,6 +6,8 @@
 #include "define.h"
 #include "utils.h"
 
+#include <vector>
+
 #define LUCKY_NUMBER 500
 
 using namespace std;
@@ -46,8 +48,10 @@ public:
 
     vector<IR*> parse_query_str_get_ir_set(string &query_str);
 
-    void add_all_to_library(IR*, const bool);
-    void add_all_to_library(string, const bool);
+    void add_all_to_library(IR*, const vector<int>&);
+    void add_all_to_library(IR* ir) {vector<int>dummy_vec; add_all_to_library(ir, dummy_vec);}
+    void add_all_to_library(string, const vector<int>&);
+    void add_all_to_library(string whole_query_str) {vector<int>dummy_vec; add_all_to_library(whole_query_str, dummy_vec);}
     IR* get_from_libary_with_type(IRTYPE);
     IR* get_from_libary_with_left_type(IRTYPE);
     IR* get_from_libary_with_right_type(IRTYPE);
