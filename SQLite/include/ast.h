@@ -401,7 +401,7 @@ public:
     OptIfNotExists * opt_if_not_exists_;
     TableName * table_name_;
     FilePath * file_path_;
-    ColumnOrTableConstraintCommaList * column_or_table_constraint_comma_list_;
+    ColumnOrTableConstraintList * column_or_table_constraint_list_;
     SelectStatement * select_statement_;
     OptColumnListParen * opt_column_list_paren_;
     OptUnique * opt_unique_;
@@ -419,6 +419,13 @@ class CreateTableStatement: public CreateStatement {
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptTmp * opt_tmp_;
+    OptIfNotExists * opt_if_not_exists_;
+    TableName * table_name_;
+    SelectStatement * select_statement_;
+    ColumnDefList * column_def_list_;
+    OptWithoutRowID * opt_without_rowid_;
+    TableConstraintList * table_constraint_list_;
 };
 
 class InsertStatement: public PreparableStatement{
@@ -500,11 +507,11 @@ public:
     string str_val_;
 };
 
-class ColumnDefCommaList: public Node{
+class ColumnDefList: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<ColumnDef *> v_column_def_comma_list_;
+    vector<ColumnDef *> v_column_def_list_;
 };
 
 class ColumnDef: public Node{
@@ -1180,6 +1187,7 @@ public:
     OptConflictClause * opt_conflict_clause_;
     OptOrderType * opt_order_type_;
     OptAutoinc * opt_autoinc_;
+    OptNot * opt_not_;
     NewExpr * expr_;
     Literal * literal_;
     SignedNumber * signed_number_;
@@ -1189,19 +1197,19 @@ public:
     OptStoredVirtual * opt_stored_virtual_;
 };
 
-class ColumnOrTableConstraintCommaList: public Node {
+class ColumnOrTableConstraintList: public Node {
   public:
     virtual void deep_delete();
     virtual IR *translate(vector<IR *> &v_ir_collector);
-    ColumnDefCommaList * column_def_comma_list_;
-    TableConstraintCommaList *table_constraint_comma_list_;
+    ColumnDefList * column_def_list_;
+    TableConstraintList *table_constraint_list_;
 };
 
-class TableConstraintCommaList: public Node {
+class TableConstraintList: public Node {
   public:
     virtual void deep_delete();
     virtual IR *translate(vector<IR *> &v_ir_collector);
-    vector<TableConstraint *> v_table_constraint_comma_list_;
+    vector<TableConstraint *> v_table_constraint_list_;
 };
 
 class TableConstraint: public Node {
@@ -1212,6 +1220,8 @@ class TableConstraint: public Node {
     NewExpr * expr_;
     OptConflictClause * opt_conflict_clause_;
     IndexedColumnList * indexed_column_list_;
+    ColumnNameList * column_name_list_;
+    ForeignKeyClause * foreign_key_clause_;
 };
 
 class OptConflictClause: public Opt{

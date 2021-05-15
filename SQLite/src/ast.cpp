@@ -503,15 +503,49 @@ IR* ImportStatement::translate(vector<IR *> &v_ir_collector){
 
 IR* CreateTableStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
+
+    auto tmp0 = SAFETRANSLATE(opt_tmp_);
+    auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
+    auto tmp2 = SAFETRANSLATE(table_name_);
+
+    res = new IR(kUnknown, OP2("CREATE", "TABLE"), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp2);
     
     SWITCHSTART
         CASESTART(0)
+          auto tmp3 = SAFETRANSLATE(select_statement_);
+          res = new IR(kCreateTableStatement, OPMID("AS"), res, tmp3);
+        CASEEND
+        CASESTART(1)
+          auto tmp3 = SAFETRANSLATE(column_def_list_);
+          res = new IR(kUnknown, OP3("", "(", ")"), res, tmp3);
+          PUSH(res);
+          auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
+          res = new IR(kCreateTableStatement, OP0(), res, tmp4);
+        CASEEND
+        CASESTART(2)
+          auto tmp3 = SAFETRANSLATE(column_def_list_);
+          auto tmp4 = SAFETRANSLATE(table_constraint_list_);
+          auto tmp  = new IR(kUnknown, OPMID(","), tmp3, tmp4);
+          PUSH(tmp);
+          res = new IR(kUnknown, OP3("", "(", ")"), res, tmp);
+          PUSH(res);
+          auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
+          res = new IR(kCreateTableStatement, OP0(), res, tmp5);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
 void CreateTableStatement::deep_delete() {
+  SAFEDELETE(opt_tmp_);
+  SAFEDELETE(opt_if_not_exists_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(select_statement_);
+  SAFEDELETE(column_def_list_);
+  SAFEDELETE(opt_without_rowid_);
+  SAFEDELETE(table_constraint_list_);
   delete this;
 }
 
@@ -541,7 +575,7 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             auto tmp2 = SAFETRANSLATE(table_name_);
             res = new IR(kUnknown, OP0(), res, tmp2);
             PUSH(res);
-            auto tmp3 = SAFETRANSLATE(column_or_table_constraint_comma_list_);
+            auto tmp3 = SAFETRANSLATE(column_or_table_constraint_list_);
             res = new IR(kUnknown, OP3("CREATE", "(", ")"), res, tmp3);
             PUSH(res);
             auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
@@ -611,7 +645,7 @@ IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
             auto tmp3 = SAFETRANSLATE(module_name_);
             res = new IR(kUnknown, OPMID("USING"), res, tmp3);
             PUSH(res);
-            auto tmp4 = SAFETRANSLATE(column_or_table_constraint_comma_list_);
+            auto tmp4 = SAFETRANSLATE(column_or_table_constraint_list_);
             res = new IR(kUnknown, OP3("", "(", ")"), res, tmp4);
             PUSH(res);
             auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
@@ -791,10 +825,10 @@ void OptIfNotExists::deep_delete(){
 }
 
 
-IR* ColumnDefCommaList::translate(vector<IR *> &v_ir_collector){
+IR* ColumnDefList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    TRANSLATELIST(kColumnDefCommaList, v_column_def_comma_list_, ",");
+    TRANSLATELIST(kColumnDefList, v_column_def_list_, ",");
     
     TRANSLATEENDNOPUSH
 }
@@ -1517,23 +1551,23 @@ IR* CaseConditionList::translate(vector<IR *> &v_ir_collector){
 }
 
 
-IR *ColumnOrTableConstraintCommaList::translate(vector<IR *> &v_ir_collector) {
+IR *ColumnOrTableConstraintList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
   SWITCHSTART
 
     CASESTART(0)
-      auto tmp0 = SAFETRANSLATE(column_def_comma_list_);
-      res = new IR(kColumnOrTableConstraintCommaList, OP0(), tmp0, NULL);
+      auto tmp0 = SAFETRANSLATE(column_def_list_);
+      res = new IR(kColumnOrTableConstraintList, OP0(), tmp0, NULL);
     CASEEND
     CASESTART(1)
-      auto tmp1 = SAFETRANSLATE(table_constraint_comma_list_);
-      res = new IR(kColumnOrTableConstraintCommaList, OP0(), NULL, tmp1);
+      auto tmp1 = SAFETRANSLATE(table_constraint_list_);
+      res = new IR(kColumnOrTableConstraintList, OP0(), NULL, tmp1);
     CASEEND
     CASESTART(2)
-      auto tmp0 = SAFETRANSLATE(column_def_comma_list_);
-      auto tmp1 = SAFETRANSLATE(table_constraint_comma_list_);
-      res = new IR(kColumnOrTableConstraintCommaList, OPMID(","), tmp0, tmp1);
+      auto tmp0 = SAFETRANSLATE(column_def_list_);
+      auto tmp1 = SAFETRANSLATE(table_constraint_list_);
+      res = new IR(kColumnOrTableConstraintList, OPMID(","), tmp0, tmp1);
     CASEEND
 
   SWITCHEND
@@ -1541,22 +1575,22 @@ IR *ColumnOrTableConstraintCommaList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATEEND
 }
 
-void ColumnOrTableConstraintCommaList::deep_delete() {
-  SAFEDELETE(column_def_comma_list_);
-  SAFEDELETE(table_constraint_comma_list_);
+void ColumnOrTableConstraintList::deep_delete() {
+  SAFEDELETE(column_def_list_);
+  SAFEDELETE(table_constraint_list_);
   delete this;
 }
 
-IR *TableConstraintCommaList::translate(vector<IR *> &v_ir_collector) {
+IR *TableConstraintList::translate(vector<IR *> &v_ir_collector) {
     TRANSLATESTART
 
-    TRANSLATELIST(kTableConstraintCommaList, v_table_constraint_comma_list_, ",");
+    TRANSLATELIST(kTableConstraintList, v_table_constraint_list_, ",");
 
     TRANSLATEEND
 }
 
-void TableConstraintCommaList::deep_delete(){
-	SAFEDELETELIST(v_table_constraint_comma_list_);
+void TableConstraintList::deep_delete(){
+	SAFEDELETELIST(v_table_constraint_list_);
 	delete this;
 }
 
@@ -1585,6 +1619,11 @@ IR *TableConstraint::translate(vector<IR *> &v_ir_collector) {
       PUSH(res);
       res = new IR(kTableConstraint, OP0(), tmp0, res);
     CASEEND
+    CASESTART(3)
+      auto tmp0 = SAFETRANSLATE(column_name_list_);
+      auto tmp1 = SAFETRANSLATE(foreign_key_clause_);
+      res = new IR(kTableConstraint, OP2("FOREIGN KEY (", ")"), tmp0, tmp1);
+    CASEEND
 
   SWITCHEND
 
@@ -1596,6 +1635,8 @@ void TableConstraint::deep_delete() {
   SAFEDELETE(expr_);
   SAFEDELETE(opt_conflict_clause_);
   SAFEDELETE(indexed_column_list_);
+  SAFEDELETE(column_name_list_);
+  SAFEDELETE(foreign_key_clause_);
   delete this;
 }
 
@@ -2305,7 +2346,7 @@ void CreateStatement::deep_delete(){
 	SAFEDELETE(opt_if_not_exists_);
 	SAFEDELETE(table_name_);
 	SAFEDELETE(file_path_);
-	SAFEDELETE(column_or_table_constraint_comma_list_);
+	SAFEDELETE(column_or_table_constraint_list_);
 	SAFEDELETE(select_statement_);
 	SAFEDELETE(opt_column_list_paren_);
     SAFEDELETE(opt_unique_);
@@ -2376,8 +2417,8 @@ void FilePath::deep_delete(){
 }
 
 
-void ColumnDefCommaList::deep_delete(){
-	SAFEDELETELIST(v_column_def_comma_list_);
+void ColumnDefList::deep_delete(){
+	SAFEDELETELIST(v_column_def_list_);
 	delete this;
 }
 
@@ -3001,8 +3042,9 @@ IR * ColumnConstraint::translate(vector<IR*> &v_ir_collector){
             res = new IR(kColumnConstraint, OP0(), res, tmp);
         CASEEND
         CASESTART(1)
-            res = SAFETRANSLATE(opt_conflict_clause_);
-            res = new IR(kColumnConstraint, OP1("NOT NULL"), res);
+            auto tmp0 = SAFETRANSLATE(opt_not_);
+            auto tmp1 = SAFETRANSLATE(opt_conflict_clause_);
+            res = new IR(kColumnConstraint, OPMID("NULL"), tmp0, tmp1);
         CASEEND
         CASESTART(2)
             res = SAFETRANSLATE(opt_conflict_clause_);
@@ -3050,6 +3092,7 @@ void ColumnConstraint::deep_delete(){
     SAFEDELETE(opt_order_type_);
     SAFEDELETE(opt_autoinc_);
     SAFEDELETE(expr_);
+    SAFEDELETE(opt_not_);
     SAFEDELETE(literal_);
     SAFEDELETE(signed_number_);
     SAFEDELETE(collate_);

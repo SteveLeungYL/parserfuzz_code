@@ -31,7 +31,7 @@
     V(kFilePath) \
     V(kOptIfNotExists) \
     V(kOptRecursive) \
-    V(kColumnDefCommaList) \
+    V(kColumnDefList) \
     V(kColumnDef) \
     V(kColumnType) \
     V(kOptColumnNullable) \
@@ -208,8 +208,8 @@
     V(kOptUpsertClause) \
     V(kOptConstraintName) \
     V(kTableConstraint) \
-    V(kTableConstraintCommaList) \
-    V(kColumnOrTableConstraintCommaList) \
+    V(kTableConstraintList) \
+    V(kColumnOrTableConstraintList) \
     V(kJoinSuffix) \
     V(kJoinSuffixList) \
     V(kPartitionBy) \
@@ -248,7 +248,7 @@
     V(FilePath) \
     V(OptIfNotExists) \
     V(OptRecursive) \
-    V(ColumnDefCommaList) \
+    V(ColumnDefList) \
     V(ColumnDef) \
     V(ColumnType) \
     V(OptColumnNullable) \
@@ -417,8 +417,8 @@
     V(OptUpsertClause) \
     V(OptConstraintName) \
     V(TableConstraint) \
-    V(TableConstraintCommaList) \
-    V(ColumnOrTableConstraintCommaList) \
+    V(TableConstraintList) \
+    V(ColumnOrTableConstraintList) \
     V(JoinSuffix) \
     V(JoinSuffixList) \
     V(PartitionBy) \

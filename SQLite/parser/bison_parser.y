@@ -119,11 +119,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptIfNotExists* opt_if_not_exists_t;
     OptRecursive* opt_recursive_t;
     OptNot* opt_not_t;
-    ColumnOrTableConstraintCommaList* column_or_table_constraint_comma_list_t;
-    ColumnDefCommaList* column_def_comma_list_t;
+    ColumnOrTableConstraintList* column_or_table_constraint_list_t;
+    ColumnDefList* column_def_list_t;
     ColumnDef* column_def_t;
     TableConstraint* table_constraint_t;
-    TableConstraintCommaList* table_constraint_comma_list_t;
+    TableConstraintList* table_constraint_list_t;
     OptConstraintName* opt_constraint_name_t;
     ColumnType* column_type_t;
     //OptColumnNullable* opt_column_nullable_t;
@@ -337,7 +337,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
-%token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
+%token TRUE FALSE PRECISION NUMERIC NUM DECIMAL FOREIGN
 %token WITHOUT ROWID CONSTRAINT BLOBSTART BTWAND
 
 /* For SQLite
@@ -370,10 +370,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_recursive_t> opt_recursive
 %type <opt_not_t> opt_not
 %type <opt_constraint_name_t> opt_constraint_name
-%type <column_def_comma_list_t>	column_def_commalist
+%type <column_def_list_t>	column_def_list
 %type <table_constraint_t>	table_constraint
-%type <table_constraint_comma_list_t>	table_constraint_commalist
-%type <column_or_table_constraint_comma_list_t>	column_or_table_constraint_commalist
+%type <table_constraint_list_t>	table_constraint_list
+%type <column_or_table_constraint_list_t>	column_or_table_constraint_list
 %type <column_def_t>	column_def
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
@@ -1231,43 +1231,41 @@ opt_column:
  * CREATE TABLE students FROM TBL FILE 'test/students.tbl'
  ******************************/
 
-// create_table_statement:
-//         CREATE opt_tmp TABLE opt_if_not_exists table_name AS select_statement {
-//         }
-//     |   CREATE opt_tmp TABLE opt_if_not_exists table_name 
-// 
+create_table_statement:
+        CREATE opt_tmp TABLE opt_if_not_exists table_name AS select_statement {
+          $$ = new CreateTableStatement();
+          $$->sub_type_ = CASE0;
+          $$->opt_tmp_ = $2;
+          $$->opt_if_not_exists_ = $4;
+          $5->table_id_->id_type_ = id_create_table_name;
+          $$->table_name_ = $5;
+          $$->select_statement_ = $7;
+        }
+    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ')' opt_without_rowid {
+          $$ = new CreateTableStatement();
+          $$->sub_type_ = CASE1;
+          $$->opt_tmp_ = $2;
+          $$->opt_if_not_exists_ = $4;
+          $5->table_id_->id_type_ = id_create_table_name;
+          $$->table_name_ = $5;
+          $$->column_def_list_ = $7;
+          $$->opt_without_rowid_ = $9;
+        }
+    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ',' table_constraint_list ')' opt_without_rowid {
+          $$ = new CreateTableStatement();
+          $$->sub_type_ = CASE2;
+          $$->opt_tmp_ = $2;
+          $$->opt_if_not_exists_ = $4;
+          $5->table_id_->id_type_ = id_create_table_name;
+          $$->table_name_ = $5;
+          $$->column_def_list_ = $7;
+          $$->table_constraint_list_ = $9;
+          $$->opt_without_rowid_ = $11;
+        }
+    ;
 
 create_statement:
-        CREATE opt_tmp TABLE opt_if_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE0;
-            $$->opt_tmp_ = $2;
-            $$->opt_if_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->file_path_ = $9;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $10;
-        }
-    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_or_table_constraint_commalist ')' opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_tmp_ = $2;
-            $$->opt_if_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->column_or_table_constraint_comma_list_ = $7;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $9;
-        }
-    |   CREATE opt_tmp TABLE opt_if_not_exists table_name AS select_statement opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE2;
-            $$->opt_tmp_ = $2;
-            $$->opt_if_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->select_statement_ = $7;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $8;
-        }
+        create_table_statement { $$ = $1; }
     |   CREATE opt_tmp VIEW opt_if_not_exists table_name opt_column_list_paren AS select_statement {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE3;
@@ -1300,14 +1298,14 @@ create_statement:
             $$->table_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_without_rowid_ = $8;
         } 
-    |   CREATE VIRTUAL TABLE  opt_if_not_exists table_name USING module_name '(' column_or_table_constraint_commalist ')' opt_without_rowid {
+    |   CREATE VIRTUAL TABLE  opt_if_not_exists table_name USING module_name '(' column_or_table_constraint_list ')' opt_without_rowid {
             $$ = new CreateStatement();
             $$->sub_type_ = CASE6;
             $$->opt_if_not_exists_ = $4;
             $$->table_name_ = $5;
             $$->module_name_ = $7;
             $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->column_or_table_constraint_comma_list_ = $9;
+            $$->column_or_table_constraint_list_ = $9;
             $$->opt_without_rowid_ = $11;
         } 
     |   CREATE trigger_declare BEGIN trigger_cmd_list END {
@@ -1413,44 +1411,50 @@ opt_if_not_exists:
     |   /* empty */ { $$ = new OptIfNotExists(); $$->sub_type_ = CASE1; }
     ;
 
-column_or_table_constraint_commalist:
-        column_def_commalist {
-              $$ = new ColumnOrTableConstraintCommaList();
+column_or_table_constraint_list:
+        column_def_list {
+              $$ = new ColumnOrTableConstraintList();
               $$->sub_type_ = CASE0;
-              $$->column_def_comma_list_ = $1;
+              $$->column_def_list_ = $1;
             }
-    |   table_constraint_commalist {
-              $$ = new ColumnOrTableConstraintCommaList();
+    |   table_constraint_list {
+              $$ = new ColumnOrTableConstraintList();
               $$->sub_type_ = CASE1;
-              $$->table_constraint_comma_list_ = $1;
+              $$->table_constraint_list_ = $1;
             }
-    |   column_def_commalist ',' table_constraint_commalist {
-              $$ = new ColumnOrTableConstraintCommaList();
+    |   column_def_list ',' table_constraint_list {
+              $$ = new ColumnOrTableConstraintList();
               $$->sub_type_ = CASE2;
-              $$->column_def_comma_list_ = $1;
-              $$->table_constraint_comma_list_ = $3;
+              $$->column_def_list_ = $1;
+              $$->table_constraint_list_ = $3;
             }
 
-column_def_commalist:
+column_def_list:
         column_def { 
-            $$ = new ColumnDefCommaList(); 
-            $$->v_column_def_comma_list_.push_back($1); 
+            $$ = new ColumnDefList(); 
+            $$->v_column_def_list_.push_back($1); 
             }
-    |   column_def_commalist ',' column_def { 
-            $1->v_column_def_comma_list_.push_back($3); 
+    |   column_def_list ',' column_def { 
+            $1->v_column_def_list_.push_back($3); 
             $$ = $1; 
             }
     ;
 
-table_constraint_commalist:
+table_constraint_list:
         table_constraint {
-            $$ = new TableConstraintCommaList();
-            $$->v_table_constraint_comma_list_.push_back($1);
+            $$ = new TableConstraintList();
+            $$->v_table_constraint_list_.push_back($1);
             }
-    |   table_constraint_commalist ',' table_constraint {
-            $1->v_table_constraint_comma_list_.push_back($3);
+    |   table_constraint_list table_constraint {
+            $1->v_table_constraint_list_.push_back($2);
             $$ = $1;
             }
+    |   table_constraint_list ',' table_constraint {
+            $1->v_table_constraint_list_.push_back($3);
+            $$ = $1;
+            }
+    ;
+
 
 table_constraint:
         opt_constraint_name CHECK '(' new_expr ')' { 
@@ -1473,12 +1477,18 @@ table_constraint:
             $$->indexed_column_list_ = $4;
             $$->opt_conflict_clause_ = $6;
           }
-    /* | FOREIGN KEY CASE */
+    |   FOREIGN KEY '(' column_name_list ')' foreign_key_clause {
+            $$ = new TableConstraint();
+            $$->sub_type_ = CASE3;
+            $$->column_name_list_ = $4;
+            $$->foreign_key_clause_ = $6;
+        }
+    ;
 
 column_def:
         IDENTIFIER column_type opt_column_constraintlist {
             $$ = new ColumnDef();
-			      $$->identifier_ = new Identifier($1, id_create_column_name);
+            $$->identifier_ = new Identifier($1, id_create_column_name);
             $$->column_type_ = $2;
             $$->opt_column_constraintlist_ = $3;
             free($1); 
@@ -1569,9 +1579,10 @@ column_constraint:
           $$->opt_conflict_clause_ = $4;
           $$->opt_autoinc_ = $5;
         }
-    |   NOT NULL opt_conflict_clause {
+    |   opt_not NULL opt_conflict_clause {
           $$ = new ColumnConstraint();
           $$->sub_type_ = CASE1;
+          $$->opt_not_ = $1;
           $$->opt_conflict_clause_ = $3;
         }
     |   UNIQUE opt_conflict_clause {
