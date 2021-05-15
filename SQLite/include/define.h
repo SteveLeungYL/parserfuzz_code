@@ -46,6 +46,7 @@
     V(kOptSetSelectCoreList) \
     V(kSelectCore) \
     V(kOptDistinct) \
+    V(kOptStoredVirtual) \
     V(kSelectList) \
     V(kFromClause) \
     V(kOptFromClause) \
@@ -82,6 +83,13 @@
     V(kBlobLiteral) \
     V(kIntLiteral) \
     V(kNumericLiteral) \
+    V(kSignedNumber) \
+    V(kForeignKeyClause) \
+    V(kForeignKeyOn) \
+    V(kForeignKeyOnList) \
+    V(kOptForeignKeyOnList) \
+    V(kDeferrableClause) \
+    V(kOptDeferrableClause) \
     V(kNullLiteral) \
     V(kParamExpr) \
     V(kIdentifier) \
@@ -164,7 +172,7 @@
     V(kCmdAttach) \
     V(kCmdDetach) \
     V(kCmdReindex) \
-    V(kCmdAnalyze) \
+    V(kAnalyzeStatement) \
     V(kSuperList)  \
     V(kOnExpr) \
     V(kEscapeExpr) \
@@ -255,6 +263,7 @@
     V(OptSetSelectCoreList) \
     V(SelectCore) \
     V(OptDistinct) \
+    V(OptStoredVirtual) \
     V(SelectList) \
     V(FromClause) \
     V(OptFromClause) \
@@ -287,6 +296,13 @@
     V(StringLiteral) \
     V(BlobLiteral) \
     V(NumericLiteral) \
+    V(SignedNumber) \
+    V(ForeignKeyClause) \
+    V(ForeignKeyOn) \
+    V(ForeignKeyOnList) \
+    V(OptForeignKeyOnList) \
+    V(DeferrableClause) \
+    V(OptDeferrableClause) \
     V(NullLiteral) \
     V(ParamExpr) \
     V(Identifier) \
@@ -365,7 +381,7 @@
     V(CmdAttach) \
     V(CmdDetach) \
     V(CmdReindex) \
-    V(CmdAnalyze) \
+    V(AnalyzeStatement) \
     V(SuperList) \
     V(OnExpr) \
     V(EscapeExpr) \

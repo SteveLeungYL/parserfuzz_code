@@ -269,13 +269,6 @@ public:
     TableName * table_name_;  
 };
 
-class CmdAnalyze: public Cmd {
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableName * table_name_; 
-};
-
 class SuperList: public Node {
 public:
     virtual void deep_delete();
@@ -343,6 +336,13 @@ class PreparableStatement: public Statement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+};
+
+class AnalyzeStatement: public PreparableStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    TableName * table_name_; 
 };
 
 class ShowStatement: public Statement{
@@ -610,6 +610,13 @@ public:
     string str_val_;
 };
 
+class OptStoredVirtual: public Opt{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+};
+
 class SelectList: public Node{
 public:
     virtual void deep_delete();
@@ -860,6 +867,62 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     string value_;
+};
+
+class OptDeferrableClause: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    DeferrableClause * deferrable_clause_;
+};
+
+class DeferrableClause: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+    OptNot * opt_not_;
+};
+
+
+class OptForeignKeyOnList: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    ForeignKeyOnList * foreign_key_on_list_;
+};
+
+class ForeignKeyOnList: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    vector<ForeignKeyOn *> v_foreign_key_on_list_;
+};
+
+class ForeignKeyOn: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+    Identifier * name_;
+};
+
+class ForeignKeyClause: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    Identifier * foreign_table_;
+    OptColumnListParen * opt_column_list_paren_;
+    OptForeignKeyOnList * opt_foreign_key_on_list_;
+    OptDeferrableClause * opt_deferrable_clause_;
+};
+
+class SignedNumber: public Node {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_sign_;
+    NumericLiteral * numeric_literal_;
 };
 
 class NullLiteral:public Literal{
@@ -1118,7 +1181,12 @@ public:
     OptOrderType * opt_order_type_;
     OptAutoinc * opt_autoinc_;
     NewExpr * expr_;
+    Literal * literal_;
+    SignedNumber * signed_number_;
+    Collate * collate_;
+    ForeignKeyClause * foreign_key_clause_;
     Identifier * identifier_;
+    OptStoredVirtual * opt_stored_virtual_;
 };
 
 class ColumnOrTableConstraintCommaList: public Node {

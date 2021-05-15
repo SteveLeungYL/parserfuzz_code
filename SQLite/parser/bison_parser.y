@@ -144,6 +144,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     IdentCommaList* ident_commalist_t;
     SelectCore* select_core_t;
     OptDistinct* opt_distinct_t;
+    OptStoredVirtual * opt_stored_virtual_t;
     OptReturningClause* opt_returning_clause_t;
     ResultColumnList* result_column_list_t;
     ResultColumn* result_column_t;
@@ -178,6 +179,13 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     StringLiteral* string_literal_t;
     BlobLiteral * blob_literal_t;
     NumericLiteral* numeric_literal_t;
+    SignedNumber * signed_number_t;
+    ForeignKeyClause * foreign_key_clause_t;
+    ForeignKeyOn * foreign_key_on_t;
+    ForeignKeyOnList * foreign_key_on_list_t;
+    OptForeignKeyOnList * opt_foreign_key_on_list_t;
+    DeferrableClause * deferrable_clause_t;
+    OptDeferrableClause * opt_deferrable_clause_t;
     NullLiteral* null_literal_t;
     ParamExpr* param_expr_t;
     TableOrSubquery * table_or_subquery_t;
@@ -208,7 +216,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     CmdAttach * cmd_attach_t;
     CmdDetach * cmd_detach_t;
     CmdReindex * cmd_reindex_t;
-    CmdAnalyze * cmd_analyze_t;
+    AnalyzeStatement * analyze_statement_t;
     CmdPragma * cmd_pragma_t;
     PragmaKey * pragma_key_t;
     PragmaValue * pragma_value_t;
@@ -316,7 +324,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN
 %token CASCADE COLUMNS CONTROL DEFAULT EXECUTE EXPLAIN
 %token INTEGER NATURAL PREPARE PRIMARY SCHEMAS
-%token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT
+%token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT STORED
 %token DOUBLE ESCAPE EXCEPT EXISTS EXTRACT GLOBAL HAVING IMPORT
 %token INSERT ISNULL OFFSET RENAME SCHEMA SELECT SORTED
 %token TABLES UNIQUE UNLOAD UPDATE VALUES AFTER ALTER CROSS
@@ -340,7 +348,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token CURRENT EXCLUDE FOLLOWING GROUPS NO OTHERS PRECEDING RANGE ROWS TIES UNBOUNDED WINDOW
 %token ATTACH DETACH DATABASE INDEXED CAST SAVEPOINT RELEASE VACUUM TRANSACTION DEFFERED EXCLUSIVE
 %token IMEDIATE COMMIT GLOB MATCH REGEXP NOTHING NULLS LAST FIRST DO COLLATE RAISE RECURSIVE
-%token RETURNING
+%token RETURNING ACTION DEFERRABLE DEFERRED IMMEDIATE INITIALLY
 
 %type <program_t>	input
 %type <statement_list_t>	statement_list
@@ -383,6 +391,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <set_select_core_list_t> set_select_core_list
 %type <opt_set_select_core_list_t> opt_set_select_core_list
 %type <opt_distinct_t>	opt_distinct
+%type <opt_stored_virtual_t> opt_stored_virtual
 %type <opt_returning_clause_t> opt_returning_clause
 %type <result_column_list_t>	result_column_list returning_column_list
 %type <result_column_t> result_column returning_column
@@ -417,6 +426,13 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <string_literal_t>	string_literal
 %type <blob_literal_t>	blob_literal
 %type <numeric_literal_t> numeric_literal
+%type <signed_number_t> signed_number
+%type <foreign_key_clause_t> foreign_key_clause
+%type <foreign_key_on_t> foreign_key_on
+%type <foreign_key_on_list_t> foreign_key_on_list
+%type <opt_foreign_key_on_list_t> opt_foreign_key_on_list
+%type <deferrable_clause_t> deferrable_clause
+%type <opt_deferrable_clause_t> opt_deferrable_clause
 %type <null_literal_t>	null_literal
 %type <param_expr_t>	param_expr
 %type <table_or_subquery_t> table_or_subquery
@@ -451,7 +467,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <cmd_t> cmd
 %type <cmd_attach_t> cmd_attach
 %type <cmd_detach_t> cmd_detach
-%type <cmd_analyze_t> cmd_analyze
+%type <analyze_statement_t> analyze_statement
 %type <cmd_reindex_t> cmd_reindex
 %type <cmd_pragma_t> cmd_pragma
 %type <pragma_key_t> pragma_key
@@ -649,7 +665,6 @@ statement:
 cmd:
         cmd_pragma {$$ = $1;}
     |   cmd_reindex {$$ = $1;}
-    |   cmd_analyze {$$ = $1;}
     |   cmd_attach  {$$ = $1;}
     |   cmd_detach  {$$ = $1;}
     ;
@@ -690,13 +705,13 @@ cmd_pragma:
     ;
 
 cmd_reindex:
-       REINDEX {$$ = new CmdReindex(); $$->sub_type_ = CASE0;}
+        REINDEX {$$ = new CmdReindex(); $$->sub_type_ = CASE0;}
     |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
     ;
 
-cmd_analyze:
-       ANALYZE {$$ = new CmdAnalyze(); $$->sub_type_ = CASE0;}
-    |   ANALYZE table_name {$$ = new CmdAnalyze(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
+analyze_statement:
+        ANALYZE {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE0;}
+    |   ANALYZE table_name {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
     ;
 
 cmd_attach:
@@ -764,6 +779,7 @@ preparable_statement:
     |   commit_statement {$$ = $1;}
     |   begin_statement {$$ = $1;}
     |   vacuum_statement {$$ = $1;}
+    |   analyze_statement {$$ = $1;}
     /* being checked*/
     /* to be checked*/
     |   import_statement { $$ = $1; }
@@ -1498,25 +1514,120 @@ opt_constraint_name:
             $$ = new OptConstraintName();
             $$->sub_type_ = CASE1;
           }
-
-column_constraint:
-        NULL opt_conflict_clause {$$ = new ColumnConstraint(); $$->sub_type_ = CASE0; $$->opt_conflict_clause_ = $2;}
-    |   NOT NULL opt_conflict_clause {$$ = new ColumnConstraint(); $$->sub_type_ = CASE1; $$->opt_conflict_clause_ = $3;}
-    |   PRIMARY KEY opt_order_type opt_conflict_clause opt_autoinc {
-                $$ = new ColumnConstraint(); 
-                $$->sub_type_ = CASE2; 
-                $$->opt_order_type_ = $3;
-                $$->opt_conflict_clause_ = $4;
-                $$->opt_autoinc_ = $5;
-        }
-    |   UNIQUE opt_conflict_clause {$$ = new ColumnConstraint(); $$->sub_type_ = CASE3; $$->opt_conflict_clause_ = $2;}
-    |   GENERATED ALWAYS AS '(' new_expr ')' {$$ = new ColumnConstraint(); $$->sub_type_ = CASE4; $$->expr_ = $5;}
-    |   AS '(' new_expr ')' {$$ = new ColumnConstraint(); $$->sub_type_ = CASE5; $$->expr_ = $3;}
-    |   CHECK '(' new_expr ')' {$$ = new ColumnConstraint(); $$->sub_type_ = CASE6; $$->expr_ = $3;}
-    |   REFERENCES IDENTIFIER {$$ = new ColumnConstraint(); $$->sub_type_ = CASE7; $$->identifier_ = new Identifier($2, id_create_column_name); free($2);}
-    |   opt_order_type {$$ = new ColumnConstraint(); $$->sub_type_ = CASE8; $$->opt_order_type_=$1;}
     ;
 
+opt_deferrable_clause:
+        deferrable_clause { $$ = new OptDeferrableClause(); $$->sub_type_ = CASE0; $$->deferrable_clause_ = $1; }
+    |   /* empty */ { $$ = new OptDeferrableClause(); $$->sub_type_ = CASE1; }
+    ;
+
+deferrable_clause:
+        opt_not DEFERRABLE { $$ = new DeferrableClause(); $$->opt_not_ = $1; $$->str_val_ = string(""); } 
+    |   opt_not DEFERRABLE INITIALLY DEFERRED { $$ = new DeferrableClause(); $$->opt_not_ = $1; $$->str_val_ = string("INITIALLY DEFERRED"); }
+    |   opt_not DEFERRABLE INITIALLY IMMEDIATE { $$ = new DeferrableClause(); $$->opt_not_ = $1; $$->str_val_ = string("INITIALLY IMMEDIATE"); }
+    ;
+
+opt_foreign_key_on_list:
+        foreign_key_on_list { $$ = new OptForeignKeyOnList(); $$->sub_type_ = CASE0; $$->foreign_key_on_list_ = $1; }
+    |   /* empty */ { $$ = new OptForeignKeyOnList(); $$->sub_type_ = CASE1; }
+    ;
+
+foreign_key_on_list:
+        foreign_key_on { $$ = new ForeignKeyOnList(); $$->v_foreign_key_on_list_.push_back($1); }
+    |   foreign_key_on_list foreign_key_on { $1->v_foreign_key_on_list_.push_back($2); $$ = $1; }
+    ;
+
+foreign_key_on:
+        ON DELETE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE SET NULL"); }
+    |   ON DELETE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE SET DEFAULT"); }
+    |   ON DELETE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE CASCADE"); }
+    |   ON DELETE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE RESTRICT"); }
+    |   ON DELETE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE NO ACTION"); }
+    |   ON UPDATE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE SET NULL"); }
+    |   ON UPDATE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE SET DEFAULT"); }
+    |   ON UPDATE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE CASCADE"); }
+    |   ON UPDATE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE RESTRICT"); }
+    |   ON UPDATE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE NO ACTION"); }
+    |   MATCH IDENTIFIER      { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE1; $$->name_ = new Identifier($2); free($2); }
+    ;
+
+foreign_key_clause:
+        REFERENCES IDENTIFIER opt_column_list_paren opt_foreign_key_on_list opt_deferrable_clause {
+          $$ = new ForeignKeyClause();
+          $$->foreign_table_ = new Identifier($2); free($2);
+          $$->opt_column_list_paren_ = $3;
+          $$->opt_foreign_key_on_list_ = $4;
+          $$->opt_deferrable_clause_ = $5;
+        }
+    ;
+
+column_constraint:
+        PRIMARY KEY opt_order_type opt_conflict_clause opt_autoinc {
+          $$ = new ColumnConstraint(); 
+          $$->sub_type_ = CASE0; 
+          $$->opt_order_type_ = $3;
+          $$->opt_conflict_clause_ = $4;
+          $$->opt_autoinc_ = $5;
+        }
+    |   NOT NULL opt_conflict_clause {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE1;
+          $$->opt_conflict_clause_ = $3;
+        }
+    |   UNIQUE opt_conflict_clause {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE2;
+          $$->opt_conflict_clause_ = $2;
+        }
+    |   CHECK '(' new_expr ')' {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE3;
+          $$->expr_ = $3;
+        }
+    |   DEFAULT '(' new_expr ')' {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE4;
+          $$->expr_ = $3;
+        }
+    |   DEFAULT literal {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE5;
+          $$->literal_ = $2;
+        }
+    |   DEFAULT signed_number {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE6;
+          $$->signed_number_ = $2;
+        }
+    |   collate {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE7;
+          $$->collate_ = $1;
+        }
+    |   foreign_key_clause {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE8;
+          $$->foreign_key_clause_ = $1;
+        }
+    |   GENERATED ALWAYS AS '(' new_expr ')' opt_stored_virtual {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE9;
+          $$->expr_ = $5;
+          $$->opt_stored_virtual_ = $7;
+        }
+    |   AS '(' new_expr ')' opt_stored_virtual {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE10;
+          $$->expr_ = $3;
+          $$->opt_stored_virtual_ = $5;
+        }
+    ;
+
+opt_stored_virtual:
+        STORED { $$ = new OptStoredVirtual(); $$->str_val_ = string("STORED"); }
+    |   VIRTUAL  { $$ = new OptStoredVirtual(); $$->str_val_ = string("VIRTUAL"); }
+    |   /* empty */ { $$ = new OptStoredVirtual(); $$->str_val_ = string(""); }
+    ;
 
 /* looks good */
 opt_conflict_clause: 
@@ -1533,6 +1644,8 @@ resolve_type:
     |   ROLLBACK {$$ = new ResolveType(); $$->str_val_ = string("ROLLBACK");}
     ;
 
+/* looks good */
+/* seems the keyword AUTOINCREMENT is not supported by sqlite, weird */
 opt_autoinc:
         AUTOINCR {$$ = new OptAutoinc(); $$->str_val_ = string("AUTOINCR");}
     |   /* empty */ {$$ = new OptAutoinc(); $$->str_val_ = string("");}
@@ -1998,6 +2111,7 @@ order_term:
         }
     ;
 
+/* looks good */
 opt_order_type:
         ASC { $$ = new OptOrderType(); $$->str_val_ = string("ASC"); }
     |   DESC { $$ = new OptOrderType(); $$->str_val_ = string("DESC"); }
@@ -2318,6 +2432,12 @@ literal:
 
 string_literal:
         STRING { $$ = new StringLiteral(); $$->str_val_ = $1; free($1);}
+    ;
+
+signed_number:
+        numeric_literal { $$ = new SignedNumber(); $$->str_sign_ = string(""); $$->numeric_literal_ = $1; }
+    |   '+' numeric_literal { $$ = new SignedNumber(); $$->str_sign_ = string("+"); $$->numeric_literal_ = $2; }
+    |   '-' numeric_literal { $$ = new SignedNumber(); $$->str_sign_ = string("-"); $$->numeric_literal_ = $2; }
     ;
 
 numeric_literal:
