@@ -234,7 +234,6 @@ class Statement: public Node {
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    OptionalHints* optional_hints_;
     PreparableStatement* preparable_statement_;
     PrepareStatement* prepare_statement_;
     ShowStatement* show_statement_;
@@ -274,12 +273,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     vector<LiteralList *> v_super_list_; 
-};
-class OptionalHints: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    HintList * hint_list_;
 };
 
 class CmdPragma: public Cmd{
@@ -350,21 +343,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     TableName * table_name_;
-};
-
-class Hint: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    LiteralList * literal_list_;
-    Identifier * identifier_;
-};
-
-class HintList: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<Hint *> v_hint_list_;
 };
 
 class PrepareTargetQuery: public Node{

@@ -10,12 +10,9 @@
     V(kOptString) \
     V(kProgram) \
     V(kStatement) \
-    V(kOptionalHints) \
     V(kPrepareStatement) \
     V(kPreparableStatement) \
     V(kShowStatement) \
-    V(kHint) \
-    V(kHintList) \
     V(kPrepareTargetQuery) \
     V(kSelectStatement) \
     V(kImportStatement) \
@@ -228,12 +225,9 @@
     V(OptString) \
     V(Program) \
     V(Statement) \
-    V(OptionalHints) \
     V(PrepareStatement) \
     V(PreparableStatement) \
     V(ShowStatement) \
-    V(Hint) \
-    V(HintList) \
     V(PrepareTargetQuery) \
     V(SelectStatement) \
     V(ImportStatement) \

@@ -103,9 +103,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     StatementList* statement_list_t;
     Statement* statement_t;
     PreparableStatement* preparable_statement_t;
-    OptionalHints* optional_hints_t;
-    /* HintList* hint_list_t; */
-    /* Hint* hint_t; */
     /* PrepareStatement* prepare_statement_t; */
     /* PrepareTargetQuery* prepare_target_query_t; */
     ExecuteStatement* execute_statement_t;
@@ -355,9 +352,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <statement_list_t>	statement_list
 %type <statement_t>	statement
 %type <preparable_statement_t>	preparable_statement
-/* %type <optional_hints_t>	opt_hints */
-/* %type <hint_list_t>	hint_list */
-/* %type <hint_t>	hint */
 /* %type <prepare_statement_t>	prepare_statement */
 /* %type <prepare_target_query_t>	prepare_target_query */
 %type <execute_statement_t>	execute_statement
@@ -641,7 +635,6 @@ statement:
             $$ = new Statement();
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
-            //$$->optional_hints_ = $2;
         }
     /*|    prepare_statement opt_hints {
      *        $$ = new Statement();
@@ -1053,45 +1046,6 @@ column_name_list:
             $$ = $1;
         }
 ;
-
-/******************************
- * Hints
- ******************************/
-
-/*  opt_hints:
- *      WITH HINT '(' hint_list ')' { 
- *          $$ = new OptionalHints();
- *          $$->sub_type_ = CASE0;
- *          $$->hint_list_ = $4; 
- *          }
- *    | { $$ = new OptionalHints(); $$->sub_type_ = CASE1;}
- *    ;
- *  
- *  
- *  hint_list:
- *        hint { 
- *            $$ = new HintList();
- *            $$->v_hint_list_.push_back($1); 
- *            }
- *      | hint_list ',' hint { $1->v_hint_list_.push_back($3); $$ = $1; }
- *      ;
- *  
- *  hint:
- *          IDENTIFIER {
- *              $$ = new Hint();
- *              $$->sub_type_ = CASE1;
- *              $$->identifier_ = new Identifier($1);
- *              free($1);
- *          }
- *      | IDENTIFIER '(' literal_list ')' {
- *              $$ = new Hint();
- *              $$->sub_type_ = CASE0;
- *              $$->identifier_ = new Identifier($1);
- *              $$->literal_list_ = $3;
- *              free($1);
- *          }
- *      ;
- */
 
 /******************************
  * Prepared Statement

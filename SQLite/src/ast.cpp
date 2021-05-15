@@ -380,14 +380,8 @@ IR* Statement::translate(vector<IR *> &v_ir_collector){
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(preparable_statement_);
-            //auto tmp = SAFETRANSLATE(optional_hints_);
             res = new IR(kStatement, OP0(), res);
         CASEEND
-        //CASESTART(1)
-        //    res = SAFETRANSLATE(prepare_statement_);
-        //    auto tmp = SAFETRANSLATE(optional_hints_);
-        //    res = new IR(kStatement, OP0(), res, tmp);
-        //CASEEND
         CASESTART(2)
             res = SAFETRANSLATE(show_statement_);
             res = new IR(kStatement, OP0(), res);
@@ -400,24 +394,6 @@ IR* Statement::translate(vector<IR *> &v_ir_collector){
 
     TRANSLATEEND
 }
-
-IR* OptionalHints::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(hint_list_);
-            res = new IR(kOptionalHints, OP3("WITH HINT", "(", ")"), NULL, res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptionalHints, "");
-        CASEEND
-    SWITCHEND
-    
-    TRANSLATEEND
-}
-
-
 
 
 IR* PrepareStatement::translate(vector<IR *> &v_ir_collector){
@@ -433,32 +409,6 @@ IR* PrepareStatement::translate(vector<IR *> &v_ir_collector){
 
 IR* PreparableStatement::translate(vector<IR *> &v_ir_collector){
     return NULL;
-}
-
-IR* Hint::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(identifier_);
-            auto tmp = SAFETRANSLATE(literal_list_);
-            res = new IR(kHint, OP3("", "(", ")"), res, tmp);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(identifier_);
-            res = new IR(kHint, OP0(), res);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
-IR* HintList::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    TRANSLATELIST(kHintList, v_hint_list_, ",");
-
-    TRANSLATEEND
 }
 
 IR* PrepareTargetQuery::translate(vector<IR *> &v_ir_collector){
@@ -2225,17 +2175,10 @@ void StatementList::deep_delete(){
 
 
 void Statement::deep_delete(){
-	SAFEDELETE(optional_hints_);
 	SAFEDELETE(preparable_statement_);
 	SAFEDELETE(prepare_statement_);
 	SAFEDELETE(show_statement_);
     SAFEDELETE(cmd_);
-	delete this;
-}
-
-
-void OptionalHints::deep_delete(){
-	SAFEDELETE(hint_list_);
 	delete this;
 }
 
@@ -2254,19 +2197,6 @@ void PreparableStatement::deep_delete(){
 
 void ShowStatement::deep_delete(){
 	SAFEDELETE(table_name_);
-	delete this;
-}
-
-
-void Hint::deep_delete(){
-	SAFEDELETE(literal_list_);
-	SAFEDELETE(identifier_);
-	delete this;
-}
-
-
-void HintList::deep_delete(){
-	SAFEDELETELIST(v_hint_list_);
 	delete this;
 }
 
