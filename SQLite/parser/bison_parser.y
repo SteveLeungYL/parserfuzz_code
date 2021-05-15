@@ -116,10 +116,13 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ShowStatement* show_statement_t;
     CreateStatement* create_statement_t;
     CreateTableStatement * create_table_statement_t;
+    CreateViewStatement * create_view_statement_t;
+    CreateIndexStatement * create_index_statement_t;
+    CreateVirtualTableStatement * create_virtual_table_statement_t;
+    CreateTriggerStatement * create_trigger_statement_t;
     OptIfNotExists* opt_if_not_exists_t;
     OptRecursive* opt_recursive_t;
     OptNot* opt_not_t;
-    ColumnOrTableConstraintList* column_or_table_constraint_list_t;
     ColumnDefList* column_def_list_t;
     ColumnDef* column_def_t;
     TableConstraint* table_constraint_t;
@@ -141,7 +144,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     SetSelectCore* set_select_core_t;
     SetSelectCoreList * set_select_core_list_t;
     OptSetSelectCoreList * opt_set_select_core_list_t;
-    IdentCommaList* ident_commalist_t;
     SelectCore* select_core_t;
     OptDistinct* opt_distinct_t;
     OptStoredVirtual * opt_stored_virtual_t;
@@ -230,7 +232,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	OptAutoinc*	opt_autoinc_t;
 	OptUnique*	opt_unique_t;
 	IndexName*	index_name_t;
-	TriggerDeclare*	trigger_declare_t;
 	OptTmp*	opt_tmp_t;
 	TriggerName*	trigger_name_t;
 	OptTriggerTime*	opt_trigger_time_t;
@@ -366,6 +367,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
 %type <create_table_statement_t> create_table_statement
+%type <create_view_statement_t> create_view_statement
+%type <create_index_statement_t> create_index_statement
+%type <create_virtual_table_statement_t> create_virtual_table_statement
+%type <create_trigger_statement_t> create_trigger_statement
 %type <opt_if_not_exists_t>	opt_if_not_exists
 %type <opt_recursive_t> opt_recursive
 %type <opt_not_t> opt_not
@@ -373,7 +378,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <column_def_list_t>	column_def_list
 %type <table_constraint_t>	table_constraint
 %type <table_constraint_list_t>	table_constraint_list
-%type <column_or_table_constraint_list_t>	column_or_table_constraint_list
 %type <column_def_t>	column_def
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
@@ -450,7 +454,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <common_table_expr_t> common_table_expr
 %type <common_table_expr_list_t> common_table_expr_list
 %type <opt_semicolon_t>	opt_semicolon
-%type <ident_commalist_t>	ident_commalist
 %type <opt_without_rowid_t> opt_without_rowid
 
 %type <join_op_t> join_op
@@ -483,7 +486,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <opt_autoinc_t>	opt_autoinc
 %type <opt_unique_t>	opt_unique
 %type <index_name_t>	index_name
-%type <trigger_declare_t>	trigger_declare
 %type <opt_tmp_t>	opt_tmp
 %type <trigger_name_t>	trigger_name
 %type <opt_trigger_time_t>	opt_trigger_time
@@ -780,10 +782,10 @@ preparable_statement:
     |   begin_statement {$$ = $1;}
     |   vacuum_statement {$$ = $1;}
     |   analyze_statement {$$ = $1;}
+    |   create_statement { $$ = $1; }
     /* being checked*/
     /* to be checked*/
     |   import_statement { $$ = $1; }
-    |   create_statement { $$ = $1; }
     |   update_statement { $$ = $1; }
     |   drop_statement { $$ = $1; }
     |   execute_statement { $$ = $1; }
@@ -1264,56 +1266,65 @@ create_table_statement:
         }
     ;
 
-create_statement:
-        create_table_statement { $$ = $1; }
-    |   CREATE opt_tmp VIEW opt_if_not_exists table_name opt_column_list_paren AS select_statement {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE3;
+create_view_statement:
+        CREATE opt_tmp VIEW opt_if_not_exists table_name opt_column_list_paren AS select_statement {
+            $$ = new CreateViewStatement();
             $$->opt_tmp_ = $2;
             $$->opt_if_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
+            $$->view_name_ = $5;
+            $$->view_name_->table_id_->id_type_ = id_create_table_name;
             $$->opt_column_list_paren_ = $6;
             $$->select_statement_ = $8;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
         }
-    //add 2
-    |   CREATE opt_unique INDEX opt_if_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE4;
+    ;
+
+create_index_statement:
+        CREATE opt_unique INDEX opt_if_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
+            $$ = new CreateIndexStatement();
             $$->opt_unique_ = $2;
             $$->opt_if_not_exists_ = $4;
-            $$->index_name_ = $5;   
+            $$->index_name_ = $5;
+            $$->index_name_->identifier_->id_type_ = id_create_index_name;;
             $$->table_name_ = $7;
             $$->table_name_->table_id_->id_type_ = id_top_table_name;
             $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
         }
-    |   CREATE VIRTUAL TABLE  opt_if_not_exists table_name USING module_name opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE5;
+    ;
+
+create_virtual_table_statement:
+        CREATE VIRTUAL TABLE  opt_if_not_exists table_name USING module_name opt_column_list_paren opt_without_rowid {
+            $$ = new CreateVirtualTableStatement();
             $$->opt_if_not_exists_ = $4;
             $$->table_name_ = $5;
-            $$->module_name_ = $7;
             $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $8;
+            $$->module_name_ = $7;
+            $$->opt_column_list_paren_ = $8;
+            $$->opt_without_rowid_ = $9;
         } 
-    |   CREATE VIRTUAL TABLE  opt_if_not_exists table_name USING module_name '(' column_or_table_constraint_list ')' opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE6;
+    ;
+
+create_trigger_statement:
+        CREATE opt_tmp TRIGGER opt_if_not_exists trigger_name opt_trigger_time trigger_event ON table_name opt_for_each opt_when BEGIN trigger_cmd_list END {
+            $$ = new CreateTriggerStatement();
+            $$->opt_tmp_ = $2;
             $$->opt_if_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->module_name_ = $7;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
-            $$->column_or_table_constraint_list_ = $9;
-            $$->opt_without_rowid_ = $11;
-        } 
-    |   CREATE trigger_declare BEGIN trigger_cmd_list END {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE7;
-            $$->trigger_declare_ = $2;
-            $$->trigger_cmd_list_ = $4;
-        } 
+            $$->trigger_name_ = $5;
+            $$->opt_trigger_time_ = $6;
+            $$->trigger_event_ = $7;
+            $$->table_name_ = $9;
+            $$->opt_for_each_ = $10;
+            $$->opt_when_ = $11;
+            $$->trigger_cmd_list_ = $13;
+        }
+    ;
+
+create_statement:
+        create_table_statement { $$ = $1; }
+    |   create_view_statement { $$ = $1; }
+    |   create_index_statement { $$ = $1; }
+    |   create_virtual_table_statement { $$ = $1; }
+    |   create_trigger_statement { $$ = $1; }
     ;
 
 opt_without_rowid:
@@ -1327,20 +1338,6 @@ opt_unique:
 
 index_name:
         IDENTIFIER {$$ = new IndexName(); $$->identifier_ = new Identifier($1, id_index_name); free($1);}
-    ;
-
-trigger_declare:
-        opt_tmp TRIGGER opt_if_not_exists trigger_name opt_trigger_time trigger_event ON table_name opt_for_each opt_when {
-            $$ = new TriggerDeclare();
-            $$->opt_tmp_ = $1;
-            $$->opt_if_not_exists_ = $3;
-            $$->trigger_name_ = $4;
-            $$->opt_trigger_time_ = $5;
-            $$->trigger_event_ = $6;
-            $$->table_name_ = $8;
-            $$->opt_for_each_ = $9;
-            $$->opt_when_ = $10;
-        }
     ;
 
 opt_tmp:
@@ -1367,7 +1364,7 @@ trigger_event:
     ;
 
 opt_of_column_list:
-        OF ident_commalist {$$ = new OptOfColumnList(); $$->sub_type_ = CASE0; $$->ident_commalist_ = $2;}
+        OF column_name_list {$$ = new OptOfColumnList(); $$->sub_type_ = CASE0; $$->column_name_list_ = $2;}
     |   /* empty */ {$$ = new OptOfColumnList(); $$->sub_type_ = CASE1;}
     ;
 
@@ -1410,24 +1407,6 @@ opt_if_not_exists:
         IF NOT EXISTS { $$ = new OptIfNotExists(); $$->sub_type_ = CASE0; }
     |   /* empty */ { $$ = new OptIfNotExists(); $$->sub_type_ = CASE1; }
     ;
-
-column_or_table_constraint_list:
-        column_def_list {
-              $$ = new ColumnOrTableConstraintList();
-              $$->sub_type_ = CASE0;
-              $$->column_def_list_ = $1;
-            }
-    |   table_constraint_list {
-              $$ = new ColumnOrTableConstraintList();
-              $$->sub_type_ = CASE1;
-              $$->table_constraint_list_ = $1;
-            }
-    |   column_def_list ',' table_constraint_list {
-              $$ = new ColumnOrTableConstraintList();
-              $$->sub_type_ = CASE2;
-              $$->column_def_list_ = $1;
-              $$->table_constraint_list_ = $3;
-            }
 
 column_def_list:
         column_def { 
@@ -1477,11 +1456,12 @@ table_constraint:
             $$->indexed_column_list_ = $4;
             $$->opt_conflict_clause_ = $6;
           }
-    |   FOREIGN KEY '(' column_name_list ')' foreign_key_clause {
+    |   opt_constraint_name FOREIGN KEY '(' column_name_list ')' foreign_key_clause {
             $$ = new TableConstraint();
             $$->sub_type_ = CASE3;
-            $$->column_name_list_ = $4;
-            $$->foreign_key_clause_ = $6;
+            $$->opt_constraint_name_ = $1;
+            $$->column_name_list_ = $5;
+            $$->foreign_key_clause_ = $7;
         }
     ;
 
@@ -2706,11 +2686,6 @@ opt_semicolon:
     |   /* empty */{$$ = new OptSemicolon(); $$->str_val_ = string("");}
     ;
 
-
-ident_commalist:
-        IDENTIFIER opt_collate opt_order_type { $$ = new IdentCommaList(); $$->v_iden_comma_list_.push_back(new Identifier($1)); $$->v_opt_collate_list_.push_back($2); $$->v_opt_order_type_.push_back($3); free($1);}
-    |   ident_commalist ',' IDENTIFIER opt_collate opt_order_type { $1->v_iden_comma_list_.push_back(new Identifier($3)); $1->v_opt_collate_list_.push_back($4); $1->v_opt_order_type_.push_back($5); $$ = $1; free($3);}
-    ;
 
 %%
 /*********************************

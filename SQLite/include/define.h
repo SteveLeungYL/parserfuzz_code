@@ -21,6 +21,10 @@
     V(kImportStatement) \
     V(kCreateStatement) \
     V(kCreateTableStatement) \
+    V(kCreateViewStatement) \
+    V(kCreateIndexStatement) \
+    V(kCreateVirtualTableStatement) \
+    V(kCreateTriggerStatement) \
     V(kInsertStatement) \
     V(kDeleteStatement) \
     V(kDeleteStatementLimited) \
@@ -120,7 +124,6 @@
     V(kOptJoinType) \
     V(kJoinConstraint) \
     V(kOptSemicolon) \
-    V(kIdentCommaList) \
     V(kInit) \
     V(kStatementList) \
     V(kUnknown)  \
@@ -138,7 +141,6 @@
 	V(kOptAutoinc) \
 	V(kOptUnique) \
 	V(kIndexName) \
-	V(kTriggerDeclare) \
 	V(kOptTmp) \
 	V(kTriggerName) \
 	V(kOptTriggerTime) \
@@ -209,7 +211,6 @@
     V(kOptConstraintName) \
     V(kTableConstraint) \
     V(kTableConstraintList) \
-    V(kColumnOrTableConstraintList) \
     V(kJoinSuffix) \
     V(kJoinSuffixList) \
     V(kPartitionBy) \
@@ -238,6 +239,10 @@
     V(ImportStatement) \
     V(CreateStatement) \
     V(CreateTableStatement) \
+    V(CreateViewStatement) \
+    V(CreateIndexStatement) \
+    V(CreateVirtualTableStatement) \
+    V(CreateTriggerStatement) \
     V(InsertStatement) \
     V(DeleteStatement) \
     /* V(DeleteStatementLimited) */ \
@@ -329,7 +334,6 @@
     V(OptJoinType) \
     V(JoinConstraint) \
     V(OptSemicolon) \
-    V(IdentCommaList) \
     V(Init) \
     V(StatementList) \
     V(Unknown) \
@@ -347,7 +351,6 @@
 	V(OptAutoinc) \
 	V(OptUnique) \
 	V(IndexName) \
-	V(TriggerDeclare) \
 	V(OptTmp) \
 	V(TriggerName) \
 	V(OptTriggerTime) \
@@ -418,7 +421,6 @@
     V(OptConstraintName) \
     V(TableConstraint) \
     V(TableConstraintList) \
-    V(ColumnOrTableConstraintList) \
     V(JoinSuffix) \
     V(JoinSuffixList) \
     V(PartitionBy) \

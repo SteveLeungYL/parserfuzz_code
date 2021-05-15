@@ -398,21 +398,55 @@ class CreateStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+};
+
+class CreateVirtualTableStatement: public CreateStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
     OptIfNotExists * opt_if_not_exists_;
     TableName * table_name_;
-    FilePath * file_path_;
-    ColumnOrTableConstraintList * column_or_table_constraint_list_;
-    SelectStatement * select_statement_;
+    ModuleName* module_name_;
     OptColumnListParen * opt_column_list_paren_;
+    OptWithoutRowID * opt_without_rowid_;
+};
+
+class CreateTriggerStatement: public CreateStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptTmp * opt_tmp_;
+    OptIfNotExists * opt_if_not_exists_;
+    TriggerName * trigger_name_;
+    OptTriggerTime * opt_trigger_time_;
+    TriggerEvent * trigger_event_;
+    TableName * table_name_;
+    OptForEach * opt_for_each_;
+    OptWhen * opt_when_;
+    TriggerCmdList * trigger_cmd_list_;
+};
+
+class CreateIndexStatement: public CreateStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
     OptUnique * opt_unique_;
+    OptIfNotExists * opt_if_not_exists_;
     IndexName * index_name_;
+    TableName * table_name_;
     IndexedColumnList * indexed_column_list_;
     OptWhere * opt_where_;
-    ModuleName * module_name_;
-    TriggerDeclare * trigger_declare_;
-    TriggerCmdList * trigger_cmd_list_;
-    OptWithoutRowID * opt_without_rowid_;
+};
+
+class CreateViewStatement: public CreateStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
     OptTmp * opt_tmp_;
+    OptIfNotExists * opt_if_not_exists_;
+    TableName * view_name_;
+    OptColumnListParen * opt_column_list_paren_;
+    SelectStatement * select_statement_;
 };
 
 class CreateTableStatement: public CreateStatement {
@@ -1153,18 +1187,6 @@ public:
     string str_val_;
 };
 
-class IdentCommaList: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<Identifier*> v_iden_comma_list_;
-    vector<OptCollate*> v_opt_collate_list_;
-    vector<OptOrderType*> v_opt_order_type_;
-    // IdentCommaList * ident_comma_list_;
-    // OptCollate * opt_collate_;
-    // Identifier * identifier_;
-};
-
 class OptColumnConstraintlist: public Opt{
 public:
     virtual void deep_delete();
@@ -1195,14 +1217,6 @@ public:
     ForeignKeyClause * foreign_key_clause_;
     Identifier * identifier_;
     OptStoredVirtual * opt_stored_virtual_;
-};
-
-class ColumnOrTableConstraintList: public Node {
-  public:
-    virtual void deep_delete();
-    virtual IR *translate(vector<IR *> &v_ir_collector);
-    ColumnDefList * column_def_list_;
-    TableConstraintList *table_constraint_list_;
 };
 
 class TableConstraintList: public Node {
@@ -1259,20 +1273,6 @@ public:
     Identifier * identifier_;
 };
 
-class TriggerDeclare: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    OptTmp * opt_tmp_;
-    OptIfNotExists * opt_if_not_exists_;
-    TriggerName * trigger_name_;
-    OptTriggerTime * opt_trigger_time_;
-    TriggerEvent * trigger_event_;
-    TableName * table_name_;
-    OptForEach * opt_for_each_;
-    OptWhen * opt_when_;
-};
-
 class OptTmp: public Opt{
 public:
     virtual void deep_delete();
@@ -1305,7 +1305,7 @@ class OptOfColumnList: public Opt{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    IdentCommaList * ident_commalist_;
+    ColumnNameList * column_name_list_;
 };
 
 class OptForEach: public Opt{
