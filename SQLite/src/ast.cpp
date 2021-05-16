@@ -437,18 +437,6 @@ IR* SelectStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* ImportStatement::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    auto tmp1 = SAFETRANSLATE(import_file_type_);
-    auto tmp2 = SAFETRANSLATE(file_path_);
-    auto tmp3 = SAFETRANSLATE(table_name_);
-    
-    res = new IR(kUnknown, OP2("IMPORT FROM", "FILE"),tmp1, tmp2);
-    PUSH(res);
-    res = new IR(kImportStatement, OPMID("INTO"), res, tmp3);
-    TRANSLATEEND
-}
-
 IR* CreateTriggerStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
@@ -703,6 +691,25 @@ void InsertValue::deep_delete(){
     delete this;
 }
 
+IR* UpdateType::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    SWITCHSTART
+        CASESTART(0)
+            res = new IR(kUpdateType, str_val_);
+        CASEEND
+        CASESTART(1)
+            res = SAFETRANSLATE(resolve_type_);
+            res = new IR(kUpdateType, OP1("UPDATE OR"), res);
+        CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void UpdateType::deep_delete(){
+    SAFEDELETE(resolve_type_);
+    delete this;
+}
+
 IR* InsertType::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
@@ -741,17 +748,45 @@ IR* DeleteStatement::translate(vector<IR *> &v_ir_collector){
 IR* UpdateStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    res = SAFETRANSLATE(table_ref_name_no_alias_);
-    auto tmp = SAFETRANSLATE(update_clause_comma_list_);
-    res = new IR(kUnknown, OP2("UPDATE", "SET"), res, tmp);
+    auto tmp0 = SAFETRANSLATE(opt_with_clause_);
+    auto tmp1 = SAFETRANSLATE(update_type_);
+    res = new IR(kUnknown, OP0(), tmp0, tmp1);
     PUSH(res);
 
-    tmp = SAFETRANSLATE(opt_where_);
-    res = new IR(kUpdateStatement, OP0(), res, tmp);
+    auto tmp2 = SAFETRANSLATE(qualified_table_name_);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+
+    auto tmp3 = SAFETRANSLATE(update_clause_list_);
+    res = new IR(kUnknown, OPMID("SET"), res, tmp3);
+    PUSH(res);
+
+    auto tmp4 = SAFETRANSLATE(opt_from_clause_);
+    res = new IR(kUnknown, OP0(), res, tmp4);
+    PUSH(res);
+
+    auto tmp5 = SAFETRANSLATE(opt_where_);
+    res = new IR(kUnknown, OP0(), res, tmp5);
+    PUSH(res);
+
+    auto tmp6 = SAFETRANSLATE(opt_returning_clause_);
+    res = new IR(kUpdateStatement, OP0(), res, tmp6);
     
     TRANSLATEEND
 
 }
+
+void UpdateStatement::deep_delete(){
+  SAFEDELETE(opt_with_clause_);
+  SAFEDELETE(update_type_);
+  SAFEDELETE(qualified_table_name_);
+	SAFEDELETE(update_clause_list_);
+  SAFEDELETE(opt_from_clause_);
+	SAFEDELETE(opt_where_);
+  SAFEDELETE(opt_returning_clause_);
+	delete this;
+}
+
 
 IR* ExecuteStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -767,14 +802,6 @@ IR* ExecuteStatement::translate(vector<IR *> &v_ir_collector){
             res = new IR(kExecuteStatement, OP3("EXECUTE","(",")"), id, tmp);
         CASEEND
     SWITCHEND
-
-    TRANSLATEEND
-}
-
-IR* ImportFileType::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = new IR(kImportFileType, str_val_);
 
     TRANSLATEEND
 }
@@ -870,9 +897,9 @@ void OptColumnListParen::deep_delete(){
 }
 
 
-IR* UpdateClauseCommalist::translate(vector<IR *> &v_ir_collector){
+IR* UpdateClauseList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    TRANSLATELIST(kUpdateClauseCommalist, v_update_clause_list_, ",");
+    TRANSLATELIST(kUpdateClauseList, v_update_clause_list_, ",");
     TRANSLATEENDNOPUSH
 }
 
@@ -1795,15 +1822,6 @@ IR* TableRefName::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* TableRefNameNoAlias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = SAFETRANSLATE(table_name_);
-    res = new IR(kTableRefNameNoAlias, OP0(), res);
-
-    TRANSLATEEND
-}
-
 IR* ColumnAlias::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
@@ -2196,14 +2214,6 @@ void SelectStatement::deep_delete(){
 }
 
 
-void ImportStatement::deep_delete(){
-	SAFEDELETE(import_file_type_);
-	SAFEDELETE(file_path_);
-	SAFEDELETE(table_name_);
-	delete this;
-}
-
-
 void CreateStatement::deep_delete(){
   assert(0);
 }
@@ -2230,14 +2240,6 @@ void DeleteStatement::deep_delete(){
 }
 
 
-void UpdateStatement::deep_delete(){
-	SAFEDELETE(table_ref_name_no_alias_);
-	SAFEDELETE(update_clause_comma_list_);
-	SAFEDELETE(opt_where_);
-	delete this;
-}
-
-
 void DropStatement::deep_delete(){
 	SAFEDELETE(opt_if_exists_);
 	SAFEDELETE(table_name_);
@@ -2251,11 +2253,6 @@ void DropStatement::deep_delete(){
 void ExecuteStatement::deep_delete(){
 	SAFEDELETE(identifier_);
 	SAFEDELETE(opt_literal_list_);
-	delete this;
-}
-
-
-void ImportFileType::deep_delete(){
 	delete this;
 }
 
@@ -2294,7 +2291,7 @@ void OptIfExists::deep_delete(){
 }
 
 
-void UpdateClauseCommalist::deep_delete(){
+void UpdateClauseList::deep_delete(){
 	SAFEDELETELIST(v_update_clause_list_);
 	delete this;
 }
@@ -2472,12 +2469,6 @@ void NonjoinTableRefAtomic::deep_delete(){
 void TableRefName::deep_delete(){
 	SAFEDELETE(table_name_);
 	SAFEDELETE(opt_table_alias_);
-	delete this;
-}
-
-
-void TableRefNameNoAlias::deep_delete(){
-	SAFEDELETE(table_name_);
 	delete this;
 }
 

@@ -356,15 +356,6 @@ public:
     OptLimit * opt_limit_;
 };
 
-class ImportStatement: public PreparableStatement{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    ImportFileType * import_file_type_;
-    FilePath * file_path_;
-    TableName * table_name_;
-};
-
 class CreateStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
@@ -460,9 +451,13 @@ class UpdateStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableRefNameNoAlias * table_ref_name_no_alias_;
-    UpdateClauseCommalist * update_clause_comma_list_;
+    OptWithClause * opt_with_clause_;
+    UpdateType * update_type_;
+    QualifiedTableName * qualified_table_name_;
+    UpdateClauseList * update_clause_list_;
+    OptFromClause * opt_from_clause_;
     OptWhere * opt_where_;
+    OptReturningClause * opt_returning_clause_;
 };
 
 class DropStatement: public PreparableStatement{
@@ -482,13 +477,6 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     Identifier * identifier_;
     OptLiteralList * opt_literal_list_;
-};
-
-class ImportFileType: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    string str_val_;
 };
 
 class FilePath: public Node{
@@ -557,7 +545,7 @@ public:
     ColumnNameList * column_name_list_;
 };
 
-class UpdateClauseCommalist: public Node{
+class UpdateClauseList: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
@@ -988,13 +976,6 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);
     TableName* table_name_;
     OptTableAlias* opt_table_alias_; 
-};
-
-class TableRefNameNoAlias:public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableName* table_name_;
 };
 
 class OptReturningClause: public Node{
@@ -1456,6 +1437,14 @@ public:
     ExprListParenList * expr_list_paren_list_;
     SelectStatement * select_statement_;
     OptUpsertClause * opt_upsert_clause_;
+};
+
+class UpdateType: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    string str_val_;
+    ResolveType * resolve_type_;
 };
 
 class InsertType: public Node{

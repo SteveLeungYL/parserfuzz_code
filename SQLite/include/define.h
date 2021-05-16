@@ -15,7 +15,6 @@
     V(kShowStatement) \
     V(kPrepareTargetQuery) \
     V(kSelectStatement) \
-    V(kImportStatement) \
     V(kCreateStatement) \
     V(kCreateTableStatement) \
     V(kCreateViewStatement) \
@@ -28,7 +27,6 @@
     V(kUpdateStatement) \
     V(kDropStatement) \
     V(kExecuteStatement) \
-    V(kImportFileType) \
     V(kFilePath) \
     V(kOptIfNotExists) \
     V(kOptRecursive) \
@@ -39,7 +37,7 @@
     V(kOptIfExists) \
     V(kExistsOrNot) \
     V(kOptColumnListParen) \
-    V(kUpdateClauseCommalist) \
+    V(kUpdateClauseList) \
     V(kUpdateClause) \
     V(kSetOperator) \
     V(kSetSelectCore) \
@@ -100,7 +98,6 @@
     V(kTableRefAtomic) \
     V(kNonjoinTableRefAtomic) \
     V(kTableRefName) \
-    V(kTableRefNameNoAlias) \
     V(kTableName) \
     V(kQualifiedTableName) \
     V(kTableAlias) \
@@ -166,6 +163,7 @@
 	V(kFrameExclude) \
 	V(kOptFrameExclude) \
     V(kInsertType) \
+    V(kUpdateType) \
     V(kInsertValue) \
     V(kCmd) \
     V(kCmdAttach) \
@@ -229,7 +227,6 @@
     V(ShowStatement) \
     V(PrepareTargetQuery) \
     V(SelectStatement) \
-    V(ImportStatement) \
     V(CreateStatement) \
     V(CreateTableStatement) \
     V(CreateViewStatement) \
@@ -242,7 +239,6 @@
     V(UpdateStatement) \
     V(DropStatement) \
     V(ExecuteStatement) \
-    V(ImportFileType) \
     V(FilePath) \
     V(OptIfNotExists) \
     V(OptRecursive) \
@@ -253,7 +249,7 @@
     V(OptIfExists) \
     V(ExistsOrNot) \
     V(OptColumnListParen) \
-    V(UpdateClauseCommalist) \
+    V(UpdateClauseList) \
     V(UpdateClause) \
     V(SetOperator) \
     V(SetSelectCore) \
@@ -308,7 +304,6 @@
     V(TableRefAtomic) \
     V(NonjoinTableRefAtomic) \
     V(TableRefName) \
-    V(TableRefNameNoAlias) \
     V(TableName) \
     V(QualifiedTableName) \
     V(TableAlias) \
@@ -372,6 +367,7 @@
 	V(FrameExclude) \
 	V(OptFrameExclude) \
     V(InsertType)\
+    V(UpdateType)\
     V(InsertValue)\
     V(Cmd) \
     V(CmdAttach) \

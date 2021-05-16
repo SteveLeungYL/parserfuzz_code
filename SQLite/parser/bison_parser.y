@@ -106,8 +106,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     /* PrepareStatement* prepare_statement_t; */
     /* PrepareTargetQuery* prepare_target_query_t; */
     ExecuteStatement* execute_statement_t;
-    ImportStatement* import_statement_t;
-    ImportFileType* import_file_type_t;
     FilePath* file_path_t;
     TableRefCommaList* table_ref_commalist_t;
     ShowStatement* show_statement_t;
@@ -134,7 +132,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     InsertStatement* insert_statement_t;
     OptColumnListParen * opt_column_list_paren_t;
     UpdateStatement* update_statement_t;
-    UpdateClauseCommalist* update_clause_commalist_t;
+    UpdateClauseList* update_clause_list_t;
     UpdateClause* update_clause_t;
     SelectStatement* select_statement_t;
     SetOperator* set_operator_t;
@@ -192,7 +190,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     TableRefAtomic* table_ref_atomic_t;
     NonjoinTableRefAtomic* nonjoin_table_ref_atomic_t;
     TableRefName* table_ref_name_t;
-    TableRefNameNoAlias* table_ref_name_no_alias_t;
     TableName* table_name_t;
     QualifiedTableName * qualified_table_name_t;
     TableAlias* table_alias_t;
@@ -257,6 +254,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	FrameExclude*	frame_exclude_t;
   OptFrameExclude* opt_frame_exclude_t;
     InsertType * insert_type_t;
+    UpdateType * update_type_t;
     InsertValue * insert_value_t;
 
     JoinOp * join_op_t;
@@ -355,8 +353,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /* %type <prepare_statement_t>	prepare_statement */
 /* %type <prepare_target_query_t>	prepare_target_query */
 %type <execute_statement_t>	execute_statement
-%type <import_statement_t>	import_statement
-%type <import_file_type_t>	import_file_type
 %type <file_path_t>	file_path
 %type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
@@ -380,7 +376,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <insert_statement_t>	insert_statement
 %type <opt_column_list_paren_t> opt_column_list_paren
 %type <update_statement_t>	update_statement
-%type <update_clause_commalist_t>	update_clause_commalist
+%type <update_clause_list_t>	update_clause_list
 %type <update_clause_t>	update_clause
 %type <select_statement_t>	select_statement
 %type <select_core_t> select_core
@@ -435,7 +431,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <param_expr_t>	param_expr
 %type <table_or_subquery_t> table_or_subquery
 %type <table_or_subquery_list_t> table_or_subquery_list
-%type <table_ref_name_no_alias_t>	table_ref_name_no_alias
 %type <table_name_t>	table_name
 %type <qualified_table_name_t> qualified_table_name
 %type <table_alias_t> table_alias
@@ -508,6 +503,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <frame_exclude_t>	frame_exclude
 %type <opt_frame_exclude_t>	opt_frame_exclude
 %type <insert_type_t> insert_type
+%type <update_type_t> update_type
 %type <insert_value_t> insert_value
 
 %type <alter_statement_t> alter_statement
@@ -776,10 +772,9 @@ preparable_statement:
     |   vacuum_statement {$$ = $1;}
     |   analyze_statement {$$ = $1;}
     |   create_statement { $$ = $1; }
+    |   update_statement { $$ = $1; }
     /* being checked*/
     /* to be checked*/
-    |   import_statement { $$ = $1; }
-    |   update_statement { $$ = $1; }
     |   drop_statement { $$ = $1; }
     |   execute_statement { $$ = $1; }
     |   alter_statement {$$ = $1;}
@@ -1082,22 +1077,6 @@ execute_statement:
             $$->opt_literal_list_ = $4;
             free($2);
         }
-    ;
-
-/******************************
- * Import Statement
- ******************************/
-import_statement:
-        IMPORT FROM import_file_type FILE file_path INTO table_name {
-            $$ = new ImportStatement();
-            $$->import_file_type_ = $3;
-            $$->file_path_ = $5;
-            $$->table_name_ = $7;
-        }
-    ;
-
-import_file_type:
-        CSV { $$ = new ImportFileType(); $$->str_val_ = "CSV"; }
     ;
 
 file_path:
@@ -1756,6 +1735,11 @@ insert_value:
     ;
 
 
+update_type:
+        UPDATE { $$ = new UpdateType(); $$->sub_type_ = CASE0; $$->str_val_ = string("UPDATE"); }
+    |   UPDATE OR resolve_type {$$ = new UpdateType(); $$->sub_type_ = CASE1; $$->resolve_type_ = $3;}
+    ;
+
 insert_type:
         INSERT INTO { $$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_ = string("INSERT INTO"); }
     |   REPLACE INTO {$$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_  = string("REPLACE INTO");}
@@ -1773,20 +1757,24 @@ opt_column_list_paren:
  ******************************/
 
 update_statement:
-    UPDATE table_ref_name_no_alias SET update_clause_commalist opt_where {
+    opt_with_clause update_type qualified_table_name SET update_clause_list opt_from_clause opt_where opt_returning_clause {
         $$ = new UpdateStatement();
-        $$->table_ref_name_no_alias_ = $2; //had set id_top_table_name in table_ref_name_no_alias
-        $$->update_clause_comma_list_ = $4;
-        $$->opt_where_ = $5;
+        $$->opt_with_clause_ = $1;
+        $$->update_type_ = $2;
+        $$->qualified_table_name_ = $3;
+        $$->update_clause_list_ = $5;
+        $$->opt_from_clause_ = $6;
+        $$->opt_where_ = $7;
+        $$->opt_returning_clause_ = $8;
     }
     ;
 
-update_clause_commalist:
+update_clause_list:
         update_clause { 
-            $$ = new UpdateClauseCommalist(); 
+            $$ = new UpdateClauseList(); 
             $$->v_update_clause_list_.push_back($1); 
             }
-    |   update_clause_commalist ',' update_clause { 
+    |   update_clause_list ',' update_clause { 
         $1->v_update_clause_list_.push_back($3); 
         $$ = $1; }
     ;
@@ -2434,14 +2422,6 @@ where_expr:
 
 escape_expr:
         ESCAPE new_expr { $$ = new EscapeExpr(); $$->expr_ = $2; }
-    ;
-
-table_ref_name_no_alias:
-        table_name {
-            $$ = new TableRefNameNoAlias();
-            $$->table_name_ = $1;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
-        }
     ;
 
 qualified_table_name:
