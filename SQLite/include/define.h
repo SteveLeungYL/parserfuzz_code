@@ -20,7 +20,6 @@
     V(kCreateTriggerStatement) \
     V(kInsertStatement) \
     V(kDeleteStatement) \
-    V(kDeleteStatementLimited) \
     V(kUpdateStatement) \
     V(kDropStatement) \
     V(kDropIndexStatement) \
@@ -230,7 +229,6 @@
     V(CreateTriggerStatement) \
     V(InsertStatement) \
     V(DeleteStatement) \
-    /* V(DeleteStatementLimited) */ \
     V(UpdateStatement) \
     V(DropStatement) \
     V(DropIndexStatement) \

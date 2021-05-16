@@ -2010,7 +2010,7 @@ expr_list:
 function_name:
         IDENTIFIER {
             $$ = new FunctionName(); 
-            $$->identifier_ = new Identifier($1, id_function_name); 
+            $$->identifier_ = new Identifier($1); 
             free($1);
         }
 ;
