@@ -12,7 +12,7 @@ class RESULT(Enum):
     SEG_FAULT = -2
 
 class BisectingResults:
-    query: str = ""
+    query = []
     first_buggy_commit_id: str = ""
     first_corr_commit_id: str = ""
     final_res_flag:RESULT = RESULT.PASS

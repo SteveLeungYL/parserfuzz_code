@@ -11,7 +11,7 @@ class Fuzzer:
     @classmethod
     def setup_and_run_fuzzing(cls):
         os.chdir(FUZZING_ROOT_DIR)
-        for i in range(MAX_FUZZING_INSTANCE):
+        for i in range(CORE_ID_BEGIN, CORE_ID_BEGIN + MAX_FUZZING_INSTANCE):
             try:
                 shutil.rmtree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
             except:
@@ -21,11 +21,11 @@ class Fuzzer:
             shutil.copytree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root"), os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
             os.chdir(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
             fuzzing_command = FUZZING_COMMAND + " -c " + str(i) + " -- " + SQLITE_FUZZING_BINARY_PATH + " &"
-            p = subprocess.Popen([fuzzing_command], cwd=os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)), shell=True, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+            p = subprocess.Popen([fuzzing_command], cwd=os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)), shell=True, stderr = subprocess.DEVNULL, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
 
-            all_fuzzing_instances_list.append(p)
+            cls.all_fuzzing_instances_list.append(p)
         atexit.register(cls.exit_handler)
-        os.chdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis")) # Change back to original workdir in case of errors. 
+        os.chdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis")) # Change back to original workdir in case of errors. 
 
     @classmethod
     def exit_handler(cls):

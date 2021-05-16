@@ -2967,14 +2967,14 @@ u8 execute_cmd_string(string cmd_string, vector<int>& explain_diff_id, char** ar
 
     int outputfile_fd = 0;
     while (true){
-      DIR* dir = opendir("../bug_analysis/bug_samples/");
+      DIR* dir = opendir("../Bug_Analysis/bug_samples/");
       if (!dir) {
-        cerr << "ERROR: ../bug_analysis/bug_samples/ folder doesn't exists. \n";
+        cerr << "ERROR: ../Bug_Analysis/bug_samples/ folder doesn't exists. \n";
         exit(1);
       }
       closedir(dir);
       bug_output_id++;
-      string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
+      string bug_output_dir = "../Bug_Analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
       outputfile_fd = open(bug_output_dir.c_str(), O_CREAT | O_EXCL, 0666);   // Used to atomically create the file. We can make sure bug_output_id is unique across process. 
       if (outputfile_fd == -1) continue;    // If the file is already exist. Switch to the next bug_output_id and try to create the file again.
       else {
@@ -2982,7 +2982,7 @@ u8 execute_cmd_string(string cmd_string, vector<int>& explain_diff_id, char** ar
         break;
       }
     }
-    string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
+    string bug_output_dir = "../Bug_Analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);

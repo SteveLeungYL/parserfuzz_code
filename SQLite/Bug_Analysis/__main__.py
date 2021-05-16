@@ -7,7 +7,7 @@ print(os.getcwd())
 sys.path.append(os.getcwd())
 
 from bi_config import *
-from helper import VerCon, IO, log_out_line, Bisect
+from helper import VerCon, IO, log_out_line, Bisect, Fuzzer
 from ORACLE import Oracle_TLP
 
 
@@ -15,7 +15,7 @@ def main():
     
     IO.gen_unique_bug_output_dir(True)
 
-    # Fuzzer.setup_and_run_fuzzing()
+    Fuzzer.setup_and_run_fuzzing()
 
     oracle = Oracle_TLP()
 
@@ -32,10 +32,10 @@ def main():
         if all_new_queries == []:
             time.sleep(1.0)
             continue
-        for all_queries_idx, opt_unopt_queries in enumerate(all_new_queries): 
-            if "randomblob" in opt_unopt_queries or "random" in opt_unopt_queries or "julianday" in opt_unopt_queries:
-                continue
-            Bisect.run_bisecting(opt_unopt_queries = opt_unopt_queries, oracle=oracle)
+        if "randomblob" in all_new_queries[0] or "random" in all_new_queries[0] or "julianday" in all_new_queries[0]:
+            continue
+        Bisect.run_bisecting(queries_l = all_new_queries, oracle=oracle)
+        IO.status_print()
 
 if __name__ == "__main__":
     main()

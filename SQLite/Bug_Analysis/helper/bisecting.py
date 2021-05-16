@@ -202,4 +202,3 @@ class Bisect:
         else:
             current_bisecting_result.uniq_bug_id_int = "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
             IO.write_uniq_bugs_to_files(current_bisecting_result)
-        IO.status_print()

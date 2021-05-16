@@ -126,21 +126,29 @@ class IO:
     @classmethod
     def _pretty_process(cls, bisecting_result:BisectingResults):
 
-        if bisecting_result.opt_result == [] or bisecting_result.opt_result == None or bisecting_result.unopt_result == [] or bisecting_result.unopt_result == None:
+        if bisecting_result.last_buggy_res_str_l == [] or bisecting_result.last_buggy_res_str_l == None:
             return
 
         same_idx = []
-        for idx in range(0, len(bisecting_result.opt_result)):
+        for idx in range(0, len(bisecting_result.last_buggy_res_str_l)):
             # Ignore the result with the same output, and ignore the result that are negative. (-1 Error Execution for most cases)
-            if bisecting_result.all_result_flags[idx] != RESULT.FAIL or bisecting_result.opt_result[idx] == "Error" or bisecting_result.unopt_result[idx] == "Error":
+            if bisecting_result.last_buggy_res_flags_l[idx] != RESULT.FAIL:
                 same_idx.append(idx)
-
-        bisecting_result.query = cls._pretty_print(bisecting_result.query, same_idx)
+                break
+            
+            for buggy_res_str in bisecting_result.last_buggy_res_str_l[idx]:
+                if "Error" in buggy_res_str:
+                    same_idx.append(idx)
+                    break
+        
+        pretty_query = []
+        for cur_query in bisecting_result.query:
+            pretty_query.append(cls._pretty_print(cur_query, same_idx))
+        bisecting_result.query = pretty_query
 
         same_idx.reverse()
         for idx in same_idx:
-            bisecting_result.opt_result.pop(idx)
-            bisecting_result.unopt_result.pop(idx)
+            bisecting_result.last_buggy_res_str_l.pop(idx)
 
     @classmethod
     def write_uniq_bugs_to_files(cls, current_bisecting_result: BisectingResults): 
@@ -153,24 +161,30 @@ class IO:
             append_or_write = 'w'
         bug_output_file = open(current_unique_bug_output, append_or_write)
 
-        cls.pretty_process(current_bisecting_result)
+        cls._pretty_process(current_bisecting_result)
 
         if current_bisecting_result.uniq_bug_id_int != "Unknown":
             bug_output_file.write("Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int)
         else:
             bug_output_file.write("Bug ID: Unknown. \n\n")
 
-        bug_output_file.write("Query: %s \n\n" % current_bisecting_result.query)
+        for idx, cur_query in enumerate(current_bisecting_result.query):
+            bug_output_file.write("Query %d: \n%s \n\n" % (idx, cur_query))
 
         if current_bisecting_result.final_res_flag == RESULT.SEG_FAULT:
             bug_output_file.write("Error: The early commit failed to compile, or crashing. Failed to find the bug introduced commit. \n")
 
-        if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None \
-            and current_bisecting_result.unopt_result != [] and current_bisecting_result.unopt_result != None:
-            for idx in range(min(len(current_bisecting_result.opt_result), len(current_bisecting_result.unopt_result))):
-                bug_output_file.write("Last buggy NUM %d: \n" % idx)
-                bug_output_file.write("Last buggy Opt_result: %s \n" % current_bisecting_result.opt_result[idx])
-                bug_output_file.write("Last buggy Unopt_result: %s \n" % current_bisecting_result.unopt_result[idx])
+        # if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None \
+        #     and current_bisecting_result.unopt_result != [] and current_bisecting_result.unopt_result != None:
+        #     for idx in range(min(len(current_bisecting_result.opt_result), len(current_bisecting_result.unopt_result))):
+        #         bug_output_file.write("Last buggy NUM %d: \n" % idx)
+        #         bug_output_file.write("Last buggy Opt_result: %s \n" % current_bisecting_result.opt_result[idx])
+        #         bug_output_file.write("Last buggy Unopt_result: %s \n" % current_bisecting_result.unopt_result[idx])
+        if current_bisecting_result.last_buggy_res_str_l != [] and current_bisecting_result.last_buggy_res_str_l != None:
+            for i, cur_run_res in enumerate(current_bisecting_result.last_buggy_res_str_l):
+                bug_output_file.write("Run ID: %d \n" % (i))
+                for j, cur_res in enumerate(cur_run_res):
+                    bug_output_file.write("Last Buggy Result Num: %d \n%s\n\n\n" % (j, cur_res))
         else:
             bug_output_file.write("Last buggy results: None. Possibly because the latest commit already fix the bug. \n\n")
 
@@ -192,18 +206,14 @@ class IO:
     @classmethod
     def status_print(cls):
         from Bug_Analysis.helper.bisecting import Bisect
-        while True:
-            if cls.total_processed_bug_count_int == 0:
-                print("Initializing...\n")
-            else:
-                print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (cls.total_processed_bug_count_int, Bisect.uniq_bug_id_int))
+        print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (cls.total_processed_bug_count_int, Bisect.uniq_bug_id_int))
 
     @classmethod
     def gen_unique_bug_output_dir(cls, is_removed_ori:bool = True):
-        if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis")):
-            os.mkdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis"))
-        if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis/bug_samples")):
-            os.mkdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis/bug_samples"))
+        if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis")):
+            os.mkdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis"))
+        if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis/bug_samples")):
+            os.mkdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis/bug_samples"))
         if os.path.isdir(UNIQUE_BUG_OUTPUT_DIR) and is_removed_ori == True:
             shutil.rmtree(UNIQUE_BUG_OUTPUT_DIR)
             os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
