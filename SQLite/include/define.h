@@ -26,6 +26,10 @@
     V(kDeleteStatementLimited) \
     V(kUpdateStatement) \
     V(kDropStatement) \
+    V(kDropIndexStatement) \
+    V(kDropTableStatement) \
+    V(kDropViewStatement) \
+    V(kDropTriggerStatement) \
     V(kExecuteStatement) \
     V(kFilePath) \
     V(kOptIfNotExists) \
@@ -238,6 +242,10 @@
     /* V(DeleteStatementLimited) */ \
     V(UpdateStatement) \
     V(DropStatement) \
+    V(DropIndexStatement) \
+    V(DropTableStatement) \
+    V(DropViewStatement) \
+    V(DropTriggerStatement) \
     V(ExecuteStatement) \
     V(FilePath) \
     V(OptIfNotExists) \

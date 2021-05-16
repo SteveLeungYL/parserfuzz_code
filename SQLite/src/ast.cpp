@@ -24,32 +24,41 @@ string get_string_by_ir_type(IRTYPE type){
 string get_string_by_id_type(IDTYPE type) {
 
   switch (type) {
-    case id_whatever:       return "id_whatever";
-    case id_top_table_name: return "id_top_table_name";
-    case id_column_name:    return "id_column_name";
-    case id_table_name:     return "id_table_name";
-    case id_create_table_name:  return "id_create_table_name";
-    case id_create_column_name: return "id_create_column_name";
-    case id_schema_name:        return "id_schema_name";
-    case id_pragma_name:        return "id_pragma_name";
-    case id_pragma_value:       return "id_pragma_value";
-    case id_create_index_name:         return "id_create_index_name";
-    case id_index_name:         return "id_index_name";
-    case id_trigger_name:       return "id_trigger_name";
-    case id_module_name:        return "id_moudle_name";
-    case id_create_window_name:    return "id_create_window_name";
-    case id_window_name:        return "id_window_name";
-    case id_base_window_name:   return "id_base_window_name";
-    case id_savepoint_name:     return "id_savepoint_name";
-    case id_create_savepoint_name:     return "id_create_savepoint_name";
-    case id_collation_name:     return "id_collation_name";
-    case id_database_name:      return "id_database_name";
-    case id_alias_name:         return "id_alias_name";
+    case id_whatever:               return "id_whatever";
+
+    case id_create_table_name:      return "id_create_table_name";
+    case id_top_table_name:         return "id_top_table_name";
+    case id_table_name:             return "id_table_name";
+
+    case id_create_column_name:     return "id_create_column_name";
+    case id_column_name:            return "id_column_name";
+
+    case id_pragma_name:            return "id_pragma_name";
+    case id_pragma_value:           return "id_pragma_value";
+
+    case id_create_index_name:      return "id_create_index_name";
+    case id_index_name:             return "id_index_name";
+
+    case id_create_trigger_name:    return "id_create_trigger_name";
+    case id_trigger_name:           return "id_trigger_name";
+
+    case id_create_window_name:     return "id_create_window_name";
+    case id_window_name:            return "id_window_name";
+    case id_base_window_name:       return "id_base_window_name";
+
+    case id_create_savepoint_name:  return "id_create_savepoint_name";
+    case id_savepoint_name:         return "id_savepoint_name";
+
+    case id_schema_name:            return "id_schema_name";
+    case id_module_name:            return "id_moudle_name";
+    case id_collation_name:         return "id_collation_name";
+    case id_database_name:          return "id_database_name";
+    case id_alias_name:             return "id_alias_name";
     case id_table_alias_name:       return "id_table_alias_name";
     case id_column_alias_name:      return "id_column_alias_name";
     case id_function_name:          return "id_function_name";
     case id_table_constraint_name:  return "id_table_constraint_name";
-    default:                    return "unknown identifier type";
+    default:                        return "unknown identifier type";
   }
 }
 
@@ -287,53 +296,146 @@ IR * TableName::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            IR * tmp1 = SAFETRANSLATE(table_id_);
+            IR * tmp1 = SAFETRANSLATE(identifier_);
             res = new IR(kTableName, OP0(), tmp1);
         CASEEND
         CASESTART(1)
             IR * tmp1 = SAFETRANSLATE(database_id_);
-            IR * tmp2 = SAFETRANSLATE(table_id_);
+            IR * tmp2 = SAFETRANSLATE(identifier_);
             res = new IR(kTableName, OPMID("."), tmp1, tmp2);
         CASEEND        
     SWITCHEND
     TRANSLATEEND
 }
 
-IR * DropStatement::translate(vector<IR *> &v_ir_collector){
+void TableName::deep_delete(){
+	SAFEDELETE(identifier_);
+	SAFEDELETE(database_id_);
+	delete this;
+}
 
+
+IR * TriggerName::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
-            IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
-            IR * tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kDropStatement, OPSTART("DROP TABLE"), tmp1, tmp2);
+            IR * tmp1 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OP0(), tmp1);
         CASEEND
         CASESTART(1)
-            IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
-            IR * tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kDropStatement, OPSTART("DROP VIEW"), tmp1, tmp2);
-        CASEEND
-        CASESTART(2)
-            IR * tmp1 = SAFETRANSLATE(identifier_);
-            res = new IR(kDropStatement, OPSTART("DEALLOCATE PREPARE"), tmp1);
-        CASEEND
-        CASESTART(3)
-            auto opt_exist = SAFETRANSLATE(opt_if_exists_);
-            auto schema_name = SAFETRANSLATE(schema_name_);
-            auto trigger_name = SAFETRANSLATE(trigger_name_);
-            res = new IR(kUnknown, OPMID("."), schema_name, trigger_name);
-            PUSH(res);
-            res = new IR(kDropStatement, OP1("DROP TRIGGER"), opt_exist, res);
-        CASEEND
-        CASESTART(4)
-            auto opt_exist = SAFETRANSLATE(opt_if_exists_);
-            auto trigger_name = SAFETRANSLATE(trigger_name_);
-            res = new IR(kDropStatement, OP1("DROP TRIGGER"), opt_exist, trigger_name);
-        CASEEND
+            IR * tmp1 = SAFETRANSLATE(database_id_);
+            IR * tmp2 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OPMID("."), tmp1, tmp2);
+        CASEEND        
     SWITCHEND
+    TRANSLATEEND
+}
+
+void TriggerName::deep_delete(){
+  SAFEDELETE(identifier_);
+  SAFEDELETE(database_id_);
+	delete this;
+}
+
+
+IR * IndexName::translate(vector<IR*> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+        CASESTART(0)
+            IR * tmp1 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OP0(), tmp1);
+        CASEEND
+        CASESTART(1)
+            IR * tmp1 = SAFETRANSLATE(database_id_);
+            IR * tmp2 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OPMID("."), tmp1, tmp2);
+        CASEEND        
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void IndexName::deep_delete(){
+  SAFEDELETE(identifier_);
+  SAFEDELETE(database_id_);
+	delete this;
+}
+
+
+IR * DropViewStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(view_name_);
+    res = new IR(kDropViewStatement, OPSTART("DROP VIEW"), tmp1, tmp2);
 
     TRANSLATEEND
+}
+
+void DropViewStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(view_name_);
+  delete this;
+}
+
+
+IR * DropTriggerStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(trigger_name_);
+    res = new IR(kDropTriggerStatement, OPSTART("DROP TRIGGER"), tmp1, tmp2);
+
+    TRANSLATEEND
+}
+
+void DropTriggerStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(trigger_name_);
+  delete this;
+}
+
+
+IR * DropIndexStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(index_name_);
+    res = new IR(kDropIndexStatement, OPSTART("DROP INDEX"), tmp1, tmp2);
+
+    TRANSLATEEND
+}
+
+void DropIndexStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(index_name_);
+  delete this;
+}
+
+
+IR * DropTableStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(table_name_);
+    res = new IR(kDropTableStatement, OPSTART("DROP TABLE"), tmp1, tmp2);
+
+    TRANSLATEEND
+}
+
+void DropTableStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(table_name_);
+  delete this;
+}
+
+IR * DropStatement::translate(vector<IR *> &v_ir_collector){
+  assert(0);
 }
 
 IR * OptIfExists::translate(vector<IR *> &v_ir_collector){
@@ -2241,12 +2343,7 @@ void DeleteStatement::deep_delete(){
 
 
 void DropStatement::deep_delete(){
-	SAFEDELETE(opt_if_exists_);
-	SAFEDELETE(table_name_);
-	SAFEDELETE(identifier_);
-    SAFEDELETE(schema_name_);
-    SAFEDELETE(trigger_name_);
-	delete this;
+  assert(0);
 }
 
 
@@ -2469,13 +2566,6 @@ void NonjoinTableRefAtomic::deep_delete(){
 void TableRefName::deep_delete(){
 	SAFEDELETE(table_name_);
 	SAFEDELETE(opt_table_alias_);
-	delete this;
-}
-
-
-void TableName::deep_delete(){
-	SAFEDELETE(table_id_);
-	SAFEDELETE(database_id_);
 	delete this;
 }
 
@@ -2982,19 +3072,6 @@ void OptUnique::deep_delete(){
 }
 
 
-IR * IndexName::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(identifier_);
-    res = new IR(kIndexName, OP0(), res);
-	TRANSLATEEND
-}
-
-void IndexName::deep_delete(){
-    SAFEDELETE(identifier_);
-	delete this;
-}
-
-
 IR * OptTmp::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     res = new IR(kOptTmp, str_val_);
@@ -3002,19 +3079,6 @@ IR * OptTmp::translate(vector<IR*> &v_ir_collector){
 }
 
 void OptTmp::deep_delete(){
-	delete this;
-}
-
-
-IR * TriggerName::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(identifier_);
-    res = new IR(kTriggerName, OP0(), res);
-	TRANSLATEEND
-}
-
-void TriggerName::deep_delete(){
-    SAFEDELETE(identifier_);
 	delete this;
 }
 

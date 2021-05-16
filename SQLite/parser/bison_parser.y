@@ -126,6 +126,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ColumnType* column_type_t;
     //OptColumnNullable* opt_column_nullable_t;
     DropStatement* drop_statement_t;
+    DropTableStatement* drop_table_statement_t;
+    DropIndexStatement* drop_index_statement_t;
+    DropViewStatement* drop_view_statement_t;
+    DropTriggerStatement* drop_trigger_statement_t;
     OptIfExists* opt_if_exists_t;
     OptWithoutRowID* opt_without_rowid_t;
     DeleteStatement* delete_statement_t;
@@ -371,6 +375,10 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <column_def_t>	column_def
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
+%type <drop_table_statement_t> drop_table_statement
+%type <drop_index_statement_t> drop_index_statement
+%type <drop_view_statement_t> drop_view_statement
+%type <drop_trigger_statement_t> drop_trigger_statement
 %type <opt_if_exists_t>	opt_if_exists
 %type <delete_statement_t>	delete_statement
 %type <insert_statement_t>	insert_statement
@@ -697,12 +705,12 @@ cmd_pragma:
 
 cmd_reindex:
         REINDEX {$$ = new CmdReindex(); $$->sub_type_ = CASE0;}
-    |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
+    |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
     ;
 
 analyze_statement:
         ANALYZE {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE0;}
-    |   ANALYZE table_name {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_id_->id_type_ = id_top_table_name;}
+    |   ANALYZE table_name {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
     ;
 
 cmd_attach:
@@ -774,12 +782,13 @@ preparable_statement:
     |   create_statement { $$ = $1; }
     |   update_statement { $$ = $1; }
     /* being checked*/
-    /* to be checked*/
     |   drop_statement { $$ = $1; }
+    /* to be checked*/
     |   execute_statement { $$ = $1; }
     |   alter_statement {$$ = $1;}
     /* to be supported */
     /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
+    /* |   update_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
     ;
 
 savepoint_statement:
@@ -1102,13 +1111,13 @@ show_statement:
             $$ = new ShowStatement();
             $$->sub_type_ = CASE1;
             $$->table_name_ = $3;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
         }
     |   DESCRIBE table_name {
             $$ = new ShowStatement();
             $$->sub_type_ = CASE2;
             $$->table_name_ = $2;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
         }
     ;
 
@@ -1124,8 +1133,8 @@ alter_statement:
 		$$->sub_type_ = CASE0;
     $$->table_name1_ = $3;
     $$->table_name2_ = $6;
-    $$->table_name1_->table_id_->id_type_ = id_top_table_name;
-    $$->table_name2_->table_id_->id_type_ = id_create_table_name;
+    $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+    $$->table_name2_->identifier_->id_type_ = id_create_table_name;
 	}
  |	ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
 		$$ = new AlterStatement();
@@ -1134,7 +1143,7 @@ alter_statement:
     $$->opt_column_ = $5;
     $$->column_name1_ = $6;
     $$->column_name2_ = $8;
-    $$->table_name1_->table_id_->id_type_ = id_top_table_name;
+    $$->table_name1_->identifier_->id_type_ = id_top_table_name;
     $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
 	}
  |	ALTER TABLE table_name ADD opt_column column_def {
@@ -1143,7 +1152,7 @@ alter_statement:
     $$->table_name1_ = $3;
     $$->opt_column_ = $5;
     $$->column_def_ = $6;
-    $$->table_name1_->table_id_->id_type_ = id_top_table_name;
+    $$->table_name1_->identifier_->id_type_ = id_top_table_name;
 	}
  ;
 
@@ -1172,7 +1181,7 @@ create_table_statement:
           $$->sub_type_ = CASE0;
           $$->opt_tmp_ = $2;
           $$->opt_if_not_exists_ = $4;
-          $5->table_id_->id_type_ = id_create_table_name;
+          $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
           $$->select_statement_ = $7;
         }
@@ -1181,7 +1190,7 @@ create_table_statement:
           $$->sub_type_ = CASE1;
           $$->opt_tmp_ = $2;
           $$->opt_if_not_exists_ = $4;
-          $5->table_id_->id_type_ = id_create_table_name;
+          $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
           $$->column_def_list_ = $7;
           $$->opt_without_rowid_ = $9;
@@ -1191,7 +1200,7 @@ create_table_statement:
           $$->sub_type_ = CASE2;
           $$->opt_tmp_ = $2;
           $$->opt_if_not_exists_ = $4;
-          $5->table_id_->id_type_ = id_create_table_name;
+          $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
           $$->column_def_list_ = $7;
           $$->table_constraint_list_ = $9;
@@ -1205,7 +1214,7 @@ create_view_statement:
             $$->opt_tmp_ = $2;
             $$->opt_if_not_exists_ = $4;
             $$->view_name_ = $5;
-            $$->view_name_->table_id_->id_type_ = id_create_table_name;
+            $$->view_name_->identifier_->id_type_ = id_create_table_name;
             $$->opt_column_list_paren_ = $6;
             $$->select_statement_ = $8;
         }
@@ -1219,7 +1228,7 @@ create_index_statement:
             $$->index_name_ = $5;
             $$->index_name_->identifier_->id_type_ = id_create_index_name;;
             $$->table_name_ = $7;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
             $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
         }
@@ -1230,7 +1239,7 @@ create_virtual_table_statement:
             $$ = new CreateVirtualTableStatement();
             $$->opt_if_not_exists_ = $4;
             $$->table_name_ = $5;
-            $$->table_name_->table_id_->id_type_ = id_create_table_name;
+            $$->table_name_->identifier_->id_type_ = id_create_table_name;
             $$->module_name_ = $7;
             $$->opt_column_list_paren_ = $8;
             $$->opt_without_rowid_ = $9;
@@ -1243,9 +1252,11 @@ create_trigger_statement:
             $$->opt_tmp_ = $2;
             $$->opt_if_not_exists_ = $4;
             $$->trigger_name_ = $5;
+            $$->trigger_name_->identifier_->id_type_ = id_create_trigger_name;;
             $$->opt_trigger_time_ = $6;
             $$->trigger_event_ = $7;
             $$->table_name_ = $9;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
             $$->opt_for_each_ = $10;
             $$->opt_when_ = $11;
             $$->trigger_cmd_list_ = $13;
@@ -1269,18 +1280,10 @@ opt_unique:
     | /* empty */ {$$ = new OptUnique(); $$->str_val_ = string("");}
     ;
 
-index_name:
-        IDENTIFIER {$$ = new IndexName(); $$->identifier_ = new Identifier($1, id_index_name); free($1);}
-    ;
-
 opt_tmp:
         TEMP {$$ = new OptTmp(); $$->str_val_ = string("TEMP");}
     |   TEMPORARY {$$ = new OptTmp(); $$->str_val_ = string("TEMPORARY");}
     |   /* empty */  {$$ = new OptTmp(); $$->str_val_ = string("");}
-    ;
-
-trigger_name:
-        IDENTIFIER {$$ = new TriggerName(); $$->identifier_ = new Identifier($1, id_trigger_name); free($1);}
     ;
 
 opt_trigger_time:
@@ -1636,43 +1639,45 @@ column_type:
  * DEALLOCATE PREPARE stmt;
  ******************************/
 
-drop_statement:
+drop_table_statement:
         DROP TABLE opt_if_exists table_name {
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE0;
+            $$ = new DropTableStatement();
             $$->opt_if_exists_ = $3;
             $$->table_name_ = $4;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->identifier_ = NULL;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
         }
-    |   DROP VIEW opt_if_exists table_name {
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_if_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
-            $$->identifier_ = NULL;
-        }
-    |   DEALLOCATE PREPARE IDENTIFIER {
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE2;
-            $$->identifier_ = new Identifier($3);
-            free($3);
-        }
-    |  DROP TRIGGER opt_if_exists schema_name '.' trigger_name{
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE3;
-            $$->opt_if_exists_ = $3;
-            $$->schema_name_ = $4;
-            $$->trigger_name_ = $6;
-    }
+    ;
 
-    |  DROP TRIGGER opt_if_exists trigger_name{
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE4;
+drop_index_statement:
+        DROP INDEX opt_if_exists index_name {
+            $$ = new DropIndexStatement();
+            $$->opt_if_exists_ = $3;
+            $$->index_name_ = $4;
+        }
+    ;
+
+drop_view_statement:
+        DROP VIEW opt_if_exists table_name {
+            $$ = new DropViewStatement();
+            $$->opt_if_exists_ = $3;
+            $$->view_name_ = $4;
+            $$->view_name_->identifier_->id_type_ = id_top_table_name;
+        }
+    ;
+
+drop_trigger_statement:
+        DROP TRIGGER opt_if_exists trigger_name {
+            $$ = new DropTriggerStatement();
             $$->opt_if_exists_ = $3;
             $$->trigger_name_ = $4;
-    }
+        }
+    ;
+
+drop_statement:
+        drop_table_statement { $$ = $1; }
+    |   drop_index_statement { $$ = $1; }
+    |   drop_view_statement  { $$ = $1; }
+    |   drop_trigger_statement { $$ = $1; }
     ;
 
 opt_if_exists:
@@ -1707,7 +1712,7 @@ insert_statement:
             $$->opt_with_clause_ = $1;
             $$->insert_type_ = $2;
             $$->table_name_ = $3;
-            $$->table_name_->table_id_->id_type_ = id_top_table_name;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
             $$->opt_table_alias_as_ = $4;
             $$->opt_column_list_paren_ = $5;
             $$->insert_value_= $6;
@@ -2427,25 +2432,59 @@ escape_expr:
 qualified_table_name:
         table_name opt_table_alias_as opt_index {
           $$ = new QualifiedTableName();
-          $1->table_id_->id_type_ = id_top_table_name;
+          $1->identifier_->id_type_ = id_top_table_name;
           $$->table_name_ = $1;
           $$->opt_table_alias_as_ = $2;
           $$->opt_index_ = $3;
         }
 
+trigger_name:
+        IDENTIFIER { 
+          $$ = new TriggerName(); 
+          $$->sub_type_ = CASE0; 
+          $$->identifier_ = new Identifier($1, id_trigger_name); 
+          free($1);
+        }
+    |   IDENTIFIER '.' IDENTIFIER { 
+          $$ = new TriggerName(); 
+          $$->sub_type_ = CASE1; 
+          $$->database_id_ = new Identifier($1,id_database_name); 
+          $$->identifier_ = new Identifier($3, id_trigger_name);
+          free($1);
+          free($3);
+        }
+    ;
+
+
+index_name:
+        IDENTIFIER { 
+          $$ = new IndexName(); 
+          $$->sub_type_ = CASE0; 
+          $$->identifier_ = new Identifier($1, id_index_name); 
+          free($1);
+        }
+    |   IDENTIFIER '.' IDENTIFIER { 
+          $$ = new IndexName(); 
+          $$->sub_type_ = CASE1; 
+          $$->database_id_ = new Identifier($1,id_database_name); 
+          $$->identifier_ = new Identifier($3, id_index_name);
+          free($1);
+          free($3);
+        }
+    ;
+
 table_name:
         IDENTIFIER { 
           $$ = new TableName(); 
           $$->sub_type_ = CASE0; 
-          $$->table_id_ = new Identifier($1, id_table_name); 
-          $$->database_id_ = NULL; 
+          $$->identifier_ = new Identifier($1, id_table_name); 
           free($1);
         }
     |   IDENTIFIER '.' IDENTIFIER { 
           $$ = new TableName(); 
           $$->sub_type_ = CASE1; 
           $$->database_id_ = new Identifier($1,id_database_name); 
-          $$->table_id_ = new Identifier($3, id_table_name);
+          $$->identifier_ = new Identifier($3, id_table_name);
           free($1);
           free($3);
         }
@@ -2598,7 +2637,7 @@ table_or_subquery:
     |   table_name opt_table_alias opt_index {
           $$ = new TableOrSubquery();
           $$->sub_type_ = CASE2;
-          $1->table_id_->id_type_ = id_top_table_name;
+          $1->identifier_->id_type_ = id_top_table_name;
           $$->table_name_ = $1;
           $$->opt_table_alias_ = $2;
           $$->opt_index_ = $3;

@@ -53,20 +53,21 @@ ALLTYPE(DECLARE_TYPE)
 enum IDTYPE{
     id_whatever,
 
-    id_top_table_name,
-    id_column_name,
-    /* 3 */ id_table_name,
     id_create_table_name,
-    /* 5 */ id_create_column_name,
+    id_top_table_name,
+    id_table_name,
 
-    id_schema_name,
-    /* 7 */ id_pragma_name,
+    id_create_column_name,
+    id_column_name,
+
+    id_pragma_name,
     id_pragma_value,
 
     id_create_index_name,
     id_index_name,
+
+    id_create_trigger_name,
     id_trigger_name,
-    id_module_name,
 
     id_create_window_name,
     id_window_name,
@@ -74,14 +75,16 @@ enum IDTYPE{
 
     id_create_savepoint_name,
     id_savepoint_name,
+
+    id_schema_name,
+    id_module_name,
     id_collation_name,
     id_database_name,
-
     id_alias_name,
     id_table_alias_name,
     id_column_alias_name,
-    id_table_constraint_name,
     id_function_name,
+    id_table_constraint_name,
 };
 
 typedef NODETYPE IRTYPE;
@@ -464,11 +467,38 @@ class DropStatement: public PreparableStatement{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
+};
+
+class DropViewStatement: public DropStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptIfExists * opt_if_exists_;
+    TableName * view_name_;
+};
+
+class DropTableStatement: public DropStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
     OptIfExists * opt_if_exists_;
     TableName * table_name_;
-    Identifier * identifier_;
-    SchemaName* schema_name_;
-    TriggerName* trigger_name_;
+};
+
+class DropIndexStatement: public DropStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptIfExists * opt_if_exists_;
+    IndexName * index_name_;
+};
+
+class DropTriggerStatement: public DropStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    OptIfExists * opt_if_exists_;
+    TriggerName * trigger_name_;
 };
 
 class ExecuteStatement: public PreparableStatement{
@@ -1010,14 +1040,6 @@ public:
     OptIndex * opt_index_;
 };
 
-class TableName: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier* database_id_;
-    Identifier* table_id_;
-};
-
 class OptColumnAlias: public Node {
 public:
     virtual void deep_delete();
@@ -1218,11 +1240,28 @@ public:
     string str_val_;
 };
 
+class TableName: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    Identifier* database_id_;
+    Identifier* identifier_;
+};
+
+class TriggerName: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    Identifier* database_id_;
+    Identifier* identifier_;
+};
+
 class IndexName: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * identifier_;
+    Identifier* database_id_;
+    Identifier* identifier_;
 };
 
 class OptTmp: public Opt{
@@ -1230,13 +1269,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     string str_val_;
-};
-
-class TriggerName: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * identifier_;
 };
 
 class OptTriggerTime: public Opt{
