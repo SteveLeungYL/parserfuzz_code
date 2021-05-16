@@ -172,7 +172,6 @@
     V(kCmdDetach) \
     V(kCmdReindex) \
     V(kAnalyzeStatement) \
-    V(kSuperList)  \
     V(kOnExpr) \
     V(kEscapeExpr) \
     V(kOptEscapeExpr) \
@@ -379,7 +378,6 @@
     V(CmdDetach) \
     V(CmdReindex) \
     V(AnalyzeStatement) \
-    V(SuperList) \
     V(OnExpr) \
     V(EscapeExpr) \
     V(OptEscapeExpr) \

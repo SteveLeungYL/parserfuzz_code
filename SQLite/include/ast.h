@@ -268,13 +268,6 @@ public:
     TableName * table_name_;  
 };
 
-class SuperList: public Node {
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<LiteralList *> v_super_list_; 
-};
-
 class CmdPragma: public Cmd{
 public:
     virtual void deep_delete();

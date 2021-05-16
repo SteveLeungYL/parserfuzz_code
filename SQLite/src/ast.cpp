@@ -368,9 +368,7 @@ IR* Program::translate(vector<IR *> &v_ir_collector){
 
 IR* StatementList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kStatementList, v_statement_list_, ";");
-
     TRANSLATEENDNOPUSH
 }
 
@@ -601,6 +599,7 @@ IR* CreateTableStatement::translate(vector<IR *> &v_ir_collector){
     res = new IR(kUnknown, OP2("CREATE", "TABLE"), tmp0, tmp1);
     PUSH(res);
     res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
     
     SWITCHSTART
         CASESTART(0)
@@ -814,9 +813,7 @@ void OptIfNotExists::deep_delete(){
 
 IR* ColumnDefList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
     TRANSLATELIST(kColumnDefList, v_column_def_list_, ",");
-    
     TRANSLATEENDNOPUSH
 }
 
@@ -875,9 +872,7 @@ void OptColumnListParen::deep_delete(){
 
 IR* UpdateClauseCommalist::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kUpdateClauseCommalist, v_update_clause_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
@@ -924,8 +919,8 @@ void OptSetSelectCoreList::deep_delete() {
 
 IR * SetSelectCoreList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  TRANSLATELIST(kSetSelectCoreList, v_set_select_core_list_, "");
-  TRANSLATEEND
+  TRANSLATELIST(kSetSelectCoreList, v_set_select_core_list_, " ");
+  TRANSLATEENDNOPUSH
 }
 
 void SetSelectCoreList::deep_delete() {
@@ -1016,9 +1011,6 @@ IR* SelectList::translate(vector<IR *> &v_ir_collector){
 
 IR* FromClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
-    //res = SAFETRANSLATE(table_ref_);
-    //res = new IR(kFromClause, OPSTART("FROM"), res);
     
     SWITCHSTART
 
@@ -1171,9 +1163,7 @@ IR* OptOrder::translate(vector<IR *> &v_ir_collector){
 
 IR* OrderList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kOrderList, v_order_term_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
@@ -1246,9 +1236,7 @@ void OptLimit::deep_delete(){
 
 IR* ExprList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
     TRANSLATELIST(kExprList, v_expr_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
@@ -1256,7 +1244,7 @@ IR* ExprListParen::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     auto tmp = SAFETRANSLATE(expr_list_);
     res = new IR(kExprListParen, OP2("(", ")"), tmp);
-    TRANSLATEENDNOPUSH
+    TRANSLATEEND
 }
 
 void ExprListParen::deep_delete() {
@@ -1279,9 +1267,7 @@ void ExprListParenList::deep_delete() {
 
 IR* LiteralList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
     TRANSLATELIST(kLiteralList, v_literal_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
@@ -1531,19 +1517,15 @@ IR* CaseCondition::translate(vector<IR *> &v_ir_collector){
 }
 IR* CaseConditionList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kCaseConditionList, v_case_condition_list_, " ");
-
     TRANSLATEENDNOPUSH
 }
 
 
 IR *TableConstraintList::translate(vector<IR *> &v_ir_collector) {
     TRANSLATESTART
-
     TRANSLATELIST(kTableConstraintList, v_table_constraint_list_, ",");
-
-    TRANSLATEEND
+    TRANSLATEENDNOPUSH
 }
 
 void TableConstraintList::deep_delete(){
@@ -1764,10 +1746,8 @@ IR* Identifier::translate(vector<IR *> &v_ir_collector){
 
 IR* TableRefCommaList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kTableRefCommaList, v_table_ref_comma_list_, ",");
-
-    TRANSLATEEND
+    TRANSLATEENDNOPUSH
 }
 
 IR* TableRefAtomic::translate(vector<IR *> &v_ir_collector){
@@ -1906,7 +1886,7 @@ void OptReturningClause::deep_delete() {
 IR *ResultColumnList::translate(vector<IR *> &v_ir_collector){
   TRANSLATESTART
   TRANSLATELIST(kResultColumnList, v_result_column_list_, ",");
-  TRANSLATEEND
+  TRANSLATEENDNOPUSH
 }
 
 void ResultColumnList::deep_delete() {
@@ -2020,7 +2000,7 @@ IR* OptWithClause::translate(vector<IR *> &v_ir_collector){
 IR *CommonTableExprList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   TRANSLATELIST(kCommonTableExprList, v_common_table_expr_list_, ",");
-  TRANSLATEEND
+  TRANSLATEENDNOPUSH
 }
 
 void CommonTableExprList::deep_delete() {
@@ -2071,7 +2051,7 @@ void JoinSuffix::deep_delete() {
 IR *JoinSuffixList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   TRANSLATELIST(kJoinSuffixList, v_join_suffix_list_, " ");
-  TRANSLATEEND
+  TRANSLATEENDNOPUSH
 }
 
 void JoinSuffixList::deep_delete() {
@@ -2766,9 +2746,7 @@ void OptColumnConstraintlist::deep_delete(){
 
 IR * ColumnConstraintlist::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-
-    TRANSLATELIST(kColumnConstraintlist, v_column_constraint_, " ");
-
+  TRANSLATELIST(kColumnConstraintlist, v_column_constraint_, " ");
 	TRANSLATEENDNOPUSH
 }
 
@@ -2834,7 +2812,7 @@ void OptForeignKeyOnList::deep_delete() {
 IR * ForeignKeyOnList::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
   TRANSLATELIST(kForeignKeyOnList, v_foreign_key_on_list_, " ");
-  TRANSLATEEND
+  TRANSLATEENDNOPUSH
 }
 
 void ForeignKeyOnList::deep_delete() {
@@ -3137,8 +3115,8 @@ void OptWhen::deep_delete(){
 
 IR * TriggerCmdList::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    TRANSLATELIST(kTriggerCmdList, v_trigger_cmd_list_, ";");
-    res->op_->suffix_ = ";";
+  TRANSLATELIST(kTriggerCmdList, v_trigger_cmd_list_, ";");
+  res->op_->suffix_ = ";";
 	TRANSLATEENDNOPUSH
 }
 
@@ -3271,7 +3249,7 @@ void WindowClause::deep_delete(){
 
 IR * WindowDefnList::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    TRANSLATELIST(kWindowDefnList, v_windowdefn_list_, ",");
+  TRANSLATELIST(kWindowDefnList, v_windowdefn_list_, ",");
 	TRANSLATEENDNOPUSH
 }
 
@@ -3494,31 +3472,10 @@ void FrameExclude::deep_delete(){
 }
 
 
-IR * SuperList::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(v_super_list_[0]);
-    res = new IR(kSuperList, OP2("(", ")"), res);
-    PUSH(res);
-    for(int i=1; i<v_super_list_.size(); i++){
-        auto tmp = SAFETRANSLATE(v_super_list_[i]);
-        res = new IR(kSuperList, OP3("", ",(", ")"), res, tmp); 
-        PUSH(res);
-    }
-    
-	TRANSLATEENDNOPUSH
-}
-
-void SuperList::deep_delete(){
-    SAFEDELETELIST(v_super_list_);
-	delete this;
-}
-
 IR *TableOrSubqueryList::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-
   TRANSLATELIST(kTableOrSubqueryList, v_table_or_subquery_list_, ",");
-
-  TRANSLATEEND
+  TRANSLATEENDNOPUSH
 }
 
 void TableOrSubqueryList::deep_delete() {
@@ -3959,10 +3916,8 @@ void UpsertClause::deep_delete(){
 
 IR*  UpsertClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kUpsertClause, v_upsert_item_list_, " ");
-    
-    TRANSLATEEND
+    TRANSLATEENDNOPUSH
 }
 
 void IndexedColumnList::deep_delete(){
@@ -3973,9 +3928,7 @@ void IndexedColumnList::deep_delete(){
 
 IR*  IndexedColumnList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kIndexedColumnList, v_indexed_column_list_, ",")
-
     TRANSLATEENDNOPUSH
 }
 
@@ -4042,9 +3995,7 @@ void AssignList::deep_delete(){
 
 IR*  AssignList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kAssignList, v_assign_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
@@ -4116,9 +4067,7 @@ void ColumnNameList::deep_delete(){
 
 IR*  ColumnNameList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kColumnNameList, v_column_name_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
