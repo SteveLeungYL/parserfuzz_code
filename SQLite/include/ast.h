@@ -501,14 +501,6 @@ public:
     TriggerName * trigger_name_;
 };
 
-class ExecuteStatement: public PreparableStatement{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * identifier_;
-    OptLiteralList * opt_literal_list_;
-};
-
 class FilePath: public Node{
 public:
     virtual void deep_delete();
@@ -764,20 +756,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     vector<ExprListParen *> v_expr_list_paren_list_;
-};
-
-class LiteralList: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<Literal *> v_literal_list_;
-};
-
-class OptLiteralList: public Opt{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    LiteralList * literal_list_;
 };
 
 class NewExpr: public Node {

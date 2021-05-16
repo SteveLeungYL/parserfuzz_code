@@ -890,24 +890,6 @@ void UpdateStatement::deep_delete(){
 }
 
 
-IR* ExecuteStatement::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto id = SAFETRANSLATE(identifier_);
-            res = new IR(kExecuteStatement, OPSTART("EXECUTE"), id);
-        CASEEND
-        CASESTART(1)
-            auto id = SAFETRANSLATE(identifier_);
-            auto tmp = SAFETRANSLATE(opt_literal_list_);
-            res = new IR(kExecuteStatement, OP3("EXECUTE","(",")"), id, tmp);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
 IR* FilePath::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
@@ -1393,28 +1375,6 @@ void ExprListParenList::deep_delete() {
   delete this;
 }
 
-
-IR* LiteralList::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    TRANSLATELIST(kLiteralList, v_literal_list_, ",");
-    TRANSLATEENDNOPUSH
-}
-
-IR* OptLiteralList::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(literal_list_);
-            res = new IR(kOptLiteralList, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptLiteralList, "");
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
 
 IR* NewExpr::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2347,13 +2307,6 @@ void DropStatement::deep_delete(){
 }
 
 
-void ExecuteStatement::deep_delete(){
-	SAFEDELETE(identifier_);
-	SAFEDELETE(opt_literal_list_);
-	delete this;
-}
-
-
 void FilePath::deep_delete(){
 	delete this;
 }
@@ -2478,18 +2431,6 @@ void OptOrderType::deep_delete(){
 
 void ExprList::deep_delete(){
 	SAFEDELETELIST(v_expr_list_);
-	delete this;
-}
-
-
-void LiteralList::deep_delete(){
-	SAFEDELETELIST(v_literal_list_);
-	delete this;
-}
-
-
-void OptLiteralList::deep_delete(){
-	SAFEDELETE(literal_list_);
 	delete this;
 }
 
@@ -3728,21 +3669,29 @@ IR*  AlterStatement::translate(vector<IR *> &v_ir_collector){
 		CASESTART(1)
 			auto tmp0 = SAFETRANSLATE(table_name1_);
 			auto tmp1 = SAFETRANSLATE(opt_column_);
-		    auto tmp2 = SAFETRANSLATE(column_name1_);
+		  auto tmp2 = SAFETRANSLATE(column_name1_);
 			auto tmp3 = SAFETRANSLATE(column_name2_);
 			res = new IR(kUnknown, OP2("ALTER TABLE", "RENAME"), tmp0, tmp1);
-		    PUSH(res);
-		    res = new IR(kUnknown, OP0(), res, tmp2);
-		    PUSH(res);
-		    res = new IR(kAlterStatement, OPMID("TO"), res, tmp3);
+		  PUSH(res);
+		  res = new IR(kUnknown, OP0(), res, tmp2);
+		  PUSH(res);
+		   res = new IR(kAlterStatement, OPMID("TO"), res, tmp3);
 		CASEEND
 		CASESTART(2)
 			auto tmp0 = SAFETRANSLATE(table_name1_);
 			auto tmp1 = SAFETRANSLATE(opt_column_);
-		    auto tmp2 = SAFETRANSLATE(column_def_);
+		  auto tmp2 = SAFETRANSLATE(column_def_);
 			res = new IR(kUnknown, OP2("ALTER TABLE", "ADD"), tmp0, tmp1);
-		    PUSH(res);
-		    res = new IR(kAlterStatement, OP0(), res, tmp2);
+		  PUSH(res);
+		  res = new IR(kAlterStatement, OP0(), res, tmp2);
+		CASEEND
+		CASESTART(3)
+			auto tmp0 = SAFETRANSLATE(table_name1_);
+			auto tmp1 = SAFETRANSLATE(opt_column_);
+		  auto tmp2 = SAFETRANSLATE(column_name1_);
+			res = new IR(kUnknown, OP2("ALTER TABLE", "DROP"), tmp0, tmp1);
+		  PUSH(res);
+		  res = new IR(kAlterStatement, OP0(), res, tmp2);
 		CASEEND
 	SWITCHEND
 	TRANSLATEEND

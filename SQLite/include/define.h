@@ -30,7 +30,6 @@
     V(kDropTableStatement) \
     V(kDropViewStatement) \
     V(kDropTriggerStatement) \
-    V(kExecuteStatement) \
     V(kFilePath) \
     V(kOptIfNotExists) \
     V(kOptRecursive) \
@@ -64,8 +63,6 @@
     V(kExprList) \
     V(kExprListParen) \
     V(kExprListParenList) \
-    V(kLiteralList) \
-    V(kOptLiteralList) \
     V(kNewExpr) \
     V(kExistsExpr) \
     V(kElseExpr) \
@@ -246,7 +243,6 @@
     V(DropTableStatement) \
     V(DropViewStatement) \
     V(DropTriggerStatement) \
-    V(ExecuteStatement) \
     V(FilePath) \
     V(OptIfNotExists) \
     V(OptRecursive) \
@@ -280,8 +276,6 @@
     V(ExprList) \
     V(ExprListParen) \
     V(ExprListParenList) \
-    V(LiteralList) \
-    V(OptLiteralList) \
     V(NewExpr) \
     V(ElseExpr) \
     V(OptElseExpr) \

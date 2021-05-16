@@ -105,7 +105,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     PreparableStatement* preparable_statement_t;
     /* PrepareStatement* prepare_statement_t; */
     /* PrepareTargetQuery* prepare_target_query_t; */
-    ExecuteStatement* execute_statement_t;
     FilePath* file_path_t;
     TableRefCommaList* table_ref_commalist_t;
     ShowStatement* show_statement_t;
@@ -164,8 +163,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     ExprList* expr_list_t;
     ExprListParen* expr_list_paren_t;
     ExprListParenList* expr_list_paren_list_t;
-    OptLiteralList* opt_literal_list_t;
-    LiteralList* literal_list_t;
     OptExpr* opt_expr_t;
     NewExpr* new_expr_t;
     UnaryOp* unary_op_t;
@@ -356,7 +353,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <preparable_statement_t>	preparable_statement
 /* %type <prepare_statement_t>	prepare_statement */
 /* %type <prepare_target_query_t>	prepare_target_query */
-%type <execute_statement_t>	execute_statement
 %type <file_path_t>	file_path
 %type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
@@ -412,8 +408,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <expr_list_t>	expr_list
 %type <expr_list_paren_t> expr_list_paren
 %type <expr_list_paren_list_t> expr_list_paren_list
-%type <opt_literal_list_t>	opt_literal_list
-%type <literal_list_t>	literal_list
 %type <opt_expr_t> opt_expr
 %type <new_expr_t> new_expr
 %type <unary_op_t> unary_op
@@ -781,10 +775,9 @@ preparable_statement:
     |   analyze_statement {$$ = $1;}
     |   create_statement { $$ = $1; }
     |   update_statement { $$ = $1; }
-    /* being checked*/
     |   drop_statement { $$ = $1; }
+    /* being checked*/
     /* to be checked*/
-    |   execute_statement { $$ = $1; }
     |   alter_statement {$$ = $1;}
     /* to be supported */
     /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
@@ -1072,22 +1065,6 @@ column_name_list:
  *     ;
  */
 
-execute_statement:
-        EXECUTE IDENTIFIER {
-            $$ = new ExecuteStatement();
-            $$->sub_type_ = CASE0;
-            $$->identifier_ = new Identifier($2);
-            free($2);
-        }
-    |   EXECUTE IDENTIFIER '(' opt_literal_list ')' {
-            $$ = new ExecuteStatement();
-            $$->sub_type_ = CASE1;
-            $$->identifier_ = new Identifier($2);
-            $$->opt_literal_list_ = $4;
-            free($2);
-        }
-    ;
-
 file_path:
         string_literal { 
             $$ = new FilePath();
@@ -1128,33 +1105,41 @@ show_statement:
  * ALTER TABLE a ADD COLUMN c(name INT);
  *****************************/
 alter_statement:
-	ALTER TABLE table_name RENAME TO table_name {
-		$$ = new AlterStatement();
-		$$->sub_type_ = CASE0;
-    $$->table_name1_ = $3;
-    $$->table_name2_ = $6;
-    $$->table_name1_->identifier_->id_type_ = id_top_table_name;
-    $$->table_name2_->identifier_->id_type_ = id_create_table_name;
-	}
- |	ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
-		$$ = new AlterStatement();
-		$$->sub_type_ = CASE1;
-    $$->table_name1_ = $3;
-    $$->opt_column_ = $5;
-    $$->column_name1_ = $6;
-    $$->column_name2_ = $8;
-    $$->table_name1_->identifier_->id_type_ = id_top_table_name;
-    $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
-	}
- |	ALTER TABLE table_name ADD opt_column column_def {
-		$$ = new AlterStatement();
-		$$->sub_type_ = CASE2;
-    $$->table_name1_ = $3;
-    $$->opt_column_ = $5;
-    $$->column_def_ = $6;
-    $$->table_name1_->identifier_->id_type_ = id_top_table_name;
-	}
- ;
+        ALTER TABLE table_name RENAME TO table_name {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE0;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->table_name2_ = $6;
+          $$->table_name2_->identifier_->id_type_ = id_create_table_name;
+        }
+    |   ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE1;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->opt_column_ = $5;
+          $$->column_name1_ = $6;
+          $$->column_name2_ = $8;
+          $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
+        }
+    |   ALTER TABLE table_name ADD opt_column column_def {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE2;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->opt_column_ = $5;
+          $$->column_def_ = $6;
+        }
+    |   ALTER TABLE table_name DROP opt_column column_name {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE3;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->opt_column_ = $5;
+          $$->column_name1_ = $6;
+        }
+    ;
 
 opt_column:
 	COLUMN {
@@ -2083,28 +2068,6 @@ expr_list:
     |   expr_list ',' new_expr { 
           $1->v_expr_list_.push_back($3); 
           $$ = $1;
-        }
-    ;
-
-opt_literal_list:
-        literal_list { 
-            $$ = new OptLiteralList();
-            $$->sub_type_ = CASE0;
-            $$->literal_list_ = $1;
-            }
-    |   /* empty */ { 
-            $$ = new OptLiteralList();
-            $$->sub_type_ = CASE1; }
-    ;
-
-literal_list:
-        literal { 
-            $$ = new LiteralList(); 
-            $$->v_literal_list_.push_back($1); 
-            }
-    |   literal_list ',' literal { 
-        $1->v_literal_list_.push_back($3); 
-        $$ = $1; 
         }
     ;
 
