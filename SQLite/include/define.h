@@ -10,10 +10,7 @@
     V(kOptString) \
     V(kProgram) \
     V(kStatement) \
-    V(kPrepareStatement) \
     V(kPreparableStatement) \
-    V(kShowStatement) \
-    V(kPrepareTargetQuery) \
     V(kSelectStatement) \
     V(kCreateStatement) \
     V(kCreateTableStatement) \
@@ -223,10 +220,7 @@
     V(OptString) \
     V(Program) \
     V(Statement) \
-    V(PrepareStatement) \
     V(PreparableStatement) \
-    V(ShowStatement) \
-    V(PrepareTargetQuery) \
     V(SelectStatement) \
     V(CreateStatement) \
     V(CreateTableStatement) \

@@ -1525,7 +1525,6 @@ void Mutator::_fix(IR * root, string &res){
   }
 
   if (type_ == kFilePath ||
-      type_ == kPrepareTargetQuery ||
       type_ == kOptOrderType ||
       type_ == kColumnType ||
       type_ == kSetOperator ||
@@ -1639,7 +1638,7 @@ void Mutator::_extract_struct(IR * root, string &res) {
     return;
   }
 
-  if (type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
+  if (type_ == kStringLiteral ){
     string str_val = str_val_;
     str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
     str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());

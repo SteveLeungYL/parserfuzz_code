@@ -79,7 +79,6 @@ void IR::_to_string(string &res){
     }
 
     if (type_ == kFilePath ||
-        type_ == kPrepareTargetQuery ||
         type_ == kStringLiteral ||
         type_ == kNumericLiteral ||
         type_ == kIdentifier ||
@@ -249,26 +248,6 @@ void IR::print_ir() {
   return;
 }
 
-IR* ShowStatement::translate(vector<IR *> &v_ir_collector){
-
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(1)
-            IR * tmp = SAFETRANSLATE(table_name_);
-            res = new IR(kShowStatement, OPSTART("SHOW COLUMNS"), tmp);
-        CASEEND
-        CASESTART(0)
-            res = new IR(kShowStatement, OPSTART("SHOW TABLES"));
-        CASEEND
-        CASESTART(2)
-            IR * tmp = SAFETRANSLATE(table_name_);
-            res = new IR(kShowStatement, OPSTART("DESCRIBE"), tmp);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
 
 IR * QualifiedTableName::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -482,10 +461,6 @@ IR* Statement::translate(vector<IR *> &v_ir_collector){
             res = SAFETRANSLATE(preparable_statement_);
             res = new IR(kStatement, OP0(), res);
         CASEEND
-        CASESTART(2)
-            res = SAFETRANSLATE(show_statement_);
-            res = new IR(kStatement, OP0(), res);
-        CASEEND
         CASESTART(3)
             res = SAFETRANSLATE(cmd_);
             res = new IR(kStatement, OP0(), res);
@@ -496,27 +471,8 @@ IR* Statement::translate(vector<IR *> &v_ir_collector){
 }
 
 
-IR* PrepareStatement::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = SAFETRANSLATE(identifier_);
-    auto tmp = SAFETRANSLATE(prep_target_que_);
-    res = new IR(kPrepareStatement, OP2("PREPARE", "FROM"), res, tmp);
-
-    TRANSLATEEND
-    
-}
-
 IR* PreparableStatement::translate(vector<IR *> &v_ir_collector){
-    return NULL;
-}
-
-IR* PrepareTargetQuery::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kPrepareTargetQuery, prep_target_que_);
-
-    TRANSLATEEND
+    assert(0);
 }
 
 IR* SelectStatement::translate(vector<IR *> &v_ir_collector){
@@ -2236,32 +2192,12 @@ void StatementList::deep_delete(){
 
 void Statement::deep_delete(){
 	SAFEDELETE(preparable_statement_);
-	SAFEDELETE(prepare_statement_);
-	SAFEDELETE(show_statement_);
     SAFEDELETE(cmd_);
 	delete this;
 }
 
 
-void PrepareStatement::deep_delete(){
-	SAFEDELETE(identifier_);
-	SAFEDELETE(prep_target_que_);
-	delete this;
-}
-
-
 void PreparableStatement::deep_delete(){
-	delete this;
-}
-
-
-void ShowStatement::deep_delete(){
-	SAFEDELETE(table_name_);
-	delete this;
-}
-
-
-void PrepareTargetQuery::deep_delete(){
 	delete this;
 }
 

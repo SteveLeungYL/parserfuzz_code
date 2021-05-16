@@ -103,11 +103,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     StatementList* statement_list_t;
     Statement* statement_t;
     PreparableStatement* preparable_statement_t;
-    /* PrepareStatement* prepare_statement_t; */
-    /* PrepareTargetQuery* prepare_target_query_t; */
     FilePath* file_path_t;
     TableRefCommaList* table_ref_commalist_t;
-    ShowStatement* show_statement_t;
     CreateStatement* create_statement_t;
     CreateTableStatement * create_table_statement_t;
     CreateViewStatement * create_view_statement_t;
@@ -351,10 +348,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <statement_list_t>	statement_list
 %type <statement_t>	statement
 %type <preparable_statement_t>	preparable_statement
-/* %type <prepare_statement_t>	prepare_statement */
-/* %type <prepare_target_query_t>	prepare_target_query */
 %type <file_path_t>	file_path
-%type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
 %type <create_table_statement_t> create_table_statement
 %type <create_view_statement_t> create_view_statement
@@ -634,19 +628,6 @@ statement:
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
         }
-    /*|    prepare_statement opt_hints {
-     *        $$ = new Statement();
-     *        $$->sub_type_ = CASE1;
-     *        $$->prepare_statement_ = $1;
-     *        $$->optional_hints_ = $2;
-     *    }
-     */
-    |   show_statement {
-            $$ = new Statement();
-            $$->sub_type_ = CASE2;
-            $$->show_statement_ = $1;
-        }
-    
     |   cmd {
             $$ = new Statement();
             $$->sub_type_ = CASE3;
@@ -759,30 +740,32 @@ pragma_name:
         IDENTIFIER {$$ = new PragmaName(); $$->identifier_ = new Identifier($1, id_pragma_name); free($1);}
     ;
 
-
-
 preparable_statement:
     /* have checked */
-        select_statement { $$ = $1; }  
+        alter_statement {$$ = $1;}
+    |   analyze_statement {$$ = $1;}
+    |   begin_statement {$$ = $1;}
+    |   commit_statement {$$ = $1;}
+    |   create_statement { $$ = $1; }
+    |   delete_statement { $$ = $1; }
+    |   drop_statement { $$ = $1; }
     |   insert_statement { $$ = $1; }
-    |   savepoint_statement { $$ = $1; }
     |   release_statement { $$ = $1; }
     |   rollback_statement {$$ = $1;}
-    |   delete_statement { $$ = $1; }
-    |   commit_statement {$$ = $1;}
-    |   begin_statement {$$ = $1;}
-    |   vacuum_statement {$$ = $1;}
-    |   analyze_statement {$$ = $1;}
-    |   create_statement { $$ = $1; }
+    |   savepoint_statement { $$ = $1; }
+    |   select_statement { $$ = $1; }  
     |   update_statement { $$ = $1; }
-    |   drop_statement { $$ = $1; }
+    |   vacuum_statement {$$ = $1;}
+    ;
     /* being checked*/
     /* to be checked*/
-    |   alter_statement {$$ = $1;}
     /* to be supported */
+    /* |   attach_statement {} */
+    /* |   detach_statement {} */
+    /* |   pragma_statement {} */
+    /* |   reindex_statement {} */
     /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
     /* |   update_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
-    ;
 
 savepoint_statement:
         SAVEPOINT IDENTIFIER { $$ = new SavepointStatement(); $$->savepoint_name_ = new Identifier($2, id_create_savepoint_name); free($2); }
@@ -1044,27 +1027,6 @@ column_name_list:
         }
 ;
 
-/******************************
- * Prepared Statement
- ******************************/
-/* prepare_statement:
- *         PREPARE IDENTIFIER FROM prepare_target_query {
- *             $$ = new PrepareStatement();
- *             $$->identifier_ = new Identifier($2);
- *             $$->prep_target_que_ = $4;
- *             free($2);
- *         }
- *     ;
- * 
- * prepare_target_query: STRING 
- *         {
- *             $$ = new PrepareTargetQuery();
- *             $$->prep_target_que_ = "'" + string($1) + "'";
- *             free($1);
- *         }
- *     ;
- */
-
 file_path:
         string_literal { 
             $$ = new FilePath();
@@ -1072,32 +1034,6 @@ file_path:
             delete($1);
          }
     ;
-
-
-/******************************
- * Show Statement
- * SHOW TABLES;
- ******************************/
-
-show_statement:
-        SHOW TABLES {
-            $$ = new ShowStatement();
-            $$->sub_type_ = CASE0;
-        }
-    |   SHOW COLUMNS table_name {
-            $$ = new ShowStatement();
-            $$->sub_type_ = CASE1;
-            $$->table_name_ = $3;
-            $$->table_name_->identifier_->id_type_ = id_top_table_name;
-        }
-    |   DESCRIBE table_name {
-            $$ = new ShowStatement();
-            $$->sub_type_ = CASE2;
-            $$->table_name_ = $2;
-            $$->table_name_->identifier_->id_type_ = id_top_table_name;
-        }
-    ;
-
 
 /*****************************
  * Alter statement

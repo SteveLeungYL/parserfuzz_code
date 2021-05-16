@@ -238,8 +238,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     PreparableStatement* preparable_statement_;
-    PrepareStatement* prepare_statement_;
-    ShowStatement* show_statement_;
     Cmd * cmd_; 
     
 };
@@ -313,14 +311,6 @@ public:
     Identifier * identifier_;
 };
 
-class PrepareStatement: public Statement{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    Identifier * identifier_;
-    PrepareTargetQuery * prep_target_que_;
-};
-
 class PreparableStatement: public Statement{
 public:
     virtual void deep_delete();
@@ -332,20 +322,6 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     TableName * table_name_; 
-};
-
-class ShowStatement: public Statement{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableName * table_name_;
-};
-
-class PrepareTargetQuery: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    string prep_target_que_;
 };
 
 class SelectStatement: public PreparableStatement{
