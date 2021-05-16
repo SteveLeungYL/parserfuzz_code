@@ -1,0 +1,211 @@
+from logging import log
+from .version_control import VerCon
+from .data_struct import BisectingResults, RESULT, log_out_line
+from .executor import Executor
+from .io import IO
+
+class Bisect:
+
+    uniq_bug_id_int = 0
+    all_unique_results_dict = dict()
+
+    def _check_query_exec_correctness_under_commitID(queries_l, commit_ID:str, oracle):
+        INSTALL_DEST_DIR = VerCon.setup_SQLITE_with_commit(hexsha=commit_ID)
+
+        if INSTALL_DEST_DIR == "":
+            return RESULT.FAIL_TO_COMPILE, None, None, None  # Failed to compile commit. 
+
+        all_res_str_l = []
+        for queries in queries_l:
+            all_res_str, res = Executor.execute_queries(queries=queries, sqlite_install_dir = INSTALL_DEST_DIR, oracle=oracle)
+            all_res_str_l.append(all_res_str)
+
+        if res == RESULT.SEG_FAULT:
+            return RESULT.SEG_FAULT, None, None, None
+
+        if len(all_res_str_l) == 0 or res == RESULT.ALL_ERROR:
+            return RESULT.ALL_ERROR, None, None, None
+
+        if len(all_res_str_l[0]) == 0 or all_res_str_l[0] == None:
+            return RESULT.ALL_ERROR, None, None, None
+
+        final_flag, all_res_flags = oracle.comp_query_res(queries_l, all_res_str_l)
+
+        return final_flag, all_res_flags, all_res_str_l
+
+
+    def bi_secting_commits(self, queries_l, oracle):   # Returns Bug introduce commit_ID:str, is_error_result:bool
+        all_commits_str = VerCon.all_commits_hexsha
+        all_tags = VerCon.all_tags
+        newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
+        older_commit_str = ""  # The latest correct commit.
+        last_buggy_res_l = None
+        last_buggy_all_result_flags = None
+        is_error_returned_from_exec = False
+        current_commit_str = ""
+    
+        rn_correctness = RESULT.PASS
+        
+        current_bisecting_result = BisectingResults()
+    
+        for current_tag in reversed(all_tags):   # From the latest tag to the earliest tag.
+            current_commit_str = current_tag.commit.hexsha
+            current_commit_index = all_commits_str.index(current_commit_str)
+            is_successfully_executed = False
+            is_commit_found = False
+    
+            while not is_successfully_executed:
+                current_commit_str = all_commits_str[current_commit_index]
+                rn_correctness, all_res_flags, all_res_str_l =  self._check_query_exec_correctness_under_commitID(queries_l=queries_l, commit_ID=current_commit_str, oracle=oracle)
+                if rn_correctness == RESULT.PASS:   # Execution result is correct.
+                    older_commit_str = current_commit_str
+                    is_successfully_executed = True
+                    is_commit_found = True
+                    break
+                elif rn_correctness == RESULT.FAIL:    # Execution result is buggy
+                    newer_commit_str = current_commit_str
+                    is_successfully_executed = True
+                    last_buggy_res_l = all_res_str_l
+                    last_buggy_all_result_flags = all_res_flags
+                    break
+                elif rn_correctness == RESULT.ALL_ERROR:   # Execution queries all return errors. Treat it similar to execution result is correct.
+                    older_commit_str = current_commit_str
+                    is_successfully_executed = True
+                    is_commit_found = True
+                    is_error_returned_from_exec = True
+                    break
+                else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as passing without mismatched. 
+                    older_commit_str = current_commit_str
+                    is_successfully_executed = False
+                    is_commit_found = True
+                    break
+            if is_commit_found:
+                break
+                
+            
+        if newer_commit_str == "":
+            # Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!! \nOpt: \"%s\", \nunopt: \"%s\". \nReturning None. \n" % (older_commit_str, opt_unopt_queries[0], opt_unopt_queries[1])
+            Error_reason = "Error: The latest commit: %s already fix this bug, or the latest commit is returnning errors!!!\n\n\n" % (current_commit_str)
+            log_out_line(Error_reason)
+    
+            current_bisecting_result.query = queries_l
+            current_bisecting_result.first_corr_commit_id = current_commit_str
+            current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
+            current_bisecting_result.is_bisecting_error = True
+            current_bisecting_result.bisecting_error_reason = Error_reason
+            current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
+            current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
+            current_bisecting_result.final_res_flag = rn_correctness
+    
+            return current_bisecting_result
+    
+        if older_commit_str == "":
+            # Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version for queries \nopt: %s, \nunopt: %s. \nReturning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
+            Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)!!!\n\n\n"
+            log_out_line(Error_reason)
+    
+            current_bisecting_result.query = queries_l
+            current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
+            current_bisecting_result.is_bisecting_error = True
+            current_bisecting_result.bisecting_error_reason = Error_reason
+            current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
+            current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
+            current_bisecting_result.final_res_flag = rn_correctness
+    
+            return current_bisecting_result
+        
+        newer_commit_index = all_commits_str.index(newer_commit_str)
+        older_commit_index = all_commits_str.index(older_commit_str)
+    
+        is_buggy_commit_found = False
+        current_ignored_commit_number = 0
+    
+        while not is_buggy_commit_found:
+            if (newer_commit_index - older_commit_index) <= COMMIT_SEARCH_RANGE:
+                is_buggy_commit_found = True
+                break
+            tmp_commit_index = int((newer_commit_index + older_commit_index) / 2 )  # Approximate towards 0 (older).
+    
+            is_successfully_executed = False
+            while not is_successfully_executed:
+                commit_ID = all_commits_str[tmp_commit_index]
+                if commit_ID in ignored_commits_str:  # Ignore unsuccessfully built commits.
+                    tmp_commit_index -= 1
+                    current_ignored_commit_number += 1
+                    if tmp_commit_index <= older_commit_index:
+                        older_commit_index = int((newer_commit_index + older_commit_index) / 2 )
+                        is_successfully_executed = True  # It is a hack here. The execution failed, but we can treat all the failed execution as executed CORRECT, and continue the outer loop. 
+                        break
+                    continue
+                
+                rn_correctness, all_res_flags, all_res_str_l =  self._check_query_exec_correctness_under_commitID(queries_l=queries_l, commit_ID=commit_ID, oracle=oracle)
+                if rn_correctness == RESULT.PASS:  # The correct version.
+                    older_commit_index = tmp_commit_index
+                    is_successfully_executed = True
+                    break
+                elif rn_correctness == RESULT.FAIL:   # The buggy version. 
+                    newer_commit_index = tmp_commit_index
+                    is_successfully_executed = True
+                    last_buggy_res_l = all_res_str_l
+                    last_buggy_all_result_flags = all_res_flags
+                    break
+                elif rn_correctness == RESULT.ERROR:
+                    older_commit_index = tmp_commit_index
+                    is_successfully_executed = True
+                    is_error_returned_from_exec = True
+                    break
+                else: # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as Passing with no mismatched. 
+                    older_commit_index = tmp_commit_index
+                    is_successfully_executed = False
+                    break
+                
+                
+        if is_buggy_commit_found:
+            log_out_line("Found the bug introduced commit: %s \n\n\n" % (all_commits_str[newer_commit_index]))
+    
+            current_bisecting_result.query = queries_l
+            current_bisecting_result.first_buggy_commit_id = all_commits_str[newer_commit_index]
+            current_bisecting_result.first_corr_commit_id = all_commits_str[older_commit_index]
+            current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
+            current_bisecting_result.is_bisecting_error = False
+            current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
+            current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
+            current_bisecting_result.final_res_flag = rn_correctness
+    
+            return current_bisecting_result
+        else:
+            Error_reason = "Error: Returnning is_buggy_commit_found == False. Possibly related to compilation failure. \n\n\n"
+            log_out_line(Error_reason)
+    
+            current_bisecting_result.query = queries_l
+            current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
+            current_bisecting_result.is_bisecting_error = True
+            current_bisecting_result.bisecting_error_reason = Error_reason
+            current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
+            current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
+            current_bisecting_result.final_res_flag = rn_correctness
+    
+            return current_bisecting_result
+
+    def cross_compare(self, current_bisecting_result):
+        current_commit_ID = current_bisecting_result.first_buggy_commit_id
+        if current_commit_ID not in self.all_unique_results_dict:
+            self.all_unique_results_dict[current_commit_ID] = self.uniq_bug_id_int
+            current_bisecting_result.uniq_bug_id_int = self.uniq_bug_id_int
+            self.uniq_bug_id_int += 1 
+        else:
+            current_bug_id_int = self.all_unique_results_dict[current_commit_ID]
+            current_bisecting_result.uniq_bug_id_int = current_bug_id_int
+
+        return current_bisecting_result
+
+    def run_bisecting(self, queries_l, oracle):
+        log_out_line("\n\n\nBeginning testing with query (sampled with only the first one): \n%s \n" % queries_l[0])
+        current_bisecting_result = self.bi_secting_commits(queries_l = queries_l, oracle=oracle)
+        if not current_bisecting_result.is_bisecting_error:
+            current_bisecting_result = self.cross_compare(current_bisecting_result)  # The unique bug id will be appended to current_bisecting_result when running cross_compare
+            IO.write_uniq_bugs_to_files(current_bisecting_result)
+        else:
+            current_bisecting_result.uniq_bug_id_int = "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
+            IO.write_uniq_bugs_to_files(current_bisecting_result)
+        IO.status_print()

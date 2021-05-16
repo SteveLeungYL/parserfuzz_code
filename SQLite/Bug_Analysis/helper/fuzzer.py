@@ -1,0 +1,32 @@
+import os
+import shutil
+import subprocess
+import atexit
+
+from Bug_Analysis.bi_config import *
+from .io import *
+
+class Fuzzer:
+    all_fuzzing_instances_list = []
+
+    def setup_and_run_fuzzing(self):
+        os.chdir(FUZZING_ROOT_DIR)
+        for i in range(MAX_FUZZING_INSTANCE):
+            try:
+                shutil.rmtree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
+            except:
+                pass
+            
+        for i in range(CORE_ID_BEGIN, CORE_ID_BEGIN + MAX_FUZZING_INSTANCE):
+            shutil.copytree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root"), os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
+            os.chdir(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
+            fuzzing_command = FUZZING_COMMAND + " -c " + str(i) + " -- " + SQLITE_FUZZING_BINARY_PATH + " &"
+            p = subprocess.Popen([fuzzing_command], cwd=os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)), shell=True, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+
+            all_fuzzing_instances_list.append(p)
+        atexit.register(self.exit_handler)
+        os.chdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis")) # Change back to original workdir in case of errors. 
+
+    def exit_handler(self):
+        for fuzzing_instance in self.all_fuzzing_instances_list:
+            fuzzing_instance.kill()

@@ -5,6 +5,7 @@ PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz
 .vscode
 *.swp
+*.pyc
 
 afl-fuzz
 afl-fuzz-asan
