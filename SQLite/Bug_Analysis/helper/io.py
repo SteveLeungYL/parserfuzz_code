@@ -2,20 +2,20 @@ import os
 import re
 import shutil
 
-from .data_struct import log_out_line, BisectingResults, RESULT, is_string_only_whitespace
+from Bug_Analysis.helper.data_struct import log_out_line, BisectingResults, RESULT, is_string_only_whitespace
 from Bug_Analysis.bi_config import *
-from .bisecting import Bisect
 
 
 class IO:
     total_processed_bug_count_int: int = 0
 
-    def read_queries_from_files(self, file_directory:str):
+    @classmethod
+    def read_queries_from_files(cls, file_directory:str):
 
         all_queries = []
         all_files_in_dir = os.listdir(file_directory)
 
-        self.total_processed_bug_count_int += 1
+        cls.total_processed_bug_count_int += 1
 
         for current_file_d in sorted(all_files_in_dir):
             if os.path.isdir(os.path.join(file_directory, current_file_d)) or current_file_d == "." or current_file_d == "..":
@@ -32,9 +32,10 @@ class IO:
             if len(all_queries) != 0:
                 break
         
-        return self._restructured_and_clean_all_queries(all_queries=all_queries)
+        return cls._restructured_and_clean_all_queries(all_queries=all_queries)
 
-    def _restructured_and_clean_all_queries(self, all_queries):
+    @classmethod
+    def _restructured_and_clean_all_queries(cls, all_queries):
         output_all_queries = []
 
         for queries in all_queries:
@@ -56,7 +57,8 @@ class IO:
 
         return output_all_queries
 
-    def _retrive_all_verifi_queries_matches(self, query_str, veri_begin_regex, veri_end_regex):
+    @classmethod
+    def _retrive_all_verifi_queries_matches(cls, query_str, veri_begin_regex, veri_end_regex):
 
         # Grab all the opt queries.
         queries_out = []
@@ -73,7 +75,8 @@ class IO:
 
         return queries_out
 
-    def _retrive_all_normal_queries_matches(self, query_str, veri_begin_regex, veri_end_regex):
+    @classmethod
+    def _retrive_all_normal_queries_matches(cls, query_str, veri_begin_regex, veri_end_regex):
         start_of_norec = query_str.find(veri_begin_regex)
         normal_query = query_str[:start_of_norec]
 
@@ -94,9 +97,8 @@ class IO:
 
         return normal_query
 
-
-
-    def _pretty_print(self, query, same_idx):
+    @classmethod
+    def _pretty_print(cls, query, same_idx):
 
         start_of_norec = query.find("SELECT 13579")
 
@@ -106,10 +108,10 @@ class IO:
         # lines = tail.splitlines()
         # opt_selects = lines[1::6]
         # unopt_selects = lines[4::6]
-        opt_selects, unopt_selects = self._retrive_all_verifi_queries_matches(tail)
+        opt_selects, unopt_selects = cls._retrive_all_verifi_queries_matches(tail)
 
         # It is possible to have multiple normal stmts between norec select stmts. Include them to put them into the header of the output. 
-        header = self._retrive_all_normal_queries(query)
+        header = cls._retrive_all_normal_queries(query)
 
         new_tail = ""
         effect_idx = 0
@@ -120,8 +122,9 @@ class IO:
             new_tail += ("SELECT \"--------- " + str(effect_idx) + "\";" + opt_selects[idx] + unopt_selects[idx] + "\n")
 
         return header + new_tail
-
-    def _pretty_process(self, bisecting_result:BisectingResults):
+    
+    @classmethod
+    def _pretty_process(cls, bisecting_result:BisectingResults):
 
         if bisecting_result.opt_result == [] or bisecting_result.opt_result == None or bisecting_result.unopt_result == [] or bisecting_result.unopt_result == None:
             return
@@ -132,14 +135,15 @@ class IO:
             if bisecting_result.all_result_flags[idx] != RESULT.FAIL or bisecting_result.opt_result[idx] == "Error" or bisecting_result.unopt_result[idx] == "Error":
                 same_idx.append(idx)
 
-        bisecting_result.query = self._pretty_print(bisecting_result.query, same_idx)
+        bisecting_result.query = cls._pretty_print(bisecting_result.query, same_idx)
 
         same_idx.reverse()
         for idx in same_idx:
             bisecting_result.opt_result.pop(idx)
             bisecting_result.unopt_result.pop(idx)
 
-    def write_uniq_bugs_to_files(self, current_bisecting_result: BisectingResults): 
+    @classmethod
+    def write_uniq_bugs_to_files(cls, current_bisecting_result: BisectingResults): 
         if not os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
             os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
         current_unique_bug_output = os.path.join(UNIQUE_BUG_OUTPUT_DIR, "bug_" + str(current_bisecting_result.uniq_bug_id_int))
@@ -149,7 +153,7 @@ class IO:
             append_or_write = 'w'
         bug_output_file = open(current_unique_bug_output, append_or_write)
 
-        self.pretty_process(current_bisecting_result)
+        cls.pretty_process(current_bisecting_result)
 
         if current_bisecting_result.uniq_bug_id_int != "Unknown":
             bug_output_file.write("Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int)
@@ -185,14 +189,17 @@ class IO:
 
         bug_output_file.close()
 
-    def status_print(self):
+    @classmethod
+    def status_print(cls):
+        from Bug_Analysis.helper.bisecting import Bisect
         while True:
-            if self.total_processed_bug_count_int == 0:
+            if cls.total_processed_bug_count_int == 0:
                 print("Initializing...\n")
             else:
-                print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (self.total_processed_bug_count_int, Bisect.uniq_bug_id_int))
+                print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (cls.total_processed_bug_count_int, Bisect.uniq_bug_id_int))
 
-    def gen_unique_bug_output_dir(self, is_removed_ori:bool = True):
+    @classmethod
+    def gen_unique_bug_output_dir(cls, is_removed_ori:bool = True):
         if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis")):
             os.mkdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis"))
         if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "bug_analysis/bug_samples")):
@@ -201,7 +208,8 @@ class IO:
             shutil.rmtree(UNIQUE_BUG_OUTPUT_DIR)
             os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
 
-    def retrive_results_from_str(self, begin_sign:str, end_sign:str, result_str:str):
+    @classmethod
+    def retrive_results_from_str(cls, begin_sign:str, end_sign:str, result_str:str):
         if result_str.count(begin_sign) < 1 or result_str.count(end_sign) < 1 or is_string_only_whitespace(result_str) or result_str == "":
             return None, RESULT.ALL_ERROR  # Missing the outputs from the res_str. Returnning None implying errors. 
 

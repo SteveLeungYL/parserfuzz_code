@@ -1,14 +1,14 @@
-from logging import log
-from .version_control import VerCon
-from .data_struct import BisectingResults, RESULT, log_out_line
-from .executor import Executor
-from .io import IO
+from Bug_Analysis.helper.version_control import VerCon
+from Bug_Analysis.helper.data_struct import BisectingResults, RESULT, log_out_line
+from Bug_Analysis.helper.executor import Executor
+from Bug_Analysis.helper.io import IO
 
 class Bisect:
 
     uniq_bug_id_int = 0
     all_unique_results_dict = dict()
 
+    @staticmethod
     def _check_query_exec_correctness_under_commitID(queries_l, commit_ID:str, oracle):
         INSTALL_DEST_DIR = VerCon.setup_SQLITE_with_commit(hexsha=commit_ID)
 
@@ -33,8 +33,8 @@ class Bisect:
 
         return final_flag, all_res_flags, all_res_str_l
 
-
-    def bi_secting_commits(self, queries_l, oracle):   # Returns Bug introduce commit_ID:str, is_error_result:bool
+    @classmethod
+    def bi_secting_commits(cls, queries_l, oracle):   # Returns Bug introduce commit_ID:str, is_error_result:bool
         all_commits_str = VerCon.all_commits_hexsha
         all_tags = VerCon.all_tags
         newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
@@ -56,7 +56,7 @@ class Bisect:
     
             while not is_successfully_executed:
                 current_commit_str = all_commits_str[current_commit_index]
-                rn_correctness, all_res_flags, all_res_str_l =  self._check_query_exec_correctness_under_commitID(queries_l=queries_l, commit_ID=current_commit_str, oracle=oracle)
+                rn_correctness, all_res_flags, all_res_str_l =  cls._check_query_exec_correctness_under_commitID(queries_l=queries_l, commit_ID=current_commit_str, oracle=oracle)
                 if rn_correctness == RESULT.PASS:   # Execution result is correct.
                     older_commit_str = current_commit_str
                     is_successfully_executed = True
@@ -129,16 +129,8 @@ class Bisect:
             is_successfully_executed = False
             while not is_successfully_executed:
                 commit_ID = all_commits_str[tmp_commit_index]
-                if commit_ID in ignored_commits_str:  # Ignore unsuccessfully built commits.
-                    tmp_commit_index -= 1
-                    current_ignored_commit_number += 1
-                    if tmp_commit_index <= older_commit_index:
-                        older_commit_index = int((newer_commit_index + older_commit_index) / 2 )
-                        is_successfully_executed = True  # It is a hack here. The execution failed, but we can treat all the failed execution as executed CORRECT, and continue the outer loop. 
-                        break
-                    continue
                 
-                rn_correctness, all_res_flags, all_res_str_l =  self._check_query_exec_correctness_under_commitID(queries_l=queries_l, commit_ID=commit_ID, oracle=oracle)
+                rn_correctness, all_res_flags, all_res_str_l =  cls._check_query_exec_correctness_under_commitID(queries_l=queries_l, commit_ID=commit_ID, oracle=oracle)
                 if rn_correctness == RESULT.PASS:  # The correct version.
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
@@ -187,23 +179,25 @@ class Bisect:
     
             return current_bisecting_result
 
-    def cross_compare(self, current_bisecting_result):
+    @classmethod
+    def cross_compare(cls, current_bisecting_result):
         current_commit_ID = current_bisecting_result.first_buggy_commit_id
-        if current_commit_ID not in self.all_unique_results_dict:
-            self.all_unique_results_dict[current_commit_ID] = self.uniq_bug_id_int
-            current_bisecting_result.uniq_bug_id_int = self.uniq_bug_id_int
-            self.uniq_bug_id_int += 1 
+        if current_commit_ID not in cls.all_unique_results_dict:
+            cls.all_unique_results_dict[current_commit_ID] = cls.uniq_bug_id_int
+            current_bisecting_result.uniq_bug_id_int = cls.uniq_bug_id_int
+            cls.uniq_bug_id_int += 1 
         else:
-            current_bug_id_int = self.all_unique_results_dict[current_commit_ID]
+            current_bug_id_int = cls.all_unique_results_dict[current_commit_ID]
             current_bisecting_result.uniq_bug_id_int = current_bug_id_int
 
         return current_bisecting_result
 
-    def run_bisecting(self, queries_l, oracle):
+    @classmethod
+    def run_bisecting(cls, queries_l, oracle):
         log_out_line("\n\n\nBeginning testing with query (sampled with only the first one): \n%s \n" % queries_l[0])
-        current_bisecting_result = self.bi_secting_commits(queries_l = queries_l, oracle=oracle)
+        current_bisecting_result = cls.bi_secting_commits(queries_l = queries_l, oracle=oracle)
         if not current_bisecting_result.is_bisecting_error:
-            current_bisecting_result = self.cross_compare(current_bisecting_result)  # The unique bug id will be appended to current_bisecting_result when running cross_compare
+            current_bisecting_result = cls.cross_compare(current_bisecting_result)  # The unique bug id will be appended to current_bisecting_result when running cross_compare
             IO.write_uniq_bugs_to_files(current_bisecting_result)
         else:
             current_bisecting_result.uniq_bug_id_int = "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.

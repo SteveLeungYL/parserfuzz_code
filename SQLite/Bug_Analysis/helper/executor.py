@@ -3,10 +3,11 @@ import subprocess
 import re
 
 from Bug_Analysis.bi_config import *
-from .data_struct import log_out_line, RESULT
+from Bug_Analysis.helper.data_struct import log_out_line, RESULT
 
 
 class Executor:
+    @staticmethod
     def execute_queries(queries:str, sqlite_install_dir:str, oracle):
         os.chdir(sqlite_install_dir)
         if os.path.isfile(os.path.join(sqlite_install_dir, "file::memory:")):

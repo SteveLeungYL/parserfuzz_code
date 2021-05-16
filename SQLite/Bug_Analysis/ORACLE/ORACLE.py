@@ -1,11 +1,9 @@
-
-
-
 class Oracle:
-    def retrive_all_results(self, result_str):
+    @classmethod
+    def retrive_all_results(cls, result_str):
         pass
 
-    def comp_query_res(self, queries_l, all_res_str_l):
+    @classmethod
+    def comp_query_res(cls, queries_l, all_res_str_l):
         pass
 
-    

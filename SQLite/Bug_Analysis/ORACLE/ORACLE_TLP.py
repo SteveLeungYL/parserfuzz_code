@@ -3,6 +3,7 @@ from io import StringIO
 import re
 from sys import maxsize
 import numpy as np
+from enum import Enum
 
 from .ORACLE import *
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
@@ -16,7 +17,8 @@ class VALID_TYPE_TLP(Enum):
 
 class Oracle_TLP():
 
-    def retrive_all_results(self, result_str):
+    @staticmethod
+    def retrive_all_results(result_str):
         if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
             return None, RESULT.PASS  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
 
@@ -64,10 +66,10 @@ class Oracle_TLP():
 
         return all_results_out
         
-
-    def comp_query_res(self, queries_l, all_res_str_l):
+    @classmethod
+    def comp_query_res(cls, queries_l, all_res_str_l):
         queries = queries_l[0]
-        valid_type_list = self._get_valid_type_list(queries)
+        valid_type_list = cls._get_valid_type_list(queries)
         
         # Has only one run through
         all_res_str_l = all_res_str_l[0]
@@ -80,10 +82,10 @@ class Oracle_TLP():
             # if idx >= len(opt_result) or idx >= len(unopt_result):
             #     break
             if valid_type == VALID_TYPE_TLP.NORM:
-                curr_res = self._check_result_norm(all_res_str_l[idx][0], all_res_str_l[idx][1])
+                curr_res = cls._check_result_norm(all_res_str_l[idx][0], all_res_str_l[idx][1])
                 all_res_out.append(curr_res)
             elif valid_type == VALID_TYPE_TLP.COUNT or valid_type == VALID_TYPE_TLP.SUM or valid_type == VALID_TYPE_TLP.MIN or valid_type == VALID_TYPE_TLP.MAX:
-                curr_res = self._check_result_minmax_count_sum(all_res_str_l[idx][0], all_res_str_l[idx][1], valid_type)
+                curr_res = cls._check_result_minmax_count_sum(all_res_str_l[idx][0], all_res_str_l[idx][1], valid_type)
                 all_res_out.append(curr_res)
             else:
                 raise ValueError("Encounter unknown VALID_TYPE_TLP in the check_query_exec_correctness_under_commitID func. ")
@@ -103,8 +105,8 @@ class Oracle_TLP():
 
         return final_res, all_res_out
 
-
-    def _get_valid_type_list(self, query:str):
+    @classmethod
+    def _get_valid_type_list(cls, query:str):
         if query.count("13579") < 1 or query.count("97531") < 1 or query.count("24680") < 1 or query.count("86420") < 1 or is_string_only_whitespace(query) or query == "":
             return []  # query is not making sense at all.
 
@@ -118,11 +120,12 @@ class Oracle_TLP():
             end_idx.append(m.start())
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_opt_query = query[begin_idx[i]: end_idx[i]]
-            valid_type_list.append(self._get_valid_type(current_opt_query))
+            valid_type_list.append(cls._get_valid_type(current_opt_query))
 
         return valid_type_list
 
-    def get_valid_type(self, query:str):
+    @classmethod
+    def get_valid_type(cls, query:str):
         if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
             # print("For query: %s, returning valid_type: MIN" % (query))
             return VALID_TYPE_TLP.MIN
@@ -139,7 +142,9 @@ class Oracle_TLP():
             # print("For query: %s, returning VALID_TYPE_TLP: NORM" % (query))
             return VALID_TYPE_TLP.NORM
 
-    def _check_result_norm(self, opt:str, unopt:str) -> RESULT:
+
+    @classmethod
+    def _check_result_norm(cls, opt:str, unopt:str) -> RESULT:
         if opt == "Error" or unopt == "Error":
             return RESULT.ERROR
 
@@ -164,7 +169,8 @@ class Oracle_TLP():
             return RESULT.PASS
 
 
-    def _check_result_minmax_count_sum(self, opt, unopt, valid_type)-> RESULT:
+    @classmethod
+    def _check_result_minmax_count_sum(cls, opt, unopt, valid_type)-> RESULT:
         if opt == "Error" or unopt == "Error":
             return RESULT.ERROR
 

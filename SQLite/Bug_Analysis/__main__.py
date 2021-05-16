@@ -1,18 +1,20 @@
 import sys
 import os
 import time
+from git import Repo
 
 print(os.getcwd())
 sys.path.append(os.getcwd())
 
 from bi_config import *
-from helper import * 
-from ORACLE import *
+from helper import VerCon, IO, log_out_line, Bisect
+from ORACLE import Oracle_TLP
 
 
 def main():
     
-    # IO.gen_unique_bug_output_dir()
+    IO.gen_unique_bug_output_dir(True)
+
     # Fuzzer.setup_and_run_fuzzing()
 
     oracle = Oracle_TLP()
