@@ -2608,63 +2608,63 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
       
       if (query != ""){
         if (is_mark)
-          current_output += "SELECT 13579; \n";
+          current_output += "SELECT 'BEGIN VERI 0'; \n";
         current_output += query + "; \n";
         if (is_mark)
-          current_output += "SELECT 97531; \n";
-        /* Use the EXPLAIN QUERY PLAN to see whether the query triggers critical optimization changes. */
+          current_output += "SELECT 'END VERI 0'; \n";
+        /* Use EXPLAIN QUERY PLAN to see whether the query triggers critical optimization changes. */
         if (is_explain) {
           if (is_mark)
-            current_output += "SELECT 11111; \n";
+            current_output += "SELECT 'BEGIN EXPLAIN 0'; \n";
           current_output += "EXPLAIN QUERY PLAN " + query + "; \n";
           if (is_mark)
-            current_output += "SELECT 22222; \n";
+            current_output += "SELECT 'END EXPLAIN 0'; \n";
         }
       }
 
       if (rew_1 != "" && mul_run_id <= 1) {
         if (is_mark)
-          current_output += "SELECT 24680; \n";
+          current_output += "SELECT 'BEGIN VERI 1'; \n";
         current_output += rew_1 + "; \n";
         if (is_mark)
-          current_output += "SELECT 86420; \n";
+          current_output += "SELECT 'END VERI 1'; \n";
         if (is_explain) {
           if (is_mark)
-            current_output += "SELECT 33333; \n";
+            current_output += "SELECT 'BEGIN EXPLAIN 1'; \n";
           current_output += "EXPLAIN QUERY PLAN " + rew_1 + "; \n";
           if (is_mark)
-            current_output += "SELECT 44444; \n";
+            current_output += "SELECT 'END EXPLAIN 1'; \n";
         }
       }
 
       if (rew_2 != "" && mul_run_id <= 1) {
         if (is_mark)
-          current_output += "SELECT 77777; \n";
+          current_output += "SELECT 'BEGIN VERI 2'; \n";
         current_output += rew_2 + "; \n";
         if (is_mark)
-          current_output += "SELECT 88888; \n";
+          current_output += "SELECT 'END VERI 2'; \n";
         if (is_explain) {
           if (is_mark)
-            current_output += "SELECT 77889; \n";
+            current_output += "SELECT 'BEGIN EXPLAIN 2'; \n";
           current_output += "EXPLAIN QUERY PLAN " + rew_2 + "; \n";
           if (is_mark)
-            current_output += "SELECT 99887; \n";
+            current_output += "SELECT 'END EXPLAIN 2'; \n";
         }
       }
 
       if (rew_3 != "" && mul_run_id <= 1) {
         if (is_mark)
-          current_output += "SELECT 55555; \n";
+          current_output += "SELECT 'BEGIN VERI 3'; \n";
         current_output += rew_3 + "; \n";
         if (is_mark)
-          current_output += "SELECT 66666; \n";
+          current_output += "SELECT 'END VERI 3'; \n";
 
         if (is_explain) {
           if (is_mark)
-            current_output += "SELECT 11223; \n";
+            current_output += "SELECT 'BEGIN EXPLAIN 3'; \n";
           current_output += "EXPLAIN QUERY PLAN " + rew_3 + "; \n";
           if (is_mark)
-            current_output += "SELECT 33221; \n";
+            current_output += "SELECT 'END EXPLAIN 3'; \n";
         }
       }
     } else if ( p_oracle->is_oracle_valid_stmt_2(query)) { // If required to rewrite non-select statement
@@ -2725,8 +2725,8 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
 
     vector<string> cur_res_vec, cur_exp_vec;
     /* Only takes one type of validation at a time in the query. */
-    extract_query_result(res_str, cur_res_vec, "13579", "97531");
-    extract_query_result(res_str, cur_exp_vec, "11111", "22222");
+    extract_query_result(res_str, cur_res_vec, "BEGIN VERI 0", "END VERI 0");
+    extract_query_result(res_str, cur_exp_vec, "BEGIN EXPLAIN 0", "END EXPLAIN 0");
     
     res_vec.push_back(std::move(cur_res_vec));
     exp_vec.push_back(std::move(cur_exp_vec));
@@ -2763,23 +2763,23 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, vector<int>& explain_diff_
   vector<string> res_vec_0, res_vec_1, res_vec_2, res_vec_3, exp_vec_0, exp_vec_1, exp_vec_2, exp_vec_3;
 
   /* Look throught first validation stmt's res_0 first */
-  extract_query_result(res_str, res_vec_0, "13579", "97531");
+  extract_query_result(res_str, res_vec_0, "BEGIN VERI 0", "END VERI 0");
 
   /* EXPLAIN QUERY PLAN. First validation stmt. */
-  extract_query_result(res_str, exp_vec_0, "11111", "22222");
+  extract_query_result(res_str, exp_vec_0, "BEGIN EXPLAIN 0", "END EXPLAIN 0");
 
   /* Second validation stmt... etc*/
-  extract_query_result(res_str, res_vec_1, "24680", "86420");
+  extract_query_result(res_str, res_vec_1, "BEGIN VERI 1", "END VERI 1");
 
-  extract_query_result(res_str, exp_vec_1, "33333", "44444");
+  extract_query_result(res_str, exp_vec_1, "BEGIN EXPLAIN 1", "END EXPLAIN 1");
 
-  extract_query_result(res_str, res_vec_2, "77777", "88888");
+  extract_query_result(res_str, res_vec_2, "BEGIN VERI 2", "END VERI 2");
 
-  extract_query_result(res_str, exp_vec_2, "77889", "99887");
+  extract_query_result(res_str, exp_vec_2, "BEGIN EXPLAIN 2", "END EXPLAIN 2");
 
-  extract_query_result(res_str, res_vec_3, "55555", "66666");
+  extract_query_result(res_str, res_vec_3, "BEGIN VERI 3", "END VERI 3");
 
-  extract_query_result(res_str, exp_vec_2, "11223", "33221");
+  extract_query_result(res_str, exp_vec_2, "BEGIN EXPLAIN 3", "END EXPLAIN 3");
 
   // cerr << "Size of res_vec_0: " << res_vec_0.size() << "   1: " << res_vec_1.size() << endl;
   // cerr << "Size of exp_vec_0: " << exp_vec_0.size() << "   1: " << exp_vec_1.size() << endl;
@@ -6991,7 +6991,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_ROWID();   // Set it to your own oracle class. 
+  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   g_mutator.set_use_cri_val(false);

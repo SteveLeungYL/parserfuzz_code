@@ -1,3 +1,4 @@
+import enum
 import os
 import re
 import shutil
@@ -61,8 +62,9 @@ class IO:
     @classmethod
     def _retrive_all_verifi_queries_matches(cls, query_str, veri_begin_regex, veri_end_regex):
 
-        # Grab all the opt queries.
+        # Grab all the verification queries.
         queries_out = []
+        queries_pairs = []
         begin_idx = []
         end_idx = []
         for m in re.finditer(veri_begin_regex, query_str):
@@ -72,14 +74,17 @@ class IO:
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_stmt = query_str[begin_idx[i]: end_idx[i]]
             current_stmt = current_stmt.replace('\n', '')
-            queries_out.append(current_stmt)
+            if current_stmt == "" or current_stmt == " ":
+                continue
+            queries_pairs.append(current_stmt)
+            if (len(queries_pairs) == 2):
+                queries_out.append(queries_pairs)
+                queries_pairs = []
 
         return queries_out
 
     @classmethod
     def _retrive_all_normal_queries_matches(cls, query_str, veri_begin_regex, veri_end_regex):
-        start_of_norec = query_str.find(veri_begin_regex)
-        normal_query = query_str[:start_of_norec]
 
         begin_idx = []
         end_idx = []
@@ -89,19 +94,25 @@ class IO:
         for m in re.finditer(veri_begin_regex, query_str):
             end_idx.append(m.start())
 
+        start_of_verification = end_idx[0]
+        normal_query = query_str[:start_of_verification]
+
         end_idx = end_idx[1:]  # Ignore the first one. The end_idx has 1 offset shift compare to begin_idx. 
 
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_str:str = query_str[begin_idx[i]: end_idx[i]]
             current_str = current_str.replace('\n', '')
+            if is_string_only_whitespace(current_str):
+                continue
             normal_query += current_str + '\n'
 
+        log_out_line("Header is: " + str(normal_query))
         return normal_query
 
     @classmethod
-    def _pretty_print(cls, query, same_idx):
+    def _pretty_print(cls, query, same_idx, oracle):
 
-        start_of_norec = query.find("SELECT 13579")
+        start_of_norec = query.find("SELECT 'BEGIN VERI 0';")
 
         # header = query[:start_of_norec]
         tail = query[start_of_norec:]
@@ -109,33 +120,38 @@ class IO:
         # lines = tail.splitlines()
         # opt_selects = lines[1::6]
         # unopt_selects = lines[4::6]
-        opt_selects, unopt_selects = cls._retrive_all_verifi_queries_matches(tail)
+        veri_stmts = cls._retrive_all_verifi_queries_matches(tail, r"SELECT 'BEGIN VERI [0-9]';", r"SELECT 'END VERI [0-9]';")
 
         # It is possible to have multiple normal stmts between norec select stmts. Include them to put them into the header of the output. 
-        header = cls._retrive_all_normal_queries(query)
+        header = cls._retrive_all_normal_queries_matches(query, r"SELECT 'BEGIN VERI [0-9]';", r"SELECT 'END EXPLAIN [0-9]';")
 
-        new_tail = ""
+        print()
+
+        new_tail = "\n\n\n"
         effect_idx = 0
-        for idx in range(0, len(opt_selects)):
+        for idx in range(len(veri_stmts)):
             if idx in same_idx:
                 continue
             effect_idx += 1
-            new_tail += ("SELECT \"--------- " + str(effect_idx) + "\";" + opt_selects[idx] + unopt_selects[idx] + "\n")
+            new_tail += "SELECT \"--------- " + str(effect_idx) + "  "
+            for cur_veri_stmt in veri_stmts[idx]:
+                new_tail += cur_veri_stmt + "    "
+            new_tail += "\n"
 
         return header + new_tail
     
     @classmethod
-    def _pretty_process(cls, bisecting_result:BisectingResults):
+    def _pretty_process(cls, bisecting_result:BisectingResults, oracle):
 
         if bisecting_result.last_buggy_res_str_l == [] or bisecting_result.last_buggy_res_str_l == None:
             return
 
         same_idx = []
-        for idx in range(0, len(bisecting_result.last_buggy_res_str_l)):
+        for idx in range(len(bisecting_result.last_buggy_res_str_l)):
             # Ignore the result with the same output, and ignore the result that are negative. (-1 Error Execution for most cases)
             if bisecting_result.last_buggy_res_flags_l[idx] != RESULT.FAIL:
                 same_idx.append(idx)
-                break
+                continue
             
             for buggy_res_str in bisecting_result.last_buggy_res_str_l[idx]:
                 if "Error" in buggy_res_str:
@@ -144,15 +160,16 @@ class IO:
         
         pretty_query = []
         for cur_query in bisecting_result.query:
-            pretty_query.append(cls._pretty_print(cur_query, same_idx))
+            pretty_query.append(cls._pretty_print(cur_query, same_idx, oracle))
         bisecting_result.query = pretty_query
 
         same_idx.reverse()
         for idx in same_idx:
-            bisecting_result.last_buggy_res_str_l.pop(idx)
+            for j in range(len(bisecting_result.last_buggy_res_str_l)):
+                bisecting_result.last_buggy_res_str_l[j].pop(idx)
 
     @classmethod
-    def write_uniq_bugs_to_files(cls, current_bisecting_result: BisectingResults): 
+    def write_uniq_bugs_to_files(cls, current_bisecting_result: BisectingResults, oracle): 
         if not os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
             os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
         current_unique_bug_output = os.path.join(UNIQUE_BUG_OUTPUT_DIR, "bug_" + str(current_bisecting_result.uniq_bug_id_int))
@@ -162,7 +179,7 @@ class IO:
             append_or_write = 'w'
         bug_output_file = open(current_unique_bug_output, append_or_write)
 
-        cls._pretty_process(current_bisecting_result)
+        cls._pretty_process(current_bisecting_result, oracle)
 
         if current_bisecting_result.uniq_bug_id_int != "Unknown":
             bug_output_file.write("Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int)
@@ -175,17 +192,13 @@ class IO:
         if current_bisecting_result.final_res_flag == RESULT.SEG_FAULT:
             bug_output_file.write("Error: The early commit failed to compile, or crashing. Failed to find the bug introduced commit. \n")
 
-        # if current_bisecting_result.opt_result != [] and current_bisecting_result.opt_result != None \
-        #     and current_bisecting_result.unopt_result != [] and current_bisecting_result.unopt_result != None:
-        #     for idx in range(min(len(current_bisecting_result.opt_result), len(current_bisecting_result.unopt_result))):
-        #         bug_output_file.write("Last buggy NUM %d: \n" % idx)
-        #         bug_output_file.write("Last buggy Opt_result: %s \n" % current_bisecting_result.opt_result[idx])
-        #         bug_output_file.write("Last buggy Unopt_result: %s \n" % current_bisecting_result.unopt_result[idx])
         if current_bisecting_result.last_buggy_res_str_l != [] and current_bisecting_result.last_buggy_res_str_l != None:
             for i, cur_run_res in enumerate(current_bisecting_result.last_buggy_res_str_l):
                 bug_output_file.write("Run ID: %d \n" % (i))
                 for j, cur_res in enumerate(cur_run_res):
-                    bug_output_file.write("Last Buggy Result Num: %d \n%s\n\n\n" % (j, cur_res))
+                    bug_output_file.write("Last Buggy Result Num: %d \n" % j)
+                    for k, cur_r in enumerate(cur_res):
+                        bug_output_file.write("RES %d: \n%s\n" % (k, cur_r))
         else:
             bug_output_file.write("Last buggy results: None. Possibly because the latest commit already fix the bug. \n\n")
 
@@ -228,9 +241,9 @@ class IO:
         res_str_out = []
         begin_idx = []
         end_idx = []
-        for m in re.finditer('13579', result_str):
+        for m in re.finditer(begin_sign, result_str):
             begin_idx.append(m.end())
-        for m in re.finditer('97531', result_str):
+        for m in re.finditer(end_sign, result_str):
             end_idx.append(m.start())
         for i in range(min( len(begin_idx), len(end_idx) )):
             cur_res = result_str[begin_idx[i]: end_idx[i]]

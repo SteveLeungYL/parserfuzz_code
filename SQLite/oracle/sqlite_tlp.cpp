@@ -563,6 +563,12 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE_TLP valid_
     res.comp_res = ORA_COMP_RES::Error;
     return 1;
   }
+
+  if (res_a.find("Error") != string::npos || res_b.find("Error") != string::npos) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
   vector<string> v_res_a = string_splitter(res_a, "\n");
   vector<string> v_res_b = string_splitter(res_b, "\n");
 
@@ -687,14 +693,14 @@ void SQL_TLP::compare_results(ALL_COMP_RES& res_out){
 
 void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_TLP>& v_valid_type) {
   /* Look throught first validation stmt's result_1 first */
-  size_t begin_idx = cmd_str.find("13579", 0);
-  size_t end_idx = cmd_str.find("97531", 0);
+  size_t begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", 0);
+  size_t end_idx = cmd_str.find("SELECT 'END VERI 0';", 0);
 
   while (begin_idx != string::npos){
     if (end_idx != string::npos){
-      string cur_cmd_str = cmd_str.substr(begin_idx + 7, (end_idx - begin_idx - 8 - 7));
-      begin_idx = cmd_str.find("13579", begin_idx+5);
-      end_idx = cmd_str.find("97531", end_idx+5);
+      string cur_cmd_str = cmd_str.substr(begin_idx + 21, (end_idx - begin_idx - 21));
+      begin_idx = cmd_str.find("SELECT 'BEGIN VERI", begin_idx+21);
+      end_idx = cmd_str.find("SELECT 'END VERI", end_idx+21);
 
       if (
         ((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") - cur_cmd_str.begin()) < 5 ) ||

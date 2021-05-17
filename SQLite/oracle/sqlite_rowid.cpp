@@ -110,14 +110,14 @@ string SQL_ROWID::remove_valid_stmts_from_str(string query){
 }
 
 void SQL_ROWID::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_ROWID>& v_valid_type){
-    size_t begin_idx = cmd_str.find("13579", 0);
-    size_t end_idx = cmd_str.find("97531", 0);
+    size_t begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", 0);
+    size_t end_idx = cmd_str.find("SELECT 'END VERI 0';", 0);
 
     while (begin_idx != string::npos){
         if (end_idx != string::npos){
-          string cur_cmd_str = cmd_str.substr(begin_idx + 7, (end_idx - begin_idx - 8 - 7));
-          begin_idx = cmd_str.find("13579", begin_idx+5);
-          end_idx = cmd_str.find("97531", end_idx+5);
+          string cur_cmd_str = cmd_str.substr(begin_idx + 21, (end_idx - begin_idx - 21));
+          begin_idx = cmd_str.find("SELECT 'BEGIN VERI", begin_idx+21);
+          end_idx = cmd_str.find("SELECT 'END VERI", end_idx+21);
           
           if (
             ((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") - cur_cmd_str.begin()) < 5 ) ||

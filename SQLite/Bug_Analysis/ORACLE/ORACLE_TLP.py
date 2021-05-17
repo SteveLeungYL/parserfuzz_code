@@ -1,11 +1,8 @@
-from configparser import Error
-from io import StringIO
 import re
 from sys import maxsize
 import numpy as np
 from enum import Enum
 
-from .ORACLE import *
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
 
 class VALID_TYPE_TLP(Enum):
@@ -19,16 +16,16 @@ class Oracle_TLP():
 
     @staticmethod
     def retrive_all_results(result_str):
-        if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
-            return None, RESULT.ERROR  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
+        if result_str.count("BEGIN VERI") < 1 or result_str.count("END VERI") < 1 or is_string_only_whitespace(result_str) or result_str == "":
+            return None, RESULT.ALL_ERROR  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
 
         # Grab all the opt results.
         opt_results = []
         begin_idx = []
         end_idx = []
-        for m in re.finditer('13579', result_str):
+        for m in re.finditer(r'BEGIN VERI 0', result_str):
             begin_idx.append(m.end())
-        for m in re.finditer('97531', result_str):
+        for m in re.finditer(r'END VERI 0', result_str):
             end_idx.append(m.start())
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_opt_result = result_str[begin_idx[i]: end_idx[i]]
@@ -41,9 +38,9 @@ class Oracle_TLP():
         unopt_results = []
         begin_idx = []
         end_idx = []
-        for m in re.finditer('24680', result_str):
+        for m in re.finditer(r'BEGIN VERI 1', result_str):
             begin_idx.append(m.end())
-        for m in re.finditer('86420', result_str):
+        for m in re.finditer(r'END VERI 1', result_str):
             end_idx.append(m.start())
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_unopt_result = result_str[ begin_idx[i] : end_idx[i] ]
@@ -99,16 +96,16 @@ class Oracle_TLP():
 
     @classmethod
     def _get_valid_type_list(cls, query:str):
-        if query.count("13579") < 1 or query.count("97531") < 1 or query.count("24680") < 1 or query.count("86420") < 1 or is_string_only_whitespace(query) or query == "":
+        if query.count("BEGIN VERI") < 1 or query.count("END VERI") < 1 or is_string_only_whitespace(query) or query == "":
             return []  # query is not making sense at all.
 
         # Grab all the opt queries, detect its valid_type, and return.
         valid_type_list = []
         begin_idx = []
         end_idx = []
-        for m in re.finditer('13579;', query):
+        for m in re.finditer(r"SELECT 'BEGIN VERI 0';", query):
             begin_idx.append(m.end())
-        for m in re.finditer('97531', query):  # Might contains additional unnecessary characters, such as SELECT in the SELECT 97531;
+        for m in re.finditer(r"SELECT 'END VERI 0';", query):  # Might contains additional unnecessary characters, such as SELECT in the SELECT 97531;
             end_idx.append(m.start())
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_opt_query = query[begin_idx[i]: end_idx[i]]
@@ -137,7 +134,7 @@ class Oracle_TLP():
 
     @classmethod
     def _check_result_norm(cls, opt:str, unopt:str) -> RESULT:
-        if opt == "Error" or unopt == "Error":
+        if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
 
         opt_out_int = 0
@@ -163,7 +160,7 @@ class Oracle_TLP():
 
     @classmethod
     def _check_result_minmax_count_sum(cls, opt, unopt, valid_type)-> RESULT:
-        if opt == "Error" or unopt == "Error":
+        if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
 
         opt_out_int:int = 0

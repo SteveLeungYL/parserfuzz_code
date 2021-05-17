@@ -26,7 +26,7 @@ class BisectingResults:
 log_out_f = open(LOG_OUTPUT_FILE, 'w')
 
 def log_out_line(s):
-    print(s)
+    # print(s)
     log_out_f.write(str(s) + "\n")
 
 def is_string_only_whitespace (input_str: str):

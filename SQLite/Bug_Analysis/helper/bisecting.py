@@ -13,7 +13,8 @@ class Bisect:
         INSTALL_DEST_DIR = VerCon.setup_SQLITE_with_commit(hexsha=commit_ID)
 
         if INSTALL_DEST_DIR == "":
-            return RESULT.FAIL_TO_COMPILE, None, None, None  # Failed to compile commit. 
+            log_out_line("Commit failed to compile. \n")
+            return RESULT.FAIL_TO_COMPILE, None, None  # Failed to compile commit. 
 
         all_res_str_l = []
         for queries in queries_l:
@@ -21,13 +22,17 @@ class Bisect:
             all_res_str_l.append(all_res_str)
 
         if res == RESULT.SEG_FAULT:
-            return RESULT.SEG_FAULT, None, None, None
+            log_out_line("Commit Segmentation fault. \n")
+            return RESULT.SEG_FAULT, None, None
 
         if len(all_res_str_l) == 0 or res == RESULT.ALL_ERROR:
-            return RESULT.ALL_ERROR, None, None, None
+            log_out_line("Result all Errors. \n")
+            return RESULT.ALL_ERROR, None, None
 
         final_flag, all_res_flags = oracle.comp_query_res(queries_l, all_res_str_l)
 
+        # log_out_line("All_res_str_l: " + str(all_res_str_l) + "\n")
+        # log_out_line("Result with final_flag: " + str(final_flag))
         return final_flag, all_res_flags, all_res_str_l
 
     @classmethod
@@ -62,7 +67,8 @@ class Bisect:
                 elif rn_correctness == RESULT.FAIL:    # Execution result is buggy
                     newer_commit_str = current_commit_str
                     is_successfully_executed = True
-                    last_buggy_res_l = all_res_str_l
+                    if all_res_str_l != None:
+                        last_buggy_res_l = all_res_str_l
                     last_buggy_all_result_flags = all_res_flags
                     break
                 elif rn_correctness == RESULT.ALL_ERROR:   # Execution queries all return errors. Treat it similar to execution result is correct.
@@ -71,10 +77,10 @@ class Bisect:
                     is_commit_found = True
                     is_error_returned_from_exec = True
                     break
-                else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as passing without mismatched. 
-                    older_commit_str = current_commit_str
+                else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as RESULT.FAIL. 
+                    newer_commit_str = current_commit_str
                     is_successfully_executed = False
-                    is_commit_found = True
+                    is_commit_found = False
                     break
             if is_commit_found:
                 break
@@ -135,7 +141,8 @@ class Bisect:
                 elif rn_correctness == RESULT.FAIL:   # The buggy version. 
                     newer_commit_index = tmp_commit_index
                     is_successfully_executed = True
-                    last_buggy_res_l = all_res_str_l
+                    if all_res_str_l != None:
+                        last_buggy_res_l = all_res_str_l
                     last_buggy_all_result_flags = all_res_flags
                     break
                 elif rn_correctness == RESULT.ERROR:
@@ -144,8 +151,9 @@ class Bisect:
                     is_error_returned_from_exec = True
                     break
                 else: # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as Passing with no mismatched. 
-                    older_commit_index = tmp_commit_index
+                    newer_commit_index = tmp_commit_index
                     is_successfully_executed = False
+                    is_error_returned_from_exec = True
                     break
                 
                 
@@ -158,6 +166,7 @@ class Bisect:
             current_bisecting_result.is_error_returned_from_exec = is_error_returned_from_exec
             current_bisecting_result.is_bisecting_error = False
             current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
+            log_out_line("All_res_str_l: " + str(current_bisecting_result.last_buggy_res_str_l) + "\n")
             current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
             current_bisecting_result.final_res_flag = rn_correctness
     
@@ -171,6 +180,7 @@ class Bisect:
             current_bisecting_result.is_bisecting_error = True
             current_bisecting_result.bisecting_error_reason = Error_reason
             current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
+            log_out_line("All_res_str_l: " + str(current_bisecting_result.last_buggy_res_str_l) + "\n")
             current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
             current_bisecting_result.final_res_flag = rn_correctness
     
@@ -195,7 +205,7 @@ class Bisect:
         current_bisecting_result = cls.bi_secting_commits(queries_l = queries_l, oracle=oracle, vercon=vercon)
         if not current_bisecting_result.is_bisecting_error:
             current_bisecting_result = cls.cross_compare(current_bisecting_result)  # The unique bug id will be appended to current_bisecting_result when running cross_compare
-            IO.write_uniq_bugs_to_files(current_bisecting_result)
+            IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
         else:
             current_bisecting_result.uniq_bug_id_int = "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
-            IO.write_uniq_bugs_to_files(current_bisecting_result)
+            IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
