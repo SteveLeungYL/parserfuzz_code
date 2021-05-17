@@ -125,8 +125,6 @@ class IO:
         # It is possible to have multiple normal stmts between norec select stmts. Include them to put them into the header of the output. 
         header = cls._retrive_all_normal_queries_matches(query, r"SELECT 'BEGIN VERI [0-9]';", r"SELECT 'END EXPLAIN [0-9]';")
 
-        print()
-
         new_tail = "\n\n\n"
         effect_idx = 0
         for idx in range(len(veri_stmts)):
@@ -147,17 +145,16 @@ class IO:
             return
 
         same_idx = []
-        for idx in range(len(bisecting_result.last_buggy_res_str_l)):
+        for idx in range(len(bisecting_result.last_buggy_res_flags_l)):
             # Ignore the result with the same output, and ignore the result that are negative. (-1 Error Execution for most cases)
             if bisecting_result.last_buggy_res_flags_l[idx] != RESULT.FAIL:
                 same_idx.append(idx)
                 continue
-            
-            for buggy_res_str in bisecting_result.last_buggy_res_str_l[idx]:
-                if "Error" in buggy_res_str:
-                    same_idx.append(idx)
-                    break
-        
+
+        log_out_line("same_idx: %s" % (str(same_idx)))
+
+        log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l[0])))
+
         pretty_query = []
         for cur_query in bisecting_result.query:
             pretty_query.append(cls._pretty_print(cur_query, same_idx, oracle))

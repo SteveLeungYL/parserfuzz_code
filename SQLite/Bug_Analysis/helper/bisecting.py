@@ -168,6 +168,7 @@ class Bisect:
             current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
             log_out_line("All_res_str_l: " + str(current_bisecting_result.last_buggy_res_str_l) + "\n")
             current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
+            log_out_line("All_res_flags: " + str(current_bisecting_result.last_buggy_res_flags_l) + "\n")
             current_bisecting_result.final_res_flag = rn_correctness
     
             return current_bisecting_result
@@ -180,7 +181,6 @@ class Bisect:
             current_bisecting_result.is_bisecting_error = True
             current_bisecting_result.bisecting_error_reason = Error_reason
             current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
-            log_out_line("All_res_str_l: " + str(current_bisecting_result.last_buggy_res_str_l) + "\n")
             current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
             current_bisecting_result.final_res_flag = rn_correctness
     

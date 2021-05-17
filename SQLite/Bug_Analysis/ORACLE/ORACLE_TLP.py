@@ -31,7 +31,8 @@ class Oracle_TLP():
             current_opt_result = result_str[begin_idx[i]: end_idx[i]]
             if ("Error" in current_opt_result):
                 opt_results.append("Error")
-            opt_results.append(current_opt_result)
+            else:
+                opt_results.append(current_opt_result)
 
 
         # Grab all the unopt results.
@@ -46,7 +47,8 @@ class Oracle_TLP():
             current_unopt_result = result_str[ begin_idx[i] : end_idx[i] ]
             if ("Error" in current_unopt_result):
                 unopt_results.append("Error")    
-            unopt_results.append(current_unopt_result)
+            else:
+                unopt_results.append(current_unopt_result)
 
         all_results_out = []
         for i in range(min(len(opt_results), len(unopt_results))):
@@ -115,16 +117,16 @@ class Oracle_TLP():
 
     @classmethod
     def _get_valid_type(cls, query:str):
-        if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
+        if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.IGNORECASE):
             # print("For query: %s, returning valid_type: MIN" % (query))
             return VALID_TYPE_TLP.MIN
-        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
+        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.IGNORECASE):
             # print("For query: %s, returning VALID_TYPE_TLP: MAX" % (query))
             return VALID_TYPE_TLP.MAX
-        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
+        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.IGNORECASE):
             # print("For query: %s, returning VALID_TYPE_TLP: SUM" % (query))
             return VALID_TYPE_TLP.SUM
-        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
+        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.IGNORECASE):
             # print("For query: %s, returning VALID_TYPE_TLP: COUNT" % (query))
             return VALID_TYPE_TLP.COUNT
         else:
@@ -153,6 +155,7 @@ class Oracle_TLP():
             unopt_out_int += 1
 
         if opt_out_int != unopt_out_int:
+            # print("NORMAL Mismatched: opt: %s\n unopt: %s\n opt(int): %d, unopt(int): %d" % (opt, unopt, opt_out_int, unopt_out_int) )
             return RESULT.FAIL
         else:
             return RESULT.PASS
@@ -211,6 +214,7 @@ class Oracle_TLP():
                 unopt_out_int = cur_res
 
         if opt_out_int != unopt_out_int:
+            # print("UNIQUE Mismatched: opt: %s\n unopt: %s\n opt(int): %d, unopt(int): %d" % (opt, unopt, opt_out_int, unopt_out_int) )
             return RESULT.FAIL
         else:
             return RESULT.PASS
