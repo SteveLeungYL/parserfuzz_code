@@ -216,8 +216,8 @@ class IO:
 
     @classmethod
     def status_print(cls):
-        from Bug_Analysis.helper.bisecting import Bisect
-        print("Currently, we have %d being processed. Total unique bug number: %d. \n" % (cls.total_processed_bug_count_int, Bisect.uniq_bug_id_int))
+        # from Bug_Analysis.helper.bisecting import Bisect
+        print("Currently, we have %d being processed. \n" % (cls.total_processed_bug_count_int))
 
     @classmethod
     def gen_unique_bug_output_dir(cls, is_removed_ori:bool = True):

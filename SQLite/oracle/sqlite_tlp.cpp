@@ -20,7 +20,6 @@ bool SQL_TLP::is_oracle_valid_stmt(const string& query){
 
   if (
         (
-          ((findStringIter(query, "SELECT DISTINCT") - query.begin()) < 5 ) ||
           ((findStringIter(query, "SELECT") - query.begin()) < 5 )
         )
         && 
@@ -542,6 +541,7 @@ bool SQL_TLP::compare_norm(COMP_RES& res) {
   res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
 
   if (res_a_int != res_b_int) { // Found inconsistent. 
+    // cerr << "NORMAL Found mismatched: " << "res_a: " << res_a << "res_b: " << res_b << " res_a_int: " << res_a_int << "res_b_int: " << res_b_int << endl; 
     res.comp_res = ORA_COMP_RES::Fail;
     return false; 
   }
@@ -633,6 +633,7 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES& res, VALID_STMT_TYPE_TLP valid_
 
   if (res_a_int != res_b_int)
   {
+    // cerr << "UNIQUE Found mismatched: " << int(valid_type) << "res_a: " << res_a << "res_b: " << res_b << " res_a_int: " << res_a_int << "res_b_int: " << res_b_int << endl; 
     res.comp_res = ORA_COMP_RES::Fail;
     return 0; // Found inconsistent.
   }
@@ -698,34 +699,34 @@ void SQL_TLP::get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_TLP
 
   while (begin_idx != string::npos){
     if (end_idx != string::npos){
-      string cur_cmd_str = cmd_str.substr(begin_idx + 21, (end_idx - begin_idx - 21));
-      begin_idx = cmd_str.find("SELECT 'BEGIN VERI", begin_idx+21);
-      end_idx = cmd_str.find("SELECT 'END VERI", end_idx+21);
+      string cur_cmd_str = cmd_str.substr(begin_idx + 23, (end_idx - begin_idx - 23));
+      begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", begin_idx+23);
+      end_idx = cmd_str.find("SELECT 'END VERI 0';", end_idx+21);
 
       if (
-        ((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") - cur_cmd_str.begin()) < 5 ) ||
-        ((findStringIter(cur_cmd_str, "SELECT MIN") - cur_cmd_str.begin()) < 5 )
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") - cur_cmd_str.begin()) < 6 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT MIN") - cur_cmd_str.begin()) < 6 )
       ){
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::MIN);
         // cerr << "query: " << cur_cmd_str << " \nMIN. \n"; 
       }
       else if (
-        ((findStringIter(cur_cmd_str, "SELECT DISTINCT MAX") - cur_cmd_str.begin()) < 5 ) ||
-        ((findStringIter(cur_cmd_str, "SELECT MAX") - cur_cmd_str.begin()) < 5 )
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT MAX") - cur_cmd_str.begin()) < 6 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT MAX") - cur_cmd_str.begin()) < 6 )
       ){
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::MAX);
         // cerr << "query: " << cur_cmd_str << " \nMAX. \n"; 
       }
       else if (
-        ((findStringIter(cur_cmd_str, "SELECT DISTINCT SUM") - cur_cmd_str.begin()) < 5 ) ||
-        ((findStringIter(cur_cmd_str, "SELECT SUM") - cur_cmd_str.begin()) < 5 )
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT SUM") - cur_cmd_str.begin()) < 6 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT SUM") - cur_cmd_str.begin()) < 6 )
       ){
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::SUM);
         // cerr << "query: " << cur_cmd_str << " \nSUM. \n"; 
       }
       else if (
-        ((findStringIter(cur_cmd_str, "SELECT DISTINCT COUNT") - cur_cmd_str.begin()) < 5 ) ||
-        ((findStringIter(cur_cmd_str, "SELECT COUNT") - cur_cmd_str.begin()) < 5 )
+        ((findStringIter(cur_cmd_str, "SELECT DISTINCT COUNT") - cur_cmd_str.begin()) < 6 ) ||
+        ((findStringIter(cur_cmd_str, "SELECT COUNT") - cur_cmd_str.begin()) < 6 )
       ){
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::COUNT);
         // cerr << "query: " << cur_cmd_str << " \nCOUNT. \n"; 
