@@ -247,38 +247,6 @@ public:
     virtual IR* translate(vector<IR*> &v_ir_collector);   
 };
 
-class CmdAttach: public Cmd {
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    NewExpr * expr_;
-    SchemaName * schema_name_;
-};
-
-class CmdDetach: public Cmd {
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    SchemaName * schema_name_; 
-};
-
-class CmdReindex: public Cmd {
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    TableName * table_name_;  
-};
-
-class CmdPragma: public Cmd{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    PragmaKey * pragma_key_;
-    PragmaValue * pragma_value_;
-    TableName * table_name_;
-    
-};
-
 class PragmaKey: public Node{
 public:
     virtual void deep_delete();
@@ -292,7 +260,7 @@ class PragmaValue: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
-    NumericLiteral * numeric_literal_;
+    SignedNumber * signed_number_;
     StringLiteral * string_literal_;
     Identifier * identifier_;
 };
@@ -437,6 +405,38 @@ public:
     OptFromClause * opt_from_clause_;
     OptWhere * opt_where_;
     OptReturningClause * opt_returning_clause_;
+};
+
+class ReindexStatement: public PreparableStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    TableName * table_name_;  
+};
+
+class PragmaStatement: public PreparableStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    PragmaKey * pragma_key_;
+    PragmaValue * pragma_value_;
+    TableName * table_name_;
+    
+};
+
+class DetachStatement: public PreparableStatement {
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    SchemaName * schema_name_; 
+};
+
+class AttachStatement: public PreparableStatement{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    NewExpr * expr_;
+    SchemaName * schema_name_;
 };
 
 class DropStatement: public PreparableStatement{

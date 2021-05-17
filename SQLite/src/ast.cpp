@@ -2479,64 +2479,64 @@ IR* Cmd::translate(vector<IR*> &v_ir_collector){
     return NULL;
 }
 
-void CmdAttach::deep_delete(){
+void AttachStatement::deep_delete(){
     SAFEDELETE(expr_);
     SAFEDELETE(schema_name_);
     delete this;
 }
 
-IR* CmdAttach::translate(vector<IR*> &v_ir_collector){
+IR* AttachStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(expr_);
             auto tmp = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdAttach, OP2("ATTACH", "AS"), res, tmp);
+            res = new IR(kAttachStatement, OP2("ATTACH", "AS"), res, tmp);
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(expr_);
             auto tmp = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdAttach, OP2("ATTACH DATABASE", "AS"), res, tmp);
+            res = new IR(kAttachStatement, OP2("ATTACH DATABASE", "AS"), res, tmp);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
-IR* CmdReindex::translate(vector<IR*> &v_ir_collector){
+IR* ReindexStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = new IR(kCmdReindex, OP1("REINDEX"));
+            res = new IR(kReindexStatement, OP1("REINDEX"));
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdReindex, OP1("REINDEX"), res);
+            res = new IR(kReindexStatement, OP1("REINDEX"), res);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
 
-void CmdReindex::deep_delete(){
+void ReindexStatement::deep_delete(){
     SAFEDELETE(table_name_);
     delete this;
 }
 
-void CmdDetach::deep_delete(){
+void DetachStatement::deep_delete(){
     SAFEDELETE(schema_name_);
     delete this;
 }
 
-IR* CmdDetach::translate(vector<IR*> &v_ir_collector){
+IR* DetachStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdDetach, OP1("DETACH"), res);
+            res = new IR(kDetachStatement, OP1("DETACH"), res);
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdDetach, OP1("DETACH DATABASE"), res);
+            res = new IR(kDetachStatement, OP1("DETACH DATABASE"), res);
         CASEEND
     SWITCHEND
     TRANSLATEEND
@@ -2561,44 +2561,44 @@ IR* AnalyzeStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATEEND
 }
 
-void CmdPragma::deep_delete(){
+void PragmaStatement::deep_delete(){
     SAFEDELETE(pragma_key_);
     SAFEDELETE(pragma_value_);
     SAFEDELETE(table_name_);
     delete this;
 }
 
-IR* CmdPragma::translate(vector<IR*> &v_ir_collector){
+IR* PragmaStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
             auto pk = SAFETRANSLATE(pragma_key_);
-            res = new IR(kCmdPragma, OPSTART("PRAGMA"), pk);
+            res = new IR(kPragmaStatement, OPSTART("PRAGMA"), pk);
         CASEEND
         CASESTART(1)
             auto pk = SAFETRANSLATE(pragma_key_);
             auto pv = SAFETRANSLATE(pragma_value_);
-            res = new IR(kCmdPragma, OP2("PRAGMA", "="), pk, pv);
+            res = new IR(kPragmaStatement, OP2("PRAGMA", "="), pk, pv);
         CASEEND
         CASESTART(2)
             auto pk = SAFETRANSLATE(pragma_key_);
             auto pv = SAFETRANSLATE(pragma_value_);
-            res = new IR(kCmdPragma, OP3("PRAGMA", "(", ")"), pk, pv);
+            res = new IR(kPragmaStatement, OP3("PRAGMA", "(", ")"), pk, pv);
         CASEEND
         CASESTART(3)
-            res = new IR(kCmdPragma, string("REINDEX"));
+            res = new IR(kPragmaStatement, string("REINDEX"));
         CASEEND
         CASESTART(4)
             auto table_name = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdPragma, OPSTART("REINDEX"), table_name);
+            res = new IR(kPragmaStatement, OPSTART("REINDEX"), table_name);
         CASEEND
         CASESTART(5)
-            res = new IR(kCmdPragma, string("ANALYZE"));
+            res = new IR(kPragmaStatement, string("ANALYZE"));
         CASEEND
         CASESTART(6)
             auto table_name = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdPragma, OPSTART("ANALYZE"), table_name);
+            res = new IR(kPragmaStatement, OPSTART("ANALYZE"), table_name);
         CASEEND
     SWITCHEND
         
@@ -2630,7 +2630,7 @@ IR* PragmaKey::translate(vector<IR*> &v_ir_collector){
 }
 
 void PragmaValue::deep_delete(){
-    SAFEDELETE(numeric_literal_);
+    SAFEDELETE(signed_number_);
     SAFEDELETE(string_literal_);
     SAFEDELETE(identifier_);
     delete this;
@@ -2641,7 +2641,7 @@ IR* PragmaValue::translate(vector<IR*> &v_ir_collector){
     
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(numeric_literal_);
+            res = SAFETRANSLATE(signed_number_);
             res = new IR(kPragmaValue, OP0(), res);
         CASEEND
         CASESTART(1)

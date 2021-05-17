@@ -119,6 +119,8 @@ u64 total_mutate_failed = 0;
 u64 total_append_failed = 0;
 u64 total_execute = 0;
 u64 total_add_to_queue = 0;
+u64 debug_error = 0; 
+u64 debug_good = 0;
 
 Mutator g_mutator;
 SQL_ORACLE* p_oracle;
@@ -2585,7 +2587,8 @@ inline void print_norec_exec_debug_info(){
            << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_append_failed:     " << total_append_failed << "\n"
-           << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n";
+           << "total norec select:      " << g_mutator.get_norec_select_collection_size() << "\n"
+           << "total bad queries:       " << debug_error << " / " << debug_error + debug_good << " (" << debug_error * 100.0 / (debug_error + debug_good)  << "%)\n";
 
   return;
 }
@@ -2637,7 +2640,19 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
   return current_output;
 }
 
+void log_error(const string &cmd_str, string &err_str) {
+
+  debug_error++;
+
+  std::ofstream f;
+  f.open("./err-log", std::ofstream::out | std::ofstream::app);
+  f << cmd_str << endl;
+  f << err_str << endl;
+  f.close();
+}
+
 int compare_query_result(const string& cmd_string, const string& result_string, vector<string>& result_0, vector<string>& result_1, vector<string>& result_2, vector<string>& result_3){
+  
 
   if(is_str_empty(result_string)){
     return -1;
@@ -2653,8 +2668,9 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
       begin_idx = result_string.find("13579", begin_idx+5);
       end_idx = result_string.find("97531", end_idx+5);
 
-      if (current_result_str.find("Error") != string::npos) {result_0.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      if (current_result_str.find("Error") != string::npos) { log_error(cmd_string, current_result_str); result_0.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
+        debug_good++;
         result_0.push_back(current_result_str);
       }
     }
@@ -2673,8 +2689,9 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
       begin_idx = result_string.find("24680", begin_idx+5);
       end_idx = result_string.find("86420", end_idx+5);
 
-      if (current_result_str.find("Error") != string::npos) {result_1.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      if (current_result_str.find("Error") != string::npos) { log_error(cmd_string, current_result_str); result_1.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
+        debug_good++;
         result_1.push_back(current_result_str);
       }
     }
@@ -2693,8 +2710,9 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
       begin_idx = result_string.find("77777", begin_idx+5);
       end_idx = result_string.find("88888", end_idx+5);
 
-      if (current_result_str.find("Error") != string::npos) {result_2.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      if (current_result_str.find("Error") != string::npos) { log_error(cmd_string, current_result_str); result_2.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
+        debug_good++;
         result_2.push_back(current_result_str);
       }
     }
@@ -2712,8 +2730,9 @@ int compare_query_result(const string& cmd_string, const string& result_string, 
       begin_idx = result_string.find("55555", begin_idx+5);
       end_idx = result_string.find("66666", end_idx+5);
 
-      if (current_result_str.find("Error") != string::npos) {result_3.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
+      if (current_result_str.find("Error") != string::npos) { log_error(cmd_string, current_result_str); result_3.push_back("Error"); continue; }   // If "Error" is found, return -1 as result. 
       else {
+        debug_good++;
         result_3.push_back(current_result_str);
       }
     }

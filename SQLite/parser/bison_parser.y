@@ -207,11 +207,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     OptSemicolon* opt_semicolon_t;
     Identifier* identifier_t;
     Cmd * cmd_t;
-    CmdAttach * cmd_attach_t;
-    CmdDetach * cmd_detach_t;
-    CmdReindex * cmd_reindex_t;
+    AttachStatement * attach_statement_t;
+    DetachStatement * detach_statement_t;
+    ReindexStatement * reindex_statement_t;
     AnalyzeStatement * analyze_statement_t;
-    CmdPragma * cmd_pragma_t;
+    PragmaStatement* pragma_statement_t;
     PragmaKey * pragma_key_t;
     PragmaValue * pragma_value_t;
     PragmaName * pragma_name_t;
@@ -453,11 +453,11 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <escape_expr_t> escape_expr
 
 %type <cmd_t> cmd
-%type <cmd_attach_t> cmd_attach
-%type <cmd_detach_t> cmd_detach
+%type <attach_statement_t> attach_statement
+%type <detach_statement_t> detach_statement
 %type <analyze_statement_t> analyze_statement
-%type <cmd_reindex_t> cmd_reindex
-%type <cmd_pragma_t> cmd_pragma
+%type <reindex_statement_t> reindex_statement
+%type <pragma_statement_t> pragma_statement
 %type <pragma_key_t> pragma_key
 %type <pragma_value_t> pragma_value
 %type <pragma_name_t> pragma_name
@@ -637,10 +637,6 @@ statement:
 
 
 cmd:
-        cmd_pragma {$$ = $1;}
-    |   cmd_reindex {$$ = $1;}
-    |   cmd_attach  {$$ = $1;}
-    |   cmd_detach  {$$ = $1;}
     ;
 
 release_statement:
@@ -658,29 +654,30 @@ release_statement:
         }
     ;
 
-cmd_pragma:
+pragma_statement:
         PRAGMA pragma_key{
-            $$ = new CmdPragma();
+            $$ = new PragmaStatement();
             $$->sub_type_ = CASE0;
             $$->pragma_key_ = $2;
         }
     |   PRAGMA pragma_key '=' pragma_value {
-            $$ = new CmdPragma();
+            $$ = new PragmaStatement();
             $$->sub_type_ = CASE1;
             $$->pragma_key_ = $2;
             $$->pragma_value_ = $4;
     }
     |   PRAGMA pragma_key '(' pragma_value ')' {
-            $$ = new CmdPragma();
+            $$ = new PragmaStatement();
             $$->sub_type_ = CASE2;
             $$->pragma_key_ = $2;
             $$->pragma_value_ = $4;
     }
     ;
 
-cmd_reindex:
-        REINDEX {$$ = new CmdReindex(); $$->sub_type_ = CASE0;}
-    |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
+reindex_statement:
+        REINDEX {$$ = new ReindexStatement(); $$->sub_type_ = CASE0;}
+    |   REINDEX table_name {$$ = new ReindexStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
+    /* TODO: also accepts collation-name / index-name, but it seems the grammar does not distingusih them */ 
     ;
 
 analyze_statement:
@@ -688,29 +685,29 @@ analyze_statement:
     |   ANALYZE table_name {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
     ;
 
-cmd_attach:
+attach_statement:
         ATTACH new_expr AS schema_name{
-            $$ = new CmdAttach();
+            $$ = new AttachStatement();
             $$->sub_type_ = CASE0;
             $$->expr_ = $2;
             $$->schema_name_ = $4;
         }
     |   ATTACH DATABASE new_expr AS schema_name{
-            $$ = new CmdAttach();
+            $$ = new AttachStatement();
             $$->sub_type_ = CASE1;
             $$->expr_ = $3;
             $$->schema_name_ = $5;
         }
     ;
 
-cmd_detach:
+detach_statement:
         DETACH schema_name {
-            $$ = new CmdDetach();
+            $$ = new DetachStatement();
             $$->sub_type_ = CASE0;
             $$->schema_name_ = $2;
         }
     |   DETACH DATABASE schema_name{
-            $$ = new CmdDetach();
+            $$ = new DetachStatement();
             $$->sub_type_ = CASE1;
             $$->schema_name_ = $3;
     }
@@ -722,7 +719,7 @@ pragma_key:
     ;
 
 pragma_value:
-        numeric_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE0; $$->numeric_literal_ = $1;}
+        signed_number {$$ = new PragmaValue(); $$->sub_type_ = CASE0; $$->signed_number_ = $1;}
     |   string_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE1; $$->string_literal_ = $1;}
     |   IDENTIFIER {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier($1, id_pragma_value); free($1);}
     |   ON {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("ON", id_pragma_value); }
@@ -731,9 +728,7 @@ pragma_value:
     ;
 
 schema_name:
-        IDENTIFIER {
-            $$ = new SchemaName(); $$->identifier_ = new Identifier($1, id_schema_name); free($1);
-            }
+        IDENTIFIER { $$ = new SchemaName(); $$->identifier_ = new Identifier($1, id_schema_name); free($1); }
     ;
     
 pragma_name:
@@ -742,28 +737,28 @@ pragma_name:
 
 preparable_statement:
     /* have checked */
-        alter_statement {$$ = $1;}
-    |   analyze_statement {$$ = $1;}
-    |   begin_statement {$$ = $1;}
-    |   commit_statement {$$ = $1;}
-    |   create_statement { $$ = $1; }
-    |   delete_statement { $$ = $1; }
-    |   drop_statement { $$ = $1; }
-    |   insert_statement { $$ = $1; }
+        alter_statement   { $$ = $1; }
+    |   analyze_statement { $$ = $1; }
+    |   attach_statement  { $$ = $1; }
+    |   begin_statement   { $$ = $1; }
+    |   commit_statement  { $$ = $1; }
+    |   create_statement  { $$ = $1; }
+    |   delete_statement  { $$ = $1; }
+    |   detach_statement  { $$ = $1; }
+    |   drop_statement    { $$ = $1; }
+    |   insert_statement  { $$ = $1; }
+    |   pragma_statement  { $$ = $1; }
+    |   reindex_statement { $$ = $1; }
     |   release_statement { $$ = $1; }
-    |   rollback_statement {$$ = $1;}
+    |   rollback_statement  {$$ = $1;}
     |   savepoint_statement { $$ = $1; }
-    |   select_statement { $$ = $1; }  
-    |   update_statement { $$ = $1; }
-    |   vacuum_statement {$$ = $1;}
+    |   select_statement  { $$ = $1; }  
+    |   update_statement  { $$ = $1; }
+    |   vacuum_statement  { $$ = $1; }
     ;
     /* being checked*/
     /* to be checked*/
     /* to be supported */
-    /* |   attach_statement {} */
-    /* |   detach_statement {} */
-    /* |   pragma_statement {} */
-    /* |   reindex_statement {} */
     /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
     /* |   update_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
 

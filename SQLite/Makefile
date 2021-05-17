@@ -9,7 +9,7 @@ AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 
 export CC = g++
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS)
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O0 $(ASAN_FLAGS)
 LDFLAGS = -ldl
 
 

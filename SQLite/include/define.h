@@ -26,6 +26,9 @@
     V(kDropTableStatement) \
     V(kDropViewStatement) \
     V(kDropTriggerStatement) \
+    V(kAttachStatement) \
+    V(kDetachStatement) \
+    V(kPragmaStatement) \
     V(kFilePath) \
     V(kOptIfNotExists) \
     V(kOptRecursive) \
@@ -119,7 +122,6 @@
     V(kStatementList) \
     V(kUnknown)  \
     V(kEmpty)   \
-    V(kCmdPragma) \
     V(kPragmaKey) \
     V(kPragmaName) \
     V(kPragmaValue) \
@@ -163,9 +165,7 @@
     V(kUpdateType) \
     V(kInsertValue) \
     V(kCmd) \
-    V(kCmdAttach) \
-    V(kCmdDetach) \
-    V(kCmdReindex) \
+    V(kReindexStatement) \
     V(kAnalyzeStatement) \
     V(kOnExpr) \
     V(kEscapeExpr) \
@@ -235,6 +235,9 @@
     V(DropTableStatement) \
     V(DropViewStatement) \
     V(DropTriggerStatement) \
+    V(AttachStatement) \
+    V(DetachStatement) \
+    V(PragmaStatement) \
     V(FilePath) \
     V(OptIfNotExists) \
     V(OptRecursive) \
@@ -320,7 +323,6 @@
     V(StatementList) \
     V(Unknown) \
     V(Empty)    \
-    V(CmdPragma) \
     V(PragmaKey) \
     V(PragmaName) \
     V(PragmaValue) \
@@ -364,9 +366,7 @@
     V(UpdateType)\
     V(InsertValue)\
     V(Cmd) \
-    V(CmdAttach) \
-    V(CmdDetach) \
-    V(CmdReindex) \
+    V(ReindexStatement) \
     V(AnalyzeStatement) \
     V(OnExpr) \
     V(EscapeExpr) \

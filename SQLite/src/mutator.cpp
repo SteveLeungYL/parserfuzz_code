@@ -1493,7 +1493,7 @@ void Mutator::_fix(IR * root, string &res){
     return;
   }
 
-  if (type_ == kCmdPragma) {
+  if (type_ == kPragmaStatement) {
 
     string key = "";
     int lib_size = cmds_.size();
