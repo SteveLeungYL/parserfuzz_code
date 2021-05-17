@@ -151,9 +151,9 @@ class IO:
                 same_idx.append(idx)
                 continue
 
-        log_out_line("same_idx: %s" % (str(same_idx)))
+        # log_out_line("same_idx: %s" % (str(same_idx)))
 
-        log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l[0])))
+        # log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l[0])))
 
         pretty_query = []
         for cur_query in bisecting_result.query:
