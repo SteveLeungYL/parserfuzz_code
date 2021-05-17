@@ -15,7 +15,7 @@ class VerCon:
 
     @classmethod
     def get_all_commits(cls, repo:Repo): 
-        if len(cls.all_commits_hexsha) == 0 or len(cls.all_tags) == 0:
+        if len(cls.all_commits_hexsha) != 0 or len(cls.all_tags) != 0:
             return cls.all_commits_hexsha, cls.all_tags
 
         cls._checkout_commit('master')
@@ -27,15 +27,15 @@ class VerCon:
 
         if END_COMMIT_ID != "":
             end_index = cls.all_commits_hexsha.index(END_COMMIT_ID)
-            all_commits_hexsha = cls.all_commits_hexsha[:end_index]
+            cls.all_commits_hexsha = cls.all_commits_hexsha[:end_index]
         if BEGIN_COMMIT_ID != "":
             begin_index = cls.all_commits_hexsha.index(BEGIN_COMMIT_ID)
-            all_commits_hexsha = cls.all_commits_hexsha[begin_index:]
+            cls.all_commits_hexsha = cls.all_commits_hexsha[begin_index:]
 
         all_tags = sorted(repo.tags, key=lambda t: t.commit.committed_date)
         cls.all_tags = []
         for tag in all_tags:
-            if tag.commit.hexsha in all_commits_hexsha:
+            if tag.commit.hexsha in cls.all_commits_hexsha:
                 cls.all_tags.append(tag)
         return cls.all_commits_hexsha, cls.all_tags
 

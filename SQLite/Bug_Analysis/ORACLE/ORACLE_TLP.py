@@ -20,7 +20,7 @@ class Oracle_TLP():
     @staticmethod
     def retrive_all_results(result_str):
         if result_str.count("13579") < 1 or result_str.count("97531") < 1 or result_str.count("24680") < 1 or result_str.count("86420") < 1 or is_string_only_whitespace(result_str) or result_str == "":
-            return None, RESULT.PASS  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
+            return None, RESULT.ERROR  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
 
         # Grab all the opt results.
         opt_results = []
@@ -33,13 +33,8 @@ class Oracle_TLP():
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_opt_result = result_str[begin_idx[i]: end_idx[i]]
             if ("Error" in current_opt_result):
-                opt_results.append(-1)
-            else:
-                try:
-                    current_opt_result_int = int(current_opt_result)
-                except ValueError:
-                    current_opt_result_int = -1
-                opt_results.append(current_opt_result_int)
+                opt_results.append("Error")
+            opt_results.append(current_opt_result)
 
 
         # Grab all the unopt results.
@@ -53,18 +48,15 @@ class Oracle_TLP():
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_unopt_result = result_str[ begin_idx[i] : end_idx[i] ]
             if ("Error" in current_unopt_result):
-                unopt_results.append(-1)
-            else:
-                try:
-                    current_unopt_result_int = int(float(current_unopt_result)+0.0001)  # Add 0.0001 to avoid inaccurate float to int transform. Transform are towards 0. 
-                except ValueError:
-                    current_unopt_result_int = -1
-                unopt_results.append(current_unopt_result_int)
+                unopt_results.append("Error")    
+            unopt_results.append(current_unopt_result)
 
-        # Transpose the results. 
-        all_results_out = np.array([opt_results, unopt_results]).T.tolist()
+        all_results_out = []
+        for i in range(min(len(opt_results), len(unopt_results))):
+            cur_results_out = [opt_results[i], unopt_results[i]]
+            all_results_out.append(cur_results_out)
 
-        return all_results_out
+        return all_results_out, RESULT.PASS
         
     @classmethod
     def comp_query_res(cls, queries_l, all_res_str_l):
@@ -125,7 +117,7 @@ class Oracle_TLP():
         return valid_type_list
 
     @classmethod
-    def get_valid_type(cls, query:str):
+    def _get_valid_type(cls, query:str):
         if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.MULTILINE | re.IGNORECASE):
             # print("For query: %s, returning valid_type: MIN" % (query))
             return VALID_TYPE_TLP.MIN

@@ -22,7 +22,8 @@ def main():
     repo = Repo(SQLITE_DIR)
     assert not repo.bare
 
-    all_commits_hexsha, all_tags = VerCon.get_all_commits(repo=repo)
+    vercon = VerCon()
+    all_commits_hexsha, all_tags = vercon.get_all_commits(repo=repo)
     log_out_line("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
 
     log_out_line("Beginning processing files in the target folder. (Infinite Loop) \n\n")
@@ -34,7 +35,7 @@ def main():
             continue
         if "randomblob" in all_new_queries[0] or "random" in all_new_queries[0] or "julianday" in all_new_queries[0]:
             continue
-        Bisect.run_bisecting(queries_l = all_new_queries, oracle=oracle)
+        Bisect.run_bisecting(queries_l = all_new_queries, oracle=oracle, vercon=vercon)
         IO.status_print()
 
 if __name__ == "__main__":

@@ -26,17 +26,14 @@ class Bisect:
         if len(all_res_str_l) == 0 or res == RESULT.ALL_ERROR:
             return RESULT.ALL_ERROR, None, None, None
 
-        if len(all_res_str_l[0]) == 0 or all_res_str_l[0] == None:
-            return RESULT.ALL_ERROR, None, None, None
-
         final_flag, all_res_flags = oracle.comp_query_res(queries_l, all_res_str_l)
 
         return final_flag, all_res_flags, all_res_str_l
 
     @classmethod
-    def bi_secting_commits(cls, queries_l, oracle):   # Returns Bug introduce commit_ID:str, is_error_result:bool
-        all_commits_str = VerCon.all_commits_hexsha
-        all_tags = VerCon.all_tags
+    def bi_secting_commits(cls, queries_l, oracle, vercon):   # Returns Bug introduce commit_ID:str, is_error_result:bool
+        all_commits_str = vercon.all_commits_hexsha
+        all_tags = vercon.all_tags
         newer_commit_str = ""  # The oldest buggy commit, which is the commit that introduce the bug.
         older_commit_str = ""  # The latest correct commit.
         last_buggy_res_l = None
@@ -121,7 +118,7 @@ class Bisect:
         current_ignored_commit_number = 0
     
         while not is_buggy_commit_found:
-            if (newer_commit_index - older_commit_index) <= COMMIT_SEARCH_RANGE:
+            if (newer_commit_index - older_commit_index) <= 1:
                 is_buggy_commit_found = True
                 break
             tmp_commit_index = int((newer_commit_index + older_commit_index) / 2 )  # Approximate towards 0 (older).
@@ -193,9 +190,9 @@ class Bisect:
         return current_bisecting_result
 
     @classmethod
-    def run_bisecting(cls, queries_l, oracle):
+    def run_bisecting(cls, queries_l, oracle, vercon):
         log_out_line("\n\n\nBeginning testing with query (sampled with only the first one): \n%s \n" % queries_l[0])
-        current_bisecting_result = cls.bi_secting_commits(queries_l = queries_l, oracle=oracle)
+        current_bisecting_result = cls.bi_secting_commits(queries_l = queries_l, oracle=oracle, vercon=vercon)
         if not current_bisecting_result.is_bisecting_error:
             current_bisecting_result = cls.cross_compare(current_bisecting_result)  # The unique bug id will be appended to current_bisecting_result when running cross_compare
             IO.write_uniq_bugs_to_files(current_bisecting_result)

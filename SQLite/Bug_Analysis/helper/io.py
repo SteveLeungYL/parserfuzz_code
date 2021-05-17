@@ -10,7 +10,7 @@ class IO:
     total_processed_bug_count_int: int = 0
 
     @classmethod
-    def read_queries_from_files(cls, file_directory:str):
+    def read_queries_from_files(cls, file_directory:str, is_removed_read:bool = True):
 
         all_queries = []
         all_files_in_dir = os.listdir(file_directory)
@@ -27,7 +27,8 @@ class IO:
             current_file_str = current_file_str.replace(u'\ufffd', ' ')
             all_queries.append(current_file_str)
             current_file.close()
-            os.remove(os.path.join(file_directory, current_file_d))
+            if is_removed_read == True:
+                os.remove(os.path.join(file_directory, current_file_d))
             # Only retrive one file at a time. 
             if len(all_queries) != 0:
                 break

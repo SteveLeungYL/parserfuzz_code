@@ -15,6 +15,7 @@ class Fuzzer:
             try:
                 shutil.rmtree(os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)))
             except:
+                print("Not able to delete the library. \n")
                 pass
             
         for i in range(CORE_ID_BEGIN, CORE_ID_BEGIN + MAX_FUZZING_INSTANCE):
