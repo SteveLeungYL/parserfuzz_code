@@ -452,24 +452,35 @@ static void collect_ir(IR* root, set<IDTYPE> &type_to_fix, vector<IR*> &ir_to_fi
 }
 
 static IR* search_mapped_ir(IR* ir, IDTYPE idtype){
-    vector<IR*> to_search;
-    vector<IR*> backup;
-    to_search.push_back(ir);
-    while(!to_search.empty()){
-        for(auto i: to_search){
-            if(i->id_type_ == idtype){
-                return i;
-            }
-            if(i->left_){
-                backup.push_back(i->left_);
-            }
-            if(i->right_){
-                backup.push_back(i->right_);
-            }
-        }
-        to_search = move(backup);
-        backup.clear();
+    deque<IR *> to_search = {ir};
+
+    while(to_search.empty() != true){
+        auto node = to_search.front();
+        to_search.pop_front();
+
+        if(node->id_type_ == idtype) return node;;
+        if(node->left_) to_search.push_back(node->left_);
+        if(node->right_) to_search.push_back(node->right_);
     }
+
+    //vector<IR*> to_search;
+    //vector<IR*> backup;
+    //to_search.push_back(ir);
+    //while(!to_search.empty()){
+    //    for(auto i: to_search){
+    //        if(i->id_type_ == idtype){
+    //            return i;
+    //        }
+    //        if(i->left_){
+    //            backup.push_back(i->left_);
+    //        }
+    //        if(i->right_){
+    //            backup.push_back(i->right_);
+    //        }
+    //    }
+    //    to_search = move(backup);
+    //    backup.clear();
+    //}
     return NULL;
 }
 
