@@ -8,16 +8,29 @@ sys.path.append(os.getcwd())
 
 from bi_config import *
 from helper import VerCon, IO, log_out_line, Bisect, Fuzzer
-from ORACLE import Oracle_TLP
+from ORACLE import Oracle_TLP, Oracle_NOREC
 
 
 def main():
     
     IO.gen_unique_bug_output_dir(True)
 
-    Fuzzer.setup_and_run_fuzzing()
+    if len(sys.argv) <= 1:
+        oracle = Oracle_NOREC()
+        oracle_str = "NOREC"
+    elif sys.argv[1] == "NOREC":
+        oracle = Oracle_NOREC()
+        oracle_str = "NOREC"
+    elif sys.argv[1] == "TLP":
+        oracle = Oracle_TLP()
+        oracle_str = "TLP"
+    # Add your own oracle here:
+    else:
+        log_out_line("Oracle not specified. Defaulting NOREC. ")
+        oracle = Oracle_NOREC()
+        oracle_str = "NOREC"
 
-    oracle = Oracle_TLP()
+    Fuzzer.setup_and_run_fuzzing(oracle_str)
 
     repo = Repo(SQLITE_DIR)
     assert not repo.bare

@@ -6990,12 +6990,7 @@ static void do_libary_initialize() {
 
 int main(int argc, char** argv) {
 
-  /* Setup g_mutator and p_oracle; */
-  p_oracle = new SQL_TLP();   // Set it to your own oracle class. 
-  p_oracle->set_mutator(&g_mutator);
-  g_mutator.set_p_oracle(p_oracle);
-  g_mutator.set_use_cri_val(false);
-
+  p_oracle = nullptr;
 
   // hsql_debug = 1;   // For debugging parser. 
   int bind_to_core_id = -1;
@@ -7020,7 +7015,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:E")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:EO:")) > 0)
 
     switch (opt) {
 
@@ -7200,12 +7195,35 @@ int main(int argc, char** argv) {
         if (!mem_limit_given) mem_limit = MEM_LIMIT_QEMU;
 
         break;
+      
+      case 'O': /* Oracle */
+      {
+        /* Default NOREC */
+        string arg = string(optarg);
+        if (arg == "NOREC")
+          p_oracle = new SQL_NOREC();
+        else if (arg == "TLP")
+          p_oracle = new SQL_TLP();
+        else if (arg == "LIKELY")
+          p_oracle = new SQL_LIKELY();
+        else if (arg == "ROWID")
+          p_oracle = new SQL_ROWID();
+        else
+          FATAL("Oracle arguments not supported. ");
+      }
+        break;
 
       default:
 
         usage(argv[0]);
 
     }
+
+  /* Finish setup g_mutator and p_oracle; */
+  if (p_oracle == nullptr) p_oracle = new SQL_NOREC();
+  p_oracle->set_mutator(&g_mutator);
+  g_mutator.set_p_oracle(p_oracle);
+  g_mutator.set_use_cri_val(false);
 
   g_mutator.set_dump_library(dump_library);
 
