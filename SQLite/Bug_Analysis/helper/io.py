@@ -61,7 +61,7 @@ class IO:
         return output_all_queries
 
     @classmethod
-    def _retrive_all_verifi_queries_matches(cls, query_str, veri_begin_regex, veri_end_regex):
+    def _retrive_all_verifi_queries_matches(cls, query_str, veri_begin_regex, veri_end_regex, oracle):
 
         # Grab all the verification queries.
         queries_out = []
@@ -78,10 +78,11 @@ class IO:
             if current_stmt == "" or current_stmt == " ":
                 continue
             queries_pairs.append(current_stmt)
-            if (len(queries_pairs) == 2):
+            if (len(queries_pairs) == oracle.veri_vari_num):
                 queries_out.append(queries_pairs)
                 queries_pairs = []
 
+        log_out_line("Veri_stmts are: %s\n" % (str(queries_out)))
         return queries_out
 
     @classmethod
@@ -102,16 +103,18 @@ class IO:
 
         for i in range(min( len(begin_idx), len(end_idx) )):
             current_str:str = query_str[begin_idx[i]: end_idx[i]]
-            current_str = current_str.replace('\n', '')
+            # current_str = current_str.replace('\n', '')
             if is_string_only_whitespace(current_str):
                 continue
             normal_query += current_str + '\n'
 
-        log_out_line("Header is: " + str(normal_query))
+        # log_out_line("Header is: " + str(normal_query))
         return normal_query
 
     @classmethod
     def _pretty_print(cls, query, same_idx, oracle):
+
+        log_out_line("Ori query is: \n%s\n" % (query))
 
         start_of_norec = query.find("SELECT 'BEGIN VERI 0';")
 
@@ -121,7 +124,7 @@ class IO:
         # lines = tail.splitlines()
         # opt_selects = lines[1::6]
         # unopt_selects = lines[4::6]
-        veri_stmts = cls._retrive_all_verifi_queries_matches(tail, r"SELECT 'BEGIN VERI [0-9]';", r"SELECT 'END VERI [0-9]';")
+        veri_stmts = cls._retrive_all_verifi_queries_matches(tail, r"SELECT 'BEGIN VERI [0-9]';", r"SELECT 'END VERI [0-9]';", oracle)
 
         # It is possible to have multiple normal stmts between norec select stmts. Include them to put them into the header of the output. 
         header = cls._retrive_all_normal_queries_matches(query, r"SELECT 'BEGIN VERI [0-9]';", r"SELECT 'END EXPLAIN [0-9]';")
@@ -152,9 +155,11 @@ class IO:
                 same_idx.append(idx)
                 continue
 
-        # log_out_line("same_idx: %s" % (str(same_idx)))
+        log_out_line("res_flags: %s" % (str(bisecting_result.last_buggy_res_flags_l)))
 
-        # log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l[0])))
+        log_out_line("same_idx: %s" % (str(same_idx)))
+
+        log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l)))
 
         pretty_query = []
         for cur_query in bisecting_result.query:
@@ -190,13 +195,20 @@ class IO:
         if current_bisecting_result.final_res_flag == RESULT.SEG_FAULT:
             bug_output_file.write("Error: The early commit failed to compile, or crashing. Failed to find the bug introduced commit. \n")
 
+
         if current_bisecting_result.last_buggy_res_str_l != [] and current_bisecting_result.last_buggy_res_str_l != None:
-            for i, cur_run_res in enumerate(current_bisecting_result.last_buggy_res_str_l):
-                bug_output_file.write("Run ID: %d \n" % (i))
-                for j, cur_res in enumerate(cur_run_res):
+            if oracle.multi_exec_num <= 1:
+                for i, cur_run_res in enumerate(current_bisecting_result.last_buggy_res_str_l):
+                    for j, cur_res in enumerate(cur_run_res):
+                        bug_output_file.write("Last Buggy Result Num: %d \n" % j)
+                        for k, cur_r in enumerate(cur_res):
+                            bug_output_file.write("RES %d: \n%s\n" % (k, cur_r))
+            else:
+                for j in range(len(current_bisecting_result.last_buggy_res_str_l[0])):
                     bug_output_file.write("Last Buggy Result Num: %d \n" % j)
-                    for k, cur_r in enumerate(cur_res):
-                        bug_output_file.write("RES %d: \n%s\n" % (k, cur_r))
+                    for i in range(len(current_bisecting_result.last_buggy_res_str_l)):
+                        bug_output_file.write("\nBuggy Run ID: %d, Results: \n%s\n" % (i, current_bisecting_result.last_buggy_res_str_l[i][j]))
+
         else:
             bug_output_file.write("Last buggy results: None. Possibly because the latest commit already fix the bug. \n\n")
 

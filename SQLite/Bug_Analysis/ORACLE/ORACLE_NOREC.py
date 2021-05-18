@@ -4,6 +4,11 @@ import re
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
 
 class Oracle_NOREC():
+
+    multi_exec_num = 1
+    veri_vari_num = 2
+
+
     @staticmethod
     def retrive_all_results(result_str):
         if result_str.count("BEGIN VERI") < 1 or result_str.count("END VERI") < 1 or is_string_only_whitespace(result_str) or result_str == "":

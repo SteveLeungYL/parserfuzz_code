@@ -8,6 +8,10 @@ class VALID_TYPE_ROWID(Enum):
     UNIQUE = 2
 
 class Oracle_ROWID:
+
+    multi_exec_num = 2
+    veri_vari_num = 1
+
     @staticmethod
     def retrive_all_results(result_str):
         if result_str.count("BEGIN VERI") < 1 or result_str.count("END VERI") < 1 or is_string_only_whitespace(result_str) or result_str == "":
@@ -31,12 +35,17 @@ class Oracle_ROWID:
 
     @classmethod
     def comp_query_res(cls, queries_l, all_res_str_l):
+
+        if all_res_str_l[0] == None or all_res_str_l[1] == None:
+            return RESULT.SEG_FAULT, None
+
         # We only need the first query to get the VALID_TYPE_ROWID list. 
         queries = queries_l[0]
 
         valid_type_list = cls._get_valid_type_list(queries)
 
         all_res_out = []
+        final_res = RESULT.PASS
 
         for idx, valid_type in enumerate(valid_type_list):
             if valid_type == VALID_TYPE_ROWID.NORM:
@@ -45,6 +54,21 @@ class Oracle_ROWID:
             else:
                 curr_res = cls._check_result_uniq(all_res_str_l[0][idx], all_res_str_l[1][idx], valid_type)
                 all_res_out.append(curr_res)
+
+        for curr_res_out in all_res_out:
+            if curr_res_out == RESULT.FAIL:
+                final_res = RESULT.FAIL
+                break
+            
+        is_all_query_return_errors = True
+        for curr_res_out in all_res_out:
+            if curr_res_out != RESULT.ERROR:
+                is_all_query_return_errors = False
+                break
+        if is_all_query_return_errors: 
+            final_res = RESULT.ALL_ERROR
+
+        return final_res, all_res_out
 
 
     @classmethod
@@ -113,7 +137,7 @@ class Oracle_ROWID:
             return RESULT.PASS
 
     @classmethod
-    def _check_result_minmax_count_sum(cls, opt, unopt, valid_type)-> RESULT:
+    def _check_result_uniq(cls, opt, unopt, valid_type)-> RESULT:
         if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
         if opt != unopt:
