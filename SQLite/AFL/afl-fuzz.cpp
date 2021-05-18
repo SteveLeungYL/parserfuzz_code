@@ -2605,7 +2605,7 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
     if (p_oracle->is_oracle_valid_stmt(query)) {
       string rew_1 = "", rew_2 = "", rew_3 = "";
       p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3, mul_run_id);
-      
+
       if (query != ""){
         if (is_mark)
           current_output += "SELECT 'BEGIN VERI 0'; \n";
@@ -2737,7 +2737,7 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
     COMP_RES comp_res;
     for (int i = 0; i < res_vec.size(); i++){
       comp_res.v_res_str.push_back(res_vec[i][j]);
-      if (exp_vec[0][j] != exp_vec[i][j]) {
+      if (j < exp_vec[0].size() && j < exp_vec[i].size() && exp_vec[0][j] != exp_vec[i][j]) {
         comp_res.explain_diff_id.push_back(j);
         explain_diff_id.push_back(j); /* Might contains duplicated IDs. But it should be OK. */
       }
@@ -6991,6 +6991,7 @@ static void do_libary_initialize() {
 int main(int argc, char** argv) {
 
   p_oracle = nullptr;
+  g_mutator.set_use_cri_val(false);
 
   // hsql_debug = 1;   // For debugging parser. 
   int bind_to_core_id = -1;
@@ -7223,7 +7224,6 @@ int main(int argc, char** argv) {
   if (p_oracle == nullptr) p_oracle = new SQL_NOREC();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
-  g_mutator.set_use_cri_val(false);
 
   g_mutator.set_dump_library(dump_library);
 
