@@ -1,5 +1,4 @@
 import re
-import numpy as np
 
 
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace

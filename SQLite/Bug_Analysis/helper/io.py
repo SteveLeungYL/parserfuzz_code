@@ -43,19 +43,20 @@ class IO:
         for queries in all_queries:
             current_queries_in = queries.split('\n')
             current_queries_out = ""
+            is_adding = False
             for query in current_queries_in:
                 if 'Result string' in query:
-                    break
+                    is_adding = False
+                    output_all_queries.append(current_queries_out)
+                    current_queries_out = ""
+                    continue
                 if not re.search(r'\w', query):
                     continue
                 if 'Query' in query or query == ';' or query == ' ' or query == '' or query == '\n':
+                    is_adding = True
                     continue
-                if query != current_queries_in[-1]:
+                if is_adding:
                     current_queries_out += query + " \n"
-                else:
-                    current_queries_out += query
-
-            output_all_queries.append(current_queries_out)
 
         return output_all_queries
 

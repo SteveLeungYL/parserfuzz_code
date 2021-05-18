@@ -8,7 +8,7 @@ sys.path.append(os.getcwd())
 
 from bi_config import *
 from helper import VerCon, IO, log_out_line, Bisect, Fuzzer
-from ORACLE import Oracle_TLP, Oracle_NOREC
+from ORACLE import Oracle_TLP, Oracle_NOREC, Oracle_ROWID
 
 
 def main():
@@ -24,6 +24,9 @@ def main():
     elif sys.argv[1] == "TLP":
         oracle = Oracle_TLP()
         oracle_str = "TLP"
+    elif sys.argv[1] == "ROWID":
+        oracle = Oracle_ROWID()
+        oracle_str = "ROWID"
     # Add your own oracle here:
     else:
         log_out_line("Oracle not specified. Defaulting NOREC. ")

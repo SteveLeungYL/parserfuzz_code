@@ -2837,7 +2837,7 @@ void stream_output_res(const ALL_COMP_RES& all_comp_res, ostream& out){
     out << "Multiple execution of SQLite: \n";
 
     for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++){
-      out << "Query " << i << ": \n";
+      out << "Query: " << i << ": \n";
       out << all_comp_res.v_cmd_str[i] << "\n";
       out << "Result string: \n";
       out << all_comp_res.v_res_str[i] << "\n";

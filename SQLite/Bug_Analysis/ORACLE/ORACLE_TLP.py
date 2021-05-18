@@ -1,6 +1,5 @@
 import re
 from sys import maxsize
-import numpy as np
 from enum import Enum
 
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
