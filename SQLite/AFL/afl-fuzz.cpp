@@ -3532,9 +3532,10 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
   u8  keeping = 0, res;
   vector<IR *> ir_set;
 
-  string stripped_query_string;
-
   if (is_str_empty(query_str)) return keeping; // return 0; Empty string. Not added. 
+
+  string stripped_query_string = p_oracle->remove_valid_stmts_from_str(query_str);
+  if (is_str_empty(stripped_query_string)) return keeping;
 
   if (fault == crash_mode) {
 
@@ -3563,9 +3564,6 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault) {
     stage_name = tmp_name;
     //[modify] end
 
-    stripped_query_string = p_oracle->remove_valid_stmts_from_str(query_str);
-
-    if (is_str_empty(stripped_query_string)) return keeping;
     if (g_mutator.is_stripped_str_in_lib(stripped_query_string)) return keeping;
     
 #ifndef SIMPLE_FILES
