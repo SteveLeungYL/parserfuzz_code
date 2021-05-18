@@ -84,6 +84,7 @@
 #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_tlp.h"
 #include "../oracle/sqlite_rowid.h"
+#include "../oracle/sqlite_index.h"
 
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined (__OpenBSD__)
@@ -5724,6 +5725,21 @@ static u8 fuzz_one(char** argv) {
     for (string& app_str : ori_valid_stmts) {
       *ir_str += app_str;  // Append the already generated and cached SELECT VALID stmts. 
     }
+
+    /* Randomly append statements into the query set. 1/4 chances for now. */
+    vector<string> queries_vector = string_splitter(*ir_str, ";");
+    *ir_str = "";
+    for (string& cur_query : queries_vector){
+      *ir_str += cur_query + "; ";
+      if (get_rand_int(4) < 1) {
+        string rand_str = p_oracle->get_random_append_stmts();
+        if (rand_str != "")
+          *ir_str += rand_str + "; ";
+        // cerr << "Randomly appended rand_str: " << rand_str << endl;
+        // cerr << "Current *ir_str is: " << *ir_str << endl;
+      }
+    }
+
     query_str = g_mutator.validate(*ir_str);
 
     if(query_str == ""){
@@ -7209,6 +7225,8 @@ int main(int argc, char** argv) {
           p_oracle = new SQL_LIKELY();
         else if (arg == "ROWID")
           p_oracle = new SQL_ROWID();
+        else if (arg == "INDEX")
+          p_oracle = new SQL_INDEX();
         else
           FATAL("Oracle arguments not supported. ");
       }

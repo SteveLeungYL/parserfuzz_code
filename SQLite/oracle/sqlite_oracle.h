@@ -22,6 +22,12 @@ public:
     /* Used to detect non-select query that needs some rewrite. */
     virtual bool is_oracle_valid_stmt_2(const string& query) {return false;} 
 
+    /* Randomly add some statements into the query sets. Will append to the query 
+     * in a pretty early stage. Can be used to append some non-select verification statements
+     * into the query set, and rewrite using rewrite_valid_stmt_from_ori_2() later. 
+    */
+    virtual string get_random_append_stmts() { return ""; }
+
     /* Mark all the IR node in the IR tree, that is related to teh validation statement, that you do not want to mutate. */
     virtual bool mark_all_valid_node(vector<IR *> &v_ir_collector) = 0;
 
