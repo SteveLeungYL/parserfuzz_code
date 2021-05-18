@@ -10,6 +10,11 @@
 
 using namespace std;
 
+enum class VALID_STMT_TYPE_LIKELY {
+    NORM,
+    UNIQ
+};
+
 class SQL_LIKELY: public SQL_ORACLE {
 public:
 
@@ -23,6 +28,12 @@ public:
     string get_temp_valid_stmts() override {return temp_valid_stmts;};
 private:
     string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
+
+    void get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_LIKELY>& v_valid_type);
+
+    bool compare_norm(COMP_RES& res); /* Handle normal valid stmt: SELECT * FROM ...; Return is_err */
+    bool compare_uniq(COMP_RES& res); 
+
 };
 
 

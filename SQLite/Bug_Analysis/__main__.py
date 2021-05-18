@@ -8,7 +8,7 @@ sys.path.append(os.getcwd())
 
 from bi_config import *
 from helper import VerCon, IO, log_out_line, Bisect, Fuzzer
-from ORACLE import Oracle_TLP, Oracle_NOREC, Oracle_ROWID, Oracle_INDEX
+from ORACLE import Oracle_TLP, Oracle_NOREC, Oracle_ROWID, Oracle_INDEX, Oracle_LIKELY
 
 
 def main():
@@ -30,9 +30,13 @@ def main():
     elif sys.argv[1] == "INDEX":
         oracle = Oracle_INDEX()
         oracle_str = "INDEX"
+    elif sys.argv[1] == "LIKELY":
+        oracle = Oracle_LIKELY()
+        oracle_str = "LIKELY"
     # Add your own oracle here:
     else:
-        log_out_line("Oracle not specified. Defaulting NOREC. ")
+        print("Oracle not specified or not recognized. Defaulting NOREC. ")
+        log_out_line("Oracle not specified or not recognized. Defaulting NOREC. ")
         oracle = Oracle_NOREC()
         oracle_str = "NOREC"
 
