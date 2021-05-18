@@ -19,6 +19,7 @@
 
 
 int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg) {
+    //fprintf(stderr, "%s\n", msg);
     return 0;
 }
 
@@ -102,127 +103,124 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     StatementList* statement_list_t;
     Statement* statement_t;
     PreparableStatement* preparable_statement_t;
-    OptionalHints* optional_hints_t;
-    /* HintList* hint_list_t; */
-    /* Hint* hint_t; */
-    /* PrepareStatement* prepare_statement_t; */
-    /* PrepareTargetQuery* prepare_target_query_t; */
-    ExecuteStatement* execute_statement_t;
-    ImportStatement* import_statement_t;
-    ImportFileType* import_file_type_t;
     FilePath* file_path_t;
     TableRefCommaList* table_ref_commalist_t;
-    ShowStatement* show_statement_t;
     CreateStatement* create_statement_t;
-    OptNotExists* opt_not_exists_t;
-    ColumnOrTableConstraintDefCommaList* column_or_table_constraint_def_comma_list_t;
-    ColumnDefCommaList* column_def_comma_list_t;
+    CreateTableStatement * create_table_statement_t;
+    CreateViewStatement * create_view_statement_t;
+    CreateIndexStatement * create_index_statement_t;
+    CreateVirtualTableStatement * create_virtual_table_statement_t;
+    CreateTriggerStatement * create_trigger_statement_t;
+    OptIfNotExists* opt_if_not_exists_t;
+    OptRecursive* opt_recursive_t;
+    OptNot* opt_not_t;
+    ColumnDefList* column_def_list_t;
     ColumnDef* column_def_t;
-    TableConstraintDef* table_constraint_def_t;
-    TableConstraintDefCommaList* table_constraint_def_comma_list_t;
+    TableConstraint* table_constraint_t;
+    TableConstraintList* table_constraint_list_t;
     OptConstraintName* opt_constraint_name_t;
     ColumnType* column_type_t;
     //OptColumnNullable* opt_column_nullable_t;
     DropStatement* drop_statement_t;
-    OptExists* opt_exists_t;
+    DropTableStatement* drop_table_statement_t;
+    DropIndexStatement* drop_index_statement_t;
+    DropViewStatement* drop_view_statement_t;
+    DropTriggerStatement* drop_trigger_statement_t;
+    OptIfExists* opt_if_exists_t;
     OptWithoutRowID* opt_without_rowid_t;
     DeleteStatement* delete_statement_t;
     InsertStatement* insert_statement_t;
-    OptColumnList* opt_column_list_t;
+    OptColumnListParen * opt_column_list_paren_t;
     UpdateStatement* update_statement_t;
-    UpdateClauseCommalist* update_clause_commalist_t;
+    UpdateClauseList* update_clause_list_t;
     UpdateClause* update_clause_t;
     SelectStatement* select_statement_t;
-    SelectWithParen* select_with_paren_t;
-    SelectParenOrClause* select_paren_or_clause_t;
-    SelectNoParen* select_no_paren_t;
     SetOperator* set_operator_t;
-    SetType* set_type_t;
-    OptAll* opt_all_t;
-    IdentCommaList* ident_commalist_t;
-    SelectClause* select_clause_t;
+    SelectCore* select_core_t;
+    SelectCoreList * select_core_list_t;
     OptDistinct* opt_distinct_t;
-    SelectList* select_list_t;
+    OptStoredVirtual * opt_stored_virtual_t;
+    OptReturningClause* opt_returning_clause_t;
+    ResultColumnList* result_column_list_t;
+    ResultColumn* result_column_t;
     OptFromClause* opt_from_clause_t;
     FromClause* from_clause_t;
     OptWhere* opt_where_t;
+    OptEscapeExpr* opt_escape_expr_t;
+    OptElseExpr* opt_else_expr_t;
     OptGroup* opt_group_t;
     OptHaving* opt_having_t;
     OptOrder* opt_order_t;
     OrderList* order_list_t;
-    OrderDesc* order_desc_t;
+    OrderTerm* order_term_t;
     OptOrderType* opt_order_type_t;
-    OptTop* opt_top_t;
     OptLimit* opt_limit_t;
     ExprList* expr_list_t;
-    OptLiteralList* opt_literal_list_t;
-    LiteralList* literal_list_t;
-    ExprAlias* expr_alias_t;
-    Expr* expr_t;
-    Operand* operand_t;
-    ScalarExpr* scalar_expr_t;
-    UnaryExpr* unary_expr_t;
-    BinaryExpr* binary_expr_t;
-    LogicExpr* logic_expr_t;
-    InExpr* in_expr_t;
-    CompExpr * comp_expr_t;
-    CaseExpr* case_expr_t;
-    CaseClause* case_clause_t;
-    CaseList* case_list_t;
-    ExistsExpr* exists_expr_t;
-    FunctionExpr* function_expr_t;
-    ExtractExpr* extract_expr_t;
-    DatetimeField* datetime_field_t;
-    ArrayExpr* array_expr_t;
-    ArrayIndex* array_index_t;
-    BetweenExpr* between_expr_t;
+    ExprListParen* expr_list_paren_t;
+    ExprListParenList* expr_list_paren_list_t;
+    OptExpr* opt_expr_t;
+    NewExpr* new_expr_t;
+    UnaryOp* unary_op_t;
+    BinaryOp* binary_op_t;
+    InTarget* in_target_t;
+    CaseCondition* case_condition_t;
+    CaseConditionList* case_condition_list_t;
     ColumnName* column_name_t;
+    FunctionName* function_name_t;
+    FunctionArgs* function_args_t;
     Literal* literal_t;
     StringLiteral* string_literal_t;
     BlobLiteral * blob_literal_t;
-    BoolLiteral* bool_literal_t;
-    NumLiteral* num_literal_t;
-    IntLiteral* int_literal_t;
+    NumericLiteral* numeric_literal_t;
+    SignedNumber * signed_number_t;
+    ForeignKeyClause * foreign_key_clause_t;
+    ForeignKeyOn * foreign_key_on_t;
+    ForeignKeyOnList * foreign_key_on_list_t;
+    OptForeignKeyOnList * opt_foreign_key_on_list_t;
+    DeferrableClause * deferrable_clause_t;
+    OptDeferrableClause * opt_deferrable_clause_t;
     NullLiteral* null_literal_t;
     ParamExpr* param_expr_t;
-    TableRef* table_ref_t;
+    TableOrSubquery * table_or_subquery_t;
+    TableOrSubqueryList * table_or_subquery_list_t;
     TableRefAtomic* table_ref_atomic_t;
     NonjoinTableRefAtomic* nonjoin_table_ref_atomic_t;
     TableRefName* table_ref_name_t;
-    TableRefNameNoAlias* table_ref_name_no_alias_t;
     TableName* table_name_t;
+    QualifiedTableName * qualified_table_name_t;
     TableAlias* table_alias_t;
     OptTableAlias* opt_table_alias_t;
-    Alias* alias_t;
-    OptAlias* opt_alias_t;
+    OptTableAliasAs * opt_table_alias_as_t;
+    ColumnAlias* column_alias_t;
+    OptColumnAlias* opt_column_alias_t;
     OptWithClause* opt_with_clause_t;
     WithClause* with_clause_t;
-    WithDescriptionList* with_description_list_t;
-    WithDescription* with_description_t;
+    CommonTableExpr* common_table_expr_t;
+    CommonTableExprList* common_table_expr_list_t;
     JoinClause* join_clause_t;
+    JoinSuffix* join_suffix_t;
+    JoinSuffixList* join_suffix_list_t;
     OptJoinType* opt_join_type_t;
-    JoinCondition* join_condition_t;
+    JoinConstraint* join_constraint_t;
     OptSemicolon* opt_semicolon_t;
     Identifier* identifier_t;
-    Cmd * cmd_t;
-    CmdAttach * cmd_attach_t;
-    CmdDetach * cmd_detach_t;
-    CmdReindex * cmd_reindex_t;
-    CmdAnalyze * cmd_analyze_t;
-    CmdPragma * cmd_pragma_t;
+    AttachStatement * attach_statement_t;
+    DetachStatement * detach_statement_t;
+    ReindexStatement * reindex_statement_t;
+    AnalyzeStatement * analyze_statement_t;
+    PragmaStatement* pragma_statement_t;
     PragmaKey * pragma_key_t;
     PragmaValue * pragma_value_t;
     PragmaName * pragma_name_t;
     SchemaName * schema_name_t;
-    OptColumnArglist*	opt_column_arglist_t;
-	ColumnArglist*	column_arglist_t;
-	ColumnArg*	column_arg_t;
-	OptOnConflict*	opt_on_conflict_t;
+    OptColumnConstraintlist*	opt_column_constraintlist_t;
+	ColumnConstraintlist*	column_constraintlist_t;
+	ColumnConstraint*	column_constraint_t;
+	OptConflictClause*	opt_conflict_clause_t;
 	ResolveType*	resolve_type_t;
 	OptAutoinc*	opt_autoinc_t;
 	OptUnique*	opt_unique_t;
 	IndexName*	index_name_t;
-	TriggerDeclare*	trigger_declare_t;
 	OptTmp*	opt_tmp_t;
 	TriggerName*	trigger_name_t;
 	OptTriggerTime*	opt_trigger_time_t;
@@ -235,33 +233,36 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 	ModuleName*	module_name_t;
 	OptOverClause*	opt_over_clause_t;
 	OptFilterClause*	opt_filter_clause_t;
+  FilterClause* filter_clause_t;
 	WindowClause*	window_clause_t;
+  OptWindowClause * opt_window_clause_t;
 	WindowDefnList*	window_defn_list_t;
 	WindowDefn*	window_defn_t;
-	Window*	window_t;
+	WindowBody*	window_body_t;
 	OptBaseWindowName*	opt_base_window_name_t;
+  WindowName* window_name_t;
 	OptFrame*	opt_frame_t;
 	RangeOrRows*	range_or_rows_t;
 	FrameBoundS*	frame_bound_s_t;
 	FrameBoundE*	frame_bound_e_t;
 	FrameBound*	frame_bound_t;
-	OptFrameExclude*	opt_frame_exclude_t;
 	FrameExclude*	frame_exclude_t;
+  OptFrameExclude* opt_frame_exclude_t;
     InsertType * insert_type_t;
-    SuperList * super_list_t;
-    JoinKw* join_kw_t;
+    UpdateType * update_type_t;
+    InsertValue * insert_value_t;
 
-    TablePrefix * table_prefix_t;
     JoinOp * join_op_t;
     OptIndex * opt_index_t;
-    OptOn * opt_on_t;
-    OptUsing * opt_using_t;
+    OnExpr* on_expr_t;
+    ElseExpr* else_expr_t;
+    WhereExpr* where_expr_t;
+    EscapeExpr* escape_expr_t;
 
-    CastExpr * cast_expr_t;
     AlterStatement * alter_statement_t;
+    SavepointStatement * savepoint_statement_t;
+    ReleaseStatement * release_statement_t;
     OptColumn * opt_column_t;
-    CmdRelease * cmd_release_t;
-    SavepointName * savepoint_name_t;
     VacuumStatement * vacuum_statement_t;
     OptSchemaName * opt_schema_name_t;
     RollbackStatement * rollback_statement_t;
@@ -270,23 +271,29 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     BeginStatement * begin_statement_t;
     CommitStatement * commit_statement_t;
     UpsertClause * upsert_clause_t;
+    UpsertItem * upsert_item_t;
     IndexedColumnList * indexed_column_list_t;
     IndexedColumn * indexed_column_t;
     OptCollate * opt_collate_t;
+    Collate* collate_t;
     AssignList * assign_list_t;
-    OptNull * opt_null_t;
+    OptOrderOfNull * opt_order_of_null_t;
+    NullOfExpr* null_of_expr_t;
+    ExistsOrNot* exists_or_not_t;
     AssignClause * assign_clause_t;
     ColumnNameList * column_name_list_t;
-    CollationName * collation_name_t;
     OptUpsertClause * opt_upsert_clause_t;
+    PartitionBy* partition_by_t;
+    OptPartitionBy* opt_partition_by_t;
+    RaiseFunction * raise_function_t;
+    ConflictTarget* conflict_target_t;
+    OptConflictTarget * opt_conflict_target_t;
 
     std::vector<char*>* str_vec;
-    std::vector<TableRef*>* table_vec;
     std::vector<ColumnDef*>* column_vec;
     std::vector<UpdateClause*>* update_vec;
-    std::vector<Expr*>* expr_vec;
-    std::vector<OrderDesc*>* order_vec;
-    std::vector<WithDescription*>* with_description_vec;
+    std::vector<NewExpr*>* expr_vec;
+    std::vector<OrderTerm*>* order_vec;
 }
 
 
@@ -297,17 +304,18 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /*********************************
  ** Token Definition
  *********************************/
-%token <sval> STRING IDENTIFIER BLOBSTRING
+%token <sval> STRING IDENTIFIER BLOBSTRING HEXVAL EXPVAL;
 %token <fval> FLOATVAL
 %token <ival> INTVAL
 //%token <identifier_t> IDENTIFIER
 
 /* SQL Keywords */
 %token DEALLOCATE PARAMETERS INTERSECT TEMPORARY TIMESTAMP
+%token CURRENT_TIME CURRENT_DATE CURRENT_TIMESTAMP
 %token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN
 %token CASCADE COLUMNS CONTROL DEFAULT EXECUTE EXPLAIN
 %token INTEGER NATURAL PREPARE PRIMARY SCHEMAS
-%token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT
+%token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT STORED
 %token DOUBLE ESCAPE EXCEPT EXISTS EXTRACT GLOBAL HAVING IMPORT
 %token INSERT ISNULL OFFSET RENAME SCHEMA SELECT SORTED
 %token TABLES UNIQUE UNLOAD UPDATE VALUES AFTER ALTER CROSS
@@ -320,140 +328,143 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
 %token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
-%token TRUE FALSE PRECISION NUMERIC NUM DECIMAL
-%token WITHOUT ROWID CONSTRAINT BLOBSTART
+%token TRUE FALSE PRECISION NUMERIC NUM DECIMAL FOREIGN
+%token WITHOUT ROWID CONSTRAINT BLOBSTART BTWAND
 
 /* For SQLite
 */
 
-%token  PRAGMA REINDEX GENERATED ALWAYS CHECK CONFLICT IGNORE REPLACE ROLLBACK REFERENCES
+%token PRAGMA REINDEX GENERATED ALWAYS CHECK CONFLICT IGNORE REPLACE ROLLBACK REFERENCES
 %token ABORT FAIL AUTOINCR BEGIN TRIGGER TEMP INSTEAD EACH ROW OVER FILTER PARTITION
-%token  CURRENT EXCLUDE FOLLOWING GROUPS NO OTHERS PRECEDING RANGE ROWS TIES UNBOUNDED WINDOW
-%token  ATTACH DETACH DATABASE INDEXED CAST SAVEPOINT RELEASE VACUUM TRANSACTION DEFFERED EXCLUSIVE
-%token IMEDIATE COMMIT GLOB MATCH REGEX NOTHING NULLS LAST FIRST DO COLLATE
+%token CURRENT EXCLUDE FOLLOWING GROUPS NO OTHERS PRECEDING RANGE ROWS TIES UNBOUNDED WINDOW
+%token ATTACH DETACH DATABASE INDEXED CAST SAVEPOINT RELEASE VACUUM TRANSACTION DEFFERED EXCLUSIVE
+%token IMEDIATE COMMIT GLOB MATCH REGEXP NOTHING NULLS LAST FIRST DO COLLATE RAISE RECURSIVE
+%token RETURNING ACTION DEFERRABLE DEFERRED IMMEDIATE INITIALLY
 
 %type <program_t>	input
 %type <statement_list_t>	statement_list
 %type <statement_t>	statement
 %type <preparable_statement_t>	preparable_statement
-/* %type <optional_hints_t>	opt_hints */
-/* %type <hint_list_t>	hint_list */
-/* %type <hint_t>	hint */
-/* %type <prepare_statement_t>	prepare_statement */
-/* %type <prepare_target_query_t>	prepare_target_query */
-%type <execute_statement_t>	execute_statement
-%type <import_statement_t>	import_statement
-%type <import_file_type_t>	import_file_type
 %type <file_path_t>	file_path
-%type <show_statement_t>	show_statement
 %type <create_statement_t>	create_statement
-%type <opt_not_exists_t>	opt_not_exists
+%type <create_table_statement_t> create_table_statement
+%type <create_view_statement_t> create_view_statement
+%type <create_index_statement_t> create_index_statement
+%type <create_virtual_table_statement_t> create_virtual_table_statement
+%type <create_trigger_statement_t> create_trigger_statement
+%type <opt_if_not_exists_t>	opt_if_not_exists
+%type <opt_recursive_t> opt_recursive
+%type <opt_not_t> opt_not
 %type <opt_constraint_name_t> opt_constraint_name
-%type <column_def_comma_list_t>	column_def_commalist
-%type <table_constraint_def_t>	table_constraint_def
-%type <table_constraint_def_comma_list_t>	table_constraint_def_commalist
-%type <column_or_table_constraint_def_comma_list_t>	column_or_table_constraint_def_commalist
+%type <column_def_list_t>	column_def_list
+%type <table_constraint_t>	table_constraint
+%type <table_constraint_list_t>	table_constraint_list
 %type <column_def_t>	column_def
 %type <column_type_t>	column_type
 %type <drop_statement_t>	drop_statement
-%type <opt_exists_t>	opt_exists
-%type <delete_statement_t>	delete_statement	truncate_statement
+%type <drop_table_statement_t> drop_table_statement
+%type <drop_index_statement_t> drop_index_statement
+%type <drop_view_statement_t> drop_view_statement
+%type <drop_trigger_statement_t> drop_trigger_statement
+%type <opt_if_exists_t>	opt_if_exists
+%type <delete_statement_t>	delete_statement
 %type <insert_statement_t>	insert_statement
-%type <opt_column_list_t>	opt_column_list
+%type <opt_column_list_paren_t> opt_column_list_paren
 %type <update_statement_t>	update_statement
-%type <update_clause_commalist_t>	update_clause_commalist
+%type <update_clause_list_t>	update_clause_list
 %type <update_clause_t>	update_clause
 %type <select_statement_t>	select_statement
-%type <select_with_paren_t>	select_with_paren
-%type <select_paren_or_clause_t>	select_paren_or_clause
-%type <select_no_paren_t>	select_no_paren
+%type <select_core_t> select_core
+%type <select_core_list_t> select_core_list
 %type <set_operator_t>	set_operator
-%type <set_type_t>	set_type
-%type <opt_all_t>	opt_all
-%type <select_clause_t>	select_clause
 %type <opt_distinct_t>	opt_distinct
-%type <select_list_t>	select_list
+%type <opt_stored_virtual_t> opt_stored_virtual
+%type <opt_returning_clause_t> opt_returning_clause
+%type <result_column_list_t>	result_column_list returning_column_list
+%type <result_column_t> result_column returning_column
 %type <opt_from_clause_t>	opt_from_clause
 %type <from_clause_t>	from_clause
 %type <opt_where_t>	opt_where
+%type <opt_escape_expr_t> opt_escape_expr
+%type <opt_else_expr_t> opt_else_expr
 %type <opt_group_t>	opt_group
 %type <opt_having_t>	opt_having
 %type <opt_order_t>	opt_order
 %type <order_list_t>	order_list
-%type <order_desc_t>	order_desc
+%type <order_term_t>	order_term
 %type <opt_order_type_t>	opt_order_type
-%type <opt_top_t>	opt_top
 %type <opt_limit_t>	opt_limit
 %type <expr_list_t>	expr_list
-%type <opt_literal_list_t>	opt_literal_list
-%type <literal_list_t>	literal_list
-%type <expr_alias_t>	expr_alias
-%type <expr_t>	expr
-%type <operand_t>	operand
-%type <scalar_expr_t>	scalar_expr
-%type <unary_expr_t>	unary_expr
-%type <binary_expr_t>	binary_expr
-%type <logic_expr_t>	logic_expr
-%type <in_expr_t>	in_expr
-%type <comp_expr_t> comp_expr
-%type <case_expr_t>	case_expr
-%type <case_list_t>	case_list
-%type <exists_expr_t>	exists_expr
-%type <function_expr_t>	function_expr
-%type <extract_expr_t>	extract_expr
-%type <datetime_field_t>	datetime_field
-%type <array_expr_t>	array_expr
-%type <array_index_t>	array_index
-%type <between_expr_t>	between_expr
+%type <expr_list_paren_t> expr_list_paren
+%type <expr_list_paren_list_t> expr_list_paren_list
+%type <opt_expr_t> opt_expr
+%type <new_expr_t> new_expr
+%type <unary_op_t> unary_op
+%type <binary_op_t> binary_op similar_bop in_op
+%type <in_target_t> in_target
+%type <case_condition_t> case_condition
+%type <case_condition_list_t>	case_condition_list
 %type <column_name_t>	column_name one_column_name
+%type <function_name_t> function_name
+%type <function_args_t> function_args
 %type <literal_t>	literal
 %type <string_literal_t>	string_literal
 %type <blob_literal_t>	blob_literal
-%type <bool_literal_t>	bool_literal
-%type <num_literal_t>	num_literal
-%type <int_literal_t>	int_literal
+%type <numeric_literal_t> numeric_literal
+%type <signed_number_t> signed_number
+%type <foreign_key_clause_t> foreign_key_clause
+%type <foreign_key_on_t> foreign_key_on
+%type <foreign_key_on_list_t> foreign_key_on_list
+%type <opt_foreign_key_on_list_t> opt_foreign_key_on_list
+%type <deferrable_clause_t> deferrable_clause
+%type <opt_deferrable_clause_t> opt_deferrable_clause
 %type <null_literal_t>	null_literal
 %type <param_expr_t>	param_expr
-%type <table_ref_t>	    table_ref
-%type <table_ref_name_no_alias_t>	table_ref_name_no_alias
+%type <table_or_subquery_t> table_or_subquery
+%type <table_or_subquery_list_t> table_or_subquery_list
 %type <table_name_t>	table_name
-%type <alias_t>	alias
-%type <opt_alias_t>	opt_alias
+%type <qualified_table_name_t> qualified_table_name
+%type <table_alias_t> table_alias
+%type <opt_table_alias_t> opt_table_alias
+%type <opt_table_alias_as_t> opt_table_alias_as
+%type <column_alias_t> column_alias
+%type <opt_column_alias_t> opt_column_alias
 %type <opt_with_clause_t>	opt_with_clause
 %type <with_clause_t>	with_clause
-%type <with_description_list_t>	with_description_list
-%type <with_description_t>	with_description
+%type <common_table_expr_t> common_table_expr
+%type <common_table_expr_list_t> common_table_expr_list
 %type <opt_semicolon_t>	opt_semicolon
-%type <ident_commalist_t>	ident_commalist
 %type <opt_without_rowid_t> opt_without_rowid
 
-%type <table_prefix_t> table_prefix
 %type <join_op_t> join_op
+%type <join_constraint_t> join_constraint
+%type <join_clause_t> join_clause
+%type <join_suffix_t> join_suffix
+%type <join_suffix_list_t> join_suffix_list
 %type <opt_index_t> opt_index
-%type <opt_on_t> opt_on
-%type <opt_using_t> opt_using
-%type <join_kw_t> join_kw
+%type <on_expr_t> on_expr
+%type <else_expr_t> else_expr
+%type <where_expr_t> where_expr
+%type <escape_expr_t> escape_expr
 
-%type <cmd_t> cmd
-%type <cmd_attach_t> cmd_attach
-%type <cmd_detach_t> cmd_detach
-%type <cmd_analyze_t> cmd_analyze
-%type <cmd_reindex_t> cmd_reindex
-%type <cmd_pragma_t> cmd_pragma
+%type <attach_statement_t> attach_statement
+%type <detach_statement_t> detach_statement
+%type <analyze_statement_t> analyze_statement
+%type <reindex_statement_t> reindex_statement
+%type <pragma_statement_t> pragma_statement
 %type <pragma_key_t> pragma_key
 %type <pragma_value_t> pragma_value
 %type <pragma_name_t> pragma_name
 %type <schema_name_t> schema_name
 
-%type <opt_column_arglist_t>	opt_column_arglist
-%type <column_arglist_t>	column_arglist
-%type <column_arg_t>	column_arg
-%type <opt_on_conflict_t>	opt_on_conflict
+%type <opt_column_constraintlist_t>	opt_column_constraintlist
+%type <column_constraintlist_t>	column_constraintlist
+%type <column_constraint_t>	column_constraint
+%type <opt_conflict_clause_t>	opt_conflict_clause
 %type <resolve_type_t>	resolve_type
 %type <opt_autoinc_t>	opt_autoinc
 %type <opt_unique_t>	opt_unique
 %type <index_name_t>	index_name
-%type <trigger_declare_t>	trigger_declare
 %type <opt_tmp_t>	opt_tmp
 %type <trigger_name_t>	trigger_name
 %type <opt_trigger_time_t>	opt_trigger_time
@@ -466,26 +477,29 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <module_name_t>	module_name
 %type <opt_over_clause_t>	opt_over_clause
 %type <opt_filter_clause_t>	opt_filter_clause
+%type <filter_clause_t> filter_clause
 %type <window_clause_t>	window_clause
+%type <opt_window_clause_t> opt_window_clause
 %type <window_defn_list_t>	windowdefn_list
 %type <window_defn_t>	windowdefn
-%type <window_t>	window
+%type <window_body_t>	window_body
 %type <opt_base_window_name_t>	opt_base_window_name
+%type <window_name_t> window_name
 %type <opt_frame_t>	opt_frame
 %type <range_or_rows_t>	range_or_rows
 %type <frame_bound_s_t>	frame_bound_s
 %type <frame_bound_e_t>	frame_bound_e
 %type <frame_bound_t>	frame_bound
-%type <opt_frame_exclude_t>	opt_frame_exclude
 %type <frame_exclude_t>	frame_exclude
+%type <opt_frame_exclude_t>	opt_frame_exclude
 %type <insert_type_t> insert_type
-%type <super_list_t> super_list
+%type <update_type_t> update_type
+%type <insert_value_t> insert_value
 
-%type <cast_expr_t> cast_expr
 %type <alter_statement_t> alter_statement
+%type <savepoint_statement_t> savepoint_statement
+%type <release_statement_t> release_statement
 %type <opt_column_t> opt_column
-%type <cmd_release_t> cmd_release
-%type <savepoint_name_t> savepoint_name
 %type <vacuum_statement_t> vacuum_statement
 %type <opt_schema_name_t> opt_schema_name
 %type <rollback_statement_t> rollback_statement
@@ -494,16 +508,24 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <begin_statement_t> begin_statement
 %type <commit_statement_t> commit_statement
 %type <upsert_clause_t> upsert_clause
+%type <upsert_item_t> upsert_item
 %type <indexed_column_list_t> indexed_column_list
 %type <indexed_column_t> indexed_column
 %type <opt_collate_t> opt_collate
+%type <collate_t> collate
 
 %type <assign_list_t> assign_list
-%type <opt_null_t> opt_null
+%type <opt_order_of_null_t> opt_order_of_null
+%type <null_of_expr_t> null_of_expr
+%type <exists_or_not_t> exists_or_not
 %type <assign_clause_t> assign_clause
 %type <column_name_list_t> column_name_list
-%type <collation_name_t> collation_name
 %type <opt_upsert_clause_t> opt_upsert_clause
+%type <partition_by_t> partition_by
+%type <opt_partition_by_t> opt_partition_by
+%type <raise_function_t> raise_function
+%type <conflict_target_t> conflict_target
+%type <opt_conflict_target_t> opt_conflict_target
 /*********************************
  ** Destructor symbols
  *********************************/
@@ -531,7 +553,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 
 %destructor{
     if($$ != NULL){
-        delete($$->id_);
+        delete($$->identifier_);
     }
     delete $$;
 } <hint_t> <with_description_t> <prepare_statement_t> <execute_statement_t> <column_def_t> <drop_statement_t> <update_clause_t> <function_expr_t> <table_alias_t> <alias_t>
@@ -555,7 +577,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %left       OR
 %left       AND
 %right      NOT
-%left       IS MATCH BETWEEN IN ISNULL NOTNULL NOTEQUALS EQUALS '=' LIKE ILIKE GLOB REGEX
+%left       IS MATCH BETWEEN IN ISNULL NOTNULL NOTEQUALS EQUALS '=' LIKE GLOB REGEXP
 %left       LESSEQ GREATEREQ '<' '>'
 %right      ESCAPE
 %left       '&' /* BITAND */  '|' /* BITOR */ LSHIFT RSHIFT
@@ -599,116 +621,106 @@ statement:
             $$ = new Statement();
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
-            //$$->optional_hints_ = $2;
         }
-    /*|    prepare_statement opt_hints {
-     *        $$ = new Statement();
-     *        $$->sub_type_ = CASE1;
-     *        $$->prepare_statement_ = $1;
-     *        $$->optional_hints_ = $2;
-     *    }
-     */
-    |   show_statement {
-            $$ = new Statement();
-            $$->sub_type_ = CASE2;
-            $$->show_statement_ = $1;
-        }
-    
-    |   cmd {
-            $$ = new Statement();
-            $$->sub_type_ = CASE3;
-            $$->cmd_ = $1;
-    }
     ;
 
-
-cmd:
-        cmd_pragma {$$ = $1;}
-    |   cmd_reindex {$$ = $1;}
-    |   cmd_analyze {$$ = $1;}
-    |   cmd_attach  {$$ = $1;}
-    |   cmd_detach  {$$ = $1;}
-    |   cmd_release {$$ = $1;}
-    |   rollback_statement {$$ = $1;}
-    |   vacuum_statement {$$ = $1;}
-    |   begin_statement {$$ = $1;}
-    |   commit_statement {$$ = $1;}
+preparable_statement:
+    /* have checked */
+        alter_statement   { $$ = $1; }
+    |   analyze_statement { $$ = $1; }
+    |   attach_statement  { $$ = $1; }
+    |   begin_statement   { $$ = $1; }
+    |   commit_statement  { $$ = $1; }
+    |   create_statement  { $$ = $1; }
+    |   delete_statement  { $$ = $1; }
+    |   detach_statement  { $$ = $1; }
+    |   drop_statement    { $$ = $1; }
+    |   insert_statement  { $$ = $1; }
+    |   pragma_statement  { $$ = $1; }
+    |   reindex_statement { $$ = $1; }
+    |   release_statement { $$ = $1; }
+    |   rollback_statement  {$$ = $1;}
+    |   savepoint_statement { $$ = $1; }
+    |   select_statement  { $$ = $1; }  
+    |   update_statement  { $$ = $1; }
+    |   vacuum_statement  { $$ = $1; }
     ;
+    /* being checked*/
+    /* to be checked*/
+    /* to be supported */
+    /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
+    /* |   update_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
 
-cmd_release:
-        RELEASE SAVEPOINT savepoint_name {
-            $$ = new CmdRelease();
+
+release_statement:
+        RELEASE SAVEPOINT IDENTIFIER {
+            $$ = new ReleaseStatement();
             $$->sub_type_ = CASE0;
-            $$->savepoint_name_ = $3;
+            $$->savepoint_name_ = new Identifier($3, id_savepoint_name);
+            free($3);
         }
-    |   RELEASE savepoint_name {
-            $$ = new CmdRelease();
+    |   RELEASE IDENTIFIER {
+            $$ = new ReleaseStatement();
             $$->sub_type_ = CASE1;
-            $$->savepoint_name_ = $2;
+            $$->savepoint_name_ = new Identifier($2, id_savepoint_name);
+            free($2);
         }
     ;
 
-savepoint_name:
-        IDENTIFIER {
-            $$ = new SavepointName();
-            $$->id_ = new Identifier($1, id_savepoint_name);
-            free($1);
-        }
-    ;
-
-cmd_pragma:
+pragma_statement:
         PRAGMA pragma_key{
-            $$ = new CmdPragma();
+            $$ = new PragmaStatement();
             $$->sub_type_ = CASE0;
             $$->pragma_key_ = $2;
         }
     |   PRAGMA pragma_key '=' pragma_value {
-            $$ = new CmdPragma();
+            $$ = new PragmaStatement();
             $$->sub_type_ = CASE1;
             $$->pragma_key_ = $2;
             $$->pragma_value_ = $4;
     }
     |   PRAGMA pragma_key '(' pragma_value ')' {
-            $$ = new CmdPragma();
+            $$ = new PragmaStatement();
             $$->sub_type_ = CASE2;
             $$->pragma_key_ = $2;
             $$->pragma_value_ = $4;
     }
     ;
 
-cmd_reindex:
-       REINDEX {$$ = new CmdReindex(); $$->sub_type_ = CASE0;}
-    |   REINDEX table_name {$$ = new CmdReindex(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_name_->id_type_ = id_top_table_name;}
+reindex_statement:
+        REINDEX {$$ = new ReindexStatement(); $$->sub_type_ = CASE0;}
+    |   REINDEX table_name {$$ = new ReindexStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
+    /* TODO: also accepts collation-name / index-name, but it seems the grammar does not distingusih them */ 
     ;
 
-cmd_analyze:
-       ANALYZE {$$ = new CmdAnalyze(); $$->sub_type_ = CASE0;}
-    |   ANALYZE table_name {$$ = new CmdAnalyze(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->table_name_->id_type_ = id_top_table_name;}
+analyze_statement:
+        ANALYZE {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE0;}
+    |   ANALYZE table_name {$$ = new AnalyzeStatement(); $$->sub_type_ = CASE1; $$->table_name_ = $2; $$->table_name_->identifier_->id_type_ = id_top_table_name;}
     ;
 
-cmd_attach:
-        ATTACH expr AS schema_name{
-            $$ = new CmdAttach();
+attach_statement:
+        ATTACH new_expr AS schema_name{
+            $$ = new AttachStatement();
             $$->sub_type_ = CASE0;
             $$->expr_ = $2;
             $$->schema_name_ = $4;
         }
-    |   ATTACH DATABASE expr AS schema_name{
-            $$ = new CmdAttach();
+    |   ATTACH DATABASE new_expr AS schema_name{
+            $$ = new AttachStatement();
             $$->sub_type_ = CASE1;
             $$->expr_ = $3;
             $$->schema_name_ = $5;
         }
     ;
 
-cmd_detach:
+detach_statement:
         DETACH schema_name {
-            $$ = new CmdDetach();
+            $$ = new DetachStatement();
             $$->sub_type_ = CASE0;
             $$->schema_name_ = $2;
         }
     |   DETACH DATABASE schema_name{
-            $$ = new CmdDetach();
+            $$ = new DetachStatement();
             $$->sub_type_ = CASE1;
             $$->schema_name_ = $3;
     }
@@ -720,37 +732,24 @@ pragma_key:
     ;
 
 pragma_value:
-        num_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE0; $$->num_literal_ = $1;}
+        signed_number {$$ = new PragmaValue(); $$->sub_type_ = CASE0; $$->signed_number_ = $1;}
     |   string_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE1; $$->string_literal_ = $1;}
-    |   IDENTIFIER {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->id_ = new Identifier($1, id_pragma_value); free($1);}
-    |   ON {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->id_ = new Identifier("ON", id_pragma_value); }
-    |   DELETE {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->id_ = new Identifier("DELETE", id_pragma_value); }
-    |   DEFAULT {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->id_ = new Identifier("DEFAULT", id_pragma_value); }
+    |   IDENTIFIER {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier($1, id_pragma_value); free($1);}
+    |   ON {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("ON", id_pragma_value); }
+    |   DELETE {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("DELETE", id_pragma_value); }
+    |   DEFAULT {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("DEFAULT", id_pragma_value); }
     ;
 
 schema_name:
-        IDENTIFIER {
-            $$ = new SchemaName(); $$->id_ = new Identifier($1, id_schema_name); free($1);
-            }
+        IDENTIFIER { $$ = new SchemaName(); $$->identifier_ = new Identifier($1, id_schema_name); free($1); }
     ;
     
 pragma_name:
-        IDENTIFIER {$$ = new PragmaName(); $$->id_ = new Identifier($1, id_pragma_name); free($1);}
+        IDENTIFIER {$$ = new PragmaName(); $$->identifier_ = new Identifier($1, id_pragma_name); free($1);}
     ;
 
-
-
-preparable_statement:
-        select_statement { $$ = $1; }  
-    |   import_statement { $$ = $1; }
-    |   create_statement { $$ = $1; }
-    |   insert_statement { $$ = $1; }
-    |   delete_statement { $$ = $1; }
-    |   truncate_statement { $$ = $1; }
-    |   update_statement { $$ = $1; }
-    |   drop_statement { $$ = $1; }
-    |   execute_statement { $$ = $1; }
-    |   alter_statement {$$ = $1;}
+savepoint_statement:
+        SAVEPOINT IDENTIFIER { $$ = new SavepointStatement(); $$->savepoint_name_ = new Identifier($2, id_create_savepoint_name); free($2); }
     ;
 
 rollback_statement: // add z
@@ -775,15 +774,17 @@ opt_transaction: // add z
  ;
 
  opt_to_savepoint: //add z
-        TO savepoint_name {
+        TO IDENTIFIER {
             $$ = new OptToSavepoint();
             $$->sub_type_ = CASE0;
-            $$->savepoint_name_ = $2;
+            $$->savepoint_name_ = new Identifier($2, id_savepoint_name);
+            free($2);
         }
-    |   TO SAVEPOINT savepoint_name {
+    |   TO SAVEPOINT IDENTIFIER {
             $$ = new OptToSavepoint();
             $$->sub_type_ = CASE1;
-            $$->savepoint_name_ = $3;
+            $$->savepoint_name_ = new Identifier($3, id_savepoint_name);
+            free($3);
         }
     |   /* empty */{
             $$ = new OptToSavepoint();
@@ -854,38 +855,50 @@ commit_statement: //add z
         }
  ;
 
+partition_by:
+        PARTITION BY expr_list { $$ = new PartitionBy(); $$->expr_list_ = $3; }
+
+opt_partition_by:
+        partition_by { $$ = new OptPartitionBy(); $$->sub_type_ = CASE0; $$->partition_by_ = $1; }
+    |   /* empty */  { $$ = new OptPartitionBy(); $$->sub_type_ = CASE1; }
 
 opt_upsert_clause:
         upsert_clause {$$ = new OptUpsertClause(); $$->sub_type_ = CASE0; $$->upsert_clause_ = $1;}
     |   /* empty */ {$$ = new OptUpsertClause(); $$->sub_type_ = CASE1;}
 
 upsert_clause:
-        ON CONFLICT DO NOTHING {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE0;
+        upsert_item { $$ = new UpsertClause(); $$->v_upsert_item_list_.push_back($1); }
+    |   upsert_clause upsert_item { $1->v_upsert_item_list_.push_back($2); $$ = $1; }
+    ;
+
+upsert_item:
+        ON CONFLICT opt_conflict_target DO NOTHING {
+          $$ = new UpsertItem();
+          $$->sub_type_ = CASE0;
+          $$->opt_conflict_target_ = $3;
         }
-    |   ON CONFLICT DO UPDATE SET assign_list opt_where {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE1;
-            $$->assign_list_ = $6;
-            $$->opt_where1_ = $7;
+    |   ON CONFLICT opt_conflict_target UPDATE SET assign_list opt_where {
+          $$ = new UpsertItem();
+          $$->sub_type_ = CASE1;
+          $$->opt_conflict_target_ = $3;
+          $$->assign_list_ = $6;
+          $$->opt_where_ = $7;
         }
-    |   ON CONFLICT '(' indexed_column_list ')' opt_where DO NOTHING {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE2;
-            $$->indexed_column_list_ = $4;
-            $$->opt_where1_ = $6;
+    ;
+
+opt_conflict_target:
+        conflict_target { $$ = new OptConflictTarget(); $$->sub_type_ = CASE0; $$->conflict_target_ = $1; }
+    |   /* empty */ { $$ = new OptConflictTarget(); $$->sub_type_ = CASE1; }
+    ;
+
+conflict_target:
+        '(' indexed_column_list ')' opt_where {
+          $$ = new ConflictTarget();
+          $$->indexed_column_list_ = $2;
+          $$->opt_where_ = $4;
         }
-    |   ON CONFLICT '(' indexed_column_list ')' opt_where DO UPDATE SET assign_list opt_where {
-            $$ = new UpsertClause();
-            $$->sub_type_ = CASE3;
-            $$->indexed_column_list_ = $4;
-            $$->opt_where1_ = $6;
-            $$->assign_list_ = $10;
-            $$->opt_where2_ = $11;
-        }
-    
- ;
+    ;
+
 
 indexed_column_list:
         indexed_column {
@@ -899,7 +912,7 @@ indexed_column_list:
  ;
 
 indexed_column:
-        expr opt_collate opt_order_type {
+        new_expr opt_collate opt_order_type {
             $$ = new IndexedColumn();
             $$->expr_ = $1;
             $$->opt_collate_ = $2;
@@ -907,16 +920,24 @@ indexed_column:
         }
  ;
 
+collate:
+        COLLATE IDENTIFIER {
+            $$ = new Collate();
+            $$->collate_name_ = new Identifier($2, id_collation_name);
+            free($2);
+        }
+    ;
+
+
 opt_collate:
-        COLLATE collation_name {
-            $$ = new OptCollate();
-            $$->sub_type_ = CASE0;
-            $$->collation_name_ = $2;
+        collate {
+          $$ = new OptCollate();
+          $$->sub_type_ = CASE0;
+          $$->collate_ = $1;
         }
     |   /* empty */{
-            $$ = new OptCollate();
-            $$->sub_type_ = CASE1;
-            $$->str_val_ = string("");
+          $$ = new OptCollate();
+          $$->sub_type_ = CASE1;
         }
  ;
 
@@ -934,26 +955,45 @@ assign_list:
  ;
 
 
-opt_null:
+opt_order_of_null:
         NULLS FIRST {
-            $$ = new OptNull();
+            $$ = new OptOrderOfNull();
             $$->str_val_ = string("NULLS FIRST");
         }
     |   NULLS LAST {
-            $$ = new OptNull();
+            $$ = new OptOrderOfNull();
             $$->str_val_ = string("NULLS LAST");
         }
     |   {
-            $$ = new OptNull();
+            $$ = new OptOrderOfNull();
             $$->str_val_ = string("");
         }
- ;
+    ;
+
+null_of_expr:
+        ISNULL { $$ = new NullOfExpr(); $$->str_val_ = string("ISNULL"); }
+    |   NOTNULL { $$ = new NullOfExpr(); $$->str_val_ = string("NOTNULL"); }
+    |   NOT NULL { $$ = new NullOfExpr(); $$->str_val_ = string("NOT NULL"); }
+    ;
+
+exists_or_not:
+        EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = string("EXISTS"); }
+    |   NOT EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = string("NOT EXISTS"); }
+    ;
 
 assign_clause:
-        column_name_list '=' expr {
+        column_name '=' new_expr {
             $$ = new AssignClause();
-            $$->column_name_list_ = $1;
+            $$->sub_type_ = CASE0;
+            $$->column_name_ = $1;
             $$->expr_ = $3;
+        }
+
+    |   '(' column_name_list ')' '=' new_expr {
+            $$ = new AssignClause();
+            $$->sub_type_ = CASE1;
+            $$->column_name_list_ = $2;
+            $$->expr_ = $5;
         }
  ;
 
@@ -968,106 +1008,6 @@ column_name_list:
         }
 ;
 
-collation_name:
-        IDENTIFIER {
-            $$ = new CollationName(); 
-            $$->id_ = new Identifier($1, id_collation_name); 
-            free($1);
-        }
-;
-
-/******************************
- * Hints
- ******************************/
-
-/*  opt_hints:
- *      WITH HINT '(' hint_list ')' { 
- *          $$ = new OptionalHints();
- *          $$->sub_type_ = CASE0;
- *          $$->hint_list_ = $4; 
- *          }
- *    | { $$ = new OptionalHints(); $$->sub_type_ = CASE1;}
- *    ;
- *  
- *  
- *  hint_list:
- *        hint { 
- *            $$ = new HintList();
- *            $$->v_hint_list_.push_back($1); 
- *            }
- *      | hint_list ',' hint { $1->v_hint_list_.push_back($3); $$ = $1; }
- *      ;
- *  
- *  hint:
- *          IDENTIFIER {
- *              $$ = new Hint();
- *              $$->sub_type_ = CASE1;
- *              $$->id_ = new Identifier($1);
- *              free($1);
- *          }
- *      | IDENTIFIER '(' literal_list ')' {
- *              $$ = new Hint();
- *              $$->sub_type_ = CASE0;
- *              $$->id_ = new Identifier($1);
- *              $$->literal_list_ = $3;
- *              free($1);
- *          }
- *      ;
- */
-
-/******************************
- * Prepared Statement
- ******************************/
-/* prepare_statement:
- *         PREPARE IDENTIFIER FROM prepare_target_query {
- *             $$ = new PrepareStatement();
- *             $$->id_ = new Identifier($2);
- *             $$->prep_target_que_ = $4;
- *             free($2);
- *         }
- *     ;
- * 
- * prepare_target_query: STRING 
- *         {
- *             $$ = new PrepareTargetQuery();
- *             $$->prep_target_que_ = "'" + string($1) + "'";
- *             free($1);
- *         }
- *     ;
- */
-
-execute_statement:
-        EXECUTE IDENTIFIER {
-            $$ = new ExecuteStatement();
-            $$->sub_type_ = CASE0;
-            $$->id_ = new Identifier($2);
-            free($2);
-        }
-    |   EXECUTE IDENTIFIER '(' opt_literal_list ')' {
-            $$ = new ExecuteStatement();
-            $$->sub_type_ = CASE1;
-            $$->id_ = new Identifier($2);
-            $$->opt_literal_list_ = $4;
-            free($2);
-        }
-    ;
-
-/******************************
- * Import Statement
- ******************************/
-import_statement:
-        IMPORT FROM import_file_type FILE file_path INTO table_name {
-            $$ = new ImportStatement();
-            $$->import_file_type_ = $3;
-            $$->file_path_ = $5;
-            $$->table_name_ = $7;
-        }
-    ;
-
-import_file_type:
-        CSV { $$ = new ImportFileType(); $$->str_val_ = "CSV"; }
-    ;
-
 file_path:
         string_literal { 
             $$ = new FilePath();
@@ -1076,65 +1016,47 @@ file_path:
          }
     ;
 
-
-/******************************
- * Show Statement
- * SHOW TABLES;
- ******************************/
-
-show_statement:
-        SHOW TABLES {
-            $$ = new ShowStatement();
-            $$->sub_type_ = CASE0;
-        }
-    |   SHOW COLUMNS table_name {
-            $$ = new ShowStatement();
-            $$->sub_type_ = CASE1;
-            $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-        }
-    |   DESCRIBE table_name {
-            $$ = new ShowStatement();
-            $$->sub_type_ = CASE2;
-            $$->table_name_ = $2;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-        }
-    ;
-
-
 /*****************************
  * Alter statement
  * ALTER TABLE a RENAME TO b;
  * ALTER TABLE a ADD COLUMN c(name INT);
  *****************************/
 alter_statement:
-	ALTER TABLE table_name RENAME TO table_name {
-		$$ = new AlterStatement();
-		$$->sub_type_ = CASE0;
-    $$->table_name1_ = $3;
-    $$->table_name2_ = $6;
-    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
-    $$->table_name2_->table_name_->id_type_ = id_create_table_name;
-	}
- |	ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
-		$$ = new AlterStatement();
-		$$->sub_type_ = CASE1;
-    $$->table_name1_ = $3;
-    $$->opt_column_ = $5;
-    $$->column_name1_ = $6;
-    $$->column_name2_ = $8;
-    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
-    $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
-	}
- |	ALTER TABLE table_name ADD opt_column column_def {
-		$$ = new AlterStatement();
-		$$->sub_type_ = CASE2;
-    $$->table_name1_ = $3;
-    $$->opt_column_ = $5;
-    $$->column_def_ = $6;
-    $$->table_name1_->table_name_->id_type_ = id_top_table_name;
-	}
- ;
+        ALTER TABLE table_name RENAME TO table_name {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE0;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->table_name2_ = $6;
+          $$->table_name2_->identifier_->id_type_ = id_create_table_name;
+        }
+    |   ALTER TABLE table_name RENAME opt_column column_name TO one_column_name {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE1;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->opt_column_ = $5;
+          $$->column_name1_ = $6;
+          $$->column_name2_ = $8;
+          $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
+        }
+    |   ALTER TABLE table_name ADD opt_column column_def {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE2;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->opt_column_ = $5;
+          $$->column_def_ = $6;
+        }
+    |   ALTER TABLE table_name DROP opt_column column_name {
+          $$ = new AlterStatement();
+          $$->sub_type_ = CASE3;
+          $$->table_name1_ = $3;
+          $$->table_name1_->identifier_->id_type_ = id_top_table_name;
+          $$->opt_column_ = $5;
+          $$->column_name1_ = $6;
+        }
+    ;
 
 opt_column:
 	COLUMN {
@@ -1154,89 +1076,101 @@ opt_column:
  * CREATE TABLE students (name TEXT, student_number INTEGER, city TEXT, grade DOUBLE)
  * CREATE TABLE students FROM TBL FILE 'test/students.tbl'
  ******************************/
-create_statement:
-        CREATE opt_tmp TABLE opt_not_exists table_name FROM TBL FILE file_path opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE0;
-            $$->opt_tmp_ = $2;
-            $$->opt_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->file_path_ = $9;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $10;
+
+create_table_statement:
+        CREATE opt_tmp TABLE opt_if_not_exists table_name AS select_statement {
+          $$ = new CreateTableStatement();
+          $$->sub_type_ = CASE0;
+          $$->opt_tmp_ = $2;
+          $$->opt_if_not_exists_ = $4;
+          $5->identifier_->id_type_ = id_create_table_name;
+          $$->table_name_ = $5;
+          $$->select_statement_ = $7;
         }
-    |   CREATE opt_tmp TABLE opt_not_exists table_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_tmp_ = $2;
-            $$->opt_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->column_or_table_constraint_def_comma_list_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $9;
+    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ')' opt_without_rowid {
+          $$ = new CreateTableStatement();
+          $$->sub_type_ = CASE1;
+          $$->opt_tmp_ = $2;
+          $$->opt_if_not_exists_ = $4;
+          $5->identifier_->id_type_ = id_create_table_name;
+          $$->table_name_ = $5;
+          $$->column_def_list_ = $7;
+          $$->opt_without_rowid_ = $9;
         }
-    |   CREATE opt_tmp TABLE opt_not_exists table_name AS select_statement opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE2;
-            $$->opt_tmp_ = $2;
-            $$->opt_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->select_statement_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $8;
+    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ',' table_constraint_list ')' opt_without_rowid {
+          $$ = new CreateTableStatement();
+          $$->sub_type_ = CASE2;
+          $$->opt_tmp_ = $2;
+          $$->opt_if_not_exists_ = $4;
+          $5->identifier_->id_type_ = id_create_table_name;
+          $$->table_name_ = $5;
+          $$->column_def_list_ = $7;
+          $$->table_constraint_list_ = $9;
+          $$->opt_without_rowid_ = $11;
         }
-    |   CREATE opt_tmp VIEW opt_not_exists table_name opt_column_list AS select_statement {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE3;
+    ;
+
+create_view_statement:
+        CREATE opt_tmp VIEW opt_if_not_exists table_name opt_column_list_paren AS select_statement {
+            $$ = new CreateViewStatement();
             $$->opt_tmp_ = $2;
-            $$->opt_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_column_list_ = $6;
-            if($$->opt_column_list_->sub_type_ == CASE0)
-                for(auto &i: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
-                    i->id_type_ = id_create_column_name;
-                }
+            $$->opt_if_not_exists_ = $4;
+            $$->view_name_ = $5;
+            $$->view_name_->identifier_->id_type_ = id_create_table_name;
+            $$->opt_column_list_paren_ = $6;
             $$->select_statement_ = $8;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
         }
-    //add 2
-    |   CREATE opt_unique INDEX opt_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE4;
+    ;
+
+create_index_statement:
+        CREATE opt_unique INDEX opt_if_not_exists index_name ON table_name '(' indexed_column_list ')' opt_where {
+            $$ = new CreateIndexStatement();
             $$->opt_unique_ = $2;
-            $$->opt_not_exists_ = $4;
-            $$->index_name_ = $5;   
+            $$->opt_if_not_exists_ = $4;
+            $$->index_name_ = $5;
+            $$->index_name_->identifier_->id_type_ = id_create_index_name;;
             $$->table_name_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
             $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
         }
-    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE5;
-            $$->opt_not_exists_ = $4;
+    ;
+
+create_virtual_table_statement:
+        CREATE VIRTUAL TABLE  opt_if_not_exists table_name USING module_name opt_column_list_paren opt_without_rowid {
+            $$ = new CreateVirtualTableStatement();
+            $$->opt_if_not_exists_ = $4;
             $$->table_name_ = $5;
+            $$->table_name_->identifier_->id_type_ = id_create_table_name;
             $$->module_name_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->opt_without_rowid_ = $8;
+            $$->opt_column_list_paren_ = $8;
+            $$->opt_without_rowid_ = $9;
         } 
-    |   CREATE VIRTUAL TABLE  opt_not_exists table_name USING module_name '(' column_or_table_constraint_def_commalist ')' opt_without_rowid {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE6;
-            $$->opt_not_exists_ = $4;
-            $$->table_name_ = $5;
-            $$->module_name_ = $7;
-            $$->table_name_->table_name_->id_type_ = id_create_table_name;
-            $$->column_or_table_constraint_def_comma_list_ = $9;
-            $$->opt_without_rowid_ = $11;
-        } 
-    |   CREATE trigger_declare BEGIN trigger_cmd_list END {
-            $$ = new CreateStatement();
-            $$->sub_type_ = CASE7;
-            $$->trigger_declare_ = $2;
-            $$->trigger_cmd_list_ = $4;
-        } 
+    ;
+
+create_trigger_statement:
+        CREATE opt_tmp TRIGGER opt_if_not_exists trigger_name opt_trigger_time trigger_event ON table_name opt_for_each opt_when BEGIN trigger_cmd_list END {
+            $$ = new CreateTriggerStatement();
+            $$->opt_tmp_ = $2;
+            $$->opt_if_not_exists_ = $4;
+            $$->trigger_name_ = $5;
+            $$->trigger_name_->identifier_->id_type_ = id_create_trigger_name;;
+            $$->opt_trigger_time_ = $6;
+            $$->trigger_event_ = $7;
+            $$->table_name_ = $9;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
+            $$->opt_for_each_ = $10;
+            $$->opt_when_ = $11;
+            $$->trigger_cmd_list_ = $13;
+        }
+    ;
+
+create_statement:
+        create_table_statement { $$ = $1; }
+    |   create_view_statement { $$ = $1; }
+    |   create_index_statement { $$ = $1; }
+    |   create_virtual_table_statement { $$ = $1; }
+    |   create_trigger_statement { $$ = $1; }
     ;
 
 opt_without_rowid:
@@ -1248,32 +1182,10 @@ opt_unique:
     | /* empty */ {$$ = new OptUnique(); $$->str_val_ = string("");}
     ;
 
-index_name:
-        IDENTIFIER {$$ = new IndexName(); $$->id_ = new Identifier($1, id_index_name); free($1);}
-    ;
-
-trigger_declare:
-        opt_tmp TRIGGER opt_not_exists trigger_name opt_trigger_time trigger_event ON table_name opt_for_each opt_when {
-            $$ = new TriggerDeclare();
-            $$->opt_tmp_ = $1;
-            $$->opt_not_exists_ = $3;
-            $$->trigger_name_ = $4;
-            $$->opt_trigger_time_ = $5;
-            $$->trigger_event_ = $6;
-            $$->table_name_ = $8;
-            $$->opt_for_each_ = $9;
-            $$->opt_when_ = $10;
-        }
-    ;
-
 opt_tmp:
         TEMP {$$ = new OptTmp(); $$->str_val_ = string("TEMP");}
     |   TEMPORARY {$$ = new OptTmp(); $$->str_val_ = string("TEMPORARY");}
     |   /* empty */  {$$ = new OptTmp(); $$->str_val_ = string("");}
-    ;
-
-trigger_name:
-        IDENTIFIER {$$ = new TriggerName(); $$->id_ = new Identifier($1, id_trigger_name); free($1);}
     ;
 
 opt_trigger_time:
@@ -1290,7 +1202,7 @@ trigger_event:
     ;
 
 opt_of_column_list:
-        OF ident_commalist {$$ = new OptOfColumnList(); $$->sub_type_ = CASE0; $$->ident_commalist_ = $2;}
+        OF column_name_list {$$ = new OptOfColumnList(); $$->sub_type_ = CASE0; $$->column_name_list_ = $2;}
     |   /* empty */ {$$ = new OptOfColumnList(); $$->sub_type_ = CASE1;}
     ;
 
@@ -1300,7 +1212,7 @@ opt_for_each:
     ;
 
 opt_when:
-        WHEN expr {$$ = new OptWhen(); $$->sub_type_ = CASE0; $$->expr_ = $2;}
+        WHEN new_expr {$$ = new OptWhen(); $$->sub_type_ = CASE0; $$->expr_ = $2;}
     |   /* empty */ {$$ = new OptWhen(); $$->sub_type_ = CASE1;}
     ;
 
@@ -1317,147 +1229,252 @@ trigger_cmd:
     ;
 
 module_name:
-        IDENTIFIER {$$ = new ModuleName(); $$->id_ = new Identifier($1); free($1);}
+        IDENTIFIER {$$ = new ModuleName(); $$->identifier_ = new Identifier($1); free($1);}
     ;
    
-
-opt_not_exists:
-        IF NOT EXISTS { $$ = new OptNotExists(); $$->sub_type_ = CASE0; }
-    |   /* empty */ { $$ = new OptNotExists(); $$->sub_type_ = CASE1; }
+opt_not:
+        NOT { $$ = new OptNot(); $$->sub_type_ = CASE0; }
+    |   /* empty */ { $$ = new OptNot(); $$->sub_type_ = CASE1; }
     ;
 
-column_or_table_constraint_def_commalist:
-        column_def_commalist {
-              $$ = new ColumnOrTableConstraintDefCommaList();
-              $$->sub_type_ = CASE0;
-              $$->column_def_comma_list_ = $1;
-            }
-    |   table_constraint_def_commalist {
-              $$ = new ColumnOrTableConstraintDefCommaList();
-              $$->sub_type_ = CASE1;
-              $$->table_constraint_def_comma_list_ = $1;
-            }
-    |   column_def_commalist ',' table_constraint_def_commalist {
-              $$ = new ColumnOrTableConstraintDefCommaList();
-              $$->sub_type_ = CASE2;
-              $$->column_def_comma_list_ = $1;
-              $$->table_constraint_def_comma_list_ = $3;
-            }
+opt_recursive:
+        RECURSIVE { $$ = new OptRecursive(); $$->sub_type_ = CASE0; }
+    |   /* empty */ { $$ = new OptRecursive(); $$->sub_type_ = CASE1; }
 
-column_def_commalist:
+opt_if_not_exists:
+        IF NOT EXISTS { $$ = new OptIfNotExists(); $$->sub_type_ = CASE0; }
+    |   /* empty */ { $$ = new OptIfNotExists(); $$->sub_type_ = CASE1; }
+    ;
+
+column_def_list:
         column_def { 
-            $$ = new ColumnDefCommaList(); 
-            $$->v_column_def_comma_list_.push_back($1); 
+            $$ = new ColumnDefList(); 
+            $$->v_column_def_list_.push_back($1); 
             }
-    |   column_def_commalist ',' column_def { 
-            $1->v_column_def_comma_list_.push_back($3); 
+    |   column_def_list ',' column_def { 
+            $1->v_column_def_list_.push_back($3); 
             $$ = $1; 
             }
     ;
 
-table_constraint_def_commalist:
-        table_constraint_def {
-            $$ = new TableConstraintDefCommaList();
-            $$->v_table_constraint_def_comma_list_.push_back($1);
+table_constraint_list:
+        table_constraint {
+            $$ = new TableConstraintList();
+            $$->v_table_constraint_list_.push_back($1);
             }
-    |   table_constraint_def_commalist ',' table_constraint_def {
-            $1->v_table_constraint_def_comma_list_.push_back($3);
+    |   table_constraint_list table_constraint {
+            $1->v_table_constraint_list_.push_back($2);
             $$ = $1;
             }
+    |   table_constraint_list ',' table_constraint {
+            $1->v_table_constraint_list_.push_back($3);
+            $$ = $1;
+            }
+    ;
 
-table_constraint_def:
-        opt_constraint_name CHECK '(' expr ')' { 
-            $$ = new TableConstraintDef(); 
+
+table_constraint:
+        opt_constraint_name CHECK '(' new_expr ')' { 
+            $$ = new TableConstraint(); 
             $$->sub_type_ = CASE0;
             $$->opt_constraint_name_ = $1;
             $$->expr_ = $4;
           }
-    |   opt_constraint_name PRIMARY KEY '(' indexed_column_list ')' opt_on_conflict {
-            $$ = new TableConstraintDef();
+    |   opt_constraint_name PRIMARY KEY '(' indexed_column_list ')' opt_conflict_clause {
+            $$ = new TableConstraint();
             $$->sub_type_ = CASE1;
             $$->opt_constraint_name_ = $1;
             $$->indexed_column_list_ = $5;
-            $$->opt_on_conflict_ = $7;
+            $$->opt_conflict_clause_ = $7;
           }
-    |   opt_constraint_name UNIQUE '(' indexed_column_list ')' opt_on_conflict {
-            $$ = new TableConstraintDef();
+    |   opt_constraint_name UNIQUE '(' indexed_column_list ')' opt_conflict_clause {
+            $$ = new TableConstraint();
             $$->sub_type_ = CASE2;
             $$->opt_constraint_name_ = $1;
             $$->indexed_column_list_ = $4;
-            $$->opt_on_conflict_ = $6;
+            $$->opt_conflict_clause_ = $6;
           }
-    /* | FOREIGN KEY CASE */
+    |   opt_constraint_name FOREIGN KEY '(' column_name_list ')' foreign_key_clause {
+            $$ = new TableConstraint();
+            $$->sub_type_ = CASE3;
+            $$->opt_constraint_name_ = $1;
+            $$->column_name_list_ = $5;
+            $$->foreign_key_clause_ = $7;
+        }
+    ;
 
 column_def:
-        IDENTIFIER column_type opt_column_arglist {
+        IDENTIFIER column_type opt_column_constraintlist {
             $$ = new ColumnDef();
-			      $$->id_ = new Identifier($1, id_create_column_name);
+            $$->identifier_ = new Identifier($1, id_create_column_name);
             $$->column_type_ = $2;
-            $$->opt_column_arglist_ = $3;
+            $$->opt_column_constraintlist_ = $3;
             free($1); 
         }
     ;
 
 
-opt_column_arglist:
-        column_arglist {$$ = new OptColumnArglist(); $$->sub_type_ = CASE0; $$->column_arglist_ = $1;}
-    |   /* empty */ {$$ = new OptColumnArglist(); $$->sub_type_ = CASE1;}
+opt_column_constraintlist:
+        column_constraintlist {$$ = new OptColumnConstraintlist(); $$->sub_type_ = CASE0; $$->column_constraintlist_ = $1;}
+    |   /* empty */ {$$ = new OptColumnConstraintlist(); $$->sub_type_ = CASE1;}
     ;
 
-column_arglist:
-        column_arglist column_arg {
-            $1->v_column_arg_.push_back($2); 
+column_constraintlist:
+        column_constraintlist column_constraint {
+            $1->v_column_constraint_.push_back($2); 
             $$ = $1;
             }
-    |   column_arg {
-        $$ = new ColumnArglist(); 
-        $$->v_column_arg_.push_back($1);
+    |   column_constraint {
+        $$ = new ColumnConstraintlist(); 
+        $$->v_column_constraint_.push_back($1);
         }
     ;
 
+/* looks good */
 opt_constraint_name:
         CONSTRAINT IDENTIFIER {
             $$ = new OptConstraintName();
             $$->sub_type_ = CASE0;
-            $$->identifier_ = new Identifier($2, id_table_constraint_name); free($2);
+            $$->identifier_ = new Identifier($2, id_table_constraint_name); 
+            free($2);
           }
     |   /* empty */ {
             $$ = new OptConstraintName();
             $$->sub_type_ = CASE1;
           }
+    ;
 
-column_arg:
-        NULL opt_on_conflict {$$ = new ColumnArg(); $$->sub_type_ = CASE0; $$->opt_on_conflict_ = $2;}
-    |   NOT NULL opt_on_conflict {$$ = new ColumnArg(); $$->sub_type_ = CASE1; $$->opt_on_conflict_ = $3;}
-    |   PRIMARY KEY opt_order_type opt_on_conflict opt_autoinc {
-                $$ = new ColumnArg(); 
-                $$->sub_type_ = CASE2; 
-                $$->opt_order_type_ = $3;
-                $$->opt_on_conflict_ = $4;
-                $$->opt_autoinc_ = $5;
+opt_deferrable_clause:
+        deferrable_clause { $$ = new OptDeferrableClause(); $$->sub_type_ = CASE0; $$->deferrable_clause_ = $1; }
+    |   /* empty */ { $$ = new OptDeferrableClause(); $$->sub_type_ = CASE1; }
+    ;
+
+deferrable_clause:
+        opt_not DEFERRABLE { $$ = new DeferrableClause(); $$->opt_not_ = $1; $$->str_val_ = string(""); } 
+    |   opt_not DEFERRABLE INITIALLY DEFERRED { $$ = new DeferrableClause(); $$->opt_not_ = $1; $$->str_val_ = string("INITIALLY DEFERRED"); }
+    |   opt_not DEFERRABLE INITIALLY IMMEDIATE { $$ = new DeferrableClause(); $$->opt_not_ = $1; $$->str_val_ = string("INITIALLY IMMEDIATE"); }
+    ;
+
+opt_foreign_key_on_list:
+        foreign_key_on_list { $$ = new OptForeignKeyOnList(); $$->sub_type_ = CASE0; $$->foreign_key_on_list_ = $1; }
+    |   /* empty */ { $$ = new OptForeignKeyOnList(); $$->sub_type_ = CASE1; }
+    ;
+
+foreign_key_on_list:
+        foreign_key_on { $$ = new ForeignKeyOnList(); $$->v_foreign_key_on_list_.push_back($1); }
+    |   foreign_key_on_list foreign_key_on { $1->v_foreign_key_on_list_.push_back($2); $$ = $1; }
+    ;
+
+foreign_key_on:
+        ON DELETE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE SET NULL"); }
+    |   ON DELETE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE SET DEFAULT"); }
+    |   ON DELETE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE CASCADE"); }
+    |   ON DELETE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE RESTRICT"); }
+    |   ON DELETE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE NO ACTION"); }
+    |   ON UPDATE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE SET NULL"); }
+    |   ON UPDATE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE SET DEFAULT"); }
+    |   ON UPDATE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE CASCADE"); }
+    |   ON UPDATE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE RESTRICT"); }
+    |   ON UPDATE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE NO ACTION"); }
+    |   MATCH IDENTIFIER      { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE1; $$->name_ = new Identifier($2); free($2); }
+    ;
+
+foreign_key_clause:
+        REFERENCES IDENTIFIER opt_column_list_paren opt_foreign_key_on_list opt_deferrable_clause {
+          $$ = new ForeignKeyClause();
+          $$->foreign_table_ = new Identifier($2); free($2);
+          $$->opt_column_list_paren_ = $3;
+          $$->opt_foreign_key_on_list_ = $4;
+          $$->opt_deferrable_clause_ = $5;
         }
-    |   UNIQUE opt_on_conflict {$$ = new ColumnArg(); $$->sub_type_ = CASE3; $$->opt_on_conflict_ = $2;}
-    |   GENERATED ALWAYS AS '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE4; $$->expr_ = $5;}
-    |   AS '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE5; $$->expr_ = $3;}
-    |   CHECK '(' expr ')' {$$ = new ColumnArg(); $$->sub_type_ = CASE6; $$->expr_ = $3;}
-    |   REFERENCES IDENTIFIER {$$ = new ColumnArg(); $$->sub_type_ = CASE7; $$->id_ = new Identifier($2, id_create_column_name); free($2);}
-    |   opt_order_type {$$ = new ColumnArg(); $$->sub_type_ = CASE8; $$->opt_order_type_=$1;}
     ;
 
-
-opt_on_conflict: 
-        ON CONFLICT resolve_type {$$ = new OptOnConflict(); $$->sub_type_ = CASE0; $$->resolve_type_ = $3;}
-    |   /* empty */ {$$ = new OptOnConflict(); $$->sub_type_ = CASE1;}
+column_constraint:
+        PRIMARY KEY opt_order_type opt_conflict_clause opt_autoinc {
+          $$ = new ColumnConstraint(); 
+          $$->sub_type_ = CASE0; 
+          $$->opt_order_type_ = $3;
+          $$->opt_conflict_clause_ = $4;
+          $$->opt_autoinc_ = $5;
+        }
+    |   opt_not NULL opt_conflict_clause {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE1;
+          $$->opt_not_ = $1;
+          $$->opt_conflict_clause_ = $3;
+        }
+    |   UNIQUE opt_conflict_clause {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE2;
+          $$->opt_conflict_clause_ = $2;
+        }
+    |   CHECK '(' new_expr ')' {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE3;
+          $$->expr_ = $3;
+        }
+    |   DEFAULT '(' new_expr ')' {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE4;
+          $$->expr_ = $3;
+        }
+    |   DEFAULT literal {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE5;
+          $$->literal_ = $2;
+        }
+    |   DEFAULT signed_number {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE6;
+          $$->signed_number_ = $2;
+        }
+    |   collate {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE7;
+          $$->collate_ = $1;
+        }
+    |   foreign_key_clause {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE8;
+          $$->foreign_key_clause_ = $1;
+        }
+    |   GENERATED ALWAYS AS '(' new_expr ')' opt_stored_virtual {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE9;
+          $$->expr_ = $5;
+          $$->opt_stored_virtual_ = $7;
+        }
+    |   AS '(' new_expr ')' opt_stored_virtual {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE10;
+          $$->expr_ = $3;
+          $$->opt_stored_virtual_ = $5;
+        }
     ;
 
+opt_stored_virtual:
+        STORED { $$ = new OptStoredVirtual(); $$->str_val_ = string("STORED"); }
+    |   VIRTUAL  { $$ = new OptStoredVirtual(); $$->str_val_ = string("VIRTUAL"); }
+    |   /* empty */ { $$ = new OptStoredVirtual(); $$->str_val_ = string(""); }
+    ;
+
+/* looks good */
+opt_conflict_clause: 
+        ON CONFLICT resolve_type {$$ = new OptConflictClause(); $$->sub_type_ = CASE0; $$->resolve_type_ = $3;}
+    |   /* empty */ {$$ = new OptConflictClause(); $$->sub_type_ = CASE1;}
+    ;
+
+/* looks good */
 resolve_type:
-        IGNORE {$$ = new ResolveType(); $$->str_val_ = string("IGNORE");}
+        ABORT {$$ = new ResolveType(); $$->str_val_ = string("ABORT");}
+    |   FAIL {$$ = new ResolveType(); $$->str_val_ = string("FAIL");}
+    |   IGNORE {$$ = new ResolveType(); $$->str_val_ = string("IGNORE");}
     |   REPLACE {$$ = new ResolveType(); $$->str_val_ = string("REPLACE");}
     |   ROLLBACK {$$ = new ResolveType(); $$->str_val_ = string("ROLLBACK");}
-    |   ABORT {$$ = new ResolveType(); $$->str_val_ = string("ABORT");}
-    |   FAIL {$$ = new ResolveType(); $$->str_val_ = string("FAIL");}
     ;
 
+/* looks good */
+/* seems the keyword AUTOINCREMENT is not supported by sqlite, weird */
 opt_autoinc:
         AUTOINCR {$$ = new OptAutoinc(); $$->str_val_ = string("AUTOINCR");}
     |   /* empty */ {$$ = new OptAutoinc(); $$->str_val_ = string("");}
@@ -1524,48 +1541,50 @@ column_type:
  * DEALLOCATE PREPARE stmt;
  ******************************/
 
-drop_statement:
-        DROP TABLE opt_exists table_name {
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE0;
-            $$->opt_exists_ = $3;
+drop_table_statement:
+        DROP TABLE opt_if_exists table_name {
+            $$ = new DropTableStatement();
+            $$->opt_if_exists_ = $3;
             $$->table_name_ = $4;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->id_ = NULL;
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
         }
-    |   DROP VIEW opt_exists table_name {
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_exists_ = $3;
-            $$->table_name_ = $4;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->id_ = NULL;
-        }
-    |   DEALLOCATE PREPARE IDENTIFIER {
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE2;
-            $$->id_ = new Identifier($3);
-            free($3);
-        }
-    |  DROP TRIGGER opt_exists schema_name '.' trigger_name{
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE3;
-            $$->opt_exists_ = $3;
-            $$->schema_name_ = $4;
-            $$->trigger_name_ = $6;
-    }
-
-    |  DROP TRIGGER opt_exists trigger_name{
-            $$ = new DropStatement();
-            $$->sub_type_ = CASE4;
-            $$->opt_exists_ = $3;
-            $$->trigger_name_ = $4;
-    }
     ;
 
-opt_exists:
-        IF EXISTS   { $$ = new OptExists(); $$->str_val_=string("IF EXISTS"); }
-    |   /* empty */ { $$ = new OptExists(); $$->str_val_=string(""); }
+drop_index_statement:
+        DROP INDEX opt_if_exists index_name {
+            $$ = new DropIndexStatement();
+            $$->opt_if_exists_ = $3;
+            $$->index_name_ = $4;
+        }
+    ;
+
+drop_view_statement:
+        DROP VIEW opt_if_exists table_name {
+            $$ = new DropViewStatement();
+            $$->opt_if_exists_ = $3;
+            $$->view_name_ = $4;
+            $$->view_name_->identifier_->id_type_ = id_top_table_name;
+        }
+    ;
+
+drop_trigger_statement:
+        DROP TRIGGER opt_if_exists trigger_name {
+            $$ = new DropTriggerStatement();
+            $$->opt_if_exists_ = $3;
+            $$->trigger_name_ = $4;
+        }
+    ;
+
+drop_statement:
+        drop_table_statement { $$ = $1; }
+    |   drop_index_statement { $$ = $1; }
+    |   drop_view_statement  { $$ = $1; }
+    |   drop_trigger_statement { $$ = $1; }
+    ;
+
+opt_if_exists:
+        IF EXISTS   { $$ = new OptIfExists(); $$->str_val_=string("IF EXISTS"); }
+    |   /* empty */ { $$ = new OptIfExists(); $$->str_val_=string(""); }
     ;
 
 /******************************
@@ -1574,22 +1593,12 @@ opt_exists:
  * DELETE FROM students <=> TRUNCATE students
  ******************************/
 delete_statement:
-        DELETE FROM table_name opt_where {
+        opt_with_clause DELETE FROM qualified_table_name opt_where opt_returning_clause {
             $$ = new DeleteStatement();
-            $$->sub_type_ = CASE0;
-            $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->opt_where_ = $4;
-        }
-    ;
-
-truncate_statement:
-        TRUNCATE table_name {
-            $$ = new DeleteStatement();
-            $$->sub_type_ = CASE1;
-            $$->table_name_ = $2;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-
+            $$->opt_with_clause_ = $1;
+            $$->qualified_table_name_ = $4;
+            $$->opt_where_ = $5;
+            $$->opt_returning_clause_ = $6;
         }
     ;
 
@@ -1599,59 +1608,55 @@ truncate_statement:
  * INSERT INTO employees SELECT * FROM stundents
  ******************************/
 insert_statement:
-        insert_type INTO table_name opt_column_list VALUES super_list opt_upsert_clause{
+        opt_with_clause insert_type table_name opt_table_alias_as opt_column_list_paren insert_value opt_returning_clause {
             $$ = new InsertStatement();
             $$->sub_type_ = CASE0;
-            $$->insert_type_ = $1;
+            $$->opt_with_clause_ = $1;
+            $$->insert_type_ = $2;
             $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->opt_column_list_ = $4;
-            $$->super_list_ = $6;
-            $$->opt_upsert_clause_ = $7;
-            if($$->opt_column_list_->sub_type_ == CASE0){
-                for(auto &cname: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
-                    cname->id_type_ = id_column_name;
-                }    
-            }
-        }
-    |   insert_type INTO table_name opt_column_list select_no_paren opt_upsert_clause{
-            $$ = new InsertStatement();
-            $$->sub_type_ = CASE1;
-            $$->insert_type_ = $1;
-            $$->table_name_ = $3;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-            $$->opt_column_list_ = $4;
-            $$->select_no_paren_ = $5;
-            $$->opt_upsert_clause_ = $6;
-            if($$->opt_column_list_->sub_type_ == CASE0){
-                for(auto &cname: $$->opt_column_list_->ident_comma_list_->v_iden_comma_list_){
-                    cname->id_type_ = id_column_name;
-                }    
-            }
+            $$->table_name_->identifier_->id_type_ = id_top_table_name;
+            $$->opt_table_alias_as_ = $4;
+            $$->opt_column_list_paren_ = $5;
+            $$->insert_value_= $6;
+            $$->opt_returning_clause_ = $7;
         }
     ;
 
-super_list:
-        '(' literal_list ')'{
-            $$ = new SuperList(); $$->v_super_list_.push_back($2);
+insert_value:
+        VALUES expr_list_paren_list opt_upsert_clause{
+            $$ = new InsertValue();
+            $$->sub_type_ = CASE0;
+            $$->expr_list_paren_list_ = $2;
+            $$->opt_upsert_clause_ = $3;
         }
-    |   super_list ',' '(' literal_list ')'{
-            $1->v_super_list_.push_back($4);
-            $$ = $1;
+    |   select_statement opt_upsert_clause{
+            $$ = new InsertValue();
+            $$->sub_type_ = CASE1;
+            $$->select_statement_ = $1;
+            $$->opt_upsert_clause_ = $2;
         }
+    |   DEFAULT VALUES {
+            $$ = new InsertValue();
+            $$->sub_type_ = CASE2;
+        }
+    ;
+
+
+update_type:
+        UPDATE { $$ = new UpdateType(); $$->sub_type_ = CASE0; $$->str_val_ = string("UPDATE"); }
+    |   UPDATE OR resolve_type {$$ = new UpdateType(); $$->sub_type_ = CASE1; $$->resolve_type_ = $3;}
     ;
 
 insert_type:
-        INSERT { $$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_ = string("INSERT"); }
-        | REPLACE {$$ = new InsertType(); $$->sub_type_ = CASE1; $$->str_val_  = string("REPLACE");}
-        | INSERT OR resolve_type {$$ = new InsertType(); $$->sub_type_ = CASE2; $$->resolve_type_ = $3;}
-        ;
-
-opt_column_list:
-        '(' ident_commalist ')' { $$ = new OptColumnList(); $$->sub_type_ = CASE0; $$->ident_comma_list_ = $2; }
-    |   /* empty */ { $$ = new OptColumnList(); $$->sub_type_ = CASE1; }
+        INSERT INTO { $$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_ = string("INSERT INTO"); }
+    |   REPLACE INTO {$$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_  = string("REPLACE INTO");}
+    |   INSERT OR resolve_type INTO {$$ = new InsertType(); $$->sub_type_ = CASE1; $$->resolve_type_ = $3;}
     ;
 
+opt_column_list_paren:
+        '(' column_name_list ')' { $$ = new OptColumnListParen(); $$->sub_type_ = CASE0; $$->column_name_list_ = $2; }
+    |   /* empty */ { $$ = new OptColumnListParen(); $$->sub_type_ = CASE1; }
+    ;
 
 /******************************
  * Update Statement
@@ -1659,32 +1664,36 @@ opt_column_list:
  ******************************/
 
 update_statement:
-    UPDATE table_ref_name_no_alias SET update_clause_commalist opt_where {
+    opt_with_clause update_type qualified_table_name SET update_clause_list opt_from_clause opt_where opt_returning_clause {
         $$ = new UpdateStatement();
-        $$->table_ref_name_no_alias_ = $2; //had set id_top_table_name in table_ref_name_no_alias
-        $$->update_clause_comma_list_ = $4;
-        $$->opt_where_ = $5;
+        $$->opt_with_clause_ = $1;
+        $$->update_type_ = $2;
+        $$->qualified_table_name_ = $3;
+        $$->update_clause_list_ = $5;
+        $$->opt_from_clause_ = $6;
+        $$->opt_where_ = $7;
+        $$->opt_returning_clause_ = $8;
     }
     ;
 
-update_clause_commalist:
+update_clause_list:
         update_clause { 
-            $$ = new UpdateClauseCommalist(); 
+            $$ = new UpdateClauseList(); 
             $$->v_update_clause_list_.push_back($1); 
             }
-    |   update_clause_commalist ',' update_clause { 
+    |   update_clause_list ',' update_clause { 
         $1->v_update_clause_list_.push_back($3); 
         $$ = $1; }
     ;
 
 update_clause:
-        one_column_name '=' expr {
+        one_column_name '=' new_expr {
             $$ = new UpdateClause();
             $$->sub_type_ = CASE0;
             $$->column_name_ = $1;
             $$->expr_ = $3;
         }
-    |   '(' column_name_list ')' '=' expr {
+    |   '(' column_name_list ')' '=' new_expr {
             $$ = new UpdateClause();
             $$->sub_type_ = CASE1;
             $$->column_name_list_ = $2;
@@ -1698,102 +1707,52 @@ update_clause:
  ******************************/
 
 select_statement:
-        opt_with_clause select_with_paren {
-            $$ = new SelectStatement();
-            $$->sub_type_ = CASE0;
-            $$->opt_with_clause_ = $1;
-            $$->select_with_paren_ = $2;
-        }
-    |   opt_with_clause select_no_paren {
-            $$ = new SelectStatement();
-            $$->sub_type_ = CASE1;
-            $$->opt_with_clause_ = $1;
-            $$->select_no_paren_ = $2;
-        }
-    |   opt_with_clause select_with_paren set_operator select_paren_or_clause opt_order opt_limit {
-            $$ = new SelectStatement();
-            $$->sub_type_ = CASE2;
-            $$->opt_with_clause_ = $1;
-            $$->select_with_paren_ = $2;
-            $$->set_operator_ = $3;
-            $$->select_paren_or_clause_ = $4;
-            $$->opt_order_ = $5;
-            $$->opt_limit_ = $6;
-            
+        opt_with_clause select_core_list opt_order opt_limit {
+          $$ = new SelectStatement();
+          $$->opt_with_clause_ = $1;
+          $$->select_core_list_ = $2;
+          $$->opt_order_ = $3;
+          $$->opt_limit_ = $4;
         }
     ;
 
-select_with_paren:
-        '(' select_no_paren ')' { $$ = new SelectWithParen(); $$->sub_type_ = CASE0; $$->select_no_paren_=$2;}
-    |   '(' select_with_paren ')' { $$ = new SelectWithParen(); $$->sub_type_ = CASE1; $$->select_with_paren_=$2;}
-    ;
-
-select_paren_or_clause:
-        select_with_paren {$$ = new SelectParenOrClause(); $$->sub_type_=CASE0; $$->select_with_paren_=$1;}
-    |   select_clause {$$=new SelectParenOrClause(); $$->sub_type_=CASE1; $$->select_clause_=$1;}
-    ;
-
-select_no_paren:
-        select_clause opt_order opt_limit {
-            $$ = new SelectNoParen();
-            $$->sub_type_ = CASE0;
-            $$->select_clause_ = $1;
-            $$->opt_order_ = $2;
-            $$->opt_limit_ = $3;
-        }
-    |   select_clause set_operator select_paren_or_clause opt_order opt_limit {
-            $$ = new SelectNoParen();
-            $$->sub_type_ = CASE1;
-            $$->select_clause_ = $1;
-            $$->set_operator_ = $2;
-            $$->select_paren_or_clause_ = $3;
-            $$->opt_order_ = $4;
-            $$->opt_limit_ = $5;    
+select_core_list:
+        select_core { $$ = new SelectCoreList(); $$->v_select_core_list_.push_back($1); }
+    |   select_core_list set_operator select_core {
+          $1->v_select_core_list_.push_back($3);
+          $1->v_set_operator_list_.push_back($2);
+          $$ = $1;
         }
     ;
 
 set_operator:
-        set_type opt_all {
-            $$ = new SetOperator();
-            $$->set_type_ = $1;
-            $$->opt_all_ = $2;
-            }
+        UNION {$$ = new SetOperator(); $$->str_val_ = string("UNION");}
+    |   UNION ALL {$$ = new SetOperator(); $$->str_val_ = string("UNION ALL");}
+    |   INTERSECT {$$ = new SetOperator(); $$->str_val_ = string("INTERSECT");}
+    |   EXCEPT  {$$ = new SetOperator(); $$->str_val_ = string("EXCEPT");}
     ;
 
-set_type:
-        UNION {$$ = new SetType(); $$->str_val_ = string("UNION");}
-    |   INTERSECT {$$ = new SetType(); $$->str_val_ = string("INTERSECT");}
-    |   EXCEPT  {$$ = new SetType(); $$->str_val_ = string("EXCEPT");}
-    ;
-
-opt_all:
-        ALL {$$ = new OptAll(); $$->str_val_ = string("ALL");}
-    |   /* empty */ {$$ = new OptAll(); $$->str_val_ = string("");}
-    ;
-
-select_clause:
-        SELECT opt_top opt_distinct select_list opt_from_clause opt_where opt_group {
-            $$ = new SelectClause();
-            $$->sub_type_ = CASE0;
-            $$->opt_top_ = $2;
-            $$->opt_distinct_ = $3;
-            $$->select_list_ = $4;
-            $$->opt_from_clause_ = $5;
-            $$->opt_where_ = $6;
-            $$->opt_group_ = $7;
+select_core:
+        SELECT opt_distinct result_column_list opt_from_clause opt_where opt_group opt_window_clause {
+          $$ = new SelectCore();
+          $$->sub_type_ = CASE0;
+          $$->opt_distinct_ = $2;
+          $$->result_column_list_ = $3;
+          $$->opt_from_clause_ = $4;
+          $$->opt_where_ = $5;
+          $$->opt_group_ = $6;
+          $$->opt_window_clause_ = $7;
         }
-    
-    |   SELECT opt_top opt_distinct select_list opt_from_clause opt_where opt_group window_clause {
-            $$ = new SelectClause();
-            $$->sub_type_ = CASE1;
-            $$->opt_top_ = $2;
-            $$->opt_distinct_ = $3;
-            $$->select_list_ = $4;
-            $$->opt_from_clause_ = $5;
-            $$->opt_where_ = $6;
-            $$->opt_group_ = $7;
-            $$->window_clause_ = $8;
+    |   VALUES expr_list_paren_list { 
+          $$ = new SelectCore();
+          $$->sub_type_ = CASE1;
+          $$->expr_list_paren_list_ = $2;
         }
+    ;
+
+opt_window_clause:
+        window_clause { $$ = new OptWindowClause(); $$->sub_type_ = CASE0; $$->window_clause_ = $1; }
+    |   /* empty */ { $$ = new OptWindowClause(); $$->sub_type_ = CASE1; }
     ;
 
 window_clause:
@@ -1806,41 +1765,42 @@ windowdefn_list:
     ;
 
 windowdefn:
-        IDENTIFIER AS '(' window ')' {$$ = new WindowDefn(); $$->id_ = new Identifier($1); $$->window_ = $4; free($1);}
+        window_name AS '(' window_body ')' {
+          $$ = new WindowDefn();
+          $1->identifier_->id_type_ = id_create_window_name;
+          $$->window_name_ = $1;
+          $$->window_body_ = $4;
+        }
     ;
 
-window:
-        opt_base_window_name PARTITION BY expr_list opt_order opt_frame {
-            $$ = new Window();
+window_body:
+        opt_base_window_name opt_partition_by opt_order opt_frame {
+            $$ = new WindowBody();
             $$->sub_type_ = CASE0;
             $$->opt_base_window_name_ = $1;
-            $$->expr_list_ = $4;
-            $$->opt_order_ = $5;
-            $$->opt_frame_ = $6;
-        }
-    |   opt_base_window_name opt_order opt_frame {
-            $$ = new Window();
-            $$->sub_type_ = CASE1;
-            $$->opt_base_window_name_ = $1;
-            $$->opt_order_ = $2;
-            $$->opt_frame_ = $3;
+            $$->opt_partition_by_ = $2;
+            $$->opt_order_ = $3;
+            $$->opt_frame_ = $4;
         }
     ;
 
 opt_base_window_name:
-        IDENTIFIER {$$ = new OptBaseWindowName(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($1); free($1);}
+        IDENTIFIER {$$ = new OptBaseWindowName(); $$->sub_type_ = CASE0; $$->identifier_ = new Identifier($1, id_base_window_name); free($1);}
     | /* empty */ {$$ = new OptBaseWindowName(); $$->sub_type_ = CASE1;}
     ;
 
+window_name:
+        IDENTIFIER { $$ = new WindowName(); $$->identifier_ = new Identifier($1, id_window_name); free($1); }
+
 opt_frame:
-        range_or_rows frame_bound_s opt_frame_exclude {
+        range_or_rows frame_bound opt_frame_exclude {
             $$ = new OptFrame(); 
             $$->sub_type_ = CASE0; 
             $$->range_or_rows_ = $1;
-            $$->frame_bound_s_ = $2;
+            $$->frame_bound_ = $2;
             $$->opt_frame_exclude_ = $3;
         }
-    |   range_or_rows BETWEEN frame_bound_s AND frame_bound_e opt_frame_exclude {
+    |   range_or_rows BETWEEN frame_bound_s BTWAND frame_bound_e opt_frame_exclude {
             $$ = new OptFrame();
             $$->sub_type_ = CASE1;
             $$->range_or_rows_ = $1;
@@ -1848,55 +1808,83 @@ opt_frame:
             $$->frame_bound_e_ = $5;
             $$->opt_frame_exclude_ = $6;
         }
-    | /* empty */ {$$ = new OptFrame(); $$->sub_type_ = CASE2;}
+    |   /* empty */ {$$ = new OptFrame(); $$->sub_type_ = CASE2;}
     ;
 
 range_or_rows:
-        RANGE {$$ = new RangeOrRows(); $$->str_val_ = string("RANGE");}
-    |   ROWS {$$ = new RangeOrRows(); $$->str_val_ = string("ROWS");}
-    |   GROUPS {$$ = new RangeOrRows(); $$->str_val_ = string("GROUPS");}
+        RANGE   { $$ = new RangeOrRows(); $$->str_val_ = string("RANGE");  }
+    |   ROWS    { $$ = new RangeOrRows(); $$->str_val_ = string("ROWS");   }
+    |   GROUPS  { $$ = new RangeOrRows(); $$->str_val_ = string("GROUPS"); }
     ;
 
 frame_bound_s:
-        frame_bound {$$ = new FrameBoundS(); $$->sub_type_ = CASE0; $$->frame_bound_ = $1;}
-    |   UNBOUNDED PRECEDING {$$ = new FrameBoundS(); $$->sub_type_ = CASE1;}
+        UNBOUNDED PRECEDING { $$ = new FrameBoundS(); $$->sub_type_ = CASE0; $$->str_val_ = string("UNBOUNDED PRECEDING"); }
+    |   CURRENT ROW { $$ = new FrameBoundS(); $$->sub_type_ = CASE0; $$->str_val_ = string("CURRENT ROW"); }
+    |   new_expr PRECEDING { $$ = new FrameBoundS(); $$->sub_type_ = CASE1; $$->str_val_ = string("PRECEDING"); $$->expr_ = $1; }
+    |   new_expr FOLLOWING { $$ = new FrameBoundS(); $$->sub_type_ = CASE1; $$->str_val_ = string("FOLLOWING"); $$->expr_ = $1; }
     ;
 
 frame_bound_e:
-        frame_bound {$$ = new FrameBoundE(); $$->sub_type_ = CASE0; $$->frame_bound_ = $1;}
-    |   UNBOUNDED FOLLOWING {$$ = new FrameBoundE(); $$->sub_type_ = CASE1;}
+        UNBOUNDED FOLLOWING { $$ = new FrameBoundE(); $$->sub_type_ = CASE0; $$->str_val_ = string("UNBOUNDED FOLLOWING"); }
+    |   CURRENT ROW { $$ = new FrameBoundE(); $$->sub_type_ = CASE0; $$->str_val_ = string("CURRENT ROW"); }
+    |   new_expr PRECEDING { $$ = new FrameBoundE(); $$->sub_type_ = CASE1; $$->str_val_ = string("PRECEDING"); $$->expr_ = $1; }
+    |   new_expr FOLLOWING { $$ = new FrameBoundE(); $$->sub_type_ = CASE1; $$->str_val_ = string("FOLLOWING"); $$->expr_ = $1; }
     ;
 
 frame_bound:
-        expr PRECEDING {$$ = new FrameBound(); $$->sub_type_ = CASE0; $$->expr_ = $1;}
-    |   expr FOLLOWING {$$ = new FrameBound(); $$->sub_type_ = CASE1; $$->expr_ = $1;}
-    |   CURRENT ROW {$$ = new FrameBound(); $$->sub_type_ = CASE2;}
-    ;
-
-opt_frame_exclude:
-        EXCLUDE frame_exclude {$$ = new OptFrameExclude(); $$->sub_type_ = CASE0; $$->frame_exclude_ = $2;}
-    |   /* empty */ {$$ = new OptFrameExclude(); $$->sub_type_ = CASE1; }
+        UNBOUNDED PRECEDING { $$ = new FrameBound(); $$->sub_type_ = CASE0; $$->str_val_ = string("UNBOUNDED PRECEDING"); }
+    |   CURRENT ROW {$$ = new FrameBound(); $$->sub_type_ = CASE0; $$->str_val_ = string("CURRENT ROW"); }
+    |   new_expr PRECEDING {$$ = new FrameBound(); $$->sub_type_ = CASE1; $$->str_val_ = string("PRECEDING"); $$->expr_ = $1;}
     ;
 
 frame_exclude:
-        NO OTHERS {$$ = new FrameExclude(); $$->str_val_ = string("NO OTHERS");}
-    |   CURRENT ROW {$$ = new FrameExclude(); $$->str_val_ = string("CURRENT ROW");}
-    |   GROUP {$$ = new FrameExclude(); $$->str_val_ = string("GROUP");}
-    |   TIES {$$ = new FrameExclude(); $$->str_val_ = string("TIES");}
+        EXCLUDE NO OTHERS   { $$ = new FrameExclude(); $$->str_val_ = string("EXCLUDE NO OTHERS"); }
+    |   EXCLUDE CURRENT ROW { $$ = new FrameExclude(); $$->str_val_ = string("EXCLUDE CURRENT ROW"); }
+    |   EXCLUDE GROUP       { $$ = new FrameExclude(); $$->str_val_ = string("EXCLUDE GROUP"); }
+    |   EXCLUDE TIES        { $$ = new FrameExclude(); $$->str_val_ = string("EXCLUDE TIES"); }
     ;
 
+opt_frame_exclude:
+        frame_exclude { $$ = new OptFrameExclude(); $$->sub_type_ = CASE0; $$->frame_exclude_ = $1; }
+    |   /* empty */   { $$ = new OptFrameExclude(); $$->sub_type_ = CASE1; }
+    ;
 
 opt_distinct:
         DISTINCT { $$ = new OptDistinct();  $$->str_val_ = string("DISTINCT");}
+    |   ALL { $$ = new OptDistinct();  $$->str_val_ = string("ALL");}
     |   /* empty */ { $$ = new OptDistinct();  $$->str_val_ = string("");}
     ;
 
-select_list:
-        expr_list {
-            $$ = new SelectList();
-            $$->expr_list_ = $1;
+result_column_list:
+        result_column { $$ = new ResultColumnList(); $$->v_result_column_list_.push_back($1); }
+    |   result_column_list ',' result_column {
+          $1->v_result_column_list_.push_back($3);
+          $$ = $1;
         }
+
+opt_returning_clause:
+        RETURNING returning_column_list { $$ = new OptReturningClause(); $$->sub_type_ = CASE0; $$->returning_column_list_ = $2; }
+    |   /* empty */ { $$ = new OptReturningClause(); $$->sub_type_ = CASE1; }
     ;
+
+returning_column_list:
+        returning_column { $$ = new ResultColumnList(); $$->v_result_column_list_.push_back($1); }
+    |   returning_column_list ',' result_column {
+          $1->v_result_column_list_.push_back($3);
+          $$ = $1;
+        }
+
+result_column:
+        new_expr opt_column_alias { $$ = new ResultColumn(); $$->sub_type_ = CASE0; $$->expr_ = $1; $$->opt_column_alias_ = $2; }
+    |   '*' { $$ = new ResultColumn(); $$->sub_type_ = CASE1; }
+    |   table_name '.' '*' { $$ = new ResultColumn(); $$->sub_type_ = CASE2; $$->table_name_ = $1; }
+    ;
+
+returning_column:
+        new_expr opt_column_alias { $$ = new ResultColumn(); $$->sub_type_ = CASE0; $$->expr_ = $1; $$->opt_column_alias_ = $2; }
+    |   '*' { $$ = new ResultColumn(); $$->sub_type_ = CASE1; }
+    ;
+
 
 opt_from_clause:
         from_clause  { $$ = new OptFromClause(); $$->sub_type_ = CASE0; $$->from_clause_ = $1;}
@@ -1904,13 +1892,23 @@ opt_from_clause:
     ;
 
 from_clause:
-        FROM table_ref { $$ = new FromClause(); $$->table_ref_ = $2;}
+        FROM join_clause { $$ = new FromClause(); $$->sub_type_ = CASE0; $$->join_clause_ = $2; }
+    |   FROM table_or_subquery_list { $$ = new FromClause(); $$->sub_type_ = CASE1; $$->table_or_subquery_list_ = $2; }
     ;
 
-
 opt_where:
-        WHERE expr { $$ = new OptWhere(); $$->sub_type_ = CASE0; $$->expr_ = $2; }
+        where_expr { $$ = new OptWhere(); $$->sub_type_ = CASE0; $$->where_expr_ = $1; }
     |   /* empty */ { $$ = new OptWhere(); $$->sub_type_ = CASE1;}
+    ;
+
+opt_else_expr:
+        else_expr { $$ = new OptElseExpr(); $$->sub_type_ = CASE0; $$->else_expr_ = $1; }
+    |   /* empty */   { $$ = new OptElseExpr(); $$->sub_type_ = CASE1; }
+    ;
+
+opt_escape_expr:
+        escape_expr { $$ = new OptEscapeExpr(); $$->sub_type_ = CASE0; $$->escape_expr_ = $1; }
+    |   /* empty */   { $$ = new OptEscapeExpr(); $$->sub_type_ = CASE1; }
     ;
 
 opt_group:
@@ -1924,7 +1922,7 @@ opt_group:
     ;
 
 opt_having:
-        HAVING expr { $$ = new OptHaving(); $$->sub_type_ = CASE0; $$->expr_ = $2; }
+        HAVING new_expr { $$ = new OptHaving(); $$->sub_type_ = CASE0; $$->expr_ = $2; }
     |   /* empty */ { $$ = new OptHaving(); $$->sub_type_ = CASE1;} ;
     
 opt_order:
@@ -1933,286 +1931,296 @@ opt_order:
     ;
 
 order_list:
-        order_desc { $$ = new OrderList(); $$->v_order_desc_.push_back($1); }
-    |   order_list ',' order_desc { $1->v_order_desc_.push_back($3); $$ = $1; }
+        order_term { $$ = new OrderList(); $$->v_order_term_.push_back($1); }
+    |   order_list ',' order_term { $1->v_order_term_.push_back($3); $$ = $1; }
     ;
 
-order_desc:
-        expr opt_order_type opt_null{ $$ = new OrderDesc(); $$->expr_ = $1; $$->opt_order_type_ = $2; $$->opt_null_ = $3;}
+order_term:
+        new_expr opt_collate opt_order_type opt_order_of_null{ 
+          $$ = new OrderTerm();
+          $$->expr_ = $1; 
+          $$->opt_collate_ = $2;
+          $$->opt_order_type_ = $3; 
+          $$->opt_order_of_null_ = $4;
+        }
     ;
 
+/* looks good */
 opt_order_type:
         ASC { $$ = new OptOrderType(); $$->str_val_ = string("ASC"); }
     |   DESC { $$ = new OptOrderType(); $$->str_val_ = string("DESC"); }
     |   /* empty */ { $$ = new OptOrderType(); $$->str_val_ = string(""); }
     ;
 
-
-opt_top:
-        TOP int_literal { 
-            $$ = new OptTop(); 
-            $$->sub_type_ = CASE0;
-            $$->int_literal_ = $2;
-            }
-    |   /* empty */ { 
-            $$ = new OptTop(); 
-            $$->sub_type_ = CASE1;
-            }
-    ;
-
 opt_limit:
-        LIMIT expr { $$ = new OptLimit(); $$->sub_type_ = CASE0; $$->expr1_ = $2;}
-    |   OFFSET expr { $$ = new OptLimit(); $$->sub_type_ = CASE1; $$->expr1_ = $2;}
-    |   LIMIT expr OFFSET expr { $$ = new OptLimit(); $$->sub_type_ = CASE2; $$->expr1_ = $2; $$->expr2_ = $4;}
-    |   LIMIT ALL { $$ = new OptLimit(); $$->sub_type_ = CASE3;}
-    |   LIMIT ALL OFFSET expr { $$ = new OptLimit(); $$->sub_type_ = CASE4; $$->expr1_ = $4;}
-    |   /* empty */ { $$ = nullptr; }
+        LIMIT new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE0; $$->expr1_ = $2;}
+    |   LIMIT new_expr OFFSET new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE1; $$->expr1_ = $2; $$->expr2_ = $4; }
+    |   LIMIT new_expr ',' new_expr { $$ = new OptLimit(); $$->sub_type_ = CASE2; $$->expr1_ = $2; $$->expr2_ = $4; }
+    |   /* empty */ { $$ = new OptLimit(); $$->sub_type_ = CASE3; }
     ;
 
 /******************************
  * Expressions
  ******************************/
+
+expr_list_paren_list:
+        expr_list_paren { $$ = new ExprListParenList(); $$->v_expr_list_paren_list_.push_back($1); }
+    |   expr_list_paren_list ',' expr_list_paren { $1->v_expr_list_paren_list_.push_back($3); $$ = $1; }
+    ;
+
+expr_list_paren:
+        '(' expr_list ')' { $$ = new ExprListParen(); $$->expr_list_ = $2; }
+
 expr_list:
-        expr_alias { 
-            $$ = new ExprList(); 
-            $$->v_expr_list_.push_back($1); 
-            }
-    |   expr_list ',' expr_alias { 
-        $1->v_expr_list_.push_back($3); 
-        $$ = $1; }
-    ;
-
-opt_literal_list:
-        literal_list { 
-            $$ = new OptLiteralList();
-            $$->sub_type_ = CASE0;
-            $$->literal_list_ = $1;
-            }
-    |   /* empty */ { 
-            $$ = new OptLiteralList();
-            $$->sub_type_ = CASE1; }
-    ;
-
-literal_list:
-        literal { 
-            $$ = new LiteralList(); 
-            $$->v_literal_list_.push_back($1); 
-            }
-    |   literal_list ',' literal { 
-        $1->v_literal_list_.push_back($3); 
-        $$ = $1; 
+        new_expr { 
+          $$ = new ExprList(); 
+          $$->v_expr_list_.push_back($1); 
+        }
+    |   expr_list ',' new_expr { 
+          $1->v_expr_list_.push_back($3); 
+          $$ = $1;
         }
     ;
 
-expr_alias:
-        expr opt_alias {
-            $$ = new ExprAlias();
-            $$->expr_ = $1;
-            $$->opt_alias_ = $2;
+function_name:
+        IDENTIFIER {
+            $$ = new FunctionName(); 
+            $$->identifier_ = new Identifier($1); 
+            free($1);
+        }
+;
+
+function_args:
+        opt_distinct expr_list { $$ = new FunctionArgs(); $$->sub_type_ = CASE0; $$->opt_distinct_ = $1; $$->expr_list_ = $2; }
+    |   '*' { $$ = new FunctionArgs(); $$->sub_type_ = CASE1; $$->str_val_ = string("*"); }
+    |   /* empty */ { $$ = new FunctionArgs(); $$->sub_type_ = CASE1; $$->str_val_ = string(""); }
+
+new_expr:
+        literal {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE0;
+          $$->literal_ = $1;
+        }
+    /* |   TODO: bind parameter */ 
+    |   column_name {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE1;
+          $$->column_name_ = $1;
+        }
+    |   unary_op new_expr {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE2;
+          $$->unary_op_ = $1;
+          $$->new_expr1_ = $2;
+        }
+    |   new_expr binary_op new_expr {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE3;
+          $$->new_expr1_ = $1;
+          $$->binary_op_ = $2;
+          $$->new_expr2_ = $3;
+        }
+    |   function_name '(' function_args ')' opt_filter_clause opt_over_clause {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE4;
+          $$->function_name_ = $1;
+          $$->function_args_ = $3;
+          $$->opt_filter_clause_ = $5;
+          $$->opt_over_clause_ = $6;
+        }
+    |   '(' expr_list ')' {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE5;
+          $$->expr_list_ = $2;
+        }
+	  |   CAST '(' new_expr AS column_type ')' {
+		      $$ = new NewExpr();
+          $$->sub_type_ = CASE6;
+		      $$->new_expr1_ = $3;
+          $$->column_type_ = $5;
+	      }
+    |   new_expr collate {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE7;
+          $$->new_expr1_ = $1;
+          $$->collate_ = $2;
+        }
+    |   new_expr opt_not similar_bop new_expr opt_escape_expr {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE8;
+          $$->new_expr1_ = $1;
+          $$->opt_not_ = $2;
+          $$->binary_op_ = $3;
+          $$->new_expr2_ = $4;
+          $$->opt_escape_expr_ = $5;
+        }
+    |   new_expr null_of_expr {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE9;
+          $$->new_expr1_ = $1;
+          $$->null_of_expr_ = $2;
+        }
+    /* covered by binary_op */
+    /* |  new_expr IS opt_not new_expr */
+    |   new_expr opt_not BETWEEN new_expr BTWAND new_expr {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE10;
+          $$->new_expr1_ = $1;
+          $$->opt_not_ = $2;
+          $$->new_expr2_ = $4;
+          $$->new_expr3_ = $6;
+        }
+    |   new_expr opt_not in_op in_target {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE11;
+          $$->new_expr1_ = $1;
+          $$->opt_not_ = $2;
+          $$->binary_op_ = $3;
+          $$->in_target_ = $4;
+        }
+    |   exists_or_not '(' select_statement ')' {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE12;
+          $$->exists_or_not_ = $1;
+          $$->select_statement_ = $3;
+        }
+    |   CASE opt_expr case_condition_list opt_else_expr END {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE13;
+          $$->opt_expr_ = $2;
+          $$->case_condition_list_ = $3;
+          $$->opt_else_expr_ = $4;
+        }
+    |   raise_function {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE14;
+          $$->raise_function_ = $1;
+          }
+    |   '(' select_statement ')' {
+          $$ = new NewExpr();
+          $$->sub_type_ = CASE15;
+          $$->select_statement_ = $2;
         }
     ;
 
-expr:
-        operand {$$ = new Expr(); $$->sub_type_ = CASE0; $$->operand_ = $1;}
-    |   between_expr {$$ = new Expr(); $$->sub_type_ = CASE1; $$->between_expr_ = $1;}
-    |   logic_expr {$$ = new Expr(); $$->sub_type_ = CASE2; $$->logic_expr_ = $1;}
-    |   exists_expr {$$ = new Expr(); $$->sub_type_ = CASE3; $$->exists_expr_ = $1;}
-    |   in_expr {$$ = new Expr(); $$->sub_type_ = CASE4; $$->in_expr_ = $1;}
+unary_op:
+        '-' { $$ = new UnaryOp(); $$->value_ = string("-"); }
+    |   '+' { $$ = new UnaryOp(); $$->value_ = string("+"); }
+    |   NOT { $$ = new UnaryOp(); $$->value_ = string("NOT"); }
+    |   '~' { $$ = new UnaryOp(); $$->value_ = string("~"); }
     ;
 
-operand: 
-        '(' expr_list ')' { $$ = new Operand(); $$->sub_type_ = CASE0; $$->expr_list_ = $2; } 
-    |   array_index { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   scalar_expr { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   unary_expr  { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   binary_expr { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   case_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   function_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   extract_expr    { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   array_expr  { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   cast_expr   { $$ = new Operand(); $$->sub_type_ = CASE1; $$->expr_ = $1; }
-    |   '(' select_no_paren ')' { $$ = new Operand(); $$->sub_type_ = CASE2; $$->select_no_paren_ = $2; }
+binary_op:
+        CONCAT    { $$ = new BinaryOp(); $$->value_ = string("||"); }
+    |   '*'       { $$ = new BinaryOp(); $$->value_ = string("*"); }
+    |   '/'       { $$ = new BinaryOp(); $$->value_ = string("/"); }
+    |   '%'       { $$ = new BinaryOp(); $$->value_ = string("%"); }
+    |   '+'       { $$ = new BinaryOp(); $$->value_ = string("+"); }
+    |   '-'       { $$ = new BinaryOp(); $$->value_ = string("-"); }
+    |   LSHIFT    { $$ = new BinaryOp(); $$->value_ = string("<<"); }
+    |   RSHIFT    { $$ = new BinaryOp(); $$->value_ = string(">>"); }
+    |   '&'       { $$ = new BinaryOp(); $$->value_ = string("&"); }
+    |   '|'       { $$ = new BinaryOp(); $$->value_ = string("|"); }
+    |   '<'       { $$ = new BinaryOp(); $$->value_ = string("<"); }
+    |   LESSEQ    { $$ = new BinaryOp(); $$->value_ = string("<="); }
+    |   '>'       { $$ = new BinaryOp(); $$->value_ = string(">"); }
+    |   GREATEREQ { $$ = new BinaryOp(); $$->value_ = string(">="); }
+    |   '='       { $$ = new BinaryOp(); $$->value_ = string("="); }
+    |   EQUALS    { $$ = new BinaryOp(); $$->value_ = string("=="); }
+    |   NOTEQUALS { $$ = new BinaryOp(); $$->value_ = string("!="); }
+    |   IS        { $$ = new BinaryOp(); $$->value_ = string("IS"); }
+    /* covered by IS and NOT */
+    /* |   IS NOT    { $$ = new BinaryOp(); $$->value_ = string("IS NOT"); } */
+    |   AND       { $$ = new BinaryOp(); $$->value_ = string("AND"); }
+    |   OR        { $$ = new BinaryOp(); $$->value_ = string("OR"); }
     ;
 
-cast_expr:
-	    CAST '(' expr AS column_type ')' {
-		    $$ = new CastExpr();
-		    $$->expr_ = $3;
-            $$->column_type_ = $5;
-	    }
+in_op:
+        IN        { $$ = new BinaryOp(); $$->value_ = string("IN"); }
     ;
 
-scalar_expr:
-        column_name {$$ = new ScalarExpr(); $$->sub_type_=CASE0; $$->column_name_ = $1;}
-    |   literal {$$ = new ScalarExpr(); $$->sub_type_=CASE1; $$->literal_ = $1;}
+similar_bop:
+        LIKE      { $$ = new BinaryOp(); $$->value_ = string("LIKE"); }
+    |   GLOB      { $$ = new BinaryOp(); $$->value_ = string("GLOB"); }
+    |   MATCH     { $$ = new BinaryOp(); $$->value_ = string("MATCH"); }
+    |   REGEXP    { $$ = new BinaryOp(); $$->value_ = string("REGEXP"); }
     ;
 
-unary_expr:
-        '-' operand { 
-            $$ =new UnaryExpr(); 
-            $$->sub_type_ = CASE0;
-            $$->operand_ = $2;
-            $$->operator_ = string("-");
-            }
-    |   NOT operand { 
-        $$ =new UnaryExpr(); 
-            $$->sub_type_ = CASE1;
-            $$->operand_ = $2;
-            $$->operator_ = string("NOT");
+in_target:
+        '(' ')'   { $$ = new InTarget(); $$->sub_type_ = CASE0; }
+    |   '(' select_statement ')' {
+          $$ = new InTarget();
+          $$->sub_type_ = CASE1;
+          $$->select_statement_ = $2;
         }
-    |   operand ISNULL { 
-            $$ =new UnaryExpr(); 
-            $$->sub_type_ = CASE2;
-            $$->operand_ = $1;
-            $$->operator_ = string("ISNULL");
+    |   '(' expr_list ')' {
+          $$ = new InTarget();
+          $$->sub_type_ = CASE2;
+          $$->expr_list_ = $2;
         }
-    |   operand IS NULL { 
-            $$ =new UnaryExpr(); 
-            $$->sub_type_ = CASE3;
-            $$->operand_ = $1;
-            $$->operator_ = string("IS NULL");
+    |   table_name {
+          $$ = new InTarget();
+          $$->sub_type_ = CASE3;
+          $$->table_name_ = $1;
         }
-    |   operand IS NOT NULL { 
-            $$ =new UnaryExpr(); 
-            $$->sub_type_ = CASE4;
-            $$->operand_ = $1;
-            $$->operator_ = string("IS NOT NULL");
+    /* TODO: |   table_function '(' ')' */
+    /* TODO: |   table_function '(' expr_list ')' */  
+    ;
+
+raise_function:
+        RAISE '(' IGNORE ')' { $$ = new RaiseFunction(); $$->sub_type_ = CASE0; }
+    |   RAISE '(' ROLLBACK ',' STRING ')' {
+          $$ = new RaiseFunction();
+          $$->sub_type_ = CASE1;
+          $$->to_raise_ = string("ROLLBACK");
+          $$->error_msg_ = new Identifier($5);
+          free($5);
         }
-    |   '+' operand { 
-            $$ =new UnaryExpr(); 
-            $$->sub_type_ = CASE7;
-            $$->operand_ = $2;
-            $$->operator_ = string("+");
-            }
+    |   RAISE '(' ABORT ',' STRING ')' {
+          $$ = new RaiseFunction();
+          $$->sub_type_ = CASE1;
+          $$->to_raise_ = string("ABORT");
+          $$->error_msg_ = new Identifier($5);
+          free($5);
+        }
+    |   RAISE '(' FAIL ',' STRING ')' {
+          $$->sub_type_ = CASE1;
+          $$->to_raise_ = string("FAIL");
+          $$->error_msg_ = new Identifier($5);
+          free($5);
+        }
     ;
 
-binary_expr:
-        comp_expr {$$ = new BinaryExpr(); $$->sub_type_ = CASE0; $$->comp_expr_ = $1;}
-    |   operand '-' operand         { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("-");}
-    |   operand '+' operand         { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("+");}
-    |   operand '/' operand         { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("/");}
-    |   operand '*' operand         { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("*");}
-    |   operand '%' operand         { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("%");}
-    |   operand '^' operand         { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("^");}
-    |   operand LIKE operand        { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("LIKE");}
-    |   operand NOT LIKE operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $4; $$->operator_ = string("NOT LIKE");}
-    |   operand ILIKE operand       { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("ILIKE");}
-    |   operand CONCAT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("||");}
-    |   operand GLOB operand    { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("GLOB");}
-    |   operand MATCH operand   { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("MATCH");}
-    |   operand REGEX operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("REGEX");}
-    |   operand LSHIFT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<<");}
-    |   operand RSHIFT operand  { $$ = new BinaryExpr(); $$->sub_type_ = CASE1; $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">>");}
+opt_expr:
+        new_expr { $$ = new OptExpr(); $$->sub_type_ = CASE0; $$->expr_ = $1; }
+    |   /* empty */ { $$ = new OptExpr(); $$->sub_type_ = CASE1; }
+    ;
+                                                      
+case_condition:
+        WHEN new_expr THEN new_expr { $$ = new CaseCondition(); $$->when_expr_ = $2; $$->then_expr_ = $4; }
     ;
 
-logic_expr:
-        expr AND expr   { $$ = new LogicExpr(); $$->expr1_=$1; $$->expr2_=$3; $$->operator_=string("AND"); }
-    |   expr OR expr    { $$ = new LogicExpr(); $$->expr1_=$1; $$->expr2_=$3; $$->operator_=string("OR"); }
+case_condition_list:
+        case_condition { $$ = new CaseConditionList(); $$->v_case_condition_list_.push_back($1); }
+    |   case_condition_list case_condition { $1->v_case_condition_list_.push_back($2); $$ = $1; }
     ;
-
-in_expr:
-        operand IN '(' expr_list ')'            { $$ = new InExpr(); $$->sub_type_=CASE0; $$->operand_=$1; $$->expr_list_=$4;}
-    |   operand NOT IN '(' expr_list ')'        { $$ = new InExpr(); $$->sub_type_=CASE1; $$->operand_=$1; $$->expr_list_=$5;}
-    |   operand IN '(' select_no_paren ')'      { $$ = new InExpr(); $$->sub_type_=CASE2; $$->operand_=$1; $$->select_no_paren_=$4;}
-    |   operand NOT IN '(' select_no_paren ')'  { $$ = new InExpr(); $$->sub_type_=CASE3; $$->operand_=$1; $$->select_no_paren_=$5;}
-    ;
-
-// CASE grammar based on: flex & bison by John Levine
-// https://www.safaribooksonline.com/library/view/flex-bison/9780596805418/ch04.html#id352665
-case_expr:
-        CASE expr case_list END             { $$ = new CaseExpr(); $$->sub_type_=CASE0; $$->case_expr_=$2; $$->case_list_=$3; }
-    |   CASE expr case_list ELSE expr END   { $$ = new CaseExpr(); $$->sub_type_=CASE1; $$->case_expr_=$2; $$->case_list_=$3; $$->else_expr_=$5;}
-    |   CASE case_list END                  { $$ = new CaseExpr(); $$->sub_type_=CASE2; $$->case_list_=$2; }
-    |   CASE case_list ELSE expr END        { $$ = new CaseExpr(); $$->sub_type_=CASE3; $$->else_expr_=$4; $$->case_list_=$2; }
-    ;
-
-case_list:
-        WHEN expr THEN expr              { $$ = new CaseList(); $$->v_case_list_.push_back(new CaseClause($2,$4)); }
-    |   case_list WHEN expr THEN expr    { $$->v_case_list_.push_back(new CaseClause($3, $5)); $$ = $1; }
-    ;
-
-exists_expr:
-        EXISTS '(' select_no_paren ')' { $$ = new ExistsExpr(); $$->sub_type_=CASE0; $$->select_no_paren_=$3;}
-    |   NOT EXISTS '(' select_no_paren ')' { $$ = new ExistsExpr(); $$->sub_type_=CASE1; $$->select_no_paren_=$4;}
-    ;
-
-comp_expr:
-        operand '=' operand         {$$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("="); }
-    |   operand EQUALS operand          { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("=="); }//zr
-    |   operand NOTEQUALS operand   { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("!="); }//zr
-    |   operand '<' operand         { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<"); }
-    |   operand '>' operand         { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">"); }
-    |   operand LESSEQ operand      { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("<="); }//zr
-    |   operand GREATEREQ operand   { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string(">="); }//zr
-    |   operand IS operand          { $$ = new CompExpr(); $$->operand1_ = $1; $$->operand2_ = $3; $$->operator_ = string("IS"); }
-    ;
-
-function_expr: 
-               IDENTIFIER '(' ')' opt_filter_clause opt_over_clause{ 
-                   $$ = new FunctionExpr(); 
-                   $$->sub_type_ = CASE0; 
-                   $$->id_ = new Identifier($1); 
-                   $$->opt_filter_clause_ = $4;
-                   $$->opt_over_clause_ = $5;
-                   free($1);
-                   }
-       |       IDENTIFIER '(' opt_distinct expr_list ')' opt_filter_clause opt_over_clause{ 
-                   $$ = new FunctionExpr(); 
-                   $$->sub_type_ = CASE1; 
-                   $$->id_ = new Identifier($1); 
-                   $$->opt_distinct_ = $3;
-                   $$->expr_list_ = $4;
-                   $$->opt_filter_clause_ = $6;
-                   $$->opt_over_clause_ = $7;
-                   free($1);
-                   }
-       ;
 
 opt_over_clause:
-        OVER '(' window ')' {$$ = new OptOverClause(); $$->sub_type_ = CASE0; $$->window_ = $3;}
-    |   OVER  IDENTIFIER /* over window_name */ {
-        $$ = new OptOverClause(); 
-        $$->sub_type_ = CASE1; 
-        $$->id_ = new Identifier($2, id_window_name);
-        free($2);
-    }
-    | /* emtpy */ {$$ = new OptOverClause(); $$->sub_type_ = CASE2;}
+        OVER window_name { $$ = new OptOverClause(); $$->sub_type_ = CASE0; $$->window_name_ = $2; }
+    |   OVER '(' window_body ')' {
+          $$ = new OptOverClause();
+          $$->sub_type_ = CASE1;
+          $$->window_body_ = $3;
+        }
+    |   /* emtpy */ {$$ = new OptOverClause(); $$->sub_type_ = CASE2;}
     ;
+
+filter_clause:
+        FILTER '(' where_expr ')' {$$ = new FilterClause(); $$->where_expr_ = $3;}
 
 opt_filter_clause:
-        FILTER '(' WHERE expr ')' {$$ = new OptFilterClause(); $$->sub_type_ = CASE0; $$->expr_ = $4;}
-    | /* emtpy */ {$$ = new OptFilterClause(); $$->sub_type_ = CASE1;}
-    ;
-
-
-extract_expr:
-         EXTRACT '(' datetime_field FROM expr ')'    { 
-             $$ = new ExtractExpr();
-             $$->datetime_field_ = $3;
-             $$->expr_ = $5; 
-             $$->sub_type_ = CASE0;
-             }
-    ;
-
-datetime_field:
-        SECOND { $$ = new DatetimeField(); $$->str_val_ = string("SECOND"); }
-    |   MINUTE { $$ = new DatetimeField(); $$->str_val_ = string("MINUTE"); }
-    |   HOUR { $$ = new DatetimeField(); $$->str_val_ = string("HOUR"); }
-    |   DAY { $$ = new DatetimeField(); $$->str_val_ = string("DAY"); }
-    |   MONTH { $$ = new DatetimeField(); $$->str_val_ = string("MONTH"); }
-    |   YEAR { $$ = new DatetimeField(); $$->str_val_ = string("YEAR"); }
-    ;
-
-array_expr:
-        ARRAY '[' expr_list ']' { $$ = new ArrayExpr(); $$->expr_list_=$3; }
-    ;
-
-array_index:
-        operand '[' int_literal ']' { $$ = new ArrayIndex(); $$->operand_ = $1; $$->int_literal_ = $3;}
-    ;
-
-between_expr:
-        operand BETWEEN operand AND operand { $$ = new BetweenExpr(); $$->operand1_=$1; $$->operand2_=$3; $$->operand3_=$5;}
+        filter_clause { $$ = new OptFilterClause(); $$->sub_type_ = CASE0; $$->filter_clause_ = $1; }
+    |   /* emtpy */ {$$ = new OptFilterClause(); $$->sub_type_ = CASE1;}
     ;
 
 one_column_name:
@@ -2228,30 +2236,33 @@ column_name:
     ;
 
 literal:
-        string_literal  {$$=$1;}
-    |   blob_literal { $$ = $1; }
-    |   bool_literal  {$$=$1;}
-    |   num_literal  {$$=$1;}
-    |   null_literal  {$$=$1;}
-    |   param_expr  {$$=$1;}
+        numeric_literal { $$ = $1; }
+    |   string_literal  { $$ = $1; }
+    |   blob_literal    { $$ = $1; }
+    |   null_literal    { $$ = $1; }
+    |   param_expr      { $$ = $1; }
     ;
 
 string_literal:
         STRING { $$ = new StringLiteral(); $$->str_val_ = $1; free($1);}
     ;
 
-bool_literal:
-        TRUE { $$ = new BoolLiteral(); $$->b_val_=true; }
-    |   FALSE { $$ = new BoolLiteral(); $$->b_val_=false; }
+signed_number:
+        numeric_literal { $$ = new SignedNumber(); $$->str_sign_ = string(""); $$->numeric_literal_ = $1; }
+    |   '+' numeric_literal { $$ = new SignedNumber(); $$->str_sign_ = string("+"); $$->numeric_literal_ = $2; }
+    |   '-' numeric_literal { $$ = new SignedNumber(); $$->str_sign_ = string("-"); $$->numeric_literal_ = $2; }
     ;
 
-num_literal:
-        FLOATVAL { $$ = new NumLiteral(); $$->sub_type_=CASE0; $$->f_val_ = $1; }
-    |   int_literal {$$ = new NumLiteral(); $$->sub_type_=CASE1; $$->int_literal_ = $1;}
-    ;
-
-int_literal:
-        INTVAL {$$ = new IntLiteral(); $$->int_val_=$1; }
+numeric_literal:
+        FLOATVAL { $$ = new NumericLiteral(); $$->value_ = std::to_string($1); }
+    |   INTVAL { $$ = new NumericLiteral(); $$->value_ = std::to_string($1); }
+    |   HEXVAL { $$ = new NumericLiteral(); $$->value_ = $1; free($1); }
+    |   EXPVAL { $$ = new NumericLiteral(); $$->value_ = $1; free($1); }
+    |   TRUE { $$ = new NumericLiteral(); $$->value_ = "TRUE"; }
+    |   FALSE { $$ = new NumericLiteral(); $$->value_ = "FALSE"; }
+    |   CURRENT_TIME { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIME"; }
+    |   CURRENT_DATE { $$ = new NumericLiteral(); $$->value_ = "CURRENT_DATE"; }
+    |   CURRENT_TIMESTAMP { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIMESTAMP"; }
     ;
 
 null_literal:
@@ -2272,127 +2283,127 @@ param_expr:
  * Table
  ******************************/
 
-
-table_ref:
-        table_prefix table_name opt_alias opt_index opt_on opt_using{
-            $$ = new TableRef();
-            $$->sub_type_ = CASE0;
-            $$->table_prefix_ = $1;
-            $$->table_name_ = $2;
-            $$->opt_alias_ = $3;
-            $$->opt_index_ = $4;
-            $$->opt_on_ = $5;
-            $$->opt_using_ = $6;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-        }
-    |   table_prefix table_name '(' expr_list ')' opt_alias opt_on opt_using{
-            $$ = new TableRef();
-            $$->sub_type_ = CASE1;
-            $$->table_prefix_ = $1;
-            $$->table_name_ = $2;
-            $$->expr_list_ = $4;
-            $$->opt_alias_  = $6;
-            $$->opt_on_ = $7;
-            $$->opt_using_ = $8;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
-    }
-    |   table_prefix '(' select_no_paren ')' opt_alias opt_on opt_using {
-            $$ = new TableRef();
-            $$->sub_type_ = CASE2;
-            $$->table_prefix_ = $1;
-            $$->select_no_paren_ = $3;
-            $$->opt_alias_ = $5;
-            $$->opt_on_ = $6;
-            $$->opt_using_ = $7;
-    }
-    |   table_prefix '(' table_ref ')' opt_alias opt_on opt_using{
-            $$ = new TableRef();
-            $$->sub_type_ = CASE3;
-            $$->table_prefix_ = $1;
-            $$->table_ref_ = $3;
-            $$->opt_alias_ = $5;
-            $$->opt_on_ = $6;
-            $$->opt_using_ = $7;
-    }
-    ;
-
-table_prefix:
-        table_ref join_op{
-            $$ = new TablePrefix();
-            $$->sub_type_ = CASE0;
-            $$->table_ref_ = $1;
-            $$->join_op_ = $2;
-        }
-    |   /*empty*/ {
-            $$ = new TablePrefix();
-            $$->sub_type_ = CASE1;
-        }
-    ;
-join_op:
-        ',' {$$ = new JoinOp(); $$->sub_type_ = CASE0; }
-    |   JOIN {$$ = new JoinOp(); $$->sub_type_ = CASE1; }
-    |   join_kw JOIN {$$ = new JoinOp(); $$->sub_type_ = CASE2; $$->join_kw_ = $1;}
-    |   join_kw IDENTIFIER JOIN {
-            $$ = new JoinOp(); 
-            $$->sub_type_ = CASE3; 
-            $$->id1_ = new Identifier($2, id_top_table_name); 
-            $$->join_kw_ = $1; 
-            free($2);}
-    |   join_kw IDENTIFIER IDENTIFIER JOIN {
-            $$ = new JoinOp(); 
-            $$->sub_type_ = CASE4; 
-            $$->id1_ = new Identifier($2);
-            $$->id2_ = new Identifier($3);
-            $$->join_kw_ = $1;
-            free($2);
-            free($3);
-        }
-    ;
-    
 opt_index:
-        INDEXED BY column_name {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->column_name_ = $3; }
+        INDEXED BY IDENTIFIER {$$ = new OptIndex(); $$->sub_type_ = CASE0; $$->index_name_ = new Identifier($3, id_index_name); free($3); }
     |   NOT INDEXED {$$ = new OptIndex(); $$->sub_type_ = CASE1; }
     |   /*empty*/ {$$ = new OptIndex(); $$->sub_type_ = CASE2; }
     ;
 
-opt_on:
-        ON expr{$$ = new OptOn(); $$->sub_type_ = CASE0; $$->expr_ = $2; }
-    |   /*empty*/ {$$ = new OptOn(); $$->sub_type_ = CASE1; }
+on_expr:
+        ON new_expr { $$ = new OnExpr(); $$->expr_ = $2; }
     ;
 
-opt_using:
-        USING '(' ident_commalist ')' {$$ = new OptUsing(); $$->sub_type_ = CASE0; $$->ident_commalist_ = $3; }
-    |   /*empty*/ {$$ = new OptUsing(); $$->sub_type_ = CASE1; }
-    ; 
+else_expr:
+        ELSE new_expr { $$ = new ElseExpr(); $$->expr_ = $2; }
+    ;
+where_expr:
+        WHERE new_expr { $$ = new WhereExpr(); $$->expr_ = $2; }
+    ;
 
+escape_expr:
+        ESCAPE new_expr { $$ = new EscapeExpr(); $$->expr_ = $2; }
+    ;
 
-table_ref_name_no_alias:
-        table_name {
-            $$ = new TableRefNameNoAlias();
-            $$->table_name_ = $1;
-            $$->table_name_->table_name_->id_type_ = id_top_table_name;
+qualified_table_name:
+        table_name opt_table_alias_as opt_index {
+          $$ = new QualifiedTableName();
+          $1->identifier_->id_type_ = id_top_table_name;
+          $$->table_name_ = $1;
+          $$->opt_table_alias_as_ = $2;
+          $$->opt_index_ = $3;
+        }
+
+trigger_name:
+        IDENTIFIER { 
+          $$ = new TriggerName(); 
+          $$->sub_type_ = CASE0; 
+          $$->identifier_ = new Identifier($1, id_trigger_name); 
+          free($1);
+        }
+    |   IDENTIFIER '.' IDENTIFIER { 
+          $$ = new TriggerName(); 
+          $$->sub_type_ = CASE1; 
+          $$->database_id_ = new Identifier($1,id_database_name); 
+          $$->identifier_ = new Identifier($3, id_trigger_name);
+          free($1);
+          free($3);
         }
     ;
-table_name:
-        IDENTIFIER                { $$ = new TableName(); $$->sub_type_ = CASE0; $$->table_name_ = new Identifier($1, id_table_name); $$->database_name_ = NULL; free($1);}
+
+
+index_name:
+        IDENTIFIER { 
+          $$ = new IndexName(); 
+          $$->sub_type_ = CASE0; 
+          $$->identifier_ = new Identifier($1, id_index_name); 
+          free($1);
+        }
     |   IDENTIFIER '.' IDENTIFIER { 
-			$$ = new TableName(); 
-			$$->sub_type_ = CASE1; 
-			$$->database_name_ = new Identifier($1,id_database_name); 
-			$$->table_name_ = new Identifier($3, id_table_name);
-            free($1);
-            free($3);
-		}
+          $$ = new IndexName(); 
+          $$->sub_type_ = CASE1; 
+          $$->database_id_ = new Identifier($1,id_database_name); 
+          $$->identifier_ = new Identifier($3, id_index_name);
+          free($1);
+          free($3);
+        }
     ;
 
-alias:
-        AS IDENTIFIER { $$ = new Alias(); $$->sub_type_ = CASE0; $$->id_ = new Identifier($2, id_alias_name); free($2); }
+table_name:
+        IDENTIFIER { 
+          $$ = new TableName(); 
+          $$->sub_type_ = CASE0; 
+          $$->identifier_ = new Identifier($1, id_table_name); 
+          free($1);
+        }
+    |   IDENTIFIER '.' IDENTIFIER { 
+          $$ = new TableName(); 
+          $$->sub_type_ = CASE1; 
+          $$->database_id_ = new Identifier($1,id_database_name); 
+          $$->identifier_ = new Identifier($3, id_table_name);
+          free($1);
+          free($3);
+        }
     ;
 
+table_alias:
+        IDENTIFIER {
+          $$ = new TableAlias();
+          $$->sub_type_ = CASE0;
+          $$->alias_id_ = new Identifier($1, id_table_alias_name);
+          free($1);
+        }
+    ;
 
-opt_alias:
-        alias { $$ = new OptAlias(); $$->sub_type_ = CASE0; $$->alias_=$1;}
-    |   /* empty */ { $$ = new OptAlias(); $$->sub_type_ = CASE1; }
+opt_table_alias:
+        table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE0; $$->table_alias_ = $1; }
+    |   AS table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; $$->table_alias_ = $2; }
+    |   /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE2; }
+    ;
+
+opt_table_alias_as:
+        AS table_alias { $$ = new OptTableAliasAs(); $$->sub_type_ = CASE0; $$->table_alias_ = $2; }
+    |   /* empty */ { $$ = new OptTableAliasAs(); $$->sub_type_ = CASE1; }
+    ;
+
+/* column alias is independent from column */
+column_alias:
+        IDENTIFIER {
+          $$ = new ColumnAlias();
+          $$->sub_type_ = CASE0;
+          $$->alias_id_ = new Identifier($1, id_column_alias_name);
+          free($1);
+        }
+    |   AS IDENTIFIER {
+          $$ = new ColumnAlias();
+          $$->sub_type_ = CASE1; 
+          $$->alias_id_ = new Identifier($2, id_column_alias_name);
+          free($2);
+        }
+    ;
+
+opt_column_alias:
+         column_alias { $$ = new OptColumnAlias(); $$->sub_type_ = CASE0; $$->column_alias_ = $1; }
+    |    /* empty */ { $$ = new OptColumnAlias(); $$->sub_type_ = CASE1; }
     ;
 
 /******************************
@@ -2405,53 +2416,114 @@ opt_with_clause:
     ;
 
 with_clause:
-        WITH with_description_list { $$ = new WithClause(); $$->with_description_list_ = $2; }
-    ;
-
-with_description_list:
-        with_description {
-            $$ = new WithDescriptionList();
-            $$->v_with_description_list_.push_back($1);
-        }
-    |   with_description_list ',' with_description {
-            $1->v_with_description_list_.push_back($3);
-            $$ = $1;
+        WITH opt_recursive common_table_expr_list {
+          $$ = new WithClause();
+          $$->opt_recursive_ = $2;
+          $$->common_table_expr_list_ = $3;
         }
     ;
 
-with_description:
-        IDENTIFIER AS select_with_paren {
-            $$ = new WithDescription();
-            $$->id_ = new Identifier($1);
-            $$->select_with_paren_ = $3;
-            free($1);
+common_table_expr_list:
+        common_table_expr {
+          $$ = new CommonTableExprList();
+          $$->v_common_table_expr_list_.push_back($1);
+        }
+    |   common_table_expr_list ',' common_table_expr {
+          $1->v_common_table_expr_list_.push_back($3);
+          $$ = $1;
         }
     ;
 
+common_table_expr:
+        table_name opt_column_list_paren AS '(' select_statement ')' {
+          $$ = new CommonTableExpr();
+          $$->sub_type_ = CASE0;
+          $$->table_name_ = $1;
+          $$->opt_column_list_paren_ = $2;
+          $$->select_statement_ = $5;
+        }
+    ;
 
 /******************************
  * Join Statements
  ******************************/
 
-join_kw:
-        INNER       { $$ = new JoinKw(); $$->str_val_ = string("INNER"); }
-    |   LEFT OUTER  { $$ = new JoinKw(); $$->str_val_ = string("LEFT OUTER"); }
-    |   LEFT        { $$ = new JoinKw(); $$->str_val_ = string("LEFT"); }
-    |   RIGHT OUTER { $$ = new JoinKw(); $$->str_val_ = string("RIGHT OUTER"); }
-    |   RIGHT       { $$ = new JoinKw(); $$->str_val_ = string("RIGHT"); }
-    |   FULL OUTER  { $$ = new JoinKw(); $$->str_val_ = string("FULL OUTER"); }
-    |   OUTER       { $$ = new JoinKw(); $$->str_val_ = string("OUTER"); }
-    |   FULL        { $$ = new JoinKw(); $$->str_val_ = string("FULL"); }
-    |   CROSS       { $$ = new JoinKw(); $$->str_val_ = string("CROSS"); }
-    |   NATURAL     {$$ = new JoinKw(); $$->str_val_ = string("NATURAL");}
-    //|   /* empty, default */    { $$ = new JoinKw(); $$->str_val_ = string(""); }
+join_op:
+        ','                     { $$ = new JoinOp(); $$->str_val_ = string(","); }
+    |                      JOIN { $$ = new JoinOp(); $$->str_val_ = string("JOIN"); }
+    |           LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = string("LEFT JOIN"); }
+    |           LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = string("LEFT OUTER JOIN"); }
+    |           INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = string("INNER JOIN"); }
+    |           CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = string("CROSS JOIN"); }
+    |   NATURAL            JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL JOIN"); }
+    |   NATURAL LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL LEFT JOIN"); }
+    |   NATURAL LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL LEFT OUTER JOIN"); }
+    |   NATURAL INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL INNER JOIN"); }
+    |   NATURAL CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL CROSS JOIN"); }
     ;
 
-/*
-join_condition:
-        expr { $$ = new JoinCondition(); $$->expr_ = $1;}
-        ;
-*/
+join_constraint:
+        on_expr  { $$ = new JoinConstraint(); $$->sub_type_ = CASE0; $$->on_expr_ = $1; }
+    |   USING '(' column_name_list ')' { $$ = new JoinConstraint(); $$->sub_type_ = CASE1; $$->column_name_list_ = $3; }
+    |   /* empty */ { $$ = new JoinConstraint(); $$->sub_type_ = CASE2; }
+    ;
+
+join_suffix:
+        join_op table_or_subquery join_constraint {
+          $$ = new JoinSuffix();
+          $$->join_op_ = $1;
+          $$->table_or_subquery_ = $2;
+          $$->join_constraint_ = $3;
+        }
+    ;
+
+join_suffix_list:
+        join_suffix { $$ = new JoinSuffixList(); $$->v_join_suffix_list_.push_back($1); }
+    |   join_suffix_list join_suffix { $1->v_join_suffix_list_.push_back($2); $$ = $1; }
+    ;
+
+join_clause:
+        table_or_subquery { $$ = new JoinClause(); $$->sub_type_ = CASE0; $$->table_or_subquery_ = $1; }
+    |   table_or_subquery join_suffix_list { 
+          $$ = new JoinClause(); 
+          $$->sub_type_ = CASE1;
+          $$->table_or_subquery_ = $1;
+          $$->join_suffix_list_ = $2;
+        }
+    ;
+
+
+table_or_subquery_list:
+        table_or_subquery { $$ = new TableOrSubqueryList(); $$->v_table_or_subquery_list_.push_back($1); }
+    |   table_or_subquery_list ',' table_or_subquery { $1->v_table_or_subquery_list_.push_back($3); $$ = $1; }
+
+table_or_subquery:
+        '(' select_statement ')' opt_table_alias { 
+          $$ = new TableOrSubquery(); 
+          $$->sub_type_ = CASE0; 
+          $$->select_statement_ = $2;
+          $$->opt_table_alias_ = $4;
+        }
+    |   '(' table_or_subquery_list ')' {
+          $$ = new TableOrSubquery();
+          $$->sub_type_ = CASE1;
+          $$->table_or_subquery_list_ = $2;
+        }
+    |   table_name opt_table_alias opt_index {
+          $$ = new TableOrSubquery();
+          $$->sub_type_ = CASE2;
+          $1->identifier_->id_type_ = id_top_table_name;
+          $$->table_name_ = $1;
+          $$->opt_table_alias_ = $2;
+          $$->opt_index_ = $3;
+        }
+    |   '(' join_clause ')' {
+          $$ = new TableOrSubquery();
+          $$->sub_type_ = CASE3;
+          $$->join_clause_ = $2;
+        }
+    /* |   table_function_name '(' expr_list ')' {} */ // TODO
+    ;
 
 /******************************
  * Misc
@@ -2462,11 +2534,6 @@ opt_semicolon:
     |   /* empty */{$$ = new OptSemicolon(); $$->str_val_ = string("");}
     ;
 
-
-ident_commalist:
-        IDENTIFIER opt_collate opt_order_type { $$ = new IdentCommaList(); $$->v_iden_comma_list_.push_back(new Identifier($1)); $$->v_opt_collate_list_.push_back($2); $$->v_opt_order_type_.push_back($3); free($1);}
-    |   ident_commalist ',' IDENTIFIER opt_collate opt_order_type { $1->v_iden_comma_list_.push_back(new Identifier($3)); $1->v_opt_collate_list_.push_back($4); $1->v_opt_order_type_.push_back($5); $$ = $1; free($3);}
-    ;
 
 %%
 /*********************************

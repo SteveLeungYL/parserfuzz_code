@@ -10,40 +10,42 @@
     V(kOptString) \
     V(kProgram) \
     V(kStatement) \
-    V(kOptionalHints) \
-    V(kPrepareStatement) \
     V(kPreparableStatement) \
-    V(kShowStatement) \
-    V(kHint) \
-    V(kHintList) \
-    V(kPrepareTargetQuery) \
     V(kSelectStatement) \
-    V(kImportStatement) \
     V(kCreateStatement) \
+    V(kCreateTableStatement) \
+    V(kCreateViewStatement) \
+    V(kCreateIndexStatement) \
+    V(kCreateVirtualTableStatement) \
+    V(kCreateTriggerStatement) \
     V(kInsertStatement) \
     V(kDeleteStatement) \
     V(kUpdateStatement) \
     V(kDropStatement) \
-    V(kExecuteStatement) \
-    V(kImportFileType) \
+    V(kDropIndexStatement) \
+    V(kDropTableStatement) \
+    V(kDropViewStatement) \
+    V(kDropTriggerStatement) \
+    V(kAttachStatement) \
+    V(kDetachStatement) \
+    V(kPragmaStatement) \
     V(kFilePath) \
-    V(kOptNotExists) \
-    V(kColumnDefCommaList) \
+    V(kOptIfNotExists) \
+    V(kOptRecursive) \
+    V(kColumnDefList) \
     V(kColumnDef) \
     V(kColumnType) \
     V(kOptColumnNullable) \
-    V(kOptExists) \
-    V(kOptColumnList) \
-    V(kUpdateClauseCommalist) \
+    V(kOptIfExists) \
+    V(kExistsOrNot) \
+    V(kOptColumnListParen) \
+    V(kUpdateClauseList) \
     V(kUpdateClause) \
-    V(kSelectWithParen) \
-    V(kSelectParenOrClause) \
-    V(kSelectNoParen) \
     V(kSetOperator) \
-    V(kSetType) \
-    V(kOptAll) \
-    V(kSelectClause) \
+    V(kSelectCore) \
+    V(kSelectCoreList) \
     V(kOptDistinct) \
+    V(kOptStoredVirtual) \
     V(kSelectList) \
     V(kFromClause) \
     V(kOptFromClause) \
@@ -52,81 +54,84 @@
     V(kOptHaving) \
     V(kOptOrder) \
     V(kOrderList) \
-    V(kOrderDesc) \
+    V(kOrderTerm) \
     V(kOptOrderType) \
-    V(kOptTop) \
     V(kOptLimit) \
     V(kExprList) \
-    V(kLiteralList) \
-    V(kOptLiteralList) \
-    V(kExprAlias) \
-    V(kExpr) \
-    V(kOperand) \
-    V(kBetweenExpr) \
-    V(kLogicExpr) \
+    V(kExprListParen) \
+    V(kExprListParenList) \
+    V(kNewExpr) \
     V(kExistsExpr) \
-    V(kInExpr) \
-    V(kArrayIndex) \
+    V(kElseExpr) \
+    V(kOptElseExpr) \
+    V(kOptExpr) \
     V(kScalarExpr) \
-    V(kUnaryExpr) \
-    V(kBinaryExpr) \
-    V(kCaseExpr) \
+    V(kUnaryOp) \
+    V(kBinaryOp) \
+    V(kInTarget) \
     V(kFunctionExpr) \
     V(kExtractExpr) \
     V(kArrayExpr) \
-    V(kCaseClause) \
-    V(kCaseList) \
-    V(kDatetimeField) \
+    V(kCaseCondition) \
+    V(kCaseConditionList) \
     V(kColumnName) \
     V(kLiteral) \
     V(kStringLiteral) \
     V(kBlobLiteral) \
-    V(kBoolLiteral) \
-    V(kNumLiteral) \
     V(kIntLiteral) \
+    V(kNumericLiteral) \
+    V(kSignedNumber) \
+    V(kForeignKeyClause) \
+    V(kForeignKeyOn) \
+    V(kForeignKeyOnList) \
+    V(kOptForeignKeyOnList) \
+    V(kDeferrableClause) \
+    V(kOptDeferrableClause) \
     V(kNullLiteral) \
     V(kParamExpr) \
     V(kIdentifier) \
-    V(kTableRef) \
+    V(kTableOrSubquery) \
+    V(kTableOrSubqueryList) \
     V(kTableRefCommaList) \
     V(kTableRefAtomic) \
     V(kNonjoinTableRefAtomic) \
     V(kTableRefName) \
-    V(kTableRefNameNoAlias) \
     V(kTableName) \
+    V(kQualifiedTableName) \
     V(kTableAlias) \
     V(kOptTableAlias) \
+    V(kOptTableAliasAs) \
+    V(kColumnAlias) \
+    V(kOptColumnAlias) \
+    V(kResultColumn) \
+    V(kResultColumnList) \
+    V(kOptReturningClause) \
     V(kAlias) \
     V(kOptAlias) \
     V(kWithClause) \
     V(kOptWithClause) \
-    V(kWithDescriptionList) \
-    V(kWithDescription) \
+    V(kCommonTableExpr) \
+    V(kCommonTableExprList) \
     V(kJoinClause) \
     V(kOptJoinType) \
-    V(kJoinCondition) \
+    V(kJoinConstraint) \
     V(kOptSemicolon) \
-    V(kIdentCommaList) \
-    V(kFloatLiteral) \
     V(kInit) \
     V(kStatementList) \
-    V(kCompExpr) \
     V(kUnknown)  \
     V(kEmpty)   \
-    V(kCmdPragma) \
     V(kPragmaKey) \
     V(kPragmaName) \
     V(kPragmaValue) \
     V(kSchemaName) \
-    V(kOptColumnArglist) \
-	V(kColumnArglist) \
-	V(kColumnArg) \
-	V(kOptOnConflict) \
+    V(kOptColumnConstraintlist) \
+	V(kColumnConstraintlist) \
+	V(kColumnConstraint) \
+	V(kOptConflictClause) \
 	V(kResolveType) \
 	V(kOptAutoinc) \
 	V(kOptUnique) \
 	V(kIndexName) \
-	V(kTriggerDeclare) \
 	V(kOptTmp) \
 	V(kTriggerName) \
 	V(kOptTriggerTime) \
@@ -139,36 +144,36 @@
 	V(kModuleName) \
 	V(kOptOverClause) \
 	V(kOptFilterClause) \
+	V(kFilterClause) \
 	V(kWindowClause) \
+  V(kOptWindowClause) \
 	V(kWindowDefnList) \
 	V(kWindowDefn) \
-	V(kWindow) \
+	V(kWindowBody) \
+	V(kWindowName) \
 	V(kOptBaseWindowName) \
 	V(kOptFrame) \
 	V(kRangeOrRows) \
 	V(kFrameBoundS) \
 	V(kFrameBoundE) \
 	V(kFrameBound) \
-	V(kOptFrameExclude) \
 	V(kFrameExclude) \
+	V(kOptFrameExclude) \
     V(kInsertType) \
-    V(kCmd) \
-    V(kCmdAttach) \
-    V(kCmdDetach) \
-    V(kCmdReindex) \
-    V(kCmdAnalyze) \
-    V(kSuperList)  \
-    V(kTablePrefix) \
-    V(kOptOn) \
-    V(kOptUsing) \
+    V(kUpdateType) \
+    V(kInsertValue) \
+    V(kReindexStatement) \
+    V(kAnalyzeStatement) \
+    V(kOnExpr) \
+    V(kEscapeExpr) \
+    V(kOptEscapeExpr) \
+    V(kWhereExpr) \
     V(kOptIndex) \
     V(kJoinOp)   \
-    V(kJoinKw)   \
-    V(kCastExpr) \
     V(kAlterStatement) \
+    V(kSavepointStatement) \
+    V(kReleaseStatement) \
     V(kOptColumn) \
-    V(kCmdRelease)  \
-    V(kSavepointName) \
     V(kVacuumStatement) \
     V(kOptSchemaName) \
     V(kRollbackStatement) \
@@ -177,20 +182,31 @@
     V(kBeginStatement) \
     V(kCommitStatement) \
     V(kUpsertClause) \
+    V(kUpsertItem) \
     V(kIndexedColumnList) \
     V(kIndexedColumn) \
     V(kOptCollate) \
+    V(kCollate) \
     V(kAssignList) \
-    V(kOptNull) \
+    V(kOptOrderOfNull) \
+    V(kNullOfExpr) \
     V(kAssignClause) \
     V(kColumnNameList) \
-    V(kCollationName) \
+    V(kFunctionName) \
+    V(kFunctionArgs) \
     V(kOptWithoutRowID) \
     V(kOptUpsertClause) \
     V(kOptConstraintName) \
-    V(kTableConstraintDef) \
-    V(kTableConstraintDefCommaList) \
-    V(kColumnOrTableConstraintDefCommaList)
+    V(kTableConstraint) \
+    V(kTableConstraintList) \
+    V(kJoinSuffix) \
+    V(kJoinSuffixList) \
+    V(kPartitionBy) \
+    V(kOptPartitionBy) \
+    V(kOptNot) \
+    V(kRaiseFunction) \
+    V(kConflictTarget) \
+    V(kOptConflictTarget) \
 
 #define ALLCLASS(V) \
     V(IR) \
@@ -200,40 +216,42 @@
     V(OptString) \
     V(Program) \
     V(Statement) \
-    V(OptionalHints) \
-    V(PrepareStatement) \
     V(PreparableStatement) \
-    V(ShowStatement) \
-    V(Hint) \
-    V(HintList) \
-    V(PrepareTargetQuery) \
     V(SelectStatement) \
-    V(ImportStatement) \
     V(CreateStatement) \
+    V(CreateTableStatement) \
+    V(CreateViewStatement) \
+    V(CreateIndexStatement) \
+    V(CreateVirtualTableStatement) \
+    V(CreateTriggerStatement) \
     V(InsertStatement) \
     V(DeleteStatement) \
     V(UpdateStatement) \
     V(DropStatement) \
-    V(ExecuteStatement) \
-    V(ImportFileType) \
+    V(DropIndexStatement) \
+    V(DropTableStatement) \
+    V(DropViewStatement) \
+    V(DropTriggerStatement) \
+    V(AttachStatement) \
+    V(DetachStatement) \
+    V(PragmaStatement) \
     V(FilePath) \
-    V(OptNotExists) \
-    V(ColumnDefCommaList) \
+    V(OptIfNotExists) \
+    V(OptRecursive) \
+    V(ColumnDefList) \
     V(ColumnDef) \
     V(ColumnType) \
     V(OptColumnNullable) \
-    V(OptExists) \
-    V(OptColumnList) \
-    V(UpdateClauseCommalist) \
+    V(OptIfExists) \
+    V(ExistsOrNot) \
+    V(OptColumnListParen) \
+    V(UpdateClauseList) \
     V(UpdateClause) \
-    V(SelectWithParen) \
-    V(SelectParenOrClause) \
-    V(SelectNoParen) \
     V(SetOperator) \
-    V(SetType) \
-    V(OptAll) \
-    V(SelectClause) \
+    V(SelectCore) \
+    V(SelectCoreList) \
     V(OptDistinct) \
+    V(OptStoredVirtual) \
     V(SelectList) \
     V(FromClause) \
     V(OptFromClause) \
@@ -242,38 +260,35 @@
     V(OptHaving) \
     V(OptOrder) \
     V(OrderList) \
-    V(OrderDesc) \
+    V(OrderTerm) \
     V(OptOrderType) \
-    V(OptTop) \
     V(OptLimit) \
     V(ExprList) \
-    V(LiteralList) \
-    V(OptLiteralList) \
-    V(ExprAlias) \
-    V(Expr) \
-    V(Operand) \
-    V(BetweenExpr) \
-    V(LogicExpr) \
-    V(ExistsExpr) \
-    V(InExpr) \
-    V(ArrayIndex) \
-    V(ScalarExpr) \
-    V(UnaryExpr) \
-    V(BinaryExpr) \
-    V(CaseExpr) \
-    V(FunctionExpr) \
-    V(ExtractExpr) \
-    V(ArrayExpr) \
-    V(CaseClause) \
-    V(CaseList) \
-    V(DatetimeField) \
+    V(ExprListParen) \
+    V(ExprListParenList) \
+    V(NewExpr) \
+    V(ElseExpr) \
+    V(OptElseExpr) \
+    V(OptExpr) \
+    V(UnaryOp) \
+    V(BinaryOp) \
+    V(InTarget) \
+    V(CaseCondition) \
+    V(CaseConditionList) \
     V(ColumnName) \
+    V(FunctionName) \
+    V(FunctionArgs) \
     V(Literal) \
     V(StringLiteral) \
     V(BlobLiteral) \
-    V(BoolLiteral) \
-    V(NumLiteral) \
-    V(IntLiteral) \
+    V(NumericLiteral) \
+    V(SignedNumber) \
+    V(ForeignKeyClause) \
+    V(ForeignKeyOn) \
+    V(ForeignKeyOnList) \
+    V(OptForeignKeyOnList) \
+    V(DeferrableClause) \
+    V(OptDeferrableClause) \
     V(NullLiteral) \
     V(ParamExpr) \
     V(Identifier) \
@@ -281,41 +296,40 @@
     V(TableRefAtomic) \
     V(NonjoinTableRefAtomic) \
     V(TableRefName) \
-    V(TableRefNameNoAlias) \
     V(TableName) \
+    V(QualifiedTableName) \
     V(TableAlias) \
     V(OptTableAlias) \
-    V(Alias) \
-    V(OptAlias) \
+    V(OptTableAliasAs) \
+    V(ColumnAlias) \
+    V(OptColumnAlias) \
+    V(ResultColumn) \
+    V(ResultColumnList) \
+    V(OptReturningClause) \
     V(WithClause) \
     V(OptWithClause) \
-    V(WithDescriptionList) \
-    V(WithDescription) \
+    V(CommonTableExpr) \
+    V(CommonTableExprList) \
     V(JoinClause) \
     V(OptJoinType) \
-    V(JoinCondition) \
+    V(JoinConstraint) \
     V(OptSemicolon) \
-    V(IdentCommaList) \
-    V(FloatLiteral) \
     V(Init) \
     V(StatementList) \
-    V(CompExpr) \
     V(Unknown) \
     V(Empty)    \
-    V(CmdPragma) \
     V(PragmaKey) \
     V(PragmaName) \
     V(PragmaValue) \
     V(SchemaName) \
-    V(OptColumnArglist) \
-	V(ColumnArglist) \
-	V(ColumnArg) \
-	V(OptOnConflict) \
+    V(OptColumnConstraintlist) \
+	V(ColumnConstraintlist) \
+	V(ColumnConstraint) \
+	V(OptConflictClause) \
 	V(ResolveType) \
 	V(OptAutoinc) \
 	V(OptUnique) \
 	V(IndexName) \
-	V(TriggerDeclare) \
 	V(OptTmp) \
 	V(TriggerName) \
 	V(OptTriggerTime) \
@@ -328,34 +342,35 @@
 	V(ModuleName) \
 	V(OptOverClause) \
 	V(OptFilterClause) \
+	V(FilterClause) \
 	V(WindowClause) \
+  V(OptWindowClause) \
 	V(WindowDefnList) \
 	V(WindowDefn) \
-	V(Window) \
+	V(WindowBody) \
+	V(WindowName) \
 	V(OptBaseWindowName) \
 	V(OptFrame) \
 	V(RangeOrRows) \
 	V(FrameBoundS) \
 	V(FrameBoundE) \
 	V(FrameBound) \
-	V(OptFrameExclude) \
 	V(FrameExclude) \
+	V(OptFrameExclude) \
     V(InsertType)\
-    V(Cmd) \
-    V(CmdAttach) \
-    V(CmdDetach) \
-    V(CmdReindex) \
-    V(CmdAnalyze) \
-    V(SuperList) \
-    V(TablePrefix) \
-    V(OptOn) \
-    V(OptUsing) \
+    V(UpdateType)\
+    V(InsertValue)\
+    V(ReindexStatement) \
+    V(AnalyzeStatement) \
+    V(OnExpr) \
+    V(EscapeExpr) \
+    V(OptEscapeExpr) \
+    V(WhereExpr) \
     V(OptIndex) \
-    V(CastExpr) \
     V(AlterStatement) \
+    V(SavepointStatement) \
+    V(ReleaseStatement) \
     V(OptColumn) \
-    V(CmdRelease) \
-    V(SavepointName) \
     V(VacuumStatement) \
     V(OptSchemaName) \
     V(RollbackStatement) \
@@ -364,23 +379,32 @@
     V(BeginStatement) \
     V(CommitStatement) \
     V(JoinOp)   \
-    V(JoinKw)   \
-    V(TableRef) \
+    V(TableOrSubquery) \
+    V(TableOrSubqueryList) \
     V(UpsertClause) \
+    V(UpsertItem) \
     V(IndexedColumnList) \
     V(IndexedColumn) \
     V(OptCollate) \
+    V(Collate) \
     V(AssignList) \
-    V(OptNull) \
+    V(OptOrderOfNull) \
+    V(NullOfExpr) \
     V(AssignClause) \
     V(ColumnNameList) \
-    V(CollationName) \
     V(OptWithoutRowID) \
     V(OptUpsertClause) \
     V(OptConstraintName) \
-    V(TableConstraintDef) \
-    V(TableConstraintDefCommaList) \
-    V(ColumnOrTableConstraintDefCommaList)
+    V(TableConstraint) \
+    V(TableConstraintList) \
+    V(JoinSuffix) \
+    V(JoinSuffixList) \
+    V(PartitionBy) \
+    V(OptPartitionBy) \
+    V(OptNot) \
+    V(RaiseFunction) \
+    V(ConflictTarget) \
+    V(OptConflictTarget) \
 
 #define SWITCHSTART \
     switch(sub_type_){ 

@@ -22,6 +22,10 @@ char* substr(const char* source, int from, int to);
 %}
 %x singlequotedstring
 %x blobstring
+%s btwand
+
+  int old_condition = 0;
+  int current_condition = 0;
 
 /***************************
  ** Section 2: Rules
@@ -67,12 +71,14 @@ PARAMETERS	TOKEN(PARAMETERS)
 INTERSECT	TOKEN(INTERSECT)
 TEMPORARY	TOKEN(TEMPORARY)
 TIMESTAMP	TOKEN(TIMESTAMP)
+CURRENT_TIME TOKEN(CURRENT_TIME)
+CURRENT_DATE TOKEN(CURRENT_DATE)
+CURRENT_TIMESTAMP TOKEN(CURRENT_TIMESTAMP)
 DESCRIBE	TOKEN(DESCRIBE)
 DISTINCT	TOKEN(DISTINCT)
 RESTRICT	TOKEN(RESTRICT)
 TRUNCATE	TOKEN(TRUNCATE)
 ANALYZE		TOKEN(ANALYZE)
-BETWEEN		TOKEN(BETWEEN)
 CASCADE		TOKEN(CASCADE)
 COLUMNS		TOKEN(COLUMNS)
 CONTROL		TOKEN(CONTROL)
@@ -87,6 +93,7 @@ PRIMARY		TOKEN(PRIMARY)
 SCHEMAS		TOKEN(SCHEMAS)
 SPATIAL		TOKEN(SPATIAL)
 VIRTUAL		TOKEN(VIRTUAL)
+STORED    TOKEN(STORED)
 BEFORE		TOKEN(BEFORE)
 COLUMN		TOKEN(COLUMN)
 CREATE		TOKEN(CREATE)
@@ -159,7 +166,6 @@ INTO		TOKEN(INTO)
 JOIN		TOKEN(JOIN)
 LEFT		TOKEN(LEFT)
 LIKE		TOKEN(LIKE)
-ILIKE		TOKEN(ILIKE)
 LOAD		TOKEN(LOAD)
 LONG		TOKEN(LONG)
 NULL		TOKEN(NULL)
@@ -175,7 +181,6 @@ WHEN		TOKEN(WHEN)
 WITH		TOKEN(WITH)
 ADD			TOKEN(ADD)
 ALL			TOKEN(ALL)
-AND			TOKEN(AND)
 ASC			TOKEN(ASC)
 CSV			TOKEN(CSV)
 END			TOKEN(END)
@@ -258,13 +263,19 @@ RELEASE		TOKEN(RELEASE)
 
 VACUUM 		TOKEN(VACUUM)
 TRANSACTION TOKEN(TRANSACTION)
+DEFERRABLE  TOKEN(DEFERRABLE)
+DEFERRED    TOKEN(DEFERRED)
+IMMEDIATE   TOKEN(IMMEDIATE)
+FOREIGN     TOKEN(FOREIGN)
+INITIALLY   TOKEN(INITIALLY)
+ACTION      TOKEN(ACTION)
 DEFFERED 	TOKEN(DEFFERED)
 EXCLUSIVE 	TOKEN(EXCLUSIVE)
 IMEDIATE 	TOKEN(IMEDIATE)
 COMMIT 		TOKEN(COMMIT)
 GLOB 		TOKEN(GLOB)
 MATCH 		TOKEN(MATCH)
-REGEX 		TOKEN(REGEX)
+REGEXP 		TOKEN(REGEXP)
 NOTHING 	TOKEN(NOTHING)
 NULLS 		TOKEN(NULLS)
 LAST 		TOKEN(LAST)
@@ -273,16 +284,13 @@ DO 			TOKEN(DO)
 COLLATE 	TOKEN(COLLATE)
 WITHOUT		TOKEN(WITHOUT)
 ROWID		TOKEN(ROWID)
+RAISE   TOKEN(RAISE)
+RECURSIVE TOKEN(RECURSIVE)
+RETURNING TOKEN(RETURNING)
 
+TRUE		TOKEN(TRUE)
+FALSE		TOKEN(FALSE)
 
-TRUE		{
-	yylval->ival = 1;
-	return SQL_INTVAL;
-}
-FALSE		{
-	yylval->ival = 0;
-	return SQL_INTVAL;
-}
                 /* Allow =/== see https://sqlite.org/lang_expr.html#collateop */
 "=="		TOKEN(EQUALS)
 "!=" 		TOKEN(NOTEQUALS)
@@ -294,17 +302,34 @@ FALSE		{
 ">>"    TOKEN(RSHIFT)
 "<<"    TOKEN(LSHIFT)
 
+BETWEEN	  { BEGIN btwand; current_condition = YY_START; return SQL_BETWEEN; }
+<btwand>AND  { BEGIN INITIAL; current_condition = YY_START; return SQL_BTWAND; }
+
+AND			{ return SQL_AND; }
+
 [-+*/(){},.;<>=^%:?[\]|]	{ return yytext[0]; }
 
--?[0-9]+"."[0-9]* |
-"."[0-9]*	{
+[0-9]+"."[0-9]*[eE][+-]?[0-9]+ |
+"."[0-9]+[eE][+-]?[0-9]+ |
+[0-9]+[eE][+-]?[0-9]+ {   /* exponentiation clause */
+  yylval->sval = strdup(yytext);
+  return SQL_EXPVAL;
+}
+
+[0-9]+	{   /* Integer */
+	yylval->ival = atol(yytext);
+	return SQL_INTVAL;
+}
+
+[0-9]+"."[0-9]* |
+"."[0-9]+	{ /* Floating point */
 	yylval->fval = atof(yytext);
 	return SQL_FLOATVAL;
 }
 
--?[0-9]+	{
-	yylval->ival = atol(yytext);
-	return SQL_INTVAL;
+0x[0-9A-Fa-f]+ {
+  yylval->sval = strdup(yytext);
+  return SQL_HEXVAL;
 }
 
 \"[^\"\n]+\" {
@@ -313,10 +338,10 @@ FALSE		{
 	return SQL_IDENTIFIER;
 }
 
-x\'                 { BEGIN blobstring; blobstrbuf = std::stringstream{}; }
+[xX]\'              { old_condition = current_condition; BEGIN blobstring; blobstrbuf = std::stringstream{}; }
 <blobstring>\'\'    { blobstrbuf << '\''; }
 <blobstring>[^']*   { blobstrbuf << yytext; }
-<blobstring>\'      { BEGIN 0; yylval->sval = strdup(blobstrbuf.str().c_str()); return SQL_BLOBSTRING; }
+<blobstring>\'      { current_condition = old_condition; BEGIN (old_condition); yylval->sval = strdup(blobstrbuf.str().c_str()); return SQL_BLOBSTRING; }
 <blobstring><<EOF>> {  /*fprintf(stdout, "[SQL-Lexer-Error] Unterminated string\n"); */ return 0; }
 
 [A-Za-z][A-Za-z0-9_]* {
@@ -324,10 +349,19 @@ x\'                 { BEGIN blobstring; blobstrbuf = std::stringstream{}; }
 	return SQL_IDENTIFIER;
 }
 
-\'                          { BEGIN singlequotedstring; strbuf = std::stringstream{}; }
+\'                          { old_condition = current_condition; 
+                              //printf("++ current_condition: %d, old_condition: %d\n", current_condition, old_condition); 
+                              BEGIN singlequotedstring; 
+                              strbuf = std::stringstream{}; 
+                            }
 <singlequotedstring>\'\'    { strbuf << '\''; }
 <singlequotedstring>[^']*   { strbuf << yytext; }
-<singlequotedstring>\'      { BEGIN 0; yylval->sval = strdup(strbuf.str().c_str()); return SQL_STRING; }
+<singlequotedstring>\'      { current_condition = old_condition; 
+                              //printf("-- current_condition: %d, old_condition: %d\n", current_condition, old_condition); 
+                              BEGIN (old_condition); 
+                              yylval->sval = strdup(strbuf.str().c_str()); 
+                              return SQL_STRING;
+                            }
 <singlequotedstring><<EOF>> {  /*fprintf(stdout, "[SQL-Lexer-Error] Unterminated string\n"); */ return 0; }
 
 . { /*fprintf(stdout, "[SQL-Lexer-Error] Unknown Character: %c\n", yytext[0]); */ return 0; }

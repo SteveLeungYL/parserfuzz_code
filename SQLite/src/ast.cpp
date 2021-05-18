@@ -24,26 +24,41 @@ string get_string_by_ir_type(IRTYPE type){
 string get_string_by_id_type(IDTYPE type) {
 
   switch (type) {
-    case id_whatever:       return "id_whatever";
-    case id_top_table_name: return "id_top_table_name";
-    case id_column_name:    return "id_column_name";
-    case id_table_name:     return "id_table_name";
-    case id_create_table_name:  return "id_create_table_name";
-    case id_create_column_name: return "id_create_column_name";
-    case id_schema_name:        return "id_schema_name";
-    case id_pragma_name:        return "id_pragma_name";
-    case id_pragma_value:       return "id_pragma_value";
-    case id_index_name:         return "id_index_name";
-    case id_trigger_name:       return "id_trigger_name";
-    case id_module_name:        return "id_moudle_name";
-    case id_window_def_name:    return "id_window_def_name";
-    case id_window_name:        return "id_window_name";
-    case id_window_base_name:   return "id_window_base_name";
-    case id_savepoint_name:     return "id_savepoint_name";
-    case id_collation_name:     return "id_collation_name";
-    case id_database_name:      return "id_database_name";
-    case id_alias_name:         return "id_alias_name";
-    default:                    return "unknown identifier type";
+    case id_whatever:               return "id_whatever";
+
+    case id_create_table_name:      return "id_create_table_name";
+    case id_top_table_name:         return "id_top_table_name";
+    case id_table_name:             return "id_table_name";
+
+    case id_create_column_name:     return "id_create_column_name";
+    case id_column_name:            return "id_column_name";
+
+    case id_pragma_name:            return "id_pragma_name";
+    case id_pragma_value:           return "id_pragma_value";
+
+    case id_create_index_name:      return "id_create_index_name";
+    case id_index_name:             return "id_index_name";
+
+    case id_create_trigger_name:    return "id_create_trigger_name";
+    case id_trigger_name:           return "id_trigger_name";
+
+    case id_create_window_name:     return "id_create_window_name";
+    case id_window_name:            return "id_window_name";
+    case id_base_window_name:       return "id_base_window_name";
+
+    case id_create_savepoint_name:  return "id_create_savepoint_name";
+    case id_savepoint_name:         return "id_savepoint_name";
+
+    case id_schema_name:            return "id_schema_name";
+    case id_module_name:            return "id_moudle_name";
+    case id_collation_name:         return "id_collation_name";
+    case id_database_name:          return "id_database_name";
+    case id_alias_name:             return "id_alias_name";
+    case id_table_alias_name:       return "id_table_alias_name";
+    case id_column_alias_name:      return "id_column_alias_name";
+    case id_function_name:          return "id_function_name";
+    case id_table_constraint_name:  return "id_table_constraint_name";
+    default:                        return "unknown identifier type";
   }
 }
 
@@ -64,32 +79,17 @@ void IR::_to_string(string &res){
     }
 
     if (type_ == kFilePath ||
-        type_ == kPrepareTargetQuery ||
         type_ == kStringLiteral ||
+        type_ == kNumericLiteral ||
         type_ == kIdentifier ||
         type_ == kOptOrderType ||
         type_ == kColumnType ||
-        type_ == kSetType ||
+        type_ == kSetOperator ||
         type_ == kOptJoinType ||
         type_ == kOptDistinct ||
         type_ == kNullLiteral ||
         type_ == kconst_str) {
       res += str_val_;
-      return;
-    }
-
-    if (type_ == kIntLiteral ||
-        type_ == kconst_int) {
-      res += std::to_string(int_val_);
-      return;
-    }
-
-    if (type_ == kFloatLiteral ||
-        type_ == kconst_float) {
-      std::ostringstream oss;
-      oss << std::setprecision(8) << std::noshowpoint << f_val_;
-      std::string str = oss.str();
-      res += str;
       return;
     }
 
@@ -187,8 +187,11 @@ void IR::drop() {
 
 void IR::deep_drop() {
 
-  if (this->left_) this->left_->deep_drop();
-  if (this->right_) this->right_->deep_drop();
+  if (this->left_) 
+    this->left_->deep_drop();
+
+  if (this->right_) 
+    this->right_->deep_drop();
 
   this->drop();
 }
@@ -218,14 +221,7 @@ void IR::print_ir() {
   if(this->right_ != NULL) this->right_->print_ir();
 
   if(this->operand_num_ == 0){
-    if(this->type_ == kconst_int)
-      cout << this->name_ << " = .int." << this->int_val_ << endl;
-    else if(this->type_ == kconst_float)
-      cout << this->name_ << " = .float." << this->f_val_ << endl;
-    else if(this->type_ == kBoolLiteral)
-      cout << this->name_ << " = .bool." << this->b_val_ << endl; 
-    else
-      cout << this->name_ << " = .str." << this->str_val_ << endl;
+    cout << this->name_ << " = .str." << this->str_val_ << endl;
   }
   else if(this->operand_num_ == 1){      
     string res = "";        
@@ -252,25 +248,26 @@ void IR::print_ir() {
   return;
 }
 
-IR* ShowStatement::translate(vector<IR *> &v_ir_collector){
 
+IR * QualifiedTableName::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    SWITCHSTART
-        CASESTART(1)
-            IR * tmp = SAFETRANSLATE(table_name_);
-            res = new IR(kShowStatement, OPSTART("SHOW COLUMNS"), tmp);
-        CASEEND
-        CASESTART(0)
-            res = new IR(kShowStatement, OPSTART("SHOW TABLES"));
-        CASEEND
-        CASESTART(2)
-            IR * tmp = SAFETRANSLATE(table_name_);
-            res = new IR(kShowStatement, OPSTART("DESCRIBE"), tmp);
-        CASEEND
-    SWITCHEND
+    auto tmp0 = SAFETRANSLATE(table_name_);
+    auto tmp1 = SAFETRANSLATE(opt_table_alias_as_);
+    auto tmp2 = SAFETRANSLATE(opt_index_);
+
+    res = new IR(kUnknown, OP0(), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kQualifiedTableName, OP0(), res, tmp2);
 
     TRANSLATEEND
+}
+
+void QualifiedTableName::deep_delete() {
+  SAFEDELETE(table_name_);
+  SAFEDELETE(opt_table_alias_as_);
+  SAFEDELETE(opt_index_);
+  delete this;
 }
 
 IR * TableName::translate(vector<IR *> &v_ir_collector){
@@ -278,59 +275,152 @@ IR * TableName::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            IR * tmp1 = SAFETRANSLATE(table_name_);
+            IR * tmp1 = SAFETRANSLATE(identifier_);
             res = new IR(kTableName, OP0(), tmp1);
         CASEEND
         CASESTART(1)
-            IR * tmp1 = SAFETRANSLATE(database_name_);
-            IR * tmp2 = SAFETRANSLATE(table_name_);
+            IR * tmp1 = SAFETRANSLATE(database_id_);
+            IR * tmp2 = SAFETRANSLATE(identifier_);
             res = new IR(kTableName, OPMID("."), tmp1, tmp2);
         CASEEND        
     SWITCHEND
     TRANSLATEEND
 }
 
-IR * DropStatement::translate(vector<IR *> &v_ir_collector){
+void TableName::deep_delete(){
+	SAFEDELETE(identifier_);
+	SAFEDELETE(database_id_);
+	delete this;
+}
 
+
+IR * TriggerName::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
-            IR * tmp1 = SAFETRANSLATE(opt_exists_);
-            IR * tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kDropStatement, OPSTART("DROP TABLE"), tmp1, tmp2);
+            IR * tmp1 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OP0(), tmp1);
         CASEEND
         CASESTART(1)
-            IR * tmp1 = SAFETRANSLATE(opt_exists_);
-            IR * tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kDropStatement, OPSTART("DROP VIEW"), tmp1, tmp2);
-        CASEEND
-        CASESTART(2)
-            IR * tmp1 = SAFETRANSLATE(id_);
-            res = new IR(kDropStatement, OPSTART("DEALLOCATE PREPARE"), tmp1);
-        CASEEND
-        CASESTART(3)
-            auto opt_exist = SAFETRANSLATE(opt_exists_);
-            auto schema_name = SAFETRANSLATE(schema_name_);
-            auto trigger_name = SAFETRANSLATE(trigger_name_);
-            res = new IR(kUnknown, OPMID("."), schema_name, trigger_name);
-            PUSH(res);
-            res = new IR(kDropStatement, OP1("DROP TRIGGER"), opt_exist, res);
-        CASEEND
-        CASESTART(4)
-            auto opt_exist = SAFETRANSLATE(opt_exists_);
-            auto trigger_name = SAFETRANSLATE(trigger_name_);
-            res = new IR(kDropStatement, OP1("DROP TRIGGER"), opt_exist, trigger_name);
-        CASEEND
+            IR * tmp1 = SAFETRANSLATE(database_id_);
+            IR * tmp2 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OPMID("."), tmp1, tmp2);
+        CASEEND        
     SWITCHEND
+    TRANSLATEEND
+}
+
+void TriggerName::deep_delete(){
+  SAFEDELETE(identifier_);
+  SAFEDELETE(database_id_);
+	delete this;
+}
+
+
+IR * IndexName::translate(vector<IR*> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+        CASESTART(0)
+            IR * tmp1 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OP0(), tmp1);
+        CASEEND
+        CASESTART(1)
+            IR * tmp1 = SAFETRANSLATE(database_id_);
+            IR * tmp2 = SAFETRANSLATE(identifier_);
+            res = new IR(kTableName, OPMID("."), tmp1, tmp2);
+        CASEEND        
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void IndexName::deep_delete(){
+  SAFEDELETE(identifier_);
+  SAFEDELETE(database_id_);
+	delete this;
+}
+
+
+IR * DropViewStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(view_name_);
+    res = new IR(kDropViewStatement, OPSTART("DROP VIEW"), tmp1, tmp2);
 
     TRANSLATEEND
 }
 
-IR * OptExists::translate(vector<IR *> &v_ir_collector){
+void DropViewStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(view_name_);
+  delete this;
+}
+
+
+IR * DropTriggerStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(trigger_name_);
+    res = new IR(kDropTriggerStatement, OPSTART("DROP TRIGGER"), tmp1, tmp2);
+
+    TRANSLATEEND
+}
+
+void DropTriggerStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(trigger_name_);
+  delete this;
+}
+
+
+IR * DropIndexStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(index_name_);
+    res = new IR(kDropIndexStatement, OPSTART("DROP INDEX"), tmp1, tmp2);
+
+    TRANSLATEEND
+}
+
+void DropIndexStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(index_name_);
+  delete this;
+}
+
+
+IR * DropTableStatement::translate(vector<IR *> &v_ir_collector){
+
+    TRANSLATESTART
+
+    IR * tmp1 = SAFETRANSLATE(opt_if_exists_);
+    IR * tmp2 = SAFETRANSLATE(table_name_);
+    res = new IR(kDropTableStatement, OPSTART("DROP TABLE"), tmp1, tmp2);
+
+    TRANSLATEEND
+}
+
+void DropTableStatement::deep_delete() {
+  SAFEDELETE(opt_if_exists_);
+  SAFEDELETE(table_name_);
+  delete this;
+}
+
+IR * DropStatement::translate(vector<IR *> &v_ir_collector){
+  assert(0);
+}
+
+IR * OptIfExists::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    res = new IR(kOptExists, str_val_);
+    res = new IR(kOptIfExists, str_val_);
 
     TRANSLATEEND
 }
@@ -359,314 +449,312 @@ IR* Program::translate(vector<IR *> &v_ir_collector){
 
 IR* StatementList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kStatementList, v_statement_list_, ";");
-
     TRANSLATEENDNOPUSH
 }
 
 IR* Statement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(preparable_statement_);
-            //auto tmp = SAFETRANSLATE(optional_hints_);
-            res = new IR(kStatement, OP0(), res);
-        CASEEND
-        //CASESTART(1)
-        //    res = SAFETRANSLATE(prepare_statement_);
-        //    auto tmp = SAFETRANSLATE(optional_hints_);
-        //    res = new IR(kStatement, OP0(), res, tmp);
-        //CASEEND
-        CASESTART(2)
-            res = SAFETRANSLATE(show_statement_);
-            res = new IR(kStatement, OP0(), res);
-        CASEEND
-        CASESTART(3)
-            res = SAFETRANSLATE(cmd_);
-            res = new IR(kStatement, OP0(), res);
-        CASEEND
-    SWITCHEND
+    res = SAFETRANSLATE(preparable_statement_);
+    res = new IR(kStatement, OP0(), res);
 
     TRANSLATEEND
 }
 
-IR* OptionalHints::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(hint_list_);
-            res = new IR(kOptionalHints, OP3("WITH HINT", "(", ")"), NULL, res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptionalHints, "");
-        CASEEND
-    SWITCHEND
-    
-    TRANSLATEEND
-}
-
-
-
-
-IR* PrepareStatement::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = SAFETRANSLATE(id_);
-    auto tmp = SAFETRANSLATE(prep_target_que_);
-    res = new IR(kPrepareStatement, OP2("PREPARE", "FROM"), res, tmp);
-
-    TRANSLATEEND
-    
-}
 
 IR* PreparableStatement::translate(vector<IR *> &v_ir_collector){
-    return NULL;
-}
-
-IR* Hint::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(id_);
-            auto tmp = SAFETRANSLATE(literal_list_);
-            res = new IR(kHint, OP3("", "(", ")"), res, tmp);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kHint, OP0(), res);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
-IR* HintList::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    TRANSLATELIST(kHintList, v_hint_list_, ",");
-
-    TRANSLATEEND
-}
-
-IR* PrepareTargetQuery::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kPrepareTargetQuery, prep_target_que_);
-
-    TRANSLATEEND
+    assert(0);
 }
 
 IR* SelectStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp1 = SAFETRANSLATE(opt_with_clause_);
-            auto tmp2 = SAFETRANSLATE(select_with_paren_);
-            res = new IR(kSelectStatement, OP0(), tmp1 ,tmp2);
-        CASEEND
-        CASESTART(1)
-            auto tmp1 = SAFETRANSLATE(opt_with_clause_);
-            auto tmp2 = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kSelectStatement, OP0(), tmp1 ,tmp2);
-        CASEEND
-        CASESTART(2)
-            auto tmp1 = SAFETRANSLATE(opt_with_clause_);
-            auto tmp2 = SAFETRANSLATE(select_with_paren_);
-            auto tmp3 = SAFETRANSLATE(set_operator_);
-            auto tmp4 = SAFETRANSLATE(select_paren_or_clause_);
-            auto tmp5 = SAFETRANSLATE(opt_order_);
-            IR * tmp6 = NULL;
-            if(opt_limit_ != NULL)
-                tmp6 = SAFETRANSLATE(opt_limit_);
-            
-            res = new IR(kUnknown, OP0(), tmp1 ,tmp2);
-            PUSH(res);
-            res = new IR(kUnknown, OP0(), res ,tmp3);
-            PUSH(res);
-            res = new IR(kUnknown, OP0(), res ,tmp4);
-            PUSH(res);
-            res = new IR(kUnknown, OP0(), res ,tmp5);
-            if(opt_limit_ != NULL){
-                PUSH(res);
-                res = new IR(kSelectStatement, OP0(), res ,tmp6);
-            }
-        CASEEND
-    SWITCHEND
+    auto tmp0 = SAFETRANSLATE(opt_with_clause_);
+    auto tmp1 = SAFETRANSLATE(select_core_list_);
+    auto tmp2 = SAFETRANSLATE(opt_order_);
+    auto tmp3 = SAFETRANSLATE(opt_limit_);
+
+    res = new IR(kUnknown, OP0(), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+    res = new IR(kSelectStatement, OP0(), res, tmp3);
 
     TRANSLATEEND
 }
 
-IR* ImportStatement::translate(vector<IR *> &v_ir_collector){
+IR* CreateTriggerStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    auto tmp1 = SAFETRANSLATE(import_file_type_);
-    auto tmp2 = SAFETRANSLATE(file_path_);
-    auto tmp3 = SAFETRANSLATE(table_name_);
-    
-    res = new IR(kUnknown, OP2("IMPORT FROM", "FILE"),tmp1, tmp2);
+
+    auto tmp0 = SAFETRANSLATE(opt_tmp_);
+    auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
+    res = new IR(kUnknown, OP2("CREATE", "TRIGGER"), tmp0, tmp1);
     PUSH(res);
-    res = new IR(kImportStatement, OPMID("INTO"), res, tmp3);
+
+    auto tmp2 = SAFETRANSLATE(trigger_name_);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+
+    auto tmp3 = SAFETRANSLATE(opt_trigger_time_);
+    res = new IR(kUnknown, OP0(), res, tmp3);
+    PUSH(res);
+
+    auto tmp4 = SAFETRANSLATE(trigger_event_);
+    res = new IR(kUnknown, OP0(), res, tmp4);
+    PUSH(res);
+
+    auto tmp5 = SAFETRANSLATE(table_name_);
+    res = new IR(kUnknown, OPMID("ON"), res, tmp5);
+    PUSH(res);
+
+    auto tmp6 = SAFETRANSLATE(opt_for_each_);
+    res = new IR(kUnknown, OP0(), res, tmp6);
+    PUSH(res);
+
+    auto tmp7 = SAFETRANSLATE(opt_when_);
+    res = new IR(kUnknown, OP0(), res, tmp7);
+    PUSH(res);
+
+    auto tmp8 = SAFETRANSLATE(trigger_cmd_list_);
+    res = new IR(kCreateTriggerStatement, OP3("", "BEGIN", "END"), res, tmp8);
+
     TRANSLATEEND
+}
+
+void CreateTriggerStatement::deep_delete() {
+  SAFEDELETE(opt_tmp_);
+  SAFEDELETE(opt_if_not_exists_);
+  SAFEDELETE(trigger_name_);
+  SAFEDELETE(opt_trigger_time_);
+  SAFEDELETE(trigger_event_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(opt_for_each_);
+  SAFEDELETE(opt_when_);
+  SAFEDELETE(trigger_cmd_list_);
+  delete this;
+}
+
+
+IR* CreateVirtualTableStatement::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
+    auto tmp2 = SAFETRANSLATE(table_name_);
+    res = new IR(kUnknown, OP1("CREATE VIRTUAL TABLE"), tmp1, tmp2);
+    PUSH(res);
+    auto tmp3 = SAFETRANSLATE(module_name_);
+    res = new IR(kUnknown, OPMID("USING"), res, tmp3);
+    PUSH(res);
+    auto tmp4 = SAFETRANSLATE(opt_column_list_paren_);
+    res = new IR(kUnknown, OP0(), res, tmp4);
+    PUSH(res);
+    auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
+    res = new IR(kCreateVirtualTableStatement, OP0(), res, tmp5);
+
+    TRANSLATEEND;
+}
+
+void CreateVirtualTableStatement::deep_delete() {
+  SAFEDELETE(opt_if_not_exists_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(module_name_);
+  SAFEDELETE(opt_column_list_paren_);
+  SAFEDELETE(opt_without_rowid_);
+  delete this;
+}
+
+IR* CreateIndexStatement::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    auto tmp1 = SAFETRANSLATE(opt_unique_);
+    auto tmp2 = SAFETRANSLATE(opt_if_not_exists_);
+    res = new IR(kUnknown, OP2("CREATE", "INDEX"), tmp1, tmp2);
+    PUSH(res);
+    auto tmp3 = SAFETRANSLATE(index_name_);
+    res = new IR(kUnknown, OP0(), res, tmp3);
+    PUSH(res);
+    auto tmp4 = SAFETRANSLATE(table_name_);
+    res = new IR(kUnknown, OPMID("ON"), res, tmp4);
+    PUSH(res);
+    auto tmp5 = SAFETRANSLATE(indexed_column_list_);
+    res = new IR(kUnknown, OP3("", "(", ")"), res, tmp5);
+    PUSH(res);
+    auto tmp6 = SAFETRANSLATE(opt_where_);
+    res = new IR(kCreateIndexStatement, OP0(), res, tmp6);
+
+    TRANSLATEEND;
+}
+
+void CreateIndexStatement::deep_delete() {
+  SAFEDELETE(opt_unique_);
+  SAFEDELETE(opt_if_not_exists_);
+  SAFEDELETE(index_name_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(indexed_column_list_);
+  SAFEDELETE(opt_where_);
+  delete this;
+}
+
+IR* CreateViewStatement::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    auto tmp0 = SAFETRANSLATE(opt_tmp_);
+    auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
+    res = new IR(kUnknown, OPMID("VIEW"), tmp0, tmp1);
+    PUSH(res);
+    auto tmp2 = SAFETRANSLATE(view_name_);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+    auto tmp3 = SAFETRANSLATE(opt_column_list_paren_);
+    res = new IR(kUnknown, OP0(), res, tmp3);
+    PUSH(res);
+    auto tmp5 = SAFETRANSLATE(select_statement_);
+    res = new IR(kCreateViewStatement, OP2("CREATE", "AS"), res, tmp5);
+
+    TRANSLATEEND;
+}
+
+void CreateViewStatement::deep_delete() {
+  SAFEDELETE(opt_tmp_);
+  SAFEDELETE(opt_if_not_exists_);
+  SAFEDELETE(view_name_);
+  SAFEDELETE(opt_column_list_paren_);
+  SAFEDELETE(select_statement_);
+  delete this;
+}
+
+IR* CreateTableStatement::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    auto tmp0 = SAFETRANSLATE(opt_tmp_);
+    auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
+    auto tmp2 = SAFETRANSLATE(table_name_);
+
+    res = new IR(kUnknown, OP2("CREATE", "TABLE"), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+    
+    SWITCHSTART
+        CASESTART(0)
+          auto tmp3 = SAFETRANSLATE(select_statement_);
+          res = new IR(kCreateTableStatement, OPMID("AS"), res, tmp3);
+        CASEEND
+        CASESTART(1)
+          auto tmp3 = SAFETRANSLATE(column_def_list_);
+          res = new IR(kUnknown, OP3("", "(", ")"), res, tmp3);
+          PUSH(res);
+          auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
+          res = new IR(kCreateTableStatement, OP0(), res, tmp4);
+        CASEEND
+        CASESTART(2)
+          auto tmp3 = SAFETRANSLATE(column_def_list_);
+          auto tmp4 = SAFETRANSLATE(table_constraint_list_);
+          auto tmp  = new IR(kUnknown, OPMID(","), tmp3, tmp4);
+          PUSH(tmp);
+          res = new IR(kUnknown, OP3("", "(", ")"), res, tmp);
+          PUSH(res);
+          auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
+          res = new IR(kCreateTableStatement, OP0(), res, tmp5);
+        CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void CreateTableStatement::deep_delete() {
+  SAFEDELETE(opt_tmp_);
+  SAFEDELETE(opt_if_not_exists_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(select_statement_);
+  SAFEDELETE(column_def_list_);
+  SAFEDELETE(opt_without_rowid_);
+  SAFEDELETE(table_constraint_list_);
+  delete this;
 }
 
 IR* CreateStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
+
+    assert(0);
     
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp0 = SAFETRANSLATE(opt_tmp_);
-            auto tmp1 = SAFETRANSLATE(opt_not_exists_);
-            res = new IR(kUnknown, OPMID("TABLE"), tmp0, tmp1);
-            PUSH(res);
-            auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP0(), res, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(file_path_);
-            res = new IR(kCreateStatement, OP2("CREATE", "FROM TBL FILE"), res, tmp3);
-            PUSH(res);
-            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
-            res = new IR(kCreateStatement, OP0(), res, tmp4);
-        CASEEND
-        CASESTART(1)
-            auto tmp0 = SAFETRANSLATE(opt_tmp_);
-            auto tmp1 = SAFETRANSLATE(opt_not_exists_);
-            res = new IR(kUnknown, OPMID("TABLE"), tmp0, tmp1);
-            PUSH(res);
-            auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP0(), res, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(column_or_table_constraint_def_comma_list_);
-            res = new IR(kCreateStatement, OP3("CREATE", "(", ")"), res, tmp3);
-            PUSH(res);
-            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
-            res = new IR(kCreateStatement, OP0(), res, tmp4);
-        CASEEND
-        CASESTART(2)
-            auto tmp0 = SAFETRANSLATE(opt_tmp_);
-            auto tmp1 = SAFETRANSLATE(opt_not_exists_);
-            res = new IR(kUnknown, OPMID("TABLE"), tmp0, tmp1);
-            PUSH(res);
-            auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP0(), res, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(select_statement_);
-            res = new IR(kCreateStatement, OP2("CREATE", "AS"), res, tmp3);
-            PUSH(res);
-            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
-            res = new IR(kCreateStatement, OP0(), res, tmp4);
-        CASEEND
-        CASESTART(3)
-            auto tmp0 = SAFETRANSLATE(opt_tmp_);
-            auto tmp1 = SAFETRANSLATE(opt_not_exists_);
-            res = new IR(kUnknown, OPMID("VIEW"), tmp0, tmp1);
-            PUSH(res);
-            auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP0(), res, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(opt_column_list_);
-            res = new IR(kUnknown, OP0(), res, tmp3);
-            PUSH(res);
-            auto tmp5 = SAFETRANSLATE(select_statement_);
-            res = new IR(kCreateStatement, OP2("CREATE", "AS"), res, tmp5);
-        CASEEND
-        CASESTART(4)
-            auto tmp1 = SAFETRANSLATE(opt_unique_);
-            auto tmp2 = SAFETRANSLATE(opt_not_exists_);
-            res = new IR(kUnknown, OP2("CREATE", "INDEX"), tmp1, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(index_name_);
-            res = new IR(kUnknown, OP0(), res, tmp3);
-            PUSH(res);
-            auto tmp4 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OPMID("ON"), res, tmp4);
-            PUSH(res);
-            auto tmp5 = SAFETRANSLATE(indexed_column_list_);
-            res = new IR(kCreateStatement, OP3("", "(", ")"), res, tmp5);
-            PUSH(res);
-            auto tmp6 = SAFETRANSLATE(opt_where_);
-            res = new IR(kCreateStatement, OP0(), res, tmp6);
-        CASEEND
-        CASESTART(5)
-            auto tmp1 = SAFETRANSLATE(opt_not_exists_);
-            auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP1("CREATE VIRTUAL TABLE"), tmp1, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(module_name_);
-            res = new IR(kCreateStatement, OPMID("USING"), res, tmp3);
-            PUSH(res);
-            auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
-            res = new IR(kCreateStatement, OP0(), res, tmp4);
-        CASEEND
-        CASESTART(6)
-            auto tmp1 = SAFETRANSLATE(opt_not_exists_);
-            auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP1("CREATE VIRTUAL TABLE"), tmp1, tmp2);
-            PUSH(res);
-            auto tmp3 = SAFETRANSLATE(module_name_);
-            res = new IR(kCreateStatement, OPMID("USING"), res, tmp3);
-            PUSH(res);
-            auto tmp4 = SAFETRANSLATE(column_or_table_constraint_def_comma_list_);
-            res = new IR(kCreateStatement, OP3("", "(", ")"), res, tmp4);
-            PUSH(res);
-            auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
-            res = new IR(kCreateStatement, OP0(), res, tmp5);
-        CASEEND
-        CASESTART(7)
-            auto tmp1 = SAFETRANSLATE(trigger_declare_);
-            auto tmp2 = SAFETRANSLATE(trigger_cmd_list_);
-            res = new IR(kCreateStatement, OP3("CREATE", "BEGIN", "END"), tmp1, tmp2);
-        CASEEND
-    SWITCHEND
     TRANSLATEEND
 }
 
 IR* InsertStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(insert_type_);
-            auto tmp = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OPMID("INTO"), res, tmp);
-            PUSH(res);
+    auto tmp0 = SAFETRANSLATE(opt_with_clause_);
+    auto tmp1 = SAFETRANSLATE(insert_type_);
+    res = new IR(kUnknown, OP0(), tmp0, tmp1);
+    PUSH(res);
 
-            tmp = SAFETRANSLATE(opt_column_list_);
-            res = new IR(kUnknown, OP0(), res, tmp);
-            PUSH(res);
+    auto tmp = SAFETRANSLATE(table_name_);
+    auto tmp2 = SAFETRANSLATE(opt_table_alias_as_);
+    auto tmp3 = new IR(kUnknown, OP0(), tmp, tmp2);
+    PUSH(tmp3);
 
-            tmp = SAFETRANSLATE(super_list_);
-            tmp = new IR(kUnknown, OP0(), tmp);
-            PUSH(tmp);
-            res = new IR(kInsertStatement, OPMID("VALUES"), res, tmp);
-            PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp3);
+    PUSH(res);
 
-            tmp = SAFETRANSLATE(opt_upsert_clause_);
-            res = new IR(kInsertStatement, OP0(), res, tmp);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(insert_type_);
-            auto tmp = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OPMID("INTO"), res, tmp);
-            PUSH(res);
+    tmp = SAFETRANSLATE(opt_column_list_paren_);
+    res = new IR(kUnknown, OP0(), res, tmp);
+    PUSH(res);
 
-            tmp = SAFETRANSLATE(opt_column_list_);
-            res = new IR(kUnknown, OP0(), res, tmp);
-            PUSH(res);
-
-            tmp = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kInsertStatement, OP0(), res, tmp);
-            PUSH(res);
-
-            tmp = SAFETRANSLATE(opt_upsert_clause_);
-            res = new IR(kInsertStatement, OP0(), res, tmp);
-        CASEEND
-    SWITCHEND
+    tmp = SAFETRANSLATE(insert_value_);
+    res = new IR(kUnknown, OP0(), res, tmp);
+    PUSH(res);
+            
+    tmp = SAFETRANSLATE(opt_returning_clause_);
+    res = new IR(kInsertStatement, OP0(), res, tmp);
             
     TRANSLATEEND
+}
+
+IR* InsertValue::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    SWITCHSTART
+        CASESTART(0)
+            auto tmp0 = SAFETRANSLATE(expr_list_paren_list_);
+            auto tmp1 = SAFETRANSLATE(opt_upsert_clause_);
+            res = new IR(kInsertValue, OP1("VALUES"), tmp0, tmp1);
+        CASEEND
+        CASESTART(1)
+            auto tmp0 = SAFETRANSLATE(select_statement_);
+            auto tmp1 = SAFETRANSLATE(opt_upsert_clause_);
+            res = new IR(kInsertValue, OP0(), tmp0, tmp1);
+        CASEEND
+        CASESTART(2)
+            res = new IR(kInsertValue, string("DEFAULT VALUES"));
+        CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void InsertValue::deep_delete(){
+    SAFEDELETE(expr_list_paren_list_);
+    SAFEDELETE(select_statement_);
+    SAFEDELETE(opt_upsert_clause_);
+    delete this;
+}
+
+IR* UpdateType::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    SWITCHSTART
+        CASESTART(0)
+            res = new IR(kUpdateType, str_val_);
+        CASEEND
+        CASESTART(1)
+            res = SAFETRANSLATE(resolve_type_);
+            res = new IR(kUpdateType, OP1("UPDATE OR"), res);
+        CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void UpdateType::deep_delete(){
+    SAFEDELETE(resolve_type_);
+    delete this;
 }
 
 IR* InsertType::translate(vector<IR *> &v_ir_collector){
@@ -676,11 +764,8 @@ IR* InsertType::translate(vector<IR *> &v_ir_collector){
             res = new IR(kInsertType, str_val_);
         CASEEND
         CASESTART(1)
-            res = new IR(kInsertType, str_val_);
-        CASEEND
-        CASESTART(2)
             res = SAFETRANSLATE(resolve_type_);
-            res = new IR(kInsertType, OP1("INSERT OR"), res);
+            res = new IR(kInsertType, OP2("INSERT OR", "INTO"), res);
         CASEEND
     SWITCHEND
     TRANSLATEEND
@@ -694,17 +779,15 @@ void InsertType::deep_delete(){
 IR* DeleteStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    SWITCHSTART
-    CASESTART(0)
-        IR* tmp1 = SAFETRANSLATE(table_name_);
-        IR* tmp2 = SAFETRANSLATE(opt_where_);
-        res = new IR(kDeleteStatement, OPSTART("DELETE FROM"), tmp1, tmp2);
-    CASEEND
-    CASESTART(1)
-        IR * tmp1 = SAFETRANSLATE(table_name_);
-        res = new IR(kDeleteStatement, OPSTART("TRUNCATE"), tmp1);
-    CASEEND
-    SWITCHEND
+    IR* tmp0 = SAFETRANSLATE(opt_with_clause_);
+    IR* tmp1 = SAFETRANSLATE(qualified_table_name_);
+    IR* tmp2 = SAFETRANSLATE(opt_where_);
+    IR* tmp3 = SAFETRANSLATE(opt_returning_clause_);
+    res = new IR(kUnknown, OPMID("DELETE FROM"), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+    res = new IR(kDeleteStatement, OP0(), res, tmp3);
 
     TRANSLATEEND
 }
@@ -712,43 +795,45 @@ IR* DeleteStatement::translate(vector<IR *> &v_ir_collector){
 IR* UpdateStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    res = SAFETRANSLATE(table_ref_name_no_alias_);
-    auto tmp = SAFETRANSLATE(update_clause_comma_list_);
-    res = new IR(kUpdateStatement, OP2("UPDATE", "SET"), res, tmp);
+    auto tmp0 = SAFETRANSLATE(opt_with_clause_);
+    auto tmp1 = SAFETRANSLATE(update_type_);
+    res = new IR(kUnknown, OP0(), tmp0, tmp1);
     PUSH(res);
 
-    tmp = SAFETRANSLATE(opt_where_);
-    res = new IR(kUpdateStatement, OP0(), res, tmp);
+    auto tmp2 = SAFETRANSLATE(qualified_table_name_);
+    res = new IR(kUnknown, OP0(), res, tmp2);
+    PUSH(res);
+
+    auto tmp3 = SAFETRANSLATE(update_clause_list_);
+    res = new IR(kUnknown, OPMID("SET"), res, tmp3);
+    PUSH(res);
+
+    auto tmp4 = SAFETRANSLATE(opt_from_clause_);
+    res = new IR(kUnknown, OP0(), res, tmp4);
+    PUSH(res);
+
+    auto tmp5 = SAFETRANSLATE(opt_where_);
+    res = new IR(kUnknown, OP0(), res, tmp5);
+    PUSH(res);
+
+    auto tmp6 = SAFETRANSLATE(opt_returning_clause_);
+    res = new IR(kUpdateStatement, OP0(), res, tmp6);
     
     TRANSLATEEND
 
 }
 
-IR* ExecuteStatement::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto id = SAFETRANSLATE(id_);
-            res = new IR(kExecuteStatement, OPSTART("EXECUTE"), id);
-        CASEEND
-        CASESTART(1)
-            auto id = SAFETRANSLATE(id_);
-            auto tmp = SAFETRANSLATE(opt_literal_list_);
-            res = new IR(kExecuteStatement, OP3("EXECUTE","(",")"), id, tmp);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
+void UpdateStatement::deep_delete(){
+  SAFEDELETE(opt_with_clause_);
+  SAFEDELETE(update_type_);
+  SAFEDELETE(qualified_table_name_);
+	SAFEDELETE(update_clause_list_);
+  SAFEDELETE(opt_from_clause_);
+	SAFEDELETE(opt_where_);
+  SAFEDELETE(opt_returning_clause_);
+	delete this;
 }
 
-IR* ImportFileType::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = new IR(kImportFileType, str_val_);
-
-    TRANSLATEEND
-}
 
 IR* FilePath::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -758,31 +843,45 @@ IR* FilePath::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* OptNotExists::translate(vector<IR *> &v_ir_collector){
+
+IR* OptRecursive::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    res = new IR(kOptRecursive, str_val_);
+    TRANSLATEEND
+}
+
+void OptRecursive::deep_delete(){
+	delete this;
+}
+
+IR* OptIfNotExists::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    res = new IR(kOptNotExists, str_val_);
+    res = new IR(kOptIfNotExists, str_val_);
     
     TRANSLATEEND
 }
 
-IR* ColumnDefCommaList::translate(vector<IR *> &v_ir_collector){
+void OptIfNotExists::deep_delete(){
+	delete this;
+}
+
+
+IR* ColumnDefList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
-    TRANSLATELIST(kColumnDefCommaList, v_column_def_comma_list_, ",");
-    
+    TRANSLATELIST(kColumnDefList, v_column_def_list_, ",");
     TRANSLATEENDNOPUSH
 }
 
 IR* ColumnDef::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    res = SAFETRANSLATE(id_);
+    res = SAFETRANSLATE(identifier_);
     auto tmp = SAFETRANSLATE(column_type_);
-    res = new IR(kColumnDef, OP0(), res, tmp);
+    res = new IR(kUnknown, OP0(), res, tmp);
     PUSH(res);
     
-    tmp = SAFETRANSLATE(opt_column_arglist_);
+    tmp = SAFETRANSLATE(opt_column_constraintlist_);
     res = new IR(kColumnDef, OP0(), res, tmp);
     
     TRANSLATEEND
@@ -804,27 +903,32 @@ IR* OptColumnNullable::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* OptColumnList::translate(vector<IR *> &v_ir_collector){
+
+IR* OptColumnListParen::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(ident_comma_list_);
-            res = new IR(kOptColumnList, OP3("(", "", ")"), res);
+            res = SAFETRANSLATE(column_name_list_);
+            res = new IR(kOptColumnListParen, OP3("(", "", ")"), res);
         CASEEND
         CASESTART(1)
-            res = new IR(kOptColumnList, "");
+            res = new IR(kOptColumnListParen, "");
         CASEEND
     SWITCHEND
 
     TRANSLATEEND
 }
 
-IR* UpdateClauseCommalist::translate(vector<IR *> &v_ir_collector){
+void OptColumnListParen::deep_delete(){
+	SAFEDELETE(column_name_list_);
+	delete this;
+}
+
+
+IR* UpdateClauseList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
-    TRANSLATELIST(kUpdateClauseCommalist, v_update_clause_list_, ",");
-
+    TRANSLATELIST(kUpdateClauseList, v_update_clause_list_, ",");
     TRANSLATEENDNOPUSH
 }
 
@@ -849,131 +953,82 @@ IR* UpdateClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* SelectWithParen::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
 
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kSelectWithParen, OP3("(","",")"), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_with_paren_);
-            res = new IR(kSelectWithParen, OP3("(","",")"), res);
-        CASEEND
-    SWITCHEND
-        
-    TRANSLATEEND
-}
-
-IR* SelectParenOrClause::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_with_paren_);
-            res = new IR(kSelectParenOrClause, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_clause_);
-            res = new IR(kSelectParenOrClause, OP0(), res);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
-IR* SelectNoParen::translate(vector<IR *> &v_ir_collector){
+IR* SelectCoreList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_clause_);
-            auto tmp = SAFETRANSLATE(opt_order_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);
-            
-            if(opt_limit_ != NULL){
-                PUSH(res);
-                tmp = SAFETRANSLATE(opt_limit_);
-                res = new IR(kSelectNoParen, OP0(), res, tmp);
-            }
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_clause_);
-            auto tmp = SAFETRANSLATE(set_operator_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);
-            PUSH(res);
+    assert(v_select_core_list_.size() == v_set_operator_list_.size()  + 1);
 
-            tmp = SAFETRANSLATE(select_paren_or_clause_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);
-            PUSH(res);
-
-            tmp = SAFETRANSLATE(opt_order_);
-            res = new IR(kSelectNoParen, OP0(), res, tmp);  
-            
-            if(opt_limit_ != NULL){
-                PUSH(res);
-                tmp = SAFETRANSLATE(opt_limit_);
-                res = new IR(kSelectNoParen, OP0(), res, tmp);
-            }
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-           
+    res = SAFETRANSLATE(v_select_core_list_[0]);
+    for (int i = 1; i < v_select_core_list_.size(); i++) {
+        IR * set_op = SAFETRANSLATE(v_set_operator_list_[i-1]);
+        res = new IR(kUnknown, OP0(), res, set_op);
+        PUSH(res);
+        IR * select_core = SAFETRANSLATE(v_select_core_list_[i]);
+        res = new IR(kSelectCoreList, OP0(), res, select_core);
+        PUSH(res);
+    }
+    TRANSLATEENDNOPUSH
 }
+
+void SelectCoreList::deep_delete() {
+
+  for (auto select_core_ : v_select_core_list_)
+    SAFEDELETE(select_core_);
+
+  for (auto set_operator_ : v_set_operator_list_)
+    SAFEDELETE(set_operator_);
+  
+  delete this;
+}
+
 
 IR* SetOperator::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
-    res = SAFETRANSLATE(set_type_);
-    auto tmp = SAFETRANSLATE(opt_all_);
-    res = new IR(kSetOperator, OP0(), res, tmp);
     
-    TRANSLATEEND
-}
-
-IR* SetType::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = new IR(kSetType, str_val_);
+    res = new IR(kSetOperator, str_val_);
 
     TRANSLATEEND
 }
 
-IR* OptAll::translate(vector<IR *> &v_ir_collector){
+IR* SelectCore::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
-    res = new IR(kOptAll, str_val_);
-
+    SWITCHSTART
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(opt_distinct_);
+      auto tmp1 = SAFETRANSLATE(result_column_list_);
+      auto tmp2 = SAFETRANSLATE(opt_from_clause_);
+      auto tmp3 = SAFETRANSLATE(opt_where_);
+      auto tmp4 = SAFETRANSLATE(opt_group_);
+      auto tmp5 = SAFETRANSLATE(opt_window_clause_);
+      res = new IR(kUnknown, OP0(), tmp0, tmp1);
+      PUSH(res);
+      res = new IR(kUnknown, OP0(), res, tmp2);
+      PUSH(res);
+      res = new IR(kUnknown, OP0(), res, tmp3);
+      PUSH(res);
+      res = new IR(kUnknown, OP0(), res, tmp4);
+      PUSH(res);
+      res = new IR(kSelectCore, OP1("SELECT"), res, tmp5);
+    CASEEND
+    CASESTART(1)
+      auto tmp = SAFETRANSLATE(expr_list_paren_list_);
+      res = new IR(kSelectCore, OP1("VALUES"), tmp);
+    CASEEND
+    SWITCHEND
     TRANSLATEEND
 }
 
-IR* SelectClause::translate(vector<IR *> &v_ir_collector){
+IR* OptStoredVirtual::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
+
+    res = new IR(kOptStoredVirtual, str_val_);
     
-    auto tmp1 = SAFETRANSLATE(opt_top_);
-    auto tmp2 = SAFETRANSLATE(opt_distinct_);
-    auto tmp3 = SAFETRANSLATE(select_list_);
-    auto tmp4 = SAFETRANSLATE(opt_from_clause_);
-    auto tmp5 = SAFETRANSLATE(opt_where_);
-    auto tmp6 = SAFETRANSLATE(opt_group_);
-    
-    res = new IR(kUnknown, OPSTART("SELECT"), tmp1, tmp2);
-    PUSH(res);
-    res = new IR(kUnknown, OP0(), res, tmp3);
-    PUSH(res);
-    res = new IR(kUnknown, OP0(), res, tmp4);
-    PUSH(res);
-    res = new IR(kUnknown, OP0(), res, tmp5);
-    PUSH(res);
-    res = new IR(kSelectClause, OP0(), res, tmp6);
-    if(sub_type_ == 1){
-        PUSH(res);
-        auto tmp = SAFETRANSLATE(window_clause_);
-        res = new IR(kSelectClause, OP0(), res, tmp);
-    }
     TRANSLATEEND
+}
+
+void OptStoredVirtual::deep_delete() {
+  delete this;
 }
 
 IR* OptDistinct::translate(vector<IR *> &v_ir_collector){
@@ -996,10 +1051,27 @@ IR* SelectList::translate(vector<IR *> &v_ir_collector){
 IR* FromClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    res = SAFETRANSLATE(table_ref_);
-    res = new IR(kFromClause, OPSTART("FROM"), res);
+    SWITCHSTART
+
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(join_clause_);
+      res = new IR(kFromClause, OPSTART("FROM"), tmp0);
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(table_or_subquery_list_);
+      res = new IR(kFromClause, OPSTART("FROM"), tmp0);
+    CASEEND
+
+    SWITCHEND
 
     TRANSLATEEND
+}
+
+void FromClause::deep_delete(){
+	//SAFEDELETE(table_ref_);
+  SAFEDELETE(join_clause_);
+  SAFEDELETE(table_or_subquery_list_);
+	delete this;
 }
 
 IR* OptFromClause::translate(vector<IR *> &v_ir_collector){
@@ -1023,8 +1095,8 @@ IR* OptWhere::translate(vector<IR *> &v_ir_collector){
     
     SWITCHSTART
         CASESTART(0)
-            IR* tmp1 = SAFETRANSLATE(expr_);
-            res = new IR(kOptWhere, OPSTART("WHERE"), tmp1);
+            IR* tmp1 = SAFETRANSLATE(where_expr_);
+            res = new IR(kOptWhere, OP0(), tmp1);
         CASEEND
         CASESTART(1)
             res = new IR(kOptWhere, string(""));
@@ -1032,6 +1104,53 @@ IR* OptWhere::translate(vector<IR *> &v_ir_collector){
     SWITCHEND
     TRANSLATEEND
 }
+
+void OptWhere::deep_delete(){
+	SAFEDELETE(where_expr_);
+	delete this;
+}
+
+IR* OptElseExpr::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    
+    SWITCHSTART
+        CASESTART(0)
+            IR* tmp1 = SAFETRANSLATE(else_expr_);
+            res = new IR(kOptElseExpr, OP0(), tmp1);
+        CASEEND
+        CASESTART(1)
+            res = new IR(kOptElseExpr, string(""));
+        CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void OptElseExpr::deep_delete(){
+	SAFEDELETE(else_expr_);
+	delete this;
+}
+
+
+IR* OptEscapeExpr::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    
+    SWITCHSTART
+        CASESTART(0)
+            IR* tmp1 = SAFETRANSLATE(escape_expr_);
+            res = new IR(kOptEscapeExpr, OP0(), tmp1);
+        CASEEND
+        CASESTART(1)
+            res = new IR(kOptEscapeExpr, string(""));
+        CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void OptEscapeExpr::deep_delete(){
+	SAFEDELETE(escape_expr_);
+	delete this;
+}
+
 
 IR* OptGroup::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -1083,23 +1202,22 @@ IR* OptOrder::translate(vector<IR *> &v_ir_collector){
 
 IR* OrderList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
-    TRANSLATELIST(kOrderList, v_order_desc_, ",");
-
+    TRANSLATELIST(kOrderList, v_order_term_, ",");
     TRANSLATEENDNOPUSH
 }
 
-IR* OrderDesc::translate(vector<IR *> &v_ir_collector){
+IR* OrderTerm::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     res = SAFETRANSLATE(expr_);
-    auto tmp = SAFETRANSLATE(opt_order_type_);
-    
-    res = new IR(kOrderDesc, OP0(), res, tmp);
+    auto tmp = SAFETRANSLATE(opt_collate_);
+    res = new IR(kUnknown, OP0(), res, tmp);
     PUSH(res);
-
-    tmp = SAFETRANSLATE(opt_null_);
-    res = new IR(kOrderDesc, OP0(), res, tmp);
+    tmp = SAFETRANSLATE(opt_order_type_);
+    res = new IR(kUnknown, OP0(), res, tmp);
+    PUSH(res);
+    tmp = SAFETRANSLATE(opt_order_of_null_);
+    res = new IR(kOrderTerm, OP0(), res, tmp);
     
     TRANSLATEEND    
 }
@@ -1122,23 +1240,6 @@ IR* OptWithoutRowID::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* OptTop::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp = SAFETRANSLATE(int_literal_);
-            res = new IR(kOptTop, OPSTART("TOP"), tmp);
-        CASEEND
-
-        CASESTART(1)
-            res = new IR(kOptTop, "");
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
 IR* OptLimit::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
@@ -1148,478 +1249,337 @@ IR* OptLimit::translate(vector<IR *> &v_ir_collector){
             res = new IR(kOptLimit, OPSTART("LIMIT"), tmp);
         CASEEND
         CASESTART(1)
-            auto tmp = SAFETRANSLATE(expr1_);
-            res = new IR(kOptLimit, OPSTART("OFFSET"), tmp);
+            auto tmp0 = SAFETRANSLATE(expr1_);
+            auto tmp1 = SAFETRANSLATE(expr2_);
+            res = new IR(kOptLimit, OP2("LIMIT", "OFFSET"), tmp0, tmp1);
         CASEEND
         CASESTART(2)
-            auto tmp1 = SAFETRANSLATE(expr1_);
-            auto tmp2 = SAFETRANSLATE(expr2_);
-            res = new IR(kOptLimit, OP2("LIMIT", "OFFSET"), tmp1, tmp2);
+            auto tmp0 = SAFETRANSLATE(expr1_);
+            auto tmp1 = SAFETRANSLATE(expr2_);
+            res = new IR(kOptLimit, OP2("LIMIT", ","), tmp0, tmp1);
         CASEEND
         CASESTART(3)
-            res = new IR(kOptLimit, "LIMIT ALL");
-        CASEEND
-        CASESTART(4)
-            auto tmp = SAFETRANSLATE(expr1_);
-            res = new IR(kOptLimit, OPSTART("LIMIT ALL OFFSET"), tmp);
-        CASEEND
-        CASESTART(5)
-            res = new IR(kOptLimit, "");
+            res = new IR(kOptLimit, string(""));
         CASEEND
     SWITCHEND
     
     TRANSLATEEND         
 }
 
+void OptLimit::deep_delete(){
+	SAFEDELETE(expr1_);
+	SAFEDELETE(expr2_);
+	delete this;
+}
+
+
 IR* ExprList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
     TRANSLATELIST(kExprList, v_expr_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
-IR* LiteralList::translate(vector<IR *> &v_ir_collector){
+IR* ExprListParen::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
-    TRANSLATELIST(kLiteralList, v_literal_list_, ",");
+    auto tmp = SAFETRANSLATE(expr_list_);
+    res = new IR(kExprListParen, OP2("(", ")"), tmp);
+    TRANSLATEEND
+}
 
+void ExprListParen::deep_delete() {
+  SAFEDELETE(expr_list_);
+  delete this;
+}
+
+
+IR* ExprListParenList::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    TRANSLATELIST(kExprListParenList, v_expr_list_paren_list_, ",");
     TRANSLATEENDNOPUSH
 }
 
-IR* OptLiteralList::translate(vector<IR *> &v_ir_collector){
+void ExprListParenList::deep_delete() {
+  SAFEDELETELIST(v_expr_list_paren_list_);
+  delete this;
+}
+
+
+IR* NewExpr::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(literal_list_);
-            res = new IR(kOptLiteralList, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptLiteralList, "");
-        CASEEND
+
+      CASESTART(0)
+        auto tmp0 = SAFETRANSLATE(literal_);
+        res = new IR(kNewExpr, OP0(), tmp0);
+      CASEEND
+      CASESTART(1)
+        auto tmp0 = SAFETRANSLATE(column_name_);
+        res = new IR(kNewExpr, OP0(), tmp0);
+      CASEEND
+      CASESTART(2)
+        auto tmp0 = SAFETRANSLATE(unary_op_);
+        auto tmp1 = SAFETRANSLATE(new_expr1_);
+        res = new IR(kNewExpr, OP0(), tmp0, tmp1);
+      CASEEND
+      CASESTART(3)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(binary_op_);
+        res = new IR(kUnknown, OP0(), tmp0, tmp1);
+        PUSH(res);
+        auto tmp2 = SAFETRANSLATE(new_expr2_);
+        res = new IR(kNewExpr, OP0(), res, tmp2);
+      CASEEND
+      CASESTART(4)
+        auto tmp0 = SAFETRANSLATE(function_name_);
+        auto tmp1 = SAFETRANSLATE(function_args_);
+        res = new IR(kUnknown, OP3("", "(", ")"), tmp0, tmp1);
+        PUSH(res);
+        auto tmp2 = SAFETRANSLATE(opt_filter_clause_);
+        res = new IR(kUnknown, OP0(), res, tmp2);
+        PUSH(res);
+        auto tmp3 = SAFETRANSLATE(opt_over_clause_);
+        res = new IR(kNewExpr, OP0(), res, tmp3);
+      CASEEND
+      CASESTART(5)
+        auto tmp0 = SAFETRANSLATE(expr_list_);
+        res = new IR(kNewExpr, OP2("(", ")"), tmp0);
+      CASEEND
+      CASESTART(6)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(column_type_);
+        res = new IR(kNewExpr, OP3("CAST (", "AS", ")"), tmp0, tmp1);
+      CASEEND
+      CASESTART(7)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(collate_);
+        res = new IR(kNewExpr, OP0(), tmp0, tmp1);
+      CASEEND
+      CASESTART(8)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(opt_not_);
+        res = new IR(kUnknown, OP0(), tmp0, tmp1);
+        PUSH(res);
+        auto tmp2 = SAFETRANSLATE(binary_op_);
+        res = new IR(kUnknown, OP0(), res, tmp2);
+        PUSH(res);
+        auto tmp3 = SAFETRANSLATE(new_expr2_);
+        res = new IR(kUnknown, OP0(), res, tmp3);
+        PUSH(res);
+        auto tmp4 = SAFETRANSLATE(opt_escape_expr_);
+        res = new IR(kNewExpr, OP0(), res, tmp4);
+      CASEEND
+      CASESTART(9)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(null_of_expr_);
+        res = new IR(kNewExpr, OP0(), tmp0, tmp1);
+      CASEEND
+      CASESTART(10)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(opt_not_);
+        res = new IR(kUnknown, OP0(), tmp0, tmp1);
+        PUSH(res);
+        auto tmp2 = SAFETRANSLATE(new_expr2_);
+        auto tmp3 = SAFETRANSLATE(new_expr3_);
+        auto tmp4 = new IR(kUnknown, OP2("BETWEEN", "AND"), tmp2, tmp3);
+        PUSH(tmp4);
+        res = new IR(kNewExpr, OP0(), res, tmp4);
+      CASEEND
+      CASESTART(11)
+        auto tmp0 = SAFETRANSLATE(new_expr1_);
+        auto tmp1 = SAFETRANSLATE(opt_not_);
+        res = new IR(kUnknown, OP0(), tmp0, tmp1);
+        PUSH(res);
+        auto tmp2 = SAFETRANSLATE(binary_op_);
+        auto tmp3 = SAFETRANSLATE(in_target_);
+        auto tmp4 = new IR(kUnknown, OP0(), tmp2, tmp3);
+        PUSH(tmp4);
+        res = new IR(kNewExpr, OP0(), res, tmp4);
+      CASEEND
+      CASESTART(12)
+        auto tmp0 = SAFETRANSLATE(exists_or_not_);
+        auto tmp1 = SAFETRANSLATE(select_statement_);
+        res = new IR(kNewExpr, OP3("", "(", ")"), tmp0, tmp1);
+      CASEEND
+      CASESTART(13)
+        auto tmp0 = SAFETRANSLATE(opt_expr_);
+        auto tmp1 = SAFETRANSLATE(case_condition_list_);
+        auto tmp2 = SAFETRANSLATE(opt_else_expr_);
+        res = new IR(kUnknown, OP0(), tmp1, tmp2);
+        PUSH(res);
+        res = new IR(kNewExpr, OP3("CASE", "", "END"), tmp0, res);
+      CASEEND
+      CASESTART(14)
+        auto tmp = SAFETRANSLATE(raise_function_);
+        res = new IR(kNewExpr, OP0(), tmp);
+      CASEEND
+      CASESTART(15)
+        auto tmp0 = SAFETRANSLATE(select_statement_);
+        res = new IR(kNewExpr, OP2("(", ")"), tmp0);
+      CASEEND
     SWITCHEND
 
     TRANSLATEEND
 }
 
-IR* ExprAlias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = SAFETRANSLATE(expr_);
-    auto tmp = SAFETRANSLATE(opt_alias_);
-    
-    res = new IR(kExprAlias, OP0(), res, tmp);
-    
-    TRANSLATEEND
+void NewExpr::deep_delete() {
+    SAFEDELETE(literal_);
+    SAFEDELETE(column_name_);
+    SAFEDELETE(unary_op_);
+    SAFEDELETE(new_expr1_);
+    SAFEDELETE(new_expr2_);
+    SAFEDELETE(new_expr3_);
+    SAFEDELETE(binary_op_);
+    SAFEDELETE(function_name_);
+    SAFEDELETE(function_args_);
+    SAFEDELETE(opt_filter_clause_);
+    SAFEDELETE(opt_over_clause_);
+    SAFEDELETE(expr_list_);
+    SAFEDELETE(column_type_);
+    SAFEDELETE(collate_);
+    SAFEDELETE(opt_not_);
+    SAFEDELETE(opt_escape_expr_);
+    SAFEDELETE(null_of_expr_);
+    SAFEDELETE(in_target_);
+    SAFEDELETE(select_statement_);
+    SAFEDELETE(exists_or_not_);
+    SAFEDELETE(opt_expr_);
+    SAFEDELETE(case_condition_list_);
+    SAFEDELETE(opt_else_expr_);
+    SAFEDELETE(raise_function_);
+    delete this;
 }
 
-IR* Expr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(operand_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(between_expr_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
-        CASESTART(2)
-            res = SAFETRANSLATE(logic_expr_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
-        CASESTART(3)
-            res = SAFETRANSLATE(exists_expr_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
-        CASESTART(4)
-            res = SAFETRANSLATE(in_expr_);
-            res = new IR(kExpr, OP0(), res);
-        CASEEND
-        //CASESTART(5)
-        //    res = SAFETRANSLATE(cast_expr_);
-        //    res = new IR(kExpr, OP0(), res);
-        //CASEEND
-        
-    SWITCHEND
-    TRANSLATEEND
-}
-
-IR* Operand::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(expr_list_);
-            res = new IR(kOperand, OP2("(", ")"), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(expr_);
-            res = new IR(kOperand, OP0(), res);
-        CASEEND
-        CASESTART(2)
-            res = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kOperand, OP2("(", ")"), res);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
-
-IR* BetweenExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    auto tmp1 = SAFETRANSLATE(operand2_);
-    auto tmp2 = SAFETRANSLATE(operand3_);
-    res = new IR(kUnknown, OPMID("AND"), tmp1, tmp2);
-    PUSH(res);
-
-    auto tmp3 = SAFETRANSLATE(operand1_);
-    res = new IR(kBetweenExpr, OPMID("BETWEEN"), tmp3, res);
-
-    TRANSLATEEND
-}
-IR* LogicExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    auto tmp1 = SAFETRANSLATE(expr1_);
-    auto tmp2 = SAFETRANSLATE(expr2_);
-
-    res = new IR(kLogicExpr, OPMID(operator_), tmp1, tmp2);
-    TRANSLATEEND    
-}
-
-IR* ExistsExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kOperand, OP2("(", ")"), res); 
-            PUSH(res);
-            res = new IR(kExistsExpr, OP1("EXISTS"), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kUnknown, OP2("(", ")"), res); 
-            PUSH(res);
-            res = new IR(kExistsExpr, OP1("EXISTS"), res);
-        CASEEND
-    SWITCHEND
-    
-    TRANSLATEEND        
-}
-
-IR* InExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp1 = SAFETRANSLATE(operand_);
-            auto tmp2 = SAFETRANSLATE(expr_list_);
-            auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
-            PUSH(tmp3);
-            res = new IR(kInExpr, OPMID("IN"), tmp1, tmp3);
-        CASEEND
-        CASESTART(1)
-            auto tmp1 = SAFETRANSLATE(operand_);
-            auto tmp2 = SAFETRANSLATE(expr_list_);
-            auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
-            PUSH(tmp3);
-            res = new IR(kInExpr, OPMID("NOT IN"), tmp1, tmp3);
-        CASEEND
-        CASESTART(2)
-            auto tmp1 = SAFETRANSLATE(operand_);
-            auto tmp2 = SAFETRANSLATE(select_no_paren_);
-            auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
-            PUSH(tmp3);
-            res = new IR(kInExpr, OPMID("IN"), tmp1, tmp3);
-        CASEEND
-        CASESTART(3)
-            auto tmp1 = SAFETRANSLATE(operand_);
-            auto tmp2 = SAFETRANSLATE(select_no_paren_);
-            auto tmp3 = new IR(kUnknown, OP3("(", "", ")"), tmp2);
-            PUSH(tmp3);
-            res = new IR(kInExpr, OPMID("IN"), tmp1, tmp3);
-        CASEEND
-    SWITCHEND
-    TRANSLATEEND
-}
-
-IR* ArrayIndex::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    auto tmp1 = SAFETRANSLATE(operand_);
-    auto tmp2 = SAFETRANSLATE(int_literal_);
-    res = new IR(kArrayIndex, OP3("","[", "]"), tmp1, tmp2);
-
-    TRANSLATEEND
-}
-
-
-IR* ScalarExpr::translate(vector<IR *> &v_ir_collector){
+IR* OptExpr::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(column_name_);
-            res = new IR(kScalarExpr, OP0(), res);
+            IR* tmp1 = SAFETRANSLATE(expr_);
+            res = new IR(kOptExpr, OP0(), tmp1);
         CASEEND
         CASESTART(1)
-            res = SAFETRANSLATE(literal_);
-            res = new IR(kScalarExpr, OP0(), res);
+            res = new IR(kOptExpr, string(""));
         CASEEND
     SWITCHEND
-    
     TRANSLATEEND
 }
 
-IR* UnaryExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
+void OptExpr::deep_delete(){
+	SAFEDELETE(expr_);
+	delete this;
+}
 
-    res = SAFETRANSLATE(operand_);
+
+IR* UnaryOp::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    res = new IR(kUnaryOp, value_);
+    TRANSLATEEND
+}
+
+void UnaryOp::deep_delete() {
+  delete this;
+}
+
+
+IR* InTarget::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
     SWITCHSTART
-        CASESTART(0)           
-            res = new IR(kUnaryExpr, OP1("-"), res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kUnaryExpr, OP1("NOT"), res);
-        CASEEND
-        CASESTART(2)
-            res = new IR(kUnaryExpr, OPMID("ISNULL"), res);
-        CASEEND
-        CASESTART(3)
-            res = new IR(kUnaryExpr, OPMID("IS NULL"), res);
-        CASEEND
-        CASESTART(4)
-            res = new IR(kUnaryExpr, OPMID("IS NOT NULL"), res);
-        CASEEND
-        CASESTART(5)
-            auto tmp = SAFETRANSLATE(id_);
-            tmp->id_type_ = id_whatever;
-            res = new IR(kUnaryExpr, OPMID("IS"), res, tmp);
-        CASEEND
-        CASESTART(6)
-            auto tmp = SAFETRANSLATE(id_);
-            tmp->id_type_ = id_whatever;
-            res = new IR(kUnaryExpr, OPMID("IS NOT"), res, tmp);
-        CASEEND
-        CASESTART(7)           
-            res = new IR(kUnaryExpr, OP1("+"), res);
-        CASEEND
+    CASESTART(0)
+      res = new IR(kInTarget, OP2("(", ")"));
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(select_statement_);
+      res = new IR(kInTarget, OP2("(", ")"), tmp0);
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(expr_list_);
+      res = new IR(kInTarget, OP2("(", ")"), tmp0);
+    CASEEND
+    CASESTART(3)
+      auto tmp0 = SAFETRANSLATE(table_name_);
+      res = new IR(kInTarget, OP0(), tmp0);
+    CASEEND
     SWITCHEND
-
     TRANSLATEEND
 }
 
-IR* BinaryExpr::translate(vector<IR *> &v_ir_collector){
+void InTarget::deep_delete() {
+  SAFEDELETE(select_statement_);
+  SAFEDELETE(expr_list_);
+  SAFEDELETE(table_name_);
+  delete this;
+}
+
+IR* BinaryOp::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
-    SWITCHSTART
-        CASESTART(0)
-        auto tmp = SAFETRANSLATE(comp_expr_);
-        res = new IR(kBinaryExpr, OP0(), tmp);
-        CASEEND
-        
-        CASESTART(1)
-            auto tmp1 = SAFETRANSLATE(operand1_);
-            auto tmp2 = SAFETRANSLATE(operand2_);
-            res = new IR(kBinaryExpr, OPMID(operator_), tmp1, tmp2);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-    
-}
-
-IR* CompExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    auto tmp1 = SAFETRANSLATE(operand1_);
-    auto tmp2 = SAFETRANSLATE(operand2_);
-    res = new IR(kCompExpr, OPMID(operator_), tmp1, tmp2);
-    TRANSLATEEND
-}
-IR* CaseExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            auto tmp1 = SAFETRANSLATE(case_expr_);
-            auto tmp2 = SAFETRANSLATE(case_list_);
-            res = new IR(kCaseExpr, OP3("CASE", "", "END"), tmp1, tmp2);
-        CASEEND
-        CASESTART(1)
-            auto tmp1 = SAFETRANSLATE(case_expr_);
-            auto tmp2 = SAFETRANSLATE(case_list_);
-            auto tmp3 = SAFETRANSLATE(else_expr_);
-            res = new IR(kUnknown, OP0(), tmp1 , tmp2);
-            PUSH(res);
-            res = new IR(kCaseExpr, OP3("CASE", "ELSE", "END"), res , tmp3);
-        CASEEND
-        CASESTART(2)
-            res = SAFETRANSLATE(case_list_);
-            res = new IR(kCaseExpr, OP3("CASE", "", "END"), res);
-        CASEEND
-        CASESTART(3)
-            auto tmp1 = SAFETRANSLATE(case_list_);
-            auto tmp2 = SAFETRANSLATE(else_expr_);
-            res = new IR(kCaseExpr, OP3("CASE", "ELSE", "END"), tmp1, tmp2);
-        CASEEND
-    SWITCHEND
-
+    res = new IR(kBinaryOp, value_);
     TRANSLATEEND
 }
 
-IR* FunctionExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kFunctionExpr, OPEND("()"), res);
-            PUSH(res);
-            auto tmp1 = SAFETRANSLATE(opt_filter_clause_);
-            res = new IR(kFunctionExpr, OP0(), res, tmp1);
-            PUSH(res);
-            tmp1 = SAFETRANSLATE(opt_over_clause_);
-            res = new IR(kFunctionExpr, OP0(), res, tmp1);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(id_);
-            auto tmp = SAFETRANSLATE(opt_distinct_);
-            auto tmp2 = SAFETRANSLATE(expr_list_);
-            
-            auto tmp_res = new IR(kExprList, OP3("(", "", ")"), tmp, tmp2);
-            PUSH(tmp_res);
-            res = new IR(kFunctionExpr, OP0(), res, tmp_res);
-            PUSH(res);
-            auto tmp1 = SAFETRANSLATE(opt_filter_clause_);
-            res = new IR(kFunctionExpr, OP0(), res, tmp1);
-            PUSH(res);
-            tmp1 = SAFETRANSLATE(opt_over_clause_);
-            res = new IR(kFunctionExpr, OP0(), res, tmp1);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
+void BinaryOp::deep_delete() {
+  delete this;
 }
 
-IR* ExtractExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
 
-    res = SAFETRANSLATE(datetime_field_);
-    IR * expr = SAFETRANSLATE(expr_);
-    res = new IR(kUnknown, OP3("(", "FROM", ")"), res, expr);
-    PUSH(res);
-    res = new IR(kExtractExpr, OPSTART("EXTRACT"), res);
-
-    TRANSLATEEND
-}
-
-IR* ArrayExpr::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = SAFETRANSLATE(expr_list_);
-    res = new IR(kArrayExpr, OP3("ARRAY", "[","]"), NULL, res);
-    
-    TRANSLATEEND
-    
-}
-
-IR* CaseClause::translate(vector<IR *> &v_ir_collector){
+IR* CaseCondition::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
     auto tmp1 = SAFETRANSLATE(when_expr_);
     auto tmp2 = SAFETRANSLATE(then_expr_);
-    res = new IR(kCaseClause, OP2("WHEN", "THEN"), tmp1, tmp2);
+    res = new IR(kCaseCondition, OP2("WHEN", "THEN"), tmp1, tmp2);
 
     TRANSLATEEND
 
 }
-IR* CaseList::translate(vector<IR *> &v_ir_collector){
+IR* CaseConditionList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
-    TRANSLATELIST(kCaseList, v_case_list_, " ");
-
+    TRANSLATELIST(kCaseConditionList, v_case_condition_list_, " ");
     TRANSLATEENDNOPUSH
 }
 
-IR* DatetimeField::translate(vector<IR *> &v_ir_collector){
+
+IR *TableConstraintList::translate(vector<IR *> &v_ir_collector) {
     TRANSLATESTART
-
-    res = new IR(kDatetimeField, str_val_);
-
-    TRANSLATEEND
+    TRANSLATELIST(kTableConstraintList, v_table_constraint_list_, ",");
+    TRANSLATEENDNOPUSH
 }
 
-IR *ColumnOrTableConstraintDefCommaList::translate(vector<IR *> &v_ir_collector) {
-  TRANSLATESTART
-
-  SWITCHSTART
-
-    CASESTART(0)
-      auto tmp0 = SAFETRANSLATE(column_def_comma_list_);
-      res = new IR(kColumnOrTableConstraintDefCommaList, OP0(), tmp0, NULL);
-    CASEEND
-    CASESTART(1)
-      auto tmp1 = SAFETRANSLATE(table_constraint_def_comma_list_);
-      res = new IR(kColumnOrTableConstraintDefCommaList, OP0(), NULL, tmp1);
-    CASEEND
-    CASESTART(2)
-      auto tmp0 = SAFETRANSLATE(column_def_comma_list_);
-      auto tmp1 = SAFETRANSLATE(table_constraint_def_comma_list_);
-      res = new IR(kColumnOrTableConstraintDefCommaList, OPMID(","), tmp0, tmp1);
-    CASEEND
-
-  SWITCHEND
-
-  TRANSLATEEND
-}
-
-void ColumnOrTableConstraintDefCommaList::deep_delete() {
-  SAFEDELETE(column_def_comma_list_);
-  SAFEDELETE(table_constraint_def_comma_list_);
-  delete this;
-}
-
-IR *TableConstraintDefCommaList::translate(vector<IR *> &v_ir_collector) {
-    TRANSLATESTART
-
-    TRANSLATELIST(kTableConstraintDefCommaList, v_table_constraint_def_comma_list_, ",");
-
-    TRANSLATEEND
-}
-
-void TableConstraintDefCommaList::deep_delete(){
-	SAFEDELETELIST(v_table_constraint_def_comma_list_);
+void TableConstraintList::deep_delete(){
+	SAFEDELETELIST(v_table_constraint_list_);
 	delete this;
 }
 
-IR *TableConstraintDef::translate(vector<IR *> &v_ir_collector) {
+IR *TableConstraint::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
+  
+  auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
 
   SWITCHSTART
     CASESTART(0)
-      auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
       auto tmp1 = SAFETRANSLATE(expr_);
-      res = new IR(kTableConstraintDef, OP3("", "CHECK(", ")"), tmp0, tmp1);
+      res = new IR(kTableConstraint, OP3("", "CHECK(", ")"), tmp0, tmp1);
     CASEEND
     CASESTART(1)
-      auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
       auto tmp1 = SAFETRANSLATE(indexed_column_list_);
-      auto tmp2 = SAFETRANSLATE(opt_on_conflict_);
+      auto tmp2 = SAFETRANSLATE(opt_conflict_clause_);
       res = new IR(kUnknown, OP2("PRIMARY KEY (", ")"), tmp1, tmp2);
       PUSH(res);
-      res = new IR(kTableConstraintDef, OP0(), tmp0, res);
+      res = new IR(kTableConstraint, OP0(), tmp0, res);
     CASEEND
     CASESTART(2)
-      auto tmp0 = SAFETRANSLATE(opt_constraint_name_);
       auto tmp1 = SAFETRANSLATE(indexed_column_list_);
-      auto tmp2 = SAFETRANSLATE(opt_on_conflict_);
+      auto tmp2 = SAFETRANSLATE(opt_conflict_clause_);
       res = new IR(kUnknown, OP2("UNIQUE (", ")"), tmp1, tmp2);
       PUSH(res);
-      res = new IR(kTableConstraintDef, OP0(), tmp0, res);
+      res = new IR(kTableConstraint, OP0(), tmp0, res);
+    CASEEND
+    CASESTART(3)
+      auto tmp1 = SAFETRANSLATE(column_name_list_);
+      auto tmp2 = SAFETRANSLATE(foreign_key_clause_);
+      res = new IR(kUnknown, OP2("FOREIGN KEY (", ")"), tmp1, tmp2);
+      PUSH(res);
+      res = new IR(kTableConstraint, OP0(), tmp0, res);
     CASEEND
 
   SWITCHEND
@@ -1627,11 +1587,13 @@ IR *TableConstraintDef::translate(vector<IR *> &v_ir_collector) {
   TRANSLATEEND
 }
 
-void TableConstraintDef::deep_delete() {
+void TableConstraint::deep_delete() {
   SAFEDELETE(opt_constraint_name_);
   SAFEDELETE(expr_);
-  SAFEDELETE(opt_on_conflict_);
+  SAFEDELETE(opt_conflict_clause_);
   SAFEDELETE(indexed_column_list_);
+  SAFEDELETE(column_name_list_);
+  SAFEDELETE(foreign_key_clause_);
   delete this;
 }
 
@@ -1656,6 +1618,39 @@ IR* OptConstraintName::translate(vector<IR *> &v_ir_collector) {
 
 void OptConstraintName::deep_delete() {
 	SAFEDELETE(identifier_);
+  delete this;
+}
+
+IR *FunctionArgs::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  SWITCHSTART
+  CASESTART(0)
+    auto tmp0 = SAFETRANSLATE(opt_distinct_);
+    auto tmp1 = SAFETRANSLATE(expr_list_);
+    res = new IR(kFunctionArgs, OP0(), tmp0, tmp1);
+  CASEEND
+  CASESTART(1)
+    res = new IR(kFunctionArgs, str_val_);
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void FunctionArgs::deep_delete() {
+  SAFEDELETE(opt_distinct_);
+  SAFEDELETE(expr_list_);
+  delete this;
+}
+
+IR *FunctionName::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  auto tmp0 = SAFETRANSLATE(identifier_);
+  res = new IR(kFunctionName, OP0(), tmp0);
+  TRANSLATEEND
+}
+
+void FunctionName::deep_delete() {
+  SAFEDELETE(identifier_);
   delete this;
 }
 
@@ -1719,36 +1714,28 @@ IR* BlobLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* BoolLiteral::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kBoolLiteral, b_val_);
-
-    TRANSLATEEND
+IR *SignedNumber::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  auto tmp = SAFETRANSLATE(numeric_literal_);
+  res = new IR(kSignedNumber, OP1(str_sign_), tmp);
+  TRANSLATEEND
 }
 
-IR* NumLiteral::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = new IR(kFloatLiteral, f_val_);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(int_literal_);
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
+void SignedNumber::deep_delete() {
+  SAFEDELETE(numeric_literal_);
+  delete this;
 }
 
-IR* IntLiteral::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    res = new IR(kIntLiteral, int_val_);
-
-    TRANSLATEEND
+IR *NumericLiteral::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  res = new IR(kNumericLiteral, value_);
+  TRANSLATEEND
 }
+
+void NumericLiteral::deep_delete() {
+  delete this;
+}
+
 
 IR* NullLiteral::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -1769,17 +1756,15 @@ IR* ParamExpr::translate(vector<IR *> &v_ir_collector){
 
 IR* Identifier::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    res = new IR(kIdentifier, id_, id_type_);
+    res = new IR(kIdentifier, id_str_, id_type_);
 
     TRANSLATEEND
 }
 
 IR* TableRefCommaList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kTableRefCommaList, v_table_ref_comma_list_, ",");
-
-    TRANSLATEEND
+    TRANSLATEENDNOPUSH
 }
 
 IR* TableRefAtomic::translate(vector<IR *> &v_ir_collector){
@@ -1827,31 +1812,144 @@ IR* TableRefName::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* TableRefNameNoAlias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = SAFETRANSLATE(table_name_);
-    res = new IR(kTableRefNameNoAlias, OP0(), res);
-
-    TRANSLATEEND
-}
-
-IR* TableAlias::translate(vector<IR *> &v_ir_collector){
+IR* ColumnAlias::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(alias_);
-            res = new IR(kTableAlias, OP0(), res);
+            res = SAFETRANSLATE(alias_id_);
+            res = new IR(kColumnAlias, OP0(), res);
         CASEEND
         CASESTART(1)
-            IR* id = SAFETRANSLATE(id_);
-            IR* tmp = SAFETRANSLATE(ident_comma_list_);
-            res = new IR(kTableAlias, OP3("AS", "(", ")"), id, tmp);
+            res = SAFETRANSLATE(alias_id_);
+            res = new IR(kColumnAlias, OP1("AS"), res);
         CASEEND
     SWITCHEND
 
     TRANSLATEEND
+}
+
+void ColumnAlias::deep_delete() {
+  SAFEDELETE(alias_id_);
+	delete this;
+}
+
+
+IR* TableAlias::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    res = SAFETRANSLATE(alias_id_);
+    res = new IR(kTableAlias, OP0(), res);
+
+    TRANSLATEEND
+}
+
+void TableAlias::deep_delete() {
+  SAFEDELETE(alias_id_);
+	delete this;
+}
+
+IR* OptColumnAlias::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+        CASESTART(0)
+            res = SAFETRANSLATE(column_alias_);
+            res = new IR(kOptColumnAlias, OP0(), res);
+        CASEEND
+        CASESTART(1)
+            res = new IR(kOptColumnAlias, "");
+        CASEEND
+    SWITCHEND
+
+    TRANSLATEEND
+}
+
+void OptColumnAlias::deep_delete(){
+	SAFEDELETE(column_alias_);
+	delete this;
+}
+
+IR *OptReturningClause::translate(vector<IR *> &v_ir_collector){
+  TRANSLATESTART
+
+  SWITCHSTART
+  CASESTART(0)
+    auto tmp = SAFETRANSLATE(returning_column_list_);
+    res = new IR(kOptReturningClause, OP1("RETURNING"), tmp);
+  CASEEND
+  CASESTART(1)
+    res = new IR(kOptReturningClause, string(""));
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void OptReturningClause::deep_delete() {
+  SAFEDELETE(returning_column_list_);
+  delete this;
+}
+
+
+IR *ResultColumnList::translate(vector<IR *> &v_ir_collector){
+  TRANSLATESTART
+  TRANSLATELIST(kResultColumnList, v_result_column_list_, ",");
+  TRANSLATEENDNOPUSH
+}
+
+void ResultColumnList::deep_delete() {
+  SAFEDELETELIST(v_result_column_list_);
+  delete this;
+}
+
+IR *ResultColumn::translate(vector<IR *> &v_ir_collector){
+  TRANSLATESTART
+
+  SWITCHSTART
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(expr_);
+      auto tmp1 = SAFETRANSLATE(opt_column_alias_);
+      res = new IR(kResultColumn, OP0(), tmp0, tmp1);
+    CASEEND
+    CASESTART(1)
+      res = new IR(kResultColumn, OP1("*"));
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(table_name_);
+      res = new IR(kResultColumn, OPMID(". *"), tmp0);
+    CASEEND
+  SWITCHEND
+
+  TRANSLATEEND
+}
+
+void ResultColumn::deep_delete() {
+  SAFEDELETE(expr_);
+  SAFEDELETE(opt_column_alias_);
+  SAFEDELETE(table_name_);
+  delete this;
+}
+
+
+IR* OptTableAliasAs::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+        CASESTART(0)
+            res = SAFETRANSLATE(table_alias_);
+            res = new IR(kOptTableAliasAs, OP1("AS"), res);
+        CASEEND
+        CASESTART(1)
+            res = new IR(kOptTableAliasAs, string(""));
+        CASEEND
+    SWITCHEND
+
+    TRANSLATEEND
+}
+
+void OptTableAliasAs::deep_delete(){
+	SAFEDELETE(table_alias_);
+	delete this;
 }
 
 IR* OptTableAlias::translate(vector<IR *> &v_ir_collector){
@@ -1863,51 +1961,29 @@ IR* OptTableAlias::translate(vector<IR *> &v_ir_collector){
             res = new IR(kOptTableAlias, OP0(), res);
         CASEEND
         CASESTART(1)
-            res = new IR(kOptTableAlias, "");
+            res = SAFETRANSLATE(table_alias_);
+            res = new IR(kOptTableAlias, OP1("AS"), res);
+        CASEEND
+        CASESTART(2)
+            res = new IR(kOptTableAlias, string(""));
         CASEEND
     SWITCHEND
 
     TRANSLATEEND
 }
 
-IR* Alias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kAlias, OPSTART("AS"),res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kAlias, OP0(), res);
-        CASEEND
-    SWITCHEND
-    
-    TRANSLATEEND
+void OptTableAlias::deep_delete(){
+	SAFEDELETE(table_alias_);
+	delete this;
 }
 
-IR* OptAlias::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(alias_);
-            res = new IR(kOptAlias, OP0(), res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptAlias, "");
-        CASEEND
-    SWITCHEND
-
-    TRANSLATEEND
-}
 
 IR* WithClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    res = SAFETRANSLATE(with_description_list_);
-    res = new IR(kWithClause, OPSTART("WITH"), res);
+    auto tmp0 = SAFETRANSLATE(opt_recursive_);
+    auto tmp1 = SAFETRANSLATE(common_table_expr_list_);
+    res = new IR(kWithClause, OPSTART("WITH"), tmp0, tmp1);
 
     TRANSLATEEND
 }
@@ -1928,75 +2004,93 @@ IR* OptWithClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* WithDescriptionList::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    TRANSLATELIST(kWithDescriptionList, v_with_description_list_, ",");
 
-    TRANSLATEENDNOPUSH  
+IR *CommonTableExprList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  TRANSLATELIST(kCommonTableExprList, v_common_table_expr_list_, ",");
+  TRANSLATEENDNOPUSH
 }
 
-IR* WithDescription::translate(vector<IR *> &v_ir_collector){
+void CommonTableExprList::deep_delete() {
+  SAFEDELETELIST(v_common_table_expr_list_);
+  delete this;
+}
+
+IR* CommonTableExpr::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-    
-    IR* id = SAFETRANSLATE(id_);
-    IR* tmp = SAFETRANSLATE(select_with_paren_);
-    res = new IR(kWithDescription, OPMID("AS"), id, tmp);
+
+    auto tmp0 = SAFETRANSLATE(table_name_);
+    auto tmp1 = SAFETRANSLATE(opt_column_list_paren_);
+    auto tmp2 = SAFETRANSLATE(select_statement_);
+    res = new IR(kUnknown, OP0(), tmp0, tmp1);
+    PUSH(res);
+    res = new IR(kCommonTableExpr, OP3("", "AS (", ")"), res, tmp2);
 
     TRANSLATEEND
+}
+
+void CommonTableExpr::deep_delete() {
+  SAFEDELETE(table_name_);
+  SAFEDELETE(opt_column_list_paren_);
+  SAFEDELETE(select_statement_);
+  delete this;
+}
+
+IR *JoinSuffix::translate(vector<IR *> &v_ir_collector) {
+
+  TRANSLATESTART
+
+  auto tmp0 = SAFETRANSLATE(join_op_);
+  auto tmp1 = SAFETRANSLATE(table_or_subquery_);
+  res = new IR(kUnknown, OP0(), tmp0, tmp1);
+  PUSH(res);
+  auto tmp2 = SAFETRANSLATE(join_constraint_);
+  res = new IR(kJoinSuffix, OP0(), res, tmp2);
+  TRANSLATEEND
+}
+
+void JoinSuffix::deep_delete() {
+  SAFEDELETE(join_op_);
+  SAFEDELETE(table_or_subquery_);
+  SAFEDELETE(join_constraint_);
+  delete this;
+}
+
+IR *JoinSuffixList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  TRANSLATELIST(kJoinSuffixList, v_join_suffix_list_, " ");
+  TRANSLATEENDNOPUSH
+}
+
+void JoinSuffixList::deep_delete() {
+  SAFEDELETELIST(v_join_suffix_list_);
+  delete this;
 }
 
 IR* JoinClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     SWITCHSTART
-        CASESTART(0)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(nonjoin_table_ref_atomic_);
-            res = new IR(kJoinClause, OPMID("NATURAL JOIN"), tmp, tmp2);
-        CASEEND
-        CASESTART(1)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(opt_join_type_);
-            res = new IR(kUnknown, OP0(), tmp, tmp2);
-            PUSH(res);
 
-            IR * tmp3 = SAFETRANSLATE(table_ref_atomic2_);
-            res = new IR(kUnknown, OPMID("JOIN"), res, tmp3);
-            PUSH(res);
+      CASESTART(0)
+        auto tmp0 = SAFETRANSLATE(table_or_subquery_);
+        res = new IR(kJoinClause, OP0(), tmp0);
+      CASEEND
+      CASESTART(1)
+        auto tmp0 = SAFETRANSLATE(table_or_subquery_);
+        auto tmp1 = SAFETRANSLATE(join_suffix_list_);
+        res = new IR(kJoinClause, OP0(), tmp0, tmp1);
+      CASEEND
 
-            IR * tmp4 = SAFETRANSLATE(join_condition_);
-            res = new IR(kJoinClause, OPMID("ON"), res, tmp4);
-        CASEEND
-        CASESTART(2)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(opt_join_type_);
-            res = new IR(kUnknown, OP0(), tmp, tmp2);
-            PUSH(res);
-
-            IR * tmp3 = SAFETRANSLATE(table_ref_atomic2_);
-            res = new IR(kUnknown, OPMID("JOIN"), res, tmp3);
-            PUSH(res);
-
-            IR * tmp4 = SAFETRANSLATE(column_name_);
-            IR * tmp5 = new IR(kUnknown, OP3("(", "", ")"), tmp4);
-            PUSH(res);
-            res = new IR(kJoinClause, OP3("", "USING", ""), res, tmp5);
-        CASEEND
-        CASESTART(3)
-            IR * tmp = SAFETRANSLATE(table_ref_atomic1_);
-            IR * tmp2 = SAFETRANSLATE(opt_join_type_);
-            res = new IR(kUnknown, OP0(), tmp, tmp2);
-            PUSH(res);
-
-            IR * tmp3 = SAFETRANSLATE(table_ref_atomic2_);
-            res = new IR(kJoinClause, OPMID("JOIN"), res, tmp3);
-        CASEEND
     SWITCHEND
-
     TRANSLATEEND
-
 }
+
+void JoinClause::deep_delete(){
+  SAFEDELETE(table_or_subquery_);
+  SAFEDELETE(join_suffix_list_);
+	delete this;
+}
+
 
 IR* OptJoinType::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2006,14 +2100,34 @@ IR* OptJoinType::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-IR* JoinCondition::translate(vector<IR *> &v_ir_collector){
+IR* JoinConstraint::translate(vector<IR *> &v_ir_collector) {
     TRANSLATESTART
 
-    res = SAFETRANSLATE(expr_);
-    res = new IR(kJoinCondition, OP0(), res);
+    SWITCHSTART
+
+      CASESTART(0)
+        res = SAFETRANSLATE(on_expr_);
+        res = new IR(kJoinConstraint, OP0(), res);
+      CASEEND
+      CASESTART(1)
+        res = SAFETRANSLATE(column_name_list_);
+        res = new IR(kJoinConstraint, OP2("USING (", ")"), res);
+      CASEEND
+      CASESTART(2)
+        res = new IR(kJoinConstraint, "");
+      CASEEND
+
+    SWITCHEND
 
     TRANSLATEEND
 }
+
+void JoinConstraint::deep_delete(){
+	SAFEDELETE(on_expr_);
+  SAFEDELETE(column_name_list_);
+	delete this;
+}
+
 
 IR* OptSemicolon::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2021,61 +2135,6 @@ IR* OptSemicolon::translate(vector<IR *> &v_ir_collector){
     res = new IR(kOptSemicolon, str_val_);
 
     TRANSLATEEND
-}
-
-IR* IdentCommaList::translate(vector<IR *> &v_ir_collector){
-    
-    // TRANSLATELIST(kIdentCommaList, v_iden_comma_list_, ",")
-    // SWITCHSTART
-
-    // CASESTART(0)
-    // auto tmp0 = SAFETRANSLATE(identifier_);
-    // auto tmp1 = SAFETRANSLATE(opt_collate_);
-    // res = new IR(kIdentCommaList, OP0(), tmp0, tmp1);
-    // CASEEND
-
-    // CASESTART(1)
-    // auto tmp0 = SAFETRANSLATE(ident_comma_list_);
-    // auto tmp1 = SAFETRANSLATE(identifier_);
-    // auto tmp2 = SAFETRANSLATE(opt_collate_);
-    // res = new IR(kUnknown, OPMID(" , "), tmp0, tmp1);
-    // PUSH(res);
-    // res = new IR(kIdentCommaList, OP0(), res, tmp2);
-    // CASEEND
-
-    // SWITCHEND
-    
-    // TRANSLATEEND
-
-    TRANSLATESTART
-    res = SAFETRANSLATE(v_iden_comma_list_[0]); 
-    res = new IR(kIdentCommaList, OP0(), res) ; 
-    v_ir_collector.push_back(res);
-    if (v_opt_collate_list_[0] != nullptr){
-        auto tmp = SAFETRANSLATE(v_opt_collate_list_[0]);
-        res = new IR(kIdentCommaList, OP0(), res, tmp);
-        v_ir_collector.push_back(res);
-        auto tmp2 = SAFETRANSLATE(v_opt_order_type_[0]);
-        res = new IR(kIdentCommaList, OP0(), res, tmp2);
-        v_ir_collector.push_back(res);
-    }
-
-    for(int i = 1; i < v_iden_comma_list_.size(); i++){ 
-        IR * tmp = SAFETRANSLATE(v_iden_comma_list_[i]); 
-        res = new IR(kIdentCommaList, OPMID(","), res, tmp); 
-        v_ir_collector.push_back(res); 
-        if (v_opt_collate_list_[i] != nullptr){
-            IR * tmp1 = SAFETRANSLATE(v_opt_collate_list_[i]); 
-            res = new IR(kIdentCommaList, OPMID(" "), res, tmp1); 
-            v_ir_collector.push_back(res); 
-        }
-        if (v_opt_order_type_[i] != nullptr){
-            IR * tmp2 = SAFETRANSLATE(v_opt_order_type_[i]); 
-            res = new IR(kIdentCommaList, OPMID(" "), res, tmp2); 
-            v_ir_collector.push_back(res); 
-        }
-    }
-    TRANSLATEENDNOPUSH
 }
 
 void Opt::deep_delete(){
@@ -2104,24 +2163,7 @@ void StatementList::deep_delete(){
 
 
 void Statement::deep_delete(){
-	SAFEDELETE(optional_hints_);
 	SAFEDELETE(preparable_statement_);
-	SAFEDELETE(prepare_statement_);
-	SAFEDELETE(show_statement_);
-    SAFEDELETE(cmd_);
-	delete this;
-}
-
-
-void OptionalHints::deep_delete(){
-	SAFEDELETE(hint_list_);
-	delete this;
-}
-
-
-void PrepareStatement::deep_delete(){
-	SAFEDELETE(id_);
-	SAFEDELETE(prep_target_que_);
 	delete this;
 }
 
@@ -2131,115 +2173,43 @@ void PreparableStatement::deep_delete(){
 }
 
 
-void ShowStatement::deep_delete(){
-	SAFEDELETE(table_name_);
-	delete this;
-}
-
-
-void Hint::deep_delete(){
-	SAFEDELETE(literal_list_);
-	SAFEDELETE(id_);
-	delete this;
-}
-
-
-void HintList::deep_delete(){
-	SAFEDELETELIST(v_hint_list_);
-	delete this;
-}
-
-
-void PrepareTargetQuery::deep_delete(){
-	delete this;
-}
-
-
 void SelectStatement::deep_delete(){
 	SAFEDELETE(opt_with_clause_);
-	SAFEDELETE(select_with_paren_);
-	SAFEDELETE(select_no_paren_);
-	SAFEDELETE(set_operator_);
-	SAFEDELETE(select_paren_or_clause_);
+  SAFEDELETE(select_core_list_);
 	SAFEDELETE(opt_order_);
 	SAFEDELETE(opt_limit_);
 	delete this;
 }
 
 
-void ImportStatement::deep_delete(){
-	SAFEDELETE(import_file_type_);
-	SAFEDELETE(file_path_);
-	SAFEDELETE(table_name_);
-	delete this;
-}
-
-
 void CreateStatement::deep_delete(){
-  SAFEDELETE(opt_tmp_);
-	SAFEDELETE(opt_not_exists_);
-	SAFEDELETE(table_name_);
-	SAFEDELETE(file_path_);
-	SAFEDELETE(column_or_table_constraint_def_comma_list_);
-	SAFEDELETE(select_statement_);
-	SAFEDELETE(opt_column_list_);
-    SAFEDELETE(opt_unique_);
-    SAFEDELETE(index_name_);
-    SAFEDELETE(indexed_column_list_);
-    SAFEDELETE(opt_where_);
-    SAFEDELETE(module_name_);
-    SAFEDELETE(trigger_declare_);
-    SAFEDELETE(trigger_cmd_list_);
-    SAFEDELETE(opt_without_rowid_);
-	delete this;
+  assert(0);
 }
 
 
 void InsertStatement::deep_delete(){
-    SAFEDELETE(insert_type_);
-	SAFEDELETE(table_name_);
-	SAFEDELETE(opt_column_list_);
-	SAFEDELETE(super_list_);
-	SAFEDELETE(select_no_paren_);
-    SAFEDELETE(opt_upsert_clause_);
-	delete this;
+  SAFEDELETE(opt_with_clause_);
+  SAFEDELETE(insert_type_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(opt_table_alias_as_);
+  SAFEDELETE(opt_column_list_paren_);
+  SAFEDELETE(insert_value_);
+  SAFEDELETE(opt_returning_clause_);
+  delete this;
 }
 
 
 void DeleteStatement::deep_delete(){
-	SAFEDELETE(table_name_);
+  SAFEDELETE(opt_with_clause_);
+	SAFEDELETE(qualified_table_name_);
 	SAFEDELETE(opt_where_);
-	delete this;
-}
-
-
-void UpdateStatement::deep_delete(){
-	SAFEDELETE(table_ref_name_no_alias_);
-	SAFEDELETE(update_clause_comma_list_);
-	SAFEDELETE(opt_where_);
+  SAFEDELETE(opt_returning_clause_);
 	delete this;
 }
 
 
 void DropStatement::deep_delete(){
-	SAFEDELETE(opt_exists_);
-	SAFEDELETE(table_name_);
-	SAFEDELETE(id_);
-    SAFEDELETE(schema_name_);
-    SAFEDELETE(trigger_name_);
-	delete this;
-}
-
-
-void ExecuteStatement::deep_delete(){
-	SAFEDELETE(id_);
-	SAFEDELETE(opt_literal_list_);
-	delete this;
-}
-
-
-void ImportFileType::deep_delete(){
-	delete this;
+  assert(0);
 }
 
 
@@ -2248,21 +2218,16 @@ void FilePath::deep_delete(){
 }
 
 
-void OptNotExists::deep_delete(){
-	delete this;
-}
-
-
-void ColumnDefCommaList::deep_delete(){
-	SAFEDELETELIST(v_column_def_comma_list_);
+void ColumnDefList::deep_delete(){
+	SAFEDELETELIST(v_column_def_list_);
 	delete this;
 }
 
 
 void ColumnDef::deep_delete(){
-	SAFEDELETE(id_);
+	SAFEDELETE(identifier_);
 	SAFEDELETE(column_type_);
-	SAFEDELETE(opt_column_arglist_);
+	SAFEDELETE(opt_column_constraintlist_);
 	delete this;
 }
 
@@ -2277,18 +2242,12 @@ void OptColumnNullable::deep_delete(){
 }
 
 
-void OptExists::deep_delete(){
+void OptIfExists::deep_delete(){
 	delete this;
 }
 
 
-void OptColumnList::deep_delete(){
-	SAFEDELETE(ident_comma_list_);
-	delete this;
-}
-
-
-void UpdateClauseCommalist::deep_delete(){
+void UpdateClauseList::deep_delete(){
 	SAFEDELETELIST(v_update_clause_list_);
 	delete this;
 }
@@ -2302,55 +2261,19 @@ void UpdateClause::deep_delete(){
 }
 
 
-void SelectWithParen::deep_delete(){
-	SAFEDELETE(select_no_paren_);
-	SAFEDELETE(select_with_paren_);
-	delete this;
-}
-
-
-void SelectParenOrClause::deep_delete(){
-	SAFEDELETE(select_with_paren_);
-	SAFEDELETE(select_clause_);
-	delete this;
-}
-
-
-void SelectNoParen::deep_delete(){
-	SAFEDELETE(select_clause_);
-	SAFEDELETE(opt_order_);
-	SAFEDELETE(opt_limit_);
-	SAFEDELETE(set_operator_);
-	SAFEDELETE(select_paren_or_clause_);
-	delete this;
-}
-
-
 void SetOperator::deep_delete(){
-	SAFEDELETE(set_type_);
-	SAFEDELETE(opt_all_);
 	delete this;
 }
 
 
-void SetType::deep_delete(){
-	delete this;
-}
-
-
-void OptAll::deep_delete(){
-	delete this;
-}
-
-
-void SelectClause::deep_delete(){
-	SAFEDELETE(opt_top_);
+void SelectCore::deep_delete(){
 	SAFEDELETE(opt_distinct_);
-	SAFEDELETE(select_list_);
+	SAFEDELETE(result_column_list_);
 	SAFEDELETE(opt_from_clause_);
 	SAFEDELETE(opt_where_);
 	SAFEDELETE(opt_group_);
-    SAFEDELETE(window_clause_);
+  SAFEDELETE(opt_window_clause_);
+  SAFEDELETE(expr_list_paren_list_);
 	delete this;
 }
 
@@ -2366,20 +2289,9 @@ void SelectList::deep_delete(){
 }
 
 
-void FromClause::deep_delete(){
-	SAFEDELETE(table_ref_);
-	delete this;
-}
-
 
 void OptFromClause::deep_delete(){
 	SAFEDELETE(from_clause_);
-	delete this;
-}
-
-
-void OptWhere::deep_delete(){
-	SAFEDELETE(expr_);
 	delete this;
 }
 
@@ -2404,33 +2316,21 @@ void OptOrder::deep_delete(){
 
 
 void OrderList::deep_delete(){
-	SAFEDELETELIST(v_order_desc_);
+	SAFEDELETELIST(v_order_term_);
 	delete this;
 }
 
 
-void OrderDesc::deep_delete(){
+void OrderTerm::deep_delete(){
 	SAFEDELETE(expr_);
+  SAFEDELETE(opt_collate_);
 	SAFEDELETE(opt_order_type_);
-    SAFEDELETE(opt_null_);
+  SAFEDELETE(opt_order_of_null_);
 	delete this;
 }
 
 
 void OptOrderType::deep_delete(){
-	delete this;
-}
-
-
-void OptTop::deep_delete(){
-	SAFEDELETE(int_literal_);
-	delete this;
-}
-
-
-void OptLimit::deep_delete(){
-	SAFEDELETE(expr1_);
-	SAFEDELETE(expr2_);
 	delete this;
 }
 
@@ -2441,161 +2341,15 @@ void ExprList::deep_delete(){
 }
 
 
-void LiteralList::deep_delete(){
-	SAFEDELETELIST(v_literal_list_);
-	delete this;
-}
-
-
-void OptLiteralList::deep_delete(){
-	SAFEDELETE(literal_list_);
-	delete this;
-}
-
-
-void Alias::deep_delete(){
-	SAFEDELETE(id_);
-	delete this;
-}
-
-
-void Expr::deep_delete(){
-    SAFEDELETE(operand_);
-    SAFEDELETE(between_expr_);
-    SAFEDELETE(logic_expr_);
-    SAFEDELETE(exists_expr_);
-    SAFEDELETE(in_expr_);
-    //SAFEDELETE(cast_expr_);
-	delete this;
-}
-
-
-void ExprAlias::deep_delete(){
-	SAFEDELETE(expr_);
-	SAFEDELETE(opt_alias_);
-	delete this;
-}
-
-
-void Operand::deep_delete(){
-	SAFEDELETE(expr_);
-	SAFEDELETE(expr_list_);
-	SAFEDELETE(select_no_paren_);
-
-	delete this;
-}
-
-
-void BetweenExpr::deep_delete(){
-	SAFEDELETE(operand1_);
-	SAFEDELETE(operand2_);
-	SAFEDELETE(operand3_);
-	delete this;
-}
-
-
-void LogicExpr::deep_delete(){
-	SAFEDELETE(expr1_);
-	SAFEDELETE(expr2_);
-	delete this;
-}
-
-
-void ExistsExpr::deep_delete(){
-	SAFEDELETE(select_no_paren_);
-	delete this;
-}
-
-
-void InExpr::deep_delete(){
-	SAFEDELETE(operand_);
-	SAFEDELETE(expr_list_);
-	SAFEDELETE(select_no_paren_);
-	delete this;
-}
-
-
-void ArrayIndex::deep_delete(){
-	SAFEDELETE(int_literal_);
-	SAFEDELETE(operand_);
-	delete this;
-}
-
-void ScalarExpr::deep_delete(){
-	SAFEDELETE(column_name_);
-	SAFEDELETE(literal_);
-	delete this;
-}
-
-
-void UnaryExpr::deep_delete(){
-	SAFEDELETE(operand_);
-    SAFEDELETE(id_);
-	delete this;
-}
-
-
-void BinaryExpr::deep_delete(){
-	SAFEDELETE(operand2_);
-    SAFEDELETE(operand1_);
-	SAFEDELETE(comp_expr_);
-	delete this;
-}
-
-
-void CompExpr::deep_delete(){
-    SAFEDELETE(operand2_);
-    SAFEDELETE(operand1_);
-    
-	delete this;
-}
-
-
-void CaseExpr::deep_delete(){
-	SAFEDELETE(case_expr_);
-	SAFEDELETE(else_expr_);
-	SAFEDELETE(case_list_);
-	delete this;
-}
-
-
-void FunctionExpr::deep_delete(){
-	SAFEDELETE(id_);
-	SAFEDELETE(opt_distinct_);
-	SAFEDELETE(expr_list_);
-    SAFEDELETE(opt_filter_clause_);
-    SAFEDELETE(opt_over_clause_);
-	delete this;
-}
-
-
-void ExtractExpr::deep_delete(){
-	SAFEDELETE(datetime_field_);
-	SAFEDELETE(expr_);
-	delete this;
-}
-
-
-void ArrayExpr::deep_delete(){
-	SAFEDELETE(expr_list_);
-	delete this;
-}
-
-
-void CaseClause::deep_delete(){
+void CaseCondition::deep_delete(){
 	SAFEDELETE(when_expr_);
 	SAFEDELETE(then_expr_);
 	delete this;
 }
 
 
-void CaseList::deep_delete(){
-	SAFEDELETELIST(v_case_list_);
-	delete this;
-}
-
-
-void DatetimeField::deep_delete(){
+void CaseConditionList::deep_delete(){
+	SAFEDELETELIST(v_case_condition_list_);
 	delete this;
 }
 
@@ -2620,20 +2374,6 @@ void BlobLiteral::deep_delete(){
 	delete this;
 }
 
-void BoolLiteral::deep_delete(){
-	delete this;
-}
-
-
-void NumLiteral::deep_delete(){
-	SAFEDELETE(int_literal_);
-	delete this;
-}
-
-
-void IntLiteral::deep_delete(){
-	delete this;
-}
 
 void NullLiteral::deep_delete(){
 	delete this;
@@ -2648,7 +2388,6 @@ void ParamExpr::deep_delete(){
 void Identifier::deep_delete(){
 	delete this;
 }
-
 
 void TableRefCommaList::deep_delete(){
 	SAFEDELETELIST(v_table_ref_comma_list_);
@@ -2678,41 +2417,9 @@ void TableRefName::deep_delete(){
 }
 
 
-void TableRefNameNoAlias::deep_delete(){
-	SAFEDELETE(table_name_);
-	delete this;
-}
-
-
-void TableName::deep_delete(){
-	SAFEDELETE(table_name_);
-	SAFEDELETE(database_name_);
-	delete this;
-}
-
-
-void TableAlias::deep_delete(){
-	SAFEDELETE(alias_);
-	SAFEDELETE(ident_comma_list_);
-	SAFEDELETE(id_);
-	delete this;
-}
-
-
-void OptTableAlias::deep_delete(){
-	SAFEDELETE(table_alias_);
-	delete this;
-}
-
-
-void OptAlias::deep_delete(){
-	SAFEDELETE(alias_);
-	delete this;
-}
-
-
 void WithClause::deep_delete(){
-	SAFEDELETE(with_description_list_);
+  SAFEDELETE(opt_recursive_);
+  SAFEDELETE(common_table_expr_list_);
 	delete this;
 }
 
@@ -2723,37 +2430,7 @@ void OptWithClause::deep_delete(){
 }
 
 
-void WithDescriptionList::deep_delete(){
-	SAFEDELETELIST(v_with_description_list_);
-	delete this;
-}
-
-
-void WithDescription::deep_delete(){
-	SAFEDELETE(select_with_paren_);
-	SAFEDELETE(id_);
-	delete this;
-}
-
-
-void JoinClause::deep_delete(){
-	SAFEDELETE(table_ref_atomic1_);
-	SAFEDELETE(nonjoin_table_ref_atomic_);
-	SAFEDELETE(opt_join_type_);
-	SAFEDELETE(table_ref_atomic2_);
-	SAFEDELETE(column_name_);
-	SAFEDELETE(join_condition_);
-	delete this;
-}
-
-
 void OptJoinType::deep_delete(){
-	delete this;
-}
-
-
-void JoinCondition::deep_delete(){
-	SAFEDELETE(expr_);
 	delete this;
 }
 
@@ -2764,146 +2441,126 @@ void OptSemicolon::deep_delete(){
 }
 
 
-void IdentCommaList::deep_delete(){
-	SAFEDELETELIST(v_iden_comma_list_);
-    SAFEDELETELIST(v_opt_collate_list_);
-    SAFEDELETELIST(v_opt_order_type_);
-    // SAFEDELETE(ident_comma_list_);
-    // SAFEDELETE(identifier_);
-    // SAFEDELETE(opt_collate_);
-	delete this;
-}
-
-
-
-void Cmd::deep_delete(){
-    delete this;
-}
-
-IR* Cmd::translate(vector<IR*> &v_ir_collector){
-    return NULL;
-}
-
-void CmdAttach::deep_delete(){
+void AttachStatement::deep_delete(){
     SAFEDELETE(expr_);
     SAFEDELETE(schema_name_);
     delete this;
 }
 
-IR* CmdAttach::translate(vector<IR*> &v_ir_collector){
+IR* AttachStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(expr_);
             auto tmp = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdAttach, OP2("ATTACH", "AS"), res, tmp);
+            res = new IR(kAttachStatement, OP2("ATTACH", "AS"), res, tmp);
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(expr_);
             auto tmp = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdAttach, OP2("ATTACH DATABASE", "AS"), res, tmp);
+            res = new IR(kAttachStatement, OP2("ATTACH DATABASE", "AS"), res, tmp);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
-IR* CmdReindex::translate(vector<IR*> &v_ir_collector){
+IR* ReindexStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = new IR(kCmdReindex, OP1("REINDEX"));
+            res = new IR(kReindexStatement, OP1("REINDEX"));
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdReindex, OP1("REINDEX"), res);
+            res = new IR(kReindexStatement, OP1("REINDEX"), res);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
 
-void CmdReindex::deep_delete(){
+void ReindexStatement::deep_delete(){
     SAFEDELETE(table_name_);
     delete this;
 }
 
-void CmdDetach::deep_delete(){
+void DetachStatement::deep_delete(){
     SAFEDELETE(schema_name_);
     delete this;
 }
 
-IR* CmdDetach::translate(vector<IR*> &v_ir_collector){
+IR* DetachStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdDetach, OP1("DETACH"), res);
+            res = new IR(kDetachStatement, OP1("DETACH"), res);
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(schema_name_);
-            res = new IR(kCmdDetach, OP1("DETACH DATABASE"), res);
+            res = new IR(kDetachStatement, OP1("DETACH DATABASE"), res);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
-void CmdAnalyze::deep_delete(){
+void AnalyzeStatement::deep_delete(){
     SAFEDELETE(table_name_);
     delete this;
 }
 
-IR* CmdAnalyze::translate(vector<IR*> &v_ir_collector){
+IR* AnalyzeStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = new IR(kCmdAnalyze, string("ANALYZE"));
+            res = new IR(kAnalyzeStatement, string("ANALYZE"));
         CASEEND
         CASESTART(1)
             res = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdAnalyze, OP1("ANALYZE"), res);
+            res = new IR(kAnalyzeStatement, OP1("ANALYZE"), res);
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
-void CmdPragma::deep_delete(){
+void PragmaStatement::deep_delete(){
     SAFEDELETE(pragma_key_);
     SAFEDELETE(pragma_value_);
     SAFEDELETE(table_name_);
     delete this;
 }
 
-IR* CmdPragma::translate(vector<IR*> &v_ir_collector){
+IR* PragmaStatement::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
             auto pk = SAFETRANSLATE(pragma_key_);
-            res = new IR(kCmdPragma, OPSTART("PRAGMA"), pk);
+            res = new IR(kPragmaStatement, OPSTART("PRAGMA"), pk);
         CASEEND
         CASESTART(1)
             auto pk = SAFETRANSLATE(pragma_key_);
             auto pv = SAFETRANSLATE(pragma_value_);
-            res = new IR(kCmdPragma, OP2("PRAGMA", "="), pk, pv);
+            res = new IR(kPragmaStatement, OP2("PRAGMA", "="), pk, pv);
         CASEEND
         CASESTART(2)
             auto pk = SAFETRANSLATE(pragma_key_);
             auto pv = SAFETRANSLATE(pragma_value_);
-            res = new IR(kCmdPragma, OP3("PRAGMA", "(", ")"), pk, pv);
+            res = new IR(kPragmaStatement, OP3("PRAGMA", "(", ")"), pk, pv);
         CASEEND
         CASESTART(3)
-            res = new IR(kCmdPragma, string("REINDEX"));
+            res = new IR(kPragmaStatement, string("REINDEX"));
         CASEEND
         CASESTART(4)
             auto table_name = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdPragma, OPSTART("REINDEX"), table_name);
+            res = new IR(kPragmaStatement, OPSTART("REINDEX"), table_name);
         CASEEND
         CASESTART(5)
-            res = new IR(kCmdPragma, string("ANALYZE"));
+            res = new IR(kPragmaStatement, string("ANALYZE"));
         CASEEND
         CASESTART(6)
             auto table_name = SAFETRANSLATE(table_name_);
-            res = new IR(kCmdPragma, OPSTART("ANALYZE"), table_name);
+            res = new IR(kPragmaStatement, OPSTART("ANALYZE"), table_name);
         CASEEND
     SWITCHEND
         
@@ -2935,9 +2592,9 @@ IR* PragmaKey::translate(vector<IR*> &v_ir_collector){
 }
 
 void PragmaValue::deep_delete(){
-    SAFEDELETE(num_literal_);
+    SAFEDELETE(signed_number_);
     SAFEDELETE(string_literal_);
-    SAFEDELETE(id_);
+    SAFEDELETE(identifier_);
     delete this;
 }
 
@@ -2946,7 +2603,7 @@ IR* PragmaValue::translate(vector<IR*> &v_ir_collector){
     
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(num_literal_);
+            res = SAFETRANSLATE(signed_number_);
             res = new IR(kPragmaValue, OP0(), res);
         CASEEND
         CASESTART(1)
@@ -2954,7 +2611,7 @@ IR* PragmaValue::translate(vector<IR*> &v_ir_collector){
             res = new IR(kPragmaValue, OP0(), res);
         CASEEND
         CASESTART(2)
-            res = SAFETRANSLATE(id_);
+            res = SAFETRANSLATE(identifier_);
             res = new IR(kPragmaValue, OP0(), res);
         CASEEND
     SWITCHEND
@@ -2963,143 +2620,259 @@ IR* PragmaValue::translate(vector<IR*> &v_ir_collector){
 }
 
 void PragmaName::deep_delete(){
-    SAFEDELETE(id_);
+    SAFEDELETE(identifier_);
     delete this;
 }
 
 IR* PragmaName::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
-    auto name = SAFETRANSLATE(id_);
+    auto name = SAFETRANSLATE(identifier_);
     res = new IR(kPragmaName, OP0(), name);
     TRANSLATEEND
 }
 
 void SchemaName::deep_delete(){
-    SAFEDELETE(id_);
+    SAFEDELETE(identifier_);
     delete this;
 }
 
 IR* SchemaName::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
-    auto name = SAFETRANSLATE(id_);
+    auto name = SAFETRANSLATE(identifier_);
     res = new IR(kSchemaName, OP0(), name);
     TRANSLATEEND
 }
 
 
-IR * OptColumnArglist::translate(vector<IR*> &v_ir_collector){
+IR * OptColumnConstraintlist::translate(vector<IR*> &v_ir_collector){
     TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            auto tmp = SAFETRANSLATE(column_arglist_);
-            res = new IR(kOptColumnArglist, OP0(), tmp);
+            auto tmp = SAFETRANSLATE(column_constraintlist_);
+            res = new IR(kOptColumnConstraintlist, OP0(), tmp);
         CASEEND
         CASESTART(1)
-            res = new IR(kOptColumnArglist, "");
+            res = new IR(kOptColumnConstraintlist, "");
         CASEEND
     SWITCHEND
     TRANSLATEEND
 }
 
-void OptColumnArglist::deep_delete(){
-    SAFEDELETE(column_arglist_);
+void OptColumnConstraintlist::deep_delete(){
+    SAFEDELETE(column_constraintlist_);
     delete this;
 }
 
 
-IR * ColumnArglist::translate(vector<IR*> &v_ir_collector){
+IR * ColumnConstraintlist::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-
-    TRANSLATELIST(kColumnArglist, v_column_arg_, " ");
-
+  TRANSLATELIST(kColumnConstraintlist, v_column_constraint_, " ");
 	TRANSLATEENDNOPUSH
 }
 
-void ColumnArglist::deep_delete(){
-    SAFEDELETELIST(v_column_arg_);
+void ColumnConstraintlist::deep_delete(){
+    SAFEDELETELIST(v_column_constraint_);
 	delete this;
 }
 
+IR * OptDeferrableClause::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
 
-IR * ColumnArg::translate(vector<IR*> &v_ir_collector){
+  SWITCHSTART
+  CASESTART(0)
+    auto tmp = SAFETRANSLATE(deferrable_clause_);
+    res = new IR(kOptDeferrableClause, OP0(), tmp);
+  CASEEND
+  CASESTART(1)
+    res = new IR(kOptDeferrableClause, string(""));
+  CASEEND
+  SWITCHEND
+ 
+  TRANSLATEEND
+}
+
+void OptDeferrableClause::deep_delete() {
+  SAFEDELETE(deferrable_clause_);
+  delete this;
+}
+
+IR * DeferrableClause::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  auto tmp = SAFETRANSLATE(opt_not_);
+  res = new IR(kDeferrableClause, OP2("", str_val_), tmp);
+ 
+  TRANSLATEEND
+}
+
+void DeferrableClause::deep_delete() {
+  SAFEDELETE(opt_not_);
+  delete this;
+}
+
+IR * OptForeignKeyOnList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  SWITCHSTART
+  CASESTART(0)
+    auto tmp = SAFETRANSLATE(foreign_key_on_list_);
+    res = new IR(kOptForeignKeyOnList, OP0(), tmp);
+  CASEEND
+  CASESTART(1)
+    res = new IR(kOptForeignKeyOnList, string(""));
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void OptForeignKeyOnList::deep_delete() {
+  SAFEDELETE(foreign_key_on_list_);
+  delete this;
+}
+
+IR * ForeignKeyOnList::translate(vector<IR*> &v_ir_collector){
+	TRANSLATESTART
+  TRANSLATELIST(kForeignKeyOnList, v_foreign_key_on_list_, " ");
+  TRANSLATEENDNOPUSH
+}
+
+void ForeignKeyOnList::deep_delete() {
+  SAFEDELETELIST(v_foreign_key_on_list_);
+  delete this;
+}
+
+IR * ForeignKeyOn::translate(vector<IR*> &v_ir_collector){
+	TRANSLATESTART
+  SWITCHSTART
+  CASESTART(0)
+    res = new IR(kForeignKeyOn, string(str_val_));
+  CASEEND
+  CASESTART(1)
+    auto tmp = SAFETRANSLATE(name_);
+    res = new IR(kForeignKeyOn, OP1("MATCH"), tmp);
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void ForeignKeyOn::deep_delete() {
+  SAFEDELETE(name_);
+  delete this;
+}
+
+IR * ForeignKeyClause::translate(vector<IR*> &v_ir_collector){
+	TRANSLATESTART
+
+  auto tmp0 = SAFETRANSLATE(foreign_table_);
+  auto tmp1 = SAFETRANSLATE(opt_column_list_paren_);
+  auto tmp2 = SAFETRANSLATE(opt_foreign_key_on_list_);
+  auto tmp3 = SAFETRANSLATE(opt_deferrable_clause_);
+
+  res = new IR(kUnknown, OP1("REFERENCES"), tmp0, tmp1);
+  PUSH(res);
+  res = new IR(kUnknown, OP0(), res, tmp2);
+  PUSH(res);
+  res = new IR(kForeignKeyClause, OP0(), res, tmp3);
+
+  TRANSLATEEND
+}
+
+void ForeignKeyClause::deep_delete() {
+  SAFEDELETE(foreign_table_);
+  SAFEDELETE(opt_column_list_paren_);
+  SAFEDELETE(opt_foreign_key_on_list_);
+  SAFEDELETE(opt_deferrable_clause_);
+  delete this;
+}
+
+IR * ColumnConstraint::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(opt_on_conflict_);
-            res = new IR(kColumnArg, OP1("NULL"), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(opt_on_conflict_);
-            res = new IR(kColumnArg, OP1("NOT NULL"), res);
-        CASEEND
-        CASESTART(2)
             auto tmp = SAFETRANSLATE(opt_order_type_);
-            auto tmp1 = SAFETRANSLATE(opt_on_conflict_);
-            res = new IR(kColumnArg, OP1("PRIMARY KEY"), tmp, tmp1);
+            auto tmp1 = SAFETRANSLATE(opt_conflict_clause_);
+            res = new IR(kColumnConstraint, OP1("PRIMARY KEY"), tmp, tmp1);
             PUSH(res);
             tmp = SAFETRANSLATE(opt_autoinc_);
-            res = new IR(kColumnArg, OP0(), res, tmp);
+            res = new IR(kColumnConstraint, OP0(), res, tmp);
+        CASEEND
+        CASESTART(1)
+            auto tmp0 = SAFETRANSLATE(opt_not_);
+            auto tmp1 = SAFETRANSLATE(opt_conflict_clause_);
+            res = new IR(kColumnConstraint, OPMID("NULL"), tmp0, tmp1);
+        CASEEND
+        CASESTART(2)
+            res = SAFETRANSLATE(opt_conflict_clause_);
+            res = new IR(kColumnConstraint, OP1("UNIQUE"), res);
         CASEEND
         CASESTART(3)
-            res = SAFETRANSLATE(opt_on_conflict_);
-            res = new IR(kColumnArg, OP1("UNIQUE"), res);
+            res = SAFETRANSLATE(expr_);
+            res = new IR(kColumnConstraint, OP2("CHECK(", ")"), res);
         CASEEND
         CASESTART(4)
             res = SAFETRANSLATE(expr_);
-            res = new IR(kColumnArg, OP2("GENERATED ALWAYS AS(", ")"), res);
+            res = new IR(kColumnConstraint, OP2("DEFAULT (", ")"), res);
         CASEEND
         CASESTART(5)
-            res = SAFETRANSLATE(expr_);
-            res = new IR(kColumnArg, OP2("AS(", ")"), res);
+            res = SAFETRANSLATE(literal_);
+            res = new IR(kColumnConstraint, OP1("DEFAULT"), res);
         CASEEND
         CASESTART(6)
-            res = SAFETRANSLATE(expr_);
-            res = new IR(kColumnArg, OP2("CHECK(", ")"), res);
+            res = SAFETRANSLATE(signed_number_);
+            res = new IR(kColumnConstraint, OP1("DEFAULT"), res);
         CASEEND
         CASESTART(7)
-            res = SAFETRANSLATE(id_);
-            res->id_type_ = id_collation_name;
-            res = new IR(kColumnArg, OPSTART("REFERENCES"), res);
+            res = SAFETRANSLATE(collate_);
+            res = new IR(kColumnConstraint, OP0(), res);
         CASEEND
         CASESTART(8)
-            if (opt_order_type_ != NULL) {
-                res = SAFETRANSLATE(opt_order_type_);
-                res = new IR(kColumnArg, OP0(), res);
-            } else {
-                res = new IR(kColumnArg, "");
-            }
+            res = SAFETRANSLATE(foreign_key_clause_);
+            res = new IR(kColumnConstraint, OP0(), res);
+        CASEEND
+        CASESTART(9)
+            auto tmp0 = SAFETRANSLATE(expr_);
+            auto tmp1 = SAFETRANSLATE(opt_stored_virtual_);
+            res = new IR(kColumnConstraint, OP2("GENERATED ALWAYS AS(", ")"), tmp0, tmp1);
+        CASEEND
+        CASESTART(10)
+            res = SAFETRANSLATE(expr_);
+            res = new IR(kColumnConstraint, OP2("AS(", ")"), res);
         CASEEND
     SWITCHEND
 	TRANSLATEEND
 }
 
-void ColumnArg::deep_delete(){
-    SAFEDELETE(opt_on_conflict_);
+void ColumnConstraint::deep_delete(){
+    SAFEDELETE(opt_conflict_clause_);
     SAFEDELETE(opt_order_type_);
     SAFEDELETE(opt_autoinc_);
     SAFEDELETE(expr_);
-    SAFEDELETE(id_);
+    SAFEDELETE(opt_not_);
+    SAFEDELETE(literal_);
+    SAFEDELETE(signed_number_);
+    SAFEDELETE(collate_);
+    SAFEDELETE(foreign_key_clause_);
+    SAFEDELETE(identifier_);
+    SAFEDELETE(opt_stored_virtual_);
 	delete this;
 }
 
-
-IR * OptOnConflict::translate(vector<IR*> &v_ir_collector){
+IR * OptConflictClause::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
 
     SWITCHSTART
         CASESTART(0)
             res = SAFETRANSLATE(resolve_type_);
-            res = new IR(kOptOnConflict, OP1("ON CONFLICT"), res);
+            res = new IR(kOptConflictClause, OP1("ON CONFLICT"), res);
         CASEEND
         CASESTART(1)
-            res = new IR(kOptOnConflict, string(""));
+            res = new IR(kOptConflictClause, string(""));
         CASEEND
     SWITCHEND
 
 	TRANSLATEEND
 }
 
-void OptOnConflict::deep_delete(){
+void OptConflictClause::deep_delete(){
     SAFEDELETE(resolve_type_);
 	delete this;
 }
@@ -3138,58 +2911,6 @@ void OptUnique::deep_delete(){
 }
 
 
-IR * IndexName::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(id_);
-    res = new IR(kIndexName, OP0(), res);
-	TRANSLATEEND
-}
-
-void IndexName::deep_delete(){
-    SAFEDELETE(id_);
-	delete this;
-}
-
-
-IR * TriggerDeclare::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(opt_tmp_);
-    auto tmp = SAFETRANSLATE(opt_not_exists_);
-    res = new IR(kUnknown, OPMID("TRIGGER"), res, tmp);
-    PUSH(res);
-    tmp = SAFETRANSLATE(trigger_name_);
-    res = new IR(kUnknown, OP0(), res, tmp);
-    PUSH(res);
-    tmp = SAFETRANSLATE(opt_trigger_time_);
-    res = new IR(kUnknown, OP0(), res, tmp);
-    PUSH(res);
-    tmp = SAFETRANSLATE(trigger_event_);
-    res = new IR(kUnknown, OP0(), res, tmp);
-    PUSH(res);
-    tmp = SAFETRANSLATE(table_name_);
-    res = new IR(kTriggerDeclare, OPMID("ON"), res, tmp);
-    PUSH(res);
-    tmp = SAFETRANSLATE(opt_for_each_);
-    res = new IR(kTriggerDeclare, OP0(), res, tmp);
-    PUSH(res);
-    tmp = SAFETRANSLATE(opt_when_);
-    res = new IR(kTriggerDeclare, OP0(), res, tmp);
-	TRANSLATEEND
-}
-
-void TriggerDeclare::deep_delete(){
-    SAFEDELETE(opt_tmp_);
-    SAFEDELETE(opt_not_exists_);
-    SAFEDELETE(trigger_name_);
-    SAFEDELETE(opt_trigger_time_);
-    SAFEDELETE(trigger_event_);
-    SAFEDELETE(table_name_);
-    SAFEDELETE(opt_for_each_);
-    SAFEDELETE(opt_when_);
-	delete this;
-}
-
-
 IR * OptTmp::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     res = new IR(kOptTmp, str_val_);
@@ -3197,19 +2918,6 @@ IR * OptTmp::translate(vector<IR*> &v_ir_collector){
 }
 
 void OptTmp::deep_delete(){
-	delete this;
-}
-
-
-IR * TriggerName::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(id_);
-    res = new IR(kTriggerName, OP0(), res);
-	TRANSLATEEND
-}
-
-void TriggerName::deep_delete(){
-    SAFEDELETE(id_);
 	delete this;
 }
 
@@ -3252,7 +2960,7 @@ IR * OptOfColumnList::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(ident_commalist_);
+            res = SAFETRANSLATE(column_name_list_);
             res = new IR(kOptOfColumnList, OP1("OF"), res);
         CASEEND
         CASESTART(1)
@@ -3263,7 +2971,7 @@ IR * OptOfColumnList::translate(vector<IR*> &v_ir_collector){
 }
 
 void OptOfColumnList::deep_delete(){
-    SAFEDELETE(ident_commalist_);
+    SAFEDELETE(column_name_list_);
 	delete this;
 }
 
@@ -3301,8 +3009,8 @@ void OptWhen::deep_delete(){
 
 IR * TriggerCmdList::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    TRANSLATELIST(kTriggerCmdList, v_trigger_cmd_list_, ";");
-    res->op_->suffix_ = ";";
+  TRANSLATELIST(kTriggerCmdList, v_trigger_cmd_list_, ";");
+  res->op_->suffix_ = ";";
 	TRANSLATEENDNOPUSH
 }
 
@@ -3326,13 +3034,13 @@ void TriggerCmd::deep_delete(){
 
 IR * ModuleName::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    res = SAFETRANSLATE(id_);
+    res = SAFETRANSLATE(identifier_);
     res = new IR(kModuleName, OP0(), res);
 	TRANSLATEEND
 }
 
 void ModuleName::deep_delete(){
-    SAFEDELETE(id_);
+    SAFEDELETE(identifier_);
 	delete this;
 }
 
@@ -3341,12 +3049,12 @@ IR * OptOverClause::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(window_);
-            res = new IR(kOptOverClause, OP2("OVER(", ")"), res);
+            res = SAFETRANSLATE(window_name_);
+            res = new IR(kOptOverClause, OP1("OVER"), res);
         CASEEND
         CASESTART(1)
-            res = SAFETRANSLATE(id_);
-            res = new IR(kOptOverClause, OP1("OVER"), res);
+            auto tmp3 = SAFETRANSLATE(window_body_);
+            res = new IR(kOptOverClause, OP2("OVER (", ")"), tmp3);
         CASEEND
         CASESTART(2)
             res = new IR(kOptOverClause, string(""));
@@ -3356,18 +3064,37 @@ IR * OptOverClause::translate(vector<IR*> &v_ir_collector){
 }
 
 void OptOverClause::deep_delete(){
-    SAFEDELETE(window_);
-    SAFEDELETE(id_);
+  SAFEDELETE(window_name_);;
+  SAFEDELETE(window_body_);
 	delete this;
 }
 
+
+IR * FilterClause::translate(vector<IR*> &v_ir_collector){
+	TRANSLATESTART
+    SWITCHSTART
+        CASESTART(0)
+            res = SAFETRANSLATE(where_expr_);
+            res = new IR(kFilterClause, OP2("FILTER (", ")"), res);
+        CASEEND
+        CASESTART(1)
+            res = new IR(kFilterClause, string(""));
+        CASEEND
+    SWITCHEND
+	TRANSLATEEND
+}
+
+void FilterClause::deep_delete(){
+    SAFEDELETE(where_expr_);
+	delete this;
+}
 
 IR * OptFilterClause::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(expr_);
-            res = new IR(kOptFilterClause, OP2("FILTER( WHEN", ")"), res);
+            res = SAFETRANSLATE(filter_clause_);
+            res = new IR(kOptFilterClause, OP0(), res);
         CASEEND
         CASESTART(1)
             res = new IR(kOptFilterClause, string(""));
@@ -3377,26 +3104,46 @@ IR * OptFilterClause::translate(vector<IR*> &v_ir_collector){
 }
 
 void OptFilterClause::deep_delete(){
-    SAFEDELETE(expr_);
+    SAFEDELETE(filter_clause_);
+	delete this;
+}
+
+IR * OptWindowClause::translate(vector<IR*> &v_ir_collector){
+	TRANSLATESTART
+  SWITCHSTART
+    CASESTART(0)
+      auto tmp = SAFETRANSLATE(window_clause_);
+      res = new IR(kOptWindowClause, OP0(), tmp);
+    CASEEND
+    CASESTART(1)
+      res = new IR(kOptWindowClause, string(""));
+    CASEEND
+  SWITCHEND
+	TRANSLATEEND
+}
+
+void OptWindowClause::deep_delete(){
+  SAFEDELETE(window_clause_);
 	delete this;
 }
 
 
 IR * WindowClause::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    
+  auto tmp = SAFETRANSLATE(windowdefn_list_);
+  res = new IR(kWindowClause, OP1("WINDOW"), tmp);
 	TRANSLATEEND
 }
 
 void WindowClause::deep_delete(){
-    SAFEDELETE(windowdefn_list_);
+  SAFEDELETE(windowdefn_list_);
 	delete this;
 }
 
 
 IR * WindowDefnList::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    TRANSLATELIST(kWindowDefnList, v_windowdefn_list_, ",");
+  TRANSLATELIST(kWindowDefnList, v_windowdefn_list_, ",");
 	TRANSLATEENDNOPUSH
 }
 
@@ -3408,53 +3155,51 @@ void WindowDefnList::deep_delete(){
 
 IR * WindowDefn::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    auto id_ir = SAFETRANSLATE(id_);
-    auto win_ir = SAFETRANSLATE(window_);
-    auto tmp_ir = new IR(kUnknown, OP2("(", ")"), win_ir);
-    PUSH(tmp_ir);
-    res = new IR(kWindowDefn, OPMID("AS"), id_ir, tmp_ir);
+    auto win_name = SAFETRANSLATE(window_name_);
+    auto win_ir = SAFETRANSLATE(window_body_);
+    res = new IR(kWindowDefn, OP3("", "AS (", ")"), win_name, win_ir);
 	TRANSLATEEND
 }
 
 void WindowDefn::deep_delete(){
-    SAFEDELETE(id_);
-    SAFEDELETE(window_);
+    SAFEDELETE(window_name_);
+    SAFEDELETE(window_body_);
 	delete this;
 }
 
 
-IR * Window::translate(vector<IR*> &v_ir_collector){
+IR * WindowBody::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-
-    auto windowname = SAFETRANSLATE(opt_base_window_name_);
-    auto opt_order = SAFETRANSLATE(opt_order_);
-    auto opt_frame = SAFETRANSLATE(opt_frame_);
-
-    SWITCHSTART
-        CASESTART(0)
-        auto expr_list = SAFETRANSLATE(expr_list_);
-        auto tmp = new IR(kUnknown, OPMID("PARTITION BY"), windowname, expr_list);
-        PUSH(tmp);
-        tmp = new IR(kUnknown, OP0(), tmp, opt_order);
-        PUSH(tmp);
-        res = new IR(kWindow, OP0(), tmp, opt_frame);
-        CASEEND
-        CASESTART(1)
-        auto tmp = new IR(kUnknown, OP0(), windowname, opt_order);
-        PUSH(tmp);
-        res = new IR(kWindow, OP0(), tmp, opt_frame);
-        CASEEND
-    SWITCHEND
-
+  auto tmp0 = SAFETRANSLATE(opt_base_window_name_);
+  auto tmp1 = SAFETRANSLATE(opt_partition_by_);
+  res = new IR(kUnknown, OP0(), tmp0, tmp1);
+  PUSH(res);
+  auto tmp2 = SAFETRANSLATE(opt_order_);
+  res = new IR(kUnknown, OP0(), res, tmp2);
+  PUSH(res);
+  auto tmp3 = SAFETRANSLATE(opt_frame_);
+  res = new IR(kOptOverClause, OP0(), res, tmp3);
 	TRANSLATEEND
 }
 
-void Window::deep_delete(){
+void WindowBody::deep_delete(){
     SAFEDELETE(opt_base_window_name_);
-    SAFEDELETE(expr_list_);
+    SAFEDELETE(opt_partition_by_);
     SAFEDELETE(opt_order_);
     SAFEDELETE(opt_frame_);
 	delete this;
+}
+
+IR * WindowName::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  auto tmp = SAFETRANSLATE(identifier_);
+  res = new IR(kWindowName, OP0(), tmp);
+  TRANSLATEEND
+}
+
+void WindowName::deep_delete() {
+  SAFEDELETE(identifier_);
+  delete this;
 }
 
 
@@ -3462,7 +3207,7 @@ IR * OptBaseWindowName::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
         CASESTART(0)
-            res = SAFETRANSLATE(id_);
+            res = SAFETRANSLATE(identifier_);
             res = new IR(kOptBaseWindowName, OP0(), res);
         CASEEND
         CASESTART(1)
@@ -3473,7 +3218,7 @@ IR * OptBaseWindowName::translate(vector<IR*> &v_ir_collector){
 }
 
 void OptBaseWindowName::deep_delete(){
-    SAFEDELETE(id_);
+    SAFEDELETE(identifier_);
 	delete this;
 }
 
@@ -3486,9 +3231,9 @@ IR * OptFrame::translate(vector<IR*> &v_ir_collector){
     SWITCHSTART
         CASESTART(0)
             auto range_or_row = SAFETRANSLATE(range_or_rows_);
-            auto frame_bound_s = SAFETRANSLATE(frame_bound_s_);
+            auto frame_bound = SAFETRANSLATE(frame_bound_);
             auto opt_frame_exclude = SAFETRANSLATE(opt_frame_exclude_);
-            res = new IR(kUnknown, OP0(), range_or_row, frame_bound_s);
+            res = new IR(kUnknown, OP0(), range_or_row, frame_bound);
             PUSH(res);
             res = new IR(kOptFrame, OP0(), res, opt_frame_exclude);
         CASEEND
@@ -3535,18 +3280,18 @@ IR * FrameBoundS::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
     CASESTART(0)
-    res = SAFETRANSLATE(frame_bound_);
-    res = new IR(kFrameBoundS, OP0(), res);
+    res = new IR(kFrameBoundS, str_val_);
     CASEEND
     CASESTART(1)
-    res = new IR(kFrameBoundS, string("UNBOUNDED PRECEDING"));
+    res = SAFETRANSLATE(expr_);
+    res = new IR(kFrameBoundS, OPMID(str_val_), res);
     CASEEND
     SWITCHEND
 	TRANSLATEEND
 }
 
 void FrameBoundS::deep_delete(){
-    SAFEDELETE(frame_bound_);
+    SAFEDELETE(expr_);
 	delete this;
 }
 
@@ -3554,19 +3299,19 @@ void FrameBoundS::deep_delete(){
 IR * FrameBoundE::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(frame_bound_);
-            res = new IR(kFrameBoundE, OP0(), res);
-        CASEEND 
-        CASESTART(1)
-            res = new IR(kFrameBoundE, string("UNBOUNDED FOLLOWING"));
-        CASEEND
+    CASESTART(0)
+    res = new IR(kFrameBoundE, str_val_);
+    CASEEND
+    CASESTART(1)
+    res = SAFETRANSLATE(expr_);
+    res = new IR(kFrameBoundE, OPMID(str_val_), res);
+    CASEEND
     SWITCHEND    
 	TRANSLATEEND
 }
 
 void FrameBoundE::deep_delete(){
-    SAFEDELETE(frame_bound_);
+    SAFEDELETE(expr_);
 	delete this;
 }
 
@@ -3575,15 +3320,11 @@ IR * FrameBound::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
     SWITCHSTART
     CASESTART(0)
-    res = SAFETRANSLATE(expr_);
-    res = new IR(kFrameBound, OPEND("PRECEDING"), res);
+    res = new IR(kFrameBound, str_val_);
     CASEEND
     CASESTART(1)
     res = SAFETRANSLATE(expr_);
-    res = new IR(kFrameBound, OPEND("FOLLOWING"), res);
-    CASEEND
-    CASESTART(2)
-    res = new IR(kFrameBound, OP1("CURRENT ROW"));
+    res = new IR(kFrameBound, OPMID(str_val_), res);
     CASEEND
     SWITCHEND
 	TRANSLATEEND
@@ -3594,23 +3335,22 @@ void FrameBound::deep_delete(){
 	delete this;
 }
 
-
 IR * OptFrameExclude::translate(vector<IR*> &v_ir_collector){
 	TRANSLATESTART
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(frame_exclude_);
-            res = new IR(kOptFrameExclude, OP1("EXCLUDE"), res);
-        CASEEND
-        CASESTART(1)
-            res = new IR(kOptFrameExclude, string(""));
-        CASEEND
-    SWITCHEND
+  SWITCHSTART
+  CASESTART(0)
+    auto tmp = SAFETRANSLATE(frame_exclude_);
+    res = new IR(kOptFrameExclude, tmp);
+  CASEEND
+  CASESTART(1)
+    res = new IR(kOptFrameExclude, string(""));
+  CASEEND
+  SWITCHEND
 	TRANSLATEEND
 }
 
 void OptFrameExclude::deep_delete(){
-    SAFEDELETE(frame_exclude_);
+  SAFEDELETE(frame_exclude_);
 	delete this;
 }
 
@@ -3626,158 +3366,64 @@ void FrameExclude::deep_delete(){
 }
 
 
-IR * SuperList::translate(vector<IR*> &v_ir_collector){
-	TRANSLATESTART
-    res = SAFETRANSLATE(v_super_list_[0]);
-    res = new IR(kSuperList, OP2("(", ")"), res);
-    PUSH(res);
-    for(int i=1; i<v_super_list_.size(); i++){
-        auto tmp = SAFETRANSLATE(v_super_list_[i]);
-        res = new IR(kSuperList, OP3("", ",(", ")"), res, tmp); 
-        PUSH(res);
-    }
-    
-	TRANSLATEENDNOPUSH
+IR *TableOrSubqueryList::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  TRANSLATELIST(kTableOrSubqueryList, v_table_or_subquery_list_, ",");
+  TRANSLATEENDNOPUSH
 }
 
-void SuperList::deep_delete(){
-    SAFEDELETELIST(v_super_list_);
-	delete this;
+void TableOrSubqueryList::deep_delete() {
+	SAFEDELETELIST(v_table_or_subquery_list_);
+  delete this;
 }
 
-IR*  TableRef::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
+IR *TableOrSubquery::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
 
-	SWITCHSTART
-	    CASESTART(0)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kTableRef, OP0(), tmp1, tmp2);
-            PUSH(res);
+  SWITCHSTART
 
-	        auto tmp3 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
-            PUSH(res);
-    
-	        auto tmp4 = SAFETRANSLATE(opt_index_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(select_statement_);
+      auto tmp1 = SAFETRANSLATE(opt_table_alias_);
+      res = new IR(kTableOrSubquery, OP2("(", ")"), tmp0, tmp1);
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(table_or_subquery_list_);
+      res = new IR(kTableOrSubquery, OP0(), tmp0);
+    CASEEND
+    CASESTART(2)
+      auto tmp0 = SAFETRANSLATE(table_name_);
+      auto tmp1 = SAFETRANSLATE(opt_table_alias_);
+      res = new IR(kUnknown, OP0(), tmp0, tmp1);
+      PUSH(res);
+      auto tmp2 = SAFETRANSLATE(opt_index_);
+      res = new IR(kTableOrSubquery, OP0(), res, tmp2);
+    CASEEND
+    CASESTART(3)
+      auto tmp0 = SAFETRANSLATE(join_clause_);
+      res = new IR(kTableOrSubquery, OP0(), tmp0);
+    CASEEND
 
-	        auto tmp5 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-            PUSH(res);
+  SWITCHEND
 
-	        auto tmp6 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp6);
-	    CASEEND
-	    CASESTART(1)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(table_name_);
-            res = new IR(kUnknown, OP0(), tmp1, tmp2);
-            PUSH(res);
-
-	        auto tmp3 = SAFETRANSLATE(expr_list_);
-            res = new IR(kTableRef, OP3("", "(", ")"), res, tmp3);
-            PUSH(res);
-    
-	        auto tmp4 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-
-	        auto tmp5 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-            PUSH(res);
-
-	        auto tmp6 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp6);
-	    CASEEND
-	    CASESTART(2)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(select_no_paren_);
-            res = new IR(kTableRef, OP3("", "(", ")"), tmp1, tmp2);
-            PUSH(res);
-
-	        auto tmp3 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
-            PUSH(res);
-    
-	        auto tmp4 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-    
-	        auto tmp5 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-
-	    CASEEND
-	    CASESTART(3)
-	        auto tmp1 = SAFETRANSLATE(table_prefix_);
-	        auto tmp2 = SAFETRANSLATE(table_ref_);
-            res = new IR(kTableRef, OP3("", "(", ")"), tmp1, tmp2);
-            PUSH(res);
-    
-	        auto tmp3 = SAFETRANSLATE(opt_alias_);
-            res = new IR(kTableRef, OP0(), res, tmp3);
-            PUSH(res);
-
-	        auto tmp4 = SAFETRANSLATE(opt_on_);
-            res = new IR(kTableRef, OP0(), res, tmp4);
-            PUSH(res);
-    
-	        auto tmp5 = SAFETRANSLATE(opt_using_);
-            res = new IR(kTableRef, OP0(), res, tmp5);
-    
-	    CASEEND
-	SWITCHEND
-	TRANSLATEEND
+  TRANSLATEEND
 }
 
-
-IR*  TablePrefix::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-
-	SWITCHSTART
-	    CASESTART(0)
-	        auto tmp1 = SAFETRANSLATE(table_ref_);
-	        auto tmp2 = SAFETRANSLATE(join_op_);
-            res = new IR(kTablePrefix, OP0(), tmp1, tmp2);
-	    CASEEND
-	    CASESTART(1)
-            res = new IR(kTablePrefix, string(""));
-	    CASEEND
-	SWITCHEND
-    
-	TRANSLATEEND
+void TableOrSubquery::deep_delete() {
+  SAFEDELETE(select_statement_);
+  SAFEDELETE(opt_table_alias_);
+  SAFEDELETE(table_or_subquery_list_);
+  SAFEDELETE(table_name_);
+  SAFEDELETE(opt_index_);
+  SAFEDELETE(join_clause_);
+  delete this;
 }
-
 
 IR*  JoinOp::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
 
-	SWITCHSTART
-	CASESTART(0)
-    res = new IR(kJoinOp, string(","));
-	CASEEND
-	CASESTART(1)
-    res = new IR(kJoinOp, string("JOIN"));
-	CASEEND
-	CASESTART(2)
-	auto tmp = SAFETRANSLATE(join_kw_);
-    res = new IR(kJoinOp, OPEND("JOIN"), tmp);
-	CASEEND
-	CASESTART(3)
-	auto tmp = SAFETRANSLATE(join_kw_);
-	auto tmp2 = SAFETRANSLATE(id1_);
-    res = new IR(kJoinOp, OPEND("JOIN"), tmp, tmp2);
-	CASEEND
-	CASESTART(4)
-	auto tmp = SAFETRANSLATE(join_kw_);
-	auto tmp1 = SAFETRANSLATE(id1_);
-	auto tmp2 = SAFETRANSLATE(id2_);
-    res = new IR(kUnknown, OP0(), tmp1, tmp2);
-    PUSH(res);
-    res = new IR(kJoinOp, OPEND("JOIN"), tmp, res);
-	CASEEND
-	SWITCHEND
+  res = new IR(kJoinOp, str_val_);
+
 	TRANSLATEEND
 }
 
@@ -3787,7 +3433,7 @@ IR*  OptIndex::translate(vector<IR *> &v_ir_collector){
 
 	SWITCHSTART
 	CASESTART(0)
-	auto tmp = SAFETRANSLATE(column_name_);
+	auto tmp = SAFETRANSLATE(index_name_);
     res = new IR(kOptIndex, OP1("INDEXED BY"), tmp);
 	CASEEND
 	CASESTART(1)
@@ -3800,105 +3446,102 @@ IR*  OptIndex::translate(vector<IR *> &v_ir_collector){
 	TRANSLATEEND
 }
 
+IR *WhereExpr::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
 
-IR*  OptOn::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
+  res = SAFETRANSLATE(expr_);
+  res = new IR(kWhereExpr, OP1("WHERE"),  res);
 
-	SWITCHSTART
-	CASESTART(0)
-	auto tmp = SAFETRANSLATE(expr_);
-    res = new IR(kOptOn, OP1("ON"), tmp);
-	CASEEND
-	CASESTART(1)
-    res = new IR(kOptOn, string(""));
-	CASEEND
-	SWITCHEND
-	TRANSLATEEND
+  TRANSLATEEND
 }
 
-
-IR*  OptUsing::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-
-	SWITCHSTART
-	CASESTART(0)
-	auto tmp = SAFETRANSLATE(ident_commalist_);
-    res = new IR(kOptUsing, OP3("USING", "(", ")"), NULL, tmp);
-	CASEEND
-	CASESTART(1)
-    res = new IR(kOptUsing, string(""));
-	CASEEND
-	SWITCHEND
-	TRANSLATEEND
+void WhereExpr::deep_delete() {
+  SAFEDELETE(expr_);
+  delete this;
 }
 
+IR *EscapeExpr::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
 
-IR*  JoinKw::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-    res = new IR(kJoinKw, str_val_);
-	TRANSLATEEND
+  res = SAFETRANSLATE(expr_);
+  res = new IR(kEscapeExpr, OP1("ESCAPE"),  res);
+
+  TRANSLATEEND
 }
 
-void TableRef::deep_delete(){
-	SAFEDELETE(opt_on_);
-	SAFEDELETE(opt_alias_);
-	SAFEDELETE(expr_list_);
-	SAFEDELETE(opt_using_);
-	SAFEDELETE(table_name_);
-	SAFEDELETE(table_prefix_);
-	SAFEDELETE(table_ref_);
-	SAFEDELETE(opt_index_);
-	SAFEDELETE(select_no_paren_);
-	delete this;
+void EscapeExpr::deep_delete() {
+  SAFEDELETE(expr_);
+  delete this;
 }
 
-void TablePrefix::deep_delete(){
-	SAFEDELETE(table_ref_);
-	SAFEDELETE(join_op_);
-	delete this;
+IR *ElseExpr::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  res = SAFETRANSLATE(expr_);
+  res = new IR(kElseExpr, OP1("ELSE"),  res);
+
+  TRANSLATEEND
+}
+
+void ElseExpr::deep_delete() {
+  SAFEDELETE(expr_);
+  delete this;
+}
+
+IR *OnExpr::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+
+  res = SAFETRANSLATE(expr_);
+  res = new IR(kOnExpr, OP1("ON"),  res);
+
+  TRANSLATEEND
+}
+
+void OnExpr::deep_delete() {
+  SAFEDELETE(expr_);
+  delete this;
 }
 
 void JoinOp::deep_delete(){
-	SAFEDELETE(join_kw_);
-	SAFEDELETE(id1_);
-	SAFEDELETE(id2_);
 	delete this;
 }
 
 void OptIndex::deep_delete(){
-	SAFEDELETE(column_name_);
+	SAFEDELETE(index_name_);
 	delete this;
 }
 
-void OptOn::deep_delete(){
-	SAFEDELETE(expr_);
-	delete this;
+IR * ReleaseStatement::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  SWITCHSTART
+  CASESTART(0)
+    auto tmp = SAFETRANSLATE(savepoint_name_);
+    res = new IR(kReleaseStatement, OP1("RELEASE SAVEPOINT"), tmp);
+  CASEEND
+  CASESTART(1)
+    auto tmp = SAFETRANSLATE(savepoint_name_);
+    res = new IR(kReleaseStatement, OP1("RELEASE"), tmp);
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
 }
 
-void OptUsing::deep_delete(){
-	SAFEDELETE(ident_commalist_);
-	delete this;
+void ReleaseStatement::deep_delete() {
+  SAFEDELETE(savepoint_name_);
+  delete this;
 }
 
-void JoinKw::deep_delete(){
-	delete this;
+
+IR * SavepointStatement::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  auto tmp = SAFETRANSLATE(savepoint_name_);
+  res = new IR(kSavepointStatement, OP1("SAVEPOINT"), tmp);
+  TRANSLATEEND
 }
 
-void CastExpr::deep_delete(){
-	SAFEDELETE(column_type_);
-	SAFEDELETE(expr_);
-	delete this;
-}
-
-IR*  CastExpr::translate(vector<IR *> &v_ir_collector){
-	TRANSLATESTART
-
-	auto tmp0 = SAFETRANSLATE(expr_);
-	auto tmp1 = SAFETRANSLATE(column_type_);
-	res = new IR(kUnknown, OP3("CAST (", "AS", ")"), tmp0, tmp1);
-	
-
-	TRANSLATEEND
+void SavepointStatement::deep_delete() {
+  SAFEDELETE(savepoint_name_);
+  delete this;
 }
 
 void AlterStatement::deep_delete(){
@@ -3910,6 +3553,7 @@ void AlterStatement::deep_delete(){
     SAFEDELETE(column_name2_);
 	delete this;
 }
+
 
 IR*  AlterStatement::translate(vector<IR *> &v_ir_collector){
 	TRANSLATESTART
@@ -3923,21 +3567,29 @@ IR*  AlterStatement::translate(vector<IR *> &v_ir_collector){
 		CASESTART(1)
 			auto tmp0 = SAFETRANSLATE(table_name1_);
 			auto tmp1 = SAFETRANSLATE(opt_column_);
-		    auto tmp2 = SAFETRANSLATE(column_name1_);
+		  auto tmp2 = SAFETRANSLATE(column_name1_);
 			auto tmp3 = SAFETRANSLATE(column_name2_);
 			res = new IR(kUnknown, OP2("ALTER TABLE", "RENAME"), tmp0, tmp1);
-		    PUSH(res);
-		    res = new IR(kUnknown, OP0(), res, tmp2);
-		    PUSH(res);
-		    res = new IR(kAlterStatement, OPMID("TO"), res, tmp3);
+		  PUSH(res);
+		  res = new IR(kUnknown, OP0(), res, tmp2);
+		  PUSH(res);
+		   res = new IR(kAlterStatement, OPMID("TO"), res, tmp3);
 		CASEEND
 		CASESTART(2)
 			auto tmp0 = SAFETRANSLATE(table_name1_);
 			auto tmp1 = SAFETRANSLATE(opt_column_);
-		    auto tmp2 = SAFETRANSLATE(column_def_);
+		  auto tmp2 = SAFETRANSLATE(column_def_);
 			res = new IR(kUnknown, OP2("ALTER TABLE", "ADD"), tmp0, tmp1);
-		    PUSH(res);
-		    res = new IR(kAlterStatement, OP0(), res, tmp2);
+		  PUSH(res);
+		  res = new IR(kAlterStatement, OP0(), res, tmp2);
+		CASEEND
+		CASESTART(3)
+			auto tmp0 = SAFETRANSLATE(table_name1_);
+			auto tmp1 = SAFETRANSLATE(opt_column_);
+		  auto tmp2 = SAFETRANSLATE(column_name1_);
+			res = new IR(kUnknown, OP2("ALTER TABLE", "DROP"), tmp0, tmp1);
+		  PUSH(res);
+		  res = new IR(kAlterStatement, OP0(), res, tmp2);
 		CASEEND
 	SWITCHEND
 	TRANSLATEEND
@@ -3962,43 +3614,6 @@ IR*  OptColumn::translate(vector<IR *> &v_ir_collector){
 	TRANSLATEEND
 }
 
-void CmdRelease::deep_delete(){
-    SAFEDELETE(savepoint_name_);
-
-    delete this;
-}
-
-
-IR* CmdRelease::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(savepoint_name_);
-            res = new IR(kCmdRelease, OP1("RELEASE SAVEPOINT"), res);
-        CASEEND
-        CASESTART(1)
-            res = SAFETRANSLATE(savepoint_name_);
-            res = new IR(kCmdRelease, OP1("RELEASE"), res);
-        CASEEND
-    SWITCHEND
-    TRANSLATEEND
-}
-
-void SavepointName::deep_delete(){
-    SAFEDELETE(id_);
-
-    delete this;
-}
-
-
-IR* SavepointName::translate(vector<IR *> &v_ir_collector){
-    TRANSLATESTART
-    
-    res = SAFETRANSLATE(id_);
-    res = new IR(kSavepointName, OP0(), res);
-    
-    TRANSLATEEND
-}
 
 void VacuumStatement::deep_delete(){
     SAFEDELETE(opt_schema_name_);
@@ -4163,47 +3778,48 @@ IR*  CommitStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
+IR*  UpsertItem::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+
+    SWITCHSTART
+    CASESTART(0)
+
+      auto tmp0 = SAFETRANSLATE(opt_conflict_target_);
+      res = new IR(kUpsertItem, OP2("ON CONFLICT", "DO NOTHING"), tmp0);
+
+    CASEEND
+    CASESTART(1)
+
+      auto tmp0 = SAFETRANSLATE(opt_conflict_target_);
+      auto tmp1 = SAFETRANSLATE(assign_list_);
+      auto tmp2 = SAFETRANSLATE(opt_where_);
+
+      res = new IR(kUnknown, OP2("ON CONFLICT", "UPDATE SET"), tmp0, tmp1);
+      PUSH(res);
+      res = new IR(kUpsertItem, OP0(), res, tmp2);
+
+    CASEEND
+    SWITCHEND
+
+    TRANSLATEEND
+}
+
+void UpsertItem::deep_delete() {
+  SAFEDELETE(opt_conflict_target_);
+  SAFEDELETE(assign_list_);
+  SAFEDELETE(opt_where_);
+  delete this;
+}
 
 void UpsertClause::deep_delete(){
-    SAFEDELETE(assign_list_);
-    SAFEDELETE(indexed_column_list_);
-    SAFEDELETE(opt_where1_);
-    SAFEDELETE(opt_where2_);
-
-    delete this;
+  SAFEDELETELIST(v_upsert_item_list_);
+  delete this;
 }
 
 IR*  UpsertClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
-    SWITCHSTART
-        CASESTART(0)
-            res = new IR(kUpsertClause, OPSTART("ON CONFLICT DO NOTHING"));
-        CASEEND
-        CASESTART(1)
-            auto tmp0 = SAFETRANSLATE(assign_list_);
-            auto tmp1 = SAFETRANSLATE(opt_where1_);
-            res = new IR(kUpsertClause, OP1("ON CONFLICT DO UPDATE SET"), tmp0, tmp1);
-        CASEEND
-        CASESTART(2)
-            auto tmp0 = SAFETRANSLATE(indexed_column_list_);
-            auto tmp1 = SAFETRANSLATE(opt_where1_);
-            res = new IR(kUpsertClause, OP2("ON CONFLICT (", ")"), tmp0, tmp1);
-        CASEEND
-        CASESTART(3)
-            auto tmp0 = SAFETRANSLATE(indexed_column_list_);
-            auto tmp1 = SAFETRANSLATE(opt_where1_);
-            auto tmp2 = SAFETRANSLATE(assign_list_);
-            auto tmp3 = SAFETRANSLATE(opt_where2_);
-            res = new IR(kUpsertClause, OP2("ON CONFLICT (", ")"), tmp0, tmp1);
-            PUSH(res);
-            res = new IR(kUpsertClause, OPMID("DO UPDATE SET"), res, tmp2);
-            PUSH(res);
-            res = new IR(kUpsertClause, OP0(), res, tmp3);
-        CASEEND
-    SWITCHEND
-    
-    TRANSLATEEND
+    TRANSLATELIST(kUpsertClause, v_upsert_item_list_, " ");
+    TRANSLATEENDNOPUSH
 }
 
 void IndexedColumnList::deep_delete(){
@@ -4214,9 +3830,7 @@ void IndexedColumnList::deep_delete(){
 
 IR*  IndexedColumnList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kIndexedColumnList, v_indexed_column_list_, ",")
-
     TRANSLATEENDNOPUSH
 }
 
@@ -4241,9 +3855,15 @@ IR*  IndexedColumn::translate(vector<IR *> &v_ir_collector){
     TRANSLATEEND
 }
 
-void OptCollate::deep_delete(){
-    SAFEDELETE(collation_name_);
+IR*  Collate::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    auto tmp0 = SAFETRANSLATE(collate_name_);
+    res = new IR(kCollate, OP1("COLLATE"), tmp0);
+    TRANSLATEEND
+}
 
+void Collate::deep_delete(){
+    SAFEDELETE(collate_name_);
     delete this;
 }
 
@@ -4252,15 +3872,20 @@ IR*  OptCollate::translate(vector<IR *> &v_ir_collector){
 
     SWITCHSTART
         CASESTART(0)
-            auto tmp0 = SAFETRANSLATE(collation_name_);
-            res = new IR(kOptCollate, OP1("COLLATE"), tmp0);
+            auto tmp0 = SAFETRANSLATE(collate_);
+            res = new IR(kOptCollate, OP0(), tmp0);
         CASEEND
         CASESTART(1)
-            res = new IR(kOptCollate, str_val_);
+            res = new IR(kOptCollate, string(""));
         CASEEND
     SWITCHEND
 
     TRANSLATEEND
+}
+
+void OptCollate::deep_delete(){
+    SAFEDELETE(collate_);
+    delete this;
 }
 
 
@@ -4272,27 +3897,46 @@ void AssignList::deep_delete(){
 
 IR*  AssignList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kAssignList, v_assign_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
-void OptNull::deep_delete(){
+IR*  ExistsOrNot::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    res = new IR(kExistsOrNot, str_val_);
+    TRANSLATEEND
+}
+
+void ExistsOrNot::deep_delete(){
     delete this;
 }
 
-IR*  OptNull::translate(vector<IR *> &v_ir_collector){
+IR*  NullOfExpr::translate(vector<IR *> &v_ir_collector){
+    TRANSLATESTART
+    res = new IR(kNullOfExpr, str_val_);
+    TRANSLATEEND
+}
+
+void NullOfExpr::deep_delete(){
+    delete this;
+}
+
+IR*  OptOrderOfNull::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    res = new IR(kOptNull, str_val_);
+    res = new IR(kOptOrderOfNull, str_val_);
 
     TRANSLATEEND
+}
+
+void OptOrderOfNull::deep_delete(){
+    delete this;
 }
 
 void AssignClause::deep_delete(){
     SAFEDELETE(expr_);
     SAFEDELETE(column_name_list_);
+    SAFEDELETE(column_name_);
 
     delete this;
 }
@@ -4300,9 +3944,19 @@ void AssignClause::deep_delete(){
 IR*  AssignClause::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    auto tmp0 = SAFETRANSLATE(column_name_list_);
-    auto tmp1 = SAFETRANSLATE(expr_);
-    res = new IR(kAssignClause, OP1("="), tmp0, tmp1);
+    SWITCHSTART
+
+    CASESTART(0)
+      auto tmp0 = SAFETRANSLATE(column_name_);
+      auto tmp1 = SAFETRANSLATE(expr_);
+      res = new IR(kAssignClause, OPMID("="), tmp0, tmp1);
+    CASEEND
+    CASESTART(1)
+      auto tmp0 = SAFETRANSLATE(column_name_list_);
+      auto tmp1 = SAFETRANSLATE(expr_);
+      res = new IR(kAssignClause, OP2("(", ") ="), tmp0, tmp1);
+    CASEEND
+    SWITCHEND
 
     TRANSLATEEND
 }
@@ -4315,25 +3969,43 @@ void ColumnNameList::deep_delete(){
 
 IR*  ColumnNameList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
-
     TRANSLATELIST(kColumnNameList, v_column_name_list_, ",");
-
     TRANSLATEENDNOPUSH
 }
 
-void CollationName::deep_delete(){
-    SAFEDELETE(id_);
-
-    delete this;
-}
-
-IR* CollationName::translate(vector<IR*> &v_ir_collector){
+IR *PartitionBy::translate(vector<IR *> &v_ir_collector) {
     TRANSLATESTART
 
-    auto name = SAFETRANSLATE(id_);
-    res = new IR(kCollationName, OP0(), name);
+    auto tmp = SAFETRANSLATE(expr_list_);
+    res = new IR(kPartitionBy, OP1("PARTITION BY"), tmp);
 
     TRANSLATEEND
+}
+
+void PartitionBy::deep_delete() {
+  SAFEDELETE(expr_list_);
+  delete this;
+}
+
+IR *OptPartitionBy::translate(vector<IR *> &v_ir_collector) {
+    TRANSLATESTART
+
+    SWITCHSTART
+
+    CASESTART(0)
+      auto tmp = SAFETRANSLATE(partition_by_);
+      res = new IR(kOptPartitionBy, OP0(), tmp);
+    CASEEND
+    CASESTART(1)
+      res = new IR(kOptPartitionBy, string(""));
+    CASEEND
+    SWITCHEND
+    TRANSLATEEND
+}
+
+void OptPartitionBy::deep_delete() {
+  SAFEDELETE(partition_by_);
+  delete this;
 }
 
 void OptUpsertClause::deep_delete(){
@@ -4356,4 +4028,80 @@ IR* OptUpsertClause::translate(vector<IR*> &v_ir_collector){
     SWITCHEND
 
     TRANSLATEEND
+}
+
+IR *OptNot::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  SWITCHSTART
+  CASESTART(0)
+    res = new IR(kOptNot, string("NOT"));
+  CASEEND
+  CASESTART(1)
+    res = new IR(kOptNot, string(""));
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void OptNot::deep_delete() {
+  delete this;
+}
+
+IR *RaiseFunction::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  SWITCHSTART
+  CASESTART(0)
+    res = new IR(kRaiseFunction, string("RAISE ( IGNORE )"));
+  CASEEND
+  CASESTART(1)
+    auto tmp = SAFETRANSLATE(error_msg_);
+    res = new IR(kOptNot, OP2("RAISE ( " + to_raise_ + ",", ")"), tmp);
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void RaiseFunction::deep_delete() {
+  SAFEDELETE(error_msg_);
+  delete this;
+}
+
+IR *ConflictTarget::translate(vector<IR *> &v_ir_collector) {
+
+  TRANSLATESTART
+    auto tmp0 = SAFETRANSLATE(indexed_column_list_);
+    auto tmp1 = SAFETRANSLATE(opt_where_);
+    res = new IR(kConflictTarget, OP2("(", ")"), tmp0, tmp1);
+  TRANSLATEEND
+}
+
+void ConflictTarget::deep_delete() {
+
+  SAFEDELETE(indexed_column_list_);
+  SAFEDELETE(opt_where_);
+  delete this;
+
+}
+
+IR *OptConflictTarget::translate(vector<IR *> &v_ir_collector) {
+
+  TRANSLATESTART
+  SWITCHSTART
+
+  CASESTART(0)
+    auto tmp = SAFETRANSLATE(conflict_target_);
+    res = new IR(kOptConflictTarget, OP0(), tmp);
+  CASEEND
+  CASESTART(1)
+    res = new IR(kOptConflictTarget, string(""));
+  CASEEND
+  SWITCHEND
+  TRANSLATEEND
+}
+
+void OptConflictTarget::deep_delete() {
+
+  SAFEDELETE(conflict_target_);
+  delete this;
+
 }

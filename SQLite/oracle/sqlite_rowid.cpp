@@ -47,7 +47,7 @@ bool SQL_ROWID::mark_all_valid_node(vector<IR *> &v_ir_collector)
     }
     for (auto ir : v_ir_collector)
     {
-        if (ir != nullptr && ir->type_ == kSelectNoParen)
+        if (ir != nullptr && ir->type_ == kSelectCore)
         {
             par_ir = root->locate_parent(ir);
             if (par_ir != nullptr && par_ir->type_ == kSelectStatement)

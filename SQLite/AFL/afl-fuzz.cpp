@@ -123,6 +123,8 @@ u64 total_mutate_failed = 0;
 u64 total_append_failed = 0;
 u64 total_execute = 0;
 u64 total_add_to_queue = 0;
+u64 debug_error = 0; 
+u64 debug_good = 0;
 
 Mutator g_mutator;
 SQL_ORACLE* p_oracle;
@@ -2590,7 +2592,9 @@ inline void print_norec_exec_debug_info(){
            << "total_mutate_failed:     " << total_mutate_failed << "\n"
            << "total_append_failed:     " << total_append_failed << "\n"
            << "total_cri_valid_stmts:   " << g_mutator.get_cri_valid_collection_size() << "\n"
-           << "total_valid_stmts:       " << g_mutator.get_valid_collection_size() << "\n";
+           << "total_valid_stmts:       " << g_mutator.get_valid_collection_size() << "\n"
+           << "total bad queries:       " << debug_error << " / " << debug_error + debug_good << " (" << debug_error * 100.0 / (debug_error + debug_good)  << "%)\n";
+
 
   return;
 }
@@ -2678,8 +2682,23 @@ string expand_valid_stmts_str(vector<string>& queries_vector, const bool is_mark
   return current_output;
 }
 
+void log_error(const string &cmd_str, string &err_str) {
+
+#if 0
+  std::ofstream f;
+  f.open("./err-log", std::ofstream::out | std::ofstream::app);
+  f << cmd_str << endl;
+  f << err_str << endl;
+  f.close();
+#endif
+}
+
 void extract_query_result(const string& res, vector<string>& res_vec_out, const string& begin_sign, const string& end_sign){
   res_vec_out.clear();
+
+  if(is_str_empty(res)){
+    return -1;
+  }
 
   size_t begin_idx = res.find(begin_sign, 0);
   size_t end_idx = res.find(end_sign, 0);
@@ -2719,6 +2738,7 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
       abort();
     }
     const string &res_str = all_comp_res.v_res_str[idx];
+    const string &cmd_str = all_comp_res.v_cmd_str[idx];
     if (is_str_empty(res_str)) {
       all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
       return;
@@ -2956,6 +2976,15 @@ u8 execute_cmd_string(string cmd_string, vector<int>& explain_diff_id, char** ar
     } // End for run_id loop. 
 
     compare_query_results_cross_run(all_comp_res, explain_diff_id);
+  }
+
+  /* Log the debug_error and debug_good. */
+  for (auto& res : all_comp_res.v_res){
+    if (res.comp_res == ORA_COMP_RES::Pass){
+      debug_good++;
+    } else{
+      debug_error++;
+    }
   }
 
   /* Some useful debug output. That could show what queries are being tested.  */
@@ -3658,9 +3687,10 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault, const ve
   u8  keeping = 0, res;
   vector<IR *> ir_set;
 
-  string stripped_query_string;
-
   if (is_str_empty(query_str)) return keeping; // return 0; Empty string. Not added. 
+
+  string stripped_query_string = p_oracle->remove_valid_stmts_from_str(query_str);
+  if (is_str_empty(stripped_query_string)) return keeping;
 
   if (fault == crash_mode) {
 
@@ -3689,9 +3719,6 @@ static u8 save_if_interesting(char** argv, string& query_str, u8 fault, const ve
     stage_name = tmp_name;
     //[modify] end
 
-    stripped_query_string = p_oracle->remove_valid_stmts_from_str(query_str);
-
-    if (is_str_empty(stripped_query_string)) return keeping;
     if (g_mutator.is_stripped_str_in_lib(stripped_query_string)) return keeping;
     
 #ifndef SIMPLE_FILES
@@ -3868,7 +3895,7 @@ keep_as_crash:
 
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
+  ck_write(fd, query_str.c_str(), query_str.size(), fn);
   close(fd);
 
   ck_free(fn);

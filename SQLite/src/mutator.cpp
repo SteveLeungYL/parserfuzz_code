@@ -24,8 +24,7 @@
 using namespace std;
 
 
-vector<string> Mutator::common_string_libary;
-vector<unsigned long> Mutator::value_libary;
+vector<string> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;
 vector<string> Mutator::v_table_names;
 
@@ -197,30 +196,20 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     m_tables["haha3"] = {"fuzzing_column0_3", "fuzzing_column1_3", "fuzzing_column2_3"};
 
     //init value_libary
-    vector<unsigned long> value_lib_init = { 0,
-      (unsigned long)LONG_MAX, (unsigned long)ULONG_MAX,
-      (unsigned long)CHAR_BIT, (unsigned long)SCHAR_MIN,
-      (unsigned long)SCHAR_MAX, (unsigned long)UCHAR_MAX,
-      (unsigned long)CHAR_MIN, (unsigned long)CHAR_MAX,
-      (unsigned long)MB_LEN_MAX, (unsigned long)SHRT_MIN,
-      (unsigned long)INT_MIN, (unsigned long)INT_MAX, 
-      (unsigned long)SCHAR_MIN, (unsigned long)SCHAR_MIN,
-      (unsigned long)UINT_MAX, (unsigned long)FLT_MAX, 
-      (unsigned long)DBL_MAX, (unsigned long)LDBL_MAX,
-      (unsigned long)FLT_MIN, (unsigned long)DBL_MIN, 
-      (unsigned long)LDBL_MIN };
+    vector<string> value_lib_init = { std::to_string(0),
+      std::to_string((unsigned long)LONG_MAX),   std::to_string((unsigned long)ULONG_MAX),
+      std::to_string((unsigned long)CHAR_BIT),   std::to_string((unsigned long)SCHAR_MIN),
+      std::to_string((unsigned long)SCHAR_MAX),  std::to_string((unsigned long)UCHAR_MAX),
+      std::to_string((unsigned long)CHAR_MIN),   std::to_string((unsigned long)CHAR_MAX),
+      std::to_string((unsigned long)MB_LEN_MAX), std::to_string((unsigned long)SHRT_MIN),
+      std::to_string((unsigned long)INT_MIN),    std::to_string((unsigned long)INT_MAX),
+      std::to_string((unsigned long)SCHAR_MIN),  std::to_string((unsigned long)SCHAR_MIN),
+      std::to_string((unsigned long)UINT_MAX),   std::to_string((unsigned long)FLT_MAX),
+      std::to_string((unsigned long)DBL_MAX),    std::to_string((unsigned long)LDBL_MAX),
+      std::to_string((unsigned long)FLT_MIN),    std::to_string((unsigned long)DBL_MIN),
+      std::to_string((unsigned long)LDBL_MIN) };
     value_libary.insert(value_libary.begin(), value_lib_init.begin(), value_lib_init.end());
 
-    //init common_string_libary
-    common_string_libary.push_back("DO_NOT_BE_EMPTY");
-    if(f_common_string != ""){
-        ifstream input_string(f_common_string);
-        string s;
-
-        while(getline(input_string, s)){
-            common_string_libary.push_back(s);
-        }
-    }
     string_libary.push_back("x");
     string_libary.push_back("v0");
     string_libary.push_back("v1");
@@ -316,24 +305,35 @@ static void collect_ir(IR* root, set<IDTYPE> &type_to_fix, vector<IR*> &ir_to_fi
 }
 
 static IR* search_mapped_ir(IR* ir, IDTYPE idtype){
-    vector<IR*> to_search;
-    vector<IR*> backup;
-    to_search.push_back(ir);
-    while(!to_search.empty()){
-        for(auto i: to_search){
-            if(i->id_type_ == idtype){
-                return i;
-            }
-            if(i->left_){
-                backup.push_back(i->left_);
-            }
-            if(i->right_){
-                backup.push_back(i->right_);
-            }
-        }
-        to_search = move(backup);
-        backup.clear();
+    deque<IR *> to_search = {ir};
+
+    while(to_search.empty() != true){
+        auto node = to_search.front();
+        to_search.pop_front();
+
+        if(node->id_type_ == idtype) return node;;
+        if(node->left_) to_search.push_back(node->left_);
+        if(node->right_) to_search.push_back(node->right_);
     }
+
+    //vector<IR*> to_search;
+    //vector<IR*> backup;
+    //to_search.push_back(ir);
+    //while(!to_search.empty()){
+    //    for(auto i: to_search){
+    //        if(i->id_type_ == idtype){
+    //            return i;
+    //        }
+    //        if(i->left_){
+    //            backup.push_back(i->left_);
+    //        }
+    //        if(i->right_){
+    //            backup.push_back(i->right_);
+    //        }
+    //    }
+    //    to_search = move(backup);
+    //    backup.clear();
+    //}
     return NULL;
 }
 
@@ -410,7 +410,7 @@ vector<IR *> Mutator::extract_statement(IR * root){
 
 // find all subqueries (SELECT statement)
 //
-// find all SelectNoParent subtree, and save them in the returned vector
+// find all SelectCore subtree, and save them in the returned vector
 // save the mapping from the subtree address to subtree into 2nd arg
 //
 vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
@@ -439,7 +439,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
 
             if(cur->left_){
                 q_bfs.push_back(cur->left_);
-                if(cur->left_->type_ == kSelectNoParen){
+                if(cur->left_->type_ == kSelectCore){
                     res.push_back(cur->left_);
                     m_save[cur] = make_pair(0, cur->left_);
                     cur->detach_node(cur->left_);
@@ -448,7 +448,7 @@ vector<IR *> Mutator::cut_subquery(IR * program, TmpRecord &m_save){
 
             if(cur->right_){
                 q_bfs.push_back(cur->right_);
-                if(cur->right_->type_ == kSelectNoParen){
+                if(cur->right_->type_ == kSelectCore){
                     res.push_back(cur->right_);
                     m_save[cur] = make_pair(1, cur->right_);
                     cur->detach_node(cur->right_);
@@ -865,25 +865,6 @@ IR* Mutator::get_from_libary_with_right_type(IRTYPE type_){
   return NULL;
 }
 
-string Mutator::get_a_string(){
-  unsigned com_size = common_string_libary.size();
-  unsigned lib_size = string_libary.size();
-  unsigned double_lib_size = lib_size * 2;
-
-  unsigned rand_int = get_rand_int(double_lib_size + com_size);
-  if(rand_int < double_lib_size){
-    return string_libary[rand_int >> 1];
-  }else{
-    rand_int -= double_lib_size;
-    return common_string_libary[rand_int];
-  }
-}
-
-unsigned long Mutator::get_a_val(){
-  if(value_libary.size() == 0) return 0xdeadbeef;
-  return value_libary[get_rand_int(value_libary.size())];
-}
-
 unsigned long Mutator::get_library_size(){
   unsigned long res = 0;
 
@@ -1133,13 +1114,6 @@ void Mutator::get_memory_usage() {
   //      << "\t - " << size_right * 1.0 / use << "\n";
   // total_size += size_right;
 
-
-  unsigned long size_common_string_libary = 0;
-  for (auto &i : common_string_libary)
-    size_common_string_libary += i.capacity();
-  f << "common str:  " << size_common_string_libary
-       << "\t - " << size_common_string_libary * 1.0 / use << "\n";
-  total_size += size_common_string_libary;
 
   unsigned long size_value = 0;
   size_value += value_libary.size() * 8;
@@ -1393,7 +1367,7 @@ void Mutator::_fix(IR * root, string &res){
     return;
   }
 
-  if (type_ == kCmdPragma) {
+  if (type_ == kPragmaStatement) {
 
     string key = "";
     int lib_size = cmds_.size();
@@ -1406,7 +1380,7 @@ void Mutator::_fix(IR * root, string &res){
     int value_size = m_cmd_value_lib_[key].size();
     string value = m_cmd_value_lib_[key][get_rand_int(value_size)];
     if(!value.compare("_int_")){
-      value = string("=") + to_string(value_libary[get_rand_int(value_libary.size())]);
+      value = string("=") + value_libary[get_rand_int(value_libary.size())];
     }
     else if(!value.compare("_empty_")){
       value = "";
@@ -1425,10 +1399,9 @@ void Mutator::_fix(IR * root, string &res){
   }
 
   if (type_ == kFilePath ||
-      type_ == kPrepareTargetQuery ||
       type_ == kOptOrderType ||
       type_ == kColumnType ||
-      type_ == kSetType ||
+      type_ == kSetOperator ||
       type_ == kOptJoinType ||
       type_ == kOptDistinct ||
       type_ == kNullLiteral) {
@@ -1442,24 +1415,13 @@ void Mutator::_fix(IR * root, string &res){
     return;
   }
 
-  if (type_ == kIntLiteral) {
-    res += std::to_string(value_libary[get_rand_int(value_libary.size())]);
-    return;
-  }
-
-  if (type_ == kFloatLiteral ||
-      type_ == kconst_float) {
-    res += std::to_string(float(value_libary[get_rand_int(value_libary.size())]) + 0.1);
+  if (type_ == kNumericLiteral) {
+    res += value_libary[get_rand_int(value_libary.size())];
     return;
   }
 
   if (type_ == kconst_str) {
     res += string_libary[get_rand_int(string_libary.size())];
-    return;
-  }
-
-  if (type_ == kconst_int) {
-    res += std::to_string(value_libary[get_rand_int(value_libary.size())]);
     return;
   }
 
@@ -1538,7 +1500,7 @@ void Mutator::_extract_struct(IR * root, string &res) {
   if (type_ == kOptOrderType ||
       type_ == kNullLiteral ||
       type_ == kColumnType ||
-      type_ == kSetType ||
+      type_ == kSetOperator ||
       type_ == kOptJoinType ||
       type_ == kOptDistinct) {
     res += str_val_;
@@ -1550,7 +1512,7 @@ void Mutator::_extract_struct(IR * root, string &res) {
     return;
   }
 
-  if (type_ == kPrepareTargetQuery || type_ == kStringLiteral ){
+  if (type_ == kStringLiteral ){
     string str_val = str_val_;
     str_val.erase(std::remove(str_val.begin(), str_val.end(), '\''), str_val.end());
     str_val.erase(std::remove(str_val.begin(), str_val.end(), '"'), str_val.end());
@@ -1565,21 +1527,12 @@ void Mutator::_extract_struct(IR * root, string &res) {
     return;
   }
 
-  if(type_ == kIntLiteral) {
-    value_libary.push_back(root->int_val_);
+  if(type_ == kNumericLiteral) {
+    unsigned long h = hash(root->str_val_);
+    if (value_library_hash_.find(h) == value_library_hash_.end()) {
+      value_libary.push_back(root->str_val_);
+    }
     res += "10";
-    return;
-  }
-
-  if(type_ == kFloatLiteral || type_ == kconst_float) {
-    value_libary.push_back((unsigned long)root->f_val_);
-    res += "0.1";
-    return;
-  }
-
-  if(type_ == kconst_int) {
-    value_libary.push_back(root->int_val_); 
-    res += "11";
     return;
   }
 
