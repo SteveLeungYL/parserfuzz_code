@@ -136,10 +136,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     UpdateClause* update_clause_t;
     SelectStatement* select_statement_t;
     SetOperator* set_operator_t;
-    SetSelectCore* set_select_core_t;
-    SetSelectCoreList * set_select_core_list_t;
-    OptSetSelectCoreList * opt_set_select_core_list_t;
     SelectCore* select_core_t;
+    SelectCoreList * select_core_list_t;
     OptDistinct* opt_distinct_t;
     OptStoredVirtual * opt_stored_virtual_t;
     OptReturningClause* opt_returning_clause_t;
@@ -206,7 +204,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     JoinConstraint* join_constraint_t;
     OptSemicolon* opt_semicolon_t;
     Identifier* identifier_t;
-    Cmd * cmd_t;
     AttachStatement * attach_statement_t;
     DetachStatement * detach_statement_t;
     ReindexStatement * reindex_statement_t;
@@ -378,10 +375,8 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <update_clause_t>	update_clause
 %type <select_statement_t>	select_statement
 %type <select_core_t> select_core
+%type <select_core_list_t> select_core_list
 %type <set_operator_t>	set_operator
-%type <set_select_core_t>	set_select_core
-%type <set_select_core_list_t> set_select_core_list
-%type <opt_set_select_core_list_t> opt_set_select_core_list
 %type <opt_distinct_t>	opt_distinct
 %type <opt_stored_virtual_t> opt_stored_virtual
 %type <opt_returning_clause_t> opt_returning_clause
@@ -452,7 +447,6 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <where_expr_t> where_expr
 %type <escape_expr_t> escape_expr
 
-%type <cmd_t> cmd
 %type <attach_statement_t> attach_statement
 %type <detach_statement_t> detach_statement
 %type <analyze_statement_t> analyze_statement
@@ -628,16 +622,35 @@ statement:
             $$->sub_type_ = CASE0;
             $$->preparable_statement_ = $1;
         }
-    |   cmd {
-            $$ = new Statement();
-            $$->sub_type_ = CASE3;
-            $$->cmd_ = $1;
-    }
     ;
 
-
-cmd:
+preparable_statement:
+    /* have checked */
+        alter_statement   { $$ = $1; }
+    |   analyze_statement { $$ = $1; }
+    |   attach_statement  { $$ = $1; }
+    |   begin_statement   { $$ = $1; }
+    |   commit_statement  { $$ = $1; }
+    |   create_statement  { $$ = $1; }
+    |   delete_statement  { $$ = $1; }
+    |   detach_statement  { $$ = $1; }
+    |   drop_statement    { $$ = $1; }
+    |   insert_statement  { $$ = $1; }
+    |   pragma_statement  { $$ = $1; }
+    |   reindex_statement { $$ = $1; }
+    |   release_statement { $$ = $1; }
+    |   rollback_statement  {$$ = $1;}
+    |   savepoint_statement { $$ = $1; }
+    |   select_statement  { $$ = $1; }  
+    |   update_statement  { $$ = $1; }
+    |   vacuum_statement  { $$ = $1; }
     ;
+    /* being checked*/
+    /* to be checked*/
+    /* to be supported */
+    /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
+    /* |   update_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
+
 
 release_statement:
         RELEASE SAVEPOINT IDENTIFIER {
@@ -734,33 +747,6 @@ schema_name:
 pragma_name:
         IDENTIFIER {$$ = new PragmaName(); $$->identifier_ = new Identifier($1, id_pragma_name); free($1);}
     ;
-
-preparable_statement:
-    /* have checked */
-        alter_statement   { $$ = $1; }
-    |   analyze_statement { $$ = $1; }
-    |   attach_statement  { $$ = $1; }
-    |   begin_statement   { $$ = $1; }
-    |   commit_statement  { $$ = $1; }
-    |   create_statement  { $$ = $1; }
-    |   delete_statement  { $$ = $1; }
-    |   detach_statement  { $$ = $1; }
-    |   drop_statement    { $$ = $1; }
-    |   insert_statement  { $$ = $1; }
-    |   pragma_statement  { $$ = $1; }
-    |   reindex_statement { $$ = $1; }
-    |   release_statement { $$ = $1; }
-    |   rollback_statement  {$$ = $1;}
-    |   savepoint_statement { $$ = $1; }
-    |   select_statement  { $$ = $1; }  
-    |   update_statement  { $$ = $1; }
-    |   vacuum_statement  { $$ = $1; }
-    ;
-    /* being checked*/
-    /* to be checked*/
-    /* to be supported */
-    /* |   delete_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
-    /* |   update_statement_limited { $$ = $1; } // SQLITE_ENABLE_UPDATE_DELETE_LIMIT */
 
 savepoint_statement:
         SAVEPOINT IDENTIFIER { $$ = new SavepointStatement(); $$->savepoint_name_ = new Identifier($2, id_create_savepoint_name); free($2); }
@@ -1721,28 +1707,22 @@ update_clause:
  ******************************/
 
 select_statement:
-        opt_with_clause select_core opt_set_select_core_list opt_order opt_limit {
+        opt_with_clause select_core_list opt_order opt_limit {
           $$ = new SelectStatement();
           $$->opt_with_clause_ = $1;
-          $$->select_core_ = $2;
-          $$->opt_set_select_core_list_ = $3;
-          $$->opt_order_ = $4;
-          $$->opt_limit_ = $5;
+          $$->select_core_list_ = $2;
+          $$->opt_order_ = $3;
+          $$->opt_limit_ = $4;
         }
     ;
 
-opt_set_select_core_list:
-        set_select_core_list { $$ = new OptSetSelectCoreList(); $$->sub_type_ = CASE0; $$->set_select_core_list_ = $1; }
-    |   /* empty */ { $$ = new OptSetSelectCoreList(); $$->sub_type_ = CASE1; }
-    ;
-
-set_select_core_list:
-        set_select_core { $$ = new SetSelectCoreList(); $$->v_set_select_core_list_.push_back($1); }
-    |   set_select_core_list set_select_core { $1->v_set_select_core_list_.push_back($2); $$ = $1; }
-    ;
-
-set_select_core:
-        set_operator select_core { $$ = new SetSelectCore(); $$->set_operator_ = $1; $$->select_core_ = $2; }
+select_core_list:
+        select_core { $$ = new SelectCoreList(); $$->v_select_core_list_.push_back($1); }
+    |   select_core_list set_operator select_core {
+          $1->v_select_core_list_.push_back($3);
+          $1->v_set_operator_list_.push_back($2);
+          $$ = $1;
+        }
     ;
 
 set_operator:
@@ -2149,7 +2129,8 @@ binary_op:
     |   EQUALS    { $$ = new BinaryOp(); $$->value_ = string("=="); }
     |   NOTEQUALS { $$ = new BinaryOp(); $$->value_ = string("!="); }
     |   IS        { $$ = new BinaryOp(); $$->value_ = string("IS"); }
-    |   IS NOT    { $$ = new BinaryOp(); $$->value_ = string("IS NOT"); }
+    /* covered by IS and NOT */
+    /* |   IS NOT    { $$ = new BinaryOp(); $$->value_ = string("IS NOT"); } */
     |   AND       { $$ = new BinaryOp(); $$->value_ = string("AND"); }
     |   OR        { $$ = new BinaryOp(); $$->value_ = string("OR"); }
     ;

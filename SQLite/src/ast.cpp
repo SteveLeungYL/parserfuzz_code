@@ -456,16 +456,8 @@ IR* StatementList::translate(vector<IR *> &v_ir_collector){
 IR* Statement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
-    SWITCHSTART
-        CASESTART(0)
-            res = SAFETRANSLATE(preparable_statement_);
-            res = new IR(kStatement, OP0(), res);
-        CASEEND
-        CASESTART(3)
-            res = SAFETRANSLATE(cmd_);
-            res = new IR(kStatement, OP0(), res);
-        CASEEND
-    SWITCHEND
+    res = SAFETRANSLATE(preparable_statement_);
+    res = new IR(kStatement, OP0(), res);
 
     TRANSLATEEND
 }
@@ -479,18 +471,15 @@ IR* SelectStatement::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
 
     auto tmp0 = SAFETRANSLATE(opt_with_clause_);
-    auto tmp1 = SAFETRANSLATE(select_core_);
-    auto tmp2 = SAFETRANSLATE(opt_set_select_core_list_);
-    auto tmp3 = SAFETRANSLATE(opt_order_);
-    auto tmp4 = SAFETRANSLATE(opt_limit_);
+    auto tmp1 = SAFETRANSLATE(select_core_list_);
+    auto tmp2 = SAFETRANSLATE(opt_order_);
+    auto tmp3 = SAFETRANSLATE(opt_limit_);
 
     res = new IR(kUnknown, OP0(), tmp0, tmp1);
     PUSH(res);
     res = new IR(kUnknown, OP0(), res, tmp2);
     PUSH(res);
-    res = new IR(kUnknown, OP0(), res, tmp3);
-    PUSH(res);
-    res = new IR(kSelectStatement, OP0(), res, tmp4);
+    res = new IR(kSelectStatement, OP0(), res, tmp3);
 
     TRANSLATEEND
 }
@@ -965,51 +954,34 @@ IR* UpdateClause::translate(vector<IR *> &v_ir_collector){
 }
 
 
-IR * OptSetSelectCoreList::translate(vector<IR *> &v_ir_collector) {
-  TRANSLATESTART
-  SWITCHSTART
-  CASESTART(0)
-    auto tmp = SAFETRANSLATE(set_select_core_list_);
-    res = new IR(kOptSetSelectCoreList, OP0(), tmp);
-  CASEEND
-  CASESTART(1)
-    res = new IR(kOptSetSelectCoreList, string(""));
-  CASEEND
-  SWITCHEND
-  TRANSLATEEND
-}
-
-void OptSetSelectCoreList::deep_delete() {
-  SAFEDELETE(set_select_core_list_);
-  delete this;
-}
-
-IR * SetSelectCoreList::translate(vector<IR *> &v_ir_collector) {
-  TRANSLATESTART
-  TRANSLATELIST(kSetSelectCoreList, v_set_select_core_list_, " ");
-  TRANSLATEENDNOPUSH
-}
-
-void SetSelectCoreList::deep_delete() {
-  SAFEDELETELIST(v_set_select_core_list_);
-  delete this;
-}
-
-IR* SetSelectCore::translate(vector<IR *> &v_ir_collector){
+IR* SelectCoreList::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
     
-    auto tmp0 = SAFETRANSLATE(set_operator_);
-    auto tmp1 = SAFETRANSLATE(select_core_);
-    res = new IR(kSetSelectCore, OP0(), tmp0, tmp1);
+    assert(v_select_core_list_.size() == v_set_operator_list_.size()  + 1);
 
-    TRANSLATEEND
+    res = SAFETRANSLATE(v_select_core_list_[0]);
+    for (int i = 1; i < v_select_core_list_.size(); i++) {
+        IR * set_op = SAFETRANSLATE(v_set_operator_list_[i-1]);
+        res = new IR(kUnknown, OP0(), res, set_op);
+        PUSH(res);
+        IR * select_core = SAFETRANSLATE(v_select_core_list_[i]);
+        res = new IR(kSelectCoreList, OP0(), res, select_core);
+        PUSH(res);
+    }
+    TRANSLATEENDNOPUSH
 }
 
-void SetSelectCore::deep_delete() {
-  SAFEDELETE(set_operator_);
-  SAFEDELETE(select_core_);
+void SelectCoreList::deep_delete() {
+
+  for (auto select_core_ : v_select_core_list_)
+    SAFEDELETE(select_core_);
+
+  for (auto set_operator_ : v_set_operator_list_)
+    SAFEDELETE(set_operator_);
+  
   delete this;
 }
+
 
 IR* SetOperator::translate(vector<IR *> &v_ir_collector){
     TRANSLATESTART
@@ -2192,7 +2164,6 @@ void StatementList::deep_delete(){
 
 void Statement::deep_delete(){
 	SAFEDELETE(preparable_statement_);
-    SAFEDELETE(cmd_);
 	delete this;
 }
 
@@ -2204,8 +2175,7 @@ void PreparableStatement::deep_delete(){
 
 void SelectStatement::deep_delete(){
 	SAFEDELETE(opt_with_clause_);
-  SAFEDELETE(select_core_);
-  SAFEDELETE(opt_set_select_core_list_);
+  SAFEDELETE(select_core_list_);
 	SAFEDELETE(opt_order_);
 	SAFEDELETE(opt_limit_);
 	delete this;
@@ -2470,14 +2440,6 @@ void OptSemicolon::deep_delete(){
 	delete this;
 }
 
-
-void Cmd::deep_delete(){
-    delete this;
-}
-
-IR* Cmd::translate(vector<IR*> &v_ir_collector){
-    return NULL;
-}
 
 void AttachStatement::deep_delete(){
     SAFEDELETE(expr_);

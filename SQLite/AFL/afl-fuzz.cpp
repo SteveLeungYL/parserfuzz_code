@@ -2644,11 +2644,13 @@ void log_error(const string &cmd_str, string &err_str) {
 
   debug_error++;
 
+#if 0
   std::ofstream f;
   f.open("./err-log", std::ofstream::out | std::ofstream::app);
   f << cmd_str << endl;
   f << err_str << endl;
   f.close();
+#endif
 }
 
 int compare_query_result(const string& cmd_string, const string& result_string, vector<string>& result_0, vector<string>& result_1, vector<string>& result_2, vector<string>& result_3){

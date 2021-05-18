@@ -238,13 +238,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     PreparableStatement* preparable_statement_;
-    Cmd * cmd_; 
     
-};
-class Cmd: public Statement {
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);   
 };
 
 class PragmaKey: public Node{
@@ -297,8 +291,7 @@ public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     OptWithClause * opt_with_clause_;
-    SelectCore * select_core_;
-    OptSetSelectCoreList * opt_set_select_core_list_;
+    SelectCoreList * select_core_list_;
     OptOrder * opt_order_;
     OptLimit * opt_limit_;
 };
@@ -559,33 +552,19 @@ public:
     NewExpr * expr_;
 };
 
-class SetSelectCore: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    SetOperator * set_operator_;
-    SelectCore * select_core_;
-};
-
-class SetSelectCoreList: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    vector<SetSelectCore *> v_set_select_core_list_;
-};
-
-class OptSetSelectCoreList: public Node{
-public:
-    virtual void deep_delete();
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    SetSelectCoreList * set_select_core_list_;
-};
-
 class SetOperator: public Node{
 public:
     virtual void deep_delete();
     virtual IR* translate(vector<IR*> &v_ir_collector);
     string str_val_;
+};
+
+class SelectCoreList: public Node{
+public:
+    virtual void deep_delete();
+    virtual IR* translate(vector<IR*> &v_ir_collector);
+    vector<SelectCore *> v_select_core_list_;
+    vector<SetOperator *> v_set_operator_list_;
 };
 
 class SelectCore: public Node{

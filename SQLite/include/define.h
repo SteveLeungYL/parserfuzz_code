@@ -42,10 +42,8 @@
     V(kUpdateClauseList) \
     V(kUpdateClause) \
     V(kSetOperator) \
-    V(kSetSelectCore) \
-    V(kSetSelectCoreList) \
-    V(kOptSetSelectCoreList) \
     V(kSelectCore) \
+    V(kSelectCoreList) \
     V(kOptDistinct) \
     V(kOptStoredVirtual) \
     V(kSelectList) \
@@ -164,7 +162,6 @@
     V(kInsertType) \
     V(kUpdateType) \
     V(kInsertValue) \
-    V(kCmd) \
     V(kReindexStatement) \
     V(kAnalyzeStatement) \
     V(kOnExpr) \
@@ -251,10 +248,8 @@
     V(UpdateClauseList) \
     V(UpdateClause) \
     V(SetOperator) \
-    V(SetSelectCore) \
-    V(SetSelectCoreList) \
-    V(OptSetSelectCoreList) \
     V(SelectCore) \
+    V(SelectCoreList) \
     V(OptDistinct) \
     V(OptStoredVirtual) \
     V(SelectList) \
@@ -365,7 +360,6 @@
     V(InsertType)\
     V(UpdateType)\
     V(InsertValue)\
-    V(Cmd) \
     V(ReindexStatement) \
     V(AnalyzeStatement) \
     V(OnExpr) \
