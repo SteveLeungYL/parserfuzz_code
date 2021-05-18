@@ -3740,7 +3740,7 @@ keep_as_crash:
 
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
   if (fd < 0) PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
+  ck_write(fd, query_str.c_str(), query_str.size(), fn);
   close(fd);
 
   ck_free(fn);
