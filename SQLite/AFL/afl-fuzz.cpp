@@ -2748,6 +2748,11 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
     /* Only takes one type of validation at a time in the query. */
     extract_query_result(res_str, cur_res_vec, "BEGIN VERI 0", "END VERI 0");
     extract_query_result(res_str, cur_exp_vec, "BEGIN EXPLAIN 0", "END EXPLAIN 0");
+
+    // cerr << "For results: \n" << res_str << "\n, we get :" << endl;
+    // for (int i = 0; i < cur_res_vec.size(); i++){
+    //   cerr << "cur_res_vec: " << cur_res_vec[i] << endl;
+    // }
     
     res_vec.push_back(std::move(cur_res_vec));
     exp_vec.push_back(std::move(cur_exp_vec));
@@ -2868,10 +2873,12 @@ void stream_output_res(const ALL_COMP_RES& all_comp_res, ostream& out){
     int iter = 0;
     for (const COMP_RES& res : all_comp_res.v_res){
       out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res << "\n";
-      if (iter < res.v_res_str.size())
-        out << "Str: " << res.v_res_str[iter] << " \n";
-      if (iter < res.v_res_int.size()) 
-        out << "Int: " << res.v_res_int[iter] << " \n" ;
+      for (int j = 0; j < max(res.v_res_str.size(), res.v_res_int.size()); j++ ){
+        if (j < res.v_res_str.size())
+          out << "Str: " << res.v_res_str[j] << " \n";
+        if (j < res.v_res_int.size())
+          out << "INT: " << res.v_res_int[j] << " \n";
+      } 
       iter++;
     }
 

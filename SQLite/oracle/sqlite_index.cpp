@@ -196,8 +196,10 @@ bool SQL_INDEX::compare_norm(COMP_RES& res){ /* Handle normal valid stmt: SELECT
     }
 
     for (int i = 1; i < v_res_int.size(); i++){
-        if (v_res_int[0] != v_res_int[i]) res.comp_res = ORA_COMP_RES::Fail;
-        return false;
+        if (v_res_int[0] != v_res_int[i]) {
+            res.comp_res = ORA_COMP_RES::Fail;
+            return false;
+        }
     }
     
     res.comp_res = ORA_COMP_RES::Pass;
