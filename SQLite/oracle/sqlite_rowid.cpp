@@ -87,6 +87,18 @@ void SQL_ROWID::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string
 /* If CREATE stmt has WITHOUT ROWID, delete it. Otherwise, add it. */
 void SQL_ROWID::rewrite_valid_stmt_from_ori_2(string& query, unsigned multi_run_id)
 {   
+    /* If no PRIMARY KEY in the ori and rewritted CREATE TABLE stmt, add it to the last column in the list. */
+    if (!findStringIn(query, "PRIMARY KEY")) {
+        auto iter = query.rfind(")");
+        if (iter != string::npos){ // Find the iterator for the last ')'
+            query.insert(iter, " PRIMARY KEY ");
+        } else {
+            cerr << "Error: The rewrite_valid_stmt seems to receive a query that is not a CREATE TABLE statements? \n Query: "
+                << query << endl;
+            return;
+        }
+    }
+
     if (multi_run_id < 1) return; // First run, do not modify anything. 
     auto iter = findStringIter(query, "WITHOUT ROWID");
     if ( iter == query.end() ) {

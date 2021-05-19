@@ -2765,8 +2765,7 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
       if (j < res_vec[i].size()) {
         comp_res.v_res_str.push_back(res_vec[i][j]);
       } else {
-        comp_res.comp_res = ORA_COMP_RES::Fail;
-        
+        comp_res.comp_res = ORA_COMP_RES::ALL_Error;
       }
       if (j < exp_vec[0].size() && j < exp_vec[i].size() && exp_vec[0][j] != exp_vec[i][j]) {
         comp_res.explain_diff_id.push_back(j);
