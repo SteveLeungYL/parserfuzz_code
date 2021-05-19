@@ -2762,7 +2762,12 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
   for (int j = 0; j < res_vec[0].size(); j++){
     COMP_RES comp_res;
     for (int i = 0; i < res_vec.size(); i++){
-      comp_res.v_res_str.push_back(res_vec[i][j]);
+      if (j < res_vec[i].size()) {
+        comp_res.v_res_str.push_back(res_vec[i][j]);
+      } else {
+        comp_res.comp_res = ORA_COMP_RES::Fail;
+        
+      }
       if (j < exp_vec[0].size() && j < exp_vec[i].size() && exp_vec[0][j] != exp_vec[i][j]) {
         comp_res.explain_diff_id.push_back(j);
         explain_diff_id.push_back(j); /* Might contains duplicated IDs. But it should be OK. */
