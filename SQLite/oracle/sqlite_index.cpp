@@ -17,7 +17,7 @@ int SQL_INDEX::count_valid_stmts(const string& input){
 
 bool SQL_INDEX::is_oracle_valid_stmt(const string& query){
     if (
-        ((findStringIter(query, "SELECT") - query.begin()) < 5 ) ||
+        ((findStringIter(query, "SELECT") - query.begin()) < 5 ) &&
         findStringIn(query, "FROM")
     ) return true;
     return false;
