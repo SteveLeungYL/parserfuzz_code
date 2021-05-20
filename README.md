@@ -19,7 +19,7 @@ Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
     sudo apt-get -y update && apt-get -y upgrade
     sudo apt-get -y install gdb bison flex git make cmake build-essential gcc-multilib g++-multilib xinetd libreadline-dev zlib1g-dev
     sudo apt-get -y install clang libssl-dev libncurses5-dev
-
+    
     # Compile AFL, which is used for instrumenting the DBMSs
     cd ~
     git clone https://github.com/google/AFL.git
@@ -33,22 +33,23 @@ Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
 2. `DBMS-specific requirements:` Headers and libary of `MySQL`, `PostgreSQL` and `MariaDB` if you want to test them. The most direct way is to compile the DBMSs.
 
 3. `Compile Squirrel:`
+    
     ```
     git clone 
     cd Squirrel/DBNAME/AFL
     make afl-fuzz # You need to set the path in the Makefile
     ```
-
+    
 4. `Instrument DBMS:`
     ```
     # SQLite:
     git clone https://github.com/sqlite/sqlite.git
     cd sqlite
-    mkdir bld
-    cd bld
-    CC=/path/to/afl-gcc CXX=/path/to/afl-g++ ../configure # You can also turn on debug flag if you want to find assertion
+    mkdir -p bld/$(git rev-parse HEAD)
+    cd bld/$(git rev-parse HEAD)
+    CC=/path/to/afl-gcc CXX=/path/to/afl-g++ ../../configure # You can also turn on debug flag if you want to find assertion
     make
-
+   
     # MySQL/PostgreSQL/MariaDB
     cd Squirrel/DBNAME/docker/
     cp ../AFL/afl-fuzz .
@@ -59,7 +60,23 @@ Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
 
 ```
 # SQLite:
-cd Squirrel/SQLite/fuzz_root
+git checkout bisecting_sqlite
+cd Squirrel/SQLite
+mkdir -p Bug_Analysis/bug_samples
+# TODO: use new_inputs directly. 
+mv fuzz_root/input fuzz_root/input.bak
+cp -r fuzz_root/new_inputs fuzz_root/inputs
+# Edit the `./Bug_Analysis/bi_config/bisecting_sqlite_config.py`
+# then replace the following variables with your local path.
+# 	SQLITE_DIR = /path/to/sqlite
+# 	QUERY_SAMPLE_DIR = /path/to/Squirrel/SQLite/Bug_Analysis/bug_samples
+# 	LOG_OUTPUT_DIR = /path/to/Squirrel/SQLite/Bug_Analysis
+# 	FUZZING_ROOT_DIR = /path/to/Squirrel/SQLite
+# 	SQLITE_FUZZING_BINARY_PATH = /path/to/sqlite/bld/[COMMIT]/sqlite3
+make
+python3 ./Bug_Analysis [ORACLE]
+
+# Run a single AFL instance. 
 ./afl-fuzz -i input -o output -- /path/to/sqlite3 --bail
 
 # MySQL, PostgreSQL, MySQL, MariaDB
