@@ -34,8 +34,8 @@ public:
     unsigned get_mul_run_num() override {return 2;}
 
     string get_random_append_stmts() override {return temp_append_stmts[0];}
-    string oracle_type = "INDEX";
-
+    
+    string get_oracle_type() override {return this->oracle_type;}
 private:
     string temp_valid_stmts = "SELECT * FROM x WHERE x;";
     vector<string> temp_append_stmts = {"CREATE INDEX x ON x(x)"};
@@ -44,6 +44,8 @@ private:
 
     bool compare_norm(COMP_RES& res); /* Handle normal valid stmt: SELECT * FROM ...; Return is_err */
     bool compare_uniq(COMP_RES& res); 
+
+    string oracle_type = "INDEX";
 };
 
 

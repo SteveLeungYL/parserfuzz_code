@@ -32,7 +32,8 @@ public:
 
     /* Execute SQLite3 two times. Add or remove WITHOUT ROWID. Compare the results. */
     unsigned get_mul_run_num() override {return 2;}
-    string oracle_type = "ROWID";
+    string get_oracle_type() override {return this->oracle_type;}
+    
 private:
     string temp_valid_stmts = "SELECT * FROM x WHERE x;";
 
@@ -40,6 +41,13 @@ private:
 
     bool compare_norm(COMP_RES& res); /* Handle normal valid stmt: SELECT * FROM ...; Return is_err */
     bool compare_uniq(COMP_RES& res); 
+
+    /* If string empty or contains error keyword,
+     * then set final result to ALL_Error and skip it.
+    */
+    bool is_str_error(const string& input_str);
+
+    string oracle_type = "ROWID";
 };
 
 

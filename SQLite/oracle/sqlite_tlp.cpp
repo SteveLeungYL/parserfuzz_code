@@ -367,7 +367,6 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
   string from_stmt;
   string where_stmt;
   // string extra_stmt;
-  string group_by_stmt;
   string order_by_stmt;
 
   before_select_stmt = query.substr(0, select_position - 0);
@@ -391,10 +390,11 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
   else
     order_by_stmt = query.substr(order_by_position, order_by_len);
 
-  if (group_by_position == string::npos)
-    group_by_stmt = "";
-  else
-    group_by_stmt = query.substr(group_by_position, group_by_len);
+  /* Muted GROUP BY */
+  // if (group_by_position == string::npos)
+  //   group_by_stmt = "";
+  // else
+  //   group_by_stmt = query.substr(group_by_position, group_by_len);
 
   // if (extra_stmt_position == -1)
   //   extra_stmt = "";
@@ -424,11 +424,11 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string& query, string& rew_1, string& 
     )
     {
 
-      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, group_by_stmt, order_by_stmt, true);
+      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, "", order_by_stmt, true);
 
     } else {
 
-      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, group_by_stmt, order_by_stmt, false);
+      rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt, where_stmt, "", order_by_stmt, false);
 
     }
 

@@ -273,21 +273,21 @@ string Mutator::validate(string query){
 
   IR *root = ir_set.back();
 
-  // skip validate query if it contains GroupBy(kOptGroup) node.
-  if (this->p_oracle->oracle_type == "TLP") {
-    deque<IR *> dfs = {root};
-      while(dfs.empty() != true){
-          auto node = dfs.front();
-          dfs.pop_front();
+  /* This might not be a good method to remove kOptGroup in some cases */
+  // if (this->p_oracle->oracle_type == "TLP") {
+  //   deque<IR *> dfs = {root};
+  //     while(dfs.empty() != true){
+  //         auto node = dfs.front();
+  //         dfs.pop_front();
 
-          if(node->type_ == kOptGroup) {
-              cerr << "############ found ########" << endl;
-              return "";
-            }
-          if(node->left_) dfs.push_back(node->left_);
-          if(node->right_) dfs.push_back(node->right_);
-      }  
-  }
+  //         if(node->type_ == kOptGroup) {
+  //             cerr << "############ found ########" << endl;
+  //             return "";
+  //           }
+  //         if(node->left_) dfs.push_back(node->left_);
+  //         if(node->right_) dfs.push_back(node->right_);
+  //     }  
+  // }
 
   reset_counter();
   vector<IR*> ordered_ir;

@@ -26,7 +26,8 @@ public:
     void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_id) override;
 
     string get_temp_valid_stmts() override {return temp_valid_stmts;};
-    string oracle_type = "LIKELY";
+    
+    string get_oracle_type() override {return this->oracle_type;}
 private:
     string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
 
@@ -34,6 +35,8 @@ private:
 
     bool compare_norm(COMP_RES& res); /* Handle normal valid stmt: SELECT * FROM ...; Return is_err */
     bool compare_uniq(COMP_RES& res); 
+
+    string oracle_type = "LIKELY";
 
 };
 

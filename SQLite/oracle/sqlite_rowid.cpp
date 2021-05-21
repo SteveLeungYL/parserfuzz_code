@@ -161,6 +161,17 @@ void SQL_ROWID::compare_results(ALL_COMP_RES& res_out) {
         return;
     }
 
+    /* If we detect NOT NULL or Datatype Mismatch in the res_str. Do not compare and return All_Error directly. */
+    for (const string& cur_res_str: res_out.v_res_str) {
+        if (is_str_error(cur_res_str)){
+            for (COMP_RES& res : res_out.v_res) {
+                res.comp_res = ORA_COMP_RES::Error;
+            }
+            res_out.final_res = ALL_Error;
+            return;
+        }
+    }
+
     res_out.final_res = Pass;
 
     vector<VALID_STMT_TYPE_ROWID> v_valid_type;
@@ -265,5 +276,23 @@ bool SQL_ROWID::compare_uniq(COMP_RES& res){
     }
     
     res.comp_res = ORA_COMP_RES::Pass;
+    return false;
+}
+
+bool SQL_ROWID::is_str_error(const string& input_str) {
+
+    // check whether if 'Error:' exists in input_str
+    if (input_str.find("Error:") != string::npos) {
+
+        // check if this is a known error string.
+        if (input_str.find("NOT NULL") != string::npos ||
+            input_str.find("datatype mismatch") != string::npos) {
+
+            // It's a known error string.
+            return true;
+        }
+    }
+
+    // not a error string.
     return false;
 }

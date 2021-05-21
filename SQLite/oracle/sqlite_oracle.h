@@ -57,10 +57,12 @@ public:
 
     virtual unsigned get_mul_run_num() {return 1;}
 
+    virtual string get_oracle_type() = 0;
+
     /* Debug */
     unsigned long total_rand_valid = 0;
     unsigned long total_temp = 0;
-    string oracle_type = "ORACLE";
+    
 
 protected:    
     Mutator* g_mutator;
