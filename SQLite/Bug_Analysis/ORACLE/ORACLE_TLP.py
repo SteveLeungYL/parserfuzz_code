@@ -4,6 +4,7 @@ from enum import Enum
 
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
 
+
 class VALID_TYPE_TLP(Enum):
     NORM = 1
     MIN = 2
@@ -11,44 +12,52 @@ class VALID_TYPE_TLP(Enum):
     SUM = 4
     COUNT = 5
 
-class Oracle_TLP():
+
+class Oracle_TLP:
 
     multi_exec_num = 1
     veri_vari_num = 2
 
     @staticmethod
     def retrive_all_results(result_str):
-        if result_str.count("BEGIN VERI") < 1 or result_str.count("END VERI") < 1 or is_string_only_whitespace(result_str) or result_str == "":
-            return None, RESULT.ALL_ERROR  # Missing the outputs from the opt or the unopt. Returnning None implying errors. 
+        if (
+            result_str.count("BEGIN VERI") < 1
+            or result_str.count("END VERI") < 1
+            or is_string_only_whitespace(result_str)
+            or result_str == ""
+        ):
+            return (
+                None,
+                RESULT.ALL_ERROR,
+            )  # Missing the outputs from the opt or the unopt. Returnning None implying errors.
 
         # Grab all the opt results.
         opt_results = []
         begin_idx = []
         end_idx = []
-        for m in re.finditer(r'BEGIN VERI 0', result_str):
+        for m in re.finditer(r"BEGIN VERI 0", result_str):
             begin_idx.append(m.end())
-        for m in re.finditer(r'END VERI 0', result_str):
+        for m in re.finditer(r"END VERI 0", result_str):
             end_idx.append(m.start())
-        for i in range(min( len(begin_idx), len(end_idx) )):
-            current_opt_result = result_str[begin_idx[i]: end_idx[i]]
-            if ("Error" in current_opt_result):
+        for i in range(min(len(begin_idx), len(end_idx))):
+            current_opt_result = result_str[begin_idx[i] : end_idx[i]]
+            if "Error" in current_opt_result:
                 opt_results.append("Error")
             else:
                 opt_results.append(current_opt_result)
-
 
         # Grab all the unopt results.
         unopt_results = []
         begin_idx = []
         end_idx = []
-        for m in re.finditer(r'BEGIN VERI 1', result_str):
+        for m in re.finditer(r"BEGIN VERI 1", result_str):
             begin_idx.append(m.end())
-        for m in re.finditer(r'END VERI 1', result_str):
+        for m in re.finditer(r"END VERI 1", result_str):
             end_idx.append(m.start())
-        for i in range(min( len(begin_idx), len(end_idx) )):
-            current_unopt_result = result_str[ begin_idx[i] : end_idx[i] ]
-            if ("Error" in current_unopt_result):
-                unopt_results.append("Error")    
+        for i in range(min(len(begin_idx), len(end_idx))):
+            current_unopt_result = result_str[begin_idx[i] : end_idx[i]]
+            if "Error" in current_unopt_result:
+                unopt_results.append("Error")
             else:
                 unopt_results.append(current_unopt_result)
 
@@ -58,12 +67,12 @@ class Oracle_TLP():
             all_results_out.append(cur_results_out)
 
         return all_results_out, RESULT.PASS
-        
+
     @classmethod
     def comp_query_res(cls, queries_l, all_res_str_l):
         queries = queries_l[0]
         valid_type_list = cls._get_valid_type_list(queries)
-        
+
         # Has only one run through
         all_res_str_l = all_res_str_l[0]
 
@@ -75,32 +84,48 @@ class Oracle_TLP():
             # if idx >= len(opt_result) or idx >= len(unopt_result):
             #     break
             if valid_type == VALID_TYPE_TLP.NORM:
-                curr_res = cls._check_result_norm(all_res_str_l[idx][0], all_res_str_l[idx][1])
+                curr_res = cls._check_result_norm(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1]
+                )
                 all_res_out.append(curr_res)
-            elif valid_type == VALID_TYPE_TLP.COUNT or valid_type == VALID_TYPE_TLP.SUM or valid_type == VALID_TYPE_TLP.MIN or valid_type == VALID_TYPE_TLP.MAX:
-                curr_res = cls._check_result_minmax_count_sum(all_res_str_l[idx][0], all_res_str_l[idx][1], valid_type)
+            elif (
+                valid_type == VALID_TYPE_TLP.COUNT
+                or valid_type == VALID_TYPE_TLP.SUM
+                or valid_type == VALID_TYPE_TLP.MIN
+                or valid_type == VALID_TYPE_TLP.MAX
+            ):
+                curr_res = cls._check_result_minmax_count_sum(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], valid_type
+                )
                 all_res_out.append(curr_res)
             else:
-                raise ValueError("Encounter unknown VALID_TYPE_TLP in the check_query_exec_correctness_under_commitID func. ")
+                raise ValueError(
+                    "Encounter unknown VALID_TYPE_TLP in the check_query_exec_correctness_under_commitID func. "
+                )
 
         for curr_res_out in all_res_out:
             if curr_res_out == RESULT.FAIL:
                 final_res = RESULT.FAIL
                 break
-            
+
         is_all_query_return_errors = True
         for curr_res_out in all_res_out:
             if curr_res_out != RESULT.ERROR:
                 is_all_query_return_errors = False
                 break
-        if is_all_query_return_errors: 
+        if is_all_query_return_errors:
             final_res = RESULT.ALL_ERROR
 
         return final_res, all_res_out
 
     @classmethod
-    def _get_valid_type_list(cls, query:str):
-        if query.count("BEGIN VERI") < 1 or query.count("END VERI") < 1 or is_string_only_whitespace(query) or query == "":
+    def _get_valid_type_list(cls, query: str):
+        if (
+            query.count("BEGIN VERI") < 1
+            or query.count("END VERI") < 1
+            or is_string_only_whitespace(query)
+            or query == ""
+        ):
             return []  # query is not making sense at all.
 
         # Grab all the opt queries, detect its valid_type, and return.
@@ -109,50 +134,63 @@ class Oracle_TLP():
         end_idx = []
         for m in re.finditer(r"SELECT 'BEGIN VERI 0';", query):
             begin_idx.append(m.end())
-        for m in re.finditer(r"SELECT 'END VERI 0';", query):  # Might contains additional unnecessary characters, such as SELECT in the SELECT 97531;
+        for m in re.finditer(
+            r"SELECT 'END VERI 0';", query
+        ):  # Might contains additional unnecessary characters, such as SELECT in the SELECT 97531;
             end_idx.append(m.start())
-        for i in range(min( len(begin_idx), len(end_idx) )):
-            current_opt_query = query[begin_idx[i]: end_idx[i]]
+        for i in range(min(len(begin_idx), len(end_idx))):
+            current_opt_query = query[begin_idx[i] : end_idx[i]]
             valid_type_list.append(cls._get_valid_type(current_opt_query))
 
         return valid_type_list
 
     @classmethod
-    def _get_valid_type(cls, query:str):
-        if re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.IGNORECASE):
+    def _get_valid_type(cls, query: str):
+        if re.match(
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.IGNORECASE
+        ):
             # print("For query: %s, returning valid_type: MIN" % (query))
             return VALID_TYPE_TLP.MIN
-        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.IGNORECASE):
+        elif re.match(
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.IGNORECASE
+        ):
             # print("For query: %s, returning VALID_TYPE_TLP: MAX" % (query))
             return VALID_TYPE_TLP.MAX
-        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.IGNORECASE):
+        elif re.match(
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.IGNORECASE
+        ):
             # print("For query: %s, returning VALID_TYPE_TLP: SUM" % (query))
             return VALID_TYPE_TLP.SUM
-        elif re.match(r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.IGNORECASE):
+        elif re.match(
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.IGNORECASE
+        ):
             # print("For query: %s, returning VALID_TYPE_TLP: COUNT" % (query))
             return VALID_TYPE_TLP.COUNT
         else:
             # print("For query: %s, returning VALID_TYPE_TLP: NORM" % (query))
             return VALID_TYPE_TLP.NORM
 
-
     @classmethod
-    def _check_result_norm(cls, opt:str, unopt:str) -> RESULT:
+    def _check_result_norm(cls, opt: str, unopt: str) -> RESULT:
         if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
 
         opt_out_int = 0
         unopt_out_int = 0
 
-        opt_list = opt.split('\n')
-        unopt_list = unopt.split('\n')
+        opt_list = opt.split("\n")
+        unopt_list = unopt.split("\n")
 
         for cur_opt in opt_list:
-            if re.match(r"""^[\|\s]*$""", cur_opt, re.MULTILINE | re.IGNORECASE):  # Only spaces or | (separator)
+            if re.match(
+                r"""^[\|\s]*$""", cur_opt, re.MULTILINE | re.IGNORECASE
+            ):  # Only spaces or | (separator)
                 continue
             opt_out_int += 1
         for cur_unopt in unopt_list:
-            if re.match(r"""^[\|\s]*$""", cur_unopt, re.MULTILINE | re.IGNORECASE):  # Only spaces or | (separator)
+            if re.match(
+                r"""^[\|\s]*$""", cur_unopt, re.MULTILINE | re.IGNORECASE
+            ):  # Only spaces or | (separator)
                 continue
             unopt_out_int += 1
 
@@ -162,14 +200,13 @@ class Oracle_TLP():
         else:
             return RESULT.PASS
 
-
     @classmethod
-    def _check_result_minmax_count_sum(cls, opt, unopt, valid_type)-> RESULT:
+    def _check_result_minmax_count_sum(cls, opt, unopt, valid_type) -> RESULT:
         if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
 
-        opt_out_int:int = 0
-        unopt_out_int:int = 0
+        opt_out_int: int = 0
+        unopt_out_int: int = 0
         if valid_type == VALID_TYPE_TLP.MAX:
             opt_out_int = 0
             unopt_out_int = 0
@@ -180,9 +217,13 @@ class Oracle_TLP():
             opt_out_int = 0
             unopt_out_int = 0
         else:
-            raise ValueError("Cannot handle valid_type: " + str(valid_type) + " in the check_result function. ")
+            raise ValueError(
+                "Cannot handle valid_type: "
+                + str(valid_type)
+                + " in the check_result function. "
+            )
 
-        for cur_opt in opt.split('\n'):
+        for cur_opt in opt.split("\n"):
             if is_string_only_whitespace(cur_opt):
                 continue
             cur_res = 0
@@ -198,8 +239,7 @@ class Oracle_TLP():
             elif valid_type == VALID_TYPE_TLP.MIN and cur_res < opt_out_int:
                 opt_out_int = cur_res
 
-
-        for cur_unopt in unopt.split('\n'):
+        for cur_unopt in unopt.split("\n"):
             if is_string_only_whitespace(cur_unopt):
                 continue
             cur_res = 0

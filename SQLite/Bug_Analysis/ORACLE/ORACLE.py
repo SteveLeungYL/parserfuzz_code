@@ -10,4 +10,3 @@ class Oracle:
     @classmethod
     def comp_query_res(cls, queries_l, all_res_str_l):
         pass
-
