@@ -6,7 +6,9 @@ SQLITE_BLD_DIR = os.path.join(
 )  # Change to your own sqlite3 repo root dir.
 SQLITE_BRANCH = "master"
 
-QUERY_SAMPLE_DIR = "/home/sqlite/fuzz_test/Bug_Analysis/bug_samples/"  # Change to your own query_samples dir.
+QUERY_SAMPLE_DIR = (
+    "/home/sqlite/fuzz_test/Bug_Analysis/bug_samples/"
+)  # Change to your own query_samples dir.
 
 LOG_OUTPUT_DIR = "/home/sqlite/fuzz_test/Bug_Analysis/"
 LOG_OUTPUT_FILE = os.path.join(LOG_OUTPUT_DIR, "bisecting_sqlite_log.txt")

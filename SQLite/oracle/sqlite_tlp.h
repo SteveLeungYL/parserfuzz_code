@@ -34,9 +34,8 @@ public:
   string get_temp_valid_stmts() override {
     return temp_valid_stmts[get_rand_int(temp_valid_stmts.size())];
   }
+  string get_oracle_type() override { return this->oracle_type; }
 
-  string get_oracle_type() override {return this->oracle_type;}
-  
 private:
   vector<string> temp_valid_stmts = {
       /* Complete set */

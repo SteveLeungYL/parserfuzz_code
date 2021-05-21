@@ -174,15 +174,16 @@ void SQL_ROWID::compare_results(ALL_COMP_RES &res_out) {
     return;
   }
 
-    /* If we detect NOT NULL or Datatype Mismatch in the res_str. Do not compare and return All_Error directly. */
-  for (const string& cur_res_str: res_out.v_res_str) {
-      if (is_str_error(cur_res_str)){
-          for (COMP_RES& res : res_out.v_res) {
-              res.comp_res = ORA_COMP_RES::Error;
-          }
-          res_out.final_res = ALL_Error;
-          return;
+  /* If we detect NOT NULL or Datatype Mismatch in the res_str. Do not compare
+   * and return All_Error directly. */
+  for (const string &cur_res_str : res_out.v_res_str) {
+    if (is_str_error(cur_res_str)) {
+      for (COMP_RES &res : res_out.v_res) {
+        res.comp_res = ORA_COMP_RES::Error;
       }
+      res_out.final_res = ALL_Error;
+      return;
+    }
   }
 
   res_out.final_res = Pass;
@@ -192,21 +193,20 @@ void SQL_ROWID::compare_results(ALL_COMP_RES &res_out) {
 
   bool is_all_errors = true;
   int i = 0;
-  for (COMP_RES& res : res_out.v_res){
-      switch (v_valid_type[i++])
-      {
-      case VALID_STMT_TYPE_ROWID::NORM:
-          if(!this->compare_norm(res)) is_all_errors = false;
-          break;
-      
-      case VALID_STMT_TYPE_ROWID::UNIQ:
-          if(!this->compare_uniq(res)) is_all_errors = false;
-          break;
-      }
-      if (res.comp_res == ORA_COMP_RES::Fail) res_out.final_res = ORA_COMP_RES::Fail;
-  }
-  if (res.comp_res == ORA_COMP_RES::Fail)
-    res_out.final_res = ORA_COMP_RES::Fail;
+  for (COMP_RES &res : res_out.v_res) {
+    switch (v_valid_type[i++]) {
+    case VALID_STMT_TYPE_ROWID::NORM:
+      if (!this->compare_norm(res))
+        is_all_errors = false;
+      break;
+
+    case VALID_STMT_TYPE_ROWID::UNIQ:
+      if (!this->compare_uniq(res))
+        is_all_errors = false;
+      break;
+    }
+    if (res.comp_res == ORA_COMP_RES::Fail)
+      res_out.final_res = ORA_COMP_RES::Fail;
   }
 
   if (is_all_errors && res_out.final_res != ORA_COMP_RES::Fail)
@@ -291,32 +291,26 @@ bool SQL_ROWID::compare_uniq(COMP_RES &res) {
       res.comp_res = ORA_COMP_RES::Fail;
       return false;
     }
-<<<<<<< HEAD
-    
-    res.comp_res = ORA_COMP_RES::Pass;
-    return false;
-}
-
-bool SQL_ROWID::is_str_error(const string& input_str) {
-
-    // check whether if 'Error:' exists in input_str
-    if (input_str.find("Error:") != string::npos) {
-
-        // check if this is a known error string.
-        if (input_str.find("NOT NULL") != string::npos ||
-            input_str.find("datatype mismatch") != string::npos) {
-
-            // It's a known error string.
-            return true;
-        }
-    }
-
-    // not a error string.
-    return false;
-=======
   }
 
   res.comp_res = ORA_COMP_RES::Pass;
   return false;
->>>>>>> 5c4d257cb04990d9297d8c6eed1817941826820d
+}
+
+bool SQL_ROWID::is_str_error(const string &input_str) {
+
+  // check whether if 'Error:' exists in input_str
+  if (input_str.find("Error:") != string::npos) {
+
+    // check if this is a known error string.
+    if (input_str.find("NOT NULL") != string::npos ||
+        input_str.find("datatype mismatch") != string::npos) {
+
+      // It's a known error string.
+      return true;
+    }
+  }
+
+  // not a error string.
+  return false;
 }

@@ -2787,8 +2787,8 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
   all_comp_res.final_res = ORA_COMP_RES::Pass;
   explain_diff_id.clear();
 
-  const string& res_str = all_comp_res.res_str;
-  if(is_str_empty(res_str)){
+  const string &res_str = all_comp_res.res_str;
+  if (is_str_empty(res_str)) {
     all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
     return;
   }
