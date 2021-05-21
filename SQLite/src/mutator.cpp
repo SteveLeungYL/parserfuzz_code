@@ -24,6 +24,7 @@ using namespace std;
 
 vector<string> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;
+map<string, vector<string>> Mutator::m_table2index;
 vector<string> Mutator::v_table_names;
 
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
@@ -244,8 +245,10 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   relationmap[id_index_name] = id_top_table_name;
   relationmap[id_create_column_name] = id_create_table_name;
   relationmap[id_pragma_value] = id_pragma_name;
+  relationmap[id_create_index_name] = id_create_table_name;
   cross_map[id_top_table_name] = id_create_table_name;
   relationmap_alternate[id_create_column_name] = id_top_table_name;
+  relationmap_alternate[id_create_index_name] = id_top_table_name;
   return;
 }
 
@@ -535,6 +538,11 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
   set<IDTYPE> type_to_fix;
 
   for (auto &iter : relationmap) {
+    type_to_fix.insert(iter.first);
+    type_to_fix.insert(iter.second);
+  }
+
+  for (auto &iter : relationmap_alternate) {
     type_to_fix.insert(iter.first);
     type_to_fix.insert(iter.second);
   }
@@ -1262,6 +1270,7 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
   if (fixed_key->id_type_ == id_create_table_name) {
     string tablename = fixed_key->str_val_;
     auto &colums = m_tables[tablename];
+    auto &indices = m_table2index[tablename];
     for (auto &val : graph[fixed_key]) {
       if (val->id_type_ == id_create_column_name) {
         string new_column = gen_id_name();
@@ -1277,6 +1286,7 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
   } else if (fixed_key->id_type_ == id_top_table_name) {
     string tablename = fixed_key->str_val_;
     auto &colums = m_tables[tablename];
+    auto &indices = m_table2index[tablename];
 
     for (auto &val : graph[fixed_key]) {
 
@@ -1294,12 +1304,12 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
         break;
       }
 
-      case id_index_name: {
+      case id_create_index_name: {
         string new_index = gen_id_name();
-        val->str_val_ = new_index;
         // cout << "index name: " << new_index << endl;
-        // m_tables[new_index] = m_tables[tablename];
-        // v_table_names.push_back(new_index);
+        indices.push_back(new_index);
+        val->str_val_ = new_index;
+        visited.insert(val);
         break;
       }
 
