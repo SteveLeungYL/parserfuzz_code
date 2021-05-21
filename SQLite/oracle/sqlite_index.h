@@ -34,6 +34,7 @@ public:
     unsigned get_mul_run_num() override {return 2;}
 
     string get_random_append_stmts() override {return temp_append_stmts[0];}
+    string oracle_type = "INDEX";
 
 private:
     string temp_valid_stmts = "SELECT * FROM x WHERE x;";

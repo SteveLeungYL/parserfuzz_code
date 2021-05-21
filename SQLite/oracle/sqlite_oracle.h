@@ -60,8 +60,9 @@ public:
     /* Debug */
     unsigned long total_rand_valid = 0;
     unsigned long total_temp = 0;
+    string oracle_type = "ORACLE";
 
-protected:
+protected:    
     Mutator* g_mutator;
 
     virtual bool mark_node_valid(IR *root);

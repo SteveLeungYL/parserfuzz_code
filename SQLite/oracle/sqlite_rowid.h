@@ -32,7 +32,7 @@ public:
 
     /* Execute SQLite3 two times. Add or remove WITHOUT ROWID. Compare the results. */
     unsigned get_mul_run_num() override {return 2;}
-
+    string oracle_type = "ROWID";
 private:
     string temp_valid_stmts = "SELECT * FROM x WHERE x;";
 

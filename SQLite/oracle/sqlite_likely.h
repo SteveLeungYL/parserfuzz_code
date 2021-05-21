@@ -26,6 +26,7 @@ public:
     void rewrite_valid_stmt_from_ori(string& ori, string& rew_1, string& rew_2, string& rew_3, unsigned multi_run_id) override;
 
     string get_temp_valid_stmts() override {return temp_valid_stmts;};
+    string oracle_type = "LIKELY";
 private:
     string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
 
