@@ -1,38 +1,38 @@
 #include "../include/ast.h"
-#include "../include/mutator.h"
 #include "../include/define.h"
+#include "../include/mutator.h"
 #include "../include/utils.h"
 
-#include <iostream>
 #include <fstream>
-#include <string>
+#include <iostream>
 #include <ostream>
+#include <string>
 
-//extern int hsql_debug;
+// extern int hsql_debug;
 
 using namespace std;
 
 namespace Color {
-  enum Code {
-    FG_RED      = 31,
-    FG_GREEN    = 32,
-    FG_BLUE     = 34,
-    FG_DEFAULT  = 39,
-    BG_RED      = 41,
-    BG_GREEN    = 42,
-    BG_BLUE     = 44,
-    BG_DEFAULT  = 49
-  };
-  class Modifier {
-    Code code;
-    public:
-    Modifier(Code pCode) : code(pCode) {}
-    friend std::ostream&
-      operator<<(std::ostream& os, const Modifier& mod) {
-        return os << "\033[" << mod.code << "m";
-      }
-  };
-}
+enum Code {
+  FG_RED = 31,
+  FG_GREEN = 32,
+  FG_BLUE = 34,
+  FG_DEFAULT = 39,
+  BG_RED = 41,
+  BG_GREEN = 42,
+  BG_BLUE = 44,
+  BG_DEFAULT = 49
+};
+class Modifier {
+  Code code;
+
+public:
+  Modifier(Code pCode) : code(pCode) {}
+  friend std::ostream &operator<<(std::ostream &os, const Modifier &mod) {
+    return os << "\033[" << mod.code << "m";
+  }
+};
+} // namespace Color
 
 Color::Modifier RED(Color::FG_RED);
 Color::Modifier DEF(Color::FG_DEFAULT);
@@ -49,7 +49,7 @@ bool test_parse(string &query) {
 
   IR *root = v_ir.back();
 
-  //mutator.debug(root, 0);
+  // mutator.debug(root, 0);
 
   string tostring = root->to_string();
   if (tostring.size() <= 0) {
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  //hsql_debug = 1; 
+  // hsql_debug = 1;
 
   mutator.init("");
 
@@ -97,20 +97,23 @@ int main(int argc, char *argv[]) {
   ifstream input_test(input);
   string line;
 
-  while(getline(input_test, line)) {
+  while (getline(input_test, line)) {
 
-    if (line.find_first_of("--") == 0) continue;
+    if (line.find_first_of("--") == 0)
+      continue;
 
     trim_string(line);
 
-    if (line.size() == 0) continue;
+    if (line.size() == 0)
+      continue;
 
     cout << "----------------------------------------" << endl;
     cout << ">>>>>>>>>>>" << line << "<\n";
 
     bool is_valid = test_parse(line);
 
-    if (!is_valid) continue;
+    if (!is_valid)
+      continue;
   }
 
   return 0;

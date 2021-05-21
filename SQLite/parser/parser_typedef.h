@@ -3,16 +3,13 @@
 
 #include <vector>
 
-
 #ifndef YYtypeDEF_YY_SCANNER_T
 #define YYtypeDEF_YY_SCANNER_T
-typedef void* yyscan_t;
+typedef void *yyscan_t;
 #endif
-
 
 #define YYSTYPE HSQL_STYPE
 #define YYLTYPE HSQL_LTYPE
-
 
 struct HSQL_CUST_LTYPE {
   int first_line;
@@ -27,7 +24,7 @@ struct HSQL_CUST_LTYPE {
 
   // Parameters.
   // int param_id;
-  std::vector<void*> param_list;
+  std::vector<void *> param_list;
 };
 
 #define HSQL_LTYPE HSQL_CUST_LTYPE
