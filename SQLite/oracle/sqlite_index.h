@@ -33,11 +33,11 @@ public:
     /* Execute SQLite3 two times. Add or remove WITHOUT ROWID. Compare the results. */
     unsigned get_mul_run_num() override {return 2;}
 
-    string get_random_append_stmts() override {return temp_append_stmts[get_rand_int(2)];}
+    string get_random_append_stmts() override {return temp_append_stmts[0];}
 
 private:
     string temp_valid_stmts = "SELECT * FROM x WHERE x;";
-    vector<string> temp_append_stmts = {"CREATE UNIQUE INDEX x ON x(x)", "CREATE INDEX x ON x(x)"};
+    vector<string> temp_append_stmts = {"CREATE INDEX x ON x(x)"};
 
     void get_v_valid_type(const string& cmd_str, vector<VALID_STMT_TYPE_INDEX>& v_valid_type);
 
