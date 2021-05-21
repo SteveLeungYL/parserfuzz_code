@@ -12,7 +12,7 @@ from ORACLE import Oracle_TLP, Oracle_NOREC, Oracle_ROWID, Oracle_INDEX, Oracle_
 
 
 def main():
-    
+
     IO.gen_unique_bug_output_dir(True)
 
     if len(sys.argv) <= 1:
@@ -47,19 +47,29 @@ def main():
 
     vercon = VerCon()
     all_commits_hexsha, all_tags = vercon.get_all_commits(repo=repo)
-    log_out_line("Getting %d number of commits, and %d number of tags. \n\n" % (len(all_commits_hexsha), len(all_tags)))
+    log_out_line(
+        "Getting %d number of commits, and %d number of tags. \n\n"
+        % (len(all_commits_hexsha), len(all_tags))
+    )
 
-    log_out_line("Beginning processing files in the target folder. (Infinite Loop) \n\n")
+    log_out_line(
+        "Beginning processing files in the target folder. (Infinite Loop) \n\n"
+    )
     while True:
-        # Read one file at a time. 
+        # Read one file at a time.
         all_new_queries = IO.read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
         if all_new_queries == []:
             time.sleep(1.0)
             continue
-        if "randomblob" in all_new_queries[0] or "random" in all_new_queries[0] or "julianday" in all_new_queries[0]:
+        if (
+            "randomblob" in all_new_queries[0]
+            or "random" in all_new_queries[0]
+            or "julianday" in all_new_queries[0]
+        ):
             continue
-        Bisect.run_bisecting(queries_l = all_new_queries, oracle=oracle, vercon=vercon)
+        Bisect.run_bisecting(queries_l=all_new_queries, oracle=oracle, vercon=vercon)
         IO.status_print()
+
 
 if __name__ == "__main__":
     main()
