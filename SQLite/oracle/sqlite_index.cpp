@@ -25,8 +25,7 @@ bool SQL_INDEX::is_oracle_valid_stmt(const string& query){
 
 bool SQL_INDEX::is_oracle_valid_stmt_2(const string& query){
     if (
-        ((findStringIter(query, "CREATE INDEX") - query.begin()) < 5 ) ||
-        ((findStringIter(query, "CREATE UNIQUE INDEX") - query.begin()) < 5 )
+        ((findStringIter(query, "CREATE INDEX") - query.begin()) < 5 )
     ) return true;
     return false;
 }
