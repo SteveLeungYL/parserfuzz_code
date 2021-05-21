@@ -2739,7 +2739,9 @@ void compare_query_results_cross_run(ALL_COMP_RES& all_comp_res, vector<int>& ex
     }
     const string &res_str = all_comp_res.v_res_str[idx];
     const string &cmd_str = all_comp_res.v_cmd_str[idx];
-    if (is_str_empty(res_str)) {
+    if (is_str_empty(res_str) || is_str_error(res_str)) {
+      // if string empty or contains error keyword,
+      // then set final result to ALL_Error and skip it.
       all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
       return;
     }
@@ -2785,7 +2787,9 @@ void compare_query_result(ALL_COMP_RES& all_comp_res, vector<int>& explain_diff_
   explain_diff_id.clear();
 
   const string& res_str = all_comp_res.res_str;
-  if(is_str_empty(res_str)){
+  if(is_str_empty(res_str) || is_str_error(res_str)){
+    // if string empty or contains error keyword,
+    // then set final result to ALL_Error and skip it.
     all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
     return;
   }

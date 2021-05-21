@@ -194,6 +194,24 @@ bool is_str_empty(string input_str){
   return true; // Empty
 }
 
+bool is_str_error(string input_str) {
+
+  // check whether if 'Error:' exists in input_str
+  if (input_str.find("Error:") != string::npos) {
+    
+    // check if this is a known error string.
+    if (input_str.find("NOT NULL") != string::npos ||
+        input_str.find("datatype mismatch") != string::npos) {
+
+          // It's a known error string. 
+          return true;
+        }
+  }
+
+  // not a error string.
+  return false;
+}
+
 string::const_iterator findStringIter(const std::string & strHaystack, const std::string & strNeedle)
 {
   auto it = std::search(
