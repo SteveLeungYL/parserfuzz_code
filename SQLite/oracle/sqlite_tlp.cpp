@@ -742,9 +742,9 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
 }
 
 bool SQL_TLP::is_str_contains_group(const string &input_str) {
-  // check whether if 'input_str' conatins 'GROUP BY' keyword.
+  // check whether if 'input_str' contains 'GROUP BY' keyword.
   if ((input_str.find("GROUP BY") != string::npos) ||
-      (input_str.find("GROUP") != string::npos) ||) {
+      (input_str.find("GROUP") != string::npos)) {
     return true;
   }
 
@@ -752,7 +752,7 @@ bool SQL_TLP::is_str_contains_group(const string &input_str) {
 }
 
 bool SQL_TLP::is_str_contains_aggregate(const string &input_str) {
-  // check whether if 'input_str' conatins aggregate function.
+  // check whether if 'input_str' contains aggregate function.
   if ((input_str.find("MIN") != string::npos) ||
       (input_str.find("MAX") != string::npos) ||
       (input_str.find("SUM") != string::npos) ||

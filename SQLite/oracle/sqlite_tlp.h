@@ -71,6 +71,16 @@ private:
       VALID_STMT_TYPE_TLP
           valid_type); /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
 
+  /* If string contains 'GROUP BY' statement,
+   * then set final result to ALL_Error and skip it.
+   */
+  bool is_str_contains_group(const string &input_str);
+
+  /* If string contains aggregate function,
+   * then set final result to ALL_Error and skip it.
+   */
+  bool is_str_contains_aggregate(const string &input_str);
+
   string oracle_type = "TLP";
 };
 
