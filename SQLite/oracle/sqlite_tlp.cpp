@@ -630,6 +630,19 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
   vector<VALID_STMT_TYPE_TLP> v_valid_type;
   get_v_valid_type(res_out.cmd_str, v_valid_type);
 
+  /* If we detect GROUP BY or Aggregate functions in the res_str.
+   * Do not compare and return All_Error directly. */
+  for (const string &cur_res_str : res_out.v_res_str) {
+    if (is_str_contains_group(cur_res_str) ||
+        is_str_contains_aggregate(cur_res_str)) {
+      for (COMP_RES &res : res_out.v_res) {
+        res.comp_res = ORA_COMP_RES::Error;
+      }
+      res_out.final_res = ALL_Error;
+      return;
+    }
+  }
+
   int i = 0;
   for (COMP_RES &res : res_out.v_res) {
 
@@ -726,4 +739,26 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
              // the current output.
     }
   }
+}
+
+bool SQL_TLP::is_str_contains_group(const string &input_str) {
+  // check whether if 'input_str' conatins 'GROUP BY' keyword.
+  if ((input_str.find("GROUP BY") != string::npos) ||
+      (input_str.find("GROUP") != string::npos) ||) {
+    return true;
+  }
+
+  return false;
+}
+
+bool SQL_TLP::is_str_contains_aggregate(const string &input_str) {
+  // check whether if 'input_str' conatins aggregate function.
+  if ((input_str.find("MIN") != string::npos) ||
+      (input_str.find("MAX") != string::npos) ||
+      (input_str.find("SUM") != string::npos) ||
+      (input_str.find("COUNT") != string::npos)) {
+    return true;
+  }
+
+  return false;
 }
