@@ -2043,7 +2043,8 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
   // Insert a TableAlas node if it does not have one.
-  if (!table_or_subquery_->opt_table_alias_->is_existed_) {
+  if (table_or_subquery_ != NULL &&
+      !table_or_subquery_->opt_table_alias_->is_existed_) {
     // TODO(vancir): use different identifier here.
     Identifier *alias_id = new Identifier("X");
 
@@ -2059,21 +2060,23 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
     table_or_subquery_->opt_table_alias_ = opt_table_alias;
   }
 
-  for (auto join_suffix : join_suffix_list_->v_join_suffix_list_) {
-    if (!join_suffix->table_or_subquery_->opt_table_alias_->is_existed_) {
-      // TODO(vancir): use different identifier here.
-      Identifier *alias_id = new Identifier("Y");
+  if (join_suffix_list_ != NULL) {
+    for (auto join_suffix : join_suffix_list_->v_join_suffix_list_) {
+      if (!join_suffix->table_or_subquery_->opt_table_alias_->is_existed_) {
+        // TODO(vancir): use different identifier here.
+        Identifier *alias_id = new Identifier("Y");
 
-      TableAlias *table_alias = new TableAlias();
-      table_alias->sub_type_ = CASE0;
-      table_alias->alias_id_ = alias_id;
+        TableAlias *table_alias = new TableAlias();
+        table_alias->sub_type_ = CASE0;
+        table_alias->alias_id_ = alias_id;
 
-      OptTableAlias *opt_table_alias = new OptTableAlias();
-      opt_table_alias->is_existed_ = true;
-      opt_table_alias->has_as_ = true;
-      opt_table_alias->table_alias_ = table_alias;
+        OptTableAlias *opt_table_alias = new OptTableAlias();
+        opt_table_alias->is_existed_ = true;
+        opt_table_alias->has_as_ = true;
+        opt_table_alias->table_alias_ = table_alias;
 
-      join_suffix->table_or_subquery_->opt_table_alias_ = opt_table_alias;
+        join_suffix->table_or_subquery_->opt_table_alias_ = opt_table_alias;
+      }
     }
   }
 
@@ -2089,8 +2092,6 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
   res = new IR(kJoinClause, OP0(), tmp0, tmp1);
   CASEEND
   SWITCHEND
-
-  cout << res->to_string() << endl;
 
   TRANSLATEEND
 }
