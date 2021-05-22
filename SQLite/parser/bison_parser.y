@@ -2375,9 +2375,9 @@ table_alias:
     ;
 
 opt_table_alias:
-        table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE0; $$->table_alias_ = $1; }
-    |   AS table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; $$->table_alias_ = $2; }
-    |   /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE2; }
+        table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE0; $$->table_alias_ = $1; $$->is_existed_ = true; }
+    |   AS table_alias { $$ = new OptTableAlias(); $$->sub_type_ = CASE1; $$->table_alias_ = $2; $$->is_existed_ = true; }
+    |   /* empty */ { $$ = new OptTableAlias(); $$->sub_type_ = CASE2; $$->is_existed_ = false; }
     ;
 
 opt_table_alias_as:

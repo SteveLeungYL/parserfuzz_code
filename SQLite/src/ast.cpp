@@ -2043,45 +2043,45 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
   // Insert a TableAlas node if it does not have one.
-  char start_alias_id = 'A';
-  if (table_or_subquery_ != NULL &&
-      !table_or_subquery_->opt_table_alias_->is_existed_) {
-    // TODO(vancir): use different identifier here.
-    Identifier *alias_id = new Identifier(string(1, start_alias_id));
-    start_alias_id += 1;
+  //char start_alias_id = 'A';
+  //if (table_or_subquery_ != NULL &&
+  //    !table_or_subquery_->opt_table_alias_->is_existed_) {
+  //  // TODO(vancir): use different identifier here.
+  //  Identifier *alias_id = new Identifier(string(1, start_alias_id));
+  //  start_alias_id += 1;
 
-    TableAlias *table_alias = new TableAlias();
-    table_alias->sub_type_ = CASE0;
-    table_alias->alias_id_ = alias_id;
+  //  TableAlias *table_alias = new TableAlias();
+  //  table_alias->sub_type_ = CASE0;
+  //  table_alias->alias_id_ = alias_id;
 
-    OptTableAlias *opt_table_alias = new OptTableAlias();
-    opt_table_alias->is_existed_ = true;
-    opt_table_alias->has_as_ = true;
-    opt_table_alias->table_alias_ = table_alias;
+  //  OptTableAlias *opt_table_alias = new OptTableAlias();
+  //  opt_table_alias->is_existed_ = true;
+  //  opt_table_alias->has_as_ = true;
+  //  opt_table_alias->table_alias_ = table_alias;
 
-    table_or_subquery_->opt_table_alias_ = opt_table_alias;
-  }
+  //  table_or_subquery_->opt_table_alias_ = opt_table_alias;
+  //}
 
-  if (join_suffix_list_ != NULL) {
-    for (auto join_suffix : join_suffix_list_->v_join_suffix_list_) {
-      if (!join_suffix->table_or_subquery_->opt_table_alias_->is_existed_) {
-        // TODO(vancir): use different identifier here.
-        Identifier *alias_id = new Identifier(string(1, start_alias_id));
-        start_alias_id += 1;
+  //if (join_suffix_list_ != NULL) {
+  //  for (auto join_suffix : join_suffix_list_->v_join_suffix_list_) {
+  //    if (!join_suffix->table_or_subquery_->opt_table_alias_->is_existed_) {
+  //      // TODO(vancir): use different identifier here.
+  //      Identifier *alias_id = new Identifier(string(1, start_alias_id));
+  //      start_alias_id += 1;
 
-        TableAlias *table_alias = new TableAlias();
-        table_alias->sub_type_ = CASE0;
-        table_alias->alias_id_ = alias_id;
+  //      TableAlias *table_alias = new TableAlias();
+  //      table_alias->sub_type_ = CASE0;
+  //      table_alias->alias_id_ = alias_id;
 
-        OptTableAlias *opt_table_alias = new OptTableAlias();
-        opt_table_alias->is_existed_ = true;
-        opt_table_alias->has_as_ = true;
-        opt_table_alias->table_alias_ = table_alias;
+  //      OptTableAlias *opt_table_alias = new OptTableAlias();
+  //      opt_table_alias->is_existed_ = true;
+  //      opt_table_alias->has_as_ = true;
+  //      opt_table_alias->table_alias_ = table_alias;
 
-        join_suffix->table_or_subquery_->opt_table_alias_ = opt_table_alias;
-      }
-    }
-  }
+  //      join_suffix->table_or_subquery_->opt_table_alias_ = opt_table_alias;
+  //    }
+  //  }
+  //}
 
   SWITCHSTART
 
@@ -3257,6 +3257,26 @@ void TableOrSubqueryList::deep_delete() {
   delete this;
 }
 
+
+// OptTableAlias has three cases
+// this function makes sure they are in the second case: AS IDENTIFIER
+void ForceTableAlias(OptTableAlias * opt_table_alias_) {
+
+  if (opt_table_alias_->is_existed_ != true) {
+
+    TableAlias *table_alias = new TableAlias();
+    table_alias->sub_type_ = CASE0;
+    table_alias->alias_id_ = new Identifier("x", id_table_alias_name);
+
+    opt_table_alias_->table_alias_ = table_alias;
+    opt_table_alias_->is_existed_ = true;
+  }
+
+  opt_table_alias_->sub_type_ = CASE1;
+
+  return;
+}
+
 IR *TableOrSubquery::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
@@ -3264,6 +3284,7 @@ IR *TableOrSubquery::translate(vector<IR *> &v_ir_collector) {
 
   CASESTART(0)
   auto tmp0 = SAFETRANSLATE(select_statement_);
+  ForceTableAlias(opt_table_alias_);
   auto tmp1 = SAFETRANSLATE(opt_table_alias_);
   res = new IR(kTableOrSubquery, OP2("(", ")"), tmp0, tmp1);
   CASEEND
@@ -3273,6 +3294,7 @@ IR *TableOrSubquery::translate(vector<IR *> &v_ir_collector) {
   CASEEND
   CASESTART(2)
   auto tmp0 = SAFETRANSLATE(table_name_);
+  ForceTableAlias(opt_table_alias_);
   auto tmp1 = SAFETRANSLATE(opt_table_alias_);
   res = new IR(kUnknown, OP0(), tmp0, tmp1);
   PUSH(res);

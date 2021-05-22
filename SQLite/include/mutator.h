@@ -89,6 +89,7 @@ public:
   static vector<string> value_libary;
   static map<string, vector<string>> m_tables;
   static map<string, vector<string>> m_table2index;
+  static map<string, vector<string>> m_table2alias;
   static vector<string> v_table_names;
   ~Mutator();
 
