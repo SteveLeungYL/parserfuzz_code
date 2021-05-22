@@ -290,22 +290,6 @@ string Mutator::validate(string query) {
 
   IR *root = ir_set.back();
 
-  /* This might not be a good method to remove kOptGroup in some cases */
-  // if (this->p_oracle->oracle_type == "TLP") {
-  //   deque<IR *> dfs = {root};
-  //     while(dfs.empty() != true){
-  //         auto node = dfs.front();
-  //         dfs.pop_front();
-
-  //         if(node->type_ == kOptGroup) {
-  //             cerr << "############ found ########" << endl;
-  //             return "";
-  //           }
-  //         if(node->left_) dfs.push_back(node->left_);
-  //         if(node->right_) dfs.push_back(node->right_);
-  //     }
-  // }
-
   reset_counter();
   vector<IR *> ordered_ir;
   // debug(root, 0);
@@ -1293,7 +1277,21 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
       switch (val->id_type_) {
 
       case id_column_name: {
-        val->str_val_ = vector_rand_ele(colums);
+        // We created alias for every table name. So when we get top column name
+        // from mappings, we need to prepend the corresponding alias to the
+        // column name. for example:
+        //  CREATE TABLE v0 ( v1 INT );
+        //  SELECT * FROM v0 AS A, v0 AS B WHERE v1 = 1337;
+        // we need to generate prepend 'A' or 'B' to 'v1' to avoid ambiguous
+        // name.
+
+        string table_name_with_alias = fixed_key->parent_->parent_->to_string();
+        string as_token_delim = "AS ";
+        string table_name_alias = table_name_with_alias.substr(
+            table_name_with_alias.find(as_token_delim) + as_token_delim.size());
+
+        val->str_val_ = table_name_alias + "." + vector_rand_ele(colums);
+
         visited.insert(val);
         break;
       }

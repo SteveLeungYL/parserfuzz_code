@@ -1005,6 +1005,7 @@ public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
   TableAlias *table_alias_;
+  bool has_as_;
 };
 
 class OptTableAliasAs : public Opt {

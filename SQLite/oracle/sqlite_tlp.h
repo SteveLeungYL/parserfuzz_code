@@ -42,12 +42,11 @@ private:
       // "SELECT x FROM x;",
       "SELECT x FROM WHERE x;",
       // "SELECT x FROM x WHERE x GROUP BY x;",
-      // // "SELECT x FROM x WHERE x HAVING x;", // TODO:: Implement HAVING.
+      // "SELECT x FROM x WHERE x HAVING x;", // TODO:: Implement HAVING.
       // "SELECT DISTINCT x FROM x WHERE x;",
       "SELECT MIN(x) FROM x WHERE x;", "SELECT MAX(x) FROM x WHERE x;",
       "SELECT SUM(x) FROM x WHERE x;", "SELECT COUNT(x) FROM x WHERE x;"
       // "SELECT AVG(x) FROM x WHERE x;"
-
   };
 
   void rewrite_where(string &ori, string &rew_1, const string &bef_sel_stmt,
@@ -71,6 +70,16 @@ private:
       COMP_RES &res,
       VALID_STMT_TYPE_TLP
           valid_type); /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
+
+  /* If string contains 'GROUP BY' statement,
+   * then set final result to ALL_Error and skip it.
+   */
+  bool is_str_contains_group(const string &input_str);
+
+  /* If string contains aggregate function,
+   * then set final result to ALL_Error and skip it.
+   */
+  bool is_str_contains_aggregate(const string &input_str);
 
   string oracle_type = "TLP";
 };

@@ -63,17 +63,13 @@ Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
 git checkout bisecting_sqlite
 cd Squirrel/SQLite
 mkdir -p Bug_Analysis/bug_samples
-# TODO: use new_inputs directly. 
-mv fuzz_root/input fuzz_root/input.bak
-cp -r fuzz_root/new_inputs fuzz_root/inputs
 # Edit the `./Bug_Analysis/bi_config/bisecting_sqlite_config.py`
 # then replace the following variables with your local path.
 # 	SQLITE_DIR = /path/to/sqlite
-# 	QUERY_SAMPLE_DIR = /path/to/Squirrel/SQLite/Bug_Analysis/bug_samples
-# 	LOG_OUTPUT_DIR = /path/to/Squirrel/SQLite/Bug_Analysis
-# 	FUZZING_ROOT_DIR = /path/to/Squirrel/SQLite
-# 	SQLITE_FUZZING_BINARY_PATH = /path/to/sqlite/bld/[COMMIT]/sqlite3
+# 	SQUIRREL_SQLITE_DIR = /path/to/Squirrel/SQLite
+# 	SQLITE_MASTER_COMMIT_ID = [SQLITE MASTER COMMIT ID]
 make
+pip3 install -r requirements.txt
 python3 ./Bug_Analysis [ORACLE]
 
 # Run a single AFL instance. 

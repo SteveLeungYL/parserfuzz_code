@@ -1,11 +1,14 @@
+.vscode
+*.swp
+*.pyc
+__pycache__
+venv 
+
 SQLite/AFL/afl-fuzz
 SQLite/fuzz_root/fuzz_root
 SQLite/fuzz_root/bug_analysis
 PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz
-.vscode
-*.swp
-*.pyc
 
 afl-fuzz
 afl-fuzz-asan

@@ -1928,7 +1928,11 @@ IR *OptTableAlias::translate(vector<IR *> &v_ir_collector) {
   SWITCHSTART
   CASESTART(0)
   res = SAFETRANSLATE(table_alias_);
-  res = new IR(kOptTableAlias, OP0(), res);
+  if (has_as_) {
+    res = new IR(kOptTableAlias, OP1("AS"), res);
+  } else {
+    res = new IR(kOptTableAlias, OP0(), res);
+  }
   CASEEND
   CASESTART(1)
   res = SAFETRANSLATE(table_alias_);
@@ -2037,6 +2041,48 @@ void JoinSuffixList::deep_delete() {
 
 IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
+
+  // Insert a TableAlas node if it does not have one.
+  char start_alias_id = 'A';
+  if (table_or_subquery_ != NULL &&
+      !table_or_subquery_->opt_table_alias_->is_existed_) {
+    // TODO(vancir): use different identifier here.
+    Identifier *alias_id = new Identifier(string(1, start_alias_id));
+    start_alias_id += 1;
+
+    TableAlias *table_alias = new TableAlias();
+    table_alias->sub_type_ = CASE0;
+    table_alias->alias_id_ = alias_id;
+
+    OptTableAlias *opt_table_alias = new OptTableAlias();
+    opt_table_alias->is_existed_ = true;
+    opt_table_alias->has_as_ = true;
+    opt_table_alias->table_alias_ = table_alias;
+
+    table_or_subquery_->opt_table_alias_ = opt_table_alias;
+  }
+
+  if (join_suffix_list_ != NULL) {
+    for (auto join_suffix : join_suffix_list_->v_join_suffix_list_) {
+      if (!join_suffix->table_or_subquery_->opt_table_alias_->is_existed_) {
+        // TODO(vancir): use different identifier here.
+        Identifier *alias_id = new Identifier(string(1, start_alias_id));
+        start_alias_id += 1;
+
+        TableAlias *table_alias = new TableAlias();
+        table_alias->sub_type_ = CASE0;
+        table_alias->alias_id_ = alias_id;
+
+        OptTableAlias *opt_table_alias = new OptTableAlias();
+        opt_table_alias->is_existed_ = true;
+        opt_table_alias->has_as_ = true;
+        opt_table_alias->table_alias_ = table_alias;
+
+        join_suffix->table_or_subquery_->opt_table_alias_ = opt_table_alias;
+      }
+    }
+  }
+
   SWITCHSTART
 
   CASESTART(0)
@@ -2048,8 +2094,8 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
   auto tmp1 = SAFETRANSLATE(join_suffix_list_);
   res = new IR(kJoinClause, OP0(), tmp0, tmp1);
   CASEEND
-
   SWITCHEND
+
   TRANSLATEEND
 }
 
