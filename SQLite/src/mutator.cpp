@@ -1303,12 +1303,17 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
         // we need to generate prepend 'A' or 'B' to 'v1' to avoid ambiguous
         // name.
 
+        val->str_val_ = vector_rand_ele(colums);
+
         string table_name_with_alias = fixed_key->parent_->parent_->to_string();
         string as_token_delim = "AS ";
-        string table_name_alias = table_name_with_alias.substr(
-            table_name_with_alias.find(as_token_delim) + as_token_delim.size());
+        size_t found = table_name_with_alias.find(as_token_delim);
 
-        val->str_val_ = table_name_alias + "." + vector_rand_ele(colums);
+        if (found != string::npos) {
+          string table_name_alias = table_name_with_alias.substr(
+              found + as_token_delim.size());
+          val->str_val_ = table_name_alias + "." + val->str_val_;
+        }
 
         visited.insert(val);
         break;
