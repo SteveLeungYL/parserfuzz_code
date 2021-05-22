@@ -2918,7 +2918,9 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
   if ((cmd_string.find("RANDOM") != std::string::npos) ||
       (cmd_string.find("random") != std::string::npos) ||
       (cmd_string.find("JULIANDAY") != std::string::npos) ||
-      (cmd_string.find("julianday") != std::string::npos)) {
+      (cmd_string.find("julianday") != std::string::npos) ||
+      (cmd_string.find("LIMIT") != std::string::npos) ||
+      (cmd_string.find("limit") != std::string::npos)) {
     return FAULT_ERROR;
   }
 

@@ -25,6 +25,7 @@ using namespace std;
 vector<string> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;
 map<string, vector<string>> Mutator::m_table2index;
+map<string, vector<string>> Mutator::m_table2alias;
 vector<string> Mutator::v_table_names;
 
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
@@ -240,6 +241,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
     m_cmd_value_lib_[k].push_back(v);
   }
 
+  relationmap[id_table_alias_name] = id_top_table_name;
   relationmap[id_column_name] = id_top_table_name;
   relationmap[id_table_name] = id_top_table_name;
   relationmap[id_index_name] = id_top_table_name;
@@ -1271,6 +1273,22 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
     string tablename = fixed_key->str_val_;
     auto &colums = m_tables[tablename];
     auto &indices = m_table2index[tablename];
+    auto &alias= m_table2alias[tablename];
+
+    for (auto &val : graph[fixed_key]) {
+
+      switch (val->id_type_) {
+      case id_table_alias_name: {
+        string new_alias = gen_alias_name();
+        alias.push_back(new_alias);
+        val->str_val_ = new_alias;
+        visited.insert(val);
+        break;
+      }
+      default: break;
+      }
+
+    }
 
     for (auto &val : graph[fixed_key]) {
 
