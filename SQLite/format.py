@@ -2,8 +2,8 @@ import os
 
 
 def format():
-    """Format all code."""
-    output = os.popen("find . -type f").read()
+    """Format changed code."""
+    output = os.popen("git diff --name-only --relative HEAD").read()
 
     file_paths = output.splitlines()
     python_file_paths = [f for f in file_paths if f.endswith(".py")]

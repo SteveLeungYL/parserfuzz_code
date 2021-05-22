@@ -44,9 +44,8 @@ class Bisect:
     ):  # Returns Bug introduce commit_ID:str, is_error_result:bool
         all_commits_str = vercon.all_commits_hexsha
         all_tags = vercon.all_tags
-        newer_commit_str = (
-            ""
-        )  # The oldest buggy commit, which is the commit that introduce the bug.
+        # The oldest buggy commit, which is the commit that introduce the bug.
+        newer_commit_str = ""
         older_commit_str = ""  # The latest correct commit.
         last_buggy_res_l = None
         last_buggy_all_result_flags = None
@@ -67,7 +66,11 @@ class Bisect:
 
             while not is_successfully_executed:
                 current_commit_str = all_commits_str[current_commit_index]
-                rn_correctness, all_res_flags, all_res_str_l = cls._check_query_exec_correctness_under_commitID(
+                (
+                    rn_correctness,
+                    all_res_flags,
+                    all_res_str_l,
+                ) = cls._check_query_exec_correctness_under_commitID(
                     queries_l=queries_l, commit_ID=current_commit_str, oracle=oracle
                 )
                 if rn_correctness == RESULT.PASS:  # Execution result is correct.
@@ -158,7 +161,11 @@ class Bisect:
             while not is_successfully_executed:
                 commit_ID = all_commits_str[tmp_commit_index]
 
-                rn_correctness, all_res_flags, all_res_str_l = cls._check_query_exec_correctness_under_commitID(
+                (
+                    rn_correctness,
+                    all_res_flags,
+                    all_res_str_l,
+                ) = cls._check_query_exec_correctness_under_commitID(
                     queries_l=queries_l, commit_ID=commit_ID, oracle=oracle
                 )
                 if rn_correctness == RESULT.PASS:  # The correct version.
@@ -256,6 +263,6 @@ class Bisect:
             IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
         else:
             current_bisecting_result.uniq_bug_id_int = (
-                "Unknown"
-            )  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
+                "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
+            )
             IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
