@@ -1712,7 +1712,8 @@ select_statement:
           $$->opt_with_clause_ = $1;
           $$->select_core_list_ = $2;
           $$->opt_order_ = $3;
-          $$->opt_limit_ = $4;
+          //$$->opt_limit_ = $4;
+          free($4); // we do not want LIMIT
         }
     ;
 

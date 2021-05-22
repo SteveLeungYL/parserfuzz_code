@@ -481,13 +481,11 @@ IR *SelectStatement::translate(vector<IR *> &v_ir_collector) {
   auto tmp0 = SAFETRANSLATE(opt_with_clause_);
   auto tmp1 = SAFETRANSLATE(select_core_list_);
   auto tmp2 = SAFETRANSLATE(opt_order_);
-  auto tmp3 = SAFETRANSLATE(opt_limit_);
+  //auto tmp3 = SAFETRANSLATE(opt_limit_);
 
   res = new IR(kUnknown, OP0(), tmp0, tmp1);
   PUSH(res);
-  res = new IR(kUnknown, OP0(), res, tmp2);
-  PUSH(res);
-  res = new IR(kSelectStatement, OP0(), res, tmp3);
+  res = new IR(kSelectStatement, OP0(), res, tmp2);
 
   TRANSLATEEND
 }
