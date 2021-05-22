@@ -2043,10 +2043,12 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
   // Insert a TableAlas node if it does not have one.
+  char start_alias_id = 'A';
   if (table_or_subquery_ != NULL &&
       !table_or_subquery_->opt_table_alias_->is_existed_) {
     // TODO(vancir): use different identifier here.
-    Identifier *alias_id = new Identifier("X");
+    Identifier *alias_id = new Identifier(string(1, start_alias_id));
+    start_alias_id += 1;
 
     TableAlias *table_alias = new TableAlias();
     table_alias->sub_type_ = CASE0;
@@ -2064,7 +2066,8 @@ IR *JoinClause::translate(vector<IR *> &v_ir_collector) {
     for (auto join_suffix : join_suffix_list_->v_join_suffix_list_) {
       if (!join_suffix->table_or_subquery_->opt_table_alias_->is_existed_) {
         // TODO(vancir): use different identifier here.
-        Identifier *alias_id = new Identifier("Y");
+        Identifier *alias_id = new Identifier(string(1, start_alias_id));
+        start_alias_id += 1;
 
         TableAlias *table_alias = new TableAlias();
         table_alias->sub_type_ = CASE0;
