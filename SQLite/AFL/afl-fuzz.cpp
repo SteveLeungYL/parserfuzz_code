@@ -177,6 +177,8 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
 
+EXP_ST u8 disable_coverage_feedback;
+
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
     dev_urandom_fd = -1, /* Persistent fd for /dev/urandom   */
@@ -1447,7 +1449,7 @@ static void read_testcases(void) {
     if (errno == ENOENT || errno == ENOTDIR)
 
       SAYF("\n" cLRD "[-] " cRST "The input directory does not seem to be "
-                                 "valid - try again. The fuzzer needs\n"
+           "valid - try again. The fuzzer needs\n"
            "    one or more test case to start with - ideally, a small file "
            "under 1 kB\n"
            "    or so. The cases must be stored as regular files directly in "
@@ -1509,7 +1511,7 @@ static void read_testcases(void) {
   if (!queued_paths) {
 
     SAYF("\n" cLRD "[-] " cRST "Looks like there are no valid test cases in "
-                               "the input directory! The fuzzer\n"
+         "the input directory! The fuzzer\n"
          "    needs one or more test case to start with - ideally, a small "
          "file under\n"
          "    1 kB or so. The cases must be stored as regular files directly "
@@ -2156,7 +2158,7 @@ EXP_ST void init_forkserver(char **argv) {
     if (mem_limit && mem_limit < 500 && uses_asan) {
 
       SAYF("\n" cLRD "[-] " cRST "Whoops, the target binary crashed suddenly, "
-                                 "before receiving any input\n"
+           "before receiving any input\n"
            "    from the fuzzer! Since it seems to be built with ASAN and you "
            "have a\n"
            "    restrictive memory limit configured, this is expected; please "
@@ -2168,7 +2170,7 @@ EXP_ST void init_forkserver(char **argv) {
 
       SAYF(
           "\n" cLRD "[-] " cRST "Whoops, the target binary crashed suddenly, "
-                                "before receiving any input\n"
+          "before receiving any input\n"
           "    from the fuzzer! There are several probable explanations:\n\n"
 
           "    - The binary is just buggy and explodes entirely on its own. If "
@@ -2194,7 +2196,7 @@ EXP_ST void init_forkserver(char **argv) {
     } else {
 
       SAYF("\n" cLRD "[-] " cRST "Whoops, the target binary crashed suddenly, "
-                                 "before receiving any input\n"
+           "before receiving any input\n"
            "    from the fuzzer! There are several probable explanations:\n\n"
 
            "    - The current memory limit (%s) is too restrictive, causing "
@@ -2247,7 +2249,7 @@ EXP_ST void init_forkserver(char **argv) {
   if (mem_limit && mem_limit < 500 && uses_asan) {
 
     SAYF("\n" cLRD "[-] " cRST "Hmm, looks like the target binary terminated "
-                               "before we could complete a\n"
+         "before we could complete a\n"
          "    handshake with the injected code. Since it seems to be built "
          "with ASAN and\n"
          "    you have a restrictive memory limit configured, this is "
@@ -2258,7 +2260,7 @@ EXP_ST void init_forkserver(char **argv) {
   } else if (!mem_limit) {
 
     SAYF("\n" cLRD "[-] " cRST "Hmm, looks like the target binary terminated "
-                               "before we could complete a\n"
+         "before we could complete a\n"
          "    handshake with the injected code. Perhaps there is a horrible "
          "bug in the\n"
          "    fuzzer. Poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
@@ -2267,7 +2269,7 @@ EXP_ST void init_forkserver(char **argv) {
 
     SAYF(
         "\n" cLRD "[-] " cRST "Hmm, looks like the target binary terminated "
-                              "before we could complete a\n"
+        "before we could complete a\n"
         "    handshake with the injected code. There are %s probable "
         "explanations:\n\n"
 
@@ -3348,7 +3350,7 @@ static void perform_dry_run(char **argv) {
         }
 
         SAYF("\n" cLRD "[-] " cRST "The program took more than %u ms to "
-                                   "process one of the initial test cases.\n"
+             "process one of the initial test cases.\n"
              "    Usually, the right thing to do is to relax the -t option - "
              "or to delete it\n"
              "    altogether and allow the fuzzer to auto-calibrate. That "
@@ -3364,7 +3366,7 @@ static void perform_dry_run(char **argv) {
       } else {
 
         SAYF("\n" cLRD "[-] " cRST "The program took more than %u ms to "
-                                   "process one of the initial test cases.\n"
+             "process one of the initial test cases.\n"
              "    This is bad news; raising the limit with the -t option is "
              "possible, but\n"
              "    will probably make the fuzzing process extremely slow.\n\n"
@@ -3393,7 +3395,7 @@ static void perform_dry_run(char **argv) {
       if (mem_limit) {
 
         SAYF("\n" cLRD "[-] " cRST "Oops, the program crashed with one of the "
-                                   "test cases provided. There are\n"
+             "test cases provided. There are\n"
              "    several possible explanations:\n\n"
 
              "    - The test case causes known crashes under normal working "
@@ -3444,7 +3446,7 @@ static void perform_dry_run(char **argv) {
       } else {
 
         SAYF("\n" cLRD "[-] " cRST "Oops, the program crashed with one of the "
-                                   "test cases provided. There are\n"
+             "test cases provided. There are\n"
              "    several possible explanations:\n\n"
 
              "    - The test case causes known crashes under normal working "
@@ -3765,7 +3767,12 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits))) {
+    /* For evaluation experiments, we need to disable coverage feedback.  
+     *  1/3 of chances to save the interesting seed.
+     *  2/3 of chances to throw away the seed.
+     */
+    if (!(hnb = has_new_bits(virgin_bits))
+        !(disable_coverage_feedback && get_rand_int(3) < 1)) {
       if (crash_mode)
         total_crashes++;
       return 0;
@@ -4346,7 +4353,7 @@ static void maybe_delete_out_dir(void) {
   if (flock(out_dir_fd, LOCK_EX | LOCK_NB) && errno == EWOULDBLOCK) {
 
     SAYF("\n" cLRD "[-] " cRST "Looks like the job output directory is being "
-                               "actively used by another\n"
+         "actively used by another\n"
          "    instance of afl-fuzz. You will need to choose a different %s\n"
          "    or stop the other process first.\n",
          sync_id ? "fuzzer ID" : "output location");
@@ -4375,7 +4382,7 @@ static void maybe_delete_out_dir(void) {
     if (!in_place_resume && last_update - start_time > OUTPUT_GRACE * 60) {
 
       SAYF("\n" cLRD "[-] " cRST "The job output directory already exists and "
-                                 "contains the results of more\n"
+           "contains the results of more\n"
            "    than %u minutes worth of fuzzing. To avoid data loss, afl-fuzz "
            "will *NOT*\n"
            "    automatically delete this data for you.\n\n"
@@ -4571,7 +4578,7 @@ static void maybe_delete_out_dir(void) {
 dir_cleanup_failed:
 
   SAYF("\n" cLRD "[-] " cRST "Whoops, the fuzzer tried to reuse your output "
-                             "directory, but bumped into\n"
+       "directory, but bumped into\n"
        "    some files that shouldn't be there or that couldn't be removed - "
        "so it\n"
        "    decided to abort! This happened while processing this path:\n\n"
@@ -6252,7 +6259,7 @@ EXP_ST void check_binary(u8 *fname) {
   if (f_data[0] == '#' && f_data[1] == '!') {
 
     SAYF("\n" cLRD "[-] " cRST "Oops, the target binary looks like a shell "
-                               "script. Some build systems will\n"
+         "script. Some build systems will\n"
          "    sometimes generate shell stubs for dynamically linked programs; "
          "try static\n"
          "    library mode (./configure --disable-shared) if that's the "
@@ -6286,7 +6293,7 @@ EXP_ST void check_binary(u8 *fname) {
 
     SAYF(
         "\n" cLRD "[-] " cRST "Looks like the target binary is not "
-                              "instrumented! The fuzzer depends on\n"
+        "instrumented! The fuzzer depends on\n"
         "    compile-time instrumentation to isolate interesting test cases "
         "while\n"
         "    mutating the input data. For more information, and for tips on "
@@ -6310,7 +6317,7 @@ EXP_ST void check_binary(u8 *fname) {
       memmem(f_data, f_len, SHM_ENV_VAR, strlen(SHM_ENV_VAR) + 1)) {
 
     SAYF("\n" cLRD "[-] " cRST "This program appears to be instrumented with "
-                               "afl-gcc, but is being run in\n"
+         "afl-gcc, but is being run in\n"
          "    QEMU mode (-Q). This is probably not what you want - this setup "
          "will be\n"
          "    slow and offer no practical benefits.\n");
@@ -7050,7 +7057,7 @@ static char **get_qemu_argv(u8 *own_loc, char **argv, int argc) {
   }
 
   SAYF("\n" cLRD "[-] " cRST "Oops, unable to find the 'afl-qemu-trace' "
-                             "binary. The binary must be built\n"
+       "binary. The binary must be built\n"
        "    separately by following the instructions in qemu_mode/README.qemu. "
        "If you\n"
        "    already have the binary installed, you may need to specify "
@@ -7377,6 +7384,11 @@ int main(int argc, char **argv) {
     case 'D': /* dump squirrel libraries */
 
       dump_library = 1;
+      break;
+
+    case 'F': /* disable coverage feedback */
+
+      disable_coverage_feedback = 1;
       break;
 
     case 'c': /* bind to specific CPU core num */
