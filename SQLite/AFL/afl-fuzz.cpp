@@ -3771,7 +3771,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
      *  1/3 of chances to save the interesting seed.
      *  2/3 of chances to throw away the seed.
      */
-    if (!(hnb = has_new_bits(virgin_bits))
+    if (!(hnb = has_new_bits(virgin_bits)) &&
         !(disable_coverage_feedback && get_rand_int(3) < 1)) {
       if (crash_mode)
         total_crashes++;
@@ -7240,7 +7240,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:EO:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDFc:EO:")) > 0)
 
     switch (opt) {
 
@@ -7386,7 +7386,7 @@ int main(int argc, char **argv) {
       dump_library = 1;
       break;
 
-    case 'F': /* disable coverage feedback */
+    case 'F': /* coverage feedback */
 
       disable_coverage_feedback = 1;
       break;
