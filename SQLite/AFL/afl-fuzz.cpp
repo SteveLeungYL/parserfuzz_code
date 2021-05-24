@@ -177,7 +177,7 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
 
-EXP_ST u8 disable_coverage_feedback;
+EXP_ST u8 disable_coverage_feedback = 0;
 
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
@@ -321,6 +321,8 @@ static struct queue_entry *queue, /* Fuzzing queue (linked list)      */
     *queue_cur,                   /* Current offset within the queue  */
     *queue_top,                   /* Top of the list                  */
     *q_prev100;                   /* Previous 100 marker              */
+
+static long q_len; /* Total length of the queue        */
 
 static struct queue_entry
     *top_rated[MAP_SIZE]; /* Top entries for bitmap bytes     */
@@ -817,8 +819,54 @@ static void mark_as_redundant(struct queue_entry *q, u8 state) {
   ck_free(fn);
 }
 
-/* Append new test case to the queue. */
+/* Destroy the entire queue. */
 
+EXP_ST void destroy_queue(void) {
+
+  struct queue_entry *q = queue, *n;
+
+  while (q) {
+
+    n = q->next;
+    ck_free(q->fname);
+    ck_free(q->trace_mini);
+    ck_free(q);
+    q = n;
+  }
+}
+
+/* Destroy half of the entire queue */
+EXP_ST void destroy_half_queue(void) {
+  if (q_len < 1000)
+    return;
+  struct queue_entry *q = queue, *n;
+  long q_len_ori = q_len;
+  while (q) {
+    if (disable_coverage_feedback) {
+      remove((char *)q->fname); // Ignore return code for now.
+    }
+    for (int i = 0; i < MAP_SIZE; i++) {
+      if (top_rated[i] == nullptr || top_rated[i] != q)
+        continue;
+      else
+        top_rated[i] = nullptr;
+    }
+    n = q->next;
+    ck_free(q->fname);
+    ck_free(q->trace_mini);
+    ck_free(q);
+    q = n;
+    q_len--;
+    if (q_len <= (q_len_ori / 2))
+      break;
+  }
+
+  queue = q; // Reset buttom (start) of queue.
+  queue_cur = queue;
+  q_prev100 = queue;
+}
+
+/* Append new test case to the queue. */
 static void add_to_queue(u8 *fname, u32 len, u8 passed_det) {
 
   struct queue_entry *q = ck_alloc(sizeof(struct queue_entry));
@@ -851,22 +899,8 @@ static void add_to_queue(u8 *fname, u32 len, u8 passed_det) {
   }
 
   last_path_time = get_cur_time();
-}
 
-/* Destroy the entire queue. */
-
-EXP_ST void destroy_queue(void) {
-
-  struct queue_entry *q = queue, *n;
-
-  while (q) {
-
-    n = q->next;
-    ck_free(q->fname);
-    ck_free(q->trace_mini);
-    ck_free(q);
-    q = n;
-  }
+  q_len++;
 }
 
 /* Write bitmap to file. The bitmap is useful mostly for the secret
@@ -3767,12 +3801,12 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    /* For evaluation experiments, we need to disable coverage feedback.  
-     *  1/3 of chances to save the interesting seed.
-     *  2/3 of chances to throw away the seed.
+    /* For evaluation experiments, we need to disable coverage feedback.
+     *  1/10 of chances to save the interesting seed.
+     *  9/10 of chances to throw away the seed.
      */
     if (!(hnb = has_new_bits(virgin_bits)) &&
-        !(disable_coverage_feedback && get_rand_int(3) < 1)) {
+        !(disable_coverage_feedback && get_rand_int(10) < 1)) {
       if (crash_mode)
         total_crashes++;
       return 0;
@@ -5373,6 +5407,10 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
 
   queued_discovered +=
       save_if_interesting(argv, query_str, fault, explain_diff_id);
+
+  if (disable_coverage_feedback && q_len >= 10000) {
+    destroy_half_queue();
+  }
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -7486,6 +7524,7 @@ int main(int argc, char **argv) {
   g_mutator.set_p_oracle(p_oracle);
 
   g_mutator.set_dump_library(dump_library);
+  g_mutator.set_disable_coverage_feedback(disable_coverage_feedback);
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);

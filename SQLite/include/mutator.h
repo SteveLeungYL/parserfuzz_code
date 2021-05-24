@@ -103,6 +103,10 @@ public:
   void set_use_cri_val(const bool is_use) { this->use_cri_val = is_use; }
   bool get_is_use_cri_val() { return this->use_cri_val; }
 
+  void set_disable_coverage_feedback(const bool f) {
+    this->disable_coverage_feedback = f;
+  }
+
 private:
   void add_to_valid_lib(IR *, string &, const bool);
   void add_to_library(IR *, string &);
@@ -110,6 +114,7 @@ private:
 
   bool dump_library = false;
   bool use_cri_val = false;
+  bool disable_coverage_feedback = false;
 
   IR *record_ = NULL;
   // map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_;
