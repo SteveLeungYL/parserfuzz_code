@@ -23,7 +23,8 @@ bool SQL_INDEX::is_oracle_valid_stmt(const string &query) {
 }
 
 bool SQL_INDEX::is_oracle_valid_stmt_2(const string &query) {
-  if (((findStringIter(query, "CREATE INDEX") - query.begin()) < 5))
+  if (((findStringIter(query, "CREATE INDEX") - query.begin()) < 5) ||
+      ((findStringIter(query, "CREATE UNIQUE INDEX") - query.begin()) < 5))
     return true;
   return false;
 }
@@ -82,6 +83,10 @@ void SQL_INDEX::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
 /* If we found CREATE INDEX stmt, delete it. */
 void SQL_INDEX::rewrite_valid_stmt_from_ori_2(string &query,
                                               unsigned multi_run_id) {
+  /* If the query contains CREATE UNIQUE INDEX, delete no matter what. */
+  if (((findStringIter(query, "CREATE UNIQUE INDEX") - query.begin()) < 5)) {
+    return "";
+  }
   if (multi_run_id < 1)
     return; // First run, do not modify anything.
   query = "";
