@@ -5123,12 +5123,7 @@ static void show_stats(void) {
     SAYF("\r");
 
   /* Hallelujah! */
-  ofstream outputfile;
-  string bug_output_dir = (char*)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
-  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
   print_norec_exec_debug_info(cout);
-  print_norec_exec_debug_info(outputfile);
-  outputfile.close();
 }
 
 /* Display quick statistics at the end of processing the input directory,
@@ -5418,6 +5413,12 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
+  
+  ofstream outputfile;
+  string bug_output_dir = (char*)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
+  print_norec_exec_debug_info(outputfile);
+  outputfile.close();
 
   return 0;
 }
