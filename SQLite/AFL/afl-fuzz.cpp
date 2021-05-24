@@ -2600,8 +2600,8 @@ static void write_to_testcase(const char *mem, u32 len) {
     close(fd);
 }
 
-inline void print_norec_exec_debug_info() {
-  cout << "\n"
+inline void print_norec_exec_debug_info(ostream& out) {
+  out << "\n"
        << "total_input_failed:      " << total_input_failed << "\n"
        << "total_random_VALID:      " << p_oracle->total_rand_valid << " / "
        << p_oracle->total_temp << " "
@@ -5123,8 +5123,12 @@ static void show_stats(void) {
     SAYF("\r");
 
   /* Hallelujah! */
-
-  print_norec_exec_debug_info();
+  ofstream outputfile;
+  string bug_output_dir = (char*)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
+  print_norec_exec_debug_info(cout);
+  print_norec_exec_debug_info(outputfile);
+  outputfile.close();
 }
 
 /* Display quick statistics at the end of processing the input directory,
