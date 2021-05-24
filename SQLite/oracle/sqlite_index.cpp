@@ -85,7 +85,8 @@ void SQL_INDEX::rewrite_valid_stmt_from_ori_2(string &query,
                                               unsigned multi_run_id) {
   /* If the query contains CREATE UNIQUE INDEX, delete no matter what. */
   if (((findStringIter(query, "CREATE UNIQUE INDEX") - query.begin()) < 5)) {
-    return "";
+    query = "";
+    return;
   }
   if (multi_run_id < 1)
     return; // First run, do not modify anything.
