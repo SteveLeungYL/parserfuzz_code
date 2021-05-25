@@ -11,14 +11,7 @@
 
 using namespace std;
 
-enum class VALID_STMT_TYPE_TLP {
-  NORM,
-  MIN,
-  MAX,
-  SUM,
-  // AVG, // TODO:: Implement AVG.
-  COUNT
-};
+enum class VALID_STMT_TYPE_TLP { UNIQ, NORM };
 
 class SQL_TLP : public SQL_ORACLE {
 public:
