@@ -1,4 +1,3 @@
-from SQLite.Bug_Analysis.ORACLE import ORACLE
 import os
 from pathlib import Path
 from datetime import datetime
@@ -6,21 +5,20 @@ import time
 import subprocess
 
 ORACLE_STR = " NOREC "
-SQLITE_DIR = "/home/sqlite/sqlite/sqlite/"
-SQLITE_MASTER_COMMIT_ID = "3ddc3809bf6148d09ea02345deade44873b9064f"
-BEGIN_CORE_ID = 0
+SQLITE_DIR = "/home/luy70/Squirrel_DBMS_Project/sqlite3_source/sqlite/"
+SQLITE_MASTER_COMMIT_ID = "c00727ab583ea47f6962aa33dfc84f2d3723dc04_AFL"
+BEGIN_CORE_ID = 10 
+EVAL_RESULT_ROOT = "/data/yu/Squirrel_DBMS_Fuzzing/eval_results/cov_exp_sqlite"
+
 
 
 SQLITE_FUZZING_BINARY_PATH = os.path.join(
     SQLITE_DIR, "bld/%s/sqlite3" % SQLITE_MASTER_COMMIT_ID
 )
 
-
-"/home/sqlite/sqlite/sqlite/"
-
 def save_loop():
     now = datetime.utcnow().strftime("%m%d-%H%M")
-    result_dir = Path('/home/sqlite/sqlite_results') / now
+    result_dir = Path(EVAL_RESULT_ROOT) / now
     result_dir.mkdir(parents=True, exist_ok=True)
 
     for fuzz_root_int in Path.cwd().glob('fuzz_root_*'):
@@ -58,12 +56,13 @@ def setup_and_run_fuzzing():
         
         p = subprocess.Popen(
             [fuzzing_command],
-            cwd=os.path.join(FUZZING_ROOT_DIR, "fuzz_root_" + str(i)),
+            cwd=cur_fuzz_dir,
             shell=True,
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stdin=subprocess.DEVNULL,
         )
+        print("Running with fuzzing commands: %s" % fuzzing_command)
     os.chdir(fuzz_root_dir)
 
 setup_and_run_fuzzing()
@@ -71,5 +70,4 @@ starttime = time.time()
 while True:
     now = save_loop()
     print(f"Save experiment stats files at {now}")
-    time.sleep(60.0 - ((time.time() - starttime) % 60.0))
-
+    time.sleep(1800.0 - ((time.time() - starttime) % 1800.0))
