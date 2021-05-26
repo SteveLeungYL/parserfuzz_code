@@ -379,7 +379,8 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
             ((findStringIter(ori_query, "SELECT DISTINCT SUM") -
               ori_query.begin()) < 5) ||
             ((findStringIter(ori_query, "SELECT SUM") - ori_query.begin()) <
-             5)) ||
+             5)) 
+            ||
         (
             /* Do not use UNION ALL, if we have SELECT DISTINCT and GROUP BY. */
             !((findStringIter(ori_query, "SELECT DISTINCT") -
@@ -614,6 +615,7 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
           findStringIn(cur_cmd_str, "MAX") ||
           findStringIn(cur_cmd_str, "SUM") ||
           findStringIn(cur_cmd_str, "COUNT") ||
+          findStringIn(cur_cmd_str, "GROUP BY") ||
           findStringIn(cur_cmd_str, "AVG")) {
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::UNIQ);
       } else {
