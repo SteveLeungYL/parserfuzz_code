@@ -8,6 +8,7 @@ class Bisect:
 
     uniq_bug_id_int = 0
     all_unique_results_dict = dict()
+    all_previous_compile_failure = []
 
     @staticmethod
     def _check_query_exec_correctness_under_commitID(queries_l, commit_ID: str, oracle):
@@ -66,13 +67,16 @@ class Bisect:
 
             while not is_successfully_executed:
                 current_commit_str = all_commits_str[current_commit_index]
-                (
-                    rn_correctness,
-                    all_res_flags,
-                    all_res_str_l,
-                ) = cls._check_query_exec_correctness_under_commitID(
-                    queries_l=queries_l, commit_ID=current_commit_str, oracle=oracle
-                )
+                if current_commit_str in cls.all_previous_compile_failure:
+                    rn_correctness = RESULT.FAIL_TO_COMPILE
+                else:
+                    (
+                        rn_correctness,
+                        all_res_flags,
+                        all_res_str_l,
+                    ) = cls._check_query_exec_correctness_under_commitID(
+                        queries_l=queries_l, commit_ID=current_commit_str, oracle=oracle
+                    )
                 if rn_correctness == RESULT.PASS:  # Execution result is correct.
                     older_commit_str = current_commit_str
                     is_successfully_executed = True
@@ -92,6 +96,12 @@ class Bisect:
                     is_successfully_executed = True
                     is_commit_found = True
                     is_error_returned_from_exec = True
+                    break
+                elif (rn_correctness == RESULT.FAIL_TO_COMPILE):
+                    cls.all_previous_compile_failure.append(current_commit_str)
+                    newer_commit_str = current_commit_str
+                    is_successfully_executed = False
+                    is_commit_found = False
                     break
                 else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as RESULT.FAIL.
                     newer_commit_str = current_commit_str
@@ -160,14 +170,16 @@ class Bisect:
             is_successfully_executed = False
             while not is_successfully_executed:
                 commit_ID = all_commits_str[tmp_commit_index]
-
-                (
-                    rn_correctness,
-                    all_res_flags,
-                    all_res_str_l,
-                ) = cls._check_query_exec_correctness_under_commitID(
-                    queries_l=queries_l, commit_ID=commit_ID, oracle=oracle
-                )
+                if commit_ID in cls.all_previous_compile_failure:
+                    rn_correctness = RESULT.FAIL_TO_COMPILE
+                else:
+                    (
+                        rn_correctness,
+                        all_res_flags,
+                        all_res_str_l,
+                    ) = cls._check_query_exec_correctness_under_commitID(
+                        queries_l=queries_l, commit_ID=commit_ID, oracle=oracle
+                    )
                 if rn_correctness == RESULT.PASS:  # The correct version.
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
@@ -182,6 +194,12 @@ class Bisect:
                 elif rn_correctness == RESULT.ERROR:
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
+                    is_error_returned_from_exec = True
+                    break
+                elif rn_correctness == RESULT.FAIL_TO_COMPILE:
+                    cls.all_previous_compile_failure.append(tmp_commit_index)
+                    newer_commit_index = tmp_commit_index
+                    is_successfully_executed = False
                     is_error_returned_from_exec = True
                     break
                 else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as Passing with no mismatched.
@@ -241,11 +259,11 @@ class Bisect:
             cls.all_unique_results_dict[current_commit_ID] = cls.uniq_bug_id_int
             current_bisecting_result.uniq_bug_id_int = cls.uniq_bug_id_int
             cls.uniq_bug_id_int += 1
+            return current_bisecting_result, False # Not duplicated results. 
         else:
             current_bug_id_int = cls.all_unique_results_dict[current_commit_ID]
             current_bisecting_result.uniq_bug_id_int = current_bug_id_int
-
-        return current_bisecting_result
+            return current_bisecting_result, True # Duplicated results. 
 
     @classmethod
     def run_bisecting(cls, queries_l, oracle, vercon):
@@ -256,13 +274,23 @@ class Bisect:
         current_bisecting_result = cls.bi_secting_commits(
             queries_l=queries_l, oracle=oracle, vercon=vercon
         )
+        is_dup_commit = True
         if not current_bisecting_result.is_bisecting_error:
-            current_bisecting_result = cls.cross_compare(
+            current_bisecting_result, is_dup_commit = cls.cross_compare(
                 current_bisecting_result
             )  # The unique bug id will be appended to current_bisecting_result when running cross_compare
-            IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
+            if not is_dup_commit:
+                IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
         else:
             current_bisecting_result.uniq_bug_id_int = (
                 "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
             )
-            IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
+            # IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
+        return is_dup_commit
+
+    @classmethod
+    def pure_add_commit(cls, commit_id_l):
+        for commit_id in commit_id_l:
+            if commit_id != "Unknown":
+                cls.all_unique_results_dict[commit_id] = cls.uniq_bug_id_int
+                cls.uniq_bug_id_int += 1

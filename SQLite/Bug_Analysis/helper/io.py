@@ -2,6 +2,7 @@ import enum
 import os
 import re
 import shutil
+import sys
 
 from Bug_Analysis.helper.data_struct import (
     log_out_line,
@@ -16,23 +17,26 @@ class IO:
     total_processed_bug_count_int: int = 0
 
     @classmethod
-    def read_queries_from_files(cls, file_directory: str, is_removed_read: bool = True):
+    def remove_file_from_abs_path(cls, fd:str):
+        os.remove(os.path.join(fd))
+
+    @classmethod
+    def read_queries_from_files(cls, file_directory: str, is_removed_read: bool = False):
 
         all_queries = []
-        all_files_in_dir = os.listdir(file_directory)
+        all_files_num = len(os.listdir(file_directory))
 
-        cls.total_processed_bug_count_int += 1
-
-        for current_file_d in sorted(all_files_in_dir):
-            if (
-                os.path.isdir(os.path.join(file_directory, current_file_d))
-                or current_file_d == "."
-                or current_file_d == ".."
-            ):
+        while True:
+            current_file_d = os.path.join(file_directory, "%d.txt" % cls.total_processed_bug_count_int)
+            cls.total_processed_bug_count_int += 1
+            if cls.total_processed_bug_count_int == sys.maxsize:
+                return [], "Done"
+            if not os.path.isfile(current_file_d):
                 continue
+            all_files_num -= 1
             log_out_line("Filename: " + str(current_file_d) + ". \n")
             current_file = open(
-                os.path.join(file_directory, current_file_d), "r", errors="replace"
+                current_file_d, "r", errors="replace"
             )
             current_file_str = current_file.read()
             current_file_str = re.sub(r"[^\x00-\x7F]+", " ", current_file_str)
@@ -40,12 +44,12 @@ class IO:
             all_queries.append(current_file_str)
             current_file.close()
             if is_removed_read == True:
-                os.remove(os.path.join(file_directory, current_file_d))
+                os.remove(os.path.join(current_file_d))
             # Only retrive one file at a time.
             if len(all_queries) != 0:
                 break
 
-        return cls._restructured_and_clean_all_queries(all_queries=all_queries)
+        return cls._restructured_and_clean_all_queries(all_queries=all_queries), current_file_d
 
     @classmethod
     def _restructured_and_clean_all_queries(cls, all_queries):
@@ -262,18 +266,20 @@ class IO:
 
         if current_bisecting_result.first_buggy_commit_id != "":
             bug_output_file.write(
-                "First buggy commit ID: %s. \n\n"
+                "First buggy commit ID:%s\n\n"
                 % current_bisecting_result.first_buggy_commit_id
             )
         else:
-            bug_output_file.write("First buggy commit ID: Unknown. \n\n")
+            bug_output_file.write("First buggy commit ID:Unknown\n\n")
+
         if current_bisecting_result.first_corr_commit_id != "":
             bug_output_file.write(
-                "First correct (or crashing) commit ID: %s. \n\n"
+                "First correct (or crashing) commit ID:%s\n\n"
                 % current_bisecting_result.first_corr_commit_id
             )
         else:
-            bug_output_file.write("First correct commit ID: Unknown. \n\n")
+            bug_output_file.write("First correct commit ID:Unknown\n\n")
+
         if (
             current_bisecting_result.is_bisecting_error == True
             or current_bisecting_result.bisecting_error_reason != ""
@@ -296,15 +302,16 @@ class IO:
         )
 
     @classmethod
-    def gen_unique_bug_output_dir(cls, is_removed_ori: bool = True):
+    def gen_unique_bug_output_dir(cls, is_removed_uniq_ori: bool = False):
         if not os.path.isdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis")):
             os.mkdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis"))
         if not os.path.isdir(
             os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis/bug_samples")
         ):
             os.mkdir(os.path.join(FUZZING_ROOT_DIR, "Bug_Analysis/bug_samples"))
-        if os.path.isdir(UNIQUE_BUG_OUTPUT_DIR) and is_removed_ori == True:
+        if os.path.isdir(UNIQUE_BUG_OUTPUT_DIR) and is_removed_uniq_ori == True:
             shutil.rmtree(UNIQUE_BUG_OUTPUT_DIR)
+        if not os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
             os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
 
     @classmethod
@@ -336,3 +343,33 @@ class IO:
                 res_str_out.append(cur_res)
 
         return res_str_out, RESULT.PASS
+
+    @classmethod
+    def retrive_existing_commid_id(cls, file_directory:str):
+        all_commit_id = []
+
+        uniq_id_count = 0
+        while True:
+            current_file_d = os.path.join(file_directory, "bug_%d" % uniq_id_count)
+            uniq_id_count += 1
+            if not os.path.isfile(current_file_d):
+                log_out_line("No existing unique bug reports. ")
+                break # Existing unique bugs not found. Give up. 
+            log_out_line("Detected existing unique bug reports. Filename: " + str(current_file_d) + ". \n")
+            current_file = open(
+                current_file_d, "r", errors="replace"
+            )
+            current_file_str = current_file.read()
+            current_file_str = re.sub(r"[^\x00-\x7F]+", "", current_file_str)
+            current_file_str = current_file_str.replace(u"\ufffd", " ")
+            current_file_list = current_file_str.split('\n')
+            for cur_line in current_file_list:
+                if "First buggy commit ID:" in cur_line:
+                    cur_commit_id = cur_line.split(":")[1]
+                    if cur_commit_id != "Unknown":
+                        all_commit_id.append(cur_commit_id)
+                        log_out_line("Retrived commit id: %s\n" % (cur_commit_id))
+                    break # To next file. 
+            current_file.close()
+
+        return all_commit_id

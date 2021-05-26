@@ -13,7 +13,7 @@ from ORACLE import Oracle_TLP, Oracle_NOREC, Oracle_ROWID, Oracle_INDEX, Oracle_
 
 def main():
 
-    IO.gen_unique_bug_output_dir(True)
+    IO.gen_unique_bug_output_dir(is_removed_uniq_ori=True)
 
     if len(sys.argv) <= 1:
         oracle = Oracle_NOREC()
@@ -40,7 +40,11 @@ def main():
         oracle = Oracle_NOREC()
         oracle_str = "NOREC"
 
-    Fuzzer.setup_and_run_fuzzing(oracle_str)
+    # all_existed_commits_l = IO.retrive_existing_commid_id(file_directory=UNIQUE_BUG_OUTPUT_DIR)
+    # Bisect.pure_add_commit(commit_id_l=all_existed_commits_l)
+
+    # all_existed_commits_l.clear()
+    # Fuzzer.setup_and_run_fuzzing(oracle_str)
 
     repo = Repo(SQLITE_DIR)
     assert not repo.bare
@@ -57,8 +61,11 @@ def main():
     )
     while True:
         # Read one file at a time.
-        all_new_queries = IO.read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
-        if all_new_queries == []:
+        all_new_queries, current_file_d = IO.read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
+        if all_new_queries == [] and current_file_d == "Done":
+            print("Done")
+            break
+        elif all_new_queries == []:
             time.sleep(1.0)
             continue
         if (
@@ -66,8 +73,12 @@ def main():
             or "random" in all_new_queries[0]
             or "julianday" in all_new_queries[0]
         ):
+
             continue
-        Bisect.run_bisecting(queries_l=all_new_queries, oracle=oracle, vercon=vercon)
+        is_dup_commit = Bisect.run_bisecting(queries_l=all_new_queries, oracle=oracle, vercon=vercon)
+        if is_dup_commit == True:
+            IO.remove_file_from_abs_path(current_file_d)
+
         IO.status_print()
 
 

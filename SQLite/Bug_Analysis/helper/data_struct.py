@@ -30,7 +30,7 @@ log_out_f = open(LOG_OUTPUT_FILE, "w")
 
 
 def log_out_line(s):
-    # print(s)
+    print(s)
     log_out_f.write(str(s) + "\n")
 
 
