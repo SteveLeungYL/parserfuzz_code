@@ -2600,23 +2600,24 @@ static void write_to_testcase(const char *mem, u32 len) {
     close(fd);
 }
 
-inline void print_norec_exec_debug_info(ostream& out) {
+inline void print_exec_debug_info(ostream &out) {
   out << "\n"
-       << "total_input_failed:      " << total_input_failed << "\n"
-       << "total_random_VALID:      " << p_oracle->total_rand_valid << " / "
-       << p_oracle->total_temp << " "
-       << p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid << "%\n"
-       << "total_add_to_queue:      " << total_add_to_queue << "\n"
-       << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
-       << "total_mutate_failed:     " << total_mutate_failed << "\n"
-       << "total_append_failed:     " << total_append_failed << "\n"
-       << "total_cri_valid_stmts:   "
-       << g_mutator.get_cri_valid_collection_size() << "\n"
-       << "total_valid_stmts:       " << g_mutator.get_valid_collection_size()
-       << "\n"
-       << "total bad queries:       " << debug_error << " / "
-       << debug_error + debug_good << " ("
-       << debug_error * 100.0 / (debug_error + debug_good) << "%)\n";
+      << "total_input_failed:      " << total_input_failed << "\n"
+      << "total_random_VALID:      " << p_oracle->total_rand_valid << " / "
+      << p_oracle->total_temp << " "
+      << p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid << "%\n"
+      << "total_add_to_queue:      " << total_add_to_queue << "\n"
+      << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
+      << "total_mutate_failed:     " << total_mutate_failed << "\n"
+      << "total_append_failed:     " << total_append_failed << "\n"
+      << "total_cri_valid_stmts:   "
+      << g_mutator.get_cri_valid_collection_size() << "\n"
+      << "total_valid_stmts:       " << g_mutator.get_valid_collection_size()
+      << "\n"
+      << "total bad queries:       " << debug_error << " / "
+      << debug_error + debug_good << " ("
+      << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
+      << "bug_samples reports num: " << bug_output_id << "\n";
 
   return;
 }
@@ -5123,7 +5124,7 @@ static void show_stats(void) {
     SAYF("\r");
 
   /* Hallelujah! */
-  print_norec_exec_debug_info(cout);
+  print_exec_debug_info(cout);
 }
 
 /* Display quick statistics at the end of processing the input directory,
@@ -5413,11 +5414,12 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
-  
+
   ofstream outputfile;
-  string bug_output_dir = (char*)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
+  string bug_output_dir =
+      (char *)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
-  print_norec_exec_debug_info(outputfile);
+  print_exec_debug_info(outputfile);
   outputfile.close();
 
   return 0;
