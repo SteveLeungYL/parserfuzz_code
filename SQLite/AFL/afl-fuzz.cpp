@@ -4235,10 +4235,17 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps); /* ignore errors */
+          unique_hangs, max_depth, eps, 
+          total_input_failed, p_oracle->total_temp, p_oracle->total_rand_valid, (float)p_oracle->total_temp / (float)p_oracle->total_rand_valid,
+          total_add_to_queue, total_mutate_all_failed, total_mutate_failed, total_append_failed, 
+          g_mutator.get_cri_valid_collection_size(), g_mutator.get_valid_collection_size(),
+          debug_error, debug_good, 
+          (float)debug_good / (float)(debug_error + debug_good),
+          bug_output_id, queued_with_cov
+          ); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -6635,7 +6642,11 @@ EXP_ST void setup_dirs_fds(void) {
 
   fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
                      "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec\n");
+                     "unique_hangs, max_depth, execs_per_sec, total_input_failed, "
+                     "total_random_valid, total_random_temp, total_random_valid_rate, "
+                     "total_add_to_queue, total_mutate_all_failed, total_mutate_failed, "
+                     "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
+                     "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on\n");
   /* ignore errors */
 }
 

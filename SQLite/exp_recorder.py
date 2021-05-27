@@ -24,13 +24,15 @@ def save_loop():
     for fuzz_root_int in Path.cwd().glob("fuzz_root_*"):
         fuzzer_stats = fuzz_root_int / "fuzz_root_0/fuzzer_stats"
         bug_stats = fuzz_root_int / "fuzz_root_0/fuzzer_stats_correctness"
+        plot_data = fuzz_root_int / "fuzz_root_0/plot_data"
+        fuzz_bitmap = fuzz_root_int / "fuzz_root_0/fuzz_bitmap"
         # bugs_dir = fuzz_root_int / "Bug_Analysis/bug_samples"
 
         dest_dir = result_dir / fuzz_root_int.name
         if not dest_dir.exists():
             dest_dir.mkdir()
 
-        command = f"cp {fuzzer_stats} {bug_stats} {dest_dir}"
+        command = f"cp {fuzzer_stats} {bug_stats} {plot_data} {fuzz_bitmap} {dest_dir}"
         os.system(command)
         # command = f"cp -r {bugs_dir} {dest_dir}"
         # os.system(command)
