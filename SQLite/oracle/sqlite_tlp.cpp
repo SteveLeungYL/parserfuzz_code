@@ -522,7 +522,7 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
 bool SQL_TLP::compare_sum_count_minmax(COMP_RES &res,
                                        VALID_STMT_TYPE_TLP valid_type) {
 
-  res.comp_res = ORA_COMP_RES::Error;
+  res.comp_res = ORA_COMP_RES::IGNORE;
   return true;
 }
 
@@ -533,19 +533,6 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
 
   vector<VALID_STMT_TYPE_TLP> v_valid_type;
   get_v_valid_type(res_out.cmd_str, v_valid_type);
-
-  /* If we detect GROUP BY or Aggregate functions in the res_str.
-   * Do not compare and return All_Error directly. */
-  for (const string &cur_res_str : res_out.v_res_str) {
-    if (is_str_contains_group(cur_res_str) ||
-        is_str_contains_aggregate(cur_res_str)) {
-      for (COMP_RES &res : res_out.v_res) {
-        res.comp_res = ORA_COMP_RES::Error;
-      }
-      res_out.final_res = ALL_Error;
-      return;
-    }
-  }
 
   int i = 0;
   for (COMP_RES &res : res_out.v_res) {

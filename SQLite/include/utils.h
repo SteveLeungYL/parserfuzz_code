@@ -49,7 +49,7 @@ string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);
 
-enum ORA_COMP_RES { Pass = 1, Fail = 0, Error = -1, ALL_Error = -1 };
+enum ORA_COMP_RES { Pass = 1, Fail = 0, Error = -1, ALL_Error = -1, IGNORE = -2 };
 
 struct COMP_RES {
   string res_str_0 = "EMPTY", res_str_1 = "EMPTY", res_str_2 = "EMPTY",

@@ -3044,7 +3044,7 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
   for (auto &res : all_comp_res.v_res) {
     if (res.comp_res == ORA_COMP_RES::Pass) {
       debug_good++;
-    } else {
+    } else if (res.comp_res != ORA_COMP_RES::IGNORE) {
       debug_error++;
     }
   }
