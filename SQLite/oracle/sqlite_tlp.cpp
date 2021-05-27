@@ -361,31 +361,10 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
   if (!findStringIn(
           ori_query,
           "HAVING")) { // This is not a having stmts. Handle with where stmt.
-    if ((
-            /* If we have SELECT (DISTINCT) COUNT/MAX/MIN/SUM, even if we have
-               GROUP BY or DISTINCT, we still use UNION ALL. */
-            ((findStringIter(ori_query, "SELECT DISTINCT COUNT") -
-              ori_query.begin()) < 5) ||
-            ((findStringIter(ori_query, "SELECT COUNT") - ori_query.begin()) <
-             5) ||
-            ((findStringIter(ori_query, "SELECT DISTINCT MAX") -
-              ori_query.begin()) < 5) ||
-            ((findStringIter(ori_query, "SELECT MAX") - ori_query.begin()) <
-             5) ||
-            ((findStringIter(ori_query, "SELECT DISTINCT MIN") -
-              ori_query.begin()) < 5) ||
-            ((findStringIter(ori_query, "SELECT MIN") - ori_query.begin()) <
-             5) ||
-            ((findStringIter(ori_query, "SELECT DISTINCT SUM") -
-              ori_query.begin()) < 5) ||
-            ((findStringIter(ori_query, "SELECT SUM") - ori_query.begin()) <
-             5)) 
-            ||
-        (
-            /* Do not use UNION ALL, if we have SELECT DISTINCT and GROUP BY. */
-            !((findStringIter(ori_query, "SELECT DISTINCT") -
-               ori_query.begin()) < 5) &&
-            !findStringIn(ori_query, "GROUP BY"))) {
+    if (
+        /* Do not use UNION ALL, if we have SELECT DISTINCT. */
+        !((findStringIter(ori_query, "SELECT DISTINCT") - ori_query.begin()) < 5)
+      ) {
 
       rewrite_where(query, rew_1, before_select_stmt, select_stmt, from_stmt,
                     where_stmt, "", order_by_stmt, true);
