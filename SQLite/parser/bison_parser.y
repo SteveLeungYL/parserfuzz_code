@@ -2225,15 +2225,46 @@ opt_filter_clause:
     ;
 
 one_column_name:
-        IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE0; $$->identifier1_=new Identifier($1, id_column_name); free($1);}
-    |   IDENTIFIER '.' IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE1; $$->identifier1_=new Identifier($1, id_table_name); $$->identifier2_=new Identifier($3, id_column_name); free($1); free($3);}
-    |   IDENTIFIER '.' ROWID {$$ = new ColumnName(); $$->sub_type_=CASE4; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
+        IDENTIFIER {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE0;
+          $$->identifier1_ = new Identifier($1, id_column_name);
+          free($1);
+        }
+    |   ROWID {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE0;
+          $$->identifier1_ = new Identifier(string("ROWID"), id_column_name);
+        }
+    |   IDENTIFIER '.' IDENTIFIER {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE1;
+          $$->identifier1_ = new Identifier($1, id_table_name);
+          $$->identifier2_ = new Identifier($3, id_column_name);
+          free($1);
+          free($3);
+        }
+    |   IDENTIFIER '.' ROWID {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE1;
+          $$->identifier1_ = new Identifier($1, id_table_name);
+          $$->identifier2_ = new Identifier(string("ROWID"), id_column_name);
+          free($1);
+        }
     ;
 
 column_name:
         one_column_name { $$=$1; }
-    |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
-    |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
+    |   '*' {
+          $$ = new ColumnName(); 
+          $$->sub_type_ = CASE2;
+        }
+    |   IDENTIFIER '.' '*' {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE3;
+          $$->identifier1_ = new Identifier($1, id_table_name);
+          free($1);
+        }
     ;
 
 literal:

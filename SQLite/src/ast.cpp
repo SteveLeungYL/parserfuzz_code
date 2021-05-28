@@ -1640,8 +1640,6 @@ IR *ColumnName::translate(vector<IR *> &v_ir_collector) {
   CASESTART(1)
   res = SAFETRANSLATE(identifier1_);
   IR *tmp = SAFETRANSLATE(identifier2_);
-  res->id_type_ = id_whatever;
-  tmp->id_type_ = id_whatever;
   res = new IR(kColumnName, OPMID("."), res, tmp);
   res->id_type_ = id_column_name;
   CASEEND
@@ -1650,16 +1648,9 @@ IR *ColumnName::translate(vector<IR *> &v_ir_collector) {
   CASEEND
   CASESTART(3)
   res = SAFETRANSLATE(identifier1_);
-  res->id_type_ = id_whatever;
   IR *tmp = new IR(kconst_str, string("*"));
   PUSH(tmp);
   res = new IR(kColumnName, OPMID("."), res, tmp);
-  res->id_type_ = id_column_name;
-  CASEEND
-  CASESTART(4)
-  res = SAFETRANSLATE(identifier1_);
-  res->id_type_ = id_whatever;
-  res = new IR(kColumnName, OPEND(".ROWID"), res);
   res->id_type_ = id_column_name;
   CASEEND
   SWITCHEND
