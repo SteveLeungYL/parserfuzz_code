@@ -632,13 +632,11 @@ void CreateViewStatement::deep_delete() {
 IR *CreateTableStatement::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  auto tmp0 = SAFETRANSLATE(opt_tmp_);
+  //auto tmp0 = SAFETRANSLATE(opt_tmp_);
   auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
   auto tmp2 = SAFETRANSLATE(table_name_);
 
-  res = new IR(kUnknown, OP2("CREATE", "TABLE"), tmp0, tmp1);
-  PUSH(res);
-  res = new IR(kUnknown, OP0(), res, tmp2);
+  res = new IR(kUnknown, OP1("CREATE TABLE"), tmp1, tmp2);
   PUSH(res);
 
   SWITCHSTART

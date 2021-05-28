@@ -1082,7 +1082,7 @@ create_table_statement:
         CREATE opt_tmp TABLE opt_if_not_exists table_name AS select_statement {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE0;
-          $$->opt_tmp_ = $2;
+          $$->opt_tmp_ = NULL; free($2); // we do not want TEMP
           $$->opt_if_not_exists_ = $4;
           $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
@@ -1091,7 +1091,7 @@ create_table_statement:
     |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ')' opt_without_rowid {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE1;
-          $$->opt_tmp_ = $2;
+          $$->opt_tmp_ = NULL; free($2); // we do not want TEMP
           $$->opt_if_not_exists_ = $4;
           $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
@@ -1101,7 +1101,7 @@ create_table_statement:
     |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ',' table_constraint_list ')' opt_without_rowid {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE2;
-          $$->opt_tmp_ = $2;
+          $$->opt_tmp_ = NULL; free($2); // we do not want TEMP
           $$->opt_if_not_exists_ = $4;
           $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
