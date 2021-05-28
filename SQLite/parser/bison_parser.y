@@ -736,6 +736,7 @@ pragma_value:
     |   string_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE1; $$->string_literal_ = $1;}
     |   IDENTIFIER {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier($1, id_pragma_value); free($1);}
     |   ON {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("ON", id_pragma_value); }
+    |   OFF {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("OFF", id_pragma_value); }
     |   DELETE {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("DELETE", id_pragma_value); }
     |   DEFAULT {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("DEFAULT", id_pragma_value); }
     ;
