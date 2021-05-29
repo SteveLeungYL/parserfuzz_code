@@ -123,6 +123,9 @@ u64 total_execute = 0;
 u64 total_add_to_queue = 0;
 u64 debug_error = 0;
 u64 debug_good = 0;
+u64 total_mutate_num = 0;
+u64 total_oracle_mutate = 0;
+u64 total_oracle_mutate_failed = 0;
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
@@ -2609,6 +2612,11 @@ inline void print_exec_debug_info(ostream &out) {
       << "total_add_to_queue:      " << total_add_to_queue << "\n"
       << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
       << "total_mutate_failed:     " << total_mutate_failed << "\n"
+      << "total_mutate_num:     " << total_mutate_num << "\n"
+      << "total_mutate_failed_rate:     " << float(total_mutate_failed) / float(total_mutate_num) << "\n"
+      << "total_oracle_mutate_failed:     " << total_oracle_mutate_failed << "\n"
+      << "total_oracle_mutate_num:     " << total_oracle_mutate << "\n"
+      << "total_oracle_mutate_failed_rate:     " << float(total_oracle_mutate_failed) / float(total_oracle_mutate) << "\n"
       << "total_append_failed:     " << total_append_failed << "\n"
       << "total_cri_valid_stmts:   "
       << g_mutator.get_cri_valid_collection_size() << "\n"
@@ -2972,6 +2980,7 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
   }
 
   ALL_COMP_RES all_comp_res;
+  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
 
   if (p_oracle->get_mul_run_num() <= 1) {
     /* Compare results between different validation stmts in a single run. */
@@ -4235,12 +4244,13 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, 
           total_input_failed, p_oracle->total_temp, p_oracle->total_rand_valid, (float)p_oracle->total_temp / (float)p_oracle->total_rand_valid,
-          total_add_to_queue, total_mutate_all_failed, total_mutate_failed, total_append_failed, 
+          total_add_to_queue, total_mutate_all_failed, total_mutate_failed, total_mutate_num, 
+          total_oracle_mutate_failed, total_oracle_mutate, total_append_failed, 
           g_mutator.get_cri_valid_collection_size(), g_mutator.get_valid_collection_size(),
           debug_error, debug_good, 
           (float)debug_good / (float)(debug_error + debug_good),
@@ -5766,13 +5776,15 @@ void get_ori_valid_stmts(vector<string> &v_valid_stmts,
                          // chances to append the stmt and check.
 
   while (num_norec < valid_max_num) {
-
+    total_oracle_mutate++;
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.
       break;
 
     string new_norec_stmts = p_oracle->get_random_mutated_valid_stmt();
-    if (new_norec_stmts == "")
+    if (new_norec_stmts == ""){
+      total_oracle_mutate_failed++;
       continue;
+    }
     ensure_semicolon_at_query_end(new_norec_stmts);
 
     v_valid_stmts.push_back(std::move(new_norec_stmts));
@@ -5936,11 +5948,13 @@ static u8 fuzz_one(char **argv) {
 
   // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
   for (auto ir_str : mutated_tree) {
-
+    total_mutate_num++;
     stage_name = "query_fix";
 
-    if (ir_str == NULL)
+    if (ir_str == NULL){
+      total_mutate_failed++;
       continue;
+    }
 
     /* Use to_string() here, validate() will be called just once, at the end of
      * the query mutation. */
@@ -6645,6 +6659,7 @@ EXP_ST void setup_dirs_fds(void) {
                      "unique_hangs, max_depth, execs_per_sec, total_input_failed, "
                      "total_random_valid, total_random_temp, total_random_valid_rate, "
                      "total_add_to_queue, total_mutate_all_failed, total_mutate_failed, "
+                     "total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate, "
                      "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
                      "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on\n");
   /* ignore errors */
