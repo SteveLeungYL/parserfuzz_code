@@ -326,7 +326,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT THEN TIME BLOB CLOB
 %token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL BOOLEAN
 %token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
-%token NOT OFF SET TBL TOP AS BY IF IN IS OF ON OR TO
+%token NOT OFF SET TOP AS BY IF IN IS OF ON OR TO
 %token ARRAY CONCAT ILIKE SECOND MINUTE HOUR DAY MONTH YEAR
 %token TRUE FALSE PRECISION NUMERIC NUM DECIMAL FOREIGN
 %token WITHOUT ROWID CONSTRAINT BLOBSTART BTWAND
@@ -736,6 +736,7 @@ pragma_value:
     |   string_literal {$$ = new PragmaValue(); $$->sub_type_ = CASE1; $$->string_literal_ = $1;}
     |   IDENTIFIER {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier($1, id_pragma_value); free($1);}
     |   ON {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("ON", id_pragma_value); }
+    |   OFF {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("OFF", id_pragma_value); }
     |   DELETE {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("DELETE", id_pragma_value); }
     |   DEFAULT {$$ = new PragmaValue(); $$->sub_type_ = CASE2; $$->identifier_ = new Identifier("DEFAULT", id_pragma_value); }
     ;
@@ -1081,7 +1082,7 @@ create_table_statement:
         CREATE opt_tmp TABLE opt_if_not_exists table_name AS select_statement {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE0;
-          $$->opt_tmp_ = $2;
+          $$->opt_tmp_ = NULL; free($2); // we do not want TEMP
           $$->opt_if_not_exists_ = $4;
           $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
@@ -1090,7 +1091,7 @@ create_table_statement:
     |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ')' opt_without_rowid {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE1;
-          $$->opt_tmp_ = $2;
+          $$->opt_tmp_ = NULL; free($2); // we do not want TEMP
           $$->opt_if_not_exists_ = $4;
           $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
@@ -1100,7 +1101,7 @@ create_table_statement:
     |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ',' table_constraint_list ')' opt_without_rowid {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE2;
-          $$->opt_tmp_ = $2;
+          $$->opt_tmp_ = NULL; free($2); // we do not want TEMP
           $$->opt_if_not_exists_ = $4;
           $5->identifier_->id_type_ = id_create_table_name;
           $$->table_name_ = $5;
@@ -2225,15 +2226,46 @@ opt_filter_clause:
     ;
 
 one_column_name:
-        IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE0; $$->identifier1_=new Identifier($1, id_column_name); free($1);}
-    |   IDENTIFIER '.' IDENTIFIER { $$ = new ColumnName(); $$->sub_type_=CASE1; $$->identifier1_=new Identifier($1, id_table_name); $$->identifier2_=new Identifier($3, id_column_name); free($1); free($3);}
-    |   IDENTIFIER '.' ROWID {$$ = new ColumnName(); $$->sub_type_=CASE4; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
+        IDENTIFIER {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE0;
+          $$->identifier1_ = new Identifier($1, id_column_name);
+          free($1);
+        }
+    |   ROWID {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE0;
+          $$->identifier1_ = new Identifier(string("ROWID"), id_column_name);
+        }
+    |   IDENTIFIER '.' IDENTIFIER {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE1;
+          $$->identifier1_ = new Identifier($1, id_table_name);
+          $$->identifier2_ = new Identifier($3, id_column_name);
+          free($1);
+          free($3);
+        }
+    |   IDENTIFIER '.' ROWID {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE1;
+          $$->identifier1_ = new Identifier($1, id_table_name);
+          $$->identifier2_ = new Identifier(string("ROWID"), id_column_name);
+          free($1);
+        }
     ;
 
 column_name:
         one_column_name { $$=$1; }
-    |   IDENTIFIER '.' '*' { $$ = new ColumnName(); $$->sub_type_=CASE3; $$->identifier1_=new Identifier($1, id_table_name); free($1);}
-    |   '*' { $$ = new ColumnName(); $$->sub_type_=CASE2; }
+    |   '*' {
+          $$ = new ColumnName(); 
+          $$->sub_type_ = CASE2;
+        }
+    |   IDENTIFIER '.' '*' {
+          $$ = new ColumnName();
+          $$->sub_type_ = CASE3;
+          $$->identifier1_ = new Identifier($1, id_table_name);
+          free($1);
+        }
     ;
 
 literal:

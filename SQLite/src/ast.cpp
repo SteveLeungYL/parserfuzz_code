@@ -632,13 +632,11 @@ void CreateViewStatement::deep_delete() {
 IR *CreateTableStatement::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  auto tmp0 = SAFETRANSLATE(opt_tmp_);
+  //auto tmp0 = SAFETRANSLATE(opt_tmp_);
   auto tmp1 = SAFETRANSLATE(opt_if_not_exists_);
   auto tmp2 = SAFETRANSLATE(table_name_);
 
-  res = new IR(kUnknown, OP2("CREATE", "TABLE"), tmp0, tmp1);
-  PUSH(res);
-  res = new IR(kUnknown, OP0(), res, tmp2);
+  res = new IR(kUnknown, OP1("CREATE TABLE"), tmp1, tmp2);
   PUSH(res);
 
   SWITCHSTART
@@ -1640,8 +1638,6 @@ IR *ColumnName::translate(vector<IR *> &v_ir_collector) {
   CASESTART(1)
   res = SAFETRANSLATE(identifier1_);
   IR *tmp = SAFETRANSLATE(identifier2_);
-  res->id_type_ = id_whatever;
-  tmp->id_type_ = id_whatever;
   res = new IR(kColumnName, OPMID("."), res, tmp);
   res->id_type_ = id_column_name;
   CASEEND
@@ -1650,16 +1646,9 @@ IR *ColumnName::translate(vector<IR *> &v_ir_collector) {
   CASEEND
   CASESTART(3)
   res = SAFETRANSLATE(identifier1_);
-  res->id_type_ = id_whatever;
   IR *tmp = new IR(kconst_str, string("*"));
   PUSH(tmp);
   res = new IR(kColumnName, OPMID("."), res, tmp);
-  res->id_type_ = id_column_name;
-  CASEEND
-  CASESTART(4)
-  res = SAFETRANSLATE(identifier1_);
-  res->id_type_ = id_whatever;
-  res = new IR(kColumnName, OPEND(".ROWID"), res);
   res->id_type_ = id_column_name;
   CASEEND
   SWITCHEND
