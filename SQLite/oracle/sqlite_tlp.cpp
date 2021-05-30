@@ -396,6 +396,15 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
     rew_1 = "";
   }
 
+  if (findStringIn(ori_query, "MIN") ||
+      findStringIn(ori_query, "MAX") ||
+      findStringIn(ori_query, "SUM") ||
+      findStringIn(ori_query, "COUNT") ||
+      findStringIn(ori_query, "AVG")) {
+        query = "";
+        rew_1 = "";
+      }
+
   rew_2 = "";
   rew_3 = "";
 }
