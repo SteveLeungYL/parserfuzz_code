@@ -388,7 +388,8 @@ enum {
   /* 02 */ FAULT_CRASH,
   /* 03 */ FAULT_ERROR,
   /* 04 */ FAULT_NOINST,
-  /* 05 */ FAULT_NOBITS
+  /* 05 */ FAULT_NOBITS,
+  /* 06 */ FAULT_RESULT_ALL_ERROR
 };
 
 /* Get unix time in milliseconds */
@@ -2953,7 +2954,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   }
 }
 
-u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
+u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
                       char **argv, u32 tmout = exec_tmout) {
 
   u8 fault;
@@ -2978,9 +2979,6 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
         break;
     }
   }
-
-  ALL_COMP_RES all_comp_res;
-  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
 
   if (p_oracle->get_mul_run_num() <= 1) {
     /* Compare results between different validation stmts in a single run. */
@@ -3202,7 +3200,8 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     }
     // cerr << program_input_str << endl;
     vector<int> dummy_vec;
-    fault = execute_cmd_string(program_input_str, dummy_vec, argv, use_tmout);
+    ALL_COMP_RES dummy_all_comp_res;
+    fault = execute_cmd_string(program_input_str, dummy_vec, dummy_all_comp_res, argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3789,7 +3788,7 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
+static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES& all_comp_res, u8 fault,
                               const vector<int> &explain_diff_id = {}) {
 
   u8 *fn = "";
@@ -3798,13 +3797,17 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
   u8 keeping = 0, res;
   vector<IR *> ir_set;
 
-  if (is_str_empty(query_str))
+  if (is_str_empty(query_str)){
+    // cerr << "query_str empty" << endl;
     return keeping; // return 0; Empty string. Not added.
+  }
 
   string stripped_query_string =
       p_oracle->remove_valid_stmts_from_str(query_str);
-  if (is_str_empty(stripped_query_string))
+  if (is_str_empty(stripped_query_string)){
+    // cerr << "stripped query_str empty" << endl;
     return keeping;
+  }
 
   if (fault == crash_mode) {
 
@@ -3819,6 +3822,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
         !(disable_coverage_feedback && get_rand_int(10) < 1)) {
       if (crash_mode)
         total_crashes++;
+      // cerr << "No new bits. " << endl;
       return 0;
     }
 
@@ -3831,9 +3835,12 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     if (ir_tree.size() > 0) {
       g_mutator.add_all_to_library(
           g_mutator.extract_struct(ir_tree[ir_tree.size() - 1]),
-          explain_diff_id);
+          explain_diff_id,
+          all_comp_res
+          );
       ir_tree.back()->deep_drop();
     } else {
+      // cerr << "query_str parse failed: " << query_str << endl;
       return keeping; // keep = 0, meaning nothing added to the queue.
     }
 
@@ -5413,17 +5420,26 @@ static u32 next_p2(u32 val) {
 EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
 
   u8 fault;
+  ALL_COMP_RES all_comp_res;
+  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
 
   vector<int> explain_diff_id;
 
-  fault = execute_cmd_string(query_str, explain_diff_id, argv, exec_tmout);
+  fault = execute_cmd_string(query_str, explain_diff_id, all_comp_res, argv, exec_tmout);
 
   /* This handles FAULT_ERROR for us: */
-  if (fault == FAULT_ERROR)
+  if (fault == FAULT_ERROR){
+    // cerr << "Fault error. " << endl;
     return 0;
+  }
+  
+  if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+    // cerr << "Query all error. " << endl;
+    return 0;
+  }
 
   queued_discovered +=
-      save_if_interesting(argv, query_str, fault, explain_diff_id);
+      save_if_interesting(argv, query_str, all_comp_res, fault, explain_diff_id);
 
   if (disable_coverage_feedback && q_len >= 10000) {
     destroy_half_queue();
@@ -6186,9 +6202,10 @@ static void sync_fuzzers(char **argv) {
         for (int output_index = 0; output_index < st.st_size; output_index++) {
           saved_str += mem[output_index];
         }
+        ALL_COMP_RES dummy_all_comp_res;
 
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, saved_str, fault);
+        queued_imported += save_if_interesting(argv, saved_str, dummy_all_comp_res, fault);
         syncing_party = 0;
 
         munmap(mem, st.st_size);

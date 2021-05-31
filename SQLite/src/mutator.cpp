@@ -946,8 +946,8 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str) {
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id) {
-  add_all_to_library(ir->to_string(), explain_diff_id);
+void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, const ALL_COMP_RES& all_comp_res) {
+  add_all_to_library(ir->to_string(), explain_diff_id, all_comp_res);
 }
 
 /*  Save an interesting query stmt into the mutator library.
@@ -965,7 +965,7 @@ void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id) {
  */
 
 void Mutator::add_all_to_library(string whole_query_str,
-                                 const vector<int> &explain_diff_id) {
+                                 const vector<int> &explain_diff_id, const ALL_COMP_RES& all_comp_res) {
 
   /* If the query_str is empty. Ignored and return. */
   bool is_empty = true;
@@ -981,7 +981,7 @@ void Mutator::add_all_to_library(string whole_query_str,
     return;
 
   vector<string> queries_vector = string_splitter(whole_query_str, ";");
-  int i = 0; // For counting oracle valid stmt IDs.
+  int i = 0; // For counting oracle valid stmt IDs. 
   for (auto current_query : queries_vector) {
     trim_string(current_query);
     current_query += ";";
@@ -994,10 +994,19 @@ void Mutator::add_all_to_library(string whole_query_str,
     IR *root = ir_set[ir_set.size() - 1];
 
     if (p_oracle->is_oracle_valid_stmt(current_query)) {
+      if (all_comp_res.v_res.size() > i) {
+        if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
+          ++i;
+          // cerr << "Ignoring: " << i << current_query << endl;
+          continue;
+        }
+      }
       if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
+        // cerr << "Saving with statement: " << i << current_query << endl;
         add_to_valid_lib(root, current_query, true);
       } else {
+        // cerr << "Saving with statement: " << i << current_query << endl;
         add_to_valid_lib(root, current_query, false);
       }
       ++i; // For counting oracle valid stmt IDs.

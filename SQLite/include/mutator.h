@@ -45,15 +45,17 @@ public:
 
   vector<IR *> parse_query_str_get_ir_set(string &query_str);
 
-  void add_all_to_library(IR *, const vector<int> &);
+  void add_all_to_library(IR *, const vector<int> &, const ALL_COMP_RES&);
   void add_all_to_library(IR *ir) {
     vector<int> dummy_vec;
-    add_all_to_library(ir, dummy_vec);
+    ALL_COMP_RES dummy_all_comp_res;
+    add_all_to_library(ir, dummy_vec, dummy_all_comp_res);
   }
-  void add_all_to_library(string, const vector<int> &);
+  void add_all_to_library(string, const vector<int> &, const ALL_COMP_RES&);
   void add_all_to_library(string whole_query_str) {
     vector<int> dummy_vec;
-    add_all_to_library(whole_query_str, dummy_vec);
+    ALL_COMP_RES dummy_all_comp_res;
+    add_all_to_library(whole_query_str, dummy_vec, dummy_all_comp_res);
   }
   IR *get_from_libary_with_type(IRTYPE);
   IR *get_from_libary_with_left_type(IRTYPE);
