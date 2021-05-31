@@ -5433,11 +5433,14 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
     show_stats();
 
   ofstream outputfile;
-  string bug_output_dir =
+  char * bug_output_dir_char = 
       (char *)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
+  string bug_output_dir = (const char *) bug_output_dir_char;
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
   print_exec_debug_info(outputfile);
   outputfile.close();
+
+  ck_free(bug_output_dir_char);
 
   return 0;
 }
