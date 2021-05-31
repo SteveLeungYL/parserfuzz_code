@@ -994,13 +994,13 @@ void Mutator::add_all_to_library(string whole_query_str,
     IR *root = ir_set[ir_set.size() - 1];
 
     if (p_oracle->is_oracle_valid_stmt(current_query)) {
-      if (all_comp_res.v_res.size() > i) {
-        if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
-          ++i;
-          // cerr << "Ignoring: " << i << current_query << endl;
-          continue;
-        }
-      }
+      // if (all_comp_res.v_res.size() > i) {
+      //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
+      //     ++i;
+      //     // cerr << "Ignoring: " << i << current_query << endl;
+      //     continue;
+      //   }
+      // }
       if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
         // cerr << "Saving with statement: " << i << current_query << endl;
