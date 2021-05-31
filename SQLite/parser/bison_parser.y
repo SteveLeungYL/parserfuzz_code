@@ -1039,7 +1039,7 @@ alter_statement:
           $$->opt_column_ = $5;
           $$->column_name1_ = $6;
           $$->column_name2_ = $8;
-          $$->column_name2_->identifier1_->id_type_ = id_create_column_name;
+          $$->column_name2_->identifier_col_->id_type_ = id_create_column_name;
         }
     |   ALTER TABLE table_name ADD opt_column column_def {
           $$ = new AlterStatement();
@@ -2229,27 +2229,27 @@ one_column_name:
         IDENTIFIER {
           $$ = new ColumnName();
           $$->sub_type_ = CASE0;
-          $$->identifier1_ = new Identifier($1, id_column_name);
+          $$->identifier_col_ = new Identifier($1, id_column_name);
           free($1);
         }
     |   ROWID {
           $$ = new ColumnName();
           $$->sub_type_ = CASE0;
-          $$->identifier1_ = new Identifier(string("ROWID"), id_column_name);
+          $$->identifier_col_ = new Identifier(string("ROWID"), id_column_name);
         }
     |   IDENTIFIER '.' IDENTIFIER {
           $$ = new ColumnName();
-          $$->sub_type_ = CASE1;
-          $$->identifier1_ = new Identifier($1, id_table_name);
-          $$->identifier2_ = new Identifier($3, id_column_name);
+          $$->sub_type_ = CASE0;
+          //$$->identifier_tbl_ = new Identifier($1, id_table_name);
+          $$->identifier_col_ = new Identifier($3, id_column_name);
           free($1);
           free($3);
         }
     |   IDENTIFIER '.' ROWID {
           $$ = new ColumnName();
-          $$->sub_type_ = CASE1;
-          $$->identifier1_ = new Identifier($1, id_table_name);
-          $$->identifier2_ = new Identifier(string("ROWID"), id_column_name);
+          $$->sub_type_ = CASE0;
+          //$$->identifier_tbl_ = new Identifier($1, id_table_name);
+          $$->identifier_col_ = new Identifier(string("ROWID"), id_column_name);
           free($1);
         }
     ;
@@ -2263,7 +2263,7 @@ column_name:
     |   IDENTIFIER '.' '*' {
           $$ = new ColumnName();
           $$->sub_type_ = CASE3;
-          $$->identifier1_ = new Identifier($1, id_table_name);
+          $$->identifier_tbl_ = new Identifier($1, id_table_name);
           free($1);
         }
     ;

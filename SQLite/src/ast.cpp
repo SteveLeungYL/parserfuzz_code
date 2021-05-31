@@ -1632,20 +1632,20 @@ IR *ColumnName::translate(vector<IR *> &v_ir_collector) {
 
   SWITCHSTART
   CASESTART(0)
-  res = SAFETRANSLATE(identifier1_);
+  res = SAFETRANSLATE(identifier_col_);
   res = new IR(kColumnName, OP0(), res);
   CASEEND
-  CASESTART(1)
-  res = SAFETRANSLATE(identifier1_);
-  IR *tmp = SAFETRANSLATE(identifier2_);
-  res = new IR(kColumnName, OPMID("."), res, tmp);
-  res->id_type_ = id_column_name;
-  CASEEND
+  //CASESTART(1)
+  //res = SAFETRANSLATE(identifier1_);
+  //IR *tmp = SAFETRANSLATE(identifier2_);
+  //res = new IR(kColumnName, OPMID("."), res, tmp);
+  ////res->id_type_ = id_column_name;
+  //CASEEND
   CASESTART(2)
   res = new IR(kColumnName, string("*"));
   CASEEND
   CASESTART(3)
-  res = SAFETRANSLATE(identifier1_);
+  res = SAFETRANSLATE(identifier_tbl_);
   IR *tmp = new IR(kconst_str, string("*"));
   PUSH(tmp);
   res = new IR(kColumnName, OPMID("."), res, tmp);
@@ -2296,8 +2296,8 @@ void CaseConditionList::deep_delete() {
 }
 
 void ColumnName::deep_delete() {
-  SAFEDELETE(identifier1_);
-  SAFEDELETE(identifier2_);
+  SAFEDELETE(identifier_col_);
+  SAFEDELETE(identifier_tbl_);
   delete this;
 }
 

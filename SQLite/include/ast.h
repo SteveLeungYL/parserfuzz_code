@@ -810,8 +810,8 @@ class ColumnName : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  Identifier *identifier1_;
-  Identifier *identifier2_;
+  Identifier *identifier_col_;
+  Identifier *identifier_tbl_;
 };
 
 class Literal : public Node {
