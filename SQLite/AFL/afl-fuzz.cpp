@@ -5904,7 +5904,8 @@ static u8 fuzz_one(char **argv) {
 
       res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
 
-      // if (res == FAULT_ERROR)
+      if (res == FAULT_ERROR)
+        goto abandon_entry;
       //   FATAL("Unable to execute target application");
     }
 
