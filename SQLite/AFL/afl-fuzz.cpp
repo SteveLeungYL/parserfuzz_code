@@ -3090,9 +3090,9 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
     //     break;
     //   }
     // }
-    
+
     string bug_output_dir =
-        "../Bug_Analysis/bug_samples/" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ".txt";
+        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);
@@ -5904,8 +5904,8 @@ static u8 fuzz_one(char **argv) {
 
       res = calibrate_case(argv, queue_cur, in_buf, queue_cycle - 1, 0);
 
-      if (res == FAULT_ERROR)
-        FATAL("Unable to execute target application");
+      // if (res == FAULT_ERROR)
+      //   FATAL("Unable to execute target application");
     }
 
     if (stop_soon || res != crash_mode) {

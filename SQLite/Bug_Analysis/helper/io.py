@@ -24,13 +24,21 @@ class IO:
     def read_queries_from_files(cls, file_directory: str, is_removed_read: bool = False):
 
         all_queries = []
-        all_files_num = len(os.listdir(file_directory))
+        all_files_in_dir = os.listdir(file_directory)
+        all_files_num = len(all_files_in_dir)
 
         while True:
-            current_file_d = os.path.join(file_directory, "%d.txt" % cls.total_processed_bug_count_int)
+            current_file_d = ""
+            for iter_file_d in all_files_in_dir:
+                if ("bug:" + str(cls.total_processed_bug_count_int) + ":") in iter_file_d:
+                    current_file_d = iter_file_d
+                    break
             cls.total_processed_bug_count_int += 1
+            if current_file_d == "":
+                continue
             if cls.total_processed_bug_count_int == sys.maxsize:
                 return [], "Done"
+            current_file_d = os.path.join(file_directory, current_file_d)
             if not os.path.isfile(current_file_d):
                 continue
             all_files_num -= 1
