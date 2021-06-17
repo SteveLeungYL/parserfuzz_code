@@ -77,6 +77,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
+#include <map>
 
 #include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
@@ -129,6 +130,9 @@ u64 total_oracle_mutate_failed = 0;
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
+
+map<int, string> share_map_id;
+fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
 
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
@@ -946,6 +950,43 @@ EXP_ST void read_bitmap(u8 *fname) {
   close(fd);
 }
 
+vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+  vector<u8> new_byte_v;
+  for (u8 i = 0; i < 8; i++){
+    if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+  }
+  return new_byte_v;
+}
+
+bool judge_bit_is_one(u8 data, u8 flag){
+  data = (flag & data);
+  if (flag == data) return true;
+  else return false;
+}
+
+// vector<u8> get_cur_new_bit(u8 map){
+//   vector<u8> new_bit_v;
+//   if (judge_bit_is_one(map, 0x01)) new_bit_v.push_back(0); 
+//   if (judge_bit_is_one(map, 0x02)) new_bit_v.push_back(1);
+//   if (judge_bit_is_one(map, 0x04)) new_bit_v.push_back(2);
+//   if (judge_bit_is_one(map, 0x08)) new_bit_v.push_back(3);
+//   if (judge_bit_is_one(map, 0x10)) new_bit_v.push_back(4);
+//   if (judge_bit_is_one(map, 0x20)) new_bit_v.push_back(5);
+//   if (judge_bit_is_one(map, 0x40)) new_bit_v.push_back(6);
+//   if (judge_bit_is_one(map, 0x80)) new_bit_v.push_back(7);
+//   return new_bit_v;
+// }
+
+void log_map_id(u32 i, u8 byte){
+  i = (MAP_SIZE >> 3) - i;
+  u32 actual_idx = i * 8 + byte;
+  if (share_map_id.count(actual_idx)){
+    map_id_out_f << actual_idx << "," << share_map_id[actual_idx] << endl;
+  } else {
+    map_id_out_f << actual_idx << "," << "-1, -1, -1, -1" << endl;
+  }
+}
+
 /* Check if the current execution path brings anything new to the table.
    Update virgin bits to reflect the finds. Returns 1 if the only change is
    the hit-count for a particular tuple; 2 if there are new tuples seen.
@@ -995,8 +1036,14 @@ static inline u8 has_new_bits(u8 *virgin_map) {
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
-            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff))
-          ret = 2;
+            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
+              ret = 2;
+              vector<u8> byte = get_cur_new_byte(cur, vir);
+              for (const u8& cur_byte: byte){
+                // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+                log_map_id(i, cur_byte);
+              }
+            }
         else
           ret = 1;
 
@@ -7307,6 +7354,26 @@ static void do_libary_initialize() {
 }
 
 int main(int argc, char **argv) {
+
+  /* Debug: Load the map_id to the program */
+  fstream map_f("./mapID.csv");
+  if (map_f.fail()){
+    FATAL("ERROR: mapID.csv doesn't exist in the current workdir. ");
+  }
+  map_id_out_f << "mapID,src,src_line,dest,dest_line" << endl;
+
+  string line;
+  getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
+  while (getline(map_f, line)){
+    vector<string> line_vec = string_splitter(line, ",");
+    int map_id = stoi(line_vec[0]);
+    string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4];
+    share_map_id[map_id] = map_info;
+    line_vec.clear();
+  }
+
+  map_f.close();
+  line.clear();
 
   p_oracle = nullptr;
   g_mutator.set_use_cri_val(false);
