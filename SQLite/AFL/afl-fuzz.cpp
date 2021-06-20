@@ -983,7 +983,7 @@ void log_map_id(u32 i, u8 byte){
   if (share_map_id.count(actual_idx)){
     map_id_out_f << actual_idx << "," << share_map_id[actual_idx] << endl;
   } else {
-    map_id_out_f << actual_idx << "," << "-1, -1, -1, -1" << endl;
+    map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0" << endl;
   }
 }
 
@@ -7360,14 +7360,14 @@ int main(int argc, char **argv) {
   if (map_f.fail()){
     FATAL("ERROR: mapID.csv doesn't exist in the current workdir. ");
   }
-  map_id_out_f << "mapID,src,src_line,dest,dest_line" << endl;
+  map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
 
   string line;
   getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
   while (getline(map_f, line)){
     vector<string> line_vec = string_splitter(line, ",");
     int map_id = stoi(line_vec[0]);
-    string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4];
+    string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
     share_map_id[map_id] = map_info;
     line_vec.clear();
   }
