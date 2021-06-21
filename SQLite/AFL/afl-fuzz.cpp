@@ -131,7 +131,7 @@ u64 total_oracle_mutate_failed = 0;
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
 
-map<int, string> share_map_id;
+map<int, vector<string>> share_map_id;
 fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
 
 map<IDTYPE, IDTYPE> relationmap;
@@ -981,7 +981,9 @@ void log_map_id(u32 i, u8 byte){
   i = (MAP_SIZE >> 3) - i;
   u32 actual_idx = i * 8 + byte;
   if (share_map_id.count(actual_idx)){
-    map_id_out_f << actual_idx << "," << share_map_id[actual_idx] << endl;
+    for (string &debug_info : share_map_id[actual_idx]) {
+      map_id_out_f << actual_idx << "," << debug_info << endl;
+    }
   } else {
     map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0" << endl;
   }
@@ -7368,7 +7370,12 @@ int main(int argc, char **argv) {
     vector<string> line_vec = string_splitter(line, ",");
     int map_id = stoi(line_vec[0]);
     string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
-    share_map_id[map_id] = map_info;
+    if (share_map_id.count(map_id) != 0){
+      share_map_id[map_id].push_back(map_info);
+    } else {
+      vector<string> tmp{map_info};
+      share_map_id[map_id] = tmp;
+    }
     line_vec.clear();
   }
 
