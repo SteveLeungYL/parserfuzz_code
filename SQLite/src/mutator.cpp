@@ -941,6 +941,15 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str) {
   return false;
 }
 
+static bool isEmpty(string &str) {
+
+  for (char &c : str)
+    if (!isspace(c) && c != '\n' && c != '\0')
+      return false;
+
+  return true;
+}
+
 /* add_to_library supports only one stmt at a time,
  * add_all_to_library is responsible to split the
  * the current IR tree into single query stmts.
@@ -965,22 +974,13 @@ void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, con
  */
 
 void Mutator::add_all_to_library(string whole_query_str,
-                                 const vector<int> &explain_diff_id, const ALL_COMP_RES& all_comp_res) {
+                                 const vector<int> &explain_diff_id, 
+                                 const ALL_COMP_RES& all_comp_res) {
 
-  /* If the query_str is empty. Ignored and return. */
-  bool is_empty = true;
-  for (int i = 0; i < whole_query_str.size(); i++) {
-    char c = whole_query_str[i];
-    if (!isspace(c) && c != '\n' && c != '\0') {
-      is_empty = false; // Not empty.
-      break;
-    } // Empty
-  }
+  if (isEmpty(whole_query_str))
+      return;
 
-  if (is_empty)
-    return;
-
-  vector<string> queries_vector = string_splitter(whole_query_str, ";");
+  vector<string> queries_vector = string_splitter(whole_query_str, ';');
   int i = 0; // For counting oracle valid stmt IDs. 
   for (auto current_query : queries_vector) {
     trim_string(current_query);

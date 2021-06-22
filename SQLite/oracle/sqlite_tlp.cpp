@@ -8,7 +8,7 @@
 
 int SQL_TLP::count_valid_stmts(const string &input) {
   int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ";");
+  vector<string> queries_vector = string_splitter(input, ';');
   for (string &query : queries_vector)
     if (this->is_oracle_valid_stmt(query))
       norec_select_count++;
@@ -467,7 +467,7 @@ string SQL_TLP::rewrite_having(string &ori, string &rew_1,
 
 string SQL_TLP::remove_valid_stmts_from_str(string query) {
   string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ";");
+  vector<string> queries_vector = string_splitter(query, ';');
 
   for (auto current_stmt : queries_vector) {
     if (is_str_empty(current_stmt))
@@ -495,8 +495,8 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
   res_a_int = 0;
   res_b_int = 0;
 
-  vector<string> v_res_a = string_splitter(res_a, "\n");
-  vector<string> v_res_b = string_splitter(res_b, "\n");
+  vector<string> v_res_a = string_splitter(res_a, '\n');
+  vector<string> v_res_b = string_splitter(res_b, '\n');
 
   /* Remove NULL results */
   for (string &r : v_res_a) {

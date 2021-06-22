@@ -2968,8 +2968,7 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
     return FAULT_ERROR;
   }
 
-  // vector<string> queries_vector = string_splitter(cmd_string, ";");
-  vector<string> queries_vector = string_splitter2(cmd_string, ';');
+  vector<string> queries_vector = string_splitter(cmd_string, ';');
   for (string &query : queries_vector) {
     // ignore the whole query pairs if !... in the stmt,
     for (auto iter = query.begin(); iter != query.end(); iter++) {
@@ -6004,7 +6003,7 @@ static u8 fuzz_one(char **argv) {
     }
 
     /* Randomly append statements into the query set. 1/4 chances for now. */
-    vector<string> queries_vector = string_splitter(*ir_str, ";");
+    vector<string> queries_vector = string_splitter(*ir_str, ';');
     *ir_str = "";
     for (string &cur_query : queries_vector) {
       *ir_str += cur_query + "; ";

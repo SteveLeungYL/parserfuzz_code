@@ -8,7 +8,7 @@
 
 int SQL_LIKELY::count_valid_stmts(const string &input) {
   int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ";");
+  vector<string> queries_vector = string_splitter(input, ';');
   for (string &query : queries_vector)
     if (this->is_oracle_valid_stmt(query))
       norec_select_count++;
@@ -342,7 +342,7 @@ void SQL_LIKELY::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
 
 string SQL_LIKELY::remove_valid_stmts_from_str(string query) {
   string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ";");
+  vector<string> queries_vector = string_splitter(query, ';');
 
   for (auto current_stmt : queries_vector) {
     if (is_str_empty(current_stmt))
@@ -448,9 +448,9 @@ bool SQL_LIKELY::compare_norm(
     return true;
   }
 
-  vector<string> v_res_0 = string_splitter(res_str_0, "\n");
-  vector<string> v_res_1 = string_splitter(res_str_1, "\n");
-  vector<string> v_res_2 = string_splitter(res_str_2, "\n");
+  vector<string> v_res_0 = string_splitter(res_str_0, '\n');
+  vector<string> v_res_1 = string_splitter(res_str_1, '\n');
+  vector<string> v_res_2 = string_splitter(res_str_2, '\n');
 
   for (const string &r : v_res_0) {
     if (is_str_empty(r))

@@ -7,7 +7,7 @@
 
 int SQL_INDEX::count_valid_stmts(const string &input) {
   int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ";");
+  vector<string> queries_vector = string_splitter(input, ';');
   for (string &query : queries_vector)
     if (this->is_oracle_valid_stmt(query) ||
         this->is_oracle_valid_stmt_2(query))
@@ -96,7 +96,7 @@ void SQL_INDEX::rewrite_valid_stmt_from_ori_2(string &query,
 
 string SQL_INDEX::remove_valid_stmts_from_str(string query) {
   string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ";");
+  vector<string> queries_vector = string_splitter(query, ';');
 
   for (auto current_stmt : queries_vector) {
     if (is_str_empty(current_stmt))
@@ -203,7 +203,7 @@ bool SQL_INDEX::compare_norm(
       return true;
     }
     int cur_res_int = 0;
-    vector<string> v_res_split = string_splitter(res_str, "\n");
+    vector<string> v_res_split = string_splitter(res_str, '\n');
     /* Remove NULL results */
     for (const string &r : v_res_split) {
       if (is_str_empty(r))
