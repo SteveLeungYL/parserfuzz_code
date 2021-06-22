@@ -3853,6 +3853,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     return keeping; // return 0; Empty string. Not added.
   }
 
+  /* Do not strip the string when saving to queue. Strip it when loading. */
   string stripped_query_string =
       p_oracle->remove_valid_stmts_from_str(query_str);
   if (is_str_empty(stripped_query_string)){
@@ -3919,7 +3920,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
        before adding them to the query.
     */
 
-    add_to_queue(fn, stripped_query_string.size(), 0);
+    add_to_queue(fn, query_str.size(), 0);
 
     total_add_to_queue++;
 
@@ -3933,7 +3934,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, stripped_query_string.c_str(),
+    res = calibrate_case(argv, queue_top, query_str.c_str(),
                          queue_cycle - 1, 0);
 
     // if (res == FAULT_ERROR)
@@ -3942,7 +3943,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
-    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(),
+    ck_write(fd, query_str.c_str(), query_str.size(),
              fn);
     close(fd);
 
@@ -5988,6 +5989,9 @@ static u8 fuzz_one(char **argv) {
 
   skip_count = 0;
   input = (const char *)out_buf;
+
+  /* Remove the SELECT statements from the input. */
+  input = p_oracle->remove_valid_stmts_from_str(input);
 
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
