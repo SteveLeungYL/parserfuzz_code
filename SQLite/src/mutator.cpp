@@ -955,7 +955,9 @@ static bool isEmpty(string &str) {
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, const ALL_COMP_RES& all_comp_res) {
+void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, 
+    const ALL_COMP_RES& all_comp_res) {
+
   add_all_to_library(ir->to_string(), explain_diff_id, all_comp_res);
 }
 
@@ -980,20 +982,24 @@ void Mutator::add_all_to_library(string whole_query_str,
   if (isEmpty(whole_query_str))
       return;
 
-  vector<string> queries_vector = string_splitter(whole_query_str, ';');
   int i = 0; // For counting oracle valid stmt IDs. 
+
+  vector<string> queries_vector = string_splitter(whole_query_str, ';');
   for (auto current_query : queries_vector) {
+
     trim_string(current_query);
     current_query += ";";
+
     // check the validity of the IR here
     // The unique_id_in_tree_ variable are being set inside the parsing func.
     vector<IR *> ir_set = parse_query_str_get_ir_set(current_query);
     if (ir_set.size() == 0)
       continue;
 
-    IR *root = ir_set[ir_set.size() - 1];
+    IR *root = ir_set.back();
 
     if (p_oracle->is_oracle_valid_stmt(current_query)) {
+
       // if (all_comp_res.v_res.size() > i) {
       //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
       //     ++i;
@@ -1001,7 +1007,8 @@ void Mutator::add_all_to_library(string whole_query_str,
       //     continue;
       //   }
       // }
-      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
+
+      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) != 
           explain_diff_id.end()) {
         // cerr << "Saving with statement: " << i << current_query << endl;
         add_to_valid_lib(root, current_query, true);
@@ -1097,7 +1104,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
 
   unsigned long p_hash = hash(ir->to_string());
   if (p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) !=
-                                ir_libary_2D_hash_[p_type].end()) {
+                            ir_libary_2D_hash_[p_type].end()) {
     /* current node not interesting enough. Ignore it and clean up. */
     return;
   }
@@ -1145,7 +1152,7 @@ void Mutator::get_memory_usage() {
 
   std::ofstream f;
   // f.rdbuf()->pubsetbuf(0, 0);
-  f.open("./memlog.txt", std::ofstream::out | std::ofstream::app);
+  f.open("./memlog.txt", std::ofstream::out);
 
   struct rusage usage;
   getrusage(RUSAGE_SELF, &usage);
@@ -1190,7 +1197,8 @@ void Mutator::get_memory_usage() {
   // total_size += size_right;
 
   unsigned long size_value = 0;
-  size_value += value_libary.size() * 8;
+  for (auto & v : value_libary)
+    size_value += v.size();
   f << "value size:   " << size_value << "\t - " << size_value * 1.0 / use
     << "\n";
   total_size += size_value;
@@ -1221,8 +1229,8 @@ void Mutator::get_memory_usage() {
 
   unsigned long size_real_ir_set_str_libary = 0;
   for (auto i : all_query_pstr_set)
-    size_real_ir_set_str_libary += i->capacity();
-  f << "all_saved_query_str size :" << size_real_ir_set_str_libary << "\t - "
+    size_real_ir_set_str_libary += i->capacity() + 8;
+  f << "all_query_pstr_set size :" << size_real_ir_set_str_libary << "\t - "
     << size_real_ir_set_str_libary * 1.0 / use << "\n";
   total_size += size_real_ir_set_str_libary;
 
@@ -1232,7 +1240,7 @@ void Mutator::get_memory_usage() {
   f.close();
 }
 
-unsigned long Mutator::hash(string sql) {
+unsigned long Mutator::hash(const string & sql) {
   return fuzzing_hash(sql.c_str(), sql.size());
 }
 

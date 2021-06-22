@@ -24,7 +24,7 @@ public:
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);
-  unsigned long hash(string);
+  unsigned long hash(const string &);
 
   vector<string *> mutate_all(vector<IR *> &v_ir_collector);
 
