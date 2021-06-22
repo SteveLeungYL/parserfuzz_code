@@ -1637,6 +1637,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
     unsigned long h = hash(root->str_val_);
     if (value_library_hash_.find(h) == value_library_hash_.end()) {
       value_libary.push_back(root->str_val_);
+      value_library_hash_.insert(h);
     }
     res += "10";
     return;
