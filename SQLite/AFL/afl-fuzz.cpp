@@ -958,11 +958,11 @@ vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
   return new_byte_v;
 }
 
-bool judge_bit_is_one(u8 data, u8 flag){
-  data = (flag & data);
-  if (flag == data) return true;
-  else return false;
-}
+// bool judge_bit_is_one(u8 data, u8 flag){
+//   data = (flag & data);
+//   if (flag == data) return true;
+//   else return false;
+// }
 
 // vector<u8> get_cur_new_bit(u8 map){
 //   vector<u8> new_bit_v;
@@ -1043,10 +1043,12 @@ static inline u8 has_new_bits(u8 *virgin_map) {
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
             (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
               ret = 2;
-              vector<u8> byte = get_cur_new_byte(cur, vir);
-              for (const u8& cur_byte: byte){
-                // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
-                log_map_id(i, cur_byte);
+              if (dump_library && !map_id_out_f.fail()){
+                vector<u8> byte = get_cur_new_byte(cur, vir);
+                for (const u8& cur_byte: byte){
+                  // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+                  log_map_id(i, cur_byte);
+                }
               }
             }
         else
@@ -3610,13 +3612,15 @@ static void perform_dry_run(char **argv) {
       WARNF(cLRD "High percentage of rejected test cases, check settings!");
   }
 
-  // Added virgin_bits just perform_dry_run. 
-  std::fstream vir_bits_fd;
-  vir_bits_fd.open("./vir_bits.txt", std::fstream::trunc | std::fstream::out);
-  u8 *cur_vir = (u8 *) virgin_bits;
-  for (int i = 0; i < MAP_SIZE; i++){
-    if (cur_vir[i] != 0xff) {
-      vir_bits_fd << i << endl;
+  if (dump_library){
+    // Added virgin_bits just perform_dry_run. 
+    std::fstream vir_bits_fd;
+    vir_bits_fd.open("./vir_bits.txt", std::fstream::trunc | std::fstream::out);
+    u8 *cur_vir = (u8 *) virgin_bits;
+    for (int i = 0; i < MAP_SIZE; i++){
+      if (cur_vir[i] != 0xff) {
+        vir_bits_fd << i << endl;
+      }
     }
   }
 
@@ -7374,32 +7378,6 @@ static void do_libary_initialize() {
 
 int main(int argc, char **argv) {
 
-  /* Debug: Load the map_id to the program */
-  fstream map_f("./mapID.csv");
-  if (map_f.fail()){
-    cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
-  } else {
-    map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
-  }
-
-  string line;
-  getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
-  while (getline(map_f, line)){
-    vector<string> line_vec = string_splitter(line, ",");
-    int map_id = stoi(line_vec[0]);
-    string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
-    if (share_map_id.count(map_id) != 0){
-      share_map_id[map_id].push_back(map_info);
-    } else {
-      vector<string> tmp{map_info};
-      share_map_id[map_id] = tmp;
-    }
-    line_vec.clear();
-  }
-
-  map_f.close();
-  line.clear();
-
   p_oracle = nullptr;
   g_mutator.set_use_cri_val(false);
 
@@ -7673,6 +7651,33 @@ int main(int argc, char **argv) {
 
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_coverage_feedback(disable_coverage_feedback);
+
+  if (dump_library) {
+    /* Debug: Load the map_id to the program */
+    fstream map_f("./mapID.csv");
+    if (map_f.fail()){
+      cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
+    } else {
+      map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
+    }
+
+    string line;
+    getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
+    while (getline(map_f, line)){
+      vector<string> line_vec = string_splitter(line, ",");
+      int map_id = stoi(line_vec[0]);
+      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
+      if (share_map_id.count(map_id) != 0){
+        share_map_id[map_id].push_back(map_info);
+      } else {
+        vector<string> tmp{map_info};
+        share_map_id[map_id] = tmp;
+      }
+      line_vec.clear();
+    }
+    map_f.close();
+    line.clear();
+  }
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
