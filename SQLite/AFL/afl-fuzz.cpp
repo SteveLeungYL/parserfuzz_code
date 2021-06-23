@@ -130,6 +130,7 @@ u64 total_oracle_mutate_failed = 0;
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
+unsigned valid_max_num = 10;
 
 map<int, vector<string>> share_map_id;
 fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
@@ -5853,8 +5854,7 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le) {
   return 0;
 }
 
-void get_ori_valid_stmts(vector<string> &v_valid_stmts,
-                         int valid_max_num = 10) {
+void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
 
   int trial = 0;
   int num_norec = 0;
@@ -7403,7 +7403,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDFc:EO:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDFc:EO:s:")) > 0)
 
     switch (opt) {
 
@@ -7423,6 +7423,10 @@ int main(int argc, char **argv) {
       if (out_dir)
         FATAL("Multiple -o options not supported");
       out_dir = optarg;
+      break;
+
+    case 's': /* number of oracle SELECT stmts. */
+      valid_max_num = atoi(optarg);
       break;
 
     case 'M': { /* master sync ID */
