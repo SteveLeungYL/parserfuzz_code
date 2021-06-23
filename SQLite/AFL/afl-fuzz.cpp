@@ -978,6 +978,9 @@ bool judge_bit_is_one(u8 data, u8 flag){
 // }
 
 void log_map_id(u32 i, u8 byte){
+  if (map_id_out_f.fail()){
+    return;
+  }
   i = (MAP_SIZE >> 3) - i;
   u32 actual_idx = i * 8 + byte;
   if (share_map_id.count(actual_idx)){
@@ -7374,9 +7377,10 @@ int main(int argc, char **argv) {
   /* Debug: Load the map_id to the program */
   fstream map_f("./mapID.csv");
   if (map_f.fail()){
-    FATAL("ERROR: mapID.csv doesn't exist in the current workdir. ");
+    cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
+  } else {
+    map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
   }
-  map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
 
   string line;
   getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
