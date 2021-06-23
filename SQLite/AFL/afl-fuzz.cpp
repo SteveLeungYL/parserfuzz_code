@@ -77,6 +77,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
+#include <map>
 
 #include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
@@ -129,6 +130,9 @@ u64 total_oracle_mutate_failed = 0;
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
+
+map<int, vector<string>> share_map_id;
+fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
 
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
@@ -946,6 +950,48 @@ EXP_ST void read_bitmap(u8 *fname) {
   close(fd);
 }
 
+vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+  vector<u8> new_byte_v;
+  for (u8 i = 0; i < 8; i++){
+    if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+  }
+  return new_byte_v;
+}
+
+// bool judge_bit_is_one(u8 data, u8 flag){
+//   data = (flag & data);
+//   if (flag == data) return true;
+//   else return false;
+// }
+
+// vector<u8> get_cur_new_bit(u8 map){
+//   vector<u8> new_bit_v;
+//   if (judge_bit_is_one(map, 0x01)) new_bit_v.push_back(0); 
+//   if (judge_bit_is_one(map, 0x02)) new_bit_v.push_back(1);
+//   if (judge_bit_is_one(map, 0x04)) new_bit_v.push_back(2);
+//   if (judge_bit_is_one(map, 0x08)) new_bit_v.push_back(3);
+//   if (judge_bit_is_one(map, 0x10)) new_bit_v.push_back(4);
+//   if (judge_bit_is_one(map, 0x20)) new_bit_v.push_back(5);
+//   if (judge_bit_is_one(map, 0x40)) new_bit_v.push_back(6);
+//   if (judge_bit_is_one(map, 0x80)) new_bit_v.push_back(7);
+//   return new_bit_v;
+// }
+
+void log_map_id(u32 i, u8 byte){
+  if (map_id_out_f.fail()){
+    return;
+  }
+  i = (MAP_SIZE >> 3) - i;
+  u32 actual_idx = i * 8 + byte;
+  if (share_map_id.count(actual_idx)){
+    for (string &debug_info : share_map_id[actual_idx]) {
+      map_id_out_f << actual_idx << "," << debug_info << endl;
+    }
+  } else {
+    map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0" << endl;
+  }
+}
+
 /* Check if the current execution path brings anything new to the table.
    Update virgin bits to reflect the finds. Returns 1 if the only change is
    the hit-count for a particular tuple; 2 if there are new tuples seen.
@@ -995,8 +1041,16 @@ static inline u8 has_new_bits(u8 *virgin_map) {
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
-            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff))
-          ret = 2;
+            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
+              ret = 2;
+              if (dump_library && !map_id_out_f.fail()){
+                vector<u8> byte = get_cur_new_byte(cur, vir);
+                for (const u8& cur_byte: byte){
+                  // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+                  log_map_id(i, cur_byte);
+                }
+              }
+            }
         else
           ret = 1;
 
@@ -3557,6 +3611,18 @@ static void perform_dry_run(char **argv) {
       WARNF(cLRD "High percentage of rejected test cases, check settings!");
   }
 
+  if (dump_library){
+    // Added virgin_bits just perform_dry_run. 
+    std::fstream vir_bits_fd;
+    vir_bits_fd.open("./vir_bits.txt", std::fstream::trunc | std::fstream::out);
+    u8 *cur_vir = (u8 *) virgin_bits;
+    for (int i = 0; i < MAP_SIZE; i++){
+      if (cur_vir[i] != 0xff) {
+        vir_bits_fd << i << endl;
+      }
+    }
+  }
+
   OKF("All test cases processed.");
 }
 
@@ -3803,6 +3869,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     return keeping; // return 0; Empty string. Not added.
   }
 
+  /* Do not strip the string when saving to queue. Strip it when loading. */
   string stripped_query_string =
       p_oracle->remove_valid_stmts_from_str(query_str);
   if (is_str_empty(stripped_query_string)){
@@ -3869,7 +3936,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
        before adding them to the query.
     */
 
-    add_to_queue(fn, stripped_query_string.size(), 0);
+    add_to_queue(fn, query_str.size(), 0);
 
     total_add_to_queue++;
 
@@ -3883,7 +3950,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, stripped_query_string.c_str(),
+    res = calibrate_case(argv, queue_top, query_str.c_str(),
                          queue_cycle - 1, 0);
 
     // if (res == FAULT_ERROR)
@@ -3892,7 +3959,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
-    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(),
+    ck_write(fd, query_str.c_str(), query_str.size(),
              fn);
     close(fd);
 
@@ -5939,6 +6006,9 @@ static u8 fuzz_one(char **argv) {
   skip_count = 0;
   input = (const char *)out_buf;
 
+  /* Remove the SELECT statements from the input. */
+  input = p_oracle->remove_valid_stmts_from_str(input);
+
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
 
@@ -7580,6 +7650,33 @@ int main(int argc, char **argv) {
 
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_coverage_feedback(disable_coverage_feedback);
+
+  if (dump_library) {
+    /* Debug: Load the map_id to the program */
+    fstream map_f("./mapID.csv");
+    if (map_f.fail()){
+      cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
+    } else {
+      map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
+    }
+
+    string line;
+    getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
+    while (getline(map_f, line)){
+      vector<string> line_vec = string_splitter(line, ",");
+      int map_id = stoi(line_vec[0]);
+      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
+      if (share_map_id.count(map_id) != 0){
+        share_map_id[map_id].push_back(map_info);
+      } else {
+        vector<string> tmp{map_info};
+        share_map_id[map_id] = tmp;
+      }
+      line_vec.clear();
+    }
+    map_f.close();
+    line.clear();
+  }
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
