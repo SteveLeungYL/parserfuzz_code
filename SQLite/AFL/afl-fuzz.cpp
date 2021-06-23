@@ -3607,6 +3607,16 @@ static void perform_dry_run(char **argv) {
       WARNF(cLRD "High percentage of rejected test cases, check settings!");
   }
 
+  // Added virgin_bits just perform_dry_run. 
+  std::fstream vir_bits_fd;
+  vir_bits_fd.open("./vir_bits.txt", std::fstream::trunc | std::fstream::out);
+  u8 *cur_vir = (u8 *) virgin_bits;
+  for (int i = 0; i < MAP_SIZE; i++){
+    if (cur_vir[i] != 0xff) {
+      vir_bits_fd << i << endl;
+    }
+  }
+
   OKF("All test cases processed.");
 }
 
