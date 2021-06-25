@@ -1709,6 +1709,8 @@ void Mutator::add_new_table(IR *root, string &table_name) {
 void Mutator::reset_database() {
   m_tables.clear();
   v_table_names.clear();
+  m_table2index.clear();
+  m_table2alias.clear();
 }
 
 int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
