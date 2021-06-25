@@ -1,5 +1,6 @@
 #include "./sqlite_oracle.h"
 #include "../include/ast.h"
+#include "../AFL/debug.h"
 
 bool SQL_ORACLE::mark_node_valid(IR *root) {
   if (root == nullptr)
@@ -162,4 +163,6 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
     root->deep_drop();
     root = NULL;
   }
+  FATAL("Unexpected code execution in '%s'", "SQL_ORACLE::get_random_mutated_valid_stmt()");
+  return "";
 }
