@@ -132,6 +132,8 @@ Mutator g_mutator;
 SQL_ORACLE *p_oracle;
 unsigned valid_max_num = 10;
 
+int bind_to_core_id = -1;
+
 map<int, vector<string>> share_map_id;
 fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
 
@@ -3144,7 +3146,7 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
     // }
 
     string bug_output_dir =
-        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ".txt";
+        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);
@@ -7381,7 +7383,6 @@ int main(int argc, char **argv) {
   g_mutator.set_use_cri_val(false);
 
   // hsql_debug = 1;   // For debugging parser.
-  int bind_to_core_id = -1;
 
   min_stab_radio = 100.0;
   s32 opt;
