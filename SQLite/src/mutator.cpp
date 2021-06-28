@@ -281,7 +281,14 @@ string Mutator::validate(IR *root) {
   if (root == NULL)
     return "";
 
-  return validate(root->to_string());
+  reset_counter();
+  vector<IR *> ordered_ir;
+  // debug(root, 0);
+  auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
+  fix_graph(graph, root, ordered_ir);
+
+  string tmp = fix(root);
+  return tmp;
 }
 
 string Mutator::validate(string query) {

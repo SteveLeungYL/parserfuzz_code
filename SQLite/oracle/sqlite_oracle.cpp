@@ -22,7 +22,7 @@ void SQL_ORACLE::set_mutator(Mutator *mutator) { this->g_mutator = mutator; }
 
 // TODO:: This function is a bit too long.
 // guarantee to generate grammarly correct query
-string SQL_ORACLE::get_random_mutated_valid_stmt() {
+IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
   /* Read from the previously seen norec compatible select stmt.
    * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the
    string of the new generated norec compatible SELECT query.
@@ -39,13 +39,6 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
 
     string ori_valid_select = "";
     use_temp = g_mutator->get_valid_str_from_lib(ori_valid_select);
-    /* If we are using a non template valid stmt from the p_oracle lib:
-     *  2/3 of chances to return the stmt immediate without mutation.
-     *  1/3 of chances to return with further mutation.
-     */
-    if (!use_temp && get_rand_int(3) < 2) {
-      return ori_valid_select;
-    }
 
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);
@@ -56,8 +49,15 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
     if (!g_mutator->check_node_num(root, 300)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
        * the retrived query. */
-      root->deep_drop();
-      return ori_valid_select;
+      return root;
+    }
+
+    /* If we are using a non template valid stmt from the p_oracle lib:
+     *  2/3 of chances to return the stmt immediate without mutation.
+     *  1/3 of chances to return with further mutation.
+     */
+    if (!use_temp && get_rand_int(3) < 2) {
+      return root;
     }
 
     /* Restrict changes on the signiture norec select components. Could increase
@@ -134,12 +134,12 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
         // Make sure the mutated structure is different.
         if (new_valid_select_struct != ori_valid_select_struct) {
 
-          root->deep_drop();
+          // root->deep_drop();
           is_success = true;
 
           if (use_temp)
             total_temp++;
-          return new_valid_select_str;
+          return root;
         }
         // else {
         //  cout << "new|" << new_valid_select_str << "|\n"
@@ -164,5 +164,5 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
     root = NULL;
   }
   FATAL("Unexpected code execution in '%s'", "SQL_ORACLE::get_random_mutated_valid_stmt()");
-  return "";
+  return nullptr;
 }

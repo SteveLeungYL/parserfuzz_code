@@ -425,3 +425,82 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
     res_out.final_res = ORA_COMP_RES::ALL_Error;
   return;
 }
+
+int SQL_NOREC::count_oracle_select_stmts(IR* ir_root) {
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+
+  int oracle_stmt_num = 0;
+  for (IR* cur_stmt : stmt_vec){
+    if (this->is_oracle_select_stmt(cur_stmt)) {oracle_stmt_num++;}
+  }
+  return oracle_stmt_num;
+}
+
+bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
+
+  // Remove GROUP BY and HAVING stmts. 
+  if ( ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false) ) {
+    vector<IR*> all_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false);
+    for (IR* cur_opt_group : all_opt_group) {
+      if (cur_opt_group->op_->prefix_ == "GROUP BY") {return false;}
+    }
+  }
+
+  if (
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false)
+  ) {
+    vector<IR*> function_name_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kFunctionName, false);
+    for (IR* func_name : function_name_vec){
+      if (
+        func_name->get_parent()->get_parent()->get_parent()->type_ == kNewExpr &&
+        func_name->get_parent()->get_parent()->get_parent()->get_parent()->type_ == kResultColumn &&
+        func_name->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->type_ == kResultColumnList && // kResultColumnList only used in selectcore. 
+        func_name->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->get_parent() \
+                 ->get_parent()->get_parent()->get_parent()->type_ == kSelectCore &&
+        findStringIn(func_name->left_->str_val_, "count")
+        ) {return true;}
+    }
+  }
+  return false;
+}
+
+void SQL_NOREC::remove_valid_stmts_from_ir(IR* ir_root) {
+
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR* cur_stmt : stmt_vec) {
+    if (this->is_oracle_select_stmt(cur_stmt)) ir_wrapper.remove_stmt(cur_stmt);
+  }
+
+}
+
+vector<IR*> SQL_NOREC::transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
+
+  IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kWhereExpr, false)[0]->left_->deep_copy();
+
+  IR* opt_where = where_expr->get_parent();
+  IR* new_opt_where = new IR(kOptWhere, string(""));
+  ir_root->swap_node(opt_where, new_opt_where);
+  opt_where->deep_drop();
+
+  vector<IR*> select_new_expr_vec = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kNewExpr, false);
+  IR* select_new_expr;
+  for (IR* cur_select_expr : select_new_expr_vec) {
+    if (
+      cur_select_expr->get_parent()->type_ == kResultColumn &&
+      cur_select_expr->get_parent()->get_parent()->type_ == kResultColumnList &&
+      cur_select_expr->get_parent()->get_parent()->get_parent()->get_parent() \
+                     ->get_parent()->get_parent()->get_parent()->type_ == kSelectCore
+    ) {select_new_expr = cur_select_expr;}
+  }
+
+  IR* select_ori_node = select_new_expr->get_parent()->get_parent();
+  ir_root -> swap_node(select_ori_node, where_expr);
+  select_ori_node->deep_drop();
+
+  return;
+
+}

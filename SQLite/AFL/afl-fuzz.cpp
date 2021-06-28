@@ -46,6 +46,8 @@
 #include "../include/define.h"
 #include "../include/mutator.h"
 #include "../include/utils.h"
+#include "../include/ir_wrapper.h"
+
 #include <algorithm>
 #include <cassert>
 #include <ctype.h>
@@ -5856,7 +5858,7 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le) {
   return 0;
 }
 
-void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
+void get_ori_valid_stmts(vector<IR*> &v_valid_stmts) {
 
   int trial = 0;
   int num_norec = 0;
@@ -5869,14 +5871,14 @@ void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.
       break;
 
-    string new_norec_stmts = p_oracle->get_random_mutated_valid_stmt();
-    if (new_norec_stmts == ""){
+    IR* new_norec_stmts = p_oracle->get_random_mutated_valid_stmt();
+    if (new_norec_stmts == nullptr){
       total_oracle_mutate_failed++;
       continue;
     }
-    ensure_semicolon_at_query_end(new_norec_stmts);
+    // ensure_semicolon_at_query_end(new_norec_stmts);
 
-    v_valid_stmts.push_back(std::move(new_norec_stmts));
+    v_valid_stmts.push_back(new_norec_stmts);
 
     num_norec++;
   }
@@ -5898,7 +5900,7 @@ static u8 fuzz_one(char **argv) {
   Program *program_root;
   vector<IR *> ir_set;
   vector<string *> mutated_tree;
-  vector<string> ori_valid_stmts;
+  vector<IR*> ori_valid_stmts;
   char *tmp_name = stage_name;
   string query_str;
   int skip_count;
@@ -6020,6 +6022,9 @@ static u8 fuzz_one(char **argv) {
     goto abandon_entry;
   }
 
+  p_oracle->init_ir_wrapper(input->back());
+  // TODO:: Call remove_valid_stmts_from_ir() here. 
+
   // unsigned long prev_hash, current_hash;
   // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
   // current_hash = 0;
@@ -6057,38 +6062,44 @@ static u8 fuzz_one(char **argv) {
       continue;
     }
 
-    /* Check whether the original query makes sense, if not, do not even
+    /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
      * consider appending anything */
-    vector<IR *> original_ir_tree =
+    vector<IR *> cur_ir_tree =
         g_mutator.parse_query_str_get_ir_set(*ir_str);
-    if (original_ir_tree.size() > 0)
-      original_ir_tree.back()->deep_drop();
-    else {
+    if (cur_ir_tree.size() == 0) {
       total_mutate_failed++;
       skip_count++;
       continue;
     }
 
-    for (string &app_str : ori_valid_stmts) {
-      *ir_str += app_str; // Append the already generated and cached SELECT
-                          // VALID stmts.
+    p_oracle->ir_wrapper.set_ir_root(cur_ir_tree->back());
+
+    for (IR* app_IR_node : ori_valid_stmts) {
+        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node); // Append the already generated and cached SELECT
+                          // stmts.
     }
 
-    /* Randomly append statements into the query set. 1/4 chances for now. */
-    vector<string> queries_vector = string_splitter(*ir_str, ';');
-    *ir_str = "";
-    for (string &cur_query : queries_vector) {
-      *ir_str += cur_query + "; ";
-      if (get_rand_int(4) < 1) {
-        string rand_str = p_oracle->get_random_append_stmts();
-        if (rand_str != "")
-          *ir_str += rand_str + "; ";
-        // cerr << "Randomly appended rand_str: " << rand_str << endl;
-        // cerr << "Current *ir_str is: " << *ir_str << endl;
-      }
-    }
+    // TODO::Randomly append statements into the query set using IR. 
 
-    query_str = g_mutator.validate(*ir_str);
+    // /* Randomly append statements into the query set. 1/4 chances for now. */
+    // vector<string> queries_vector = string_splitter(*ir_str, ';');
+    // *ir_str = "";
+    // for (string &cur_query : queries_vector) {
+    //   *ir_str += cur_query + "; ";
+    //   if (get_rand_int(4) < 1) {
+    //     string rand_str = p_oracle->get_random_append_stmts();
+    //     if (rand_str != "")
+    //       *ir_str += rand_str + "; ";
+    //     // cerr << "Randomly appended rand_str: " << rand_str << endl;
+    //     // cerr << "Current *ir_str is: " << *ir_str << endl;
+    //   }
+    // }
+
+    query_str = g_mutator.validate(p_oracle->ir_wrapper.get_ir_root());
+
+    if (cur_ir_tree.size() > 0){
+      cur_ir_tree.back()->deep_drop();
+    }
 
     if (query_str == "") {
       total_append_failed++;
