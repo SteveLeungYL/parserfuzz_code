@@ -6011,7 +6011,7 @@ static u8 fuzz_one(char **argv) {
   input = (const char *)out_buf;
 
   /* Remove the SELECT statements from the input. */
-  input = p_oracle->remove_valid_stmts_from_str(input);
+  // input = p_oracle->remove_valid_stmts_from_str(input);
 
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
@@ -6023,6 +6023,7 @@ static u8 fuzz_one(char **argv) {
   }
 
   p_oracle->init_ir_wrapper(ir_set.back());
+  p_oracle->remove_oracle_select_stmts_from_ir(ir_set.back());
   // TODO:: Call remove_valid_stmts_from_ir() here. 
 
   // unsigned long prev_hash, current_hash;
