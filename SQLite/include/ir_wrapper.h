@@ -4,6 +4,7 @@
 #include "define.h"
 #include "ast.h"
 #include <string>
+#include "mutator.h"
 
 typedef NODETYPE IRTYPE;
 
@@ -22,6 +23,7 @@ public:
     bool append_stmt_after_idx(string, unsigned idx, const Mutator& g_mutator);
     bool append_stmt_at_end(string, const Mutator& g_mutator);
     bool append_stmt_after_idx(IR*, unsigned idx); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
+    bool append_stmt_at_end(IR*, const Mutator& g_mutator);
     bool append_stmt_at_end(IR*); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
 
     bool remove_stmt_at_idx(unsigned idx);

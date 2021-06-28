@@ -2,7 +2,6 @@
 #include "../AFL/debug.h"
 #include <iostream>
 #include <vector>
-#include "../include/mutator.h"
 
 bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, int stmt_idx){
     vector<IR*> matching_IR_vec = this->get_ir_node_in_stmt_with_type(ir_type, is_subquery, stmt_idx);
@@ -170,7 +169,7 @@ int IRWrapper::get_stmt_num(){
 }
 
 vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
-    IR* stmt_IR_p = ir_root->left_;
+    IR* stmt_IR_p = this->ir_root->left_;
     vector<IR*> stmt_list_v_rev, stmt_list_v;
 
 
@@ -207,14 +206,15 @@ bool IRWrapper::append_stmt_after_idx(string app_str, unsigned idx, const Mutato
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
 
-    auto new_res = new IR(kStatementList, OPMID(";"), insert_pos_ir, app_IR_node);
+    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
-    if (!ir_root->swap_node(insert_pos_ir, app_IR_node)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
+    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
         app_IR_node->deep_drop();
         // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
         std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
         return false;
     }
+    new_res->update_left(insert_pos_ir);
 
     return true;
 }
@@ -231,14 +231,16 @@ bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
 
-    auto new_res = new IR(kStatementList, OPMID(";"), insert_pos_ir, app_IR_node);
+    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
-    if (!ir_root->swap_node(insert_pos_ir, app_IR_node)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
+    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
         app_IR_node->deep_drop();
         // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
         std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
         return false;
     }
+
+    new_res->update_left(insert_pos_ir);
 
     return true;
 }
@@ -253,14 +255,16 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, unsigned idx) { // Please
 
     IR* insert_pos_ir = stmt_list_v[idx];
 
-    auto new_res = new IR(kStatementList, OPMID(";"), insert_pos_ir, app_IR_node);
+    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
-    if (!ir_root->swap_node(insert_pos_ir, app_IR_node)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
+    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
         app_IR_node->deep_drop();
         // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
         std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
         return false;
     }
+
+    new_res->update_left(insert_pos_ir);
 
     return true;
 
@@ -268,18 +272,20 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, unsigned idx) { // Please
 
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
 
-     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
     IR* insert_pos_ir = stmt_list_v[stmt_list_v.size()-1];
 
-    auto new_res = new IR(kStatementList, OPMID(";"), insert_pos_ir, app_IR_node);
+    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
-    if (!ir_root->swap_node(insert_pos_ir, app_IR_node)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
+    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
         app_IR_node->deep_drop();
         // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
         std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
         return false;
     }
+
+    new_res->update_left(insert_pos_ir);
 
     return true;
 

@@ -426,17 +426,6 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
   return;
 }
 
-int SQL_NOREC::count_oracle_select_stmts(IR* ir_root) {
-  ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
-
-  int oracle_stmt_num = 0;
-  for (IR* cur_stmt : stmt_vec){
-    if (this->is_oracle_select_stmt(cur_stmt)) {oracle_stmt_num++;}
-  }
-  return oracle_stmt_num;
-}
-
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
 
   // Remove GROUP BY and HAVING stmts. 
@@ -467,17 +456,11 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
   return false;
 }
 
-void SQL_NOREC::remove_valid_stmts_from_ir(IR* ir_root) {
-
-  ir_wrapper.set_ir_root(ir_root);
-  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
-  for (IR* cur_stmt : stmt_vec) {
-    if (this->is_oracle_select_stmt(cur_stmt)) ir_wrapper.remove_stmt(cur_stmt);
-  }
-
-}
-
 vector<IR*> SQL_NOREC::transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
+
+  vector<IR*> trans_IR_vec;
+  IR* ori_ir_root = ir_root->deep_copy();
+  trans_IR_vec.push_back(ori_ir_root);
 
   IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kWhereExpr, false)[0]->left_->deep_copy();
 
@@ -501,6 +484,8 @@ vector<IR*> SQL_NOREC::transform_select_stmt(IR* ir_root, unsigned multi_run_id)
   ir_root -> swap_node(select_ori_node, where_expr);
   select_ori_node->deep_drop();
 
-  return;
+  trans_IR_vec.push_back(ir_root);
+
+  return trans_IR_vec;
 
 }

@@ -81,12 +81,12 @@
 #include <vector>
 #include <map>
 
-#include "../oracle/sqlite_index.h"
-#include "../oracle/sqlite_likely.h"
+// #include "../oracle/sqlite_index.h"
+// #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
-#include "../oracle/sqlite_rowid.h"
-#include "../oracle/sqlite_tlp.h"
+// #include "../oracle/sqlite_rowid.h"
+// #include "../oracle/sqlite_tlp.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>
@@ -6022,7 +6022,7 @@ static u8 fuzz_one(char **argv) {
     goto abandon_entry;
   }
 
-  p_oracle->init_ir_wrapper(input->back());
+  p_oracle->init_ir_wrapper(ir_set.back());
   // TODO:: Call remove_valid_stmts_from_ir() here. 
 
   // unsigned long prev_hash, current_hash;
@@ -6072,10 +6072,9 @@ static u8 fuzz_one(char **argv) {
       continue;
     }
 
-    p_oracle->ir_wrapper.set_ir_root(cur_ir_tree->back());
-
     for (IR* app_IR_node : ori_valid_stmts) {
-        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node); // Append the already generated and cached SELECT
+        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
+        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT
                           // stmts.
     }
 
@@ -6095,7 +6094,7 @@ static u8 fuzz_one(char **argv) {
     //   }
     // }
 
-    query_str = g_mutator.validate(p_oracle->ir_wrapper.get_ir_root());
+    query_str = g_mutator.validate(cur_ir_tree.back());
 
     if (cur_ir_tree.size() > 0){
       cur_ir_tree.back()->deep_drop();
@@ -6133,6 +6132,9 @@ abandon_entry:
   for (auto ir : mutated_tree)
     delete ir;
 
+  for (IR* ori_valid : ori_valid_stmts) {
+    ori_valid->deep_drop();
+  }
   ori_valid_stmts.clear();
 
   splicing_with = -1;
@@ -7641,14 +7643,14 @@ int main(int argc, char **argv) {
       string arg = string(optarg);
       if (arg == "NOREC")
         p_oracle = new SQL_NOREC();
-      else if (arg == "TLP")
-        p_oracle = new SQL_TLP();
-      else if (arg == "LIKELY")
-        p_oracle = new SQL_LIKELY();
-      else if (arg == "ROWID")
-        p_oracle = new SQL_ROWID();
-      else if (arg == "INDEX")
-        p_oracle = new SQL_INDEX();
+      // else if (arg == "TLP")
+      //   p_oracle = new SQL_TLP();
+      // else if (arg == "LIKELY")
+      //   p_oracle = new SQL_LIKELY();
+      // else if (arg == "ROWID")
+      //   p_oracle = new SQL_ROWID();
+      // else if (arg == "INDEX")
+      //   p_oracle = new SQL_INDEX();
       else
         FATAL("Oracle arguments not supported. ");
     } break;

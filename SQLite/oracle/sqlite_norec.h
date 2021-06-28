@@ -21,9 +21,7 @@ public:
                                    string &rew_3,
                                    unsigned multi_run_id) override;
 
-  int count_oracle_select_stmts(IR* ir_root) override;
   bool is_oracle_select_stmt(IR* cur_IR) override;
-  void remove_valid_stmts_from_ir(IR* ir_root) override;
   vector<IR*> transform_select_stmt(IR* ir_root, unsigned multi_run_id) override;
 
   string get_temp_valid_stmts() override { return temp_valid_stmts; };

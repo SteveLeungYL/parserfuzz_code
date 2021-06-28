@@ -499,3 +499,31 @@ bool SQL_LIKELY::compare_uniq(COMP_RES &res) {
   res.comp_res = ORA_COMP_RES::Pass;
   return false;
 }
+
+
+bool SQL_LIKELY::is_oracle_select_stmt(IR* cur_IR) {
+
+  // Remove GROUP BY and HAVING stmts. 
+  if ( ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false) ) {
+    vector<IR*> all_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false);
+    for (IR* cur_opt_group : all_opt_group) {
+      if (cur_opt_group->op_->prefix_ == "GROUP BY") {return false;}
+    }
+  }
+
+  if (
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+vector<IR*> SQL_LIKELY::transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
+
+  IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kWhereExpr, false)[0]->left_->deep_copy();
+  
+
+}

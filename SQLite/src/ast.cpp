@@ -145,7 +145,7 @@ bool IR::detach_node(IR *node) { return swap_node(node, NULL); }
 
 bool IR::swap_node(IR *old_node, IR *new_node) {
 
-  IR *parent = old_node->get_parent();
+  IR *parent = this->locate_parent(old_node);
 
   if (parent == NULL)
     return false;
