@@ -3168,6 +3168,8 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
     /* Query being skipped, or all select stmts return error results. */
   }
 
+  total_execute++;
+
   queries_vector.clear();
 
   return fault;
@@ -6109,7 +6111,6 @@ static u8 fuzz_one(char **argv) {
       if (common_fuzz_stuff(argv, query_str)) {
         goto abandon_entry;
       }
-      total_execute++;
       stage_cur++;
       show_stats();
     }
@@ -7811,6 +7812,8 @@ int main(int argc, char **argv) {
     if (stop_soon)
       goto stop_fuzzing;
   }
+
+  total_execs = 1;
 
   while (1) {
 
