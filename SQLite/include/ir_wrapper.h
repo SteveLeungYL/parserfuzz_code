@@ -14,6 +14,9 @@ public:
     void set_ir_root (IR* in) {this->ir_root = in;} 
     IR* get_ir_root () {return this->ir_root;}
 
+    vector<IR*> get_all_ir_node (IR* cur_ir_root);
+    vector<IR*> get_all_ir_node ();
+
     bool is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, int stmt_idx);
     vector<IR*> get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery = false, int stmt_idx = -1);
 

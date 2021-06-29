@@ -432,7 +432,10 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
   if ( ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false) ) {
     vector<IR*> all_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false);
     for (IR* cur_opt_group : all_opt_group) {
-      if ( cur_opt_group != nullptr && cur_opt_group->op_ != nullptr && cur_opt_group->op_->prefix_ == "GROUP BY") {return false;}
+      if ( cur_opt_group != nullptr && cur_opt_group->op_ != nullptr && cur_opt_group->op_->prefix_ == "GROUP BY") {
+          // std::cerr << "For " << cur_IR->to_string() << " return false" << std::endl;
+          return false;
+        }
     }
   }
 
@@ -450,9 +453,13 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
         func_name->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->get_parent() \
                  ->get_parent()->get_parent()->get_parent()->type_ == kSelectCore &&
         findStringIn(func_name->left_->str_val_, "count")
-        ) {return true;}
+        ) {
+          // std::cerr << "\n\n\nFor " << cur_IR->to_string() << " return true" << std::endl;
+          return true;
+          }
     }
   }
+  // std::cerr << "For " << cur_IR->to_string() << " return false" << std::endl;
   return false;
 }
 

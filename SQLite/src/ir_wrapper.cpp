@@ -328,7 +328,7 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
 
     stmt_vec.push_back(stmtlist_vec[0]->left_);
 
-    for (int i = 1; i < stmt_vec.size(); i++){
+    for (int i = 1; i < stmtlist_vec.size(); i++){
         stmt_vec.push_back(stmtlist_vec[i]->right_);
     }
     return stmt_vec;
@@ -382,4 +382,48 @@ bool IRWrapper::remove_components_at_ir(IR* rov_ir) {
     }
     cerr << "Error: rov_ir is nullptr. Function IRWrapper::remove_components_at_ir() \n";
     return false;
+}
+
+vector<IR*> IRWrapper::get_all_ir_node (IR* cur_ir_root) {
+    if (cur_ir_root != nullptr) {
+        this->ir_root = cur_ir_root; 
+        return this->get_all_ir_node();
+    }
+    else {std::cerr << "Error: using empty ir_root from Function get_all_ir_node. \n"; vector<IR*> tmp; return tmp;}
+    
+}
+
+vector<IR*> IRWrapper::get_all_ir_node() {
+    if (this->ir_root == nullptr) {
+        std::cerr << "Error: IRWrapper::ir_root is nullptr. Forget to initilized? \n";
+    }
+    // Iterate IR binary tree, depth prioritized. (not left depth prioritized)
+    bool is_finished_search = false;
+    std::vector<IR*> ir_vec_iter;
+    std::vector<IR*> all_ir_node_vec;
+    IR* cur_IR = this->ir_root;
+    // Begin iterating. 
+    while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (cur_IR->type_ != kProgram) 
+            {all_ir_node_vec.push_back(cur_IR);} // Ignore kProgram at the moment, put it at the end of the vector. 
+
+        if (cur_IR->left_ != nullptr){
+            cur_IR = cur_IR->left_;
+            continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes. 
+            cur_IR = nullptr;
+            while (cur_IR == nullptr){
+                if (ir_vec_iter.size() == 0){
+                    is_finished_search = true;
+                    break;
+                }
+                cur_IR = ir_vec_iter.back()->right_;
+                ir_vec_iter.pop_back();
+            }
+            continue;
+        }
+    }
+    all_ir_node_vec.push_back(this->ir_root);
+    return all_ir_node_vec;
 }

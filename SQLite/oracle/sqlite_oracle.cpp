@@ -174,6 +174,7 @@ int SQL_ORACLE::count_oracle_select_stmts(IR* ir_root) {
 void SQL_ORACLE::remove_oracle_select_stmts_from_ir(IR* ir_root) {
   ir_wrapper.set_ir_root(ir_root);
   vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  // std::cerr << "\n\n\n\n\n\n\n\n\n stmt_vec size: " << stmt_vec.size() << std::endl;
   for (IR* cur_stmt : stmt_vec) {
     if (this->is_oracle_select_stmt(cur_stmt)) ir_wrapper.remove_stmt(cur_stmt);
   }
