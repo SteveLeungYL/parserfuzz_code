@@ -200,8 +200,8 @@ static s32 max_norec =
     10; /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str; /* String: query used to test sqlite   */
-static string
-    program_output_str; /* String: query results output from sqlite   */
+//static string
+//    program_output_str; /* String: query results output from sqlite   */
 
 int bug_output_id = 0;
 
@@ -2401,11 +2401,19 @@ EXP_ST void init_forkserver(char **argv) {
 }
 
 static string read_sqlite_output_and_reset_output_file() {
-  program_output_str = "";
+
+  string program_output_str = "";
+  char output_buf[1024 + 1];
+
   lseek(program_output_fd, 0, SEEK_SET);
-  char output_buf[2];
-  while (read(program_output_fd, output_buf, 1) && output_buf[0] != '\0') {
-    output_buf[1] = '\0';
+
+  while (1) {
+
+    ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
+    if (num_bytes == 0 || output_buf[0] == '\0') 
+      break;
+
+    output_buf[num_bytes] = '\0';
     program_output_str += output_buf;
   }
   // lseek(program_output_fd, 0, SEEK_SET);
