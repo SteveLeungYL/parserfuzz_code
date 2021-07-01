@@ -56,8 +56,16 @@ public:
     this->rewrite_valid_stmt_from_ori(ori, rew_1, rew_2, rew_3, 0);
   }
 
-  virtual vector<IR*> transform_select_stmt(IR* ir_root, unsigned multi_run_id) = 0;
-  virtual vector<IR*> transform_select_stmt(IR* ir_root) {return this->transform_select_stmt(ir_root, 0);}
+  /* 
+  ** Transformation function for select statements. pre_fix_* functions work before concret value has been filled in to the 
+  ** query. post_fix_* functions work after concret value filled into the query. (before/after Mutator::build_dependency_graph() and 
+  ** Mutator::fix())
+  ** If no transform is necessary, return empty vector. 
+  */
+  virtual vector<IR*> pre_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;}
+  virtual vector<IR*> pre_fix_transform_select_stmt(IR* cur_stmt) {return this->pre_fix_transform_select_stmt(cur_stmt, 0);}
+  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;}
+  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt) {return this->post_fix_transform_select_stmt(cur_stmt, 0);}
 
   /* Given the validation NON-SELECT statement ori, rewrite the ori to
    * validation statement to rewrite_1 and rewrite_2. */
@@ -69,13 +77,22 @@ public:
     this->rewrite_valid_stmt_from_ori_2(query, 0);
   }
 
-  virtual vector<IR*> transform_normal_stmt(IR* ir_root, unsigned multi_run_id) {vector<IR*> tmp {ir_root}; return tmp;} //non-select
-  virtual vector<IR*> transform_normal_stmt(IR* ir_root) {return this->transform_normal_stmt(ir_root, 0);} //non-select
+  /* 
+  ** Transformation function for normal (non-select) statements. pre_fix_* functions work before concret value has been filled in to the 
+  ** query. post_fix_* functions work after concret value filled into the query. (before/after Mutator::build_dependency_graph() and 
+  ** Mutator::fix())
+  ** If no transform is necessary, return empty vector. 
+  */
+  virtual vector<IR*> pre_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
+  virtual vector<IR*> pre_fix_transform_normal_stmt(IR* cur_stmt) {return this->pre_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
+  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
+  virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt) {return this->post_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
 
   /* Compare the results from validation statements ori, rewrite_1 and
      rewrite_2.
       If the results are all errors, return -1, all consistent, return 1, found
-     inconsistent, return 0. */
+     inconsistent, return 0. 
+  */
   virtual void compare_results(ALL_COMP_RES &res_out) = 0;
 
   virtual IR* get_random_mutated_valid_stmt();

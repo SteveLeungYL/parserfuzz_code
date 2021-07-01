@@ -276,7 +276,7 @@ vector<IR *> Mutator::mutate(IR *input) {
   return res;
 }
 
-string Mutator::validate(IR *root) {
+string Mutator::validate(IR *root, int run_count) {
 
   if (root == NULL)
     return "";
@@ -284,6 +284,8 @@ string Mutator::validate(IR *root) {
   // Reset components that is local to one query sequence. 
   reset_counter();
   reset_database();
+  string output_str = "";
+
   // cross_graph, save all [id_top_table_name] -> [id_create_table_name]. Related to mutator.cpp->cross_stmt_map();
   std::map<IR *, std::set<IR *>> cross_graph;
 
@@ -291,33 +293,90 @@ string Mutator::validate(IR *root) {
   vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
   for (IR* cur_root : all_statements_vec) {
-    // p_oracle->pre_transformation();
 
-    vector<IR *> ordered_ir;
-    // debug(root, 0);
-    auto graph = build_dependency_graph(cur_root, relationmap, cross_map, ordered_ir, cross_graph);
-    fix_graph(graph, cur_root, ordered_ir);
+    /* Identify oracle related statements. Ready for transformation. */
+    bool is_oracle_select = false, is_oracle_normal = false;
+    if (p_oracle->is_oracle_normal_stmt(cur_root)) {is_oracle_normal = true;}
+    else if (p_oracle->is_oracle_select_stmt(cur_root)) {is_oracle_select = true;}
 
-    // p_oracle->post_transformation();
-  }
+    /* Apply pre_fix_transformation functions. */
+    vector<IR*> transformed_stmts_vec;
+    if (is_oracle_normal) {
+      transformed_stmts_vec = p_oracle->pre_fix_transform_normal_stmt(cur_root, run_count);
+    } else if (is_oracle_select) {
+      transformed_stmts_vec = p_oracle->pre_fix_transform_select_stmt(cur_root, run_count);
+    }
+    
+    /* If no pre_fix_transformation is needed, directly use the original cur_root. */
+    if (transformed_stmts_vec.size() == 0 ){
+      transformed_stmts_vec.push_back(cur_root); 
+    }
 
-  /* Final IR_to_string operation. */
-  string output_str = "";
-  p_oracle->init_ir_wrapper(root);
-  all_statements_vec.clear();
-  all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
-  for (IR* cur_root : all_statements_vec){
-    string tmp = fix(cur_root);
-    output_str += tmp + ";";
+    /* Build dependency graph, and fill in concret values into the query. */
+    for (IR* cur_trans_stmt : transformed_stmts_vec) {
+      vector<IR *> ordered_ir;
+      // debug(root, 0);
+      auto graph = build_dependency_graph(cur_trans_stmt, relationmap, cross_map, ordered_ir, cross_graph);
+      fix_graph(graph, cur_trans_stmt, ordered_ir);
+    }
+
+    // Apply post_fix_transform functions. 
+    vector<IR*> post_transformed_stmts_vec;
+    for (IR* cur_trans_stmt : transformed_stmts_vec) {
+      vector<IR*> tmp;
+      if (is_oracle_normal) {
+        tmp = p_oracle->post_fix_transform_normal_stmt(cur_trans_stmt, run_count);
+      } else if (is_oracle_select) {
+        tmp = p_oracle->post_fix_transform_select_stmt(cur_trans_stmt, run_count);
+      }
+      post_transformed_stmts_vec.insert(post_transformed_stmts_vec.end(), tmp.begin(), tmp.end());
+    }
+    if (post_transformed_stmts_vec.size() == 0) {
+      post_transformed_stmts_vec.push_back(transformed_stmts_vec[0]);
+    }
+
+    /* Append the transformed statements into the IR tree. */
+    int idx_offset = 0; // Consider the already inserted transformed statements. 
+    // if (!p_oracle->ir_wrapper.replace_stmt_and_free(transformed_stmts_vec[0], post_transformed_stmts_vec[0])) {
+    //   cerr << "Error: cannot replace the transformed statement with the new post_fix_transformed statement. Func: Mutator::validate(); \n";
+    //   // Error, clean up. 
+    //   for (IR* ir : transformed_stmts_vec) {ir->deep_drop();}
+    //   for (IR* ir : post_transformed_stmts_vec) {ir->deep_drop();}
+    //   return "";
+    // }
+    for (int i = 1; i < transformed_stmts_vec.size(); i++) {
+      transformed_stmts_vec[i]->deep_drop();
+    }
+    for (int i = 1; i < post_transformed_stmts_vec.size(); i++) { // Start from idx=1, the first element is the original stmt. 
+      int cur_trans_idx = p_oracle->ir_wrapper.get_stmt_idx(post_transformed_stmts_vec[0]);
+      if (cur_trans_idx == -1) {
+        cerr << "Error: cannot find the current statement in the IR tree! Abort validate() function. \n";
+        // Error, clean up. 
+        for (IR* ir : post_transformed_stmts_vec) {ir->deep_drop();}
+        return "";
+      }
+      p_oracle->ir_wrapper.append_stmt_after_idx(post_transformed_stmts_vec[i], cur_trans_idx + idx_offset);
+      idx_offset++;
+    }
+
+    // Final step, IR_to_string function. 
+    int count = 0;
+    for (IR* cur_trans_stmt : post_transformed_stmts_vec) {
+      string tmp = fix(cur_trans_stmt);
+      if (is_oracle_select) {
+        output_str += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
+        output_str += tmp + "; \n";
+        output_str += "SELECT 'END VERI " + to_string(count) + "'; \n";
+      } else {
+        output_str += tmp + "; \n";
+      }
+    }
   }
  
   return output_str;
-
-  // string tmp = fix(root);
-  // return tmp;
 }
 
-string Mutator::validate(string query) {
+string Mutator::validate(string query, int run_count) {
 
   vector<IR *> ir_set = parse_query_str_get_ir_set(query);
   if (ir_set.size() == 0)
@@ -325,33 +384,7 @@ string Mutator::validate(string query) {
 
   IR *root = ir_set.back();
 
-  if (root == NULL)
-    return "";
-
-  // Reset components that is local to one query sequence. 
-  reset_counter();
-  reset_database();
-  // cross_graph, save all [id_top_table_name] -> [id_create_table_name]. Related to mutator.cpp->cross_stmt_map();
-  std::map<IR *, std::set<IR *>> cross_graph;
-
-  p_oracle->init_ir_wrapper(root);
-  vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
-
-  for (IR* cur_root : all_statements_vec) {
-    // p_oracle->pre_transformation();
-
-    vector<IR *> ordered_ir;
-    // debug(root, 0);
-    auto graph = build_dependency_graph(cur_root, relationmap, cross_map, ordered_ir, cross_graph);
-    fix_graph(graph, cur_root, ordered_ir);
-
-    // p_oracle->post_transformation();
-  }
-
-  // Final IR_to_string operation. 
-  string tmp = fix(root);
-  root->deep_drop();
-  return tmp;
+  return this->validate(root, run_count);
 
 }
 
@@ -1784,35 +1817,35 @@ void Mutator::reset_database() {
   m_table2alias.clear();
 }
 
-int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
+// int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
 
-  auto ast = parser(buf);
+//   auto ast = parser(buf);
 
-  new_buf = buf;
-  new_len = len;
-  if (ast == NULL)
-    return 0;
+//   new_buf = buf;
+//   new_len = len;
+//   if (ast == NULL)
+//     return 0;
 
-  vector<IR *> v_ir;
-  auto ir_root = ast->translate(v_ir);
-  ast->deep_delete();
+//   vector<IR *> v_ir;
+//   auto ir_root = ast->translate(v_ir);
+//   ast->deep_delete();
 
-  if (ir_root == NULL)
-    return 0;
-  auto fixed = validate(ir_root);
-  ir_root->deep_drop();
-  if (fixed.empty())
-    return 0;
+//   if (ir_root == NULL)
+//     return 0;
+//   auto fixed = validate(ir_root, 0);
+//   ir_root->deep_drop();
+//   if (fixed.empty())
+//     return 0;
 
-  char *sfixed = (char *)malloc(fixed.size() + 1);
-  memcpy(sfixed, fixed.c_str(), fixed.size());
-  sfixed[fixed.size()] = 0;
+//   char *sfixed = (char *)malloc(fixed.size() + 1);
+//   memcpy(sfixed, fixed.c_str(), fixed.size());
+//   sfixed[fixed.size()] = 0;
 
-  new_buf = sfixed;
-  new_len = fixed.size();
+//   new_buf = sfixed;
+//   new_len = fixed.size();
 
-  return 1;
-}
+//   return 1;
+// }
 
 int Mutator::get_cri_valid_collection_size() {
   return all_cri_valid_pstr_vec.size();

@@ -3013,35 +3013,36 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   }
 }
 
-u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
                       char **argv, u32 tmout = exec_tmout) {
 
   u8 fault;
 
   string res_str = "";
 
-  if ((cmd_string.find("RANDOM") != std::string::npos) ||
-      (cmd_string.find("random") != std::string::npos) ||
-      (cmd_string.find("JULIANDAY") != std::string::npos) ||
-      (cmd_string.find("julianday") != std::string::npos)) {
-    return FAULT_ERROR;
-  }
+  for (auto cmd_string : cmd_string_vec) {
+    if ((cmd_string.find("RANDOM") != std::string::npos) ||
+        (cmd_string.find("random") != std::string::npos) ||
+        (cmd_string.find("JULIANDAY") != std::string::npos) ||
+        (cmd_string.find("julianday") != std::string::npos)) {
+      return FAULT_ERROR;
+    }
 
-  vector<string> queries_vector = string_splitter(cmd_string, ';');
-  for (string &query : queries_vector) {
-    // ignore the whole query pairs if !... in the stmt,
-    for (auto iter = query.begin(); iter != query.end(); iter++) {
-      if (*iter == '!')
-        return FAULT_ERROR;
-      else if (*iter != ' ')
-        break;
+    vector<string> queries_vector = string_splitter(cmd_string, ';');
+    for (string &query : queries_vector) {
+      // ignore the whole query pairs if !... in the stmt,
+      for (auto iter = query.begin(); iter != query.end(); iter++) {
+        if (*iter == '!')
+          return FAULT_ERROR;
+        else if (*iter != ' ')
+          break;
+      }
     }
   }
 
-  if (p_oracle->get_mul_run_num() <= 1) {
+  if (cmd_string_vec.size() == 1) {
     /* Compare results between different validation stmts in a single run. */
-    cmd_string = expand_valid_stmts_str(queries_vector, true);
-
+    string cmd_string = cmd_string_vec[0];
     trim_string(cmd_string);
 
     write_to_testcase(cmd_string.c_str(), cmd_string.size());
@@ -3070,8 +3071,8 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
     compare_query_result(all_comp_res, explain_diff_id);
   } else {
     /* Compare results of the same validation stmts in different runs. */
-    for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++) {
-      cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
+    for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
+      string cmd_string = cmd_string_vec[idx];
 
       trim_string(cmd_string);
 
@@ -3161,8 +3162,6 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
   } else {
     /* Query being skipped, or all select stmts return error results. */
   }
-
-  queries_vector.clear();
 
   return fault;
 }
@@ -3261,7 +3260,8 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     // cerr << program_input_str << endl;
     vector<int> dummy_vec;
     ALL_COMP_RES dummy_all_comp_res;
-    fault = execute_cmd_string(program_input_str, dummy_vec, dummy_all_comp_res, argv, use_tmout);
+    vector<string> program_input_str_vec {program_input_str};
+    fault = execute_cmd_string(program_input_str_vec, dummy_vec, dummy_all_comp_res, argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -5490,7 +5490,7 @@ static u32 next_p2(u32 val) {
    error conditions, returning 1 if it's time to bail out. This is
    a helper function for fuzz_one(). */
 
-EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
+EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<string> &query_str_no_marks) {
 
   u8 fault;
   ALL_COMP_RES all_comp_res;
@@ -5512,7 +5512,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
   }
 
   queued_discovered +=
-      save_if_interesting(argv, query_str, all_comp_res, fault, explain_diff_id);
+      save_if_interesting(argv, query_str_no_marks[0], all_comp_res, fault, explain_diff_id);
 
   if (disable_coverage_feedback && q_len >= 10000) {
     destroy_half_queue();
@@ -6085,27 +6085,27 @@ static u8 fuzz_one(char **argv) {
 
     // TODO::Randomly append statements into the query set using IR. 
 
-    // /* Randomly append statements into the query set. 1/4 chances for now. */
-    // vector<string> queries_vector = string_splitter(*ir_str, ';');
-    // *ir_str = "";
-    // for (string &cur_query : queries_vector) {
-    //   *ir_str += cur_query + "; ";
-    //   if (get_rand_int(4) < 1) {
-    //     string rand_str = p_oracle->get_random_append_stmts();
-    //     if (rand_str != "")
-    //       *ir_str += rand_str + "; ";
-    //     // cerr << "Randomly appended rand_str: " << rand_str << endl;
-    //     // cerr << "Current *ir_str is: " << *ir_str << endl;
-    //   }
-    // }
-
-    query_str = g_mutator.validate(cur_ir_tree.back());
+    // Build dependency graph, fix ir node, fill in concret values and transform IR_to_string. 
+    vector<IR*> ir_root_vec;
+    vector<string> query_str_vec, query_str_no_marks_vec;
+    for (int run_count = 0; run_count < p_oracle->get_mul_run_num(); run_count++) {
+      IR* cur_root = cur_ir_tree.back()->deep_copy();
+      ir_root_vec.push_back(cur_root); // For memory free purpose. 
+      query_str = g_mutator.validate(cur_root, run_count);
+      string query_str_no_marks = cur_root->to_string();
+      query_str_vec.push_back(query_str);
+      query_str_no_marks_vec.push_back(query_str_no_marks);
+    }
 
     if (cur_ir_tree.size() > 0){
       cur_ir_tree.back()->deep_drop();
     }
 
-    if (query_str == "") {
+    for (auto ir : ir_root_vec) {
+      ir ->deep_drop();
+    }
+
+    if (query_str == "" || query_str_vec.size() == 0) {
       total_append_failed++;
       skip_count++;
       continue;
@@ -6113,7 +6113,7 @@ static u8 fuzz_one(char **argv) {
       show_stats();
       stage_name = "fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
-      if (common_fuzz_stuff(argv, query_str)) {
+      if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec)) {
         goto abandon_entry;
       }
       total_execute++;

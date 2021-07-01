@@ -67,7 +67,7 @@ bool test_parse(string &query) {
   }
   cout << "structur: >" << structure << "<" << endl;
 
-  string validity = mutator.validate(root);
+  string validity = mutator.validate(root, 0);
   if (validity.size() <= 0) {
     cerr << RED << "validate failed" << DEF << endl;
     root->deep_drop();

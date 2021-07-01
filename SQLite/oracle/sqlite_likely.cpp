@@ -521,9 +521,9 @@ bool SQL_LIKELY::is_oracle_select_stmt(IR* cur_IR) {
   return false;
 }
 
-vector<IR*> SQL_LIKELY::transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
+vector<IR*> SQL_LIKELY::post_fix_transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
 
-  IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kWhereExpr, false)[0]->left_->deep_copy();
-  
+  vector<IR*> tmp;
+  return tmp;
 
 }

@@ -236,6 +236,7 @@ IR *IR::deep_copy() {
   copy_res = new IR(this->type_, op, left, right, this->f_val_, this->str_val_,
                     this->name_, this->mutated_times_);
   copy_res->id_type_ = this->id_type_;
+  copy_res->parent_ = this->parent_;
 
   return copy_res;
 }

@@ -28,7 +28,7 @@ public:
   string get_oracle_type() override { return this->oracle_type; }
 
   bool is_oracle_select_stmt(IR* cur_IR) override;
-  vector<IR*> transform_select_stmt(IR* ir_root, unsigned multi_run_id) override;
+  vector<IR*> post_fix_transform_select_stmt(IR* ir_root, unsigned multi_run_id) override;
 
 private:
   string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";

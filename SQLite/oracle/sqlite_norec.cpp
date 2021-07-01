@@ -463,20 +463,22 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
   return false;
 }
 
-vector<IR*> SQL_NOREC::transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
+vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {
 
   vector<IR*> trans_IR_vec;
-  IR* ori_ir_root = ir_root->deep_copy();
+  IR* ori_ir_root = cur_stmt;
   trans_IR_vec.push_back(ori_ir_root);
 
-  IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kWhereExpr, false)[0]->left_->deep_copy();
+  cur_stmt = cur_stmt->deep_copy();
+
+  IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereExpr, false)[0]->left_->deep_copy();
 
   IR* opt_where = where_expr->get_parent();
   IR* new_opt_where = new IR(kOptWhere, string(""));
-  ir_root->swap_node(opt_where, new_opt_where);
+  cur_stmt->swap_node(opt_where, new_opt_where);
   opt_where->deep_drop();
 
-  vector<IR*> select_new_expr_vec = ir_wrapper.get_ir_node_in_stmt_with_type(ir_root, kNewExpr, false);
+  vector<IR*> select_new_expr_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kNewExpr, false);
   IR* select_new_expr;
   for (IR* cur_select_expr : select_new_expr_vec) {
     if (
@@ -488,10 +490,10 @@ vector<IR*> SQL_NOREC::transform_select_stmt(IR* ir_root, unsigned multi_run_id)
   }
 
   IR* select_ori_node = select_new_expr->get_parent()->get_parent();
-  ir_root -> swap_node(select_ori_node, where_expr);
+  cur_stmt -> swap_node(select_ori_node, where_expr);
   select_ori_node->deep_drop();
 
-  trans_IR_vec.push_back(ir_root);
+  trans_IR_vec.push_back(cur_stmt);
 
   return trans_IR_vec;
 

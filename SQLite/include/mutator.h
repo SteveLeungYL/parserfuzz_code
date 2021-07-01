@@ -33,8 +33,8 @@ public:
   IR *strategy_insert(IR *cur);
   IR *strategy_replace(IR *cur);
 
-  string validate(string query);
-  string validate(IR *root);
+  string validate(string query, int run_count);
+  string validate(IR *root, int run_count);
 
   void minimize(vector<IR *> &);
   bool lucky_enough_to_be_mutated(unsigned int mutated_times);
@@ -99,7 +99,7 @@ public:
   void debug(IR *root, unsigned level);
   unsigned long get_library_size();
   void get_memory_usage();
-  int try_fix(char *buf, int len, char *&new_buf, int &new_len);
+  // int try_fix(char *buf, int len, char *&new_buf, int &new_len);
 
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
 

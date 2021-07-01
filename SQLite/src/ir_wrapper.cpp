@@ -188,16 +188,14 @@ vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
     return stmt_list_v;
 }
 
-bool IRWrapper::append_stmt_after_idx(string app_str, unsigned idx, const Mutator& g_mutator){
+bool IRWrapper::append_stmt_after_idx(string app_str, int idx, const Mutator& g_mutator){
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    if (idx >= stmt_list_v.size()){
+    if (idx != -1 && idx >= stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_after_idx(). \n";
         return false;
     }
-
-    IR* insert_pos_ir = stmt_list_v[idx];
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
@@ -206,23 +204,13 @@ bool IRWrapper::append_stmt_after_idx(string app_str, unsigned idx, const Mutato
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
 
-    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
+    return this->append_stmt_after_idx(app_IR_node, idx);
 
-    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
-        app_IR_node->deep_drop();
-        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
-        std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
-        return false;
-    }
-    new_res->update_left(insert_pos_ir);
-
-    return true;
 }
 
 bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    IR* insert_pos_ir = stmt_list_v[stmt_list_v.size()-1];
+    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
@@ -231,42 +219,52 @@ bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
 
-    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
-
-    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
-        app_IR_node->deep_drop();
-        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
-        std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
-        return false;
-    }
-
-    new_res->update_left(insert_pos_ir);
-
-    return true;
+    return this->append_stmt_after_idx(app_IR_node, stmt_list_v.size()-1);
+    
 }
 
-bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, unsigned idx) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
+bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    if (idx >= stmt_list_v.size()){
+    if (idx != -1 && idx >= stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_after_idx(). \n";
+        std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
         return false;
     }
 
-    IR* insert_pos_ir = stmt_list_v[idx];
+    if (idx != -1) {
+        IR* insert_pos_ir = stmt_list_v[idx];
 
-    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
+        auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
-    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
-        app_IR_node->deep_drop();
-        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
-        std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
-        return false;
+        if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
+            new_res->deep_drop();
+            // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
+            std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. idx = " << idx << "\n";
+            return false;
+        }
+
+        new_res->update_left(insert_pos_ir);
+
+        return true;
+    } else { // idx == -1
+        IR * insert_before_pos_ir = stmt_list_v[0];
+
+        auto starting_res = new IR(kStatementList, OP0(), NULL);
+        auto second_res = new IR(kStatementList, OPMID(";"), starting_res, insert_before_pos_ir->left_->deep_copy());
+
+        if (!ir_root->swap_node(insert_before_pos_ir, second_res)) {
+            second_res->deep_drop();
+            std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. idx = 0; \n";
+            return false;
+        }
+
+        starting_res->update_left(app_IR_node);
+        insert_before_pos_ir->deep_drop(); // We already deep_copied it. We use the new one, free the original. 
+
+        return true;
+        
     }
-
-    new_res->update_left(insert_pos_ir);
-
-    return true;
 
 }
 
@@ -291,12 +289,12 @@ bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR*
 
 }
 
-bool IRWrapper::remove_stmt_at_idx(unsigned idx){
+bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
     if (idx >= stmt_list_v.size()){
-        std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx(). \n";
+        std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
         return false;
     }
 
@@ -334,7 +332,7 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     return stmt_vec;
 }
 
-bool IRWrapper::remove_stmt(IR* rov_stmt) {
+bool IRWrapper::remove_stmt_and_free(IR* rov_stmt) {
     vector<IR*> stmt_vec = this->get_stmt_ir_vec();
     int stmt_idx = -1;
     for (int i = 0; i < stmt_vec.size(); i++) {
@@ -342,7 +340,7 @@ bool IRWrapper::remove_stmt(IR* rov_stmt) {
     }
     if (stmt_idx == -1) {return false;}
     else {
-        return this->remove_stmt_at_idx(stmt_idx);
+        return this->remove_stmt_at_idx_and_free(stmt_idx);
     }
 }
 
@@ -426,4 +424,32 @@ vector<IR*> IRWrapper::get_all_ir_node() {
     }
     all_ir_node_vec.push_back(this->ir_root);
     return all_ir_node_vec;
+}
+
+int IRWrapper::get_stmt_idx(IR* cur_stmt){
+    vector<IR*> all_stmt_vec = this->get_stmt_ir_vec();
+    int output_idx = -1;
+    int count = 0;
+    for (IR* iter_stmt : all_stmt_vec) {
+        if (iter_stmt == cur_stmt) {
+            output_idx = count;
+            break;
+        }
+        count++;
+    }
+    return output_idx;
+}
+
+bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
+    int old_stmt_idx = this->get_stmt_idx(old_stmt);
+    if (old_stmt_idx < 0) {
+        return false;
+    }
+    if (!this->remove_stmt_at_idx_and_free(old_stmt_idx)){
+        return false;
+    }
+    if (!this->append_stmt_after_idx(new_stmt, old_stmt_idx-1)){
+        return false;
+    }
+    return true;
 }
