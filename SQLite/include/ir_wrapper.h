@@ -47,10 +47,10 @@ public:
 
     vector<IR*> get_stmt_ir_vec();
 
+    vector<IR*> get_stmtlist_IR_vec();
+
 private:
     IR* ir_root = nullptr;
-
-    vector<IR*> get_stmtlist_IR_vec();
 
 };
 

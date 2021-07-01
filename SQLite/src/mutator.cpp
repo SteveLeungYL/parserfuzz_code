@@ -301,9 +301,19 @@ string Mutator::validate(IR *root) {
     // p_oracle->post_transformation();
   }
 
-  // Final IR_to_string operation. 
-  string tmp = fix(root);
-  return tmp;
+  /* Final IR_to_string operation. */
+  string output_str = "";
+  p_oracle->init_ir_wrapper(root);
+  vector<IR*> all_statementlist_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  for (IR* cur_root : all_statementlist_vec){
+    string tmp = fix(cur_root);
+    output_str += tmp + ";";
+  }
+ 
+  return output_str;
+
+  // string tmp = fix(root);
+  // return tmp;
 }
 
 string Mutator::validate(string query) {
