@@ -304,8 +304,9 @@ string Mutator::validate(IR *root) {
   /* Final IR_to_string operation. */
   string output_str = "";
   p_oracle->init_ir_wrapper(root);
-  vector<IR*> all_statementlist_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
-  for (IR* cur_root : all_statementlist_vec){
+  all_statements_vec.clear();
+  all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  for (IR* cur_root : all_statements_vec){
     string tmp = fix(cur_root);
     output_str += tmp + ";";
   }
