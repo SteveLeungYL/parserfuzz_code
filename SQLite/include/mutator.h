@@ -81,7 +81,8 @@ public:
   map<IR *, set<IR *>> build_dependency_graph(IR *root,
                                               map<IDTYPE, IDTYPE> &relationmap,
                                               map<IDTYPE, IDTYPE> &crssmap,
-                                              vector<IR *> &ordered_ir);
+                                              vector<IR *> &ordered_ir,
+                                              map<IR *, std::set<IR *>> &cross_graph);
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);
   void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);

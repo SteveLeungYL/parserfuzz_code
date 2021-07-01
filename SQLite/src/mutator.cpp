@@ -281,12 +281,27 @@ string Mutator::validate(IR *root) {
   if (root == NULL)
     return "";
 
+  // Reset components that is local to one query sequence. 
   reset_counter();
-  vector<IR *> ordered_ir;
-  // debug(root, 0);
-  auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
-  fix_graph(graph, root, ordered_ir);
+  reset_database();
+  // cross_graph, save all [id_top_table_name] -> [id_create_table_name]. Related to mutator.cpp->cross_stmt_map();
+  std::map<IR *, std::set<IR *>> cross_graph;
 
+  p_oracle->init_ir_wrapper(root);
+  vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+
+  for (IR* cur_root : all_statements_vec) {
+    // p_oracle->pre_transformation();
+
+    vector<IR *> ordered_ir;
+    // debug(root, 0);
+    auto graph = build_dependency_graph(cur_root, relationmap, cross_map, ordered_ir, cross_graph);
+    fix_graph(graph, cur_root, ordered_ir);
+
+    // p_oracle->post_transformation();
+  }
+
+  // Final IR_to_string operation. 
   string tmp = fix(root);
   return tmp;
 }
@@ -299,15 +314,34 @@ string Mutator::validate(string query) {
 
   IR *root = ir_set.back();
 
-  reset_counter();
-  vector<IR *> ordered_ir;
-  // debug(root, 0);
-  auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
-  fix_graph(graph, root, ordered_ir);
+  if (root == NULL)
+    return "";
 
+  // Reset components that is local to one query sequence. 
+  reset_counter();
+  reset_database();
+  // cross_graph, save all [id_top_table_name] -> [id_create_table_name]. Related to mutator.cpp->cross_stmt_map();
+  std::map<IR *, std::set<IR *>> cross_graph;
+
+  p_oracle->init_ir_wrapper(root);
+  vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+
+  for (IR* cur_root : all_statements_vec) {
+    // p_oracle->pre_transformation();
+
+    vector<IR *> ordered_ir;
+    // debug(root, 0);
+    auto graph = build_dependency_graph(cur_root, relationmap, cross_map, ordered_ir, cross_graph);
+    fix_graph(graph, cur_root, ordered_ir);
+
+    // p_oracle->post_transformation();
+  }
+
+  // Final IR_to_string operation. 
   string tmp = fix(root);
   root->deep_drop();
   return tmp;
+
 }
 
 // find tree node whose identifier type can be handled
@@ -368,7 +402,7 @@ static IR *search_mapped_ir(IR *ir, IDTYPE idtype) {
   return NULL;
 }
 
-// propagate relionship between subqueries. The logic is correct
+// propagate relationship between subqueries. The logic is correct
 //
 // graph.second relies on graph.first
 // crossmap.first relies on crossmap.second
@@ -376,13 +410,15 @@ static IR *search_mapped_ir(IR *ir, IDTYPE idtype) {
 // so we should propagate the dependency via
 // graph.second -> graph.first = crossmap.first -> crossmap.second
 //
-void cross_stmt_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
+// This function only consult cross_map, thus only care about [id_top_table_name] -> [id_create_table_name] across statements. 
+void cross_stmt_map(map<IR *, set<IR *>> &graph, map<IR *, set<IR *>> &cross_graph, vector<IR *> &ir_to_fix,
                     map<IDTYPE, IDTYPE> &cross_map) {
   for (auto m : cross_map) {
     vector<IR *> value;
     vector<IR *> key;
 
-    for (auto &k : graph) {
+    // Why searching for graph/cross_graph for saved matched type?
+    for (auto &k : cross_graph) { // graph is local, thus is always empty. Only cross_graph save all the cross statements' IR. 
       if (k.first->id_type_ == m.first) {
         key.push_back(k.first);
       }
@@ -398,6 +434,7 @@ void cross_stmt_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
       return;
     for (auto val : value) {
       graph[key[get_rand_int(key.size())]].insert(val);
+      cross_graph[key[get_rand_int(key.size())]].insert(val);
     }
   }
 }
@@ -407,6 +444,7 @@ void cross_stmt_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
 // top_table_name does not rely on others, while table_name relies on some
 // top_table_name
 //
+// Local to one single statement. 
 void toptable_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
                   vector<IR *> &toptable) {
   vector<IR *> tablename;
@@ -498,6 +536,8 @@ vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
   return res;
 }
 
+
+// Recover the subqueries, which were disconnected before. 
 bool Mutator::add_back(TmpRecord &m_save) {
 
   for (auto &i : m_save) {
@@ -524,7 +564,8 @@ bool Mutator::add_back(TmpRecord &m_save) {
 map<IR *, set<IR *>>
 Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
                                 map<IDTYPE, IDTYPE> &cross_map,
-                                vector<IR *> &ordered_ir) {
+                                vector<IR *> &ordered_ir,
+                                map<IR *, std::set<IR *>> &cross_graph) {
 
   map<IR *, set<IR *>> graph;
   TmpRecord m_save;
@@ -554,12 +595,20 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
     for (auto ii : ir_to_fix) {
       ordered_ir.push_back(ii);
     }
-    cross_stmt_map(graph, ir_to_fix, cross_map);
+
+    /* Build cross map. 
+    ** This function only care about the ir_to_fix node that is id_type == id_top_table_name. We can setup a new cross_graph that 
+    ** save only map<IR *, std::set<IR* >> cross_graph;
+    */
+    cross_stmt_map(graph, cross_graph, ir_to_fix, cross_map);  // graph.second -> graph.first = crossmap.first -> crossmap.second
+
+    // Build id_table_name -> id_top_table_name. Local to one single statement. Thus no cross_graph needed. 
     vector<IR *> v_top_table;
-    toptable_map(graph, ir_to_fix, v_top_table);
+    toptable_map(graph, ir_to_fix, v_top_table); // no need to consider cross_graph
 
     // cout << "size of ir_to_fix: " << ir_to_fix.size() << endl;
 
+    // Build map for "single" subquery.
     for (auto ir : ir_to_fix) {
 
       auto idtype = ir->id_type_;
@@ -572,12 +621,13 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
         continue;
       }
 
-      auto curptr = ir;
+      auto curptr = ir; // The one we want to fix. 
       bool flag = false;
 
       while (true) {
-
-        IR *pptr = subquery->locate_parent(curptr);
+        
+        // Find a parent node that contains both left_ and right_ node? If not found match node, keep going parent. 
+        IR *pptr = subquery->locate_parent(curptr);  //pptr (parent_ptr) 
         if (pptr == NULL)
           break;
 
@@ -621,6 +671,10 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
             // debug(ir, 0);
             // cout << endl << endl;
             graph[match_ir].insert(ir);
+          }
+          // For cross_graph, we only care about id_create_table_name, that is the only thing that need to save cross statement. 
+          if (match_ir->id_type_ == id_create_table_name) {
+            cross_graph[match_ir].insert(ir);
           }
           break;
         }
@@ -1380,7 +1434,6 @@ void Mutator::fix_graph(map<IR *, set<IR *>> &graph, IR *root,
                         vector<IR *> &ordered_ir) {
   set<IR *> visited;
 
-  reset_database();
   for (auto ir : ordered_ir) {
 
     if (visited.find(ir) != visited.end())
