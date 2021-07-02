@@ -495,9 +495,10 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 
   // Add cast and COUNT functions. 
   IR* cur_select_expr = where_expr;
-  cur_select_expr = this->ir_wrapper.add_cast_expr(cur_select_expr, "BOOL");
-  auto num_literal_zero_ir = new IR(kNumericLiteral, "0");
-  cur_select_expr = this->ir_wrapper.add_binary_op(cur_select_expr, cur_select_expr, num_literal_zero_ir, "!=", false, true);
+  cur_select_expr = this->ir_wrapper.add_cast_expr(cur_select_expr, string("BOOL"));
+  auto num_literal_zero_ir = new IR(kNumericLiteral, string("0"));
+  auto num_literal_expr = new IR(kNewExpr, OP0(), num_literal_zero_ir);
+  cur_select_expr = this->ir_wrapper.add_binary_op(cur_select_expr, cur_select_expr, num_literal_expr, "!=", false, true);
   cur_select_expr = this->ir_wrapper.add_func(cur_select_expr, "TOTAL");
 
   trans_IR_vec.push_back(cur_stmt);

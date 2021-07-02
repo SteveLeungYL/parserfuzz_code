@@ -318,6 +318,7 @@ string Mutator::validate(IR *root, int run_count) {
       // debug(root, 0);
       auto graph = build_dependency_graph(cur_trans_stmt, relationmap, cross_map, ordered_ir, cross_graph);
       fix_graph(graph, cur_trans_stmt, ordered_ir);
+      fix(cur_trans_stmt);
     }
 
     // Apply post_fix_transform functions. 
@@ -362,7 +363,7 @@ string Mutator::validate(IR *root, int run_count) {
     // Final step, IR_to_string function. 
     int count = 0;
     for (IR* cur_trans_stmt : post_transformed_stmts_vec) {
-      string tmp = fix(cur_trans_stmt);
+      string tmp = cur_trans_stmt->to_string();
       if (is_oracle_select) {
         output_str += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
         output_str += tmp + "; \n";
@@ -1575,12 +1576,14 @@ void Mutator::_fix(IR *root, string &res) {
   if (type_ == kIdentifier && id_type_ == id_database_name) {
 
     res += "main";
+    root->str_val_ = "main";
     return;
   }
 
   if (type_ == kIdentifier && id_type_ == id_schema_name) {
 
     res += "sqlite_master";
+    root->str_val_ = "sqlite_master";
     return;
   }
 
@@ -1623,16 +1626,21 @@ void Mutator::_fix(IR *root, string &res) {
   if (type_ == kStringLiteral) {
     auto s = string_libary[get_rand_int(string_libary.size())];
     res += "'" + s + "'";
+    root->str_val_ = s;
     return;
   }
 
   if (type_ == kNumericLiteral) {
-    res += value_libary[get_rand_int(value_libary.size())];
+    auto s = value_libary[get_rand_int(value_libary.size())];
+    res += s;
+    root->str_val_ = s;
     return;
   }
 
   if (type_ == kconst_str) {
-    res += string_libary[get_rand_int(string_libary.size())];
+    auto s = string_libary[get_rand_int(string_libary.size())];
+    res += s;
+    root->str_val_ = s;
     return;
   }
 
