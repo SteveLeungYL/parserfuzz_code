@@ -202,8 +202,8 @@ static s32 max_norec =
     10; /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str; /* String: query used to test sqlite   */
-static string
-    program_output_str; /* String: query results output from sqlite   */
+//static string
+//    program_output_str; /* String: query results output from sqlite   */
 
 int bug_output_id = 0;
 
@@ -2160,7 +2160,7 @@ EXP_ST void init_forkserver(char **argv) {
     } else {
 
       dup2(out_fd, 0);
-      close(out_fd);
+      //close(out_fd);
     }
 
     /* Set up control and status pipes, close the unneeded original fds. */
@@ -2403,11 +2403,19 @@ EXP_ST void init_forkserver(char **argv) {
 }
 
 static string read_sqlite_output_and_reset_output_file() {
-  program_output_str = "";
+
+  string program_output_str = "";
+  char output_buf[1024 + 1];
+
   lseek(program_output_fd, 0, SEEK_SET);
-  char output_buf[2];
-  while (read(program_output_fd, output_buf, 1) && output_buf[0] != '\0') {
-    output_buf[1] = '\0';
+
+  while (1) {
+
+    ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
+    if (num_bytes == 0 || output_buf[0] == '\0') 
+      break;
+
+    output_buf[num_bytes] = '\0';
     program_output_str += output_buf;
   }
   // lseek(program_output_fd, 0, SEEK_SET);
@@ -2488,7 +2496,7 @@ static u8 run_target(char **argv, u32 timeout) {
       } else {
 
         dup2(out_fd, 0);
-        close(out_fd);
+        //close(out_fd);
       }
 
       /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
@@ -3163,6 +3171,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     /* Query being skipped, or all select stmts return error results. */
   }
 
+  total_execute++;
   return fault;
 }
 
@@ -4469,6 +4478,8 @@ dir_cleanup_failed:
 
 static void maybe_delete_out_dir(void) {
 
+  pid_t pid = getpid();
+
   FILE *f;
   u8 *fn = alloc_printf("%s/fuzzer_stats", out_dir);
 
@@ -4679,8 +4690,8 @@ static void maybe_delete_out_dir(void) {
 
   /* And now, for some finishing touches. */
 
-  fn = alloc_printf("%s/.cur_input", out_dir);
-  if (unlink(fn) && errno != ENOENT)
+  fn = alloc_printf("/.cur_input_%d", pid);
+  if (shm_unlink(fn) && errno != ENOENT)
     goto dir_cleanup_failed;
   ck_free(fn);
 
@@ -5506,7 +5517,8 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
     return 0;
   }
   
-  if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+  if (fault != FAULT_CRASH && 
+      all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
     // cerr << "Query all error. " << endl;
     return 0;
   }
@@ -5521,15 +5533,15 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
 
-  ofstream outputfile;
-  char * bug_output_dir_char = 
-      (char *)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
-  string bug_output_dir = (const char *) bug_output_dir_char;
-  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
-  print_exec_debug_info(outputfile);
-  outputfile.close();
+  //ofstream outputfile;
+  //char * bug_output_dir_char = 
+  //    (char *)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
+  //string bug_output_dir = (const char *) bug_output_dir_char;
+  //outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
+  //print_exec_debug_info(outputfile);
+  //outputfile.close();
 
-  ck_free(bug_output_dir_char);
+  //ck_free(bug_output_dir_char);
 
   return 0;
 }
@@ -6116,7 +6128,6 @@ static u8 fuzz_one(char **argv) {
       if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec)) {
         goto abandon_entry;
       }
-      total_execute++;
       stage_cur++;
       show_stats();
     }
@@ -6781,10 +6792,11 @@ EXP_ST void setup_dirs_fds(void) {
 
 EXP_ST void setup_stdio_file(void) {
 
-  u8 *fn = alloc_printf("%s/.cur_input", out_dir);
+  pid_t pid = getpid();
+  u8 *fn = alloc_printf("/.cur_input_%d", pid);
 
-  unlink(fn); /* Ignore errors */
-  out_fd = open(fn, O_RDWR | O_CREAT | O_EXCL, 0640);
+  shm_unlink(fn); /* ignore errors */
+  out_fd = shm_open(fn, O_RDWR | O_CREAT | O_EXCL, 0640);
 
   u8 *fn2 = alloc_printf("%s/.cur_output", out_dir);
 
@@ -7113,8 +7125,10 @@ EXP_ST void detect_file_args(char **argv) {
 
       /* If we don't have a file name chosen yet, use a safe default. */
 
-      if (!out_file)
-        out_file = alloc_printf("%s/.cur_input", out_dir);
+      if (!out_file) {
+        pid_t pid = getpid();
+        out_file = alloc_printf("/.cur_input_%d", pid);
+      }
 
       /* Be sure that we're always using fully-qualified paths. */
 
@@ -7822,6 +7836,8 @@ int main(int argc, char **argv) {
       goto stop_fuzzing;
   }
 
+  total_execs = 1;
+
   while (1) {
 
     u8 skipped_fuzz;
@@ -7928,6 +7944,13 @@ stop_fuzzing:
   ck_free(sync_id);
 
   alloc_report();
+
+  pid_t pid = getpid();
+  u8 * fn = alloc_printf("/.cur_input_%d", pid);
+  shm_unlink(fn);
+  ck_free(fn);
+
+
 
   OKF("We're done here. Have a nice day!\n");
 

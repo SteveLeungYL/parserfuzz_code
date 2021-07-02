@@ -22,7 +22,7 @@ $(SUB_DIRS): parser
 	@$(MAKE) -C $@
 
 afl-fuzz: $(SUB_DIRS)
-	$(CC) $(CFLAGS) $(AFL_OBJS) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(AFL_OBJS) -o $@ $(LDFLAGS) -lrt
 
 test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -o $@ $(LDFLAGS)
