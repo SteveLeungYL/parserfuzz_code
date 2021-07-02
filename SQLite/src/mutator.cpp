@@ -8,6 +8,7 @@
 
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
+#include "../AFL/debug.h"
 
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -1560,6 +1561,14 @@ string Mutator::fix(IR *root) {
   string res = "";
   _fix(root, res);
   trim_string(res);
+  string ir_to_str = root->to_string();
+  trim_string(ir_to_str);
+  if (res != ir_to_str) {
+    cerr << "Error: ir_to_string is not the same as the string generated from _fix. \n";
+    cerr << "res: \n" << res << endl;
+    cerr << "ir_to_string: \n" << ir_to_str << endl;
+    FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n");
+  }
   return res;
 }
 
@@ -1587,7 +1596,7 @@ void Mutator::_fix(IR *root, string &res) {
     return;
   }
 
-  // TODO:: not being very good handled. 
+  // TODO:: not being handled for now. 
   if (type_ == kPragmaStatement) {
 
     string key = "";
