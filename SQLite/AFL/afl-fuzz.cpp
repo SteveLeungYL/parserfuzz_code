@@ -2158,7 +2158,7 @@ EXP_ST void init_forkserver(char **argv) {
     } else {
 
       dup2(out_fd, 0);
-      close(out_fd);
+      //close(out_fd);
     }
 
     /* Set up control and status pipes, close the unneeded original fds. */
@@ -2494,7 +2494,7 @@ static u8 run_target(char **argv, u32 timeout) {
       } else {
 
         dup2(out_fd, 0);
-        close(out_fd);
+        //close(out_fd);
       }
 
       /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
@@ -4477,6 +4477,8 @@ dir_cleanup_failed:
 
 static void maybe_delete_out_dir(void) {
 
+  pid_t pid = getpid();
+
   FILE *f;
   u8 *fn = alloc_printf("%s/fuzzer_stats", out_dir);
 
@@ -4687,7 +4689,7 @@ static void maybe_delete_out_dir(void) {
 
   /* And now, for some finishing touches. */
 
-  fn = alloc_printf("%s/.cur_input", out_dir);
+  fn = alloc_printf("/.cur_input_%d", pid);
   if (unlink(fn) && errno != ENOENT)
     goto dir_cleanup_failed;
   ck_free(fn);
@@ -6772,10 +6774,11 @@ EXP_ST void setup_dirs_fds(void) {
 
 EXP_ST void setup_stdio_file(void) {
 
-  u8 *fn = alloc_printf("%s/.cur_input", out_dir);
+  pid_t pid = getpid();
+  u8 *fn = alloc_printf("/.cur_input_%d", pid);
 
-  unlink(fn); /* Ignore errors */
-  out_fd = open(fn, O_RDWR | O_CREAT | O_EXCL, 0640);
+  shm_unlink(fn); /* ignore errors */
+  out_fd = shm_open(fn, O_RDWR | O_CREAT | O_EXCL, 0640);
 
   u8 *fn2 = alloc_printf("%s/.cur_output", out_dir);
 
@@ -7104,8 +7107,10 @@ EXP_ST void detect_file_args(char **argv) {
 
       /* If we don't have a file name chosen yet, use a safe default. */
 
-      if (!out_file)
-        out_file = alloc_printf("%s/.cur_input", out_dir);
+      if (!out_file) {
+        pid_t pid = getpid();
+        out_file = alloc_printf("/.cur_input_%d", pid);
+      }
 
       /* Be sure that we're always using fully-qualified paths. */
 
