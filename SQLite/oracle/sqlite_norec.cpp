@@ -476,7 +476,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   IR* opt_where = where_expr->get_parent();
   IR* new_opt_where = new IR(kOptWhere, string(""));
   cur_stmt->swap_node(opt_where, new_opt_where);
-  opt_where->deep_drop();
+  // opt_where->deep_drop();
 
   vector<IR*> select_new_expr_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kNewExpr, false);
   IR* select_new_expr;
@@ -488,18 +488,53 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
                      ->get_parent()->get_parent()->get_parent()->type_ == kSelectCore
     ) {select_new_expr = cur_select_expr;}
   }
-
+  
+  if (select_new_expr == nullptr) {
+    cerr << "Error: Cannot find cur_select_expr from the ir_root. Logical error in code. \
+    In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
   IR* select_ori_node = select_new_expr->get_parent()->get_parent();
+  if (select_ori_node == nullptr) {
+    cerr << "Error: Cannot find select_ori_node from the ir_root. Logical error in code. \
+    In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
+  if (select_ori_node->parent_ == nullptr) {
+    cerr << "Error: Cannot find select_ori_node->parent_ from the ir_root. Logical error in code. \
+    In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
+  cur_stmt->detach_node(where_expr);
   cur_stmt -> swap_node(select_ori_node, where_expr);
   select_ori_node->deep_drop();
+  opt_where->deep_drop();
 
   // Add cast and COUNT functions. 
   IR* cur_select_expr = where_expr;
   cur_select_expr = this->ir_wrapper.add_cast_expr(cur_select_expr, string("BOOL"));
+  if (cur_select_expr == nullptr) {
+    cerr << "Error: ir_wrapper>add_cast_expr() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
   auto num_literal_zero_ir = new IR(kNumericLiteral, string("0"));
   auto num_literal_expr = new IR(kNewExpr, OP0(), num_literal_zero_ir);
   cur_select_expr = this->ir_wrapper.add_binary_op(cur_select_expr, cur_select_expr, num_literal_expr, "!=", false, true);
+  if (cur_select_expr == nullptr) {
+    cerr << "Error: ir_wrapper>add_binary_op() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
   cur_select_expr = this->ir_wrapper.add_func(cur_select_expr, "TOTAL");
+  if (cur_select_expr == nullptr) {
+    cerr << "Error: ir_wrapper>add_func() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
 
   trans_IR_vec.push_back(cur_stmt);
 

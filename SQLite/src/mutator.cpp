@@ -1587,6 +1587,7 @@ void Mutator::_fix(IR *root, string &res) {
     return;
   }
 
+  // TODO:: not being very good handled. 
   if (type_ == kPragmaStatement) {
 
     string key = "";
