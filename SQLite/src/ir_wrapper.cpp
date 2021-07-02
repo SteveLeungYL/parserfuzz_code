@@ -274,15 +274,18 @@ bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR*
 
     IR* insert_pos_ir = stmt_list_v[stmt_list_v.size()-1];
 
+    // We use left_ = NULL here, because when swap_node fail, we will directly deep_drop the newly created new_res, we don't want to
+    // accidentally delete the previous kstatementlist that pre-exist in the IR tree. 
     auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
     if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
-        app_IR_node->deep_drop();
+        new_res->deep_drop();
         // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
         std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
         return false;
     }
 
+    // Add the missing child node back. 
     new_res->update_left(insert_pos_ir);
 
     return true;
@@ -452,4 +455,74 @@ bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
         return false;
     }
     return true;
+}
+
+IR* IRWrapper::add_cast_expr(IR* ori_expr, string column_type_str) {
+    
+    auto new_column_type_ir = new IR(kOptColumnNullable, column_type_str);
+    auto res = new IR(kNewExpr, OP3("CAST (", "AS", ")"), ori_expr->deep_copy(), new_column_type_ir);
+
+    if (!ir_root->swap_node(ori_expr, res)) {
+        res->deep_drop();
+        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
+        std::cerr << "Error: Swap node failure? In function: IRWrapper::add_cast_expr. \n";
+        return nullptr;
+    }
+
+    ori_expr->deep_drop();
+    return res;
+
+}
+
+IR* IRWrapper::add_func(IR* ori_expr, string func_name_str) {
+    
+    // For func_name
+    auto new_identifier_ir = new IR(kIdentifier, func_name_str, id_whatever);
+    auto func_name_ir = new IR(kFunctionName, OP0(), new_identifier_ir);
+    // For func_args
+    auto opt_distinct_ir = new IR(kOptDistinct, ""); // Do not use DISTINCT or ALL. 
+    auto expr_list_ir = new IR(kExprList, OP0(), ori_expr->deep_copy());
+    auto func_args_ir = new IR(kFunctionArgs, OP0(), opt_distinct_ir, expr_list_ir);
+    // For opt_filter_clause
+    auto opt_filter_ir = new IR(kOptFilterClause, string(""));
+    // For opt_over_clause
+    auto opt_over_ir = new IR(kOptOverClause, string(""));
+
+    // Build the function ir
+    auto new_expr_ir = new IR(kUnknown, OP3("", "(", ")"), func_name_ir, func_args_ir);
+    new_expr_ir = new IR(kUnknown, OP0(), new_expr_ir, opt_filter_ir);
+    new_expr_ir = new IR(kNewExpr, OP0(), new_expr_ir, opt_over_ir);
+
+
+    if (!ir_root->swap_node(ori_expr, new_expr_ir)) {
+        new_expr_ir->deep_drop();
+        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
+        std::cerr << "Error: Swap node failure? In function: IRWrapper::add_func. \n";
+        return nullptr;
+    }
+
+    ori_expr->deep_drop();
+    return new_expr_ir;
+
+}
+
+IR* IRWrapper::add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_expr, string op_value, bool is_free_left = false, bool is_free_right = false) {
+    // For Binary_op
+    auto binary_op_ir = new IR(kBinaryOp, op_value);
+
+    auto new_expr_ir = new IR(kUnknown, OP0(), left_stmt_expr->deep_copy(), binary_op_ir);
+    new_expr_ir = new IR(kNewExpr, OP0(), new_expr_ir, right_stmt_expr->deep_copy());
+
+    if (!ir_root->swap_node(ori_expr, new_expr_ir)) {
+        new_expr_ir->deep_drop();
+        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
+        std::cerr << "Error: Swap node failure? In function: IRWrapper::add_binary_op. \n";
+        return nullptr;
+    }
+
+    ori_expr->deep_drop();
+    if (is_free_left) {left_stmt_expr->deep_drop();}
+    if (is_free_right) {right_stmt_expr->deep_drop();}
+    return new_expr_ir;
+
 }

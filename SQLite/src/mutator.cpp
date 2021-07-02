@@ -367,6 +367,7 @@ string Mutator::validate(IR *root, int run_count) {
         output_str += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
         output_str += tmp + "; \n";
         output_str += "SELECT 'END VERI " + to_string(count) + "'; \n";
+        count++;
       } else {
         output_str += tmp + "; \n";
       }

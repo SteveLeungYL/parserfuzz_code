@@ -52,6 +52,17 @@ public:
 
     vector<IR*> get_stmtlist_IR_vec();
 
+    /* more specific features. */
+    /* Receive one knewexpr IR node, add cast(... AS type_); return the new knewexpr containing the cast expression. */
+    IR* add_cast_expr(IR*, string);
+    /* Receive one knewexpr IR node, add new function such as SUM(), COUNT(), MIN(), MAX(), AVG() etc; return the new knewexpr containing the ** added function. 
+    */
+    IR* add_func(IR*, string);
+    /* Receive one knewexpr IR node, add new binary_op between left_stmt and right_stmt; return the new knewexpr containing 
+    ** the added operations. 
+    */
+    IR* add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_expr, string op_value, bool is_free_left = false, bool is_free_right = false);
+
 private:
     IR* ir_root = nullptr;
 
