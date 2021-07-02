@@ -287,9 +287,6 @@ string Mutator::validate(IR *root, int run_count) {
   reset_database();
   string output_str = "";
 
-  // cross_graph, save all [id_top_table_name] -> [id_create_table_name]. Related to mutator.cpp->cross_stmt_map();
-  std::map<IR *, std::set<IR *>> cross_graph;
-
   p_oracle->init_ir_wrapper(root);
   vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
@@ -317,7 +314,7 @@ string Mutator::validate(IR *root, int run_count) {
     for (IR* cur_trans_stmt : transformed_stmts_vec) {
       vector<IR *> ordered_ir;
       // debug(root, 0);
-      auto graph = build_dependency_graph(cur_trans_stmt, relationmap, cross_map, ordered_ir, cross_graph);
+      auto graph = build_dependency_graph(cur_trans_stmt, relationmap, cross_map, ordered_ir);
       fix_graph(graph, cur_trans_stmt, ordered_ir);
       fix(cur_trans_stmt);
     }
@@ -611,8 +608,7 @@ bool Mutator::add_back(TmpRecord &m_save) {
 map<IR *, set<IR *>>
 Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
                                 map<IDTYPE, IDTYPE> &cross_map,
-                                vector<IR *> &ordered_ir,
-                                map<IR *, std::set<IR *>> &cross_graph) {
+                                vector<IR *> &ordered_ir) {
 
   map<IR *, set<IR *>> graph;
   TmpRecord m_save;
@@ -647,7 +643,7 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
     ** This function only care about the ir_to_fix node that is id_type == id_top_table_name. We can setup a new cross_graph that 
     ** save only map<IR *, std::set<IR* >> cross_graph;
     */
-    cross_stmt_map(graph, cross_graph, ir_to_fix, cross_map);  // graph.second -> graph.first = crossmap.first -> crossmap.second
+    // cross_stmt_map(graph, ir_to_fix, cross_map);  // graph.second -> graph.first = crossmap.first -> crossmap.second
 
     // Build id_table_name -> id_top_table_name. Local to one single statement. Thus no cross_graph needed. 
     vector<IR *> v_top_table;
@@ -718,10 +714,6 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
             // debug(ir, 0);
             // cout << endl << endl;
             graph[match_ir].insert(ir);
-          }
-          // For cross_graph, we only care about id_create_table_name, that is the only thing that need to save cross statement. 
-          if (match_ir->id_type_ == id_create_table_name) {
-            cross_graph[match_ir].insert(ir);
           }
           break;
         }
@@ -1561,14 +1553,21 @@ string Mutator::fix(IR *root) {
   string res = "";
   _fix(root, res);
   trim_string(res);
-  string ir_to_str = root->to_string();
-  trim_string(ir_to_str);
-  if (res != ir_to_str) {
-    cerr << "Error: ir_to_string is not the same as the string generated from _fix. \n";
-    cerr << "res: \n" << res << endl;
-    cerr << "ir_to_string: \n" << ir_to_str << endl;
-    FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n");
-  }
+
+  /* 
+  ** For debugging purpose, avoid root->to_string() generates a different string from _fix()
+  ** The string is identical for the latest commit. However, we cannot guarantee this for kPragmaStatement. 
+  ** We don't handle and save changes for kPragmaStatement in _fix() and to_string(). 
+  */
+  // string ir_to_str = root->to_string();
+  // trim_string(ir_to_str);
+  // if (res != ir_to_str) {
+  //   cerr << "Error: ir_to_string is not the same as the string generated from _fix. \n";
+  //   cerr << "res: \n" << res << endl;
+  //   cerr << "ir_to_string: \n" << ir_to_str << endl;
+  //   // FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n");
+  // }
+
   return res;
 }
 
