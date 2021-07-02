@@ -19,4 +19,4 @@ while (True):
         cpu_usage = cpu_usage_l[i]
         log_file.write("%s,%d,%d\n" % (datetime.now().strftime("%m/%d/%Y:%H:%M:%S"), cpu_usage, i))
         log_file.flush()
-    time.sleep(60.0 - ((time.time() - start_time) % 6.0))
+    time.sleep(60.0 - ((time.time() - start_time) % 60.0))
