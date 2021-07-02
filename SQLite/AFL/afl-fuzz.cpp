@@ -4690,7 +4690,7 @@ static void maybe_delete_out_dir(void) {
   /* And now, for some finishing touches. */
 
   fn = alloc_printf("/.cur_input_%d", pid);
-  if (unlink(fn) && errno != ENOENT)
+  if (shm_unlink(fn) && errno != ENOENT)
     goto dir_cleanup_failed;
   ck_free(fn);
 
@@ -5516,7 +5516,8 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
     return 0;
   }
   
-  if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+  if (fault != FAULT_CRASH && 
+      all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
     // cerr << "Query all error. " << endl;
     return 0;
   }
@@ -7926,6 +7927,13 @@ stop_fuzzing:
   ck_free(sync_id);
 
   alloc_report();
+
+  pid_t pid = getpid();
+  u8 * fn = alloc_printf("/.cur_input_%d", pid);
+  shm_unlink(fn);
+  ck_free(fn);
+
+
 
   OKF("We're done here. Have a nice day!\n");
 
