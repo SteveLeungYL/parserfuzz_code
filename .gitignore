@@ -6,6 +6,8 @@ venv
 
 SQLite/AFL/afl-fuzz
 SQLite/fuzz_root/fuzz_root*
+\.cur_input
+\.cur_output
 SQLite/fuzz_root/bug_analysis
 PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz

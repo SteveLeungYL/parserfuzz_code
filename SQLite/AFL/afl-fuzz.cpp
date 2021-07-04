@@ -80,6 +80,7 @@
 #include <unistd.h>
 #include <vector>
 #include <map>
+#include <utility>
 
 // #include "../oracle/sqlite_index.h"
 // #include "../oracle/sqlite_likely.h"
@@ -5914,7 +5915,6 @@ static u8 fuzz_one(char **argv) {
   vector<string *> mutated_tree;
   vector<IR*> ori_valid_stmts;
   char *tmp_name = stage_name;
-  string query_str;
   int skip_count;
   string input;
 
@@ -6103,10 +6103,37 @@ static u8 fuzz_one(char **argv) {
     for (int run_count = 0; run_count < p_oracle->get_mul_run_num(); run_count++) {
       IR* cur_root = cur_ir_tree.back()->deep_copy();
       ir_root_vec.push_back(cur_root); // For memory free purpose. 
-      query_str = g_mutator.validate(cur_root, run_count);
-      string query_str_no_marks = cur_root->to_string();
-      query_str_vec.push_back(query_str);
-      query_str_no_marks_vec.push_back(query_str_no_marks);
+
+      g_mutator.pre_validate(cur_root); // Reset global variables for query sequence. 
+
+      vector<STMT_TYPE> stmt_type_vec;
+      vector<vector<IR*>> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec, run_count);
+      for (vector<IR*>& cur_trans_stmt : all_pre_trans_vec) {
+        if(!g_mutator.validate(cur_trans_stmt)) {
+          cerr << "Error: g_mutator.validate returns errors. \n";
+        }
+      }
+      vector<vector<IR*>> all_post_trans_vec = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec, run_count);
+
+      // Join the post_transformed statements into the IR tree. 
+      if(!g_mutator.finalize_transform(cur_root, all_post_trans_vec)){
+        cerr << "Error: g_mutator.finalize_transform() function return error. Abort current query sequence. \n";
+        FATAL("g_mutator.finalize_transform failed. ");
+      }
+
+      // Final step, transform IR tree to string. 
+      pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+      query_str_vec.push_back(query_str_pair.first);
+      query_str_no_marks_vec.push_back(query_str_pair.second);
+
+      // Clean up allocated resource. 
+      // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
+      // cur_root->deep_drop();
+      for (int i = 0; i < all_pre_trans_vec.size(); i++){
+        for (int j = 1; j < all_pre_trans_vec[i].size(); j++){
+          all_pre_trans_vec[i][j]->deep_drop();
+        }
+      }
     }
 
     if (cur_ir_tree.size() > 0){
@@ -6117,7 +6144,7 @@ static u8 fuzz_one(char **argv) {
       ir ->deep_drop();
     }
 
-    if (query_str == "" || query_str_vec.size() == 0) {
+    if (query_str_vec[0] == "" || query_str_vec.size() == 0) {
       total_append_failed++;
       skip_count++;
       continue;

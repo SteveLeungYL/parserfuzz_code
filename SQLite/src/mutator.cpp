@@ -277,115 +277,138 @@ vector<IR *> Mutator::mutate(IR *input) {
   return res;
 }
 
-string Mutator::validate(IR *root, int run_count) {
+void Mutator::pre_validate(IR* root) {
+  if (root == NULL){
+    return;
+  }
 
-  if (root == NULL)
-    return "";
-
-  // Reset components that is local to one query sequence. 
+  // Reset components that is local to the one query sequence. 
   reset_counter();
   reset_database();
-  string output_str = "";
+  p_oracle->init_ir_wrapper(root);
+  return;
+}
+
+vector<vector<IR*>> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec,int run_count) {
 
   p_oracle->init_ir_wrapper(root);
+  vector<vector<IR*>> all_trans_vec;
   vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
   for (IR* cur_root : all_statements_vec) {
-
     /* Identify oracle related statements. Ready for transformation. */
     bool is_oracle_select = false, is_oracle_normal = false;
-    if (p_oracle->is_oracle_normal_stmt(cur_root)) {is_oracle_normal = true;}
-    else if (p_oracle->is_oracle_select_stmt(cur_root)) {is_oracle_select = true;}
+    if (p_oracle->is_oracle_normal_stmt(cur_root)) {is_oracle_normal = true; stmt_type_vec.push_back(ORACLE_NORMAL);}
+    else if (p_oracle->is_oracle_select_stmt(cur_root)) {is_oracle_select = true; stmt_type_vec.push_back(ORACLE_SELECT);}
+    else {stmt_type_vec.push_back(NOT_ORACLE);}
 
     /* Apply pre_fix_transformation functions. */
-    vector<IR*> transformed_stmts_vec;
+    vector<IR*> trans_vec;
     if (is_oracle_normal) {
-      transformed_stmts_vec = p_oracle->pre_fix_transform_normal_stmt(cur_root, run_count);
+      trans_vec = p_oracle->pre_fix_transform_normal_stmt(cur_root, run_count);
     } else if (is_oracle_select) {
-      transformed_stmts_vec = p_oracle->pre_fix_transform_select_stmt(cur_root, run_count);
+      trans_vec = p_oracle->pre_fix_transform_select_stmt(cur_root, run_count);
     }
-    
     /* If no pre_fix_transformation is needed, directly use the original cur_root. */
-    if (transformed_stmts_vec.size() == 0 ){
-      transformed_stmts_vec.push_back(cur_root); 
+    if (trans_vec.size() == 0 ){
+      trans_vec.push_back(cur_root); 
     }
+    all_trans_vec.push_back(trans_vec);
+  }
 
-    /* Build dependency graph, and fill in concret values into the query. */
-    for (IR* cur_trans_stmt : transformed_stmts_vec) {
-      vector<IR *> ordered_ir;
-      // debug(root, 0);
-      auto graph = build_dependency_graph(cur_trans_stmt, relationmap, cross_map, ordered_ir);
-      fix_graph(graph, cur_trans_stmt, ordered_ir);
-      fix(cur_trans_stmt);
-    }
+  return all_trans_vec;
+}
 
-    // Apply post_fix_transform functions. 
-    vector<IR*> post_transformed_stmts_vec;
-    for (IR* cur_trans_stmt : transformed_stmts_vec) {
+vector<vector<IR*>> Mutator::post_fix_transform(vector<vector<IR*>>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count) {
+  // Apply post_fix_transform functions. 
+  vector<vector<IR*>> all_post_trans_vec;
+  for (int i = 0; i < all_pre_trans_vec.size(); i++) {
+    vector<IR*> cur_pre_trans_vec = all_pre_trans_vec[i];
+    vector<IR*> post_trans_stmt_vec;
+    assert(cur_pre_trans_vec.size() != 0);
+
+    bool is_oracle_normal = false, is_oracle_select = false;
+    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    else if (stmt_type_vec[i] == ORACLE_NORMAL) {is_oracle_normal = true;}
+
+    for (IR* cur_pre_trans_stmt : cur_pre_trans_vec) {
       vector<IR*> tmp;
       if (is_oracle_normal) {
-        tmp = p_oracle->post_fix_transform_normal_stmt(cur_trans_stmt, run_count);
+        tmp = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_stmt, run_count);
       } else if (is_oracle_select) {
-        tmp = p_oracle->post_fix_transform_select_stmt(cur_trans_stmt, run_count);
+        tmp = p_oracle->post_fix_transform_select_stmt(cur_pre_trans_stmt, run_count);
       }
-      post_transformed_stmts_vec.insert(post_transformed_stmts_vec.end(), tmp.begin(), tmp.end());
+      post_trans_stmt_vec.insert(post_trans_stmt_vec.end(), tmp.begin(), tmp.end());
     }
-    if (post_transformed_stmts_vec.size() == 0) {
-      post_transformed_stmts_vec.push_back(transformed_stmts_vec[0]);
+    // If post_fix_transformations are not needed, reused the pre_fix_transformed statements. 
+    if (post_trans_stmt_vec.size() == 0) {
+      post_trans_stmt_vec.insert(post_trans_stmt_vec.end(), cur_pre_trans_vec.begin(), cur_pre_trans_vec.end());
     }
+    all_post_trans_vec.push_back(post_trans_stmt_vec);
+  }
+  return all_post_trans_vec;
+}
 
-    /* Append the transformed statements into the IR tree. */
+bool Mutator::validate(vector<IR*>& cur_trans_vec) {
+
+  if (cur_trans_vec.size() == 0)
+    {return false;}
+
+  /* Build dependency graph, and fill in concret values into the query. */
+  for (IR* cur_trans_stmt : cur_trans_vec) {
+    vector<IR *> ordered_ir;
+    // debug(root, 0);
+    auto graph = build_dependency_graph(cur_trans_stmt, relationmap, cross_map, ordered_ir);
+    fix_graph(graph, cur_trans_stmt, ordered_ir);
+    fix(cur_trans_stmt);
+  }
+  return true;
+}
+
+bool Mutator::finalize_transform(IR* root, vector<vector<IR*>> all_post_trans_vec) {
+  if (root == NULL) {return false;}
+  p_oracle->init_ir_wrapper(root);
+  for (vector<IR*> post_trans_vec : all_post_trans_vec) {
+  /* Append the transformed statements into the IR tree. */
     int idx_offset = 0; // Consider the already inserted transformed statements. 
-    // if (!p_oracle->ir_wrapper.replace_stmt_and_free(transformed_stmts_vec[0], post_transformed_stmts_vec[0])) {
-    //   cerr << "Error: cannot replace the transformed statement with the new post_fix_transformed statement. Func: Mutator::validate(); \n";
-    //   // Error, clean up. 
-    //   for (IR* ir : transformed_stmts_vec) {ir->deep_drop();}
-    //   for (IR* ir : post_transformed_stmts_vec) {ir->deep_drop();}
-    //   return "";
-    // }
-    for (int i = 1; i < transformed_stmts_vec.size(); i++) {
-      transformed_stmts_vec[i]->deep_drop();
-    }
-    for (int i = 1; i < post_transformed_stmts_vec.size(); i++) { // Start from idx=1, the first element is the original stmt. 
-      int cur_trans_idx = p_oracle->ir_wrapper.get_stmt_idx(post_transformed_stmts_vec[0]);
+    for (int i = 1; i < post_trans_vec.size(); i++) { // Start from idx=1, the first element is the original stmt. 
+      int cur_trans_idx = p_oracle->ir_wrapper.get_stmt_idx(post_trans_vec[0]);
       if (cur_trans_idx == -1) {
-        cerr << "Error: cannot find the current statement in the IR tree! Abort validate() function. \n";
-        // Error, clean up. 
-        for (IR* ir : post_transformed_stmts_vec) {ir->deep_drop();}
-        return "";
+        cerr << "Error: cannot find the current statement in the IR tree! Abort finalize_transform() function. \n";
+        // Error.
+        return false;
       }
-      p_oracle->ir_wrapper.append_stmt_after_idx(post_transformed_stmts_vec[i], cur_trans_idx + idx_offset);
+      p_oracle->ir_wrapper.append_stmt_after_idx(post_trans_vec[i], cur_trans_idx + idx_offset);
       idx_offset++;
     }
+  }
+  return true;
+}
 
-    // Final step, IR_to_string function. 
+pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec) {
+  // Final step, IR_to_string function. 
+  string output_str_mark, output_str_no_mark; 
+  for (int i = 0; i < all_post_trans_vec.size(); i++) { // Loop between statements. 
+    vector<IR*> post_trans_vec = all_post_trans_vec[i];
     int count = 0;
-    for (IR* cur_trans_stmt : post_transformed_stmts_vec) {
+    bool is_oracle_select = false;
+    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    for (IR* cur_trans_stmt : post_trans_vec) {  // Loop between different transformations. 
       string tmp = cur_trans_stmt->to_string();
       if (is_oracle_select) {
-        output_str += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
-        output_str += tmp + "; \n";
-        output_str += "SELECT 'END VERI " + to_string(count) + "'; \n";
+        output_str_mark += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
+        output_str_mark  += tmp + "; \n";
+        output_str_mark += "SELECT 'END VERI " + to_string(count) + "'; \n";
+        output_str_no_mark += tmp + "; \n";
         count++;
       } else {
-        output_str += tmp + "; \n";
+        output_str_mark += tmp + "; \n";
+        output_str_no_mark += tmp + "; \n";
       }
     }
   }
- 
-  return output_str;
-}
-
-string Mutator::validate(string query, int run_count) {
-
-  vector<IR *> ir_set = parse_query_str_get_ir_set(query);
-  if (ir_set.size() == 0)
-    return "";
-
-  IR *root = ir_set.back();
-
-  return this->validate(root, run_count);
-
+  pair<string, string> output_str_pair =  make_pair(output_str_mark, output_str_no_mark); 
+  return output_str_pair;
 }
 
 // find tree node whose identifier type can be handled

@@ -2,6 +2,8 @@
 #include "../include/define.h"
 #include "../include/mutator.h"
 #include "../include/utils.h"
+#include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_norec.h"
 
 #include <fstream>
 #include <iostream>
@@ -38,6 +40,7 @@ Color::Modifier RED(Color::FG_RED);
 Color::Modifier DEF(Color::FG_DEFAULT);
 
 Mutator mutator;
+SQL_ORACLE* p_oracle;
 
 bool test_parse(string &query) {
 
@@ -67,7 +70,61 @@ bool test_parse(string &query) {
   }
   cout << "structur: >" << structure << "<" << endl;
 
-  string validity = mutator.validate(root, 0);
+  vector<string> query_str_vec, query_str_no_marks_vec;
+  vector<IR*> ir_root_vec;
+  /* 
+  pre_transform, post_transform and validate()
+  */
+  IR* cur_root = root->deep_copy();
+  ir_root_vec.push_back(cur_root); // For memory free purpose. 
+
+  mutator.pre_validate(cur_root); // Reset global variables for query sequence. 
+
+  vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  vector<vector<IR*>> all_pre_trans_vec;
+  for (IR* stmt_vec : all_stmt_vec) {
+    vector<IR*> pre_trans_vec;
+    pre_trans_vec.push_back(stmt_vec);
+    all_pre_trans_vec.push_back(pre_trans_vec);
+  }
+  for (vector<IR*>& cur_trans_stmt : all_pre_trans_vec) {
+    if(!mutator.validate(cur_trans_stmt)) {
+      cerr << "Error: g_mutator.validate returns errors. \n";
+    }
+  }
+
+  vector<vector<IR*>> all_post_trans_vec;
+  vector<STMT_TYPE> stmt_type_vec;
+  for (int i = 0; i < all_pre_trans_vec.size(); i++){
+    vector<IR*> cur_post_trans_vec;
+    cur_post_trans_vec.push_back(all_pre_trans_vec[i][0]);
+    for (int j = 1; j < all_pre_trans_vec[i].size(); j++){
+      cur_post_trans_vec.push_back(all_pre_trans_vec[i][j]->deep_copy());
+    }
+    all_post_trans_vec.push_back(cur_post_trans_vec);
+    stmt_type_vec.push_back(NOT_ORACLE);
+  }
+
+  // Join the post_transformed statements into the IR tree. 
+  if(!mutator.finalize_transform(cur_root, all_post_trans_vec)){
+    cerr << "Error: mutator.finalize_transform() function return error. Abort current query sequence. \n";
+  }
+
+  // Final step, transform IR tree to string. 
+  pair<string, string> query_str_pair = mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+  query_str_vec.push_back(query_str_pair.first);
+  query_str_no_marks_vec.push_back(query_str_pair.second);
+
+  // Clean up allocated resource. 
+  // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
+  cur_root->deep_drop();
+  for (int i = 0; i < all_pre_trans_vec.size(); i++){
+    for (int j = 1; j < all_pre_trans_vec[i].size(); j++){
+      all_pre_trans_vec[i][j]->deep_drop();
+    }
+  }
+
+  string validity = query_str_vec[0];
   if (validity.size() <= 0) {
     cerr << RED << "validate failed" << DEF << endl;
     root->deep_drop();
@@ -96,6 +153,9 @@ int main(int argc, char *argv[]) {
   string input(argv[1]);
   ifstream input_test(input);
   string line;
+
+  mutator.set_p_oracle(p_oracle);
+  p_oracle->set_mutator(&mutator);
 
   while (getline(input_test, line)) {
 
