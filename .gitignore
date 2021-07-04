@@ -10,6 +10,9 @@ SQLite/fuzz_root/bug_analysis
 PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz
 
+
+simplified_reports
+
 afl-fuzz
 afl-fuzz-asan
 test-parser

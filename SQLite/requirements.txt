@@ -1,3 +1,4 @@
 black
 GitPython
 pathlib
+click
