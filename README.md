@@ -18,7 +18,7 @@ Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
     ```
     sudo apt-get -y update && apt-get -y upgrade
     sudo apt-get -y install gdb bison flex git make cmake build-essential gcc-multilib g++-multilib xinetd libreadline-dev zlib1g-dev
-    sudo apt-get -y install clang libssl-dev libncurses5-dev
+    sudo apt-get -y install clang libssl-dev libncurses5-dev nlohmann-json3-dev
     
     # Compile AFL, which is used for instrumenting the DBMSs
     cd ~

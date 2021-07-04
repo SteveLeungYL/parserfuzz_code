@@ -78,6 +78,7 @@
 #include <unistd.h>
 #include <vector>
 #include <map>
+#include <nlohmann/json.hpp>
 
 #include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
@@ -85,6 +86,9 @@
 #include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_rowid.h"
 #include "../oracle/sqlite_tlp.h"
+
+// for convenience
+using json = nlohmann::json;
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>
@@ -5918,6 +5922,16 @@ static u8 fuzz_one(char **argv) {
   string query_str;
   int skip_count;
   string input;
+
+  ifstream minimize_target_stream(minimize_target);
+  json minimize_target_json;
+  minimize_target_stream >> minimize_target_json;
+
+  string minimize_target_oracle = minimize_target_json["first_oracle"];
+  cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str() << endl;
+  cout << "Minimize target - second oracle : " << minimize_target_json["second_oracle"] << endl;
+
+  exit(0);
 
 #ifdef IGNORE_FINDS
 
