@@ -7,13 +7,14 @@ COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
+MINIMIZER_OBJS := AFL/query-minimizer.o $(COMM_OBJS)
 
 export CC = g++
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS)
 LDFLAGS = -ldl
 
 
-all: afl-fuzz test-parser
+all: afl-fuzz test-parser query-minimizer
 
 parser:
 	@$(MAKE) -C $@
@@ -26,6 +27,9 @@ afl-fuzz: $(SUB_DIRS)
 
 test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -o $@ $(LDFLAGS)
+
+query-minimizer: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(MINIMIZER_OBJS) -o $@ $(LDFLAGS) -lrt
 
 asan: ASAN_FLAGS := -fsanitize=address
 asan:

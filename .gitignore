@@ -13,6 +13,7 @@ MySQL/AFL/afl-fuzz
 afl-fuzz
 afl-fuzz-asan
 test-parser
+query-minimizer
 
 # files automatically generated
 bison_parser.cpp
