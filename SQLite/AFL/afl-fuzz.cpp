@@ -6040,6 +6040,15 @@ static u8 fuzz_one(char **argv) {
 
   p_oracle->init_ir_wrapper(cur_ir_root);
   p_oracle->remove_oracle_select_stmts_from_ir(cur_ir_root);
+  p_oracle->remove_oracle_normal_stmts_from_ir(cur_ir_root);
+
+  /*
+  ** (Optional)
+  ** Remove all SELECT statements from the IR tree. 
+  ** As SELECT statements (not including subqueries) won't modify data. 
+  */
+  p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);
+
   ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_ir_root);
 
   // unsigned long prev_hash, current_hash;
