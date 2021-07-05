@@ -289,29 +289,29 @@ void Mutator::pre_validate(IR* root) {
   return;
 }
 
-vector<vector<IR*>> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec,int run_count) {
+vector<vector<IR*>> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec, int run_count) {
 
   p_oracle->init_ir_wrapper(root);
   vector<vector<IR*>> all_trans_vec;
   vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
-  for (IR* cur_root : all_statements_vec) {
+  for (IR* cur_stmt : all_statements_vec) {
     /* Identify oracle related statements. Ready for transformation. */
     bool is_oracle_select = false, is_oracle_normal = false;
-    if (p_oracle->is_oracle_normal_stmt(cur_root)) {is_oracle_normal = true; stmt_type_vec.push_back(ORACLE_NORMAL);}
-    else if (p_oracle->is_oracle_select_stmt(cur_root)) {is_oracle_select = true; stmt_type_vec.push_back(ORACLE_SELECT);}
+    if (p_oracle->is_oracle_normal_stmt(cur_stmt)) {is_oracle_normal = true; stmt_type_vec.push_back(ORACLE_NORMAL);}
+    else if (p_oracle->is_oracle_select_stmt(cur_stmt)) {is_oracle_select = true; stmt_type_vec.push_back(ORACLE_SELECT);}
     else {stmt_type_vec.push_back(NOT_ORACLE);}
 
     /* Apply pre_fix_transformation functions. */
     vector<IR*> trans_vec;
     if (is_oracle_normal) {
-      trans_vec = p_oracle->pre_fix_transform_normal_stmt(cur_root, run_count);
+      trans_vec = p_oracle->pre_fix_transform_normal_stmt(cur_stmt, run_count);
     } else if (is_oracle_select) {
-      trans_vec = p_oracle->pre_fix_transform_select_stmt(cur_root, run_count);
+      trans_vec = p_oracle->pre_fix_transform_select_stmt(cur_stmt, run_count);
     }
     /* If no pre_fix_transformation is needed, directly use the original cur_root. */
     if (trans_vec.size() == 0 ){
-      trans_vec.push_back(cur_root); 
+      trans_vec.push_back(cur_stmt); 
     }
     all_trans_vec.push_back(trans_vec);
   }
@@ -322,7 +322,7 @@ vector<vector<IR*>> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stm
 vector<vector<IR*>> Mutator::post_fix_transform(vector<vector<IR*>>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count) {
   // Apply post_fix_transform functions. 
   vector<vector<IR*>> all_post_trans_vec;
-  for (int i = 0; i < all_pre_trans_vec.size(); i++) {
+  for (int i = 0; i < all_pre_trans_vec.size(); i++) { // Loop through statement. 
     vector<IR*> cur_pre_trans_vec = all_pre_trans_vec[i];
     vector<IR*> post_trans_stmt_vec;
     assert(cur_pre_trans_vec.size() != 0);
@@ -331,7 +331,7 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<vector<IR*>>& all_pre_tra
     if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
     else if (stmt_type_vec[i] == ORACLE_NORMAL) {is_oracle_normal = true;}
 
-    for (IR* cur_pre_trans_stmt : cur_pre_trans_vec) {
+    for (IR* cur_pre_trans_stmt : cur_pre_trans_vec) { // Loop through different pre_fix transformations. 
       vector<IR*> tmp;
       if (is_oracle_normal) {
         tmp = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_stmt, run_count);

@@ -52,16 +52,45 @@ public:
 
     vector<IR*> get_stmtlist_IR_vec();
 
+    bool is_in_subquery(IR* cur_stmt, IR* check_node);
+
+    /*
+    ** Iterately find the parent type. Skip kUnknown and keep iterating until not kUnknown is found. Return the parent IRTYPE. 
+    ** If parent_ is NULL. Return kUnknown instead. 
+    */
+    IRTYPE get_parent_type(IR* cur_IR, int depth);
+
     /* more specific features. */
+    /*******************************************/
     /* Receive one knewexpr IR node, add cast(... AS type_); return the new knewexpr containing the cast expression. */
     IR* add_cast_expr(IR*, string);
+
     /* Receive one knewexpr IR node, add new function such as SUM(), COUNT(), MIN(), MAX(), AVG() etc; return the new knewexpr containing the ** added function. 
     */
     IR* add_func(IR*, string);
+
     /* Receive one knewexpr IR node, add new binary_op between left_stmt and right_stmt; return the new knewexpr containing 
     ** the added operations. 
     */
     IR* add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_expr, string op_value, bool is_free_left = false, bool is_free_right = false);
+
+    /* 
+    ** Given a statement IR, check whether the statment contains 'GROUP BY' or 'HAVING' clause. 
+    */
+    bool is_exist_group_by(IR* cur_stmt);
+    bool IRWrapper::is_exist_having(IR* cur_stmt);
+
+    /*
+    ** Given a SELECT statement, get the knewexpr in the SELECT clause.  
+    */ 
+    IR* get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, int idx);
+
+    /**/
+    int get_num_result_column_in_select_clause(IR* cur_stmt);
+
+    /**/
+    vector<IR*> get_result_column_list_in_select_clause(IR* cur_stmt);
+
 
 private:
     IR* ir_root = nullptr;

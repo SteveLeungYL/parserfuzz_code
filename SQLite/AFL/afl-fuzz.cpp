@@ -6097,7 +6097,12 @@ static u8 fuzz_one(char **argv) {
 
     // TODO::Randomly append statements into the query set using IR. 
 
-    // Build dependency graph, fix ir node, fill in concret values and transform IR_to_string. 
+
+    /* 
+    ** Pre_Post_fix_transformation from the oracle, build dependency graph, 
+    ** fix ir node, fill in concret values, 
+    ** and transform from IR to string.  
+    */
     vector<IR*> ir_root_vec;
     vector<string> query_str_vec, query_str_no_marks_vec;
     for (int run_count = 0; run_count < p_oracle->get_mul_run_num(); run_count++) {
@@ -6106,13 +6111,30 @@ static u8 fuzz_one(char **argv) {
 
       g_mutator.pre_validate(cur_root); // Reset global variables for query sequence. 
 
+      // pre_fix_transformation from the oracle. 
       vector<STMT_TYPE> stmt_type_vec;
       vector<vector<IR*>> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec, run_count);
+
+
+      /* Debug purpose code */
+      ofstream output;
+      output.open("./failure.txt", ios::app);
+      output << "\n\n\n" << cur_root->to_string();
+      int count_stmt_type = 0;
+      for (auto stmt_type : stmt_type_vec) {
+        output << "stmt_type " << count_stmt_type << " is: " << stmt_type << endl;
+        count_stmt_type++;
+      }
+      output.close();
+
+      /* Build dependency graph, fix ir node, fill in concret values */
       for (vector<IR*>& cur_trans_stmt : all_pre_trans_vec) {
         if(!g_mutator.validate(cur_trans_stmt)) {
           cerr << "Error: g_mutator.validate returns errors. \n";
         }
       }
+
+      /* post_fix_transformation from the oracle. */
       vector<vector<IR*>> all_post_trans_vec = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec, run_count);
 
       // Join the post_transformed statements into the IR tree. 

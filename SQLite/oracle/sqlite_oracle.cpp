@@ -49,7 +49,10 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
     if (!g_mutator->check_node_num(root, 300)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
        * the retrived query. */
-      return root;
+      this->ir_wrapper.set_ir_root(root);
+      IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+      root->deep_drop();
+      return returned_stmt_ir;
     }
 
     /* If we are using a non template valid stmt from the p_oracle lib:
@@ -57,7 +60,10 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
      *  1/3 of chances to return with further mutation.
      */
     if (!use_temp && get_rand_int(3) < 2) {
-      return root;
+      this->ir_wrapper.set_ir_root(root);
+      IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+      root->deep_drop();
+      return returned_stmt_ir;
     }
 
     /* Restrict changes on the signiture norec select components. Could increase
@@ -137,7 +143,9 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
 
         if (use_temp)
           total_temp++;
-        IR* returned_stmt_ir = new_ir_verified.back()->left_->left_->deep_copy();
+        
+        this->ir_wrapper.set_ir_root(new_ir_verified.back());
+        IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
         new_ir_verified.back()->deep_drop();
         return returned_stmt_ir;
       }

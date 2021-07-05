@@ -2,6 +2,8 @@
 #include "../include/mutator.h"
 #include <iostream>
 
+#include <fstream> // Debug purpose. 
+
 #include <regex>
 #include <string>
 
@@ -429,37 +431,29 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
 
   // Remove GROUP BY and HAVING stmts. 
-  if ( ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false) ) {
-    vector<IR*> all_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false);
-    for (IR* cur_opt_group : all_opt_group) {
-      if ( cur_opt_group != nullptr && cur_opt_group->op_ != nullptr && cur_opt_group->op_->prefix_ == "GROUP BY") {
-          // std::cerr << "For " << cur_IR->to_string() << " return false" << std::endl;
-          return false;
-        }
-    }
+  if (ir_wrapper.is_exist_group_by(cur_IR) || ir_wrapper.is_exist_having(cur_IR)) {
+    return false;
   }
 
   if (
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false)
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false) &&
+    ir_wrapper.get_num_result_column_in_select_clause(cur_IR) == 1
   ) {
     vector<IR*> function_name_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kFunctionName, false);
     for (IR* func_name : function_name_vec){
       if (
-        func_name->get_parent()->get_parent()->get_parent()->type_ == kNewExpr &&
-        func_name->get_parent()->get_parent()->get_parent()->get_parent()->type_ == kResultColumn &&
-        func_name->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->type_ == kResultColumnList && // kResultColumnList only used in selectcore. 
-        func_name->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->get_parent()->get_parent() \
-                 ->get_parent()->get_parent()->get_parent()->type_ == kSelectCore &&
+        ir_wrapper.get_parent_type(func_name, 1) == kNewExpr &&
+        ir_wrapper.get_parent_type(func_name, 2) == kResultColumn  &&
+        ir_wrapper.get_parent_type(func_name, 3) == kResultColumnList  &&
+        ir_wrapper.get_parent_type(func_name, 4) == kSelectCore &&
         findStringIn(func_name->left_->str_val_, "count")
         ) {
-          // std::cerr << "\n\n\nFor " << cur_IR->to_string() << " return true" << std::endl;
           return true;
           }
     }
   }
-  // std::cerr << "For " << cur_IR->to_string() << " return false" << std::endl;
   return false;
 }
 
@@ -471,50 +465,56 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 
   cur_stmt = cur_stmt->deep_copy();
 
-  IR* where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereExpr, false)[0]->left_->deep_copy();
+  IR* expr_in_where = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereExpr, false)[0]->left_;
 
-  IR* opt_where = where_expr->get_parent();
+  /* Take care of WHERE statement. */
+  IR* opt_where_clause = expr_in_where->get_parent()->get_parent();  // ->kWhereExpr->kOptWhere
   IR* new_opt_where = new IR(kOptWhere, string(""));
-  cur_stmt->swap_node(opt_where, new_opt_where);
-  // opt_where->deep_drop();
+  if (!cur_stmt->swap_node(opt_where_clause, new_opt_where)) {
+    ofstream output;
+    output.open("./failure.txt", ios::app);
+    output << "\n\n\n\nError: Swap node failed in SQL_NOREC::post_fix_transform_select_stmt. \n ";
+    output << "The current statement is: " << cur_stmt->to_string() << endl;
+    output << "ori_node is: " << opt_where_clause->to_string() << endl;
+    output << "Replacing with node: " << new_opt_where->to_string() << endl << endl << endl << endl;
+    output.close();
+    vector<IR*> tmp;
+    return tmp;
+  }
 
-  vector<IR*> select_new_expr_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kNewExpr, false);
-  IR* select_new_expr;
-  for (IR* cur_select_expr : select_new_expr_vec) {
-    if (
-      cur_select_expr->get_parent()->type_ == kResultColumn &&
-      cur_select_expr->get_parent()->get_parent()->type_ == kResultColumnList &&
-      cur_select_expr->get_parent()->get_parent()->get_parent()->get_parent() \
-                     ->get_parent()->get_parent()->get_parent()->type_ == kSelectCore
-    ) {select_new_expr = cur_select_expr;}
-  }
+  IR* expr_in_where_copy = expr_in_where->deep_copy();
+  expr_in_where_copy->parent_ = nullptr;
+  opt_where_clause->deep_drop(); // expr_in_where won't be affected. 
+
+  /* Take care of SELECT statement. */
+  IR* first_result_column = ir_wrapper.get_result_column_in_select_clause_in_select_stmt(cur_stmt, 0);
+  if (first_result_column == nullptr) {
+    ofstream output;
+    output.open("./failure.txt", ios::app);
+    output << "\n\n\n\nError: Failed to retrive first_result_column\n ";
+    output << "The current statement is: " << cur_stmt->to_string() << endl;
+    output.close();
+    vector<IR*> tmp;
+    return tmp;
+  } 
+  IR* select_ori_expr = first_result_column->left_;
   
-  if (select_new_expr == nullptr) {
-    cerr << "Error: Cannot find cur_select_expr from the ir_root. Logical error in code. \
+  if (select_ori_expr == nullptr || first_result_column->right_ == nullptr) {
+    ofstream output;
+    output.open("./failure.txt", ios::app);
+    output << "\n\n\n\nError: Cannot find cur_select_expr from the ir_root. Logical error in code. \n \
     In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
+    output << "The current statement is: " << cur_stmt->to_string() << endl;
+    output.close();
     vector<IR*> tmp;
     return tmp;
   }
-  IR* select_ori_node = select_new_expr->get_parent()->get_parent();
-  if (select_ori_node == nullptr) {
-    cerr << "Error: Cannot find select_ori_node from the ir_root. Logical error in code. \
-    In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
-    vector<IR*> tmp;
-    return tmp;
-  }
-  if (select_ori_node->parent_ == nullptr) {
-    cerr << "Error: Cannot find select_ori_node->parent_ from the ir_root. Logical error in code. \
-    In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
-    vector<IR*> tmp;
-    return tmp;
-  }
-  cur_stmt->detach_node(where_expr);
-  cur_stmt -> swap_node(select_ori_node, where_expr);
-  select_ori_node->deep_drop();
-  opt_where->deep_drop();
+
+  cur_stmt->swap_node(select_ori_expr, expr_in_where_copy);
+  select_ori_expr->deep_drop();
 
   // Add cast and COUNT functions. 
-  IR* cur_select_expr = where_expr;
+  IR* cur_select_expr = expr_in_where_copy;
   cur_select_expr = this->ir_wrapper.add_cast_expr(cur_select_expr, string("BOOL"));
   if (cur_select_expr == nullptr) {
     cerr << "Error: ir_wrapper>add_cast_expr() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";

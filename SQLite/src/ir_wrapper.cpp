@@ -1,7 +1,12 @@
 #include "../include/ir_wrapper.h"
+#include "../include/define.h"
 #include "../AFL/debug.h"
+#include "../include/utils.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
+
+typedef NODETYPE IRTYPE;
 
 bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, int stmt_idx){
     vector<IR*> matching_IR_vec = this->get_ir_node_in_stmt_with_type(ir_type, is_subquery, stmt_idx);
@@ -56,25 +61,30 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_typ
     // Check whether IR node is in a SELECT subquery. 
     std::vector<IR*> ir_vec_matching_type_depth;
     for (IR* ir_match : ir_vec_matching_type){
-        IR* cur_iter = ir_match;
-        bool is_finished_search = false;
-        while (!is_finished_search) {
-            if (cur_iter->type_ == kStatementList) {
-                if (!is_subquery) {ir_vec_matching_type_depth.push_back(ir_match); is_finished_search == true; break;}
-            }
-            else if (cur_iter->type_ == kSelectStatement) {
-                if (cur_iter->get_parent()->type_ != kStatementList) {
-                    if (is_subquery) {ir_vec_matching_type_depth.push_back(ir_match); is_finished_search == true; break;}
-                }
-            }
-            cur_iter = cur_iter->get_parent(); // Assuming cur_iter->get_parent() will always get to kStatementList. Otherwise, it would be error. 
-            continue;
+        if(this->is_in_subquery(cur_stmt, ir_match) == is_subquery) {
+            ir_vec_matching_type_depth.push_back(ir_match);
         }
         continue;
     }
 
     return ir_vec_matching_type_depth;
 
+}
+
+bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node) {
+    IR* cur_iter = check_node;
+    bool is_finished_search = false;
+    while (!is_finished_search) {
+        if (cur_iter->type_ == kStatementList) { // Iter to the parent node. This is Not a subquery. 
+            return false;
+        }
+        else if (cur_iter->type_ == kSelectStatement && this->get_parent_type(cur_iter, 1) != kStatement)  // This IS a subquery. 
+        {
+            return true;
+        }
+        cur_iter = cur_iter->get_parent(); // Assuming cur_iter->get_parent() will always get to kStatementList. Otherwise, it would be error. 
+        continue;
+    }
 }
 
 vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery = false, int stmt_idx = -1) { // (IRTYPE, subquery_level)
@@ -457,6 +467,21 @@ bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
     return true;
 }
 
+IRTYPE IRWrapper::get_parent_type(IR* cur_IR, int depth = 0){
+    while (cur_IR ->parent_ != nullptr) {
+        IRTYPE parent_type = cur_IR->parent_->type_;
+        if (parent_type != kUnknown) {
+            depth--;
+            if (depth <= 0) {
+                return parent_type;
+            }   
+        }
+        cur_IR = cur_IR->parent_;
+    }
+    cerr << "Error: Find get_parent_type without parent_? \n";
+    return kUnknown;
+}
+
 IR* IRWrapper::add_cast_expr(IR* ori_expr, string column_type_str) {
     
     auto new_column_type_ir = new IR(kOptColumnNullable, column_type_str);
@@ -525,4 +550,79 @@ IR* IRWrapper::add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_ex
     if (is_free_right) {right_stmt_expr->deep_drop();}
     return new_expr_ir;
 
+}
+
+
+bool IRWrapper::is_exist_group_by(IR* cur_stmt){
+    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false)) {
+        vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
+        for (IR *cur_opt_group : all_opt_group) {
+            if (cur_opt_group != nullptr && cur_opt_group->op_ != nullptr && cur_opt_group->op_->prefix_ == "GROUP BY") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool IRWrapper::is_exist_having(IR* cur_stmt){
+    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false)) {
+        vector<IR *> all_opt_group = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
+        for (IR *cur_opt_group : all_opt_group) {
+            if (cur_opt_group->right_ != nullptr) {
+                IR* opt_having = cur_opt_group->right_;
+                if (opt_having->op_ != nullptr && opt_having->op_->prefix_ == "HAVING") {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+IR* IRWrapper::get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, int idx){
+    // if (cur_stmt->type_ != kSelectStatement) {
+    //     cerr << "Error: get_result_column_in_select_clause_in_select_stmt() not receiving kSelectStatement. \n";
+    //     cerr << "Receiving " << cur_stmt->type_ << endl;
+    //     return nullptr;
+    // }
+    vector<IR*> all_result_column_list = get_result_column_list_in_select_clause(cur_stmt);
+    if (idx >= all_result_column_list.size() || idx < 0) {
+        cerr << "Error, idx exceeding the total number of ResultColumnList in the select clause. \n";
+        return nullptr;
+    }
+    IR* cur_result_column_list = all_result_column_list[idx];
+    if (idx == 0) {
+        return cur_result_column_list->left_;
+    } else {
+        return cur_result_column_list->right_;
+    }
+}
+
+vector<IR*> IRWrapper::get_result_column_list_in_select_clause(IR* cur_stmt){
+
+    IR* match_column_list = nullptr;
+    vector<IR*> match_column_list_vec_rev, match_column_list_vec;
+    vector<IR*> select_result_column_list_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kResultColumnList, false);
+    for (IR* cur_select_result_column_list : select_result_column_list_vec) {
+      if (
+        this->get_parent_type(cur_select_result_column_list, 1) == kSelectCore
+      ) {match_column_list = cur_select_result_column_list;} // This is the last expr. 
+    }
+
+    if (match_column_list != nullptr) {
+        match_column_list_vec_rev.push_back(match_column_list);
+        while (match_column_list->right_ != nullptr) {
+            match_column_list = match_column_list->right_;
+            match_column_list_vec_rev.push_back(match_column_list);
+        }
+        for (auto iter = match_column_list_vec_rev.rbegin(); iter != match_column_list_vec_rev.rend(); iter++){
+            match_column_list_vec.push_back(*iter);
+        }
+    }
+    return match_column_list_vec;
+}
+
+int IRWrapper::get_num_result_column_in_select_clause(IR* cur_stmt) {
+    return this->get_result_column_list_in_select_clause(cur_stmt).size();
 }
