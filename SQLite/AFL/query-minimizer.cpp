@@ -5916,6 +5916,7 @@ static u8 fuzz_one(char **argv) {
 
   Program *program_root;
   vector<IR *> ir_set;
+  vector<IR *> minimize_oracle_irset;
   vector<string *> mutated_tree;
   vector<string> ori_valid_stmts;
   char *tmp_name = stage_name;
@@ -5928,9 +5929,22 @@ static u8 fuzz_one(char **argv) {
   minimize_target_stream >> minimize_target_json;
 
   string minimize_target_oracle = minimize_target_json["first_oracle"];
+  string database_query = minimize_target_json["database_query"];
   cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str() << endl;
   cout << "Minimize target - second oracle : " << minimize_target_json["second_oracle"] << endl;
 
+  string validate_query = g_mutator.validate(minimize_target_oracle);
+  string rew_1 = "", rew_2 = "", rew_3 = "";
+  p_oracle->rewrite_valid_stmt_from_ori(minimize_target_oracle, rew_1, rew_2, rew_3, 0);
+  cout << "Validate query - oracle : " << rew_1.c_str() << endl;
+
+  set<string> minimize_oracle_string_set = g_mutator.get_minimize_string_from_tree(minimize_target_oracle);
+  for (auto it = minimize_oracle_string_set.begin();
+      it != minimize_oracle_string_set.end(); ++it) {
+    if (!p_oracle->is_oracle_valid_stmt(*it))
+      minimize_oracle_string_set.erase(it);
+  }
+  cout << "minimize_oracle_string_set::size = " << minimize_oracle_string_set.size() << endl; 
   exit(0);
 
 #ifdef IGNORE_FINDS
@@ -6036,9 +6050,9 @@ static u8 fuzz_one(char **argv) {
 
   skip_count = 0;
   input = (const char *)out_buf;
-
+  
   /* Remove the SELECT statements from the input. */
-  input = p_oracle->remove_valid_stmts_from_str(input);
+  input = p_oracle->remove_valid_stmts_from_str(minimize_target_oracle);
 
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
@@ -6134,6 +6148,7 @@ static u8 fuzz_one(char **argv) {
       show_stats();
     }
   }
+
   stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt;
   stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;

@@ -418,6 +418,54 @@ void toptable_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
   }
 }
 
+string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_index) {
+  
+  vector<IR *>tree = parse_query_str_get_ir_set(oracle_query);
+  IR* root = tree[tree.size() -1];
+  deque<IR *> bfs = {root};
+
+  int current_index = 0;
+  while (bfs.empty() != true) {
+    auto node = bfs.front();
+    bfs.pop_front();
+
+    if (current_index == remove_index) {
+
+      node->detach_node(node->left_);
+      node->detach_node(node->right_);
+      node->detach_node(node);
+      break;
+    }
+    current_index++;
+
+    if (node->left_)
+      bfs.push_back(node->left_);
+  
+    if (node->right_)
+      bfs.push_back(node->right_);  
+
+  }
+
+  return root->to_string();
+}
+
+
+set<string> Mutator::get_minimize_string_from_tree(string oracle_query) {
+  set<string> res;
+  vector<IR *>irtree = parse_query_str_get_ir_set(oracle_query);
+
+  for (int i=0; i<irtree.size(); ++i) {
+    string new_string = remove_node_from_tree_by_index(oracle_query, i);
+    vector<IR *> irset = parse_query_str_get_ir_set(new_string);
+    if (irset.size() == 0)
+      continue ;
+      
+    res.insert(new_string);
+    cout << "new string " << i << " : " << new_string.c_str() << endl;
+  }
+  return res;
+}
+
 vector<IR *> Mutator::extract_statement(IR *root) {
   vector<IR *> res;
   deque<IR *> bfs = {root};

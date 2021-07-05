@@ -109,6 +109,9 @@ public:
     this->disable_coverage_feedback = f;
   }
 
+  string remove_node_from_tree_by_index(string oracle_query, int remove_index);
+  set<string> get_minimize_string_from_tree(string oracle_query);
+
 private:
   void add_to_valid_lib(IR *, string &, const bool);
   void add_to_library(IR *, string &);
