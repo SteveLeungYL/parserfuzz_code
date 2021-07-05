@@ -54,11 +54,13 @@ public:
 
     bool is_in_subquery(IR* cur_stmt, IR* check_node);
 
+
     /*
     ** Iterately find the parent type. Skip kUnknown and keep iterating until not kUnknown is found. Return the parent IRTYPE. 
     ** If parent_ is NULL. Return kUnknown instead. 
     */
     IRTYPE get_parent_type(IR* cur_IR, int depth);
+    IR* get_parent_with_a_type(IR* cur_IR, int depth=0);
 
     /* more specific features. */
     /*******************************************/

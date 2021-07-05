@@ -468,18 +468,27 @@ bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
 }
 
 IRTYPE IRWrapper::get_parent_type(IR* cur_IR, int depth = 0){
+    IR* output_IR = this->get_parent_with_a_type(cur_IR, depth);
+    if (output_IR == nullptr) {
+        return kUnknown;
+    } else {
+        return output_IR->type_;
+    }
+}
+
+IR* IRWrapper::get_parent_with_a_type(IR* cur_IR, int depth=0) {
     while (cur_IR ->parent_ != nullptr) {
         IRTYPE parent_type = cur_IR->parent_->type_;
         if (parent_type != kUnknown) {
             depth--;
             if (depth <= 0) {
-                return parent_type;
+                return cur_IR->parent_;
             }   
         }
         cur_IR = cur_IR->parent_;
     }
     cerr << "Error: Find get_parent_type without parent_? \n";
-    return kUnknown;
+    return nullptr;
 }
 
 IR* IRWrapper::add_cast_expr(IR* ori_expr, string column_type_str) {

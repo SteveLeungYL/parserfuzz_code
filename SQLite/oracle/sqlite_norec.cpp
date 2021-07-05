@@ -442,13 +442,15 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
     ir_wrapper.get_num_result_column_in_select_clause(cur_IR) == 1
   ) {
     vector<IR*> function_name_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kFunctionName, false);
-    for (IR* func_name : function_name_vec){
+    for (IR* func_name_ir : function_name_vec){
       if (
-        ir_wrapper.get_parent_type(func_name, 1) == kNewExpr &&
-        ir_wrapper.get_parent_type(func_name, 2) == kResultColumn  &&
-        ir_wrapper.get_parent_type(func_name, 3) == kResultColumnList  &&
-        ir_wrapper.get_parent_type(func_name, 4) == kSelectCore &&
-        findStringIn(func_name->left_->str_val_, "count")
+        ir_wrapper.get_parent_type(func_name_ir, 1) == kNewExpr &&
+        ir_wrapper.get_parent_type(func_name_ir, 2) == kResultColumn  &&
+        ir_wrapper.get_parent_type(func_name_ir, 3) == kResultColumnList  &&
+        ir_wrapper.get_parent_type(func_name_ir, 4) == kSelectCore &&
+        findStringIn(func_name_ir->left_->str_val_, "count") &&  // enforce COUNT()
+        // kFuncNane->kNewExpr->kUnknown->kUnknown->kFuncArgs->str_val_. 
+        ir_wrapper.get_parent_with_a_type(func_name_ir, 1)->left_->left_->right_->str_val_ == "*"  // enforce COUNT(*). 
         ) {
           return true;
           }
