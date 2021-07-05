@@ -471,13 +471,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   IR* opt_where_clause = expr_in_where->get_parent()->get_parent();  // ->kWhereExpr->kOptWhere
   IR* new_opt_where = new IR(kOptWhere, string(""));
   if (!cur_stmt->swap_node(opt_where_clause, new_opt_where)) {
-    ofstream output;
-    output.open("./failure.txt", ios::app);
-    output << "\n\n\n\nError: Swap node failed in SQL_NOREC::post_fix_transform_select_stmt. \n ";
-    output << "The current statement is: " << cur_stmt->to_string() << endl;
-    output << "ori_node is: " << opt_where_clause->to_string() << endl;
-    output << "Replacing with node: " << new_opt_where->to_string() << endl << endl << endl << endl;
-    output.close();
+    cerr << "\n\n\n\nError: Swap node failed in SQL_NOREC::post_fix_transform_select_stmt. \n ";
     vector<IR*> tmp;
     return tmp;
   }
@@ -490,22 +484,15 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   IR* first_result_column = ir_wrapper.get_result_column_in_select_clause_in_select_stmt(cur_stmt, 0);
   if (first_result_column == nullptr) {
     ofstream output;
-    output.open("./failure.txt", ios::app);
-    output << "\n\n\n\nError: Failed to retrive first_result_column\n ";
-    output << "The current statement is: " << cur_stmt->to_string() << endl;
-    output.close();
+    cerr << "\n\n\n\nError: Failed to retrive first_result_column\n ";
     vector<IR*> tmp;
     return tmp;
   } 
   IR* select_ori_expr = first_result_column->left_;
   
   if (select_ori_expr == nullptr || first_result_column->right_ == nullptr) {
-    ofstream output;
-    output.open("./failure.txt", ios::app);
-    output << "\n\n\n\nError: Cannot find cur_select_expr from the ir_root. Logical error in code. \n \
+    cerr << "\n\n\n\nError: Cannot find cur_select_expr from the ir_root. Logical error in code. \n \
     In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
-    output << "The current statement is: " << cur_stmt->to_string() << endl;
-    output.close();
     vector<IR*> tmp;
     return tmp;
   }

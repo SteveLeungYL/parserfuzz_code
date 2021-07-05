@@ -6115,18 +6115,6 @@ static u8 fuzz_one(char **argv) {
       vector<STMT_TYPE> stmt_type_vec;
       vector<vector<IR*>> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec, run_count);
 
-
-      /* Debug purpose code */
-      ofstream output;
-      output.open("./failure.txt", ios::app);
-      output << "\n\n\n" << cur_root->to_string();
-      int count_stmt_type = 0;
-      for (auto stmt_type : stmt_type_vec) {
-        output << "stmt_type " << count_stmt_type << " is: " << stmt_type << endl;
-        count_stmt_type++;
-      }
-      output.close();
-
       /* Build dependency graph, fix ir node, fill in concret values */
       for (vector<IR*>& cur_trans_stmt : all_pre_trans_vec) {
         if(!g_mutator.validate(cur_trans_stmt)) {
@@ -6146,7 +6134,7 @@ static u8 fuzz_one(char **argv) {
       // Final step, transform IR tree to string. 
       pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
       query_str_vec.push_back(query_str_pair.first);
-      query_str_no_marks_vec.push_back(query_str_pair.second);
+      query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements. 
 
       // Clean up allocated resource. 
       // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
