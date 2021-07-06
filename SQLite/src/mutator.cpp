@@ -453,15 +453,15 @@ string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_i
 set<string> Mutator::get_minimize_string_from_tree(string oracle_query) {
   set<string> res;
   vector<IR *>irtree = parse_query_str_get_ir_set(oracle_query);
-
+  
   for (int i=0; i<irtree.size(); ++i) {
     string new_string = remove_node_from_tree_by_index(oracle_query, i);
-    vector<IR *> irset = parse_query_str_get_ir_set(new_string);
-    if (irset.size() == 0)
-      continue ;
+    // vector<IR *> irset = parse_query_str_get_ir_set(new_string);
+    // if (irset.size() == 0)
+    //   continue ;
       
     res.insert(new_string);
-    cout << "new string " << i << " : " << new_string.c_str() << endl;
+    // cout << "new string " << i << " : " << new_string.c_str() << endl;
   }
   return res;
 }

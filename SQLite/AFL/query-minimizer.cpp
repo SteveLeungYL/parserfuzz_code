@@ -79,6 +79,7 @@
 #include <vector>
 #include <map>
 #include <nlohmann/json.hpp>
+#include <iomanip>
 
 #include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
@@ -5903,6 +5904,34 @@ void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
   return;
 }
 
+ALL_COMP_RES run_oracle_pair(char **argv, string database_query, 
+                                          string minimized_oracle_query, 
+                                          string &rewrite_oracle_query) {
+  string _temp_string_1 = "", _temp_string_2 = "";
+  p_oracle->rewrite_valid_stmt_from_ori(minimized_oracle_query, 
+                                        rewrite_oracle_query, 
+                                        _temp_string_1, 
+                                        _temp_string_2, 
+                                        0);
+  
+  string new_minimize_query = database_query;
+  new_minimize_query += "SELECT 'BEGIN VERI 0';";
+  new_minimize_query += minimized_oracle_query + ";"; 
+  new_minimize_query += "SELECT 'END VERI 0';";
+
+  new_minimize_query += "SELECT 'BEGIN VERI 1';";
+  new_minimize_query += rewrite_oracle_query + ";"; 
+  new_minimize_query += "SELECT 'END VERI 1';";
+
+  ALL_COMP_RES all_comp_res;
+  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+  vector<int> explain_diff_id;
+
+  execute_cmd_string(new_minimize_query, explain_diff_id, all_comp_res, argv, exec_tmout);
+
+  return all_comp_res;
+}
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -5933,11 +5962,13 @@ static u8 fuzz_one(char **argv) {
   cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str() << endl;
   cout << "Minimize target - second oracle : " << minimize_target_json["second_oracle"] << endl;
 
-  string validate_query = g_mutator.validate(minimize_target_oracle);
-  string rew_1 = "", rew_2 = "", rew_3 = "";
-  p_oracle->rewrite_valid_stmt_from_ori(minimize_target_oracle, rew_1, rew_2, rew_3, 0);
-  cout << "Validate query - oracle : " << rew_1.c_str() << endl;
+  // strip ';' at the end.
+  minimize_target_oracle = minimize_target_oracle.substr(0, minimize_target_oracle.size()-1);
 
+  // string validate_query = g_mutator.validate(minimize_target_oracle);
+  // cout << "Validate query - oracle : " << validate_query.c_str() << endl;
+  
+  cout << "minimize_target_oracle: " << minimize_target_oracle.c_str() << endl;
   set<string> minimize_oracle_string_set = g_mutator.get_minimize_string_from_tree(minimize_target_oracle);
   for (auto it = minimize_oracle_string_set.begin();
       it != minimize_oracle_string_set.end(); ++it) {
@@ -5945,6 +5976,42 @@ static u8 fuzz_one(char **argv) {
       minimize_oracle_string_set.erase(it);
   }
   cout << "minimize_oracle_string_set::size = " << minimize_oracle_string_set.size() << endl; 
+
+  int minimize_json_num = 0;
+  for (string minimized_oracle_query: minimize_oracle_string_set) {
+    if (minimized_oracle_query == minimize_target_oracle)
+      continue;
+
+    string rewrite_oracle_query = "";
+    ALL_COMP_RES all_comp_res = run_oracle_pair(argv, database_query, minimized_oracle_query, rewrite_oracle_query);
+
+    if (ORA_COMP_RES::Fail == all_comp_res.final_res) {
+      // the oracle result is still mismatch. 
+      minimize_json_num++;
+
+      cout << "[+] " << minimized_oracle_query << endl << "    "
+        << rewrite_oracle_query << endl;
+
+      json new_minimize_oracle_json;
+      new_minimize_oracle_json["database_query"] = database_query;
+      new_minimize_oracle_json["first_oracle"] = minimized_oracle_query;
+      new_minimize_oracle_json["second_oracle"] = rewrite_oracle_query;
+      
+      for (COMP_RES compare_result: all_comp_res.v_res) {
+        if (compare_result.res_int_0 != compare_result.res_int_1) {
+          new_minimize_oracle_json["first_result"] = compare_result.res_int_0;
+          new_minimize_oracle_json["second_result"] = compare_result.res_int_1;
+          break;
+        }
+      }
+
+      string output_file = "minimize_" + to_string(minimize_json_num) + ".json";
+      ofstream json_out_stream(output_file);
+      json_out_stream << setw(2) << new_minimize_oracle_json << endl;
+    }
+  }
+
+
   exit(0);
 
 #ifdef IGNORE_FINDS
