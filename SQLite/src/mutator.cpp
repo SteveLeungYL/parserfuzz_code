@@ -423,6 +423,7 @@ string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_i
   vector<IR *>tree = parse_query_str_get_ir_set(oracle_query);
   IR* root = tree[tree.size() -1];
   deque<IR *> bfs = {root};
+  string result = "";
 
   int current_index = 0;
   while (bfs.empty() != true) {
@@ -430,11 +431,10 @@ string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_i
     bfs.pop_front();
 
     if (current_index == remove_index) {
-
-      node->detach_node(node->left_);
-      node->detach_node(node->right_);
-      node->detach_node(node);
-      break;
+      root->detach_node(node);
+      result = root->to_string();
+      root->deep_drop();
+      return result;
     }
     current_index++;
 
@@ -446,7 +446,7 @@ string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_i
 
   }
 
-  return root->to_string();
+  return result;
 }
 
 

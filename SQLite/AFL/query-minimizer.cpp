@@ -5965,9 +5965,6 @@ static u8 fuzz_one(char **argv) {
   // strip ';' at the end.
   minimize_target_oracle = minimize_target_oracle.substr(0, minimize_target_oracle.size()-1);
 
-  // string validate_query = g_mutator.validate(minimize_target_oracle);
-  // cout << "Validate query - oracle : " << validate_query.c_str() << endl;
-  
   cout << "minimize_target_oracle: " << minimize_target_oracle.c_str() << endl;
   set<string> minimize_oracle_string_set = g_mutator.get_minimize_string_from_tree(minimize_target_oracle);
   for (auto it = minimize_oracle_string_set.begin();
@@ -5996,6 +5993,9 @@ static u8 fuzz_one(char **argv) {
       new_minimize_oracle_json["database_query"] = database_query;
       new_minimize_oracle_json["first_oracle"] = minimized_oracle_query;
       new_minimize_oracle_json["second_oracle"] = rewrite_oracle_query;
+
+      // string validate_query = g_mutator.validate(database_query + minimized_oracle_query);
+      // cout << "[*] Validate query - oracle : " << validate_query.c_str() << endl;
       
       for (COMP_RES compare_result: all_comp_res.v_res) {
         if (compare_result.res_int_0 != compare_result.res_int_1) {
