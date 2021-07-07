@@ -1447,11 +1447,14 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
         val->str_val_ = vector_rand_ele(colums);
 
         IR* opt_alias_ir = fixed_key->parent_->parent_->right_;  // identifier -> ktablename -> parent_ -> kOptTableAliasAs
-        if (opt_alias_ir != nullptr && opt_alias_ir->op_ != nullptr &&
-            opt_alias_ir->op_->prefix_ == "AS"){
-          if(opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) {  // kOptTableAliasAs -> kTableAlias -> identifier. 
-            val->str_val_ = opt_alias_ir->left_->left_->str_val_ + "." + val->str_val_;
-          }
+        if (opt_alias_ir != nullptr && 
+            opt_alias_ir->op_ != nullptr && 
+            (opt_alias_ir->type_ == kOptTableAlias || opt_alias_ir->type_ == kOptTableAliasAs) && 
+            opt_alias_ir->op_->prefix_ == "AS")
+          {
+            if(opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) {  // kOptTableAliasAs -> kTableAlias ->  identifier. 
+              val->str_val_ = opt_alias_ir->left_->left_->str_val_ + "." + val->str_val_;
+            }
         }
 
         visited.insert(val);
