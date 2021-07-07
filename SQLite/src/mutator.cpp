@@ -24,10 +24,10 @@
 using namespace std;
 
 vector<string> Mutator::value_libary;
-map<string, vector<string>> Mutator::m_tables;
-map<string, vector<string>> Mutator::m_table2index;
-map<string, vector<string>> Mutator::m_table2alias;
-vector<string> Mutator::v_table_names;
+map<string, vector<string>> Mutator::m_tables;   // Table name to column name mapping. 
+map<string, vector<string>> Mutator::m_table2index;   // Table name to index mapping. 
+map<string, vector<string>> Mutator::m_table2alias;   // Table name to alias mapping. 
+vector<string> Mutator::v_table_names;  // All saved table names
 
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
 
@@ -1439,20 +1439,19 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
         // from mappings, we need to prepend the corresponding alias to the
         // column name. for example:
         //  CREATE TABLE v0 ( v1 INT );
-        //  SELECT * FROM v0 AS A, v0 AS B WHERE v1 = 1337;
+        //  SELECT * FROM v0 AS A, v0 AS B WHERE A.v1 = 1337;
         // we need to generate prepend 'A' or 'B' to 'v1' to avoid ambiguous
         // name.
 
+        // Changed it to IR only modifications. 
         val->str_val_ = vector_rand_ele(colums);
 
-        string table_name_with_alias = fixed_key->parent_->parent_->to_string();
-        string as_token_delim = "AS ";
-        size_t found = table_name_with_alias.find(as_token_delim);
-
-        if (found != string::npos) {
-          string table_name_alias = table_name_with_alias.substr(
-              found + as_token_delim.size());
-          val->str_val_ = table_name_alias + "." + val->str_val_;
+        IR* opt_alias_ir = fixed_key->parent_->parent_->right_;  // identifier -> ktablename -> parent_ -> kOptTableAliasAs
+        if (opt_alias_ir != nullptr && opt_alias_ir->op_ != nullptr &&
+            opt_alias_ir->op_->prefix_ == "AS"){
+          if(opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) {  // kOptTableAliasAs -> kTableAlias -> identifier. 
+            val->str_val_ = opt_alias_ir->left_->left_->str_val_ + "." + val->str_val_;
+          }
         }
 
         visited.insert(val);
