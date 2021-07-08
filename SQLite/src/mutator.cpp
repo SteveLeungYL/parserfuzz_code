@@ -6,6 +6,7 @@
 #include "../parser/bison_parser.h"
 #include "../parser/flex_lexer.h"
 
+#include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
 #include "../AFL/debug.h"
@@ -1121,7 +1122,7 @@ void Mutator::add_all_to_library(string whole_query_str,
 
     IR *root = ir_set.back();
 
-    if (p_oracle->is_oracle_valid_stmt(current_query)) {
+    if (p_oracle->is_oracle_select_stmt(root)) {
 
       // if (all_comp_res.v_res.size() > i) {
       //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
@@ -1943,9 +1944,6 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
         ori_norec_select =
             *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       }
-      if (ori_norec_select == "" ||
-          !p_oracle->is_oracle_valid_stmt(ori_norec_select))
-        continue;
       use_temp = false;
     } else {
       /* Pick the query from the template, pass to the mutator. */
