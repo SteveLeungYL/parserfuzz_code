@@ -83,7 +83,7 @@
 #include <utility>
 
 // #include "../oracle/sqlite_index.h"
-// #include "../oracle/sqlite_likely.h"
+#include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
 // #include "../oracle/sqlite_rowid.h"
@@ -5884,14 +5884,13 @@ void get_ori_valid_stmts(vector<IR*> &v_valid_stmts) {
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.
       break;
 
-    IR* new_norec_stmts = p_oracle->get_random_mutated_valid_stmt();
-    if (new_norec_stmts == nullptr){
+    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_valid_stmt();
+    if (new_oracle_select_stmts == nullptr){
       total_oracle_mutate_failed++;
       continue;
     }
     // ensure_semicolon_at_query_end(new_norec_stmts);
-
-    v_valid_stmts.push_back(new_norec_stmts);
+    v_valid_stmts.push_back(new_oracle_select_stmts);
 
     num_norec++;
   }
@@ -7710,8 +7709,8 @@ int main(int argc, char **argv) {
         p_oracle = new SQL_NOREC();
       // else if (arg == "TLP")
       //   p_oracle = new SQL_TLP();
-      // else if (arg == "LIKELY")
-      //   p_oracle = new SQL_LIKELY();
+      else if (arg == "LIKELY")
+        p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
       //   p_oracle = new SQL_ROWID();
       // else if (arg == "INDEX")

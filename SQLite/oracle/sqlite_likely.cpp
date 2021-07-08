@@ -500,30 +500,56 @@ bool SQL_LIKELY::compare_uniq(COMP_RES &res) {
   return false;
 }
 
-
 bool SQL_LIKELY::is_oracle_select_stmt(IR* cur_IR) {
 
-  // Remove GROUP BY and HAVING stmts. 
-  if ( ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false) ) {
-    vector<IR*> all_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kOptGroup, false);
-    for (IR* cur_opt_group : all_opt_group) {
-      if (cur_opt_group->op_->prefix_ == "GROUP BY") {return false;}
-    }
-  }
+  // // Remove GROUP BY and HAVING stmts. 
+  // if (ir_wrapper.is_exist_group_by(cur_IR) || ir_wrapper.is_exist_having(cur_IR)) {
+  //   return false;
+  // }
 
   if (
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false)
+    // ir_wrapper.get_num_result_column_in_select_clause(cur_IR) == 1
   ) {
     return true;
   }
   return false;
 }
 
-vector<IR*> SQL_LIKELY::post_fix_transform_select_stmt(IR* ir_root, unsigned multi_run_id) {
+vector<IR*> SQL_LIKELY::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {
 
-  vector<IR*> tmp;
-  return tmp;
+  vector<IR*> trans_IR_vec;
+  IR* ori_ir_root = cur_stmt;
+  trans_IR_vec.push_back(ori_ir_root);
+
+  // ADDED LIKELY.
+  cur_stmt = ori_ir_root->deep_copy();
+  IR* expr_in_where = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereExpr, false)[0]->left_;
+  // Add LIKELY functions. 
+  IR* cur_where_expr = expr_in_where;
+  cur_where_expr = this->ir_wrapper.add_func(cur_where_expr, "LIKELY");
+  if (cur_where_expr == nullptr) {
+    cerr << "Error: ir_wrapper>add_func() failed. Func: SQL_LIKELY::post_fix_transform_select_stmt(). Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
+  trans_IR_vec.push_back(cur_stmt);
+
+  // Added UNLIKELY
+  cur_stmt = ori_ir_root->deep_copy();
+  expr_in_where = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereExpr, false)[0]->left_;
+  // Add UNLIKELY functions. 
+  cur_where_expr = expr_in_where;
+  cur_where_expr = this->ir_wrapper.add_func(cur_where_expr, "UNLIKELY");
+  if (cur_where_expr == nullptr) {
+    cerr << "Error: ir_wrapper>add_func() failed. Func: SQL_LIKELY::post_fix_transform_select_stmt(). Return empty vector. \n";
+    vector<IR*> tmp;
+    return tmp;
+  }
+  trans_IR_vec.push_back(cur_stmt);
+
+  return trans_IR_vec;
 
 }
