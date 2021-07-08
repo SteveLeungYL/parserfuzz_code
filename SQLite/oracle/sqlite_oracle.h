@@ -26,13 +26,12 @@ public:
   virtual bool is_oracle_valid_stmt(const string &query) = 0;
 
   virtual int count_oracle_select_stmts(IR* ir_root);
-  virtual int count_oracle_normal_stmts(IR* ir_root) {return 0;}
-  virtual bool is_oracle_select_stmt(IR* cur_IR) {return false;}
+  virtual int count_oracle_normal_stmts(IR* ir_root);
+  virtual bool is_oracle_select_stmt(IR* cur_IR);
   virtual bool is_oracle_normal_stmt(IR* cur_IR) {return false;}
 
   /* Used to detect non-select query that needs some rewrite. */
   virtual bool is_oracle_valid_stmt_2(const string &query) { return false; }
-  virtual bool is_oracle_normal_stmt_2(IR* cur_IR) {return false;}
 
   /* Randomly add some statements into the query sets. Will append to the query
    * in a pretty early stage. Can be used to append some non-select verification
@@ -66,8 +65,7 @@ public:
   ** Mutator::fix())
   ** If no transform is necessary, return empty vector. 
   */
-  virtual vector<IR*> pre_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;}
-  virtual vector<IR*> pre_fix_transform_select_stmt(IR* cur_stmt) {return this->pre_fix_transform_select_stmt(cur_stmt, 0);}
+  virtual IR* pre_fix_transform_select_stmt(IR* cur_stmt) {return nullptr;}
   virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;}
   virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt) {return this->post_fix_transform_select_stmt(cur_stmt, 0);}
 
@@ -87,8 +85,8 @@ public:
   ** Mutator::fix())
   ** If no transform is necessary, return empty vector. 
   */
-  virtual vector<IR*> pre_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
-  virtual vector<IR*> pre_fix_transform_normal_stmt(IR* cur_stmt) {return this->pre_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
+
+  virtual IR* pre_fix_transform_normal_stmt(IR* cur_stmt) {return nullptr;} //non-select stmt pre_fix transformation. 
   virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {vector<IR*> tmp; return tmp;} //non-select
   virtual vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt) {return this->post_fix_transform_normal_stmt(cur_stmt, 0);} //non-select
 

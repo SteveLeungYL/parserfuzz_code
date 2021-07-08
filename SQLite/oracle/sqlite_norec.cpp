@@ -463,7 +463,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 
   vector<IR*> trans_IR_vec;
   IR* ori_ir_root = cur_stmt;
-  trans_IR_vec.push_back(ori_ir_root);
+  trans_IR_vec.push_back(ori_ir_root->deep_copy());
 
   cur_stmt = cur_stmt->deep_copy();
 

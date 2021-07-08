@@ -41,10 +41,14 @@ public:
   IR *strategy_insert(IR *cur);
   IR *strategy_replace(IR *cur);
 
-  void pre_validate(IR* root);
-  vector<vector<IR*>> pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec,int run_count);
-  bool validate(vector<IR*>& cur_trans_vec);
-  vector<vector<IR*>> post_fix_transform(vector<vector<IR*>>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count);
+  void pre_validate();
+  vector<IR*> pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec);
+
+  bool validate(IR* cur_trans_stmt);
+
+  vector<vector<vector<IR*>>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec);
+  vector<vector<IR*>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count);
+  
   bool finalize_transform(IR* root, vector<vector<IR*>> all_post_trans_vec);
   pair<string, string> ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec);
 

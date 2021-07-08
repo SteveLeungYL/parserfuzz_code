@@ -6103,63 +6103,62 @@ static u8 fuzz_one(char **argv) {
                           // stmts.
     }
 
-    // TODO::Randomly append statements into the query set using IR. 
-
-
     /* 
-    ** Pre_Post_fix_transformation from the oracle, build dependency graph, 
+    ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph, 
     ** fix ir node, fill in concret values, 
-    ** and transform from IR to string.  
+    ** and transform from IR to multi-run strings.  
     */
-    vector<IR*> ir_root_vec;
     vector<string> query_str_vec, query_str_no_marks_vec;
-    for (int run_count = 0; run_count < p_oracle->get_mul_run_num(); run_count++) {
-      IR* cur_root = cur_ir_tree.back()->deep_copy();
-      ir_root_vec.push_back(cur_root); // For memory free purpose. 
 
-      g_mutator.pre_validate(cur_root); // Reset global variables for query sequence. 
+    IR* cur_root = cur_ir_tree.back();
 
-      // pre_fix_transformation from the oracle. 
-      vector<STMT_TYPE> stmt_type_vec;
-      vector<vector<IR*>> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec, run_count);
+    g_mutator.pre_validate(); // Reset global variables for query sequence. 
 
-      /* Build dependency graph, fix ir node, fill in concret values */
-      for (vector<IR*>& cur_trans_stmt : all_pre_trans_vec) {
-        if(!g_mutator.validate(cur_trans_stmt)) {
-          cerr << "Error: g_mutator.validate returns errors. \n";
-        }
+    // pre_fix_transformation from the oracle. 
+    vector<STMT_TYPE> stmt_type_vec;
+    vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied. 
+
+    /* Build dependency graph, fix ir node, fill in concret values */
+    for (IR* cur_trans_stmt : all_pre_trans_vec) {
+      if(!g_mutator.validate(cur_trans_stmt)) {
+        cerr << "Error: g_mutator.validate returns errors. \n";
       }
+    }
 
-      /* post_fix_transformation from the oracle. */
-      vector<vector<IR*>> all_post_trans_vec = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec, run_count);
+    /* post_fix_transformation from the oracle. All deep_copied. */
+    vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
 
-      // Join the post_transformed statements into the IR tree. 
-      if(!g_mutator.finalize_transform(cur_root, all_post_trans_vec)){
-        cerr << "Error: g_mutator.finalize_transform() function return error. Abort current query sequence. \n";
-        FATAL("g_mutator.finalize_transform failed. ");
-      }
+    for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
+      // Join the post_transformed statements into the IR tree. Easier to free memory later. 
+      // IR* cur_run_root = cur_root->deep_copy();
+      // if(!g_mutator.finalize_transform(cur_run_root, all_post_trans_vec)){
+      //   cerr << "Error: g_mutator.finalize_transform() function return error. Abort current query sequence. \n";
+      //   FATAL("g_mutator.finalize_transform failed. ");
+      // }
 
-      // Final step, transform IR tree to string. 
+      // Final step, transform IR tree to string. Add marker to important statements. 
       pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
       query_str_vec.push_back(query_str_pair.first);
       query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements. 
+    }
 
-      // Clean up allocated resource. 
-      // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
-      // cur_root->deep_drop();
-      for (int i = 0; i < all_pre_trans_vec.size(); i++){
-        for (int j = 1; j < all_pre_trans_vec[i].size(); j++){
-          all_pre_trans_vec[i][j]->deep_drop();
+    // Clean up allocated resource. 
+    // post_trans_vec are all being appended to the IR tree. Free up cur_run_root should take care of them.
+    // cur_run_root->deep_drop();
+    for (int i = 0; i < all_pre_trans_vec.size(); i++){
+      all_pre_trans_vec[i]->deep_drop();
+    }
+
+    for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
+      for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
+        for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
+          all_post_trans_vec_all_runs[i][j][k]->deep_drop();
         }
       }
     }
-
+    
     if (cur_ir_tree.size() > 0){
       cur_ir_tree.back()->deep_drop();
-    }
-
-    for (auto ir : ir_root_vec) {
-      ir ->deep_drop();
     }
 
     if (query_str_vec[0] == "" || query_str_vec.size() == 0) {

@@ -179,6 +179,24 @@ int SQL_ORACLE::count_oracle_select_stmts(IR* ir_root) {
   return oracle_stmt_num;
 }
 
+int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+
+  int oracle_stmt_num = 0;
+  for (IR* cur_stmt : stmt_vec){
+    if (this->is_oracle_normal_stmt(cur_stmt)) {oracle_stmt_num++;}
+  }
+  return oracle_stmt_num;
+}
+
+bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
+  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false)) {
+    return true;
+  }
+  return false;
+}
+
 void SQL_ORACLE::remove_oracle_select_stmts_from_ir(IR* ir_root) {
   ir_wrapper.set_ir_root(ir_root);
   vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
