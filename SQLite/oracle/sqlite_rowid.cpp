@@ -168,8 +168,9 @@ void SQL_ROWID::get_v_valid_type(const string &cmd_str,
 
 void SQL_ROWID::compare_results(ALL_COMP_RES &res_out) {
   if ((res_out.v_cmd_str.size() < 1) || (res_out.v_res_str.size() < 1)) {
-    cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. "
-            "Possibly processing only the seed files. \n";
+    // cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. Actual size for v_res_str is: " \
+    //      << to_string(res_out.v_res_str.size()) << \
+    //         ". Possibly processing only the seed files. \n";
     res_out.final_res = ALL_Error;
     return;
   }
@@ -313,4 +314,66 @@ bool SQL_ROWID::is_str_error(const string &input_str) {
 
   // not a error string.
   return false;
+}
+
+
+bool SQL_ROWID::is_oracle_normal_stmt(IR* cur_IR) {
+  if (
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kCreateTableStatement, false) ||
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kCreateVirtualTableStatement, false)
+    ) {
+    return true;
+  }
+  return false;
+}
+
+IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
+  if (!this->is_oracle_normal_stmt(cur_stmt)) {
+    cerr << "Error: Detected input stmt is not oracle normal statement. Func: SQL_ROWID::pre_fix_transform_normal_stmt. \n";
+    return nullptr;
+  }
+  cur_stmt = cur_stmt->deep_copy();
+
+  // Added WIHTOUT ROWID symbol. 
+  if(!ir_wrapper.add_without_rowid_to_stmt(cur_stmt)) {
+    cerr << "Error: add_without_rowid_to_stmt failed. Func: SQL_ROWID::pre_fix_transform_normal_stmt. \n";
+    cur_stmt->deep_drop();
+    return nullptr;
+  }
+
+  // Arbitarily insert PRIMARY KEY. (Replaced the old column constraints)
+  vector<IR*> opt_column_constraintlist_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptColumnConstraintlist, false);
+  if (opt_column_constraintlist_vec.size() == 0) {
+    cur_stmt->deep_drop();
+    return nullptr;
+  }
+  IR* chosen_opt_column_constraintlist = opt_column_constraintlist_vec[get_rand_int(opt_column_constraintlist_vec.size())];
+
+  IR* opt_order_type_ir = new IR(kOptOrderType, "");
+  IR* opt_conflict_clause = new IR(kOptConflictClause, string(""));
+  IR* column_constraint = new IR(kColumnConstraint, OP1("PRIMARY KEY"), opt_order_type_ir, opt_conflict_clause);
+
+  IR* opt_auto_inc = new IR(kOptAutoinc, "");
+  column_constraint = new IR(kColumnConstraint, OP0(), column_constraint, opt_auto_inc); 
+
+  IR* column_constraint_list = new IR(kColumnConstraintlist, OP0(), column_constraint);
+  IR* new_opt_column_constraint_list = new IR(kOptColumnConstraintlist, OP0(), column_constraint_list);
+
+  cur_stmt->swap_node(chosen_opt_column_constraintlist, new_opt_column_constraint_list);
+  chosen_opt_column_constraintlist->deep_drop();
+
+  return cur_stmt;
+}
+
+vector<IR*> SQL_ROWID::post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) {
+  if (multi_run_id == 0) {vector<IR*> tmp; return tmp;} // If it is the first run. Do not remove WITHOUT ROWID.
+  cur_stmt = cur_stmt->deep_copy();
+  if(!ir_wrapper.remove_without_rowid_to_stmt(cur_stmt)) {
+    cerr << "Error: remove_without_rowid_to_stmt failed. Func: SQL_ROWID::post_fix_transform_normal_stmt. \n";
+    cur_stmt->deep_drop();
+    vector<IR*> tmp; return tmp;
+  }
+  vector<IR*> output_stmt;
+  output_stmt.push_back(cur_stmt);
+  return output_stmt;
 }

@@ -474,6 +474,8 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   IR* new_opt_where = new IR(kOptWhere, string(""));
   if (!cur_stmt->swap_node(opt_where_clause, new_opt_where)) {
     cerr << "\n\n\n\nError: Swap node failed in SQL_NOREC::post_fix_transform_select_stmt. \n ";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }
@@ -487,6 +489,8 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   if (first_result_column == nullptr) {
     ofstream output;
     cerr << "\n\n\n\nError: Failed to retrive first_result_column\n ";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   } 
@@ -495,6 +499,8 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   if (select_ori_expr == nullptr || first_result_column->right_ == nullptr) {
     cerr << "\n\n\n\nError: Cannot find cur_select_expr from the ir_root. Logical error in code. \n \
     In func: SQL_NOREC::post_fix_transform_select_stmt. Return empty vector. \n";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }
@@ -507,6 +513,8 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   cur_select_expr = this->ir_wrapper.add_cast_expr(cur_select_expr, string("BOOL"));
   if (cur_select_expr == nullptr) {
     cerr << "Error: ir_wrapper>add_cast_expr() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }
@@ -515,12 +523,16 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   cur_select_expr = this->ir_wrapper.add_binary_op(cur_select_expr, cur_select_expr, num_literal_expr, "!=", false, true);
   if (cur_select_expr == nullptr) {
     cerr << "Error: ir_wrapper>add_binary_op() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }
   cur_select_expr = this->ir_wrapper.add_func(cur_select_expr, "TOTAL");
   if (cur_select_expr == nullptr) {
     cerr << "Error: ir_wrapper>add_func() failed. Func: SQL_NOREC::post_fix_transform_select_stmt(). Return empty vector. \n";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }

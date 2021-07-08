@@ -532,6 +532,8 @@ vector<IR*> SQL_LIKELY::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mu
   cur_where_expr = this->ir_wrapper.add_func(cur_where_expr, "LIKELY");
   if (cur_where_expr == nullptr) {
     cerr << "Error: ir_wrapper>add_func() failed. Func: SQL_LIKELY::post_fix_transform_select_stmt(). Return empty vector. \n";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }
@@ -545,6 +547,8 @@ vector<IR*> SQL_LIKELY::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mu
   cur_where_expr = this->ir_wrapper.add_func(cur_where_expr, "UNLIKELY");
   if (cur_where_expr == nullptr) {
     cerr << "Error: ir_wrapper>add_func() failed. Func: SQL_LIKELY::post_fix_transform_select_stmt(). Return empty vector. \n";
+    trans_IR_vec[0]->deep_drop();
+    cur_stmt->deep_drop();
     vector<IR*> tmp;
     return tmp;
   }

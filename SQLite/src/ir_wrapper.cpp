@@ -635,3 +635,37 @@ vector<IR*> IRWrapper::get_result_column_list_in_select_clause(IR* cur_stmt){
 int IRWrapper::get_num_result_column_in_select_clause(IR* cur_stmt) {
     return this->get_result_column_list_in_select_clause(cur_stmt).size();
 }
+
+bool IRWrapper::add_without_rowid_to_stmt(IR* cur_stmt){
+    if (
+        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateTableStatement, false) &&
+        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateVirtualTableStatement, false)
+    ) { 
+        cerr << "Error: cur_stmt is not a CREATE statement. Func: IRWrapper::add_without_rowid_to_stmt(IR* cur_stmt). \n";
+        return false;
+    }
+
+    vector<IR*> without_rowid_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
+    for (auto without_rowid_ir : without_rowid_vec) {
+        if (without_rowid_ir == nullptr) {continue;}
+        without_rowid_ir->str_val_ = "WITHOUT ROWID";
+    }
+    return true;
+}
+
+bool IRWrapper::remove_without_rowid_to_stmt(IR* cur_stmt){
+    if (
+        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateTableStatement, false) &&
+        !this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kCreateVirtualTableStatement, false)
+    ) { 
+        cerr << "Error: cur_stmt is not a CREATE statement. Func: IRWrapper::remove_without_rowid_to_stmt(IR* cur_stmt). \n";
+        return false;
+    }
+
+    vector<IR*> without_rowid_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
+    for (auto without_rowid_ir : without_rowid_vec) {
+        if (without_rowid_ir == nullptr) {continue;}
+        without_rowid_ir->str_val_ = "";
+    }
+    return true;
+}

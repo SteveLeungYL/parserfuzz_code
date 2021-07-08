@@ -119,6 +119,10 @@ public:
 
   IRWrapper ir_wrapper; // Make it public, so that afl-fuzz.cpp can also call its function. 
 
+  virtual bool is_remove_oracle_select_stmt_at_start() {return true;}
+  virtual bool is_remove_oracle_normal_stmt_at_start() {return false;}
+  virtual bool is_remove_all_select_stmt_at_start() {return true;}
+
 protected:
   Mutator *g_mutator;
 

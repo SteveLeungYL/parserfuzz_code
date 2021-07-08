@@ -86,7 +86,7 @@
 #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
-// #include "../oracle/sqlite_rowid.h"
+#include "../oracle/sqlite_rowid.h"
 // #include "../oracle/sqlite_tlp.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -2802,7 +2802,7 @@ void extract_query_result(const string &res, vector<string> &res_vec_out,
   res_vec_out.clear();
 
   if (is_str_empty(res)) {
-    return -1;
+    return;
   }
 
   size_t begin_idx = res.find(begin_sign, 0);
@@ -2852,10 +2852,6 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
     }
     const string &res_str = all_comp_res.v_res_str[idx];
     const string &cmd_str = all_comp_res.v_cmd_str[idx];
-    if (is_str_empty(res_str)) {
-      all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
-      return;
-    }
 
     vector<string> cur_res_vec, cur_exp_vec;
     /* Only takes one type of validation at a time in the query. */
@@ -6038,15 +6034,18 @@ static u8 fuzz_one(char **argv) {
   ir_set.clear();
 
   p_oracle->init_ir_wrapper(cur_ir_root);
-  p_oracle->remove_oracle_select_stmts_from_ir(cur_ir_root);
-  p_oracle->remove_oracle_normal_stmts_from_ir(cur_ir_root);
+  if (p_oracle->is_remove_oracle_select_stmt_at_start())
+    {p_oracle->remove_oracle_select_stmts_from_ir(cur_ir_root);}
+  if (p_oracle->is_remove_oracle_normal_stmt_at_start())
+    {p_oracle->remove_oracle_normal_stmts_from_ir(cur_ir_root);}
 
   /*
   ** (Optional)
   ** Remove all SELECT statements from the IR tree. 
   ** As SELECT statements (not including subqueries) won't modify data. 
   */
-  p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);
+  if (p_oracle->is_remove_all_select_stmt_at_start())
+    {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
 
   ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_ir_root);
 
@@ -7710,8 +7709,8 @@ int main(int argc, char **argv) {
       //   p_oracle = new SQL_TLP();
       else if (arg == "LIKELY")
         p_oracle = new SQL_LIKELY();
-      // else if (arg == "ROWID")
-      //   p_oracle = new SQL_ROWID();
+      else if (arg == "ROWID")
+        p_oracle = new SQL_ROWID();
       // else if (arg == "INDEX")
       //   p_oracle = new SQL_INDEX();
       else

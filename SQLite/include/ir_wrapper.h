@@ -93,6 +93,10 @@ public:
     /**/
     vector<IR*> get_result_column_list_in_select_clause(IR* cur_stmt);
 
+    /**/
+    bool add_without_rowid_to_stmt(IR* cur_stmt);
+    bool remove_without_rowid_to_stmt(IR* cur_stmt);
+
 
 private:
     IR* ir_root = nullptr;

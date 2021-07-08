@@ -9,6 +9,7 @@
 #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_rowid.h"
 #include "../AFL/debug.h"
 
 #include <sys/resource.h>
