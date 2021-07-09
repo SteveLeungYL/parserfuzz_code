@@ -671,3 +671,48 @@ bool IRWrapper::remove_without_rowid_to_stmt(IR* cur_stmt){
     }
     return true;
 }
+
+bool IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right) {
+    if (!this->is_exist_ir_node_in_stmt_with_type(left_stmt, kSelectStatement, false)) {
+        cerr << "Error: The left_stmt received is not a SELECT stmt. Cannot combine it to selectcore clause. "
+             << "Func: IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str). \n";
+        return false;
+    }
+    if (!this->is_exist_ir_node_in_stmt_with_type(right_stmt, kSelectStatement, false)) {
+        cerr << "Error: The right_stmt received is not a SELECT stmt. Cannot combine it to selectcore clause. "
+             << "Func: IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str). \n";
+        return false;
+    }
+
+    IR* cur_stmt = left_stmt;
+    IR* cur_selectcorelist = cur_stmt->left_->right_;  // This should be the last kselectcorelist or kselectcore in the stmt. 
+
+    IR* right_selectcorelist = right_stmt->left_->right_;
+    IR* right_selectcore;
+    if (right_selectcorelist->type_ == kSelectCoreList) {
+        // Iterate to the very first right_select_core_list in order. 
+        while (right_selectcorelist->left_->type_ != kSelectCore ) {
+            right_selectcorelist = right_selectcorelist->left_;
+        }
+        right_selectcore = right_selectcorelist->left_->deep_copy();
+        right_selectcore->parent_ = nullptr;
+    } else {
+        right_selectcore = right_selectcorelist->deep_copy();
+    }
+
+    IR* set_op = new IR(kSetOperator, set_operator_str);
+    IR* new_selectcorelist = new IR(kUnknown, OP0(), cur_selectcorelist->deep_copy(), set_op);
+    new_selectcorelist = new IR(kSelectCoreList, OP0(), new_selectcorelist, right_selectcore);
+
+    if(!cur_stmt->swap_node(cur_selectcorelist, new_selectcorelist)){
+        new_selectcorelist->deep_drop();
+        cerr << "Error: Swap node failure; in Func: IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right)" << endl;
+        return false;
+    }
+    cur_selectcorelist->deep_drop();
+
+    if (is_free_left) {left_stmt->deep_drop();}
+    if (is_free_right) {right_stmt->deep_drop();}
+    
+    return true;
+}

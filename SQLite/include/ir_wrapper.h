@@ -99,6 +99,8 @@ public:
     bool add_without_rowid_to_stmt(IR* cur_stmt);
     bool remove_without_rowid_to_stmt(IR* cur_stmt);
 
+    bool combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right);
+
 
 private:
     IR* ir_root = nullptr;

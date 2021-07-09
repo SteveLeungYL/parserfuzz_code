@@ -87,7 +87,7 @@
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_rowid.h"
-// #include "../oracle/sqlite_tlp.h"
+#include "../oracle/sqlite_tlp.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>
@@ -7725,8 +7725,8 @@ int main(int argc, char **argv) {
       string arg = string(optarg);
       if (arg == "NOREC")
         p_oracle = new SQL_NOREC();
-      // else if (arg == "TLP")
-      //   p_oracle = new SQL_TLP();
+      else if (arg == "TLP")
+        p_oracle = new SQL_TLP();
       else if (arg == "LIKELY")
         p_oracle = new SQL_LIKELY();
       else if (arg == "ROWID")

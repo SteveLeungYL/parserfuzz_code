@@ -626,3 +626,64 @@ bool SQL_TLP::is_str_contains_aggregate(const string &input_str) {
 
   return false;
 }
+
+
+bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
+  // Remove GROUP BY and HAVING stmts. 
+  if (ir_wrapper.is_exist_group_by(cur_IR) || ir_wrapper.is_exist_having(cur_IR)) {
+    return false;
+  }
+
+  if (
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false)
+    // ir_wrapper.get_num_result_column_in_select_clause(cur_IR) == 1
+  ) {
+    return true;
+  }
+  return false;
+}
+
+vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {
+  if (cur_stmt == nullptr) {
+    cerr << "Error: Receive empty cur_stmt from func: SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id). \n";
+    vector<IR*> tmp; return tmp;
+  }
+  if (cur_stmt->type_ == kStatement) {cur_stmt = cur_stmt->left_;}  // kStatement->kSelectStatement
+
+  vector<IR*> trans_IR_vec;
+  IR* ori_ir_root = cur_stmt;
+  trans_IR_vec.push_back(ori_ir_root->deep_copy());
+
+  // Construct the WHERE () IS TRUE stmt. 
+  IR* cur_stmt_true = cur_stmt->deep_copy();
+  ir_wrapper.set_ir_root(cur_stmt_true);
+  IR* expr_in_where_true = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_true, kWhereExpr, false)[0]->left_;
+  IR* true_str_ir = new IR(kNumericLiteral, string("TRUE"));
+  IR* istrue_clause_ir = new IR(kNewExpr, OP0(), true_str_ir);
+  ir_wrapper.add_binary_op(expr_in_where_true, expr_in_where_true, istrue_clause_ir, string("IS"), false, true);
+
+  // Construct the WHERE () IS FALSE stmt. 
+  IR* cur_stmt_false = cur_stmt->deep_copy();
+  ir_wrapper.set_ir_root(cur_stmt_false);
+  IR* expr_in_where_false = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_false, kWhereExpr, false)[0]->left_;
+  IR* false_str_ir = new IR(kNumericLiteral, string("FALSE"));
+  IR* isfalse_clause_ir = new IR(kNewExpr, OP0(), false_str_ir);
+  ir_wrapper.add_binary_op(expr_in_where_false, expr_in_where_false, isfalse_clause_ir, string("IS"), false, true);
+
+  // Construct the WHERE () IS NULL stmt. 
+  IR* cur_stmt_null = cur_stmt->deep_copy();
+  ir_wrapper.set_ir_root(cur_stmt_null);
+  IR* expr_in_where_null = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_null, kWhereExpr, false)[0]->left_;
+  IR* null_str_ir = new IR(kNullLiteral, string("NULL"));
+  IR* isnull_clause_ir = new IR(kNewExpr, OP0(), null_str_ir);
+  ir_wrapper.add_binary_op(expr_in_where_null, expr_in_where_null, isnull_clause_ir, string("IS"), false, true);
+
+  cur_stmt = cur_stmt_true;
+  ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_false, "UNION ALL", false, true);
+  ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_null, "UNION ALL", false, true);
+
+  trans_IR_vec.push_back(cur_stmt);
+  return trans_IR_vec;
+}
