@@ -6,6 +6,7 @@
 #include "../parser/bison_parser.h"
 #include "../parser/flex_lexer.h"
 
+#include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"

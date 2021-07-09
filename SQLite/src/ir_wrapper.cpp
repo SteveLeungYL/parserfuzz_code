@@ -280,25 +280,27 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please prov
 
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+    int total_num = this->get_stmt_num();
+    return this->append_stmt_after_idx(app_IR_node, total_num-1);
 
-    IR* insert_pos_ir = stmt_list_v[stmt_list_v.size()-1];
 
-    // We use left_ = NULL here, because when swap_node fail, we will directly deep_drop the newly created new_res, we don't want to
-    // accidentally delete the previous kstatementlist that pre-exist in the IR tree. 
-    auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
+    // IR* insert_pos_ir = stmt_list_v[stmt_list_v.size()-1];
 
-    if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
-        new_res->deep_drop();
-        // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
-        std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
-        return false;
-    }
+    // // We use left_ = NULL here, because when swap_node fail, we will directly deep_drop the newly created new_res, we don't want to
+    // // accidentally delete the previous kstatementlist that pre-exist in the IR tree. 
+    // auto new_res = new IR(kStatementList, OPMID(";"), NULL, app_IR_node);
 
-    // Add the missing child node back. 
-    new_res->update_left(insert_pos_ir);
+    // if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect insert_pos_ir. 
+    //     new_res->deep_drop();
+    //     // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n");
+    //     std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_after_idx. \n";
+    //     return false;
+    // }
 
-    return true;
+    // // Add the missing child node back. 
+    // new_res->update_left(insert_pos_ir);
+
+    return false;
 
 }
 

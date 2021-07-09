@@ -168,9 +168,9 @@ void SQL_ROWID::get_v_valid_type(const string &cmd_str,
 
 void SQL_ROWID::compare_results(ALL_COMP_RES &res_out) {
   if ((res_out.v_cmd_str.size() < 1) || (res_out.v_res_str.size() < 1)) {
-    // cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. Actual size for v_res_str is: " \
-    //      << to_string(res_out.v_res_str.size()) << \
-    //         ". Possibly processing only the seed files. \n";
+    cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. Actual size for v_res_str is: " \
+         << to_string(res_out.v_res_str.size()) << \
+            ". Possibly processing only the seed files. \n";
     res_out.final_res = ALL_Error;
     return;
   }

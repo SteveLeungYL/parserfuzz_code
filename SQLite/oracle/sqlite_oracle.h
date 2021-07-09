@@ -38,7 +38,7 @@ public:
    * statements into the query set, and rewrite using
    * rewrite_valid_stmt_from_ori_2() later.
    */
-  virtual string get_random_append_stmts() { return ""; }
+  virtual int is_random_append_stmts() {return 0;}
   virtual IR* get_random_append_stmts_ir() {return nullptr;}
 
   /* Mark all the IR node in the IR tree, that is related to teh validation

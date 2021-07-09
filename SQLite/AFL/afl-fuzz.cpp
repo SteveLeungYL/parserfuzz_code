@@ -82,7 +82,7 @@
 #include <map>
 #include <utility>
 
-// #include "../oracle/sqlite_index.h"
+#include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
@@ -3961,8 +3961,8 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, query_str.c_str(),
-                         queue_cycle - 1, 0);
+    // res = calibrate_case(argv, queue_top, query_str.c_str(),
+                        //  queue_cycle - 1, 0);
 
     // if (res == FAULT_ERROR)
     //   FATAL("Unable to execute target application");
@@ -6047,11 +6047,26 @@ static u8 fuzz_one(char **argv) {
   if (p_oracle->is_remove_all_select_stmt_at_start())
     {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
 
-  ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_ir_root);
-
   // unsigned long prev_hash, current_hash;
   // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
   // current_hash = 0;
+
+  for (int app_num = 0; app_num < p_oracle->is_random_append_stmts(); app_num++) {
+    p_oracle->init_ir_wrapper(cur_ir_root);
+    IR* cur_app_stmt = p_oracle->get_random_append_stmts_ir();
+    if (cur_app_stmt == nullptr) {
+      cerr << "Error: Getting NULL pointer from p_oracle->get_random_append_stmts_ir(). Oracle: " 
+            << p_oracle->get_oracle_type() << endl;
+      continue;
+    }
+    // cerr << "Getting cur_app_stmt: " << cur_app_stmt->to_string() << endl;
+    p_oracle->init_ir_wrapper(cur_ir_root);
+    p_oracle->ir_wrapper.append_stmt_at_end(cur_app_stmt);
+  }
+
+  // cerr << "Just after rand_app: we have: \n" << cur_ir_root->to_string() << endl;
+
+  ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_ir_root);
 
   mutated_tree = g_mutator.mutate_all(ir_set);
   if (mutated_tree.size() < 1) {
@@ -6140,6 +6155,11 @@ static u8 fuzz_one(char **argv) {
       query_str_vec.push_back(query_str_pair.first);
       query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements. 
     }
+
+    // for (auto query_str : query_str_vec) {
+    //   cerr << "Query str: " << query_str << endl;
+    // }
+    // cerr << "End\n\n\n";
 
     // Clean up allocated resource. 
     // post_trans_vec are all being appended to the IR tree. Free up cur_run_root should take care of them.
@@ -7711,8 +7731,8 @@ int main(int argc, char **argv) {
         p_oracle = new SQL_LIKELY();
       else if (arg == "ROWID")
         p_oracle = new SQL_ROWID();
-      // else if (arg == "INDEX")
-      //   p_oracle = new SQL_INDEX();
+      else if (arg == "INDEX")
+        p_oracle = new SQL_INDEX();
       else
         FATAL("Oracle arguments not supported. ");
     } break;

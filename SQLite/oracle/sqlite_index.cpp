@@ -152,8 +152,9 @@ void SQL_INDEX::get_v_valid_type(const string &cmd_str,
 
 void SQL_INDEX::compare_results(ALL_COMP_RES &res_out) {
   if ((res_out.v_cmd_str.size() < 1) || (res_out.v_res_str.size() < 1)) {
-    cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. "
-            "Possibly processing only the seed files. \n";
+    cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. Actual size for v_res_str is: " \
+         << to_string(res_out.v_res_str.size()) << \
+            ". Possibly processing only the seed files. \n";
     res_out.final_res = ALL_Error;
     return;
   }
@@ -267,4 +268,58 @@ bool SQL_INDEX::compare_uniq(COMP_RES &res) {
 
   res.comp_res = ORA_COMP_RES::Pass;
   return false;
+}
+
+bool SQL_INDEX::is_oracle_normal_stmt(IR* cur_IR) {
+  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kCreateIndexStatement, false)) {
+    return true;
+  }
+  return false;
+}
+
+IR* SQL_INDEX::pre_fix_transform_normal_stmt(IR* cur_stmt) {
+  if (!this->is_oracle_normal_stmt(cur_stmt)){
+    cerr << "Error: Pre_fix_transform_normal_stmt not receiving kCreateIndexStatement. Func: SQL_INDEX::pre_fix_transform_normal_stmt(IR* cur_stmt). \n";
+    return nullptr;
+  }
+  cur_stmt = cur_stmt->deep_copy();
+  vector<IR*> opt_unique_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptUnique, false);
+  if (opt_unique_vec.size() != 0) {
+    for (auto opt_unique_ir : opt_unique_vec) {
+      opt_unique_ir->str_val_ = ""; // Remove UNIQUE constraints in the deep_copied cur_stmt. 
+    }
+    return cur_stmt;
+  }
+  cur_stmt->deep_drop();
+  return nullptr;
+}
+
+vector<IR*> SQL_INDEX::post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id){
+  if (multi_run_id == 0) {
+    vector<IR*> tmp; return tmp;
+  }
+  // multi_run_id == 1: return an empty statement. 
+  IR* new_empty_stmt = new IR(kStatement, "");
+  vector<IR*> output_stmt_vec;
+  output_stmt_vec.push_back(new_empty_stmt);
+  return output_stmt_vec;
+}
+
+IR* SQL_INDEX::get_random_append_stmts_ir() {
+  string temp_append_str = this->temp_append_stmts[get_rand_int(this->temp_append_stmts.size())];
+  vector<IR*> app_ir_set = g_mutator->parse_query_str_get_ir_set(temp_append_str);
+  if (app_ir_set.size() == 0) { 
+    cerr << "FATAL ERROR: SQL_INDEX::get_random_append_stmts_ir() parse string failed. \n"; 
+    return nullptr;
+  }
+  IR* cur_root = app_ir_set.back();
+  vector<IR*> stmt_list_vec = ir_wrapper.get_stmt_ir_vec(cur_root);
+  if (stmt_list_vec.size() == 0) {
+    cerr << "FATAL ERROR: SQL_INDEX::get_random_append_stmts_ir() getting stmt failed. \n"; 
+    cur_root->deep_drop();
+    return nullptr;
+  }
+  IR* first_stmt = stmt_list_vec[0]->deep_copy();
+  cur_root->deep_drop();
+  return first_stmt;
 }

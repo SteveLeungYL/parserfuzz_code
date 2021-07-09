@@ -49,8 +49,10 @@ public:
     int get_stmt_idx(IR*);
 
     vector<IR*> get_stmt_ir_vec();
+    vector<IR*> get_stmt_ir_vec(IR* root) {this->set_ir_root(root); return this->get_stmt_ir_vec();}
 
     vector<IR*> get_stmtlist_IR_vec();
+    vector<IR*> get_stmtlist_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtlist_IR_vec();}
 
     bool is_in_subquery(IR* cur_stmt, IR* check_node);
 
