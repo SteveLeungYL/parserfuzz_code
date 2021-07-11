@@ -1455,7 +1455,9 @@ bool Mutator::fix_dependency(IR *root,
           vector<IR*> all_mentioned_column_vec = search_mapped_ir_in_stmt(ir, id_column_name);
           for (IR* cur_men_column_ir : all_mentioned_column_vec) {
             string cur_men_column_str = cur_men_column_ir->str_val_;
-            cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
+            if (findStringIn(cur_men_column_str, ".")) {
+              cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
+            }
             m_tables[ir->str_val_].push_back(cur_men_column_str);
           }
           if (all_mentioned_column_vec.size() == 0) { // For CREATE VIEW x AS SELECT * FROM v0; 
