@@ -6135,7 +6135,12 @@ static u8 fuzz_one(char **argv) {
     /* Build dependency graph, fix ir node, fill in concret values */
     for (IR* cur_trans_stmt : all_pre_trans_vec) {
       if(!g_mutator.validate(cur_trans_stmt)) {
+        // Clean up. 
         cerr << "Error: g_mutator.validate returns errors. \n";
+        for (IR* cur_pre_trans_stmt : all_pre_trans_vec) {
+          cur_pre_trans_stmt->deep_drop();
+        }
+        goto abandon_entry;
       }
     }
 

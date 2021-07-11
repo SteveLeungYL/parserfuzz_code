@@ -89,26 +89,27 @@ public:
   string extract_struct(string);
   void add_new_table(IR *root, string &table_name);
   void reset_database();
+  void reset_database_single_stmt();
 
   bool check_node_num(IR *root, unsigned int limit);
   vector<IR *> extract_statement(IR *root);
   unsigned int calc_node(IR *root);
 
-  map<IR *, set<IR *>> build_dependency_graph(IR *root,
-                                              map<IDTYPE, IDTYPE> &relationmap,
-                                              map<IDTYPE, IDTYPE> &crssmap,
-                                              vector<IR *> &ordered_ir);
+  void Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
+                                vector<vector<IR*>> &ordered_ir);
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);
-  void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);
-  void fix_graph(map<IR *, set<IR *>> &graph, IR *root,
-                 vector<IR *> &ordered_ir);
+  // void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);
+  bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir);
 
   static vector<string> value_libary;
   static map<string, vector<string>> m_tables;
   static map<string, vector<string>> m_table2index;
-  static map<string, vector<string>> m_table2alias;
+  // static map<string, vector<string>> m_table2alias;
   static vector<string> v_table_names;
+  static vector<string> v_table_names_single;
+  static vector<string> v_alias_names_single;
+  static map<string, vector<string>> m_table2alias_single;
   ~Mutator();
 
   void debug(IR *root, unsigned level);

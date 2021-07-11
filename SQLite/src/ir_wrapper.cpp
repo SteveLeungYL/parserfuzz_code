@@ -716,3 +716,16 @@ bool IRWrapper::combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string
     
     return true;
 }
+
+IR* IRWrapper::get_alias_iden_from_tablename_iden(IR* tablename_iden){
+    IR *opt_alias_ir = tablename_iden->parent_->parent_->right_; // identifier -> ktablename -> parent_ -> kOptTableAliasAs
+    if (opt_alias_ir != nullptr &&
+        opt_alias_ir->op_ != nullptr &&
+        (opt_alias_ir->type_ == kOptTableAlias || opt_alias_ir->type_ == kOptTableAliasAs) &&
+        opt_alias_ir->op_->prefix_ == "AS") {
+        if (opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) { // kOptTableAliasAs -> kTableAlias ->  identifier.
+            return opt_alias_ir->left_->left_;
+        }
+    }
+    return nullptr;
+}

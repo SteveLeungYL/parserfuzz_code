@@ -101,6 +101,7 @@ public:
 
     bool combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right);
 
+    IR* get_alias_iden_from_tablename_iden(IR* tablename_iden);
 
 private:
     IR* ir_root = nullptr;
