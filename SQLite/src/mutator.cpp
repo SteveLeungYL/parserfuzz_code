@@ -1441,6 +1441,43 @@ bool Mutator::fix_dependency(IR *root,
           m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           visited.insert(alias_ir);
         }
+
+        /* Check whether we are in the CreateViewStatement. If yes, save the column mapping. */
+        IR* cur_ir = ir;
+        while (cur_ir->parent_ != nullptr) {
+          if (cur_ir->type_ == kStatement) {
+            break;
+          }
+          cur_ir = cur_ir->parent_;
+        }
+        if (cur_ir ->left_->type_ == kCreateViewStatement) {
+          // id_column_name should be in the subqueries and already been resolved. 
+          vector<IR*> all_mentioned_column_vec = search_mapped_ir_in_stmt(ir, id_column_name);
+          for (IR* cur_men_column_ir : all_mentioned_column_vec) {
+            string cur_men_column_str = cur_men_column_ir->str_val_;
+            cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
+            m_tables[ir->str_val_].push_back(cur_men_column_str);
+          }
+          if (all_mentioned_column_vec.size() == 0) { // For CREATE VIEW x AS SELECT * FROM v0; 
+            vector<IR*> all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_top_table_name);
+            for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
+              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+              const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
+              for (const string& cur_men_column_str : cur_men_column_vec) {
+                m_tables[ir->str_val_].push_back(cur_men_column_str);
+              }
+            }
+            all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_table_name);
+            for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
+              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+              const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
+              for (const string& cur_men_column_str : cur_men_column_vec) {
+                m_tables[ir->str_val_].push_back(cur_men_column_str);
+              }
+            }
+          }
+
+        }
       }
     }
 
@@ -1481,6 +1518,7 @@ bool Mutator::fix_dependency(IR *root,
           // }
           cerr << "FIX_DEP ERROR: Cannot find matched id_create_table_name for id_top_table_name. ";
           cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          return false;
         }
       }
     }
@@ -1519,7 +1557,8 @@ bool Mutator::fix_dependency(IR *root,
           cerr << "FIX_DEP ERROR: Cannot find id_top_table_name or id_create_table_name for id_table_name ,";
           cerr << ", wnile all the saved tablename_str are: ";
             for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-            cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          return false;
         }
       }
     }
@@ -1609,6 +1648,7 @@ bool Mutator::fix_dependency(IR *root,
             is_fixed = true;
             break;
           } else { // Cannot find matched column for table. 
+            // Error. 
             cerr << "FIX_DEP ERROR: Cannot find matched column for tablename_str: " << tablename_str 
                   << ", wnile all the saved tablename_str are: ";
             for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
