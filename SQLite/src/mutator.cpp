@@ -1450,7 +1450,9 @@ bool Mutator::fix_dependency(IR *root,
           }
           cur_ir = cur_ir->parent_;
         }
-        if (cur_ir ->left_->type_ == kCreateViewStatement) {
+
+        // Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT... statement.  
+        if (ordered_all_subquery_ir.size() > 1 && ordered_ir != ordered_all_subquery_ir[0]) {
           // id_column_name should be in the subqueries and already been resolved. 
           vector<IR*> all_mentioned_column_vec = search_mapped_ir_in_stmt(ir, id_column_name);
           for (IR* cur_men_column_ir : all_mentioned_column_vec) {
@@ -1634,6 +1636,12 @@ bool Mutator::fix_dependency(IR *root,
         bool is_fixed = false;
         while (!is_fixed) {
           string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+          if (
+            p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
+            p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
+          ) {
+            tablename_str = v_table_names[get_rand_int(v_table_names.size())];
+          }
           vector<string> &matched_columnname_vec = m_tables[tablename_str];
           vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
           if (matched_aliasname_vec.size() != 0 && matched_columnname_vec.size() != 0) {

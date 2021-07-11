@@ -729,3 +729,22 @@ IR* IRWrapper::get_alias_iden_from_tablename_iden(IR* tablename_iden){
     }
     return nullptr;
 }
+
+bool IRWrapper::is_has_subqueries (IR* cur_stmt) {
+    vector<IR*> subqueries_ir = this->get_ir_node_in_stmt_with_type(cur_stmt, kSelectStatement, true);
+    if (subqueries_ir.size() == 0) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+IRTYPE IRWrapper::get_cur_stmt_type(IR* cur_ir) {
+    while (cur_ir->parent_ != nullptr) {
+      if (cur_ir->type_ == kStatement) {
+        break;
+      }
+      cur_ir = cur_ir->parent_;
+    }
+    return cur_ir->type_;
+}
