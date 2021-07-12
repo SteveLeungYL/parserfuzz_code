@@ -114,8 +114,13 @@ IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
         return nullptr;
     }
     IR* cur_stmt_list = stmt_list_v[idx];
-    IR* cur_stmt = cur_stmt_list -> right_;
-    return cur_stmt;
+    if (idx == 0) {
+        IR* cur_stmt = cur_stmt_list -> left_ ->left_;
+        return cur_stmt;
+    } else {
+        IR* cur_stmt = cur_stmt_list -> right_ ->left_;
+        return cur_stmt;
+    }
 }
 
 bool IRWrapper::is_ir_before(IR* f, IR* l){
@@ -209,7 +214,7 @@ bool IRWrapper::append_stmt_after_idx(string app_str, int idx, const Mutator& g_
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_;  // Program -> Statementlist -> Statement. 
+    IR* app_IR_node = app_IR_vec.back()->left_->left_;  // Program -> kStatementlist -> kStatement. 
     app_IR_node = app_IR_node->deep_copy();
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
@@ -241,6 +246,8 @@ bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please prov
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
         return false;
     }
+
+    app_IR_node = new IR(kStatement, OP0(), app_IR_node);
 
     if (idx != -1) {
         IR* insert_pos_ir = stmt_list_v[idx];
@@ -339,10 +346,10 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     vector<IR*> stmtlist_vec = this->get_stmtlist_IR_vec(), stmt_vec;
     if (stmtlist_vec.size() == 0) return stmt_vec;
 
-    stmt_vec.push_back(stmtlist_vec[0]->left_);
+    stmt_vec.push_back(stmtlist_vec[0]->left_->left_);
 
     for (int i = 1; i < stmtlist_vec.size(); i++){
-        stmt_vec.push_back(stmtlist_vec[i]->right_);
+        stmt_vec.push_back(stmtlist_vec[i]->right_->left_);
     }
     return stmt_vec;
 }
@@ -398,12 +405,8 @@ bool IRWrapper::remove_components_at_ir(IR* rov_ir) {
 }
 
 vector<IR*> IRWrapper::get_all_ir_node (IR* cur_ir_root) {
-    if (cur_ir_root != nullptr) {
-        this->ir_root = cur_ir_root; 
-        return this->get_all_ir_node();
-    }
-    else {std::cerr << "Error: using empty ir_root from Function get_all_ir_node. \n"; vector<IR*> tmp; return tmp;}
-    
+    this->ir_root = cur_ir_root; 
+    return this->get_all_ir_node();
 }
 
 vector<IR*> IRWrapper::get_all_ir_node() {
