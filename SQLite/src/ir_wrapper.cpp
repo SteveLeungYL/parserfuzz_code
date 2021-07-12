@@ -741,10 +741,20 @@ bool IRWrapper::is_has_subqueries (IR* cur_stmt) {
 
 IRTYPE IRWrapper::get_cur_stmt_type(IR* cur_ir) {
     while (cur_ir->parent_ != nullptr) {
-      if (cur_ir->type_ == kStatement) {
-        break;
-      }
-      cur_ir = cur_ir->parent_;
+        if (cur_ir->type_ == kStatement) {
+            return cur_ir->left_->type_;
+        }
+        if (cur_ir->type_ == kStatementList) {
+            if (cur_ir->right_ == nullptr) {
+                if (cur_ir->left_->type_ == kStatement) {return cur_ir->left_->left_->type_;}
+                else {return cur_ir->left_->type_;}
+            }
+            else {
+                if (cur_ir->right_->type_ == kStatement) {return cur_ir->right_->left_->type_;}
+                else {return cur_ir->right_->type_;}
+            }
+        }
+        cur_ir = cur_ir->parent_;
     }
-    return cur_ir->type_;
+    return kUnknown;
 }
