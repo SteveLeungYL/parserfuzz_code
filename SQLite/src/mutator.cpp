@@ -453,7 +453,7 @@ bool Mutator::validate(IR* cur_trans_stmt) {
 
   if (!fix_dependency(cur_trans_stmt, ordered_all_subquery_ir)) 
   {
-    cerr << "Fix_dependency return errors. " << endl;
+    // cerr << "Fix_dependency return errors. " << endl;
     // return false;
   }
   fix(cur_trans_stmt);
@@ -1503,8 +1503,8 @@ bool Mutator::fix_dependency(IR *root,
 
   /* Loop through the subqueries. From the most parent to the most child. (In the same query statement. )*/
   for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
-    // Debug 
-    cerr << "ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n";
+    // // Debug 
+    // cerr << "ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n";
     
     /* First loop through all ir_to_fix, resolve all id_create_table_name and id_table_alias_name. */
     for (auto ir : ordered_ir) {
@@ -1603,8 +1603,8 @@ bool Mutator::fix_dependency(IR *root,
           //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           //   visited.insert(alias_ir);
           // }
-          cerr << "FIX_DEP ERROR: Cannot find matched id_create_table_name for id_top_table_name. ";
-          cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          // cerr << "FIX_DEP ERROR: Cannot find matched id_create_table_name for id_top_table_name. ";
+          // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
           return false;
         }
       }
@@ -1641,10 +1641,10 @@ bool Mutator::fix_dependency(IR *root,
           //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           //   visited.insert(alias_ir);
           // }
-          cerr << "FIX_DEP ERROR: Cannot find id_top_table_name or id_create_table_name for id_table_name ,";
-          cerr << ", wnile all the saved tablename_str are: ";
-            for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-          cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          // cerr << "FIX_DEP ERROR: Cannot find id_top_table_name or id_create_table_name for id_table_name ,";
+          // cerr << ", wnile all the saved tablename_str are: ";
+          //   for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
+          // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
           return false;
         }
       }
@@ -1657,8 +1657,8 @@ bool Mutator::fix_dependency(IR *root,
       // There is only one case of id_create_index_name, that is in the CREATE INDEX statement. 
       if (ir->id_type_ == id_create_index_name) {
         if (v_table_names.size() == 0) {
-          cerr << "FIX_DEP ERROR: When fixing id_create_index_name, we found v_table_names.size(): " << v_table_names.size() 
-          << ". Func: Mutator:: Mutator::fix_dependency(); \n";
+          // cerr << "FIX_DEP ERROR: When fixing id_create_index_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". Func: Mutator:: Mutator::fix_dependency(); \n";
           return false;
         }
         /* identifier -> kIndexName -> kUnknown (kCreateIndexStatement) -> kUnknown (kCreateIndexStatement) -> kTableName  */
@@ -1678,8 +1678,8 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_create_column_name) {
         if (v_table_names.size() == 0) {
-          cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found v_table_names.size(): " << v_table_names.size() 
-          << ". Func: Mutator:: Mutator::fix_dependency(); \n";
+          // cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". Func: Mutator:: Mutator::fix_dependency(); \n";
           return false;
         }
 
@@ -1704,17 +1704,17 @@ bool Mutator::fix_dependency(IR *root,
         ir->str_val_ = new_columnname_str;
         m_tables[tablename_str].push_back(new_columnname_str);
 
-        // Debug: 
-        cerr << "In func: Mutator::fix_dependency(), id_create_column_name, append to m_tables with tablename_str: "
-             << tablename_str << ", new_columnname_str: " << new_columnname_str << ". While the v_table is: ";
-        for (string& saved_tablename_str : v_table_names) {
-          cerr << saved_tablename_str << "  ";
-        }
-        cerr << "; v_table_singel_stmt is: ";
-        for (string& saved_tablename_str : v_table_names_single) {
-          cerr << saved_tablename_str << "  ";
-        }
-        cerr << "\n\n\n";
+        // // Debug: 
+        // cerr << "In func: Mutator::fix_dependency(), id_create_column_name, append to m_tables with tablename_str: "
+        //      << tablename_str << ", new_columnname_str: " << new_columnname_str << ". While the v_table is: ";
+        // for (string& saved_tablename_str : v_table_names) {
+        //   cerr << saved_tablename_str << "  ";
+        // }
+        // cerr << "; v_table_singel_stmt is: ";
+        // for (string& saved_tablename_str : v_table_names_single) {
+        //   cerr << saved_tablename_str << "  ";
+        // }
+        // cerr << "\n\n\n";
 
         visited.insert(ir);
       }
@@ -1726,8 +1726,8 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_column_name) {
         if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          cerr << "FIX_DEP ERROR: When fixing id_column_name, we found v_table_names.size(): " << v_table_names.size() 
-          << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
+          // cerr << "FIX_DEP ERROR: When fixing id_column_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
           return false;
         }
         bool is_fixed = false;
@@ -1756,17 +1756,17 @@ bool Mutator::fix_dependency(IR *root,
             break;
           } else { // Cannot find matched column for table. 
             // Error. 
-            cerr << "FIX_DEP ERROR: Cannot find matched column for tablename_str: " << tablename_str 
-                  << ", wnile all the saved tablename_str are: ";
-            for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-            cerr << ", in func: Mutator::fix_dependency(). Next, map. "<< endl;
-            for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
-              cerr << "Saving maps for m_table, tablename: " << iter->first << ", column_name: ";
-              for (auto c_name : iter->second) {
-                cerr << c_name << " ";
-              }
-              cerr << "\n\n\n";
-            }
+            // cerr << "FIX_DEP ERROR: Cannot find matched column for tablename_str: " << tablename_str 
+            //       << ", wnile all the saved tablename_str are: ";
+            // for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
+            // cerr << ", in func: Mutator::fix_dependency(). Next, map. "<< endl;
+            // for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+            //   cerr << "Saving maps for m_table, tablename: " << iter->first << ", column_name: ";
+            //   for (auto c_name : iter->second) {
+            //     cerr << c_name << " ";
+            //   }
+            //   cerr << "\n\n\n";
+            // }
             return false;
           }
         }
@@ -1774,8 +1774,8 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_index_name) {
         if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          cerr << "FIX_DEP ERROR: When fixing id_index_name, we found v_table_names.size(): " << v_table_names.size() 
-          << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
+          // cerr << "FIX_DEP ERROR: When fixing id_index_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
           return false;
         }
         bool is_fixed = false;
@@ -1797,10 +1797,10 @@ bool Mutator::fix_dependency(IR *root,
             is_fixed = true;
             break;
           } else { // Cannot find matched index for table. 
-            cerr << "FIX_DEP ERROR: Cannot find matched index for tablename_str: " << tablename_str 
-                  << ", wnile all the saved tablename_str are: ";
-            for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-            cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+            // cerr << "FIX_DEP ERROR: Cannot find matched index for tablename_str: " << tablename_str 
+            //       << ", wnile all the saved tablename_str are: ";
+            // for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
+            // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
             return false;
           }
         }

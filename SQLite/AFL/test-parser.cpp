@@ -52,7 +52,7 @@ bool test_parse(string &query) {
 
   IR *root = v_ir.back();
 
-  // mutator.debug(root, 0);
+  mutator.debug(root, 0);
 
   string tostring = root->to_string();
   if (tostring.size() <= 0) {
