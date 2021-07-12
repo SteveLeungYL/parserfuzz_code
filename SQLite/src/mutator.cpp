@@ -86,7 +86,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
   set<unsigned long> res_hash;
   IR *root = v_ir_collector[v_ir_collector.size() - 1];
 
-  p_oracle->mark_all_valid_node(v_ir_collector);
+  // p_oracle->mark_all_valid_node(v_ir_collector);
 
   for (auto old_ir : v_ir_collector) {
 
@@ -1917,8 +1917,8 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
   // RNAME columns
   if (op_->middle_ == "TO") {
     IR* tablename_ir = cur_ir->left_->left_->left_;
-    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_->right_;}
-    else {tablename_ir = cur_ir->right_->left_;}
+    if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
+    else {tablename_ir = cur_ir->left_;}
     string tablename_str = tablename_ir->str_val_;
 
     IR* columnname_to_ir = cur_ir->right_;
@@ -1943,8 +1943,8 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
   // ADD columns. 
   if (op_->middle_ == "ADD") {
     IR* tablename_ir = cur_ir->left_;
-    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_->right_;}
-    else {tablename_ir = cur_ir->right_->left_;}
+    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_;}
+    else {tablename_ir = cur_ir->left_;}
     string tablename_str = tablename_ir->str_val_;
 
     IR* columnname_ir = cur_ir->get_parent()->right_->left_->left_;
@@ -1958,8 +1958,8 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
   // DROP columns. 
   if (op_->middle_ == "DROP") {
     IR* tablename_ir = cur_ir->left_;
-    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_->right_;}
-    else {tablename_ir = cur_ir->right_->left_;}
+    if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
+    else {tablename_ir = cur_ir->left_;}
     string tablename_str = tablename_ir->str_val_;
 
     IR* columnname_ir = cur_ir->get_parent()->right_;
