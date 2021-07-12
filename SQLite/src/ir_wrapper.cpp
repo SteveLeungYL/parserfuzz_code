@@ -183,6 +183,11 @@ int IRWrapper::get_stmt_num(){
     return this->get_stmtlist_IR_vec().size();
 }
 
+int IRWrapper::get_stmt_num(IR* cur_root) {
+    this->set_ir_root(cur_root);
+    return this->get_stmt_num();
+}
+
 vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
     IR* stmt_IR_p = this->ir_root->left_;
     vector<IR*> stmt_list_v_rev, stmt_list_v;
@@ -320,6 +325,11 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
         return false;
     }
 
+    if (stmt_list_v.size() == 1) {
+        std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+        return false;
+    }
+
     IR* rov_stmt = stmt_list_v[idx];
 
     // For removing idx 0, we need to rewrite idx 1 to fit in the specific format of statementlist idx 0. 
@@ -346,10 +356,10 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     vector<IR*> stmtlist_vec = this->get_stmtlist_IR_vec(), stmt_vec;
     if (stmtlist_vec.size() == 0) return stmt_vec;
 
-    stmt_vec.push_back(stmtlist_vec[0]->left_->left_);
+    stmt_vec.push_back(stmtlist_vec[0]->left_->left_); // kStatementlist -> kStatement -> specific_statement_type
 
     for (int i = 1; i < stmtlist_vec.size(); i++){
-        stmt_vec.push_back(stmtlist_vec[i]->right_->left_);
+        stmt_vec.push_back(stmtlist_vec[i]->right_->left_); // kStatementlist -> kStatement -> specific_statement_type
     }
     return stmt_vec;
 }

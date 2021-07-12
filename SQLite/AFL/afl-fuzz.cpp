@@ -6023,11 +6023,15 @@ static u8 fuzz_one(char **argv) {
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
 
+  // cerr << "Before parsing, the imported input is: \n" << input << "\n\n\n";
+
   ir_set = g_mutator.parse_query_str_get_ir_set(input);
   if (ir_set.size() == 0) {
     total_input_failed++;
     goto abandon_entry;
   }
+
+  // cerr << "After parsing, the imported input is: \n" << ir_set.back()->to_string() << "\n\n\n";
 
   IR* cur_ir_root;
   cur_ir_root = ir_set.back();
@@ -6047,6 +6051,8 @@ static u8 fuzz_one(char **argv) {
   if (p_oracle->is_remove_all_select_stmt_at_start())
     {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
 
+  // cerr << "After removing oracle and select statement: \n" <<  cur_ir_root->to_string() << "\n\n\n";
+
   // unsigned long prev_hash, current_hash;
   // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
   // current_hash = 0;
@@ -6064,7 +6070,7 @@ static u8 fuzz_one(char **argv) {
     p_oracle->ir_wrapper.append_stmt_at_end(cur_app_stmt);
   }
 
-  // cerr << "Just after rand_app: we have: \n" << cur_ir_root->to_string() << endl;
+  // cerr << "Just after random append statements, the statement is: \n" << cur_ir_root->to_string() << "\n\n\n";
 
   ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_ir_root);
 
@@ -6074,6 +6080,10 @@ static u8 fuzz_one(char **argv) {
     ir_set.back()->deep_drop();
     goto abandon_entry;
   }
+
+  // for (auto mutated_str : mutated_tree) {
+  //   cerr << "After mutate_all, the generated str: " << *mutated_str << "\n\n\n";
+  // }
 
   ir_set.back()->deep_drop();
   show_stats();
@@ -6110,6 +6120,8 @@ static u8 fuzz_one(char **argv) {
       skip_count++;
       continue;
     }
+
+    // cerr << "Just after mutate_all and then re-parsing, the statement is: \n" << cur_ir_tree.back()->to_string() << endl;
 
     for (IR* app_IR_node : ori_valid_stmts) {
         p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
@@ -6162,7 +6174,7 @@ static u8 fuzz_one(char **argv) {
     }
 
     // for (auto query_str : query_str_vec) {
-    //   cerr << "Query str: " << query_str << endl;
+    //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
     // }
     // cerr << "End\n\n\n";
 

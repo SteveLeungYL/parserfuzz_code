@@ -36,6 +36,7 @@ public:
 
   vector<string *> mutate_all(vector<IR *> &v_ir_collector);
 
+  vector<IR *> mutate_stmtlist(IR *input) ;
   vector<IR *> mutate(IR *input);
   IR *strategy_delete(IR *cur);
   IR *strategy_insert(IR *cur);

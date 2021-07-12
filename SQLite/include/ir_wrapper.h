@@ -46,6 +46,7 @@ public:
 
     vector<IRTYPE> get_all_ir_type();
     int get_stmt_num();
+    int get_stmt_num(IR* cur_root);
     int get_stmt_idx(IR*);
 
     vector<IR*> get_stmt_ir_vec();

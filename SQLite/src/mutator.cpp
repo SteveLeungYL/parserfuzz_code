@@ -91,39 +91,70 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
   for (auto old_ir : v_ir_collector) {
 
     if (old_ir == root || old_ir->type_ == kProgram ||
-        old_ir->is_node_struct_fixed)
+        old_ir->is_node_struct_fixed || old_ir->type_ == kStatement)
       continue;
 
-    // cerr << "\n\n\nLooking at ir node: " << ir->to_string() << endl;
-    vector<IR *> v_mutated_ir = mutate(old_ir);
+    vector<IR*> v_mutated_ir;
+    
+    if (old_ir->type_ == kStatementList) {
+      // In 1/5 of chances, mutate on kStatementList. 
+      // if (get_rand_int(5) < 4) {continue;}
+      v_mutated_ir = mutate_stmtlist(root); // They are all root(kProgram)!!!
 
-    for (auto new_ir : v_mutated_ir) {
+      for (IR* mutated_ir : v_mutated_ir) {
 
-      if (!root->swap_node(old_ir, new_ir)) {
-        new_ir->deep_drop();
-        continue;
+        string tmp = mutated_ir->to_string();
+
+        unsigned tmp_hash = hash(tmp);
+        if (res_hash.find(tmp_hash) != res_hash.end()) {
+          mutated_ir->deep_drop();
+          continue;
+        }
+
+        // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << tmp << "\n\n\n";
+
+        string *new_str = new string(tmp);
+        res_hash.insert(tmp_hash);
+        res.push_back(new_str);
+
       }
 
-      if (!check_node_num(root, 300)) {
+    } else {
+      v_mutated_ir = mutate(old_ir);
+
+      for (auto new_ir : v_mutated_ir) {
+
+        if (!root->swap_node(old_ir, new_ir)) {
+          new_ir->deep_drop();
+          continue;
+        }
+
+        if (!check_node_num(root, 300)) {
+          root->swap_node(new_ir, old_ir);
+          new_ir->deep_drop();
+          continue;
+        }
+
+        string tmp = root->to_string();
+        unsigned tmp_hash = hash(tmp);
+        if (res_hash.find(tmp_hash) != res_hash.end()) {
+          root->swap_node(new_ir, old_ir);
+          new_ir->deep_drop();
+          continue;
+        }
+
+        // cerr << "Currently mutating (non-stmtlist) on old_ir: " << old_ir->to_string() << " type: " << get_string_by_ir_type(old_ir->type_) << endl;
+        // cerr << "new_ir: " << new_ir->to_string() << "type: " << get_string_by_ir_type(new_ir->type_) << "\n";
+        // cerr << "After mutate_all, the generated str: " << tmp << "\n\n\n";
+
+
+        string *new_str = new string(tmp);
+        res_hash.insert(tmp_hash);
+        res.push_back(new_str);
+
         root->swap_node(new_ir, old_ir);
         new_ir->deep_drop();
-        continue;
       }
-
-      string tmp = root->to_string();
-      unsigned tmp_hash = hash(tmp);
-      if (res_hash.find(tmp_hash) != res_hash.end()) {
-        root->swap_node(new_ir, old_ir);
-        new_ir->deep_drop();
-        continue;
-      }
-
-      string *new_str = new string(tmp);
-      res_hash.insert(tmp_hash);
-      res.push_back(new_str);
-
-      root->swap_node(new_ir, old_ir);
-      new_ir->deep_drop();
     }
   }
 
@@ -259,6 +290,56 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   relationmap_alternate[id_create_column_name] = id_top_table_name;
   relationmap_alternate[id_create_index_name] = id_top_table_name;
   return;
+}
+
+vector<IR *> Mutator::mutate_stmtlist(IR *root) {
+  IR* cur_root = nullptr;
+  vector<IR *> res_vec;
+
+  if (root == nullptr) {return res_vec;}
+
+  // For strategy_delete
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  int rov_idx = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
+  p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
+  res_vec.push_back(cur_root);
+
+  // For strategy_replace
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  vector<IR*> ori_stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
+
+  IR* new_stmt_ir = get_from_libary_with_type(kStatement);
+  if (new_stmt_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  new_stmt_ir = new_stmt_ir->left_;  // kStatement -> specific_stmt_type
+
+  p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir);
+  res_vec.push_back(cur_root);
+
+  // For strategy_insert
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
+  new_stmt_ir = get_from_libary_with_type(kStatement);
+  if (new_stmt_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  new_stmt_ir = new_stmt_ir->left_;  // kStatement -> specific_stmt_type
+
+  p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos);
+  res_vec.push_back(cur_root);
+
+  return res_vec;
+
 }
 
 vector<IR *> Mutator::mutate(IR *input) {
