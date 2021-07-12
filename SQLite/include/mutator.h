@@ -126,6 +126,9 @@ public:
     this->disable_coverage_feedback = f;
   }
 
+  void resolve_drop_statement(IR*);
+  void resolve_alter_statement(IR*);
+
 private:
   void add_to_valid_lib(IR *, string &, const bool);
   void add_to_library(IR *, string &);

@@ -369,6 +369,9 @@ bool Mutator::validate(IR* cur_trans_stmt) {
     // return false;
   }
   fix(cur_trans_stmt);
+
+  this->resolve_drop_statement(cur_trans_stmt);
+  this->resolve_alter_statement(cur_trans_stmt);
   
   return true;
 }
@@ -443,9 +446,9 @@ static void collect_ir(IR *root, set<IDTYPE> &type_to_fix,
 static vector<IR*> search_mapped_ir_in_stmt(IR *ir, IDTYPE idtype) {
   // Find the root for the current statement. 
   while (ir->parent_ != nullptr) {
-    if (ir->type_ == kStatement || 
+    if (ir->type_ == kStatement
     // ir->type_ == kSelectCore || 
-    ir->id_type_ == idtype
+    // ir->id_type_ == idtype
     ) {
       break;
     }
@@ -1846,6 +1849,133 @@ void Mutator::_fix(IR *root, string &res) {
 
   return;
 }
+
+void Mutator::resolve_drop_statement(IR* cur_trans_stmt){
+  IRTYPE stmt_type = this->p_oracle->ir_wrapper.get_cur_stmt_type(cur_trans_stmt);
+  if (stmt_type == kDropTableStatement || stmt_type == kDropViewStatement) {
+    vector<IR*> drop_tablename_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_table_name);
+    for (IR* drop_table_ir : drop_tablename_vec) {
+      string drop_table_str = drop_table_ir->str_val_;
+      m_tables.erase(drop_table_str);
+      m_table2index.erase(drop_table_str);
+      v_table_names.erase(std::remove(v_table_names.begin(), v_table_names.end(), drop_table_str), v_table_names.end());
+    }
+  }
+  else if (stmt_type == kDropIndexStatement) {
+    vector<IR*> drop_indexname_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_index_name);
+    for (IR* drop_indexname_ir : drop_indexname_vec) {
+      string drop_indexname_str = drop_indexname_ir->str_val_;
+      for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
+        vector<string>& table2index_vec = iter->second;
+        table2index_vec.erase(std::remove(table2index_vec.begin(), table2index_vec.end(), drop_indexname_str), table2index_vec.end());
+      }
+    }
+  }
+}
+
+void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
+  if (cur_trans_stmt->type_ != kAlterStatement) {return;}
+
+  IR* cur_ir = cur_trans_stmt;
+  while (!(cur_ir->op_ != nullptr && cur_ir->op_->middle_ != "")) {
+    cur_ir = cur_ir->left_;
+  }
+  IROperator* op_ = cur_ir->op_;
+
+  // RENAME tables. 
+  if (op_->middle_ == "RENAME TO"){
+    IR* tablename_from_ir;
+    if (cur_ir->left_->right_ != nullptr) {tablename_from_ir = cur_ir->left_->right_;}
+    else {tablename_from_ir = cur_ir->left_->left_;}
+    string tablename_from_str = tablename_from_ir->str_val_;
+
+    IR* tablename_to_ir;
+    if (cur_ir->right_->right_ != nullptr) {tablename_to_ir = cur_ir->right_->right_;}
+    else {tablename_from_ir = cur_ir->right_->left_;}
+    string tablename_to_str = tablename_from_ir->str_val_;
+
+    for (string& saved_tablename : v_table_names) {
+      if (saved_tablename == tablename_from_str) {saved_tablename = tablename_to_str;}
+    }
+    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+      if (iter->first == tablename_from_str) {
+        m_tables[tablename_to_str] = iter->second;
+        m_tables.erase(tablename_from_str);
+        break;
+      }
+    }
+    for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
+      if (iter->first == tablename_from_str) {
+        m_table2index[tablename_to_str] = iter->second;
+        m_table2index.erase(tablename_from_str);
+        break;
+      }
+    }
+    return;
+  }
+
+  // RNAME columns
+  if (op_->middle_ == "TO") {
+    IR* tablename_ir = cur_ir->left_->left_->left_;
+    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_->right_;}
+    else {tablename_ir = cur_ir->right_->left_;}
+    string tablename_str = tablename_ir->str_val_;
+
+    IR* columnname_to_ir = cur_ir->right_;
+    if (columnname_to_ir->right_ != nullptr || columnname_to_ir->str_val_ == "*" || columnname_to_ir->left_ == nullptr) {return;}  // Semantic error
+    string columnname_to_str = columnname_to_ir->left_->str_val_;
+
+    IR* columnname_from_ir = cur_ir->left_->right_;
+    if (columnname_from_ir->right_ != nullptr || columnname_from_ir->str_val_ == "*" || columnname_from_ir->left_ == nullptr) {return;}  // Semantic error
+    string columnname_from_str = columnname_from_ir->left_->str_val_;
+
+    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+      vector<string>& table2column_vec = iter->second;
+      for (string& cur_column_str : table2column_vec) {
+        if (cur_column_str == columnname_from_str) {
+          cur_column_str = columnname_to_str;
+        }
+      }
+    }
+    return;
+  }
+  
+  // ADD columns. 
+  if (op_->middle_ == "ADD") {
+    IR* tablename_ir = cur_ir->left_;
+    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_->right_;}
+    else {tablename_ir = cur_ir->right_->left_;}
+    string tablename_str = tablename_ir->str_val_;
+
+    IR* columnname_ir = cur_ir->get_parent()->right_->left_->left_;
+    string columnname_str = columnname_ir->str_val_;
+
+    m_tables[tablename_str].push_back(columnname_str);
+
+    return;
+  }
+
+  // DROP columns. 
+  if (op_->middle_ == "DROP") {
+    IR* tablename_ir = cur_ir->left_;
+    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_->right_;}
+    else {tablename_ir = cur_ir->right_->left_;}
+    string tablename_str = tablename_ir->str_val_;
+
+    IR* columnname_ir = cur_ir->get_parent()->right_;
+    if (columnname_ir->right_ != nullptr || columnname_ir->str_val_ == "*" || columnname_ir->left_ == nullptr) {return;}  // Semantic error
+    string columnname_from_str = columnname_ir->left_->str_val_;
+    string columnname_str = columnname_ir->str_val_;
+
+    vector<string>& table2column_vec = m_tables[tablename_str];
+    table2column_vec.erase(std::remove(table2column_vec.begin(), table2column_vec.end(), columnname_str), table2column_vec.end());
+
+    return;
+  }
+  return;
+
+}
+
 
 unsigned int Mutator::calc_node(IR *root) {
   unsigned int res = 0;
