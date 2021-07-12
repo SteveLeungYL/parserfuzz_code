@@ -77,6 +77,7 @@ bool test_parse(string &query) {
 
   mutator.pre_validate(); // Reset global variables for query sequence. 
 
+  p_oracle->init_ir_wrapper(cur_root);
   vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
   for (IR* cur_trans_stmt : all_stmt_vec) {
@@ -119,6 +120,8 @@ int main(int argc, char *argv[]) {
   string input(argv[1]);
   ifstream input_test(input);
   string line;
+
+  p_oracle = new SQL_NOREC();
 
   mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&mutator);
