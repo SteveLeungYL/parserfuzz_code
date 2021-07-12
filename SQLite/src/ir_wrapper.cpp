@@ -184,6 +184,10 @@ int IRWrapper::get_stmt_num(){
 }
 
 int IRWrapper::get_stmt_num(IR* cur_root) {
+    if (cur_root->type_ != kProgram) {
+        cerr << "Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n";
+        FATAL("Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n");
+    }
     this->set_ir_root(cur_root);
     return this->get_stmt_num();
 }
@@ -358,9 +362,17 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
 
     stmt_vec.push_back(stmtlist_vec[0]->left_->left_); // kStatementlist -> kStatement -> specific_statement_type
 
-    for (int i = 1; i < stmtlist_vec.size(); i++){
-        stmt_vec.push_back(stmtlist_vec[i]->right_->left_); // kStatementlist -> kStatement -> specific_statement_type
+    if (stmtlist_vec.size() > 1) {
+        for (int i = 1; i < stmtlist_vec.size(); i++){
+            stmt_vec.push_back(stmtlist_vec[i]->right_->left_); // kStatementlist -> kStatement -> specific_statement_type
+        }
     }
+    
+    // // DEBUG
+    // for (auto stmt : stmt_vec) {
+    //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
+    // }
+
     return stmt_vec;
 }
 

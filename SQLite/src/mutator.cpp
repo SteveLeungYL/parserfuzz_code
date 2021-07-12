@@ -377,6 +377,9 @@ vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_v
   vector<IR*> all_trans_vec;
   vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
+  // cerr << "In func: Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec), we have all_statements_vec size(): "
+  //     << all_statements_vec.size() << "\n\n\n";
+
   for (IR* cur_stmt : all_statements_vec) {
     /* Identify oracle related statements. Ready for transformation. */
     bool is_oracle_select = false, is_oracle_normal = false;
@@ -444,6 +447,10 @@ bool Mutator::validate(IR* cur_trans_stmt) {
   vector<vector<IR*>> ordered_all_subquery_ir;
 
   fix_preprocessing(cur_trans_stmt, relationmap, ordered_all_subquery_ir);
+  
+  // Debug
+  // cerr << "After Mutator::fix_preprocessing, we have ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n\n\n";
+
   if (!fix_dependency(cur_trans_stmt, ordered_all_subquery_ir)) 
   {
     cerr << "Fix_dependency return errors. " << endl;
@@ -526,17 +533,15 @@ static void collect_ir(IR *root, set<IDTYPE> &type_to_fix,
 
 static vector<IR*> search_mapped_ir_in_stmt(IR *ir, IDTYPE idtype) {
   // Find the root for the current statement. 
-  while (ir->parent_ != nullptr) {
-    if (ir->type_ == kStatement
-    // ir->type_ == kSelectCore || 
-    // ir->id_type_ == idtype
-    ) {
+  IR* cur_ir = ir;
+  while (cur_ir->parent_ != nullptr) {
+    if (cur_ir->type_ == kStatement) {
       break;
     }
-    ir = ir->parent_;
+    cur_ir = cur_ir->parent_;
   }
 
-  deque<IR *> to_search = {ir};
+  deque<IR *> to_search = {cur_ir};
   vector<IR* > res;
 
   while (to_search.empty() != true) {
@@ -544,8 +549,8 @@ static vector<IR*> search_mapped_ir_in_stmt(IR *ir, IDTYPE idtype) {
     to_search.pop_front();
 
     if (node->id_type_ == idtype)
-      res.push_back(node);
-    ;
+      {res.push_back(node);}
+    
     if (node->left_)
       to_search.push_back(node->left_);
     if (node->right_)
@@ -640,25 +645,16 @@ vector<IR *> Mutator::extract_statement(IR *root) {
 // find all SelectCore subtree, and save them in the returned vector
 // save the mapping from the subtree address to subtree into 2nd arg
 //
-vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
+vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
 
   vector<IR *> res;
-  vector<IR *> v_statements;
-  deque<IR *> dfs = {program};
+  vector<IR *> v_statements{cur_stmt};
 
-  while (dfs.empty() != true) {
-    auto node = dfs.front();
-    dfs.pop_front();
+  // Debug
+  // cerr << "In func: Mutator::cut_subquery, we have current v_statements: " << v_statements[0]->to_string() << "\n";
+  // cerr << "In func: Mutator::cut_subquery, after getting and reverse v_statements, we get v_statements.size(): "
+  //      << v_statements.size() << "\n";
 
-    if (node->type_ == kStatement)
-      v_statements.push_back(node);
-    if (node->left_)
-      dfs.push_back(node->left_);
-    if (node->right_)
-      dfs.push_back(node->right_);
-  }
-
-  reverse(v_statements.begin(), v_statements.end());
   for (auto &stmt : v_statements) {
     deque<IR *> q_bfs = {stmt};
     res.push_back(stmt);
@@ -669,7 +665,7 @@ vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
 
       if (cur->left_) {
         q_bfs.push_back(cur->left_);
-        if (cur->left_->type_ == kSelectCore) {
+        if (cur->left_->type_ == kSelectStatement) {
           res.push_back(cur->left_);
           m_save[cur] = make_pair(0, cur->left_);
           cur->detach_node(cur->left_);
@@ -678,7 +674,7 @@ vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
 
       if (cur->right_) {
         q_bfs.push_back(cur->right_);
-        if (cur->right_->type_ == kSelectCore) {
+        if (cur->right_->type_ == kSelectStatement) {
           res.push_back(cur->right_);
           m_save[cur] = make_pair(1, cur->right_);
           cur->detach_node(cur->right_);
@@ -734,10 +730,12 @@ Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
   /* 
-  ** The original order of the subqueries are from inner statement to outer statement. 
+  ** The original order of the subqueries are from outer statement to inner statement. 
   ** We change the order so it should be from parent to child subqueries. 
   */
-  reverse(subqueries.begin(), subqueries.end()); 
+  // reverse(subqueries.begin(), subqueries.end()); 
+
+  // cerr << "In Mutator::fix_preprocessing, we have subqueries.size(): " << subqueries.size() << "\n";
 
   for (IR *subquery : subqueries) {
     vector<IR *> ir_to_fix;
@@ -1505,6 +1503,8 @@ bool Mutator::fix_dependency(IR *root,
 
   /* Loop through the subqueries. From the most parent to the most child. (In the same query statement. )*/
   for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
+    // Debug 
+    cerr << "ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n";
     
     /* First loop through all ir_to_fix, resolve all id_create_table_name and id_table_alias_name. */
     for (auto ir : ordered_ir) {
@@ -1564,7 +1564,6 @@ bool Mutator::fix_dependency(IR *root,
               }
             }
           }
-
         }
       }
     }
@@ -1684,30 +1683,44 @@ bool Mutator::fix_dependency(IR *root,
           return false;
         }
 
-        // Find THE table name to attach to. 
-        vector<IR*> tablename_vec = search_mapped_ir_in_stmt(ir, id_create_table_name);
-        if (tablename_vec.size() == 0) {
-          tablename_vec = search_mapped_ir_in_stmt(ir, id_top_table_name);
-          if (tablename_vec.size() == 0) {
-            tablename_vec = search_mapped_ir_in_stmt(ir, id_table_name);
-            if (tablename_vec.size() == 0) {
-              cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found tablename_vec is empty. Func: Mutator::     Mutator::fix_dependency(); \n";
-              return false;
-            }
-          }
-        }
-        IR* tablename_ir = tablename_vec[get_rand_int(tablename_vec.size())];
+        // // // Find THE table name to attach to. 
+        // vector<IR*> tablename_vec = search_mapped_ir_in_stmt(ir, id_create_table_name);
+        // if (tablename_vec.size() == 0) {
+        //   tablename_vec = search_mapped_ir_in_stmt(ir, id_top_table_name);
+        //   if (tablename_vec.size() == 0) {
+        //     tablename_vec = search_mapped_ir_in_stmt(ir, id_table_name);
+        //     if (tablename_vec.size() == 0) {
+        //       cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found tablename_vec is empty. Func: Mutator::     Mutator::fix_dependency(); \n";
+        //       return false;
+        //     }
+        //   }
+        // }
+        // IR* tablename_ir = tablename_vec[get_rand_int(tablename_vec.size())];
 
         // Fix the IR. 
-        string tablename_str = tablename_ir->str_val_;
+        // string tablename_str = tablename_ir->str_val_;
+        string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
         string new_columnname_str = gen_column_name();
         ir->str_val_ = new_columnname_str;
         m_tables[tablename_str].push_back(new_columnname_str);
+
+        // Debug: 
+        cerr << "In func: Mutator::fix_dependency(), id_create_column_name, append to m_tables with tablename_str: "
+             << tablename_str << ", new_columnname_str: " << new_columnname_str << ". While the v_table is: ";
+        for (string& saved_tablename_str : v_table_names) {
+          cerr << saved_tablename_str << "  ";
+        }
+        cerr << "; v_table_singel_stmt is: ";
+        for (string& saved_tablename_str : v_table_names_single) {
+          cerr << saved_tablename_str << "  ";
+        }
+        cerr << "\n\n\n";
+
         visited.insert(ir);
       }
     }
 
-    /* Fifth loop, resolve id_column_name, id_index_name, , id_pragma_value. */
+    /* Fifth loop, resolve id_column_name, id_index_name, id_pragma_value. */
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
@@ -1746,7 +1759,14 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "FIX_DEP ERROR: Cannot find matched column for tablename_str: " << tablename_str 
                   << ", wnile all the saved tablename_str are: ";
             for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-            cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+            cerr << ", in func: Mutator::fix_dependency(). Next, map. "<< endl;
+            for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+              cerr << "Saving maps for m_table, tablename: " << iter->first << ", column_name: ";
+              for (auto c_name : iter->second) {
+                cerr << c_name << " ";
+              }
+              cerr << "\n\n\n";
+            }
             return false;
           }
         }
