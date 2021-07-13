@@ -26,9 +26,17 @@ class OracleQueryGroup(object):
 
 
 class MinimizeTarget(object):
-    def __init__(self, database_query: str, oracle_queries: OracleQueryGroup):
+    def __init__(
+        self,
+        database_query: str,
+        oracle_queries: OracleQueryGroup,
+        buggy_commit="",
+        correct_commit="",
+    ):
         self.database_query = database_query
         self.oracle_queries = oracle_queries
+        self.buggy_commit = buggy_commit
+        self.correct_commit = correct_commit
 
     @property
     def first_oracle(self):
@@ -65,8 +73,19 @@ class MinimizeTarget(object):
             "second_result": self.second_result,
             "first_oracle": self.first_oracle,
             "second_oracle": self.second_oracle,
+            "buggy_commit": self.buggy_commit,
+            "correct_commit": self.correct_commit,
         }
         return json.dumps(obj, indent=2)
+
+
+def substr(string, start, stop=""):
+    if not stop:
+        result = string[string.find(start) + len(start) :]
+    else:
+        result = string[string.find(start) + len(start) : string.find(stop)]
+
+    return result.strip()
 
 
 @click.command()
@@ -89,7 +108,12 @@ def parse(report, output):
     complete_query = complete_query.strip()
 
     database_query = complete_query[: complete_query.find("SELECT 'BEGIN VERI 0';")]
-    database_query = "\n".join(query.strip() for query in database_query.splitlines())
+    database_query = [
+        query.strip()
+        for query in database_query.splitlines()
+        if not query.strip().upper().startswith("SELECT")
+    ]
+    database_query = "\n".join(database_query).strip()
 
     oracle_query_group = complete_query[complete_query.find("SELECT 'BEGIN VERI 0';") :]
     oracle_query_group = oracle_query_group.splitlines()
@@ -154,5 +178,81 @@ def parse(report, output):
     print("Total {} oracle queries.".format(len(minimize_targets)))
 
 
+@click.command()
+@click.argument("report", type=click.Path(exists=True))
+@click.option(
+    "-o",
+    "--output",
+    help="output path of generated json file.",
+    type=click.Path(),
+)
+def parse_unique(report, output):
+
+    with open(report) as f:
+        contents = f.read()
+
+    database_query = substr(contents, "Query 0:", 'SELECT "--------- 1')
+    database_query = [
+        line.strip()
+        for line in database_query.splitlines()
+        if not line.strip().upper().startswith("SELECT")
+    ]
+    database_query = "\n".join(database_query).strip()
+
+    print("database query: ")
+    print(database_query)
+
+    oracle_query = substr(contents, 'SELECT "--------- 1', "Last Buggy Result Num")
+
+    oracle_queries = oracle_query.split(";")
+    first_oracle = oracle_queries[0].strip() + ";"
+    second_oracle = oracle_queries[1].strip() + ";"
+    print("oracle query:")
+    print(first_oracle)
+    print(second_oracle)
+
+    first_result = substr(contents, "RES 0:", "RES 1:")
+    second_result = substr(contents, "RES 1:", "First buggy commit")
+    print("oracle query result:")
+    print(first_result, second_result)
+
+    buggy_commit = substr(contents, "First buggy commit ID:", "First correct")
+    correct_commit = substr(contents, "First correct (or crashing) commit ID:")
+
+    print("commit:")
+    print(buggy_commit)
+    print(correct_commit)
+
+    print()
+
+    target = {
+        "database_query": database_query,
+        "first_result": first_result,
+        "second_result": second_result,
+        "first_oracle": first_oracle,
+        "second_oracle": second_oracle,
+        "buggy_commit": buggy_commit,
+        "correct_commit": correct_commit,
+    }
+
+    output = output or Path(report).with_suffix(".json")
+    with open(output, "w") as f:
+        json.dump(target, f, indent=2, sort_keys=True)
+
+
+@click.command()
+@click.argument("folder", type=click.Path(exists=True))
+@click.pass_context
+def parse_unique_folder(ctx, folder):
+    folder = Path(folder)
+    for bug_file in folder.rglob("*"):
+        if ".json" == bug_file.suffix or bug_file.is_dir():
+            continue
+
+        ctx.invoke(parse_unique, report=bug_file, output=None)
+
+
 if __name__ == "__main__":
-    parse()
+    # parse()
+    # parse_unique()
+    parse_unique_folder()

@@ -54,7 +54,10 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <map>
+#include <nlohmann/json.hpp>
 #include <regex>
 #include <sched.h>
 #include <signal.h>
@@ -77,9 +80,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
-#include <map>
-#include <nlohmann/json.hpp>
-#include <iomanip>
 
 #include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
@@ -140,7 +140,8 @@ unsigned valid_max_num = 10;
 int bind_to_core_id = -1;
 
 map<int, vector<string>> share_map_id;
-fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
+fstream map_id_out_f("./map_id_triggered.txt",
+                     std::ofstream::out | std::ofstream::trunc);
 
 map<IDTYPE, IDTYPE> relationmap;
 map<IDTYPE, IDTYPE> crossmap;
@@ -207,7 +208,7 @@ static s32 max_norec =
     10; /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str; /* String: query used to test sqlite   */
-//static string
+// static string
 //    program_output_str; /* String: query results output from sqlite   */
 
 int bug_output_id = 0;
@@ -960,10 +961,11 @@ EXP_ST void read_bitmap(u8 *fname) {
   close(fd);
 }
 
-vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+vector<u8> get_cur_new_byte(u8 *cur, u8 *vir) {
   vector<u8> new_byte_v;
-  for (u8 i = 0; i < 8; i++){
-    if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+  for (u8 i = 0; i < 8; i++) {
+    if (cur[i] && vir[i] == 0xff)
+      new_byte_v.push_back(i);
   }
   return new_byte_v;
 }
@@ -976,7 +978,7 @@ vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
 
 // vector<u8> get_cur_new_bit(u8 map){
 //   vector<u8> new_bit_v;
-//   if (judge_bit_is_one(map, 0x01)) new_bit_v.push_back(0); 
+//   if (judge_bit_is_one(map, 0x01)) new_bit_v.push_back(0);
 //   if (judge_bit_is_one(map, 0x02)) new_bit_v.push_back(1);
 //   if (judge_bit_is_one(map, 0x04)) new_bit_v.push_back(2);
 //   if (judge_bit_is_one(map, 0x08)) new_bit_v.push_back(3);
@@ -987,18 +989,19 @@ vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
 //   return new_bit_v;
 // }
 
-void log_map_id(u32 i, u8 byte){
-  if (map_id_out_f.fail()){
+void log_map_id(u32 i, u8 byte) {
+  if (map_id_out_f.fail()) {
     return;
   }
   i = (MAP_SIZE >> 3) - i;
   u32 actual_idx = i * 8 + byte;
-  if (share_map_id.count(actual_idx)){
+  if (share_map_id.count(actual_idx)) {
     for (string &debug_info : share_map_id[actual_idx]) {
       map_id_out_f << actual_idx << "," << debug_info << endl;
     }
   } else {
-    map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0" << endl;
+    map_id_out_f << actual_idx << ","
+                 << "-1,-1,-1,-1,0" << endl;
   }
 }
 
@@ -1052,16 +1055,15 @@ static inline u8 has_new_bits(u8 *virgin_map) {
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
             (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
-              ret = 2;
-              if (dump_library && !map_id_out_f.fail()){
-                vector<u8> byte = get_cur_new_byte(cur, vir);
-                for (const u8& cur_byte: byte){
-                  // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
-                  log_map_id(i, cur_byte);
-                }
-              }
+          ret = 2;
+          if (dump_library && !map_id_out_f.fail()) {
+            vector<u8> byte = get_cur_new_byte(cur, vir);
+            for (const u8 &cur_byte : byte) {
+              // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+              log_map_id(i, cur_byte);
             }
-        else
+          }
+        } else
           ret = 1;
 
 #else
@@ -2165,7 +2167,7 @@ EXP_ST void init_forkserver(char **argv) {
     } else {
 
       dup2(out_fd, 0);
-      //close(out_fd);
+      // close(out_fd);
     }
 
     /* Set up control and status pipes, close the unneeded original fds. */
@@ -2417,7 +2419,7 @@ static string read_sqlite_output_and_reset_output_file() {
   while (1) {
 
     ssize_t num_bytes = read(program_output_fd, output_buf, 1024);
-    if (num_bytes == 0 || output_buf[0] == '\0') 
+    if (num_bytes == 0 || output_buf[0] == '\0')
       break;
 
     output_buf[num_bytes] = '\0';
@@ -2501,7 +2503,7 @@ static u8 run_target(char **argv, u32 timeout) {
       } else {
 
         dup2(out_fd, 0);
-        //close(out_fd);
+        // close(out_fd);
       }
 
       /* On Linux, would be faster to use O_CLOEXEC. Maybe TODO. */
@@ -2686,10 +2688,13 @@ inline void print_exec_debug_info(ostream &out) {
       << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
       << "total_mutate_failed:     " << total_mutate_failed << "\n"
       << "total_mutate_num:     " << total_mutate_num << "\n"
-      << "total_mutate_failed_rate:     " << float(total_mutate_failed) / float(total_mutate_num) << "\n"
-      << "total_oracle_mutate_failed:     " << total_oracle_mutate_failed << "\n"
+      << "total_mutate_failed_rate:     "
+      << float(total_mutate_failed) / float(total_mutate_num) << "\n"
+      << "total_oracle_mutate_failed:     " << total_oracle_mutate_failed
+      << "\n"
       << "total_oracle_mutate_num:     " << total_oracle_mutate << "\n"
-      << "total_oracle_mutate_failed_rate:     " << float(total_oracle_mutate_failed) / float(total_oracle_mutate) << "\n"
+      << "total_oracle_mutate_failed_rate:     "
+      << float(total_oracle_mutate_failed) / float(total_oracle_mutate) << "\n"
       << "total_append_failed:     " << total_append_failed << "\n"
       << "total_cri_valid_stmts:   "
       << g_mutator.get_cri_valid_collection_size() << "\n"
@@ -3026,8 +3031,9 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   }
 }
 
-u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
-                      char **argv, u32 tmout = exec_tmout) {
+u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id,
+                      ALL_COMP_RES &all_comp_res, char **argv,
+                      u32 tmout = exec_tmout) {
 
   u8 fault;
 
@@ -3139,8 +3145,8 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
     // while (true) {
     //   DIR *dir = opendir("../Bug_Analysis/bug_samples/");
     //   if (!dir) {
-    //     cerr << "ERROR: ../Bug_Analysis/bug_samples/ folder doesn't exists. \n";
-    //     exit(1);
+    //     cerr << "ERROR: ../Bug_Analysis/bug_samples/ folder doesn't exists.
+    //     \n"; exit(1);
     //   }
     //   closedir(dir);
     //   bug_output_id++;
@@ -3154,14 +3160,17 @@ u8 execute_cmd_string(string cmd_string, vector<int> &explain_diff_id, ALL_COMP_
     //     continue; // If the file is already exist. Switch to the next
     //               // bug_output_id and try to create the file again.
     //   else {
-    //     close(outputfile_fd); // File created. We can use outputfile to write to
+    //     close(outputfile_fd); // File created. We can use outputfile to write
+    //     to
     //                           // the file now.
     //     break;
     //   }
     // }
 
     string bug_output_dir =
-        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
+        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) +
+        ":src:" + to_string(current_entry) +
+        ":core:" + std::to_string(bind_to_core_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);
@@ -3276,7 +3285,8 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     // cerr << program_input_str << endl;
     vector<int> dummy_vec;
     ALL_COMP_RES dummy_all_comp_res;
-    fault = execute_cmd_string(program_input_str, dummy_vec, dummy_all_comp_res, argv, use_tmout);
+    fault = execute_cmd_string(program_input_str, dummy_vec, dummy_all_comp_res,
+                               argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3631,12 +3641,12 @@ static void perform_dry_run(char **argv) {
       WARNF(cLRD "High percentage of rejected test cases, check settings!");
   }
 
-  if (dump_library){
-    // Added virgin_bits just perform_dry_run. 
+  if (dump_library) {
+    // Added virgin_bits just perform_dry_run.
     std::fstream vir_bits_fd;
     vir_bits_fd.open("./vir_bits.txt", std::fstream::trunc | std::fstream::out);
-    u8 *cur_vir = (u8 *) virgin_bits;
-    for (int i = 0; i < MAP_SIZE; i++){
+    u8 *cur_vir = (u8 *)virgin_bits;
+    for (int i = 0; i < MAP_SIZE; i++) {
       if (cur_vir[i] != 0xff) {
         vir_bits_fd << i << endl;
       }
@@ -3875,7 +3885,8 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES& all_comp_res, u8 fault,
+static u8 save_if_interesting(char **argv, string &query_str,
+                              const ALL_COMP_RES &all_comp_res, u8 fault,
                               const vector<int> &explain_diff_id = {}) {
 
   u8 *fn = "";
@@ -3884,7 +3895,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
   u8 keeping = 0, res;
   vector<IR *> ir_set;
 
-  if (is_str_empty(query_str)){
+  if (is_str_empty(query_str)) {
     // cerr << "query_str empty" << endl;
     return keeping; // return 0; Empty string. Not added.
   }
@@ -3892,7 +3903,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
   /* Do not strip the string when saving to queue. Strip it when loading. */
   string stripped_query_string =
       p_oracle->remove_valid_stmts_from_str(query_str);
-  if (is_str_empty(stripped_query_string)){
+  if (is_str_empty(stripped_query_string)) {
     // cerr << "stripped query_str empty" << endl;
     return keeping;
   }
@@ -3923,9 +3934,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     if (ir_tree.size() > 0) {
       g_mutator.add_all_to_library(
           g_mutator.extract_struct(ir_tree[ir_tree.size() - 1]),
-          explain_diff_id,
-          all_comp_res
-          );
+          explain_diff_id, all_comp_res);
       ir_tree.back()->deep_drop();
     } else {
       // cerr << "query_str parse failed: " << query_str << endl;
@@ -3970,8 +3979,8 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, query_str.c_str(),
-                         queue_cycle - 1, 0);
+    res =
+        calibrate_case(argv, queue_top, query_str.c_str(), queue_cycle - 1, 0);
 
     // if (res == FAULT_ERROR)
     //   FATAL("Unable to execute target application");
@@ -3979,8 +3988,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
-    ck_write(fd, query_str.c_str(), query_str.size(),
-             fn);
+    ck_write(fd, query_str.c_str(), query_str.size(), fn);
     close(fd);
 
     keeping = 1;
@@ -4339,18 +4347,20 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, "
+          "%u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
+          "%0.02f%%, %u, %u\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, 
-          total_input_failed, p_oracle->total_temp, p_oracle->total_rand_valid, (float)p_oracle->total_temp / (float)p_oracle->total_rand_valid,
-          total_add_to_queue, total_mutate_all_failed, total_mutate_failed, total_mutate_num, 
-          total_oracle_mutate_failed, total_oracle_mutate, total_append_failed, 
-          g_mutator.get_cri_valid_collection_size(), g_mutator.get_valid_collection_size(),
-          debug_error, debug_good, 
-          (float)debug_good / (float)(debug_error + debug_good),
-          bug_output_id, queued_with_cov
-          ); /* ignore errors */
+          unique_hangs, max_depth, eps, total_input_failed,
+          p_oracle->total_temp, p_oracle->total_rand_valid,
+          (float)p_oracle->total_temp / (float)p_oracle->total_rand_valid,
+          total_add_to_queue, total_mutate_all_failed, total_mutate_failed,
+          total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate,
+          total_append_failed, g_mutator.get_cri_valid_collection_size(),
+          g_mutator.get_valid_collection_size(), debug_error, debug_good,
+          (float)debug_good / (float)(debug_error + debug_good), bug_output_id,
+          queued_with_cov); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -5515,22 +5525,23 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
 
   vector<int> explain_diff_id;
 
-  fault = execute_cmd_string(query_str, explain_diff_id, all_comp_res, argv, exec_tmout);
+  fault = execute_cmd_string(query_str, explain_diff_id, all_comp_res, argv,
+                             exec_tmout);
 
   /* This handles FAULT_ERROR for us: */
-  if (fault == FAULT_ERROR){
+  if (fault == FAULT_ERROR) {
     // cerr << "Fault error. " << endl;
     return 0;
   }
-  
-  if (fault != FAULT_CRASH && 
-      all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+
+  if (fault != FAULT_CRASH &&
+      all_comp_res.final_res == ORA_COMP_RES::ALL_Error) {
     // cerr << "Query all error. " << endl;
     return 0;
   }
 
-  queued_discovered +=
-      save_if_interesting(argv, query_str, all_comp_res, fault, explain_diff_id);
+  queued_discovered += save_if_interesting(argv, query_str, all_comp_res, fault,
+                                           explain_diff_id);
 
   if (disable_coverage_feedback && q_len >= 10000) {
     destroy_half_queue();
@@ -5539,15 +5550,15 @@ EXP_ST u8 common_fuzz_stuff(char **argv, string &query_str) {
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
 
-  //ofstream outputfile;
-  //char * bug_output_dir_char = 
+  // ofstream outputfile;
+  // char * bug_output_dir_char =
   //    (char *)alloc_printf("%s/fuzzer_stats_correctness", out_dir);
-  //string bug_output_dir = (const char *) bug_output_dir_char;
-  //outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
-  //print_exec_debug_info(outputfile);
-  //outputfile.close();
+  // string bug_output_dir = (const char *) bug_output_dir_char;
+  // outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
+  // print_exec_debug_info(outputfile);
+  // outputfile.close();
 
-  //ck_free(bug_output_dir_char);
+  // ck_free(bug_output_dir_char);
 
   return 0;
 }
@@ -5890,7 +5901,7 @@ void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
       break;
 
     string new_norec_stmts = p_oracle->get_random_mutated_valid_stmt();
-    if (new_norec_stmts == ""){
+    if (new_norec_stmts == "") {
       total_oracle_mutate_failed++;
       continue;
     }
@@ -5904,30 +5915,29 @@ void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
   return;
 }
 
-ALL_COMP_RES run_oracle_pair(char **argv, string database_query, 
-                                          string minimized_oracle_query, 
-                                          string &rewrite_oracle_query) {
+ALL_COMP_RES run_oracle_pair(char **argv, string database_query,
+                             string minimized_oracle_query,
+                             string &rewrite_oracle_query) {
   string _temp_string_1 = "", _temp_string_2 = "";
-  p_oracle->rewrite_valid_stmt_from_ori(minimized_oracle_query, 
-                                        rewrite_oracle_query, 
-                                        _temp_string_1, 
-                                        _temp_string_2, 
-                                        0);
-  
+  p_oracle->rewrite_valid_stmt_from_ori(minimized_oracle_query,
+                                        rewrite_oracle_query, _temp_string_1,
+                                        _temp_string_2, 0);
+
   string new_minimize_query = database_query;
   new_minimize_query += "SELECT 'BEGIN VERI 0';";
-  new_minimize_query += minimized_oracle_query + ";"; 
+  new_minimize_query += minimized_oracle_query + ";";
   new_minimize_query += "SELECT 'END VERI 0';";
 
   new_minimize_query += "SELECT 'BEGIN VERI 1';";
-  new_minimize_query += rewrite_oracle_query + ";"; 
+  new_minimize_query += rewrite_oracle_query + ";";
   new_minimize_query += "SELECT 'END VERI 1';";
 
   ALL_COMP_RES all_comp_res;
   all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
   vector<int> explain_diff_id;
 
-  execute_cmd_string(new_minimize_query, explain_diff_id, all_comp_res, argv, exec_tmout);
+  execute_cmd_string(new_minimize_query, explain_diff_id, all_comp_res, argv,
+                     exec_tmout);
 
   return all_comp_res;
 }
@@ -5959,45 +5969,53 @@ static u8 fuzz_one(char **argv) {
 
   string minimize_target_oracle = minimize_target_json["first_oracle"];
   string database_query = minimize_target_json["database_query"];
-  cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str() << endl;
-  cout << "Minimize target - second oracle : " << minimize_target_json["second_oracle"] << endl;
+  cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str()
+       << endl;
+  cout << "Minimize target - second oracle : "
+       << minimize_target_json["second_oracle"] << endl;
 
   // strip ';' at the end.
-  minimize_target_oracle = minimize_target_oracle.substr(0, minimize_target_oracle.size()-1);
+  minimize_target_oracle =
+      minimize_target_oracle.substr(0, minimize_target_oracle.size() - 1);
 
   cout << "minimize_target_oracle: " << minimize_target_oracle.c_str() << endl;
-  set<string> minimize_oracle_string_set = g_mutator.get_minimize_string_from_tree(minimize_target_oracle);
+  // TODO(vancir): get minimize string set of database query.
+  set<string> minimize_oracle_string_set =
+      g_mutator.get_minimize_string_from_tree(minimize_target_oracle);
   for (auto it = minimize_oracle_string_set.begin();
-      it != minimize_oracle_string_set.end(); ++it) {
+       it != minimize_oracle_string_set.end(); ++it) {
     if (!p_oracle->is_oracle_valid_stmt(*it))
       minimize_oracle_string_set.erase(it);
   }
-  cout << "minimize_oracle_string_set::size = " << minimize_oracle_string_set.size() << endl; 
+  cout << "minimize_oracle_string_set::size = "
+       << minimize_oracle_string_set.size() << endl;
 
   int minimize_json_num = 0;
-  for (string minimized_oracle_query: minimize_oracle_string_set) {
+  for (string minimized_oracle_query : minimize_oracle_string_set) {
     if (minimized_oracle_query == minimize_target_oracle)
       continue;
 
     string rewrite_oracle_query = "";
-    ALL_COMP_RES all_comp_res = run_oracle_pair(argv, database_query, minimized_oracle_query, rewrite_oracle_query);
+    ALL_COMP_RES all_comp_res = run_oracle_pair(
+        argv, database_query, minimized_oracle_query, rewrite_oracle_query);
 
     if (ORA_COMP_RES::Fail == all_comp_res.final_res) {
-      // the oracle result is still mismatch. 
+      // the oracle result is still mismatch.
       minimize_json_num++;
 
-      cout << "[+] " << minimized_oracle_query << endl << "    "
-        << rewrite_oracle_query << endl;
+      cout << "[+] " << minimized_oracle_query << endl
+           << "    " << rewrite_oracle_query << endl;
 
       json new_minimize_oracle_json;
       new_minimize_oracle_json["database_query"] = database_query;
       new_minimize_oracle_json["first_oracle"] = minimized_oracle_query;
       new_minimize_oracle_json["second_oracle"] = rewrite_oracle_query;
 
-      // string validate_query = g_mutator.validate(database_query + minimized_oracle_query);
-      // cout << "[*] Validate query - oracle : " << validate_query.c_str() << endl;
-      
-      for (COMP_RES compare_result: all_comp_res.v_res) {
+      // string validate_query = g_mutator.validate(database_query +
+      // minimized_oracle_query); cout << "[*] Validate query - oracle : " <<
+      // validate_query.c_str() << endl;
+
+      for (COMP_RES compare_result : all_comp_res.v_res) {
         if (compare_result.res_int_0 != compare_result.res_int_1) {
           new_minimize_oracle_json["first_result"] = compare_result.res_int_0;
           new_minimize_oracle_json["second_result"] = compare_result.res_int_1;
@@ -6010,7 +6028,6 @@ static u8 fuzz_one(char **argv) {
       json_out_stream << setw(2) << new_minimize_oracle_json << endl;
     }
   }
-
 
   exit(0);
 
@@ -6117,7 +6134,7 @@ static u8 fuzz_one(char **argv) {
 
   skip_count = 0;
   input = (const char *)out_buf;
-  
+
   /* Remove the SELECT statements from the input. */
   input = p_oracle->remove_valid_stmts_from_str(minimize_target_oracle);
 
@@ -6154,7 +6171,7 @@ static u8 fuzz_one(char **argv) {
     total_mutate_num++;
     stage_name = "query_fix";
 
-    if (ir_str == NULL){
+    if (ir_str == NULL) {
       total_mutate_failed++;
       continue;
     }
@@ -6389,7 +6406,8 @@ static void sync_fuzzers(char **argv) {
         ALL_COMP_RES dummy_all_comp_res;
 
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, saved_str, dummy_all_comp_res, fault);
+        queued_imported +=
+            save_if_interesting(argv, saved_str, dummy_all_comp_res, fault);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
@@ -6858,14 +6876,17 @@ EXP_ST void setup_dirs_fds(void) {
   if (!plot_file)
     PFATAL("fdopen() failed");
 
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec, total_input_failed, "
-                     "total_random_valid, total_random_temp, total_random_valid_rate, "
-                     "total_add_to_queue, total_mutate_all_failed, total_mutate_failed, "
-                     "total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate, "
-                     "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
-                     "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on\n");
+  fprintf(
+      plot_file,
+      "# unix_time, cycles_done, cur_path, paths_total, "
+      "pending_total, pending_favs, map_size, unique_crashes, "
+      "unique_hangs, max_depth, execs_per_sec, total_input_failed, "
+      "total_random_valid, total_random_temp, total_random_valid_rate, "
+      "total_add_to_queue, total_mutate_all_failed, total_mutate_failed, "
+      "total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate, "
+      "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
+      "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, "
+      "new_edges_on\n");
   /* ignore errors */
 }
 
@@ -7757,10 +7778,9 @@ int main(int argc, char **argv) {
 
     case 'r': /* set minimize target file */
     {
-        minimize_target = string(optarg);
-        cout << "minimize target file: " << minimize_target.c_str() << endl;
-    }
-        break;
+      minimize_target = string(optarg);
+      cout << "minimize target file: " << minimize_target.c_str() << endl;
+    } break;
 
     default:
 
@@ -7779,19 +7799,21 @@ int main(int argc, char **argv) {
   if (dump_library) {
     /* Debug: Load the map_id to the program */
     fstream map_f("./mapID.csv");
-    if (map_f.fail()){
+    if (map_f.fail()) {
       cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
     } else {
       map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
     }
 
     string line;
-    getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
-    while (getline(map_f, line)){
+    getline(map_f,
+            line); // Ignore the first line. It is the header of the csv file.
+    while (getline(map_f, line)) {
       vector<string> line_vec = string_splitter(line, ",");
       int map_id = stoi(line_vec[0]);
-      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
-      if (share_map_id.count(map_id) != 0){
+      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] +
+                        "," + line_vec[4] + "," + line_vec[5];
+      if (share_map_id.count(map_id) != 0) {
         share_map_id[map_id].push_back(map_info);
       } else {
         vector<string> tmp{map_info};
@@ -8034,11 +8056,9 @@ stop_fuzzing:
   alloc_report();
 
   pid_t pid = getpid();
-  u8 * fn = alloc_printf("/.cur_input_%d", pid);
+  u8 *fn = alloc_printf("/.cur_input_%d", pid);
   shm_unlink(fn);
   ck_free(fn);
-
-
 
   OKF("We're done here. Have a nice day!\n");
 
