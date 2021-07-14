@@ -152,14 +152,18 @@ bool IR::swap_node(IR *old_node, IR *new_node) {
 
   IR *parent = this->locate_parent(old_node);
 
-  if (parent == NULL)
+  if (parent == NULL) {
+    // cerr << "Error: parent is null. Locate_parent error. In func: IR::swap_node(). \n";
     return false;
+  }
   else if (parent->left_ == old_node)
     parent->update_left(new_node);
   else if (parent->right_ == old_node)
     parent->update_right(new_node);
-  else
+  else {
+    // cerr << "Error: parent-child not matching. In func: IR::swap_node(). \n";
     return false;
+  }
 
   old_node->parent_ = NULL;
 

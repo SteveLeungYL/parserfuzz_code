@@ -462,10 +462,32 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
 vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {
 
   vector<IR*> trans_IR_vec;
-  IR* ori_ir_root = cur_stmt;
-  trans_IR_vec.push_back(ori_ir_root->deep_copy());
 
   cur_stmt = cur_stmt->deep_copy();
+
+  vector<IR*> opt_over_clause_vec = this->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptOverClause, false);
+
+  vector<IR*> ori_opt_over_clause_vec;
+  for (auto opt_over_clause_ir : opt_over_clause_vec) {
+    // Replace the opt_over_clause to an empty ir. 
+    IR* new_opt_over_clause_ir = new IR(kOptOverClause, string(""));
+    /* If the current opt_over_clause_ir has been removed from the tree by previous iterations, swap_node() will fail. */
+    if (!cur_stmt->swap_node(opt_over_clause_ir, new_opt_over_clause_ir)) { 
+      new_opt_over_clause_ir->deep_drop();
+      // cerr << "Error: swap_node failure. Seems to be expected. In func: SQL_NOREC::post_fix_transform_select_stmt(). \n";
+      continue;
+    }
+    // Delayed deep_drop(). Possible child opt_over_clause inside the current node, which would be iterated later. 
+    ori_opt_over_clause_vec.push_back(opt_over_clause_ir);
+  }
+  for (auto ori_opt_over_clause_ir : ori_opt_over_clause_vec) {
+    ori_opt_over_clause_ir->deep_drop();
+  }
+
+
+  trans_IR_vec.push_back(cur_stmt);
+
+  cur_stmt = cur_stmt->deep_copy(); // Already applied changes in the previous lines. 
 
   IR* expr_in_where = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereExpr, false)[0]->left_;
 
