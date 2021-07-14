@@ -90,8 +90,8 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
 
   for (auto old_ir : v_ir_collector) {
 
-    if (old_ir == root || old_ir->type_ == kProgram ||
-        old_ir->is_node_struct_fixed || old_ir->type_ == kStatement)
+    if (old_ir == root || old_ir->type_ == kProgram  ||
+        old_ir->is_node_struct_fixed)
       {
         // cerr << "Aboard old_ir because it is root or kStatement, or node_struct_fixed. "
         //      << "v_ir_collector.size(): " << v_ir_collector.size() << ", "
@@ -130,6 +130,8 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
         string *new_str = new string(tmp);
         res_hash.insert(tmp_hash);
         res.push_back(new_str);
+
+        mutated_ir->deep_drop();
 
       }
 
@@ -342,8 +344,11 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
 
-
-  p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir);
+  if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
+    new_stmt_ir->deep_drop();
+    cur_root->deep_drop();
+    return res_vec;
+  }
   res_vec.push_back(cur_root);
 
   // For strategy_insert
@@ -360,7 +365,11 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
 
-  p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos);
+  if(!p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos)) {
+    new_stmt_ir->deep_drop();
+    cur_root->deep_drop();
+    return res_vec;
+  }
   res_vec.push_back(cur_root);
 
   return res_vec;

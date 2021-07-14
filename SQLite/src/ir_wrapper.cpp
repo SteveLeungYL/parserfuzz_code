@@ -341,13 +341,20 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
     if (idx == 0){
         IR* next_stmt = stmt_list_v[1];
         IR* new_next_stmt = new IR(kStatementList, OP0(), next_stmt->right_->deep_copy());
-        this->ir_root->swap_node(next_stmt, new_next_stmt);
+        if (!this->ir_root->swap_node(next_stmt, new_next_stmt)){
+            cerr << "Error: swap_node failure. idx: " << idx << ". In function: IRWrapper::remove_stmt_at_idx_and_free(); \n";
+            new_next_stmt->deep_drop();
+            return false;
+        }
         next_stmt->deep_drop(); // next_stmt->deep_drop() will lead to rov_stmt, because next_stmt->left_ is rov_stmt. 
         // rov_stmt->deep_drop();
 
     } else { 
         IR* prev_stmt = stmt_list_v[idx-1];
-        this->ir_root->swap_node(rov_stmt, prev_stmt);
+        if (!this->ir_root->swap_node(rov_stmt, prev_stmt)){
+            cerr << "Error: swap_node failure. idx: " << idx << ". In function: IRWrapper::remove_stmt_at_idx_and_free(); \n";
+            return false;
+        }
         rov_stmt->left_ = nullptr; // Cut the connection between rov_stmt and prev_stmt, prevent accidentally deep_drop for prev_stmt. 
         rov_stmt->deep_drop();
     }
@@ -484,12 +491,15 @@ int IRWrapper::get_stmt_idx(IR* cur_stmt){
 bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
     int old_stmt_idx = this->get_stmt_idx(old_stmt);
     if (old_stmt_idx < 0) {
+        // cerr << "Error: old_stmt_idx < 0. Old_stmt_idx: " << old_stmt_idx << ". In func: IRWrapper::replace_stmt_and_free. \n"; 
         return false;
     }
     if (!this->remove_stmt_at_idx_and_free(old_stmt_idx)){
+        // cerr << "Error: child function remove_stmt_at_idx_and_free returns error. In func: IRWrapper::replace_stmt_and_free. \n"; 
         return false;
     }
     if (!this->append_stmt_after_idx(new_stmt, old_stmt_idx-1)){
+        // cerr << "Error: child function append_stmt_after_idx returns error. In func: IRWrapper::replace_stmt_and_free. \n";
         return false;
     }
     return true;
