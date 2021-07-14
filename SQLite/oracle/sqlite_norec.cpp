@@ -435,6 +435,17 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_IR) {
     return false;
   }
 
+  // Remove UNION ALL, UNION, EXCEPT and INTERCEPT
+  int num_selectcore = ir_wrapper.get_num_selectcore(cur_IR);
+  if (num_selectcore > 1 || num_selectcore == 0) {
+    // if (cur_IR->type_ == kSelectStatement) {
+    //   cerr << "Getting num_selectcore is: " << num_selectcore << ". In func: SQL_NOREC::is_oracle_select_stmt; \n";
+    // } else {
+    //   cerr << "Getting statement type_: " << cur_IR->type_ << ". In func: SQL_NOREC::is_oracle_select_stmt; \n";
+    // }
+    return false;
+  }
+
   if (
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
