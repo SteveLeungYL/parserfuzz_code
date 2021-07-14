@@ -1220,8 +1220,9 @@ void Mutator::add_all_to_library(string whole_query_str,
       continue;
 
     IR *root = ir_set.back();
+    IR* cur_stmt = root->left_->left_->left_; // kProgram -> kStatementList -> kStatement -> specific_statement_type_
 
-    if (p_oracle->is_oracle_select_stmt(root)) {
+    if (p_oracle->is_oracle_select_stmt(cur_stmt)) {
 
       // if (all_comp_res.v_res.size() > i) {
       //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {

@@ -806,10 +806,10 @@ IRTYPE IRWrapper::get_cur_stmt_type(IR* cur_ir) {
 }
 
 vector<IR*> IRWrapper::get_selectcore_vec(IR* cur_stmt){
-    // if (cur_stmt->type_ != kSelectStatement) {
-    //     cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
-    //     vector<IR*> tmp; return tmp;
-    // }
+    if (cur_stmt->type_ != kSelectStatement) {
+        // cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
+        vector<IR*> tmp; return tmp;
+    }
 
     vector<IR*> res_selectcore_vec;
     IR* cur_selectcorelist = cur_stmt->left_->right_;

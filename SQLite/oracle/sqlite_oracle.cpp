@@ -42,8 +42,11 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
 
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);
-    if (ir_tree.size() == 0 || !this->is_oracle_select_stmt(ir_tree.back()))
-      continue;
+
+    // kProgram -> kStatementList -> kStatement -> specific_statement_type_
+    IR *cur_ir_stmt = ir_tree.back()->left_->left_->left_;
+    if (ir_tree.size() == 0 || !this->is_oracle_select_stmt(cur_ir_stmt))
+      {continue;}
 
     root = ir_tree.back();
     if (!g_mutator->check_node_num(root, 300)) {
@@ -137,7 +140,9 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
         continue;
 
       // Make sure the mutated structure is different.
-      if (is_oracle_select_stmt(new_ir_verified.back()) && new_valid_select_struct != ori_valid_select_struct) {
+      // kProgram -> kStatementList -> kStatement -> specific_statement_type_
+      IR* new_ir_verified_stmt = new_ir_verified.back()->left_->left_->left_; 
+      if (is_oracle_select_stmt(new_ir_verified_stmt) && new_valid_select_struct != ori_valid_select_struct) {
         root->deep_drop();
         is_success = true;
 
