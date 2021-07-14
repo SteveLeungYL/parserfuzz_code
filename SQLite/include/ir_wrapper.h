@@ -25,7 +25,7 @@ public:
 
     bool append_stmt_after_idx(string, int idx, const Mutator& g_mutator);
     bool append_stmt_at_end(string, const Mutator& g_mutator);
-    bool append_stmt_after_idx(IR*, int idx); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
+    bool append_stmt_after_idx(IR*, int idx); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. If want to append at the start, use idx=-1; 
     bool append_stmt_at_end(IR*, const Mutator& g_mutator);
     bool append_stmt_at_end(IR*); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
 
@@ -83,12 +83,18 @@ public:
     ** Given a statement IR, check whether the statment contains 'GROUP BY' or 'HAVING' clause. 
     */
     bool is_exist_group_by(IR* cur_stmt);
-    bool IRWrapper::is_exist_having(IR* cur_stmt);
+    bool is_exist_having(IR* cur_stmt);
+    bool is_exist_distinct(IR* cur_stmt);
 
     /*
     ** Given a SELECT statement, get the knewexpr in the SELECT clause.  
     */ 
     IR* get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, int idx);
+
+    /* 
+    ** Given an IR node, return the statement IR that contains this certain cur_ir node. 
+    */
+    IR* get_stmt_ir_from_child_ir(IR* cur_ir);
 
     /**/
     int get_num_result_column_in_select_clause(IR* cur_stmt);
@@ -100,13 +106,30 @@ public:
     bool add_without_rowid_to_stmt(IR* cur_stmt);
     bool remove_without_rowid_to_stmt(IR* cur_stmt);
 
+    /**/
     bool combine_stmt_in_selectcore(IR* left_stmt, IR* right_stmt, string set_operator_str, bool is_free_left, bool is_free_right);
 
+    /**/
     IR* get_alias_iden_from_tablename_iden(IR* tablename_iden);
 
+    /**/
     bool is_has_subqueries (IR* cur_stmt);
 
+    /**/
     IRTYPE get_cur_stmt_type(IR* cur_ir);
+
+    /**/
+    vector<IR*> get_selectcore_vec(IR* cur_stmt);
+
+    /**/
+    int get_num_selectcore(IR* cur_stmt);
+
+    /*If want to append on the beginning, use idx=-1; */
+    bool append_selectcore_clause_after_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx);
+
+    /**/
+    bool remove_selectcore_clause_at_idx_and_free(IR* cur_stmt, int idx);
+
 private:
     IR* ir_root = nullptr;
 

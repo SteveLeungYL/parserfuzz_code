@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
 typedef NODETYPE IRTYPE;
 
@@ -330,7 +331,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
     }
 
     if (stmt_list_v.size() == 1) {
-        std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+        // std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
         return false;
     }
 
@@ -616,6 +617,16 @@ bool IRWrapper::is_exist_having(IR* cur_stmt){
     return false;
 }
 
+bool IRWrapper::is_exist_distinct(IR* cur_stmt) {
+    vector<IR*> opt_distinct_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptDistinct, false);
+    for (IR* opt_distinct_ir : opt_distinct_vec) {
+        if (opt_distinct_ir != nullptr && opt_distinct_ir->str_val_ == "DISTINCT") {
+            return true;
+        }
+    }
+    return false;
+}
+
 IR* IRWrapper::get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, int idx){
     // if (cur_stmt->type_ != kSelectStatement) {
     //     cerr << "Error: get_result_column_in_select_clause_in_select_stmt() not receiving kSelectStatement. \n";
@@ -782,4 +793,145 @@ IRTYPE IRWrapper::get_cur_stmt_type(IR* cur_ir) {
         cur_ir = cur_ir->parent_;
     }
     return kUnknown;
+}
+
+vector<IR*> IRWrapper::get_selectcore_vec(IR* cur_stmt){
+    // if (cur_stmt->type_ != kSelectStatement) {
+    //     cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
+    //     vector<IR*> tmp; return tmp;
+    // }
+
+    vector<IR*> res_selectcore_vec;
+    IR* cur_selectcorelist = cur_stmt->left_->right_;
+
+    // Only one entry. Doesn't have kSelectCoreList struct. 
+    if (cur_selectcorelist->type_ == kSelectCore) {
+        res_selectcore_vec.push_back(cur_selectcorelist); 
+        return res_selectcore_vec;
+    }
+
+    bool is_finished = false;
+    while (!is_finished) {
+        if (cur_selectcorelist->type_ == kSelectCoreList) 
+            {res_selectcore_vec.push_back(cur_selectcorelist->right_);}  // kSelectcoreList -> kSelectcore
+        else if (cur_selectcorelist->type_ == kSelectCore) {
+            res_selectcore_vec.push_back(cur_selectcorelist);  // The first kSelectcore. 
+            is_finished = true; 
+            break;
+        }
+        cur_selectcorelist = cur_selectcorelist->left_;
+    }
+
+    // Reverse the order of the list. After reversion, the order is from the first kSelectcore to the last one. 
+    reverse(res_selectcore_vec.begin(), res_selectcore_vec.end()); 
+    return res_selectcore_vec;
+}
+
+bool IRWrapper::append_selectcore_clause_after_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx) {
+    if (app_ir->type_ != kSelectCore) {
+        cerr << "Error: Not receiving kSelectCore in the func: IRWrapper::append_selectcore_clause(). \n";
+        return false;
+    }
+    if (cur_stmt->type_ != kSelectStatement) {
+        cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::append_selectcore_clause(). \n";
+        return false;
+    }
+
+    vector<IR*> selectcore_vec = this->get_selectcore_vec(cur_stmt);
+    if (selectcore_vec.size() > idx) {
+        cerr << "Idx exceeding the maximum number of selectcore in the statement. \n";
+        return false;
+    }
+
+    if (idx >= 0) {
+        IR* app_pos_ir;
+        if (idx > 0) {app_pos_ir = selectcore_vec[idx]->parent_;}  // kSelectCore -> kSelectCoreList
+        else {app_pos_ir = selectcore_vec[idx];} // There is no kSelectCoreList for the first entry. 
+        IR* set_operator_ir = new IR(kSetOperator, set_oper_str);
+
+        auto new_selectcorelist = new IR(kUnknown, OP0(), NULL, set_operator_ir);
+        new_selectcorelist = new IR(kSelectCoreList, OP0(), new_selectcorelist, app_ir);
+
+        if (!cur_stmt->swap_node(app_pos_ir, new_selectcorelist)) {
+            new_selectcorelist->deep_drop();
+            std::cerr << "IRWrapper::append_selectcore_clause_after_idx. idx = " << idx << "\n";
+            return false;
+        }
+        new_selectcorelist->left_->update_left(app_pos_ir);
+        return true;
+    } else if (idx == -1) {
+
+        IR* app_pos_ir = selectcore_vec[0]; // This is a kSelectCore, NOT A kSelectCoreList!!!
+
+        IR* set_operator_ir = new IR(kSetOperator, set_oper_str);
+        auto starting_res = app_ir;
+        auto second_res = new IR(kUnknown, OP0(), starting_res, set_operator_ir);
+        second_res = new IR(kSelectCoreList, OP0(), second_res, NULL);
+
+        if (!cur_stmt->swap_node(app_pos_ir, second_res)) {
+            second_res->deep_drop();
+            std::cerr << "IRWrapper::append_selectcore_clause_after_idx. idx = " << idx << "\n";
+            return false;
+        }
+        second_res->update_right(app_pos_ir);
+        return true;
+
+    } else {
+        std::cerr << "In func: IRWrapper::append_selectcore_clause_after_idx(), Idx not making sense. idx: " << idx << ". \n";
+        return false;
+    }
+}
+
+bool IRWrapper::remove_selectcore_clause_at_idx_and_free(IR* cur_stmt, int idx) {
+    vector<IR*> selectcore_vec = this->get_selectcore_vec(cur_stmt);
+    if (idx >= selectcore_vec.size() || idx < 0) {
+        cerr << "Error: Idx exceeding selectcorelist size, or idx < 0. idx: " << idx 
+             << ". Func: IRWrapper::remove_selectcore_clause_at_idx_and_free. \n";
+        return false;
+    }
+
+    if (selectcore_vec.size() == 1) {
+        cerr << "Cannot remove current selectcore becuase there is only one selectcore left in the select statement. \n In function IRWrapper::remove_selectcore_clause_at_idx_and_free.";
+        return false;
+    }
+
+    if (idx == 0) {
+        IR* next_selectcore_ir = selectcore_vec[1]->deep_copy();
+        IR* next_selectcorelist_ir = selectcore_vec[1]->parent_; // kSelectCore -> kSelectCoreList
+        if (!cur_stmt->swap_node(next_selectcorelist_ir, next_selectcore_ir)) {
+            next_selectcore_ir->deep_drop();
+            cerr << "swap_node failed: Func: IRWrapper::remove_selectcore_clause_at_idx_and_free(); \n";
+            return false;
+        }
+        next_selectcorelist_ir->deep_drop(); // Remove the kSelectCore for the first statement, and the kSelectCorelist for the second statment. 
+        return true;
+    } else {
+        IR* prev_selectcore_ir;
+        if (idx == 1) { prev_selectcore_ir = selectcore_vec[0]->deep_copy(); }
+        else { prev_selectcore_ir = selectcore_vec[idx-1]->parent_->deep_copy(); }
+        IR* rov_selectcore_ir = selectcore_vec[idx]->parent_; // kSelectCore -> kSelectCoreList -> unknown_parent
+
+        if (!cur_stmt->swap_node(rov_selectcore_ir, prev_selectcore_ir)) {
+            prev_selectcore_ir->deep_drop();
+            cerr << "swap_node failed: Func: IRWrapper::remove_selectcore_clause_at_idx_and_free(); \n";
+            return false;
+        }
+
+        rov_selectcore_ir->deep_drop(); // Remove all the child nodes. Including the original prev_selectcore_ir. 
+        return true;
+    }
+}
+
+int IRWrapper::get_num_selectcore(IR* cur_stmt) {
+    return this->get_selectcore_vec(cur_stmt).size();
+}
+
+IR* IRWrapper::get_stmt_ir_from_child_ir(IR* cur_ir) {
+    while (cur_ir->type_ != kStatement && cur_ir->parent_ != nullptr) {
+        if (cur_ir->type_ == kProgram) {return nullptr;}
+        cur_ir = cur_ir->parent_;
+    }
+
+    if (cur_ir->type_ == kStatement) {return cur_ir->left_;}
+    else {return nullptr;}
 }

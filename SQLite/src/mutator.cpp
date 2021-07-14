@@ -92,14 +92,26 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
 
     if (old_ir == root || old_ir->type_ == kProgram ||
         old_ir->is_node_struct_fixed || old_ir->type_ == kStatement)
-      continue;
+      {
+        // cerr << "Aboard old_ir because it is root or kStatement, or node_struct_fixed. "
+        //      << "v_ir_collector.size(): " << v_ir_collector.size() << ", "
+        //      << "In func: Mutator::mutate_all(); \n";
+        continue;
+      }
 
     vector<IR*> v_mutated_ir;
     
-    if (old_ir->type_ == kStatementList) {
-      // In 1/5 of chances, mutate on kStatementList. 
-      // if (get_rand_int(5) < 4) {continue;}
-      v_mutated_ir = mutate_stmtlist(root); // They are all root(kProgram)!!!
+    if (
+      old_ir->type_ == kStatementList
+      // old_ir->type_ == kSelectCoreList ||
+      // old_ir->type_ == kSelectCore
+    ) {
+
+      if (old_ir->type_ == kStatementList) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
+      // else if (old_ir->type_ == kSelectCore || old_ir->type_ == kSelectCoreList) {
+        // v_mutated_ir = mutate_selectcorelist(root, old_ir);
+      // } 
+      // else {continue;}
 
       for (IR* mutated_ir : v_mutated_ir) {
 
@@ -108,6 +120,8 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
         unsigned tmp_hash = hash(tmp);
         if (res_hash.find(tmp_hash) != res_hash.end()) {
           mutated_ir->deep_drop();
+          // cerr << "Aboard old_ir because tmp_hash being saved before. "
+          //      << "In func: Mutator::mutate_all(); \n";
           continue;
         }
 
@@ -126,12 +140,16 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
 
         if (!root->swap_node(old_ir, new_ir)) {
           new_ir->deep_drop();
+          // cerr << "Aboard old_ir because swap_node failure. "
+          //      << "In func: Mutator::mutate_all(); \n";
           continue;
         }
 
         if (!check_node_num(root, 300)) {
           root->swap_node(new_ir, old_ir);
           new_ir->deep_drop();
+          // cerr << "Aboard old_ir because check_node_num() failed. "
+          //      << "In func: Mutator::mutate_all(); \n";
           continue;
         }
 
@@ -140,6 +158,8 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
         if (res_hash.find(tmp_hash) != res_hash.end()) {
           root->swap_node(new_ir, old_ir);
           new_ir->deep_drop();
+          // cerr << "Aboard old_ir because tmp_hash has been saved before. (non-stmt). "
+          //      << "In func: Mutator::mutate_all(); \n";
           continue;
         }
 
@@ -318,7 +338,10 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
     cur_root->deep_drop();
     return res_vec;
   }
-  new_stmt_ir = new_stmt_ir->left_;  // kStatement -> specific_stmt_type
+  IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
+  new_stmt_ir->deep_drop();
+  new_stmt_ir = new_stmt_ir_tmp;
+
 
   p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir);
   res_vec.push_back(cur_root);
@@ -333,7 +356,9 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
     cur_root->deep_drop();
     return res_vec;
   }
-  new_stmt_ir = new_stmt_ir->left_;  // kStatement -> specific_stmt_type
+  new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
+  new_stmt_ir->deep_drop();
+  new_stmt_ir = new_stmt_ir_tmp;
 
   p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos);
   res_vec.push_back(cur_root);
@@ -341,6 +366,75 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   return res_vec;
 
 }
+
+vector<IR *> Mutator::mutate_selectcorelist(IR* ir_root, IR *old_ir) {
+  vector<IR*> res_vec;
+
+  IR* cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(old_ir);
+  vector<IR*> ori_stmt_vec = this->p_oracle->ir_wrapper.get_stmt_ir_vec(ir_root);
+  int stmt_idx = 0;
+  for (IR* ori_stmt_ir : ori_stmt_vec) {
+    if (cur_stmt == ori_stmt_ir) break;
+    stmt_idx++;
+  }
+  if (stmt_idx >= ori_stmt_vec.size()) {
+    cerr << "Error: Cannot find the selectcore chosen stmt in the ir_root. Func: Mutator::mutate_selectcorelist(). \n";
+    vector<IR*> tmp; return tmp;
+  }
+
+  // For strategy_delete
+  IR* cur_root = ir_root->deep_copy();
+  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
+  int num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
+  this->p_oracle->ir_wrapper.remove_selectcore_clause_at_idx_and_free(cur_stmt, get_rand_int(num_selectcore));
+  res_vec.push_back(cur_root);
+
+  // For strategy_replace
+  cur_root = ir_root->deep_copy();
+  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
+  num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
+  
+  IR* new_selectcore_ir = get_from_libary_with_type(kSelectCore);
+  if (new_selectcore_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  string set_oper = "";
+  switch (get_rand_int(4)) {
+    case 0: set_oper = "UNION";
+    case 1: set_oper = "UNION ALL";
+    case 2: set_oper = "INTERSECT";
+    case 3: set_oper = "EXCEPT";
+  }
+  int rep_idx = get_rand_int(num_selectcore);
+  this->p_oracle->ir_wrapper.append_selectcore_clause_after_idx(cur_stmt, new_selectcore_ir, set_oper, rep_idx);
+  this->p_oracle->ir_wrapper.remove_selectcore_clause_at_idx_and_free(cur_stmt, rep_idx);
+  res_vec.push_back(cur_root);
+
+
+  // For strategy_insert
+  cur_root = ir_root->deep_copy();
+  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
+  num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
+  new_selectcore_ir = get_from_libary_with_type(kSelectCore);
+  if (new_selectcore_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  set_oper = "";
+  switch (get_rand_int(4)) {
+    case 0: set_oper = "UNION";
+    case 1: set_oper = "UNION ALL";
+    case 2: set_oper = "INTERSECT";
+    case 3: set_oper = "EXCEPT";
+  }
+  int ins_idx = get_rand_int(num_selectcore);
+  this->p_oracle->ir_wrapper.append_selectcore_clause_after_idx(cur_stmt, new_selectcore_ir, set_oper, ins_idx);
+  res_vec.push_back(cur_root);
+
+  return res_vec;
+}
+
 
 vector<IR *> Mutator::mutate(IR *input) {
   vector<IR *> res;

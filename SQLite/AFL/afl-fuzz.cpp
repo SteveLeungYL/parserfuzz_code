@@ -6074,10 +6074,13 @@ static u8 fuzz_one(char **argv) {
 
   ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_ir_root);
 
+  // cerr << "Just after random append statements, we have ir_set.size(): " << ir_set.size() << "\n\n\n";
+
   mutated_tree = g_mutator.mutate_all(ir_set);
   if (mutated_tree.size() < 1) {
     total_mutate_all_failed++;
     ir_set.back()->deep_drop();
+    // cerr << "The generated mutated_tree.size() is 0, going to abandon_entry(). \n\n\n";
     goto abandon_entry;
   }
 
@@ -6143,6 +6146,8 @@ static u8 fuzz_one(char **argv) {
     // pre_fix_transformation from the oracle. 
     vector<STMT_TYPE> stmt_type_vec;
     vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied. 
+
+    // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
 
     /* Build dependency graph, fix ir node, fill in concret values */
     for (IR* cur_trans_stmt : all_pre_trans_vec) {
