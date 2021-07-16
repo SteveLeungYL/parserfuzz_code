@@ -326,8 +326,8 @@ void SQL_NOREC::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
 
   before_select_stmt = query.substr(0, select_position - 0);
 
-  select_stmt =
-      query.substr(select_position + 6, from_position - select_position - 6);
+  // select_stmt =
+  //     query.substr(select_position + 6, from_position - select_position - 6);
 
   if (from_position == -1)
     from_stmt = "";
@@ -396,7 +396,8 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
   bool is_all_err = true;
 
   for (COMP_RES &res : res_out.v_res) {
-    if (findStringIn(res.res_str_0, "Error") || findStringIn(res.res_str_1, "Error")){
+    if (findStringIn(res.res_str_0, "Error") ||
+        findStringIn(res.res_str_1, "Error")) {
       res.comp_res = ORA_COMP_RES::Error;
       res.res_int_0 = -1;
       res.res_int_1 = -1;
