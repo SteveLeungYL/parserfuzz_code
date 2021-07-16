@@ -30,7 +30,13 @@ class IO:
         all_files_in_dir = os.listdir(file_directory)
         all_files_num = len(all_files_in_dir)
 
-        max_bug_count = max(int(file.split(":")[1]) for file in all_files_in_dir)
+        max_bug_count = [
+            int(file.split(":")[1]) for file in all_files_in_dir if ":" in file
+        ]
+        if not max_bug_count:
+            # no files under |file_directory|
+            return [], "Done"
+        max_bug_count = max(max_bug_count)
 
         while True:
             current_file_d = ""
