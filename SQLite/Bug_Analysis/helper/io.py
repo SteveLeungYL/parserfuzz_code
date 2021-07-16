@@ -3,6 +3,7 @@ import os
 import re
 import shutil
 import sys
+from loguru import logger
 
 from Bug_Analysis.helper.data_struct import (
     log_out_line,
@@ -17,35 +18,66 @@ class IO:
     total_processed_bug_count_int: int = 0
 
     @classmethod
-    def remove_file_from_abs_path(cls, fd:str):
+    def remove_file_from_abs_path(cls, fd: str):
         os.remove(os.path.join(fd))
 
     @classmethod
-    def read_queries_from_files(cls, file_directory: str, is_removed_read: bool = False):
+    def read_queries_from_files(
+        cls, file_directory: str, is_removed_read: bool = False
+    ):
 
         all_queries = []
         all_files_in_dir = os.listdir(file_directory)
         all_files_num = len(all_files_in_dir)
 
+        max_bug_count = max(int(file.split(":")[1]) for file in all_files_in_dir)
+
         while True:
             current_file_d = ""
             for iter_file_d in all_files_in_dir:
-                if ("bug:" + str(cls.total_processed_bug_count_int) + ":") in iter_file_d:
+                # logger.debug("iter_file_d: {}".format(iter_file_d))
+                if (
+                    "bug:" + str(cls.total_processed_bug_count_int) + ":"
+                ) in iter_file_d:
                     current_file_d = iter_file_d
+                    logger.debug("Found bug sample: {}".format(current_file_d))
                     break
+
             cls.total_processed_bug_count_int += 1
+            if cls.total_processed_bug_count_int > max_bug_count:
+                logger.debug("hit the max bug count.")
+                # get the files again.
+                all_files_in_dir = os.listdir(file_directory)
+                all_files_num = len(all_files_in_dir)
+                max_bug_count = max(
+                    int(file.split(":")[1]) for file in all_files_in_dir
+                )
+                # still have bug reports need to handle here.
+                if all_files_in_dir:
+                    cls.total_processed_bug_count_int = 0
+                else:
+                    # no files remaining. break loop.
+                    break
+
             if current_file_d == "":
+                logger.debug(
+                    "continue because of current_file_d: {}".format(
+                        "bug:" + str(cls.total_processed_bug_count_int) + ":"
+                    )
+                )
                 continue
             if cls.total_processed_bug_count_int == sys.maxsize:
+                logger.debug("return normally")
                 return [], "Done"
+
             current_file_d = os.path.join(file_directory, current_file_d)
             if not os.path.isfile(current_file_d):
+                logger.debug("is not file: {}".format(current_file_d))
                 continue
+
             all_files_num -= 1
             log_out_line("Filename: " + str(current_file_d) + ". \n")
-            current_file = open(
-                current_file_d, "r", errors="replace"
-            )
+            current_file = open(current_file_d, "r", errors="replace")
             current_file_str = current_file.read()
             current_file_str = re.sub(r"[^\x00-\x7F]+", " ", current_file_str)
             current_file_str = current_file_str.replace(u"\ufffd", " ")
@@ -57,7 +89,13 @@ class IO:
             if len(all_queries) != 0:
                 break
 
-        return cls._restructured_and_clean_all_queries(all_queries=all_queries), current_file_d
+        logger.info(
+            "Finished reading all the query files from the bug_samples folder. "
+        )
+        return (
+            cls._restructured_and_clean_all_queries(all_queries=all_queries),
+            current_file_d,
+        )
 
     @classmethod
     def _restructured_and_clean_all_queries(cls, all_queries):
@@ -353,7 +391,7 @@ class IO:
         return res_str_out, RESULT.PASS
 
     @classmethod
-    def retrive_existing_commid_id(cls, file_directory:str):
+    def retrive_existing_commid_id(cls, file_directory: str):
         all_commit_id = []
 
         uniq_id_count = 0
@@ -362,22 +400,24 @@ class IO:
             uniq_id_count += 1
             if not os.path.isfile(current_file_d):
                 log_out_line("No existing unique bug reports. ")
-                break # Existing unique bugs not found. Give up. 
-            log_out_line("Detected existing unique bug reports. Filename: " + str(current_file_d) + ". \n")
-            current_file = open(
-                current_file_d, "r", errors="replace"
+                break  # Existing unique bugs not found. Give up.
+            log_out_line(
+                "Detected existing unique bug reports. Filename: "
+                + str(current_file_d)
+                + ". \n"
             )
+            current_file = open(current_file_d, "r", errors="replace")
             current_file_str = current_file.read()
             current_file_str = re.sub(r"[^\x00-\x7F]+", "", current_file_str)
             current_file_str = current_file_str.replace(u"\ufffd", " ")
-            current_file_list = current_file_str.split('\n')
+            current_file_list = current_file_str.split("\n")
             for cur_line in current_file_list:
                 if "First buggy commit ID:" in cur_line:
                     cur_commit_id = cur_line.split(":")[1]
                     if cur_commit_id != "Unknown":
                         all_commit_id.append(cur_commit_id)
                         log_out_line("Retrived commit id: %s\n" % (cur_commit_id))
-                    break # To next file. 
+                    break  # To next file.
             current_file.close()
 
         return all_commit_id
