@@ -48,6 +48,7 @@
 #include "../include/utils.h"
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
 #include <ctype.h>
 #include <dirent.h>
 #include <dlfcn.h>
@@ -3409,11 +3410,16 @@ static void perform_dry_run(char **argv) {
   u32 cal_failures = 0;
   u8 *skip_crashes = getenv("AFL_SKIP_CRASHES");
 
+  int i = 0;
   while (q) {
 
     u8 *use_mem;
     u8 res;
     s32 fd;
+
+    if (i >= 1)
+      break;
+    i += 1;
 
     u8 *fn = strrchr((char *)q->fname, '/') + 1;
 
@@ -5915,6 +5921,39 @@ void get_ori_valid_stmts(vector<string> &v_valid_stmts) {
   return;
 }
 
+vector<string> split_string_by_newline(const string &str) {
+  auto result = vector<string>{};
+  auto ss = stringstream{str};
+
+  for (string line; getline(ss, line, '\n');)
+    result.push_back(line);
+
+  return result;
+}
+
+ALL_COMP_RES direct_run_oracle_pair(char **argv, string database_query,
+                                    string first_oracle_query,
+                                    string second_oracle_query) {
+
+  string new_minimize_query = database_query;
+  new_minimize_query += "SELECT 'BEGIN VERI 0';";
+  new_minimize_query += first_oracle_query + ";";
+  new_minimize_query += "SELECT 'END VERI 0';";
+
+  new_minimize_query += "SELECT 'BEGIN VERI 1';";
+  new_minimize_query += second_oracle_query + ";";
+  new_minimize_query += "SELECT 'END VERI 1';";
+
+  ALL_COMP_RES all_comp_res;
+  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+  vector<int> explain_diff_id;
+
+  execute_cmd_string(new_minimize_query, explain_diff_id, all_comp_res, argv,
+                     exec_tmout);
+
+  return all_comp_res;
+}
+
 ALL_COMP_RES run_oracle_pair(char **argv, string database_query,
                              string minimized_oracle_query,
                              string &rewrite_oracle_query) {
@@ -5968,7 +6007,74 @@ static u8 fuzz_one(char **argv) {
   minimize_target_stream >> minimize_target_json;
 
   string minimize_target_oracle = minimize_target_json["first_oracle"];
+  string second_oracle_query = minimize_target_json["second_oracle"];
+  string first_oracle_result = minimize_target_json["first_result"];
+  string second_oracle_result = minimize_target_json["second_result"];
   string database_query = minimize_target_json["database_query"];
+  vector<string> database_queries = split_string_by_newline(database_query);
+
+  vector<int> noise_database_query_idxes;
+  for (int idx = 0; idx < database_queries.size(); idx++) {
+
+    string test_database_query = "";
+    cout << "index: " << idx << endl;
+    for (vector<string>::const_iterator p = database_queries.begin();
+         p != database_queries.end(); ++p) {
+      if ((p - database_queries.begin()) == idx)
+        continue;
+
+      test_database_query += *p;
+    }
+    // cout << "test_database_query: " << test_database_query.c_str() << endl;
+
+    ALL_COMP_RES temp_comp_res = direct_run_oracle_pair(
+        argv, test_database_query, minimize_target_oracle, second_oracle_query);
+    cout << "end run_oracle_pair: " << temp_comp_res.final_res << endl;
+
+    if (ORA_COMP_RES::Fail == temp_comp_res.final_res) {
+
+      int temp_first_result;
+      int temp_second_result;
+
+      for (COMP_RES compare_result : temp_comp_res.v_res) {
+        if (compare_result.res_int_0 != compare_result.res_int_1) {
+          cout << "[+] compare_result.res_int_0: " << compare_result.res_int_0
+               << endl;
+          cout << "[+] compare_result.res_int_1: " << compare_result.res_int_1
+               << endl;
+          temp_first_result = compare_result.res_int_0;
+          temp_second_result = compare_result.res_int_1;
+          break;
+        }
+      }
+
+      if (temp_first_result == stoi(first_oracle_result) &&
+          temp_second_result == stoi(second_oracle_result)) {
+        noise_database_query_idxes.push_back(idx);
+      } else {
+        cout << "[!] temp_first_result: " << temp_first_result << ", "
+             << "temp_second_result: " << temp_second_result << ", "
+             << "first_oracle_result: " << first_oracle_result.c_str() << ", "
+             << "second_oracle_result: " << second_oracle_result.c_str()
+             << endl;
+      }
+    }
+  }
+
+  string minimized_database_query = "";
+  for (vector<string>::const_iterator p = database_queries.begin();
+       p != database_queries.end(); ++p) {
+    int idx = p - database_queries.begin();
+    if (count(noise_database_query_idxes.begin(),
+              noise_database_query_idxes.end(), idx))
+      continue;
+
+    minimized_database_query += *p;
+  }
+
+  cout << "Minimized database query: " << minimized_database_query.c_str()
+       << endl;
+
   cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str()
        << endl;
   cout << "Minimize target - second oracle : "
@@ -5982,13 +6088,21 @@ static u8 fuzz_one(char **argv) {
   // TODO(vancir): get minimize string set of database query.
   set<string> minimize_oracle_string_set =
       g_mutator.get_minimize_string_from_tree(minimize_target_oracle);
-  for (auto it = minimize_oracle_string_set.begin();
-       it != minimize_oracle_string_set.end(); ++it) {
-    if (!p_oracle->is_oracle_valid_stmt(*it))
-      minimize_oracle_string_set.erase(it);
-  }
+  cout << "get minimize_oracle_string_set size: "
+       << minimize_oracle_string_set.size() << endl;
+  // for (auto it = minimize_oracle_string_set.begin();
+  //      it != minimize_oracle_string_set.end(); ++it) {
+  //   if (!p_oracle->is_oracle_valid_stmt(*it))
+  //     minimize_oracle_string_set.erase(it);
+  // }
   cout << "minimize_oracle_string_set::size = "
        << minimize_oracle_string_set.size() << endl;
+
+  string output_dir =
+      minimize_target.substr(0, minimize_target.find_last_of(".")) + "_min";
+  cout << "output_dir: " << output_dir.c_str() << endl;
+  string create_dir = "mkdir -p " + output_dir;
+  system(create_dir.c_str());
 
   int minimize_json_num = 0;
   for (string minimized_oracle_query : minimize_oracle_string_set) {
@@ -5996,8 +6110,11 @@ static u8 fuzz_one(char **argv) {
       continue;
 
     string rewrite_oracle_query = "";
-    ALL_COMP_RES all_comp_res = run_oracle_pair(
-        argv, database_query, minimized_oracle_query, rewrite_oracle_query);
+
+    // FIXME(vancir): always return -1 error.
+    ALL_COMP_RES all_comp_res =
+        run_oracle_pair(argv, minimized_database_query, minimized_oracle_query,
+                        rewrite_oracle_query);
 
     if (ORA_COMP_RES::Fail == all_comp_res.final_res) {
       // the oracle result is still mismatch.
@@ -6007,7 +6124,7 @@ static u8 fuzz_one(char **argv) {
            << "    " << rewrite_oracle_query << endl;
 
       json new_minimize_oracle_json;
-      new_minimize_oracle_json["database_query"] = database_query;
+      new_minimize_oracle_json["database_query"] = minimized_database_query;
       new_minimize_oracle_json["first_oracle"] = minimized_oracle_query;
       new_minimize_oracle_json["second_oracle"] = rewrite_oracle_query;
 
@@ -6023,7 +6140,28 @@ static u8 fuzz_one(char **argv) {
         }
       }
 
-      string output_file = "minimize_" + to_string(minimize_json_num) + ".json";
+      ofstream output_sql(output_dir + "/min_" + to_string(minimize_json_num) +
+                          ".sql");
+      vector<string> final_database_query =
+          string_splitter(minimized_database_query, ';');
+      for (string dbstr : final_database_query) {
+        output_sql << dbstr + ";" << endl;
+      }
+      output_sql << endl;
+
+      output_sql << minimized_oracle_query << endl;
+      output_sql << rewrite_oracle_query << endl;
+      output_sql << endl;
+
+      output_sql << "-- " + to_string(new_minimize_oracle_json["first_result"])
+                 << endl;
+      output_sql << "-- " + to_string(new_minimize_oracle_json["second_result"])
+                 << endl;
+
+      output_sql.close();
+
+      string output_file =
+          output_dir + "/min_" + to_string(minimize_json_num) + ".json";
       ofstream json_out_stream(output_file);
       json_out_stream << setw(2) << new_minimize_oracle_json << endl;
     }
@@ -7490,6 +7628,7 @@ static void do_libary_initialize() {
 
   cerr << "We should initialize the libary" << endl;
 
+  /*
   vector<string> file_list = get_all_files_in_dir(g_library_path);
   for (auto &f : file_list) {
 
@@ -7509,6 +7648,7 @@ static void do_libary_initialize() {
 
   cout << "The size of ir_libary_2D_hash_ for kStatement is: "
        << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
+  */
 }
 
 int main(int argc, char **argv) {

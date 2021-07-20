@@ -239,6 +239,14 @@ def parse_unique(report, output):
     with open(output, "w") as f:
         json.dump(target, f, indent=2, sort_keys=True)
 
+    os.system("touch {}".format(Path(report).with_suffix(".txt")))
+    sql_output = Path(report).with_suffix(".sql")
+    with open(sql_output, "w") as f:
+        f.write(database_query + "\n\n" + first_oracle + "\n" + second_oracle + "\n")
+        f.write("\n")
+        f.write("-- first_result: {}\n".format(first_result))
+        f.write("-- second_result: {}\n".format(second_result))
+
 
 @click.command()
 @click.argument("folder", type=click.Path(exists=True))
@@ -246,7 +254,10 @@ def parse_unique(report, output):
 def parse_unique_folder(ctx, folder):
     folder = Path(folder)
     for bug_file in folder.rglob("*"):
-        if ".json" == bug_file.suffix or bug_file.is_dir():
+        if bug_file.suffix in [".json", ".txt", ".sql"] or bug_file.is_dir():
+            continue
+
+        if bug_file.name == "report.txt":
             continue
 
         ctx.invoke(parse_unique, report=bug_file, output=None)
