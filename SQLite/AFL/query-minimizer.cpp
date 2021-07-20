@@ -6017,7 +6017,7 @@ static u8 fuzz_one(char **argv) {
   for (int idx = 0; idx < database_queries.size(); idx++) {
 
     string test_database_query = "";
-    cout << "index: " << idx << endl;
+    // cout << "index: " << idx << endl;
     for (vector<string>::const_iterator p = database_queries.begin();
          p != database_queries.end(); ++p) {
       if ((p - database_queries.begin()) == idx)
@@ -6029,7 +6029,7 @@ static u8 fuzz_one(char **argv) {
 
     ALL_COMP_RES temp_comp_res = direct_run_oracle_pair(
         argv, test_database_query, minimize_target_oracle, second_oracle_query);
-    cout << "end run_oracle_pair: " << temp_comp_res.final_res << endl;
+    // cout << "end run_oracle_pair: " << temp_comp_res.final_res << endl;
 
     if (ORA_COMP_RES::Fail == temp_comp_res.final_res) {
 
@@ -6038,10 +6038,12 @@ static u8 fuzz_one(char **argv) {
 
       for (COMP_RES compare_result : temp_comp_res.v_res) {
         if (compare_result.res_int_0 != compare_result.res_int_1) {
-          cout << "[+] compare_result.res_int_0: " << compare_result.res_int_0
-               << endl;
-          cout << "[+] compare_result.res_int_1: " << compare_result.res_int_1
-               << endl;
+          // cout << "[+] compare_result.res_int_0: " <<
+          // compare_result.res_int_0
+          //      << endl;
+          // cout << "[+] compare_result.res_int_1: " <<
+          // compare_result.res_int_1
+          //      << endl;
           temp_first_result = compare_result.res_int_0;
           temp_second_result = compare_result.res_int_1;
           break;
@@ -6074,6 +6076,28 @@ static u8 fuzz_one(char **argv) {
 
   cout << "Minimized database query: " << minimized_database_query.c_str()
        << endl;
+
+  cout << "[+] minimize query: "
+       << minimize_target.substr(0, minimize_target.find_last_of(".")) + ".sql"
+       << endl;
+  ofstream output_origin_sql(
+      minimize_target.substr(0, minimize_target.find_last_of(".")) + ".sql");
+  vector<string> minimize_database_queries =
+      string_splitter(minimized_database_query, ';');
+  for (string dbstr : minimize_database_queries) {
+    output_origin_sql << dbstr + ";" << endl;
+  }
+  output_origin_sql << endl;
+
+  output_origin_sql << minimize_target_oracle << endl;
+  output_origin_sql << second_oracle_query << endl;
+
+  output_origin_sql << endl;
+
+  output_origin_sql << "-- first result: " + first_oracle_result << endl;
+  output_origin_sql << "-- second result: " + second_oracle_result << endl;
+
+  output_origin_sql.close();
 
   cout << "Minimize target - first oracle : " << minimize_target_oracle.c_str()
        << endl;
