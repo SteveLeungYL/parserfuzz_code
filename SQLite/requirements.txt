@@ -3,3 +3,4 @@ GitPython
 pathlib
 click
 loguru
+rich
