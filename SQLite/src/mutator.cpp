@@ -418,10 +418,11 @@ void toptable_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
   }
 }
 
-string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_index) {
-  
-  vector<IR *>tree = parse_query_str_get_ir_set(oracle_query);
-  IR* root = tree[tree.size() -1];
+string Mutator::remove_node_from_tree_by_index(string oracle_query,
+                                               int remove_index) {
+
+  vector<IR *> tree = parse_query_str_get_ir_set(oracle_query);
+  IR *root = tree[tree.size() - 1];
   deque<IR *> bfs = {root};
   string result = "";
 
@@ -440,26 +441,24 @@ string Mutator::remove_node_from_tree_by_index(string oracle_query, int remove_i
 
     if (node->left_)
       bfs.push_back(node->left_);
-  
-    if (node->right_)
-      bfs.push_back(node->right_);  
 
+    if (node->right_)
+      bfs.push_back(node->right_);
   }
 
   return result;
 }
 
-
 set<string> Mutator::get_minimize_string_from_tree(string oracle_query) {
   set<string> res;
-  vector<IR *>irtree = parse_query_str_get_ir_set(oracle_query);
-  
-  for (int i=0; i<irtree.size(); ++i) {
+  vector<IR *> irtree = parse_query_str_get_ir_set(oracle_query);
+
+  for (int i = 0; i < irtree.size(); ++i) {
     string new_string = remove_node_from_tree_by_index(oracle_query, i);
     // vector<IR *> irset = parse_query_str_get_ir_set(new_string);
     // if (irset.size() == 0)
     //   continue ;
-      
+
     res.insert(new_string);
     // cout << "new string " << i << " : " << new_string.c_str() << endl;
   }
@@ -1003,8 +1002,8 @@ static bool isEmpty(string &str) {
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, 
-    const ALL_COMP_RES& all_comp_res) {
+void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id,
+                                 const ALL_COMP_RES &all_comp_res) {
 
   add_all_to_library(ir->to_string(), explain_diff_id, all_comp_res);
 }
@@ -1024,13 +1023,13 @@ void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id,
  */
 
 void Mutator::add_all_to_library(string whole_query_str,
-                                 const vector<int> &explain_diff_id, 
-                                 const ALL_COMP_RES& all_comp_res) {
+                                 const vector<int> &explain_diff_id,
+                                 const ALL_COMP_RES &all_comp_res) {
 
   if (isEmpty(whole_query_str))
-      return;
+    return;
 
-  int i = 0; // For counting oracle valid stmt IDs. 
+  int i = 0; // For counting oracle valid stmt IDs.
 
   vector<string> queries_vector = string_splitter(whole_query_str, ';');
   for (auto current_query : queries_vector) {
@@ -1049,14 +1048,15 @@ void Mutator::add_all_to_library(string whole_query_str,
     if (p_oracle->is_oracle_valid_stmt(current_query)) {
 
       // if (all_comp_res.v_res.size() > i) {
-      //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error || all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
+      //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error ||
+      //   all_comp_res.v_res[i].comp_res == ORA_COMP_RES::IGNORE) {
       //     ++i;
       //     // cerr << "Ignoring: " << i << current_query << endl;
       //     continue;
       //   }
       // }
 
-      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) != 
+      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
         // cerr << "Saving with statement: " << i << current_query << endl;
         add_to_valid_lib(root, current_query, true);
@@ -1152,7 +1152,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
 
   unsigned long p_hash = hash(ir->to_string());
   if (p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) !=
-                            ir_libary_2D_hash_[p_type].end()) {
+                                ir_libary_2D_hash_[p_type].end()) {
     /* current node not interesting enough. Ignore it and clean up. */
     return;
   }
@@ -1245,7 +1245,7 @@ void Mutator::get_memory_usage() {
   // total_size += size_right;
 
   unsigned long size_value = 0;
-  for (auto & v : value_libary)
+  for (auto &v : value_libary)
     size_value += v.size();
   f << "value size:   " << size_value << "\t - " << size_value * 1.0 / use
     << "\n";
@@ -1288,7 +1288,7 @@ void Mutator::get_memory_usage() {
   f.close();
 }
 
-unsigned long Mutator::hash(const string & sql) {
+unsigned long Mutator::hash(const string &sql) {
   return fuzzing_hash(sql.c_str(), sql.size());
 }
 
@@ -1309,7 +1309,7 @@ void Mutator::debug(IR *root, unsigned level) {
 }
 
 Mutator::~Mutator() {
-  cout << "HERE" << endl;
+  // cout << "HERE" << endl;
 
   for (auto iter : all_query_pstr_set) {
     delete iter;
@@ -1338,7 +1338,7 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
     string tablename = fixed_key->str_val_;
     auto &colums = m_tables[tablename];
     auto &indices = m_table2index[tablename];
-    auto &alias= m_table2alias[tablename];
+    auto &alias = m_table2alias[tablename];
 
     for (auto &val : graph[fixed_key]) {
 
@@ -1350,9 +1350,9 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
         visited.insert(val);
         break;
       }
-      default: break;
+      default:
+        break;
       }
-
     }
 
     for (auto &val : graph[fixed_key]) {
@@ -1375,8 +1375,8 @@ void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
         size_t found = table_name_with_alias.find(as_token_delim);
 
         if (found != string::npos) {
-          string table_name_alias = table_name_with_alias.substr(
-              found + as_token_delim.size());
+          string table_name_alias =
+              table_name_with_alias.substr(found + as_token_delim.size());
           val->str_val_ = table_name_alias + "." + val->str_val_;
         }
 
