@@ -2,6 +2,9 @@ import os
 import click
 import json
 from pathlib import Path
+from loguru import logger
+from itertools import combinations
+from tempfile import NamedTemporaryFile
 
 
 class OracleQuery(object):
@@ -178,6 +181,76 @@ def parse(report, output):
     print("Total {} oracle queries.".format(len(minimize_targets)))
 
 
+def check_sqlite_oracle(database_query, first_oracle, second_oracle):
+
+    full_query = (
+        database_query
+        + "\n"
+        + "select 'first_result';"
+        + "\n"
+        + first_oracle
+        + "\n"
+        + "select 'second_result';"
+        + "\n"
+        + second_oracle
+    )
+    with NamedTemporaryFile("w+t", delete=False) as f:
+        # Read/write to the file
+        f.write(full_query)
+        f.flush()
+        # print("#################")
+        # print(full_query)
+
+        cmd = "/data/liusong/sqlite_latest/sqlite3 < {}".format(f.name)
+        output = os.popen(cmd).read()
+
+        print(output)
+        first_result = output[
+            output.find("first_result")
+            + len("first_result") : output.find("second_result")
+        ]
+        second_result = output[output.find("second_result") + len("second_result") :]
+
+        first_result = first_result.strip()
+        second_result = second_result.strip()
+
+        first_result = int(float(first_result)) if first_result else 0
+        second_result = int(float(second_result)) if second_result else 0
+
+        return (first_result, second_result)
+
+
+def minimize_database_query(database_query, first_oracle, second_oracle):
+    database_query = database_query.splitlines()
+    database_query_size = len(database_query)
+    stop_minimize = False
+    while True:
+
+        prev_queries_size = len(database_query)
+        for i in reversed(range(len(database_query))):
+            temp_database_query = database_query[:i] + database_query[i + 1 :]
+            temp_database_query = "\n".join(temp_database_query)
+            first_result, second_result = check_sqlite_oracle(
+                temp_database_query, first_oracle, second_oracle
+            )
+
+            removable = first_result != second_result
+            if removable:
+                logger.debug("one removable query: {}".format(database_query[i]))
+                database_query.pop(i)
+                break
+
+        if prev_queries_size == len(database_query):
+            stop_minimize += 1
+
+        if stop_minimize > 12:
+            break
+
+    logger.info("Minimized {} queries".format(database_query_size - prev_queries_size))
+
+    return "\n".join(database_query)
+
+
 @click.command()
 @click.argument("report", type=click.Path(exists=True))
 @click.option(
@@ -211,8 +284,23 @@ def parse_unique(report, output):
     print(first_oracle)
     print(second_oracle)
 
-    first_result = substr(contents, "RES 0:", "RES 1:")
-    second_result = substr(contents, "RES 1:", "First buggy commit")
+    first_result, second_result = check_sqlite_oracle(
+        database_query, first_oracle, second_oracle
+    )
+    if first_result == second_result:
+        logger.warning("[!] Cannot reproduce this bug")
+        with open("not_reproduce.txt", "a") as f:
+            f.write(str(report) + "\n")
+        return
+
+    original_database_query = database_query
+    database_query = minimize_database_query(
+        database_query, first_oracle, second_oracle
+    )
+
+    first_result, second_result = check_sqlite_oracle(
+        database_query, first_oracle, second_oracle
+    )
     print("oracle query result:")
     print(first_result, second_result)
 
@@ -226,6 +314,7 @@ def parse_unique(report, output):
     print()
 
     target = {
+        "original_database_query": original_database_query,
         "database_query": database_query,
         "first_result": first_result,
         "second_result": second_result,
@@ -254,10 +343,7 @@ def parse_unique(report, output):
 def parse_unique_folder(ctx, folder):
     folder = Path(folder)
     for bug_file in folder.rglob("*"):
-        if bug_file.suffix in [".json", ".txt", ".sql"] or bug_file.is_dir():
-            continue
-
-        if bug_file.name == "report.txt":
+        if bug_file.suffix or bug_file.is_dir():
             continue
 
         ctx.invoke(parse_unique, report=bug_file, output=None)
