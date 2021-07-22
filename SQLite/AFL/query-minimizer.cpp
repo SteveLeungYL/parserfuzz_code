@@ -74,8 +74,8 @@ int main(int argc, char **argv) {
   p_oracle = nullptr;
   g_mutator.set_use_cri_val(false);
 
-  SAYF(cCYA "sqlite3 query minimizer " cBRI VERSION cRST
-            " by <vancirprince@gmail.com>\n");
+  // SAYF(cCYA "sqlite3 query minimizer " cBRI VERSION cRST
+  //           " by <vancirprince@gmail.com>\n");
 
   while ((opt = getopt(argc, argv, "+O:r:")) > 0) {
     switch (opt) {

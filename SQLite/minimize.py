@@ -1,11 +1,16 @@
 import os
+import sys
 import json
 import click
 import hashlib
+import itertools
 from pathlib import Path
 from loguru import logger
 from rich.progress import track
 from collections import defaultdict
+from tempfile import NamedTemporaryFile
+from multiprocessing import Pool
+
 
 valid_data_type = ("NUM", "TEXT", "DOUBLE")
 bug_reports = Path("/data/liusong/Squirrel_DBMS/SQLite/second_unique_reports")
@@ -69,30 +74,318 @@ def dedup(reports):
     logger.info("Complete running deduplicate task for {}".format(reports))
 
 
-@cli.command()
-@click.argument("reports", type=click.Path(exists=True))
-@click.option(
-    "-m", "--parallel", is_flag=True, help="run the query minimizer in parallel."
-)
-def run(reports, parallel):
-    """Run the query minimizer."""
+def get_possible_minimize_query(query):
+    result = set()
+    result.add(query)
+
+    with NamedTemporaryFile("w+t", delete=False) as f:
+        f.write(query)
+        f.flush()
+
+        command = "{} -r {}".format(query_minimizer, f.name)
+        output = os.popen(command).read()
+        result |= get_queries_from_string(output)
+
+    return result
+
+
+def get_queries_from_string(output):
+    queries = set()
+    for line in output.splitlines():
+        if not line.startswith("[+]"):
+            continue
+
+        query = line[len("[+]") :].strip()
+        if not query or query == ";":
+            continue
+
+        queries.add(query)
+
+    return queries
+
+
+def ensure_safe(query):
+    query = query.strip()
+    return query if query.endswith(";") else query + ";"
+
+
+def run_sqlite_query(database_query, first_oracle, second_oracle):
+
+    safe_database_query = [
+        query if query.endswith(";") else query + ";"
+        for query in database_query.splitlines()
+    ]
+    safe_database_query = "\n".join(safe_database_query)
+
+    full_query = (
+        database_query
+        + "\n"
+        + "select 'first_result';"
+        + "\n"
+        + ensure_safe(first_oracle)
+        + "\n"
+        + "select 'second_result';"
+        + "\n"
+        + ensure_safe(second_oracle)
+    )
+
+    # print("##################333")
+    # print(full_query)
+    # print("second: ", second_oracle if second_oracle.endswith(";") else second_oracle+";")
+    # print("##################222")
+
+    with NamedTemporaryFile("w+t", delete=False) as f:
+        f.write(full_query)
+        f.flush()
+
+        cmd = "/data/liusong/sqlite_latest/sqlite3 < {}".format(f.name)
+        output = os.popen(cmd).read()
+        # print(output)
+
+        first_result = output[
+            output.find("first_result")
+            + len("first_result") : output.find("second_result")
+        ]
+        second_result = output[output.find("second_result") + len("second_result") :]
+
+        first_result = first_result.strip()
+        second_result = second_result.strip()
+
+        try:
+            first_result = int(float(first_result)) if first_result else 0
+        except:
+            first_result = 0
+
+        try:
+            second_result = int(float(second_result)) if second_result else 0
+        except:
+            second_result = 0
+
+        return (first_result, second_result)
+
+
+def shrink_database_queries(
+    database_query, minimize_index, minimize_queries, first_oracle, second_oracle
+):
+    removable_indexes = []
+    for idx, query in enumerate(minimize_queries):
+        # print(minimize_index)
+        # print("\n".join(database_query[:minimize_index]))
+        # print("\n".join(database_query[minimize_index+1:]))
+        # print(query)
+        new_database_query = (
+            "\n".join(database_query[:minimize_index])
+            + query
+            + "\n".join(database_query[minimize_index + 1 :])
+        )
+        first_result, second_result = run_sqlite_query(
+            new_database_query, first_oracle, second_oracle
+        )
+
+        removable = first_result != second_result
+        if removable:
+            removable_indexes.append(idx)
+
+    minimize_database_query = [
+        query
+        for idx, query in enumerate(minimize_queries)
+        if idx not in removable_indexes
+    ]
+    logger.debug(
+        "shrinked {} database queries ({}/{}).".format(
+            len(minimize_queries) - len(minimize_database_query),
+            len(minimize_database_query),
+            len(minimize_queries),
+        )
+    )
+    return minimize_database_query
+
+
+def shrink_first_oracle_queries(database_query, first_oracle_queries, second_oracle):
+    removable_indexes = []
+    for idx, query in enumerate(first_oracle_queries):
+        first_result, second_result = run_sqlite_query(
+            database_query, query, second_oracle
+        )
+        removable = first_result != second_result
+        if removable:
+            removable_indexes.append(idx)
+
+    minimize_first_oracle_query = [
+        query
+        for idx, query in enumerate(first_oracle_queries)
+        if idx not in removable_indexes
+    ]
+    logger.debug(
+        "shrinked {} first oracle queries ({}/{}).".format(
+            len(first_oracle_queries) - len(minimize_first_oracle_query),
+            len(minimize_first_oracle_query),
+            len(first_oracle_queries),
+        )
+    )
+    return minimize_first_oracle_query
+
+
+def shrink_second_oracle_queries(database_query, first_oracle, second_oracle_queries):
+    removable_indexes = []
+    for idx, query in enumerate(second_oracle_queries):
+        first_result, second_result = run_sqlite_query(
+            database_query, first_oracle, query
+        )
+        removable = first_result != second_result
+        if removable:
+            removable_indexes.append(idx)
+
+    minimize_second_oracle_query = [
+        query
+        for idx, query in enumerate(second_oracle_queries)
+        if idx not in removable_indexes
+    ]
+    logger.debug(
+        "shrinked {} second oracle queries ({}/{}).".format(
+            len(second_oracle_queries) - len(minimize_second_oracle_query),
+            len(minimize_second_oracle_query),
+            len(second_oracle_queries),
+        )
+    )
+    return minimize_second_oracle_query
+
+
+def run_minimizer_single_cpu(report):
+    outdir = report.with_suffix(".min")
+    outdir.mkdir(exist_ok=True)
+
+    with open(report) as f:
+        json_report = json.load(f)
+        database_queries = json_report["database_query"].splitlines()
+        truth_database_queries = database_queries
+        first_oracle = json_report["first_oracle"]
+        second_oracle = json_report["second_oracle"]
+
+    minimize_database_queries = []
+    for query_index, query in enumerate(database_queries):
+
+        minimize_queries = get_possible_minimize_query(query)
+        minimize_queries = shrink_database_queries(
+            database_queries, query_index, minimize_queries, first_oracle, second_oracle
+        )
+        minimize_database_queries.append(minimize_queries)
+        logger.warning(len(minimize_queries))
+
+    first_oracle_queries = get_possible_minimize_query(first_oracle)
+    first_oracle_queries = shrink_first_oracle_queries(
+        json_report["database_query"],
+        first_oracle_queries,
+        json_report["second_oracle"],
+    )
+    second_oracle_queries = get_possible_minimize_query(second_oracle)
+    second_oracle_queries = shrink_second_oracle_queries(
+        json_report["database_query"],
+        json_report["first_oracle"],
+        second_oracle_queries,
+    )
+
+    for idx, query in enumerate(truth_database_queries):
+        if query not in minimize_database_queries[idx]:
+            minimize_database_queries[idx].append(query)
+
+    if json_report["first_oracle"] not in first_oracle_queries:
+        first_oracle_queries.append(json_report["first_oracle"])
+
+    if json_report["second_oracle"] not in second_oracle_queries:
+        second_oracle_queries.append(json_report["second_oracle"])
+
+    print(len(first_oracle_queries), len(second_oracle_queries))
+    db_count = 0
+    for a in minimize_database_queries:
+        db_count += len(a)
+        print(len(a))
+
+    # input()
+    # print(*minimize_database_queries)
+    # input()
+    # print(first_oracle_queries)
+    # input()
+    # print(second_oracle_queries)
+    # input()
+
+    cnt = 0
+    results = []
+    for selected_queries in itertools.product(
+        *minimize_database_queries, first_oracle_queries, second_oracle_queries
+    ):
+
+        print(cnt)
+        cnt += 1
+
+        database_query = selected_queries[:-2]
+        database_query = "\n".join(database_query)
+
+        first_oracle = selected_queries[-2]
+        second_oracle = selected_queries[-1]
+
+        # truth_database_query = "CREATE TABLE v0 ( c1 INTEGER PRIMARY KEY );\nINSERT INTO v0 VALUES ( 127 );\nALTER TABLE v0 ADD COLUMN c14 INT NOT NULL ON CONFLICT ABORT AS( max ( 18446744073709551615, hex ( 9223372036854775807 ), NULL, NULL ) );"
+        # truth_first_oracle = "SELECT COUNT ( * ) FROM v0 AS a21 WHERE a21.c14 IN ( SELECT a22.c14 FROM v0 AS a22 );"
+        # truth_second_oracle = "SELECT TOTAL ( CAST ( a21.c14 IN ( SELECT a22.c14 FROM v0 AS a22 ) AS BOOL ) != 0 ) FROM v0 AS a21;"
+        # if database_query.strip() == truth_database_query:
+        #     logger.warning("!!!!!!!!!!!")
+        first_result, second_result = run_sqlite_query(
+            database_query, first_oracle, second_oracle
+        )
+        # input()
+
+        removable = first_result != second_result
+        if removable:
+            full_query = (
+                "-- database query\n"
+                + database_query
+                + "\n"
+                + "-- oracle query\n"
+                + first_oracle
+                + "\n"
+                + second_oracle
+                + "\n"
+                + "-- first result: "
+                + str(first_result)
+                + "\n"
+                + "-- second result: "
+                + str(second_result)
+            )
+            results.append(full_query)
+            logger.debug("one minimize query:\n{}".format(full_query))
+
+            # sys.exit(0)
+        # break
+
+    for idx, query in enumerate(results):
+        output = outdir / "min_{}.sql".format(idx)
+        with open(output, "w") as f:
+            f.write(query)
+
+
+def run_minimizer_multiple_cpu(reports):
     reports = Path(reports)
     json_bug_reports = [report for report in reports.rglob("*.json")]
 
-    if parallel:
+    with Pool(35) as p:
+        result = p.map_async(run_minimizer_single_cpu, json_bug_reports)
+        result.get()
+
+
+@cli.command()
+@click.argument("reports", type=click.Path(exists=True))
+def run(reports):
+    """Run the query minimizer."""
+    reports = Path(reports)
+
+    if reports.is_dir():
+        run_minimizer_multiple_cpu(reports)
         logger.warning("Parallel mode current not support.")
     else:
-        for report in track(json_bug_reports):
-            command = (
-                "{}".format(query_minimizer)
-                + " -t 1000+ -m none "
-                + " -i {} ".format(fuzz_work_dir / "inputs")
-                + " -o {} ".format(fuzz_work_dir / "outputs")
-                + " -O NOREC "
-                + " -r {} ".format(report)
-                + " -- {}".format(sqlite_binary)
-            )
-            os.system(cmd)
+        reports = Path(
+            "/data/liusong/Squirrel_DBMS/SQLite/second_unique_reports/report1/bug_7.json"
+        )
+        run_minimizer_single_cpu(reports)
 
     logger.info("Complete running query minimizer for {}".format(reports))
 

@@ -195,11 +195,8 @@ def check_sqlite_oracle(database_query, first_oracle, second_oracle):
         + second_oracle
     )
     with NamedTemporaryFile("w+t", delete=False) as f:
-        # Read/write to the file
         f.write(full_query)
         f.flush()
-        # print("#################")
-        # print(full_query)
 
         cmd = "/data/liusong/sqlite_latest/sqlite3 < {}".format(f.name)
         output = os.popen(cmd).read()
@@ -331,10 +328,10 @@ def parse_unique(report, output):
     os.system("touch {}".format(Path(report).with_suffix(".txt")))
     sql_output = Path(report).with_suffix(".sql")
     with open(sql_output, "w") as f:
-        f.write(database_query + "\n\n" + first_oracle + "\n" + second_oracle + "\n")
-        f.write("\n")
-        f.write("-- first_result: {}\n".format(first_result))
-        f.write("-- second_result: {}\n".format(second_result))
+        f.write("-- database query:\n" + database_query + "\n\n")
+        f.write("-- oracle query:\n" + first_oracle + "\n" + second_oracle + "\n\n")
+        f.write("-- first result: {}\n".format(first_result))
+        f.write("-- second result: {}\n".format(second_result))
 
 
 @click.command()
