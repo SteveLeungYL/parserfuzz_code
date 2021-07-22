@@ -10,6 +10,7 @@ from rich.progress import track
 from collections import defaultdict
 from tempfile import NamedTemporaryFile
 from multiprocessing import Pool
+from multiprocessing import cpu_count
 
 
 valid_data_type = ("NUM", "TEXT", "DOUBLE")
@@ -272,18 +273,20 @@ def run_minimizer_single_cpu(report):
         minimize_database_queries.append(minimize_queries)
         logger.warning(len(minimize_queries))
 
-    first_oracle_queries = get_possible_minimize_query(first_oracle)
-    first_oracle_queries = shrink_first_oracle_queries(
-        json_report["database_query"],
-        first_oracle_queries,
-        json_report["second_oracle"],
-    )
-    second_oracle_queries = get_possible_minimize_query(second_oracle)
-    second_oracle_queries = shrink_second_oracle_queries(
-        json_report["database_query"],
-        json_report["first_oracle"],
-        second_oracle_queries,
-    )
+    # first_oracle_queries = get_possible_minimize_query(first_oracle)
+    # first_oracle_queries = shrink_first_oracle_queries(
+    #     json_report["database_query"],
+    #     first_oracle_queries,
+    #     json_report["second_oracle"],
+    # )
+    first_oracle_queries = [first_oracle]
+    # second_oracle_queries = get_possible_minimize_query(second_oracle)
+    # second_oracle_queries = shrink_second_oracle_queries(
+    #     json_report["database_query"],
+    #     json_report["first_oracle"],
+    #     second_oracle_queries,
+    # )
+    second_oracle_queries = [second_oracle]
 
     for idx, query in enumerate(truth_database_queries):
         if query not in minimize_database_queries[idx]:
@@ -295,11 +298,11 @@ def run_minimizer_single_cpu(report):
     if json_report["second_oracle"] not in second_oracle_queries:
         second_oracle_queries.append(json_report["second_oracle"])
 
-    print(len(first_oracle_queries), len(second_oracle_queries))
-    db_count = 0
-    for a in minimize_database_queries:
-        db_count += len(a)
-        print(len(a))
+    # print(len(first_oracle_queries), len(second_oracle_queries))
+    # db_count = 0
+    # for a in minimize_database_queries:
+    #     db_count += len(a)
+    #     print(len(a))
 
     # input()
     # print(*minimize_database_queries)
@@ -315,7 +318,7 @@ def run_minimizer_single_cpu(report):
         *minimize_database_queries, first_oracle_queries, second_oracle_queries
     ):
 
-        print(cnt)
+        # print(cnt)
         cnt += 1
 
         database_query = selected_queries[:-2]
@@ -367,7 +370,7 @@ def run_minimizer_multiple_cpu(reports):
     reports = Path(reports)
     json_bug_reports = [report for report in reports.rglob("*.json")]
 
-    with Pool(multiprocessing.cpu_count()) as p:
+    with Pool(cpu_count()) as p:
         result = p.map_async(run_minimizer_single_cpu, json_bug_reports)
         result.get()
 
