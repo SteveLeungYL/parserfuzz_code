@@ -367,7 +367,7 @@ def run_minimizer_multiple_cpu(reports):
     reports = Path(reports)
     json_bug_reports = [report for report in reports.rglob("*.json")]
 
-    with Pool(35) as p:
+    with Pool(multiprocessing.cpu_count()) as p:
         result = p.map_async(run_minimizer_single_cpu, json_bug_reports)
         result.get()
 
