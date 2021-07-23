@@ -293,8 +293,41 @@ def main():
 
     result = dict(sorted(result.items()))
 
-    with open("result.json", "w") as f:
+    with open("similarity.json", "w") as f:
         json.dump(result, f, indent=2)
+
+    cluster = []
+
+    def find_cluster(pair):
+        for idx, pair_set in enumerate(cluster):
+            if pair & pair_set:
+                return idx
+        return -1
+
+    for dist in range(11):
+        if dist not in result:
+            continue
+        for line in result[dist]:
+            f0, f1 = line.split("<=>")
+            f0 = f0.strip()
+            f1 = f1.strip()
+            pair = set([f0, f1])
+
+            idx = find_cluster(pair)
+            if idx == -1:
+                cluster.append(pair)
+            else:
+                cluster[idx] |= pair
+
+    new_cluster = []
+    unique_files = set()
+    for pair in cluster:
+        new_cluster.append(list(pair))
+        unique_files |= pair
+    print("{} clusters, {} files.".format(len(cluster), len(unique_files)))
+
+    with open("cluster.json", "w") as f:
+        json.dump(new_cluster, f, indent=2)
 
 
 def dedup_commit():
@@ -345,7 +378,7 @@ def dedup_commit():
 
 
 def stat():
-    with open("result.json") as f:
+    with open("similarity.json") as f:
         data = json.load(f)
 
     files = set()
