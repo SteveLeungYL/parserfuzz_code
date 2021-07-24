@@ -267,7 +267,7 @@ def tokenize(target):
 
 
 @click.command()
-@click.argument("-r", "--unique-reports", type=click.Path(exists=True))
+@click.argument("unique-reports", type=click.Path(exists=True))
 def calc_similarity_by_lcs(unique_reports):
     # t0 = ["UNIQUE", "test", "SELECT"]
     # t1 = ["UNIQUE", "asd", "SELECT", "test"]
@@ -275,7 +275,9 @@ def calc_similarity_by_lcs(unique_reports):
 
     reports_root = Path(unique_reports)
     reports = [
-        report for report in reports_root.rglob("*.sql") if ".min" not in str(report)
+        report
+        for report in reports_root.rglob("*.sql")
+        if ".min" not in str(report) and "cluster" not in str(report)
     ]
 
     total = len(list(combinations([0] * len(reports), 2)))
@@ -338,9 +340,22 @@ def calc_similarity_by_lcs(unique_reports):
             dst_file = outdir / file.replace("/", "_")
             os.system("cp {} {}".format(path, dst_file))
 
+    all_reports = set(
+        [
+            str(report.relative_to(reports_root))
+            for report in reports_root.rglob("*.sql")
+            if ".min" not in str(report) and "cluster" not in str(report)
+        ]
+    )
+
+    non_cluster_reports = all_reports - unique_files
+    non_cluster_reports = list(non_cluster_reports)
+    with open(reports_root / "non-classifaction.json", "w") as f:
+        json.dump(non_cluster_reports, f, indent=2, sort_keys=True)
+
 
 @click.command()
-@click.argument("-b", "--bug-samples", type=click.Path(exists=True))
+@click.argument("bug-samples", type=click.Path(exists=True))
 def calc_similarity_by_commit_range(bug_samples):
     """Deduplicate bug reports by commit range."""
     bug_samples = Path(bug_samples)
