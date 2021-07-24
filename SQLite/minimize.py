@@ -15,9 +15,7 @@ from multiprocessing import cpu_count
 
 valid_data_type = ("NUM", "TEXT", "DOUBLE")
 bug_reports = Path("/data/liusong/Squirrel_DBMS/SQLite/second_unique_reports")
-sqlite_binary = Path(
-    "/data/liusong/sqlite2/bld/74e5a5a703ce07ab412ac28ea7a14cf93f59da33/sqlite3"
-)
+sqlite_binary = "/data/liusong/sqlite_latest/sqlite3"
 query_minimizer = Path("/data/liusong/Squirrel_DBMS/SQLite/query-minimizer")
 fuzz_work_dir = Path("/data/liusong/Squirrel_DBMS/SQLite/fuzz_root")
 
@@ -139,7 +137,7 @@ def run_sqlite_query(database_query, first_oracle, second_oracle):
         f.write(full_query)
         f.flush()
 
-        cmd = "/data/liusong/sqlite_latest/sqlite3 < {}".format(f.name)
+        cmd = "{} < {}".format(sqlite_binary, f.name)
         output = os.popen(cmd).read()
         # print(output)
 
@@ -383,11 +381,7 @@ def run(reports):
 
     if reports.is_dir():
         run_minimizer_multiple_cpu(reports)
-        logger.warning("Parallel mode current not support.")
     else:
-        reports = Path(
-            "/data/liusong/Squirrel_DBMS/SQLite/second_unique_reports/report1/bug_7.json"
-        )
         run_minimizer_single_cpu(reports)
 
     logger.info("Complete running query minimizer for {}".format(reports))

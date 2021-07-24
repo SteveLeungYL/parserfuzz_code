@@ -7,6 +7,15 @@ from itertools import combinations
 from tempfile import NamedTemporaryFile
 
 
+SQLITE_BINARY = "/data/liusong/sqlite_latest/sqlite3"
+
+
+@click.group()
+def cli():
+    """Parser CLI for SQLite3."""
+    pass
+
+
 class OracleQuery(object):
     def __init__(self, query: str, result: str = ""):
         self.query = query.strip()
@@ -91,7 +100,7 @@ def substr(string, start, stop=""):
     return result.strip()
 
 
-@click.command()
+@cli.command()
 @click.argument("report", type=click.Path(exists=True))
 @click.option(
     "-o",
@@ -100,7 +109,7 @@ def substr(string, start, stop=""):
     default="simplified_reports",
     type=click.Path(),
 )
-def parse(report, output):
+def parse_bug_report(report, output):
 
     with open(report) as f:
         contents = f.read()
@@ -198,7 +207,7 @@ def check_sqlite_oracle(database_query, first_oracle, second_oracle):
         f.write(full_query)
         f.flush()
 
-        cmd = "/data/liusong/sqlite_latest/sqlite3 < {}".format(f.name)
+        cmd = "{} < {}".format(SQLITE_BINARY, f.name)
         output = os.popen(cmd).read()
 
         print(output)
@@ -248,7 +257,7 @@ def minimize_database_query(database_query, first_oracle, second_oracle):
     return "\n".join(database_query)
 
 
-@click.command()
+@cli.command()
 @click.argument("report", type=click.Path(exists=True))
 @click.option(
     "-o",
@@ -256,7 +265,7 @@ def minimize_database_query(database_query, first_oracle, second_oracle):
     help="output path of generated json file.",
     type=click.Path(),
 )
-def parse_unique(report, output):
+def parse_unique_report(report, output):
 
     with open(report) as f:
         contents = f.read()
@@ -334,7 +343,7 @@ def parse_unique(report, output):
         f.write("-- second result: {}\n".format(second_result))
 
 
-@click.command()
+@cli.command()
 @click.argument("folder", type=click.Path(exists=True))
 @click.pass_context
 def parse_unique_folder(ctx, folder):
@@ -343,10 +352,11 @@ def parse_unique_folder(ctx, folder):
         if bug_file.suffix or bug_file.is_dir():
             continue
 
-        ctx.invoke(parse_unique, report=bug_file, output=None)
+        ctx.invoke(parse_unique_report, report=bug_file, output=None)
 
 
 if __name__ == "__main__":
-    # parse()
-    # parse_unique()
-    parse_unique_folder()
+    # parse_bug_report()
+    # parse_unique_report()
+    # parse_unique_folder()
+    cli()

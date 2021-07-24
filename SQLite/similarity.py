@@ -267,12 +267,13 @@ def tokenize(target):
 
 
 @click.command()
-def main():
+@click.argument("-r", "--unique-reports", type=click.Path(exists=True))
+def calc_similarity_by_lcs(unique_reports):
     # t0 = ["UNIQUE", "test", "SELECT"]
     # t1 = ["UNIQUE", "asd", "SELECT", "test"]
     # print(length(t0, t1))
 
-    reports_root = Path("second_unique_reports")
+    reports_root = Path(unique_reports)
     reports = [
         report for report in reports_root.rglob("*.sql") if ".min" not in str(report)
     ]
@@ -293,7 +294,7 @@ def main():
 
     result = dict(sorted(result.items()))
 
-    with open("similarity.json", "w") as f:
+    with open(reports_root / "similarity.json", "w") as f:
         json.dump(result, f, indent=2)
 
     cluster = []
@@ -326,17 +327,25 @@ def main():
         unique_files |= pair
     print("{} clusters, {} files.".format(len(cluster), len(unique_files)))
 
-    with open("cluster.json", "w") as f:
+    with open(reports_root / "classifaction.json", "w") as f:
         json.dump(new_cluster, f, indent=2)
 
+    for idx, files in enumerate(new_cluster):
+        outdir = reports_root / "cluster" / f"{idx}"
+        outdir.mkdir(exist_ok=True)
+        for file in files:
+            path = reports_root / file
+            dst_file = outdir / file.replace("/", "_")
+            os.system("cp {} {}".format(path, dst_file))
 
-def dedup_commit():
-    bug_reports = [
-        report
-        for report in Path(
-            "/data/liusong/Squirrel_DBMS/SQLite/Bug_Analysis/bug_samples"
-        ).glob("*")
-    ]
+
+@click.command()
+@click.argument("-b", "--bug-samples", type=click.Path(exists=True))
+def calc_similarity_by_commit_range(bug_samples):
+    """Deduplicate bug reports by commit range."""
+    bug_samples = Path(bug_samples)
+
+    bug_reports = [report for report in bug_samples.glob("*")]
 
     commit_range_files = defaultdict(list)
     for report in bug_reports:
@@ -377,7 +386,7 @@ def dedup_commit():
     )
 
 
-def stat():
+def count_similar_reports_within_distance_10():
     with open("similarity.json") as f:
         data = json.load(f)
 
@@ -399,6 +408,6 @@ def stat():
 
 if __name__ == "__main__":
     # get_all_token()
-    main()
-    # stat()
-    # dedup_commit()
+    calc_similarity_by_lcs()
+    # count_similar_reports_within_distance_10()
+    # calc_similarity_by_commit_range()
