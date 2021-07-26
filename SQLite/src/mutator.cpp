@@ -336,7 +336,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
 
   IR* new_stmt_ir = get_from_libary_with_type(kStatement);
-  if (new_stmt_ir == nullptr) {
+  if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
     cur_root->deep_drop();
     return res_vec;
   }

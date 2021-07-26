@@ -43,9 +43,15 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);
 
+    if (ir_tree.size() == 0)
+      {continue;}
+
+    if (ir_tree.back()->left_ == nullptr || ir_tree.back()->left_->left_ == nullptr || ir_tree.back()->left_->left_->left_ == nullptr)
+      {continue;}
     // kProgram -> kStatementList -> kStatement -> specific_statement_type_
     IR *cur_ir_stmt = ir_tree.back()->left_->left_->left_;
-    if (ir_tree.size() == 0 || !this->is_oracle_select_stmt(cur_ir_stmt))
+
+    if (!this->is_oracle_select_stmt(cur_ir_stmt))
       {continue;}
 
     root = ir_tree.back();
