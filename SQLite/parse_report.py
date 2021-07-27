@@ -334,7 +334,6 @@ def parse_unique_report(report, output):
     with open(output, "w") as f:
         json.dump(target, f, indent=2, sort_keys=True)
 
-    os.system("touch {}".format(Path(report).with_suffix(".txt")))
     sql_output = Path(report).with_suffix(".sql")
     with open(sql_output, "w") as f:
         f.write("-- database query:\n" + database_query + "\n\n")

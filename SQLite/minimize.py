@@ -636,5 +636,33 @@ def seperate(reports):
             os.system(f"cp {report} {outdir}")
 
 
+@cli.command()
+@click.argument("outdir", type=click.Path())
+def collect(outdir):
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
+
+    sqlright = Path("/data/liusong/Squirrel_DBMS")
+    sqlites = [
+        sqlright / "SQLite",
+        sqlright / "SQLite1",
+        sqlright / "SQLite2",
+        sqlright / "SQLite3",
+        sqlright / "SQLite4",
+        sqlright / "SQLite5",
+        sqlright / "SQLite6",
+    ]
+
+    index = 0
+    for sqlite in sqlites:
+        unique_bug_reports = sqlite / "Bug_Analysis/unique_bug_output"
+        for report in unique_bug_reports.rglob("*"):
+            output = outdir / f"bug_{index}"
+            os.system(f"cp {report} {output}")
+            index += 1
+
+    print(f"Total {index+1} unique reports.")
+
+
 if __name__ == "__main__":
     cli()
