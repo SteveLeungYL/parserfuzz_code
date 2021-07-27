@@ -353,6 +353,11 @@ def calc_similarity_by_lcs(unique_reports):
     with open(reports_root / "non-classifaction.json", "w") as f:
         json.dump(non_cluster_reports, f, indent=2, sort_keys=True)
 
+    outdir = reports_root / "unique"
+    outdir.mkdir(exist_ok=True, parents=True)
+    for report in non_cluster_reports:
+        os.system("cp {} {}".format(report, outdir))
+
 
 @click.command()
 @click.argument("bug-samples", type=click.Path(exists=True))

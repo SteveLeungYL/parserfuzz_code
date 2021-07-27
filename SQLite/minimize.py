@@ -661,8 +661,11 @@ def collect(outdir):
             os.system(f"cp {report} {output}")
             index += 1
 
-    print(f"Total {index+1} unique reports.")
+    print(f"Total {index} unique reports.")
 
+
+# TODO(vancir): recognize rtree fp after classification by similarity
+# TODO(vancir): recognize view affinity fp after classification by similarity
 
 if __name__ == "__main__":
     cli()

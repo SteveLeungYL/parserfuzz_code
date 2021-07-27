@@ -3,8 +3,6 @@ import click
 import json
 from pathlib import Path
 from loguru import logger
-from itertools import combinations
-from tempfile import NamedTemporaryFile
 
 
 SQLITE_BINARY = "/data/liusong/sqlite_latest/sqlite3"
@@ -203,11 +201,13 @@ def check_sqlite_oracle(database_query, first_oracle, second_oracle):
         + "\n"
         + second_oracle
     )
-    with NamedTemporaryFile("w+t", delete=True) as f:
+
+    temp_file = ".temp_query"
+    with open(temp_file, "w") as f:
         f.write(full_query)
         f.flush()
 
-        cmd = "{} < {}".format(SQLITE_BINARY, f.name)
+        cmd = "{} < {}".format(SQLITE_BINARY, temp_file)
         output = os.popen(cmd).read()
 
         print(output)
