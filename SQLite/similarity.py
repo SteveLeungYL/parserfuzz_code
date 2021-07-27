@@ -334,7 +334,7 @@ def calc_similarity_by_lcs(unique_reports):
 
     for idx, files in enumerate(new_cluster):
         outdir = reports_root / "cluster" / f"{idx}"
-        outdir.mkdir(exist_ok=True)
+        outdir.mkdir(parents=True, exist_ok=True)
         for file in files:
             path = reports_root / file
             dst_file = outdir / file.replace("/", "_")

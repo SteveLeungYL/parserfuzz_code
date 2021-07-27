@@ -203,7 +203,7 @@ def check_sqlite_oracle(database_query, first_oracle, second_oracle):
         + "\n"
         + second_oracle
     )
-    with NamedTemporaryFile("w+t", delete=False) as f:
+    with NamedTemporaryFile("w+t", delete=True) as f:
         f.write(full_query)
         f.flush()
 

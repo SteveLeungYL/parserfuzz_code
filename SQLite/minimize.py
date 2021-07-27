@@ -4,6 +4,7 @@ import json
 import click
 import hashlib
 import itertools
+import shutil
 from pathlib import Path
 from loguru import logger
 from rich.progress import track
@@ -77,7 +78,7 @@ def get_possible_minimize_query(query):
     result = set()
     result.add(query)
 
-    with NamedTemporaryFile("w+t", delete=False) as f:
+    with NamedTemporaryFile("w+t", delete=True) as f:
         f.write(query)
         f.flush()
 
@@ -584,6 +585,55 @@ def rtree_compare():
         count += 1
 
     print(f"Total: {count}, Not sure: {notsure}")
+
+
+@cli.command()
+@click.argument("reports", type=click.Path(exists=True))
+def seperate(reports):
+    """Seperate the bug reports into multiple folder groups."""
+    reports = Path(reports)
+    report_files = [file for file in reports.rglob("*") if file.is_file()]
+    reports_nums = len(report_files)
+
+    sqlright = Path("/data/liusong/Squirrel_DBMS")
+    sqlites = [
+        sqlright / "SQLite",
+        sqlright / "SQLite1",
+        sqlright / "SQLite2",
+        sqlright / "SQLite3",
+        sqlright / "SQLite4",
+        sqlright / "SQLite5",
+        sqlright / "SQLite6",
+    ]
+    group_nums = len(sqlites)
+    batch_nums = int(reports_nums / group_nums)
+    print(f"[+] Total {reports_nums} reports and batch size is {batch_nums}.")
+
+    # delete and recreate bug_samples and unique_bug_output
+    for sqlite in sqlites:
+        bug_samples = sqlite / "Bug_Analysis/bug_samples"
+        unique_bug_output = sqlite / "Bug_Analysis/unique_bug_output"
+
+        if bug_samples.exists():
+            shutil.rmtree(bug_samples)
+        if unique_bug_output.exists():
+            shutil.rmtree(unique_bug_output)
+
+        bug_samples.mkdir()
+        unique_bug_output.mkdir()
+    print("[*] Clean the bug_samples and unique_bug_output folder.")
+
+    for i in range(group_nums):
+        if i == group_nums - 1:
+            batch_reports = report_files[i * batch_nums :]
+        else:
+            batch_reports = report_files[i * batch_nums : (i + 1) * batch_nums]
+
+        outdir = sqlites[i] / "Bug_Analysis/bug_samples"
+        for report in track(
+            batch_reports, description=f"[+] Copy {i} batch of reports"
+        ):
+            os.system(f"cp {report} {outdir}")
 
 
 if __name__ == "__main__":
