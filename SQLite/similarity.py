@@ -356,7 +356,7 @@ def calc_similarity_by_lcs(unique_reports):
     outdir = reports_root / "unique"
     outdir.mkdir(exist_ok=True, parents=True)
     for report in non_cluster_reports:
-        os.system("cp {} {}".format(report, outdir))
+        os.system("cp {} {}".format(reports_root / report, outdir))
 
 
 @click.command()

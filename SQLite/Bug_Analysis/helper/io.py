@@ -255,6 +255,10 @@ class IO:
         same_idx.reverse()
         for idx in same_idx:
             for j in range(len(bisecting_result.last_buggy_res_str_l)):
+                if idx >= len(bisecting_result.last_buggy_res_str_l[j]):
+                    # sometimes the idx can larger than
+                    # the length of last_buggy_res_str_l[j]
+                    continue
                 bisecting_result.last_buggy_res_str_l[j].pop(idx)
 
     @classmethod
