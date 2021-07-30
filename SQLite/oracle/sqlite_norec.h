@@ -21,6 +21,9 @@ public:
                                    string &rew_3,
                                    unsigned multi_run_id) override;
 
+  bool is_oracle_select_stmt(IR* cur_IR) override;
+  virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
+
   string get_temp_valid_stmts() override { return temp_valid_stmts; };
 
   string get_oracle_type() override { return this->oracle_type; }

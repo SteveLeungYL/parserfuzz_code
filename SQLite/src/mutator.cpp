@@ -6,8 +6,13 @@
 #include "../parser/bison_parser.h"
 #include "../parser/flex_lexer.h"
 
+#include "../oracle/sqlite_tlp.h"
+#include "../oracle/sqlite_index.h"
+#include "../oracle/sqlite_likely.h"
 #include "../oracle/sqlite_norec.h"
 #include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_rowid.h"
+#include "../AFL/debug.h"
 
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -23,10 +28,12 @@
 using namespace std;
 
 vector<string> Mutator::value_libary;
-map<string, vector<string>> Mutator::m_tables;
-map<string, vector<string>> Mutator::m_table2index;
-map<string, vector<string>> Mutator::m_table2alias;
-vector<string> Mutator::v_table_names;
+map<string, vector<string>> Mutator::m_tables;   // Table name to column name mapping. 
+map<string, vector<string>> Mutator::m_table2index;   // Table name to index mapping. 
+vector<string> Mutator::v_table_names;  // All saved table names
+vector<string> Mutator::v_table_names_single; // All used table names in one query statement. 
+vector<string> Mutator::v_alias_names_single; // All alias name local to one query statement.  
+map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping. 
 
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
 
@@ -79,44 +86,97 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
   set<unsigned long> res_hash;
   IR *root = v_ir_collector[v_ir_collector.size() - 1];
 
-  p_oracle->mark_all_valid_node(v_ir_collector);
+  // p_oracle->mark_all_valid_node(v_ir_collector);
 
   for (auto old_ir : v_ir_collector) {
 
-    if (old_ir == root || old_ir->type_ == kProgram ||
+    if (old_ir == root || old_ir->type_ == kProgram  ||
         old_ir->is_node_struct_fixed)
-      continue;
-
-    // cerr << "\n\n\nLooking at ir node: " << ir->to_string() << endl;
-    vector<IR *> v_mutated_ir = mutate(old_ir);
-
-    for (auto new_ir : v_mutated_ir) {
-
-      if (!root->swap_node(old_ir, new_ir)) {
-        new_ir->deep_drop();
+      {
+        // cerr << "Aboard old_ir because it is root or kStatement, or node_struct_fixed. "
+        //      << "v_ir_collector.size(): " << v_ir_collector.size() << ", "
+        //      << "In func: Mutator::mutate_all(); \n";
         continue;
       }
 
-      if (!check_node_num(root, 300)) {
+    vector<IR*> v_mutated_ir;
+    
+    if (
+      old_ir->type_ == kStatementList
+      // old_ir->type_ == kSelectCoreList ||
+      // old_ir->type_ == kSelectCore
+    ) {
+
+      if (old_ir->type_ == kStatementList) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
+      // else if (old_ir->type_ == kSelectCore || old_ir->type_ == kSelectCoreList) {
+        // v_mutated_ir = mutate_selectcorelist(root, old_ir);
+      // } 
+      // else {continue;}
+
+      for (IR* mutated_ir : v_mutated_ir) {
+
+        string tmp = mutated_ir->to_string();
+
+        unsigned tmp_hash = hash(tmp);
+        if (res_hash.find(tmp_hash) != res_hash.end()) {
+          mutated_ir->deep_drop();
+          // cerr << "Aboard old_ir because tmp_hash being saved before. "
+          //      << "In func: Mutator::mutate_all(); \n";
+          continue;
+        }
+
+        // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << tmp << "\n\n\n";
+
+        string *new_str = new string(tmp);
+        res_hash.insert(tmp_hash);
+        res.push_back(new_str);
+
+        mutated_ir->deep_drop();
+
+      }
+
+    } else {
+      v_mutated_ir = mutate(old_ir);
+
+      for (auto new_ir : v_mutated_ir) {
+
+        if (!root->swap_node(old_ir, new_ir)) {
+          new_ir->deep_drop();
+          // cerr << "Aboard old_ir because swap_node failure. "
+          //      << "In func: Mutator::mutate_all(); \n";
+          continue;
+        }
+
+        if (!check_node_num(root, 300)) {
+          root->swap_node(new_ir, old_ir);
+          new_ir->deep_drop();
+          // cerr << "Aboard old_ir because check_node_num() failed. "
+          //      << "In func: Mutator::mutate_all(); \n";
+          continue;
+        }
+
+        string tmp = root->to_string();
+        unsigned tmp_hash = hash(tmp);
+        if (res_hash.find(tmp_hash) != res_hash.end()) {
+          root->swap_node(new_ir, old_ir);
+          new_ir->deep_drop();
+          // cerr << "Aboard old_ir because tmp_hash has been saved before. (non-stmt). "
+          //      << "In func: Mutator::mutate_all(); \n";
+          continue;
+        }
+
+        // cerr << "Currently mutating (non-stmtlist) on old_ir: " << old_ir->to_string() << " type: " << get_string_by_ir_type(old_ir->type_) << endl;
+        // cerr << "new_ir: " << new_ir->to_string() << "type: " << get_string_by_ir_type(new_ir->type_) << "\n";
+        // cerr << "After mutate_all, the generated str: " << tmp << "\n\n\n";
+
+
+        string *new_str = new string(tmp);
+        res_hash.insert(tmp_hash);
+        res.push_back(new_str);
+
         root->swap_node(new_ir, old_ir);
         new_ir->deep_drop();
-        continue;
       }
-
-      string tmp = root->to_string();
-      unsigned tmp_hash = hash(tmp);
-      if (res_hash.find(tmp_hash) != res_hash.end()) {
-        root->swap_node(new_ir, old_ir);
-        new_ir->deep_drop();
-        continue;
-      }
-
-      string *new_str = new string(tmp);
-      res_hash.insert(tmp_hash);
-      res.push_back(new_str);
-
-      root->swap_node(new_ir, old_ir);
-      new_ir->deep_drop();
     }
   }
 
@@ -254,6 +314,137 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   return;
 }
 
+vector<IR *> Mutator::mutate_stmtlist(IR *root) {
+  IR* cur_root = nullptr;
+  vector<IR *> res_vec;
+
+  if (root == nullptr) {return res_vec;}
+
+  // For strategy_delete
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  int rov_idx = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
+  p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
+  res_vec.push_back(cur_root);
+
+  // For strategy_replace
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  vector<IR*> ori_stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
+
+  IR* new_stmt_ir = get_from_libary_with_type(kStatement);
+  if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
+  new_stmt_ir->deep_drop();
+  new_stmt_ir = new_stmt_ir_tmp;
+
+  if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
+    new_stmt_ir->deep_drop();
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  res_vec.push_back(cur_root);
+
+  // For strategy_insert
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
+  new_stmt_ir = get_from_libary_with_type(kStatement);
+  if (new_stmt_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
+  new_stmt_ir->deep_drop();
+  new_stmt_ir = new_stmt_ir_tmp;
+
+  if(!p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos)) {
+    new_stmt_ir->deep_drop();
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  res_vec.push_back(cur_root);
+
+  return res_vec;
+
+}
+
+vector<IR *> Mutator::mutate_selectcorelist(IR* ir_root, IR *old_ir) {
+  vector<IR*> res_vec;
+
+  IR* cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(old_ir);
+  vector<IR*> ori_stmt_vec = this->p_oracle->ir_wrapper.get_stmt_ir_vec(ir_root);
+  int stmt_idx = 0;
+  for (IR* ori_stmt_ir : ori_stmt_vec) {
+    if (cur_stmt == ori_stmt_ir) break;
+    stmt_idx++;
+  }
+  if (stmt_idx >= ori_stmt_vec.size()) {
+    cerr << "Error: Cannot find the selectcore chosen stmt in the ir_root. Func: Mutator::mutate_selectcorelist(). \n";
+    vector<IR*> tmp; return tmp;
+  }
+
+  // For strategy_delete
+  IR* cur_root = ir_root->deep_copy();
+  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
+  int num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
+  this->p_oracle->ir_wrapper.remove_selectcore_clause_at_idx_and_free(cur_stmt, get_rand_int(num_selectcore));
+  res_vec.push_back(cur_root);
+
+  // For strategy_replace
+  cur_root = ir_root->deep_copy();
+  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
+  num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
+  
+  IR* new_selectcore_ir = get_from_libary_with_type(kSelectCore);
+  if (new_selectcore_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  string set_oper = "";
+  switch (get_rand_int(4)) {
+    case 0: set_oper = "UNION";
+    case 1: set_oper = "UNION ALL";
+    case 2: set_oper = "INTERSECT";
+    case 3: set_oper = "EXCEPT";
+  }
+  int rep_idx = get_rand_int(num_selectcore);
+  this->p_oracle->ir_wrapper.append_selectcore_clause_after_idx(cur_stmt, new_selectcore_ir, set_oper, rep_idx);
+  this->p_oracle->ir_wrapper.remove_selectcore_clause_at_idx_and_free(cur_stmt, rep_idx);
+  res_vec.push_back(cur_root);
+
+
+  // For strategy_insert
+  cur_root = ir_root->deep_copy();
+  cur_stmt = this->p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root)[stmt_idx];
+  num_selectcore = this->p_oracle->ir_wrapper.get_num_selectcore(cur_stmt);
+  new_selectcore_ir = get_from_libary_with_type(kSelectCore);
+  if (new_selectcore_ir == nullptr) {
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  set_oper = "";
+  switch (get_rand_int(4)) {
+    case 0: set_oper = "UNION";
+    case 1: set_oper = "UNION ALL";
+    case 2: set_oper = "INTERSECT";
+    case 3: set_oper = "EXCEPT";
+  }
+  int ins_idx = get_rand_int(num_selectcore);
+  this->p_oracle->ir_wrapper.append_selectcore_clause_after_idx(cur_stmt, new_selectcore_ir, set_oper, ins_idx);
+  res_vec.push_back(cur_root);
+
+  return res_vec;
+}
+
+
 vector<IR *> Mutator::mutate(IR *input) {
   vector<IR *> res;
 
@@ -276,31 +467,150 @@ vector<IR *> Mutator::mutate(IR *input) {
   return res;
 }
 
-string Mutator::validate(IR *root) {
-
-  if (root == NULL)
-    return "";
-
-  return validate(root->to_string());
+void Mutator::pre_validate() {
+  // Reset components that is local to the one query sequence. 
+  reset_counter();
+  reset_database();
+  return;
 }
 
-string Mutator::validate(string query) {
+vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec) {
 
-  vector<IR *> ir_set = parse_query_str_get_ir_set(query);
-  if (ir_set.size() == 0)
-    return "";
+  p_oracle->init_ir_wrapper(root);
+  vector<IR*> all_trans_vec;
+  vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
-  IR *root = ir_set.back();
+  // cerr << "In func: Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec), we have all_statements_vec size(): "
+  //     << all_statements_vec.size() << "\n\n\n";
 
-  reset_counter();
-  vector<IR *> ordered_ir;
-  // debug(root, 0);
-  auto graph = build_dependency_graph(root, relationmap, cross_map, ordered_ir);
-  fix_graph(graph, root, ordered_ir);
+  for (IR* cur_stmt : all_statements_vec) {
+    /* Identify oracle related statements. Ready for transformation. */
+    bool is_oracle_select = false, is_oracle_normal = false;
+    if (p_oracle->is_oracle_normal_stmt(cur_stmt)) {is_oracle_normal = true; stmt_type_vec.push_back(ORACLE_NORMAL);}
+    else if (p_oracle->is_oracle_select_stmt(cur_stmt)) {is_oracle_select = true; stmt_type_vec.push_back(ORACLE_SELECT);}
+    else {stmt_type_vec.push_back(NOT_ORACLE);}
 
-  string tmp = fix(root);
-  root->deep_drop();
-  return tmp;
+    /* Apply pre_fix_transformation functions. */
+    IR* trans_IR = nullptr;
+    if (is_oracle_normal) {
+      trans_IR = p_oracle->pre_fix_transform_normal_stmt(cur_stmt); // Deep_copied
+    } else if (is_oracle_select) {
+      trans_IR = p_oracle->pre_fix_transform_select_stmt(cur_stmt); // Deep_copied
+    }
+    /* If no pre_fix_transformation is needed, directly use the original cur_root. */
+    if (trans_IR == nullptr ){
+      trans_IR = cur_stmt->deep_copy(); 
+    }
+    all_trans_vec.push_back(trans_IR);
+  }
+
+  return all_trans_vec;
+}
+
+vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec) {
+  int total_run_count = p_oracle->get_mul_run_num();
+  vector<vector<vector<IR*>>> all_trans_vec_all_run;
+  for (int run_count = 0; run_count < total_run_count; run_count++){
+    all_trans_vec_all_run.push_back(this->post_fix_transform(all_pre_trans_vec, stmt_type_vec, run_count)); // All deep_copied. 
+  }
+  return all_trans_vec_all_run;
+}
+
+vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count) {
+  // Apply post_fix_transform functions. 
+  vector<vector<IR*>> all_post_trans_vec;
+  for (int i = 0; i < all_pre_trans_vec.size(); i++) { // Loop through across statements. 
+    IR* cur_pre_trans_ir = all_pre_trans_vec[i];
+    vector<IR*> post_trans_stmt_vec;
+    assert(cur_pre_trans_ir != nullptr);
+
+    bool is_oracle_normal = false, is_oracle_select = false;
+    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    else if (stmt_type_vec[i] == ORACLE_NORMAL) {is_oracle_normal = true;}
+
+    if (is_oracle_normal) {
+      post_trans_stmt_vec = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_ir, run_count); // All deep_copied
+    } else if (is_oracle_select) {
+      post_trans_stmt_vec = p_oracle->post_fix_transform_select_stmt(cur_pre_trans_ir, run_count); // All deep_copied
+    }
+    
+    if (post_trans_stmt_vec.size() == 0){
+      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
+    }
+    all_post_trans_vec.push_back(post_trans_stmt_vec);
+  }
+  return all_post_trans_vec;
+}
+
+/* Handle and fix one single query statement. */
+bool Mutator::validate(IR* cur_trans_stmt) {
+
+  if (cur_trans_stmt == nullptr) {return false;}
+  /* Fill in concret values into the query. */
+  vector<vector<IR*>> ordered_all_subquery_ir;
+
+  fix_preprocessing(cur_trans_stmt, relationmap, ordered_all_subquery_ir);
+  
+  // Debug
+  // cerr << "After Mutator::fix_preprocessing, we have ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n\n\n";
+
+  if (!fix_dependency(cur_trans_stmt, ordered_all_subquery_ir)) 
+  {
+    // cerr << "Fix_dependency return errors. " << endl;
+    // return false;
+  }
+  fix(cur_trans_stmt);
+
+  this->resolve_drop_statement(cur_trans_stmt);
+  this->resolve_alter_statement(cur_trans_stmt);
+  
+  return true;
+}
+
+bool Mutator::finalize_transform(IR* root, vector<vector<IR*>> all_post_trans_vec) {
+  if (root == NULL) {return false;}
+  p_oracle->init_ir_wrapper(root);
+  for (vector<IR*> post_trans_vec : all_post_trans_vec) {
+  /* Append the transformed statements into the IR tree. */
+    int idx_offset = 0; // Consider the already inserted transformed statements. 
+    for (int i = 1; i < post_trans_vec.size(); i++) { // Start from idx=1, the first element is the original stmt. 
+      int cur_trans_idx = p_oracle->ir_wrapper.get_stmt_idx(post_trans_vec[0]);
+      if (cur_trans_idx == -1) {
+        cerr << "Error: cannot find the current statement in the IR tree! Abort finalize_transform() function. \n";
+        // Error.
+        return false;
+      }
+      p_oracle->ir_wrapper.append_stmt_after_idx(post_trans_vec[i], cur_trans_idx + idx_offset);
+      idx_offset++;
+    }
+  }
+  return true;
+}
+
+pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec) {
+  // Final step, IR_to_string function. 
+  string output_str_mark, output_str_no_mark; 
+  for (int i = 0; i < all_post_trans_vec.size(); i++) { // Loop between different statements. 
+    vector<IR*> post_trans_vec = all_post_trans_vec[i];
+    int count = 0;
+    bool is_oracle_select = false;
+    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    for (IR* cur_trans_stmt : post_trans_vec) {  // Loop between different transformations. 
+      string tmp = cur_trans_stmt->to_string();
+      if (is_oracle_select) {
+        output_str_mark += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
+        output_str_mark  += tmp + "; \n";
+        output_str_mark += "SELECT 'END VERI " + to_string(count) + "'; \n";
+        output_str_no_mark += tmp + "; \n";
+        count++;
+      } else {
+        output_str_mark += tmp + "; \n";
+        output_str_no_mark += tmp + "; \n";
+      }
+    }
+  }
+  pair<string, string> output_str_pair =  make_pair(output_str_mark, output_str_no_mark); 
+  return output_str_pair;
 }
 
 // find tree node whose identifier type can be handled
@@ -324,44 +634,36 @@ static void collect_ir(IR *root, set<IDTYPE> &type_to_fix,
   }
 }
 
-static IR *search_mapped_ir(IR *ir, IDTYPE idtype) {
-  deque<IR *> to_search = {ir};
+static vector<IR*> search_mapped_ir_in_stmt(IR *ir, IDTYPE idtype) {
+  // Find the root for the current statement. 
+  IR* cur_ir = ir;
+  while (cur_ir->parent_ != nullptr) {
+    if (cur_ir->type_ == kStatement) {
+      break;
+    }
+    cur_ir = cur_ir->parent_;
+  }
+
+  deque<IR *> to_search = {cur_ir};
+  vector<IR* > res;
 
   while (to_search.empty() != true) {
     auto node = to_search.front();
     to_search.pop_front();
 
     if (node->id_type_ == idtype)
-      return node;
-    ;
+      {res.push_back(node);}
+    
     if (node->left_)
       to_search.push_back(node->left_);
     if (node->right_)
       to_search.push_back(node->right_);
   }
 
-  // vector<IR*> to_search;
-  // vector<IR*> backup;
-  // to_search.push_back(ir);
-  // while(!to_search.empty()){
-  //    for(auto i: to_search){
-  //        if(i->id_type_ == idtype){
-  //            return i;
-  //        }
-  //        if(i->left_){
-  //            backup.push_back(i->left_);
-  //        }
-  //        if(i->right_){
-  //            backup.push_back(i->right_);
-  //        }
-  //    }
-  //    to_search = move(backup);
-  //    backup.clear();
-  //}
-  return NULL;
+  return res;
 }
 
-// propagate relionship between subqueries. The logic is correct
+// propagate relationship between subqueries. The logic is correct
 //
 // graph.second relies on graph.first
 // crossmap.first relies on crossmap.second
@@ -369,13 +671,15 @@ static IR *search_mapped_ir(IR *ir, IDTYPE idtype) {
 // so we should propagate the dependency via
 // graph.second -> graph.first = crossmap.first -> crossmap.second
 //
-void cross_stmt_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
+// This function only consult cross_map, thus only care about [id_top_table_name] -> [id_create_table_name] across statements. 
+void cross_stmt_map(map<IR *, set<IR *>> &graph, map<IR *, set<IR *>> &cross_graph, vector<IR *> &ir_to_fix,
                     map<IDTYPE, IDTYPE> &cross_map) {
   for (auto m : cross_map) {
     vector<IR *> value;
     vector<IR *> key;
 
-    for (auto &k : graph) {
+    // Why searching for graph/cross_graph for saved matched type?
+    for (auto &k : cross_graph) { // graph is local, thus is always empty. Only cross_graph save all the cross statements' IR. 
       if (k.first->id_type_ == m.first) {
         key.push_back(k.first);
       }
@@ -391,6 +695,7 @@ void cross_stmt_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
       return;
     for (auto val : value) {
       graph[key[get_rand_int(key.size())]].insert(val);
+      cross_graph[key[get_rand_int(key.size())]].insert(val);
     }
   }
 }
@@ -400,6 +705,7 @@ void cross_stmt_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
 // top_table_name does not rely on others, while table_name relies on some
 // top_table_name
 //
+// Local to one single statement. 
 void toptable_map(map<IR *, set<IR *>> &graph, vector<IR *> &ir_to_fix,
                   vector<IR *> &toptable) {
   vector<IR *> tablename;
@@ -489,25 +795,16 @@ vector<IR *> Mutator::extract_statement(IR *root) {
 // find all SelectCore subtree, and save them in the returned vector
 // save the mapping from the subtree address to subtree into 2nd arg
 //
-vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
+vector<IR *> Mutator::cut_subquery(IR *cur_stmt, TmpRecord &m_save) {
 
   vector<IR *> res;
-  vector<IR *> v_statements;
-  deque<IR *> dfs = {program};
+  vector<IR *> v_statements{cur_stmt};
 
-  while (dfs.empty() != true) {
-    auto node = dfs.front();
-    dfs.pop_front();
+  // Debug
+  // cerr << "In func: Mutator::cut_subquery, we have current v_statements: " << v_statements[0]->to_string() << "\n";
+  // cerr << "In func: Mutator::cut_subquery, after getting and reverse v_statements, we get v_statements.size(): "
+  //      << v_statements.size() << "\n";
 
-    if (node->type_ == kStatement)
-      v_statements.push_back(node);
-    if (node->left_)
-      dfs.push_back(node->left_);
-    if (node->right_)
-      dfs.push_back(node->right_);
-  }
-
-  reverse(v_statements.begin(), v_statements.end());
   for (auto &stmt : v_statements) {
     deque<IR *> q_bfs = {stmt};
     res.push_back(stmt);
@@ -518,7 +815,7 @@ vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
 
       if (cur->left_) {
         q_bfs.push_back(cur->left_);
-        if (cur->left_->type_ == kSelectCore) {
+        if (cur->left_->type_ == kSelectStatement) {
           res.push_back(cur->left_);
           m_save[cur] = make_pair(0, cur->left_);
           cur->detach_node(cur->left_);
@@ -527,7 +824,7 @@ vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
 
       if (cur->right_) {
         q_bfs.push_back(cur->right_);
-        if (cur->right_->type_ == kSelectCore) {
+        if (cur->right_->type_ == kSelectStatement) {
           res.push_back(cur->right_);
           m_save[cur] = make_pair(1, cur->right_);
           cur->detach_node(cur->right_);
@@ -538,6 +835,8 @@ vector<IR *> Mutator::cut_subquery(IR *program, TmpRecord &m_save) {
   return res;
 }
 
+
+// Recover the subqueries, which were disconnected before. 
 bool Mutator::add_back(TmpRecord &m_save) {
 
   for (auto &i : m_save) {
@@ -561,10 +860,9 @@ bool Mutator::add_back(TmpRecord &m_save) {
 //
 // The result is a map, where the value is a set of IRs, which are dependents
 // of the key
-map<IR *, set<IR *>>
-Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
-                                map<IDTYPE, IDTYPE> &cross_map,
-                                vector<IR *> &ordered_ir) {
+void
+Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
+                                vector<vector<IR*>> &ordered_all_subquery_ir) {
 
   map<IR *, set<IR *>> graph;
   TmpRecord m_save;
@@ -581,96 +879,21 @@ Mutator::build_dependency_graph(IR *root, map<IDTYPE, IDTYPE> &relationmap,
   }
 
   vector<IR *> subqueries = cut_subquery(root, m_save);
+  /* 
+  ** The original order of the subqueries are from outer statement to inner statement. 
+  ** We change the order so it should be from parent to child subqueries. 
+  */
+  // reverse(subqueries.begin(), subqueries.end()); 
 
-  // cout << subqueries.size() << endl;
+  // cerr << "In Mutator::fix_preprocessing, we have subqueries.size(): " << subqueries.size() << "\n";
 
   for (IR *subquery : subqueries) {
-
-    // cout << "subquery" << endl;
-    // debug(subquery, 0);
-
     vector<IR *> ir_to_fix;
     collect_ir(subquery, type_to_fix, ir_to_fix);
-    for (auto ii : ir_to_fix) {
-      ordered_ir.push_back(ii);
-    }
-    cross_stmt_map(graph, ir_to_fix, cross_map);
-    vector<IR *> v_top_table;
-    toptable_map(graph, ir_to_fix, v_top_table);
-
-    // cout << "size of ir_to_fix: " << ir_to_fix.size() << endl;
-
-    for (auto ir : ir_to_fix) {
-
-      auto idtype = ir->id_type_;
-
-      // set.empty() returns whether the set is empty,
-      // but the result is not used here
-      // graph[ir].empty();
-
-      if (relationmap.find(idtype) == relationmap.end()) {
-        continue;
-      }
-
-      auto curptr = ir;
-      bool flag = false;
-
-      while (true) {
-
-        IR *pptr = subquery->locate_parent(curptr);
-        if (pptr == NULL)
-          break;
-
-        while (pptr->left_ == NULL || pptr->right_ == NULL) {
-          curptr = pptr;
-          pptr = subquery->locate_parent(curptr);
-          if (pptr == NULL) {
-            flag = true;
-            break;
-          }
-        }
-        if (flag)
-          break;
-
-        auto to_search_child = pptr->left_;
-        if (pptr->left_ == curptr) {
-          to_search_child = pptr->right_;
-        }
-
-        auto match_ir = search_mapped_ir(to_search_child, relationmap[idtype]);
-
-        if (match_ir == NULL &&
-            relationmap_alternate.find(idtype) != relationmap_alternate.end())
-          match_ir =
-              search_mapped_ir(to_search_child, relationmap_alternate[idtype]);
-
-        if (match_ir != NULL) {
-          if (ir->type_ == kColumnName && ir->left_ != NULL) {
-            if (v_top_table.size() > 0)
-              match_ir = v_top_table[get_rand_int(v_top_table.size())];
-            graph[match_ir].insert(ir->left_);
-            if (ir->right_) {
-              graph[match_ir].insert(ir->right_);
-              ir->left_->id_type_ = id_table_name;
-              ir->right_->id_type_ = id_column_name;
-              ir->id_type_ = id_whatever;
-            }
-          } else {
-            // cout << "graph: " << endl;
-            // debug(match_ir, 0);
-            // debug(ir, 0);
-            // cout << endl << endl;
-            graph[match_ir].insert(ir);
-          }
-          break;
-        }
-        curptr = pptr;
-      }
-    }
+    ordered_all_subquery_ir.push_back(ir_to_fix);
   }
-
   add_back(m_save);
-  return graph;
+  return;
 }
 
 IR *Mutator::strategy_delete(IR *cur) {
@@ -1044,8 +1267,9 @@ void Mutator::add_all_to_library(string whole_query_str,
       continue;
 
     IR *root = ir_set.back();
+    IR* cur_stmt = root->left_->left_->left_; // kProgram -> kStatementList -> kStatement -> specific_statement_type_
 
-    if (p_oracle->is_oracle_valid_stmt(current_query)) {
+    if (p_oracle->is_oracle_select_stmt(cur_stmt)) {
 
       // if (all_comp_res.v_res.size() > i) {
       //   if (all_comp_res.v_res[i].comp_res == ORA_COMP_RES::Error ||
@@ -1316,183 +1540,429 @@ Mutator::~Mutator() {
   }
 }
 
-void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
-                      set<IR *> &visited) {
-  if (fixed_key->id_type_ == id_create_table_name) {
-    string tablename = fixed_key->str_val_;
-    auto &colums = m_tables[tablename];
-    auto &indices = m_table2index[tablename];
-    for (auto &val : graph[fixed_key]) {
-      if (val->id_type_ == id_create_column_name) {
-        string new_column = gen_id_name();
-        colums.push_back(new_column);
-        val->str_val_ = new_column;
-        visited.insert(val);
-      } else if (val->id_type_ == id_top_table_name) {
-        val->str_val_ = tablename;
-        visited.insert(val);
-        fix_one(graph, val, visited);
-      }
-    }
-  } else if (fixed_key->id_type_ == id_top_table_name) {
-    string tablename = fixed_key->str_val_;
-    auto &colums = m_tables[tablename];
-    auto &indices = m_table2index[tablename];
-    auto &alias = m_table2alias[tablename];
+// void Mutator::fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key,
+//                       set<IR *> &visited) {
+//   if (fixed_key->id_type_ == id_create_table_name) {
+//     string tablename = fixed_key->str_val_;
+//     auto &colums = m_tables[tablename];
+//     auto &indices = m_table2index[tablename];
+//     for (auto &val : graph[fixed_key]) {
+//       if (val->id_type_ == id_create_column_name) {
+//         string new_column = gen_id_name();
+//         colums.push_back(new_column);
+//         val->str_val_ = new_column;
+//         visited.insert(val);
+//       } else if (val->id_type_ == id_top_table_name) {
+//         val->str_val_ = tablename;
+//         visited.insert(val);
+//         fix_one(graph, val, visited);
+//       }
+//     }
+//   } else if (fixed_key->id_type_ == id_top_table_name) {
+//     string tablename = fixed_key->str_val_;
+//     auto &colums = m_tables[tablename];
+//     auto &indices = m_table2index[tablename];
+//     auto &alias= m_table2alias_single[tablename];
 
-    for (auto &val : graph[fixed_key]) {
+//     for (auto &val : graph[fixed_key]) {
 
-      switch (val->id_type_) {
-      case id_table_alias_name: {
-        string new_alias = gen_alias_name();
-        alias.push_back(new_alias);
-        val->str_val_ = new_alias;
-        visited.insert(val);
-        break;
-      }
-      default:
-        break;
-      }
-    }
+//       switch (val->id_type_) {
+//       case id_table_alias_name: {
+//         string new_alias = gen_alias_name();
+//         alias.push_back(new_alias);
+//         val->str_val_ = new_alias;
+//         visited.insert(val);
+//         break;
+//       }
+//       default: break;
+//       }
 
-    for (auto &val : graph[fixed_key]) {
+//     }
 
-      switch (val->id_type_) {
+//     for (auto &val : graph[fixed_key]) {
 
-      case id_column_name: {
-        // We created alias for every table name. So when we get top column name
-        // from mappings, we need to prepend the corresponding alias to the
-        // column name. for example:
-        //  CREATE TABLE v0 ( v1 INT );
-        //  SELECT * FROM v0 AS A, v0 AS B WHERE v1 = 1337;
-        // we need to generate prepend 'A' or 'B' to 'v1' to avoid ambiguous
-        // name.
+//       switch (val->id_type_) {
 
-        val->str_val_ = vector_rand_ele(colums);
+//       case id_column_name: {
+//         // We created alias for every table name. So when we get top column name
+//         // from mappings, we need to prepend the corresponding alias to the
+//         // column name. for example:
+//         //  CREATE TABLE v0 ( v1 INT );
+//         //  SELECT * FROM v0 AS A, v0 AS B WHERE A.v1 = 1337;
+//         // we need to generate prepend 'A' or 'B' to 'v1' to avoid ambiguous
+//         // name.
 
-        string table_name_with_alias = fixed_key->parent_->parent_->to_string();
-        string as_token_delim = "AS ";
-        size_t found = table_name_with_alias.find(as_token_delim);
+//         // Changed it to IR only modifications. 
+//         val->str_val_ = vector_rand_ele(colums);
 
-        if (found != string::npos) {
-          string table_name_alias =
-              table_name_with_alias.substr(found + as_token_delim.size());
-          val->str_val_ = table_name_alias + "." + val->str_val_;
+//         IR* opt_alias_ir = fixed_key->parent_->parent_->right_;  // identifier -> ktablename -> parent_ -> kOptTableAliasAs
+//         if (opt_alias_ir != nullptr && 
+//             opt_alias_ir->op_ != nullptr && 
+//             (opt_alias_ir->type_ == kOptTableAlias || opt_alias_ir->type_ == kOptTableAliasAs) && 
+//             opt_alias_ir->op_->prefix_ == "AS")
+//           {
+//             if(opt_alias_ir->left_ != nullptr && opt_alias_ir->left_->left_ != nullptr) {  // kOptTableAliasAs -> kTableAlias ->  identifier. 
+//               val->str_val_ = opt_alias_ir->left_->left_->str_val_ + "." + val->str_val_;
+//             }
+//         }
+
+//         visited.insert(val);
+//         break;
+//       }
+
+//       case id_table_name: {
+//         val->str_val_ = tablename;
+//         visited.insert(val);
+//         break;
+//       }
+
+//       case id_create_index_name: {
+//         string new_index = gen_id_name();
+//         // cout << "index name: " << new_index << endl;
+//         indices.push_back(new_index);
+//         val->str_val_ = new_index;
+//         visited.insert(val);
+//         break;
+//       }
+
+//       case id_create_column_name: {
+//         string new_column = gen_id_name();
+//         colums.push_back(new_column);
+//         val->str_val_ = new_column;
+//         visited.insert(val);
+//         break;
+//       }
+//       }
+//     }
+//   }
+// }
+
+// relationmap[id_table_alias_name] = id_top_table_name;
+// relationmap[id_column_name] = id_top_table_name;
+// relationmap[id_table_name] = id_top_table_name;
+// relationmap[id_index_name] = id_top_table_name;
+// relationmap[id_create_column_name] = id_create_table_name;
+// relationmap[id_pragma_value] = id_pragma_name;
+// relationmap[id_create_index_name] = id_create_table_name;
+// cross_map[id_top_table_name] = id_create_table_name;
+// relationmap_alternate[id_create_column_name] = id_top_table_name;
+// relationmap_alternate[id_create_index_name] = id_top_table_name;
+//
+bool Mutator::fix_dependency(IR *root,
+                        vector<vector<IR *>> &ordered_all_subquery_ir) {
+  set<IR *> visited;
+  reset_database_single_stmt();
+
+  /* Loop through the subqueries. From the most parent to the most child. (In the same query statement. )*/
+  for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
+    // // Debug 
+    // cerr << "ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n";
+    
+    /* First loop through all ir_to_fix, resolve all id_create_table_name and id_table_alias_name. */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {continue;}
+
+      if (ir->id_type_ == id_create_table_name) {
+        ir->str_val_ = gen_id_name();
+        v_table_names.push_back(ir->str_val_);
+        v_table_names_single.push_back(ir->str_val_);
+        visited.insert(ir);
+
+        // Take care of the alias, if any. 
+        IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
+        if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
+          string new_alias_str = gen_alias_name();
+          alias_ir->str_val_ = new_alias_str;
+          v_alias_names_single.push_back(new_alias_str);
+          m_table2alias_single[ir->str_val_].push_back(new_alias_str);
+          visited.insert(alias_ir);
         }
 
-        visited.insert(val);
-        break;
-      }
+        /* Check whether we are in the CreateViewStatement. If yes, save the column mapping. */
+        IR* cur_ir = ir;
+        while (cur_ir->parent_ != nullptr) {
+          if (cur_ir->type_ == kStatement) {
+            break;
+          }
+          cur_ir = cur_ir->parent_;
+        }
 
-      case id_table_name: {
-        val->str_val_ = tablename;
-        visited.insert(val);
-        break;
-      }
-
-      case id_create_index_name: {
-        string new_index = gen_id_name();
-        // cout << "index name: " << new_index << endl;
-        indices.push_back(new_index);
-        val->str_val_ = new_index;
-        visited.insert(val);
-        break;
-      }
-
-      case id_create_column_name: {
-        string new_column = gen_id_name();
-        colums.push_back(new_column);
-        val->str_val_ = new_column;
-        visited.insert(val);
-        break;
-      }
+        // Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT... statement.  
+        if (ordered_all_subquery_ir.size() > 1 && ordered_ir != ordered_all_subquery_ir[0]) {
+          // id_column_name should be in the subqueries and already been resolved. 
+          vector<IR*> all_mentioned_column_vec = search_mapped_ir_in_stmt(ir, id_column_name);
+          for (IR* cur_men_column_ir : all_mentioned_column_vec) {
+            string cur_men_column_str = cur_men_column_ir->str_val_;
+            if (findStringIn(cur_men_column_str, ".")) {
+              cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
+            }
+            m_tables[ir->str_val_].push_back(cur_men_column_str);
+          }
+          if (all_mentioned_column_vec.size() == 0) { // For CREATE VIEW x AS SELECT * FROM v0; 
+            vector<IR*> all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_top_table_name);
+            for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
+              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+              const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
+              for (const string& cur_men_column_str : cur_men_column_vec) {
+                m_tables[ir->str_val_].push_back(cur_men_column_str);
+              }
+            }
+            all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_table_name);
+            for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
+              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+              const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
+              for (const string& cur_men_column_str : cur_men_column_vec) {
+                m_tables[ir->str_val_].push_back(cur_men_column_str);
+              }
+            }
+          }
+        }
       }
     }
-  }
-}
 
-//    relationmap[id_column_name] = id_top_table_name;
-//    relationmap[id_table_name] = id_top_table_name;
-//    relationmap[id_index_name] = id_top_table_name;
-//    relationmap[id_create_column_name] = id_create_table_name;
-//    relationmap[id_pragma_value] = id_pragma_name;
-//
-void Mutator::fix_graph(map<IR *, set<IR *>> &graph, IR *root,
-                        vector<IR *> &ordered_ir) {
-  set<IR *> visited;
+    /* Second loop, resolve all id_top_table_name, id_table_alias_name. */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {continue;}
 
-  reset_database();
-  for (auto ir : ordered_ir) {
+      if (ir->id_type_ == id_top_table_name) {
+        if (v_table_names.size() != 0) {
+          ir->str_val_ = v_table_names[get_rand_int(v_table_names.size())];
+          v_table_names_single.push_back(ir->str_val_);
+          visited.insert(ir);
 
-    if (visited.find(ir) != visited.end())
-      continue;
-    visited.insert(ir);
+          // Take care of the alias, if any. 
+          IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
+          if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
+            string new_alias_str = gen_alias_name();
+            alias_ir->str_val_ = new_alias_str;
+            v_alias_names_single.push_back(new_alias_str);
+            m_table2alias_single[ir->str_val_].push_back(new_alias_str);
+            visited.insert(alias_ir);
+          }
+        } else {
+          // // No created table existed. Treat it as id_create_table_name. 
+          // ir->str_val_ = gen_id_name();
+          // v_table_names.push_back(ir->str_val_);
+          // v_table_names_single.push_back(ir->str_val_);
+          // visited.insert(ir);
 
-    auto dependencies = graph[ir];
-    if (dependencies.empty()) {
+          // // Take care of the alias, if any. 
+          // IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
+          // if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
+          //   string new_alias_str = gen_alias_name();
+          //   alias_ir->str_val_ = new_alias_str;
+          //   v_alias_names_single.push_back(new_alias_str);
+          //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
+          //   visited.insert(alias_ir);
+          // }
+          // cerr << "FIX_DEP ERROR: Cannot find matched id_create_table_name for id_top_table_name. ";
+          // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          return false;
+        }
+      }
+    }
+
+    /* Third loop, resolve id_table_name */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {continue;}
+
+      if (ir->id_type_ == id_table_name) {
+        if (v_table_names.size() != 0 && v_table_names_single.size() != 0 ) {
+          string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+          ir->str_val_ = tablename_str;
+          visited.insert(ir);
+        } else if (v_table_names.size() != 0) {
+          string tablename_str = v_table_names[get_rand_int(v_table_names.size())];
+          ir->str_val_ = tablename_str;
+          v_table_names_single.push_back(tablename_str);
+          visited.insert(ir);
+        } else {
+          // // tablename_str not exist. Create a new one as if it is id_create_table_name. 
+          // string tablename_str = gen_id_name();
+          // ir->str_val_ = tablename_str;
+          // v_table_names.push_back(ir->str_val_);
+          // v_table_names_single.push_back(ir->str_val_);
+          // visited.insert(ir);
+
+          // // Take care of the alias, if any. 
+          // IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
+          // if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
+          //   string new_alias_str = gen_alias_name();
+          //   alias_ir->str_val_ = new_alias_str;
+          //   v_alias_names_single.push_back(new_alias_str);
+          //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
+          //   visited.insert(alias_ir);
+          // }
+          // cerr << "FIX_DEP ERROR: Cannot find id_top_table_name or id_create_table_name for id_table_name ,";
+          // cerr << ", wnile all the saved tablename_str are: ";
+          //   for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
+          // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          return false;
+        }
+      }
+    }
+
+    /* Fourth loop, resolve id_create_index_name, id_create_column_name */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {continue;}
+
+      // There is only one case of id_create_index_name, that is in the CREATE INDEX statement. 
+      if (ir->id_type_ == id_create_index_name) {
+        if (v_table_names.size() == 0) {
+          // cerr << "FIX_DEP ERROR: When fixing id_create_index_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". Func: Mutator:: Mutator::fix_dependency(); \n";
+          return false;
+        }
+        /* identifier -> kIndexName -> kUnknown (kCreateIndexStatement) -> kUnknown (kCreateIndexStatement) -> kTableName  */
+        IR* tablename_ir = ir->get_parent()->get_parent()->get_parent()->right_;
+        /* kTableName -> identifier */
+        if (tablename_ir->right_ != nullptr) {
+          tablename_ir = tablename_ir->right_;
+        } else {
+          tablename_ir = tablename_ir->left_;
+        }
+        string tablename_str = tablename_ir->str_val_;
+        string new_indexname_str = gen_index_name();
+        ir->str_val_ = new_indexname_str;
+        m_table2index[tablename_str].push_back(new_indexname_str);
+        visited.insert(ir);
+      }
+
+      if (ir->id_type_ == id_create_column_name) {
+        if (v_table_names.size() == 0) {
+          // cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". Func: Mutator:: Mutator::fix_dependency(); \n";
+          return false;
+        }
+
+        // // // Find THE table name to attach to. 
+        // vector<IR*> tablename_vec = search_mapped_ir_in_stmt(ir, id_create_table_name);
+        // if (tablename_vec.size() == 0) {
+        //   tablename_vec = search_mapped_ir_in_stmt(ir, id_top_table_name);
+        //   if (tablename_vec.size() == 0) {
+        //     tablename_vec = search_mapped_ir_in_stmt(ir, id_table_name);
+        //     if (tablename_vec.size() == 0) {
+        //       cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found tablename_vec is empty. Func: Mutator::     Mutator::fix_dependency(); \n";
+        //       return false;
+        //     }
+        //   }
+        // }
+        // IR* tablename_ir = tablename_vec[get_rand_int(tablename_vec.size())];
+
+        // Fix the IR. 
+        // string tablename_str = tablename_ir->str_val_;
+        string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        string new_columnname_str = gen_column_name();
+        ir->str_val_ = new_columnname_str;
+        m_tables[tablename_str].push_back(new_columnname_str);
+
+        // // Debug: 
+        // cerr << "In func: Mutator::fix_dependency(), id_create_column_name, append to m_tables with tablename_str: "
+        //      << tablename_str << ", new_columnname_str: " << new_columnname_str << ". While the v_table is: ";
+        // for (string& saved_tablename_str : v_table_names) {
+        //   cerr << saved_tablename_str << "  ";
+        // }
+        // cerr << "; v_table_singel_stmt is: ";
+        // for (string& saved_tablename_str : v_table_names_single) {
+        //   cerr << saved_tablename_str << "  ";
+        // }
+        // cerr << "\n\n\n";
+
+        visited.insert(ir);
+      }
+    }
+
+    /* Fifth loop, resolve id_column_name, id_index_name, id_pragma_value. */
+    for (auto ir : ordered_ir) {
+      if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_column_name) {
-
-        // there are two possibllity we visit the column_name node first:
-        //
-        // 1. this is a standalone column_name -- it does not depend on others
-        //    in this case, likely wrong mutate, just allocate random name
-        //
-        // 2. we will find its dependecies later, like top_table_name, etc
-        //    in this case, we can skip the assignment, but it does not hurt
-        //    even if we assign it some value as it will be anyway overwritten
-        //
-        string tablename = vector_rand_ele(v_table_names);
-        // cout << "tablename: " << tablename << endl;
-        auto &colums = m_tables[tablename];
-        ir->str_val_ = vector_rand_ele(colums);
-        // cout << "column name: " << ir->str_val_ << endl;
-        continue;
+        if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
+          // cerr << "FIX_DEP ERROR: When fixing id_column_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
+          return false;
+        }
+        bool is_fixed = false;
+        while (!is_fixed) {
+          string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+          if (
+            p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
+            p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
+          ) {
+            tablename_str = v_table_names[get_rand_int(v_table_names.size())];
+          }
+          vector<string> &matched_columnname_vec = m_tables[tablename_str];
+          vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
+          if (matched_aliasname_vec.size() != 0 && matched_columnname_vec.size() != 0) {
+            string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
+            string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
+            ir->str_val_ = aliasname_str + "." + column_str;
+            visited.insert(ir);
+            is_fixed = true;
+            break;
+          } else if (matched_columnname_vec.size() != 0) {
+            string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
+            ir->str_val_ = tablename_str + "." + column_str;
+            visited.insert(ir);
+            is_fixed = true;
+            break;
+          } else { // Cannot find matched column for table. 
+            // Error. 
+            // cerr << "FIX_DEP ERROR: Cannot find matched column for tablename_str: " << tablename_str 
+            //       << ", wnile all the saved tablename_str are: ";
+            // for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
+            // cerr << ", in func: Mutator::fix_dependency(). Next, map. "<< endl;
+            // for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+            //   cerr << "Saving maps for m_table, tablename: " << iter->first << ", column_name: ";
+            //   for (auto c_name : iter->second) {
+            //     cerr << c_name << " ";
+            //   }
+            //   cerr << "\n\n\n";
+            // }
+            return false;
+          }
+        }
       }
-    }
 
-    switch (ir->id_type_) {
+      if (ir->id_type_ == id_index_name) {
+        if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
+          // cerr << "FIX_DEP ERROR: When fixing id_index_name, we found v_table_names.size(): " << v_table_names.size() 
+          // << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
+          return false;
+        }
+        bool is_fixed = false;
+        while (!is_fixed) {
+          string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+          vector<string> &matched_indexname_vec = m_table2index[tablename_str];
+          vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
+          if (matched_aliasname_vec.size() != 0 && matched_indexname_vec.size() != 0) {
+            string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
+            string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
+            ir->str_val_ = aliasname_str + "." + index_str;
+            visited.insert(ir);
+            is_fixed = true;
+            break;
+          } else if (matched_indexname_vec.size() != 0) {
+            string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
+            ir->str_val_ = tablename_str + "." + index_str;
+            visited.insert(ir);
+            is_fixed = true;
+            break;
+          } else { // Cannot find matched index for table. 
+            // cerr << "FIX_DEP ERROR: Cannot find matched index for tablename_str: " << tablename_str 
+            //       << ", wnile all the saved tablename_str are: ";
+            // for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
+            // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+            return false;
+          }
+        }
+      }
+      // TODO:: Fix id_pragma_value. Do we need to take care of that? 
 
-    case id_create_table_name:
-
-      ir->str_val_ = gen_id_name();
-      v_table_names.push_back(ir->str_val_);
-      // cout << "create_table_name: " << ir->str_val_ << endl;
-      fix_one(graph, ir, visited);
-      break;
-
-    case id_top_table_name:
-
-      ir->str_val_ = vector_rand_ele(v_table_names);
-      // cout << "top_table_name: " << ir->str_val_ << endl;
-      fix_one(graph, ir, visited);
-      break;
-
-    case id_index_name:
-
-      // FIXME: handle index name
-      // cout << "id_index_name: " << endl;
-      break;
-
-    default:
-
-      // cerr << ir->id_type_ << endl;
-      // cerr << "this: " << ir->to_string() << endl;
-
-      // if (ir->get_parent()) {
-      //  cerr << "parent: " << ir->get_parent()->to_string() << endl;
-
-      //  if (ir->get_parent()->get_parent()) {
-      //    cerr << "p parent: " << ir->get_parent()->get_parent()->to_string()
-      //    << endl;
-
-      //    if (ir->get_root())
-      //      cerr << "root: " << ir->get_root()->to_string() << endl;
-      //  }
-      //}
-      break;
     }
   }
+
+  return true;
 }
 
 /* tranverse ir in the order: _right ==> root ==> left_ */
@@ -1502,6 +1972,25 @@ string Mutator::fix(IR *root) {
   string res = "";
   _fix(root, res);
   trim_string(res);
+
+  /* 
+  ** For debugging purpose, avoid root->to_string() generates a different string from _fix()
+  ** The string is identical for the latest commit. However, we cannot guarantee this for kPragmaStatement. 
+  ** We don't handle and save changes for kPragmaStatement in _fix() and to_string(). 
+  */
+  string ir_to_str = root->to_string();
+  trim_string(ir_to_str);
+  if (res != ir_to_str && !findStringIn(res, "PRAGMA") && !findStringIn(ir_to_str, "PRAGMA")) {
+    ofstream error_output;
+    error_output.open("./fatal_log.txt");
+    error_output << "Error: ir_to_string is not the same as the string generated from _fix. \n";
+    error_output << "res: \n" << res << endl;
+    error_output << "ir_to_string: \n" << ir_to_str << endl;
+    error_output.close();
+    FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n\
+          _fix() str: %s, to_string() str: %s .\n", res.c_str(), ir_to_str.c_str());
+  }
+
   return res;
 }
 
@@ -1518,15 +2007,18 @@ void Mutator::_fix(IR *root, string &res) {
   if (type_ == kIdentifier && id_type_ == id_database_name) {
 
     res += "main";
+    root->str_val_ = "main";
     return;
   }
 
   if (type_ == kIdentifier && id_type_ == id_schema_name) {
 
     res += "sqlite_master";
+    root->str_val_ = "sqlite_master";
     return;
   }
 
+  // TODO:: not being handled for now. 
   if (type_ == kPragmaStatement) {
 
     string key = "";
@@ -1566,16 +2058,21 @@ void Mutator::_fix(IR *root, string &res) {
   if (type_ == kStringLiteral) {
     auto s = string_libary[get_rand_int(string_libary.size())];
     res += "'" + s + "'";
+    root->str_val_ = s;
     return;
   }
 
   if (type_ == kNumericLiteral) {
-    res += value_libary[get_rand_int(value_libary.size())];
+    auto s = value_libary[get_rand_int(value_libary.size())];
+    res += s;
+    root->str_val_ = s;
     return;
   }
 
   if (type_ == kconst_str) {
-    res += string_libary[get_rand_int(string_libary.size())];
+    auto s = string_libary[get_rand_int(string_libary.size())];
+    res += s;
+    root->str_val_ = s;
     return;
   }
 
@@ -1605,6 +2102,133 @@ void Mutator::_fix(IR *root, string &res) {
 
   return;
 }
+
+void Mutator::resolve_drop_statement(IR* cur_trans_stmt){
+  IRTYPE stmt_type = this->p_oracle->ir_wrapper.get_cur_stmt_type(cur_trans_stmt);
+  if (stmt_type == kDropTableStatement || stmt_type == kDropViewStatement) {
+    vector<IR*> drop_tablename_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_table_name);
+    for (IR* drop_table_ir : drop_tablename_vec) {
+      string drop_table_str = drop_table_ir->str_val_;
+      m_tables.erase(drop_table_str);
+      m_table2index.erase(drop_table_str);
+      v_table_names.erase(std::remove(v_table_names.begin(), v_table_names.end(), drop_table_str), v_table_names.end());
+    }
+  }
+  else if (stmt_type == kDropIndexStatement) {
+    vector<IR*> drop_indexname_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_index_name);
+    for (IR* drop_indexname_ir : drop_indexname_vec) {
+      string drop_indexname_str = drop_indexname_ir->str_val_;
+      for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
+        vector<string>& table2index_vec = iter->second;
+        table2index_vec.erase(std::remove(table2index_vec.begin(), table2index_vec.end(), drop_indexname_str), table2index_vec.end());
+      }
+    }
+  }
+}
+
+void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
+  if (cur_trans_stmt->type_ != kAlterStatement) {return;}
+
+  IR* cur_ir = cur_trans_stmt;
+  while (!(cur_ir->op_ != nullptr && cur_ir->op_->middle_ != "")) {
+    cur_ir = cur_ir->left_;
+  }
+  IROperator* op_ = cur_ir->op_;
+
+  // RENAME tables. 
+  if (op_->middle_ == "RENAME TO"){
+    IR* tablename_from_ir;
+    if (cur_ir->left_->right_ != nullptr) {tablename_from_ir = cur_ir->left_->right_;}
+    else {tablename_from_ir = cur_ir->left_->left_;}
+    string tablename_from_str = tablename_from_ir->str_val_;
+
+    IR* tablename_to_ir;
+    if (cur_ir->right_->right_ != nullptr) {tablename_to_ir = cur_ir->right_->right_;}
+    else {tablename_from_ir = cur_ir->right_->left_;}
+    string tablename_to_str = tablename_from_ir->str_val_;
+
+    for (string& saved_tablename : v_table_names) {
+      if (saved_tablename == tablename_from_str) {saved_tablename = tablename_to_str;}
+    }
+    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+      if (iter->first == tablename_from_str) {
+        m_tables[tablename_to_str] = iter->second;
+        m_tables.erase(tablename_from_str);
+        break;
+      }
+    }
+    for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
+      if (iter->first == tablename_from_str) {
+        m_table2index[tablename_to_str] = iter->second;
+        m_table2index.erase(tablename_from_str);
+        break;
+      }
+    }
+    return;
+  }
+
+  // RNAME columns
+  if (op_->middle_ == "TO") {
+    IR* tablename_ir = cur_ir->left_->left_->left_;
+    if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
+    else {tablename_ir = cur_ir->left_;}
+    string tablename_str = tablename_ir->str_val_;
+
+    IR* columnname_to_ir = cur_ir->right_;
+    if (columnname_to_ir->right_ != nullptr || columnname_to_ir->str_val_ == "*" || columnname_to_ir->left_ == nullptr) {return;}  // Semantic error
+    string columnname_to_str = columnname_to_ir->left_->str_val_;
+
+    IR* columnname_from_ir = cur_ir->left_->right_;
+    if (columnname_from_ir->right_ != nullptr || columnname_from_ir->str_val_ == "*" || columnname_from_ir->left_ == nullptr) {return;}  // Semantic error
+    string columnname_from_str = columnname_from_ir->left_->str_val_;
+
+    for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
+      vector<string>& table2column_vec = iter->second;
+      for (string& cur_column_str : table2column_vec) {
+        if (cur_column_str == columnname_from_str) {
+          cur_column_str = columnname_to_str;
+        }
+      }
+    }
+    return;
+  }
+  
+  // ADD columns. 
+  if (op_->middle_ == "ADD") {
+    IR* tablename_ir = cur_ir->left_;
+    if (cur_ir->right_->right_ != nullptr) {tablename_ir = cur_ir->right_;}
+    else {tablename_ir = cur_ir->left_;}
+    string tablename_str = tablename_ir->str_val_;
+
+    IR* columnname_ir = cur_ir->get_parent()->right_->left_->left_;
+    string columnname_str = columnname_ir->str_val_;
+
+    m_tables[tablename_str].push_back(columnname_str);
+
+    return;
+  }
+
+  // DROP columns. 
+  if (op_->middle_ == "DROP") {
+    IR* tablename_ir = cur_ir->left_;
+    if (cur_ir->right_ != nullptr) {tablename_ir = cur_ir->right_;}
+    else {tablename_ir = cur_ir->left_;}
+    string tablename_str = tablename_ir->str_val_;
+
+    IR* columnname_ir = cur_ir->get_parent()->right_;
+    if (columnname_ir->right_ != nullptr || columnname_ir->str_val_ == "*" || columnname_ir->left_ == nullptr) {return;}  // Semantic error
+    string columnname_from_str = columnname_ir->left_->str_val_;
+    string columnname_str = columnname_ir->str_val_;
+
+    vector<string>& table2column_vec = m_tables[tablename_str];
+    table2column_vec.erase(std::remove(table2column_vec.begin(), table2column_vec.end(), columnname_str), table2column_vec.end());
+
+    return;
+  }
+  return;
+
+}
+
 
 unsigned int Mutator::calc_node(IR *root) {
   unsigned int res = 0;
@@ -1758,38 +2382,46 @@ void Mutator::reset_database() {
   m_tables.clear();
   v_table_names.clear();
   m_table2index.clear();
-  m_table2alias.clear();
+  m_table2alias_single.clear();
+  v_table_names_single.clear();
+  v_alias_names_single.clear();
 }
 
-int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
-
-  auto ast = parser(buf);
-
-  new_buf = buf;
-  new_len = len;
-  if (ast == NULL)
-    return 0;
-
-  vector<IR *> v_ir;
-  auto ir_root = ast->translate(v_ir);
-  ast->deep_delete();
-
-  if (ir_root == NULL)
-    return 0;
-  auto fixed = validate(ir_root);
-  ir_root->deep_drop();
-  if (fixed.empty())
-    return 0;
-
-  char *sfixed = (char *)malloc(fixed.size() + 1);
-  memcpy(sfixed, fixed.c_str(), fixed.size());
-  sfixed[fixed.size()] = 0;
-
-  new_buf = sfixed;
-  new_len = fixed.size();
-
-  return 1;
+void Mutator::reset_database_single_stmt() {
+  this->v_table_names_single.clear();
+  this->v_alias_names_single.clear();
+  this->m_table2alias_single.clear();
 }
+
+// int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
+
+//   auto ast = parser(buf);
+
+//   new_buf = buf;
+//   new_len = len;
+//   if (ast == NULL)
+//     return 0;
+
+//   vector<IR *> v_ir;
+//   auto ir_root = ast->translate(v_ir);
+//   ast->deep_delete();
+
+//   if (ir_root == NULL)
+//     return 0;
+//   auto fixed = validate(ir_root, 0);
+//   ir_root->deep_drop();
+//   if (fixed.empty())
+//     return 0;
+
+//   char *sfixed = (char *)malloc(fixed.size() + 1);
+//   memcpy(sfixed, fixed.c_str(), fixed.size());
+//   sfixed[fixed.size()] = 0;
+
+//   new_buf = sfixed;
+//   new_len = fixed.size();
+
+//   return 1;
+// }
 
 int Mutator::get_cri_valid_collection_size() {
   return all_cri_valid_pstr_vec.size();
@@ -1840,9 +2472,6 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
         ori_norec_select =
             *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       }
-      if (ori_norec_select == "" ||
-          !p_oracle->is_oracle_valid_stmt(ori_norec_select))
-        continue;
       use_temp = false;
     } else {
       /* Pick the query from the template, pass to the mutator. */

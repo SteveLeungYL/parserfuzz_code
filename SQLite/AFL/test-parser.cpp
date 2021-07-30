@@ -2,6 +2,8 @@
 #include "../include/define.h"
 #include "../include/mutator.h"
 #include "../include/utils.h"
+#include "../oracle/sqlite_oracle.h"
+#include "../oracle/sqlite_norec.h"
 
 #include <fstream>
 #include <iostream>
@@ -38,6 +40,7 @@ Color::Modifier RED(Color::FG_RED);
 Color::Modifier DEF(Color::FG_DEFAULT);
 
 Mutator mutator;
+SQL_ORACLE* p_oracle;
 
 bool test_parse(string &query) {
 
@@ -49,7 +52,7 @@ bool test_parse(string &query) {
 
   IR *root = v_ir.back();
 
-  // mutator.debug(root, 0);
+  mutator.debug(root, 0);
 
   string tostring = root->to_string();
   if (tostring.size() <= 0) {
@@ -67,15 +70,36 @@ bool test_parse(string &query) {
   }
   cout << "structur: >" << structure << "<" << endl;
 
-  string validity = mutator.validate(root);
+  /* 
+  pre_transform, post_transform and validate()
+  */
+  IR* cur_root = root->deep_copy();
+
+  mutator.pre_validate(); // Reset global variables for query sequence. 
+
+  p_oracle->init_ir_wrapper(cur_root);
+  vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+
+  for (IR* cur_trans_stmt : all_stmt_vec) {
+    if(!mutator.validate(cur_trans_stmt)) {
+      cerr << "Error: g_mutator.validate returns errors. \n";
+    }
+  }
+
+  // Clean up allocated resource. 
+  // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
+
+  string validity = cur_root->to_string();
   if (validity.size() <= 0) {
     cerr << RED << "validate failed" << DEF << endl;
     root->deep_drop();
+    cur_root->deep_drop();
     return false;
   }
   cout << "validate: >" << validity << "<" << endl;
 
   root->deep_drop();
+  cur_root->deep_drop();
   v_ir.clear();
 
   return true;
@@ -96,6 +120,11 @@ int main(int argc, char *argv[]) {
   string input(argv[1]);
   ifstream input_test(input);
   string line;
+
+  p_oracle = new SQL_NOREC();
+
+  mutator.set_p_oracle(p_oracle);
+  p_oracle->set_mutator(&mutator);
 
   while (getline(input_test, line)) {
 

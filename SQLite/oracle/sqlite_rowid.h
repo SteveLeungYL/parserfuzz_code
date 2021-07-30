@@ -27,7 +27,11 @@ public:
   void rewrite_valid_stmt_from_ori_2(string &query,
                                      const unsigned multi_run_id) override;
 
-  string get_temp_valid_stmts() override { return temp_valid_stmts; };
+  string get_temp_valid_stmts() override { return temp_valid_stmts; }
+
+  bool is_oracle_normal_stmt(IR* cur_IR) override;
+  IR* pre_fix_transform_normal_stmt(IR* cur_stmt) override;
+  vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) override;
 
   /* Execute SQLite3 two times. Add or remove WITHOUT ROWID. Compare the
    * results. */

@@ -29,6 +29,9 @@ public:
   }
   string get_oracle_type() override { return this->oracle_type; }
 
+  bool is_oracle_select_stmt(IR* cur_IR) override;
+  vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
+
 private:
   vector<string> temp_valid_stmts = {
       /* Complete set */

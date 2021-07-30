@@ -22,7 +22,7 @@ void SQL_ORACLE::set_mutator(Mutator *mutator) { this->g_mutator = mutator; }
 
 // TODO:: This function is a bit too long.
 // guarantee to generate grammarly correct query
-string SQL_ORACLE::get_random_mutated_valid_stmt() {
+IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
   /* Read from the previously seen norec compatible select stmt.
    * SELECT COUNT ( * ) FROM ... WHERE ...; mutate them, and then return the
    string of the new generated norec compatible SELECT query.
@@ -39,25 +39,40 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
 
     string ori_valid_select = "";
     use_temp = g_mutator->get_valid_str_from_lib(ori_valid_select);
-    /* If we are using a non template valid stmt from the p_oracle lib:
-     *  2/3 of chances to return the stmt immediate without mutation.
-     *  1/3 of chances to return with further mutation.
-     */
-    if (!use_temp && get_rand_int(3) < 2) {
-      return ori_valid_select;
-    }
 
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);
+
     if (ir_tree.size() == 0)
-      continue;
+      {continue;}
+
+    if (ir_tree.back()->left_ == nullptr || ir_tree.back()->left_->left_ == nullptr || ir_tree.back()->left_->left_->left_ == nullptr)
+      {continue;}
+    // kProgram -> kStatementList -> kStatement -> specific_statement_type_
+    IR *cur_ir_stmt = ir_tree.back()->left_->left_->left_;
+
+    if (!this->is_oracle_select_stmt(cur_ir_stmt))
+      {continue;}
 
     root = ir_tree.back();
     if (!g_mutator->check_node_num(root, 300)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
        * the retrived query. */
+      this->ir_wrapper.set_ir_root(root);
+      IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
       root->deep_drop();
-      return ori_valid_select;
+      return returned_stmt_ir;
+    }
+
+    /* If we are using a non template valid stmt from the p_oracle lib:
+     *  2/3 of chances to return the stmt immediate without mutation.
+     *  1/3 of chances to return with further mutation.
+     */
+    if (!use_temp && get_rand_int(3) < 2) {
+      this->ir_wrapper.set_ir_root(root);
+      IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+      root->deep_drop();
+      return returned_stmt_ir;
     }
 
     /* Restrict changes on the signiture norec select components. Could increase
@@ -120,36 +135,33 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
       new_mutated_ir_node->deep_drop();
 
-      if (new_valid_select_str == ori_valid_select)
+      if (new_valid_select_str == ori_valid_select) {
         continue;
+      }
 
       /* Final check and return string if compatible */
       vector<IR *> new_ir_verified =
           g_mutator->parse_query_str_get_ir_set(new_valid_select_str);
       if (new_ir_verified.size() <= 0)
         continue;
-      new_ir_verified.back()->deep_drop();
 
-      if (is_oracle_valid_stmt(new_valid_select_str)) {
-        // Make sure the mutated structure is different.
-        if (new_valid_select_struct != ori_valid_select_struct) {
+      // Make sure the mutated structure is different.
+      // kProgram -> kStatementList -> kStatement -> specific_statement_type_
+      IR* new_ir_verified_stmt = new_ir_verified.back()->left_->left_->left_; 
+      if (is_oracle_select_stmt(new_ir_verified_stmt) && new_valid_select_struct != ori_valid_select_struct) {
+        root->deep_drop();
+        is_success = true;
 
-          root->deep_drop();
-          is_success = true;
-
-          if (use_temp)
-            total_temp++;
-          return new_valid_select_str;
-        }
-        // else {
-        //  cout << "new|" << new_valid_select_str << "|\n"
-        //       << "old|" << ori_valid_select << "|\n";;
-
-        //  if (new_valid_select_str.find(" d ") != string::npos) {
-        //    debug(root, 0);
-        //    exit(0);
-        //  }
-        //}
+        if (use_temp)
+          total_temp++;
+        
+        this->ir_wrapper.set_ir_root(new_ir_verified.back());
+        IR* returned_stmt_ir = ir_wrapper.get_stmt_ir_vec()[0]->deep_copy();
+        new_ir_verified.back()->deep_drop();
+        return returned_stmt_ir;
+      }
+      else {
+        new_ir_verified.back()->deep_drop();
       }
 
       continue; // Retry mutating the current norec stmt and its IR tree.
@@ -164,5 +176,66 @@ string SQL_ORACLE::get_random_mutated_valid_stmt() {
     root = NULL;
   }
   FATAL("Unexpected code execution in '%s'", "SQL_ORACLE::get_random_mutated_valid_stmt()");
-  return "";
+  return nullptr;
+}
+
+int SQL_ORACLE::count_oracle_select_stmts(IR* ir_root) {
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+
+  int oracle_stmt_num = 0;
+  for (IR* cur_stmt : stmt_vec){
+    if (this->is_oracle_select_stmt(cur_stmt)) {oracle_stmt_num++;}
+  }
+  return oracle_stmt_num;
+}
+
+int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+
+  int oracle_stmt_num = 0;
+  for (IR* cur_stmt : stmt_vec){
+    if (this->is_oracle_normal_stmt(cur_stmt)) {oracle_stmt_num++;}
+  }
+  return oracle_stmt_num;
+}
+
+bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
+  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false)) {
+    return true;
+  }
+  return false;
+}
+
+void SQL_ORACLE::remove_oracle_select_stmts_from_ir(IR* ir_root) {
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR* cur_stmt : stmt_vec) {
+    if (this->is_oracle_select_stmt(cur_stmt)) ir_wrapper.remove_stmt_and_free(cur_stmt);
+  }
+}
+
+void SQL_ORACLE::remove_oracle_normal_stmts_from_ir(IR* ir_root) {
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR* cur_stmt : stmt_vec) {
+    if (this->is_oracle_normal_stmt(cur_stmt)) ir_wrapper.remove_stmt_and_free(cur_stmt);
+  }
+}
+
+bool SQL_ORACLE::is_select_stmt(IR* cur_IR) {
+  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+void SQL_ORACLE::remove_all_select_stmt_from_ir(IR* ir_root){
+  ir_wrapper.set_ir_root(ir_root);
+  vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec();
+  for (IR* cur_stmt : stmt_vec) {
+    if (this->is_select_stmt(cur_stmt)) ir_wrapper.remove_stmt_and_free(cur_stmt);
+  }
 }

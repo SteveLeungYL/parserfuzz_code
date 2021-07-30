@@ -105,12 +105,17 @@ void IR::_to_string(string &res) {
     return;
   }
 
-  if (type_ == kFilePath || type_ == kStringLiteral ||
+  if (type_ == kFilePath ||
       type_ == kNumericLiteral || type_ == kIdentifier ||
       type_ == kOptOrderType || type_ == kColumnType || type_ == kSetOperator ||
       type_ == kOptJoinType || type_ == kOptDistinct || type_ == kNullLiteral ||
       type_ == kconst_str) {
     res += str_val_;
+    return;
+  }
+
+  if (type_ == kStringLiteral) {
+    res += "'" + str_val_ + "'";
     return;
   }
 
@@ -147,14 +152,18 @@ bool IR::swap_node(IR *old_node, IR *new_node) {
 
   IR *parent = this->locate_parent(old_node);
 
-  if (parent == NULL)
+  if (parent == NULL) {
+    // cerr << "Error: parent is null. Locate_parent error. In func: IR::swap_node(). \n";
     return false;
+  }
   else if (parent->left_ == old_node)
     parent->update_left(new_node);
   else if (parent->right_ == old_node)
     parent->update_right(new_node);
-  else
+  else {
+    // cerr << "Error: parent-child not matching. In func: IR::swap_node(). \n";
     return false;
+  }
 
   old_node->parent_ = NULL;
 
@@ -180,7 +189,7 @@ IR *IR::get_root() {
   return node;
 }
 
-IR *IR::get_parent() { return this->parent_; }
+IR *IR::get_parent() { if (this->parent_ != NULL) {return this->parent_;} else {return NULL;}}
 
 void IR::update_left(IR *new_left) {
 
@@ -236,6 +245,8 @@ IR *IR::deep_copy() {
   copy_res = new IR(this->type_, op, left, right, this->f_val_, this->str_val_,
                     this->name_, this->mutated_times_);
   copy_res->id_type_ = this->id_type_;
+  copy_res->parent_ = this->parent_;
+  copy_res->str_val_ = this->str_val_;
 
   return copy_res;
 }

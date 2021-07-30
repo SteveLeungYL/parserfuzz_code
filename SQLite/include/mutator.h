@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #include <vector>
+#include <utility>
 
 #define LUCKY_NUMBER 500
 
@@ -13,9 +14,16 @@ using namespace std;
 
 class SQL_ORACLE;
 
+enum STMT_TYPE {
+  NOT_ORACLE = 0,
+  ORACLE_SELECT = 1,
+  ORACLE_NORMAL = 2
+};
+
 class Mutator {
 
 public:
+
   Mutator() { srand(time(nullptr)); }
 
   typedef map<IR *, pair<int, IR *>> TmpRecord;
@@ -28,13 +36,25 @@ public:
 
   vector<string *> mutate_all(vector<IR *> &v_ir_collector);
 
+  vector<IR *> mutate_stmtlist(IR *input);
+  vector<IR *> mutate_selectcorelist(IR* ir_root, IR *cur_ir);
+
+
   vector<IR *> mutate(IR *input);
   IR *strategy_delete(IR *cur);
   IR *strategy_insert(IR *cur);
   IR *strategy_replace(IR *cur);
 
-  string validate(string query);
-  string validate(IR *root);
+  void pre_validate();
+  vector<IR*> pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec);
+
+  bool validate(IR* cur_trans_stmt);
+
+  vector<vector<vector<IR*>>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec);
+  vector<vector<IR*>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count);
+  
+  bool finalize_transform(IR* root, vector<vector<IR*>> all_post_trans_vec);
+  pair<string, string> ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec);
 
   void minimize(vector<IR *> &);
   bool lucky_enough_to_be_mutated(unsigned int mutated_times);
@@ -73,32 +93,33 @@ public:
   string extract_struct(string);
   void add_new_table(IR *root, string &table_name);
   void reset_database();
+  void reset_database_single_stmt();
 
   bool check_node_num(IR *root, unsigned int limit);
   vector<IR *> extract_statement(IR *root);
   unsigned int calc_node(IR *root);
 
-  map<IR *, set<IR *>> build_dependency_graph(IR *root,
-                                              map<IDTYPE, IDTYPE> &relationmap,
-                                              map<IDTYPE, IDTYPE> &crssmap,
-                                              vector<IR *> &ordered_ir);
+  void Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
+                                vector<vector<IR*>> &ordered_ir);
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);
-  void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);
-  void fix_graph(map<IR *, set<IR *>> &graph, IR *root,
-                 vector<IR *> &ordered_ir);
+  // void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);
+  bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir);
 
   static vector<string> value_libary;
   static map<string, vector<string>> m_tables;
   static map<string, vector<string>> m_table2index;
-  static map<string, vector<string>> m_table2alias;
+  // static map<string, vector<string>> m_table2alias;
   static vector<string> v_table_names;
+  static vector<string> v_table_names_single;
+  static vector<string> v_alias_names_single;
+  static map<string, vector<string>> m_table2alias_single;
   ~Mutator();
 
   void debug(IR *root, unsigned level);
   unsigned long get_library_size();
   void get_memory_usage();
-  int try_fix(char *buf, int len, char *&new_buf, int &new_len);
+  // int try_fix(char *buf, int len, char *&new_buf, int &new_len);
 
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
 
@@ -111,6 +132,8 @@ public:
 
   string remove_node_from_tree_by_index(string oracle_query, int remove_index);
   set<string> get_minimize_string_from_tree(string oracle_query);
+  void resolve_drop_statement(IR*);
+  void resolve_alter_statement(IR*);
 
 private:
   void add_to_valid_lib(IR *, string &, const bool);
