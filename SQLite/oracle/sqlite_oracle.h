@@ -20,8 +20,10 @@ public:
   virtual bool is_select_stmt(IR* cur_IR);
   virtual void remove_all_select_stmt_from_ir(IR* ir_root);
 
-  /* Functions to check and count how many query validation statements are in
-   * the string. */
+  /* 
+  ** Functions to check and count how many query validation statements are in
+  ** the string. 
+  */
   virtual int count_valid_stmts(const string &input) = 0;
   virtual bool is_oracle_valid_stmt(const string &query) = 0;
 

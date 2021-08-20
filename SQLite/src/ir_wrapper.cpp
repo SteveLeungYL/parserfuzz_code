@@ -224,7 +224,7 @@ bool IRWrapper::append_stmt_after_idx(string app_str, int idx, const Mutator& g_
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_;  // Program -> kStatementlist -> kStatement. 
+    IR* app_IR_node = app_IR_vec.back()->left_->left_->left_;  // Program -> kStatementlist -> kStatement -> kSpecificStmt 
     app_IR_node = app_IR_node->deep_copy();
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
@@ -239,7 +239,7 @@ bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_;  // Program -> Statementlist -> Statement. 
+    IR* app_IR_node = app_IR_vec.back()->left_->left_;  // Program -> Statementlist -> Statement -> kSpecificStmt
     app_IR_node = app_IR_node->deep_copy();
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
@@ -404,7 +404,7 @@ bool IRWrapper::append_components_at_ir(IR* parent_node, IR* app_node, bool is_l
                 return false;
             }
             IR* old_node = parent_node->left_;
-            old_node->detach_node(old_node);
+            parent_node->detach_node(old_node);
             old_node->deep_drop();
         }
         parent_node->update_left(app_node);
@@ -416,7 +416,7 @@ bool IRWrapper::append_components_at_ir(IR* parent_node, IR* app_node, bool is_l
                 return false;
             }
             IR* old_node = parent_node->right_;
-            old_node->detach_node(old_node);
+            parent_node->detach_node(old_node);
             old_node->deep_drop();
         }
         parent_node->update_right(app_node);
@@ -425,12 +425,13 @@ bool IRWrapper::append_components_at_ir(IR* parent_node, IR* app_node, bool is_l
 }
 
 bool IRWrapper::remove_components_at_ir(IR* rov_ir) {
-    if (rov_ir) {
-        rov_ir->detach_node(rov_ir);
+    if (rov_ir && rov_ir->parent_) {
+        IR* parent_node = rov_ir->get_parent();
+        parent_node->detach_node(rov_ir);
         rov_ir->deep_drop();
         return true;
     }
-    cerr << "Error: rov_ir is nullptr. Function IRWrapper::remove_components_at_ir() \n";
+    cerr << "Error: rov_ir or rov_ir->parent_ are nullptr. Function IRWrapper::remove_components_at_ir() \n";
     return false;
 }
 
