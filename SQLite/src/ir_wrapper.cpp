@@ -239,7 +239,7 @@ bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
 
     // Parse and get the new statement. 
     vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_;  // Program -> Statementlist -> Statement -> kSpecificStmt
+    IR* app_IR_node = app_IR_vec.back()->left_->left_->left_;  // Program -> Statementlist -> Statement -> kSpecificStmt
     app_IR_node = app_IR_node->deep_copy();
     app_IR_vec.back()->deep_drop();
     app_IR_vec.clear();
