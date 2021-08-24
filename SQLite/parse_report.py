@@ -5,7 +5,7 @@ from pathlib import Path
 from loguru import logger
 
 
-SQLITE_BINARY = "/data/liusong/sqlite_latest/sqlite3"
+SQLITE_BINARY = "/data/liusong/Squirrel_DBMS/sqlite_build/latest/sqlite/sqlite3"
 
 
 @click.group()
@@ -337,7 +337,18 @@ def parse_unique_report(report, output):
     sql_output = Path(report).with_suffix(".sql")
     with open(sql_output, "w") as f:
         f.write("-- database query:\n" + database_query + "\n\n")
-        f.write("-- oracle query:\n" + first_oracle + "\n" + second_oracle + "\n\n")
+        f.write(
+            "-- oracle query:\n"
+            + "SELECT 'BEGIN VERI 0';\n"
+            + first_oracle
+            + "\n"
+            + "SELECT 'END VERI 0';\n"
+            + "SELECT 'BEGIN VERI 1';\n"
+            + second_oracle
+            + "\n"
+            + "SELECT 'END VERI 1';\n"
+            + "\n\n"
+        )
         f.write("-- first result: {}\n".format(first_result))
         f.write("-- second result: {}\n".format(second_result))
 
