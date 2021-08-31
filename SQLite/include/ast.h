@@ -68,6 +68,7 @@ enum IDTYPE {
   id_whatever,
 
   id_create_table_name,
+  id_create_view_name,
   id_top_table_name,
   id_table_name,
 

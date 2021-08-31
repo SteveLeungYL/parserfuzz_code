@@ -32,6 +32,7 @@ map<string, vector<string>> Mutator::m_tables;   // Table name to column name ma
 map<string, vector<string>> Mutator::m_table2index;   // Table name to index mapping. 
 vector<string> Mutator::v_table_names;  // All saved table names
 vector<string> Mutator::v_table_names_single; // All used table names in one query statement. 
+vector<string> Mutator::v_create_table_names_single; // All created table names in the current query statement. 
 vector<string> Mutator::v_alias_names_single; // All alias name local to one query statement.  
 map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping. 
 
@@ -1653,69 +1654,33 @@ bool Mutator::fix_dependency(IR *root,
   set<IR *> visited;
   reset_database_single_stmt();
 
+  cerr << "Trying to fix_dependency on stmt: " << root->to_string() << ". \n\n\n";
+
   /* Loop through the subqueries. From the most parent to the most child. (In the same query statement. )*/
   for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
-    // // Debug 
-    // cerr << "ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n";
-    
+
     /* First loop through all ir_to_fix, resolve all id_create_table_name and id_table_alias_name. */
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_create_table_name) {
         ir->str_val_ = gen_id_name();
-        v_table_names.push_back(ir->str_val_);
-        v_table_names_single.push_back(ir->str_val_);
+        // v_table_names.push_back(ir->str_val_);
+        // v_table_names_single.push_back(ir->str_val_);
+        v_create_table_names_single.push_back(ir->str_val_);
         visited.insert(ir);
+        
+        cerr << "Dependency: In id_create_table_name, we created v_table_name: " << ir->str_val_ << "\n\n\n";
 
-        // Take care of the alias, if any. 
+        /* Take care of the alias, if any. We will not save this alias into the lib, as using just id_create_table_name(with alias) will most likely resulted in errors. */
         IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
         if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
           string new_alias_str = gen_alias_name();
           alias_ir->str_val_ = new_alias_str;
-          v_alias_names_single.push_back(new_alias_str);
-          m_table2alias_single[ir->str_val_].push_back(new_alias_str);
+          // v_alias_names_single.push_back(new_alias_str);
+          // m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           visited.insert(alias_ir);
-        }
-
-        /* Check whether we are in the CreateViewStatement. If yes, save the column mapping. */
-        IR* cur_ir = ir;
-        while (cur_ir->parent_ != nullptr) {
-          if (cur_ir->type_ == kStatement) {
-            break;
-          }
-          cur_ir = cur_ir->parent_;
-        }
-
-        // Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT... statement.  
-        if (ordered_all_subquery_ir.size() > 1 && ordered_ir != ordered_all_subquery_ir[0]) {
-          // id_column_name should be in the subqueries and already been resolved. 
-          vector<IR*> all_mentioned_column_vec = search_mapped_ir_in_stmt(ir, id_column_name);
-          for (IR* cur_men_column_ir : all_mentioned_column_vec) {
-            string cur_men_column_str = cur_men_column_ir->str_val_;
-            if (findStringIn(cur_men_column_str, ".")) {
-              cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
-            }
-            m_tables[ir->str_val_].push_back(cur_men_column_str);
-          }
-          if (all_mentioned_column_vec.size() == 0) { // For CREATE VIEW x AS SELECT * FROM v0; 
-            vector<IR*> all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_top_table_name);
-            for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
-              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
-              const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
-              for (const string& cur_men_column_str : cur_men_column_vec) {
-                m_tables[ir->str_val_].push_back(cur_men_column_str);
-              }
-            }
-            all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_table_name);
-            for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
-              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
-              const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
-              for (const string& cur_men_column_str : cur_men_column_vec) {
-                m_tables[ir->str_val_].push_back(cur_men_column_str);
-              }
-            }
-          }
+          cerr << "Dependency: In id_create_table_name, we save alias_name: " << new_alias_str << ". \n\n\n";
         }
       }
     }
@@ -1730,6 +1695,8 @@ bool Mutator::fix_dependency(IR *root,
           v_table_names_single.push_back(ir->str_val_);
           visited.insert(ir);
 
+          cerr << "Dependency: In id_top_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
+
           // Take care of the alias, if any. 
           IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
           if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
@@ -1738,6 +1705,8 @@ bool Mutator::fix_dependency(IR *root,
             v_alias_names_single.push_back(new_alias_str);
             m_table2alias_single[ir->str_val_].push_back(new_alias_str);
             visited.insert(alias_ir);
+
+            cerr << "Dependency: In id_top_table_name, for table_name: " << ir->str_val_ << ", we generate alias name: " << new_alias_str << ". \n\n\n";
           }
         } else {
           // // No created table existed. Treat it as id_create_table_name. 
@@ -1755,8 +1724,8 @@ bool Mutator::fix_dependency(IR *root,
           //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           //   visited.insert(alias_ir);
           // }
-          // cerr << "FIX_DEP ERROR: Cannot find matched id_create_table_name for id_top_table_name. ";
-          // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          
+          cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
           return false;
         }
       }
@@ -1771,11 +1740,13 @@ bool Mutator::fix_dependency(IR *root,
           string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
           ir->str_val_ = tablename_str;
           visited.insert(ir);
+          cerr << "Dependency: In id_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
         } else if (v_table_names.size() != 0) {
           string tablename_str = v_table_names[get_rand_int(v_table_names.size())];
           ir->str_val_ = tablename_str;
           v_table_names_single.push_back(tablename_str);
           visited.insert(ir);
+          cerr << "Dependency: In id_table_name, while v_table_name_single is empty, we used table_name: " << ir->str_val_ << ". \n\n\n";
         } else {
           // // tablename_str not exist. Create a new one as if it is id_create_table_name. 
           // string tablename_str = gen_id_name();
@@ -1793,10 +1764,7 @@ bool Mutator::fix_dependency(IR *root,
           //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           //   visited.insert(alias_ir);
           // }
-          // cerr << "FIX_DEP ERROR: Cannot find id_top_table_name or id_create_table_name for id_table_name ,";
-          // cerr << ", wnile all the saved tablename_str are: ";
-          //   for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-          // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
+          cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names and v_table_name_single saved. \n\n\n";
           return false;
         }
       }
@@ -1808,34 +1776,40 @@ bool Mutator::fix_dependency(IR *root,
 
       // There is only one case of id_create_index_name, that is in the CREATE INDEX statement. 
       if (ir->id_type_ == id_create_index_name) {
-        if (v_table_names.size() == 0) {
-          // cerr << "FIX_DEP ERROR: When fixing id_create_index_name, we found v_table_names.size(): " << v_table_names.size() 
-          // << ". Func: Mutator:: Mutator::fix_dependency(); \n";
+        if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0) {
+          cerr << "Dependency Error: id_create_index_name, couldn't find any v_table_name saved. \n\n\n";
           return false;
         }
-        /* identifier -> kIndexName -> kUnknown (kCreateIndexStatement) -> kUnknown (kCreateIndexStatement) -> kTableName  */
-        IR* tablename_ir = ir->get_parent()->get_parent()->get_parent()->right_;
-        /* kTableName -> identifier */
-        if (tablename_ir->right_ != nullptr) {
-          tablename_ir = tablename_ir->right_;
+        // /* identifier -> kIndexName -> kUnknown (kCreateIndexStatement) -> kUnknown (kCreateIndexStatement) -> kTableName  */
+        // IR* tablename_ir = ir->get_parent()->get_parent()->get_parent()->right_;
+        // /* kTableName -> identifier */
+        // if (tablename_ir->right_ != nullptr) {
+        //   tablename_ir = tablename_ir->right_;
+        // } else {
+        //   tablename_ir = tablename_ir->left_;
+        // }
+        // string tablename_str = tablename_ir->str_val_;
+        string tablename_str = "";
+        if (v_create_table_names_single.size() > 0) {
+          tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
         } else {
-          tablename_ir = tablename_ir->left_;
+          tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
         }
-        string tablename_str = tablename_ir->str_val_;
         string new_indexname_str = gen_index_name();
         ir->str_val_ = new_indexname_str;
         m_table2index[tablename_str].push_back(new_indexname_str);
         visited.insert(ir);
+
+        cerr << "Dependency: In id_create_index_name, saved index name: " << new_indexname_str << " for table: " << tablename_str << ". \n\n\n";
       }
 
       if (ir->id_type_ == id_create_column_name) {
-        if (v_table_names.size() == 0) {
-          // cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found v_table_names.size(): " << v_table_names.size() 
-          // << ". Func: Mutator:: Mutator::fix_dependency(); \n";
+        if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0) {
+          cerr << "Dependency Error: id_create_column_name, couldn't find any v_table_name saved. \n\n\n";
           return false;
         }
 
-        // // // Find THE table name to attach to. 
+        /* Find THE table name to attach to.  */
         // vector<IR*> tablename_vec = search_mapped_ir_in_stmt(ir, id_create_table_name);
         // if (tablename_vec.size() == 0) {
         //   tablename_vec = search_mapped_ir_in_stmt(ir, id_top_table_name);
@@ -1849,24 +1823,21 @@ bool Mutator::fix_dependency(IR *root,
         // }
         // IR* tablename_ir = tablename_vec[get_rand_int(tablename_vec.size())];
 
-        // Fix the IR. 
-        // string tablename_str = tablename_ir->str_val_;
-        string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        /* Fix the IR.
+        ** Normally, there would be only one table name saved in the v_table_names_single. 
+        */
+        string tablename_str = "";
+        if (v_create_table_names_single.size() > 0) {
+          tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
+        } else {
+          tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        }
+        
         string new_columnname_str = gen_column_name();
         ir->str_val_ = new_columnname_str;
         m_tables[tablename_str].push_back(new_columnname_str);
 
-        // // Debug: 
-        // cerr << "In func: Mutator::fix_dependency(), id_create_column_name, append to m_tables with tablename_str: "
-        //      << tablename_str << ", new_columnname_str: " << new_columnname_str << ". While the v_table is: ";
-        // for (string& saved_tablename_str : v_table_names) {
-        //   cerr << saved_tablename_str << "  ";
-        // }
-        // cerr << "; v_table_singel_stmt is: ";
-        // for (string& saved_tablename_str : v_table_names_single) {
-        //   cerr << saved_tablename_str << "  ";
-        // }
-        // cerr << "\n\n\n";
+        cerr << "Dependency: In id_create_column_name, created column name: " << new_columnname_str << " for table: " << tablename_str << ". \n\n\n";
 
         visited.insert(ir);
       }
@@ -1878,89 +1849,145 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_column_name) {
         if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          // cerr << "FIX_DEP ERROR: When fixing id_column_name, we found v_table_names.size(): " << v_table_names.size() 
-          // << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
+          cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
           return false;
         }
-        bool is_fixed = false;
-        while (!is_fixed) {
-          string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
-          if (
-            p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
-            p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
-          ) {
-            tablename_str = v_table_names[get_rand_int(v_table_names.size())];
-          }
-          vector<string> &matched_columnname_vec = m_tables[tablename_str];
-          vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
-          if (matched_aliasname_vec.size() != 0 && matched_columnname_vec.size() != 0) {
-            string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
-            string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
-            ir->str_val_ = aliasname_str + "." + column_str;
-            visited.insert(ir);
-            is_fixed = true;
-            break;
-          } else if (matched_columnname_vec.size() != 0) {
-            string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
-            ir->str_val_ = tablename_str + "." + column_str;
-            visited.insert(ir);
-            is_fixed = true;
-            break;
-          } else { // Cannot find matched column for table. 
-            // Error. 
-            // cerr << "FIX_DEP ERROR: Cannot find matched column for tablename_str: " << tablename_str 
-            //       << ", wnile all the saved tablename_str are: ";
-            // for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-            // cerr << ", in func: Mutator::fix_dependency(). Next, map. "<< endl;
-            // for (auto iter = m_tables.begin(); iter != m_tables.end(); iter++) {
-            //   cerr << "Saving maps for m_table, tablename: " << iter->first << ", column_name: ";
-            //   for (auto c_name : iter->second) {
-            //     cerr << c_name << " ";
-            //   }
-            //   cerr << "\n\n\n";
-            // }
-            return false;
-          }
+
+        string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        if (
+          p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
+          p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
+        ) {
+          tablename_str = v_table_names[get_rand_int(v_table_names.size())];
+        }
+
+        vector<string> &matched_columnname_vec = m_tables[tablename_str];
+        vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
+        if (matched_aliasname_vec.size() != 0 && matched_columnname_vec.size() != 0) {
+          string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
+          string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
+          ir->str_val_ = aliasname_str + "." + column_str;
+
+          cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
+
+          visited.insert(ir);
+        } else if (matched_columnname_vec.size() != 0) {
+          string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
+          ir->str_val_ = tablename_str + "." + column_str;
+          cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
+
+          visited.insert(ir);
+        } else { // Cannot find matched column for table. 
+          cerr << "Dependency Error: for id_column_name, couldn't find any matched_columnname_vec saved. \n\n\n";
+          return false;
         }
       }
 
       if (ir->id_type_ == id_index_name) {
         if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          // cerr << "FIX_DEP ERROR: When fixing id_index_name, we found v_table_names.size(): " << v_table_names.size() 
-          // << ". v_table_names_single.size(): " << v_table_names_single.size() << "Func: Mutator:: Mutator::fix_dependency(); \n";
+          cerr << "Dependency Error: for id_index_name, couldn't find any v_table_name_single saved. \n\n\n";
           return false;
         }
-        bool is_fixed = false;
-        while (!is_fixed) {
-          string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
-          vector<string> &matched_indexname_vec = m_table2index[tablename_str];
-          vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
-          if (matched_aliasname_vec.size() != 0 && matched_indexname_vec.size() != 0) {
-            string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
-            string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
-            ir->str_val_ = aliasname_str + "." + index_str;
-            visited.insert(ir);
-            is_fixed = true;
-            break;
-          } else if (matched_indexname_vec.size() != 0) {
-            string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
-            ir->str_val_ = tablename_str + "." + index_str;
-            visited.insert(ir);
-            is_fixed = true;
-            break;
-          } else { // Cannot find matched index for table. 
-            // cerr << "FIX_DEP ERROR: Cannot find matched index for tablename_str: " << tablename_str 
-            //       << ", wnile all the saved tablename_str are: ";
-            // for (string& saved_tablename_str : v_table_names) {cerr << " " << saved_tablename_str;}
-            // cerr << ", in func: Mutator::fix_dependency(). "<< endl;
-            return false;
+
+        string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        if (m_table2index.find(tablename_str) == m_table2index.end()) {
+          cerr << "Dependency Error: In id_index_name, cannot find index for table name: " << tablename_str << ". \n\n\n";
+          return false;
+        }
+
+        vector<string> &matched_indexname_vec = m_table2index[tablename_str];
+        vector<string> &matched_aliasname_vec = m_table2alias_single[tablename_str];
+        if (matched_aliasname_vec.size() != 0 && matched_indexname_vec.size() != 0) {
+          string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
+          string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
+          ir->str_val_ = aliasname_str + "." + index_str;
+          cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
+          visited.insert(ir);
+        } else if (matched_indexname_vec.size() != 0) {
+          string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
+          ir->str_val_ = tablename_str + "." + index_str;
+          cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
+          visited.insert(ir);
+        } else { // Cannot find matched index for table. 
+          cerr << "Dependency Error: for id_index_name, couldn't find any matched_indexname_vec saved. \n\n\n";
+          return false;
+        }
+        
+      }
+      // TODO:: Fix id_pragma_value. Do we need to take care of that? 
+    }
+  } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)
+
+  v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(), v_create_table_names_single.end());
+
+   /* Loop through the subqueries again. This loop is for logging dependency information. */
+  for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
+
+    /* First loop: Resolve column mappings for kCreateViewStatement. */
+    for (auto ir : ordered_ir) {
+      if (ir ->id_type_ != id_create_table_name) {
+        continue;
+      }
+      /* Check whether we are in the CreateViewStatement. If yes, save the column mapping. */
+      IR* cur_ir = ir;
+      bool is_in_create_view = false;
+      while (cur_ir != nullptr) {
+        if (cur_ir->type_ == kStatement) {
+          break;
+        }
+        if (cur_ir->type_ == kCreateViewStatement) {
+          is_in_create_view = true;
+          break;
+        }
+        cur_ir = cur_ir->parent_;
+      }
+      if (!is_in_create_view) {
+        continue;
+      }
+
+      // Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT... statement.  
+      if (ordered_all_subquery_ir.size() > 1) {
+        // id_column_name should be in the subqueries and already been resolved in the previous loop. 
+        vector<IR*> all_mentioned_column_vec = search_mapped_ir_in_stmt(ir, id_column_name);
+        for (IR* cur_men_column_ir : all_mentioned_column_vec) {
+          string cur_men_column_str = cur_men_column_ir->str_val_;
+          if (findStringIn(cur_men_column_str, ".")) {
+            cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
+          }
+          m_tables[ir->str_val_].push_back(cur_men_column_str);
+          cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+        }
+        if (all_mentioned_column_vec.size() == 0) { // For CREATE VIEW x AS SELECT * FROM v0; 
+          vector<IR*> all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_top_table_name);
+          for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
+            string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+            const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
+            for (const string& cur_men_column_str : cur_men_column_vec) {
+              vector<string>& cur_m_table  = m_tables[ir->str_val_];
+              if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) != cur_m_table.end()) {
+                m_tables[ir->str_val_].push_back(cur_men_column_str);
+                cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+              }
+            }
+          }
+          all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_table_name);
+          for (IR* cur_men_tablename_ir : all_mentioned_tablename) {
+            string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+            const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
+            for (const string& cur_men_column_str : cur_men_column_vec) {
+              vector<string>& cur_m_table  = m_tables[ir->str_val_];
+              if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) != cur_m_table.end()) {
+                m_tables[ir->str_val_].push_back(cur_men_column_str);
+                cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+              }
+            }
           }
         }
       }
-      // TODO:: Fix id_pragma_value. Do we need to take care of that? 
+    } // for (auto ir : ordered_ir) 
+  } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)
 
-    }
-  }
+  cerr << "After fixing: " << root->to_string() << " \n\n\n";
 
   return true;
 }
@@ -2384,11 +2411,13 @@ void Mutator::reset_database() {
   m_table2index.clear();
   m_table2alias_single.clear();
   v_table_names_single.clear();
+  v_create_table_names_single.clear();
   v_alias_names_single.clear();
 }
 
 void Mutator::reset_database_single_stmt() {
   this->v_table_names_single.clear();
+  this->v_create_table_names_single.clear();
   this->v_alias_names_single.clear();
   this->m_table2alias_single.clear();
 }

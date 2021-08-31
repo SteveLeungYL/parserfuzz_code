@@ -112,6 +112,7 @@ public:
   // static map<string, vector<string>> m_table2alias;
   static vector<string> v_table_names;
   static vector<string> v_table_names_single;
+  static vector<string> v_create_table_names_single;
   static vector<string> v_alias_names_single;
   static map<string, vector<string>> m_table2alias_single;
   ~Mutator();
