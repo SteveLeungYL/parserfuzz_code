@@ -48,7 +48,7 @@ public:
   void pre_validate();
   vector<IR*> pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec);
 
-  bool validate(IR* cur_trans_stmt);
+  bool validate(IR* cur_trans_stmt, bool is_debug_info = false);
 
   vector<vector<vector<IR*>>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec);
   vector<vector<IR*>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count);
@@ -104,7 +104,7 @@ public:
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);
   // void fix_one(map<IR *, set<IR *>> &graph, IR *fixed_key, set<IR *> &visited);
-  bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir);
+  bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir, bool is_debug_info = false);
 
   static vector<string> value_libary;
   static map<string, vector<string>> m_tables;

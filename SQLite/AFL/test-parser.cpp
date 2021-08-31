@@ -88,7 +88,7 @@ bool try_validate(IR* cur_root) {
   vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
   for (IR* cur_trans_stmt : all_stmt_vec) {
-    if(!mutator.validate(cur_trans_stmt)) {
+    if(!mutator.validate(cur_trans_stmt, true)) {  // is_debug_info == true; 
       cerr << "Error: g_mutator.validate returns errors. \n";
     }
   }

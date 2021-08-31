@@ -544,7 +544,7 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
 }
 
 /* Handle and fix one single query statement. */
-bool Mutator::validate(IR* cur_trans_stmt) {
+bool Mutator::validate(IR* cur_trans_stmt, bool is_debug_info = false) {
 
   if (cur_trans_stmt == nullptr) {return false;}
   /* Fill in concret values into the query. */
@@ -555,7 +555,7 @@ bool Mutator::validate(IR* cur_trans_stmt) {
   // Debug
   // cerr << "After Mutator::fix_preprocessing, we have ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n\n\n";
 
-  if (!fix_dependency(cur_trans_stmt, ordered_all_subquery_ir)) 
+  if (!fix_dependency(cur_trans_stmt, ordered_all_subquery_ir, is_debug_info)) 
   {
     // cerr << "Fix_dependency return errors. " << endl;
     // return false;
@@ -1650,11 +1650,13 @@ Mutator::~Mutator() {
 // relationmap_alternate[id_create_index_name] = id_top_table_name;
 //
 bool Mutator::fix_dependency(IR *root,
-                        vector<vector<IR *>> &ordered_all_subquery_ir) {
+                        vector<vector<IR *>> &ordered_all_subquery_ir, bool is_debug_info = false) {
   set<IR *> visited;
   reset_database_single_stmt();
 
-  cerr << "Trying to fix_dependency on stmt: " << root->to_string() << ". \n\n\n";
+  if (is_debug_info) {
+    cerr << "Trying to fix_dependency on stmt: " << root->to_string() << ". \n\n\n";
+  }
 
   /* Loop through the subqueries. From the most parent to the most child. (In the same query statement. )*/
   for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
@@ -1669,9 +1671,9 @@ bool Mutator::fix_dependency(IR *root,
         // v_table_names_single.push_back(ir->str_val_);
         v_create_table_names_single.push_back(ir->str_val_);
         visited.insert(ir);
-        
-        cerr << "Dependency: In id_create_table_name, we created v_table_name: " << ir->str_val_ << "\n\n\n";
-
+        if (is_debug_info) {
+          cerr << "Dependency: In id_create_table_name, we created v_table_name: " << ir->str_val_ << "\n\n\n";
+        }
         /* Take care of the alias, if any. We will not save this alias into the lib, as using just id_create_table_name(with alias) will most likely resulted in errors. */
         IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
         if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
@@ -1680,7 +1682,9 @@ bool Mutator::fix_dependency(IR *root,
           // v_alias_names_single.push_back(new_alias_str);
           // m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           visited.insert(alias_ir);
-          cerr << "Dependency: In id_create_table_name, we save alias_name: " << new_alias_str << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: In id_create_table_name, we save alias_name: " << new_alias_str << ". \n\n\n";
+          }
         }
       }
     }
@@ -1695,7 +1699,9 @@ bool Mutator::fix_dependency(IR *root,
           v_table_names_single.push_back(ir->str_val_);
           visited.insert(ir);
 
-          cerr << "Dependency: In id_top_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: In id_top_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          }
 
           // Take care of the alias, if any. 
           IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
@@ -1706,7 +1712,9 @@ bool Mutator::fix_dependency(IR *root,
             m_table2alias_single[ir->str_val_].push_back(new_alias_str);
             visited.insert(alias_ir);
 
-            cerr << "Dependency: In id_top_table_name, for table_name: " << ir->str_val_ << ", we generate alias name: " << new_alias_str << ". \n\n\n";
+            if (is_debug_info) {
+              cerr << "Dependency: In id_top_table_name, for table_name: " << ir->str_val_ << ", we generate alias name: " << new_alias_str << ". \n\n\n";
+            }
           }
         } else {
           // // No created table existed. Treat it as id_create_table_name. 
@@ -1725,7 +1733,7 @@ bool Mutator::fix_dependency(IR *root,
           //   visited.insert(alias_ir);
           // }
           
-          cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
+          // cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
           return false;
         }
       }
@@ -1740,13 +1748,17 @@ bool Mutator::fix_dependency(IR *root,
           string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
           ir->str_val_ = tablename_str;
           visited.insert(ir);
-          cerr << "Dependency: In id_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: In id_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          }
         } else if (v_table_names.size() != 0) {
           string tablename_str = v_table_names[get_rand_int(v_table_names.size())];
           ir->str_val_ = tablename_str;
           v_table_names_single.push_back(tablename_str);
           visited.insert(ir);
-          cerr << "Dependency: In id_table_name, while v_table_name_single is empty, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: In id_table_name, while v_table_name_single is empty, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          }
         } else {
           // // tablename_str not exist. Create a new one as if it is id_create_table_name. 
           // string tablename_str = gen_id_name();
@@ -1764,7 +1776,9 @@ bool Mutator::fix_dependency(IR *root,
           //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           //   visited.insert(alias_ir);
           // }
-          cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names and v_table_name_single saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names and v_table_name_single saved. \n\n\n";
+          }
           return false;
         }
       }
@@ -1777,7 +1791,9 @@ bool Mutator::fix_dependency(IR *root,
       // There is only one case of id_create_index_name, that is in the CREATE INDEX statement. 
       if (ir->id_type_ == id_create_index_name) {
         if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0) {
-          cerr << "Dependency Error: id_create_index_name, couldn't find any v_table_name saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: id_create_index_name, couldn't find any v_table_name saved. \n\n\n";
+          }
           return false;
         }
         // /* identifier -> kIndexName -> kUnknown (kCreateIndexStatement) -> kUnknown (kCreateIndexStatement) -> kTableName  */
@@ -1799,13 +1815,17 @@ bool Mutator::fix_dependency(IR *root,
         ir->str_val_ = new_indexname_str;
         m_table2index[tablename_str].push_back(new_indexname_str);
         visited.insert(ir);
-
-        cerr << "Dependency: In id_create_index_name, saved index name: " << new_indexname_str << " for table: " << tablename_str << ". \n\n\n";
+        
+        if (is_debug_info) {
+          cerr << "Dependency: In id_create_index_name, saved index name: " << new_indexname_str << " for table: " << tablename_str << ". \n\n\n";
+        }
       }
 
       if (ir->id_type_ == id_create_column_name) {
         if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0) {
-          cerr << "Dependency Error: id_create_column_name, couldn't find any v_table_name saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: id_create_column_name, couldn't find any v_table_name saved. \n\n\n";
+          }
           return false;
         }
 
@@ -1836,8 +1856,10 @@ bool Mutator::fix_dependency(IR *root,
         string new_columnname_str = gen_column_name();
         ir->str_val_ = new_columnname_str;
         m_tables[tablename_str].push_back(new_columnname_str);
-
-        cerr << "Dependency: In id_create_column_name, created column name: " << new_columnname_str << " for table: " << tablename_str << ". \n\n\n";
+        
+        if (is_debug_info) {
+          cerr << "Dependency: In id_create_column_name, created column name: " << new_columnname_str << " for table: " << tablename_str << ". \n\n\n";
+        }
 
         visited.insert(ir);
       }
@@ -1849,7 +1871,9 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_column_name) {
         if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
+          }
           return false;
         }
 
@@ -1868,30 +1892,38 @@ bool Mutator::fix_dependency(IR *root,
           string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
           ir->str_val_ = aliasname_str + "." + column_str;
 
-          cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
+          }
 
           visited.insert(ir);
         } else if (matched_columnname_vec.size() != 0) {
           string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
           ir->str_val_ = tablename_str + "." + column_str;
-          cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
+          }
 
           visited.insert(ir);
         } else { // Cannot find matched column for table. 
-          cerr << "Dependency Error: for id_column_name, couldn't find any matched_columnname_vec saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: for id_column_name, couldn't find any matched_columnname_vec saved. \n\n\n";
+          }
           return false;
         }
       }
 
       if (ir->id_type_ == id_index_name) {
         if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          cerr << "Dependency Error: for id_index_name, couldn't find any v_table_name_single saved. \n\n\n";
+          // cerr << "Dependency Error: for id_index_name, couldn't find any v_table_name_single saved. \n\n\n";
           return false;
         }
 
         string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
         if (m_table2index.find(tablename_str) == m_table2index.end()) {
-          cerr << "Dependency Error: In id_index_name, cannot find index for table name: " << tablename_str << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: In id_index_name, cannot find index for table name: " << tablename_str << ". \n\n\n";
+          }
           return false;
         }
 
@@ -1901,15 +1933,21 @@ bool Mutator::fix_dependency(IR *root,
           string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
           string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
           ir->str_val_ = aliasname_str + "." + index_str;
-          cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
+          if (is_debug_info) {
+            cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
+          }
           visited.insert(ir);
         } else if (matched_indexname_vec.size() != 0) {
           string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
           ir->str_val_ = tablename_str + "." + index_str;
-          cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
+          if (is_debug_info) {
+            cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
+          }
           visited.insert(ir);
         } else { // Cannot find matched index for table. 
-          cerr << "Dependency Error: for id_index_name, couldn't find any matched_indexname_vec saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: for id_index_name, couldn't find any matched_indexname_vec saved. \n\n\n";
+          }
           return false;
         }
         
@@ -1955,7 +1993,9 @@ bool Mutator::fix_dependency(IR *root,
             cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
           }
           m_tables[ir->str_val_].push_back(cur_men_column_str);
-          cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+          }
         }
         if (all_mentioned_column_vec.size() == 0) { // For CREATE VIEW x AS SELECT * FROM v0; 
           vector<IR*> all_mentioned_tablename = search_mapped_ir_in_stmt(ir, id_top_table_name);
@@ -1966,7 +2006,9 @@ bool Mutator::fix_dependency(IR *root,
               vector<string>& cur_m_table  = m_tables[ir->str_val_];
               if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) != cur_m_table.end()) {
                 m_tables[ir->str_val_].push_back(cur_men_column_str);
-                cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+                if (is_debug_info) {
+                  cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+                }
               }
             }
           }
@@ -1978,7 +2020,9 @@ bool Mutator::fix_dependency(IR *root,
               vector<string>& cur_m_table  = m_tables[ir->str_val_];
               if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) != cur_m_table.end()) {
                 m_tables[ir->str_val_].push_back(cur_men_column_str);
-                cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+                if (is_debug_info) {
+                  cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
+                }
               }
             }
           }
@@ -1987,7 +2031,9 @@ bool Mutator::fix_dependency(IR *root,
     } // for (auto ir : ordered_ir) 
   } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)
 
-  cerr << "After fixing: " << root->to_string() << " \n\n\n";
+  if (is_debug_info) {
+    cerr << "After fixing: " << root->to_string() << " \n\n\n";
+  }
 
   return true;
 }
