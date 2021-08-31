@@ -42,12 +42,12 @@ Color::Modifier DEF(Color::FG_DEFAULT);
 Mutator mutator;
 SQL_ORACLE* p_oracle;
 
-bool test_parse(string &query) {
+IR* test_parse(string &query) {
 
   vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(query);
   if (v_ir.size() <= 0) {
-    cerr << RED << "parse failed" << DEF << endl;
-    return false;
+    cerr << RED << "parse failed" << DEF << "\n\n\n";
+    return NULL;
   }
 
   IR *root = v_ir.back();
@@ -56,24 +56,31 @@ bool test_parse(string &query) {
 
   string tostring = root->to_string();
   if (tostring.size() <= 0) {
-    cerr << RED << "tostring failed" << DEF << endl;
+    cerr << RED << "\n\n\ntostring failed" << DEF << "\n\n\n";
     root->deep_drop();
-    return false;
+    return NULL;
   }
-  cout << "tostring: >" << tostring << "<" << endl;
+  cout << "\n\n\ntostring: >" << tostring << "<" << "\n\n\n";
 
   string structure = mutator.extract_struct(root);
   if (structure.size() <= 0) {
-    cerr << RED << "extract failed" << DEF << endl;
+    cerr << RED << "extract failed" << DEF << "\n\n\n";
     root->deep_drop();
-    return false;
+    return NULL;
   }
-  cout << "structur: >" << structure << "<" << endl;
+  cout << "structur: >" << structure << "<" << "\n\n\n";
 
+  IR* cur_root = root->deep_copy();
+  root->deep_drop();
+  v_ir.clear();
+
+  return cur_root;
+}
+
+bool try_validate(IR* cur_root) {
   /* 
   pre_transform, post_transform and validate()
   */
-  IR* cur_root = root->deep_copy();
 
   mutator.pre_validate(); // Reset global variables for query sequence. 
 
@@ -92,17 +99,13 @@ bool test_parse(string &query) {
   string validity = cur_root->to_string();
   if (validity.size() <= 0) {
     cerr << RED << "validate failed" << DEF << endl;
-    root->deep_drop();
     cur_root->deep_drop();
     return false;
   }
-  cout << "validate: >" << validity << "<" << endl;
-
-  root->deep_drop();
-  cur_root->deep_drop();
-  v_ir.clear();
+  cout << "\n\n\nvalidate: >" << validity << "<" << "\n\n\n";
 
   return true;
+
 }
 
 int main(int argc, char *argv[]) {
@@ -126,6 +129,8 @@ int main(int argc, char *argv[]) {
   mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&mutator);
 
+  IR* root = NULL;
+
   while (getline(input_test, line)) {
 
     if (line.find_first_of("--") == 0)
@@ -139,11 +144,17 @@ int main(int argc, char *argv[]) {
     cout << "----------------------------------------" << endl;
     cout << ">>>>>>>>>>>" << line << "<\n";
 
-    bool is_valid = test_parse(line);
+    IR* cur_root = test_parse(line);
 
-    if (!is_valid)
-      continue;
+    if (root == NULL && cur_root != NULL) {
+      root = cur_root;
+    } else if (cur_root != NULL){
+      p_oracle->ir_wrapper.set_ir_root(root);
+      p_oracle->ir_wrapper.append_stmt_at_end(cur_root);
+    }
   }
+
+  try_validate(root);
 
   return 0;
 }
