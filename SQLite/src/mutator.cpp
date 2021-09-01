@@ -2004,7 +2004,7 @@ bool Mutator::fix_dependency(IR *root,
             const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
             for (const string& cur_men_column_str : cur_men_column_vec) {
               vector<string>& cur_m_table  = m_tables[ir->str_val_];
-              if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) != cur_m_table.end()) {
+              if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) == cur_m_table.end()) {
                 m_tables[ir->str_val_].push_back(cur_men_column_str);
                 if (is_debug_info) {
                   cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
@@ -2018,7 +2018,7 @@ bool Mutator::fix_dependency(IR *root,
             const vector<string>& cur_men_column_vec = m_tables[cur_men_tablename_str];
             for (const string& cur_men_column_str : cur_men_column_vec) {
               vector<string>& cur_m_table  = m_tables[ir->str_val_];
-              if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) != cur_m_table.end()) {
+              if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) == cur_m_table.end()) {
                 m_tables[ir->str_val_].push_back(cur_men_column_str);
                 if (is_debug_info) {
                   cerr << "Dependency: For table/view: " << ir->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
