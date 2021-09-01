@@ -190,7 +190,7 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
 
-EXP_ST u8 disable_coverage_feedback = 0;
+EXP_ST u8 disable_coverage_feedback = 0;  /* 0: not disabled, 1: Drop all queries. 2: Randomly save queries. 3: Save all queries. */
 
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
@@ -3893,15 +3893,21 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    /* For evaluation experiments, we need to disable coverage feedback.
-     *  1/10 of chances to save the interesting seed.
-     *  9/10 of chances to throw away the seed.
-     */
-    if (!(hnb = has_new_bits(virgin_bits)) &&
-        !(disable_coverage_feedback && get_rand_int(10) < 1)) {
+    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    **  1/10 of chances to save the interesting seed.
+    **  9/10 of chances to throw away the seed.
+    **/
+    if ( (disable_coverage_feedback == 2) && get_rand_int(10) == 0 ) {
+      // Drop query. 
+      return 0;
+    }
+        
+    /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
+    if ( !(hnb = has_new_bits(virgin_bits)) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       // cerr << "No new bits. " << endl;
+      // Drop query. 
       return 0;
     }
 
@@ -5520,10 +5526,17 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
     return 0;
   }
 
-  queued_discovered +=
+  if (disable_coverage_feedback == 1) {  // Disable feedbacks. Drop all queries. 
+    /* Do nothing. */
+  } else {
+    queued_discovered +=
       save_if_interesting(argv, query_str_no_marks[0], all_comp_res, fault, explain_diff_id);
+  }
 
-  if (disable_coverage_feedback && q_len >= 10000) {
+  /* Queue size could be overwhelmed if we disable feedbacks with randomly saved queries or completely save all queries. 
+  ** In these cases, we clean the queue if q_len exceed 10000. 
+  */
+  if (disable_coverage_feedback > 1 && q_len >= 10000) {
     destroy_half_queue();
   }
 
@@ -7521,7 +7534,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDFc:EO:s:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDF:c:EO:s:")) > 0)
 
     switch (opt) {
 
@@ -7671,10 +7684,22 @@ int main(int argc, char **argv) {
       dump_library = 1;
       break;
 
-    case 'F': /* coverage feedback */
-
-      disable_coverage_feedback = 1;
-      break;
+    case 'F': { /* coverage feedback */
+      string arg = string(optarg);
+      if (arg == "drop_all"){
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 1;
+      } else if (arg == "random_save") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 2;
+      } else if (arg == "save_all") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 3;
+      } else {
+        FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
+      }
+      
+    } break;
 
     case 'c': /* bind to specific CPU core num */
       bind_to_core_id = atoi(optarg);
