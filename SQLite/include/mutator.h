@@ -133,8 +133,8 @@ public:
 
   string remove_node_from_tree_by_index(string oracle_query, int remove_index);
   set<string> get_minimize_string_from_tree(string oracle_query);
-  void resolve_drop_statement(IR*);
-  void resolve_alter_statement(IR*);
+  void resolve_drop_statement(IR*, bool is_debug_info = false);
+  void resolve_alter_statement(IR*, bool is_debug_info = false);
 
 private:
   void add_to_valid_lib(IR *, string &, const bool);

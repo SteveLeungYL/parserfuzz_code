@@ -547,6 +547,7 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
 bool Mutator::validate(IR* cur_trans_stmt, bool is_debug_info = false) {
 
   if (cur_trans_stmt == nullptr) {return false;}
+  bool res = true;
   /* Fill in concret values into the query. */
   vector<vector<IR*>> ordered_all_subquery_ir;
 
@@ -555,17 +556,13 @@ bool Mutator::validate(IR* cur_trans_stmt, bool is_debug_info = false) {
   // Debug
   // cerr << "After Mutator::fix_preprocessing, we have ordered_all_subquery_ir.size(): " << ordered_all_subquery_ir.size() << "\n\n\n";
 
-  if (!fix_dependency(cur_trans_stmt, ordered_all_subquery_ir, is_debug_info)) 
-  {
-    // cerr << "Fix_dependency return errors. " << endl;
-    // return false;
-  }
+  res = fix_dependency(cur_trans_stmt, ordered_all_subquery_ir, is_debug_info) && res;
   fix(cur_trans_stmt);
 
-  this->resolve_drop_statement(cur_trans_stmt);
-  this->resolve_alter_statement(cur_trans_stmt);
+  this->resolve_drop_statement(cur_trans_stmt, is_debug_info);
+  this->resolve_alter_statement(cur_trans_stmt, is_debug_info);
   
-  return true;
+  return res;
 }
 
 bool Mutator::finalize_transform(IR* root, vector<vector<IR*>> all_post_trans_vec) {
@@ -1732,8 +1729,9 @@ bool Mutator::fix_dependency(IR *root,
           //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           //   visited.insert(alias_ir);
           // }
-          
-          // cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
+          if (is_debug_info) {
+            cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
+          }
           return false;
         }
       }
@@ -2176,7 +2174,7 @@ void Mutator::_fix(IR *root, string &res) {
   return;
 }
 
-void Mutator::resolve_drop_statement(IR* cur_trans_stmt){
+void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info = false){
   IRTYPE stmt_type = this->p_oracle->ir_wrapper.get_cur_stmt_type(cur_trans_stmt);
   if (stmt_type == kDropTableStatement || stmt_type == kDropViewStatement) {
     vector<IR*> drop_tablename_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_table_name);
@@ -2185,6 +2183,9 @@ void Mutator::resolve_drop_statement(IR* cur_trans_stmt){
       m_tables.erase(drop_table_str);
       m_table2index.erase(drop_table_str);
       v_table_names.erase(std::remove(v_table_names.begin(), v_table_names.end(), drop_table_str), v_table_names.end());
+      if (is_debug_info) {
+        cerr << "Dependency: In resolve_drop_statement, removing table_name: " << drop_table_str << " from v_table_names. \n\n\n";
+      }
     }
   }
   else if (stmt_type == kDropIndexStatement) {
@@ -2194,12 +2195,15 @@ void Mutator::resolve_drop_statement(IR* cur_trans_stmt){
       for (auto iter = m_table2index.begin(); iter != m_table2index.end(); iter++) {
         vector<string>& table2index_vec = iter->second;
         table2index_vec.erase(std::remove(table2index_vec.begin(), table2index_vec.end(), drop_indexname_str), table2index_vec.end());
+        if (is_debug_info) {
+        cerr << "Dependency: In resolve_drop_statement, removing index: " << drop_indexname_str << " from table2index_vec. \n\n\n";
+        }
       }
     }
   }
 }
 
-void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
+void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info = false) {
   if (cur_trans_stmt->type_ != kAlterStatement) {return;}
 
   IR* cur_ir = cur_trans_stmt;
@@ -2237,6 +2241,9 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
         break;
       }
     }
+    if (is_debug_info) {
+      cerr << "Dependency: In resolve_alter_statement, altering table_name: " << tablename_from_str <<  " to " << tablename_to_str << "\n\n\n";
+    }
     return;
   }
 
@@ -2263,6 +2270,9 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
         }
       }
     }
+    if (is_debug_info) {
+      cerr << "Dependency: In resolve_alter_statement, altering column_name: " << columnname_from_str <<  " to " << columnname_to_str << "\n\n\n";
+    }
     return;
   }
   
@@ -2277,6 +2287,9 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
     string columnname_str = columnname_ir->str_val_;
 
     m_tables[tablename_str].push_back(columnname_str);
+    if (is_debug_info) {
+      cerr << "Dependency: In resolve_alter_statement, adding column_name: " << columnname_str << "\n\n\n";
+    }
 
     return;
   }
@@ -2295,6 +2308,10 @@ void Mutator::resolve_alter_statement(IR* cur_trans_stmt) {
 
     vector<string>& table2column_vec = m_tables[tablename_str];
     table2column_vec.erase(std::remove(table2column_vec.begin(), table2column_vec.end(), columnname_str), table2column_vec.end());
+
+    if (is_debug_info) {
+      cerr << "Dependency: In resolve_alter_statement, dropping column_name: " << columnname_str << "\n\n\n";
+    }
 
     return;
   }

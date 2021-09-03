@@ -6145,6 +6145,8 @@ static u8 fuzz_one(char **argv) {
                           // stmts.
     }
 
+    // cerr << "Before preprocessing and validation, we have stmt: \n" << cur_ir_tree.back()->to_string() << "\n\n\n";
+
     /* 
     ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph, 
     ** fix ir node, fill in concret values, 
@@ -6163,14 +6165,14 @@ static u8 fuzz_one(char **argv) {
     // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
 
     /* Build dependency graph, fix ir node, fill in concret values */
+    // cerr << "Begin validate() \n\n\n";
     for (IR* cur_trans_stmt : all_pre_trans_vec) {
-      if(!g_mutator.validate(cur_trans_stmt)) {
+      if(!g_mutator.validate(cur_trans_stmt, false)) {
         // Clean up. 
-        cerr << "Error: g_mutator.validate returns errors. \n";
-        for (IR* cur_pre_trans_stmt : all_pre_trans_vec) {
-          cur_pre_trans_stmt->deep_drop();
-        }
-        goto abandon_entry;
+        // cerr << "Error: g_mutator.validate returns errors. \n";
+        // cerr << "The current stmt is: " << cur_trans_stmt->to_string() << "\n\n\n";
+        continue;
+        // goto abandon_entry;
       }
     }
 
