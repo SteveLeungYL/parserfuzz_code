@@ -247,6 +247,9 @@ IR *IR::deep_copy() {
   copy_res->id_type_ = this->id_type_;
   copy_res->parent_ = this->parent_;
   copy_res->str_val_ = this->str_val_;
+  copy_res->uniq_id_in_tree_ = this->uniq_id_in_tree_;
+  copy_res->operand_num_ = this->operand_num_;
+  copy_res->is_node_struct_fixed = this->is_node_struct_fixed;
 
   return copy_res;
 }

@@ -1120,6 +1120,19 @@ create_view_statement:
             $$->view_name_->identifier_->id_type_ = id_create_table_name;
             $$->opt_column_list_paren_ = $6;
             $$->select_statement_ = $8;
+            if ($$) {
+                auto tmp1 = $$->opt_column_list_paren_;
+                if (tmp1) {
+                    auto tmp2 = tmp1->column_name_list_;
+                    if(tmp2) {
+                        for (auto& tmp3 : tmp2->v_column_name_list_) {
+                            if (tmp3->identifier_col_) {
+                                tmp3->identifier_col_->id_type_ = id_create_column_name;
+                            }
+                        }
+                    }
+                }
+            }
         }
     ;
 
@@ -1146,6 +1159,19 @@ create_virtual_table_statement:
             $$->module_name_ = $7;
             $$->opt_column_list_paren_ = $8;
             $$->opt_without_rowid_ = $9;
+            if ($$) {
+                auto tmp1 = $$->opt_column_list_paren_;
+                if (tmp1) {
+                    auto tmp2 = tmp1->column_name_list_;
+                    if(tmp2) {
+                        for (auto& tmp3 : tmp2->v_column_name_list_) {
+                            if (tmp3->identifier_col_) {
+                                tmp3->identifier_col_->id_type_ = id_create_column_name;
+                            }
+                        }
+                    }
+                }
+            }
         } 
     ;
 

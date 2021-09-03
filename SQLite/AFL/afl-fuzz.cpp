@@ -6171,6 +6171,7 @@ static u8 fuzz_one(char **argv) {
         // Clean up. 
         // cerr << "Error: g_mutator.validate returns errors. \n";
         // cerr << "The current stmt is: " << cur_trans_stmt->to_string() << "\n\n\n";
+        // cerr << "The whole query is: " << cur_root->to_string() << "\n\n\n";
         continue;
         // goto abandon_entry;
       }
