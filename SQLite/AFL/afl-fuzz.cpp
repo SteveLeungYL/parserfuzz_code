@@ -994,7 +994,7 @@ vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
 //   return new_bit_v;
 // }
 
-void log_map_id(u32 i, u8 byte){
+void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   if (map_id_out_f.fail()){
     return;
   }
@@ -1007,6 +1007,13 @@ void log_map_id(u32 i, u8 byte){
   } else {
     map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0" << endl;
   }
+  if (cur_seed_str == "") {
+    return;
+  }
+  fstream map_id_seed_output;
+  map_id_seed_output.open("./queue_coverage_id/" + to_string(actual_idx) + ".txt", std::fstream::out | std::fstream::trunc);
+  map_id_seed_output << cur_seed_str;
+  map_id_seed_output.close();
 }
 
 /* Check if the current execution path brings anything new to the table.
@@ -1017,7 +1024,7 @@ void log_map_id(u32 i, u8 byte){
    This function is called after every exec() on a fairly large buffer, so
    it needs to be fast. We do this in 32-bit and 64-bit flavors. */
 
-static inline u8 has_new_bits(u8 *virgin_map) {
+static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
 #ifdef __x86_64__
 
@@ -1064,7 +1071,7 @@ static inline u8 has_new_bits(u8 *virgin_map) {
                 vector<u8> byte = get_cur_new_byte(cur, vir);
                 for (const u8& cur_byte: byte){
                   // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
-                  log_map_id(i, cur_byte);
+                  log_map_id(i, cur_byte, cur_seed_str);
                 }
               }
             }
@@ -3295,7 +3302,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
 
     if (q->exec_cksum != cksum) {
 
-      u8 hnb = has_new_bits(virgin_bits);
+      u8 hnb = has_new_bits(virgin_bits, program_input_str);
       if (hnb > new_bits)
         new_bits = hnb;
 
@@ -3914,7 +3921,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     }
         
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    if ( !(hnb = has_new_bits(virgin_bits)) && !disable_coverage_feedback) {  
+    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       // cerr << "No new bits. " << endl;
@@ -4347,7 +4354,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, 
@@ -4360,7 +4367,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           bug_output_id, queued_with_cov,total_execs,
           num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
           (std::accumulate(num_mutate_all_vec.begin(), num_mutate_all_vec.end(), 0) / num_mutate_all_vec.size()),
-          total_mutate_gen_num, total_mutate_gen_failed
+          total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -5912,6 +5919,7 @@ void get_ori_valid_stmts(vector<IR*> &v_valid_stmts) {
       total_oracle_mutate_failed++;
       continue;
     }
+    // cerr << "New generated random_mutated_valid_stmt is: " << new_oracle_select_stmts->to_string() << "\n\n\n";
     // ensure_semicolon_at_query_end(new_norec_stmts);
     v_valid_stmts.push_back(new_oracle_select_stmts);
 
@@ -6219,7 +6227,7 @@ static u8 fuzz_one(char **argv) {
       // Final step, transform IR tree to string. Add marker to important statements. 
       pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
       query_str_vec.push_back(query_str_pair.first);
-      query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements. 
+      query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements. 
     }
 
     // for (auto query_str : query_str_vec) {
@@ -6918,7 +6926,7 @@ EXP_ST void setup_dirs_fds(void) {
                      "total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate, "
                      "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
                      "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on,total_execs,"
-                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed"
+                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed," "total_oracle_rand_valid_failed"
                      "\n");
   /* ignore errors */
 }

@@ -112,6 +112,7 @@ public:
 
   /* Debug */
   unsigned long total_rand_valid = 0;
+  unsigned long total_oracle_rand_valid_failed = 0;
   unsigned long total_temp = 0;
 
   /* IRWrapper related */

@@ -584,21 +584,25 @@ pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_pos
   string output_str_mark, output_str_no_mark; 
   for (int i = 0; i < all_post_trans_vec.size(); i++) { // Loop between different statements. 
     vector<IR*> post_trans_vec = all_post_trans_vec[i];
-    int count = 0;
     bool is_oracle_select = false;
     if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    int count = 0;
+    int trans_count = 0;
     for (IR* cur_trans_stmt : post_trans_vec) {  // Loop between different transformations. 
       string tmp = cur_trans_stmt->to_string();
       if (is_oracle_select) {
         output_str_mark += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
         output_str_mark  += tmp + "; \n";
         output_str_mark += "SELECT 'END VERI " + to_string(count) + "'; \n";
-        output_str_no_mark += tmp + "; \n";
+        if (trans_count == 0)
+          {output_str_no_mark += tmp + "; \n";}
         count++;
       } else {
         output_str_mark += tmp + "; \n";
-        output_str_no_mark += tmp + "; \n";
+        if (trans_count == 0)
+          {output_str_no_mark += tmp + "; \n";}
       }
+      trans_count++;
     }
   }
   pair<string, string> output_str_pair =  make_pair(output_str_mark, output_str_no_mark); 
@@ -2393,6 +2397,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
 
   if (root->id_type_ != id_whatever && root->id_type_ != id_module_name) {
     res += "x";
+    root->str_val_ = "x";
     return;
   }
 
@@ -2410,6 +2415,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
       string_libary_hash_.insert(h);
     }
     res += "'y'";
+    root->str_val_ = "'y'";
     return;
   }
 
@@ -2420,11 +2426,13 @@ void Mutator::_extract_struct(IR *root, string &res) {
       value_library_hash_.insert(h);
     }
     res += "10";
+    root->str_val_ = "10";
     return;
   }
 
   if (type_ == kFilePath) {
     res += "'file_name'";
+    root->str_val_ = "'file_name'";
     return;
   }
 
