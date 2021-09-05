@@ -112,7 +112,7 @@ IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
     }
 
     vector<IR*> stmt_v = this->get_stmt_ir_vec();
-    if (stmt_v.size() > 0 && idx >= 0 && idx < stmt_v.size()) { 
+    if (stmt_v.size() > 0 && idx >= 0 && idx < int(stmt_v.size()) ) { 
         return stmt_v[idx];
     } else {
         return NULL;
@@ -212,7 +212,7 @@ bool IRWrapper::append_stmt_after_idx(string app_str, int idx, const Mutator& g_
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    if (idx < -1 || idx >= stmt_list_v.size()){
+    if (idx < -1 || idx >= int(stmt_list_v.size())){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_after_idx(). \n";
         return false;
     }
@@ -246,7 +246,7 @@ bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
 bool IRWrapper::append_stmt_after_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    if (idx < -1 || idx >= stmt_list_v.size()){
+    if (idx < -1 || idx >= int(stmt_list_v.size())  ){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_after_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
         return false;
@@ -304,7 +304,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    if (idx >= stmt_list_v.size() || idx < 0){
+    if (idx >= int(stmt_list_v.size()) || idx < 0){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
         return false;
     }
@@ -624,7 +624,7 @@ IR* IRWrapper::get_result_column_in_select_clause_in_select_stmt(IR* cur_stmt, i
     //     return nullptr;
     // }
     vector<IR*> all_result_column_list = get_result_column_list_in_select_clause(cur_stmt);
-    if (idx >= all_result_column_list.size() || idx < 0) {
+    if (idx >= int(all_result_column_list.size()) || idx < 0) {
         cerr << "Error, idx exceeding the total number of ResultColumnList in the select clause. \n";
         return nullptr;
     }
@@ -819,7 +819,7 @@ bool IRWrapper::append_selectcore_clause_after_idx(IR* cur_stmt, IR* app_ir, str
     }
 
     vector<IR*> selectcore_vec = this->get_selectcore_vec(cur_stmt);
-    if (selectcore_vec.size() > idx) {
+    if (int(selectcore_vec.size()) > idx) {
         cerr << "Idx exceeding the maximum number of selectcore in the statement. \n";
         return false;
     }
@@ -865,7 +865,7 @@ bool IRWrapper::append_selectcore_clause_after_idx(IR* cur_stmt, IR* app_ir, str
 
 bool IRWrapper::remove_selectcore_clause_at_idx_and_free(IR* cur_stmt, int idx) {
     vector<IR*> selectcore_vec = this->get_selectcore_vec(cur_stmt);
-    if (idx >= selectcore_vec.size() || idx < 0) {
+    if (idx >= int(selectcore_vec.size()) || idx < 0) {
         cerr << "Error: Idx exceeding selectcorelist size, or idx < 0. idx: " << idx 
              << ". Func: IRWrapper::remove_selectcore_clause_at_idx_and_free. \n";
         return false;
