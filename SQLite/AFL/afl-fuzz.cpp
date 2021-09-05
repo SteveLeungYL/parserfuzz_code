@@ -148,6 +148,8 @@ unsigned valid_max_num = 10;
 
 int bind_to_core_id = -1;
 
+int map_file_id = 0;
+
 map<int, vector<string>> share_map_id;
 fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
 
@@ -1002,16 +1004,16 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   u32 actual_idx = i * 8 + byte;
   if (share_map_id.count(actual_idx)){
     for (string &debug_info : share_map_id[actual_idx]) {
-      map_id_out_f << actual_idx << "," << debug_info << endl;
+      map_id_out_f << actual_idx << "," << debug_info << "," << map_file_id << endl;
     }
   } else {
-    map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0" << endl;
+    map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0," << map_file_id <<  endl;
   }
   if (cur_seed_str == "") {
     return;
   }
   fstream map_id_seed_output;
-  map_id_seed_output.open("./queue_coverage_id/" + to_string(actual_idx) + ".txt", std::fstream::out | std::fstream::trunc);
+  map_id_seed_output.open("./queue_coverage_id/" + to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
   map_id_seed_output << cur_seed_str;
   map_id_seed_output.close();
 }
@@ -1025,6 +1027,10 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
    it needs to be fast. We do this in 32-bit and 64-bit flavors. */
 
 static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
+
+  if (dump_library) {
+    map_file_id++;
+  }
 
 #ifdef __x86_64__
 
@@ -1052,7 +1058,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2)) {
+      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail() && cur_seed_str != "")) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -1067,7 +1073,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
             (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
               ret = 2;
-              if (dump_library && !map_id_out_f.fail()){
+              if (dump_library && !map_id_out_f.fail() && cur_seed_str != ""){
                 vector<u8> byte = get_cur_new_byte(cur, vir);
                 for (const u8& cur_byte: byte){
                   // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
@@ -7849,7 +7855,7 @@ int main(int argc, char **argv) {
     if (map_f.fail()){
       cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
     } else {
-      map_id_out_f << "mapID,src,src_line,dest,dest_line,EH" << endl;
+      map_id_out_f << "mapID,src,src_line,dest,dest_line,EH,map_file_id" << endl;
     }
 
     string line;
