@@ -140,6 +140,8 @@ u64 num_append = 0;
 u64 num_validate = 0;
 u64 num_common_fuzz = 0;
 
+u64 num_total_mutate_all_tree_size = 0;
+
 vector<u64>num_mutate_all_vec;
 
 Mutator g_mutator;
@@ -4372,7 +4374,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           (float)debug_good / (float)(debug_error + debug_good),
           bug_output_id, queued_with_cov,total_execs,
           num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
-          (std::accumulate(num_mutate_all_vec.begin(), num_mutate_all_vec.end(), 0) / num_mutate_all_vec.size()),
+          num_total_mutate_all_tree_size / (num_mutate_all+1),
           total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed
           ); /* ignore errors */
   fflush(plot_file);
@@ -6130,7 +6132,8 @@ static u8 fuzz_one(char **argv) {
     goto abandon_entry;
   }
 
-  num_mutate_all += mutated_tree.size();
+  num_mutate_all++;
+  num_total_mutate_all_tree_size += mutated_tree.size();
 
   // cerr << "After mutate_all, the mutated tree size is: " << mutated_tree.size() << "\n\n\n";
   // for (auto mutated_str : mutated_tree) {
