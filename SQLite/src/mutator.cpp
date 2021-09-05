@@ -82,7 +82,7 @@ bool Mutator::check_node_num(IR *root, unsigned int limit) {
   return is_good;
 }
 
-vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
+vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mutate_gen_num, u64& total_mutate_gen_failed) {
   vector<string *> res;
   set<unsigned long> res_hash;
   IR *root = v_ir_collector[v_ir_collector.size() - 1];
@@ -90,13 +90,14 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
   // p_oracle->mark_all_valid_node(v_ir_collector);
 
   for (auto old_ir : v_ir_collector) {
-
+    total_mutate_gen_num++;
     if (old_ir == root || old_ir->type_ == kProgram  ||
         old_ir->is_node_struct_fixed)
       {
         // cerr << "Aboard old_ir because it is root or kStatement, or node_struct_fixed. "
         //      << "v_ir_collector.size(): " << v_ir_collector.size() << ", "
         //      << "In func: Mutator::mutate_all(); \n";
+        total_mutate_gen_failed++;
         continue;
       }
 
@@ -140,19 +141,18 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
       v_mutated_ir = mutate(old_ir);
 
       for (auto new_ir : v_mutated_ir) {
+        // total_mutate_gen_num++;
 
         if (!root->swap_node(old_ir, new_ir)) {
           new_ir->deep_drop();
-          // cerr << "Aboard old_ir because swap_node failure. "
-          //      << "In func: Mutator::mutate_all(); \n";
+          // total_mutate_gen_failed++;
           continue;
         }
 
         if (!check_node_num(root, 300)) {
           root->swap_node(new_ir, old_ir);
           new_ir->deep_drop();
-          // cerr << "Aboard old_ir because check_node_num() failed. "
-          //      << "In func: Mutator::mutate_all(); \n";
+          // total_mutate_gen_failed++;
           continue;
         }
 
@@ -161,15 +161,9 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector) {
         if (res_hash.find(tmp_hash) != res_hash.end()) {
           root->swap_node(new_ir, old_ir);
           new_ir->deep_drop();
-          // cerr << "Aboard old_ir because tmp_hash has been saved before. (non-stmt). "
-          //      << "In func: Mutator::mutate_all(); \n";
+          // total_mutate_gen_failed++;
           continue;
         }
-
-        // cerr << "Currently mutating (non-stmtlist) on old_ir: " << old_ir->to_string() << " type: " << get_string_by_ir_type(old_ir->type_) << endl;
-        // cerr << "new_ir: " << new_ir->to_string() << "type: " << get_string_by_ir_type(new_ir->type_) << "\n";
-        // cerr << "After mutate_all, the generated str: " << tmp << "\n\n\n";
-
 
         string *new_str = new string(tmp);
         res_hash.insert(tmp_hash);
@@ -1054,8 +1048,10 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
 
     /* Reconstruct the IR tree. */
     current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
-    if (current_ir_set.size() <= 0)
+    if (current_ir_set.size() <= 0) {
+      // cerr << "Error: with_type_ Parsing the saved string failed. str: " << *p_current_query_str << " !!!" << "\n\n\n";
       return new IR(kStringLiteral, "");
+    }
     current_ir_root = current_ir_set.back();
 
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
@@ -1064,6 +1060,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     if (matched_ir_node != NULL) {
       if (matched_ir_node->type_ != type_) {
         current_ir_root->deep_drop();
+        // cerr << "Error: with_type_ Column type mismatched!!!" << "\n\n\n";
         return new IR(kStringLiteral, "");
       }
       // return_matched_ir_node = matched_ir_node->deep_copy();
@@ -1076,6 +1073,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     if (return_matched_ir_node != NULL) {
       // cerr << "\n\n\nSuccessfuly with_type: with string: " <<
       // return_matched_ir_node->to_string() << endl;
+      // cerr << "Retunning with_type_ ir_type: " << get_string_by_ir_type(type_) << " with node: " << return_matched_ir_node->to_string() << "\n\n\n";
       return return_matched_ir_node;
     }
   }
@@ -1103,8 +1101,10 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
 
     /* Reconstruct the IR tree. */
     current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
-    if (current_ir_set.size() <= 0)
+    if (current_ir_set.size() <= 0) {
+      // cerr << "Error: Parsing the saved string failed. str: " << *p_current_query_str << " !!!" << "\n\n\n";
       return NULL;
+    }
     current_ir_root = current_ir_set.back();
 
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
@@ -1113,6 +1113,7 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
     if (matched_ir_node != NULL) {
       if (matched_ir_node->left_->type_ != type_) {
         current_ir_root->deep_drop();
+        // cerr << "Error: Column type mismatched!!!" << "\n\n\n";
         return NULL;
       }
       // return_matched_ir_node = matched_ir_node->right_->deep_copy();;  // Not
@@ -1124,10 +1125,11 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
     current_ir_root->deep_drop();
 
     if (return_matched_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly left_type: with string: " <<
-      // return_matched_ir_node->to_string() << endl;
+      // cerr << "Retunning ir_type: " << get_string_by_ir_type(type_) << " with node: " << return_matched_ir_node->to_string() << "\n\n\n";
       return return_matched_ir_node;
     }
+  } else {
+    // cerr << "Error: Cannot find saved lib with type_ " << get_string_by_ir_type(type_) << "\n\n\n";
   }
 
   return NULL;
@@ -1152,8 +1154,10 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
 
     /* Reconstruct the IR tree. */
     current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
-    if (current_ir_set.size() <= 0)
+    if (current_ir_set.size() <= 0) {
+      // cerr << "Error: Parsing the saved string failed. str: " << *p_current_query_str << " !!!" << "\n\n\n";
       return NULL;
+    }
     current_ir_root = current_ir_set.back();
 
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
@@ -1162,6 +1166,7 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
     if (matched_ir_node != NULL) {
       if (matched_ir_node->right_->type_ != type_) {
         current_ir_root->deep_drop();
+        // cerr << "Error: Column type mismatched!!!" << "\n\n\n";
         return NULL;
       }
       // return_matched_ir_node = matched_ir_node->left_->deep_copy();  // Not
@@ -1173,10 +1178,11 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
     current_ir_root->deep_drop();
 
     if (return_matched_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly right_type: with string: " <<
-      // return_matched_ir_node->to_string() << endl;
+      // cerr << "Retunning ir_type: " << get_string_by_ir_type(type_) << " with node: " << return_matched_ir_node->to_string() << "\n\n\n";
       return return_matched_ir_node;
     }
+  } else {
+    // cerr << "Error: Cannot find saved lib with type_ " << get_string_by_ir_type(type_) << "\n\n\n";
   }
 
   return NULL;
@@ -2044,23 +2050,23 @@ string Mutator::fix(IR *root) {
   _fix(root, res);
   trim_string(res);
 
-  /* 
-  ** For debugging purpose, avoid root->to_string() generates a different string from _fix()
-  ** The string is identical for the latest commit. However, we cannot guarantee this for kPragmaStatement. 
-  ** We don't handle and save changes for kPragmaStatement in _fix() and to_string(). 
-  */
-  string ir_to_str = root->to_string();
-  trim_string(ir_to_str);
-  if (res != ir_to_str && !findStringIn(res, "PRAGMA") && !findStringIn(ir_to_str, "PRAGMA")) {
-    ofstream error_output;
-    error_output.open("./fatal_log.txt");
-    error_output << "Error: ir_to_string is not the same as the string generated from _fix. \n";
-    error_output << "res: \n" << res << endl;
-    error_output << "ir_to_string: \n" << ir_to_str << endl;
-    error_output.close();
-    FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n\
-          _fix() str: %s, to_string() str: %s .\n", res.c_str(), ir_to_str.c_str());
-  }
+  // /* 
+  // ** For debugging purpose, avoid root->to_string() generates a different string from _fix()
+  // ** The string is identical for the latest commit. However, we cannot guarantee this for kPragmaStatement. 
+  // ** We don't handle and save changes for kPragmaStatement in _fix() and to_string(). 
+  // */
+  // string ir_to_str = root->to_string();
+  // trim_string(ir_to_str);
+  // if (res != ir_to_str && !findStringIn(res, "PRAGMA") && !findStringIn(ir_to_str, "PRAGMA")) {
+  //   ofstream error_output;
+  //   error_output.open("./fatal_log.txt");
+  //   error_output << "Error: ir_to_string is not the same as the string generated from _fix. \n";
+  //   error_output << "res: \n" << res << endl;
+  //   error_output << "ir_to_string: \n" << ir_to_str << endl;
+  //   error_output.close();
+  //   FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n\
+  //         _fix() str: %s, to_string() str: %s .\n", res.c_str(), ir_to_str.c_str());
+  // }
 
   return res;
 }

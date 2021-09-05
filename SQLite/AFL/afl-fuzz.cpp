@@ -128,8 +128,19 @@ u64 total_add_to_queue = 0;
 u64 debug_error = 0;
 u64 debug_good = 0;
 u64 total_mutate_num = 0;
+u64 total_mutate_gen_num = 0;
+u64 total_mutate_gen_failed = 0;
 u64 total_oracle_mutate = 0;
 u64 total_oracle_mutate_failed = 0;
+
+u64 num_parse =0;
+u64 num_mutate_all = 0;
+u64 num_reparse = 0;
+u64 num_append = 0;
+u64 num_validate = 0;
+u64 num_common_fuzz = 0;
+
+vector<u64>num_mutate_all_vec;
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
@@ -3919,7 +3930,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
       g_mutator.add_all_to_library(
-          g_mutator.extract_struct(ir_tree[ir_tree.size() - 1]),
+          g_mutator.extract_struct(ir_tree.back()),
           explain_diff_id,
           all_comp_res
           );
@@ -4336,7 +4347,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, 
@@ -4346,7 +4357,10 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           g_mutator.get_cri_valid_collection_size(), g_mutator.get_valid_collection_size(),
           debug_error, debug_good, 
           (float)debug_good / (float)(debug_error + debug_good),
-          bug_output_id, queued_with_cov
+          bug_output_id, queued_with_cov,total_execs,
+          num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
+          (std::accumulate(num_mutate_all_vec.begin(), num_mutate_all_vec.end(), 0) / num_mutate_all_vec.size()),
+          total_mutate_gen_num, total_mutate_gen_failed
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -6044,6 +6058,8 @@ static u8 fuzz_one(char **argv) {
     goto abandon_entry;
   }
 
+  num_parse++;
+
   // cerr << "After parsing, the imported input is: \n" << ir_set.back()->to_string() << "\n\n\n";
 
   IR* cur_ir_root;
@@ -6089,7 +6105,10 @@ static u8 fuzz_one(char **argv) {
 
   // cerr << "Just after random append statements, we have ir_set.size(): " << ir_set.size() << "\n\n\n";
 
-  mutated_tree = g_mutator.mutate_all(ir_set);
+  /* For debug purpose. */
+  // num_mutate_all_vec.push_back(ir_set.size());
+
+  mutated_tree = g_mutator.mutate_all(ir_set, total_mutate_gen_num, total_mutate_gen_failed);
   if (mutated_tree.size() < 1) {
     total_mutate_all_failed++;
     ir_set.back()->deep_drop();
@@ -6097,9 +6116,13 @@ static u8 fuzz_one(char **argv) {
     goto abandon_entry;
   }
 
+  num_mutate_all += mutated_tree.size();
+
+  // cerr << "After mutate_all, the mutated tree size is: " << mutated_tree.size() << "\n\n\n";
   // for (auto mutated_str : mutated_tree) {
   //   cerr << "After mutate_all, the generated str: " << *mutated_str << "\n\n\n";
   // }
+  // cerr << "After mutate_all, the original ir_set is: " << ir_set.back()->to_string() << "\n\n\n";
 
   ir_set.back()->deep_drop();
   show_stats();
@@ -6127,6 +6150,7 @@ static u8 fuzz_one(char **argv) {
       continue;
     }
 
+    // cerr << "After mutation, we get ir_str: " << *ir_str << "\n\n\n";
     /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
      * consider appending anything */
     vector<IR *> cur_ir_tree =
@@ -6137,12 +6161,15 @@ static u8 fuzz_one(char **argv) {
       continue;
     }
 
+    num_reparse++;
+
     // cerr << "Just after mutate_all and then re-parsing, the statement is: \n" << cur_ir_tree.back()->to_string() << endl;
 
     for (IR* app_IR_node : ori_valid_stmts) {
         p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
         p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT
                           // stmts.
+        num_append++;
     }
 
     // cerr << "Before preprocessing and validation, we have stmt: \n" << cur_ir_tree.back()->to_string() << "\n\n\n";
@@ -6213,6 +6240,8 @@ static u8 fuzz_one(char **argv) {
         }
       }
     }
+
+    num_validate++;
     
     if (cur_ir_tree.size() > 0){
       cur_ir_tree.back()->deep_drop();
@@ -6226,8 +6255,10 @@ static u8 fuzz_one(char **argv) {
       show_stats();
       stage_name = "fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
+      num_common_fuzz++;
       if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec)) {
-        goto abandon_entry;
+        // goto abandon_entry;
+        continue;
       }
       stage_cur++;
       show_stats();
@@ -6885,7 +6916,9 @@ EXP_ST void setup_dirs_fds(void) {
                      "total_add_to_queue, total_mutate_all_failed, total_mutate_failed, "
                      "total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate, "
                      "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
-                     "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on\n");
+                     "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on,total_execs,"
+                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed"
+                     "\n");
   /* ignore errors */
 }
 

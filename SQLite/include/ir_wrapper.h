@@ -113,9 +113,6 @@ public:
     IR* get_alias_iden_from_tablename_iden(IR* tablename_iden);
 
     /**/
-    bool is_has_subqueries (IR* cur_stmt);
-
-    /**/
     IRTYPE get_cur_stmt_type(IR* cur_ir);
 
     /**/

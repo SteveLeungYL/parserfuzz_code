@@ -4,6 +4,7 @@
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
+#include "../AFL/types.h"
 
 #include <vector>
 #include <utility>
@@ -34,7 +35,7 @@ public:
   unsigned long hash(IR *);
   unsigned long hash(const string &);
 
-  vector<string *> mutate_all(vector<IR *> &v_ir_collector);
+  vector<string *> mutate_all(vector<IR *> &v_ir_collector, u64& total_mutate_gen_num, u64& total_mutate_gen_failed);
 
   vector<IR *> mutate_stmtlist(IR *input);
   vector<IR *> mutate_selectcorelist(IR* ir_root, IR *cur_ir);
