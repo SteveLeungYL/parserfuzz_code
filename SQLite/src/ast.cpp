@@ -105,7 +105,7 @@ void IR::_to_string(string &res) {
     return;
   }
 
-  if (type_ == kFilePath || type_ == kStringLiteral || 
+  if (type_ == kFilePath ||
       type_ == kNumericLiteral || type_ == kIdentifier ||
       type_ == kOptOrderType || type_ == kColumnType || type_ == kSetOperator ||
       type_ == kOptJoinType || type_ == kOptDistinct || type_ == kNullLiteral ||
@@ -113,6 +113,11 @@ void IR::_to_string(string &res) {
     res += str_val_;
     return;
   }
+
+  if (type_ == kStringLiteral) {
+     res += str_val_;
+     return;
+   }
 
   if (!str_val_.empty()) {
     res += str_val_;

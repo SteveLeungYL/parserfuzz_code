@@ -6156,6 +6156,7 @@ static u8 fuzz_one(char **argv) {
     vector<IR *> cur_ir_tree =
         g_mutator.parse_query_str_get_ir_set(*ir_str);
     if (cur_ir_tree.size() == 0) {
+      // cerr << "Reparsing failure on ir_str: \n" << *ir_str << "\n\n\n";
       total_mutate_failed++;
       skip_count++;
       continue;

@@ -2050,23 +2050,23 @@ string Mutator::fix(IR *root) {
   _fix(root, res);
   trim_string(res);
 
-  // /* 
-  // ** For debugging purpose, avoid root->to_string() generates a different string from _fix()
-  // ** The string is identical for the latest commit. However, we cannot guarantee this for kPragmaStatement. 
-  // ** We don't handle and save changes for kPragmaStatement in _fix() and to_string(). 
-  // */
-  // string ir_to_str = root->to_string();
-  // trim_string(ir_to_str);
-  // if (res != ir_to_str && !findStringIn(res, "PRAGMA") && !findStringIn(ir_to_str, "PRAGMA")) {
-  //   ofstream error_output;
-  //   error_output.open("./fatal_log.txt");
-  //   error_output << "Error: ir_to_string is not the same as the string generated from _fix. \n";
-  //   error_output << "res: \n" << res << endl;
-  //   error_output << "ir_to_string: \n" << ir_to_str << endl;
-  //   error_output.close();
-  //   FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n\
-  //         _fix() str: %s, to_string() str: %s .\n", res.c_str(), ir_to_str.c_str());
-  // }
+  /* 
+  ** For debugging purpose, avoid root->to_string() generates a different string from _fix()
+  ** The string is identical for the latest commit. However, we cannot guarantee this for kPragmaStatement. 
+  ** We don't handle and save changes for kPragmaStatement in _fix() and to_string(). 
+  */
+  string ir_to_str = root->to_string();
+  trim_string(ir_to_str);
+  if (res != ir_to_str && !findStringIn(res, "PRAGMA") && !findStringIn(ir_to_str, "PRAGMA")) {
+    ofstream error_output;
+    error_output.open("./fatal_log.txt");
+    error_output << "Error: ir_to_string is not the same as the string generated from _fix. \n";
+    error_output << "res: \n" << res << endl;
+    error_output << "ir_to_string: \n" << ir_to_str << endl;
+    error_output.close();
+    FATAL("Error: ir_to_string is not the same as the string generated from _fix. \n\
+          _fix() str: %s, to_string() str: %s .\n", res.c_str(), ir_to_str.c_str());
+  }
 
   return res;
 }
@@ -2135,7 +2135,7 @@ void Mutator::_fix(IR *root, string &res) {
   if (type_ == kStringLiteral) {
     auto s = string_libary[get_rand_int(string_libary.size())];
     res += "'" + s + "'";
-    root->str_val_ = s;
+    root->str_val_ = "'" + s + "'";
     return;
   }
 
