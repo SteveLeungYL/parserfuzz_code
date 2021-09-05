@@ -1697,10 +1697,16 @@ bool Mutator::fix_dependency(IR *root,
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_top_table_name) {
-        if (v_table_names.size() != 0) {
-          ir->str_val_ = v_table_names[get_rand_int(v_table_names.size())];
-          v_table_names_single.push_back(ir->str_val_);
-          visited.insert(ir);
+        if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0) {
+          if (v_table_names.size()) {
+            ir->str_val_ = v_table_names[get_rand_int(v_table_names.size())];
+            v_table_names_single.push_back(ir->str_val_);
+            visited.insert(ir);
+          } else {
+            ir->str_val_ = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
+            v_table_names_single.push_back(ir->str_val_);  /* Should we expose it to v_table_name_single? */
+            visited.insert(ir);
+          }
 
           if (is_debug_info) {
             cerr << "Dependency: In id_top_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
@@ -1738,7 +1744,7 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
           }
-          return false;
+          // return false;
         }
       }
     }
@@ -1748,7 +1754,7 @@ bool Mutator::fix_dependency(IR *root,
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_table_name) {
-        if (v_table_names.size() != 0 && v_table_names_single.size() != 0 ) {
+        if (v_table_names_single.size() != 0 ) {
           string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
           ir->str_val_ = tablename_str;
           visited.insert(ir);
@@ -1763,7 +1769,16 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency: In id_table_name, while v_table_name_single is empty, we used table_name: " << ir->str_val_ << ". \n\n\n";
           }
-        } else {
+        } else if (v_create_table_names_single.size() != 0) {
+          string tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
+          ir->str_val_ = tablename_str;
+          v_table_names_single.push_back(tablename_str);
+          visited.insert(ir);
+          if (is_debug_info) {
+            cerr << "Dependency: In id_table_name, while v_table_name_single is empty, we used table_name: " << ir->str_val_ << ". \n\n\n";
+          }
+        } 
+        else {
           // // tablename_str not exist. Create a new one as if it is id_create_table_name. 
           // string tablename_str = gen_id_name();
           // ir->str_val_ = tablename_str;
@@ -1781,7 +1796,7 @@ bool Mutator::fix_dependency(IR *root,
           //   visited.insert(alias_ir);
           // }
           if (is_debug_info) {
-            cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names and v_table_name_single saved. \n\n\n";
+            cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names, v_table_name_single and v_create_table_name_single saved. \n\n\n";
           }
           return false;
         }
@@ -1800,15 +1815,6 @@ bool Mutator::fix_dependency(IR *root,
           }
           return false;
         }
-        // /* identifier -> kIndexName -> kUnknown (kCreateIndexStatement) -> kUnknown (kCreateIndexStatement) -> kTableName  */
-        // IR* tablename_ir = ir->get_parent()->get_parent()->get_parent()->right_;
-        // /* kTableName -> identifier */
-        // if (tablename_ir->right_ != nullptr) {
-        //   tablename_ir = tablename_ir->right_;
-        // } else {
-        //   tablename_ir = tablename_ir->left_;
-        // }
-        // string tablename_str = tablename_ir->str_val_;
         string tablename_str = "";
         if (v_create_table_names_single.size() > 0) {
           tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
@@ -1874,14 +1880,18 @@ bool Mutator::fix_dependency(IR *root,
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_column_name) {
-        if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
+        if (v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
           }
           return false;
         }
-
-        string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        string tablename_str;
+        if (v_table_names_single.size() != 0) {
+          tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        } else {
+          tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
+        }
         if (
           p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
           p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
@@ -1918,8 +1928,10 @@ bool Mutator::fix_dependency(IR *root,
       }
 
       if (ir->id_type_ == id_index_name) {
-        if (v_table_names.size() == 0 || v_table_names_single.size() == 0 ) {
-          // cerr << "Dependency Error: for id_index_name, couldn't find any v_table_name_single saved. \n\n\n";
+        if (v_table_names_single.size() == 0 ) {
+          if (is_debug_info) {
+            cerr << "Dependency Error: for id_index_name, couldn't find any v_table_name_single saved. \n\n\n";
+          }
           return false;
         }
 
