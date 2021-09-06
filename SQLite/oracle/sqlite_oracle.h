@@ -17,7 +17,7 @@ class Mutator;
 class SQL_ORACLE {
 public:
 
-  virtual bool is_select_stmt(IR* cur_IR);
+  inline virtual bool is_select_stmt(IR* cur_IR);
   virtual void remove_all_select_stmt_from_ir(IR* ir_root);
 
   /* 

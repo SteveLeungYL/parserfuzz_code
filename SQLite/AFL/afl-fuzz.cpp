@@ -4045,8 +4045,8 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     if (exec_tmout < hang_tmout) {
 
       u8 new_fault;
-      write_to_testcase(stripped_query_string.c_str(),
-                        stripped_query_string.size());
+      write_to_testcase(query_str.c_str(),
+                        query_str.size());
       new_fault = run_target(argv, hang_tmout);
 
       read_sqlite_output_and_reset_output_file();
@@ -4136,7 +4136,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
   /* If we're here, we apparently want to save the crash or hang
      test case, too. */
 
-  /* Do not push the add-on norec compatible select stmt to the queue.
+  /* Do not push the add-on oracle compatible select stmt to the queue.
       To avoid query length explosion.
   */
 
@@ -6094,8 +6094,8 @@ static u8 fuzz_one(char **argv) {
   ** Remove all SELECT statements from the IR tree. 
   ** As SELECT statements (not including subqueries) won't modify data. 
   */
-  // if (p_oracle->is_remove_all_select_stmt_at_start())
-  //   {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
+  if (p_oracle->is_remove_all_select_stmt_at_start())
+    {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
 
   // cerr << "After removing oracle and select statement: \n" <<  cur_ir_root->to_string() << "\n\n\n";
 

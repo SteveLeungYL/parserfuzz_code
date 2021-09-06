@@ -156,7 +156,7 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
       // Make sure the mutated structure is different.
       // kProgram -> kStatementList -> kStatement -> specific_statement_type_
       IR* new_ir_verified_stmt = new_ir_verified.back()->left_->left_->left_; 
-      if (is_oracle_select_stmt(new_ir_verified_stmt)) {
+      if (is_oracle_select_stmt(new_ir_verified_stmt) && new_valid_select_struct != ori_valid_select_struct) {
         root->deep_drop();
         is_success = true;
 
@@ -235,8 +235,8 @@ void SQL_ORACLE::remove_oracle_normal_stmts_from_ir(IR* ir_root) {
   }
 }
 
-bool SQL_ORACLE::is_select_stmt(IR* cur_IR) {
-  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false)) {
+inline bool SQL_ORACLE::is_select_stmt(IR* cur_IR) {
+  if (cur_IR->type_ == kSelectStatement) {
     return true;
   } else {
     return false;

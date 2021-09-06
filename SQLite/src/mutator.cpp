@@ -103,41 +103,41 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 
     vector<IR*> v_mutated_ir;
     
-    // if (
-    //   old_ir->type_ == kStatementList
-    //   // old_ir->type_ == kSelectCoreList ||
-    //   // old_ir->type_ == kSelectCore
-    // ) {
+    if (
+      old_ir->type_ == kStatementList
+      // old_ir->type_ == kSelectCoreList ||
+      // old_ir->type_ == kSelectCore
+    ) {
 
-    //   if (old_ir->type_ == kStatementList) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
-    //   // else if (old_ir->type_ == kSelectCore || old_ir->type_ == kSelectCoreList) {
-    //     // v_mutated_ir = mutate_selectcorelist(root, old_ir);
-    //   // } 
-    //   // else {continue;}
+      if (old_ir->type_ == kStatementList) {v_mutated_ir = mutate_stmtlist(root);} // They are all root(kProgram)!!!
+      // else if (old_ir->type_ == kSelectCore || old_ir->type_ == kSelectCoreList) {
+        // v_mutated_ir = mutate_selectcorelist(root, old_ir);
+      // } 
+      // else {continue;}
 
-    //   for (IR* mutated_ir : v_mutated_ir) {
+      for (IR* mutated_ir : v_mutated_ir) {
 
-    //     string tmp = mutated_ir->to_string();
+        string tmp = mutated_ir->to_string();
 
-    //     unsigned tmp_hash = hash(tmp);
-    //     if (res_hash.find(tmp_hash) != res_hash.end()) {
-    //       mutated_ir->deep_drop();
-    //       // cerr << "Aboard old_ir because tmp_hash being saved before. "
-    //       //      << "In func: Mutator::mutate_all(); \n";
-    //       continue;
-    //     }
+        unsigned tmp_hash = hash(tmp);
+        if (res_hash.find(tmp_hash) != res_hash.end()) {
+          mutated_ir->deep_drop();
+          // cerr << "Aboard old_ir because tmp_hash being saved before. "
+          //      << "In func: Mutator::mutate_all(); \n";
+          continue;
+        }
 
-    //     // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << tmp << "\n\n\n";
+        // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << tmp << "\n\n\n";
 
-    //     string *new_str = new string(tmp);
-    //     res_hash.insert(tmp_hash);
-    //     res.push_back(new_str);
+        string *new_str = new string(tmp);
+        res_hash.insert(tmp_hash);
+        res.push_back(new_str);
 
-    //     mutated_ir->deep_drop();
+        mutated_ir->deep_drop();
 
-    //   }
+      }
 
-    // } else {
+    } else {
       v_mutated_ir = mutate(old_ir);
 
       for (auto new_ir : v_mutated_ir) {
@@ -172,7 +172,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
         root->swap_node(new_ir, old_ir);
         new_ir->deep_drop();
       }
-    // }
+    }
   }
 
   return res;
@@ -2396,8 +2396,8 @@ void Mutator::_extract_struct(IR *root, string &res) {
   }
 
   if (root->id_type_ != id_whatever && root->id_type_ != id_module_name) {
-    res += "x";
-    // root->str_val_ = "x";
+    res += "y";
+    root->str_val_ = "y";
     return;
   }
 
@@ -2415,7 +2415,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
       string_libary_hash_.insert(h);
     }
     res += "'y'";
-    // root->str_val_ = "'y'";
+    root->str_val_ = "'y'";
     return;
   }
 
@@ -2426,13 +2426,13 @@ void Mutator::_extract_struct(IR *root, string &res) {
       value_library_hash_.insert(h);
     }
     res += "10";
-    // root->str_val_ = "10";
+    root->str_val_ = "10";
     return;
   }
 
   if (type_ == kFilePath) {
     res += "'file_name'";
-    // root->str_val_ = "'file_name'";
+    root->str_val_ = "'file_name'";
     return;
   }
 
@@ -2590,6 +2590,9 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
         ori_norec_select =
             *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       }
+      if (ori_norec_select == "" ||
+          !p_oracle->is_oracle_valid_stmt(ori_norec_select))
+        {continue;}
       use_temp = false;
     } else {
       /* Pick the query from the template, pass to the mutator. */
