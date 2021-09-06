@@ -1003,7 +1003,7 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   if (map_id_out_f.fail()){
     return;
   }
-  i = (MAP_SIZE >> 3) - i;
+  i = (MAP_SIZE >> 3) - i - 1 ;
   u32 actual_idx = i * 8 + byte;
   if (share_map_id.count(actual_idx)){
     for (string &debug_info : share_map_id[actual_idx]) {
