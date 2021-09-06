@@ -141,6 +141,7 @@ u64 num_validate = 0;
 u64 num_common_fuzz = 0;
 
 u64 num_total_mutate_all_tree_size = 0;
+u64 num_total_mutate_all_before_ir_set_size = 0;
 
 vector<u64>num_mutate_all_vec;
 
@@ -4362,7 +4363,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      execs_per_sec */
 
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n",
+          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %0.02f%%, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u\n",
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, 
@@ -4375,7 +4376,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           bug_output_id, queued_with_cov,total_execs,
           num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,
           num_total_mutate_all_tree_size / (num_mutate_all+1),
-          total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed
+          total_mutate_gen_num, total_mutate_gen_failed, p_oracle->total_oracle_rand_valid_failed, num_total_mutate_all_before_ir_set_size / (num_mutate_all+1)
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -6093,8 +6094,8 @@ static u8 fuzz_one(char **argv) {
   ** Remove all SELECT statements from the IR tree. 
   ** As SELECT statements (not including subqueries) won't modify data. 
   */
-  if (p_oracle->is_remove_all_select_stmt_at_start())
-    {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
+  // if (p_oracle->is_remove_all_select_stmt_at_start())
+  //   {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
 
   // cerr << "After removing oracle and select statement: \n" <<  cur_ir_root->to_string() << "\n\n\n";
 
@@ -6134,6 +6135,7 @@ static u8 fuzz_one(char **argv) {
 
   num_mutate_all++;
   num_total_mutate_all_tree_size += mutated_tree.size();
+  num_total_mutate_all_before_ir_set_size += ir_set.size();
 
   // cerr << "After mutate_all, the mutated tree size is: " << mutated_tree.size() << "\n\n\n";
   // for (auto mutated_str : mutated_tree) {
@@ -6927,15 +6929,15 @@ EXP_ST void setup_dirs_fds(void) {
   if (!plot_file)
     PFATAL("fdopen() failed");
 
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec, total_input_failed, "
-                     "total_random_valid, total_random_temp, total_random_valid_rate, "
-                     "total_add_to_queue, total_mutate_all_failed, total_mutate_failed, "
-                     "total_mutate_num, total_oracle_mutate_failed, total_oracle_mutate, "
-                     "total_append_failed, total_cri_valid_stmts_lib, total_valid_stmts_lib, "
-                     "total_bad_statms, total_good_stmts, total_good_rate, but_output_id, new_edges_on,total_execs,"
-                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed," "total_oracle_rand_valid_failed"
+  fprintf(plot_file, "unix_time,cycles_done,cur_path,paths_total,"
+                     "pending_total,pending_favs,map_size,unique_crashes,"
+                     "unique_hangs,max_depth,execs_per_sec,total_input_failed,"
+                     "total_random_valid,total_random_temp,total_random_valid_rate,"
+                     "total_add_to_queue,total_mutate_all_failed,total_mutate_failed,"
+                     "total_mutate_num,total_oracle_mutate_failed,total_oracle_mutate,"
+                     "total_append_failed,total_cri_valid_stmts_lib,total_valid_stmts_lib,"
+                     "total_bad_statms,total_good_stmts,total_good_rate,but_output_id,new_edges_on,total_execs,"
+                     "num_parse,num_mutate_all,num_reparse,num_append,num_validate,num_common_fuzz,avg_mutate_all_num,total_mutate_gen_num,total_mutate_gen_failed," "total_oracle_rand_valid_failed,avg_ir_set_size"
                      "\n");
   /* ignore errors */
 }
