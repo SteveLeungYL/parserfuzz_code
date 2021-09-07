@@ -1716,7 +1716,7 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_top_table_name) {
         if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0 || v_create_table_names_single_with_tmp.size() != 0) {
-          if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 50) {
+          if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 30) {
             IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
             if (is_debug_info) {
               if (with_clause_ir != NULL) {
@@ -1785,7 +1785,7 @@ bool Mutator::fix_dependency(IR *root,
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_table_name) {
-        if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 50) {
+        if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 30) {
           IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
           if (is_debug_info) {
             if (with_clause_ir != NULL) {
@@ -1929,7 +1929,7 @@ bool Mutator::fix_dependency(IR *root,
       IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
 
       if (ir->id_type_ == id_column_name) {
-        if (v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0) {
+        if (v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0 && v_create_column_names_single_with_tmp.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
           }
@@ -1938,10 +1938,16 @@ bool Mutator::fix_dependency(IR *root,
 
         /* 1/5 chances, pick column_names from WITH clause directly. */
         cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
-        if (v_create_column_names_single_with_tmp.size() != 0 && 
-            cur_stmt_type != kAlterStatement &&
-            cur_stmt_type != kUpdateStatement &&
-            get_rand_int(100) < 20
+        if (
+              (
+                v_create_column_names_single_with_tmp.size() != 0 && 
+                cur_stmt_type != kAlterStatement &&
+                cur_stmt_type != kUpdateStatement &&
+                get_rand_int(100) < 30
+              ) ||
+              (
+                v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0
+              )
           ) {
           ir->str_val_ = v_create_column_names_single_with_tmp[get_rand_int(v_create_column_names_single_with_tmp.size())];
           continue;
