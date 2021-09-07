@@ -1883,7 +1883,7 @@ bool Mutator::fix_dependency(IR *root,
 
         string tablename_str = "";
         bool is_with_clause = false;
-        if (ir->id_type_ == id_create_column_name_with_tmp && get_rand_int(100) < 50) {
+        if (ir->id_type_ == id_create_column_name_with_tmp) {
           if (v_create_table_names_single_with_tmp.size() == 0) {
             if (is_debug_info) {
               cerr << "Dependency Error: id_create_column_name_with_tmp, cannot find any id_create_table_name_with_tmp saved. \n\n\n";
