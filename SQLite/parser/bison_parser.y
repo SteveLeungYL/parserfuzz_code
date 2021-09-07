@@ -2486,15 +2486,20 @@ with_clause:
                     for (auto tmp2 : tmp1->v_common_table_expr_list_) {  // common_table_expr_
                         auto tmp3 = tmp2->table_name_;  
                         if (tmp3) {
-                            tmp3->identifier_->id_type_ = id_create_table_name_with_tmp; 
+                            auto tmp_iden_ = tmp3->identifier_;
+                            if (tmp_iden_) {
+                                tmp_iden_->id_type_ = id_create_table_name_with_tmp; 
+                            }
                         }
                         auto tmp4 = tmp2 -> opt_column_list_paren_;
                         if (tmp4) {
                             auto tmp5 = tmp4->column_name_list_;
                             if (tmp5) {
                                 for (auto tmp6 : tmp5->v_column_name_list_) {  // column_name_
-                                    tmp6->sub_type_ = CASE0; // Enforce identifier_col_ only. Do not add identifier_tbl_ or '.'
-                                    tmp6->identifier_col_->id_type_ = id_create_column_name_with_tmp;
+                                    if (tmp6->identifier_col_) {
+                                        tmp6->sub_type_ = CASE0; // Enforce identifier_col_ only. Do not add identifier_tbl_ or '.'
+                                        tmp6->identifier_col_->id_type_ = id_create_column_name_with_tmp;
+                                    }
                                 }
                             }
                         }
