@@ -1743,6 +1743,7 @@ bool Mutator::fix_dependency(IR *root,
             if (is_debug_info) {
               cerr << "Dependency: In id_top_table_name, we used v_create_table_names_single: " << ir->str_val_ << ". \n\n\n";
             }
+
           } else if (v_table_names.size()) {
             ir->str_val_ = v_table_names[get_rand_int(v_table_names.size())];
             v_table_names_single.push_back(ir->str_val_);
@@ -1922,6 +1923,8 @@ bool Mutator::fix_dependency(IR *root,
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
+      IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
+
       if (ir->id_type_ == id_column_name) {
         if (v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0) {
           if (is_debug_info) {
@@ -1931,7 +1934,12 @@ bool Mutator::fix_dependency(IR *root,
         }
 
         /* 1/5 chances, pick column_names from WITH clause directly. */
-        if (v_create_column_names_single_with_tmp.size() != 0 && get_rand_int(100) < 20) {
+        cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+        if (v_create_column_names_single_with_tmp.size() != 0 && 
+            cur_stmt_type != kAlterStatement &&
+            cur_stmt_type != kUpdateStatement &&
+            get_rand_int(100) < 20
+          ) {
           ir->str_val_ = v_create_column_names_single_with_tmp[get_rand_int(v_create_column_names_single_with_tmp.size())];
           continue;
         }
@@ -1954,7 +1962,14 @@ bool Mutator::fix_dependency(IR *root,
         if (matched_aliasname_vec.size() != 0 && matched_columnname_vec.size() != 0) {
           string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
           string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
-          ir->str_val_ = aliasname_str + "." + column_str;
+          if (is_debug_info) {
+            cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+          }
+          if (cur_stmt_type != kUpdateStatement && cur_stmt_type != kAlterStatement) 
+            {ir->str_val_ = aliasname_str + "." + column_str;}
+          else {
+            {ir->str_val_ = column_str;}
+          }
 
           if (is_debug_info) {
             cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
@@ -1963,7 +1978,14 @@ bool Mutator::fix_dependency(IR *root,
           visited.insert(ir);
         } else if (matched_columnname_vec.size() != 0) {
           string column_str = matched_columnname_vec[get_rand_int(matched_columnname_vec.size())];
-          ir->str_val_ = tablename_str + "." + column_str;
+          if (is_debug_info) {
+            cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+          }
+          if (cur_stmt_type != kUpdateStatement && cur_stmt_type != kAlterStatement) 
+            {ir->str_val_ = tablename_str + "." + column_str;}
+          else {
+            {ir->str_val_ = column_str;}
+          }
           if (is_debug_info) {
             cerr << "Dependency: For id_column_name, we used: " << ir->str_val_ << ". \n\n\n";
           }
@@ -1998,14 +2020,28 @@ bool Mutator::fix_dependency(IR *root,
         if (matched_aliasname_vec.size() != 0 && matched_indexname_vec.size() != 0) {
           string aliasname_str = matched_aliasname_vec[get_rand_int(matched_aliasname_vec.size())];
           string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
-          ir->str_val_ = aliasname_str + "." + index_str;
+          if (is_debug_info) {
+            cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+          }
+          if (cur_stmt_type != kUpdateStatement && cur_stmt_type != kAlterStatement) 
+            {ir->str_val_ = aliasname_str + "." + index_str;}
+          else {
+            {ir->str_val_ = index_str;}
+          }
           if (is_debug_info) {
             cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
           }
           visited.insert(ir);
         } else if (matched_indexname_vec.size() != 0) {
           string index_str = matched_indexname_vec[get_rand_int(matched_indexname_vec.size())];
-          ir->str_val_ = tablename_str + "." + index_str;
+          if (is_debug_info) {
+            cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+          }
+          if (cur_stmt_type != kUpdateStatement && cur_stmt_type != kAlterStatement) 
+            {ir->str_val_ = tablename_str + "." + index_str;}
+          else {
+            {ir->str_val_ = index_str;}
+          }
           if (is_debug_info) {
             cerr << "Dependency: For id_index_name, we used: " << ir->str_val_ << ". \n";
           }
