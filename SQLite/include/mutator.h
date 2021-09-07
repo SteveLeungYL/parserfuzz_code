@@ -109,6 +109,7 @@ public:
 
   static vector<string> value_libary;
   static map<string, vector<string>> m_tables;
+  static map<string, vector<string>> m_tables_with_tmp;
   static map<string, vector<string>> m_table2index;
   // static map<string, vector<string>> m_table2alias;
   static vector<string> v_table_names;
@@ -116,6 +117,10 @@ public:
   static vector<string> v_create_table_names_single;
   static vector<string> v_alias_names_single;
   static map<string, vector<string>> m_table2alias_single;
+
+  static vector<string> v_create_table_names_single_with_tmp;
+  static vector<string> v_create_column_names_single_with_tmp;
+
   ~Mutator();
 
   void debug(IR *root, unsigned level);

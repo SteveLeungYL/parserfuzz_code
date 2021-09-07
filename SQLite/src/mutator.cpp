@@ -29,12 +29,20 @@ using namespace std;
 
 vector<string> Mutator::value_libary;
 map<string, vector<string>> Mutator::m_tables;   // Table name to column name mapping. 
+map<string, vector<string>> Mutator::m_tables_with_tmp;   // Table name to column name mapping. 
 map<string, vector<string>> Mutator::m_table2index;   // Table name to index mapping. 
 vector<string> Mutator::v_table_names;  // All saved table names
 vector<string> Mutator::v_table_names_single; // All used table names in one query statement. 
 vector<string> Mutator::v_create_table_names_single; // All created table names in the current query statement. 
 vector<string> Mutator::v_alias_names_single; // All alias name local to one query statement.  
 map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping. 
+
+/* Created table/view names, that is valid to only the single query stmts. 
+** Such as table created in WITH clause.  
+*/
+vector<string> Mutator::v_create_table_names_single_with_tmp;
+vector<string> Mutator::v_create_column_names_single_with_tmp;
+
 
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
 
@@ -303,6 +311,7 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   relationmap[id_create_column_name] = id_create_table_name;
   relationmap[id_pragma_value] = id_pragma_name;
   relationmap[id_create_index_name] = id_create_table_name;
+  relationmap[id_create_column_name_with_tmp]  = id_create_table_name_with_tmp;
   cross_map[id_top_table_name] = id_create_table_name;
   relationmap_alternate[id_create_column_name] = id_top_table_name;
   relationmap_alternate[id_create_index_name] = id_top_table_name;
@@ -1532,7 +1541,7 @@ void Mutator::debug(IR *root, unsigned level) {
     cout << " ";
 
   cout << get_string_by_ir_type(root->type_) << ": "
-       << get_string_by_id_type(root->id_type_) << endl;
+       << get_string_by_id_type(root->id_type_) << ": "<< root->to_string() << endl;
 
   if (root->left_)
     debug(root->left_, level + 1);
@@ -1674,8 +1683,6 @@ bool Mutator::fix_dependency(IR *root,
 
       if (ir->id_type_ == id_create_table_name) {
         ir->str_val_ = gen_id_name();
-        // v_table_names.push_back(ir->str_val_);
-        // v_table_names_single.push_back(ir->str_val_);
         v_create_table_names_single.push_back(ir->str_val_);
         visited.insert(ir);
         if (is_debug_info) {
@@ -1693,6 +1700,13 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: In id_create_table_name, we save alias_name: " << new_alias_str << ". \n\n\n";
           }
         }
+      } else if (ir->id_type_ == id_create_table_name_with_tmp) {
+        ir->str_val_ = gen_id_name();
+        v_create_table_names_single_with_tmp.push_back(ir->str_val_);
+        visited.insert(ir);
+        if (is_debug_info) {
+          cerr << "Dependency: In id_create_table_name_with_tmp, we created table_name_tmp: " << ir->str_val_ << "\n\n\n";
+        }
       }
     }
 
@@ -1701,8 +1715,35 @@ bool Mutator::fix_dependency(IR *root,
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_top_table_name) {
-        if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0) {
-          if (v_table_names.size()) {
+        if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0 || v_create_table_names_single_with_tmp.size() != 0) {
+          if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 50) {
+            IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
+            if (is_debug_info) {
+              if (with_clause_ir != NULL) {
+                cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
+              }
+            }
+            vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
+            if (is_debug_info) {
+              cerr << "Dependency: found all_with_table_name_declared: \n";
+              for (IR* cur_iter: all_with_table_name_declared) {
+                cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
+              }
+            }
+            if (all_with_table_name_declared.size() != 0) {
+              ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
+            } else {
+              if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
+              }
+              ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
+            }
+            // v_table_names_single.push_back(ir->str_val_);
+            visited.insert(ir);
+            if (is_debug_info) {
+              cerr << "Dependency: In id_top_table_name, we used v_create_table_names_single: " << ir->str_val_ << ". \n\n\n";
+            }
+          } else if (v_table_names.size()) {
             ir->str_val_ = v_table_names[get_rand_int(v_table_names.size())];
             v_table_names_single.push_back(ir->str_val_);
             visited.insert(ir);
@@ -1730,21 +1771,6 @@ bool Mutator::fix_dependency(IR *root,
             }
           }
         } else {
-          // // No created table existed. Treat it as id_create_table_name. 
-          // ir->str_val_ = gen_id_name();
-          // v_table_names.push_back(ir->str_val_);
-          // v_table_names_single.push_back(ir->str_val_);
-          // visited.insert(ir);
-
-          // // Take care of the alias, if any. 
-          // IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
-          // if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
-          //   string new_alias_str = gen_alias_name();
-          //   alias_ir->str_val_ = new_alias_str;
-          //   v_alias_names_single.push_back(new_alias_str);
-          //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
-          //   visited.insert(alias_ir);
-          // }
           if (is_debug_info) {
             cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
           }
@@ -1758,12 +1784,39 @@ bool Mutator::fix_dependency(IR *root,
       if (visited.find(ir) != visited.end()) {continue;}
 
       if (ir->id_type_ == id_table_name) {
-        if (v_table_names_single.size() != 0 ) {
+        if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 50) {
+          IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
+          if (is_debug_info) {
+            if (with_clause_ir != NULL) {
+              cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
+            }
+          }
+          vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
+          if (is_debug_info) {
+              cerr << "Dependency: found all_with_table_name_declared: \n";
+              for (IR* cur_iter: all_with_table_name_declared) {
+                cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
+              }
+            }
+          if (all_with_table_name_declared.size() != 0) {
+            ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
+          } else {
+            if (is_debug_info) {
+              cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
+            }
+            ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
+          }
+          // v_table_names_single.push_back(ir->str_val_);
+          visited.insert(ir);
+          if (is_debug_info) {
+            cerr << "Dependency: In id_table_name, we used v_create_table_names_single_with_tmp: " << ir->str_val_ << ". \n\n\n";
+          }
+        } else if (v_table_names_single.size() != 0 ) {
           string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
           ir->str_val_ = tablename_str;
           visited.insert(ir);
           if (is_debug_info) {
-            cerr << "Dependency: In id_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
+            cerr << "Dependency: In id_table_name, we used v_table_names_single: " << ir->str_val_ << ". \n\n\n";
           }
         } else if (v_table_names.size() != 0) {
           string tablename_str = v_table_names[get_rand_int(v_table_names.size())];
@@ -1783,22 +1836,6 @@ bool Mutator::fix_dependency(IR *root,
           }
         } 
         else {
-          // // tablename_str not exist. Create a new one as if it is id_create_table_name. 
-          // string tablename_str = gen_id_name();
-          // ir->str_val_ = tablename_str;
-          // v_table_names.push_back(ir->str_val_);
-          // v_table_names_single.push_back(ir->str_val_);
-          // visited.insert(ir);
-
-          // // Take care of the alias, if any. 
-          // IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
-          // if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
-          //   string new_alias_str = gen_alias_name();
-          //   alias_ir->str_val_ = new_alias_str;
-          //   v_alias_names_single.push_back(new_alias_str);
-          //   m_table2alias_single[ir->str_val_].push_back(new_alias_str);
-          //   visited.insert(alias_ir);
-          // }
           if (is_debug_info) {
             cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names, v_table_name_single and v_create_table_name_single saved. \n\n\n";
           }
@@ -1835,41 +1872,43 @@ bool Mutator::fix_dependency(IR *root,
         }
       }
 
-      if (ir->id_type_ == id_create_column_name) {
-        if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0) {
+      if (ir->id_type_ == id_create_column_name || ir->id_type_ == id_create_column_name_with_tmp) {
+        if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0 && v_create_table_names_single_with_tmp.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: id_create_column_name, couldn't find any v_table_name saved. \n\n\n";
           }
           return false;
         }
 
-        /* Find THE table name to attach to.  */
-        // vector<IR*> tablename_vec = search_mapped_ir_in_stmt(ir, id_create_table_name);
-        // if (tablename_vec.size() == 0) {
-        //   tablename_vec = search_mapped_ir_in_stmt(ir, id_top_table_name);
-        //   if (tablename_vec.size() == 0) {
-        //     tablename_vec = search_mapped_ir_in_stmt(ir, id_table_name);
-        //     if (tablename_vec.size() == 0) {
-        //       cerr << "FIX_DEP ERROR: When fixing id_create_column_name, we found tablename_vec is empty. Func: Mutator::     Mutator::fix_dependency(); \n";
-        //       return false;
-        //     }
-        //   }
-        // }
-        // IR* tablename_ir = tablename_vec[get_rand_int(tablename_vec.size())];
-
-        /* Fix the IR.
-        ** Normally, there would be only one table name saved in the v_table_names_single. 
-        */
         string tablename_str = "";
-        if (v_create_table_names_single.size() > 0) {
+        bool is_with_clause = false;
+        if (ir->id_type_ == id_create_column_name_with_tmp && get_rand_int(100) < 50) {
+          if (v_create_table_names_single_with_tmp.size() == 0) {
+            if (is_debug_info) {
+              cerr << "Dependency Error: id_create_column_name_with_tmp, cannot find any id_create_table_name_with_tmp saved. \n\n\n";
+              return false;
+            }
+          }
+          IR* table_name_identifier_ = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, id_create_table_name_with_tmp);
+          tablename_str = table_name_identifier_->str_val_;
+          is_with_clause = true;
+        } 
+        
+        else if (v_create_table_names_single.size() > 0) {
           tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
-        } else {
+        } 
+        
+        else {
           tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
         }
         
         string new_columnname_str = gen_column_name();
         ir->str_val_ = new_columnname_str;
         m_tables[tablename_str].push_back(new_columnname_str);
+        /* Save the WITH clause created column name into a tmp vector. This column name can be used directly in the current query. */
+        if (is_with_clause) {
+          v_create_column_names_single_with_tmp.push_back(new_columnname_str);
+        }
         
         if (is_debug_info) {
           cerr << "Dependency: In id_create_column_name, created column name: " << new_columnname_str << " for table: " << tablename_str << ". \n\n\n";
@@ -1890,6 +1929,13 @@ bool Mutator::fix_dependency(IR *root,
           }
           return false;
         }
+
+        /* 1/5 chances, pick column_names from WITH clause directly. */
+        if (v_create_column_names_single_with_tmp.size() != 0 && get_rand_int(100) < 20) {
+          ir->str_val_ = v_create_column_names_single_with_tmp[get_rand_int(v_create_column_names_single_with_tmp.size())];
+          continue;
+        }
+
         string tablename_str;
         if (v_table_names_single.size() != 0) {
           tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
@@ -2502,13 +2548,20 @@ void Mutator::reset_database() {
   v_table_names_single.clear();
   v_create_table_names_single.clear();
   v_alias_names_single.clear();
+
+  m_tables_with_tmp.clear();
+  v_create_table_names_single_with_tmp.clear();
+  v_create_column_names_single_with_tmp.clear();
 }
 
 void Mutator::reset_database_single_stmt() {
-  this->v_table_names_single.clear();
-  this->v_create_table_names_single.clear();
-  this->v_alias_names_single.clear();
-  this->m_table2alias_single.clear();
+  v_table_names_single.clear();
+  v_create_table_names_single.clear();
+  v_alias_names_single.clear();
+  m_table2alias_single.clear();
+  m_tables_with_tmp.clear();
+  v_create_table_names_single_with_tmp.clear();
+  v_create_column_names_single_with_tmp.clear();
 }
 
 // int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {

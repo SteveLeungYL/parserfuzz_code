@@ -84,6 +84,10 @@ string get_string_by_id_type(IDTYPE type) {
     return "id_function_name";
   case id_table_constraint_name:
     return "id_table_constraint_name";
+  case id_create_table_name_with_tmp:
+    return "id_create_table_name_with_tmp";
+  case id_create_column_name_with_tmp:
+    return "id_create_column_name_with_tmp";
   default:
     return "unknown identifier type";
   }

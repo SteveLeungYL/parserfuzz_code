@@ -28,7 +28,7 @@ bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type,
 }
 
 
-vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false) {
+vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false, bool is_ignore_subquery = false) {
 
     // Iterate IR binary tree, left depth prioritized.
     bool is_finished_search = false;
@@ -57,6 +57,58 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_typ
             }
             continue;
         }
+    }
+
+    if (is_ignore_subquery) {
+        return ir_vec_matching_type;
+    }
+
+    // Check whether IR node is in a SELECT subquery. 
+    std::vector<IR*> ir_vec_matching_type_depth;
+    for (IR* ir_match : ir_vec_matching_type){
+        if(this->is_in_subquery(cur_stmt, ir_match) == is_subquery) {
+            ir_vec_matching_type_depth.push_back(ir_match);
+        }
+        continue;
+    }
+
+    return ir_vec_matching_type_depth;
+
+}
+
+vector<IR*> IRWrapper::get_ir_node_in_stmt_with_id_type(IR* cur_stmt, IDTYPE id_type, bool is_subquery = false, bool is_ignore_subquery = false) {
+
+    // Iterate IR binary tree, left depth prioritized.
+    bool is_finished_search = false;
+    std::vector<IR*> ir_vec_iter;
+    std::vector<IR*> ir_vec_matching_type;
+    IR* cur_IR = cur_stmt; 
+    // Begin iterating. 
+    while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (cur_IR->id_type_ == id_type) {
+            ir_vec_matching_type.push_back(cur_IR);
+        }
+
+        if (cur_IR->left_ != nullptr){
+            cur_IR = cur_IR->left_;
+            continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes. 
+            cur_IR = nullptr;
+            while (cur_IR == nullptr){
+                if (ir_vec_iter.size() == 0){
+                    is_finished_search = true;
+                    break;
+                }
+                cur_IR = ir_vec_iter.back()->right_;
+                ir_vec_iter.pop_back();
+            }
+            continue;
+        }
+    }
+
+    if (is_ignore_subquery) {
+        return ir_vec_matching_type;
     }
 
     // Check whether IR node is in a SELECT subquery. 
@@ -915,4 +967,130 @@ IR* IRWrapper::get_stmt_ir_from_child_ir(IR* cur_ir) {
 
     if (cur_ir->type_ == kStatement) {return cur_ir->left_;}
     else {return nullptr;}
+}
+
+/* Not exactly accurate. */
+IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IRTYPE type_) {
+    IR* v_res;
+    if (cur_node->type_ == type_) {
+        return cur_node;
+    }
+
+    bool is_left_ = false;
+    IR* parent_cur_node = NULL;
+    while (cur_node->parent_ != NULL) {
+        parent_cur_node = cur_node->parent_;
+        if (cur_node == parent_cur_node->right_) {
+            is_left_ = false;
+        }
+        cur_node = parent_cur_node;
+        if (cur_node->type_ == type_) {
+            return cur_node;
+        }
+        if (is_left_) {
+            if (cur_node->left_ == NULL) {
+                continue;
+            }
+            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_type(cur_node->left_, type_, false, false); // ignore is_in_subquery. 
+            if (matched_node.size() > 0) {
+                // TODO:: inaccurate here. 
+                return matched_node[0];
+            }
+        } else {
+            if (cur_node->right_ == NULL) {
+                continue;
+            }
+            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_type(cur_node->right_, type_, false, false); // ignore is_in_subquery. 
+            if (matched_node.size() > 0) {
+                // TODO:: inaccurate here. 
+                return matched_node[0];
+            }
+        }
+    }
+
+    return NULL;
+}
+
+/* Not exactly accurate. */
+IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IDTYPE id_type_) {
+    IR* v_res;
+    if (cur_node->id_type_ == id_type_) {
+        return cur_node;
+    }
+
+    bool is_left_ = false;
+    IR* parent_cur_node = NULL;
+    while (cur_node->parent_ != NULL) {
+        parent_cur_node = cur_node->parent_;
+        if (cur_node == parent_cur_node->right_) {
+            is_left_ = false;
+        }
+        cur_node = parent_cur_node;
+        if (cur_node->id_type_ == id_type_) {
+            return cur_node;
+        }
+        if (is_left_) {
+            if (cur_node->left_ == NULL) {
+                continue;
+            }
+            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_id_type(cur_node->left_, id_type_, false, true); // ignore is_in_subquery. 
+            if (matched_node.size() > 0) {
+                // TODO:: inaccuracy here. 
+                return matched_node[0];
+            }
+        } else {
+            if (cur_node->right_ == NULL) {
+                continue;
+            }
+            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_id_type(cur_node->right_, id_type_, false, true); // ignore is_in_subquery. 
+            if (matched_node.size() > 0) {
+                // TODO:: inaccuracy here. 
+                return matched_node[0];
+            }
+        }
+    }
+
+    return NULL;
+}
+
+vector<IR*> IRWrapper::get_common_table_expr_from_list(IR* cur_ir) {
+    vector<IR*> v_res_rev, v_res;
+    if (cur_ir ->type_ != kCommonTableExprList) {
+        cerr << "IRWrapper Error: not getting kCommonTableExprList in IRWrapper::get_common_table_expr_from_list();\n\n\n";
+        return v_res;
+    }
+
+    while (cur_ir->right_) {
+        v_res_rev.push_back(cur_ir->right_);
+        cur_ir = cur_ir->left_;
+    }
+
+    v_res_rev.push_back(cur_ir->left_);
+
+    /* Reverse the order. */
+    for (auto iter = v_res_rev.rbegin(); iter != v_res_rev.rend(); iter++) {
+        v_res.push_back(*iter);
+    }
+
+    return v_res;
+}
+
+vector<IR*> IRWrapper::get_table_ir_in_with_clause(IR* cur_ir) {
+    vector<IR*> v_res;
+    if (cur_ir ->type_ != kWithClause) {
+        cerr << "IRWrapper Error: not getting kWithClause in IRWrapper::get_table_ir_in_with_clause();\n\n\n";
+        return v_res;
+    }
+
+    IR* common_table_expr_list_ = cur_ir->right_;
+
+    vector<IR*> v_common_table_expr = this->get_common_table_expr_from_list(common_table_expr_list_);
+
+    for (auto common_table_expr : v_common_table_expr) {
+        IR* table_name_ir = common_table_expr->left_->left_;
+        v_res.push_back(table_name_ir);
+    }
+
+    return v_res;
+
 }

@@ -21,7 +21,9 @@ public:
     vector<IR*> get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery = false, int stmt_idx = -1);
 
     bool is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery);
-    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false);
+    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false, bool is_ignore_subquery = false);
+
+    vector<IR*> get_ir_node_in_stmt_with_id_type(IR* cur_stmt, IDTYPE id_type, bool is_subquery = false, bool is_ignore_subquery = false);
 
     bool append_stmt_after_idx(string, int idx, const Mutator& g_mutator);
     bool append_stmt_at_end(string, const Mutator& g_mutator);
@@ -126,6 +128,14 @@ public:
 
     /**/
     bool remove_selectcore_clause_at_idx_and_free(IR* cur_stmt, int idx);
+
+    /**/
+    IR* find_closest_node_exclude_child (IR* cur_node, IRTYPE type_);
+    IR* find_closest_node_exclude_child (IR* cur_node, IDTYPE data_type_);
+
+    /**/
+    vector<IR*> get_common_table_expr_from_list(IR* cur_ir);
+    vector<IR*> get_table_ir_in_with_clause(IR* cur_ir);
 
 private:
     IR* ir_root = nullptr;
