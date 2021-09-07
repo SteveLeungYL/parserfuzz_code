@@ -312,6 +312,8 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
   relationmap[id_pragma_value] = id_pragma_name;
   relationmap[id_create_index_name] = id_create_table_name;
   relationmap[id_create_column_name_with_tmp]  = id_create_table_name_with_tmp;
+  relationmap[id_trigger_name]  = id_top_table_name;
+  relationmap[id_top_column_name]  = id_top_table_name;
   cross_map[id_top_table_name] = id_create_table_name;
   relationmap_alternate[id_create_column_name] = id_top_table_name;
   relationmap_alternate[id_create_index_name] = id_top_table_name;
@@ -1708,6 +1710,14 @@ bool Mutator::fix_dependency(IR *root,
           cerr << "Dependency: In id_create_table_name_with_tmp, we created table_name_tmp: " << ir->str_val_ << "\n\n\n";
         }
       }
+      
+      else if (ir->id_type_ == id_trigger_name) {
+        ir->str_val_ = gen_column_name();
+        visited.insert(ir);
+        if (is_debug_info) {
+          cerr << "Dependency: Generated trigger name: " << ir->str_val_ << "\n\n\n";
+        }
+      }
     }
 
     /* Second loop, resolve all id_top_table_name, id_table_alias_name. */
@@ -1777,7 +1787,8 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
           }
-          // return false;
+          ir->str_val_ = gen_table_name();
+          continue;
         }
       }
     }
@@ -1844,7 +1855,8 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names, v_table_name_single and v_create_table_name_single saved. \n\n\n";
           }
-          return false;
+          ir->str_val_ = gen_table_name();
+          continue;
         }
       }
     }
@@ -1859,7 +1871,8 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: id_create_index_name, couldn't find any v_table_name saved. \n\n\n";
           }
-          return false;
+          ir->str_val_ = gen_index_name();
+          continue;
         }
         string tablename_str = "";
         if (v_create_table_names_single.size() > 0) {
@@ -1877,12 +1890,13 @@ bool Mutator::fix_dependency(IR *root,
         }
       }
 
-      if (ir->id_type_ == id_create_column_name || ir->id_type_ == id_create_column_name_with_tmp) {
+      if (ir->id_type_ == id_create_column_name || ir->id_type_ == id_create_column_name_with_tmp || ir->id_type_ == id_top_column_name ) {
         if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0 && v_create_table_names_single_with_tmp.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: id_create_column_name, couldn't find any v_table_name saved. \n\n\n";
           }
-          return false;
+          ir->str_val_ = gen_column_name();
+          continue;
         }
 
         string tablename_str = "";
@@ -1891,20 +1905,34 @@ bool Mutator::fix_dependency(IR *root,
           if (v_create_table_names_single_with_tmp.size() == 0) {
             if (is_debug_info) {
               cerr << "Dependency Error: id_create_column_name_with_tmp, cannot find any id_create_table_name_with_tmp saved. \n\n\n";
-              return false;
+              ir->str_val_ = gen_column_name();
+              continue;
             }
           }
           // IR* table_name_identifier_ = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, id_create_table_name_with_tmp);
           // tablename_str = table_name_identifier_->str_val_;
           is_with_clause = true;
-        } 
-        
+        }
         else if (v_create_table_names_single.size() > 0) {
           tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
         } 
         
         else {
           tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        }
+
+        if (ir->id_type_ == id_top_column_name && v_table_names.size() != 0) {
+          string random_tablename_str = vector_rand_ele(v_table_names);
+          vector<string> random_column_vec = m_tables[random_tablename_str];
+          if (random_column_vec.size() != 0) {
+            ir->str_val_ = vector_rand_ele(random_column_vec);
+            if (tablename_str != "." && !is_str_empty(ir->str_val_) ) {
+              m_tables[tablename_str].push_back(ir->str_val_);
+            }
+          } else {
+            /* Cannot find any saved column name. Changed to create_column_name.  */
+            ir->id_type_ = id_create_column_name;
+          }
         }
         
         string new_columnname_str = gen_column_name();
@@ -1914,10 +1942,10 @@ bool Mutator::fix_dependency(IR *root,
         if (is_with_clause) {
           v_create_column_names_single_with_tmp.push_back(new_columnname_str);
         } 
-        // else {
+        else {
         /* In normal column name creation. Just append it to the m_tables for future usage. */
           m_tables[tablename_str].push_back(new_columnname_str);
-        // }
+        }
         
         if (is_debug_info) {
           cerr << "Dependency: In id_create_column_name, created column name: " << new_columnname_str << " for table: " << tablename_str << ". \n\n\n";
@@ -1938,7 +1966,14 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
           }
-          return false;
+          string random_tablename_str = vector_rand_ele(v_table_names);
+          vector<string> random_column_vec = m_tables[random_tablename_str];
+          if (random_column_vec.size() != 0) {
+            ir->str_val_ = vector_rand_ele(random_column_vec);
+          } else {
+            ir->str_val_ = gen_column_name();
+          }
+          continue;
         }
 
         /* Special handling for the UPDATE stmt. */
@@ -2032,7 +2067,14 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: for id_column_name, couldn't find any matched_columnname_vec saved. \n\n\n";
           }
-          return false;
+          string random_tablename_str = vector_rand_ele(v_table_names);
+          vector<string> random_column_vec = m_tables[random_tablename_str];
+          if (random_column_vec.size() != 0) {
+            ir->str_val_ = vector_rand_ele(random_column_vec);
+          } else {
+            ir->str_val_ = gen_column_name();
+          }
+          continue;
         }
       }
 
@@ -2041,7 +2083,14 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: for id_index_name, couldn't find any v_table_name_single saved. \n\n\n";
           }
-          return false;
+          string random_tablename_str = vector_rand_ele(v_table_names);
+          vector<string> random_index_vec = m_table2index[random_tablename_str];
+          if (random_index_vec.size() != 0) {
+            ir->str_val_ = vector_rand_ele(random_index_vec);
+          } else {
+            ir->str_val_ = gen_column_name();
+          }
+          continue;
         }
 
         string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
@@ -2049,7 +2098,14 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: In id_index_name, cannot find index for table name: " << tablename_str << ". \n\n\n";
           }
-          return false;
+          string random_tablename_str = vector_rand_ele(v_table_names);
+          vector<string> random_index_vec = m_table2index[random_tablename_str];
+          if (random_index_vec.size() != 0) {
+            ir->str_val_ = vector_rand_ele(random_index_vec);
+          } else {
+            ir->str_val_ = gen_column_name();
+          }
+          continue;
         }
 
         vector<string> &matched_indexname_vec = m_table2index[tablename_str];
@@ -2087,10 +2143,18 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency Error: for id_index_name, couldn't find any matched_indexname_vec saved. \n\n\n";
           }
-          return false;
+          string random_tablename_str = vector_rand_ele(v_table_names);
+          vector<string> random_index_vec = m_table2index[random_tablename_str];
+          if (random_index_vec.size() != 0) {
+            ir->str_val_ = vector_rand_ele(random_index_vec);
+          } else {
+            ir->str_val_ = gen_column_name();
+          }
+          continue;
         }
         
       }
+
       // TODO:: Fix id_pragma_value. Do we need to take care of that? 
     }
   } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)

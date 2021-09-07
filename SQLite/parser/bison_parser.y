@@ -13,6 +13,7 @@
 
 #include "bison_parser.h"
 #include "flex_lexer.h"
+#include "../include/utils.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -1166,7 +1167,11 @@ create_virtual_table_statement:
                     if(tmp2) {
                         for (auto& tmp3 : tmp2->v_column_name_list_) {
                             if (tmp3->identifier_col_) {
-                                tmp3->identifier_col_->id_type_ = id_create_column_name;
+                                if (get_rand_int(100) < 50) {
+                                    tmp3->identifier_col_->id_type_ = id_create_column_name;
+                                } else {
+                                    tmp3->identifier_col_->id_type_ = id_top_column_name;
+                                }
                             }
                         }
                     }

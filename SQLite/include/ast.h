@@ -76,6 +76,7 @@ enum IDTYPE {
 
   id_create_column_name,
   id_column_name,
+  id_top_column_name,
 
   id_pragma_name,
   id_pragma_value,
