@@ -1963,7 +1963,9 @@ bool Mutator::fix_dependency(IR *root,
         }
 
         /* 1/5 chances, pick column_names from WITH clause directly. */
-        cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+        if (is_debug_info) {
+          cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
+        }
         if (
               (
                 v_create_column_names_single_with_tmp.size() != 0 && 
