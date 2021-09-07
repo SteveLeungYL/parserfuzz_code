@@ -1714,9 +1714,11 @@ bool Mutator::fix_dependency(IR *root,
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
+      IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
+
       if (ir->id_type_ == id_top_table_name) {
         if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0 || v_create_table_names_single_with_tmp.size() != 0) {
-          if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 30) {
+          if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 30) {
             IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
             if (is_debug_info) {
               if (with_clause_ir != NULL) {
@@ -1784,8 +1786,10 @@ bool Mutator::fix_dependency(IR *root,
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
+      IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
+
       if (ir->id_type_ == id_table_name) {
-        if (v_create_table_names_single_with_tmp.size() != 0 && get_rand_int(100) < 30) {
+        if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 30) {
           IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
           if (is_debug_info) {
             if (with_clause_ir != NULL) {
@@ -1909,10 +1913,11 @@ bool Mutator::fix_dependency(IR *root,
         /* Save the WITH clause created column name into a tmp vector. This column name can be used directly in the current query. */
         if (is_with_clause) {
           v_create_column_names_single_with_tmp.push_back(new_columnname_str);
-        } else {
+        } 
+        // else {
         /* In normal column name creation. Just append it to the m_tables for future usage. */
           m_tables[tablename_str].push_back(new_columnname_str);
-        }
+        // }
         
         if (is_debug_info) {
           cerr << "Dependency: In id_create_column_name, created column name: " << new_columnname_str << " for table: " << tablename_str << ". \n\n\n";
@@ -1934,6 +1939,27 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency Error: for id_column_name, couldn't find any v_table_name_single saved. \n\n\n";
           }
           return false;
+        }
+
+        /* Special handling for the UPDATE stmt. */
+        if (cur_stmt_type == kUpdateStatement) {
+          IR* update_stmt_node = p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(ir);
+          IR* qualified_table_name_ = update_stmt_node->left_->left_->left_->left_->right_;
+
+          IR* table_name_ir = qualified_table_name_->left_->left_;
+          string cur_choosen_table_name = table_name_ir->left_->str_val_;
+          vector<string>& column_name_vec = m_tables[cur_choosen_table_name];
+          if (column_name_vec.size() != 0) {
+            ir->str_val_ = column_name_vec[get_rand_int(column_name_vec.size())];
+            if (is_debug_info) {
+              cerr << "Dependency: Special handling for UPDATE stmt. Received table_name: " << cur_choosen_table_name 
+                   << " Return: " << ir->str_val_ << " for id_column_name. \n\n\n";
+            }
+          } else {
+            if (is_debug_info) {
+              cerr << "Dependency Error: Special handling for UPDATE stmt. Cannot find m_table column for: " << cur_choosen_table_name << " \n\n\n";
+            }
+          }
         }
 
         /* 1/5 chances, pick column_names from WITH clause directly. */

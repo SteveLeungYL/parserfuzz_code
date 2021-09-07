@@ -981,6 +981,8 @@ IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IRTYPE type_) {
     while (cur_node->parent_ != NULL) {
         parent_cur_node = cur_node->parent_;
         if (cur_node == parent_cur_node->right_) {
+            is_left_ = true;
+        } else {
             is_left_ = false;
         }
         cur_node = parent_cur_node;
@@ -991,7 +993,7 @@ IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IRTYPE type_) {
             if (cur_node->left_ == NULL) {
                 continue;
             }
-            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_type(cur_node->left_, type_, false, false); // ignore is_in_subquery. 
+            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_type(cur_node->left_, type_, false, true); // ignore is_in_subquery. 
             if (matched_node.size() > 0) {
                 // TODO:: inaccurate here. 
                 return matched_node[0];
@@ -1000,7 +1002,7 @@ IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IRTYPE type_) {
             if (cur_node->right_ == NULL) {
                 continue;
             }
-            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_type(cur_node->right_, type_, false, false); // ignore is_in_subquery. 
+            vector<IR*> matched_node = this -> get_ir_node_in_stmt_with_type(cur_node->right_, type_, false, true); // ignore is_in_subquery. 
             if (matched_node.size() > 0) {
                 // TODO:: inaccurate here. 
                 return matched_node[0];
@@ -1023,6 +1025,8 @@ IR* IRWrapper::find_closest_node_exclude_child (IR* cur_node, IDTYPE id_type_) {
     while (cur_node->parent_ != NULL) {
         parent_cur_node = cur_node->parent_;
         if (cur_node == parent_cur_node->right_) {
+            is_left_ = true;
+        } else {
             is_left_ = false;
         }
         cur_node = parent_cur_node;
