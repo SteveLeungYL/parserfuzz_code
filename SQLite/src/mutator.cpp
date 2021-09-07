@@ -1890,8 +1890,8 @@ bool Mutator::fix_dependency(IR *root,
               return false;
             }
           }
-          IR* table_name_identifier_ = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, id_create_table_name_with_tmp);
-          tablename_str = table_name_identifier_->str_val_;
+          // IR* table_name_identifier_ = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, id_create_table_name_with_tmp);
+          // tablename_str = table_name_identifier_->str_val_;
           is_with_clause = true;
         } 
         
@@ -1905,10 +1905,13 @@ bool Mutator::fix_dependency(IR *root,
         
         string new_columnname_str = gen_column_name();
         ir->str_val_ = new_columnname_str;
-        m_tables[tablename_str].push_back(new_columnname_str);
+
         /* Save the WITH clause created column name into a tmp vector. This column name can be used directly in the current query. */
         if (is_with_clause) {
           v_create_column_names_single_with_tmp.push_back(new_columnname_str);
+        } else {
+        /* In normal column name creation. Just append it to the m_tables for future usage. */
+          m_tables[tablename_str].push_back(new_columnname_str);
         }
         
         if (is_debug_info) {
