@@ -1671,6 +1671,7 @@ bool Mutator::fix_dependency(IR *root,
                         vector<vector<IR *>> &ordered_all_subquery_ir, bool is_debug_info = false) {
   set<IR *> visited;
   reset_database_single_stmt();
+  string cur_pragma_key = "";
 
   if (is_debug_info) {
     cerr << "Trying to fix_dependency on stmt: " << root->to_string() << ". \n\n\n";
@@ -2156,6 +2157,37 @@ bool Mutator::fix_dependency(IR *root,
       }
 
       // TODO:: Fix id_pragma_value. Do we need to take care of that? 
+      if (ir->id_type_ == id_pragma_name) {
+        int lib_size = cmds_.size();
+        if (lib_size != 0) {
+          ir->str_val_ = cmds_[get_rand_int(lib_size)];
+          cur_pragma_key = ir->str_val_;
+        }
+      }
+
+      if (ir->id_type_ == id_pragma_value) {
+        if (m_cmd_value_lib_[cur_pragma_key].size() != 0) {
+          string value = vector_rand_ele(m_cmd_value_lib_[cur_pragma_key]);
+          if (!value.compare("_int_")) {
+            if (value_libary.size() != 0) {
+              ir->str_val_ = value_libary[get_rand_int(value_libary.size())];
+            } else {
+              ir->str_val_ = to_string(get_rand_int(100));
+            }
+          } else if (!value.compare("_empty_")) {
+            ir->str_val_ = "";
+          } else if (!value.compare("_boolean_")) {
+            if (get_rand_int(2) == 0)
+              {ir->str_val_ = "false";}
+            else
+              {ir->str_val_ = "true";}
+          } else {
+            ir->str_val_ = value;
+          }
+        } else {
+          ir->str_val_ = to_string(get_rand_int(10));
+        }
+      }
     }
   } // for (vector<IR*>& ordered_ir : ordered_all_subquery_ir)
 
