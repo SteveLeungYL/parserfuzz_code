@@ -69,6 +69,8 @@ enum IDTYPE {
 
   id_create_table_name,
   id_create_view_name,
+  id_create_table_name_with_tmp, // In with clause, the table_name created are temporary. Only effective for one single stmt. Thus the id_type_.
+  id_create_column_name_with_tmp, // In with clause, the column_name created are temporary. Only effective for one single stmt. Thus the id_type_.
   id_top_table_name,
   id_table_name,
 
