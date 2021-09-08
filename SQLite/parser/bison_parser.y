@@ -1148,6 +1148,7 @@ create_index_statement:
             $$->table_name_->identifier_->id_type_ = id_top_table_name;
             $$->indexed_column_list_ = $9;
             $$->opt_where_ = $11;
+            /* indexed_column_list is defined as id_index_name */
         }
     ;
 

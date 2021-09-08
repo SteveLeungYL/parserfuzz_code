@@ -3974,10 +3974,10 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
 
 #endif /* ^!SIMPLE_FILES */
 
-    /* Do not save the whole queries with the appended norec select stmt back to
-       the AFL queue. Since we will append new norec select stmt every time we
-       retrive a new seed, we should delete all the norec stmts from the query
-       before adding them to the query.
+    /* Do not save the whole queries with the appended oracle-select stmt back to
+    ** the AFL queue. Since we will append new oracle-select stmt every time we
+    ** retrive a new seed, we should delete all the oralce-stmts from the query
+    ** before adding them to the query.
     */
 
     add_to_queue(fn, query_str.size(), 0);
@@ -5550,11 +5550,11 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
     return 0;
   }
   
-  if (fault != FAULT_CRASH && 
-      all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
-    // cerr << "Query all error. " << endl;
-    return 0;
-  }
+  // if (fault != FAULT_CRASH && 
+  //     all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+  //   // cerr << "Query all error. " << endl;
+  //   return 0;
+  // }
 
   if (disable_coverage_feedback == 1) {  // Disable feedbacks. Drop all queries. 
     /* Do nothing. */
@@ -5580,7 +5580,6 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
   //outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::trunc);
   //print_exec_debug_info(outputfile);
   //outputfile.close();
-
   //ck_free(bug_output_dir_char);
 
   return 0;
@@ -5913,12 +5912,12 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le) {
 void get_ori_valid_stmts(vector<IR*> &v_valid_stmts) {
 
   int trial = 0;
-  int num_norec = 0;
+  int num_oracle = 0;
   int max_trial =
-      valid_max_num * 3; // For each norec select stmt, we have on average 3
+      valid_max_num * 3; // For each oracle-select stmt, we have on average 3
                          // chances to append the stmt and check.
 
-  while (num_norec < valid_max_num) {
+  while (num_oracle < valid_max_num) {
     total_oracle_mutate++;
     if (trial++ >= max_trial) // Give on average 3 chances per select stmts.
       break;
@@ -5929,10 +5928,9 @@ void get_ori_valid_stmts(vector<IR*> &v_valid_stmts) {
       continue;
     }
     // cerr << "New generated random_mutated_valid_stmt is: " << new_oracle_select_stmts->to_string() << "\n\n\n";
-    // ensure_semicolon_at_query_end(new_norec_stmts);
     v_valid_stmts.push_back(new_oracle_select_stmts);
 
-    num_norec++;
+    num_oracle++;
   }
 
   return;
@@ -6061,12 +6059,6 @@ static u8 fuzz_one(char **argv) {
   skip_count = 0;
   input = (const char *)out_buf;
 
-  /* Remove the SELECT statements from the input. */
-  // input = p_oracle->remove_valid_stmts_from_str(input);
-
-  /* Now we modify the input queries, append multiple norec compatible select
-   * stmt to the end of the queries to achieve better testing efficiency.  */
-
   // cerr << "Before parsing, the imported input is: \n" << input << "\n\n\n";
 
   ir_set = g_mutator.parse_query_str_get_ir_set(input);
@@ -6098,10 +6090,6 @@ static u8 fuzz_one(char **argv) {
     {p_oracle->remove_all_select_stmt_from_ir(cur_ir_root);}
 
   // cerr << "After removing oracle and select statement: \n" <<  cur_ir_root->to_string() << "\n\n\n";
-
-  // unsigned long prev_hash, current_hash;
-  // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
-  // current_hash = 0;
 
   for (int app_num = 0; app_num < p_oracle->is_random_append_stmts(); app_num++) {
     p_oracle->init_ir_wrapper(cur_ir_root);
@@ -6161,8 +6149,6 @@ static u8 fuzz_one(char **argv) {
       continue;
     }
 
-    /* Use to_string() here, validate() will be called just once, at the end of
-     * the query mutation. */
     if (ir_str->size() == 0) {
       total_mutate_failed++;
       skip_count++;
@@ -6170,6 +6156,7 @@ static u8 fuzz_one(char **argv) {
     }
 
     // cerr << "After mutation, we get ir_str: " << *ir_str << "\n\n\n";
+
     /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
      * consider appending anything */
     vector<IR *> cur_ir_tree =
@@ -6195,9 +6182,9 @@ static u8 fuzz_one(char **argv) {
     // cerr << "Before preprocessing and validation, we have stmt: \n" << cur_ir_tree.back()->to_string() << "\n\n\n";
 
     /* 
-    ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph, 
+    ** Pre_Post_fix_transformation from the oracle across runs, build dependency, 
     ** fix ir node, fill in concret values, 
-    ** and transform from IR to multi-run strings.  
+    ** and transform from IR to strings.  
     */
     vector<string> query_str_vec, query_str_no_marks_vec;
 
@@ -6205,7 +6192,7 @@ static u8 fuzz_one(char **argv) {
 
     g_mutator.pre_validate(); // Reset global variables for query sequence. 
 
-    // pre_fix_transformation from the oracle. 
+    /* pre_fix_transformation from the oracle.  */
     vector<STMT_TYPE> stmt_type_vec;
     vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied. 
 
@@ -6215,12 +6202,10 @@ static u8 fuzz_one(char **argv) {
     // cerr << "Begin validate() \n\n\n";
     for (IR* cur_trans_stmt : all_pre_trans_vec) {
       if(!g_mutator.validate(cur_trans_stmt, false)) {
-        // Clean up. 
         // cerr << "Error: g_mutator.validate returns errors. \n";
         // cerr << "The current stmt is: " << cur_trans_stmt->to_string() << "\n\n\n";
         // cerr << "The whole query is: " << cur_root->to_string() << "\n\n\n";
         continue;
-        // goto abandon_entry;
       }
     }
 
@@ -6228,13 +6213,6 @@ static u8 fuzz_one(char **argv) {
     vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
 
     for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
-      // Join the post_transformed statements into the IR tree. Easier to free memory later. 
-      // IR* cur_run_root = cur_root->deep_copy();
-      // if(!g_mutator.finalize_transform(cur_run_root, all_post_trans_vec)){
-      //   cerr << "Error: g_mutator.finalize_transform() function return error. Abort current query sequence. \n";
-      //   FATAL("g_mutator.finalize_transform failed. ");
-      // }
-
       // Final step, transform IR tree to string. Add marker to important statements. 
       pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
       query_str_vec.push_back(query_str_pair.first);
@@ -6246,9 +6224,7 @@ static u8 fuzz_one(char **argv) {
     // }
     // cerr << "End\n\n\n";
 
-    // Clean up allocated resource. 
-    // post_trans_vec are all being appended to the IR tree. Free up cur_run_root should take care of them.
-    // cur_run_root->deep_drop();
+    /* Clean up allocated resource. */
     for (int i = 0; i < all_pre_trans_vec.size(); i++){
       all_pre_trans_vec[i]->deep_drop();
     }
@@ -6267,6 +6243,10 @@ static u8 fuzz_one(char **argv) {
       cur_ir_tree.back()->deep_drop();
     }
 
+    if (stop_soon) {
+      goto abandon_entry;
+    }
+
     if (query_str_vec[0] == "" || query_str_vec.size() == 0) {
       total_append_failed++;
       skip_count++;
@@ -6277,7 +6257,6 @@ static u8 fuzz_one(char **argv) {
       // cerr << "IR_STR is: " << query_str << endl;
       num_common_fuzz++;
       if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec)) {
-        // goto abandon_entry;
         continue;
       }
       stage_cur++;
@@ -6292,8 +6271,6 @@ static u8 fuzz_one(char **argv) {
   new_hit_cnt = queued_paths + unique_crashes;
 
   ret_val = 0;
-
-  //[modify] end
 
 abandon_entry:
 

@@ -1321,10 +1321,10 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
 
   unsigned long p_hash = hash(select);
 
-  if (norec_hash.find(p_hash) != norec_hash.end())
+  if (oracle_select_hash.find(p_hash) != oracle_select_hash.end())
     return;
 
-  norec_hash[p_hash] = true;
+  oracle_select_hash[p_hash] = true;
 
   string *new_select = new string(select);
 
@@ -1336,7 +1336,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
 
   if (this->dump_library) {
     std::ofstream f;
-    f.open("./norec-select", std::ofstream::out | std::ofstream::app);
+    f.open("./oracle-select", std::ofstream::out | std::ofstream::app);
     f << *new_select << endl;
     f.close();
   }
@@ -1677,13 +1677,16 @@ bool Mutator::fix_dependency(IR *root,
     cerr << "Trying to fix_dependency on stmt: " << root->to_string() << ". \n\n\n";
   }
 
-  /* Loop through the subqueries. From the most parent to the most child. (In the same query statement. )*/
+  /* Loop through the subqueries. From the most parent query to the most child query. (In the same query statement. )*/
   for (vector<IR*>& ordered_ir : ordered_all_subquery_ir) {
 
     /* First loop through all ir_to_fix, resolve all id_create_table_name and id_table_alias_name. */
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
+      /* This identifier_ is a naming placeholder that hold the newly defined table name. 
+      ** Can be used in CREATE TABLE statement. 
+      */
       if (ir->id_type_ == id_create_table_name) {
         ir->str_val_ = gen_id_name();
         v_create_table_names_single.push_back(ir->str_val_);
@@ -1696,14 +1699,16 @@ bool Mutator::fix_dependency(IR *root,
         if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
           string new_alias_str = gen_alias_name();
           alias_ir->str_val_ = new_alias_str;
-          // v_alias_names_single.push_back(new_alias_str);
-          // m_table2alias_single[ir->str_val_].push_back(new_alias_str);
           visited.insert(alias_ir);
           if (is_debug_info) {
             cerr << "Dependency: In id_create_table_name, we save alias_name: " << new_alias_str << ". \n\n\n";
           }
         }
       } else if (ir->id_type_ == id_create_table_name_with_tmp) {
+        /* This is a newly created name used in the WITH clause. 
+        ** WITH clause defined tmp names, used by only the one statement. 
+        ** Thus, we only save this table_name in this single statement, don't save it into v_table_names or m_tables. 
+        */
         ir->str_val_ = gen_id_name();
         v_create_table_names_single_with_tmp.push_back(ir->str_val_);
         visited.insert(ir);
@@ -1728,7 +1733,10 @@ bool Mutator::fix_dependency(IR *root,
       IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
 
       if (ir->id_type_ == id_top_table_name) {
+        /* This is the place to reference prevous defined table names. Used in FROM clause etc. */
         if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0 || v_create_table_names_single_with_tmp.size() != 0) {
+          
+          /* In 3/10 chances, we use the table name defined in the WITH clause. */
           if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 30) {
             IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
             if (is_debug_info) {
@@ -1757,10 +1765,16 @@ bool Mutator::fix_dependency(IR *root,
               cerr << "Dependency: In id_top_table_name, we used v_create_table_names_single: " << ir->str_val_ << ". \n\n\n";
             }
 
+          /* If not using table_name defined in the WITH clause, then we randomly pick one table that is previsouly defined. */
           } else if (v_table_names.size()) {
             ir->str_val_ = v_table_names[get_rand_int(v_table_names.size())];
             v_table_names_single.push_back(ir->str_val_);
             visited.insert(ir);
+          
+          /* 
+          ** If we cannot find any previously defined table_names,  
+          ** well, this is unexpected. see if we have table_names that is just defined in this stmt. 
+          */
           } else {
             ir->str_val_ = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
             v_table_names_single.push_back(ir->str_val_);  /* Should we expose it to v_table_name_single? */
@@ -1771,7 +1785,7 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: In id_top_table_name, we used table_name: " << ir->str_val_ << ". \n\n\n";
           }
 
-          // Take care of the alias, if any. 
+          /* Take care of the alias, if any.  */
           IR* alias_ir = p_oracle->ir_wrapper.get_alias_iden_from_tablename_iden(ir);
           if (alias_ir != nullptr && alias_ir->id_type_ == id_table_alias_name) {
             string new_alias_str = gen_alias_name();
@@ -1784,7 +1798,7 @@ bool Mutator::fix_dependency(IR *root,
               cerr << "Dependency: In id_top_table_name, for table_name: " << ir->str_val_ << ", we generate alias name: " << new_alias_str << ". \n\n\n";
             }
           }
-        } else {
+        } else {  // if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0 || v_create_table_names_single_with_tmp.size() != 0)
           if (is_debug_info) {
             cerr << "Dependency Error: In id_top_table_name, couldn't find any v_table_names saved. \n\n\n";
           }
@@ -1801,7 +1815,11 @@ bool Mutator::fix_dependency(IR *root,
       IRTYPE cur_stmt_type = p_oracle->ir_wrapper.get_cur_stmt_type(ir);
 
       if (ir->id_type_ == id_table_name) {
+        /* id_table_name is used in the actual operations, for example, the table_names in the WHERE clause. 
+        ** Normally, if we encounter id_table_name, there have been id_top_table_name defined in the FROM clause etc. 
+        */
         if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 30) {
+          /* In 3/10 chances, we use the table name defined in the WITH clause. */
           IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
           if (is_debug_info) {
             if (with_clause_ir != NULL) {
@@ -1829,6 +1847,7 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: In id_table_name, we used v_create_table_names_single_with_tmp: " << ir->str_val_ << ". \n\n\n";
           }
         } else if (v_table_names_single.size() != 0 ) {
+          /* Check whether there are previous defined id_top_table_name. */
           string tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
           ir->str_val_ = tablename_str;
           visited.insert(ir);
@@ -1836,6 +1855,9 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: In id_table_name, we used v_table_names_single: " << ir->str_val_ << ". \n\n\n";
           }
         } else if (v_table_names.size() != 0) {
+          /* Well, this is unexpected. No id_top_table_name defined. 
+          ** Then, we have to fetched table_name defined in the previous statment. 
+          */
           string tablename_str = v_table_names[get_rand_int(v_table_names.size())];
           ir->str_val_ = tablename_str;
           v_table_names_single.push_back(tablename_str);
@@ -1844,6 +1866,9 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: In id_table_name, while v_table_name_single is empty, we used table_name: " << ir->str_val_ << ". \n\n\n";
           }
         } else if (v_create_table_names_single.size() != 0) {
+          /* This is unexpected. 
+          ** If cannot find any table name defined before. Then see if we can find newly created table_name in this specific stmt. 
+          */
           string tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
           ir->str_val_ = tablename_str;
           v_table_names_single.push_back(tablename_str);
@@ -1853,6 +1878,7 @@ bool Mutator::fix_dependency(IR *root,
           }
         } 
         else {
+          /* :-( Well, we found nothing for id_table_name. Give up. Generate a new one, and fill in. Most likely a semantic error in the SQL. */
           if (is_debug_info) {
             cerr << "Dependency Error: In id_table_name, couldn't find any v_table_names, v_table_name_single and v_create_table_name_single saved. \n\n\n";
           }
@@ -1866,7 +1892,7 @@ bool Mutator::fix_dependency(IR *root,
     for (auto ir : ordered_ir) {
       if (visited.find(ir) != visited.end()) {continue;}
 
-      // There is only one case of id_create_index_name, that is in the CREATE INDEX statement. 
+      /* There is only one case of id_create_index_name, that is in the CREATE INDEX statement. */
       if (ir->id_type_ == id_create_index_name) {
         if (v_create_table_names_single.size() == 0 && v_table_names_single.size() == 0) {
           if (is_debug_info) {
@@ -1875,6 +1901,7 @@ bool Mutator::fix_dependency(IR *root,
           ir->str_val_ = gen_index_name();
           continue;
         }
+        /* Find the table_name that we want to create index for. */
         string tablename_str = "";
         if (v_create_table_names_single.size() > 0) {
           tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
@@ -1900,8 +1927,12 @@ bool Mutator::fix_dependency(IR *root,
           continue;
         }
 
+        /* Find the table_name that we want to create columns for. */
         string tablename_str = "";
         bool is_with_clause = false;
+        /* Column named defined in the WITH clause. These column name is tmp. Will remove immediately after this stmt ends. 
+        ** Thus, we create them, but do not save into m_tables. 
+        */
         if (ir->id_type_ == id_create_column_name_with_tmp) {
           if (v_create_table_names_single_with_tmp.size() == 0) {
             if (is_debug_info) {
@@ -1910,18 +1941,23 @@ bool Mutator::fix_dependency(IR *root,
               continue;
             }
           }
-          // IR* table_name_identifier_ = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, id_create_table_name_with_tmp);
-          // tablename_str = table_name_identifier_->str_val_;
           is_with_clause = true;
         }
+        /* Normal create column stmt. Find table name using v_create_table_names_single. 
+        ** Most of the time, one CREATE TABLE statement or ALTER stmt only have one table name defined. 
+        ** Thus using v_create_table_names_single should be fine. 
+        */
         else if (v_create_table_names_single.size() > 0) {
           tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
         } 
-        
+        /* If we cannot find any newly created table_names, then check the table_names used in this stmt. 
+        ** Could happens in ALTER stmt. 
+        */
         else {
           tablename_str = v_table_names_single[get_rand_int(v_table_names_single.size())];
         }
 
+        /* This is a special case for using column. We can directly fill in random defined column_name. Mostly for debug purpose. */
         if (ir->id_type_ == id_top_column_name && v_table_names.size() != 0) {
           string random_tablename_str = vector_rand_ele(v_table_names);
           vector<string> random_column_vec = m_tables[random_tablename_str];
@@ -1936,15 +1972,16 @@ bool Mutator::fix_dependency(IR *root,
           }
         }
         
+        /* For actual id_create_column_name, used in most create table or alter statements. */
         string new_columnname_str = gen_column_name();
         ir->str_val_ = new_columnname_str;
 
-        /* Save the WITH clause created column name into a tmp vector. This column name can be used directly in the current query. */
+        /* Save the WITH clause created column name into a tmp vector. This column name can be used directly without referencing its table names in the current query. */
         if (is_with_clause) {
           v_create_column_names_single_with_tmp.push_back(new_columnname_str);
         } 
         else {
-        /* In normal column name creation. Just append it to the m_tables for future usage. */
+        /* In normal column name creation. Just append it to the m_tables for future statements usage. */
           m_tables[tablename_str].push_back(new_columnname_str);
         }
         
@@ -1977,7 +2014,11 @@ bool Mutator::fix_dependency(IR *root,
           continue;
         }
 
-        /* Special handling for the UPDATE stmt. */
+        /* Special handling for the UPDATE stmt. 
+        ** We cannot use alias.column name in the UPDATE stmt. 
+        ** Thus, we have to manually fetch which table_name we are referring to, 
+        ** and updates the column name based on the table_name mentioned. 
+        */
         if (cur_stmt_type == kUpdateStatement) {
           IR* update_stmt_node = p_oracle->ir_wrapper.get_stmt_ir_from_child_ir(ir);
           IR* qualified_table_name_ = update_stmt_node->left_->left_->left_->left_->right_;
@@ -2002,6 +2043,8 @@ bool Mutator::fix_dependency(IR *root,
         if (is_debug_info) {
           cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
         }
+
+        /* Do not use column name defined in WITH clause, in the UPDATE or ALTER stmt. */
         if (
               (
                 v_create_column_names_single_with_tmp.size() != 0 && 
@@ -2023,6 +2066,7 @@ bool Mutator::fix_dependency(IR *root,
         } else {
           tablename_str = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
         }
+
         if (
           p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateVirtualTableStatement ||
           p_oracle->ir_wrapper.get_cur_stmt_type(ir) == kCreateTriggerStatement
@@ -2156,7 +2200,7 @@ bool Mutator::fix_dependency(IR *root,
         
       }
 
-      // TODO:: Fix id_pragma_value. Do we need to take care of that? 
+      /* Fixing for the id_pragma_name. */
       if (ir->id_type_ == id_pragma_name) {
         int lib_size = cmds_.size();
         if (lib_size != 0) {
@@ -2728,6 +2772,7 @@ void Mutator::reset_database_single_stmt() {
   v_create_table_names_single.clear();
   v_alias_names_single.clear();
   m_table2alias_single.clear();
+
   m_tables_with_tmp.clear();
   v_create_table_names_single_with_tmp.clear();
   v_create_column_names_single_with_tmp.clear();
@@ -2793,8 +2838,8 @@ Program *Mutator::parser(const char *sql) {
 }
 
 // Return use_temp or not.
-bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
-  /* For 1/2 chance, grab one query from the norec library, and return.
+bool Mutator::get_valid_str_from_lib(string &ori_oracle_select) {
+  /* For 1/2 chance, grab one query from the oracle library, and return.
    * For 1/2 chance, take the template from the p_oracle and return.
    */
   bool is_succeed = false;
@@ -2806,23 +2851,23 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
       /* Pick the query from the lib, pass to the mutator. */
       if (use_cri_val && all_cri_valid_pstr_vec.size() > 0 &&
           get_rand_int(3) < 2) {
-        ori_norec_select = *(all_cri_valid_pstr_vec[get_rand_int(
+        ori_oracle_select = *(all_cri_valid_pstr_vec[get_rand_int(
             all_cri_valid_pstr_vec.size())]);
       } else {
-        ori_norec_select =
+        ori_oracle_select =
             *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       }
-      if (ori_norec_select == "" ||
-          !p_oracle->is_oracle_valid_stmt(ori_norec_select))
+      if (ori_oracle_select == "" ||
+          !p_oracle->is_oracle_valid_stmt(ori_oracle_select))
         {continue;}
       use_temp = false;
     } else {
       /* Pick the query from the template, pass to the mutator. */
-      ori_norec_select = p_oracle->get_temp_valid_stmts();
+      ori_oracle_select = p_oracle->get_temp_valid_stmts();
       use_temp = true;
     }
 
-    trim_string(ori_norec_select);
+    trim_string(ori_oracle_select);
     return use_temp;
   }
   fprintf(stderr, "*** FATAL ERROR: Unexpected code execution in the "

@@ -184,7 +184,7 @@ private:
   map<NODETYPE, vector<pair<string *, int>>> left_lib_set;
   map<NODETYPE, vector<pair<string *, int>>> right_lib_set;
 
-  map<unsigned long, bool> norec_hash;
+  map<unsigned long, bool> oracle_select_hash;
 
   set<string *> all_query_pstr_set;
   vector<string *> all_valid_pstr_vec;
