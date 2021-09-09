@@ -363,7 +363,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
   int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
   new_stmt_ir = get_from_libary_with_type(kStatement);
-  if (new_stmt_ir == nullptr) {
+  if (new_stmt_ir == nullptr && new_stmt_ir->left_ == nullptr) {
     cur_root->deep_drop();
     return res_vec;
   }
