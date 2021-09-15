@@ -1737,28 +1737,31 @@ bool Mutator::fix_dependency(IR *root,
         if (v_table_names.size() != 0 || v_create_table_names_single.size() != 0 || v_create_table_names_single_with_tmp.size() != 0) {
           
           /* In 3/10 chances, we use the table name defined in the WITH clause. */
-          if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 30) {
-            IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
-            if (is_debug_info) {
-              if (with_clause_ir != NULL) {
-                cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
-              }
-            }
-            vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
-            if (is_debug_info) {
-              cerr << "Dependency: found all_with_table_name_declared: \n";
-              for (IR* cur_iter: all_with_table_name_declared) {
-                cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
-              }
-            }
-            if (all_with_table_name_declared.size() != 0) {
-              ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
-            } else {
+          if (is_debug_info) {
+            cerr << "Dependency: v_create_table_names_single_with_tmp.size() is: " << v_create_table_names_single_with_tmp.size() << "\n\n\n";
+          }
+          if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 100) {
+            // IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
+            // if (is_debug_info) {
+            //   if (with_clause_ir != NULL) {
+            //     cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
+            //   }
+            // }
+            // vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
+            // if (is_debug_info) {
+            //   cerr << "Dependency: found all_with_table_name_declared: \n";
+            //   for (IR* cur_iter: all_with_table_name_declared) {
+            //     cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
+            //   }
+            // }
+            // if (all_with_table_name_declared.size() != 0) {
+            //   ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
+            // } else {
               if (is_debug_info) {
                 cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
               }
               ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
-            }
+            // }
             // v_table_names_single.push_back(ir->str_val_);
             visited.insert(ir);
             if (is_debug_info) {
@@ -1818,29 +1821,32 @@ bool Mutator::fix_dependency(IR *root,
         /* id_table_name is used in the actual operations, for example, the table_names in the WHERE clause. 
         ** Normally, if we encounter id_table_name, there have been id_top_table_name defined in the FROM clause etc. 
         */
-        if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 30) {
+        if (is_debug_info) {
+          cerr << "Dependency: v_create_table_names_single_with_tmp.size() is: " << v_create_table_names_single_with_tmp.size() << "\n\n\n";
+        }
+        if (v_create_table_names_single_with_tmp.size() != 0 && cur_stmt_type != kUpdateStatement && get_rand_int(100) < 100) {
           /* In 3/10 chances, we use the table name defined in the WITH clause. */
-          IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
-          if (is_debug_info) {
-            if (with_clause_ir != NULL) {
-              cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
-            }
-          }
-          vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
-          if (is_debug_info) {
-              cerr << "Dependency: found all_with_table_name_declared: \n";
-              for (IR* cur_iter: all_with_table_name_declared) {
-                cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
-              }
-            }
-          if (all_with_table_name_declared.size() != 0) {
-            ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
-          } else {
-            if (is_debug_info) {
-              cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
-            }
+          // IR* with_clause_ir = p_oracle->ir_wrapper.find_closest_node_exclude_child(ir, kWithClause);
+          // if (is_debug_info) {
+          //   if (with_clause_ir != NULL) {
+          //     cerr << "Dependency: Found kWithClause: " << with_clause_ir->to_string() << "\n\n\n";
+          //   }
+          // }
+          // vector<IR*> all_with_table_name_declared = p_oracle->ir_wrapper.get_table_ir_in_with_clause(with_clause_ir);
+          // if (is_debug_info) {
+          //     cerr << "Dependency: found all_with_table_name_declared: \n";
+          //     for (IR* cur_iter: all_with_table_name_declared) {
+          //       cerr << "Dependency: found: " << cur_iter->to_string() << "\n";
+          //     }
+          //   }
+          // if (all_with_table_name_declared.size() != 0) {
+          //   ir->str_val_ = all_with_table_name_declared[get_rand_int(all_with_table_name_declared.size())]->left_->str_val_;
+          // } else {
+            // if (is_debug_info) {
+            //   cerr << "Dependency Error: Cannot find the create_table_names_single_with_tmp inside the kWithClause. \n\n\n";
+            // }
             ir->str_val_ = v_create_table_names_single_with_tmp[get_rand_int(v_create_table_names_single_with_tmp.size())];
-          }
+          // }
           // v_table_names_single.push_back(ir->str_val_);
           visited.insert(ir);
           if (is_debug_info) {
