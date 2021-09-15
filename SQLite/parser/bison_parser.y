@@ -2494,7 +2494,11 @@ with_clause:
                         if (tmp3) {
                             auto tmp_iden_ = tmp3->identifier_;
                             if (tmp_iden_) {
-                                tmp_iden_->id_type_ = id_create_table_name_with_tmp; 
+                                if(get_rand_int(100) < 50) {
+                                    tmp_iden_->id_type_ = id_create_table_name_with_tmp; 
+                                } else {
+                                    tmp_iden_->id_type_ = id_top_table_name;
+                                }
                             }
                         }
                         auto tmp4 = tmp2 -> opt_column_list_paren_;
@@ -2503,8 +2507,13 @@ with_clause:
                             if (tmp5) {
                                 for (auto tmp6 : tmp5->v_column_name_list_) {  // column_name_
                                     if (tmp6->identifier_col_) {
-                                        tmp6->sub_type_ = CASE0; // Enforce identifier_col_ only. Do not add identifier_tbl_ or '.'
-                                        tmp6->identifier_col_->id_type_ = id_create_column_name_with_tmp;
+                                        if (get_rand_int(100) < 80) {
+                                            tmp6->sub_type_ = CASE0; // Enforce identifier_col_ only. Do not add identifier_tbl_ or '.'
+                                            tmp6->identifier_col_->id_type_ = id_create_column_name_with_tmp;
+                                        } else {
+                                            tmp6->sub_type_ = CASE0; // Enforce identifier_col_ only. Do not add identifier_tbl_ or '.'
+                                            tmp6->identifier_col_->id_type_ = id_top_column_name;
+                                        }
                                     }
                                 }
                             }
