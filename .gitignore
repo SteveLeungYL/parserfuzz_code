@@ -11,6 +11,7 @@ SQLite/fuzz_root/fuzz_root*
 SQLite/fuzz_root/Bug_Analysis
 PostgreSQL/AFL/afl-fuzz
 MySQL/AFL/afl-fuzz
+SQLite/fuzz_root/TEST
 
 
 simplified_reports
