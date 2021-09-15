@@ -2083,8 +2083,13 @@ bool Mutator::fix_dependency(IR *root,
             cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kSelectStatement) 
-            {ir->str_val_ = aliasname_str + "." + column_str;}
+          if (cur_stmt_type == kSelectStatement) {
+            if (get_rand_int(100) < 10) {
+              ir->str_val_ = aliasname_str + ".ROWID";
+            } else {
+              ir->str_val_ = aliasname_str + "." + column_str;
+            }
+          }
           else {
             {ir->str_val_ = column_str;}
           }
@@ -2099,9 +2104,14 @@ bool Mutator::fix_dependency(IR *root,
           if (is_debug_info) {
             cerr << "Dependency: Getting cur_stmt_type: " << get_string_by_ir_type(cur_stmt_type) << " \n\n\n";
           }
-          /* Added alias_name before the column_name. Only for SelectStmt. */
-          if (cur_stmt_type == kSelectStatement) 
-            {ir->str_val_ = tablename_str + "." + column_str;}
+          /* If cannot find alias name for the table, directly add table_name before the column_name. Only for SelectStmt. */
+          if (cur_stmt_type == kSelectStatement) {
+            if (get_rand_int(100) < 10) {
+              ir->str_val_ = tablename_str + ".ROWID";
+            } else {
+              ir->str_val_ = tablename_str + "." + column_str;
+            }
+          }
           else {
             {ir->str_val_ = column_str;}
           }
