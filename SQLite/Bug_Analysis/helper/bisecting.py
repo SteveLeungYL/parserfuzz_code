@@ -1,7 +1,9 @@
+import os
 from Bug_Analysis.helper.version_control import VerCon
 from Bug_Analysis.helper.data_struct import BisectingResults, RESULT, log_out_line
 from Bug_Analysis.helper.executor import Executor
 from Bug_Analysis.helper.io import IO
+from Bug_Analysis.bi_config import UNIQUE_BUG_OUTPUT_DIR, LOG_OUTPUT_DIR
 
 
 class Bisect:
@@ -97,11 +99,26 @@ class Bisect:
                     is_commit_found = True
                     is_error_returned_from_exec = True
                     break
-                elif (rn_correctness == RESULT.FAIL_TO_COMPILE):
+                elif rn_correctness == RESULT.FAIL_TO_COMPILE:
                     cls.all_previous_compile_failure.append(current_commit_str)
                     newer_commit_str = current_commit_str
                     is_successfully_executed = False
                     is_commit_found = False
+
+                    fail_compiled_commits_file = os.path.join(
+                        LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
+                    )
+                    fail_compiled_commits = []
+                    if os.path.exists(fail_compiled_commits_file):
+                        with open(fail_compiled_commits_file, "r") as f:
+                            fail_compiled_commits = [
+                                commit.strip() for commit in f.readlines()
+                            ]
+
+                    if current_commit_str not in fail_compiled_commits:
+                        with open(fail_compiled_commits_file, "a") as f:
+                            f.write(current_commit_str + "\n")
+
                     break
                 else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as RESULT.FAIL.
                     newer_commit_str = current_commit_str
@@ -259,14 +276,14 @@ class Bisect:
             cls.all_unique_results_dict[current_commit_ID] = cls.uniq_bug_id_int
             current_bisecting_result.uniq_bug_id_int = cls.uniq_bug_id_int
             cls.uniq_bug_id_int += 1
-            return current_bisecting_result, False # Not duplicated results. 
+            return current_bisecting_result, False  # Not duplicated results.
         else:
             current_bug_id_int = cls.all_unique_results_dict[current_commit_ID]
             current_bisecting_result.uniq_bug_id_int = current_bug_id_int
-            return current_bisecting_result, True # Duplicated results. 
+            return current_bisecting_result, True  # Duplicated results.
 
     @classmethod
-    def run_bisecting(cls, queries_l, oracle, vercon):
+    def run_bisecting(cls, queries_l, oracle, vercon, current_file):
         log_out_line(
             "\n\n\nBeginning testing with query (sampled with only the first one): \n%s \n"
             % queries_l[0]
@@ -280,7 +297,17 @@ class Bisect:
                 current_bisecting_result
             )  # The unique bug id will be appended to current_bisecting_result when running cross_compare
             if not is_dup_commit:
-                IO.write_uniq_bugs_to_files(current_bisecting_result, oracle)
+                current_unique_bug_output = IO.write_uniq_bugs_to_files(
+                    current_bisecting_result, oracle
+                )
+                bug_map_path = os.path.join(UNIQUE_BUG_OUTPUT_DIR, "map.txt")
+                with open(bug_map_path, "a") as f:
+                    f.write(
+                        "{} {}\n".format(
+                            os.path.basename(current_unique_bug_output),
+                            os.path.basename(current_file),
+                        )
+                    )
         else:
             current_bisecting_result.uniq_bug_id_int = (
                 "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.

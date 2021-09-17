@@ -349,6 +349,8 @@ class IO:
 
         bug_output_file.close()
 
+        return current_unique_bug_output
+
     @classmethod
     def status_print(cls):
         # from Bug_Analysis.helper.bisecting import Bisect
