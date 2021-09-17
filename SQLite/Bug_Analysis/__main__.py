@@ -61,7 +61,9 @@ def main():
     )
     while True:
         # Read one file at a time.
-        all_new_queries, current_file_d = IO.read_queries_from_files(file_directory=QUERY_SAMPLE_DIR)
+        all_new_queries, current_file_d = IO.read_queries_from_files(
+            file_directory=QUERY_SAMPLE_DIR
+        )
         if all_new_queries == [] and current_file_d == "Done":
             print("Done")
             break
@@ -75,7 +77,22 @@ def main():
         ):
 
             continue
-        is_dup_commit = Bisect.run_bisecting(queries_l=all_new_queries, oracle=oracle, vercon=vercon)
+
+        start_time = time.time()
+        is_dup_commit = Bisect.run_bisecting(
+            queries_l=all_new_queries,
+            oracle=oracle,
+            vercon=vercon,
+            current_file=current_file_d,
+        )
+        end_time = time.time()
+        with open(os.path.join(UNIQUE_BUG_OUTPUT_DIR, "time.txt"), "a") as f:
+            f.write(
+                "{} {}\n".format(
+                    os.path.basename(current_file_d), end_time - start_time
+                )
+            )
+
         if is_dup_commit == True:
             IO.remove_file_from_abs_path(current_file_d)
 
