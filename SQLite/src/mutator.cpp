@@ -457,10 +457,19 @@ vector<IR *> Mutator::mutate(IR *input) {
   // if(!lucky_enough_to_be_mutated(input->mutated_times_)){
   //     return res; // return a empty set if the IR is not mutated
   // }
+  IR* tmp_input = NULL;
 
-  res.push_back(strategy_delete(input));
-  res.push_back(strategy_insert(input));
-  res.push_back(strategy_replace(input));
+  tmp_input = strategy_delete(input);
+  if (tmp_input != NULL)
+    {res.push_back(tmp_input);}
+
+  tmp_input = strategy_insert(input);
+  if (tmp_input != NULL)
+    {res.push_back(tmp_input);}
+
+  tmp_input = strategy_replace(input);
+  if (tmp_input != NULL)
+    {res.push_back(tmp_input);}
 
   // may do some simple filter for res, like removing some duplicated cases
 
@@ -983,6 +992,8 @@ IR *Mutator::strategy_replace(IR *cur) {
     if (res->left_ != NULL) {
       new_node->id_type_ = res->left_->id_type_;
     }
+  } else {
+    return NULL;
   }
   if (res->left_ != NULL)
     res->left_->deep_drop();
@@ -998,6 +1009,8 @@ IR *Mutator::strategy_replace(IR *cur) {
     if (res->right_ != NULL) {
       new_node->id_type_ = res->right_->id_type_;
     }
+  } else {
+    return NULL;
   }
   if (res->right_ != NULL)
     res->right_->deep_drop();
@@ -1015,12 +1028,16 @@ IR *Mutator::strategy_replace(IR *cur) {
     if (res->left_ != NULL) {
       new_left->id_type_ = res->left_->id_type_;
     }
+  } else {
+    return NULL;
   }
 
   if (new_right != NULL) {
     if (res->right_ != NULL) {
       new_right->id_type_ = res->right_->id_type_;
     }
+  } else {
+    return NULL;
   }
 
   if (res->left_)
@@ -1065,7 +1082,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
     if (current_ir_set.size() <= 0) {
       // cerr << "Error: with_type_ Parsing the saved string failed. str: " << *p_current_query_str << " !!!" << "\n\n\n";
-      return new IR(kStringLiteral, "");
+      return NULL;
     }
     current_ir_root = current_ir_set.back();
 
@@ -1076,7 +1093,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
       if (matched_ir_node->type_ != type_) {
         current_ir_root->deep_drop();
         // cerr << "Error: with_type_ Column type mismatched!!!" << "\n\n\n";
-        return new IR(kStringLiteral, "");
+        return NULL;
       }
       // return_matched_ir_node = matched_ir_node->deep_copy();
       return_matched_ir_node = matched_ir_node;
@@ -1086,14 +1103,13 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     current_ir_root->deep_drop();
 
     if (return_matched_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly with_type: with string: " <<
-      // return_matched_ir_node->to_string() << endl;
+      // cerr << "\n\n\nSuccessfuly with_type: with string: " << return_matched_ir_node->to_string() << endl;
       // cerr << "Retunning with_type_ ir_type: " << get_string_by_ir_type(type_) << " with node: " << return_matched_ir_node->to_string() << "\n\n\n";
       return return_matched_ir_node;
     }
   }
 
-  return new IR(kStringLiteral, "");
+  return NULL;
 }
 
 IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
@@ -1402,6 +1418,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   if (p_type != kProgram)
     ir_libary_2D_hash_[p_type].insert(p_hash);
 
+  // Update with_lib. 
   if (!is_skip_saving_current_node)
     real_ir_set[p_type].push_back(
         std::make_pair(p_query_str, current_unique_id));

@@ -125,6 +125,10 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
         break;
       }
 
+      if (new_mutated_ir_node == NULL) {
+        continue;
+      }
+
       if (!root->swap_node(mutate_ir_node, new_mutated_ir_node)) {
         new_mutated_ir_node->deep_drop();
         continue;
