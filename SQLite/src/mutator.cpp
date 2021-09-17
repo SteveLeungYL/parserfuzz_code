@@ -350,6 +350,8 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
 
+  // cerr << "Replacing rep_old_ir: " << rep_old_ir->to_string() << " to: " << new_stmt_ir->to_string() << ". \n\n\n";
+
   if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
     new_stmt_ir->deep_drop();
     cur_root->deep_drop();
@@ -370,6 +372,8 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
+
+  // cerr << "Inserting stmt: " << new_stmt_ir->to_string() << "\n\n\n";
 
   if(!p_oracle->ir_wrapper.append_stmt_after_idx(new_stmt_ir, insert_pos)) {
     new_stmt_ir->deep_drop();
