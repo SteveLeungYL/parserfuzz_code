@@ -2851,6 +2851,7 @@ void extract_query_result(const string &res, vector<string> &res_vec_out,
         res_vec_out.push_back(cur_res_str);
       }
     } else {
+      // cerr << "Failed to find END_SIGN for end_idx. \n\n\n";
       break; // For the current begin_idx, we cannot find the end_idx. Ignore
              // the current output.
     }
@@ -3148,7 +3149,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+  stream_output_res(all_comp_res, cerr);
 
   if (all_comp_res.final_res == ORA_COMP_RES::Fail) {
 

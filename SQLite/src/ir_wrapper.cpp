@@ -614,7 +614,7 @@ IR* IRWrapper::add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_ex
     // For Binary_op
     auto binary_op_ir = new IR(kBinaryOp, op_value);
 
-    auto new_expr_ir = new IR(kUnknown, OP0(), left_stmt_expr->deep_copy(), binary_op_ir);
+    auto new_expr_ir = new IR(kUnknown, OP2("(", ")"), left_stmt_expr->deep_copy(), binary_op_ir);
     new_expr_ir = new IR(kNewExpr, OP0(), new_expr_ir, right_stmt_expr->deep_copy());
 
     if (!ir_root->swap_node(ori_expr, new_expr_ir)) {

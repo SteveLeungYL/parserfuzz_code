@@ -543,25 +543,40 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
   vector<VALID_STMT_TYPE_TLP> v_valid_type;
   get_v_valid_type(res_out.cmd_str, v_valid_type);
 
+  if (v_valid_type.size() != res_out.v_res.size()) {
+    // cerr << "SQL_TLP::compare_results Error: The size of v_valid_type is not the same as res_out.v_res. \n\n\n";
+
+    /* Debug */
+    // cerr << "v_valid_type size is: " << v_valid_type.size() << " res_out.v_res size is: " << res_out.v_res.size() << " cmd: " << res_out.cmd_str
+    //      << " res: " << res_out.res_str 
+    //      << " \n\n\n";
+
+    for (COMP_RES &res : res_out.v_res) {
+      res.comp_res = ORA_COMP_RES::Error;
+    }
+    res_out.final_res = ORA_COMP_RES::ALL_Error;
+    return;
+  }
+
   int i = 0;
   for (COMP_RES &res : res_out.v_res) {
 
     switch (v_valid_type[i++]) {
-    case VALID_STMT_TYPE_TLP::NORM:
-      /* Handle normal valid stmt: SELECT * FROM ...; */
-      if (!compare_norm(res))
-        is_all_err = false;
-      break; // Break the switch
+      case VALID_STMT_TYPE_TLP::NORM:
+        /* Handle normal valid stmt: SELECT * FROM ...; */
+        if (!compare_norm(res))
+          is_all_err = false;
+        break; // Break the switch
 
-    case VALID_STMT_TYPE_TLP::UNIQ:
-      /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
-      if (!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::UNIQ))
-        is_all_err = false;
-      break; // Break the switch
+      case VALID_STMT_TYPE_TLP::UNIQ:
+        /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
+        if (!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::UNIQ))
+          is_all_err = false;
+        break; // Break the switch
 
-    default:
-      cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE_TLP. \n";
-      break;
+      default:
+        // cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE_TLP. \n";
+        break;
     } // Switch stmt.
     if (res.comp_res == ORA_COMP_RES::Fail)
       res_out.final_res = ORA_COMP_RES::Fail;
@@ -599,6 +614,7 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
       }
 
     } else {
+      // cerr << "Error: For the current begin_idx, we cannot find the end_idx. \n\n\n";
       break; // For the current begin_idx, we cannot find the end_idx. Ignore
              // the current output.
     }
@@ -653,8 +669,21 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
   if (cur_stmt->type_ == kStatement) {cur_stmt = cur_stmt->left_;}  // kStatement->kSelectStatement
 
   vector<IR*> trans_IR_vec;
-  IR* ori_ir_root = cur_stmt;
-  trans_IR_vec.push_back(ori_ir_root->deep_copy());
+  
+  /* Construct the original oracle stmt. Remove contents in the Where clause. */
+  IR* ori_ir_root = cur_stmt->deep_copy();
+  vector<IR*> v_ori_opt_where = ir_wrapper.get_ir_node_in_stmt_with_type(ori_ir_root, kOptWhere, false);
+  /* Just remove kWhereExpr in the parent query, not in the subqueries.
+  ** Thus, no nesting. 
+  */
+  for (IR* cur_opt_where : v_ori_opt_where) {
+    if (cur_opt_where->left_ != NULL) {
+      IR* where_expr_rov = cur_opt_where->left_;
+      ori_ir_root->detach_node(where_expr_rov);
+      where_expr_rov->deep_drop();
+    }
+  }
+  trans_IR_vec.push_back(ori_ir_root);
 
   // Construct the WHERE () IS TRUE stmt. 
   IR* cur_stmt_true = cur_stmt->deep_copy();
