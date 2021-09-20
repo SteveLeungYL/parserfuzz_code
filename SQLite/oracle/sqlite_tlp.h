@@ -11,7 +11,21 @@
 
 using namespace std;
 
-enum class VALID_STMT_TYPE_TLP { UNIQ, NORM };
+enum class VALID_STMT_TYPE_TLP { 
+  AGGR_MIN,  
+  AGGR_MAX,
+  AGGR_COUNT,
+  AGGR_SUM,
+  AGGR_AVG,
+  DISTINCT,
+  GROUP_BY,
+  HAVING,
+  NORMAL,
+  TLP_UNKNOWN,
+  // For results
+  UNIQ,
+  NORM
+};
 
 class SQL_TLP : public SQL_ORACLE {
 public:
@@ -41,8 +55,8 @@ private:
       // "SELECT x FROM x WHERE x HAVING x;", // TODO:: Implement HAVING.
       // "SELECT DISTINCT x FROM x WHERE x;",
       "SELECT MIN(x) FROM x WHERE x;", "SELECT MAX(x) FROM x WHERE x;",
-      "SELECT SUM(x) FROM x WHERE x;", "SELECT COUNT(x) FROM x WHERE x;"
-      // "SELECT AVG(x) FROM x WHERE x;"
+      "SELECT SUM(x) FROM x WHERE x;", "SELECT COUNT(x) FROM x WHERE x;",
+      "SELECT AVG(x) FROM x WHERE x;"
   };
 
   void rewrite_where(string &ori, string &rew_1, const string &bef_sel_stmt,
@@ -58,6 +72,9 @@ private:
 
   void get_v_valid_type(const string &cmd_str,
                         vector<VALID_STMT_TYPE_TLP> &v_valid_type);
+
+  IR* transform_non_aggr(IR*, bool, VALID_STMT_TYPE_TLP);
+  IR* transform_aggr(IR*, bool, VALID_STMT_TYPE_TLP);
 
   /* Compare helper function */
   bool compare_norm(COMP_RES &res); /* Handle normal valid stmt: SELECT * FROM
@@ -77,7 +94,15 @@ private:
    */
   bool is_str_contains_aggregate(const string &input_str);
 
+  VALID_STMT_TYPE_TLP get_stmt_TLP_type(IR* cur_stmt);
+
   string oracle_type = "TLP";
+
+  string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (v0);";
+  string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (v0);";
+  string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (v0);";
+  string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (v0);";
+  string trans_outer_AVG_tmp_str = "SELECT AVG(aggr) FROM (v0);";
 };
 
 #endif

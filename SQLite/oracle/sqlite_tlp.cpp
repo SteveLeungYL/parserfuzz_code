@@ -530,9 +530,35 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
  * MAX(*) FROM ...;  */
 bool SQL_TLP::compare_sum_count_minmax(COMP_RES &res,
                                        VALID_STMT_TYPE_TLP valid_type) {
+  string &res_a = res.res_str_0;
+  string &res_b = res.res_str_1;
+  int &res_a_int = res.res_int_0;
+  int &res_b_int = res.res_int_1;
 
-  res.comp_res = ORA_COMP_RES::IGNORE;
-  return true;
+  if (res_a.find("Error") != string::npos ||
+      res_b.find("Error") != string::npos) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
+  try {
+    res_a_int = stoi(res.res_str_0);
+    res_b_int = stoi(res.res_str_1);
+  } catch (std::invalid_argument &e) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  } catch (std::out_of_range &e) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
+  if (res_a_int != res_b_int) {
+    res.comp_res = ORA_COMP_RES::Fail;
+  } else {
+    res.comp_res = ORA_COMP_RES::Pass;
+  }
+
+  return false;
 }
 
 void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
@@ -544,13 +570,6 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
   get_v_valid_type(res_out.cmd_str, v_valid_type);
 
   if (v_valid_type.size() != res_out.v_res.size()) {
-    // cerr << "SQL_TLP::compare_results Error: The size of v_valid_type is not the same as res_out.v_res. \n\n\n";
-
-    /* Debug */
-    // cerr << "v_valid_type size is: " << v_valid_type.size() << " res_out.v_res size is: " << res_out.v_res.size() << " cmd: " << res_out.cmd_str
-    //      << " res: " << res_out.res_str 
-    //      << " \n\n\n";
-
     for (COMP_RES &res : res_out.v_res) {
       res.comp_res = ORA_COMP_RES::Error;
     }
@@ -601,12 +620,11 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
       begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", begin_idx + 23);
       end_idx = cmd_str.find("SELECT 'END VERI 0';", end_idx + 21);
 
-      if (findStringIn(cur_cmd_str, "MIN") ||
-          findStringIn(cur_cmd_str, "MAX") ||
-          findStringIn(cur_cmd_str, "SUM") ||
-          findStringIn(cur_cmd_str, "COUNT") ||
-          findStringIn(cur_cmd_str, "GROUP BY") ||
-          findStringIn(cur_cmd_str, "AVG")) {
+      if (findStringIn(cur_cmd_str, "SELECT MIN") ||
+          findStringIn(cur_cmd_str, "SELECT MAX") ||
+          findStringIn(cur_cmd_str, "SELECT SUM") ||
+          findStringIn(cur_cmd_str, "SELECT COUNT") ||
+          findStringIn(cur_cmd_str, "SELECT AVG")) {
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::UNIQ);
       } else {
         v_valid_type.push_back(VALID_STMT_TYPE_TLP::NORM);
@@ -651,14 +669,162 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
   }
 
   if (
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false) &&
+    cur_IR->type_ == kSelectStatement &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false)
-    // ir_wrapper.get_num_result_column_in_select_clause(cur_IR) == 1
+    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kWhereExpr, false) &&
+    ir_wrapper.get_num_result_column_in_select_clause(cur_IR) == 1 &&
+    ir_wrapper.get_num_selectcore(cur_IR) == 1
   ) {
     return true;
   }
   return false;
+}
+
+/* 
+** Transform original stmt to TLP form. This function is used for SELECT stmt WITH aggregate functions
+** in the SELECT clause. 
+** cur_stmt need to be freed outside this function. 
+*/
+IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
+  bool is_avg_aggr = false;
+  cur_stmt = cur_stmt->deep_copy();
+
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFunctionName, false);
+  if (v_aggr_func_ir.size() == 0) {
+    cur_stmt->deep_drop();
+    return NULL;
+  }
+  if (v_aggr_func_ir[0]->left_ == NULL) {
+    cur_stmt->deep_drop();
+    return NULL;
+  }
+
+  if (
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT || 
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX || 
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN
+  ) {
+    IR* alias_id = new IR(kIdentifier, "aggr", id_alias_name);
+    IR* res = new IR(kColumnAlias, OP1("AS"), alias_id);
+    IR* result_column_ir = ir_wrapper.get_result_column_in_select_clause_in_select_stmt(cur_stmt, 0);
+    IR* ori_opt_column_ir = result_column_ir->right_;
+    cur_stmt->swap_node(ori_opt_column_ir, res);
+    ori_opt_column_ir->deep_drop();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_AVG) {
+
+    vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_stmt);
+    if (v_result_column_list.size() == 0) {
+      cur_stmt->deep_drop();
+      return NULL;
+    }
+    IR* ori_result_column_list = v_result_column_list[0];
+
+    /* For SUM(...) AS s */
+    if (!(
+      ori_result_column_list->left_ != NULL &&  // result_column_list -> result_column
+      ori_result_column_list->left_ ->left_ != NULL  && // result_column_list -> result_column -> expr_
+      ori_result_column_list->left_ ->left_ ->left_ != NULL &&
+      ori_result_column_list->left_ ->left_ ->left_ ->type_ == kFunctionName
+    )) {
+      cur_stmt->deep_drop();
+      return NULL;
+    }
+    IR* ori_result_column_expr_ = ori_result_column_list->left_ ->left_;
+
+    IR* alias_id_0 = new IR(kIdentifier, "s", id_alias_name);
+    IR* column_alias_0 = new IR(kColumnAlias, OP1("AS"), alias_id_0);
+    /* Change the aggr function from AVG to SUM. Then Deep Copy. */
+    v_aggr_func_ir[0]->left_->str_val_ = "SUM";
+    IR* new_result_column_0 = new IR(kResultColumn, OP0(), ori_result_column_expr_->deep_copy(), column_alias_0);
+
+    IR* alias_id_1 = new IR(kIdentifier, "c", id_alias_name);
+    IR* column_alias_1 = new IR(kColumnAlias, OP1("AS"), alias_id_1);
+    /* Change the aggr function from AVG to COUNT. Then Deep Copy. */
+    v_aggr_func_ir[0]->left_->str_val_ = "COUNT";
+    IR* new_result_column_1 = new IR(kResultColumn, OP0(), ori_result_column_expr_->deep_copy(), column_alias_1);
+
+    /* Chain the two result_column clause. */
+    IR * new_result_column_list = new IR(kResultColumnList, OP0(), new_result_column_0);
+    new_result_column_list = new IR(kResultColumnList, OPMID(","),  new_result_column_list, new_result_column_1);
+
+    /* replace the original result_column_list */
+    cur_stmt->swap_node(ori_result_column_list, new_result_column_list);
+
+    is_avg_aggr = true;
+
+  } else {
+    cur_stmt->deep_drop();
+    return NULL;
+  }
+
+  IR* cur_stmt_inner = transform_non_aggr(cur_stmt, is_UNION_ALL, tlp_type);
+  /* Finished generating inner stmt. Deep drop. */
+  cur_stmt->deep_drop();
+
+  /* Fill in SELECT AGGR(aggr) from (inner stmt) */
+  IR* cur_stmt_outer;
+  if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_SUM_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MIN_tmp_str).back(); 
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MAX_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_AVG) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_AVG_tmp_str).back();
+  }
+
+  IR* ori_outer_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_outer, kTableOrSubquery, false)[0];
+
+  cur_stmt_outer->swap_node(ori_outer_expr, cur_stmt_inner);
+  ori_outer_expr->deep_drop();
+
+  return cur_stmt_outer;
+}
+
+
+/* 
+** Transform original stmt to TLP form. This function is used for SELECT stmt without aggregate functions
+** in the SELECT clause. 
+** cur_stmt need to be freed outside this function. 
+*/
+IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
+  // Construct the WHERE () IS TRUE stmt. 
+  IR* cur_stmt_true = cur_stmt->deep_copy();
+  ir_wrapper.set_ir_root(cur_stmt_true);
+  IR* expr_in_where_true = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_true, kWhereExpr, false)[0]->left_;
+  IR* true_str_ir = new IR(kNumericLiteral, string("TRUE"));
+  IR* istrue_clause_ir = new IR(kNewExpr, OP0(), true_str_ir);
+  ir_wrapper.add_binary_op(expr_in_where_true, expr_in_where_true, istrue_clause_ir, string("IS"), false, true);
+
+  // Construct the WHERE () IS FALSE stmt. 
+  IR* cur_stmt_false = cur_stmt->deep_copy();
+  ir_wrapper.set_ir_root(cur_stmt_false);
+  IR* expr_in_where_false = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_false, kWhereExpr, false)[0]->left_;
+  IR* false_str_ir = new IR(kNumericLiteral, string("FALSE"));
+  IR* isfalse_clause_ir = new IR(kNewExpr, OP0(), false_str_ir);
+  ir_wrapper.add_binary_op(expr_in_where_false, expr_in_where_false, isfalse_clause_ir, string("IS"), false, true);
+
+  // Construct the WHERE () IS NULL stmt. 
+  IR* cur_stmt_null = cur_stmt->deep_copy();
+  ir_wrapper.set_ir_root(cur_stmt_null);
+  IR* expr_in_where_null = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_null, kWhereExpr, false)[0]->left_;
+  IR* null_str_ir = new IR(kNullLiteral, string("NULL"));
+  IR* isnull_clause_ir = new IR(kNewExpr, OP0(), null_str_ir);
+  ir_wrapper.add_binary_op(expr_in_where_null, expr_in_where_null, isnull_clause_ir, string("IS"), false, true);
+
+  cur_stmt = cur_stmt_true;
+  if (is_UNION_ALL) {
+    ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_false, "UNION ALL", false, true);
+    ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_null, "UNION ALL", false, true);
+  } else {
+    ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_false, "UNION", false, true);
+    ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_null, "UNION", false, true);
+  }
+
+  return cur_stmt;
 }
 
 vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {
@@ -685,34 +851,106 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
   }
   trans_IR_vec.push_back(ori_ir_root);
 
-  // Construct the WHERE () IS TRUE stmt. 
-  IR* cur_stmt_true = cur_stmt->deep_copy();
-  ir_wrapper.set_ir_root(cur_stmt_true);
-  IR* expr_in_where_true = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_true, kWhereExpr, false)[0]->left_;
-  IR* true_str_ir = new IR(kNumericLiteral, string("TRUE"));
-  IR* istrue_clause_ir = new IR(kNewExpr, OP0(), true_str_ir);
-  ir_wrapper.add_binary_op(expr_in_where_true, expr_in_where_true, istrue_clause_ir, string("IS"), false, true);
+  VALID_STMT_TYPE_TLP cur_stmt_TLP_type = get_stmt_TLP_type(cur_stmt);
+  if (cur_stmt_TLP_type == VALID_STMT_TYPE_TLP::TLP_UNKNOWN) {
+    ori_ir_root->deep_drop();
+    trans_IR_vec.clear();
+    return trans_IR_vec;
+  }
 
-  // Construct the WHERE () IS FALSE stmt. 
-  IR* cur_stmt_false = cur_stmt->deep_copy();
-  ir_wrapper.set_ir_root(cur_stmt_false);
-  IR* expr_in_where_false = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_false, kWhereExpr, false)[0]->left_;
-  IR* false_str_ir = new IR(kNumericLiteral, string("FALSE"));
-  IR* isfalse_clause_ir = new IR(kNewExpr, OP0(), false_str_ir);
-  ir_wrapper.add_binary_op(expr_in_where_false, expr_in_where_false, isfalse_clause_ir, string("IS"), false, true);
+  switch (cur_stmt_TLP_type) {
+    case VALID_STMT_TYPE_TLP::AGGR_AVG: {
+      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
+      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::AGGR_MAX: {
+      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::AGGR_MIN: {
+      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::AGGR_SUM: {
+      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::DISTINCT: {
+      IR* transformed_stmt = transform_non_aggr(cur_stmt, false, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::HAVING: {
+      IR* transformed_stmt = transform_non_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::GROUP_BY: {
+      IR* transformed_stmt = transform_non_aggr(cur_stmt, false, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    case VALID_STMT_TYPE_TLP::NORMAL: {
+      IR* transformed_stmt = transform_non_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
+    default:
+      ori_ir_root->deep_drop();
+      trans_IR_vec.clear();
+      return trans_IR_vec;
+  }
+  if (trans_IR_vec[1] != NULL) {
+    return trans_IR_vec;
+  }
+  else {
+    ori_ir_root->deep_drop();
+    trans_IR_vec.clear();
+    return trans_IR_vec;
+  }
+}
 
-  // Construct the WHERE () IS NULL stmt. 
-  IR* cur_stmt_null = cur_stmt->deep_copy();
-  ir_wrapper.set_ir_root(cur_stmt_null);
-  IR* expr_in_where_null = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_null, kWhereExpr, false)[0]->left_;
-  IR* null_str_ir = new IR(kNullLiteral, string("NULL"));
-  IR* isnull_clause_ir = new IR(kNewExpr, OP0(), null_str_ir);
-  ir_wrapper.add_binary_op(expr_in_where_null, expr_in_where_null, isnull_clause_ir, string("IS"), false, true);
+VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
+  VALID_STMT_TYPE_TLP default_type_ = VALID_STMT_TYPE_TLP::NORMAL;
 
-  cur_stmt = cur_stmt_true;
-  ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_false, "UNION ALL", false, true);
-  ir_wrapper.combine_stmt_in_selectcore(cur_stmt, cur_stmt_null, "UNION ALL", false, true);
+  vector<IR*> v_opt_distinct = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptDistinct, false);
+  for (IR* opt_distinct : v_opt_distinct) {
+    if (opt_distinct->str_val_ == "DISTINCT") {
+      default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
+    }
+  }
 
-  trans_IR_vec.push_back(cur_stmt);
-  return trans_IR_vec;
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFunctionName, false);
+  if (v_aggr_func_ir.size() == 0) {
+    return default_type_;
+  }
+  if (v_aggr_func_ir[0]->left_ == NULL) {
+    return default_type_;
+  }
+
+  /* Has aggr function. */
+  string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
+  if (aggr_func_str == "MIN" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+    return VALID_STMT_TYPE_TLP::AGGR_MIN;
+  } else if (aggr_func_str == "MAX" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT){
+    return VALID_STMT_TYPE_TLP::AGGR_MAX;
+  } else if (aggr_func_str == "COUNT" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+    return VALID_STMT_TYPE_TLP::AGGR_COUNT;
+  } else if (aggr_func_str == "SUM" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+    return VALID_STMT_TYPE_TLP::AGGR_SUM;
+  } else if (aggr_func_str == "AVG" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+    return VALID_STMT_TYPE_TLP::AGGR_AVG;
+  } else {
+    return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+  }
+
 }

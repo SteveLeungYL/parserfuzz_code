@@ -551,10 +551,14 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
       post_trans_stmt_vec = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_ir, run_count); // All deep_copied
     } else if (is_oracle_select) {
       post_trans_stmt_vec = p_oracle->post_fix_transform_select_stmt(cur_pre_trans_ir, run_count); // All deep_copied
+    } else {
+      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
     }
     
     if (post_trans_stmt_vec.size() == 0){
       post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
+      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
+      // continue;
     }
     all_post_trans_vec.push_back(post_trans_stmt_vec);
   }

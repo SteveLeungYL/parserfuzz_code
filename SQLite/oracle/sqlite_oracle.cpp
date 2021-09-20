@@ -217,7 +217,7 @@ int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
 }
 
 bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
-  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kSelectStatement, false)) {
+  if (cur_IR->type_ == kSelectStatement) {
     return true;
   }
   return false;
