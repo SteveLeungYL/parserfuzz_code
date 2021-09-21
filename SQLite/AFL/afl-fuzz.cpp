@@ -5567,7 +5567,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
   /* Queue size could be overwhelmed if we disable feedbacks with randomly saved queries or completely save all queries. 
   ** In these cases, we clean the queue if q_len exceed 10000. 
   */
-  if (disable_coverage_feedback > 1 && q_len >= 10000) {
+  if (disable_coverage_feedback > 1 && q_len >= 1000) {
     destroy_half_queue();
   }
 
