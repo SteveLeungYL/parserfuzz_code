@@ -550,6 +550,9 @@ bool SQL_TLP::compare_sum_count_minmax(COMP_RES &res,
   } catch (std::out_of_range &e) {
     res.comp_res = ORA_COMP_RES::Error;
     return true;
+  } catch (const std::exception& e) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
   }
 
   if (res_a_int != res_b_int) {

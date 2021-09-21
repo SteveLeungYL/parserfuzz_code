@@ -414,6 +414,8 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
     } catch (std::out_of_range &e) {
       res.comp_res = ORA_COMP_RES::Error;
       continue;
+    } catch (const std::exception& e) {
+      continue;
     }
     is_all_err = false;
     if (res.res_int_0 != res.res_int_1) { // Found mismatched.
