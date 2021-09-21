@@ -991,16 +991,20 @@ IR *Mutator::strategy_replace(IR *cur) {
 
   DOLEFT
   res = cur->deep_copy();
-  if (res->left_ == NULL)
-    break;
+  if (res->left_ == NULL){
+    res->deep_drop();
+    return NULL;
+  }
 
   auto new_node = get_from_libary_with_type(res->left_->type_);
 
-  if (new_node != NULL) {
-    if (res->left_ != NULL) {
-      new_node->id_type_ = res->left_->id_type_;
-    }
+  if (new_node != NULL && res->left_ != NULL) {
+    new_node->id_type_ = res->left_->id_type_;
   } else {
+    res->deep_drop();
+    if (new_node != NULL) {
+      new_node->deep_drop();
+    }
     return NULL;
   }
   if (res->left_ != NULL)
@@ -1009,15 +1013,19 @@ IR *Mutator::strategy_replace(IR *cur) {
 
   DORIGHT
   res = cur->deep_copy();
-  if (res->right_ == NULL)
-    break;
+  if (res->right_ == NULL) {
+    res->deep_drop();
+    return NULL;
+  }
 
   auto new_node = get_from_libary_with_type(res->right_->type_);
-  if (new_node != NULL) {
-    if (res->right_ != NULL) {
-      new_node->id_type_ = res->right_->id_type_;
-    }
+  if (new_node != NULL && res->right_ != NULL) {
+    new_node->id_type_ = res->right_->id_type_;
   } else {
+    res->deep_drop();
+    if (new_node != NULL) {
+      new_node->deep_drop();
+    }
     return NULL;
   }
   if (res->right_ != NULL)
@@ -1026,25 +1034,37 @@ IR *Mutator::strategy_replace(IR *cur) {
 
   DOBOTH
   res = cur->deep_copy();
-  if (res->left_ == NULL || res->right_ == NULL)
-    break;
+  if (res->left_ == NULL || res->right_ == NULL) {
+    res->deep_drop();
+    return NULL;
+  }
 
   auto new_left = get_from_libary_with_type(res->left_->type_);
   auto new_right = get_from_libary_with_type(res->right_->type_);
 
-  if (new_left != NULL) {
-    if (res->left_ != NULL) {
-      new_left->id_type_ = res->left_->id_type_;
-    }
+  if (new_left != NULL && res->left_ != NULL) {
+    new_left->id_type_ = res->left_->id_type_;
   } else {
+    res->deep_drop();
+    if (new_left != NULL) {
+      new_left->deep_drop();
+    }
+    if (new_right != NULL) {
+      new_right->deep_drop();
+    }
     return NULL;
   }
 
-  if (new_right != NULL) {
-    if (res->right_ != NULL) {
-      new_right->id_type_ = res->right_->id_type_;
-    }
+  if (new_right != NULL && res->right_ != NULL) {
+    new_right->id_type_ = res->right_->id_type_;
   } else {
+    res->deep_drop();
+    if (new_left != NULL) {
+      new_left->deep_drop();
+    }
+    if (new_right != NULL) {
+      new_right->deep_drop();
+    }
     return NULL;
   }
 
