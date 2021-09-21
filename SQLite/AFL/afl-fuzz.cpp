@@ -5568,7 +5568,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
   ** In these cases, we clean the queue if q_len exceed 10000. 
   */
   if (disable_coverage_feedback > 1 && q_len >= 1000) {
-    destroy_half_queue();
+    // destroy_half_queue();
   }
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
