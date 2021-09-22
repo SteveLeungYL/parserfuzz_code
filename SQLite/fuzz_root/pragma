@@ -158,8 +158,6 @@ threads = _int_
 user_version = _empty_
 user_version = _int_
 
-vdbe_addoptrace = _boolean_
-
 
 vdbe_debug = _boolean_
 
