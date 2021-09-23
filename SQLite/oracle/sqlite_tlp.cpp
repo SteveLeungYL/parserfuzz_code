@@ -1118,6 +1118,7 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
     }
   }
 
+  /* Has GROUP BY clause. Attention, cannot mix GROUP BY with Aggr. (FPs) */
   vector<IR*> v_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
   for (IR* opt_group : v_opt_group) {
     if (opt_group->op_ != NULL && opt_group->op_->prefix_ == "GROUP BY") {
@@ -1153,14 +1154,29 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   /* Might have aggr function. */
   string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
   if (findStringIn(aggr_func_str, "MIN")) {
+    if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+      return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+    }
     return VALID_STMT_TYPE_TLP::AGGR_MIN;
   } else if (findStringIn(aggr_func_str, "MAX")){
+    if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+      return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+    }
     return VALID_STMT_TYPE_TLP::AGGR_MAX;
   } else if (findStringIn(aggr_func_str, "COUNT")){
+    if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+      return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+    }
     return VALID_STMT_TYPE_TLP::AGGR_COUNT;
   } else if (findStringIn(aggr_func_str, "SUM")) {
+    if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+      return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+    }
     return VALID_STMT_TYPE_TLP::AGGR_SUM;
   } else if (findStringIn(aggr_func_str, "AVG")) {
+    if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+      return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+    }
     return VALID_STMT_TYPE_TLP::AGGR_AVG;
   }
 
