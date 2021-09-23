@@ -11,6 +11,9 @@ class VALID_TYPE_TLP(Enum):
     MAX = 3
     SUM = 4
     COUNT = 5
+    AVG = 6
+    DISTINCT = 7
+    GROUP_BY = 8
 
 
 class Oracle_TLP:
@@ -89,10 +92,21 @@ class Oracle_TLP:
                 )
                 all_res_out.append(curr_res)
             elif (
+                valid_type == VALID_TYPE_TLP.DISTINCT
+                or valid_type == VALID_TYPE_TLP.GROUP_BY  
+            ):
+                curr_res = cls._check_result_uniq(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1]
+                )
+                print("\n" + f"Opt: {all_res_str_l[idx][0]}" + "\n" + f"UnOpt: {all_res_str_l[idx][1]}" + "\n" + f"Result: {curr_res}\n")
+                input("wait")
+                all_res_out.append(curr_res)
+            elif (
                 valid_type == VALID_TYPE_TLP.COUNT
                 or valid_type == VALID_TYPE_TLP.SUM
                 or valid_type == VALID_TYPE_TLP.MIN
                 or valid_type == VALID_TYPE_TLP.MAX
+                or valid_type == VALID_TYPE_TLP.AVG
             ):
                 curr_res = cls._check_result_minmax_count_sum(
                     all_res_str_l[idx][0], all_res_str_l[idx][1], valid_type
@@ -147,27 +161,42 @@ class Oracle_TLP:
     @classmethod
     def _get_valid_type(cls, query: str):
         if re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning valid_type: MIN" % (query))
+            # print("For query: %s, returning valid_type: DISTINCT" % (query.strip()))
+            return VALID_TYPE_TLP.DISTINCT
+        if re.match(
+            r"""^[\s;]*SELECT\s*(.+)(GROUP\s*)(BY\s*)(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning valid_type: GROUP_BY" % (query.strip()))
+            return VALID_TYPE_TLP.GROUP_BY
+        elif re.match(
+            r"""^[\s;]*SELECT\s*MIN(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning valid_type: MIN" % (query.strip()))
             return VALID_TYPE_TLP.MIN
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*MAX(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_TLP: MAX" % (query))
+            # print("For query: %s, returning VALID_TYPE_TLP: MAX" % (query.strip()))
             return VALID_TYPE_TLP.MAX
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*SUM(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_TLP: SUM" % (query))
+            # print("For query: %s, returning VALID_TYPE_TLP: SUM" % (query.strip()))
             return VALID_TYPE_TLP.SUM
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*AVG(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_TLP: COUNT" % (query))
+            # print("For query: %s, returning VALID_TYPE_TLP: AVG" % (query.strip()))
+            return VALID_TYPE_TLP.AVG
+        elif re.match(
+            r"""^[\s;]*SELECT\s*COUNT(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning VALID_TYPE_TLP: COUNT" % (query.strip()))
             return VALID_TYPE_TLP.COUNT
         else:
-            # print("For query: %s, returning VALID_TYPE_TLP: NORM" % (query))
+            # print("For query: %s, returning VALID_TYPE_TLP: NORM" % (query.strip()))
             return VALID_TYPE_TLP.NORM
 
     @classmethod
@@ -201,6 +230,41 @@ class Oracle_TLP:
             return RESULT.PASS
 
     @classmethod
+    def _check_result_uniq(cls, opt: str, unopt: str) -> RESULT:
+        if "Error" in opt or "Error" in unopt:
+            return RESULT.ERROR
+
+        opt_out_int = 0
+        unopt_out_int = 0
+
+        opt_list = opt.split("\n")
+        unopt_list = unopt.split("\n")
+        
+        unique_opt_list = set()
+        for cur_opt in opt_list:
+            if re.match(
+                r"""^[\|\s]*$""", cur_opt, re.MULTILINE | re.IGNORECASE
+            ):  # Only spaces or | (separator)
+                continue
+            unique_opt_list.add(cur_opt)
+        opt_out_int = len(unique_opt_list)
+        
+        unique_unopt_list = set()
+        for cur_unopt in unopt_list:
+            if re.match(
+                r"""^[\|\s]*$""", cur_unopt, re.MULTILINE | re.IGNORECASE
+            ):  # Only spaces or | (separator)
+                continue
+            unique_unopt_list.add(cur_unopt)
+        unopt_out_int = len(unique_unopt_list)
+        
+        if opt_out_int != unopt_out_int:
+            return RESULT.FAIL
+        else:
+            return RESULT.PASS
+
+
+    @classmethod
     def _check_result_minmax_count_sum(cls, opt, unopt, valid_type) -> RESULT:
         if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
@@ -213,6 +277,9 @@ class Oracle_TLP:
         elif valid_type == VALID_TYPE_TLP.MIN:
             opt_out_int = maxsize
             unopt_out_int = maxsize
+        elif valid_type == VALID_TYPE_TLP.AVG:
+            opt_out_int = 0
+            unopt_out_int = 0
         elif valid_type == VALID_TYPE_TLP.COUNT or valid_type == VALID_TYPE_TLP.SUM:
             opt_out_int = 0
             unopt_out_int = 0
