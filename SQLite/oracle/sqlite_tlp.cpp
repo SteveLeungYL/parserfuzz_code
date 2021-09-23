@@ -499,6 +499,11 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
   vector<string> v_res_a = string_splitter(res_a, '\n');
   vector<string> v_res_b = string_splitter(res_b, '\n');
 
+  if (v_res_a.size() > 50 || v_res_b.size() > 50) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
   /* Remove NULL results */
   for (string &r : v_res_a) {
     if (is_str_empty(r))
@@ -560,6 +565,11 @@ bool SQL_TLP::compare_uniq(COMP_RES &res) {
 
   vector<string> v_res_a = string_splitter(res_a, '\n');
   vector<string> v_res_b = string_splitter(res_b, '\n');
+
+  if (v_res_a.size() > 50 || v_res_b.size() > 50) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
 
   set<string> uniq_rows;
 
@@ -806,6 +816,21 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
         )
       ) {
           return false;
+      }
+    }
+  }
+
+  /* Limit only ONE parameter in the aggregate function. */
+  vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_IR);
+  if (v_result_column_list.size() != 0) {
+    vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionName, false);
+    if (v_aggr_func_ir.size() != 0) {
+      IR* func_aggr_ir = v_aggr_func_ir[0] -> parent_ ->right_; // func_name -> unknown -> kfuncargs
+      if (func_aggr_ir -> type_ == kFunctionArgs && func_aggr_ir -> right_ != NULL && func_aggr_ir ->right_ -> type_ == kExprList) {
+        /* If the stmt has multiple expr_list inside the func_args, ignore current stmt. */
+        if (func_aggr_ir->right_->right_ != NULL) {// Another kExprList.
+          return false;
+        }
       }
     }
   }
