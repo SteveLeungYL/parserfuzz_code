@@ -782,6 +782,27 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
     return false;
   }
 
+  // if (ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kWindowName, false).size() > 0 ||
+  //     ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kWindowBody, false).size() > 0
+  //   ) {
+  //     return false;
+  //   }
+
+  vector<IR*> v_opt_over_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_IR, kOptOverClause, false);
+  if (v_opt_over_clause.size() > 0) {
+    for (IR* opt_over_clause : v_opt_over_clause) {
+      if (
+        opt_over_clause->op_ != NULL && 
+        (
+          opt_over_clause->op_->prefix_ == "OVER" ||
+          opt_over_clause->op_->prefix_ == "OVER ("
+        )
+      ) {
+          return false;
+      }
+    }
+  }
+
   if (
     cur_IR->type_ == kSelectStatement &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_IR, kFromClause, false) &&
