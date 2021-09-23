@@ -577,9 +577,16 @@ bool SQL_TLP::compare_uniq(COMP_RES &res) {
   uniq_rows.clear();
 
   for (string &r : v_res_b) {
-    if (is_str_empty(r))
-      {res_b_int--;}
+    if (is_str_empty(r)) {
+      res_b_int--;
+    } else if (uniq_rows.find(r) != uniq_rows.end()) {      /* Remove duplicated results. */ 
+      res_b_int--;
+    } else {
+      uniq_rows.insert(r);
+    }
+
   }
+  uniq_rows.clear();
 
   res_a_int += std::count(res_a.begin(), res_a.end(), '\n');
   res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
