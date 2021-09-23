@@ -2149,11 +2149,11 @@ bool Mutator::fix_dependency(IR *root,
           }
           /* Added alias_name before the column_name. Only for SelectStmt. */
           if (cur_stmt_type == kSelectStatement) {
-            if (get_rand_int(100) < 1) {
-              ir->str_val_ = aliasname_str + ".ROWID";
-            } else {
+            // if (get_rand_int(100) < 1) {
+            //   ir->str_val_ = aliasname_str + ".ROWID";
+            // } else {
               ir->str_val_ = aliasname_str + "." + column_str;
-            }
+            // }
           }
           else {
             {ir->str_val_ = column_str;}
@@ -2171,11 +2171,11 @@ bool Mutator::fix_dependency(IR *root,
           }
           /* If cannot find alias name for the table, directly add table_name before the column_name. Only for SelectStmt. */
           if (cur_stmt_type == kSelectStatement) {
-            if (get_rand_int(100) < 1) {
-              ir->str_val_ = tablename_str + ".ROWID";
-            } else {
+            // if (get_rand_int(100) < 1) {
+            //   ir->str_val_ = tablename_str + ".ROWID";
+            // } else {
               ir->str_val_ = tablename_str + "." + column_str;
-            }
+            // }
           }
           else {
             {ir->str_val_ = column_str;}
