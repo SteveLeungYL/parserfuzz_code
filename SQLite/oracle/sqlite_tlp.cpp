@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <regex>
 #include <string>
+#include <set>
 
 int SQL_TLP::count_valid_stmts(const string &input) {
   int norec_select_count = 0;
@@ -515,6 +516,89 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
   res_a_int += std::count(res_a.begin(), res_a.end(), '\n');
   res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
 
+  /* For case that the first stmt return NULL, but the second stmt returns all 0. */
+  if (res_a_int == 0) {
+    bool is_all_zero = true;
+    for (string& r : v_res_b) {
+      if (r != "0") {
+        is_all_zero = false;
+        break;
+      }
+    }
+    if (is_all_zero) {
+      res.comp_res = ORA_COMP_RES::Pass;
+      return false;
+    }
+  }
+
+  if (res_a_int != res_b_int) { // Found inconsistent.
+    // cerr << "NORMAL Found mismatched: " << "res_a: " << res_a << "res_b: " <<
+    // res_b << " res_a_int: " << res_a_int << "res_b_int: " << res_b_int <<
+    // endl;
+    res.comp_res = ORA_COMP_RES::Fail;
+    return false;
+  }
+  res.comp_res = ORA_COMP_RES::Pass;
+  return false;
+}
+
+bool SQL_TLP::compare_uniq(COMP_RES &res) {
+
+  string &res_a = res.res_str_0;
+  string &res_b = res.res_str_1;
+  int &res_a_int = res.res_int_0;
+  int &res_b_int = res.res_int_1;
+
+  if (res_a.find("Error") != string::npos ||
+      res_b.find("Error") != string::npos) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
+  res_a_int = 0;
+  res_b_int = 0;
+
+  vector<string> v_res_a = string_splitter(res_a, '\n');
+  vector<string> v_res_b = string_splitter(res_b, '\n');
+
+  set<string> uniq_rows;
+
+  /* Remove NULL results */
+  for (string &r : v_res_a) {
+    if (is_str_empty(r)) {
+      res_a_int--;
+    } else if (uniq_rows.find(r) != uniq_rows.end()) {      /* Remove duplicated results. */ 
+      res_a_int--;
+    } else {
+      uniq_rows.insert(r);
+    }
+
+  }
+  uniq_rows.clear();
+
+  for (string &r : v_res_b) {
+    if (is_str_empty(r))
+      {res_b_int--;}
+  }
+
+  res_a_int += std::count(res_a.begin(), res_a.end(), '\n');
+  res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
+
+  /* For case that the first stmt return NULL, but the second stmt returns all 0. */
+  if (res_a_int == 0) {
+    bool is_all_zero = true;
+    for (string& r : v_res_b) {
+      if (r != "0") {
+        is_all_zero = false;
+        break;
+      }
+    }
+    if (is_all_zero) {
+      res.comp_res = ORA_COMP_RES::Pass;
+      return false;
+    }
+  }
+
   if (res_a_int != res_b_int) { // Found inconsistent.
     // cerr << "NORMAL Found mismatched: " << "res_a: " << res_a << "res_b: " <<
     // res_b << " res_a_int: " << res_a_int << "res_b_int: " << res_b_int <<
@@ -528,8 +612,7 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
 
 /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; and MAX valid stmt: SELECT
  * MAX(*) FROM ...;  */
-bool SQL_TLP::compare_sum_count_minmax(COMP_RES &res,
-                                       VALID_STMT_TYPE_TLP valid_type) {
+bool SQL_TLP::compare_aggr(COMP_RES &res) {
   string &res_a = res.res_str_0;
   string &res_b = res.res_str_1;
   int &res_a_int = res.res_int_0;
@@ -584,24 +667,39 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
   for (COMP_RES &res : res_out.v_res) {
 
     switch (v_valid_type[i++]) {
-      case VALID_STMT_TYPE_TLP::NORM:
+      case VALID_STMT_TYPE_TLP::NORMAL:
         /* Handle normal valid stmt: SELECT * FROM ...; */
         if (!compare_norm(res))
-          is_all_err = false;
+          {is_all_err = false;}
         break; // Break the switch
+      
+      /* Compare unique results */
+      case VALID_STMT_TYPE_TLP::DISTINCT:
+        [[fallthrough]];
+      case VALID_STMT_TYPE_TLP::GROUP_BY:
+        compare_uniq(res);
+        break;
 
-      case VALID_STMT_TYPE_TLP::UNIQ:
-        /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
-        if (!compare_sum_count_minmax(res, VALID_STMT_TYPE_TLP::UNIQ))
-          is_all_err = false;
+      /* Compare concret values */
+      case VALID_STMT_TYPE_TLP::AGGR_AVG:
+        [[fallthrough]];
+      case VALID_STMT_TYPE_TLP::AGGR_COUNT:
+        [[fallthrough]];
+      case VALID_STMT_TYPE_TLP::AGGR_MAX:
+        [[fallthrough]];
+      case VALID_STMT_TYPE_TLP::AGGR_MIN:
+        [[fallthrough]];
+      case VALID_STMT_TYPE_TLP::AGGR_SUM:
+        if (!compare_aggr(res))
+          {is_all_err = false;}
         break; // Break the switch
 
       default:
-        // cerr << "SQL_TLP::compare_results Error: Unknown VALID_STMT_TYPE_TLP. \n";
+        res.comp_res = ORA_COMP_RES::Error;
         break;
     } // Switch stmt.
     if (res.comp_res == ORA_COMP_RES::Fail)
-      res_out.final_res = ORA_COMP_RES::Fail;
+      {res_out.final_res = ORA_COMP_RES::Fail;}
   } // Result outer loop.
 
   if (is_all_err && res_out.final_res != ORA_COMP_RES::Fail)
@@ -623,16 +721,29 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
       begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", begin_idx + 23);
       end_idx = cmd_str.find("SELECT 'END VERI 0';", end_idx + 21);
 
-      if (findStringIn(cur_cmd_str, "SELECT MIN") ||
-          findStringIn(cur_cmd_str, "SELECT MAX") ||
-          findStringIn(cur_cmd_str, "SELECT SUM") ||
-          findStringIn(cur_cmd_str, "SELECT COUNT") ||
-          findStringIn(cur_cmd_str, "SELECT AVG")) {
-        v_valid_type.push_back(VALID_STMT_TYPE_TLP::UNIQ);
-      } else {
-        v_valid_type.push_back(VALID_STMT_TYPE_TLP::NORM);
-        // cerr << "query: " << cur_cmd_str << " \nNORM. \n";
+      // if (findStringIn(cur_cmd_str, "SELECT MIN") ||
+      //     findStringIn(cur_cmd_str, "SELECT MAX") ||
+      //     findStringIn(cur_cmd_str, "SELECT SUM") ||
+      //     findStringIn(cur_cmd_str, "SELECT COUNT") ||
+      //     findStringIn(cur_cmd_str, "SELECT AVG")) {
+      //   v_valid_type.push_back(VALID_STMT_TYPE_TLP::UNIQ);
+      // } else {
+      //   v_valid_type.push_back(VALID_STMT_TYPE_TLP::NORM);
+      //   // cerr << "query: " << cur_cmd_str << " \nNORM. \n";
+      // }
+      vector<IR*> v_cur_stmt_ir = g_mutator->parse_query_str_get_ir_set(cur_cmd_str);
+      if ( v_cur_stmt_ir.size() == 0 ) {
+        continue;
       }
+      if ( !(v_cur_stmt_ir.back()->left_ != NULL && v_cur_stmt_ir.back()->left_->left_ != NULL) ) {
+        v_cur_stmt_ir.back()->deep_drop();
+        continue;
+      }
+
+      IR* cur_stmt_ir = v_cur_stmt_ir.back()->left_->left_;
+      v_valid_type.push_back(get_stmt_TLP_type(cur_stmt_ir));
+
+      cur_stmt_ir->deep_drop();
 
     } else {
       // cerr << "Error: For the current begin_idx, we cannot find the end_idx. \n\n\n";
@@ -666,10 +777,10 @@ bool SQL_TLP::is_str_contains_aggregate(const string &input_str) {
 
 
 bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
-  // Remove GROUP BY and HAVING stmts. 
-  if (ir_wrapper.is_exist_group_by(cur_IR) || ir_wrapper.is_exist_having(cur_IR)) {
-    return false;
-  }
+  /* Ignore GROUP BY and HAVING stmts. */
+  // if (ir_wrapper.is_exist_group_by(cur_IR) || ir_wrapper.is_exist_having(cur_IR)) {
+  //   return false;
+  // }
 
   if (
     cur_IR->type_ == kSelectStatement &&
@@ -695,16 +806,18 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
   vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFunctionName, false);
   if (v_aggr_func_ir.size() == 0) {
     cur_stmt->deep_drop();
+    // cerr << "Debug: Cannot find kFunctionName. \n\n\n";
     return NULL;
   }
   if (v_aggr_func_ir[0]->left_ == NULL) {
     cur_stmt->deep_drop();
+    // cerr << "Debug: Cannot find kFunctionName -> left_. \n\n\n";
     return NULL;
   }
 
   if (
     tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
-    tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT || 
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM || 
     tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX || 
     tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN
   ) {
@@ -719,6 +832,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
     vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_stmt);
     if (v_result_column_list.size() == 0) {
       cur_stmt->deep_drop();
+      // cerr << "Debug: Cannot find result_column_list. \n\n\n";
       return NULL;
     }
     IR* ori_result_column_list = v_result_column_list[0];
@@ -728,8 +842,20 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
       ori_result_column_list->left_ != NULL &&  // result_column_list -> result_column
       ori_result_column_list->left_ ->left_ != NULL  && // result_column_list -> result_column -> expr_
       ori_result_column_list->left_ ->left_ ->left_ != NULL &&
-      ori_result_column_list->left_ ->left_ ->left_ ->type_ == kFunctionName
+      (
+        ori_result_column_list->left_ ->left_ ->left_ ->type_ == kFunctionName
+      ) ||
+      (
+        ori_result_column_list->left_ ->left_ ->left_ -> left_ != NULL &&
+        ori_result_column_list->left_ ->left_ ->left_ -> left_ ->type_ == kFunctionName
+      ) ||
+      (
+        ori_result_column_list->left_ ->left_ ->left_ -> left_ != NULL &&
+        ori_result_column_list->left_ ->left_ ->left_ -> left_ ->left_ != NULL &&
+        ori_result_column_list->left_ ->left_ ->left_ -> left_ ->left_  ->type_ == kFunctionName
+      )
     )) {
+      // cerr << "Debug Logical Error: The found ori_result_column_list: " << ori_result_column_list->to_string() << " does not have kFunctionName. \n\n\n";
       cur_stmt->deep_drop();
       return NULL;
     }
@@ -757,6 +883,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
     is_avg_aggr = true;
 
   } else {
+    // cerr << "Debug Logic Error: Not aggr type. \n\n\n";
     cur_stmt->deep_drop();
     return NULL;
   }
@@ -779,7 +906,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_AVG_tmp_str).back();
   }
 
-  IR* ori_outer_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_outer, kTableOrSubquery, false)[0];
+  IR* ori_outer_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_outer, kTableOrSubquery, false)[0]->left_;
 
   cur_stmt_outer->swap_node(ori_outer_expr, cur_stmt_inner);
   ori_outer_expr->deep_drop();
@@ -856,6 +983,7 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
 
   VALID_STMT_TYPE_TLP cur_stmt_TLP_type = get_stmt_TLP_type(cur_stmt);
   if (cur_stmt_TLP_type == VALID_STMT_TYPE_TLP::TLP_UNKNOWN) {
+    // cerr << "Debug: for cur_stmt: " << cur_stmt->to_string() << ". TLP_UNKNOWN type. \n\n\n";
     ori_ir_root->deep_drop();
     trans_IR_vec.clear();
     return trans_IR_vec;
@@ -892,7 +1020,7 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
-    case VALID_STMT_TYPE_TLP::HAVING: {
+    case VALID_STMT_TYPE_TLP::HAVING: { // Never happens
       IR* transformed_stmt = transform_non_aggr(cur_stmt, true, cur_stmt_TLP_type);
       trans_IR_vec.push_back(transformed_stmt);
     }
@@ -908,6 +1036,7 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     }
       break;
     default:
+      // cerr << "Debug: for cur_stmt: " << cur_stmt->to_string() << ". TLP_UNKNOWN type. \n\n\n";
       ori_ir_root->deep_drop();
       trans_IR_vec.clear();
       return trans_IR_vec;
@@ -916,6 +1045,7 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     return trans_IR_vec;
   }
   else {
+    // cerr << "Debug: for cur_stmt: " << cur_stmt->to_string() << ". Failed to transform. \n\n\n";
     ori_ir_root->deep_drop();
     trans_IR_vec.clear();
     return trans_IR_vec;
@@ -932,7 +1062,20 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
     }
   }
 
-  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFunctionName, false);
+  vector<IR*> v_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
+  for (IR* opt_group : v_opt_group) {
+    if (opt_group->op_ != NULL && opt_group->op_->prefix_ == "GROUP BY") {
+      default_type_ = VALID_STMT_TYPE_TLP::GROUP_BY;
+    }
+  }
+
+  /* Ignore having. Treat it as normal, or other type if other elements are evolved. */
+
+  vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_stmt);
+  if (v_result_column_list.size() == 0) {
+    return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+  }
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionName, false);
   if (v_aggr_func_ir.size() == 0) {
     return default_type_;
   }
@@ -940,20 +1083,20 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
     return default_type_;
   }
 
-  /* Has aggr function. */
+  /* Might have aggr function. */
   string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
-  if (aggr_func_str == "MIN" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+  if (findStringIn(aggr_func_str, "MIN")) {
     return VALID_STMT_TYPE_TLP::AGGR_MIN;
-  } else if (aggr_func_str == "MAX" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT){
+  } else if (findStringIn(aggr_func_str, "MAX")){
     return VALID_STMT_TYPE_TLP::AGGR_MAX;
-  } else if (aggr_func_str == "COUNT" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+  } else if (findStringIn(aggr_func_str, "COUNT")){
     return VALID_STMT_TYPE_TLP::AGGR_COUNT;
-  } else if (aggr_func_str == "SUM" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+  } else if (findStringIn(aggr_func_str, "SUM")) {
     return VALID_STMT_TYPE_TLP::AGGR_SUM;
-  } else if (aggr_func_str == "AVG" && default_type_ != VALID_STMT_TYPE_TLP::DISTINCT) {
+  } else if (findStringIn(aggr_func_str, "AVG")) {
     return VALID_STMT_TYPE_TLP::AGGR_AVG;
-  } else {
-    return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
   }
+
+  return default_type_;
 
 }

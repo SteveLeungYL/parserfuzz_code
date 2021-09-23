@@ -241,8 +241,10 @@ void SQL_ORACLE::remove_oracle_normal_stmts_from_ir(IR* ir_root) {
 
 inline bool SQL_ORACLE::is_select_stmt(IR* cur_IR) {
   if (cur_IR->type_ == kSelectStatement) {
+    // cerr << "Debug: For: " << cur_IR->to_string() << ", type_: " << get_string_by_ir_type(cur_IR->type_) << " is select. \n\n\n";
     return true;
   } else {
+    // cerr << "Debug: For: " << cur_IR->to_string() << ", type_: " << get_string_by_ir_type(cur_IR->type_) << " is NOT select. \n\n\n";
     return false;
   }
 }

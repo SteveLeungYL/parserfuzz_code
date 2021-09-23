@@ -3308,7 +3308,7 @@ IR *TableOrSubquery::translate(vector<IR *> &v_ir_collector) {
   CASEEND
   CASESTART(3)
   auto tmp0 = SAFETRANSLATE(join_clause_);
-  res = new IR(kTableOrSubquery, OP0(), tmp0);
+  res = new IR(kTableOrSubquery, OP2("(", ")"), tmp0);
   CASEEND
 
   SWITCHEND

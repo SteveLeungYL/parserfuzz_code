@@ -23,8 +23,8 @@ enum class VALID_STMT_TYPE_TLP {
   NORMAL,
   TLP_UNKNOWN,
   // For results
-  UNIQ,
-  NORM
+  // UNIQ,
+  // NORM
 };
 
 class SQL_TLP : public SQL_ORACLE {
@@ -79,10 +79,8 @@ private:
   /* Compare helper function */
   bool compare_norm(COMP_RES &res); /* Handle normal valid stmt: SELECT * FROM
                                        ...; Return is_err */
-  bool compare_sum_count_minmax(
-      COMP_RES &res,
-      VALID_STMT_TYPE_TLP
-          valid_type); /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
+  bool compare_uniq(COMP_RES &res); /* Handle results that is unique. Count row numbers, but results from the first stmt need to be unique. */
+  bool compare_aggr(COMP_RES &res); /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
 
   /* If string contains 'GROUP BY' statement,
    * then set final result to ALL_Error and skip it.
@@ -102,7 +100,7 @@ private:
   string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (v0);";
   string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (v0);";
   string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (v0);";
-  string trans_outer_AVG_tmp_str = "SELECT AVG(aggr) FROM (v0);";
+  string trans_outer_AVG_tmp_str = "SELECT SUM(s)/SUM(c) FROM (v0);";
 };
 
 #endif
