@@ -778,9 +778,9 @@ bool SQL_TLP::is_str_contains_aggregate(const string &input_str) {
 
 bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
   /* Ignore GROUP BY and HAVING stmts. */
-  // if (ir_wrapper.is_exist_group_by(cur_IR) || ir_wrapper.is_exist_having(cur_IR)) {
-  //   return false;
-  // }
+  if (ir_wrapper.is_exist_group_by(cur_IR)) { // || ir_wrapper.is_exist_having(cur_IR)) {
+    return false;
+  }
 
   if (
     cur_IR->type_ == kSelectStatement &&
@@ -996,8 +996,11 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     }
       break;
     case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
-      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
-      trans_IR_vec.push_back(transformed_stmt);
+      // IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      // trans_IR_vec.push_back(transformed_stmt);
+      ori_ir_root->deep_drop();
+      trans_IR_vec.clear();
+      return trans_IR_vec;
     }
       break;
     case VALID_STMT_TYPE_TLP::AGGR_MAX: {
@@ -1075,6 +1078,17 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   if (v_result_column_list.size() == 0) {
     return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
   }
+
+  vector<IR*> v_agg_func_args = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionArgs, false);
+  if (v_agg_func_args.size() == 0) {
+    return default_type_;
+  }
+
+  /* Ignore situation like SELECT SUM() FROM ... WHERE ... */
+  if (v_agg_func_args[0]->left_ == NULL) {
+    return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+  }
+
   vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionName, false);
   if (v_aggr_func_ir.size() == 0) {
     return default_type_;

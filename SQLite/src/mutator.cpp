@@ -538,6 +538,7 @@ vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_tra
 vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count) {
   // Apply post_fix_transform functions. 
   vector<vector<IR*>> all_post_trans_vec;
+  vector<int> v_stmt_to_rov;
   for (int i = 0; i < all_pre_trans_vec.size(); i++) { // Loop through across statements. 
     IR* cur_pre_trans_ir = all_pre_trans_vec[i];
     vector<IR*> post_trans_stmt_vec;
@@ -548,20 +549,37 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
     else if (stmt_type_vec[i] == ORACLE_NORMAL) {is_oracle_normal = true;}
 
     if (is_oracle_normal) {
+      // cerr << "Debug: For cur_pre_trans_ir: " << cur_pre_trans_ir->to_string() << ", oracle_normal. \n\n\n";
       post_trans_stmt_vec = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_ir, run_count); // All deep_copied
     } else if (is_oracle_select) {
+      // cerr << "Debug: For cur_pre_trans_ir: " << cur_pre_trans_ir->to_string() << ", oracle_SELECT. \n\n\n";
       post_trans_stmt_vec = p_oracle->post_fix_transform_select_stmt(cur_pre_trans_ir, run_count); // All deep_copied
     } else {
+      // cerr << "Debug: For cur_pre_trans_ir: " << cur_pre_trans_ir->to_string() << ", NOT. \n\n\n";
       post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
     }
     
-    if (post_trans_stmt_vec.size() == 0){
-      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
-      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
-      // continue;
+    // if (post_trans_stmt_vec.size() == 0){
+    //   post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
+    //   post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
+    //   // continue;
+    // }
+    if (post_trans_stmt_vec.size() > 0) {
+      all_post_trans_vec.push_back(post_trans_stmt_vec);
+    } else {
+      v_stmt_to_rov.push_back(i);
     }
-    all_post_trans_vec.push_back(post_trans_stmt_vec);
   }
+
+  vector<STMT_TYPE> new_stmt_type_vec;
+  for (int i = 0; i < stmt_type_vec.size(); i++) {
+    if (find(v_stmt_to_rov.begin(), v_stmt_to_rov.end(), i) != v_stmt_to_rov.end()) {
+      continue;
+    }
+    new_stmt_type_vec.push_back(stmt_type_vec[i]);
+  }
+  stmt_type_vec = new_stmt_type_vec;
+  
   return all_post_trans_vec;
 }
 
