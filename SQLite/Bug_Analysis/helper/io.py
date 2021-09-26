@@ -28,7 +28,10 @@ class IO:
 
         all_queries = []
         all_files_in_dir = os.listdir(file_directory)
-        all_files_num = len(all_files_in_dir)
+        all_files_in_dir = [os.path.join(file_directory, fn) for fn in all_files_in_dir]
+        all_files_in_dir.sort(key=os.path.getctime)
+        all_files_in_dir = [fn.split("/")[-1] for fn in all_files_in_dir]
+
 
         max_bug_count = [
             int(file.split(":")[1]) for file in all_files_in_dir if ":" in file
@@ -54,7 +57,9 @@ class IO:
                 logger.debug("hit the max bug count.")
                 # get the files again.
                 all_files_in_dir = os.listdir(file_directory)
-                all_files_num = len(all_files_in_dir)
+                all_files_in_dir = [os.path.join(file_directory, fn) for fn in all_files_in_dir]
+                all_files_in_dir.sort(key=os.path.getctime)
+                all_files_in_dir = [fn.split("/")[-1] for fn in all_files_in_dir]
                 max_bug_count = max(
                     int(file.split(":")[1]) for file in all_files_in_dir
                 )
@@ -81,7 +86,6 @@ class IO:
                 logger.debug("is not file: {}".format(current_file_d))
                 continue
 
-            all_files_num -= 1
             log_out_line("Filename: " + str(current_file_d) + ". \n")
             current_file = open(current_file_d, "r", errors="replace")
             current_file_str = current_file.read()
