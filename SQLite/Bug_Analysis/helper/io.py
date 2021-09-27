@@ -32,54 +32,13 @@ class IO:
         all_files_in_dir.sort(key=os.path.getctime)
         all_files_in_dir = [fn.split("/")[-1] for fn in all_files_in_dir]
 
-
-        max_bug_count = [
-            int(file.split(":")[1]) for file in all_files_in_dir if ":" in file
-        ]
-        if not max_bug_count:
-            # no files under |file_directory|
-            return [], "Done"
-        max_bug_count = max(max_bug_count)
-
-        while True:
-            current_file_d = ""
-            for iter_file_d in all_files_in_dir:
-                # logger.debug("iter_file_d: {}".format(iter_file_d))
-                if (
-                    "bug:" + str(cls.total_processed_bug_count_int) + ":"
-                ) in iter_file_d:
-                    current_file_d = iter_file_d
-                    logger.debug("Found bug sample: {}".format(current_file_d))
-                    break
-
-            cls.total_processed_bug_count_int += 1
-            if cls.total_processed_bug_count_int > max_bug_count:
-                logger.debug("hit the max bug count.")
-                # get the files again.
-                all_files_in_dir = os.listdir(file_directory)
-                all_files_in_dir = [os.path.join(file_directory, fn) for fn in all_files_in_dir]
-                all_files_in_dir.sort(key=os.path.getctime)
-                all_files_in_dir = [fn.split("/")[-1] for fn in all_files_in_dir]
-                max_bug_count = max(
-                    int(file.split(":")[1]) for file in all_files_in_dir
-                )
-                # still have bug reports need to handle here.
-                if all_files_in_dir:
-                    cls.total_processed_bug_count_int = 0
-                else:
-                    # no files remaining. break loop.
-                    break
+        current_file_d = ""
+        for iter_file_d in all_files_in_dir:
+            current_file_d = iter_file_d
+            logger.debug("Found bug sample: {}".format(current_file_d))
 
             if current_file_d == "":
-                logger.debug(
-                    "continue because of current_file_d: {}".format(
-                        "bug:" + str(cls.total_processed_bug_count_int) + ":"
-                    )
-                )
                 continue
-            if cls.total_processed_bug_count_int == sys.maxsize:
-                logger.debug("return normally")
-                return [], "Done"
 
             current_file_d = os.path.join(file_directory, current_file_d)
             if not os.path.isfile(current_file_d):
