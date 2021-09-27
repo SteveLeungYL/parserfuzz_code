@@ -81,6 +81,7 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <filesystem>
 
 #include "../oracle/sqlite_index.h"
 #include "../oracle/sqlite_likely.h"
@@ -3155,31 +3156,12 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
     ofstream outputfile;
     bug_output_id++;
-
-    // int outputfile_fd = 0;
-    // while (true) {
-    //   DIR *dir = opendir("../Bug_Analysis/bug_samples/");
-    //   if (!dir) {
-    //     cerr << "ERROR: ../Bug_Analysis/bug_samples/ folder doesn't exists. \n";
-    //     exit(1);
-    //   }
-    //   closedir(dir);
-    //   bug_output_id++;
-    //   string bug_output_dir =
-    //       "../Bug_Analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
-    //   outputfile_fd =
-    //       open(bug_output_dir.c_str(), O_CREAT | O_EXCL,
-    //            0666); // Used to atomically create the file. We can make sure
-    //                   // bug_output_id is unique across process.
-    //   if (outputfile_fd == -1)
-    //     continue; // If the file is already exist. Switch to the next
-    //               // bug_output_id and try to create the file again.
-    //   else {
-    //     close(outputfile_fd); // File created. We can use outputfile to write to
-    //                           // the file now.
-    //     break;
-    //   }
-    // }
+    if ( !filesystem::exists("../Bug_Analysis/")) {
+      filesystem::create_directory("../Bug_Analysis/");
+    }
+    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
+      filesystem::create_directory("../Bug_Analysis/bug_samples");
+    }
 
     string bug_output_dir =
         "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
