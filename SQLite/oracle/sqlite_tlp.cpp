@@ -760,7 +760,7 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
       IR* cur_stmt_ir = v_cur_stmt_ir.back()->left_->left_;
       v_valid_type.push_back(get_stmt_TLP_type(cur_stmt_ir));
 
-      cur_stmt_ir->deep_drop();
+      v_cur_stmt_ir.back()->deep_drop();
 
     } else {
       // cerr << "Error: For the current begin_idx, we cannot find the end_idx. \n\n\n";
@@ -932,6 +932,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
 
     /* replace the original result_column_list */
     cur_stmt->swap_node(ori_result_column_list, new_result_column_list);
+    ori_result_column_list->deep_drop();
 
     is_avg_aggr = true;
 

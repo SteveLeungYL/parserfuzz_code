@@ -49,14 +49,24 @@ IR* SQL_ORACLE::get_random_mutated_valid_stmt() {
         total_oracle_rand_valid_failed++;
         continue;
       }
+    if (ir_tree.back() == NULL) {
+      total_oracle_rand_valid_failed++;
+      continue;
+    }
 
     if (ir_tree.back()->left_ == nullptr || ir_tree.back()->left_->left_ == nullptr || ir_tree.back()->left_->left_->left_ == nullptr)
-      {continue;}
+      {
+        ir_tree.back()->deep_drop();
+        continue;
+      }
     // kProgram -> kStatementList -> kStatement -> specific_statement_type_
     IR *cur_ir_stmt = ir_tree.back()->left_->left_->left_;
 
     if (!this->is_oracle_select_stmt(cur_ir_stmt))
-      {continue;}
+      {
+        ir_tree.back() -> deep_drop();
+        continue;
+      }
 
     root = ir_tree.back();
     if (!g_mutator->check_node_num(root, 300)) {
