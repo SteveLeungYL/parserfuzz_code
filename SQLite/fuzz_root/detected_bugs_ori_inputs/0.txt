@@ -1,3 +1,4 @@
+Query:
 CREATE TABLE v0 ( v1 ) ;
 CREATE TABLE v2 ( v3 VARCHAR(1) ) ;
 CREATE VIEW v4 ( v6 , v5 ) AS SELECT DISTINCT v3 , 'MED PKG' FROM v2 ;
@@ -10,3 +11,5 @@ SELECT 'END VERI 0';
 SELECT 'BEGIN VERI 1';
 SELECT SUM(CAST(( v6 = '10' ) AS BOOL)!=0)  FROM  v4 ;
 SELECT 'END VERI 1';
+
+Result string:
