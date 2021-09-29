@@ -28,6 +28,7 @@
 using namespace std;
 
 vector<string> Mutator::value_libary;
+vector<string> Mutator::used_value_libary;
 map<string, vector<string>> Mutator::m_tables;   // Table name to column name mapping. 
 map<string, vector<string>> Mutator::m_tables_with_tmp;   // Table name to column name mapping. 
 map<string, vector<string>> Mutator::m_table2index;   // Table name to index mapping. 
@@ -279,7 +280,10 @@ void Mutator::init(string f_testcase, string f_common_string, string pragma) {
                                    std::to_string((unsigned long)LDBL_MAX),
                                    std::to_string((unsigned long)FLT_MIN),
                                    std::to_string((unsigned long)DBL_MIN),
-                                   std::to_string((unsigned long)LDBL_MIN)};
+                                   std::to_string((unsigned long)LDBL_MIN),
+                                   "0",
+                                   "10",
+                                   "100"};
   value_libary.insert(value_libary.begin(), value_lib_init.begin(),
                       value_lib_init.end());
 
@@ -2485,14 +2489,27 @@ void Mutator::_fix(IR *root, string &res) {
   }
 
   if (type_ == kStringLiteral) {
-    auto s = string_libary[get_rand_int(string_libary.size())];
+    string s;
+    /* 2/3 chances, uses already seen string. */
+    if (used_string_library.size() != 0 && get_rand_int(3) < 2 ) {
+        s = used_string_library[get_rand_int(used_string_library.size())];
+    } else {
+        s = string_libary[get_rand_int(string_libary.size())];
+    }
     res += "'" + s + "'";
     root->str_val_ = "'" + s + "'";
     return;
   }
 
   if (type_ == kNumericLiteral) {
-    auto s = value_libary[get_rand_int(value_libary.size())];
+    string s;
+    /* 2/3 chances, uses already seen value. */
+    if (used_value_libary.size() != 0 && get_rand_int(3) < 2) {
+        s = used_value_libary[get_rand_int(used_value_libary.size())];
+    } else {
+        s = value_libary[get_rand_int(value_libary.size())];
+    }
+    used_value_libary.push_back(s);
     res += s;
     root->str_val_ = s;
     return;
@@ -2842,6 +2859,9 @@ void Mutator::reset_database() {
   m_tables_with_tmp.clear();
   v_create_table_names_single_with_tmp.clear();
   v_create_column_names_single_with_tmp.clear();
+
+  used_string_library.clear();
+  used_value_libary.clear();
 }
 
 void Mutator::reset_database_single_stmt() {

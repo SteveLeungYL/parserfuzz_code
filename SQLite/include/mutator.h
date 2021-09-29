@@ -108,6 +108,7 @@ public:
   bool fix_dependency(IR *root, vector<vector<IR *>> &ordered_ir, bool is_debug_info = false);
 
   static vector<string> value_libary;
+  static vector<string> used_value_libary;
   static map<string, vector<string>> m_tables;
   static map<string, vector<string>> m_tables_with_tmp;
   static map<string, vector<string>> m_table2index;
@@ -160,6 +161,7 @@ private:
   // map<NODETYPE, vector<IR *>> left_lib;
   // map<NODETYPE, vector<IR *>> right_lib;
   vector<string> string_libary;
+  vector<string> used_string_library;
   map<IDTYPE, IDTYPE> relationmap;
   map<IDTYPE, IDTYPE> relationmap_alternate;
   map<IDTYPE, IDTYPE> cross_map;
