@@ -99,7 +99,7 @@ class Oracle_TLP:
                     all_res_str_l[idx][0], all_res_str_l[idx][1]
                 )
                 print("\n" + f"Opt: {all_res_str_l[idx][0]}" + "\n" + f"UnOpt: {all_res_str_l[idx][1]}" + "\n" + f"Result: {curr_res}\n")
-                input("wait")
+                # input("wait")
                 all_res_out.append(curr_res)
             elif (
                 valid_type == VALID_TYPE_TLP.COUNT

@@ -2964,15 +2964,23 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
     COMP_RES comp_res;
     if (idx < res_vec_0.size()) {
       comp_res.res_str_0 = res_vec_0[idx];
+    } else {
+      comp_res.res_str_0 = "Error";
     }
     if (idx < res_vec_1.size()) {
       comp_res.res_str_1 = res_vec_1[idx];
+    } else {
+      comp_res.res_str_1 = "Error";
     }
     if (idx < res_vec_2.size()) {
       comp_res.res_str_2 = res_vec_2[idx];
+    } else {
+      comp_res.res_str_2 = "Error";
     }
     if (idx < res_vec_3.size()) {
       comp_res.res_str_3 = res_vec_3[idx];
+    } else {
+      comp_res.res_str_3 = "Error";
     }
     if (idx < exp_vec_0.size()) {
       if ((idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) ||
