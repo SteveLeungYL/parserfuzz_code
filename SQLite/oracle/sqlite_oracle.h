@@ -17,7 +17,17 @@ class Mutator;
 class SQL_ORACLE {
 public:
 
-  inline virtual bool is_select_stmt(IR* cur_IR);
+  //inline virtual bool is_select_stmt(IR* cur_IR);
+  inline bool is_select_stmt(IR* cur_IR) {
+    if (cur_IR->type_ == kSelectStatement) {
+      // cerr << "Debug: For: " << cur_IR->to_string() << ", type_: " << get_string_by_ir_type(cur_IR->type_) << " is select. \n\n\n";
+      return true;
+    } else {
+      // cerr << "Debug: For: " << cur_IR->to_string() << ", type_: " << get_string_by_ir_type(cur_IR->type_) << " is NOT select. \n\n\n";
+      return false;
+    }
+  }
+
   virtual void remove_all_select_stmt_from_ir(IR* ir_root);
 
   /* 

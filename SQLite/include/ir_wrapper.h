@@ -21,14 +21,16 @@ public:
     vector<IR*> get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery = false, int stmt_idx = -1);
 
     bool is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery);
-    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false, bool is_ignore_subquery = false);
+    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type,
+        bool is_subquery = false, bool is_ignore_subquery = false);
 
-    vector<IR*> get_ir_node_in_stmt_with_id_type(IR* cur_stmt, IDTYPE id_type, bool is_subquery = false, bool is_ignore_subquery = false);
+    vector<IR*> get_ir_node_in_stmt_with_id_type(IR* cur_stmt, IDTYPE id_type, 
+        bool is_subquery = false, bool is_ignore_subquery = false);
 
-    bool append_stmt_after_idx(string, int idx, const Mutator& g_mutator);
-    bool append_stmt_at_end(string, const Mutator& g_mutator);
+    bool append_stmt_after_idx(string, int idx, Mutator& g_mutator);
+    bool append_stmt_at_end(string, Mutator& g_mutator);
     bool append_stmt_after_idx(IR*, int idx); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. If want to append at the start, use idx=-1; 
-    bool append_stmt_at_end(IR*, const Mutator& g_mutator);
+    bool append_stmt_at_end(IR*, Mutator& g_mutator);
     bool append_stmt_at_end(IR*); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
 
     bool remove_stmt_at_idx_and_free(unsigned idx);
@@ -64,7 +66,7 @@ public:
     ** Iterately find the parent type. Skip kUnknown and keep iterating until not kUnknown is found. Return the parent IRTYPE. 
     ** If parent_ is NULL. Return kUnknown instead. 
     */
-    IRTYPE get_parent_type(IR* cur_IR, int depth);
+    IRTYPE get_parent_type(IR* cur_IR, int depth=0);
     IR* get_parent_with_a_type(IR* cur_IR, int depth=0);
 
     /* more specific features. */
@@ -79,7 +81,8 @@ public:
     /* Receive one knewexpr IR node, add new binary_op between left_stmt and right_stmt; return the new knewexpr containing 
     ** the added operations. 
     */
-    IR* add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_expr, string op_value, bool is_free_left = false, bool is_free_right = false);
+    IR* add_binary_op(IR* ori_expr, IR* left_stmt_expr, IR* right_stmt_expr,
+        string op_value, bool is_free_left = false, bool is_free_right = false);
 
     /* 
     ** Given a statement IR, check whether the statment contains 'GROUP BY' or 'HAVING' clause. 

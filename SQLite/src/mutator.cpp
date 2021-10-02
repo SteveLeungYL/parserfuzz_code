@@ -588,7 +588,7 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
 }
 
 /* Handle and fix one single query statement. */
-bool Mutator::validate(IR* cur_trans_stmt, bool is_debug_info = false) {
+bool Mutator::validate(IR* cur_trans_stmt, bool is_debug_info) {
 
   if (cur_trans_stmt == nullptr) {return false;}
   bool res = true;
@@ -1731,7 +1731,7 @@ Mutator::~Mutator() {
 // relationmap_alternate[id_create_index_name] = id_top_table_name;
 //
 bool Mutator::fix_dependency(IR *root,
-                        vector<vector<IR *>> &ordered_all_subquery_ir, bool is_debug_info = false) {
+                        vector<vector<IR *>> &ordered_all_subquery_ir, bool is_debug_info) {
   set<IR *> visited;
   reset_database_single_stmt();
   string cur_pragma_key = "";
@@ -2350,7 +2350,7 @@ bool Mutator::fix_dependency(IR *root,
         for (IR* cur_men_column_ir : all_mentioned_column_vec) {
           string cur_men_column_str = cur_men_column_ir->str_val_;
           if (findStringIn(cur_men_column_str, ".")) {
-            cur_men_column_str = string_splitter(cur_men_column_str, '\.')[1];
+            cur_men_column_str = string_splitter(cur_men_column_str, '.')[1];
           }
           m_tables[ir->str_val_].push_back(cur_men_column_str);
           if (is_debug_info) {
@@ -2549,7 +2549,7 @@ void Mutator::_fix(IR *root, string &res) {
   return;
 }
 
-void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info = false){
+void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info){
   IRTYPE stmt_type = this->p_oracle->ir_wrapper.get_cur_stmt_type(cur_trans_stmt);
   if (stmt_type == kDropTableStatement || stmt_type == kDropViewStatement) {
     vector<IR*> drop_tablename_vec = search_mapped_ir_in_stmt(cur_trans_stmt, id_table_name);
@@ -2578,7 +2578,7 @@ void Mutator::resolve_drop_statement(IR* cur_trans_stmt, bool is_debug_info = fa
   }
 }
 
-void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info = false) {
+void Mutator::resolve_alter_statement(IR* cur_trans_stmt, bool is_debug_info) {
   if (cur_trans_stmt->type_ != kAlterStatement) {return;}
 
   IR* cur_ir = cur_trans_stmt;
