@@ -100,7 +100,7 @@ public:
   vector<IR *> extract_statement(IR *root);
   unsigned int calc_node(IR *root);
 
-  void Mutator::fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
+  void fix_preprocessing(IR *root, map<IDTYPE, IDTYPE> &relationmap,
                                 vector<vector<IR*>> &ordered_ir);
   vector<IR *> cut_subquery(IR *program, TmpRecord &m_save);
   bool add_back(TmpRecord &m_save);

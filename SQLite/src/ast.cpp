@@ -193,7 +193,10 @@ IR *IR::get_root() {
   return node;
 }
 
-IR *IR::get_parent() { if (this->parent_ != NULL) {return this->parent_;} else {return NULL;}}
+IR *IR::get_parent() { 
+
+  return this->parent_;
+}
 
 void IR::update_left(IR *new_left) {
 
