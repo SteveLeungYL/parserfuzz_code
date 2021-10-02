@@ -60,11 +60,15 @@ class VerCon:
             result = subprocess.getstatusoutput("chmod +x ../../configure")
             if result[0] != 0:
                 log_out_line("Compilation failed. Reason: %s. \n" % (result[1]))
-
-            result = subprocess.getstatusoutput("../../configure")
+             
+            result = subprocess.getstatusoutput("../../configure  --enable-fts5")
             if result[0] != 0:
                 log_out_line("Compilation failed. Reason: %s. \n" % (result[1]))
-                return 1
+                # If --enable-fts5 is not available, then we try the normal configure instead. 
+                result = subprocess.getstatusoutput("../../configure")
+                if result[0] != 0:
+                    log_out_line("Compilation failed. Reason: %s. \n" % (result[1]))
+                    return 1
 
             result = subprocess.getstatusoutput("make -j" + str(COMPILE_THREAD_COUNT))
             if result[0] != 0:
