@@ -94,6 +94,26 @@ class IO:
                 if is_adding:
                     current_queries_out += query + " \n"
 
+        # """ Next, separate the SELECT statements into different query sequences.
+        #     If one buggy query contains multiple SELECT oracle mismatch,
+        #     these mismatches could due to different reasons, 
+        # """
+        # output_all_queries_tmp = []
+        # for cur_query in output_all_queries:
+        #     cur_query_l = cur_query.split("SELECT 'BEGIN VERI 0';")
+        #     database_mangagement_queries = cur_query_l[0]
+        #     for i in range(1, len(cur_query_l)):
+        #         output_queries_out = database_mangagement_queries + "SELECT 'BEGIN VERI 0';"
+        #         output_queries_out += cur_query_l[i]
+        #         output_all_queries_tmp.append(output_queries_out)
+            
+        # output_all_queries = output_all_queries_tmp
+
+        ### print("Debug: printing all the read queries: \n")
+        ### for cur_output_query in output_all_queries:
+        ###     print(cur_output_query)
+        ###     print("\n\n\n\n\n\n\n")
+
         return output_all_queries
 
     @classmethod
