@@ -345,11 +345,21 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   vector<IR*> ori_stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec();
   IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
 
-  IR* new_stmt_ir = get_from_libary_with_type(kStatement);
-  if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
-    cur_root->deep_drop();
-    return res_vec;
+  IR * new_stmt_ir = NULL;
+  /* Get new insert statement. However, do not insert kSelectStatement */
+  while (new_stmt_ir == NULL) {
+    new_stmt_ir = get_from_libary_with_type(kStatement);
+    if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+      cur_root->deep_drop();
+      return res_vec;
+    }
+    if (new_stmt_ir->left_->type_ == kSelectStatement) {
+      new_stmt_ir->deep_drop();
+      new_stmt_ir = NULL;
+    }
+    continue;
   }
+
   IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
@@ -368,10 +378,20 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   p_oracle->ir_wrapper.set_ir_root(cur_root);
 
   int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
-  new_stmt_ir = get_from_libary_with_type(kStatement);
-  if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
-    cur_root->deep_drop();
-    return res_vec;
+
+  /* Get new insert statement. However, do not insert kSelectStatement */ 
+  new_stmt_ir = NULL;
+  while (new_stmt_ir == NULL) {
+    new_stmt_ir = get_from_libary_with_type(kStatement);
+    if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+      cur_root->deep_drop();
+      return res_vec;
+    }
+    if (new_stmt_ir->left_->type_ == kSelectStatement) {
+      new_stmt_ir->deep_drop();
+      new_stmt_ir = NULL;
+    }
+    continue;
   }
   new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
   new_stmt_ir->deep_drop();
