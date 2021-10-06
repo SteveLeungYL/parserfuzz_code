@@ -70,21 +70,32 @@ def main():
         elif all_new_queries == []:
             time.sleep(1.0)
             continue
-        if (
-            "randomblob" in all_new_queries[0]
-            or "random" in all_new_queries[0]
-            or "julianday" in all_new_queries[0]
-        ):
+        # if (
+            # "randomblob" in all_new_queries[0]
+            # or "random" in all_new_queries[0]
+            # or "julianday" in all_new_queries[0]
+        # ):
 
-            continue
+            # continue
 
         start_time = time.time()
-        is_dup_commit = Bisect.run_bisecting(
-            queries_l=all_new_queries,
-            oracle=oracle,
-            vercon=vercon,
-            current_file=current_file_d,
-        )
+
+        all_is_dup_commit = True 
+        for cur_new_queries in all_new_queries:
+            is_dup_commit = Bisect.run_bisecting(
+                queries_l=cur_new_queries,
+                oracle=oracle,
+                vercon=vercon,
+                current_file=current_file_d,
+            )
+            if not is_dup_commit:
+                all_is_dup_commit = False
+        # is_dup_commit = Bisect.run_bisecting(
+        #     queries_l=all_new_queries,
+        #     oracle=oracle,
+        #     vercon=vercon,
+        #     current_file=current_file_d,
+        # )
         end_time = time.time()
         with open(os.path.join(UNIQUE_BUG_OUTPUT_DIR, "time.txt"), "a") as f:
             f.write(
@@ -93,8 +104,8 @@ def main():
                 )
             )
 
-        if is_dup_commit == True:
-            IO.remove_file_from_abs_path(current_file_d)
+        # if all_is_dup_commit == True:
+        #     IO.remove_file_from_abs_path(current_file_d)
 
         IO.status_print()
 
