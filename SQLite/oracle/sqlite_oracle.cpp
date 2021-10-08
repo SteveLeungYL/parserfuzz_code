@@ -269,7 +269,9 @@ bool SQL_ORACLE::is_oracle_select_stmt_str(const string &query) {
   }
 
   IR *cur_stmt = cur_root->left_->left_;
-  return is_oracle_select_stmt(cur_stmt);
+  bool res = is_oracle_select_stmt(cur_stmt);
+  cur_root->deep_drop();
+  return res;
 };
 
 string SQL_ORACLE::remove_oracle_select_stmts_from_str(string query) {
