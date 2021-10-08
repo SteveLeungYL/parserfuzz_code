@@ -5,30 +5,6 @@
 #include <regex>
 #include <string>
 
-int SQL_INDEX::count_valid_stmts(const string &input) {
-  int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ';');
-  for (string &query : queries_vector)
-    if (this->is_oracle_valid_stmt(query) ||
-        this->is_oracle_valid_stmt_2(query))
-      norec_select_count++;
-  return norec_select_count;
-}
-
-bool SQL_INDEX::is_oracle_valid_stmt(const string &query) {
-  if (((findStringIter(query, "SELECT") - query.begin()) < 5) &&
-      findStringIn(query, "FROM"))
-    return true;
-  return false;
-}
-
-bool SQL_INDEX::is_oracle_valid_stmt_2(const string &query) {
-  if (((findStringIter(query, "CREATE INDEX") - query.begin()) < 5) ||
-      ((findStringIter(query, "CREATE UNIQUE INDEX") - query.begin()) < 5))
-    return true;
-  return false;
-}
-
 /* TODO:: Should we change this function in the not NOREC oracle? */
 bool SQL_INDEX::mark_all_valid_node(vector<IR *> &v_ir_collector) {
   bool is_mark_successfully = false;
@@ -52,7 +28,7 @@ bool SQL_INDEX::mark_all_valid_node(vector<IR *> &v_ir_collector) {
           if (par_par_par_ir != nullptr &&
               par_par_par_ir->type_ == kStatementList) {
             string query = g_mutator->extract_struct(ir);
-            if (!(this->is_oracle_valid_stmt(query)))
+            if (!(this->is_oracle_select_stmt_str(query)))
               continue; // Not norec compatible. Jump to the next ir.
             query.clear();
             is_mark_successfully = this->mark_node_valid(ir);
@@ -68,44 +44,6 @@ bool SQL_INDEX::mark_all_valid_node(vector<IR *> &v_ir_collector) {
   }
 
   return is_mark_successfully;
-}
-
-/* Select statements untouched. */
-void SQL_INDEX::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
-                                            string &rew_2, string &rew_3,
-                                            unsigned multi_run_id) {
-  rew_1 = "";
-  rew_2 = "";
-  rew_3 = "";
-  return;
-}
-
-/* If we found CREATE INDEX stmt, delete it. */
-void SQL_INDEX::rewrite_valid_stmt_from_ori_2(string &query,
-                                              unsigned multi_run_id) {
-  /* If the query contains CREATE UNIQUE INDEX, delete no matter what. */
-  if (((findStringIter(query, "CREATE UNIQUE INDEX") - query.begin()) < 5)) {
-    query = "";
-    return;
-  }
-  if (multi_run_id < 1)
-    return; // First run, do not modify anything.
-  query = "";
-  return;
-}
-
-string SQL_INDEX::remove_valid_stmts_from_str(string query) {
-  string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ';');
-
-  for (auto current_stmt : queries_vector) {
-    if (is_str_empty(current_stmt))
-      continue;
-    if (!is_oracle_valid_stmt(current_stmt))
-      output_query += current_stmt + "; ";
-  }
-
-  return output_query;
 }
 
 void SQL_INDEX::get_v_valid_type(const string &cmd_str,

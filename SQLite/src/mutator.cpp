@@ -187,7 +187,7 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
   return res;
 }
 
-vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
+vector<IR *> Mutator::parse_query_str_get_ir_set(const string &query_str) {
   vector<IR *> ir_set;
 
   auto p_strip_sql = parser(query_str.c_str());
@@ -2975,7 +2975,7 @@ bool Mutator::get_valid_str_from_lib(string &ori_oracle_select) {
             *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       }
       if (ori_oracle_select == "" ||
-          !p_oracle->is_oracle_valid_stmt(ori_oracle_select))
+          !p_oracle->is_oracle_select_stmt_str(ori_oracle_select))
         {continue;}
       use_temp = false;
     } else {

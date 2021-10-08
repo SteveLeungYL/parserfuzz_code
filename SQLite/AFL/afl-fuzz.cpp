@@ -2727,93 +2727,6 @@ inline void print_exec_debug_info(ostream &out) {
   return;
 }
 
-string expand_valid_stmts_str(vector<string> &queries_vector,
-                              const bool is_mark = false,
-                              const unsigned mul_run_id = 0) {
-  bool is_explain = g_mutator.get_is_use_cri_val();
-  string current_output = "";
-
-  for (string &query : queries_vector) {
-    if (is_str_empty(query))
-      continue;
-    if (p_oracle->is_oracle_valid_stmt(query)) {
-      string rew_1 = "", rew_2 = "", rew_3 = "";
-      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3,
-                                            mul_run_id);
-
-      if (query != "") {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 0'; \n";
-        current_output += query + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 0'; \n";
-        /* Use EXPLAIN QUERY PLAN to see whether the query triggers critical
-         * optimization changes. */
-        if (is_explain) {
-          if (is_mark)
-            current_output += "SELECT 'BEGIN EXPLAIN 0'; \n";
-          current_output += "EXPLAIN QUERY PLAN " + query + "; \n";
-          if (is_mark)
-            current_output += "SELECT 'END EXPLAIN 0'; \n";
-        }
-      }
-
-      if (rew_1 != "" && mul_run_id <= 1) {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 1'; \n";
-        current_output += rew_1 + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 1'; \n";
-        if (is_explain) {
-          if (is_mark)
-            current_output += "SELECT 'BEGIN EXPLAIN 1'; \n";
-          current_output += "EXPLAIN QUERY PLAN " + rew_1 + "; \n";
-          if (is_mark)
-            current_output += "SELECT 'END EXPLAIN 1'; \n";
-        }
-      }
-
-      if (rew_2 != "" && mul_run_id <= 1) {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 2'; \n";
-        current_output += rew_2 + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 2'; \n";
-        if (is_explain) {
-          if (is_mark)
-            current_output += "SELECT 'BEGIN EXPLAIN 2'; \n";
-          current_output += "EXPLAIN QUERY PLAN " + rew_2 + "; \n";
-          if (is_mark)
-            current_output += "SELECT 'END EXPLAIN 2'; \n";
-        }
-      }
-
-      if (rew_3 != "" && mul_run_id <= 1) {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 3'; \n";
-        current_output += rew_3 + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 3'; \n";
-
-        if (is_explain) {
-          if (is_mark)
-            current_output += "SELECT 'BEGIN EXPLAIN 3'; \n";
-          current_output += "EXPLAIN QUERY PLAN " + rew_3 + "; \n";
-          if (is_mark)
-            current_output += "SELECT 'END EXPLAIN 3'; \n";
-        }
-      }
-    } else if (p_oracle->is_oracle_valid_stmt_2(
-                   query)) { // If required to rewrite non-select statement
-      p_oracle->rewrite_valid_stmt_from_ori_2(query, mul_run_id);
-      current_output += query + "; \n";
-    } else {
-      current_output += query + "; \n";
-    }
-  }
-  return current_output;
-}
-
 void log_error(const string &cmd_str, string &err_str) {
 
 #if 0
@@ -3900,7 +3813,7 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
 
   /* Do not strip the string when saving to queue. Strip it when loading. */
   string stripped_query_string =
-      p_oracle->remove_valid_stmts_from_str(query_str);
+      p_oracle->remove_oracle_select_stmts_from_str(query_str);
   if (is_str_empty(stripped_query_string)){
     // cerr << "stripped query_str empty" << endl;
     return keeping;
@@ -6092,7 +6005,9 @@ static u8 fuzz_one(char **argv) {
     }
     // cerr << "Getting cur_app_stmt: " << cur_app_stmt->to_string() << endl;
     p_oracle->init_ir_wrapper(cur_ir_root);
-    p_oracle->ir_wrapper.append_stmt_at_end(cur_app_stmt);
+    /* Choose insert position. Do not insert as the very first statement. */
+    int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num(cur_ir_root));
+    p_oracle->ir_wrapper.append_stmt_after_idx(cur_app_stmt, insert_pos);
   }
 
   // cerr << "Just after random append statements, the statement is: \n" << cur_ir_root->to_string() << "\n\n\n";

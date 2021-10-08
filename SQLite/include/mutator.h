@@ -64,7 +64,7 @@ public:
   int get_valid_collection_size();
   int get_cri_valid_collection_size();
 
-  vector<IR *> parse_query_str_get_ir_set(string &query_str);
+  vector<IR *> parse_query_str_get_ir_set(const string &query_str);
 
   void add_all_to_library(IR *, const vector<int> &, const ALL_COMP_RES&);
   void add_all_to_library(IR *ir) {
