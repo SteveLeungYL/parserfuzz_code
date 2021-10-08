@@ -34,6 +34,8 @@ public:
   IR* pre_fix_transform_normal_stmt(IR* cur_stmt) override;
   vector<IR*> post_fix_transform_normal_stmt(IR* cur_stmt, unsigned multi_run_id) override;
 
+  vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
+
   int is_random_append_stmts() override {return 5;}
   IR* get_random_append_stmts_ir() override;
 

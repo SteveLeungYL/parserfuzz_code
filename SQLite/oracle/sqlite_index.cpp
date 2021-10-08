@@ -212,6 +212,12 @@ vector<IR*> SQL_INDEX::post_fix_transform_normal_stmt(IR* cur_stmt, unsigned mul
   return output_stmt_vec;
 }
 
+vector<IR*> SQL_INDEX::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) {
+  vector<IR*> ret_vec;
+  ret_vec.push_back(cur_stmt->deep_copy());
+  return ret_vec;
+}
+
 IR* SQL_INDEX::get_random_append_stmts_ir() {
   string temp_append_str = this->temp_append_stmts[get_rand_int(this->temp_append_stmts.size())];
   vector<IR*> app_ir_set = g_mutator->parse_query_str_get_ir_set(temp_append_str);
