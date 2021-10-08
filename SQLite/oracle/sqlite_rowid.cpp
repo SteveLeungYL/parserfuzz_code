@@ -73,16 +73,20 @@ void SQL_ROWID::compare_results(ALL_COMP_RES &res_out) {
   bool is_all_errors = true;
   int i = 0;
   for (COMP_RES &res : res_out.v_res) {
+    if (i >= v_valid_type.size()) {
+      res.comp_res = ORA_COMP_RES::Error;
+      break; // break the loop
+    }
     switch (v_valid_type[i++]) {
     case VALID_STMT_TYPE_ROWID::NORMAL:
       if (!this->compare_norm(res))
         is_all_errors = false;
-      break;
+      break; // break the switch
 
     case VALID_STMT_TYPE_ROWID::AGGR:
       if (!this->compare_aggr(res))
         is_all_errors = false;
-      break;
+      break; // break the switch
     default:
       res.comp_res == ORA_COMP_RES::Error;
     }
