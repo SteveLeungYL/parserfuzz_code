@@ -7,86 +7,43 @@
 #include <string>
 
 bool SQL_LIKELY::mark_all_valid_node(vector<IR *> &v_ir_collector) {
-  bool is_mark_successfully = false;
-
-  IR *root = v_ir_collector[v_ir_collector.size() - 1];
-  IR *par_ir = nullptr;
-  IR *par_par_ir = nullptr;
-  IR *par_par_par_ir = nullptr; // If we find the correct selectnoparen, this
-                                // should be the statementlist.
-  for (auto ir : v_ir_collector) {
-    if (ir != nullptr)
-      ir->is_node_struct_fixed = false;
-  }
-  for (auto ir : v_ir_collector) {
-    if (ir != nullptr && ir->type_ == kSelectCore) {
-      par_ir = root->locate_parent(ir);
-      if (par_ir != nullptr && par_ir->type_ == kSelectStatement) {
-        par_par_ir = root->locate_parent(par_ir);
-        if (par_par_ir != nullptr && par_par_ir->type_ == kStatement) {
-          par_par_par_ir = root->locate_parent(par_par_ir);
-          if (par_par_par_ir != nullptr &&
-              par_par_par_ir->type_ == kStatementList) {
-            string query = g_mutator->extract_struct(ir);
-            if (!(this->is_oracle_select_stmt_str(query)))
-              continue; // Not norec compatible. Jump to the next ir.
-            query.clear();
-            is_mark_successfully = this->mark_node_valid(ir);
-            // cerr << "\n\n\nThe marked norec ir is: " <<
-            // this->extract_struct(ir) << " \n\n\n";
-            par_ir->is_node_struct_fixed = true;
-            par_par_ir->is_node_struct_fixed = true;
-            par_par_par_ir->is_node_struct_fixed = true;
-          }
-        }
-      }
-    }
-  }
-
-  return is_mark_successfully;
+  return true;
 }
 
 
 void SQL_LIKELY::get_v_valid_type(
     const string &cmd_str, vector<VALID_STMT_TYPE_LIKELY> &v_valid_type) {
+  /* Look throught first validation stmt's result_1 first */
   size_t begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", 0);
   size_t end_idx = cmd_str.find("SELECT 'END VERI 0';", 0);
 
   while (begin_idx != string::npos) {
     if (end_idx != string::npos) {
       string cur_cmd_str =
-          cmd_str.substr(begin_idx + 21, (end_idx - begin_idx - 21));
-      begin_idx = cmd_str.find("SELECT 'BEGIN VERI", begin_idx + 21);
-      end_idx = cmd_str.find("SELECT 'END VERI", end_idx + 21);
+          cmd_str.substr(begin_idx + 23, (end_idx - begin_idx - 23));
+      begin_idx = cmd_str.find("SELECT 'BEGIN VERI 0';", begin_idx + 23);
+      end_idx = cmd_str.find("SELECT 'END VERI 0';", end_idx + 21);
 
-      if (((findStringIter(cur_cmd_str, "SELECT DISTINCT MIN") -
-            cur_cmd_str.begin()) < 5) ||
-          ((findStringIter(cur_cmd_str, "SELECT MIN") - cur_cmd_str.begin()) <
-           5) ||
-          ((findStringIter(cur_cmd_str, "SELECT DISTINCT MAX") -
-            cur_cmd_str.begin()) < 5) ||
-          ((findStringIter(cur_cmd_str, "SELECT MAX") - cur_cmd_str.begin()) <
-           5) ||
-          ((findStringIter(cur_cmd_str, "SELECT DISTINCT SUM") -
-            cur_cmd_str.begin()) < 5) ||
-          ((findStringIter(cur_cmd_str, "SELECT SUM") - cur_cmd_str.begin()) <
-           5) ||
-          ((findStringIter(cur_cmd_str, "SELECT DISTINCT COUNT") -
-            cur_cmd_str.begin()) < 5) ||
-          ((findStringIter(cur_cmd_str, "SELECT COUNT") - cur_cmd_str.begin()) <
-           5)) {
-        v_valid_type.push_back(VALID_STMT_TYPE_LIKELY::UNIQ);
-        // cerr << "query: " << cur_cmd_str << " \nMIN. \n";
-      } else {
-        v_valid_type.push_back(VALID_STMT_TYPE_LIKELY::NORM);
-        // cerr << "query: " << cur_cmd_str << " \nNORM. \n";
+      vector<IR*> v_cur_stmt_ir = g_mutator->parse_query_str_get_ir_set(cur_cmd_str);
+      if ( v_cur_stmt_ir.size() == 0 ) {
+        continue;
       }
+      if ( !(v_cur_stmt_ir.back()->left_ != NULL && v_cur_stmt_ir.back()->left_->left_ != NULL) ) {
+        v_cur_stmt_ir.back()->deep_drop();
+        continue;
+      }
+
+      IR* cur_stmt_ir = v_cur_stmt_ir.back()->left_->left_;
+      v_valid_type.push_back(get_stmt_LIKELY_type(cur_stmt_ir));
+
+      v_cur_stmt_ir.back()->deep_drop();
+
     } else {
+      // cerr << "Error: For the current begin_idx, we cannot find the end_idx. \n\n\n";
       break; // For the current begin_idx, we cannot find the end_idx. Ignore
              // the current output.
     }
   }
-  return;
 }
 
 void SQL_LIKELY::compare_results(ALL_COMP_RES &res_out) {
@@ -100,13 +57,16 @@ void SQL_LIKELY::compare_results(ALL_COMP_RES &res_out) {
   int i = 0;
   for (COMP_RES &res : res_out.v_res) {
     switch (v_valid_type[i++]) {
-    case VALID_STMT_TYPE_LIKELY::NORM:
+    case VALID_STMT_TYPE_LIKELY::NORMAL:
       if (!this->compare_norm(res))
         is_all_errors = false;
       break;
-    case VALID_STMT_TYPE_LIKELY::UNIQ:
-      if (!this->compare_uniq(res))
+    case VALID_STMT_TYPE_LIKELY::AGGR:
+      if (!this->compare_aggr(res))
         is_all_errors = false;
+      break;
+    default:
+      res.comp_res = ORA_COMP_RES::Error;
       break;
     }
     if (res.comp_res == ORA_COMP_RES::Fail)
@@ -145,6 +105,11 @@ bool SQL_LIKELY::compare_norm(
   vector<string> v_res_1 = string_splitter(res_str_1, '\n');
   vector<string> v_res_2 = string_splitter(res_str_2, '\n');
 
+  if (v_res_0.size() > 50 || v_res_1.size() > 50 || v_res_2.size() > 50) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
   for (const string &r : v_res_0) {
     if (is_str_empty(r))
       --res_int_0;
@@ -171,25 +136,43 @@ bool SQL_LIKELY::compare_norm(
   return false;
 }
 
-bool SQL_LIKELY::compare_uniq(COMP_RES &res) {
+bool SQL_LIKELY::compare_aggr(COMP_RES &res) {
 
-  const string &res_str_0 = res.res_str_0;
-  const string &res_str_1 = res.res_str_1;
-  const string &res_str_2 = res.res_str_2;
+  string &res_a = res.res_str_0;
+  string &res_b = res.res_str_1;
+  string &res_c = res.res_str_2;
+  int &res_a_int = res.res_int_0;
+  int &res_b_int = res.res_int_1;
+  int &res_c_int = res.res_int_2;
 
-  if (res_str_0.find("Error") != string::npos ||
-      res_str_1.find("Error") != string::npos ||
-      res_str_2.find("Error") != string::npos) {
+  if (res_a.find("Error") != string::npos ||
+      res_b.find("Error") != string::npos ||
+      res_c.find("Error") != string::npos) {
     res.comp_res = ORA_COMP_RES::Error;
     return true;
   }
 
-  if (res_str_0 != res_str_1 || res_str_0 != res_str_2) {
-    res.comp_res = ORA_COMP_RES::Fail;
-    return false;
+  try {
+    res_a_int = stoi(res.res_str_0);
+    res_b_int = stoi(res.res_str_1);
+    res_c_int = stoi(res.res_str_2);
+  } catch (std::invalid_argument &e) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  } catch (std::out_of_range &e) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  } catch (const std::exception& e) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
   }
 
-  res.comp_res = ORA_COMP_RES::Pass;
+  if (res_a_int != res_b_int || res_a_int != res_c_int) {
+    res.comp_res = ORA_COMP_RES::Fail;
+  } else {
+    res.comp_res = ORA_COMP_RES::Pass;
+  }
+
   return false;
 }
 
@@ -248,5 +231,45 @@ vector<IR*> SQL_LIKELY::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mu
   trans_IR_vec.push_back(cur_stmt);
 
   return trans_IR_vec;
+
+}
+
+
+VALID_STMT_TYPE_LIKELY SQL_LIKELY::get_stmt_LIKELY_type (IR* cur_stmt) {
+  VALID_STMT_TYPE_LIKELY default_type_ = VALID_STMT_TYPE_LIKELY::NORMAL;
+
+  vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_stmt);
+  if (v_result_column_list.size() == 0) {
+    return VALID_STMT_TYPE_LIKELY::ROWID_UNKNOWN;
+  }
+
+  vector<IR*> v_agg_func_args = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionArgs, false);
+  if (v_agg_func_args.size() == 0) {
+    return default_type_;
+  }
+
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionName, false);
+  if (v_aggr_func_ir.size() == 0) {
+    return default_type_;
+  }
+  if (v_aggr_func_ir[0]->left_ == NULL) {
+    return default_type_;
+  }
+
+  /* Might have aggr function. */
+  string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
+  if (findStringIn(aggr_func_str, "MIN")) {
+    return VALID_STMT_TYPE_LIKELY::AGGR;
+  } else if (findStringIn(aggr_func_str, "MAX")){
+    return VALID_STMT_TYPE_LIKELY::AGGR;
+  } else if (findStringIn(aggr_func_str, "COUNT")){
+    return VALID_STMT_TYPE_LIKELY::AGGR;
+  } else if (findStringIn(aggr_func_str, "SUM")) {
+    return VALID_STMT_TYPE_LIKELY::AGGR;
+  } else if (findStringIn(aggr_func_str, "AVG")) {
+    return VALID_STMT_TYPE_LIKELY::AGGR;
+  }
+
+  return default_type_;
 
 }
