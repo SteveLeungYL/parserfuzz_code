@@ -7,7 +7,13 @@ from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
 
 class VALID_TYPE_LIKELY(Enum):
     NORM = 1
-    UNIQUE = 2
+    MIN = 2
+    MAX = 3
+    SUM = 4
+    COUNT = 5
+    AVG = 6
+    DISTINCT = 7
+    GROUP_BY = 8
 
 
 class Oracle_LIKELY:
@@ -157,27 +163,42 @@ class Oracle_LIKELY:
     @classmethod
     def _get_valid_type(cls, query: str):
         if re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning valid_type: MIN" % (query))
-            return VALID_TYPE_LIKELY.UNIQUE
+            # print("For query: %s, returning valid_type: DISTINCT" % (query.strip()))
+            return VALID_TYPE_LIKELY.DISTINCT
+        if re.match(
+            r"""^[\s;]*SELECT\s*(.+)(GROUP\s*)(BY\s*)(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning valid_type: GROUP_BY" % (query.strip()))
+            return VALID_TYPE_LIKELY.GROUP_BY
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*MIN(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_LIKELY: MAX" % (query))
-            return VALID_TYPE_LIKELY.UNIQUE
+            # print("For query: %s, returning valid_type: MIN" % (query.strip()))
+            return VALID_TYPE_LIKELY.MIN
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*MAX(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_LIKELY: SUM" % (query))
-            return VALID_TYPE_LIKELY.UNIQUE
+            # print("For query: %s, returning VALID_TYPE_LIKELY: MAX" % (query.strip()))
+            return VALID_TYPE_LIKELY.MAX
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*SUM(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_LIKELY: COUNT" % (query))
-            return VALID_TYPE_LIKELY.UNIQUE
+            # print("For query: %s, returning VALID_TYPE_LIKELY: SUM" % (query.strip()))
+            return VALID_TYPE_LIKELY.SUM
+        elif re.match(
+            r"""^[\s;]*SELECT\s*AVG(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning VALID_TYPE_LIKELY: AVG" % (query.strip()))
+            return VALID_TYPE_LIKELY.AVG
+        elif re.match(
+            r"""^[\s;]*SELECT\s*COUNT(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning VALID_TYPE_LIKELY: COUNT" % (query.strip()))
+            return VALID_TYPE_LIKELY.COUNT
         else:
-            # print("For query: %s, returning VALID_TYPE_LIKELY: NORM" % (query))
+            # print("For query: %s, returning VALID_TYPE_LIKELY: NORM" % (query.strip()))
             return VALID_TYPE_LIKELY.NORM
 
     @classmethod
@@ -225,6 +246,91 @@ class Oracle_LIKELY:
             return RESULT.ERROR
 
         if ori != likely or ori != unlikely:
+            return RESULT.FAIL
+        else:
+            return RESULT.PASS
+    
+    @classmethod
+    def _check_result_aggr(cls, ori, likely, unlikely, valid_type) -> RESULT:
+        if "Error" in ori or "Error" in likely or "Error" in unlikely:
+            return RESULT.ERROR
+
+        ori_out_int: int = 0
+        likely_out_int: int = 0
+        unlikely_out_int: int = 0
+        if valid_type == VALID_TYPE_LIKELY.MAX:
+            ori_out_int = 0
+            likely_out_int = 0
+            unlikely_out_int = 0
+        elif valid_type == VALID_TYPE_LIKELY.MIN:
+            ori_out_int = maxsize
+            likely_out_int = maxsize
+        elif valid_type == VALID_TYPE_LIKELY.AVG:
+            ori_out_int = 0
+            likely_out_int = 0
+            unlikely_out_int = 0
+        elif valid_type == VALID_TYPE_LIKELY.COUNT or valid_type == VALID_TYPE_LIKELY.SUM:
+            ori_out_int = 0
+            likely_out_int = 0
+            unlikely_out_int = 0
+        else:
+            raise ValueError(
+                "Cannot handle valid_type: "
+                + str(valid_type)
+                + " in the check_result function. "
+            )
+
+        for cur_ori in ori.split("\n"):
+            if is_string_only_whitespace(cur_ori):
+                continue
+            cur_res = 0
+            try:
+                cur_res = int(cur_ori)
+            except ValueError:
+                return RESULT.ERROR
+
+            if valid_type == VALID_TYPE_LIKELY.COUNT or valid_type == VALID_TYPE_LIKELY.SUM:
+                ori_out_int += cur_res
+            elif valid_type == VALID_TYPE_LIKELY.MAX and cur_res > ori_out_int:
+                ori_out_int = cur_res
+            elif valid_type == VALID_TYPE_LIKELY.MIN and cur_res < ori_out_int:
+                ori_out_int = cur_res
+
+        for cur_likely in likely.split("\n"):
+            if is_string_only_whitespace(cur_likely):
+                continue
+            cur_res = 0
+            try:
+                cur_res = int(cur_likely)
+            except ValueError:
+                return RESULT.ERROR
+
+            if valid_type == VALID_TYPE_LIKELY.COUNT or valid_type == VALID_TYPE_LIKELY.SUM:
+                likely_out_int += cur_res
+            elif valid_type == VALID_TYPE_LIKELY.MAX and cur_res > likely_out_int:
+                likely_out_int = cur_res
+            elif valid_type == VALID_TYPE_LIKELY.MIN and cur_res < likely_out_int:
+                likely_out_int = cur_res
+
+        
+        for cur_unlikely in unlikely.split("\n"):
+            if is_string_only_whitespace(cur_unlikely):
+                continue
+            cur_res = 0
+            try:
+                cur_res = int(cur_unlikely)
+            except ValueError:
+                return RESULT.ERROR
+
+            if valid_type == VALID_TYPE_LIKELY.COUNT or valid_type == VALID_TYPE_LIKELY.SUM:
+                unlikely_out_int += cur_res
+            elif valid_type == VALID_TYPE_LIKELY.MAX and cur_res > unlikely_out_int:
+                unlikely_out_int = cur_res
+            elif valid_type == VALID_TYPE_LIKELY.MIN and cur_res < unlikely_out_int:
+                unlikely_out_int = cur_res
+
+        if ori_out_int != likely_out_int or ori_out_int != unlikely_out_int:
+            # print("UNIQUE Mismatched: opt: %s\n unopt: %s\n opt(int): %d, unopt(int): %d" % (opt, unopt, opt_out_int, unopt_out_int) )
             return RESULT.FAIL
         else:
             return RESULT.PASS

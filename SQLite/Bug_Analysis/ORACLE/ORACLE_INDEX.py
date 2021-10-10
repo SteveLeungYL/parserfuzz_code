@@ -1,12 +1,19 @@
 import re
 from enum import Enum
+from sys import maxsize
 
 from Bug_Analysis.helper.data_struct import RESULT, is_string_only_whitespace
 
 
 class VALID_TYPE_INDEX(Enum):
     NORM = 1
-    UNIQUE = 2
+    MIN = 2
+    MAX = 3
+    SUM = 4
+    COUNT = 5
+    AVG = 6
+    DISTINCT = 7
+    GROUP_BY = 8
 
 
 class Oracle_INDEX:
@@ -63,10 +70,43 @@ class Oracle_INDEX:
                     all_res_str_l[0][idx], all_res_str_l[1][idx]
                 )
                 all_res_out.append(curr_res)
-            else:
-                curr_res = cls._check_result_uniq(
+            elif valid_type == VALID_TYPE_INDEX.DISTINCT:
+                curr_res = cls._check_result_norm(
+                    all_res_str_l[0][idx], all_res_str_l[1][idx]
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_INDEX.GROUP_BY:
+                curr_res = cls._check_result_norm(
+                    all_res_str_l[0][idx], all_res_str_l[1][idx]
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_INDEX.AVG:
+                curr_res = cls._check_result_aggr(
                     all_res_str_l[0][idx], all_res_str_l[1][idx], valid_type
                 )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_INDEX.COUNT:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[0][idx], all_res_str_l[1][idx], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_INDEX.MAX:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[0][idx], all_res_str_l[1][idx], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_INDEX.MIN:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[0][idx], all_res_str_l[1][idx], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_INDEX.SUM:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[0][idx], all_res_str_l[1][idx], valid_type
+                )
+                all_res_out.append(curr_res)
+            else:
+                curr_res = RESULT.ERROR
                 all_res_out.append(curr_res)
 
         for curr_res_out in all_res_out:
@@ -113,27 +153,42 @@ class Oracle_INDEX:
     @classmethod
     def _get_valid_type(cls, query: str):
         if re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MIN(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*(DISTINCT\s*)(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning valid_type: MIN" % (query))
-            return VALID_TYPE_INDEX.UNIQUE
+            # print("For query: %s, returning valid_type: DISTINCT" % (query.strip()))
+            return VALID_TYPE_INDEX.DISTINCT
+        if re.match(
+            r"""^[\s;]*SELECT\s*(.+)(GROUP\s*)(BY\s*)(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning valid_type: GROUP_BY" % (query.strip()))
+            return VALID_TYPE_INDEX.GROUP_BY
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?MAX(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*MIN(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_TLP: MAX" % (query))
-            return VALID_TYPE_INDEX.UNIQUE
+            # print("For query: %s, returning valid_type: MIN" % (query.strip()))
+            return VALID_TYPE_INDEX.MIN
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?SUM(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*MAX(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_TLP: SUM" % (query))
-            return VALID_TYPE_INDEX.UNIQUE
+            # print("For query: %s, returning VALID_TYPE_INDEX: MAX" % (query.strip()))
+            return VALID_TYPE_INDEX.MAX
         elif re.match(
-            r"""^[\s;]*SELECT\s*(DISTINCT\s*)?COUNT(.*?)$""", query, re.IGNORECASE
+            r"""^[\s;]*SELECT\s*SUM(.*?)$""", query, re.IGNORECASE
         ):
-            # print("For query: %s, returning VALID_TYPE_TLP: COUNT" % (query))
-            return VALID_TYPE_INDEX.UNIQUE
+            # print("For query: %s, returning VALID_TYPE_INDEX: SUM" % (query.strip()))
+            return VALID_TYPE_INDEX.SUM
+        elif re.match(
+            r"""^[\s;]*SELECT\s*AVG(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning VALID_TYPE_INDEX: AVG" % (query.strip()))
+            return VALID_TYPE_INDEX.AVG
+        elif re.match(
+            r"""^[\s;]*SELECT\s*COUNT(.*?)$""", query, re.IGNORECASE
+        ):
+            # print("For query: %s, returning VALID_TYPE_INDEX: COUNT" % (query.strip()))
+            return VALID_TYPE_INDEX.COUNT
         else:
-            # print("For query: %s, returning VALID_TYPE_TLP: NORM" % (query))
+            # print("For query: %s, returning VALID_TYPE_INDEX: NORM" % (query.strip()))
             return VALID_TYPE_INDEX.NORM
 
     # The same as Oracle TLP.
@@ -167,11 +222,75 @@ class Oracle_INDEX:
         else:
             return RESULT.PASS
 
+    # @classmethod
+    # def _check_result_uniq(cls, opt, unopt, valid_type) -> RESULT:
+    #     if "Error" in opt or "Error" in unopt:
+    #         return RESULT.ERROR
+    #     if opt != unopt:
+    #         return RESULT.FAIL
+    #     else:
+    #         return RESULT.PASS
+
     @classmethod
-    def _check_result_uniq(cls, opt, unopt, valid_type) -> RESULT:
+    def _check_result_aggr(cls, opt, unopt, valid_type) -> RESULT:
         if "Error" in opt or "Error" in unopt:
             return RESULT.ERROR
-        if opt != unopt:
+
+        opt_out_int: int = 0
+        unopt_out_int: int = 0
+        if valid_type == VALID_TYPE_INDEX.MAX:
+            opt_out_int = 0
+            unopt_out_int = 0
+        elif valid_type == VALID_TYPE_INDEX.MIN:
+            opt_out_int = maxsize
+            unopt_out_int = maxsize
+        elif valid_type == VALID_TYPE_INDEX.AVG:
+            opt_out_int = 0
+            unopt_out_int = 0
+        elif valid_type == VALID_TYPE_INDEX.COUNT or valid_type == VALID_TYPE_INDEX.SUM:
+            opt_out_int = 0
+            unopt_out_int = 0
+        else:
+            raise ValueError(
+                "Cannot handle valid_type: "
+                + str(valid_type)
+                + " in the check_result function. "
+            )
+
+        for cur_opt in opt.split("\n"):
+            if is_string_only_whitespace(cur_opt):
+                continue
+            cur_res = 0
+            try:
+                cur_res = int(cur_opt)
+            except ValueError:
+                return RESULT.ERROR
+
+            if valid_type == VALID_TYPE_INDEX.COUNT or valid_type == VALID_TYPE_INDEX.SUM:
+                opt_out_int += cur_res
+            elif valid_type == VALID_TYPE_INDEX.MAX and cur_res > opt_out_int:
+                opt_out_int = cur_res
+            elif valid_type == VALID_TYPE_INDEX.MIN and cur_res < opt_out_int:
+                opt_out_int = cur_res
+
+        for cur_unopt in unopt.split("\n"):
+            if is_string_only_whitespace(cur_unopt):
+                continue
+            cur_res = 0
+            try:
+                cur_res = int(cur_unopt)
+            except ValueError:
+                return RESULT.ERROR
+
+            if valid_type == VALID_TYPE_INDEX.COUNT or valid_type == VALID_TYPE_INDEX.SUM:
+                unopt_out_int += cur_res
+            elif valid_type == VALID_TYPE_INDEX.MAX and cur_res > unopt_out_int:
+                unopt_out_int = cur_res
+            elif valid_type == VALID_TYPE_INDEX.MIN and cur_res < unopt_out_int:
+                unopt_out_int = cur_res
+
+        if opt_out_int != unopt_out_int:
+            # print("UNIQUE Mismatched: opt: %s\n unopt: %s\n opt(int): %d, unopt(int): %d" % (opt, unopt, opt_out_int, unopt_out_int) )
             return RESULT.FAIL
         else:
             return RESULT.PASS
