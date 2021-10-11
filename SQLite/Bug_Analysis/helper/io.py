@@ -58,9 +58,9 @@ class IO:
             if len(all_queries) != 0:
                 break
 
-        log_out_line(
-            "Finished reading all the query files from the bug_samples folder. "
-        )
+        #log_out_line(
+        #    "Finished reading current query files from the bug_samples folder. "
+        #)
         return (
             cls._restructured_and_clean_all_queries(all_queries=all_queries),
             current_file_d,

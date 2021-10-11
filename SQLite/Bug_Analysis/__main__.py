@@ -81,7 +81,6 @@ def main():
 
         start_time = time.time()
 
-        all_is_dup_commit = True
 
         """ Every cur_new_queries is a pair of oracle statement. 
             If the oracle requires multiple runs, then the cur_new_queries contains
@@ -100,14 +99,7 @@ def main():
                 current_file=current_file_d,
                 iter_idx = iter_idx
             )
-            if not is_dup_commit:
-                all_is_dup_commit = False
-        # is_dup_commit = Bisect.run_bisecting(
-        #     queries_l=all_new_queries,
-        #     oracle=oracle,
-        #     vercon=vercon,
-        #     current_file=current_file_d,
-        # )
+            iter_idx += 1
         end_time = time.time()
         with open(os.path.join(UNIQUE_BUG_OUTPUT_DIR, "time.txt"), "a") as f:
             f.write(
@@ -115,9 +107,6 @@ def main():
                     os.path.basename(current_file_d), end_time - start_time
                 )
             )
-
-        # if all_is_dup_commit == True:
-        #     IO.remove_file_from_abs_path(current_file_d)
 
         IO.status_print()
 
