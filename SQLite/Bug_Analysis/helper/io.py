@@ -3,7 +3,6 @@ import os
 import re
 import shutil
 import sys
-from loguru import logger
 
 from Bug_Analysis.helper.data_struct import (
     log_out_line,
@@ -42,7 +41,7 @@ class IO:
 
             current_file_d = os.path.join(file_directory, current_file_d)
             if not os.path.isfile(current_file_d):
-                logger.debug("is not file: {}".format(current_file_d))
+                log_out_line("is not file: {}".format(current_file_d))
                 continue
 
             log_out_line("Filename: " + str(current_file_d) + ". \n")
