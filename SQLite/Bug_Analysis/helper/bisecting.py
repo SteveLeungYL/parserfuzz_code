@@ -283,10 +283,10 @@ class Bisect:
             return current_bisecting_result, True  # Duplicated results.
 
     @classmethod
-    def run_bisecting(cls, queries_l, oracle, vercon, current_file):
+    def run_bisecting(cls, queries_l, oracle, vercon, current_file, iter_idx:int):
         log_out_line(
-            "\n\n\nBeginning testing with query (sampled with only the first one): \n%s \n"
-            % queries_l[0]
+            "\n\n\nBegin bisecting query with SELECT idx %d: \n\n%s \n\n\n"
+            % (iter_idx, queries_l[0])
         )
         current_bisecting_result = cls.bi_secting_commits(
             queries_l=queries_l, oracle=oracle, vercon=vercon

@@ -62,7 +62,8 @@ def main():
     while True:
         # Read one file at a time.
         all_new_queries, current_file_d = IO.read_queries_from_files(
-            file_directory=QUERY_SAMPLE_DIR
+            file_directory=QUERY_SAMPLE_DIR, 
+            is_removed_read=True
         )
         if all_new_queries == [] and current_file_d == "Done":
             print("Done")
@@ -80,13 +81,24 @@ def main():
 
         start_time = time.time()
 
-        all_is_dup_commit = True 
+        all_is_dup_commit = True
+
+        """ Every cur_new_queries is a pair of oracle statement. 
+            If the oracle requires multiple runs, then the cur_new_queries contains
+            multiple queries. If the oracle queries contains only one sequence, then 
+            cur_new_queries has only one SQL sequence.
+
+            Here, we are iterating SELECT oracle pairs. If the afl-fuzz uses 100 SELECT
+            statement pairs, here we will have 100 iterations. 
+        """
+        iter_idx = 0
         for cur_new_queries in all_new_queries:
             is_dup_commit = Bisect.run_bisecting(
                 queries_l=cur_new_queries,
                 oracle=oracle,
                 vercon=vercon,
                 current_file=current_file_d,
+                iter_idx = iter_idx
             )
             if not is_dup_commit:
                 all_is_dup_commit = False

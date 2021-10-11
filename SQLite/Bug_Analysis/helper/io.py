@@ -35,7 +35,7 @@ class IO:
         current_file_d = ""
         for iter_file_d in all_files_in_dir:
             current_file_d = iter_file_d
-            logger.debug("Found bug sample: {}".format(current_file_d))
+            log_out_line("Found bug sample: {}".format(current_file_d))
 
             if current_file_d == "":
                 continue
@@ -53,12 +53,13 @@ class IO:
             all_queries.append(current_file_str)
             current_file.close()
             if is_removed_read == True:
+                log_out_line("Deleting file name: %s" % (current_file_d))
                 os.remove(os.path.join(current_file_d))
             # Only retrive one file at a time.
             if len(all_queries) != 0:
                 break
 
-        logger.info(
+        log_out_line(
             "Finished reading all the query files from the bug_samples folder. "
         )
         return (
