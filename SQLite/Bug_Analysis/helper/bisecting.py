@@ -88,7 +88,7 @@ class Bisect:
                 current_commit_str = all_commits_str[current_commit_index]
                 if current_commit_str in cls.all_previous_compile_failure:
                     rn_correctness = RESULT.FAIL_TO_COMPILE
-                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
+                    # log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
 
                 else:
                     (
@@ -127,6 +127,9 @@ class Bisect:
                     is_successfully_executed = False
                     is_commit_found = False
                     log_out_line("For commit %s, Bisecting FAIL_TO_COMPILE. \n" % (current_commit_str))
+
+                    if current_commit_str in cls.all_previous_compile_failure:
+                        break
 
                     fail_compiled_commits_file = os.path.join(
                         LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
@@ -207,7 +210,7 @@ class Bisect:
                 commit_ID = all_commits_str[tmp_commit_index]
                 if commit_ID in cls.all_previous_compile_failure:
                     rn_correctness = RESULT.FAIL_TO_COMPILE
-                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
+                    # log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
 
                 else:
                     (
@@ -242,13 +245,17 @@ class Bisect:
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
 
+                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
+
+                    if tmp_commit_index in cls.all_previous_compile_failure:
+                        break
+
                     fail_compiled_commits_file = os.path.join(
                         LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
                     )
                     with open(fail_compiled_commits_file, "a") as f:
                         f.write(commit_ID + "\n")
 
-                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
                     break
                 else:  
                     older_commit_index = tmp_commit_index
