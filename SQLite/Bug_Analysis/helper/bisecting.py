@@ -122,7 +122,6 @@ class Bisect:
                     log_out_line("For commit %s. Bisecting ALL_ERROR. \n" % (current_commit_str))
                     break
                 elif rn_correctness == RESULT.FAIL_TO_COMPILE:
-                    cls.all_previous_compile_failure.append(current_commit_str)
                     newer_commit_str = current_commit_str
                     is_successfully_executed = False
                     is_commit_found = False
@@ -130,6 +129,9 @@ class Bisect:
 
                     if current_commit_str in cls.all_previous_compile_failure:
                         break
+
+                    cls.all_previous_compile_failure.append(current_commit_str)
+
 
                     fail_compiled_commits_file = os.path.join(
                         LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
@@ -240,12 +242,14 @@ class Bisect:
                     log_out_line("For commit %s. Bisecting ERROR. \n" % (commit_ID))
                     break
                 elif rn_correctness == RESULT.FAIL_TO_COMPILE:
-                    cls.all_previous_compile_failure.append(tmp_commit_index)
                     newer_commit_index = tmp_commit_index
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
 
                     log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
+                    
+                    cls.all_previous_compile_failure.append(tmp_commit_index)
+
 
                     if tmp_commit_index in cls.all_previous_compile_failure:
                         break

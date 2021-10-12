@@ -104,13 +104,7 @@ class VerCon:
                 "\n\n\nWarning: For commit: %s, installed dir exists, but sqlite3 is not compiled probably. \n\n\n"
                 % (hexsha)
             )
-            shutil.rmtree(INSTALL_DEST_DIR)
-            cls._checkout_commit(hexsha=hexsha)
-            result = cls._compile_sqlite_binary(
-                CACHED_INSTALL_DEST_DIR=INSTALL_DEST_DIR
-            )
-            if result != 0:
-                return ""  # Compile failed.
+            return ""
 
         if os.path.isfile(
             os.path.join(INSTALL_DEST_DIR, "sqlite3")
