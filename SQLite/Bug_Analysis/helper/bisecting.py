@@ -88,6 +88,8 @@ class Bisect:
                 current_commit_str = all_commits_str[current_commit_index]
                 if current_commit_str in cls.all_previous_compile_failure:
                     rn_correctness = RESULT.FAIL_TO_COMPILE
+                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
+
                 else:
                     (
                         rn_correctness,
@@ -135,10 +137,11 @@ class Bisect:
 
                     break
                 else:  
-                    newer_commit_str = current_commit_str
+                    older_commit_str = current_commit_str
                     is_successfully_executed = False
                     is_commit_found = False
-                    log_out_line("For commit %s, Bisecting UNKNOWN_ERRORS!!! \n" % (current_commit_str))
+                    is_error_returned_from_exec = True
+                    log_out_line("For commit %s, Bisecting Segmentation Fault. \n" % (current_commit_str))
                     break
             if is_commit_found:
                 break
@@ -204,6 +207,8 @@ class Bisect:
                 commit_ID = all_commits_str[tmp_commit_index]
                 if commit_ID in cls.all_previous_compile_failure:
                     rn_correctness = RESULT.FAIL_TO_COMPILE
+                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
+
                 else:
                     (
                         rn_correctness,
@@ -215,7 +220,7 @@ class Bisect:
                 if rn_correctness == RESULT.PASS:  # The correct version.
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
-                    log_out_line("For commit %s. Bisecting Pass. \n" % (current_commit_str))
+                    log_out_line("For commit %s. Bisecting Pass. \n" % (commit_ID))
                     break
                 elif rn_correctness == RESULT.FAIL:  # The buggy version.
                     newer_commit_index = tmp_commit_index
@@ -223,13 +228,13 @@ class Bisect:
                     if all_res_str_l != None:
                         last_buggy_res_l = all_res_str_l
                     last_buggy_all_result_flags = all_res_flags
-                    log_out_line("For commit %s. Bisecting Buggy. \n" % (current_commit_str))
+                    log_out_line("For commit %s. Bisecting Buggy. \n" % (commit_ID))
                     break
                 elif rn_correctness == RESULT.ERROR:
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
                     is_error_returned_from_exec = True
-                    log_out_line("For commit %s. Bisecting ERROR. \n" % (current_commit_str))
+                    log_out_line("For commit %s. Bisecting ERROR. \n" % (commit_ID))
                     break
                 elif rn_correctness == RESULT.FAIL_TO_COMPILE:
                     cls.all_previous_compile_failure.append(tmp_commit_index)
@@ -241,15 +246,15 @@ class Bisect:
                         LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
                     )
                     with open(fail_compiled_commits_file, "a") as f:
-                        f.write(current_commit_str + "\n")
+                        f.write(commit_ID + "\n")
 
-                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (current_commit_str))
+                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (commit_ID))
                     break
                 else:  
-                    newer_commit_index = tmp_commit_index
+                    older_commit_index = tmp_commit_index
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
-                    log_out_line("For commit %s. Bisecting UNKNOWN_ERROR!!! \n" % (current_commit_str))
+                    log_out_line("For commit %s, Bisecting Segmentation Fault. \n" % (commit_ID))                    
                     break
 
         if is_buggy_commit_found:
