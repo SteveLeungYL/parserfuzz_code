@@ -37,8 +37,8 @@ class Bisect:
 
         final_flag, all_res_flags = oracle.comp_query_res(queries_l, all_res_str_l)
 
-        log_out_line("All_res_str_l: " + str(all_res_str_l) + "\n")
-        log_out_line("Result with final_flag: " + str(final_flag))
+        #log_out_line("All_res_str_l: " + str(all_res_str_l) + "\n")
+        #log_out_line("Result with final_flag: " + str(final_flag))
         return final_flag, all_res_flags, all_res_str_l
 
     @classmethod

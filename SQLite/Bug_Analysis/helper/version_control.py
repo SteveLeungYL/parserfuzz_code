@@ -84,7 +84,7 @@ class VerCon:
         If succeed, return the SQLite binary directory (not included the binary name) str;
         if failed, return empty str.
         """
-        log_out_line("Setting up SQLite3 with commitID: %s. \n" % (hexsha))
+        #log_out_line("Setting up SQLite3 with commitID: %s. \n" % (hexsha))
         if not os.path.isdir(SQLITE_BLD_DIR):
             os.mkdir(SQLITE_BLD_DIR)
 
@@ -101,7 +101,7 @@ class VerCon:
             os.path.join(INSTALL_DEST_DIR, "sqlite3")
         ):  # Probably not compiled completely.
             log_out_line(
-                "Warning: For commit: %s, installed dir exists, but sqlite3 is not compiled probably. "
+                "\n\n\nWarning: For commit: %s, installed dir exists, but sqlite3 is not compiled probably. \n\n\n"
                 % (hexsha)
             )
             shutil.rmtree(INSTALL_DEST_DIR)

@@ -26,10 +26,10 @@ class Executor:
             child.kill()
             log_out_line("ERROR: SQLite3 time out. \n")
             return None, RESULT.ALL_ERROR
-        log_out_line("Query is: \n%s\n\n" % (queries))
-        log_out_line("Result_str is: \n%s\n\n" % (result_str))
-        log_out_line("sqlite_install_dir: %s \n" % (sqlite_install_dir))
-        log_out_line("return code: %d \n" % (child.returncode))
+        #log_out_line("Query is: \n%s\n\n" % (queries))
+        #log_out_line("Result_str is: \n%s\n\n" % (result_str))
+        #log_out_line("sqlite_install_dir: %s \n" % (sqlite_install_dir))
+        #log_out_line("return code: %d \n" % (child.returncode))
 
         if (
             child.returncode != 0 and child.returncode != 1

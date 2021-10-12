@@ -71,13 +71,6 @@ def main():
         elif all_new_queries == []:
             time.sleep(1.0)
             continue
-        # if (
-            # "randomblob" in all_new_queries[0]
-            # or "random" in all_new_queries[0]
-            # or "julianday" in all_new_queries[0]
-        # ):
-
-            # continue
 
         start_time = time.time()
 
