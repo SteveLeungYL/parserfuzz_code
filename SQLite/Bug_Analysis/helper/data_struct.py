@@ -10,7 +10,7 @@ class RESULT(Enum):
     ERROR = -1
     ALL_ERROR = -1
     FAIL_TO_COMPILE = -2
-    SEG_FAULT = -2
+    SEG_FAULT = -3
 
 
 class BisectingResults:

@@ -42,6 +42,19 @@ class Bisect:
         return final_flag, all_res_flags, all_res_str_l
 
     @classmethod
+    def setup_previous_compile_fail(cls):
+        fail_compiled_commits_file = os.path.join(LOG_OUTPUT_DIR, "fail_compiled_commits.txt")
+        if os.path.exists(fail_compiled_commits_file):
+            with open(fail_compiled_commits_file, "r") as f:
+                cls.all_previous_compile_failure = [
+                    commit.strip() for commit in f.readlines()
+                ]
+        else:
+            # Create the file. Don't write anything. 
+            with open(fail_compiled_commits_file, 'w') as fp:
+                pass
+
+    @classmethod
     def bi_secting_commits(
         cls, queries_l, oracle, vercon
     ):  # Returns Bug introduce commit_ID:str, is_error_result:bool
@@ -54,6 +67,8 @@ class Bisect:
         last_buggy_all_result_flags = None
         is_error_returned_from_exec = False
         current_commit_str = ""
+
+        cls.setup_previous_compile_fail()
 
         rn_correctness = RESULT.PASS
 
@@ -114,19 +129,12 @@ class Bisect:
                     fail_compiled_commits_file = os.path.join(
                         LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
                     )
-                    fail_compiled_commits = []
-                    if os.path.exists(fail_compiled_commits_file):
-                        with open(fail_compiled_commits_file, "r") as f:
-                            fail_compiled_commits = [
-                                commit.strip() for commit in f.readlines()
-                            ]
 
-                    if current_commit_str not in fail_compiled_commits:
-                        with open(fail_compiled_commits_file, "a") as f:
-                            f.write(current_commit_str + "\n")
+                    with open(fail_compiled_commits_file, "a") as f:
+                        f.write(current_commit_str + "\n")
 
                     break
-                else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as RESULT.FAIL.
+                else:  
                     newer_commit_str = current_commit_str
                     is_successfully_executed = False
                     is_commit_found = False
@@ -159,7 +167,6 @@ class Bisect:
             return current_bisecting_result
 
         if older_commit_str == "":
-            # Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version for queries \nopt: %s, \nunopt: %s. \nReturning None. \n" % (opt_unopt_queries[0], opt_unopt_queries[1])
             Error_reason = "Error: Cannot find the bug introduced commit (already iterating to the earliest version)!!!\n\n\n"
             log_out_line(Error_reason)
 
@@ -181,7 +188,6 @@ class Bisect:
         older_commit_index = all_commits_str.index(older_commit_str)
 
         is_buggy_commit_found = False
-        current_ignored_commit_number = 0
 
         log_out_line("Bisecting between two main releases. \n")
 
@@ -230,9 +236,16 @@ class Bisect:
                     newer_commit_index = tmp_commit_index
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
+
+                    fail_compiled_commits_file = os.path.join(
+                        LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
+                    )
+                    with open(fail_compiled_commits_file, "a") as f:
+                        f.write(current_commit_str + "\n")
+
                     log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (current_commit_str))
                     break
-                else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as Passing with no mismatched.
+                else:  
                     newer_commit_index = tmp_commit_index
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
