@@ -253,7 +253,7 @@ class IO:
 
     @classmethod
     def write_uniq_bugs_to_files(
-        cls, current_bisecting_result: BisectingResults, oracle
+        cls, current_bisecting_result: BisectingResults, oracle, dup_count:int
     ):
         if not os.path.isdir(UNIQUE_BUG_OUTPUT_DIR):
             os.mkdir(UNIQUE_BUG_OUTPUT_DIR)
@@ -269,9 +269,10 @@ class IO:
 
         cls._pretty_process(current_bisecting_result, oracle)
 
+        bug_output_file.write('-------------------------------\n\n')
         if current_bisecting_result.uniq_bug_id_int != "Unknown":
             bug_output_file.write(
-                "Bug ID: %d. \n\n" % current_bisecting_result.uniq_bug_id_int
+                "Bug ID: %d, count: %d \n\n" % (current_bisecting_result.uniq_bug_id_int, dup_count)
             )
         else:
             bug_output_file.write("Bug ID: Unknown. \n\n")

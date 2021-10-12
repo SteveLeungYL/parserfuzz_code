@@ -312,14 +312,15 @@ class Bisect:
     def cross_compare(cls, current_bisecting_result):
         current_commit_ID = current_bisecting_result.first_buggy_commit_id
         if current_commit_ID not in cls.all_unique_results_dict:
-            cls.all_unique_results_dict[current_commit_ID] = cls.uniq_bug_id_int
+            cls.all_unique_results_dict[current_commit_ID] = [cls.uniq_bug_id_int, 1]
             current_bisecting_result.uniq_bug_id_int = cls.uniq_bug_id_int
             cls.uniq_bug_id_int += 1
-            return current_bisecting_result, False  # Not duplicated results.
+            return current_bisecting_result, False, 1  # Not duplicated results.
         else:
-            current_bug_id_int = cls.all_unique_results_dict[current_commit_ID]
-            current_bisecting_result.uniq_bug_id_int = current_bug_id_int
-            return current_bisecting_result, True  # Duplicated results.
+            cls.all_unique_results_dict[current_commit_ID][1] += 1 # dup_count += 1
+            current_bug_id_pair = cls.all_unique_results_dict[current_commit_ID]
+            current_bisecting_result.uniq_bug_id_int = current_bug_id_pair[0]
+            return current_bisecting_result, True, current_bug_id_pair[1]  # Duplicated results. Return duplicated count
 
     @classmethod
     def run_bisecting(cls, queries_l, oracle, vercon, current_file, iter_idx:int):
@@ -332,21 +333,22 @@ class Bisect:
         )
         is_dup_commit = True
         if not current_bisecting_result.is_bisecting_error:
-            current_bisecting_result, is_dup_commit = cls.cross_compare(
+            current_bisecting_result, is_dup_commit, dup_count = cls.cross_compare(
                 current_bisecting_result
             )  # The unique bug id will be appended to current_bisecting_result when running cross_compare
-            if not is_dup_commit:
-                current_unique_bug_output = IO.write_uniq_bugs_to_files(
-                    current_bisecting_result, oracle
-                )
-                bug_map_path = os.path.join(UNIQUE_BUG_OUTPUT_DIR, "map.txt")
-                with open(bug_map_path, "a") as f:
-                    f.write(
-                        "{} {}\n".format(
-                            os.path.basename(current_unique_bug_output),
-                            os.path.basename(current_file),
-                        )
+
+            current_unique_bug_output = IO.write_uniq_bugs_to_files(
+                current_bisecting_result, oracle, dup_count
+            )
+            bug_map_path = os.path.join(UNIQUE_BUG_OUTPUT_DIR, "map.txt")
+            with open(bug_map_path, "a") as f:
+                f.write(
+                    "{}: Count {}: {}\n".format(
+                        os.path.basename(current_unique_bug_output),
+                        dup_count,
+                        os.path.basename(current_file),
                     )
+                )
         else:
             current_bisecting_result.uniq_bug_id_int = (
                 "Unknown"  # Unique bug id is Unknown. Meaning unsorted or unknown bug.
