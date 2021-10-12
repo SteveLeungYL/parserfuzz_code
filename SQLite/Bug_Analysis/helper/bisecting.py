@@ -37,8 +37,8 @@ class Bisect:
 
         final_flag, all_res_flags = oracle.comp_query_res(queries_l, all_res_str_l)
 
-        # log_out_line("All_res_str_l: " + str(all_res_str_l) + "\n")
-        # log_out_line("Result with final_flag: " + str(final_flag))
+        log_out_line("All_res_str_l: " + str(all_res_str_l) + "\n")
+        log_out_line("Result with final_flag: " + str(final_flag))
         return final_flag, all_res_flags, all_res_str_l
 
     @classmethod
@@ -58,6 +58,8 @@ class Bisect:
         rn_correctness = RESULT.PASS
 
         current_bisecting_result = BisectingResults()
+
+        log_out_line("Bisecting main releases: \n")
 
         for current_tag in reversed(
             all_tags
@@ -83,6 +85,7 @@ class Bisect:
                     older_commit_str = current_commit_str
                     is_successfully_executed = True
                     is_commit_found = True
+                    log_out_line("For commit %s. Bisecting Pass. \n" % (current_commit_str))
                     break
                 elif rn_correctness == RESULT.FAIL:  # Execution result is buggy
                     newer_commit_str = current_commit_str
@@ -90,6 +93,7 @@ class Bisect:
                     if all_res_str_l != None:
                         last_buggy_res_l = all_res_str_l
                     last_buggy_all_result_flags = all_res_flags
+                    log_out_line("For commit %s. Bisecting Buggy. \n" % (current_commit_str))
                     break
                 elif (
                     rn_correctness == RESULT.ALL_ERROR
@@ -98,12 +102,14 @@ class Bisect:
                     is_successfully_executed = True
                     is_commit_found = True
                     is_error_returned_from_exec = True
+                    log_out_line("For commit %s. Bisecting ALL_ERROR. \n" % (current_commit_str))
                     break
                 elif rn_correctness == RESULT.FAIL_TO_COMPILE:
                     cls.all_previous_compile_failure.append(current_commit_str)
                     newer_commit_str = current_commit_str
                     is_successfully_executed = False
                     is_commit_found = False
+                    log_out_line("For commit %s, Bisecting FAIL_TO_COMPILE. \n" % (current_commit_str))
 
                     fail_compiled_commits_file = os.path.join(
                         LOG_OUTPUT_DIR, "fail_compiled_commits.txt"
@@ -124,6 +130,7 @@ class Bisect:
                     newer_commit_str = current_commit_str
                     is_successfully_executed = False
                     is_commit_found = False
+                    log_out_line("For commit %s, Bisecting UNKNOWN_ERRORS!!! \n" % (current_commit_str))
                     break
             if is_commit_found:
                 break
@@ -176,6 +183,8 @@ class Bisect:
         is_buggy_commit_found = False
         current_ignored_commit_number = 0
 
+        log_out_line("Bisecting between two main releases. \n")
+
         while not is_buggy_commit_found:
             if (newer_commit_index - older_commit_index) <= 1:
                 is_buggy_commit_found = True
@@ -200,6 +209,7 @@ class Bisect:
                 if rn_correctness == RESULT.PASS:  # The correct version.
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
+                    log_out_line("For commit %s. Bisecting Pass. \n" % (current_commit_str))
                     break
                 elif rn_correctness == RESULT.FAIL:  # The buggy version.
                     newer_commit_index = tmp_commit_index
@@ -207,22 +217,26 @@ class Bisect:
                     if all_res_str_l != None:
                         last_buggy_res_l = all_res_str_l
                     last_buggy_all_result_flags = all_res_flags
+                    log_out_line("For commit %s. Bisecting Buggy. \n" % (current_commit_str))
                     break
                 elif rn_correctness == RESULT.ERROR:
                     older_commit_index = tmp_commit_index
                     is_successfully_executed = True
                     is_error_returned_from_exec = True
+                    log_out_line("For commit %s. Bisecting ERROR. \n" % (current_commit_str))
                     break
                 elif rn_correctness == RESULT.FAIL_TO_COMPILE:
                     cls.all_previous_compile_failure.append(tmp_commit_index)
                     newer_commit_index = tmp_commit_index
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
+                    log_out_line("For commit %s. Bisecting FAIL_TO_COMPILE. \n" % (current_commit_str))
                     break
                 else:  # Compilation failed or Segmentation Fault!!!!  rn_correctness == -2. Treat it as Passing with no mismatched.
                     newer_commit_index = tmp_commit_index
                     is_successfully_executed = False
                     is_error_returned_from_exec = True
+                    log_out_line("For commit %s. Bisecting UNKNOWN_ERROR!!! \n" % (current_commit_str))
                     break
 
         if is_buggy_commit_found:
