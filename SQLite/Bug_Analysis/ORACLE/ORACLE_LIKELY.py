@@ -102,22 +102,48 @@ class Oracle_LIKELY:
             # if idx >= len(opt_result) or idx >= len(unopt_result):
             #     break
             if valid_type == VALID_TYPE_LIKELY.NORM:
-                curr_res = cls._check_result_NORM(
+                curr_res = cls._check_result_norm(
                     all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2]
                 )
                 all_res_out.append(curr_res)
-            elif valid_type == VALID_TYPE_LIKELY.UNIQUE:
-                curr_res = cls._check_result_UNIQ(
-                    all_res_str_l[idx][0],
-                    all_res_str_l[idx][1],
-                    all_res_str_l[idx][2],
-                    valid_type,
+            elif valid_type == VALID_TYPE_LIKELY.DISTINCT:
+                curr_res = cls._check_result_norm(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2]
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_LIKELY.GROUP_BY:
+                curr_res = cls._check_result_norm(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2]
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_LIKELY.AVG:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_LIKELY.COUNT:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_LIKELY.MAX:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_LIKELY.MIN:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2], valid_type
+                )
+                all_res_out.append(curr_res)
+            elif valid_type == VALID_TYPE_LIKELY.SUM:
+                curr_res = cls._check_result_aggr(
+                    all_res_str_l[idx][0], all_res_str_l[idx][1], all_res_str_l[idx][2], valid_type
                 )
                 all_res_out.append(curr_res)
             else:
-                raise ValueError(
-                    "Encounter unknown VALID_TYPE_LIKELY in the check_query_exec_correctness_under_commitID func. "
-                )
+                curr_res = RESULT.ERROR
+                all_res_out.append(curr_res)
 
         for curr_res_out in all_res_out:
             if curr_res_out == RESULT.FAIL:
@@ -202,7 +228,7 @@ class Oracle_LIKELY:
             return VALID_TYPE_LIKELY.NORM
 
     @classmethod
-    def _check_result_NORM(cls, ori: str, likely: str, unlikely: str) -> RESULT:
+    def _check_result_norm(cls, ori: str, likely: str, unlikely: str) -> RESULT:
         if "Error" in ori or "Error" in likely or "Error" in unlikely:
             return RESULT.ERROR
 
@@ -234,18 +260,6 @@ class Oracle_LIKELY:
             unlikely_out_int += 1
 
         if ori_out_int != likely_out_int or ori_out_int != unlikely_out_int:
-            return RESULT.FAIL
-        else:
-            return RESULT.PASS
-
-    @classmethod
-    def _check_result_UNIQ(
-        cls, ori: str, likely: str, unlikely: str, valid_type
-    ) -> RESULT:
-        if "Error" in ori or "Error" in likely or "Error" in unlikely:
-            return RESULT.ERROR
-
-        if ori != likely or ori != unlikely:
             return RESULT.FAIL
         else:
             return RESULT.PASS
