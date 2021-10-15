@@ -27,13 +27,12 @@ public:
 
   // simple setters
   //
-  void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
+  void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
 
   Mutator() { srand(time(nullptr)); }
 
   typedef map<IR *, pair<int, IR *>> TmpRecord;
-
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);

@@ -7657,7 +7657,6 @@ int main(int argc, char **argv) {
     p_oracle = new SQL_NOREC();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
-
   g_mutator.set_dump_library(dump_library);
 
   if (dump_library) {
@@ -7672,7 +7671,7 @@ int main(int argc, char **argv) {
     string line;
     getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
     while (getline(map_f, line)){
-      vector<string> line_vec = string_splitter(line, ",");
+      vector<string> line_vec = string_splitter(line, ',');
       int map_id = stoi(line_vec[0]);
       string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
       if (share_map_id.count(map_id) != 0){
