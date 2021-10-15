@@ -7659,7 +7659,6 @@ int main(int argc, char **argv) {
   g_mutator.set_p_oracle(p_oracle);
 
   g_mutator.set_dump_library(dump_library);
-  g_mutator.set_disable_coverage_feedback(disable_coverage_feedback);
 
   if (dump_library) {
     /* Debug: Load the map_id to the program */

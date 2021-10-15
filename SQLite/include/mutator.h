@@ -29,9 +29,6 @@ public:
   //
   void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
-  void set_disable_coverage_feedback(bool f) {
-    this->disable_coverage_feedback = f;
-  }
 
   Mutator() { srand(time(nullptr)); }
 
@@ -153,7 +150,6 @@ private:
 
   bool dump_library = false;
   bool use_cri_val = false;
-  bool disable_coverage_feedback = false;
 
   IR *record_ = NULL;
   // map<NODETYPE, map<NODETYPE, vector<IR*>> > ir_libary_3D_;
