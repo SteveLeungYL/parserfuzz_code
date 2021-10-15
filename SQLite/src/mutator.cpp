@@ -44,9 +44,6 @@ map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to al
 vector<string> Mutator::v_create_table_names_single_with_tmp;
 vector<string> Mutator::v_create_column_names_single_with_tmp;
 
-
-void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
-
 IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
 
   IR *left = NULL, *right = NULL, *copy_res;

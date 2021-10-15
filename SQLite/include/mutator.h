@@ -25,11 +25,18 @@ class Mutator {
 
 public:
 
+  // simple setters
+  //
+  void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
+  void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
+  void set_disable_coverage_feedback(bool f) {
+    this->disable_coverage_feedback = f;
+  }
+
   Mutator() { srand(time(nullptr)); }
 
   typedef map<IR *, pair<int, IR *>> TmpRecord;
 
-  void set_dump_library(bool);
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);
@@ -129,14 +136,10 @@ public:
   void get_memory_usage();
   // int try_fix(char *buf, int len, char *&new_buf, int &new_len);
 
-  void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
 
   void set_use_cri_val(const bool is_use) { this->use_cri_val = is_use; }
   bool get_is_use_cri_val() { return this->use_cri_val; }
 
-  void set_disable_coverage_feedback(const bool f) {
-    this->disable_coverage_feedback = f;
-  }
 
   string remove_node_from_tree_by_index(string oracle_query, int remove_index);
   set<string> get_minimize_string_from_tree(string oracle_query);

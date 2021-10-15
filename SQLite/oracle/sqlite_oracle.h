@@ -17,6 +17,11 @@ class Mutator;
 class SQL_ORACLE {
 public:
 
+  /* Helper function. */
+  void set_mutator(Mutator *mutator);
+
+  /* ====== Above have been checked ======================= */
+
   inline bool is_select_stmt(IR* cur_IR) {
     if (cur_IR->type_ == kSelectStatement) {
       return true;
@@ -77,9 +82,6 @@ public:
   virtual void compare_results(ALL_COMP_RES &res_out) = 0;
 
   virtual IR* get_random_mutated_valid_stmt();
-
-  /* Helper function. */
-  void set_mutator(Mutator *mutator);
 
   virtual string get_temp_valid_stmts() = 0;
 

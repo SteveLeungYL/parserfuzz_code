@@ -207,7 +207,11 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
 
-EXP_ST u8 disable_coverage_feedback = 0;  /* 0: not disabled, 1: Drop all queries. 2: Randomly save queries. 3: Save all queries. */
+EXP_ST u8 disable_coverage_feedback = 0;  
+                              /* 0: not disabled, 
+                               * 1: Drop all queries. 
+                               * 2: Randomly save queries. 
+                               * 3: Save all queries. */
 
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
@@ -7337,86 +7341,6 @@ static void save_cmdline(u32 argc, char **argv) {
 #ifndef AFL_LIB
 
 /* Main entry point */
-
-/* new entry point
-
-
-struct Testcase{
-  IR * root;
-  IR * mutated_node;
-};
-
-int main(int argc, char ** argv){
-  //setup_shm();
-  //generate a set of initial testcases into queue
-  //read a testcase from queue
-  //read_shm();
-  //run each testcase
-  //detect if it is crash
-  //detect if bitmap changed (has_new_bit()), if so, update bitmap. Update
-testcase library
-  //mutate testcase
-  //move them into process queue
-
-  queue<Testcase> tqueue = initial(); //initialize the initial testcase from
-file, allocate test queue setup_shm(); //initial
-
-  while(!tqueue.empty()){
-    Testcase testcase = tqueue.pop_front();
-
-    run_testcase(testcase.root);// call ir->translate(), fork to run testcase,
-record exec status unsigned int result = check_result(); //check exec result,
-check bitmap, update bitmap (by using has_new_bits())
-
-    if(result == DETECT_CRASH){
-      save_testcase_and_node(testcase);
-    }
-    else if(result == DETECT_NEW_PATH){
-      save_node(testcase.nmutated_node);
-    }
-    else{
-      //nothing to do
-    }
-
-    vector<IR *> v_ir_collector = build_ir_collector(testcase.root);
-    if(v_ir_collector.empty()) return -1;
-
-    vector<Testcase> mutated_roots = mutator->mutate_all(v_ir_collector);
-    if(mutated_roots.empty()){
-      re_mutated(); //if no new testcase generated, we need to randomly mutated
-again.
-    }
-    for(auto root: mutated_root){
-      tqueue.push_back(root);
-    }
-  }
-}
-
-queue<Testcase> initial(){
-  queue<Testcase> res;
-  ifstream input_test("sqltest");
-  string line;
-  if(input_test){
-
-    while(getline(input_test, line)){
-      Program * ast_root = parser(line);
-      vector<IR *> v_ir;
-      IR * root = ast_root->translate(v_ir);
-      delete Program; //need a helper to delete all the ast
-
-      Testcase testcase = {root, NULL};
-      res.push_back(testcase);
-
-    }
-  }
-
-  return res;
-}
-
-
-int run_testcase()
-
-*/
 
 static void do_libary_initialize() {
 
