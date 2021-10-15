@@ -7370,6 +7370,38 @@ static void do_libary_initialize() {
        << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
 }
 
+static void load_map_id() {
+
+  if (dump_library) {
+
+    /* Debug: Load the map_id to the program */
+    fstream map_f("./mapID.csv", fstream::in);
+
+    if (map_f.fail())
+      FATAL("mapID.csv doesn't exist in the current workdir");
+
+    map_id_out_f << "mapID,src,src_line,dest,dest_line,EH,map_file_id" << endl;
+
+    string line;
+    getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
+    while (getline(map_f, line)) {
+      vector<string> line_vec = string_splitter(line, ',');
+      int map_id = stoi(line_vec[0]);
+      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
+      if (share_map_id.count(map_id) != 0){
+        share_map_id[map_id].push_back(map_info);
+      } else {
+        vector<string> tmp{map_info};
+        share_map_id[map_id] = tmp;
+      }
+      line_vec.clear();
+    }
+    map_f.close();
+    line.clear();
+  }
+
+}
+
 int main(int argc, char **argv) {
 
   p_oracle = nullptr;
@@ -7659,32 +7691,7 @@ int main(int argc, char **argv) {
   g_mutator.set_p_oracle(p_oracle);
   g_mutator.set_dump_library(dump_library);
 
-  if (dump_library) {
-    /* Debug: Load the map_id to the program */
-    fstream map_f("./mapID.csv");
-    if (map_f.fail()){
-      cerr << "ERROR: mapID.csv doesn't exist in the current workdir. ";
-    } else {
-      map_id_out_f << "mapID,src,src_line,dest,dest_line,EH,map_file_id" << endl;
-    }
-
-    string line;
-    getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
-    while (getline(map_f, line)){
-      vector<string> line_vec = string_splitter(line, ',');
-      int map_id = stoi(line_vec[0]);
-      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
-      if (share_map_id.count(map_id) != 0){
-        share_map_id[map_id].push_back(map_info);
-      } else {
-        vector<string> tmp{map_info};
-        share_map_id[map_id] = tmp;
-      }
-      line_vec.clear();
-    }
-    map_f.close();
-    line.clear();
-  }
+  load_map_id();
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
