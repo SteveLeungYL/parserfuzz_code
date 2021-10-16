@@ -261,7 +261,8 @@ IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   */
   vector<IR*> v_column_constraints_exist = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kColumnConstraint, false);
   for( IR* cur_column_constraints_exist : v_column_constraints_exist) {
-    if (cur_column_constraints_exist->op_ != NULL && cur_column_constraints_exist->op_->prefix_ == "PRIMARY KEY") {
+    if (cur_column_constraints_exist->op_ != NULL && 
+        strcmp(cur_column_constraints_exist->op_->prefix_, "PRIMARY KEY") == 0) {
       return cur_stmt;
     }
   }
@@ -270,7 +271,7 @@ IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   for ( IR* cur_table_constraint_exist : v_table_constraint_exist ) {
     if (cur_table_constraint_exist-> left_ != NULL &&
       cur_table_constraint_exist->left_->op_ != NULL &&
-      cur_table_constraint_exist->left_->op_->prefix_ == "PRIMARY KEY ("
+      strcmp(cur_table_constraint_exist->left_->op_->prefix_, "PRIMARY KEY (") == 0
       ) {
         return cur_stmt;
     }

@@ -368,8 +368,8 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
       if (
         opt_over_clause->op_ != NULL && 
         (
-          opt_over_clause->op_->prefix_ == "OVER" ||
-          opt_over_clause->op_->prefix_ == "OVER ("
+          strcmp(opt_over_clause->op_->prefix_, "OVER") == 0 ||
+          strcmp(opt_over_clause->op_->prefix_, "OVER (") == 0
         )
       ) {
           return false;
@@ -679,7 +679,8 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   /* Has GROUP BY clause. Attention, cannot mix GROUP BY with Aggr. (FPs) */
   vector<IR*> v_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
   for (IR* opt_group : v_opt_group) {
-    if (opt_group->op_ != NULL && opt_group->op_->prefix_ == "GROUP BY") {
+    if (opt_group->op_ != NULL && 
+        strcmp(opt_group->op_->prefix_, "GROUP BY") == 0) {
       default_type_ = VALID_STMT_TYPE_TLP::GROUP_BY;
     }
   }

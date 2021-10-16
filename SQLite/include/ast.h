@@ -107,12 +107,14 @@ typedef NODETYPE IRTYPE;
 
 class IROperator {
 public:
-  IROperator(string prefix = "", string middle = "", string suffix = "")
+  IROperator(const char *prefix = NULL,
+             const char *middle = NULL,
+             const char *suffix = NULL)
       : prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
-  string prefix_;
-  string middle_;
-  string suffix_;
+  const char *prefix_;
+  const char *middle_;
+  const char *suffix_;
 };
 
 class IR {
@@ -847,7 +849,7 @@ class DeferrableClause : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
   OptNot *opt_not_;
 };
 
@@ -887,7 +889,7 @@ class SignedNumber : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_sign_;
+  const char * str_sign_;
   NumericLiteral *numeric_literal_;
 };
 
@@ -1360,7 +1362,7 @@ class FrameBoundS : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
   NewExpr *expr_;
 };
 
@@ -1368,7 +1370,7 @@ class FrameBoundE : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
   NewExpr *expr_;
 };
 
@@ -1377,14 +1379,14 @@ public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
   NewExpr *expr_;
-  string str_val_;
+  const char *str_val_;
 };
 
 class FrameExclude : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptFrameExclude : public Node {
@@ -1701,7 +1703,7 @@ class RaiseFunction : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string to_raise_;
+  const char *to_raise_;
   Identifier *error_msg_;
 };
 

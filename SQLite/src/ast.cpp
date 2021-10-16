@@ -128,24 +128,29 @@ void IR::_to_string(string &res) {
     return;
   }
 
-  if (op_ != NULL)
-    res += op_->prefix_ + " ";
+  if (op_ && op_->prefix_) {
+    res += op_->prefix_;
+    res +=  " ";
+  }
 
-  if (left_ != NULL) {
+  if (left_) {
     left_->_to_string(res);
     res += " ";
   }
 
-  if (op_ != NULL)
-    res += op_->middle_ + " ";
+  if (op_ && op_->middle_) {
+    res += op_->middle_;
+    res += " ";
+  }
 
-  if (right_ != NULL) {
+  if (right_) {
     right_->_to_string(res);
     res += " ";
   }
 
-  if (op_ != NULL)
+  if (op_ && op_->suffix_) {
     res += op_->suffix_;
+  }
 
   return;
 }
@@ -193,7 +198,7 @@ IR *IR::get_root() {
   return node;
 }
 
-IR *IR::get_parent() { 
+IR *IR::get_parent() {
 
   return this->parent_;
 }
@@ -3912,7 +3917,7 @@ IR *RaiseFunction::translate(vector<IR *> &v_ir_collector) {
   CASEEND
   CASESTART(1)
   auto tmp = SAFETRANSLATE(error_msg_);
-  res = new IR(kOptNot, OP2("RAISE ( " + to_raise_ + ",", ")"), tmp);
+  res = new IR(kOptNot, OP2(to_raise_, ")"), tmp);
   CASEEND
   SWITCHEND
   TRANSLATEEND
