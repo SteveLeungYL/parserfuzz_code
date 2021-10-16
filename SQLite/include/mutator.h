@@ -29,6 +29,8 @@ public:
   //
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
   void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
+  int get_cri_valid_collection_size() { return all_cri_valid_pstr_vec.size(); }
+  int get_valid_collection_size() { return all_valid_pstr_vec.size(); }
 
   Mutator() { srand(time(nullptr)); }
 
@@ -65,7 +67,6 @@ public:
 
   int get_ir_libary_2D_hash_kStatement_size();
   int get_valid_collection_size();
-  int get_cri_valid_collection_size();
 
   vector<IR *> parse_query_str_get_ir_set(const string &query_str);
 

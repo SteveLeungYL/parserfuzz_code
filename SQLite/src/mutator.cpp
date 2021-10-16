@@ -2893,24 +2893,16 @@ void Mutator::reset_database_single_stmt() {
 }
 
 
-int Mutator::get_cri_valid_collection_size() {
-  return all_cri_valid_pstr_vec.size();
-}
-
-
-int Mutator::get_valid_collection_size() { return all_valid_pstr_vec.size(); }
-
-Program *Mutator::parser(const char *sql) {
+Program *Mutator::parser(const char *query) {
 
   yyscan_t scanner;
   YY_BUFFER_STATE state;
+
+  if (hsql_lex_init(&scanner)) return NULL;
+
+  state = hsql__scan_string(query, scanner);
+
   Program *p = new Program();
-
-  if (hsql_lex_init(&scanner)) {
-    return NULL;
-  }
-  state = hsql__scan_string(sql, scanner);
-
   int ret = hsql_parse(p, scanner);
 
   hsql__delete_buffer(state, scanner);
