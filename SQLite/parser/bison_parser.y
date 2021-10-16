@@ -1409,7 +1409,7 @@ foreign_key_on:
     |   ON UPDATE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE CASCADE"); }
     |   ON UPDATE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE RESTRICT"); }
     |   ON UPDATE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE NO ACTION"); }
-    |   MATCH IDENTIFIER      { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE1; $$->name_ = new Identifier($2); free($2); }
+    |   MATCH IDENTIFIER      { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE1; $$->identifier_ = new Identifier($2); free($2); }
     ;
 
 foreign_key_clause:

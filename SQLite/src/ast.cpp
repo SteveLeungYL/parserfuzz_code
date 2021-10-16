@@ -250,7 +250,7 @@ IR *IR::deep_copy() {
     op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
   copy_res = new IR(this->type_, op, left, right, this->f_val_, this->str_val_,
-                    this->name_, this->mutated_times_);
+                    this->mutated_times_);
   copy_res->id_type_ = this->id_type_;
   copy_res->parent_ = this->parent_;
   copy_res->str_val_ = this->str_val_;
@@ -259,40 +259,6 @@ IR *IR::deep_copy() {
   copy_res->is_node_struct_fixed = this->is_node_struct_fixed;
 
   return copy_res;
-}
-
-// move it here. seems no active use
-void IR::print_ir() {
-
-  if (this->left_ != NULL)
-    this->left_->print_ir();
-  if (this->right_ != NULL)
-    this->right_->print_ir();
-
-  if (this->operand_num_ == 0) {
-    cout << this->name_ << " = .str." << this->str_val_ << endl;
-  } else if (this->operand_num_ == 1) {
-    string res = "";
-    if (this->op_ != NULL) {
-      res += this->op_->prefix_ + " ";
-      res += this->left_->name_ + " ";
-      res += this->op_->middle_ + " ";
-      res += this->op_->suffix_ + " ";
-    }
-    cout << this->name_ << " = " << res << endl;
-  } else if (this->operand_num_ == 2) {
-    string res = "";
-    if (this->op_ != NULL) {
-      res += this->op_->prefix_ + " ";
-      res += this->left_->name_ + " ";
-      res += this->op_->middle_ + " ";
-      res += this->right_->name_ + " ";
-      res += this->op_->suffix_ + " ";
-    }
-    cout << this->name_ << " = " << res << endl;
-  }
-
-  return;
 }
 
 IR *QualifiedTableName::translate(vector<IR *> &v_ir_collector) {
@@ -2678,7 +2644,7 @@ IR *ForeignKeyOn::translate(vector<IR *> &v_ir_collector) {
   res = new IR(kForeignKeyOn, string(str_val_));
   CASEEND
   CASESTART(1)
-  auto tmp = SAFETRANSLATE(name_);
+  auto tmp = SAFETRANSLATE(identifier_);
   res = new IR(kForeignKeyOn, OP1("MATCH"), tmp);
   CASEEND
   SWITCHEND
@@ -2686,7 +2652,7 @@ IR *ForeignKeyOn::translate(vector<IR *> &v_ir_collector) {
 }
 
 void ForeignKeyOn::deep_delete() {
-  SAFEDELETE(name_);
+  SAFEDELETE(identifier_);
   delete this;
 }
 

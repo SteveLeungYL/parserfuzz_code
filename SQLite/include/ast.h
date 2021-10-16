@@ -18,8 +18,6 @@ ALLCLASS(DECLARE_CLASS);
 //#include "../parser/bison_parser.h"
 //#include "../parser/flex_lexer.h"
 
-#define GEN_NAME() name_ = gen_id_name();
-
 #define reset_counter() g_id_counter = 0;
 
 static unsigned long g_id_counter;
@@ -122,7 +120,6 @@ public:
   IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL)
       : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
         operand_num_((!!right) + (!!left)), id_type_(id_whatever) {
-    GEN_NAME();
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -132,31 +129,27 @@ public:
   IR(IRTYPE type, string str_val, IDTYPE id_type = id_whatever)
       : type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), id_type_(id_type) {
-    GEN_NAME();
   }
 
   IR(IRTYPE type, bool b_val)
       : type_(type), b_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), id_type_(id_whatever) {
-    GEN_NAME();
   }
 
   IR(IRTYPE type, unsigned long int_val)
       : type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), id_type_(id_whatever) {
-    GEN_NAME();
   }
 
   IR(IRTYPE type, double f_val)
       : type_(type), f_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), id_type_(id_whatever) {
-    GEN_NAME();
   }
 
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,
-     string str_val, string name, unsigned int mutated_times)
+     string str_val, unsigned int mutated_times)
       : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
-        operand_num_((!!right) + (!!left)), name_(name), str_val_(str_val),
+        operand_num_((!!right) + (!!left)), str_val_(str_val),
         f_val_(f_val), mutated_times_(mutated_times), id_type_(id_whatever) {
     if (left_)
       left_->parent_ = this;
@@ -173,7 +166,6 @@ public:
   int uniq_id_in_tree_;
   IDTYPE id_type_;
   IRTYPE type_;
-  string name_;
   string str_val_;
   IROperator *op_;
   IR *left_;
@@ -205,7 +197,6 @@ public:
   void update_left(IR *);
   void update_right(IR *);
 
-  void print_ir();
 };
 
 class IRCollector {
@@ -879,7 +870,7 @@ public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
   string str_val_;
-  Identifier *name_;
+  Identifier *identifier_;
 };
 
 class ForeignKeyClause : public Node {

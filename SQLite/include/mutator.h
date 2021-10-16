@@ -66,7 +66,6 @@ public:
   bool lucky_enough_to_be_mutated(unsigned int mutated_times);
 
   int get_ir_libary_2D_hash_kStatement_size();
-  int get_valid_collection_size();
 
   vector<IR *> parse_query_str_get_ir_set(const string &query_str);
 

@@ -57,10 +57,10 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
     copy_res = new IR(
         root->type_,
         OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_), left,
-        right, root->f_val_, root->str_val_, root->name_, root->mutated_times_);
+        right, root->f_val_, root->str_val_, root->mutated_times_);
   else
     copy_res = new IR(root->type_, NULL, left, right, root->f_val_,
-                      root->str_val_, root->name_, root->mutated_times_);
+                      root->str_val_, root->mutated_times_);
 
   copy_res->id_type_ = root->id_type_;
 
@@ -187,12 +187,12 @@ vector<string *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mu
 vector<IR *> Mutator::parse_query_str_get_ir_set(const string &query_str) {
   vector<IR *> ir_set;
 
-  auto p_strip_sql = parser(query_str.c_str());
+  Program *p_strip_sql = parser(query_str.c_str());
   if (p_strip_sql == NULL)
     return ir_set;
 
   try {
-    auto root_ir = p_strip_sql->translate(ir_set);
+    IR *root_ir = p_strip_sql->translate(ir_set);
   } catch (...) {
     p_strip_sql->deep_delete();
 
