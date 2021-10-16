@@ -257,7 +257,9 @@ VALID_STMT_TYPE_LIKELY SQL_LIKELY::get_stmt_LIKELY_type (IR* cur_stmt) {
   }
 
   /* Might have aggr function. */
-  string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
+  string aggr_func_str;
+  if (v_aggr_func_ir[0]->left_->op_)
+    aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
   if (findStringIn(aggr_func_str, "MIN")) {
     return VALID_STMT_TYPE_LIKELY::AGGR;
   } else if (findStringIn(aggr_func_str, "MAX")){

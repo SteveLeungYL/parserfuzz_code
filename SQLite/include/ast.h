@@ -490,14 +490,14 @@ class OptRecursive : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptIfNotExists : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class ColumnDefList : public Node {
@@ -527,14 +527,14 @@ class OptColumnNullable : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptIfExists : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptColumnListParen : public Opt {
@@ -564,7 +564,7 @@ class SetOperator : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class SelectCoreList : public Node {
@@ -592,14 +592,14 @@ class OptDistinct : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptStoredVirtual : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class SelectList : public Node {
@@ -689,7 +689,7 @@ class OptOrderType : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptLimit : public Opt {
@@ -762,7 +762,7 @@ class UnaryOp : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string value_;
+  const char *str_val_;
 };
 
 class InTarget : public Node {
@@ -778,7 +778,7 @@ class BinaryOp : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string value_;
+  const char *str_val_;
 };
 
 class CaseCondition : public Node {
@@ -871,7 +871,7 @@ class ForeignKeyOn : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
   Identifier *identifier_;
 };
 
@@ -1091,14 +1091,14 @@ public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
   OptSemicolon *opt_semicolon_;
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptWithoutRowID : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptColumnConstraintlist : public Opt {
@@ -1162,21 +1162,21 @@ class ResolveType : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptAutoinc : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptUnique : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class TableName : public Node {
@@ -1207,14 +1207,14 @@ class OptTmp : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptTriggerTime : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class TriggerEvent : public Node {
@@ -1235,7 +1235,7 @@ class OptForEach : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptWhen : public Opt {
@@ -1355,7 +1355,7 @@ class RangeOrRows : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class FrameBoundS : public Node {
@@ -1409,7 +1409,7 @@ class UpdateType : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
   ResolveType *resolve_type_;
 };
 
@@ -1417,7 +1417,7 @@ class InsertType : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
   ResolveType *resolve_type_;
 };
 
@@ -1444,7 +1444,7 @@ class JoinOp : public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptIndex : public Node {
@@ -1512,7 +1512,7 @@ class OptColumn : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class VacuumStatement : public PreparableStatement {
@@ -1542,7 +1542,7 @@ class OptTransaction : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptToSavepoint : public Opt {
@@ -1630,21 +1630,21 @@ class NullOfExpr : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class ExistsOrNot : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class OptOrderOfNull : public Opt {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
-  string str_val_;
+  const char *str_val_;
 };
 
 class AssignClause : public Node {

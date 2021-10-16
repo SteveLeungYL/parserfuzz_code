@@ -765,13 +765,11 @@ rollback_statement: // add z
 opt_transaction: // add z
         TRANSACTION {
             $$ = new OptTransaction();
-            $$->sub_type_ = CASE0;
-            $$->str_val_ = string("TRANSACTION");
+            $$->str_val_ = "TRANSACTION";
         }
     |   /* empty */{
             $$ = new OptTransaction();
-            $$->sub_type_ = CASE1;
-            $$->str_val_ = string("");
+            $$->str_val_ = "";
         }
  ;
 
@@ -960,27 +958,27 @@ assign_list:
 opt_order_of_null:
         NULLS FIRST {
             $$ = new OptOrderOfNull();
-            $$->str_val_ = string("NULLS FIRST");
+            $$->str_val_ = "NULLS FIRST";
         }
     |   NULLS LAST {
             $$ = new OptOrderOfNull();
-            $$->str_val_ = string("NULLS LAST");
+            $$->str_val_ = "NULLS LAST";
         }
     |   {
             $$ = new OptOrderOfNull();
-            $$->str_val_ = string("");
+            $$->str_val_ = "";
         }
     ;
 
 null_of_expr:
-        ISNULL { $$ = new NullOfExpr(); $$->str_val_ = string("ISNULL"); }
-    |   NOTNULL { $$ = new NullOfExpr(); $$->str_val_ = string("NOTNULL"); }
-    |   NOT NULL { $$ = new NullOfExpr(); $$->str_val_ = string("NOT NULL"); }
+        ISNULL { $$ = new NullOfExpr(); $$->str_val_ = "ISNULL"; }
+    |   NOTNULL { $$ = new NullOfExpr(); $$->str_val_ = "NOTNULL"; }
+    |   NOT NULL { $$ = new NullOfExpr(); $$->str_val_ = "NOT NULL"; }
     ;
 
 exists_or_not:
-        EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = string("EXISTS"); }
-    |   NOT EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = string("NOT EXISTS"); }
+        EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = "EXISTS"; }
+    |   NOT EXISTS { $$ = new ExistsOrNot(); $$->str_val_ = "NOT EXISTS"; }
     ;
 
 assign_clause:
@@ -1063,13 +1061,11 @@ alter_statement:
 opt_column:
 	COLUMN {
 		$$ = new OptColumn();
-		$$->sub_type_ = CASE0;
-        $$->str_val_ = string("COLUMN");
+    $$->str_val_ = "COLUMN";
 	}
  |	/* empty */{
 		$$ = new OptColumn();
-		$$->sub_type_ = CASE1;
-        $$->str_val_ = string("");
+    $$->str_val_ = "";
 	}
  ;
 
@@ -1207,25 +1203,25 @@ create_statement:
     ;
 
 opt_without_rowid:
-        WITHOUT ROWID {$$ = new OptWithoutRowID(); $$->str_val_ = string("WITHOUT ROWID");}
-    |   /* empty */  {{$$ = new OptWithoutRowID(); $$->str_val_ = string("");}}
+        WITHOUT ROWID {$$ = new OptWithoutRowID(); $$->str_val_ = "WITHOUT ROWID";}
+    |   /* empty */  {{$$ = new OptWithoutRowID(); $$->str_val_ = "";}}
 
 opt_unique:
-        UNIQUE {$$ = new OptUnique(); $$->str_val_ = string("UNIQUE");}
-    | /* empty */ {$$ = new OptUnique(); $$->str_val_ = string("");}
+        UNIQUE {$$ = new OptUnique(); $$->str_val_ = "UNIQUE";}
+    | /* empty */ {$$ = new OptUnique(); $$->str_val_ = "";}
     ;
 
 opt_tmp:
-        TEMP {$$ = new OptTmp(); $$->str_val_ = string("TEMP");}
-    |   TEMPORARY {$$ = new OptTmp(); $$->str_val_ = string("TEMPORARY");}
-    |   /* empty */  {$$ = new OptTmp(); $$->str_val_ = string("");}
+        TEMP {$$ = new OptTmp(); $$->str_val_ = "TEMP";}
+    |   TEMPORARY {$$ = new OptTmp(); $$->str_val_ = "TEMPORARY";}
+    |   /* empty */  {$$ = new OptTmp(); $$->str_val_ = "";}
     ;
 
 opt_trigger_time:
-        BEFORE {$$ = new OptTriggerTime(); $$->str_val_ = string("BEFORE");}
-    |   AFTER {$$ = new OptTriggerTime(); $$->str_val_ = string("AFTER");}
-    |   INSTEAD OF {$$ = new OptTriggerTime(); $$->str_val_ = string("INSTEAD OF");}
-    |   /* empty */ {$$ = new OptTriggerTime(); $$->str_val_ = string("");}
+        BEFORE {$$ = new OptTriggerTime(); $$->str_val_ = "BEFORE";}
+    |   AFTER {$$ = new OptTriggerTime(); $$->str_val_ = "AFTER";}
+    |   INSTEAD OF {$$ = new OptTriggerTime(); $$->str_val_ = "INSTEAD OF";}
+    |   /* empty */ {$$ = new OptTriggerTime(); $$->str_val_ = "";}
     ;
 
 trigger_event:
@@ -1240,8 +1236,8 @@ opt_of_column_list:
     ;
 
 opt_for_each:
-        FOR EACH ROW {$$ = new OptForEach(); $$->str_val_ = string("FOR EACH ROW");}
-    |   /* empty */ {$$ = new OptForEach(); $$->str_val_ = string("");}
+        FOR EACH ROW {$$ = new OptForEach(); $$->str_val_ = "FOR EACH ROW";}
+    |   /* empty */ {$$ = new OptForEach(); $$->str_val_ = "";}
     ;
 
 opt_when:
@@ -1271,12 +1267,12 @@ opt_not:
     ;
 
 opt_recursive:
-        RECURSIVE { $$ = new OptRecursive(); $$->sub_type_ = CASE0; }
-    |   /* empty */ { $$ = new OptRecursive(); $$->sub_type_ = CASE1; }
+        RECURSIVE { $$ = new OptRecursive(); $$->str_val_ = "RECURSIVE"; }
+    |   /* empty */ { $$ = new OptRecursive(); $$->str_val_ = ""; }
 
 opt_if_not_exists:
-        IF NOT EXISTS { $$ = new OptIfNotExists(); $$->sub_type_ = CASE0; }
-    |   /* empty */ { $$ = new OptIfNotExists(); $$->sub_type_ = CASE1; }
+        IF NOT EXISTS { $$ = new OptIfNotExists(); $$->str_val_ = "IF NOT EXISTS"; }
+    |   /* empty */ { $$ = new OptIfNotExists(); $$->str_val_ = ""; }
     ;
 
 column_def_list:
@@ -1399,16 +1395,16 @@ foreign_key_on_list:
     ;
 
 foreign_key_on:
-        ON DELETE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE SET NULL"); }
-    |   ON DELETE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE SET DEFAULT"); }
-    |   ON DELETE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE CASCADE"); }
-    |   ON DELETE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE RESTRICT"); }
-    |   ON DELETE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON DELETE NO ACTION"); }
-    |   ON UPDATE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE SET NULL"); }
-    |   ON UPDATE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE SET DEFAULT"); }
-    |   ON UPDATE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE CASCADE"); }
-    |   ON UPDATE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE RESTRICT"); }
-    |   ON UPDATE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = string("ON UPDATE NO ACTION"); }
+        ON DELETE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON DELETE SET NULL"; }
+    |   ON DELETE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON DELETE SET DEFAULT"; }
+    |   ON DELETE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON DELETE CASCADE"; }
+    |   ON DELETE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON DELETE RESTRICT"; }
+    |   ON DELETE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON DELETE NO ACTION"; }
+    |   ON UPDATE SET NULL    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON UPDATE SET NULL"; }
+    |   ON UPDATE SET DEFAULT { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON UPDATE SET DEFAULT"; }
+    |   ON UPDATE CASCADE     { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON UPDATE CASCADE"; }
+    |   ON UPDATE RESTRICT    { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON UPDATE RESTRICT"; }
+    |   ON UPDATE NO ACTION   { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE0; $$->str_val_ = "ON UPDATE NO ACTION"; }
     |   MATCH IDENTIFIER      { $$ = new ForeignKeyOn(); $$->sub_type_ = CASE1; $$->identifier_ = new Identifier($2); free($2); }
     ;
 
@@ -1486,9 +1482,9 @@ column_constraint:
     ;
 
 opt_stored_virtual:
-        STORED { $$ = new OptStoredVirtual(); $$->str_val_ = string("STORED"); }
-    |   VIRTUAL  { $$ = new OptStoredVirtual(); $$->str_val_ = string("VIRTUAL"); }
-    |   /* empty */ { $$ = new OptStoredVirtual(); $$->str_val_ = string(""); }
+        STORED { $$ = new OptStoredVirtual(); $$->str_val_ = "STORED"; }
+    |   VIRTUAL  { $$ = new OptStoredVirtual(); $$->str_val_ = "VIRTUAL"; }
+    |   /* empty */ { $$ = new OptStoredVirtual(); $$->str_val_ = ""; }
     ;
 
 /* looks good */
@@ -1499,18 +1495,18 @@ opt_conflict_clause:
 
 /* looks good */
 resolve_type:
-        ABORT {$$ = new ResolveType(); $$->str_val_ = string("ABORT");}
-    |   FAIL {$$ = new ResolveType(); $$->str_val_ = string("FAIL");}
-    |   IGNORE {$$ = new ResolveType(); $$->str_val_ = string("IGNORE");}
-    |   REPLACE {$$ = new ResolveType(); $$->str_val_ = string("REPLACE");}
-    |   ROLLBACK {$$ = new ResolveType(); $$->str_val_ = string("ROLLBACK");}
+        ABORT {$$ = new ResolveType(); $$->str_val_ = "ABORT";}
+    |   FAIL {$$ = new ResolveType(); $$->str_val_ = "FAIL";}
+    |   IGNORE {$$ = new ResolveType(); $$->str_val_ = "IGNORE";}
+    |   REPLACE {$$ = new ResolveType(); $$->str_val_ = "REPLACE";}
+    |   ROLLBACK {$$ = new ResolveType(); $$->str_val_ = "ROLLBACK";}
     ;
 
 /* looks good */
 /* seems the keyword AUTOINCREMENT is not supported by sqlite, weird */
 opt_autoinc:
-        AUTOINCR {$$ = new OptAutoinc(); $$->str_val_ = string("AUTOINCR");}
-    |   /* empty */ {$$ = new OptAutoinc(); $$->str_val_ = string("");}
+        AUTOINCR {$$ = new OptAutoinc(); $$->str_val_ = "AUTOINCR";}
+    |   /* empty */ {$$ = new OptAutoinc(); $$->str_val_ = "";}
     ;
 
 
@@ -1616,8 +1612,8 @@ drop_statement:
     ;
 
 opt_if_exists:
-        IF EXISTS   { $$ = new OptIfExists(); $$->str_val_=string("IF EXISTS"); }
-    |   /* empty */ { $$ = new OptIfExists(); $$->str_val_=string(""); }
+        IF EXISTS   { $$ = new OptIfExists(); $$->str_val_ = "IF EXISTS"; }
+    |   /* empty */ { $$ = new OptIfExists(); $$->str_val_ = ""; }
     ;
 
 /******************************
@@ -1676,13 +1672,13 @@ insert_value:
 
 
 update_type:
-        UPDATE { $$ = new UpdateType(); $$->sub_type_ = CASE0; $$->str_val_ = string("UPDATE"); }
+        UPDATE { $$ = new UpdateType(); $$->sub_type_ = CASE0; $$->str_val_ = "UPDATE"; }
     |   UPDATE OR resolve_type {$$ = new UpdateType(); $$->sub_type_ = CASE1; $$->resolve_type_ = $3;}
     ;
 
 insert_type:
-        INSERT INTO { $$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_ = string("INSERT INTO"); }
-    |   REPLACE INTO {$$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_  = string("REPLACE INTO");}
+        INSERT INTO { $$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_ = "INSERT INTO"; }
+    |   REPLACE INTO {$$ = new InsertType(); $$->sub_type_ = CASE0; $$->str_val_  = "REPLACE INTO";}
     |   INSERT OR resolve_type INTO {$$ = new InsertType(); $$->sub_type_ = CASE1; $$->resolve_type_ = $3;}
     ;
 
@@ -1760,10 +1756,10 @@ select_core_list:
     ;
 
 set_operator:
-        UNION {$$ = new SetOperator(); $$->str_val_ = string("UNION");}
-    |   UNION ALL {$$ = new SetOperator(); $$->str_val_ = string("UNION ALL");}
-    |   INTERSECT {$$ = new SetOperator(); $$->str_val_ = string("INTERSECT");}
-    |   EXCEPT  {$$ = new SetOperator(); $$->str_val_ = string("EXCEPT");}
+        UNION {$$ = new SetOperator(); $$->str_val_ = "UNION";}
+    |   UNION ALL {$$ = new SetOperator(); $$->str_val_ = "UNION ALL";}
+    |   INTERSECT {$$ = new SetOperator(); $$->str_val_ = "INTERSECT";}
+    |   EXCEPT  {$$ = new SetOperator(); $$->str_val_ = "EXCEPT";}
     ;
 
 select_core:
@@ -1846,9 +1842,9 @@ opt_frame:
     ;
 
 range_or_rows:
-        RANGE   { $$ = new RangeOrRows(); $$->str_val_ = string("RANGE");  }
-    |   ROWS    { $$ = new RangeOrRows(); $$->str_val_ = string("ROWS");   }
-    |   GROUPS  { $$ = new RangeOrRows(); $$->str_val_ = string("GROUPS"); }
+        RANGE   { $$ = new RangeOrRows(); $$->str_val_ = "RANGE";  }
+    |   ROWS    { $$ = new RangeOrRows(); $$->str_val_ = "ROWS";   }
+    |   GROUPS  { $$ = new RangeOrRows(); $$->str_val_ = "GROUPS"; }
     ;
 
 frame_bound_s:
@@ -1884,9 +1880,9 @@ opt_frame_exclude:
     ;
 
 opt_distinct:
-        DISTINCT { $$ = new OptDistinct();  $$->str_val_ = string("DISTINCT");}
-    |   ALL { $$ = new OptDistinct();  $$->str_val_ = string("ALL");}
-    |   /* empty */ { $$ = new OptDistinct();  $$->str_val_ = string("");}
+        DISTINCT { $$ = new OptDistinct();  $$->str_val_ = "DISTINCT";}
+    |   ALL { $$ = new OptDistinct();  $$->str_val_ = "ALL";}
+    |   /* empty */ { $$ = new OptDistinct();  $$->str_val_ = "";}
     ;
 
 result_column_list:
@@ -1981,9 +1977,9 @@ order_term:
 
 /* looks good */
 opt_order_type:
-        ASC { $$ = new OptOrderType(); $$->str_val_ = string("ASC"); }
-    |   DESC { $$ = new OptOrderType(); $$->str_val_ = string("DESC"); }
-    |   /* empty */ { $$ = new OptOrderType(); $$->str_val_ = string(""); }
+        ASC { $$ = new OptOrderType(); $$->str_val_ = "ASC"; }
+    |   DESC { $$ = new OptOrderType(); $$->str_val_ = "DESC"; }
+    |   /* empty */ { $$ = new OptOrderType(); $$->str_val_ = ""; }
     ;
 
 opt_limit:
@@ -2138,46 +2134,46 @@ new_expr:
     ;
 
 unary_op:
-        '-' { $$ = new UnaryOp(); $$->value_ = string("-"); }
-    |   '+' { $$ = new UnaryOp(); $$->value_ = string("+"); }
-    |   NOT { $$ = new UnaryOp(); $$->value_ = string("NOT"); }
-    |   '~' { $$ = new UnaryOp(); $$->value_ = string("~"); }
+        '-' { $$ = new UnaryOp(); $$->str_val_ = "-"; }
+    |   '+' { $$ = new UnaryOp(); $$->str_val_ = "+"; }
+    |   NOT { $$ = new UnaryOp(); $$->str_val_ = "NOT"; }
+    |   '~' { $$ = new UnaryOp(); $$->str_val_ = "~"; }
     ;
 
 binary_op:
-        CONCAT    { $$ = new BinaryOp(); $$->value_ = string("||"); }
-    |   '*'       { $$ = new BinaryOp(); $$->value_ = string("*"); }
-    |   '/'       { $$ = new BinaryOp(); $$->value_ = string("/"); }
-    |   '%'       { $$ = new BinaryOp(); $$->value_ = string("%"); }
-    |   '+'       { $$ = new BinaryOp(); $$->value_ = string("+"); }
-    |   '-'       { $$ = new BinaryOp(); $$->value_ = string("-"); }
-    |   LSHIFT    { $$ = new BinaryOp(); $$->value_ = string("<<"); }
-    |   RSHIFT    { $$ = new BinaryOp(); $$->value_ = string(">>"); }
-    |   '&'       { $$ = new BinaryOp(); $$->value_ = string("&"); }
-    |   '|'       { $$ = new BinaryOp(); $$->value_ = string("|"); }
-    |   '<'       { $$ = new BinaryOp(); $$->value_ = string("<"); }
-    |   LESSEQ    { $$ = new BinaryOp(); $$->value_ = string("<="); }
-    |   '>'       { $$ = new BinaryOp(); $$->value_ = string(">"); }
-    |   GREATEREQ { $$ = new BinaryOp(); $$->value_ = string(">="); }
-    |   '='       { $$ = new BinaryOp(); $$->value_ = string("="); }
-    |   EQUALS    { $$ = new BinaryOp(); $$->value_ = string("=="); }
-    |   NOTEQUALS { $$ = new BinaryOp(); $$->value_ = string("!="); }
-    |   IS        { $$ = new BinaryOp(); $$->value_ = string("IS"); }
+        CONCAT    { $$ = new BinaryOp(); $$->str_val_ = "||"; }
+    |   '*'       { $$ = new BinaryOp(); $$->str_val_ = "*"; }
+    |   '/'       { $$ = new BinaryOp(); $$->str_val_ = "/"; }
+    |   '%'       { $$ = new BinaryOp(); $$->str_val_ = "%"; }
+    |   '+'       { $$ = new BinaryOp(); $$->str_val_ = "+"; }
+    |   '-'       { $$ = new BinaryOp(); $$->str_val_ = "-"; }
+    |   LSHIFT    { $$ = new BinaryOp(); $$->str_val_ = "<<"; }
+    |   RSHIFT    { $$ = new BinaryOp(); $$->str_val_ = ">>"; }
+    |   '&'       { $$ = new BinaryOp(); $$->str_val_ = "&"; }
+    |   '|'       { $$ = new BinaryOp(); $$->str_val_ = "|"; }
+    |   '<'       { $$ = new BinaryOp(); $$->str_val_ = "<"; }
+    |   LESSEQ    { $$ = new BinaryOp(); $$->str_val_ = "<="; }
+    |   '>'       { $$ = new BinaryOp(); $$->str_val_ = ">"; }
+    |   GREATEREQ { $$ = new BinaryOp(); $$->str_val_ = ">="; }
+    |   '='       { $$ = new BinaryOp(); $$->str_val_ = "="; }
+    |   EQUALS    { $$ = new BinaryOp(); $$->str_val_ = "=="; }
+    |   NOTEQUALS { $$ = new BinaryOp(); $$->str_val_ = "!="; }
+    |   IS        { $$ = new BinaryOp(); $$->str_val_ = "IS"; }
     /* covered by IS and NOT */
-    /* |   IS NOT    { $$ = new BinaryOp(); $$->value_ = string("IS NOT"); } */
-    |   AND       { $$ = new BinaryOp(); $$->value_ = string("AND"); }
-    |   OR        { $$ = new BinaryOp(); $$->value_ = string("OR"); }
+    /* |   IS NOT    { $$ = new BinaryOp(); $$->str_val_ = "IS NOT"; } */
+    |   AND       { $$ = new BinaryOp(); $$->str_val_ = "AND"; }
+    |   OR        { $$ = new BinaryOp(); $$->str_val_ = "OR"; }
     ;
 
 in_op:
-        IN        { $$ = new BinaryOp(); $$->value_ = string("IN"); }
+        IN        { $$ = new BinaryOp(); $$->str_val_ = "IN"; }
     ;
 
 similar_bop:
-        LIKE      { $$ = new BinaryOp(); $$->value_ = string("LIKE"); }
-    |   GLOB      { $$ = new BinaryOp(); $$->value_ = string("GLOB"); }
-    |   MATCH     { $$ = new BinaryOp(); $$->value_ = string("MATCH"); }
-    |   REGEXP    { $$ = new BinaryOp(); $$->value_ = string("REGEXP"); }
+        LIKE      { $$ = new BinaryOp(); $$->str_val_ = "LIKE"; }
+    |   GLOB      { $$ = new BinaryOp(); $$->str_val_ = "GLOB"; }
+    |   MATCH     { $$ = new BinaryOp(); $$->str_val_ = "MATCH"; }
+    |   REGEXP    { $$ = new BinaryOp(); $$->str_val_ = "REGEXP"; }
     ;
 
 in_target:
@@ -2323,11 +2319,11 @@ numeric_literal:
     |   INTVAL { $$ = new NumericLiteral(); $$->value_ = std::to_string($1); }
     |   HEXVAL { $$ = new NumericLiteral(); $$->value_ = $1; free($1); }
     |   EXPVAL { $$ = new NumericLiteral(); $$->value_ = $1; free($1); }
-    |   TRUE { $$ = new NumericLiteral(); $$->value_ = "TRUE"; }
-    |   FALSE { $$ = new NumericLiteral(); $$->value_ = "FALSE"; }
-    |   CURRENT_TIME { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIME"; }
-    |   CURRENT_DATE { $$ = new NumericLiteral(); $$->value_ = "CURRENT_DATE"; }
-    |   CURRENT_TIMESTAMP { $$ = new NumericLiteral(); $$->value_ = "CURRENT_TIMESTAMP"; }
+    |   TRUE { $$ = new NumericLiteral(); $$->value_ = string("TRUE"); }
+    |   FALSE { $$ = new NumericLiteral(); $$->value_ = string("FALSE"); }
+    |   CURRENT_TIME { $$ = new NumericLiteral(); $$->value_ = string("CURRENT_TIME"); }
+    |   CURRENT_DATE { $$ = new NumericLiteral(); $$->value_ = string("CURRENT_DATE"); }
+    |   CURRENT_TIMESTAMP { $$ = new NumericLiteral(); $$->value_ = string("CURRENT_TIMESTAMP"); }
     ;
 
 null_literal:
@@ -2550,17 +2546,17 @@ common_table_expr:
  ******************************/
 
 join_op:
-        ','                     { $$ = new JoinOp(); $$->str_val_ = string(","); }
-    |                      JOIN { $$ = new JoinOp(); $$->str_val_ = string("JOIN"); }
-    |           LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = string("LEFT JOIN"); }
-    |           LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = string("LEFT OUTER JOIN"); }
-    |           INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = string("INNER JOIN"); }
-    |           CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = string("CROSS JOIN"); }
-    |   NATURAL            JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL JOIN"); }
-    |   NATURAL LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL LEFT JOIN"); }
-    |   NATURAL LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL LEFT OUTER JOIN"); }
-    |   NATURAL INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL INNER JOIN"); }
-    |   NATURAL CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = string("NATURAL CROSS JOIN"); }
+        ','                     { $$ = new JoinOp(); $$->str_val_ = ","; }
+    |                      JOIN { $$ = new JoinOp(); $$->str_val_ = "JOIN"; }
+    |           LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = "LEFT JOIN"; }
+    |           LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "LEFT OUTER JOIN"; }
+    |           INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = "INNER JOIN"; }
+    |           CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = "CROSS JOIN"; }
+    |   NATURAL            JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL JOIN"; }
+    |   NATURAL LEFT       JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL LEFT JOIN"; }
+    |   NATURAL LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL LEFT OUTER JOIN"; }
+    |   NATURAL INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL INNER JOIN"; }
+    |   NATURAL CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL CROSS JOIN"; }
     ;
 
 join_constraint:
@@ -2631,8 +2627,8 @@ table_or_subquery:
  ******************************/
 
 opt_semicolon:
-        ';' opt_semicolon {$$ = new OptSemicolon(); $$->str_val_ = string(";"); $$->opt_semicolon_ = $2;}
-    |   /* empty */{$$ = new OptSemicolon(); $$->str_val_ = string("");}
+        ';' opt_semicolon {$$ = new OptSemicolon(); $$->str_val_ = ";"; $$->opt_semicolon_ = $2;}
+    |   /* empty */{$$ = new OptSemicolon(); $$->str_val_ = "";}
     ;
 
 

@@ -429,7 +429,7 @@ IR *DropStatement::translate(vector<IR *> &v_ir_collector) { assert(0); }
 IR *OptIfExists::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptIfExists, str_val_);
+  res = new IR(kOptIfExists, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -720,7 +720,7 @@ IR *InsertValue::translate(vector<IR *> &v_ir_collector) {
   res = new IR(kInsertValue, OP0(), tmp0, tmp1);
   CASEEND
   CASESTART(2)
-  res = new IR(kInsertValue, string("DEFAULT VALUES"));
+  res = new IR(kInsertValue, OP1("DEFAULT VALUES"));
   CASEEND
   SWITCHEND
   TRANSLATEEND
@@ -737,7 +737,7 @@ IR *UpdateType::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   SWITCHSTART
   CASESTART(0)
-  res = new IR(kUpdateType, str_val_);
+  res = new IR(kUpdateType, OP1(str_val_));
   CASEEND
   CASESTART(1)
   res = SAFETRANSLATE(resolve_type_);
@@ -756,7 +756,7 @@ IR *InsertType::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   SWITCHSTART
   CASESTART(0)
-  res = new IR(kInsertType, str_val_);
+  res = new IR(kInsertType, OP1(str_val_));
   CASEEND
   CASESTART(1)
   res = SAFETRANSLATE(resolve_type_);
@@ -838,7 +838,7 @@ IR *FilePath::translate(vector<IR *> &v_ir_collector) {
 
 IR *OptRecursive::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptRecursive, str_val_);
+  res = new IR(kOptRecursive, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -847,7 +847,7 @@ void OptRecursive::deep_delete() { delete this; }
 IR *OptIfNotExists::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptIfNotExists, str_val_);
+  res = new IR(kOptIfNotExists, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -969,7 +969,7 @@ void SelectCoreList::deep_delete() {
 IR *SetOperator::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kSetOperator, str_val_);
+  res = new IR(kSetOperator, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -1005,7 +1005,7 @@ IR *SelectCore::translate(vector<IR *> &v_ir_collector) {
 IR *OptStoredVirtual::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptStoredVirtual, str_val_);
+  res = new IR(kOptStoredVirtual, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -1015,7 +1015,7 @@ void OptStoredVirtual::deep_delete() { delete this; }
 IR *OptDistinct::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptDistinct, str_val_);
+  res = new IR(kOptDistinct, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -1204,7 +1204,7 @@ IR *OrderTerm::translate(vector<IR *> &v_ir_collector) {
 IR *OptOrderType::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptOrderType, str_val_);
+  res = new IR(kOptOrderType, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -1213,7 +1213,7 @@ void OptWithoutRowID::deep_delete() { delete this; }
 
 IR *OptWithoutRowID::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptWithoutRowID, str_val_);
+  res = new IR(kOptWithoutRowID, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -1446,7 +1446,7 @@ void OptExpr::deep_delete() {
 
 IR *UnaryOp::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kUnaryOp, value_);
+  res = new IR(kUnaryOp, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -1483,7 +1483,7 @@ void InTarget::deep_delete() {
 
 IR *BinaryOp::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kBinaryOp, value_);
+  res = new IR(kBinaryOp, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2123,7 +2123,7 @@ void JoinConstraint::deep_delete() {
 IR *OptSemicolon::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptSemicolon, str_val_);
+  res = new IR(kOptSemicolon, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -2646,7 +2646,7 @@ IR *ForeignKeyOn::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   SWITCHSTART
   CASESTART(0)
-  res = new IR(kForeignKeyOn, string(str_val_));
+  res = new IR(kForeignKeyOn, OP1(str_val_));
   CASEEND
   CASESTART(1)
   auto tmp = SAFETRANSLATE(identifier_);
@@ -2781,7 +2781,7 @@ void OptConflictClause::deep_delete() {
 
 IR *ResolveType::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kResolveType, str_val_);
+  res = new IR(kResolveType, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2789,7 +2789,7 @@ void ResolveType::deep_delete() { delete this; }
 
 IR *OptAutoinc::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptAutoinc, str_val_);
+  res = new IR(kOptAutoinc, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2797,7 +2797,7 @@ void OptAutoinc::deep_delete() { delete this; }
 
 IR *OptUnique::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptUnique, str_val_);
+  res = new IR(kOptUnique, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2805,7 +2805,7 @@ void OptUnique::deep_delete() { delete this; }
 
 IR *OptTmp::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptTmp, str_val_);
+  res = new IR(kOptTmp, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2813,7 +2813,7 @@ void OptTmp::deep_delete() { delete this; }
 
 IR *OptTriggerTime::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptTriggerTime, str_val_);
+  res = new IR(kOptTriggerTime, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2862,7 +2862,7 @@ void OptOfColumnList::deep_delete() {
 
 IR *OptForEach::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kOptForEach, str_val_);
+  res = new IR(kOptForEach, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -2876,7 +2876,7 @@ IR *OptWhen::translate(vector<IR *> &v_ir_collector) {
   res = new IR(kOptWhen, OP1("WHEN"), res);
   CASEEND
   CASESTART(1)
-  res = new IR(kOptWhen, string(""));
+  res = new IR(kOptWhen, OP1(""));
   CASEEND
   SWITCHEND
   TRANSLATEEND
@@ -3135,7 +3135,7 @@ void OptFrame::deep_delete() {
 
 IR *RangeOrRows::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kRangeOrRows, str_val_);
+  res = new IR(kRangeOrRows, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -3303,7 +3303,7 @@ void TableOrSubquery::deep_delete() {
 IR *JoinOp::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kJoinOp, str_val_);
+  res = new IR(kJoinOp, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -3476,14 +3476,7 @@ void OptColumn::deep_delete() { delete this; }
 IR *OptColumn::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  SWITCHSTART
-  CASESTART(0)
-  res = new IR(kOptColumn, str_val_);
-  CASEEND
-  CASESTART(1)
-  res = new IR(kOptColumn, str_val_);
-  CASEEND
-  SWITCHEND
+  res = new IR(kOptColumn, OP1(str_val_));
 
   TRANSLATEEND
 }
@@ -3556,16 +3549,7 @@ void OptTransaction::deep_delete() { delete this; }
 
 IR *OptTransaction::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-
-  SWITCHSTART
-  CASESTART(0)
-  res = new IR(kOptTransaction, str_val_);
-  CASEEND
-  CASESTART(1)
-  res = new IR(kOptTransaction, str_val_);
-  CASEEND
-  SWITCHEND
-
+  res = new IR(kOptTransaction, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -3773,7 +3757,7 @@ IR *AssignList::translate(vector<IR *> &v_ir_collector) {
 
 IR *ExistsOrNot::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kExistsOrNot, str_val_);
+  res = new IR(kExistsOrNot, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -3781,7 +3765,7 @@ void ExistsOrNot::deep_delete() { delete this; }
 
 IR *NullOfExpr::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
-  res = new IR(kNullOfExpr, str_val_);
+  res = new IR(kNullOfExpr, OP1(str_val_));
   TRANSLATEEND
 }
 
@@ -3790,7 +3774,7 @@ void NullOfExpr::deep_delete() { delete this; }
 IR *OptOrderOfNull::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
 
-  res = new IR(kOptOrderOfNull, str_val_);
+  res = new IR(kOptOrderOfNull, OP1(str_val_));
 
   TRANSLATEEND
 }

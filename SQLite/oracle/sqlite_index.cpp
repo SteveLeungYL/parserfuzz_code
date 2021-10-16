@@ -194,7 +194,8 @@ IR* SQL_INDEX::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   cur_stmt = cur_stmt->deep_copy();
   vector<IR*> opt_unique_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptUnique, false);
   for (auto opt_unique_ir : opt_unique_vec) {
-    opt_unique_ir->str_val_ = ""; // Remove UNIQUE constraints in the deep_copied cur_stmt. 
+    if (opt_unique_ir->op_)
+      opt_unique_ir->op_->prefix_ = ""; // Remove UNIQUE constraints in the deep_copied cur_stmt. 
   }
   return cur_stmt;
   cur_stmt->deep_drop();
@@ -259,7 +260,7 @@ VALID_STMT_TYPE_INDEX SQL_INDEX::get_stmt_INDEX_type (IR* cur_stmt) {
   }
 
   /* Might have aggr function. */
-  string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
+  string aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
   if (findStringIn(aggr_func_str, "MIN")) {
     return VALID_STMT_TYPE_INDEX::AGGR;
   } else if (findStringIn(aggr_func_str, "MAX")){

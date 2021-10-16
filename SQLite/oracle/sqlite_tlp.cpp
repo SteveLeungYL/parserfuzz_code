@@ -473,14 +473,15 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
 
     IR* alias_id_0 = new IR(kIdentifier, "s", id_alias_name);
     IR* column_alias_0 = new IR(kColumnAlias, OP1("AS"), alias_id_0);
+    if (v_aggr_func_ir[0]->left_->op_ == nullptr) v_aggr_func_ir[0]->left_->op_ = new IROperator();
     /* Change the aggr function from AVG to SUM. Then Deep Copy. */
-    v_aggr_func_ir[0]->left_->str_val_ = "SUM";
+    v_aggr_func_ir[0]->left_->op_->prefix_ = "SUM";
     IR* new_result_column_0 = new IR(kResultColumn, OP0(), ori_result_column_expr_->deep_copy(), column_alias_0);
 
     IR* alias_id_1 = new IR(kIdentifier, "c", id_alias_name);
     IR* column_alias_1 = new IR(kColumnAlias, OP1("AS"), alias_id_1);
     /* Change the aggr function from AVG to COUNT. Then Deep Copy. */
-    v_aggr_func_ir[0]->left_->str_val_ = "COUNT";
+    v_aggr_func_ir[0]->left_->op_->prefix_ = "COUNT";
     IR* new_result_column_1 = new IR(kResultColumn, OP0(), ori_result_column_expr_->deep_copy(), column_alias_1);
 
     /* Chain the two result_column clause. */
@@ -671,7 +672,8 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
 
   vector<IR*> v_opt_distinct = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptDistinct, false);
   for (IR* opt_distinct : v_opt_distinct) {
-    if (opt_distinct->str_val_ == "DISTINCT") {
+    if (opt_distinct->op_ &&
+        strcmp(opt_distinct->op_->prefix_, "DISTINCT") == 0) {
       default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
     }
   }
@@ -711,7 +713,9 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   }
 
   /* Might have aggr function. */
-  string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
+  string aggr_func_str;
+  if (v_aggr_func_ir[0]->left_->op_);
+    aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
   if (findStringIn(aggr_func_str, "MIN")) {
     if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
       return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;

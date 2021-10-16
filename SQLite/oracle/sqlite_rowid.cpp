@@ -245,7 +245,8 @@ IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   bool is_exist_WITHOUT_ROWID = false;
   vector<IR*> v_opt_without_rowid_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
   for (IR* opt_without_rowid : v_opt_without_rowid_ir) {
-    if (opt_without_rowid->str_val_ == "WITHOUT ROWID") {
+    if (opt_without_rowid->op_ &&
+        strcmp(opt_without_rowid->op_->prefix_, "WITHOUT ROWID") == 0) {
       is_exist_WITHOUT_ROWID = true;
     }
   }
@@ -339,7 +340,9 @@ VALID_STMT_TYPE_ROWID SQL_ROWID::get_stmt_ROWID_type (IR* cur_stmt) {
   }
 
   /* Might have aggr function. */
-  string aggr_func_str = v_aggr_func_ir[0]->left_->str_val_;
+  string aggr_func_str;
+  if (v_aggr_func_ir[0]->left_->op_)
+    aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
   if (findStringIn(aggr_func_str, "MIN")) {
     return VALID_STMT_TYPE_ROWID::AGGR;
   } else if (findStringIn(aggr_func_str, "MAX")){

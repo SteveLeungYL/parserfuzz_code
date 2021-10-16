@@ -671,7 +671,9 @@ bool IRWrapper::is_exist_having(IR* cur_stmt){
 bool IRWrapper::is_exist_distinct(IR* cur_stmt) {
     vector<IR*> opt_distinct_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptDistinct, false);
     for (IR* opt_distinct_ir : opt_distinct_vec) {
-        if (opt_distinct_ir != nullptr && opt_distinct_ir->str_val_ == "DISTINCT") {
+        if (opt_distinct_ir && 
+            opt_distinct_ir->op_ &&
+            strcmp(opt_distinct_ir->op_->prefix_, "DISTINCT") == 0) {
             return true;
         }
     }
@@ -737,7 +739,8 @@ bool IRWrapper::add_without_rowid_to_stmt(IR* cur_stmt){
     vector<IR*> without_rowid_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
     for (auto without_rowid_ir : without_rowid_vec) {
         if (without_rowid_ir == nullptr) {continue;}
-        without_rowid_ir->str_val_ = "WITHOUT ROWID";
+        if (without_rowid_ir->op_ == nullptr) without_rowid_ir->op_ = new IROperator();
+        without_rowid_ir->op_->prefix_ = "WITHOUT ROWID";
     }
     return true;
 }
@@ -754,7 +757,8 @@ bool IRWrapper::remove_without_rowid_to_stmt(IR* cur_stmt){
     vector<IR*> without_rowid_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
     for (auto without_rowid_ir : without_rowid_vec) {
         if (without_rowid_ir == nullptr) {continue;}
-        without_rowid_ir->str_val_ = "";
+        if (without_rowid_ir->op_ == nullptr) without_rowid_ir->op_ = new IROperator();
+        without_rowid_ir->op_->prefix_ = "";
     }
     return true;
 }
