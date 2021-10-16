@@ -116,7 +116,7 @@
 #define INIT_LIB_PATH "./init_lib"
 double min_stab_radio;
 char *save_file_name = NULL;
-char *g_library_path;
+char *g_library_path = INIT_LIB_PATH;
 char *g_current_input = NULL;
 IR *g_current_ir = NULL;
 
@@ -7344,10 +7344,7 @@ static void save_cmdline(u32 argc, char **argv) {
 
 static void do_libary_initialize() {
 
-  if (g_library_path == NULL)
-    g_library_path = INIT_LIB_PATH;
-
-  cerr << "We should initialize the libary" << endl;
+  SSAY("SqlRight: initialize the libary");
 
   vector<string> file_list = get_all_files_in_dir(g_library_path);
   for (auto &f : file_list) {
@@ -7779,17 +7776,15 @@ int main(int argc, char **argv) {
 
   check_binary(argv[optind]);
 
-  start_time = get_cur_time();
-
   if (qemu_mode)
     use_argv = get_qemu_argv(argv[0], argv + optind, argc - optind);
   else
     use_argv = argv + optind;
 
-  u64 start_time = get_cur_time();
+  start_time = get_cur_time();
   do_libary_initialize(); //[modify]
   cerr << "do_library_initialize() takes "
-       << (get_cur_time() - start_time) / 1000 << " seconds\n";
+       << (get_cur_time() - start_time) / 1000. << " seconds\n";
 
   perform_dry_run(use_argv);
 

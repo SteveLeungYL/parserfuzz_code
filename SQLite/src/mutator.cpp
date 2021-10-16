@@ -2892,39 +2892,11 @@ void Mutator::reset_database_single_stmt() {
   v_create_column_names_single_with_tmp.clear();
 }
 
-// int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
-
-//   auto ast = parser(buf);
-
-//   new_buf = buf;
-//   new_len = len;
-//   if (ast == NULL)
-//     return 0;
-
-//   vector<IR *> v_ir;
-//   auto ir_root = ast->translate(v_ir);
-//   ast->deep_delete();
-
-//   if (ir_root == NULL)
-//     return 0;
-//   auto fixed = validate(ir_root, 0);
-//   ir_root->deep_drop();
-//   if (fixed.empty())
-//     return 0;
-
-//   char *sfixed = (char *)malloc(fixed.size() + 1);
-//   memcpy(sfixed, fixed.c_str(), fixed.size());
-//   sfixed[fixed.size()] = 0;
-
-//   new_buf = sfixed;
-//   new_len = fixed.size();
-
-//   return 1;
-// }
 
 int Mutator::get_cri_valid_collection_size() {
   return all_cri_valid_pstr_vec.size();
 }
+
 
 int Mutator::get_valid_collection_size() { return all_valid_pstr_vec.size(); }
 

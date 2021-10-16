@@ -183,6 +183,12 @@
 
 /* Show a prefixed "doing something" message. */
 
+#define SSAY(x...)                                                             \
+  do {                                                                         \
+    SAYF(cLBL "[SQLright] " cRST x);                                                  \
+    SAYF(cRST "\n");                                                           \
+  } while (0)
+
 #define ACTF(x...)                                                             \
   do {                                                                         \
     SAYF(cLBL "[*] " cRST x);                                                  \
