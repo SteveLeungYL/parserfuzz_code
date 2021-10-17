@@ -366,7 +366,7 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
   if (v_opt_over_clause.size() > 0) {
     for (IR* opt_over_clause : v_opt_over_clause) {
       if (
-        opt_over_clause->op_ != NULL && 
+        opt_over_clause->op_ != NULL && opt_over_clause->op_->prefix_ != NULL &&
         (
           strcmp(opt_over_clause->op_->prefix_, "OVER") == 0 ||
           strcmp(opt_over_clause->op_->prefix_, "OVER (") == 0
@@ -672,7 +672,7 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
 
   vector<IR*> v_opt_distinct = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptDistinct, false);
   for (IR* opt_distinct : v_opt_distinct) {
-    if (opt_distinct->op_ &&
+    if (opt_distinct->op_ && opt_distinct->op_->prefix_ && 
         strcmp(opt_distinct->op_->prefix_, "DISTINCT") == 0) {
       default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
     }
@@ -681,7 +681,7 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   /* Has GROUP BY clause. Attention, cannot mix GROUP BY with Aggr. (FPs) */
   vector<IR*> v_opt_group = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptGroup, false);
   for (IR* opt_group : v_opt_group) {
-    if (opt_group->op_ != NULL && 
+    if (opt_group->op_ != NULL && opt_group->op_->prefix_ &&
         strcmp(opt_group->op_->prefix_, "GROUP BY") == 0) {
       default_type_ = VALID_STMT_TYPE_TLP::GROUP_BY;
     }
@@ -714,7 +714,7 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
 
   /* Might have aggr function. */
   string aggr_func_str;
-  if (v_aggr_func_ir[0]->left_->op_);
+  if (v_aggr_func_ir[0]->left_->op_ && v_agg_func_args[0]->left_->op_->prefix_)
     aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
   if (findStringIn(aggr_func_str, "MIN")) {
     if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
