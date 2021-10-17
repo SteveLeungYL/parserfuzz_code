@@ -260,17 +260,19 @@ VALID_STMT_TYPE_INDEX SQL_INDEX::get_stmt_INDEX_type (IR* cur_stmt) {
   }
 
   /* Might have aggr function. */
-  string aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
-  if (findStringIn(aggr_func_str, "MIN")) {
-    return VALID_STMT_TYPE_INDEX::AGGR;
-  } else if (findStringIn(aggr_func_str, "MAX")){
-    return VALID_STMT_TYPE_INDEX::AGGR;
-  } else if (findStringIn(aggr_func_str, "COUNT")){
-    return VALID_STMT_TYPE_INDEX::AGGR;
-  } else if (findStringIn(aggr_func_str, "SUM")) {
-    return VALID_STMT_TYPE_INDEX::AGGR;
-  } else if (findStringIn(aggr_func_str, "AVG")) {
-    return VALID_STMT_TYPE_INDEX::AGGR;
+  if (v_aggr_func_ir[0]->left_->op_ && v_aggr_func_ir[0]->left_->op_->prefix_) {
+    string aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
+    if (findStringIn(aggr_func_str, "MIN")) {
+      return VALID_STMT_TYPE_INDEX::AGGR;
+    } else if (findStringIn(aggr_func_str, "MAX")){
+      return VALID_STMT_TYPE_INDEX::AGGR;
+    } else if (findStringIn(aggr_func_str, "COUNT")){
+      return VALID_STMT_TYPE_INDEX::AGGR;
+    } else if (findStringIn(aggr_func_str, "SUM")) {
+      return VALID_STMT_TYPE_INDEX::AGGR;
+    } else if (findStringIn(aggr_func_str, "AVG")) {
+      return VALID_STMT_TYPE_INDEX::AGGR;
+    }
   }
 
   return default_type_;

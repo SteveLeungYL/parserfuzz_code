@@ -245,7 +245,7 @@ IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   bool is_exist_WITHOUT_ROWID = false;
   vector<IR*> v_opt_without_rowid_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptWithoutRowID, false);
   for (IR* opt_without_rowid : v_opt_without_rowid_ir) {
-    if (opt_without_rowid->op_ &&
+    if (opt_without_rowid->op_ && opt_without_rowid->op_->prefix_ &&
         strcmp(opt_without_rowid->op_->prefix_, "WITHOUT ROWID") == 0) {
       is_exist_WITHOUT_ROWID = true;
     }
@@ -262,7 +262,7 @@ IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   */
   vector<IR*> v_column_constraints_exist = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kColumnConstraint, false);
   for( IR* cur_column_constraints_exist : v_column_constraints_exist) {
-    if (cur_column_constraints_exist->op_ != NULL && 
+    if (cur_column_constraints_exist->op_ != NULL && cur_column_constraints_exist->op_->prefix_ &&
         strcmp(cur_column_constraints_exist->op_->prefix_, "PRIMARY KEY") == 0) {
       return cur_stmt;
     }
@@ -271,7 +271,7 @@ IR* SQL_ROWID::pre_fix_transform_normal_stmt(IR* cur_stmt) {
   vector<IR*> v_table_constraint_exist = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTableConstraint, false);
   for ( IR* cur_table_constraint_exist : v_table_constraint_exist ) {
     if (cur_table_constraint_exist-> left_ != NULL &&
-      cur_table_constraint_exist->left_->op_ != NULL &&
+      cur_table_constraint_exist->left_->op_ != NULL && cur_table_constraint_exist->left_->op_->prefix_ &&
       strcmp(cur_table_constraint_exist->left_->op_->prefix_, "PRIMARY KEY (") == 0
       ) {
         return cur_stmt;
@@ -340,19 +340,19 @@ VALID_STMT_TYPE_ROWID SQL_ROWID::get_stmt_ROWID_type (IR* cur_stmt) {
   }
 
   /* Might have aggr function. */
-  string aggr_func_str;
-  if (v_aggr_func_ir[0]->left_->op_)
-    aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
-  if (findStringIn(aggr_func_str, "MIN")) {
-    return VALID_STMT_TYPE_ROWID::AGGR;
-  } else if (findStringIn(aggr_func_str, "MAX")){
-    return VALID_STMT_TYPE_ROWID::AGGR;
-  } else if (findStringIn(aggr_func_str, "COUNT")){
-    return VALID_STMT_TYPE_ROWID::AGGR;
-  } else if (findStringIn(aggr_func_str, "SUM")) {
-    return VALID_STMT_TYPE_ROWID::AGGR;
-  } else if (findStringIn(aggr_func_str, "AVG")) {
-    return VALID_STMT_TYPE_ROWID::AGGR;
+  if (v_aggr_func_ir[0]->left_->op_ && v_aggr_func_ir[0]->left_->op_->prefix_) {
+    string aggr_func_str = v_aggr_func_ir[0]->left_->op_->prefix_;
+    if (findStringIn(aggr_func_str, "MIN")) {
+      return VALID_STMT_TYPE_ROWID::AGGR;
+    } else if (findStringIn(aggr_func_str, "MAX")){
+      return VALID_STMT_TYPE_ROWID::AGGR;
+    } else if (findStringIn(aggr_func_str, "COUNT")){
+      return VALID_STMT_TYPE_ROWID::AGGR;
+    } else if (findStringIn(aggr_func_str, "SUM")) {
+      return VALID_STMT_TYPE_ROWID::AGGR;
+    } else if (findStringIn(aggr_func_str, "AVG")) {
+      return VALID_STMT_TYPE_ROWID::AGGR;
+    }
   }
 
   return default_type_;
