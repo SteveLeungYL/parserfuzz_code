@@ -14,17 +14,34 @@ FLEX?=flex
 #$(error Flex version $(FLEX_VERSION) not supported. If you are using OS X, `flex` uses the system default instead of the brew version. Run FLEX=/usr/local/opt/flex/bin/flex make)
 #endif
 
-all: bison_parser.cpp flex_lexer.cpp
+SRCS = bison_parser.cpp flex_lexer.cpp
 
-bison_parser.cpp: bison.y
-	$(BISON) bison.y --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr
+all: $(SRCS:%.cpp=%.o)
 
-flex_lexer.cpp: flex.l
-	$(FLEX) flex.l
+bison_parser.cpp: bison_parser.y
+	$(BISON) bison_parser.y -t --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr # --debug
+
+flex_lexer.cpp: flex_lexer.l
+	$(FLEX) flex_lexer.l
 
 clean:
-	rm -f bison_parser.cpp flex_lexer.cpp bison_parser.h flex_lexer.h *.output
+	rm -rf bison_parser.cpp flex_lexer.cpp bison_parser.h flex_lexer.h *.output *.o .deps
 
 # Tests if the parser builds correctly and doesn't contain conflicts.
 test:
 	! $(BISON) bison_parser.y -v --output=conflict_test.cpp 2>&1 | grep "conflict" >/tmp/2
+
+DEPDIR := .deps
+DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
+
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+
+%.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
+
+$(DEPDIR): ; @mkdir -p $@
+
+DEPFILES := $(SRCS:%.cpp=$(DEPDIR)/%.d)
+$(DEPFILES):
+
+include $(wildcard $(DEPFILES))
