@@ -14,7 +14,7 @@ FLEX?=flex
 #$(error Flex version $(FLEX_VERSION) not supported. If you are using OS X, `flex` uses the system default instead of the brew version. Run FLEX=/usr/local/opt/flex/bin/flex make)
 #endif
 
-SRCS = bison_parser.cpp flex_lexer.cpp
+SRCS = bison_parser.cpp flex_lexer.cpp parser.cpp
 
 all: $(SRCS:%.cpp=%.o)
 
@@ -35,6 +35,9 @@ DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+
+parser.o: parser.cpp
+	g++ $< -o $@ -c -I ./include/
 
 %.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<

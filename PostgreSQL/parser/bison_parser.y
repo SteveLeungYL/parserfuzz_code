@@ -29,6 +29,7 @@ int yyerror(YYLTYPE* llocp, IR * result, yyscan_t scanner, const char *msg) { re
 %parse-param { IR* result }
 %parse-param { yyscan_t scanner }
 %union FF_STYPE{
+	
 	IR *	program_t;
 	IR *	stmtlist_t;
 }
