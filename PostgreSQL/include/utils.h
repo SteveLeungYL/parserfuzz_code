@@ -85,5 +85,5 @@ long gen_long();
 
 int gen_int();
 
-Program *parser(string sql);
+IR *parser(string sql);
 #endif

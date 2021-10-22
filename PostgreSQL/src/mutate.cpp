@@ -236,14 +236,11 @@ void Mutator::init_ir_library(string filename) {
   while (getline(input_file, line)) {
     if (line.empty())
       continue;
-    auto p = parser(line);
-    if (p == NULL)
-      continue;
 
-    vector<IR *> v_ir;
-    auto res = p->translate(v_ir);
-    p->deep_delete();
-    p = NULL;
+    IR* res = parser(line);
+    if (res == NULL) {
+      continue;
+    }
 
     add_ir_to_library(res);
     deep_delete(res);
@@ -1850,16 +1847,11 @@ IR *Mutator::find_closest_node(IR *stmt_root, IR *node, DATATYPE type) {
 
 int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
   string sql(buf);
-  auto ast = parser(sql);
 
   new_buf = buf;
   new_len = len;
-  if (ast == NULL)
-    return 0;
 
-  vector<IR *> v_ir;
-  auto ir_root = ast->translate(v_ir);
-  ast->deep_delete();
+  IR* ir_root = parser(sql);
 
   if (ir_root == NULL)
     return 0;
@@ -1924,35 +1916,22 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
 
   ensure_semicolon_at_query_end(query_str);
 
-  // cerr << "In func: Mutator::parse_query_str_get_ir_set(), getting query_str: \n" << query_str << " \n";
-  auto p_strip_sql = parser(query_str.c_str());
-  if (p_strip_sql == NULL) {
-    // cerr << "In func: Mutator::parse_query_str_get_ir_set(), returned because p_strip_sql == NULL; \n";
-    return ir_set;
-  }
+  IR* root_ir = NULL;
 
   try {
-    auto root_ir = p_strip_sql->translate(ir_set);
+    root_ir = parser(query_str.c_str());
+    if (root_ir == NULL) {
+      return ir_set;
+    }
   } catch (...) {
-    // cerr << "In func: Mutator::parse_query_str_get_ir_set(), into the catch exceptions. \n";
-    p_strip_sql->deep_delete();
-
-    for (IR* ir : ir_set)
-      {ir->drop();}
-
-    ir_set.clear();
     return ir_set;
   }
 
-  // cerr << "In func: Mutator::parse_query_str_get_ir_set(), finished translate(). \n";
+  ir_set = p_oracle->ir_wrapper.get_all_ir_node(root_ir);
 
   int unique_id_for_node = 0;
   for (auto ir : ir_set) 
     {ir->uniq_id_in_tree_ = unique_id_for_node++;}
-
-  p_strip_sql->deep_delete();
-  // ir_set.back()->deep_drop();
-  // ir_set.clear();
 
   return ir_set;
 }

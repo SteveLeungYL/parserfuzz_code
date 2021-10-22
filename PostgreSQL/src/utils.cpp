@@ -1,4 +1,5 @@
 #include "../include/utils.h"
+#include "../include/ast.h"
 #include <algorithm>
 #include <regex>
 
@@ -210,14 +211,14 @@ long gen_long() { return 1; }
 
 int gen_int() { return 1; }
 
-Program *parser(string sql) {
+IR *parser(string sql) {
 
   yyscan_t scanner;
   YY_BUFFER_STATE state;
-  Program *p = new Program();
+  IR *p = new IR(kProgram, OP0());
 
   if (ff_lex_init(&scanner)) {
-    p->deep_delete();
+    p->deep_drop();
     return NULL;
   }
   state = ff__scan_string(sql.c_str(), scanner);
@@ -227,7 +228,7 @@ Program *parser(string sql) {
   ff__delete_buffer(state, scanner);
   ff_lex_destroy(scanner);
   if (ret != 0) {
-    p->deep_delete();
+    p->deep_drop();
     return NULL;
   }
 

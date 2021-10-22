@@ -7798,43 +7798,6 @@ static void save_cmdline(u32 argc, char **argv)
 }
 
 
-void test_mutate()
-{
-  string test = "select a from b where c=0;";
-  vector<IR *> tmp;
-  auto ast = parser(test);
-  auto ir1 = ast->translate(tmp);
-  cout << "Initing new_code" << endl;
-  vector<string> file_list = get_all_files_in_dir(INIT_LIB_PATH);
-  for (auto &f : file_list)
-  {
-    string file_path = string(INIT_LIB_PATH) + "/" + f;
-    cerr << "init filename: " << file_path << endl;
-    g_mutator.init(file_path);
-  }
-  cout << "Finish init" << endl;
-  // exit(0);
-
-  auto mutated_tree = g_mutator.mutate_all(tmp, total_mutate_failed, total_mutate_num);
-  deep_delete(tmp[tmp.size() - 1]);
-  tmp.clear();
-
-  for (auto ir : mutated_tree)
-  {
-    g_mutator.validate(ir);
-    string ir_str = ir->to_string();
-    if (ir_str == "")
-    {
-      continue;
-    }
-    cout << ir_str << endl;
-    getchar();
-  }
-
-  exit(0);
-}
-
-
 void debug_postgre_oracle_compare_results() {
   p_oracle = new SQL_NOREC();
   string cmd_string = "CREATE TABLE v0 ( v1 INTEGER );"
