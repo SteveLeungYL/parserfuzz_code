@@ -213,7 +213,7 @@ public:
 
     postgre_execute_total += 1;
 
-    vector<string> cmd_vec = string_splitter(cmd, ";");
+    vector<string> cmd_vec = string_splitter(cmd, ';');
     vector<string> timeout_cmd_vec = {"set statement_timeout to 3000; "};
     timeout_cmd_vec.insert(timeout_cmd_vec.end(), cmd_vec.begin(), cmd_vec.end());
     cmd_vec = timeout_cmd_vec;
@@ -331,7 +331,7 @@ public:
     } // for (string& cur_cmd : cmd_vec)
 
     // cout << "###################" << endl;
-    // vector<string> cmd_strs = string_splitter(cmd, ";");
+    // vector<string> cmd_strs = string_splitter(cmd, ';');
     // for (string cmd_str : cmd_strs) {
     //   cmd_str = trim(cmd_str);
     //   cout << "cmd: " << cmd_str << endl;
@@ -3118,7 +3118,8 @@ void extract_query_result(const string &res, vector<string> &res_vec_out,
       } // If "Error" is found, return "Error" as result.
       else
       {
-        cur_res_str = trim(cur_res_str);
+        //cur_res_str = trim(cur_res_str);
+        trim_string(cur_res_str);
         // cout << "cur_res_str: " << cur_res_str << endl;
         res_vec_out.push_back(cur_res_str);
       }
@@ -3368,7 +3369,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       return FAULT_ERROR;
     }
 
-    vector<string> queries_vector = string_splitter(cmd_string, ";");
+    vector<string> queries_vector = string_splitter(cmd_string, ';');
     for (string &query : queries_vector) {
       // ignore the whole query pairs if !... in the stmt,
       for (auto iter = query.begin(); iter != query.end(); iter++) {
@@ -3389,8 +3390,8 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     // cmd_string = expand_valid_stmts_str(queries_vector, true);
     string cmd_string = cmd_string_vec[0];
 
-    // trim_string(cmd_string);
-    cmd_string = trim(cmd_string);
+    trim_string(cmd_string);
+    //cmd_string = trim(cmd_string);
 
     // write_to_testcase(cmd_string.c_str(), cmd_string.size());
     fault = run_target(argv, tmout, cmd_string);
@@ -3428,8 +3429,8 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
       string cmd_string = cmd_string_vec[idx];
 
-      cmd_string = trim(cmd_string);
-      // trim_string(cmd_string);
+      //cmd_string = trim(cmd_string);
+      trim_string(cmd_string);
 
       /* The trace_bits[] are effectively volatile after calling run_target */
       // write_to_testcase(cmd_string.c_str(), cmd_string.size());
@@ -6224,7 +6225,7 @@ void split_queries_into_small_pieces(string &large_query, vector<string> &v_smal
   string database_queries = "";
   vector<string> oracle_queries;
 
-  vector<string> queries = string_splitter(large_query, ";");
+  vector<string> queries = string_splitter(large_query, ';');
   for (string tmp_str : queries) {
     if (p_oracle->is_oracle_valid_stmt(tmp_str)) {
       oracle_queries.push_back(tmp_str+";");

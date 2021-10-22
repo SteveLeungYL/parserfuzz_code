@@ -1,13 +1,6 @@
 #include "../include/utils.h"
 #include <algorithm>
-#include <dirent.h>
 #include <regex>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <functional> 
-#include <cctype>
-#include <locale>
 
 string magic_string_generator(string &s) {
   unsigned int i = get_rand_int(100);
@@ -66,32 +59,6 @@ uint64_t fuzzing_hash(const void *key, int len) {
 
 bool BothAreSpaces(char lhs, char rhs) { return (lhs == rhs) && (lhs == ' '); }
 
-// void trim_string(string &res) {
-//   int count = 0;
-//   int idx = 0;
-//   bool expect_space = false;
-//   for (int i = 0; i < res.size(); i++) {
-//     if (res[i] == ';' && i != res.size() - 1) {
-//       res[i + 1] = '\n';
-//     }
-//     if (res[i] == ' ') {
-//       if (expect_space == false) {
-//         continue;
-//       } else {
-//         expect_space = false;
-//         res[idx++] = res[i];
-//         count++;
-//       }
-//     } else {
-//       expect_space = true;
-//       res[idx++] = res[i];
-//       count++;
-//     }
-//   }
-
-//   res.resize(count);
-// }
-
 // remove leading and ending spaces
 // reduce 2+ spaces to one
 // change ' ;' to ';'
@@ -146,20 +113,6 @@ void trim_string(string &res) {
   res.resize(effect_idx);
 }
 
-// trim from both ends
-std::string trim(const std::string &s)
-{
-    std::string::const_iterator it = s.begin();
-    while (it != s.end() && isspace(*it))
-        it++;
-
-    std::string::const_reverse_iterator rit = s.rbegin();
-    while (rit.base() != it && isspace(*rit))
-        rit++;
-
-    return std::string(it, rit.base());
-}
-
 vector<string> get_all_files_in_dir(const char *dir_name) {
   vector<string> file_list;
   // check the parameter !
@@ -191,7 +144,6 @@ vector<string> get_all_files_in_dir(const char *dir_name) {
     if (strcmp(filename->d_name, ".") == 0 ||
         strcmp(filename->d_name, "..") == 0)
       continue;
-    // cout << filename->d_name << endl;
     file_list.push_back(string(filename->d_name));
   }
   closedir(dir);
@@ -199,36 +151,13 @@ vector<string> get_all_files_in_dir(const char *dir_name) {
 }
 
 void ensure_semicolon_at_query_end(string &stmt) {
-  for (auto idx = stmt.rbegin(); idx != stmt.rend(); idx++) {
-    if (*idx == ';') {
-      return;
-    } else if (
-      *idx == ' ' ||
-      *idx == '\t' ||
-      *idx == '\n'
-    ) {
-      continue;
-    } else {
-      stmt += "; ";
-      return;
-    }
-  }
-}
-
-vector<string> string_splitter(const string &input_string,
-                               string delimiter_re = "\n") {
-  std::regex re(delimiter_re);
-  std::sregex_token_iterator first{input_string.begin(), input_string.end(), re,
-                                   -1},
-      last; // the '-1' is what makes the regex split (-1 := what was not
-            // matched)
-  vector<string> split_string{first, last};
-
-  return split_string;
+  auto idx = stmt.rbegin();
+  if (*idx != ';')
+    stmt += "; ";
 }
 
 // from http://www.cplusplus.com/forum/beginner/114790/
-vector<string> string_splitter2(const std::string &s, const char delimiter) {
+vector<string> string_splitter(const std::string &s, const char delimiter) {
 
   size_t start = 0;
   size_t end = s.find_first_of(delimiter);

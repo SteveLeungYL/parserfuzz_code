@@ -760,7 +760,7 @@ void Mutator::pre_validate() {
   return;
 }
 
-bool Mutator::validate(IR *&cur_stmt, bool is_debug_info = false) {
+bool Mutator::validate(IR *&cur_stmt, bool is_debug_info) {
 
   bool res = true;
   if (cur_stmt->type_ == kProgram) {
@@ -789,7 +789,7 @@ bool Mutator::validate(IR *&cur_stmt, bool is_debug_info = false) {
 }
 
 
-string Mutator::validate(string query, bool is_debug_info = false) {
+string Mutator::validate(string query, bool is_debug_info) {
   reset_data_library();
   reset_data_library();
   reset_scope_library(true);
@@ -823,7 +823,7 @@ unsigned int Mutator::calc_node(IR *root) {
 }
 
 
-bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info = false) {
+bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
   bool res = true;
 
   /* Reset library that is local to one query set. */
@@ -1064,7 +1064,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
 
-bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info = false) {
+bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info) {
 
   if (is_debug_info) {
     cerr << "Fix_dependency: cur_stmt_root: " << cur_stmt_root->to_string() << "\n\n\n";
@@ -1434,7 +1434,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         for (const IR* const cur_men_column_ir : all_mentioned_column_vec) {
           string cur_men_column_str = cur_men_column_ir->str_val_;
           if (findStringIn(cur_men_column_str, ".")) {
-            cur_men_column_str = string_splitter(cur_men_column_str, "\.")[1];
+            cur_men_column_str = string_splitter(cur_men_column_str, '.')[1];
           }
           vector<string>& cur_m_table  = m_tables[ir_to_fix->str_val_];
           if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) == cur_m_table.end()) {
@@ -2049,7 +2049,7 @@ void Mutator::add_all_to_library(string whole_query_str,
   if (is_empty)
     return;
 
-  vector<string> queries_vector = string_splitter(whole_query_str, ";");
+  vector<string> queries_vector = string_splitter(whole_query_str, ';');
   int i = 0; // For counting oracle valid stmt IDs.
   for (auto current_query : queries_vector) {
     trim_string(current_query);

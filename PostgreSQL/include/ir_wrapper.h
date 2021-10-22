@@ -18,19 +18,22 @@ public:
 
     IRTYPE get_cur_stmt_type_from_sub_ir(IR* cur_ir);
 
-    bool is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, int stmt_idx);
-    vector<IR*> get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery = false, int stmt_idx = -1);
-
-    bool is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false, bool ignore_is_subquery = false);
-    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false, bool ignore_is_subquery = false);
-
+    bool is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, 
+        int stmt_idx);
+    bool is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, 
+        bool is_subquery = false, bool ignore_is_subquery = false);
     bool is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type);
+
+    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, 
+        bool is_subquery = false, bool ignore_is_subquery = false);
+    vector<IR*> get_ir_node_in_stmt_with_type(IRTYPE ir_type, 
+        bool is_subquery = false, int stmt_idx = -1);
     vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type);
 
-    bool append_stmt_at_idx(string, int idx, const Mutator& g_mutator);
-    bool append_stmt_at_end(string, const Mutator& g_mutator);
+    bool append_stmt_at_idx(string, int idx, Mutator& g_mutator);
+    bool append_stmt_at_end(string, Mutator& g_mutator);
     bool append_stmt_at_idx(IR*, int idx); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. If want to append at the start, use idx=-1; 
-    bool append_stmt_at_end(IR*, const Mutator& g_mutator);
+    bool append_stmt_at_end(IR*, Mutator& g_mutator);
     bool append_stmt_at_end(IR*); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
 
     bool remove_stmt_at_idx_and_free(unsigned idx);
@@ -38,7 +41,8 @@ public:
 
     bool replace_stmt_and_free(IR* old_stmt, IR* cur_stmt);
 
-    bool append_components_at_ir(IR*, IR*, bool is_left, bool is_replace = true);
+    bool append_components_at_ir(IR*, IR*, bool is_left, 
+        bool is_replace = true);
     bool remove_components_at_ir(IR*);
 
     // bool swap_components_at_ir(IR*, bool is_left_f, IR*, bool is_left_l);

@@ -311,8 +311,6 @@ void IR::drop() {
 }
 
 void IR::deep_drop() {
-  if (!this)
-    return ;
 
   if (this->left_)
     this->left_->deep_drop();

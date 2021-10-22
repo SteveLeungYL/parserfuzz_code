@@ -7,7 +7,7 @@
 
 int SQL_NOREC::count_valid_stmts(const string &input) {
   int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ";");
+  vector<string> queries_vector = string_splitter(input, ';');
   for (string &query : queries_vector)
     if (this->is_oracle_valid_stmt(query))
       norec_select_count++;
@@ -205,8 +205,6 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 void SQL_NOREC::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
                                             string &rew_2, string &rew_3,
                                             unsigned multi_run_id) {
-  // vector<string> stmt_vector = string_splitter(query,
-  // "where|WHERE|SELECT|select|FROM|from");
 
   while (query[0] == ' ' || query[0] == '\n' ||
          query[0] == '\t') { // Delete duplicated whitespace at the beginning.
@@ -500,7 +498,7 @@ void SQL_NOREC::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
 
 string SQL_NOREC::remove_valid_stmts_from_str(string query) {
   string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ";");
+  vector<string> queries_vector = string_splitter(query, ';');
 
   for (auto current_stmt : queries_vector) {
     if (is_str_empty(current_stmt))

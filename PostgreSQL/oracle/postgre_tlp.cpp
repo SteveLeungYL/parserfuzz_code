@@ -7,7 +7,7 @@
 
 int SQL_TLP::count_valid_stmts(const string &input) {
   int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ";");
+  vector<string> queries_vector = string_splitter(input, ';');
   for (string &query : queries_vector)
     if (this->is_oracle_valid_stmt(query))
       norec_select_count++;
@@ -208,7 +208,7 @@ void SQL_TLP::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
 
 string SQL_TLP::remove_valid_stmts_from_str(string query) {
   string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ";");
+  vector<string> queries_vector = string_splitter(query, ';');
 
   for (auto current_stmt : queries_vector) {
     if (is_str_empty(current_stmt))
@@ -251,8 +251,8 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
     }
     try {
       if (cur_stmt_type == VALID_STMT_TYPE_TLP::NORM){
-       res.res_int_0 = string_splitter(res.res_str_0, "\n").size();
-       res.res_int_1 = string_splitter(res.res_str_1, "\n").size();
+       res.res_int_0 = string_splitter(res.res_str_0, '\n').size();
+       res.res_int_1 = string_splitter(res.res_str_1, '\n').size();
       } else { // Aggregate Function or GROUP BY. 
         res.res_int_0 = stoi(res.res_str_0);
         res.res_int_1 = stoi(res.res_str_1);

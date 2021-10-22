@@ -7,8 +7,12 @@
 #include <vector>
 #include <algorithm>
 
-bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, int stmt_idx){
-    vector<IR*> matching_IR_vec = this->get_ir_node_in_stmt_with_type(ir_type, is_subquery, stmt_idx);
+bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type,
+    bool is_subquery, int stmt_idx){
+
+    vector<IR*> matching_IR_vec =
+      this->get_ir_node_in_stmt_with_type(ir_type, is_subquery, stmt_idx);
+
     if (matching_IR_vec.size() == 0){
         return false;
     } else {
@@ -16,8 +20,11 @@ bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subqu
     }
 }
 
-bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery = false) {
-    vector<IR*> matching_IR_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, ir_type, is_subquery, ignore_is_subquery);
+bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt,
+    IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery) {
+
+    vector<IR*> matching_IR_vec = this->get_ir_node_in_stmt_with_type(cur_stmt,
+        ir_type, is_subquery, ignore_is_subquery);
     if (matching_IR_vec.size() == 0){
         return false;
     } else {
@@ -25,7 +32,8 @@ bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type,
     }
 }
 
-vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, bool is_subquery = false, bool ignore_is_subquery = false) {
+vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
+    IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery) {
 
     // Iterate IR binary tree, left depth prioritized.
     bool is_finished_search = false;
@@ -83,10 +91,11 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_typ
 
 }
 
-bool IRWrapper::is_in_insert_rest(IR* cur_stmt, IR* check_node, bool output_debug=false)  {
+bool IRWrapper::is_in_insert_rest(IR* cur_stmt, IR* check_node,
+    bool output_debug)  {
+
     IR* cur_iter = check_node;
-    bool is_finished_search = false;
-    while (!is_finished_search) {
+    while (1) {
         if (cur_iter == NULL) { // Iter to the parent node. This is Not a subquery. 
             return false;
         }
@@ -104,10 +113,11 @@ bool IRWrapper::is_in_insert_rest(IR* cur_stmt, IR* check_node, bool output_debu
     }
 }
 
-bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug = false) {
+bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
+    bool output_debug) {
+
     IR* cur_iter = check_node;
-    bool is_finished_search = false;
-    while (!is_finished_search) {
+    while (1) {
         if (cur_iter == NULL) { // Iter to the parent node. This is Not a subquery. 
             return false;
         }
@@ -138,10 +148,11 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug =
     }
 }
 
-vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery = false, int stmt_idx = -1) { // (IRTYPE, subquery_level)
+vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IRTYPE ir_type,
+    bool is_subquery, int stmt_idx) {
 
     if (stmt_idx < 0) {
-        FATAL("Checking on non-existing stmt. Function: IRWrapper::get_ir_node__in_stmt_with_type. Idx < 0. idx: '%s' \n", to_string(stmt_idx));
+      FATAL("Checking on non-existing stmt. Function: IRWrapper::get_ir_node__in_stmt_with_type. Idx < 0. idx: '%d' \n", stmt_idx);
     }
     IR* cur_stmt = this->get_ir_node_for_stmt_with_idx(stmt_idx);
 
@@ -151,7 +162,7 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_sub
 IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
 
     if (idx < 0) {
-        FATAL("Checking on non-existing stmt. Function: IRWrapper::get_ir_node_for_stmt_with_idx(). Idx < 0. idx: '%s' \n", to_string(idx));
+        FATAL("Checking on non-existing stmt. Function: IRWrapper::get_ir_node_for_stmt_with_idx(). Idx < 0. idx: '%d' \n", idx);
     }
 
     if (this->ir_root == nullptr){
@@ -260,7 +271,7 @@ vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
     return stmt_list_v;
 }
 
-bool IRWrapper::append_stmt_at_idx(string app_str, int idx, const Mutator& g_mutator){
+bool IRWrapper::append_stmt_at_idx(string app_str, int idx, Mutator& g_mutator){
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
@@ -280,7 +291,7 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx, const Mutator& g_mut
 
 }
 
-bool IRWrapper::append_stmt_at_end(string app_str, const Mutator& g_mutator) {
+bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
@@ -404,7 +415,9 @@ bool IRWrapper::remove_stmt_and_free(IR* rov_stmt) {
     }
 }
 
-bool IRWrapper::append_components_at_ir(IR* parent_node, IR* app_node, bool is_left, bool is_replace = true) {
+bool IRWrapper::append_components_at_ir(IR* parent_node, IR* app_node,
+    bool is_left, bool is_replace) {
+
     if (is_left) {
         if (parent_node->left_ != nullptr) {
             if (!is_replace) {
@@ -523,7 +536,7 @@ IRTYPE IRWrapper::get_parent_type(IR* cur_IR, int depth = 0){
     }
 }
 
-IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth=0) {
+IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
     while (cur_IR ->parent_ != nullptr) {
         IRTYPE parent_type = cur_IR->parent_->type_;
         if (parent_type != kUnknown) {
