@@ -237,7 +237,7 @@ void Mutator::init_ir_library(string filename) {
     if (line.empty())
       continue;
 
-    IR* res = raw_parser(line);
+    IR* res = raw_parser(line.c_str(), RAW_PARSE_DEFAULT); // RAW_PARSE_DEFAULT = 0
     if (res == NULL) {
       continue;
     }
@@ -566,15 +566,15 @@ pair<string, string> Mutator::get_data_2d_by_type(DATATYPE type1,
   return res;
 }
 
-IR *Mutator::generate_ir_by_type(IRTYPE type) {
-  auto ast_node = generate_ast_node_by_type(type);
-  ast_node->generate();
-  vector<IR *> tmp_vector;
-  ast_node->translate(tmp_vector);
-  assert(tmp_vector.size());
+// IR *Mutator::generate_ir_by_type(IRTYPE type) {
+//   auto ast_node = generate_ast_node_by_type(type);
+//   ast_node->generate();
+//   vector<IR *> tmp_vector;
+//   ast_node->translate(tmp_vector);
+//   assert(tmp_vector.size());
 
-  return tmp_vector[tmp_vector.size() - 1];
-}
+//   return tmp_vector[tmp_vector.size() - 1];
+// }
 
 IR *Mutator::get_ir_from_library(IRTYPE type) {
 
@@ -1488,22 +1488,22 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
   return true;
 }
 
-bool Mutator::fill_stmt_graph_one(map<IR *, vector<IR *>> &graph, IR *ir) {
-  if (graph.find(ir) == graph.end())
-    return true;
+// bool Mutator::fill_stmt_graph_one(map<IR *, vector<IR *>> &graph, IR *ir) {
+//   if (graph.find(ir) == graph.end())
+//     return true;
 
-  bool res = true;
-  auto type = ir->data_type_;
-  auto &vec = graph[ir];
+//   bool res = true;
+//   auto type = ir->data_type_;
+//   auto &vec = graph[ir];
 
-  if (!vec.empty()) {
-    for (auto d : vec) {
-      res = res & fill_one_pair(ir, d);
-      res = res & fill_stmt_graph_one(graph, d);
-    }
-  }
-  return res;
-}
+//   if (!vec.empty()) {
+//     for (auto d : vec) {
+//       res = res & fill_one_pair(ir, d);
+//       res = res & fill_stmt_graph_one(graph, d);
+//     }
+//   }
+//   return res;
+// }
 
 static bool replace_in_vector(string &old_str, string &new_str,
                               vector<string> &victim) {
@@ -1646,128 +1646,128 @@ bool Mutator::fill_one(IR *ir) {
   return true;
 }
 
-bool Mutator::fill_one_pair(IR *parent, IR *child) {
-  visited.insert(child);
+// bool Mutator::fill_one_pair(IR *parent, IR *child) {
+//   visited.insert(child);
 
-  bool is_define = isDefine(child->data_flag_);
-  bool is_replace = isReplace(child->data_flag_);
-  bool is_undefine = isUndefine(child->data_flag_);
-  bool is_alias = isAlias(child->data_flag_);
+//   bool is_define = isDefine(child->data_flag_);
+//   bool is_replace = isReplace(child->data_flag_);
+//   bool is_undefine = isUndefine(child->data_flag_);
+//   bool is_alias = isAlias(child->data_flag_);
 
-  string new_name = "";
-  if (is_define || is_replace || is_alias) {
-    new_name = gen_id_name();
-  }
+//   string new_name = "";
+//   if (is_define || is_replace || is_alias) {
+//     new_name = gen_id_name();
+//   }
 
-  auto p_type = parent->data_type_;
-  auto c_type = child->data_type_;
-  auto p_str = parent->str_val_;
+//   auto p_type = parent->data_type_;
+//   auto c_type = child->data_type_;
+//   auto p_str = parent->str_val_;
 
-  auto r_type = relationmap_[c_type][p_type];
-  switch (r_type) {
-  case kRelationElement:
+//   auto r_type = relationmap_[c_type][p_type];
+//   switch (r_type) {
+//   case kRelationElement:
 
-    if (is_replace) {
-      child->str_val_ = new_name;
-      replace_one_from_datalibrary(c_type, p_str, new_name);
+//     if (is_replace) {
+//       child->str_val_ = new_name;
+//       replace_one_from_datalibrary(c_type, p_str, new_name);
 
-      if (has_key(data_library_2d_, p_type)) {
-        if (has_key(data_library_2d_[p_type], p_str)) {
-          auto tmp = data_library_2d_[p_type].extract(p_str);
-          tmp.key() = new_name;
-          data_library_2d_[p_type].insert(move(tmp));
-        }
-      } else {
-        for (auto &i1 : data_library_2d_) {
-          for (auto &i2 : i1.second) {
-            for (auto &i3 : i2.second) {
-              if (i3.first == c_type) {
-                if (has_element(i3.second, p_str)) {
-                  replace_in_vector(p_str, new_name, i3.second);
-                  goto END;
-                }
-              }
-            }
-          }
-        }
-      }
-    } else if (is_alias) {
-      child->str_val_ = new_name;
+//       if (has_key(data_library_2d_, p_type)) {
+//         if (has_key(data_library_2d_[p_type], p_str)) {
+//           auto tmp = data_library_2d_[p_type].extract(p_str);
+//           tmp.key() = new_name;
+//           data_library_2d_[p_type].insert(move(tmp));
+//         }
+//       } else {
+//         for (auto &i1 : data_library_2d_) {
+//           for (auto &i2 : i1.second) {
+//             for (auto &i3 : i2.second) {
+//               if (i3.first == c_type) {
+//                 if (has_element(i3.second, p_str)) {
+//                   replace_in_vector(p_str, new_name, i3.second);
+//                   goto END;
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+//     } else if (is_alias) {
+//       child->str_val_ = new_name;
 
-      if (has_key(data_library_2d_, p_type)) {
-        if (has_key(data_library_2d_[p_type], p_str)) {
-          data_library_2d_[p_type][new_name] = data_library_2d_[p_type][p_str];
-          data_library_[p_type].push_back(new_name);
-        }
-      }
-    } else {
-      child->str_val_ = p_str;
-    }
-  END:
-    break;
+//       if (has_key(data_library_2d_, p_type)) {
+//         if (has_key(data_library_2d_[p_type], p_str)) {
+//           data_library_2d_[p_type][new_name] = data_library_2d_[p_type][p_str];
+//           data_library_[p_type].push_back(new_name);
+//         }
+//       }
+//     } else {
+//       child->str_val_ = p_str;
+//     }
+//   END:
+//     break;
 
-  case kRelationSubtype:
-    if (data_library_2d_.find(p_type) != data_library_2d_.end()) {
-      if (data_library_2d_[p_type].find(p_str) !=
-          data_library_2d_[p_type].end()) {
-        if (is_define) {
-          data_library_2d_[p_type][p_str][c_type].push_back(new_name);
-          child->str_val_ = new_name;
-          data_library_[c_type].push_back(new_name);
-          break;
-        } else if (is_undefine) {
-          if ((data_library_2d_[p_type][p_str][c_type]).empty()) {
-            child->str_val_ = "v1";
-            break;
-          }
-          child->str_val_ =
-              vector_rand_ele(data_library_2d_[p_type][p_str][c_type]);
-          remove_in_vector(child->str_val_,
-                           data_library_2d_[p_type][p_str][c_type]);
-          remove_in_vector(child->str_val_, data_library_[c_type]);
-          break;
-        } else if (data_library_2d_[p_type][p_str].find(c_type) !=
-                   data_library_2d_[p_type][p_str].end()) {
-          if (data_library_2d_[p_type][p_str][c_type].empty() == false) {
-            child->str_val_ =
-                vector_rand_ele(data_library_2d_[p_type][p_str][c_type]);
-          }
-        } else {
-          if (data_library_[c_type].empty()) {
-            if (get_rand_int(2) == 1) {
-              child->str_val_ = "v0";
-            } else {
-              child->str_val_ = "v1";
-            }
-          } else
-            child->str_val_ = vector_rand_ele(data_library_[c_type]);
-        }
-      } else {
-      }
-    } else if (g_data_library_2d_.find(p_type) != g_data_library_2d_.end()) {
-      if (g_data_library_2d_[p_type].find(p_str) !=
-          g_data_library_2d_[p_type].end()) {
-        if (g_data_library_2d_[p_type][p_str].find(c_type) !=
-            g_data_library_2d_[p_type][p_str].end()) {
-          if (g_data_library_2d_[p_type][p_str][c_type].empty() == false) {
-            child->str_val_ =
-                vector_rand_ele(g_data_library_2d_[p_type][p_str][c_type]);
-          }
-        }
-      }
-    } else {
-      return false;
-    }
+//   case kRelationSubtype:
+//     if (data_library_2d_.find(p_type) != data_library_2d_.end()) {
+//       if (data_library_2d_[p_type].find(p_str) !=
+//           data_library_2d_[p_type].end()) {
+//         if (is_define) {
+//           data_library_2d_[p_type][p_str][c_type].push_back(new_name);
+//           child->str_val_ = new_name;
+//           data_library_[c_type].push_back(new_name);
+//           break;
+//         } else if (is_undefine) {
+//           if ((data_library_2d_[p_type][p_str][c_type]).empty()) {
+//             child->str_val_ = "v1";
+//             break;
+//           }
+//           child->str_val_ =
+//               vector_rand_ele(data_library_2d_[p_type][p_str][c_type]);
+//           remove_in_vector(child->str_val_,
+//                            data_library_2d_[p_type][p_str][c_type]);
+//           remove_in_vector(child->str_val_, data_library_[c_type]);
+//           break;
+//         } else if (data_library_2d_[p_type][p_str].find(c_type) !=
+//                    data_library_2d_[p_type][p_str].end()) {
+//           if (data_library_2d_[p_type][p_str][c_type].empty() == false) {
+//             child->str_val_ =
+//                 vector_rand_ele(data_library_2d_[p_type][p_str][c_type]);
+//           }
+//         } else {
+//           if (data_library_[c_type].empty()) {
+//             if (get_rand_int(2) == 1) {
+//               child->str_val_ = "v0";
+//             } else {
+//               child->str_val_ = "v1";
+//             }
+//           } else
+//             child->str_val_ = vector_rand_ele(data_library_[c_type]);
+//         }
+//       } else {
+//       }
+//     } else if (g_data_library_2d_.find(p_type) != g_data_library_2d_.end()) {
+//       if (g_data_library_2d_[p_type].find(p_str) !=
+//           g_data_library_2d_[p_type].end()) {
+//         if (g_data_library_2d_[p_type][p_str].find(c_type) !=
+//             g_data_library_2d_[p_type][p_str].end()) {
+//           if (g_data_library_2d_[p_type][p_str][c_type].empty() == false) {
+//             child->str_val_ =
+//                 vector_rand_ele(g_data_library_2d_[p_type][p_str][c_type]);
+//           }
+//         }
+//       }
+//     } else {
+//       return false;
+//     }
 
-    break;
+//     break;
 
-  default:
-    assert(0);
-    break;
-  }
+//   default:
+//     assert(0);
+//     break;
+//   }
 
-  return true;
-}
+//   return true;
+// }
 
 void Mutator::reset_scope_library(bool clear_define) {
   scope_library_.clear();
@@ -1851,7 +1851,7 @@ int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
   new_buf = buf;
   new_len = len;
 
-  IR* ir_root = raw_parser(sql);
+  IR* ir_root = raw_parser(sql.c_str(), RAW_PARSE_DEFAULT);
 
   if (ir_root == NULL)
     return 0;
@@ -1919,7 +1919,7 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
   IR* root_ir = NULL;
 
   try {
-    root_ir = raw_parser(query_str.c_str());
+    root_ir = raw_parser(query_str.c_str(), RAW_PARSE_DEFAULT);
     if (root_ir == NULL) {
       return ir_set;
     }

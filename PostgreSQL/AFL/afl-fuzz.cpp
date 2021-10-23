@@ -6264,7 +6264,7 @@ static u8 fuzz_one(char **argv)
 
   u8 a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
-  Program *program;
+  IR *program;
 
   vector<IR *> ir_set;
   vector<IR *> mutated_tree;

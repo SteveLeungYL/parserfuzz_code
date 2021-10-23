@@ -16,7 +16,7 @@
 #define PARSER_H
 
 #include "nodes/parsenodes.h"
-
+#include "../../../include/ast.h"
 
 /*
  * RawParseMode determines the form of the string that raw_parser() accepts:
@@ -59,7 +59,7 @@ extern PGDLLIMPORT bool standard_conforming_strings;
 
 
 /* Primary entry point for the raw parsing functions */
-extern List *raw_parser(const char *str, RawParseMode mode);
+extern IR *raw_parser(const char *str, RawParseMode mode);
 
 /* Utility functions exported by gram.y (perhaps these should be elsewhere) */
 extern List *SystemFuncName(char *name);

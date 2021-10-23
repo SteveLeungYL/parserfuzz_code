@@ -25,7 +25,7 @@ check_uescapechar(unsigned char escape);
  * Returns a list of raw (un-analyzed) parse trees.  The contents of the
  * list have the form required by the specified RawParseMode.
  */
-List *
+IR *
 raw_parser(const char *str, RawParseMode mode)
 {
 	core_yyscan_t yyscanner;
@@ -67,9 +67,9 @@ raw_parser(const char *str, RawParseMode mode)
 	scanner_finish(yyscanner);
 
 	if (yyresult)				/* error */
-		return NIL;
+		return NULL;
 
-	return yyextra.parsetree;
+	return NULL;
 }
 
 /*
