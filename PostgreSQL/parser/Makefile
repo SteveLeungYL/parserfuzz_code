@@ -18,14 +18,14 @@ SRCS = bison_parser.cpp flex_lexer.cpp parser.cpp
 
 all: $(SRCS:%.cpp=%.o)
 
-bison_parser.cpp: bison_parser.y
-	$(BISON) bison_parser.y -t --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr # --debug
+bison_parser.cpp: bison_parser_2.y
+	$(BISON) bison_parser_2.y  -t --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr # --debug
 
-flex_lexer.cpp: flex_lexer.l
-	$(FLEX) flex_lexer.l
+flex_lexer.cpp: flex_lexer_2.l
+	$(FLEX) flex_lexer_2.l
 
 clean:
-	rm -rf bison_parser.cpp flex_lexer.cpp bison_parser.h flex_lexer.h *.output *.o .deps
+	rm -rf bison_parser.cpp bison_bison_2.cpp flex_lexer.cpp flex_lexer_2.cpp bison_parser.h bison_parser_2.h flex_lexer.h flex_lexer_2.h *.output *.o .deps *.gch *.h
 
 # Tests if the parser builds correctly and doesn't contain conflicts.
 test:
@@ -34,7 +34,7 @@ test:
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
+COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
 
 parser.o: parser.cpp
 	g++ $< -o $@ -c -I ./include/
