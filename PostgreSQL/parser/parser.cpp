@@ -3,7 +3,6 @@
 
 #include "postgres.h"
 
-#include "parser.h"
 #include "mb/pg_wchar.h"
 #include "parser/gramparse.h"
 #include "parser/parser.h"
@@ -18,6 +17,60 @@ str_udeescape(const char *str, char escape, int position, core_yyscan_t yyscanne
 
 static bool
 check_uescapechar(unsigned char escape);
+
+/*
+ * raw_parser
+ *		Given a query in string form, do lexical and grammatical analysis.
+ *
+ * Returns a list of raw (un-analyzed) parse trees.  The contents of the
+ * list have the form required by the specified RawParseMode.
+ */
+List *
+raw_parser(const char *str, RawParseMode mode)
+{
+	core_yyscan_t yyscanner;
+	base_yy_extra_type yyextra;
+	int			yyresult;
+
+	/* initialize the flex scanner */
+	yyscanner = scanner_init(str, &yyextra.core_yy_extra,
+							 &ScanKeywords, ScanKeywordTokens);
+
+	/* base_yylex() only needs us to initialize the lookahead token, if any */
+	if (mode == RAW_PARSE_DEFAULT)
+		yyextra.have_lookahead = false;
+	else
+	{
+		/* this array is indexed by RawParseMode enum */
+		static const int mode_token[] = {
+			0,					/* RAW_PARSE_DEFAULT */
+			MODE_TYPE_NAME,		/* RAW_PARSE_TYPE_NAME */
+			MODE_PLPGSQL_EXPR,	/* RAW_PARSE_PLPGSQL_EXPR */
+			MODE_PLPGSQL_ASSIGN1,	/* RAW_PARSE_PLPGSQL_ASSIGN1 */
+			MODE_PLPGSQL_ASSIGN2,	/* RAW_PARSE_PLPGSQL_ASSIGN2 */
+			MODE_PLPGSQL_ASSIGN3	/* RAW_PARSE_PLPGSQL_ASSIGN3 */
+		};
+
+		yyextra.have_lookahead = true;
+		yyextra.lookahead_token = mode_token[mode];
+		yyextra.lookahead_yylloc = 0;
+		yyextra.lookahead_end = NULL;
+	}
+
+	/* initialize the bison parser */
+	parser_init(&yyextra);
+
+	/* Parse! */
+	yyresult = base_yyparse(yyscanner);
+
+	/* Clean up (release memory) */
+	scanner_finish(yyscanner);
+
+	if (yyresult)				/* error */
+		return NIL;
+
+	return yyextra.parsetree;
+}
 
 /*
  * Intermediate filter between parser and core lexer (core_yylex in scan.l).

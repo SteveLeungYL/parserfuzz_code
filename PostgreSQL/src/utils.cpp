@@ -210,27 +210,3 @@ double gen_float() { return 1.2; }
 long gen_long() { return 1; }
 
 int gen_int() { return 1; }
-
-IR *parser(string sql) {
-
-  yyscan_t scanner;
-  YY_BUFFER_STATE state;
-  IR *p = new IR(kProgram, OP0());
-
-  if (ff_lex_init(&scanner)) {
-    p->deep_drop();
-    return NULL;
-  }
-  state = ff__scan_string(sql.c_str(), scanner);
-
-  int ret = ff_parse(p, scanner);
-
-  ff__delete_buffer(state, scanner);
-  ff_lex_destroy(scanner);
-  if (ret != 0) {
-    p->deep_drop();
-    return NULL;
-  }
-
-  return p;
-}

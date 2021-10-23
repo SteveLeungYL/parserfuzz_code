@@ -11,6 +11,8 @@
 
 #include "../AFL/debug.h"
 
+#include "parser/parser.h"
+
 #include <sys/resource.h>
 #include <sys/time.h>
 
@@ -237,7 +239,7 @@ void Mutator::init_ir_library(string filename) {
     if (line.empty())
       continue;
 
-    IR* res = parser(line);
+    IR* res = raw_parser(line);
     if (res == NULL) {
       continue;
     }
@@ -1851,7 +1853,7 @@ int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
   new_buf = buf;
   new_len = len;
 
-  IR* ir_root = parser(sql);
+  IR* ir_root = raw_parser(sql);
 
   if (ir_root == NULL)
     return 0;
@@ -1919,7 +1921,7 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
   IR* root_ir = NULL;
 
   try {
-    root_ir = parser(query_str.c_str());
+    root_ir = raw_parser(query_str.c_str());
     if (root_ir == NULL) {
       return ir_set;
     }

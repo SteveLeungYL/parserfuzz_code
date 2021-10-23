@@ -1,9 +1,6 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include "../parser/bison_parser.h"
-#include "../parser/flex_lexer.h"
-
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -85,5 +82,4 @@ long gen_long();
 
 int gen_int();
 
-IR *parser(string sql);
 #endif
