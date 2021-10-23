@@ -6,7 +6,6 @@
 #include <string>
 #include "mutate.h"
 
-typedef NODETYPE IRTYPE;
 
 class IRWrapper {
 public:

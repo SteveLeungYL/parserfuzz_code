@@ -2093,7 +2093,7 @@ void Mutator::add_to_library(IR *ir, string &query) {
   if (query == "")
     return;
 
-  NODETYPE p_type = ir->type_;
+  IRTYPE p_type = ir->type_;
   unsigned long p_hash = hash(query);
 
   if (ir_libary_2D_hash_[p_type].find(p_hash) !=
@@ -2133,8 +2133,8 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   int current_unique_id = ir->uniq_id_in_tree_;
   bool is_skip_saving_current_node = false; //
 
-  NODETYPE p_type = ir->type_;
-  NODETYPE left_type = kEmpty, right_type = kEmpty;
+  IRTYPE p_type = ir->type_;
+  IRTYPE left_type = kEmpty, right_type = kEmpty;
   
   string ir_str = ir->to_string();
   unsigned long p_hash = hash(ir_str);

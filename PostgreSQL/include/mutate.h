@@ -205,19 +205,19 @@ public:
   set<string *> all_query_pstr_set;
   bool dump_library = false;
   SQL_ORACLE *p_oracle;
-  map<NODETYPE, set<unsigned long>> ir_libary_2D_hash_;
+  map<IRTYPE, set<unsigned long>> ir_libary_2D_hash_;
   set<unsigned long> stripped_string_hash_;
 
   /* The interface of saving the required context for the mutator. Giving the
-    NODETYPE, we should be able to extract all the related IR nodes from this
+    IRTYPE, we should be able to extract all the related IR nodes from this
     library. The string* points to the string of the complete query stmt where
     the current NODE is from. And the int is the unique ID for the specific
     node, can be used to identify and extract the specific node from the IR
     tree when the tree is being reconstructed.
   */
-  map<NODETYPE, vector<pair<string *, int>>> real_ir_set;
-  map<NODETYPE, vector<pair<string *, int>>> left_lib_set;
-  map<NODETYPE, vector<pair<string *, int>>> right_lib_set;
+  map<IRTYPE, vector<pair<string *, int>>> real_ir_set;
+  map<IRTYPE, vector<pair<string *, int>>> left_lib_set;
+  map<IRTYPE, vector<pair<string *, int>>> right_lib_set;
 
   static set<IR *> visited;
 

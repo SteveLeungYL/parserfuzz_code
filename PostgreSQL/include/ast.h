@@ -15,7 +15,7 @@ using namespace std;
 // #undef DECLARE_TYPE
 // };
 
-enum NODETYPE {
+enum IRTYPE {
   kconst_str,
   kconst_int,
   kconst_float,
@@ -23,7 +23,6 @@ enum NODETYPE {
   ALLTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
-typedef NODETYPE IRTYPE;
 
 enum DATATYPE {
 #define DECLARE_TYPE(v) k##v,
@@ -230,9 +229,9 @@ public:
 
 DATATYPE get_datatype_by_string(string s);
 
-NODETYPE get_nodetype_by_string(string s);
+IRTYPE get_nodetype_by_string(string s);
 
-string get_string_by_nodetype(NODETYPE tt);
+string get_string_by_nodetype(IRTYPE tt);
 string get_string_by_datatype(DATATYPE tt);
 IR *deep_copy(const IR *root);
 

@@ -117,7 +117,7 @@ Node *generate_ast_node_by_type(IRTYPE type) {
   return NULL;
 }
 
-NODETYPE get_nodetype_by_string(string s) {
+IRTYPE get_nodetype_by_string(string s) {
 #define DECLARE_CASE(datatypename)                                             \
   if (s == #datatypename)                                                      \
     return k##datatypename;
@@ -128,7 +128,7 @@ NODETYPE get_nodetype_by_string(string s) {
   return kUnknown;
 }
 
-string get_string_by_nodetype(NODETYPE tt) {
+string get_string_by_nodetype(IRTYPE tt) {
 #define DECLARE_CASE(datatypename)                                             \
   if (tt == k##datatypename)                                                   \
     return string(#datatypename);
