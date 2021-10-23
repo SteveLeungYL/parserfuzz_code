@@ -11,15 +11,8 @@
 static string s_table_name;
 
 string get_string_by_ir_type(IRTYPE type) {
-
-#define DECLARE_CASE(classname)                                                \
-  if (type == k##classname)                                                    \
-    return #classname;
-
-  ALLCLASS(DECLARE_CASE);
-#undef DECLARE_CASE
-
-  return "Unknown";
+// FINISH the function. 
+  return "";
 }
 
 string get_string_by_data_type(DATATYPE type) {
@@ -104,39 +97,6 @@ string get_string_by_data_flag(DATAFLAG flag_type_) {
   default:
     return "kUnknown";
   }
-}
-
-// TO Sqlite => get_string_by_ir_type
-Node *generate_ast_node_by_type(IRTYPE type) {
-#define DECLARE_CASE(classname)                                                \
-  if (type == k##classname)                                                    \
-    return new classname();
-
-  ALLCLASS(DECLARE_CASE);
-#undef DECLARE_CASE
-  return NULL;
-}
-
-IRTYPE get_nodetype_by_string(string s) {
-#define DECLARE_CASE(datatypename)                                             \
-  if (s == #datatypename)                                                      \
-    return k##datatypename;
-
-  ALLCLASS(DECLARE_CASE);
-
-#undef DECLARE_CASE
-  return kUnknown;
-}
-
-string get_string_by_nodetype(IRTYPE tt) {
-#define DECLARE_CASE(datatypename)                                             \
-  if (tt == k##datatypename)                                                   \
-    return string(#datatypename);
-
-  ALLCLASS(DECLARE_CASE);
-
-#undef DECLARE_CASE
-  return string("");
 }
 
 string get_string_by_datatype(DATATYPE tt) {
