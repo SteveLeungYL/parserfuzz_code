@@ -1,5 +1,5 @@
 /* src/include/pg_config.h.  Generated from pg_config.h.in by configure.  */
-/* src/include/pg_config.h.in.  Generated from configure.in by autoheader.  */
+/* src/include/pg_config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define to the type of arg 1 of 'accept' */
 #define ACCEPT_TYPE_ARG1 int
@@ -143,6 +143,14 @@
    don't. */
 #define HAVE_DECL_POSIX_FADVISE 1
 
+/* Define to 1 if you have the declaration of `preadv', and to 0 if you don't.
+   */
+#define HAVE_DECL_PREADV 1
+
+/* Define to 1 if you have the declaration of `pwritev', and to 0 if you
+   don't. */
+#define HAVE_DECL_PWRITEV 1
+
 /* Define to 1 if you have the declaration of `RTLD_GLOBAL', and to 0 if you
    don't. */
 #define HAVE_DECL_RTLD_GLOBAL 1
@@ -269,6 +277,12 @@
 /* Define to 1 if you have the `history_truncate_file' function. */
 #define HAVE_HISTORY_TRUNCATE_FILE 1
 
+/* Define to 1 if you have the `HMAC_CTX_free' function. */
+/* #undef HAVE_HMAC_CTX_FREE */
+
+/* Define to 1 if you have the `HMAC_CTX_new' function. */
+/* #undef HAVE_HMAC_CTX_NEW */
+
 /* Define to 1 if you have the <ifaddrs.h> header file. */
 #define HAVE_IFADDRS_H 1
 
@@ -317,8 +331,8 @@
 /* Define to 1 if you have the `ldap' library (-lldap). */
 /* #undef HAVE_LIBLDAP */
 
-/* Define to 1 if you have the `ldap_r' library (-lldap_r). */
-/* #undef HAVE_LIBLDAP_R */
+/* Define to 1 if you have the `lz4' library (-llz4). */
+/* #undef HAVE_LIBLZ4 */
 
 /* Define to 1 if you have the `m' library (-lm). */
 #define HAVE_LIBM 1
@@ -358,6 +372,9 @@
 
 /* Define to 1 if `long long int' works and is 64 bits. */
 /* #undef HAVE_LONG_LONG_INT_64 */
+
+/* Define to 1 if you have the <lz4.h> header file. */
+/* #undef HAVE_LZ4_H */
 
 /* Define to 1 if you have the <mbarrier.h> header file. */
 /* #undef HAVE_MBARRIER_H */
@@ -422,6 +439,9 @@
 /* Define if you have POSIX threads libraries and header files. */
 #define HAVE_PTHREAD 1
 
+/* Define to 1 if you have the `pthread_barrier_wait' function. */
+#define HAVE_PTHREAD_BARRIER_WAIT 1
+
 /* Define to 1 if you have the `pthread_is_threaded_np' function. */
 /* #undef HAVE_PTHREAD_IS_THREADED_NP */
 
@@ -445,6 +465,9 @@
 
 /* Define to 1 if you have the `readlink' function. */
 #define HAVE_READLINK 1
+
+/* Define to 1 if you have the `readv' function. */
+#define HAVE_READV 1
 
 /* Define to 1 if you have the global variable
    'rl_completion_append_character'. */
@@ -473,6 +496,9 @@
 
 /* Define to 1 if you have the <security/pam_appl.h> header file. */
 /* #undef HAVE_SECURITY_PAM_APPL_H */
+
+/* Define to 1 if you have the `setenv' function. */
+#define HAVE_SETENV 1
 
 /* Define to 1 if you have the `setproctitle' function. */
 /* #undef HAVE_SETPROCTITLE */
@@ -576,6 +602,9 @@
 /* Define to 1 if you have the `symlink' function. */
 #define HAVE_SYMLINK 1
 
+/* Define to 1 if you have the `syncfs' function. */
+#define HAVE_SYNCFS 1
+
 /* Define to 1 if you have the `sync_file_range' function. */
 #define HAVE_SYNC_FILE_RANGE 1
 
@@ -626,6 +655,9 @@
 
 /* Define to 1 if you have the <sys/ucred.h> header file. */
 /* #undef HAVE_SYS_UCRED_H */
+
+/* Define to 1 if you have the <sys/uio.h> header file. */
+#define HAVE_SYS_UIO_H 1
 
 /* Define to 1 if you have the <sys/un.h> header file. */
 #define HAVE_SYS_UN_H 1
@@ -680,6 +712,9 @@
 
 /* Define to 1 if you have the <winldap.h> header file. */
 /* #undef HAVE_WINLDAP_H */
+
+/* Define to 1 if you have the `writev' function. */
+#define HAVE_WRITEV 1
 
 /* Define to 1 if you have the `X509_get_signature_nid' function. */
 /* #undef HAVE_X509_GET_SIGNATURE_NID */
@@ -750,6 +785,10 @@
 /* Define bytes to use libc memset(). */
 #define MEMSET_LOOP_LIMIT 1024
 
+/* Define to the OpenSSL API version in use. This avoids deprecation warnings
+   from newer OpenSSL versions. */
+/* #undef OPENSSL_API_COMPAT */
+
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "pgsql-bugs@lists.postgresql.org"
 
@@ -757,7 +796,7 @@
 #define PACKAGE_NAME "PostgreSQL"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PostgreSQL 13.3"
+#define PACKAGE_STRING "PostgreSQL 14.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "postgresql"
@@ -766,7 +805,7 @@
 #define PACKAGE_URL "https://www.postgresql.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "13.3"
+#define PACKAGE_VERSION "14.0"
 
 /* Define to the name of a signed 128-bit integer type. */
 #define PG_INT128_TYPE __int128
@@ -779,13 +818,13 @@
 #define PG_KRB_SRVNAM "postgres"
 
 /* PostgreSQL major version as a string */
-#define PG_MAJORVERSION "13"
+#define PG_MAJORVERSION "14"
 
 /* PostgreSQL major version number */
-#define PG_MAJORVERSION_NUM 13
+#define PG_MAJORVERSION_NUM 14
 
 /* PostgreSQL minor version number */
-#define PG_MINORVERSION_NUM 3
+#define PG_MINORVERSION_NUM 0
 
 /* Define to best printf format archetype, usually gnu_printf if available. */
 #define PG_PRINTF_ATTRIBUTE gnu_printf
@@ -794,13 +833,13 @@
 #define PG_USE_STDBOOL 1
 
 /* PostgreSQL version as a string */
-#define PG_VERSION "13.3"
+#define PG_VERSION "14.0"
 
 /* PostgreSQL version as a number */
-#define PG_VERSION_NUM 130003
+#define PG_VERSION_NUM 140000
 
 /* A string containing the version number, platform, and C compiler */
-#define PG_VERSION_STR "PostgreSQL 13.3 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0, 64-bit"
+#define PG_VERSION_STR "PostgreSQL 14.0 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0, 64-bit"
 
 /* Define to 1 to allow profiling output to be saved separately for each
    process. */
@@ -859,9 +898,6 @@
 /* Define to 1 to build with BSD Authentication support. (--with-bsd-auth) */
 /* #undef USE_BSD_AUTH */
 
-/* Define to use /dev/urandom for random number generation */
-#define USE_DEV_URANDOM 1
-
 /* Define to build with ICU support. (--with-icu) */
 /* #undef USE_ICU */
 
@@ -878,14 +914,14 @@
 /* Define to 1 to build with LLVM based JIT support. (--with-llvm) */
 /* #undef USE_LLVM */
 
+/* Define to 1 to build with LZ4 support. (--with-lz4) */
+/* #undef USE_LZ4 */
+
 /* Define to select named POSIX semaphores. */
 /* #undef USE_NAMED_POSIX_SEMAPHORES */
 
-/* Define to build with OpenSSL support. (--with-openssl) */
+/* Define to 1 to build with OpenSSL support. (--with-ssl=openssl) */
 /* #undef USE_OPENSSL */
-
-/* Define to use OpenSSL for random number generation */
-/* #undef USE_OPENSSL_RANDOM */
 
 /* Define to 1 to build with PAM support. (--with-pam) */
 /* #undef USE_PAM */
@@ -910,9 +946,6 @@
 
 /* Define to select unnamed POSIX semaphores. */
 #define USE_UNNAMED_POSIX_SEMAPHORES 1
-
-/* Define to use native Windows API for random number generation */
-/* #undef USE_WIN32_RANDOM */
 
 /* Define to select Win32-style semaphores. */
 /* #undef USE_WIN32_SEMAPHORES */

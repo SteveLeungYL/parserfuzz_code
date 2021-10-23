@@ -55,7 +55,8 @@ base_yylex(YYSTYPE *lvalp, YYLTYPE *llocp, core_yyscan_t yyscanner)
 		cur_token = yyextra->lookahead_token;
 		lvalp->core_yystype = yyextra->lookahead_yylval;
 		*llocp = yyextra->lookahead_yylloc;
-		*(yyextra->lookahead_end) = yyextra->lookahead_hold_char;
+		if (yyextra->lookahead_end)
+			*(yyextra->lookahead_end) = yyextra->lookahead_hold_char;
 		yyextra->have_lookahead = false;
 	}
 	else
@@ -241,7 +242,7 @@ str_udeescape(const char *str, char escape,
 			  int position, core_yyscan_t yyscanner)
 {
 	const char *in;
-	char	   *pointer,
+	char	   *new_char_operator,
 			   *out;
 	size_t		new_len;
 	pg_wchar	pair_first = 0;
@@ -252,20 +253,20 @@ str_udeescape(const char *str, char escape,
 	 * padding for Unicode conversion.
 	 */
 	new_len = strlen(str) + MAX_UNICODE_EQUIVALENT_STRING + 1;
-	pointer = (char *) palloc(new_len);
+	new_char_operator = (char*)(palloc(new_len));
 
 	in = str;
-	out = pointer;
+	out = new_char_operator;
 	while (*in)
 	{
 		/* Enlarge string if needed */
-		size_t		out_dist = out - pointer;
+		size_t		out_dist = out - new_char_operator;
 
 		if (out_dist > new_len - (MAX_UNICODE_EQUIVALENT_STRING + 1))
 		{
 			new_len *= 2;
-			pointer = (char *)repalloc(pointer, new_len);
-			out = pointer + out_dist;
+			new_char_operator = (char*)(repalloc(new_char_operator, new_len));
+			out = new_char_operator + out_dist;
 		}
 
 		if (in[0] == escape)
@@ -378,7 +379,7 @@ str_udeescape(const char *str, char escape,
 		goto invalid_pair;
 
 	*out = '\0';
-	return pointer;
+	return new_char_operator;
 
 	/*
 	 * We might get here with the error callback active, or not.  Call
@@ -399,10 +400,10 @@ static bool
 check_uescapechar(unsigned char escape)
 {
 	if (isxdigit(escape)
-			|| escape == '+'
-			|| escape == '\''
-			|| escape == '"'
-			|| scanner_isspace(escape))
+		|| escape == '+'
+		|| escape == '\''
+		|| escape == '"'
+		|| scanner_isspace(escape))
 		return false;
 	else
 		return true;
