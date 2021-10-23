@@ -40,6 +40,7 @@
 #include "parser/parser.h"		/* only needed for GUC variables */
 #include "parser/scansup.h"
 #include "mb/pg_wchar.h"
+#include "parser.h"
 }
 
 %{
@@ -158,8 +159,8 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
 %option noyyfree
 %option warn
 %option prefix="ff_"
-%option header-file="flex_lexer_2.h"
-%option outfile="flex_lexer_2.cpp"
+%option header-file="flex_lexer.h"
+%option outfile="flex_lexer.cpp"
 
 /*
  * OK, here is a short description of lex/flex rules behavior.
@@ -1291,12 +1292,12 @@ static char *
 litbufdup(core_yyscan_t yyscanner)
 {
 	int			llen = yyextra->literallen;
-	char	   *new;
+	char	   *new_char_operator;
 
-	new = palloc(llen + 1);
-	memcpy(new, yyextra->literalbuf, llen);
-	new[llen] = '\0';
-	return new;
+	new_char_operator = (char*)(palloc(llen + 1));
+	memcpy(new_char_operator, yyextra->literalbuf, llen);
+	new_char_operator[llen] = '\0';
+	return new_char_operator;
 }
 
 /*
