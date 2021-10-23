@@ -34,7 +34,9 @@ test:
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
+CPPFLAGS += "-Wno-write-strings"
+
+COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
 
 parser.o: parser.cpp
 	g++ $< -o $@ -c -I ./include/
