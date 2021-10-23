@@ -9,7 +9,7 @@
 
 #include "../AFL/debug.h"
 
-#include "parser/parser.h"
+#include "../parser/parser_for_sqlright.h"
 
 #include <sys/resource.h>
 #include <sys/time.h>
