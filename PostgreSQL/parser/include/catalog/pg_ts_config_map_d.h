@@ -1,0 +1,1 @@
+/home/luy70/Desktop/SQLRight_DBMS/postgres/postgres/src/backend/catalog/pg_ts_config_map_d.h

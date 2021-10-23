@@ -1,0 +1,1 @@
+/home/luy70/Desktop/SQLRight_DBMS/postgres/postgres/src/backend/catalog/pg_db_role_setting_d.h

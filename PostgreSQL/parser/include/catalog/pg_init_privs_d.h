@@ -1,0 +1,1 @@
+/home/luy70/Desktop/SQLRight_DBMS/postgres/postgres/src/backend/catalog/pg_init_privs_d.h
