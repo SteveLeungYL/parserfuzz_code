@@ -25,7 +25,7 @@ flex_lexer.cpp: flex_lexer_2.l
 	$(FLEX) flex_lexer_2.l
 
 clean:
-	rm -rf bison_parser.cpp bison_bison_2.cpp flex_lexer.cpp flex_lexer_2.cpp bison_parser.h bison_parser_2.h flex_lexer.h flex_lexer_2.h *.output *.o .deps *.gch *.h
+	rm -rf bison_parser.cpp bison_bison_2.cpp flex_lexer.cpp flex_lexer_2.cpp bison_parser.h bison_parser_2.h flex_lexer.h flex_lexer_2.h *.output *.o .deps *.gch
 
 # Tests if the parser builds correctly and doesn't contain conflicts.
 test:
