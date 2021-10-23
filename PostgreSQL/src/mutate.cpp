@@ -3,8 +3,6 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
-#include "../parser/bison_parser.h"
-#include "../parser/flex_lexer.h"
 
 #include "../oracle/postgre_norec.h"
 #include "../oracle/postgre_oracle.h"
