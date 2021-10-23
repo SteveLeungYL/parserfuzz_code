@@ -40,7 +40,6 @@
 #include "parser/parser.h"		/* only needed for GUC variables */
 #include "parser/scansup.h"
 #include "mb/pg_wchar.h"
-#include "parser.h"
 }
 
 %{
@@ -50,6 +49,8 @@
 /* Avoid exit() on fatal scanner errors (a bit ugly -- see yy_fatal_error) */
 #undef fprintf
 #define fprintf(file, fmt, msg)  fprintf_to_ereport(fmt, msg)
+
+#define yyset_extra core_yyset_extra
 
 static void
 fprintf_to_ereport(const char *fmt, const char *msg)
