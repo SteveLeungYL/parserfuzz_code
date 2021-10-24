@@ -1090,19 +1090,19 @@ other			.
  * (essentially, scan.l, parser.c, and gram.y), since it requires the
  * yyscanner struct to still be available.
  */
-int
-scanner_errposition(int location, core_yyscan_t yyscanner)
-{
-	int			pos;
-
-	if (location < 0)
-		return 0;				/* no-op if location is unknown */
-
-	/* Convert byte offset to character number */
-	pos = pg_mbstrlen_with_len(yyextra->scanbuf, location) + 1;
-	/* And pass it to the ereport mechanism */
-	return errposition(pos);
-}
+//int
+//scanner_errposition(int location, core_yyscan_t yyscanner)
+//{
+//	int			pos;
+//
+//	if (location < 0)
+//		return 0;				/* no-op if location is unknown */
+//
+//	/* Convert byte offset to character number */
+//	pos = pg_mbstrlen_with_len(yyextra->scanbuf, location) + 1;
+//	/* And pass it to the ereport mechanism */
+//	return errposition(pos);
+//}
 
 /*
  * Error context callback for inserting scanner error location.
@@ -1111,14 +1111,15 @@ scanner_errposition(int location, core_yyscan_t yyscanner)
  * callback is installed.  We avoid inserting an irrelevant error location
  * if the error is a query cancel --- are there any other important cases?
  */
-static void
-scb_error_callback(void *arg)
-{
-	ScannerCallbackState *scbstate = (ScannerCallbackState *) arg;
-
-	if (geterrcode() != ERRCODE_QUERY_CANCELED)
-		(void) scanner_errposition(scbstate->location, scbstate->yyscanner);
-}
+//static void
+//scb_error_callback(void *arg)
+//{
+//	ScannerCallbackState *scbstate = (ScannerCallbackState *) arg;
+//
+//  // FIXME: temporary comment out
+//	//if (geterrcode() != ERRCODE_QUERY_CANCELED)
+//		(void) scanner_errposition(scbstate->location, scbstate->yyscanner);
+//}
 
 /*
  * setup_scanner_errposition_callback
@@ -1144,8 +1145,9 @@ setup_scanner_errposition_callback(ScannerCallbackState *scbstate,
 	/* Setup error traceback support for ereport() */
 	scbstate->yyscanner = yyscanner;
 	scbstate->location = location;
-	scbstate->errcallback.callback = scb_error_callback;
-	scbstate->errcallback.arg = (void *) scbstate;
+  // FIXME: temporar comment out
+	//scbstate->errcallback.callback = scb_error_callback;
+	//scbstate->errcallback.arg = (void *) scbstate;
 	//scbstate->errcallback.previous = error_context_stack;
 	//error_context_stack = &scbstate->errcallback;
 }

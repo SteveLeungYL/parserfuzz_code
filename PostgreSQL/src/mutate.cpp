@@ -248,18 +248,18 @@ void Mutator::init_ir_library(string filename) {
   return;
 }
 
-void Mutator::init_safe_generate_type(string filename) {
-  ifstream input_file(filename);
-  string line;
+// void Mutator::init_safe_generate_type(string filename) {
+//   ifstream input_file(filename);
+//   string line;
 
-  cout << "[*] init safe generate type: " << filename << endl;
-  while (getline(input_file, line)) {
-    if (line.empty())
-      continue;
-    auto node_type = get_nodetype_by_string("k" + line);
-    safe_generate_type_.insert(node_type);
-  }
-}
+//   cout << "[*] init safe generate type: " << filename << endl;
+//   while (getline(input_file, line)) {
+//     if (line.empty())
+//       continue;
+//     auto node_type = get_irtype_by_string("k" + line);
+//     safe_generate_type_.insert(node_type);
+//   }
+// }
 
 void Mutator::init(string f_testcase, string f_common_string, string file2d,
                    string file1d, string f_gen_type) {
