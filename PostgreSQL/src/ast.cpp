@@ -11,7 +11,14 @@
 static string s_table_name;
 
 string get_string_by_ir_type(IRTYPE type) {
-// FINISH the function. 
+
+#define DECLARE_CASE(classname) \
+  if (type == classname)     \
+    return #classname;
+
+  ALLTYPE(DECLARE_CASE);
+#undef DECLARE_CASE
+
   return "";
 }
 
