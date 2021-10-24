@@ -1,6 +1,7 @@
 import click 
 from loguru import logger
 from typing import List
+import re
 
 
 ONETAB = " "*4
@@ -180,6 +181,35 @@ def find_first_alpha_index(data, start_index):
         if c.isalpha():
             return start_index+idx
 
+def translate_preprocessing(data):
+    """Remove comments, and remove the original actions from the parser"""
+
+    """Remove original actions here. """
+    data = re.sub('\{.*?\}', '', data, flags=re.S)
+
+    data = re.sub('/\*.*?\*/', '', data, flags=re.S)
+
+    all_new_data = []
+    new_data = ""
+    cur_data = ""
+    all_lines = data.split('\n')
+    for cur_line in all_lines:
+        if ":" in cur_line:
+            new_data += cur_data + "\n"
+            cur_data = cur_line
+            all_new_data.append(new_data)
+            new_data = ""
+        elif "|" in cur_line or cur_line == all_lines[-1]:
+            new_data += cur_data + "\n"
+            cur_data = cur_line
+        else:
+            cur_data += cur_line
+
+    with open("draft.txt", "w") as f:
+        for new_data in all_new_data:
+            f.write(new_data)
+    return all_new_data
+
 def translate(data):
     translation = ""
     
@@ -263,12 +293,7 @@ def get_gram_keywords():
     
 @click.command()
 def run():
-    data = """
-stmtmulti:	CREATE USER
-        {
-        }
-;
-    """
+    data = open("assets/parser_stmts.y", "r").read()
     
     get_gram_tokens() 
     get_gram_keywords()
@@ -277,7 +302,15 @@ stmtmulti:	CREATE USER
     load_tokens_from_kwlist(kwlist_path)
     
     logger.debug(f"len total_tokens: {len(total_tokens)}")
-    translate(data)
+
+    all_pre_trans_str = translate_preprocessing(data = data)
+    all_trans_str = []
+    for cur_pre_trans_str in all_pre_trans_str:
+        all_trans_str.append(translate(cur_pre_trans_str))
+    with open("./trans_str.txt", "w") as f:
+        for cur_trans_str in all_trans_str:
+            f.write(cur_trans_str)
+
 
 if __name__ == "__main__":
     run()

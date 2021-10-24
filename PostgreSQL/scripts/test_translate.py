@@ -1,4 +1,5 @@
 import click 
+import sys
 from loguru import logger
 from translate import translate
 def _test(data, expect):
