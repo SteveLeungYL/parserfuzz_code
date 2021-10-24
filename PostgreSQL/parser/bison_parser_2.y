@@ -766,11 +766,616 @@ parse_toplevel:
  * we'd get -1 for the location in such cases.
  * We also take care to discard empty statements entirely.
  */
-stmtmulti:	 ';' 
-				{
-					$$ = new IR(kStmtlist, OP3(";", "", ""));				
-				}
+stmtmulti:	stmtmulti ';' toplevel_stmt
+			{
+				IR* tmp1 = $1;
+				IR* tmp2 = $3;
+				$$ = new IR(kStmtMulti, OP3("", ";", ""), tmp1, tmp2);				
+			}
+
+			| toplevel_stmt {
+				IR* tmp1 = $1;
+				$$ = new IR(kStmtMulti, OP0(), tmp1);
+			}
 		;
+
+/*
+ * toplevel_stmt includes BEGIN and END.  stmt does not include them, because
+ * those words have different meanings in function bodys.
+ */
+toplevel_stmt:
+			stmt {
+				IR* tmp1 = $1;
+				$$ = new IR(kToplevelStmt, OP0(), tmp1);
+			}
+			/* | TransactionStmtLegacy {
+				IR* tmp1 = $1;
+				$$ = new IR(kToplevelStmt, OP0(), tmp1);
+			} */
+		;
+
+stmt:
+//			AlterEventTrigStmt {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterCollationStmt {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterDatabaseStmt {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterDatabaseSetStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterDefaultPrivilegesStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterDomainStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterEnumStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterExtensionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterExtensionContentsStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterFdwStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterForeignServerStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterFunctionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterGroupStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterObjectDependsStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterObjectSchemaStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterOwnerStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterOperatorStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterTypeStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterPolicyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterSeqStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterSystemStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterTableStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterTblSpcStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterCompositeTypeStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterPublicationStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterRoleSetStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterRoleStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterSubscriptionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterStatsStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterTSConfigurationStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterTSDictionaryStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterUserMappingStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AnalyzeStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CallStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CheckPointStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ClosePortalStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ClusterStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CommentStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ConstraintsSetStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CopyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateAmStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateAsStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateAssertionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateCastStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateConversionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateDomainStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateExtensionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateFdwStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateForeignServerStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateForeignTableStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateFunctionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateGroupStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateMatViewStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateOpClassStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateOpFamilyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreatePublicationStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| AlterOpFamilyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreatePolicyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreatePLangStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateSchemaStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateSeqStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateSubscriptionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateStatsStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateTableSpaceStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateTransformStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateTrigStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateEventTrigStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateRoleStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateUserStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreateUserMappingStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| CreatedbStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DeallocateStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DeclareCursorStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DefineStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DeleteStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DiscardStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DoStmt {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropCastStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropOpClassStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropOpFamilyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropOwnedStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropSubscriptionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropTableSpaceStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropTransformStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropRoleStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropUserMappingStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| DropdbStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ExecuteStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ExplainStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| FetchStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| GrantStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| GrantRoleStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ImportForeignSchemaStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| IndexStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| InsertStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ListenStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RefreshMatViewStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| LoadStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| LockStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| NotifyStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| PrepareStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ReassignOwnedStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ReindexStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RemoveAggrStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RemoveFuncStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RemoveOperStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RenameStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RevokeStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RevokeRoleStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| RuleStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| SecLabelStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+			SelectStmt  {
+				IR* tmp1 = $1;
+				$$ = new IR(kStmt, OP0(), tmp1);
+			}
+//			| TransactionStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| TruncateStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| UnlistenStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| UpdateStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| VacuumStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| VariableResetStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| VariableSetStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| VariableShowStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+//			| ViewStmt  {
+//				IR* tmp1 = $1;
+//				$$ = new IR(kStmt, OP0(), tmp1);
+//			}
+			| /*EMPTY*/
+				{ $$ = NULL; }
+		;
+
+
+/*****************************************************************************
+ *
+ *		QUERY:
+ *				SELECT STATEMENTS
+ *
+ *****************************************************************************/
+
+/* A complete SELECT statement looks like this.
+ *
+ * The rule returns either a single SelectStmt node or a tree of them,
+ * representing a set-operation tree.
+ *
+ * There is an ambiguity when a sub-SELECT is within an a_expr and there
+ * are excess parentheses: do the parentheses belong to the sub-SELECT or
+ * to the surrounding a_expr?  We don't really care, but bison wants to know.
+ * To resolve the ambiguity, we are careful to define the grammar so that
+ * the decision is staved off as long as possible: as long as we can keep
+ * absorbing parentheses into the sub-SELECT, we will do so, and only when
+ * it's no longer possible to do that will we decide that parens belong to
+ * the expression.	For example, in "SELECT (((SELECT 2)) + 3)" the extra
+ * parentheses are treated as part of the sub-select.  The necessity of doing
+ * it that way is shown by "SELECT (((SELECT 2)) UNION SELECT 2)".	Had we
+ * parsed "((SELECT 2))" as an a_expr, it'd be too late to go back to the
+ * SELECT viewpoint when we see the UNION.
+ *
+ * This approach is implemented by defining a nonterminal select_with_parens,
+ * which represents a SELECT with at least one outer layer of parentheses,
+ * and being careful to use select_with_parens, never '(' SelectStmt ')',
+ * in the expression grammar.  We will then have shift-reduce conflicts
+ * which we can resolve in favor of always treating '(' <select> ')' as
+ * a select_with_parens.  To resolve the conflicts, the productions that
+ * conflict with the select_with_parens productions are manually given
+ * precedences lower than the precedence of ')', thereby ensuring that we
+ * shift ')' (and then reduce to select_with_parens) rather than trying to
+ * reduce the inner <select> nonterminal to something else.  We use UMINUS
+ * precedence for this, which is a fairly arbitrary choice.
+ *
+ * To be able to define select_with_parens itself without ambiguity, we need
+ * a nonterminal select_no_parens that represents a SELECT structure with no
+ * outermost parentheses.  This is a little bit tedious, but it works.
+ *
+ * In non-expression contexts, we use SelectStmt which can represent a SELECT
+ * with or without outer parentheses.
+ */
+
+SelectStmt: 
+			select_no_parens			%prec UMINUS {
+				IR* tmp1 = $1;
+				$$ = new IR(kSelectStmt, OP0(), tmp1);
+			}
+			| select_with_parens		%prec UMINUS {
+				IR* tmp1 = $1;
+				$$ = new IR(kSelectStmt, OP0(), tmp1);
+			}
+		;
+
+select_with_parens:
+			'(' select_no_parens ')'				{ 
+				IR* tmp1 = $2;
+				$$ = new IR(kSelectNoParens, OP3("(", "", ")"), tmp1);	
+			}
+			| '(' select_with_parens ')'			{
+				IR* tmp1 = $2;
+				$$ = new IR(kSelectNoParens, OP3("(", "", ")"), tmp1);	
+			}
+		;
+
+/*
+ * This rule parses the equivalent of the standard's <query expression>.
+ * The duplicative productions are annoying, but hard to get rid of without
+ * creating shift/reduce conflicts.
+ *
+ *	The locking clause (FOR UPDATE etc) may be before or after LIMIT/OFFSET.
+ *	In <=7.2.X, LIMIT/OFFSET had to be after FOR UPDATE
+ *	We now support both orderings, but prefer LIMIT/OFFSET before the locking
+ * clause.
+ *	2002-08-28 bjm
+ */
+select_no_parens:
+		'W' {
+
+		}
+		;
+
 %%
 
 /*

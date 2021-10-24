@@ -6,18 +6,19 @@
   /* New one here!!! */ \
   V(kParseToplevel)                                                            \
   V(kStmtMulti)                                                                \
+  V(kToplevelStmt)                                                              \
+  V(kStmt)                                                                      \
+  V(kSelectStmt)                                                                \
+  V(kSelectWithParens)                                                            \
+  V(kSelectNoParens)                                                            \
   /* Keep the old one to ensure compatibility first. Will remove below later. */  \
   V(kProgram)                                                                  \
   V(kStmtlist)                                                                 \
-  V(kStmt)                                                                     \
   V(kCreateStmt)                                                               \
   V(kDropStmt)                                                                 \
   V(kAlterStmt)                                                                \
   V(kAlterIndexStmt)                                                           \
   V(kAlterGroupStmt)                                                           \
-  V(kSelectStmt)                                                               \
-  V(kSelectWithParens)                                                         \
-  V(kSelectNoParens)                                                           \
   V(kSelectClauseList)                                                         \
   V(kSelectClause)                                                             \
   V(kCombineClause)                                                            \
