@@ -64,6 +64,8 @@
 #include "utils/datetime.h"
 #include "utils/numeric.h"
 #include "utils/xml.h"
+#include "../include/define.h"
+#include "../include/ast.h"
 
 
 #define palloc    malloc
@@ -158,7 +160,7 @@ typedef struct GroupClause
 #define parser_yyerror(msg)  scanner_yyerror(msg, yyscanner)
 #define parser_errposition(pos)  scanner_errposition(pos, yyscanner)
 
-static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
+static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 						 const char *msg);
 
 %}
@@ -168,7 +170,7 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 %name-prefix="base_yy"
 %locations
 
-%parse-param {core_yyscan_t yyscanner}
+%parse-param {IR* result} {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
 
 %union
@@ -181,43 +183,11 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 
 	char				chr;
 	bool				boolean;
-	JoinType			jtype;
-	DropBehavior		dbehavior;
-	OnCommitAction		oncommit;
-	List				*list;
-	Node				*node;
-	Value				*value;
-	ObjectType			objtype;
-	TypeName			*typnam;
-	FunctionParameter   *fun_param;
-	FunctionParameterMode fun_param_mode;
-	ObjectWithArgs		*objwithargs;
-	DefElem				*defelt;
-	SortBy				*sortby;
-	WindowDef			*windef;
-	JoinExpr			*jexpr;
-	IndexElem			*ielem;
-	StatsElem			*selem;
-	Alias				*alias;
-	RangeVar			*range;
-	IntoClause			*into;
-	WithClause			*with;
-	InferClause			*infer;
-	OnConflictClause	*onconflict;
-	A_Indices			*aind;
-	ResTarget			*target;
 	struct PrivTarget	*privtarget;
-	AccessPriv			*accesspriv;
 	struct ImportQual	*importqual;
-	InsertStmt			*istmt;
-	VariableSetStmt		*vsetstmt;
-	PartitionElem		*partelem;
-	PartitionSpec		*partspec;
-	PartitionBoundSpec	*partboundspec;
-	RoleSpec			*rolespec;
 	struct SelectLimit	*selectlimit;
-	SetQuantifier	 setquantifier;
 	struct GroupClause  *groupclause;
+	IR                  *ir;
 }
 
 %type <node>	stmt toplevel_stmt schema_stmt routine_body_stmt
@@ -353,7 +323,7 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 %type <node>	vacuum_relation
 %type <selectlimit> opt_select_limit select_limit limit_clause
 
-%type <list>	parse_toplevel stmtmulti routine_body_stmt_list
+%type <ir>	parse_toplevel stmtmulti routine_body_stmt_list
 				OptTableElementList TableElementList OptInherit definition
 				OptTypedTableElementList TypedTableElementList
 				reloptions opt_reloptions
@@ -784,7 +754,10 @@ static void base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner,
 parse_toplevel:
 			stmtmulti
 			{
-				
+				$$ = result;
+				IR* tmp1 = $1;
+				result->update_left(tmp1);
+				$$ = NULL;
 			}
 		;
 
@@ -800,7 +773,7 @@ parse_toplevel:
  */
 stmtmulti:	 ';' 
 				{
-					
+					$$ = new IR(kStmtlist, OP3(";", "", ""));				
 				}
 		;
 %%
@@ -811,7 +784,7 @@ stmtmulti:	 ';'
  * available from the scanner.
  */
 static void
-base_yyerror(YYLTYPE *yylloc, core_yyscan_t yyscanner, const char *msg)
+base_yyerror(YYLTYPE *yylloc, IR* ir, core_yyscan_t yyscanner, const char *msg)
 {
 	parser_yyerror(msg);
 }

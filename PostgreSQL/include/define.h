@@ -3,6 +3,10 @@
 #define __DEFINE_H__
 
 #define ALLTYPE(V)                                                             \
+  /* New one here!!! */ \
+  V(kParseToplevel)                                                            \
+  V(kStmtMulti)                                                                \
+  /* Keep the old one to ensure compatibility first. Will remove below later. */  \
   V(kProgram)                                                                  \
   V(kStmtlist)                                                                 \
   V(kStmt)                                                                     \

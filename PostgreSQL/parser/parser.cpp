@@ -69,8 +69,10 @@ raw_parser(const char *str, RawParseMode mode)
 	/* initialize the bison parser */
 	parser_init(&yyextra);
 
+	IR* ir_root = new IR(kParseToplevel, ""); // empty root. Will initialize in the parser. 
+
 	/* Parse! */
-	yyresult = base_yyparse(yyscanner);
+	yyresult = base_yyparse(ir_root, yyscanner);
 
 	/* Clean up (release memory) */
 	scanner_finish(yyscanner);
@@ -78,7 +80,7 @@ raw_parser(const char *str, RawParseMode mode)
 	if (yyresult)				/* error */
 		return NULL;
 
-	return NULL;
+	return ir_root;
 }
 
 /*
