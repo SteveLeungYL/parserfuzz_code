@@ -1,12 +1,7 @@
-import sys
 import click 
 from loguru import logger
-from typing import List, Tuple
+from typing import List
 
-
-@click.group()
-def cli():
-    pass
 
 ONETAB = " "*4
 ONESPACE = " "
@@ -15,7 +10,7 @@ tokens_mapping = {
     "';'": "OP_SEMI"
 }
 
-total_tokens = (
+total_tokens = set([
     "PASSWORD",
     "CREATE",
     "USER",
@@ -23,9 +18,10 @@ total_tokens = (
     "SUBSCRIPTION",
     "IF_P",
     "EXISTS",
-)
+    "/*EMPTY*/"
+])
 
-total_tokens += tuple(tokens_mapping.keys())
+total_tokens |= set(tokens_mapping.keys())
 
 
 
@@ -148,6 +144,8 @@ def translate_single_line(line, parent):
             need_more_ir = True
         elif left_token: 
             if not body and left_token.index == len(token_sequence)-1 and token_sequence[left_token.index].word in total_tokens: 
+                if left_keywords_str == "/*EMPTY*/":
+                    left_keywords_str = ""
                 body += f"""res = new IR(kUnknown, string("{left_keywords_str}"));""" + "\n"
                 break
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
@@ -183,8 +181,6 @@ def find_first_alpha_index(data, start_index):
             return start_index+idx
 
 def translate(data):
-    
-    
     translation = ""
     
     data = data.strip()
@@ -222,9 +218,50 @@ def translate(data):
     translation += "\n;"
     logger.info(translation)
     return translation
-    
 
-@cli.command()
+def load_tokens_from_kwlist(kwlist):
+    global total_tokens
+    
+    kwlines = []
+    with open(kwlist) as f: 
+        kwlines = [line.strip() for line in f.readlines() if line.startswith("PG_KEYWORD")]
+    
+    kwlist_tokens = set([line.split()[1].strip(",") for line in kwlines])
+    total_tokens |= kwlist_tokens
+
+
+def get_gram_tokens():
+    tokens_file = "assets/tokens.y"
+    with open(tokens_file) as f: 
+        token_data = f.readlines() 
+    
+    token_data = [line.strip() for line in token_data]
+    token_data = [line for line in token_data if line]
+    
+    gram_tokens = set()
+    for line in token_data:
+        line = line.replace("\t", " ")
+        if line.startswith("%type"):
+            line = line.split(" ", 2)[-1]
+            
+        line = line.strip()
+        gram_tokens |= set(line.split())
+    
+    for token in gram_tokens:
+        if token.startswith("<"): 
+            logger.info(token)
+
+def get_gram_keywords():
+    keywords_file = "assets/keywords.y"
+    with open(keywords_file) as f: 
+        keyword_data = f.readlines() 
+    
+    keyword_data = [line.strip() for line in keyword_data if line.strip()]
+    keyword_data = [line for line in keyword_data if not (line.startswith("*") or line.startswith("/"))]
+
+    # TODO
+    
+@click.command()
 def run():
     data = """
 stmtmulti:	CREATE USER
@@ -232,183 +269,15 @@ stmtmulti:	CREATE USER
         }
 ;
     """
+    
+    get_gram_tokens() 
+    get_gram_keywords()
+    
+    kwlist_path = "assets/kwlist.h"
+    load_tokens_from_kwlist(kwlist_path)
+    
+    logger.debug(f"len total_tokens: {len(total_tokens)}")
     translate(data)
 
-@cli.command()
-def test():
-    logger.remove()
-    logger.add(sys.stderr, level="ERROR")
-    
-    try:
-        TestDropSubscriptionStmt()
-        TestStmtBlock()
-        TestCreateUserStmt()
-        TestStmtMulti()
-        TestOnlyKeywords()
-        print("All tests passed!")
-    except Exception as e:
-        logger.exception(e)
-        
-
-def _test(data, expect):
-    assert expect.strip() == translate(data).strip()
-
-def TestDropSubscriptionStmt():
-    data = """
-DropSubscriptionStmt: DROP SUBSCRIPTION name opt_drop_behavior
-            {
-                DropSubscriptionStmt *n = makeNode(DropSubscriptionStmt);
-                n->subname = $3;
-                n->missing_ok = false;
-                n->behavior = $4;
-                $$ = (Node *) n;
-            }
-            |  DROP SUBSCRIPTION IF_P EXISTS name opt_drop_behavior
-            {
-                DropSubscriptionStmt *n = makeNode(DropSubscriptionStmt);
-                n->subname = $5;
-                n->missing_ok = true;
-                n->behavior = $6;
-                $$ = (Node *) n;
-            }
-    ;
-"""
-    expect = """
-DropSubscriptionStmt:
-
-    DROP SUBSCRIPTION name opt_drop_behavior {
-        auto tmp1 = $3;
-        auto tmp2 = $4;
-        res = new IR(kDropSubscriptionStmt, OP3("DROP SUBSCRIPTION", "", ""), tmp1, tmp2);
-        $$ = res;
-    }
-
-    | DROP SUBSCRIPTION IF_P EXISTS name opt_drop_behavior {
-        auto tmp1 = $5;
-        auto tmp2 = $6;
-        res = new IR(kDropSubscriptionStmt, OP3("DROP SUBSCRIPTION IF_P EXISTS", "", ""), tmp1, tmp2);
-        $$ = res;
-    }
-
-;
-    """
-    
-    _test(data, expect)
-
-
-def TestStmtBlock(): 
-        data = """
-stmtblock:	stmtmulti
-			{
-				pg_yyget_extra(yyscanner)->parsetree = $1;
-			}
-		;    
-"""
-        expect = """
-stmtblock:
-
-    stmtmulti {
-        auto tmp1 = $1;
-        res = new IR(kstmtblock, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
-;        
-"""        
-        _test(data, expect)
-        
-
-def TestCreateUserStmt():
-    data = """
-CreateUserStmt:
-			CREATE USER RoleId USER opt_with CREATE OptRoleList USER
-				{
-					CreateRoleStmt *n = makeNode(CreateRoleStmt);
-					n->stmt_type = ROLESTMT_USER;
-					n->role = $3;
-					n->options = $5;
-					$$ = (Node *)n;
-				}
-		;
-    """
-    expect = """
-CreateUserStmt:
-
-    CREATE USER RoleId USER opt_with CREATE OptRoleList USER {
-        auto tmp1 = $3;
-        auto tmp2 = $5;
-        res = new IR(kUnknown, OP3("CREATE USER", "USER", "CREATE"), tmp1, tmp2);
-        auto tmp3 = $7;
-        res = new IR(kCreateUserStmt, OP3("", "USER", ""), res, tmp3);
-        $$ = res;
-    }
-
-;
-"""
-
-    _test(data, expect)
-
-def TestStmtMulti():
-    data = """
-stmtmulti:	stmtmulti ';' stmt
-            {
-                if ($1 != NIL)
-                {
-                    /* update length of previous stmt */
-                    updateRawStmtEnd(llast_node(RawStmt, $1), @2);
-                }
-                if ($3 != NULL)
-                    $$ = lappend($1, makeRawStmt($3, @2 + 1));
-                else
-                    $$ = $1;
-            }
-        | stmt
-            {
-                if ($1 != NULL)
-                    $$ = list_make1(makeRawStmt($1, 0));
-                else
-                    $$ = NIL;
-            }
-    ;
-"""
-    expect = """
-stmtmulti:
-
-    stmtmulti OP_SEMI stmt {
-        auto tmp1 = $1;
-        auto tmp2 = $3;
-        res = new IR(kstmtmulti, OP3("", "';'", ""), tmp1, tmp2);
-        $$ = res;
-    }
-
-    | stmt {
-        auto tmp1 = $1;
-        res = new IR(kstmtmulti, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
-;
-"""
-    _test(data, expect)
-
-def TestOnlyKeywords():
-    data = """
-stmtmulti:	CREATE USER
-        {
-        }
-;
-    """
-    expect = """
-stmtmulti:
-
-    CREATE USER {
-        res = new IR(kstmtmulti, string("CREATE USER"));
-        $$ = res;
-    }
-
-;
-"""
-    _test(data, expect)
-
 if __name__ == "__main__":
-    cli()
+    run()
