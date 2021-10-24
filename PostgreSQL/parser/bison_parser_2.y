@@ -48,6 +48,7 @@
 #include <ctype.h>
 #include <limits.h>
 
+#include "../include/ast.h"
 #include "access/tableam.h"
 #include "catalog/index.h"
 #include "catalog/namespace.h"
@@ -65,7 +66,6 @@
 #include "utils/numeric.h"
 #include "utils/xml.h"
 #include "../include/define.h"
-#include "../include/ast.h"
 
 
 #define palloc    malloc

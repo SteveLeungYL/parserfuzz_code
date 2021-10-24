@@ -35,6 +35,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
+#include "../include/ast.h"
 #include "common/string.h"
 #include "parser/gramparse.h"
 #include "parser/parser.h"		/* only needed for GUC variables */

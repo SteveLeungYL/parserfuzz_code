@@ -26,6 +26,7 @@
  * NB: include gram.h only AFTER including scanner.h, because scanner.h
  * is what #defines YYLTYPE.
  */
+#include "../../../include/ast.h"
 #include "../../bison_parser.h"
 
 /*
