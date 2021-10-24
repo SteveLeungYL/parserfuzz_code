@@ -52,6 +52,11 @@
 
 #define yyset_extra core_yyset_extra
 
+#define palloc    malloc
+#define pfree     free
+#define repalloc  realloc
+#define pstrdup   strdup
+
 static void
 fprintf_to_ereport(const char *fmt, const char *msg)
 {
@@ -159,7 +164,7 @@ extern void core_yyset_column(int column_no, yyscan_t yyscanner);
 %option noyyrealloc
 %option noyyfree
 %option warn
-%option prefix="ff_"
+%option prefix="core_yy"
 %option header-file="flex_lexer.h"
 %option outfile="flex_lexer.cpp"
 

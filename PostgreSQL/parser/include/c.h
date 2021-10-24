@@ -1359,6 +1359,6 @@ typedef intptr_t sigjmp_buf[5];
 #endif
 
 /* /port compatibility functions */
-#include "port.h"
+//#include "port.h"
 
 #endif							/* C_H */

@@ -1,7 +1,7 @@
 SUB_DIRS := oracle src AFL
 
-PARSER_SRCS := $(wildcard parser/*.cpp)
-PARSER_SRCS := $(patsubst %_2.y,%.cpp,$(wildcard parser/*_2.y))
+PARSER_SRCS := $(wildcard parser/parser.cpp)
+PARSER_SRCS += $(patsubst %_2.y,%.cpp,$(wildcard parser/*_2.y))
 PARSER_SRCS += $(patsubst %_2.l,%.cpp,$(wildcard parser/*_2.l))
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))

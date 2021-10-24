@@ -7,16 +7,18 @@
 #include "parser/gramparse.h"
 #include "parser/parser.h"
 #include "parser/scansup.h"
+#include "common/kwlist_d.h"
+
+#define palloc    malloc
+#define pfree     free
+#define repalloc  realloc
+#define pstrdup   strdup
 
 static void check_unicode_value(pg_wchar c);
-
 static unsigned int hexval(unsigned char c);
-
-static char *
-str_udeescape(const char *str, char escape, int position, core_yyscan_t yyscanner);
-
-static bool
-check_uescapechar(unsigned char escape);
+static char * str_udeescape(const char *str, char escape, int position, core_yyscan_t yyscanner);
+static bool check_uescapechar(unsigned char escape);
+void truncate_identifier(char *ident, int len, bool warn);
 
 /*
  * raw_parser
@@ -484,5 +486,29 @@ check_unicode_value(pg_wchar c)
 		ereport(ERROR,
 				(errcode(ERRCODE_SYNTAX_ERROR),
 				 errmsg("invalid Unicode escape value")));
+}
+
+/*
+ * truncate_identifier() --- truncate an identifier to NAMEDATALEN-1 bytes.
+ *
+ * The given string is modified in-place, if necessary.  A warning is
+ * issued if requested.
+ *
+ * We require the caller to pass in the string length since this saves a
+ * strlen() call in some common usages.
+ */
+void
+truncate_identifier(char *ident, int len, bool warn)
+{
+	if (len >= NAMEDATALEN)
+	{
+		len = pg_mbcliplen(ident, len, NAMEDATALEN - 1);
+		if (warn)
+			ereport(NOTICE,
+					(errcode(ERRCODE_NAME_TOO_LONG),
+					 errmsg("identifier \"%s\" will be truncated to \"%.*s\"",
+							ident, len, ident)));
+		ident[len] = '\0';
+	}
 }
 
