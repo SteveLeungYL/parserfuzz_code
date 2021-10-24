@@ -59,13 +59,13 @@ public:
   void init_data_library(string filename);       
   void init_data_library_2d(string filename);    
   void init_not_mutatable_type(string filename); 
-  void init_safe_generate_type(string filename);
+  // void init_safe_generate_type(string filename);
   void add_ir_to_library(IR *); 
 
   string get_a_string();           
   unsigned long get_a_val();       
   IR *get_ir_from_library(IRTYPE); 
-  IR *generate_ir_by_type(IRTYPE); 
+  // IR *generate_ir_by_type(IRTYPE); 
 
   string get_data_by_type(DATATYPE);
   pair<string, string> get_data_2d_by_type(DATATYPE, DATATYPE); 
@@ -95,8 +95,8 @@ public:
   void reset_scope_library(bool clear_define);                      
   IR *find_closest_node(IR *stmt_root, IR *node, DATATYPE type);    
   bool fill_one(IR *parent);                                        
-  bool fill_one_pair(IR *parent, IR *child);                        
-  bool fill_stmt_graph_one(map<IR *, vector<IR *>> &graph, IR *ir); 
+  // bool fill_one_pair(IR *parent, IR *child);                        
+  // bool fill_stmt_graph_one(map<IR *, vector<IR *>> &graph, IR *ir); 
   void pre_validate();
   bool validate(IR *&root, bool is_debug_info = false);                                       
   string validate(string query, bool is_debug_info = false);
