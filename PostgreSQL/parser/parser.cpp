@@ -14,6 +14,7 @@
 #define repalloc  realloc
 #define pstrdup   strdup
 
+bool scanner_isspace(char ch);
 static void check_unicode_value(pg_wchar c);
 static unsigned int hexval(unsigned char c);
 static char * str_udeescape(const char *str, char escape, int position, core_yyscan_t yyscanner);
@@ -413,10 +414,11 @@ str_udeescape(const char *str, char escape,
 				in += 8;
 			}
 			else
-				ereport(ERROR,
-						(errcode(ERRCODE_SYNTAX_ERROR),
-						 errmsg("invalid Unicode escape"),
-						 errhint("Unicode escapes must be \\XXXX or \\+XXXXXX.")));
+        fprintf(stderr, "invalid Unicode escape\n");
+				//ereport(ERROR,
+				//		(errcode(ERRCODE_SYNTAX_ERROR),
+				//		 errmsg("invalid Unicode escape"),
+				//		 errhint("Unicode escapes must be \\XXXX or \\+XXXXXX.")));
 
 			cancel_scanner_errposition_callback(&scbstate);
 		}
@@ -442,11 +444,12 @@ str_udeescape(const char *str, char escape,
 	 * callback is active, this is duplicative but harmless.
 	 */
 invalid_pair:
-	ereport(ERROR,
-			(errcode(ERRCODE_SYNTAX_ERROR),
-			 errmsg("invalid Unicode surrogate pair"),
-			 scanner_errposition(in - str + position + 3,	/* 3 for U&" */
-								 yyscanner)));
+  fprintf(stderr, "invalid Unicode surrogate pair\n");
+	//ereport(ERROR,
+	//		(errcode(ERRCODE_SYNTAX_ERROR),
+	//		 errmsg("invalid Unicode surrogate pair"),
+	//		 scanner_errposition(in - str + position + 3,	/* 3 for U&" */
+	//							 yyscanner)));
 	return NULL;				/* keep compiler quiet */
 }
 
@@ -474,7 +477,7 @@ hexval(unsigned char c)
 		return c - 'a' + 0xA;
 	if (c >= 'A' && c <= 'F')
 		return c - 'A' + 0xA;
-	elog(ERROR, "invalid hexadecimal digit");
+	//elog(ERROR, "invalid hexadecimal digit");
 	return 0;					/* not reached */
 }
 
@@ -483,9 +486,10 @@ static void
 check_unicode_value(pg_wchar c)
 {
 	if (!is_valid_unicode_codepoint(c))
-		ereport(ERROR,
-				(errcode(ERRCODE_SYNTAX_ERROR),
-				 errmsg("invalid Unicode escape value")));
+    fprintf(stderr, "invalid Unicode escape value\n");
+		//ereport(ERROR,
+		//		(errcode(ERRCODE_SYNTAX_ERROR),
+		//		 errmsg("invalid Unicode escape value")));
 }
 
 /*
@@ -504,11 +508,34 @@ truncate_identifier(char *ident, int len, bool warn)
 	{
 		len = pg_mbcliplen(ident, len, NAMEDATALEN - 1);
 		if (warn)
-			ereport(NOTICE,
-					(errcode(ERRCODE_NAME_TOO_LONG),
-					 errmsg("identifier \"%s\" will be truncated to \"%.*s\"",
-							ident, len, ident)));
+      fprintf(stderr, "identifier \"%s\" will be truncated to \"%.*s\"\n",
+          ident, len, ident);
+			//ereport(NOTICE,
+			//		(errcode(ERRCODE_NAME_TOO_LONG),
+			//		 errmsg("identifier \"%s\" will be truncated to \"%.*s\"",
+			//				ident, len, ident)));
 		ident[len] = '\0';
 	}
 }
 
+/*
+ * scanner_isspace() --- return true if flex scanner considers char whitespace
+ *
+ * This should be used instead of the potentially locale-dependent isspace()
+ * function when it's important to match the lexer's behavior.
+ *
+ * In principle we might need similar functions for isalnum etc, but for the
+ * moment only isspace seems needed.
+ */
+bool
+scanner_isspace(char ch)
+{
+	/* This must match scan.l's list of {space} characters */
+	if (ch == ' ' ||
+		ch == '\t' ||
+		ch == '\n' ||
+		ch == '\r' ||
+		ch == '\f')
+		return true;
+	return false;
+}

@@ -47,8 +47,8 @@
 /* LCOV_EXCL_START */
 
 /* Avoid exit() on fatal scanner errors (a bit ugly -- see yy_fatal_error) */
-#undef fprintf
-#define fprintf(file, fmt, msg)  fprintf_to_ereport(fmt, msg)
+//#undef fprintf
+//#define fprintf(file, fmt, msg)  fprintf_to_ereport(fmt, msg)
 
 #define yyset_extra core_yyset_extra
 
@@ -57,11 +57,13 @@
 #define repalloc  realloc
 #define pstrdup   strdup
 
-static void
-fprintf_to_ereport(const char *fmt, const char *msg)
-{
-	ereport(ERROR, (errmsg_internal("%s", msg)));
-}
+
+
+//static void
+//fprintf_to_ereport(const char *fmt, const char *msg)
+//{
+//	ereport(ERROR, (errmsg_internal("%s", msg)));
+//}
 
 /*
  * GUC variables.  This is a DIRECT violation of the warning given at the
@@ -546,11 +548,12 @@ other			.
 {xusstart}		{
 					SET_YYLLOC();
 					if (!yyextra->standard_conforming_strings)
-						ereport(ERROR,
-								(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-								 errmsg("unsafe use of string constant with Unicode escapes"),
-								 errdetail("String constants with Unicode escapes cannot be used when standard_conforming_strings is off."),
-								 lexer_errposition()));
+            fprintf(stderr ,"unsafe use of string constant with Unicode escapes\n");
+						//ereport(ERROR,
+						//		(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+						//		 errmsg("unsafe use of string constant with Unicode escapes"),
+						//		 errdetail("String constants with Unicode escapes cannot be used when standard_conforming_strings is off."),
+						//		 lexer_errposition()));
 					BEGIN(xus);
 					startlit();
 				}
@@ -681,11 +684,12 @@ other			.
 <xe,xeu>{xeunicodefail}	{
 					/* Set the error cursor to point at malformed esc seq */
 					SET_YYLLOC();
-					ereport(ERROR,
-							(errcode(ERRCODE_INVALID_ESCAPE_SEQUENCE),
-							 errmsg("invalid Unicode escape"),
-							 errhint("Unicode escapes must be \\uXXXX or \\UXXXXXXXX."),
-							 lexer_errposition()));
+          fprintf(stderr, "invalid Unicode escape\n");
+					//ereport(ERROR,
+					//		(errcode(ERRCODE_INVALID_ESCAPE_SEQUENCE),
+					//		 errmsg("invalid Unicode escape"),
+					//		 errhint("Unicode escapes must be \\uXXXX or \\UXXXXXXXX."),
+					//		 lexer_errposition()));
 				}
 <xe>{xeescape}  {
 					if (yytext[1] == '\'')
@@ -693,11 +697,12 @@ other			.
 						if (yyextra->backslash_quote == BACKSLASH_QUOTE_OFF ||
 							(yyextra->backslash_quote == BACKSLASH_QUOTE_SAFE_ENCODING &&
 							 PG_ENCODING_IS_CLIENT_ONLY(pg_get_client_encoding())))
-							ereport(ERROR,
-									(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
-									 errmsg("unsafe use of \\' in a string literal"),
-									 errhint("Use '' to write quotes in strings. \\' is insecure in client-only encodings."),
-									 lexer_errposition()));
+              fprintf(stderr, "unsafe use of \\' in a string literal\n");
+							//ereport(ERROR,
+							//		(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
+							//		 errmsg("unsafe use of \\' in a string literal"),
+							//		 errhint("Use '' to write quotes in strings. \\' is insecure in client-only encodings."),
+							//		 lexer_errposition()));
 					}
 					check_string_escape_warning(yytext[1], yyscanner);
 					addlitchar(unescape_single_char(yytext[1], yyscanner),
@@ -1141,8 +1146,8 @@ setup_scanner_errposition_callback(ScannerCallbackState *scbstate,
 	scbstate->location = location;
 	scbstate->errcallback.callback = scb_error_callback;
 	scbstate->errcallback.arg = (void *) scbstate;
-	scbstate->errcallback.previous = error_context_stack;
-	error_context_stack = &scbstate->errcallback;
+	//scbstate->errcallback.previous = error_context_stack;
+	//error_context_stack = &scbstate->errcallback;
 }
 
 /*
@@ -1152,7 +1157,7 @@ void
 cancel_scanner_errposition_callback(ScannerCallbackState *scbstate)
 {
 	/* Pop the error context stack */
-	error_context_stack = scbstate->errcallback.previous;
+	//error_context_stack = scbstate->errcallback.previous;
 }
 
 /*
@@ -1174,19 +1179,21 @@ scanner_yyerror(const char *message, core_yyscan_t yyscanner)
 
 	if (*loc == YY_END_OF_BUFFER_CHAR)
 	{
-		ereport(ERROR,
-				(errcode(ERRCODE_SYNTAX_ERROR),
-		/* translator: %s is typically the translation of "syntax error" */
-				 errmsg("%s at end of input", _(message)),
-				 lexer_errposition()));
+    fprintf(stderr, "%s at end of input\n", message);
+		//ereport(ERROR,
+		//		(errcode(ERRCODE_SYNTAX_ERROR),
+		///* translator: %s is typically the translation of "syntax error" */
+		//		 errmsg("%s at end of input", _(message)),
+		//		 lexer_errposition()));
 	}
 	else
 	{
-		ereport(ERROR,
-				(errcode(ERRCODE_SYNTAX_ERROR),
-		/* translator: first %s is typically the translation of "syntax error" */
-				 errmsg("%s at or near \"%s\"", _(message), loc),
-				 lexer_errposition()));
+    fprintf(stderr, "%s at or near \"%s\"\n", message, loc);
+		//ereport(ERROR,
+		//		(errcode(ERRCODE_SYNTAX_ERROR),
+		///* translator: first %s is typically the translation of "syntax error" */
+		//		 errmsg("%s at or near \"%s\"", _(message), loc),
+		//		 lexer_errposition()));
 	}
 }
 
@@ -1204,7 +1211,8 @@ scanner_init(const char *str,
 	yyscan_t	scanner;
 
 	if (yylex_init(&scanner) != 0)
-		elog(ERROR, "yylex_init() failed: %m");
+    fprintf(stderr ,"yylex_init() failed: %m\n");
+		//elog(ERROR, "yylex_init() failed: %m");
 
 	core_yyset_extra(yyext, scanner);
 
@@ -1377,21 +1385,23 @@ check_string_escape_warning(unsigned char ychar, core_yyscan_t yyscanner)
 	if (ychar == '\'')
 	{
 		if (yyextra->warn_on_first_escape && yyextra->escape_string_warning)
-			ereport(WARNING,
-					(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
-					 errmsg("nonstandard use of \\' in a string literal"),
-					 errhint("Use '' to write quotes in strings, or use the escape string syntax (E'...')."),
-					 lexer_errposition()));
+      fprintf(stderr, "Use '' to write quotes in strings, or use the escape string syntax (E'...').\n");
+			//ereport(WARNING,
+			//		(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
+			//		 errmsg("nonstandard use of \\' in a string literal"),
+			//		 errhint("Use '' to write quotes in strings, or use the escape string syntax (E'...')."),
+			//		 lexer_errposition()));
 		yyextra->warn_on_first_escape = false;	/* warn only once per string */
 	}
 	else if (ychar == '\\')
 	{
 		if (yyextra->warn_on_first_escape && yyextra->escape_string_warning)
-			ereport(WARNING,
-					(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
-					 errmsg("nonstandard use of \\\\ in a string literal"),
-					 errhint("Use the escape string syntax for backslashes, e.g., E'\\\\'."),
-					 lexer_errposition()));
+      fprintf(stderr, "Use the escape string syntax for backslashes, e.g., E'\\\\'.\n");
+			//ereport(WARNING,
+			//		(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
+			//		 errmsg("nonstandard use of \\\\ in a string literal"),
+			//		 errhint("Use the escape string syntax for backslashes, e.g., E'\\\\'."),
+			//		 lexer_errposition()));
 		yyextra->warn_on_first_escape = false;	/* warn only once per string */
 	}
 	else
@@ -1402,11 +1412,12 @@ static void
 check_escape_warning(core_yyscan_t yyscanner)
 {
 	if (yyextra->warn_on_first_escape && yyextra->escape_string_warning)
-		ereport(WARNING,
-				(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
-				 errmsg("nonstandard use of escape in a string literal"),
-		errhint("Use the escape string syntax for escapes, e.g., E'\\r\\n'."),
-				 lexer_errposition()));
+    fprintf(stderr, "Use the escape string syntax for escapes, e.g., E'\\r\\n'.\n");
+		//ereport(WARNING,
+		//		(errcode(ERRCODE_NONSTANDARD_USE_OF_ESCAPE_CHARACTER),
+		//		 errmsg("nonstandard use of escape in a string literal"),
+		//errhint("Use the escape string syntax for escapes, e.g., E'\\r\\n'."),
+		//		 lexer_errposition()));
 	yyextra->warn_on_first_escape = false;		/* warn only once per string */
 }
 
