@@ -66,6 +66,11 @@
 #include "utils/xml.h"
 
 
+#define palloc    malloc
+#define pfree     free
+#define repalloc  realloc
+#define pstrdup   strdup
+
 /*
  * Location tracking support --- simpler than bison's default, since we only
  * want to track the start position not the end position of each nonterminal.
