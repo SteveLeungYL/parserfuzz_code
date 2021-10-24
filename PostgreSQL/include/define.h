@@ -3,64 +3,700 @@
 #define __DEFINE_H__
 
 #define ALLTYPE(V)                                                             \
-  /* New one here!!! */ \
-  V(kParseToplevel)                                                            \
-  V(kStmtMulti)                                                                \
-  V(kToplevelStmt)                                                              \
-  V(kStmt)                                                                      \
-  V(kSelectStmt)                                                                \
-  V(kSelectWithParens)                                                            \
-  V(kSelectNoParens)                                                            \
+  /* New one here!!! */         \
+  V(kStmt)      \
+  V(kToplevelStmt)      \
+  V(kSchemaStmt)      \
+  V(kRoutineBodyStmt)      \
+  V(kAlterEventTrigStmt)      \
+  V(kAlterCollationStmt)      \
+  V(kAlterDatabaseStmt)      \
+  V(kAlterDatabaseSetStmt)      \
+  V(kAlterDomainStmt)      \
+  V(kAlterEnumStmt)      \
+  V(kAlterFdwStmt)      \
+  V(kAlterForeignServerStmt)      \
+  V(kAlterGroupStmt)      \
+  V(kAlterObjectDependsStmt)      \
+  V(kAlterObjectSchemaStmt)      \
+  V(kAlterOwnerStmt)      \
+  V(kAlterOperatorStmt)      \
+  V(kAlterTypeStmt)      \
+  V(kAlterSeqStmt)      \
+  V(kAlterSystemStmt)      \
+  V(kAlterTableStmt)      \
+  V(kAlterTblSpcStmt)      \
+  V(kAlterExtensionStmt)      \
+  V(kAlterExtensionContentsStmt)      \
+  V(kAlterCompositeTypeStmt)      \
+  V(kAlterUserMappingStmt)      \
+  V(kAlterRoleStmt)      \
+  V(kAlterRoleSetStmt)      \
+  V(kAlterPolicyStmt)      \
+  V(kAlterStatsStmt)      \
+  V(kAlterDefaultPrivilegesStmt)      \
+  V(kDefACLAction)      \
+  V(kAnalyzeStmt)      \
+  V(kCallStmt)      \
+  V(kClosePortalStmt)      \
+  V(kClusterStmt)      \
+  V(kCommentStmt)      \
+  V(kConstraintsSetStmt)      \
+  V(kCopyStmt)      \
+  V(kCreateAsStmt)      \
+  V(kCreateCastStmt)      \
+  V(kCreateDomainStmt)      \
+  V(kCreateExtensionStmt)      \
+  V(kCreateGroupStmt)      \
+  V(kCreateOpClassStmt)      \
+  V(kCreateOpFamilyStmt)      \
+  V(kAlterOpFamilyStmt)      \
+  V(kCreatePLangStmt)      \
+  V(kCreateSchemaStmt)      \
+  V(kCreateSeqStmt)      \
+  V(kCreateStmt)      \
+  V(kCreateStatsStmt)      \
+  V(kCreateTableSpaceStmt)      \
+  V(kCreateFdwStmt)      \
+  V(kCreateForeignServerStmt)      \
+  V(kCreateForeignTableStmt)      \
+  V(kCreateAssertionStmt)      \
+  V(kCreateTransformStmt)      \
+  V(kCreateTrigStmt)      \
+  V(kCreateEventTrigStmt)      \
+  V(kCreateUserStmt)      \
+  V(kCreateUserMappingStmt)      \
+  V(kCreateRoleStmt)      \
+  V(kCreatePolicyStmt)      \
+  V(kCreatedbStmt)      \
+  V(kDeclareCursorStmt)      \
+  V(kDefineStmt)      \
+  V(kDeleteStmt)      \
+  V(kDiscardStmt)      \
+  V(kDoStmt)      \
+  V(kDropOpClassStmt)      \
+  V(kDropOpFamilyStmt)      \
+  V(kDropStmt)      \
+  V(kDropCastStmt)      \
+  V(kDropRoleStmt)      \
+  V(kDropdbStmt)      \
+  V(kDropTableSpaceStmt)      \
+  V(kDropTransformStmt)      \
+  V(kDropUserMappingStmt)      \
+  V(kExplainStmt)      \
+  V(kFetchStmt)      \
+  V(kGrantStmt)      \
+  V(kGrantRoleStmt)      \
+  V(kImportForeignSchemaStmt)      \
+  V(kIndexStmt)      \
+  V(kInsertStmt)      \
+  V(kListenStmt)      \
+  V(kLoadStmt)      \
+  V(kLockStmt)      \
+  V(kNotifyStmt)      \
+  V(kExplainableStmt)      \
+  V(kPreparableStmt)      \
+  V(kCreateFunctionStmt)      \
+  V(kAlterFunctionStmt)      \
+  V(kReindexStmt)      \
+  V(kRemoveAggrStmt)      \
+  V(kRemoveFuncStmt)      \
+  V(kRemoveOperStmt)      \
+  V(kRenameStmt)      \
+  V(kReturnStmt)      \
+  V(kRevokeStmt)      \
+  V(kRevokeRoleStmt)      \
+  V(kRuleActionStmt)      \
+  V(kRuleActionStmtOrEmpty)      \
+  V(kRuleStmt)      \
+  V(kSecLabelStmt)      \
+  V(kSelectStmt)      \
+  V(kTransactionStmt)      \
+  V(kTransactionStmtLegacy)      \
+  V(kTruncateStmt)      \
+  V(kUnlistenStmt)      \
+  V(kUpdateStmt)      \
+  V(kVacuumStmt)      \
+  V(kVariableResetStmt)      \
+  V(kVariableSetStmt)      \
+  V(kVariableShowStmt)      \
+  V(kViewStmt)      \
+  V(kCheckPointStmt)      \
+  V(kCreateConversionStmt)      \
+  V(kDeallocateStmt)      \
+  V(kPrepareStmt)      \
+  V(kExecuteStmt)      \
+  V(kDropOwnedStmt)      \
+  V(kReassignOwnedStmt)      \
+  V(kAlterTSConfigurationStmt)      \
+  V(kAlterTSDictionaryStmt)      \
+  V(kCreateMatViewStmt)      \
+  V(kRefreshMatViewStmt)      \
+  V(kCreateAmStmt)      \
+  V(kCreatePublicationStmt)      \
+  V(kAlterPublicationStmt)      \
+  V(kCreateSubscriptionStmt)      \
+  V(kAlterSubscriptionStmt)      \
+  V(kDropSubscriptionStmt)      \
+  V(kSelectNoParens)      \
+  V(kSelectWithParens)      \
+  V(kSelectClause)      \
+  V(kSimpleSelect)      \
+  V(kValuesClause)      \
+  V(kPLpgSQLExpr)      \
+  V(kPLAssignStmt)      \
+  V(kAlterColumnDefault)      \
+  V(kOpclassItem)      \
+  V(kOpclassDrop)      \
+  V(kAlterUsing)      \
+  V(kAddDrop)      \
+  V(kOptAscDesc)      \
+  V(kOptNullsOrder)      \
+  V(kAlterTableCmd)      \
+  V(kAlterTypeCmd)      \
+  V(kOptCollateClause)      \
+  V(kReplicaIdentity)      \
+  V(kPartitionCmd)      \
+  V(kIndexPartitionCmd)      \
+  V(kAlterTableCmds)      \
+  V(kAlterTypeCmds)      \
+  V(kAlterIdentityColumnOptionList)      \
+  V(kAlterIdentityColumnOption)      \
+  V(kOptDropBehavior)      \
+  V(kCreatedbOptList)      \
+  V(kCreatedbOptItems)      \
+  V(kCopyOptList)      \
+  V(kTransactionModeList)      \
+  V(kCreateExtensionOptList)      \
+  V(kAlterExtensionOptList)      \
+  V(kCreatedbOptItem)      \
+  V(kCopyOptItem)      \
+  V(kTransactionModeItem)      \
+  V(kCreateExtensionOptItem)      \
+  V(kAlterExtensionOptItem)      \
+  V(kOptLock)      \
+  V(kLockType)      \
+  V(kCastContext)      \
+  V(kUtilityOptionName)      \
+  V(kUtilityOptionElem)      \
+  V(kUtilityOptionList)      \
+  V(kUtilityOptionArg)      \
+  V(kDropOption)      \
+  V(kOptOrReplace)      \
+  V(kOptNo)      \
+  V(kOptGrantGrantOption)      \
+  V(kOptGrantAdminOption)      \
+  V(kOptNowait)      \
+  V(kOptIfExists)      \
+  V(kOptWithData)      \
+  V(kOptTransactionChain)      \
+  V(kOptNowaitOrSkip)      \
+  V(kOptRoleList)      \
+  V(kAlterOptRoleList)      \
+  V(kCreateOptRoleElem)      \
+  V(kAlterOptRoleElem)      \
+  V(kOptType)      \
+  V(kForeignServerVersion)      \
+  V(kOptForeignServerVersion)      \
+  V(kOptInDatabase)      \
+  V(kOptSchemaName)      \
+  V(kOptSchemaEltList)      \
+  V(kAmType)      \
+  V(kTriggerForSpec)      \
+  V(kTriggerForType)      \
+  V(kTriggerActionTime)      \
+  V(kTriggerEvents)      \
+  V(kTriggerOneEvent)      \
+  V(kTriggerFuncArg)      \
+  V(kTriggerWhen)      \
+  V(kTransitionRelName)      \
+  V(kTransitionRowOrTable)      \
+  V(kTransitionOldOrNew)      \
+  V(kTriggerTransition)      \
+  V(kEventTriggerWhenList)      \
+  V(kEventTriggerValueList)      \
+  V(kEventTriggerWhenItem)      \
+  V(kEnableTrigger)      \
+  V(kCopyFileName)      \
+  V(kAccessMethodClause)      \
+  V(kAttrName)      \
+  V(kTableAccessMethodClause)      \
+  V(kName)      \
+  V(kCursorName)      \
+  V(kFileName)      \
+  V(kOptIndexName)      \
+  V(kClusterIndexSpecification)      \
+  V(kFuncName)      \
+  V(kHandlerName)      \
+  V(kQualOp)      \
+  V(kQualAllOp)      \
+  V(kSubqueryOp)      \
+  V(kOptClass)      \
+  V(kOptInlineHandler)      \
+  V(kOptValidator)      \
+  V(kValidatorClause)      \
+  V(kOptCollate)      \
+  V(kQualifiedName)      \
+  V(kInsertTarget)      \
+  V(kOptConstrFromTable)      \
+  V(kAllOp)      \
+  V(kMathOp)      \
+  V(kRowSecurityCmd)      \
+  V(kRowSecurityDefaultForCmd)      \
+  V(kRowSecurityDefaultPermissive)      \
+  V(kRowSecurityOptionalWithCheck)      \
+  V(kRowSecurityOptionalExpr)      \
+  V(kRowSecurityDefaultToRole)      \
+  V(kRowSecurityOptionalToRole)      \
+  V(kIsoLevel)      \
+  V(kOptEncoding)      \
+  V(kGrantee)      \
+  V(kGranteeList)      \
+  V(kPrivilege)      \
+  V(kPrivileges)      \
+  V(kPrivilegeList)      \
+  V(kPrivilegeTarget)      \
+  V(kFunctionWithArgtypes)      \
+  V(kAggregateWithArgtypes)      \
+  V(kOperatorWithArgtypes)      \
+  V(kFunctionWithArgtypesList)      \
+  V(kAggregateWithArgtypesList)      \
+  V(kOperatorWithArgtypesList)      \
+  V(kDefaclPrivilegeTarget)      \
+  V(kDefACLOption)      \
+  V(kDefACLOptionList)      \
+  V(kImportQualificationType)      \
+  V(kImportQualification)      \
+  V(kVacuumRelation)      \
+  V(kOptSelectLimit)      \
+  V(kSelectLimit)      \
+  V(kLimitClause)      \
+  V(kParseToplevel)      \
+  V(kStmtmulti)      \
+  V(kRoutineBodyStmtList)      \
+  V(kOptTableElementList)      \
+  V(kTableElementList)      \
+  V(kOptInherit)      \
+  V(kDefinition)      \
+  V(kOptTypedTableElementList)      \
+  V(kTypedTableElementList)      \
+  V(kReloptions)      \
+  V(kOptReloptions)      \
+  V(kOptWith)      \
+  V(kOptDefinition)      \
+  V(kFuncArgs)      \
+  V(kFuncArgsList)      \
+  V(kFuncArgsWithDefaults)      \
+  V(kFuncArgsWithDefaultsList)      \
+  V(kAggrArgs)      \
+  V(kAggrArgsList)      \
+  V(kFuncAs)      \
+  V(kCreatefuncOptList)      \
+  V(kOptCreatefuncOptList)      \
+  V(kAlterfuncOptList)      \
+  V(kOldAggrDefinition)      \
+  V(kOldAggrList)      \
+  V(kOperArgtypes)      \
+  V(kRuleActionList)      \
+  V(kRuleActionMulti)      \
+  V(kOptColumnList)      \
+  V(kColumnList)      \
+  V(kOptNameList)      \
+  V(kSortClause)      \
+  V(kOptSortClause)      \
+  V(kSortbyList)      \
+  V(kIndexParams)      \
+  V(kStatsParams)      \
+  V(kOptInclude)      \
+  V(kOptCInclude)      \
+  V(kIndexIncludingParams)      \
+  V(kNameList)      \
+  V(kRoleList)      \
+  V(kFromClause)      \
+  V(kFromList)      \
+  V(kOptArrayBounds)      \
+  V(kQualifiedNameList)      \
+  V(kAnyName)      \
+  V(kAnyNameList)      \
+  V(kTypeNameList)      \
+  V(kAnyOperator)      \
+  V(kExprList)      \
+  V(kAttrs)      \
+  V(kDistinctClause)      \
+  V(kOptDistinctClause)      \
+  V(kTargetList)      \
+  V(kOptTargetList)      \
+  V(kInsertColumnList)      \
+  V(kSetTargetList)      \
+  V(kSetClauseList)      \
+  V(kSetClause)      \
+  V(kDefList)      \
+  V(kOperatorDefList)      \
+  V(kIndirection)      \
+  V(kOptIndirection)      \
+  V(kReloptionList)      \
+  V(kTriggerFuncArgs)      \
+  V(kOpclassItemList)      \
+  V(kOpclassDropList)      \
+  V(kOpclassPurpose)      \
+  V(kOptOpfamily)      \
+  V(kTransactionModeListOrEmpty)      \
+  V(kOptTableFuncElementList)      \
+  V(kTableFuncElementList)      \
+  V(kOptTypeModifiers)      \
+  V(kPrepTypeClause)      \
+  V(kExecuteParamClause)      \
+  V(kUsingClause)      \
+  V(kReturningClause)      \
+  V(kOptEnumValList)      \
+  V(kEnumValList)      \
+  V(kTableFuncColumnList)      \
+  V(kCreateGenericOptions)      \
+  V(kAlterGenericOptions)      \
+  V(kRelationExprList)      \
+  V(kDostmtOptList)      \
+  V(kTransformElementList)      \
+  V(kTransformTypeList)      \
+  V(kTriggerTransitions)      \
+  V(kTriggerReferencing)      \
+  V(kVacuumRelationList)      \
+  V(kOptVacuumRelationList)      \
+  V(kDropOptionList)      \
+  V(kOptRoutineBody)      \
+  V(kGroupClause)      \
+  V(kGroupByList)      \
+  V(kGroupByItem)      \
+  V(kEmptyGroupingSet)      \
+  V(kRollupClause)      \
+  V(kCubeClause)      \
+  V(kGroupingSetsClause)      \
+  V(kOptPublicationForTables)      \
+  V(kPublicationForTables)      \
+  V(kOptFdwOptions)      \
+  V(kFdwOptions)      \
+  V(kFdwOption)      \
+  V(kOptTempTableName)      \
+  V(kIntoClause)      \
+  V(kCreateAsTarget)      \
+  V(kCreateMvTarget)      \
+  V(kCreatefuncOptItem)      \
+  V(kCommonFuncOptItem)      \
+  V(kDostmtOptItem)      \
+  V(kFuncArg)      \
+  V(kFuncArgWithDefault)      \
+  V(kTableFuncColumn)      \
+  V(kAggrArg)      \
+  V(kArgClass)      \
+  V(kFuncReturn)      \
+  V(kFuncType)      \
+  V(kOptTrusted)      \
+  V(kOptRestartSeqs)      \
+  V(kOptTemp)      \
+  V(kOptNoLog)      \
+  V(kOnCommitOption)      \
+  V(kForLockingStrength)      \
+  V(kForLockingItem)      \
+  V(kForLockingClause)      \
+  V(kOptForLockingClause)      \
+  V(kForLockingItems)      \
+  V(kLockedRelsList)      \
+  V(kSetQuantifier)      \
+  V(kJoinQual)      \
+  V(kJoinType)      \
+  V(kExtractList)      \
+  V(kOverlayList)      \
+  V(kPositionList)      \
+  V(kSubstrList)      \
+  V(kTrimList)      \
+  V(kOptInterval)      \
+  V(kIntervalSecond)      \
+  V(kUnicodeNormalForm)      \
+  V(kOptInstead)      \
+  V(kOptUnique)      \
+  V(kOptConcurrently)      \
+  V(kOptVerbose)      \
+  V(kOptFull)      \
+  V(kOptFreeze)      \
+  V(kOptAnalyze)      \
+  V(kOptDefault)      \
+  V(kOptRecheck)      \
+  V(kOptBinary)      \
+  V(kCopyDelimiter)      \
+  V(kCopyFrom)      \
+  V(kOptProgram)      \
+  V(kEvent)      \
+  V(kCursorOptions)      \
+  V(kOptHold)      \
+  V(kOptSetData)      \
+  V(kObjectTypeAnyName)      \
+  V(kObjectTypeName)      \
+  V(kObjectTypeNameOnAnyName)      \
+  V(kDropTypeName)      \
+  V(kFetchArgs)      \
+  V(kSelectLimitValue)      \
+  V(kOffsetClause)      \
+  V(kSelectOffsetValue)      \
+  V(kSelectFetchFirstValue)      \
+  V(kIOrFConst)      \
+  V(kRowOrRows)      \
+  V(kFirstOrNext)      \
+  V(kOptSeqOptList)      \
+  V(kSeqOptList)      \
+  V(kOptParenthesizedSeqOptList)      \
+  V(kSeqOptElem)      \
+  V(kInsertRest)      \
+  V(kOptConfExpr)      \
+  V(kOptOnConflict)      \
+  V(kGenericSet)      \
+  V(kSetRest)      \
+  V(kSetRestMore)      \
+  V(kGenericReset)      \
+  V(kResetRest)      \
+  V(kSetResetClause)      \
+  V(kFunctionSetResetClause)      \
+  V(kTableElement)      \
+  V(kTypedTableElement)      \
+  V(kConstraintElem)      \
+  V(kTableFuncElement)      \
+  V(kColumnDef)      \
+  V(kColumnOptions)      \
+  V(kDefElem)      \
+  V(kReloptionElem)      \
+  V(kOldAggrElem)      \
+  V(kOperatorDefElem)      \
+  V(kDefArg)      \
+  V(kColumnElem)      \
+  V(kWhereClause)      \
+  V(kWhereOrCurrentClause)      \
+  V(kAExpr)      \
+  V(kBExpr)      \
+  V(kCExpr)      \
+  V(kAexprConst)      \
+  V(kIndirectionEl)      \
+  V(kOptSliceBound)      \
+  V(kColumnref)      \
+  V(kInExpr)      \
+  V(kHavingClause)      \
+  V(kFuncTable)      \
+  V(kXmltable)      \
+  V(kArrayExpr)      \
+  V(kOptWhereClause)      \
+  V(kOperatorDefArg)      \
+  V(kRowsfromItem)      \
+  V(kRowsfromList)      \
+  V(kOptColDefList)      \
+  V(kOptOrdinality)      \
+  V(kExclusionConstraintList)      \
+  V(kExclusionConstraintElem)      \
+  V(kFuncArgList)      \
+  V(kFuncArgListOpt)      \
+  V(kFuncArgExpr)      \
+  V(kRow)      \
+  V(kExplicitRow)      \
+  V(kImplicitRow)      \
+  V(kTypeList)      \
+  V(kArrayExprList)      \
+  V(kCaseExpr)      \
+  V(kCaseArg)      \
+  V(kWhenClause)      \
+  V(kCaseDefault)      \
+  V(kWhenClauseList)      \
+  V(kOptSearchClause)      \
+  V(kOptCycleClause)      \
+  V(kSubType)      \
+  V(kOptMaterialized)      \
+  V(kNumericOnly)      \
+  V(kNumericOnlyList)      \
+  V(kAliasClause)      \
+  V(kOptAliasClause)      \
+  V(kOptAliasClauseForJoinUsing)      \
+  V(kFuncAliasClause)      \
+  V(kSortby)      \
+  V(kIndexElem)      \
+  V(kIndexElemOptions)      \
+  V(kStatsParam)      \
+  V(kTableRef)      \
+  V(kJoinedTable)      \
+  V(kRelationExpr)      \
+  V(kRelationExprOptAlias)      \
+  V(kTablesampleClause)      \
+  V(kOptRepeatableClause)      \
+  V(kTargetEl)      \
+  V(kSetTarget)      \
+  V(kInsertColumnItem)      \
+  V(kGenericOptionName)      \
+  V(kGenericOptionArg)      \
+  V(kGenericOptionElem)      \
+  V(kAlterGenericOptionElem)      \
+  V(kGenericOptionList)      \
+  V(kAlterGenericOptionList)      \
+  V(kReindexTargetType)      \
+  V(kReindexTargetMultitable)      \
+  V(kCopyGenericOptArg)      \
+  V(kCopyGenericOptArgListItem)      \
+  V(kCopyGenericOptElem)      \
+  V(kCopyGenericOptList)      \
+  V(kCopyGenericOptArgList)      \
+  V(kCopyOptions)      \
+  V(kTypename)      \
+  V(kSimpleTypename)      \
+  V(kConstTypename)      \
+  V(kGenericType)      \
+  V(kNumeric)      \
+  V(kOptFloat)      \
+  V(kConstCharacter)      \
+  V(kCharacterWithLength)      \
+  V(kCharacterWithoutLength)      \
+  V(kConstDatetime)      \
+  V(kConstInterval)      \
+  V(kBit)      \
+  V(kConstBit)      \
+  V(kBitWithLength)      \
+  V(kBitWithoutLength)      \
+  V(kCharacter)      \
+  V(kExtractArg)      \
+  V(kOptVarying)      \
+  V(kOptTimezone)      \
+  V(kOptNoInherit)      \
+  V(kIconst)      \
+  V(kSignedIconst)      \
+  V(kSconst)      \
+  V(kCommentText)      \
+  V(kNotifyPayload)      \
+  V(kRoleId)      \
+  V(kOptBooleanOrString)      \
+  V(kVarList)      \
+  V(kColId)      \
+  V(kColLabel)      \
+  V(kBareColLabel)      \
+  V(kNonReservedWord)      \
+  V(kNonReservedWordOrSconst)      \
+  V(kVarName)      \
+  V(kTypeFunctionName)      \
+  V(kParamName)      \
+  V(kCreatedbOptName)      \
+  V(kPlassignTarget)      \
+  V(kVarValue)      \
+  V(kZoneValue)      \
+  V(kAuthIdent)      \
+  V(kRoleSpec)      \
+  V(kOptGrantedBy)      \
+  V(kUnreservedKeyword)      \
+  V(kTypeFuncNameKeyword)      \
+  V(kColNameKeyword)      \
+  V(kReservedKeyword)      \
+  V(kBareLabelKeyword)      \
+  V(kTableConstraint)      \
+  V(kTableLikeClause)      \
+  V(kTableLikeOptionList)      \
+  V(kTableLikeOption)      \
+  V(kColumnCompression)      \
+  V(kOptColumnCompression)      \
+  V(kColQualList)      \
+  V(kColConstraint)      \
+  V(kColConstraintElem)      \
+  V(kConstraintAttr)      \
+  V(kKeyActions)      \
+  V(kKeyDelete)      \
+  V(kKeyMatch)      \
+  V(kKeyUpdate)      \
+  V(kKeyAction)      \
+  V(kConstraintAttributeSpec)      \
+  V(kConstraintAttributeElem)      \
+  V(kExistingIndex)      \
+  V(kConstraintsSetList)      \
+  V(kConstraintsSetMode)      \
+  V(kOptTableSpace)      \
+  V(kOptConsTableSpace)      \
+  V(kOptTableSpaceOwner)      \
+  V(kOptCheckOption)      \
+  V(kOptProvider)      \
+  V(kSecurityLabel)      \
+  V(kXmlAttributeEl)      \
+  V(kXmlAttributeList)      \
+  V(kXmlAttributes)      \
+  V(kXmlRootVersion)      \
+  V(kOptXmlRootStandalone)      \
+  V(kXmlexistsArgument)      \
+  V(kDocumentOrContent)      \
+  V(kXmlWhitespaceOption)      \
+  V(kXmltableColumnList)      \
+  V(kXmltableColumnOptionList)      \
+  V(kXmltableColumnEl)      \
+  V(kXmltableColumnOptionEl)      \
+  V(kXmlNamespaceList)      \
+  V(kXmlNamespaceEl)      \
+  V(kFuncApplication)      \
+  V(kFuncExprCommonSubexpr)      \
+  V(kFuncExpr)      \
+  V(kFuncExprWindowless)      \
+  V(kCommonTableExpr)      \
+  V(kWithClause)      \
+  V(kOptWithClause)      \
+  V(kCteList)      \
+  V(kWithinGroupClause)      \
+  V(kFilterClause)      \
+  V(kWindowClause)      \
+  V(kWindowDefinitionList)      \
+  V(kOptPartitionClause)      \
+  V(kWindowDefinition)      \
+  V(kOverClause)      \
+  V(kWindowSpecification)      \
+  V(kOptFrameClause)      \
+  V(kFrameExtent)      \
+  V(kFrameBound)      \
+  V(kOptWindowExclusionClause)      \
+  V(kOptExistingWindowName)      \
+  V(kOptIfNotExists)      \
+  V(kGeneratedWhen)      \
+  V(kOverrideKind)      \
+  V(kPartitionSpec)      \
+  V(kOptPartitionSpec)      \
+  V(kPartElem)      \
+  V(kPartParams)      \
+  V(kPartitionBoundSpec)      \
+  V(kHashPartbound)      \
+  V(kHashPartboundElem)      \
+  \
+  \
+  \
+  \
+  \
   /* Keep the old one to ensure compatibility first. Will remove below later. */  \
   V(kProgram)                                                                  \
   V(kStmtlist)                                                                 \
-  V(kCreateStmt)                                                               \
-  V(kDropStmt)                                                                 \
   V(kAlterStmt)                                                                \
   V(kAlterIndexStmt)                                                           \
-  V(kAlterGroupStmt)                                                           \
   V(kSelectClauseList)                                                         \
-  V(kSelectClause)                                                             \
   V(kCombineClause)                                                            \
   V(kOptFromClause)                                                            \
   V(kSelectTarget)                                                             \
   V(kOptWindowClause)                                                          \
-  V(kWindowClause)                                                             \
   V(kWindowDefList)                                                            \
   V(kWindowDef)                                                                \
   V(kWindowName)                                                               \
   V(kWindow)                                                                   \
   V(kOptPartition)                                                             \
-  V(kOptFrameClause)                                                           \
   V(kRangeOrRows)                                                              \
   V(kFrameBoundStart)                                                          \
   V(kFrameBoundEnd)                                                            \
-  V(kFrameBound)                                                               \
   V(kOptFrameExclude)                                                          \
   V(kFrameExclude)                                                             \
   V(kOptExistWindowName)                                                       \
   V(kOptGroupClause)                                                           \
   V(kOptHavingClause)                                                          \
-  V(kOptWhereClause)                                                           \
-  V(kWhereClause)                                                              \
-  V(kFromClause)                                                               \
-  V(kTableRef)                                                                 \
   V(kOptOnOrUsing)                                                             \
   V(kOnOrUsing)                                                                \
   V(kColumnNameList)                                                           \
   V(kOptTablePrefix)                                                           \
   V(kJoinOp)                                                                   \
   V(kOptJoinType)                                                              \
-  V(kExprList)                                                                 \
   V(kOptLimitClause)                                                           \
-  V(kLimitClause)                                                              \
   V(kOptOrderClause)                                                           \
   V(kOptOrderNulls)                                                            \
   V(kOrderItemList)                                                            \
   V(kOrderItem)                                                                \
   V(kOptOrderBehavior)                                                         \
-  V(kOptWithClause)                                                            \
-  V(kCteList)                                                                  \
   V(kCteTableName)                                                             \
   V(kOptAllOrDistinct)                                                         \
   V(kCreateTableStmt)                                                          \
@@ -69,28 +705,17 @@
   V(kDropIndexStmt)                                                            \
   V(kDropTableStmt)                                                            \
   V(kDropViewStmt)                                                             \
-  V(kInsertStmt)                                                               \
-  V(kInsertTarget)                                                             \
   V(kInsertQuery)                                                              \
   V(kValuesDefaultClause)                                                      \
   V(kExprDefaultListWithParens)                                                \
   V(kExprDefaultList)                                                                             \
-  V(kOverrideKind)                                                             \
-  V(kReturningClause)                                                          \
-  V(kTargetList)                                                               \
-  V(kTargetEl)                                                                 \
-  V(kInsertRest)                                                               \
   V(kSuperValuesList)                                                          \
   V(kValuesList)                                                               \
-  V(kOptOnConflict)                                                            \
   V(kOptConflictExpr)                                                          \
   V(kIndexedColumnList)                                                        \
   V(kIndexedColumn)                                                            \
-  V(kUpdateStmt)                                                               \
-  V(kReindexStmt)                                                              \
   V(kAlterAction)                                                              \
   V(kColumnDefList)                                                            \
-  V(kColumnDef)                                                                \
   V(kOptColumnConstraintList)                                                  \
   V(kColumnConstraintList)                                                     \
   V(kColumnConstraint)                                                         \
@@ -98,15 +723,10 @@
   V(kForeignClause)                                                            \
   V(kOptForeignKeyActions)                                                     \
   V(kForeignKeyActions)                                                        \
-  V(kKeyActions)                                                               \
   V(kOptConstraintAttributeSpec)                                               \
   V(kOptInitialTime)                                                           \
   V(kConstraintName)                                                           \
-  V(kOptTemp)                                                                  \
-  V(kOptCheckOption)                                                           \
   V(kOptColumnNameListP)                                                       \
-  V(kSetClauseList)                                                            \
-  V(kSetClause)                                                                \
   V(kExpr)                                                                     \
   V(kOperand)                                                                  \
   V(kCastExpr)                                                                 \
@@ -117,8 +737,6 @@
   V(kUnaryExpr)                                                                \
   V(kBinaryExpr)                                                               \
   V(kLogicExpr)                                                                \
-  V(kInExpr)                                                                   \
-  V(kCaseExpr)                                                                 \
   V(kBetweenExpr)                                                              \
   V(kExistsExpr)                                                               \
   V(kCaseList)                                                                 \
@@ -139,7 +757,6 @@
   V(kIdentifier)                                                               \
   V(kTableName)                                                                \
   V(kColumnName)                                                               \
-  V(kOptUnique)                                                                \
   V(kViewName)                                                                 \
   V(kIndexName)                                                                \
   V(kTablespaceName)                                                           \
@@ -149,29 +766,18 @@
   V(kIndexStorageParameter)                                                    \
   V(kBinaryOp)                                                                 \
   V(kOptNot)                                                                   \
-  V(kName)                                                                     \
   V(kTypeName)                                                                 \
   V(kCharacterType)                                                            \
-  V(kCharacterWithLength)                                                      \
-  V(kCharacterWithoutLength)                                                   \
   V(kCharacterConflicta)                                                       \
-  V(kOptVarying)                                                               \
   V(kNumericType)                                                              \
   V(kOptTableConstraintList)                                                   \
   V(kTableConstraintList)                                                      \
-  V(kTableConstraint)                                                          \
   V(kUnknown)                                                                  \
   V(kEmpty)                                                                    \
   V(kOptAlias)                                                                 \
-  V(kFuncExpr)                                                                 \
-  V(kFuncName)                                                                 \
-  V(kFuncArgs)                                                                 \
   V(kOptSemi)                                                                  \
-  V(kOptNo)                                                                    \
-  V(kOptNowait)                                                                \
   V(kOptOwnedby)                                                               \
   V(kOnOffLiteral)                                                             \
-  V(kOptConcurrently)                                                          \
   V(kOptIfNotExistIndex)                                                       \
   V(kOptOnly)                                                                  \
   V(kOptUsingMethod)                                                           \
@@ -181,7 +787,6 @@
   V(kPredicateName)                                                            \
   V(kOptWithIndexStorageParameterList)                                         \
   V(kOptIncludeColumnNameList)                                                 \
-  V(kOptCollate)                                                               \
   V(kCollationName)                                                            \
   V(kOptColumnOrExpr)                                                          \
   V(kIndexedCreateIndexRestStmtList)                                           \
@@ -204,32 +809,14 @@
   V(kGroupNameList)                                                            \
   V(kValuesStmt)                                                            \
   V(kExprListWithParens)                                                            \
-  V(kCommonTableExpr)                                                            \
   V(kOptTable)                                                            \
-  V(kIntoClause)                                                            \
   V(kAllorDistinct)                                                            \
-  V(kDistinctClause)                                                           \
-  V(kOptTempTableName)                                                           \
-  V(kOptMaterialized)                                                           \
-  V(kWithClause)                                                           \
-  V(kHavingClause)                                                           \
   V(kOptAllClause)                                                           \
-  V(kGroupClause)                                                           \
   V(kOptSelectTarget)                                                           \
-  V(kSimpleSelect)                                                           \
-  V(kRelationExpr)                                                           \
   V(kOrderClause)                                                           \
-  V(kSelectLimit)                                                           \
-  V(kOptSelectLimit)                                                           \
-  V(kForLockingStrength)                                                        \
-  V(kLockedRelsList)                                                        \
   V(kTableNameList)                                                        \
   V(kOptNoWaitorSkip)                                                        \
-  V(kForLockingItem)                                                        \
-  V(kForLockingClause)                                                        \
   V(kForLockingItemList)                                                        \
-  V(kOptForLockingClause)                                                        \
-  V(kPreparableStmt)                                                           \
   V(kAlterViewStmt)                                                            \
   V(kAlterViewAction)                                                          \
   V(kOwnerSpecification)                                                       \
@@ -245,21 +832,16 @@
   V(kReindexOption)                                                             \
   V(kDatabaseName)                                                              \
   V(kSystemName)                                                                \
-  V(kCreateGroupStmt)                                                          \
   V(kOptWithOptionList)                                                        \
-  V(kOptWith)                                                                  \
   V(kOptionList)                                                               \
   V(kOption)                                                                   \
   V(kRoleNameList)                                                             \
   V(kOptEncrypted)                                                             \
   V(kViewNameList)                                                             \
-  V(kOptOrReplace)                                                             \
   V(kOptTempToken)                                                             \
   V(kOptRecursive)                                                             \
   V(kOptWithViewOptionList)                                                    \
   V(kCreateTableAsStmt)                                                        \
-  V(kCreateAsTarget)                                                           \
-  V(kTableAccessMethodClause)                                                  \
   V(kOptWithStorageParameterList)                                              \
   V(kAlterTblspcStmt)                                                          \
   V(kIndexOptTablespaceOptionList)                                             \
@@ -269,72 +851,9 @@
   V(kTablespaceOptionValue)                                             \
   V(kAlterConversionStmt)                                                       \
   V(kConversionName)                                                            \
-  V(kOptWithData)                                                              \
-  V(kUnreservedKeyword) \
-  V(kReservedKeyword) \
-  V(kColNameKeyword) \
-  V(kTypeFuncNameKeyword) \
-  V(kColId) \
-  V(kTypeFunctionName) \
-  V(kNonReservedWord) \
-  V(kColLabel) \
-  V(kAttrs) \
-  V(kAttrName) \
-  V(kAnyName) \
-  V(kAnyNameList) \
-  V(kOptTableElementList) \
-  V(kOptTypedTableElementList) \
-  V(kTableElementList) \
-  V(kTypedTableElementList) \
-  V(kTableElement) \
-  V(kTypedTableElement) \
-  V(kTableLikeClause) \
-  V(kTableLikeOptionList) \
-  V(kTableLikeOption) \
-  V(kColumnOptions) \
-  V(kColQualList) \
-  V(kColConstraint) \
-  V(kColConstraintElem) \
-  V(kGeneratedWhen) \
-  V(kConstraintAttr) \
-  V(kKeyMatch) \
-  V(kOptInherit) \
-  V(kOptNoInherit) \
-  V(kOptColumnList) \
-  V(kColumnList) \
-  V(kColumnElem) \
-  V(kOptPartitionSpec) \
-  V(kPartitionSpec) \
-  V(kPartParams) \
-  V(kPartElem) \
   V(kOptWithReplotions) \
-  V(kOnCommitOption) \
-  V(kOptTableSpace) \
-  V(kOptConsTableSpace) \
-  V(kExistingIndex) \
-  V(kPartitionBoundSpec) \
-  V(kHashPartboundElem) \
-  V(kHashPartbound) \
-  V(kOptDefinition) \
-  V(kDefinition) \
-  V(kDefList) \
-  V(kDefElem) \
-  V(kDefArg) \
-  V(kIconst) \
-  V(kSconst) \
-  V(kSignedIconst) \
-  V(kFuncType) \
   V(kOptBy) \
-  V(kNumericOnly) \
-  V(kNumericOnlyList) \
-  V(kOptParenthesizedSeqOptList) \
-  V(kSeqOptList) \
-  V(kSeqOptElem) \
-  V(kReloptions) \
-  V(kOptReloptions) \
-  V(kReloptionList) \
-  V(kReloptionElem) \
-  V(kOptClass)                                                                  \
+ 
 
 #define ALLDATATYPE(V)                                                         \
   V(DataWhatever)                                                              \

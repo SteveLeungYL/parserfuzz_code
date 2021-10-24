@@ -770,12 +770,12 @@ stmtmulti:	stmtmulti ';' toplevel_stmt
 			{
 				IR* tmp1 = $1;
 				IR* tmp2 = $3;
-				$$ = new IR(kStmtMulti, OP3("", ";", ""), tmp1, tmp2);				
+				$$ = new IR(kStmtmulti, OP3("", ";", ""), tmp1, tmp2);				
 			}
 
 			| toplevel_stmt {
 				IR* tmp1 = $1;
-				$$ = new IR(kStmtMulti, OP0(), tmp1);
+				$$ = new IR(kStmtmulti, OP0(), tmp1);
 			}
 		;
 
