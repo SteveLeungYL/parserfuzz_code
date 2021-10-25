@@ -274,14 +274,12 @@ AlterOptRoleElem:
 				{
 					$$ = makeDefElem("validUntil", (Node *)makeString($3), @1);
 				}
-		/*	Supported but not documented for roles, for use by ALTER GROUP. */
 			| USER role_list
 			| IDENT
 		;
 
 CreateOptRoleElem:
 			AlterOptRoleElem			{ $$ = $1; }
-			/* The following are not supported by ALTER ROLE/USER/GROUP */
 			| SYSID Iconst
 				{
 					$$ = makeDefElem("sysid", (Node *)makeInteger($2), @1);
@@ -657,7 +655,7 @@ generic_set:
 				}
 		;
 
-set_rest_more:	/* Generic SET syntaxes: */
+set_rest_more:
 			generic_set							{$$ = $1;}
 			| var_name FROM CURRENT_P
 				{
@@ -772,11 +770,6 @@ opt_boolean_or_string:
 			TRUE_P									{ $$ = "true"; }
 			| FALSE_P								{ $$ = "false"; }
 			| ON									{ $$ = "on"; }
-			/*
-			 * OFF is also accepted as a boolean value, but is handled by
-			 * the NonReservedWord rule.  The action for booleans and strings
-			 * is the same, so we don't need to distinguish them here.
-			 */
 			| NonReservedWord_or_Sconst				{ $$ = $1; }
 		;
 
@@ -1248,7 +1241,6 @@ partition_cmd:
 		;
 
 index_partition_cmd:
-			/* ALTER INDEX <name> ATTACH PARTITION <index_name> */
 			ATTACH PARTITION qualified_name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1265,7 +1257,6 @@ index_partition_cmd:
 		;
 
 alter_table_cmd:
-			/* ALTER TABLE <name> ADD <coldef> */
 			ADD_P columnDef
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1274,7 +1265,6 @@ alter_table_cmd:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ADD IF NOT EXISTS <coldef> */
 			| ADD_P IF_P NOT EXISTS columnDef
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1283,7 +1273,6 @@ alter_table_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ADD COLUMN <coldef> */
 			| ADD_P COLUMN columnDef
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1292,7 +1281,6 @@ alter_table_cmd:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ADD COLUMN IF NOT EXISTS <coldef> */
 			| ADD_P COLUMN IF_P NOT EXISTS columnDef
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1301,7 +1289,6 @@ alter_table_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> {SET DEFAULT <expr>|DROP DEFAULT} */
 			| ALTER opt_column ColId alter_column_default
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1310,7 +1297,6 @@ alter_table_cmd:
 					n->def = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> DROP NOT NULL */
 			| ALTER opt_column ColId DROP NOT NULL_P
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1318,7 +1304,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> SET NOT NULL */
 			| ALTER opt_column ColId SET NOT NULL_P
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1326,7 +1311,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> DROP EXPRESSION */
 			| ALTER opt_column ColId DROP EXPRESSION
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1334,7 +1318,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> DROP EXPRESSION IF EXISTS */
 			| ALTER opt_column ColId DROP EXPRESSION IF_P EXISTS
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1343,7 +1326,6 @@ alter_table_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> SET STATISTICS <SignedIconst> */
 			| ALTER opt_column ColId SET STATISTICS SignedIconst
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1352,7 +1334,6 @@ alter_table_cmd:
 					n->def = (Node *) makeInteger($6);
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colnum> SET STATISTICS <SignedIconst> */
 			| ALTER opt_column Iconst SET STATISTICS SignedIconst
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1368,7 +1349,6 @@ alter_table_cmd:
 					n->def = (Node *) makeInteger($6);
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> SET ( column_parameter = value [, ... ] ) */
 			| ALTER opt_column ColId SET reloptions
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1377,7 +1357,6 @@ alter_table_cmd:
 					n->def = (Node *) $5;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> RESET ( column_parameter = value [, ... ] ) */
 			| ALTER opt_column ColId RESET reloptions
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1386,7 +1365,6 @@ alter_table_cmd:
 					n->def = (Node *) $5;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> SET STORAGE <storagemode> */
 			| ALTER opt_column ColId SET STORAGE ColId
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1395,7 +1373,6 @@ alter_table_cmd:
 					n->def = (Node *) makeString($6);
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> SET COMPRESSION <cm> */
 			| ALTER opt_column ColId SET column_compression
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1404,7 +1381,6 @@ alter_table_cmd:
 					n->def = (Node *) makeString($5);
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> ADD GENERATED ... AS IDENTITY ... */
 			| ALTER opt_column ColId ADD_P GENERATED generated_when AS IDENTITY_P OptParenthesizedSeqOptList
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1421,7 +1397,6 @@ alter_table_cmd:
 
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> SET <sequence options>/RESET */
 			| ALTER opt_column ColId alter_identity_column_option_list
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1430,7 +1405,6 @@ alter_table_cmd:
 					n->def = (Node *) $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> DROP IDENTITY */
 			| ALTER opt_column ColId DROP IDENTITY_P
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1439,7 +1413,6 @@ alter_table_cmd:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER [COLUMN] <colname> DROP IDENTITY IF EXISTS */
 			| ALTER opt_column ColId DROP IDENTITY_P IF_P EXISTS
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1448,7 +1421,6 @@ alter_table_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DROP [COLUMN] IF EXISTS <colname> [RESTRICT|CASCADE] */
 			| DROP opt_column IF_P EXISTS ColId opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1458,7 +1430,6 @@ alter_table_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DROP [COLUMN] <colname> [RESTRICT|CASCADE] */
 			| DROP opt_column ColId opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1468,10 +1439,6 @@ alter_table_cmd:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/*
-			 * ALTER TABLE <name> ALTER [COLUMN] <colname> [SET DATA] TYPE <typename>
-			 *		[ USING <expression> ]
-			 */
 			| ALTER opt_column ColId opt_set_data TYPE_P Typename opt_collate_clause alter_using
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1479,14 +1446,12 @@ alter_table_cmd:
 					n->subtype = AT_AlterColumnType;
 					n->name = $3;
 					n->def = (Node *) def;
-					/* We only use these fields of the ColumnDef node */
 					def->typeName = $6;
 					def->collClause = (CollateClause *) $7;
 					def->raw_default = $8;
 					def->location = @3;
 					$$ = (Node *)n;
 				}
-			/* ALTER FOREIGN TABLE <name> ALTER [COLUMN] <colname> OPTIONS */
 			| ALTER opt_column ColId alter_generic_options
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1495,7 +1460,6 @@ alter_table_cmd:
 					n->def = (Node *) $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ADD CONSTRAINT ... */
 			| ADD_P TableConstraint
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1503,7 +1467,6 @@ alter_table_cmd:
 					n->def = $2;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ALTER CONSTRAINT ... */
 			| ALTER CONSTRAINT name ConstraintAttributeSpec
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1518,7 +1481,6 @@ alter_table_cmd:
 									NULL, NULL, yyscanner);
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> VALIDATE CONSTRAINT ... */
 			| VALIDATE CONSTRAINT name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1526,7 +1488,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DROP CONSTRAINT IF EXISTS <name> [RESTRICT|CASCADE] */
 			| DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1536,7 +1497,6 @@ alter_table_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DROP CONSTRAINT <name> [RESTRICT|CASCADE] */
 			| DROP CONSTRAINT name opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1546,14 +1506,12 @@ alter_table_cmd:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> SET WITHOUT OIDS, for backward compat */
 			| SET WITHOUT OIDS
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DropOids;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> CLUSTER ON <indexname> */
 			| CLUSTER ON name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1561,7 +1519,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> SET WITHOUT CLUSTER */
 			| SET WITHOUT CLUSTER
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1569,21 +1526,18 @@ alter_table_cmd:
 					n->name = NULL;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> SET LOGGED */
 			| SET LOGGED
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_SetLogged;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> SET UNLOGGED */
 			| SET UNLOGGED
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_SetUnLogged;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE TRIGGER <trig> */
 			| ENABLE_P TRIGGER name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1591,7 +1545,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE ALWAYS TRIGGER <trig> */
 			| ENABLE_P ALWAYS TRIGGER name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1599,7 +1552,6 @@ alter_table_cmd:
 					n->name = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE REPLICA TRIGGER <trig> */
 			| ENABLE_P REPLICA TRIGGER name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1607,21 +1559,18 @@ alter_table_cmd:
 					n->name = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE TRIGGER ALL */
 			| ENABLE_P TRIGGER ALL
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_EnableTrigAll;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE TRIGGER USER */
 			| ENABLE_P TRIGGER USER
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_EnableTrigUser;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DISABLE TRIGGER <trig> */
 			| DISABLE_P TRIGGER name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1629,21 +1578,18 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DISABLE TRIGGER ALL */
 			| DISABLE_P TRIGGER ALL
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DisableTrigAll;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DISABLE TRIGGER USER */
 			| DISABLE_P TRIGGER USER
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DisableTrigUser;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE RULE <rule> */
 			| ENABLE_P RULE name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1651,7 +1597,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE ALWAYS RULE <rule> */
 			| ENABLE_P ALWAYS RULE name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1659,7 +1604,6 @@ alter_table_cmd:
 					n->name = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE REPLICA RULE <rule> */
 			| ENABLE_P REPLICA RULE name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1667,7 +1611,6 @@ alter_table_cmd:
 					n->name = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DISABLE RULE <rule> */
 			| DISABLE_P RULE name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1675,7 +1618,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> INHERIT <parent> */
 			| INHERIT qualified_name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1683,7 +1625,6 @@ alter_table_cmd:
 					n->def = (Node *) $2;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> NO INHERIT <parent> */
 			| NO INHERIT qualified_name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1691,7 +1632,6 @@ alter_table_cmd:
 					n->def = (Node *) $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> OF <type_name> */
 			| OF any_name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1701,14 +1641,12 @@ alter_table_cmd:
 					n->def = (Node *) def;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> NOT OF */
 			| NOT OF
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DropOf;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> OWNER TO RoleSpec */
 			| OWNER TO RoleSpec
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1716,7 +1654,6 @@ alter_table_cmd:
 					n->newowner = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> SET TABLESPACE <tablespacename> */
 			| SET TABLESPACE name
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1724,7 +1661,6 @@ alter_table_cmd:
 					n->name = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> SET (...) */
 			| SET reloptions
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1732,7 +1668,6 @@ alter_table_cmd:
 					n->def = (Node *)$2;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> RESET (...) */
 			| RESET reloptions
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1740,7 +1675,6 @@ alter_table_cmd:
 					n->def = (Node *)$2;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> REPLICA IDENTITY */
 			| REPLICA IDENTITY_P replica_identity
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1748,28 +1682,24 @@ alter_table_cmd:
 					n->def = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> ENABLE ROW LEVEL SECURITY */
 			| ENABLE_P ROW LEVEL SECURITY
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_EnableRowSecurity;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> DISABLE ROW LEVEL SECURITY */
 			| DISABLE_P ROW LEVEL SECURITY
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_DisableRowSecurity;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> FORCE ROW LEVEL SECURITY */
 			| FORCE ROW LEVEL SECURITY
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
 					n->subtype = AT_ForceRowSecurity;
 					$$ = (Node *)n;
 				}
-			/* ALTER TABLE <name> NO FORCE ROW LEVEL SECURITY */
 			| NO FORCE ROW LEVEL SECURITY
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1912,10 +1842,8 @@ alter_identity_column_option:
 		;
 
 PartitionBoundSpec:
-			/* a HASH partition */
 			FOR VALUES WITH '(' hash_partbound ')'
 			| FOR VALUES IN_P '(' expr_list ')'
-			/* a RANGE partition */
 			| FOR VALUES FROM '(' expr_list ')' TO '(' expr_list ')'
 				{
 					PartitionBoundSpec *n = makeNode(PartitionBoundSpec);
@@ -1928,8 +1856,6 @@ PartitionBoundSpec:
 
 					$$ = n;
 				}
-
-			/* a DEFAULT partition */
 			| DEFAULT
 				{
 					PartitionBoundSpec *n = makeNode(PartitionBoundSpec);
@@ -1985,7 +1911,6 @@ alter_type_cmds:
 		;
 
 alter_type_cmd:
-			/* ALTER TYPE <name> ADD ATTRIBUTE <coldef> [RESTRICT|CASCADE] */
 			ADD_P ATTRIBUTE TableFuncElement opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -1994,7 +1919,6 @@ alter_type_cmd:
 					n->behavior = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER TYPE <name> DROP ATTRIBUTE IF EXISTS <attname> [RESTRICT|CASCADE] */
 			| DROP ATTRIBUTE IF_P EXISTS ColId opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -2004,7 +1928,6 @@ alter_type_cmd:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER TYPE <name> DROP ATTRIBUTE <attname> [RESTRICT|CASCADE] */
 			| DROP ATTRIBUTE ColId opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -2014,7 +1937,6 @@ alter_type_cmd:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/* ALTER TYPE <name> ALTER ATTRIBUTE <attname> [SET DATA] TYPE <typename> [RESTRICT|CASCADE] */
 			| ALTER ATTRIBUTE ColId opt_set_data TYPE_P Typename opt_collate_clause opt_drop_behavior
 				{
 					AlterTableCmd *n = makeNode(AlterTableCmd);
@@ -2023,7 +1945,6 @@ alter_type_cmd:
 					n->name = $3;
 					n->def = (Node *) def;
 					n->behavior = $8;
-					/* We only use these fields of the ColumnDef node */
 					def->typeName = $6;
 					def->collClause = (CollateClause *) $7;
 					def->raw_default = NULL;
@@ -2984,7 +2905,6 @@ ExclusionConstraintElem: index_elem WITH any_operator
 			{
 				$$ = list_make2($1, $3);
 			}
-			/* allow OPERATOR() decoration for the benefit of ruleutils.c */
 			| index_elem WITH OPERATOR '(' any_operator ')'
 			{
 				$$ = list_make2($1, $5);
@@ -4498,14 +4418,6 @@ TransitionOldOrNew:
 
 TransitionRowOrTable:
 			TABLE									{ $$ = true; }
-			/*
-			 * According to the standard, lack of a keyword here implies ROW.
-			 * Support for that would require prohibiting ROW entirely here,
-			 * reserving the keyword ROW, and/or requiring AS (instead of
-			 * allowing it to be optional, as the standard specifies) as the
-			 * next token.  Requiring ROW seems cleanest and easiest to
-			 * explain.
-			 */
 			| ROW									{ $$ = false; }
 		;
 
@@ -6595,11 +6507,6 @@ function_with_argtypes:
 					n->objfuncargs = $2;
 					$$ = n;
 				}
-			/*
-			 * Because of reduce/reduce conflicts, we can't use func_name
-			 * below, but we can write it out the long way, which actually
-			 * allows more cases.
-			 */
 			| type_func_name_keyword
 				{
 					ObjectWithArgs *n = makeNode(ObjectWithArgs);
@@ -6850,7 +6757,6 @@ opt_createfunc_opt_list:
 	;
 
 createfunc_opt_list:
-			/* Must be at least one to prevent conflict */
 			createfunc_opt_item						{ $$ = list_make1($1); }
 			| createfunc_opt_list createfunc_opt_item { $$ = lappend($1, $2); }
 	;
@@ -7077,7 +6983,6 @@ AlterFunctionStmt:
 		;
 
 alterfunc_opt_list:
-			/* At least one option must be specified */
 			common_func_opt_item					{ $$ = list_make1($1); }
 			| alterfunc_opt_list common_func_opt_item { $$ = lappend($1, $2); }
 		;
@@ -7221,9 +7126,9 @@ oper_argtypes:
 				}
 			| '(' Typename ',' Typename ')'
 					{ $$ = list_make2($2, $4); }
-			| '(' NONE ',' Typename ')'					/* left unary */
+			| '(' NONE ',' Typename ')'	
 					{ $$ = list_make2(NULL, $4); }
-			| '(' Typename ',' NONE ')'					/* right unary */
+			| '(' Typename ',' NONE ')'	
 					{ $$ = list_make2($2, NULL); }
 		;
 
@@ -9420,7 +9325,6 @@ CreateDomainStmt:
 		;
 
 AlterDomainStmt:
-			/* ALTER DOMAIN <domain> {SET DEFAULT <expr>|DROP DEFAULT} */
 			ALTER DOMAIN_P any_name alter_column_default
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9429,7 +9333,6 @@ AlterDomainStmt:
 					n->def = $4;
 					$$ = (Node *)n;
 				}
-			/* ALTER DOMAIN <domain> DROP NOT NULL */
 			| ALTER DOMAIN_P any_name DROP NOT NULL_P
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9437,7 +9340,6 @@ AlterDomainStmt:
 					n->typeName = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER DOMAIN <domain> SET NOT NULL */
 			| ALTER DOMAIN_P any_name SET NOT NULL_P
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9445,7 +9347,6 @@ AlterDomainStmt:
 					n->typeName = $3;
 					$$ = (Node *)n;
 				}
-			/* ALTER DOMAIN <domain> ADD CONSTRAINT ... */
 			| ALTER DOMAIN_P any_name ADD_P TableConstraint
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9454,7 +9355,6 @@ AlterDomainStmt:
 					n->def = $5;
 					$$ = (Node *)n;
 				}
-			/* ALTER DOMAIN <domain> DROP CONSTRAINT <name> [RESTRICT|CASCADE] */
 			| ALTER DOMAIN_P any_name DROP CONSTRAINT name opt_drop_behavior
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9465,7 +9365,6 @@ AlterDomainStmt:
 					n->missing_ok = false;
 					$$ = (Node *)n;
 				}
-			/* ALTER DOMAIN <domain> DROP CONSTRAINT IF EXISTS <name> [RESTRICT|CASCADE] */
 			| ALTER DOMAIN_P any_name DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9476,7 +9375,6 @@ AlterDomainStmt:
 					n->missing_ok = true;
 					$$ = (Node *)n;
 				}
-			/* ALTER DOMAIN <domain> VALIDATE CONSTRAINT <name> */
 			| ALTER DOMAIN_P any_name VALIDATE CONSTRAINT name
 				{
 					AlterDomainStmt *n = makeNode(AlterDomainStmt);
@@ -9642,7 +9540,6 @@ ClusterStmt:
 						n->params = lappend(n->params, makeDefElem("verbose", NULL, @2));
 					$$ = (Node*)n;
 				}
-			/* kept for pre-8.3 compatibility */
 			| CLUSTER opt_verbose name ON qualified_name
 				{
 					ClusterStmt *n = makeNode(ClusterStmt);
@@ -9848,7 +9745,7 @@ ExplainableStmt:
 			| CreateAsStmt
 			| CreateMatViewStmt
 			| RefreshMatViewStmt
-			| ExecuteStmt					/* by default all are $$=$1 */
+			| ExecuteStmt					
 		;
 
 /*****************************************************************************
@@ -9876,7 +9773,7 @@ PreparableStmt:
 			SelectStmt
 			| InsertStmt
 			| UpdateStmt
-			| DeleteStmt					/* by default all are $$=$1 */
+			| DeleteStmt					
 		;
 
 /*****************************************************************************
@@ -11550,7 +11447,6 @@ Typename:	SimpleTypename opt_array_bounds
 					$$->arrayBounds = $3;
 					$$->setof = true;
 				}
-			/* SQL standard syntax, currently only one-dimensional */
 			| SimpleTypename ARRAY '[' Iconst ']'
 				{
 					$$ = $1;
@@ -13357,14 +13253,6 @@ subquery_Op:
 					{ $$ = list_make1(makeString("~~*")); }
 			| NOT_LA ILIKE
 					{ $$ = list_make1(makeString("!~~*")); }
-/* cannot put SIMILAR TO here, because SIMILAR TO is a hack.
- * the regular expression is preprocessed by a function (similar_to_escape),
- * and the ~ operator for posix regular expressions is used.
- *        x SIMILAR TO y     ->    x ~ similar_to_escape(y)
- * this transformation is made on the fly by the parser upwards.
- * however the SubLink structure which handles any/some/all stuff
- * is not ready for such a thing.
- */
 			;
 
 expr_list:	a_expr
@@ -13582,7 +13470,6 @@ case_expr:	CASE case_arg when_clause_list case_default END_P
 		;
 
 when_clause_list:
-			/* There must be at least one */
 			when_clause								{ $$ = list_make1($1); }
 			| when_clause_list when_clause			{ $$ = lappend($1, $2); }
 		;
