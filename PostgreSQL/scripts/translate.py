@@ -61,7 +61,7 @@ class Token(object):
         if self._is_keyword is not None:
             return self._is_keyword
 
-        if self.word.startswith("'") and self.word.endswith("'"):
+        if "'" in self.word:
             self._is_keyword = True
             return self._is_keyword
 
@@ -182,7 +182,7 @@ def translate_single_line(line, parent):
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"""res = new IR(kUnknown, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), res, tmp{tmp_num});""" + "\n"
             tmp_num += 1
-        elif right_token:
+        elif right_token and right_token.is_keyword == False:
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
             body += f"""res = new IR(kUnknown, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});""" + "\n"
