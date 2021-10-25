@@ -276,7 +276,7 @@ def translate_preprocessing(data):
 def translate(data):
 
     data = translate_preprocessing(data=data)
-    data = data.strip()
+    data = data.strip() + "\n"
 
     parent_element = data[:data.find(":")]
     logger.debug(f"Parent element: '{parent_element}'")
