@@ -105,7 +105,10 @@ def tokenize(line) -> List[Token]:
     words = [word for word in words if word]
     
     token_sequence = []
-    for idx, word in enumerate(words):            
+    for idx, word in enumerate(words):
+        if word == "%prec":
+            # ignore everything after %prec
+            break
         token_sequence.append(Token(word, idx))
         
     return token_sequence
