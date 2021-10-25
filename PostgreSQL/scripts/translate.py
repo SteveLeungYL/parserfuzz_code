@@ -261,7 +261,8 @@ def translate_preprocessing(data):
     """Remove all semicolon in the statement? """
     all_new_data_l = list(all_new_data)
     semi_loc = all_new_data.rfind(";", 1)
-    all_new_data_l[semi_loc] = ""
+    if semi_loc != -1:
+        all_new_data_l[semi_loc] = ""
     all_new_data = "".join(all_new_data_l)
 
     # all_new_data += ";"
