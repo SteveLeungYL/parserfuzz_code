@@ -180,7 +180,8 @@ def translate_single_line(line, parent):
 
 def find_first_alpha_index(data, start_index):
     for idx, c in enumerate(data[start_index:]):
-        if c.isalpha():
+        if c.isalpha() or \
+           c == "/" and data[start_index+idx+1] == "*":
             return start_index+idx
 
 def translate_preprocessing(data):

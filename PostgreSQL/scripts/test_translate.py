@@ -1061,11 +1061,63 @@ name:
 """
     _test(data, expect)
 
+def TestConstraintAttributeSpec():
+    data = """
+ConstraintAttributeSpec:
+			/*EMPTY*/
+				{ $$ = 0; }
+			| ConstraintAttributeSpec ConstraintAttributeElem
+				{
+					/*
+					 * We must complain about conflicting options.
+					 * We could, but choose not to, complain about redundant
+					 * options (ie, where $2's bit is already set in $1).
+					 */
+					int		newspec = $1 | $2;
+
+					/* special message for this case */
+					if ((newspec & (CAS_NOT_DEFERRABLE | CAS_INITIALLY_DEFERRED)) == (CAS_NOT_DEFERRABLE | CAS_INITIALLY_DEFERRED))
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("constraint declared INITIALLY DEFERRED must be DEFERRABLE"),
+								 parser_errposition(@2)));
+					/* generic message for other conflicts */
+					if ((newspec & (CAS_NOT_DEFERRABLE | CAS_DEFERRABLE)) == (CAS_NOT_DEFERRABLE | CAS_DEFERRABLE) ||
+						(newspec & (CAS_INITIALLY_IMMEDIATE | CAS_INITIALLY_DEFERRED)) == (CAS_INITIALLY_IMMEDIATE | CAS_INITIALLY_DEFERRED))
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("conflicting constraint properties"),
+								 parser_errposition(@2)));
+					$$ = newspec;
+				}
+		;    
+"""
+    expect = """
+ConstraintAttributeSpec:
+
+    /*EMPTY*/ {
+        res = new IR(kConstraintAttributeSpec, string(""));
+        $$ = res;
+    }
+
+    | ConstraintAttributeSpec ConstraintAttributeElem {
+        auto tmp1 = $1;
+        auto tmp2 = $2;
+        res = new IR(kConstraintAttributeSpec, OP3("", "", ""), tmp1, tmp2);
+        $$ = res;
+    }
+
+;
+"""
+    _test(data, expect)
+
 
 @click.command()
-def test():
-    logger.remove()
-    logger.add(sys.stderr, level="ERROR")
+@click.option("-p", "--print-output", is_flag=True, default=False)
+def test(print_output):
+    if not print_output:
+        logger.remove()
+        logger.add(sys.stderr, level="ERROR")
     
     try:
         TestDropSubscriptionStmt()
@@ -1075,6 +1127,7 @@ def test():
         TestOnlyKeywords()
         TestStmt()
         TestSingleLine()
+        TestConstraintAttributeSpec()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)
