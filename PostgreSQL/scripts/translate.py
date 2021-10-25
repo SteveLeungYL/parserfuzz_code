@@ -394,7 +394,7 @@ def mark_statement_location(data):
             continue
 
         if isinstance(k, str):
-            marked_lines.append(f"<{k.strip()}>")
+            marked_lines.append(f"=== {k.strip()} ===")
             continue
 
         if k:
@@ -425,7 +425,7 @@ def run(output, remove_comments):
     for token_name, extract_token in extract_tokens.items():
 
         translation = translate(extract_token)
-        marked_lines = marked_lines.replace(f"<{token_name}>", translation, 1)
+        marked_lines = marked_lines.replace(f"=== {token_name.strip()} ===", translation, 1)
 
     with open(output, "w") as f:
         f.write(marked_lines)
