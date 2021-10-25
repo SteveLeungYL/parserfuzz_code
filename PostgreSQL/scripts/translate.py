@@ -255,9 +255,17 @@ def translate_preprocessing(data):
         else:
             cur_data += " " + cur_line
 
-#    with open("draft.txt", "a") as f:
-#        for new_data in all_new_data:
-#            f.write(all_new_data)
+    """Remove all semicolon in the statement? """
+    all_new_data_l = list(all_new_data)
+    semi_loc = all_new_data.rfind(";", 1)
+    all_new_data_l[semi_loc] = ""
+    all_new_data = "".join(all_new_data_l)
+
+    # all_new_data += ";"
+    #
+    with open("draft.txt", "a") as f:
+        f.write('----------------\n')
+        f.write(all_new_data)
 
     return all_new_data
 
