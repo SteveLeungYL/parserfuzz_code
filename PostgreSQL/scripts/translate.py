@@ -1,6 +1,6 @@
 import os.path
 import sys
-
+import json
 import click
 from loguru import logger
 from typing import List
@@ -10,9 +10,6 @@ import re
 ONETAB = " "*4
 ONESPACE = " "
 
-keywords_mapping = {
-    "';'": "OP_SEMI"
-}
 
 custom_additional_keywords = set([
     "PASSWORD",
@@ -32,13 +29,20 @@ custom_additional_keywords = set([
     "UPDATE",
     "DELETE_P",
     "INSERT",
+    "%prec",
 ])
 
+with open("assets/keywords_mapping.json") as f:
+    keywords_mapping = json.load(f)
+
 total_keywords = set()
+with open("assets/keywords.json") as f:
+    total_keywords |= set(json.load(f))
 total_keywords |= custom_additional_keywords
-total_keywords |= set(keywords_mapping.keys())
 
 total_tokens = set()
+with open("assets/tokens.json") as f:
+    total_tokens |= set(json.load(f))
 
 class Token(object):
     
@@ -52,6 +56,10 @@ class Token(object):
         if self._is_keyword is not None:
             return self._is_keyword
 
+        if self.word.startswith("'") and self.word.endswith("'"):
+            self._is_keyword = True
+            return self._is_keyword
+
         self._is_keyword = self.word in total_keywords
         return self._is_keyword
 
@@ -59,11 +67,13 @@ class Token(object):
         if self.is_keyword:
             if self.word.startswith("'") and self.word.endswith("'"):
                 return self.word.strip("'")
+            if self.word in keywords_mapping:
+                return keywords_mapping[self.word]
 
         return self.word
 
     def __repr__(self) -> str:
-        return f'Token("{self.word}")'
+        return '{prefix}("{word}")'.format(prefix="Keyword" if self.is_keyword else "Token", word=self.word)
 
     def __gt__(self, other):
         other_index = -1
@@ -111,10 +121,6 @@ def repace_special_keyword_with_token(line):
     
     return " ".join(seq)        
 
-def recognize_tokens(token_sequence: List[Token]):    
-    for token in token_sequence:
-        if token.word in total_keywords:
-            token.is_keyword = True
 
 def prefix_tabs(text, tabs_num):
     result = []
@@ -129,18 +135,20 @@ def search_next_keyword(token_sequence, start_index):
     
     if start_index > len(token_sequence):
         return curr_token, left_keywords
-    
+
+    # found_token = False
     for idx in range(start_index, len(token_sequence)): 
         curr_token = token_sequence[idx]
         if curr_token.is_keyword:
             left_keywords.append(curr_token)
-        else: 
-            break 
+        else:
+            # found_token = True
+            break
+
     return curr_token, left_keywords
     
 def translate_single_line(line, parent):
     token_sequence = tokenize(line)
-    # recognize_tokens(token_sequence)
     
     i = 0
     tmp_num = 1
@@ -187,8 +195,8 @@ def translate_single_line(line, parent):
             need_more_ir = True
         else:
             pass
-        
-        
+
+
         compare_tokens = left_keywords + mid_keywords + right_keywords
         if left_token: compare_tokens.append(left_token)
         if right_token: compare_tokens.append(right_token)
@@ -304,6 +312,28 @@ def load_keywords_from_kwlist():
     kwlist_tokens = set([line.split()[1].strip(",") for line in keyword_data])
     total_keywords |= kwlist_tokens
 
+def load_keywords_mapping_from_kwlist():
+    global keywords_mapping
+
+    kwlist_path = "assets/kwlist.h"
+    with open(kwlist_path) as f:
+        keyword_data = f.read()
+
+    keyword_data = remove_comments_if_necessary(keyword_data, True)
+    keyword_data = keyword_data.splitlines()
+    keyword_data = [line.strip() for line in keyword_data]
+    keyword_data = [line for line in keyword_data if line.startswith("PG_KEYWORD")]
+
+    for line in keyword_data:
+        line = line[len('PG_KEYWORD("'):]
+        words = line.split(" ", 2)
+        kw_str = words[0].rstrip('",')
+        kw = words[1].rstrip(",")
+        keywords_mapping[kw] = kw_str
+
+    with open("assets/keywords_mapping.json", 'w') as f:
+        json.dump(keywords_mapping, f, indent=2, sort_keys=True)
+
 
 def get_gram_tokens():
     global total_tokens
@@ -337,6 +367,8 @@ def get_gram_tokens():
             gram_tokens.remove(elem)
 
     total_tokens |= gram_tokens
+    with open("assets/tokens.json", 'w') as f:
+        json.dump(list(total_tokens), f, indent=2, sort_keys=True)
 
 def get_gram_keywords():
     global total_keywords
@@ -361,7 +393,7 @@ def get_gram_keywords():
             line = line.split(" ", 1)[-1]
 
         line = line.strip()
-        gram_keywords|= set(line.split())
+        gram_keywords |= set(line.split())
     
     unwanted = ["", " "]
     for elem in unwanted:
@@ -369,6 +401,8 @@ def get_gram_keywords():
             gram_keywords.remove(elem)
 
     total_keywords |= gram_keywords
+    with open("assets/keywords.json", 'w') as f:
+        json.dump(list(total_keywords), f, indent=2, sort_keys=True)
     
         
 def remove_comments_if_necessary(text, need_remove):
@@ -474,13 +508,13 @@ def run(output, remove_comments):
     data = remove_comments_if_necessary(data, remove_comments)
     data = select_translate_region(data)
 
-    get_gram_tokens()
-    get_gram_keywords()
-    load_keywords_from_kwlist()
+    # load_keywords_from_kwlist()
+    load_keywords_mapping_from_kwlist()
+    # get_gram_tokens()
+    # get_gram_keywords()
 
     marked_lines, extract_tokens = mark_statement_location(data)
     for token_name, extract_token in extract_tokens.items():
-
         translation = translate(extract_token)
         marked_lines = marked_lines.replace(f"=== {token_name.strip()} ===", translation, 1)
 
