@@ -520,10 +520,10 @@ def mark_statement_location(data):
 @click.option("-o", "--output", default="bison_parser_2.y")
 @click.option("--remove-comments", is_flag=True, default=False)
 def run(output, remove_comments):
-    data = open("assets/gram.y", "r").read()
+    data = open("assets/parser_stmts.y", "r").read()
     
     data = remove_comments_if_necessary(data, remove_comments)
-    data = select_translate_region(data)
+    #data = select_translate_region(data)
 
     # load_keywords_from_kwlist()
     # load_keywords_mapping_from_kwlist()
