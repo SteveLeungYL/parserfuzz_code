@@ -219,14 +219,39 @@ def translate_preprocessing(data):
     """Remove original actions here. """
     data = re.sub('\{.*?\}', '', data, flags=re.S)
 
-    #
-    # TODO: merge multiple line into one line
-    #
-    return data
+    all_new_data = "" # not necessary. But it works now, no need to change. :-o
+    new_data = ""
+    cur_data = ""
+    all_lines = data.split('\n')
+    idx = -1
+    for cur_line in all_lines:
+        idx += 1
+        if ":" in cur_line and cur_data != "":
+            new_data += cur_data + "\n"
+            cur_data = " " + cur_line
+            all_new_data += new_data
+            new_data = ""
+        elif "|" in cur_line :
+            new_data += cur_data + "\n"
+            cur_data = " " + cur_line
+        elif cur_line == all_lines[-1]:
+            cur_data += " " + cur_line
+            new_data += cur_data + "\n"
+            all_new_data += new_data
+            new_data = ""
+        else:
+            cur_data += " " + cur_line
+
+#    with open("draft.txt", "a") as f:
+#        for new_data in all_new_data:
+#            f.write(all_new_data)
+
+    return all_new_data
+
 
 def translate(data):
 
-    data = translate_preprocessing(data)
+    data = translate_preprocessing(data=data)
     data = data.strip()
 
     parent_element = data[:data.find(":")]
