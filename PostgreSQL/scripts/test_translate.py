@@ -4152,6 +4152,7 @@ def test(print_output):
         TestOnlyMultipleKeywords()
         TestQualifiedNameList()
         TestMappingKeywords()
+        TestCExpr()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)
