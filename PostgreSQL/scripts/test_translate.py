@@ -1144,6 +1144,77 @@ event_trigger_when_item:
     _test(data, expect)
 
 
+def TestWhenClauseList():
+    data = """
+when_clause_list:
+			/* There must be at least one */
+			when_clause								{ $$ = list_make1($1); }
+			| when_clause_list when_clause			{ $$ = lappend($1, $2); }
+		;    
+"""
+    translate(data)
+#     FIXME:
+
+def TestOptCreatefuncOptList():
+    data = """
+opt_createfunc_opt_list:
+			createfunc_opt_list
+			| /*EMPTY*/ { $$ = NIL; }
+	;    
+"""
+    expect = """
+opt_createfunc_opt_list:
+
+    createfunc_opt_list {
+        auto tmp1 = $1;
+        res = new IR(kopt_createfunc_opt_list, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | /*EMPTY*/ {
+        res = new IR(kopt_createfunc_opt_list, string(""));
+        $$ = res;
+    }
+
+;    
+"""
+    _test(data, expect)
+
+def TestEvent():
+    data = """
+event:		SELECT									{ $$ = CMD_SELECT; }
+			| UPDATE								{ $$ = CMD_UPDATE; }
+			| DELETE_P								{ $$ = CMD_DELETE; }
+			| INSERT								{ $$ = CMD_INSERT; }
+		 ;
+"""
+    expect = """
+event:
+
+    SELECT {
+        res = new IR(kevent, string("SELECT"));
+        $$ = res;
+    }
+
+    | UPDATE {
+        res = new IR(kevent, string("UPDATE"));
+        $$ = res;
+    }
+
+    | DELETE_P {
+        res = new IR(kevent, string("DELETE_P"));
+        $$ = res;
+    }
+
+    | INSERT {
+        res = new IR(kevent, string("INSERT"));
+        $$ = res;
+    }
+
+;
+"""
+    _test(data, expect)
+
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
 def test(print_output):
@@ -1161,6 +1232,9 @@ def test(print_output):
         TestSingleLine()
         TestConstraintAttributeSpec()
         TestEventTriggerWhenItem()
+        TestWhenClauseList()
+        TestOptCreatefuncOptList()
+        TestEvent()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)

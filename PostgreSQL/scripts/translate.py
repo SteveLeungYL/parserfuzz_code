@@ -23,10 +23,15 @@ custom_additional_keywords = set([
     "IF_P",
     "EXISTS",
     "/*EMPTY*/",
+    "/* EMPTY */",
     "'('",
     "')'",
     "IN_P",
     "/* There must be at least one */",
+    "SELECT",
+    "UPDATE",
+    "DELETE_P",
+    "INSERT",
 ])
 
 total_keywords = set()
@@ -76,6 +81,11 @@ def camel_to_snake(word):
                else i for i in word]).lstrip('_')
 
 def tokenize(line) -> List[Token]:
+    line = line.strip()
+    if line.startswith("/*") and line.endswith("*/"):
+        # HACK for empty grammar eg. /* EMPTY */
+        return [Token(line, 0)]
+
     words = [word.strip() for word in line.split()]
     words = [word for word in words if word]
     
@@ -165,7 +175,8 @@ def translate_single_line(line, parent):
             need_more_ir = True
         elif left_token: 
             if not body and left_token.index == len(token_sequence)-1 and token_sequence[left_token.index].word in total_keywords: 
-                if left_keywords_str.replace(" ", "") == "/*EMPTY*/":
+                if left_keywords_str.startswith("/*") and left_keywords_str.endswith("*/"):
+                    # HACK for empty grammar eg. /* EMPTY */
                     left_keywords_str = ""
                 body += f"""res = new IR(kUnknown, string("{left_keywords_str}"));""" + "\n"
                 break
