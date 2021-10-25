@@ -1043,6 +1043,24 @@ stmt:
 """
     _test(data, expect)
 
+def TestSingleLine():
+
+    data = """
+name:		ColId									{ $$ = $1; };
+"""
+    expect = """
+name:
+
+    ColId {
+        auto tmp1 = $1;
+        res = new IR(kname, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+;
+"""
+    _test(data, expect)
+
 
 @click.command()
 def test():
@@ -1056,6 +1074,7 @@ def test():
         TestStmtMulti()
         TestOnlyKeywords()
         TestStmt()
+        TestSingleLine()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)

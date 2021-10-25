@@ -1,4 +1,6 @@
-import click 
+import sys
+
+import click
 from loguru import logger
 from typing import List
 import re
@@ -7,11 +9,11 @@ import re
 ONETAB = " "*4
 ONESPACE = " "
 
-tokens_mapping = {
+keywords_mapping = {
     "';'": "OP_SEMI"
 }
 
-total_tokens = set([
+custom_additional_keywords = set([
     "PASSWORD",
     "CREATE",
     "USER",
@@ -22,9 +24,11 @@ total_tokens = set([
     "/*EMPTY*/"
 ])
 
-total_tokens |= set(tokens_mapping.keys())
+total_keywords = set()
+total_keywords |= custom_additional_keywords
+total_keywords |= set(keywords_mapping.keys())
 
-
+total_tokens = set()
 
 class Token(object):
     
@@ -69,19 +73,19 @@ def repace_special_keyword_with_token(line):
     words = [word for word in words if word]
     
     seq = []
-    for word in line.split():
+    for word in words:
         word = word.strip() 
         if not word: 
             continue 
-        if word in tokens_mapping:
-            word = tokens_mapping[word] 
+        if word in keywords_mapping:
+            word = keywords_mapping[word] 
         seq.append(word)
     
     return " ".join(seq)        
 
 def recognize_tokens(token_sequence: List[Token]):    
     for token in token_sequence:
-        if token.word in total_tokens:
+        if token.word in total_keywords:
             token.is_keyword = True
 
 def prefix_tabs(text, tabs_num):
@@ -110,9 +114,7 @@ def translate_single_line(line, parent):
     token_sequence = tokenize(line)
     recognize_tokens(token_sequence)
     
-    left_keywords = []
     i = 0
-    
     tmp_num = 1
     body = ""
     need_more_ir = False
@@ -144,8 +146,8 @@ def translate_single_line(line, parent):
             tmp_num += 2
             need_more_ir = True
         elif left_token: 
-            if not body and left_token.index == len(token_sequence)-1 and token_sequence[left_token.index].word in total_tokens: 
-                if left_keywords_str == "/*EMPTY*/":
+            if not body and left_token.index == len(token_sequence)-1 and token_sequence[left_token.index].word in total_keywords: 
+                if left_keywords_str.replace(" ", "") == "/*EMPTY*/":
                     left_keywords_str = ""
                 body += f"""res = new IR(kUnknown, string("{left_keywords_str}"));""" + "\n"
                 break
@@ -187,36 +189,18 @@ def translate_preprocessing(data):
     """Remove original actions here. """
     data = re.sub('\{.*?\}', '', data, flags=re.S)
 
-    data = re.sub('/\*.*?\*/', '', data, flags=re.S)
-
-    all_new_data = []
-    new_data = ""
-    cur_data = ""
-    all_lines = data.split('\n')
-    for cur_line in all_lines:
-        if ":" in cur_line:
-            new_data += cur_data + "\n"
-            cur_data = cur_line
-            all_new_data.append(new_data)
-            new_data = ""
-        elif "|" in cur_line or cur_line == all_lines[-1]:
-            new_data += cur_data + "\n"
-            cur_data = cur_line
-        else:
-            cur_data += cur_line
-
-    with open("draft.txt", "w") as f:
-        for new_data in all_new_data:
-            f.write(new_data)
-    return all_new_data
+    #
+    # TODO: merge multiple line into one line
+    #
+    return data
 
 def translate(data):
-    translation = ""
-    
+
+    data = translate_preprocessing(data)
     data = data.strip()
+
     parent_element = data[:data.find(":")]
     logger.debug(f"Parent element: '{parent_element}'")
-        
 
     first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
     first_child_element = data[first_alpha_after_colon: data.find("\n", first_alpha_after_colon)]
@@ -249,22 +233,33 @@ def translate(data):
     logger.info(translation)
     return translation
 
-def load_tokens_from_kwlist(kwlist):
-    global total_tokens
+def load_keywords_from_kwlist():
+    global total_keywords
+
+    kwlist_path = "assets/kwlist.h"
+    with open(kwlist_path) as f:
+        keyword_data = f.read()
     
-    kwlines = []
-    with open(kwlist) as f: 
-        kwlines = [line.strip() for line in f.readlines() if line.startswith("PG_KEYWORD")]
+    keyword_data = remove_comments_if_necessary(keyword_data, True)
     
-    kwlist_tokens = set([line.split()[1].strip(",") for line in kwlines])
-    total_tokens |= kwlist_tokens
+    keyword_data = keyword_data.splitlines()
+    keyword_data = [line.strip() for line in keyword_data]
+    keyword_data = [line for line in keyword_data if line.startswith("PG_KEYWORD")]
+    
+    kwlist_tokens = set([line.split()[1].strip(",") for line in keyword_data])
+    total_keywords |= kwlist_tokens
 
 
 def get_gram_tokens():
+    global total_tokens
+
     tokens_file = "assets/tokens.y"
     with open(tokens_file) as f: 
-        token_data = f.readlines() 
+        token_data = f.read() 
     
+    token_data = remove_comments_if_necessary(token_data, True)
+    
+    token_data = token_data.splitlines()
     token_data = [line.strip() for line in token_data]
     token_data = [line for line in token_data if line]
     
@@ -280,36 +275,161 @@ def get_gram_tokens():
     for token in gram_tokens:
         if token.startswith("<"): 
             logger.info(token)
+    
+    unwanted = ["", " "]
+    for elem in unwanted:
+        if elem in gram_tokens: 
+            gram_tokens.remove(elem)
+
+    total_tokens |= gram_tokens
 
 def get_gram_keywords():
     keywords_file = "assets/keywords.y"
     with open(keywords_file) as f: 
-        keyword_data = f.readlines() 
+        keyword_data = f.read() 
     
+    keyword_data = remove_comments_if_necessary(keyword_data, True)
+    
+    keyword_data = keyword_data.splitlines()
     keyword_data = [line.strip() for line in keyword_data if line.strip()]
     keyword_data = [line for line in keyword_data if not (line.startswith("*") or line.startswith("/"))]
 
-    # TODO
-    
-@click.command()
-def run():
-    data = open("assets/parser_stmts.y", "r").read()
-    
-    get_gram_tokens() 
-    get_gram_keywords()
-    
-    kwlist_path = "assets/kwlist.h"
-    load_tokens_from_kwlist(kwlist_path)
-    
-    logger.debug(f"len total_tokens: {len(total_tokens)}")
+    gram_keywords = set()
+    for line in keyword_data:
+        line = line.replace("\t", " ")
+        
+        if line.startswith("%token") and " <" in line and "> " in line: 
+            line = line.split(" ", 2)[-1]
+        elif line.startswith("%"):
+            line = line.split(" ", 1)[-1]
 
-    all_pre_trans_str = translate_preprocessing(data = data)
-    all_trans_str = []
-    for cur_pre_trans_str in all_pre_trans_str:
-        all_trans_str.append(translate(cur_pre_trans_str))
-    with open("./trans_str.txt", "w") as f:
-        for cur_trans_str in all_trans_str:
-            f.write(cur_trans_str)
+        line = line.strip()
+        gram_keywords|= set(line.split())
+    
+    unwanted = ["", " "]
+    for elem in unwanted:
+        if elem in gram_keywords: 
+            gram_keywords.pop("")
+
+    
+        
+def remove_comments_if_necessary(text, need_remove):
+    if not need_remove: 
+        return text
+    
+    pattern = '/\*.*?\*/'
+    return re.sub(pattern, '', text, flags=re.S)
+
+def remove_original_actions(text):
+    pattern = '\{.*?\}'
+    return re.sub(pattern, '', text, flags=re.S)
+
+def select_translate_region(data):
+    pattern = "%%"
+    start_pos = data.find(pattern) + len(pattern)
+    stop_pos = data.find(pattern, start_pos)
+    return data[:start_pos], data[start_pos: stop_pos], data[stop_pos:]
+
+def mark_statement_location(data):
+
+    class Line(object):
+        def __init__(self, lineno,  contents):
+            self.lineno:int = lineno
+            self.contents:str = contents
+
+            words = self.contents.split()
+            first_elem: str = words[0] if words else ""
+            self.contain_colon = ":" in first_elem
+            self.first_word = first_elem.rstrip(":")
+            self.first_is_token = self.first_word in total_tokens
+
+        def __repr__(self):
+            return f"Line({self.lineno}, {self.first_word})"
+
+    lines = [line.strip() for line in data.splitlines()]
+    line_objs = [Line(lineno, contents) for lineno, contents in enumerate(lines)]
+    token_objs = [line_obj for line_obj in line_objs if line_obj.contain_colon]
+    token_objs = [line_obj for line_obj in token_objs if line_obj.first_is_token]
+
+    token_objs = sorted(token_objs, key=lambda x: x.lineno)
+
+    range_bits = [i for i in range(len(lines))]
+
+    def search_next_semicolon_line(lines, start_index, stop_index):
+        partial_lines = lines[start_index: stop_index]
+        for relative_index, line in enumerate(partial_lines):
+            if line == ";":
+                return start_index + relative_index
+
+        # HACK: hack for single line grammar, maybe not accurate
+        if partial_lines[0].endswith(";"):
+            return start_index
+
+        logger.warning("Cannot find next semicolon. ")
+        logger.warning(partial_lines)
+
+
+    extract_tokens = {}
+    for idx in range(len(token_objs)):
+        token_start = token_objs[idx]
+        lineno_start = token_start.lineno
+
+        if idx + 1 == len(token_objs):
+            lineno_stop = len(lines)
+        else:
+            token_stop = token_objs[idx + 1]
+            lineno_stop = token_stop.lineno
+
+        semicolon_index = search_next_semicolon_line(lines, lineno_start, lineno_stop)
+        extract_tokens[token_start.first_word] = "\n".join(lines[lineno_start: semicolon_index+1])
+
+        range_bits[lineno_start] = token_start.first_word
+        for j in range(lineno_start+1, semicolon_index+1):
+            range_bits[j] = False
+
+    marked_lines = []
+    for k in range_bits:
+        if k == False:
+            continue
+
+        if isinstance(k, str):
+            marked_lines.append(f"<{k.strip()}>")
+            continue
+
+        if k:
+            marked_lines.append(lines[k])
+            continue
+
+        marked_lines.append(lines[k])
+
+    marked_lines = "\n".join(marked_lines)
+
+    return marked_lines, extract_tokens
+
+
+@click.command()
+@click.option("-o", "--output", default="gram.y", type=click.Path(exists=False))
+@click.option("--remove-comments", is_flag=True, default=False)
+def run(output, remove_comments):
+    data = open("assets/gram.y", "r").read()
+    
+    data = remove_comments_if_necessary(data, remove_comments)
+    data_before, data, data_after = select_translate_region(data)
+
+    get_gram_tokens()
+    get_gram_keywords()
+    load_keywords_from_kwlist()
+
+    marked_lines, extract_tokens = mark_statement_location(data)
+    for token_name, extract_token in extract_tokens.items():
+
+        translation = translate(extract_token)
+        marked_lines = marked_lines.replace(f"<{token_name}>", translation, 1)
+
+    with open(output, "w") as f:
+        f.write(data_before)
+        f.write(marked_lines)
+        f.write(data_after)
 
 
 if __name__ == "__main__":
