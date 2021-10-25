@@ -328,7 +328,7 @@ def select_translate_region(data):
     pattern = "%%"
     start_pos = data.find(pattern) + len(pattern)
     stop_pos = data.find(pattern, start_pos)
-    return data[:start_pos], data[start_pos: stop_pos], data[stop_pos:]
+    return data[start_pos: stop_pos]
 
 def mark_statement_location(data):
 
@@ -414,7 +414,7 @@ def run(output, remove_comments):
     data = open("assets/gram.y", "r").read()
     
     data = remove_comments_if_necessary(data, remove_comments)
-    data_before, data, data_after = select_translate_region(data)
+    data = select_translate_region(data)
 
     get_gram_tokens()
     get_gram_keywords()
@@ -427,9 +427,7 @@ def run(output, remove_comments):
         marked_lines = marked_lines.replace(f"<{token_name}>", translation, 1)
 
     with open(output, "w") as f:
-        f.write(data_before)
         f.write(marked_lines)
-        f.write(data_after)
 
 
 if __name__ == "__main__":
