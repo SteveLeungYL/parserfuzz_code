@@ -1,3 +1,4 @@
+import os.path
 import sys
 
 import click
@@ -21,7 +22,11 @@ custom_additional_keywords = set([
     "SUBSCRIPTION",
     "IF_P",
     "EXISTS",
-    "/*EMPTY*/"
+    "/*EMPTY*/",
+    "'('",
+    "')'",
+    "IN_P",
+    "/* There must be at least one */",
 ])
 
 total_keywords = set()
@@ -32,12 +37,24 @@ total_tokens = set()
 
 class Token(object):
     
-    def __init__(self, word, index, is_keyword=False):
+    def __init__(self, word, index):
         self.word = word
         self.index = index
-        self.is_keyword = is_keyword
+        self._is_keyword = None
+
+    @property
+    def is_keyword(self):
+        if self._is_keyword is not None:
+            return self._is_keyword
+
+        self._is_keyword = self.word in total_keywords
+        return self._is_keyword
 
     def __str__(self) -> str:
+        if self.is_keyword:
+            if self.word.startswith("'") and self.word.endswith("'"):
+                return self.word.strip("'")
+
         return self.word
 
     def __repr__(self) -> str:
@@ -77,8 +94,9 @@ def repace_special_keyword_with_token(line):
         word = word.strip() 
         if not word: 
             continue 
-        if word in keywords_mapping:
-            word = keywords_mapping[word] 
+        # if word in keywords_mapping:
+        #     word = keywords_mapping[word]
+
         seq.append(word)
     
     return " ".join(seq)        
@@ -112,7 +130,7 @@ def search_next_keyword(token_sequence, start_index):
     
 def translate_single_line(line, parent):
     token_sequence = tokenize(line)
-    recognize_tokens(token_sequence)
+    # recognize_tokens(token_sequence)
     
     i = 0
     tmp_num = 1
@@ -128,9 +146,9 @@ def translate_single_line(line, parent):
             _, right_keywords = search_next_keyword(token_sequence, right_token.index+1)
             
         
-        left_keywords_str = " ".join([token.word for token in left_keywords])
-        mid_keywords_str = " ".join([token.word for token in mid_keywords])
-        right_keywords_str = " ".join([token.word for token in right_keywords])
+        left_keywords_str = " ".join([str(token) for token in left_keywords])
+        mid_keywords_str = " ".join([str(token) for token in mid_keywords])
+        right_keywords_str = " ".join([str(token) for token in right_keywords])
         
 
         if need_more_ir:
@@ -285,6 +303,8 @@ def get_gram_tokens():
     total_tokens |= gram_tokens
 
 def get_gram_keywords():
+    global total_keywords
+
     keywords_file = "assets/keywords.y"
     with open(keywords_file) as f: 
         keyword_data = f.read() 
@@ -310,8 +330,9 @@ def get_gram_keywords():
     unwanted = ["", " "]
     for elem in unwanted:
         if elem in gram_keywords: 
-            gram_keywords.pop("")
+            gram_keywords.remove(elem)
 
+    total_keywords |= gram_keywords
     
         
 def remove_comments_if_necessary(text, need_remove):
@@ -409,7 +430,7 @@ def mark_statement_location(data):
 
 
 @click.command()
-@click.option("-o", "--output", default="gram.y", type=click.Path(exists=False))
+@click.option("-o", "--output", default="bison_parser_2.y")
 @click.option("--remove-comments", is_flag=True, default=False)
 def run(output, remove_comments):
     data = open("assets/gram.y", "r").read()
@@ -427,8 +448,26 @@ def run(output, remove_comments):
         translation = translate(extract_token)
         marked_lines = marked_lines.replace(f"=== {token_name.strip()} ===", translation, 1)
 
-    with open(output, "w") as f:
-        f.write(marked_lines)
+    if os.path.exists(output):
+        backup = os.path.abspath(output+".bak")
+        os.system("cp {} {}".format(
+            os.path.abspath(output), backup
+        ))
+        logger.info(f"Backup the original bison_parser.y to {backup}")
+
+        with open(backup, "r") as f:
+            original_contents = f.read()
+
+        with open(output, 'w') as f:
+            start_pos = original_contents.find("%%") + len("%%")
+            stop_pos = original_contents.find("%%", start_pos+1)
+
+            f.write(original_contents[:start_pos])
+            f.write(marked_lines)
+            f.write(original_contents[stop_pos:])
+    else:
+        with open(output, "w") as f:
+            f.write(marked_lines)
 
 
 if __name__ == "__main__":

@@ -127,10 +127,10 @@ stmtmulti:	stmtmulti ';' stmt
     expect = """
 stmtmulti:
 
-    stmtmulti OP_SEMI stmt {
+    stmtmulti ';' stmt {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kstmtmulti, OP3("", "';'", ""), tmp1, tmp2);
+        res = new IR(kstmtmulti, OP3("", ";", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -1111,6 +1111,38 @@ ConstraintAttributeSpec:
 """
     _test(data, expect)
 
+def TestEventTriggerWhenItem():
+    data = """
+event_trigger_when_item:
+		ColId IN_P '(' event_trigger_value_list ')'
+			{ $$ = makeDefElem($1, (Node *) $4, @1); }
+		;    
+		| ColId IN_P '(' event_trigger_value_list ')'
+			{ $$ = makeDefElem($1, (Node *) $4, @1); }
+		;    
+"""
+    expect = """
+event_trigger_when_item:
+
+    ColId IN_P '(' event_trigger_value_list ')' {
+        auto tmp1 = $1;
+        auto tmp2 = $4;
+        res = new IR(kevent_trigger_when_item, OP3("", "IN_P (", ")"), tmp1, tmp2);
+        $$ = res;
+    }
+
+    | ColId IN_P '(' event_trigger_value_list ')' {
+        auto tmp1 = $1;
+        auto tmp2 = $4;
+        res = new IR(kevent_trigger_when_item, OP3("", "IN_P (", ")"), tmp1, tmp2);
+        $$ = res;
+    }
+
+;
+"""
+
+    _test(data, expect)
+
 
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
@@ -1128,6 +1160,7 @@ def test(print_output):
         TestStmt()
         TestSingleLine()
         TestConstraintAttributeSpec()
+        TestEventTriggerWhenItem()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)
