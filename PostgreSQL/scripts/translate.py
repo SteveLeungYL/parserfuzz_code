@@ -192,9 +192,9 @@ def translate_single_line(line, parent):
             _, right_keywords = search_next_keyword(token_sequence, right_token.index+1)
             
         
-        left_keywords_str = " ".join([str(token) for token in left_keywords if str(token)])
-        mid_keywords_str = " ".join([str(token) for token in mid_keywords if str(token)])
-        right_keywords_str = " ".join([str(token) for token in right_keywords if str(token)])
+        left_keywords_str = " ".join([str(token).upper() for token in left_keywords if str(token)])
+        mid_keywords_str = " ".join([str(token).upper() for token in mid_keywords if str(token)])
+        right_keywords_str = " ".join([str(token).upper() for token in right_keywords if str(token)])
         
 
         if need_more_ir:
@@ -288,9 +288,9 @@ def translate_preprocessing(data):
 
     # all_new_data += ";"
     #
-    with open("draft.txt", "a") as f:
-        f.write('----------------\n')
-        f.write(all_new_data)
+    # with open("draft.txt", "a") as f:
+    #     f.write('----------------\n')
+    #     f.write(all_new_data)
 
     return all_new_data
 
