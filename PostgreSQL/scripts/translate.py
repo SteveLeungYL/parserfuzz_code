@@ -32,9 +32,8 @@ custom_additional_keywords = set([
     "%prec",
 ])
 
-keywords_mapping = {
-    "YES_P": "YES"
-}
+with open("assets/keywords_mapping.json") as f:
+    keywords_mapping = json.load(f)
 
 total_keywords = set()
 with open("assets/keywords.json") as f:
@@ -68,6 +67,8 @@ class Token(object):
         if self.is_keyword:
             if self.word.startswith("'") and self.word.endswith("'"):
                 return self.word.strip("'")
+            if self.word in keywords_mapping:
+                return keywords_mapping[self.word]
 
         return self.word
 
@@ -286,6 +287,28 @@ def load_keywords_from_kwlist():
     kwlist_tokens = set([line.split()[1].strip(",") for line in keyword_data])
     total_keywords |= kwlist_tokens
 
+def load_keywords_mapping_from_kwlist():
+    global keywords_mapping
+
+    kwlist_path = "assets/kwlist.h"
+    with open(kwlist_path) as f:
+        keyword_data = f.read()
+
+    keyword_data = remove_comments_if_necessary(keyword_data, True)
+    keyword_data = keyword_data.splitlines()
+    keyword_data = [line.strip() for line in keyword_data]
+    keyword_data = [line for line in keyword_data if line.startswith("PG_KEYWORD")]
+
+    for line in keyword_data:
+        line = line[len('PG_KEYWORD("'):]
+        words = line.split(" ", 2)
+        kw_str = words[0].rstrip('",')
+        kw = words[1].rstrip(",")
+        keywords_mapping[kw] = kw_str
+
+    with open("assets/keywords_mapping.json", 'w') as f:
+        json.dump(keywords_mapping, f, indent=2, sort_keys=True)
+
 
 def get_gram_tokens():
     global total_tokens
@@ -460,10 +483,10 @@ def run(output, remove_comments):
     data = remove_comments_if_necessary(data, remove_comments)
     data = select_translate_region(data)
 
-    get_gram_tokens()
-    load_keywords_from_kwlist()
-    get_gram_keywords()
-
+    # load_keywords_from_kwlist()
+    load_keywords_mapping_from_kwlist()
+    # get_gram_tokens()
+    # get_gram_keywords()
 
     marked_lines, extract_tokens = mark_statement_location(data)
     for token_name, extract_token in extract_tokens.items():

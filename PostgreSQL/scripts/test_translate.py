@@ -3838,6 +3838,161 @@ document_or_content:
 """
     _test(data, expect)
 
+def TestQualifiedNameList():
+    data ="""
+qualified_name_list:
+			qualified_name							{ $$ = list_make1($1); }
+			| qualified_name_list ',' qualified_name { $$ = lappend($1, $3); }
+		;    
+"""
+    expect = """
+qualified_name_list:
+
+    qualified_name {
+        auto tmp1 = $1;
+        res = new IR(kqualified_name_list, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | qualified_name_list ',' qualified_name {
+        auto tmp1 = $1;
+        auto tmp2 = $3;
+        res = new IR(kqualified_name_list, OP3("", ",", ""), tmp1, tmp2);
+        $$ = res;
+    }
+
+;
+"""
+    _test(data, expect)
+
+def TestMappingKeywords():
+    data = """
+Numeric:	INT_P
+				{
+					$$ = SystemTypeName("int4");
+					$$->location = @1;
+				}
+			| INTEGER
+				{
+					$$ = SystemTypeName("int4");
+					$$->location = @1;
+				}
+			| SMALLINT
+				{
+					$$ = SystemTypeName("int2");
+					$$->location = @1;
+				}
+			| BIGINT
+				{
+					$$ = SystemTypeName("int8");
+					$$->location = @1;
+				}
+			| REAL
+				{
+					$$ = SystemTypeName("float4");
+					$$->location = @1;
+				}
+			| FLOAT_P opt_float
+				{
+					$$ = $2;
+					$$->location = @1;
+				}
+			| DOUBLE_P PRECISION
+				{
+					$$ = SystemTypeName("float8");
+					$$->location = @1;
+				}
+			| DECIMAL_P opt_type_modifiers
+				{
+					$$ = SystemTypeName("numeric");
+					$$->typmods = $2;
+					$$->location = @1;
+				}
+			| DEC opt_type_modifiers
+				{
+					$$ = SystemTypeName("numeric");
+					$$->typmods = $2;
+					$$->location = @1;
+				}
+			| NUMERIC opt_type_modifiers
+				{
+					$$ = SystemTypeName("numeric");
+					$$->typmods = $2;
+					$$->location = @1;
+				}
+			| BOOLEAN_P
+				{
+					$$ = SystemTypeName("bool");
+					$$->location = @1;
+				}
+		;
+"""
+    expect = """
+Numeric:
+
+    INT_P {
+        res = new IR(kNumeric, string("int"));
+        $$ = res;
+    }
+
+    | INTEGER {
+        res = new IR(kNumeric, string("integer"));
+        $$ = res;
+    }
+
+    | SMALLINT {
+        res = new IR(kNumeric, string("smallint"));
+        $$ = res;
+    }
+
+    | BIGINT {
+        res = new IR(kNumeric, string("bigint"));
+        $$ = res;
+    }
+
+    | REAL {
+        res = new IR(kNumeric, string("real"));
+        $$ = res;
+    }
+
+    | FLOAT_P opt_float {
+        auto tmp1 = $2;
+        res = new IR(kNumeric, OP3("float", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | DOUBLE_P PRECISION {
+        res = new IR(kNumeric, string("double precision"));
+        $$ = res;
+    }
+
+    | DECIMAL_P opt_type_modifiers {
+        auto tmp1 = $2;
+        res = new IR(kNumeric, OP3("decimal", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | DEC opt_type_modifiers {
+        auto tmp1 = $2;
+        res = new IR(kNumeric, OP3("dec", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | NUMERIC opt_type_modifiers {
+        auto tmp1 = $2;
+        res = new IR(kNumeric, OP3("numeric", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | BOOLEAN_P {
+        res = new IR(kNumeric, string("boolean"));
+        $$ = res;
+    }
+
+;
+"""
+    _test(data, expect)
+
 
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
@@ -3862,6 +4017,8 @@ def test(print_output):
         TestFuncApplication()
         TestBareLabelKeyword()
         TestOnlyMultipleKeywords()
+        TestQualifiedNameList()
+        TestMappingKeywords()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)
