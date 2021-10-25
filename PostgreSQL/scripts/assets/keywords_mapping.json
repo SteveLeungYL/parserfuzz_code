@@ -1,4 +1,5 @@
 {
+  "%prec": "",
   "ABORT_P": "abort",
   "ABSOLUTE_P": "absolute",
   "ACCESS": "access",

@@ -32,8 +32,13 @@ custom_additional_keywords = set([
     "%prec",
 ])
 
+custom_additional_keywords_mapping = {
+    "%prec": ""
+}
+
 with open("assets/keywords_mapping.json") as f:
     keywords_mapping = json.load(f)
+    keywords_mapping.update(custom_additional_keywords_mapping)
 
 total_keywords = set()
 with open("assets/keywords.json") as f:
@@ -164,9 +169,9 @@ def translate_single_line(line, parent):
             _, right_keywords = search_next_keyword(token_sequence, right_token.index+1)
             
         
-        left_keywords_str = " ".join([str(token) for token in left_keywords])
-        mid_keywords_str = " ".join([str(token) for token in mid_keywords])
-        right_keywords_str = " ".join([str(token) for token in right_keywords])
+        left_keywords_str = " ".join([str(token) for token in left_keywords if str(token)])
+        mid_keywords_str = " ".join([str(token) for token in mid_keywords if str(token)])
+        right_keywords_str = " ".join([str(token) for token in right_keywords if str(token)])
         
 
         if need_more_ir:
@@ -484,7 +489,7 @@ def run(output, remove_comments):
     data = select_translate_region(data)
 
     # load_keywords_from_kwlist()
-    load_keywords_mapping_from_kwlist()
+    # load_keywords_mapping_from_kwlist()
     # get_gram_tokens()
     # get_gram_keywords()
 

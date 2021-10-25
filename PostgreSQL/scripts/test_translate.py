@@ -3993,6 +3993,139 @@ Numeric:
 """
     _test(data, expect)
 
+def TestCExpr():
+    data = """
+c_expr:		columnref								{ $$ = $1; }
+			| AexprConst							{ $$ = $1; }
+			| PARAM opt_indirection
+				{
+					ParamRef *p = makeNode(ParamRef);
+					p->number = $1;
+					p->location = @1;
+					if ($2)
+					{
+						A_Indirection *n = makeNode(A_Indirection);
+						n->arg = (Node *) p;
+						n->indirection = check_indirection($2, yyscanner);
+						$$ = (Node *) n;
+					}
+					else
+						$$ = (Node *) p;
+				}
+			| '(' a_expr ')' opt_indirection
+				{
+					if ($4)
+					{
+						A_Indirection *n = makeNode(A_Indirection);
+						n->arg = $2;
+						n->indirection = check_indirection($4, yyscanner);
+						$$ = (Node *)n;
+					}
+					else
+						$$ = $2;
+				}
+			| case_expr
+				{ $$ = $1; }
+			| func_expr
+				{ $$ = $1; }
+			| select_with_parens			%prec UMINUS
+				{
+					SubLink *n = makeNode(SubLink);
+					n->subLinkType = EXPR_SUBLINK;
+					n->subLinkId = 0;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $1;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| select_with_parens indirection
+				{
+					/*
+					 * Because the select_with_parens nonterminal is designed
+					 * to "eat" as many levels of parens as possible, the
+					 * '(' a_expr ')' opt_indirection production above will
+					 * fail to match a sub-SELECT with indirection decoration;
+					 * the sub-SELECT won't be regarded as an a_expr as long
+					 * as there are parens around it.  To support applying
+					 * subscripting or field selection to a sub-SELECT result,
+					 * we need this redundant-looking production.
+					 */
+					SubLink *n = makeNode(SubLink);
+					A_Indirection *a = makeNode(A_Indirection);
+					n->subLinkType = EXPR_SUBLINK;
+					n->subLinkId = 0;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $1;
+					n->location = @1;
+					a->arg = (Node *)n;
+					a->indirection = check_indirection($2, yyscanner);
+					$$ = (Node *)a;
+				}
+			| EXISTS select_with_parens
+				{
+					SubLink *n = makeNode(SubLink);
+					n->subLinkType = EXISTS_SUBLINK;
+					n->subLinkId = 0;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| ARRAY select_with_parens
+				{
+					SubLink *n = makeNode(SubLink);
+					n->subLinkType = ARRAY_SUBLINK;
+					n->subLinkId = 0;
+					n->testexpr = NULL;
+					n->operName = NIL;
+					n->subselect = $2;
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| ARRAY array_expr
+				{
+					A_ArrayExpr *n = castNode(A_ArrayExpr, $2);
+					/* point outermost A_ArrayExpr to the ARRAY keyword */
+					n->location = @1;
+					$$ = (Node *)n;
+				}
+			| explicit_row
+				{
+					RowExpr *r = makeNode(RowExpr);
+					r->args = $1;
+					r->row_typeid = InvalidOid;	/* not analyzed yet */
+					r->colnames = NIL;	/* to be filled in during analysis */
+					r->row_format = COERCE_EXPLICIT_CALL; /* abuse */
+					r->location = @1;
+					$$ = (Node *)r;
+				}
+			| implicit_row
+				{
+					RowExpr *r = makeNode(RowExpr);
+					r->args = $1;
+					r->row_typeid = InvalidOid;	/* not analyzed yet */
+					r->colnames = NIL;	/* to be filled in during analysis */
+					r->row_format = COERCE_IMPLICIT_CAST; /* abuse */
+					r->location = @1;
+					$$ = (Node *)r;
+				}
+			| GROUPING '(' expr_list ')'
+			  {
+				  GroupingFunc *g = makeNode(GroupingFunc);
+				  g->args = $3;
+				  g->location = @1;
+				  $$ = (Node *)g;
+			  }
+		;
+"""
+    expect = """
+"""
+    translate(data)
+#     TODO
+
 
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
