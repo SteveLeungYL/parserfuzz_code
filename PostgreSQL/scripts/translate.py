@@ -154,7 +154,27 @@ def search_next_keyword(token_sequence, start_index):
             break
 
     return curr_token, left_keywords
+
+def ir_type_str_rewrite(cur_types)->str:
+    if cur_types == "":
+        return "Unknown"
     
+    cur_types_l = list(cur_types)
+    cur_types_l[0] = cur_types_l[0].upper()
+
+    is_upper = False
+    for cur_char_idx in range(len(cur_types_l)):
+        if cur_types_l[cur_char_idx] == "_":
+            is_upper = True
+            cur_types_l[cur_char_idx] = ""
+            continue
+        if is_upper == True:
+            is_upper = False
+            cur_types_l[cur_char_idx] = cur_types_l[cur_char_idx].upper()
+    
+    cur_types = "".join(cur_types_l)
+    return cur_types
+
 def translate_single_line(line, parent):
     token_sequence = tokenize(line)
     
@@ -214,8 +234,9 @@ def translate_single_line(line, parent):
 
 
     # fix the IR type to kUnknown
+    ir_type_str = ir_type_str_rewrite(parent)
     if body: 
-        body = f"k{parent}".join(body.rsplit("kUnknown", 1))
+        body = f"k{ir_type_str}".join(body.rsplit("kUnknown", 1))
         body += "$$ = res;" 
 
 
