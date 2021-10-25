@@ -459,5 +459,10 @@
   "ZONE": "zone",
   "NOT_LA": "not",
   "NULL_LA": "NULL",
-  "WITH_LA": "WITH"
+  "WITH_LA": "WITH",
+  "MODE_TYPE_NAME": "",
+  "MODE_PLPGSQL_EXPR": "",
+  "MODE_PLPGSQL_ASSIGN1": "",
+  "MODE_PLPGSQL_ASSIGN2": "",
+  "MODE_PLPGSQL_ASSIGN3": ""
 }
