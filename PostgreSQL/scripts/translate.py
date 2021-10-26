@@ -254,7 +254,8 @@ def translate_single_line(line, parent):
     if body:
         default_ir_type_num = body.count(default_ir_type)
         for idx in range(default_ir_type_num-1):
-            body = body.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
+            # body = body.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
+            body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
         body += "$$ = res;" 
 

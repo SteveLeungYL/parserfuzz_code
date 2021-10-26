@@ -218,6 +218,7 @@
   "ISOLATION",
   "INSERT",
   "/*EMPTY*/",
+  "/*EMPTY */",
   "MODE_TYPE_NAME",
   "IF_P",
   "CURRENT_TIME",
