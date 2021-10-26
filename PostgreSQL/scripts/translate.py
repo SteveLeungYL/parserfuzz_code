@@ -210,12 +210,14 @@ def translate_single_line(line, parent):
             
             tmp_num += 2
             need_more_ir = True
-        elif left_token: 
-            if not body and left_token.index == len(token_sequence)-1 and token_sequence[left_token.index].word in total_keywords: 
+        elif left_token:
+            # Only single one keywords here.
+            if not body and left_token.index == len(token_sequence)-1 and token_sequence[left_token.index].word in total_keywords:
+                # the only one keywords is a comment
                 if left_keywords_str.startswith("/*") and left_keywords_str.endswith("*/"):
                     # HACK for empty grammar eg. /* EMPTY */
                     left_keywords_str = ""
-                body += f"""res = new IR({default_ir_type}, string("{left_keywords_str}"));""" + "\n"
+                body += f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "", ""));""" + "\n"
                 break
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});""" + "\n"

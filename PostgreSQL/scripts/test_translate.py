@@ -90,7 +90,7 @@ CreateUserStmt:
     CREATE USER RoleId USER opt_with CREATE OptRoleList USER {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kUnknown, OP3("CREATE USER", "USER", "CREATE"), tmp1, tmp2);
+        res = new IR(kCreateUserStmt_1, OP3("CREATE USER", "USER", "CREATE"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kCreateUserStmt, OP3("", "USER", ""), res, tmp3);
         $$ = res;
@@ -151,7 +151,7 @@ stmtmulti:	CREATE USER
 stmtmulti:
 
     CREATE USER {
-        res = new IR(kStmtmulti, string("CREATE USER"));
+        res = new IR(kStmtmulti, OP3("CREATE USER", "", ""));
         $$ = res;
     }
 
@@ -1031,7 +1031,7 @@ stmt:
     }
 
     | /*EMPTY*/ {
-        res = new IR(kStmt, string(""));
+        res = new IR(kStmt, OP3("", "", ""));
         $$ = res;
     }
 
@@ -1092,7 +1092,7 @@ ConstraintAttributeSpec:
 ConstraintAttributeSpec:
 
     /*EMPTY*/ {
-        res = new IR(kConstraintAttributeSpec, string(""));
+        res = new IR(kConstraintAttributeSpec, OP3("", "", ""));
         $$ = res;
     }
 
@@ -1117,14 +1117,14 @@ event_trigger_when_item:
 			{ $$ = makeDefElem($1, (Node *) $4, @1); }
 		;    
 """
-    print(translate(data))
+
     expect = """
 event_trigger_when_item:
 
     ColId IN_P '(' event_trigger_value_list ')' ; {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kUnknown, OP3("", "IN (", ")"), tmp1, tmp2);
+        res = new IR(kEventTriggerWhenItem_1, OP3("", "IN (", ")"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kEventTriggerWhenItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1171,7 +1171,7 @@ opt_createfunc_opt_list:
     }
 
     | /*EMPTY*/ {
-        res = new IR(kOptCreatefuncOptList, string(""));
+        res = new IR(kOptCreatefuncOptList, OP3("", "", ""));
         $$ = res;
     }
 
@@ -1191,22 +1191,22 @@ event:		SELECT									{ $$ = CMD_SELECT; }
 event:
 
     SELECT {
-        res = new IR(kEvent, string("SELECT"));
+        res = new IR(kEvent, OP3("SELECT", "", ""));
         $$ = res;
     }
 
     | UPDATE {
-        res = new IR(kEvent, string("UPDATE"));
+        res = new IR(kEvent, OP3("UPDATE", "", ""));
         $$ = res;
     }
 
     | DELETE_P {
-        res = new IR(kEvent, string("DELETE"));
+        res = new IR(kEvent, OP3("DELETE", "", ""));
         $$ = res;
     }
 
     | INSERT {
-        res = new IR(kEvent, string("INSERT"));
+        res = new IR(kEvent, OP3("INSERT", "", ""));
         $$ = res;
     }
 
@@ -3931,27 +3931,27 @@ Numeric:	INT_P
 Numeric:
 
     INT_P {
-        res = new IR(kNumeric, string("INT"));
+        res = new IR(kNumeric, OP3("INT", "", ""));
         $$ = res;
     }
 
     | INTEGER {
-        res = new IR(kNumeric, string("INTEGER"));
+        res = new IR(kNumeric, OP3("INTEGER", "", ""));
         $$ = res;
     }
 
     | SMALLINT {
-        res = new IR(kNumeric, string("SMALLINT"));
+        res = new IR(kNumeric, OP3("SMALLINT", "", ""));
         $$ = res;
     }
 
     | BIGINT {
-        res = new IR(kNumeric, string("BIGINT"));
+        res = new IR(kNumeric, OP3("BIGINT", "", ""));
         $$ = res;
     }
 
     | REAL {
-        res = new IR(kNumeric, string("REAL"));
+        res = new IR(kNumeric, OP3("REAL", "", ""));
         $$ = res;
     }
 
@@ -3962,7 +3962,7 @@ Numeric:
     }
 
     | DOUBLE_P PRECISION {
-        res = new IR(kNumeric, string("DOUBLE PRECISION"));
+        res = new IR(kNumeric, OP3("DOUBLE PRECISION", "", ""));
         $$ = res;
     }
 
@@ -3985,7 +3985,7 @@ Numeric:
     }
 
     | BOOLEAN_P {
-        res = new IR(kNumeric, string("BOOLEAN"));
+        res = new IR(kNumeric, OP3("BOOLEAN", "", ""));
         $$ = res;
     }
 
