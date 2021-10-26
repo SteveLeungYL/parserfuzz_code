@@ -4186,6 +4186,30 @@ bare_label_keyword:
 """
     _test(data, expect)
 
+
+def TestOptEqual():
+    data = """
+opt_equal:	'='
+			| /*EMPTY*/
+		;
+"""
+    expect = """
+opt_equal:
+
+    '=' {
+        res = new IR(kOptEqual, OP3("=", "", ""));
+        $$ = res;
+    }
+
+    | /*EMPTY*/ {
+        res = new IR(kOptEqual, OP3("", "", ""));
+        $$ = res;
+    }
+
+;
+"""
+    translate(data)
+
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
 def test(print_output):
@@ -4213,6 +4237,7 @@ def test(print_output):
         TestMappingKeywords()
         TestCExpr()
         TestMultipleComments()
+        TestOptEqual()
         logger.info("All tests passed!")
     except Exception as e:
         logger.exception(e)

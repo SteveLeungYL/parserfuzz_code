@@ -49,6 +49,19 @@ total_tokens = set()
 with open("assets/tokens.json") as f:
     total_tokens |= set(json.load(f))
 
+manually_translation = {
+    "empty_grouping_set": """   
+empty_grouping_set:
+
+    '(' ')' {
+        res = new IR(kEmptyGroupingSet, OP3("( )", "", ""));
+        $$ = res;
+    }
+
+;
+"""
+}
+
 class Token(object):
     
     def __init__(self, word, index):
@@ -253,6 +266,7 @@ def translate_single_line(line, parent):
 def find_first_alpha_index(data, start_index):
     for idx, c in enumerate(data[start_index:]):
         if c.isalpha() or \
+           c == "'" or \
            c == "/" and data[start_index+idx+1] == "*":
             return start_index+idx
 
@@ -568,7 +582,11 @@ def run(output, remove_comments):
 
     marked_lines, extract_tokens = mark_statement_location(data)
     for token_name, extract_token in extract_tokens.items():
-        translation = translate(extract_token)
+        if token_name in manually_translation:
+            translation = manually_translation[token_name]
+        else:
+            translation = translate(extract_token)
+
         marked_lines = marked_lines.replace(f"=== {token_name.strip()} ===", translation, 1)
 
     if os.path.exists(output):
