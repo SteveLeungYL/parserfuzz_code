@@ -33,3 +33,4 @@ flex_lexer.h
 
 .gdb_history
 peda-session-*
+gmon.out
