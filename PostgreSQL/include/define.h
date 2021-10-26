@@ -867,7 +867,9 @@
   V(kAlterConversionStmt)                                                       \
   V(kConversionName)                                                            \
   V(kOptWithReplotions) \
- 
+  V(kOptTransaction) \
+  V(kFUNCTIONOrPROCEDURE) \
+
 
 #define ALLDATATYPE(V)                                                         \
   V(DataWhatever)                                                              \
