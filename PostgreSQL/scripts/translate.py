@@ -10,6 +10,7 @@ import re
 ONETAB = " "*4
 ONESPACE = " "
 
+saved_ir_type = []
 
 custom_additional_keywords = set([
     "PASSWORD",
@@ -250,14 +251,22 @@ def translate_single_line(line, parent):
 
 
     # fix the IR type to kUnknown
-    ir_type_str = ir_type_str_rewrite(parent)
-    if body:
-        default_ir_type_num = body.count(default_ir_type)
-        for idx in range(default_ir_type_num-1):
-            # body = body.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
-            body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
-        body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
-        body += "$$ = res;" 
+    with open('all_ir_types.txt', 'a') as f:
+        ir_type_str = ir_type_str_rewrite(parent)
+        if body:
+            if ir_type_str not in saved_ir_type:
+                saved_ir_type.append(ir_type_str)
+                f.write(f"V(k{ir_type_str})   \\\n")
+
+            default_ir_type_num = body.count(default_ir_type)
+            for idx in range(default_ir_type_num-1):
+                body = body.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
+                # body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
+                if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
+                    saved_ir_type.append(f"{ir_type_str}_{idx+1}")
+                    f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
+            body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
+            body += "$$ = res;" 
 
 
     logger.debug(f"Result: \n{body}")
@@ -571,6 +580,10 @@ def mark_statement_location(data):
 @click.option("-o", "--output", default="bison_parser_2.y")
 @click.option("--remove-comments", is_flag=True, default=False)
 def run(output, remove_comments):
+    # Remove all_ir_type.txt, if exist
+    if os.path.exists('./all_ir_types.txt'):
+        os.remove('./all_ir_types.txt')
+
     data = open("assets/parser_stmts.y", "r").read()
     
     data = remove_comments_if_necessary(data, remove_comments)

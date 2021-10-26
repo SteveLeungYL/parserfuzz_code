@@ -1610,7 +1610,7 @@ CreateRoleStmt:
     CREATE ROLE RoleId opt_with OptRoleList {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateRoleStmt, OP3("CREATE ROLE", "", ""), tmp1, tmp2);
+        res = new IR(kCreateRoleStmt_1, OP3("CREATE ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreateRoleStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1788,7 +1788,7 @@ CreateUserStmt:
     CREATE USER RoleId opt_with OptRoleList {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateUserStmt, OP3("CREATE USER", "", ""), tmp1, tmp2);
+        res = new IR(kCreateUserStmt_1, OP3("CREATE USER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreateUserStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1809,7 +1809,7 @@ AlterRoleStmt:
     ALTER ROLE RoleSpec opt_with AlterOptRoleList {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterRoleStmt, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
+        res = new IR(kAlterRoleStmt_1, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterRoleStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1818,7 +1818,7 @@ AlterRoleStmt:
     | ALTER USER RoleSpec opt_with AlterOptRoleList {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterRoleStmt, OP3("ALTER USER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterRoleStmt_1, OP3("ALTER USER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterRoleStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1848,7 +1848,7 @@ AlterRoleSetStmt:
     ALTER ROLE RoleSpec opt_in_database SetResetClause {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterRoleSetStmt, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
+        res = new IR(kAlterRoleSetStmt_1, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterRoleSetStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1864,7 +1864,7 @@ AlterRoleSetStmt:
     | ALTER USER RoleSpec opt_in_database SetResetClause {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterRoleSetStmt, OP3("ALTER USER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterRoleSetStmt_1, OP3("ALTER USER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterRoleSetStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1943,7 +1943,7 @@ CreateGroupStmt:
     CREATE GROUP_P RoleId opt_with OptRoleList {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateGroupStmt, OP3("CREATE GROUP", "", ""), tmp1, tmp2);
+        res = new IR(kCreateGroupStmt_1, OP3("CREATE GROUP", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreateGroupStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -1964,7 +1964,7 @@ AlterGroupStmt:
     ALTER GROUP_P RoleSpec add_drop USER role_list {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterGroupStmt, OP3("ALTER GROUP", "", "USER"), tmp1, tmp2);
+        res = new IR(kAlterGroupStmt_1, OP3("ALTER GROUP", "", "USER"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterGroupStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2000,7 +2000,7 @@ CreateSchemaStmt:
     CREATE SCHEMA OptSchemaName AUTHORIZATION RoleSpec OptSchemaEltList {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA", "AUTHORIZATION", ""), tmp1, tmp2);
+        res = new IR(kCreateSchemaStmt_1, OP3("CREATE SCHEMA", "AUTHORIZATION", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCreateSchemaStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2016,7 +2016,7 @@ CreateSchemaStmt:
     | CREATE SCHEMA IF_P NOT EXISTS OptSchemaName AUTHORIZATION RoleSpec OptSchemaEltList {
         auto tmp1 = $6;
         auto tmp2 = $8;
-        res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
+        res = new IR(kCreateSchemaStmt_1, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCreateSchemaStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2395,7 +2395,7 @@ zone_value:
     | ConstInterval Sconst opt_interval {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kZoneValue, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kZoneValue_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2404,7 +2404,7 @@ zone_value:
     | ConstInterval '(' Iconst ')' Sconst {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kZoneValue, OP3("", "(", ")"), tmp1, tmp2);
+        res = new IR(kZoneValue_1, OP3("", "(", ")"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2725,7 +2725,7 @@ AlterTableStmt:
     | ALTER TABLE ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
         auto tmp1 = $6;
         auto tmp2 = $9;
-        res = new IR(kAlterTableStmt, OP3("ALTER TABLE ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
+        res = new IR(kAlterTableStmt_1, OP3("ALTER TABLE ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2734,7 +2734,7 @@ AlterTableStmt:
     | ALTER TABLE ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
         auto tmp1 = $6;
         auto tmp2 = $9;
-        res = new IR(kAlterTableStmt, OP3("ALTER TABLE ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
+        res = new IR(kAlterTableStmt_1, OP3("ALTER TABLE ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
         auto tmp3 = $12;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2764,7 +2764,7 @@ AlterTableStmt:
     | ALTER INDEX ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
         auto tmp1 = $6;
         auto tmp2 = $9;
-        res = new IR(kAlterTableStmt, OP3("ALTER INDEX ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
+        res = new IR(kAlterTableStmt_1, OP3("ALTER INDEX ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2773,7 +2773,7 @@ AlterTableStmt:
     | ALTER INDEX ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
         auto tmp1 = $6;
         auto tmp2 = $9;
-        res = new IR(kAlterTableStmt, OP3("ALTER INDEX ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
+        res = new IR(kAlterTableStmt_1, OP3("ALTER INDEX ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
         auto tmp3 = $12;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2824,7 +2824,7 @@ AlterTableStmt:
     | ALTER MATERIALIZED VIEW ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
         auto tmp1 = $7;
         auto tmp2 = $10;
-        res = new IR(kAlterTableStmt, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
+        res = new IR(kAlterTableStmt_1, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
         auto tmp3 = $11;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2833,7 +2833,7 @@ AlterTableStmt:
     | ALTER MATERIALIZED VIEW ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
         auto tmp1 = $7;
         auto tmp2 = $10;
-        res = new IR(kAlterTableStmt, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
+        res = new IR(kAlterTableStmt_1, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
         auto tmp3 = $13;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2939,7 +2939,7 @@ alter_table_cmd:
     | ALTER opt_column ColId alter_column_default {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2976,7 +2976,7 @@ alter_table_cmd:
     | ALTER opt_column ColId SET STATISTICS SignedIconst {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2985,7 +2985,7 @@ alter_table_cmd:
     | ALTER opt_column Iconst SET STATISTICS SignedIconst {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -2994,7 +2994,7 @@ alter_table_cmd:
     | ALTER opt_column ColId SET reloptions {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "SET"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3003,7 +3003,7 @@ alter_table_cmd:
     | ALTER opt_column ColId RESET reloptions {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "RESET"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "RESET"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3012,7 +3012,7 @@ alter_table_cmd:
     | ALTER opt_column ColId SET STORAGE ColId {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3021,7 +3021,7 @@ alter_table_cmd:
     | ALTER opt_column ColId SET column_compression {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "SET"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3030,7 +3030,7 @@ alter_table_cmd:
     | ALTER opt_column ColId ADD_P GENERATED generated_when AS IDENTITY_P OptParenthesizedSeqOptList {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", "ADD GENERATED"), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", "ADD GENERATED"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "AS IDENTITY", ""), res, tmp3);
         $$ = res;
@@ -3039,7 +3039,7 @@ alter_table_cmd:
     | ALTER opt_column ColId alter_identity_column_option_list {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3062,7 +3062,7 @@ alter_table_cmd:
     | DROP opt_column IF_P EXISTS ColId opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kAlterTableCmd, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3071,7 +3071,7 @@ alter_table_cmd:
     | DROP opt_column ColId opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("DROP", "", ""), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("DROP", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3080,9 +3080,9 @@ alter_table_cmd:
     | ALTER opt_column ColId opt_set_data TYPE_P Typename opt_collate_clause alter_using {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kAlterTableCmd, OP3("", "TYPE", ""), res, tmp3);
+        res = new IR(kAlterTableCmd_2, OP3("", "TYPE", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -3091,7 +3091,7 @@ alter_table_cmd:
     | ALTER opt_column ColId alter_generic_options {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kAlterTableCmd, OP3("ALTER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3464,7 +3464,7 @@ reloption_elem:
     | ColLabel '.' ColLabel '=' def_arg {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kReloptionElem, OP3("", ".", "="), tmp1, tmp2);
+        res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kReloptionElem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -3649,9 +3649,9 @@ alter_type_cmd:
     | ALTER ATTRIBUTE ColId opt_set_data TYPE_P Typename opt_collate_clause opt_drop_behavior {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterTypeCmd, OP3("ALTER ATTRIBUTE", "", "TYPE"), tmp1, tmp2);
+        res = new IR(kAlterTypeCmd_1, OP3("ALTER ATTRIBUTE", "", "TYPE"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kAlterTypeCmd, OP3("", "", ""), res, tmp3);
+        res = new IR(kAlterTypeCmd_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kAlterTypeCmd, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -3714,13 +3714,13 @@ CopyStmt:
     COPY opt_binary qualified_name opt_column_list copy_from opt_program copy_file_name copy_delimiter opt_with copy_options where_clause {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kCopyStmt, OP3("COPY", "", ""), tmp1, tmp2);
+        res = new IR(kCopyStmt_1, OP3("COPY", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $6;
-        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $8;
-        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $10;
         res = new IR(kCopyStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -3729,9 +3729,9 @@ CopyStmt:
     | COPY '(' PreparableStmt ')' TO opt_program copy_file_name opt_with copy_options {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kCopyStmt, OP3("COPY (", ") TO", ""), tmp1, tmp2);
+        res = new IR(kCopyStmt_1, OP3("COPY (", ") TO", ""), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $9;
         res = new IR(kCopyStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -4069,13 +4069,13 @@ CreateStmt:
     CREATE OptTemp TABLE qualified_name '(' OptTableElementList ')' OptInherit OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateStmt, OP3("CREATE", "TABLE", "("), tmp1, tmp2);
+        res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE", "("), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kCreateStmt, OP3("", ")", ""), res, tmp3);
+        res = new IR(kCreateStmt_2, OP3("", ")", ""), res, tmp3);
         auto tmp4 = $9;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $11;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $13;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -4084,13 +4084,13 @@ CreateStmt:
     | CREATE OptTemp TABLE IF_P NOT EXISTS qualified_name '(' OptTableElementList ')' OptInherit OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $2;
         auto tmp2 = $7;
-        res = new IR(kCreateStmt, OP3("CREATE", "TABLE IF NOT EXISTS", "("), tmp1, tmp2);
+        res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE IF NOT EXISTS", "("), tmp1, tmp2);
         auto tmp3 = $9;
-        res = new IR(kCreateStmt, OP3("", ")", ""), res, tmp3);
+        res = new IR(kCreateStmt_2, OP3("", ")", ""), res, tmp3);
         auto tmp4 = $12;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $14;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $16;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -4099,13 +4099,13 @@ CreateStmt:
     | CREATE OptTemp TABLE qualified_name OF any_name OptTypedTableElementList OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateStmt, OP3("CREATE", "TABLE", "OF"), tmp1, tmp2);
+        res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE", "OF"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $10;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $12;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -4114,13 +4114,13 @@ CreateStmt:
     | CREATE OptTemp TABLE IF_P NOT EXISTS qualified_name OF any_name OptTypedTableElementList OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $2;
         auto tmp2 = $7;
-        res = new IR(kCreateStmt, OP3("CREATE", "TABLE IF NOT EXISTS", "OF"), tmp1, tmp2);
+        res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE IF NOT EXISTS", "OF"), tmp1, tmp2);
         auto tmp3 = $9;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $11;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $13;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $15;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -4129,13 +4129,13 @@ CreateStmt:
     | CREATE OptTemp TABLE qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateStmt, OP3("CREATE", "TABLE", "PARTITION OF"), tmp1, tmp2);
+        res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE", "PARTITION OF"), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $9;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $11;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $13;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -4144,13 +4144,13 @@ CreateStmt:
     | CREATE OptTemp TABLE IF_P NOT EXISTS qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $2;
         auto tmp2 = $7;
-        res = new IR(kCreateStmt, OP3("CREATE", "TABLE IF NOT EXISTS", "PARTITION OF"), tmp1, tmp2);
+        res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE IF NOT EXISTS", "PARTITION OF"), tmp1, tmp2);
         auto tmp3 = $10;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $12;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $14;
-        res = new IR(kCreateStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $16;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -4328,9 +4328,9 @@ columnDef:
     ColId Typename opt_column_compression create_generic_options ColQualList {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kColumnDef, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kColumnDef_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kColumnDef, OP3("", "", ""), res, tmp3);
+        res = new IR(kColumnDef_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
         res = new IR(kColumnDef, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -4508,7 +4508,7 @@ ColConstraintElem:
     | REFERENCES qualified_name opt_column_list key_match key_actions {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kColConstraintElem, OP3("REFERENCES", "", ""), tmp1, tmp2);
+        res = new IR(kColConstraintElem_1, OP3("REFERENCES", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kColConstraintElem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -4699,9 +4699,9 @@ ConstraintElem:
     | UNIQUE '(' columnList ')' opt_c_include opt_definition OptConsTableSpace ConstraintAttributeSpec {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kConstraintElem, OP3("UNIQUE (", ")", ""), tmp1, tmp2);
+        res = new IR(kConstraintElem_1, OP3("UNIQUE (", ")", ""), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kConstraintElem, OP3("", "", ""), res, tmp3);
+        res = new IR(kConstraintElem_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -4717,9 +4717,9 @@ ConstraintElem:
     | PRIMARY KEY '(' columnList ')' opt_c_include opt_definition OptConsTableSpace ConstraintAttributeSpec {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kConstraintElem, OP3("PRIMARY KEY (", ")", ""), tmp1, tmp2);
+        res = new IR(kConstraintElem_1, OP3("PRIMARY KEY (", ")", ""), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kConstraintElem, OP3("", "", ""), res, tmp3);
+        res = new IR(kConstraintElem_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $9;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -4735,11 +4735,11 @@ ConstraintElem:
     | EXCLUDE access_method_clause '(' ExclusionConstraintList ')' opt_c_include opt_definition OptConsTableSpace OptWhereClause ConstraintAttributeSpec {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kConstraintElem, OP3("EXCLUDE", "(", ")"), tmp1, tmp2);
+        res = new IR(kConstraintElem_1, OP3("EXCLUDE", "(", ")"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kConstraintElem, OP3("", "", ""), res, tmp3);
+        res = new IR(kConstraintElem_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kConstraintElem, OP3("", "", ""), res, tmp4);
+        res = new IR(kConstraintElem_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $10;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp5);
         $$ = res;
@@ -4748,9 +4748,9 @@ ConstraintElem:
     | FOREIGN KEY '(' columnList ')' REFERENCES qualified_name opt_column_list key_match key_actions ConstraintAttributeSpec {
         auto tmp1 = $4;
         auto tmp2 = $7;
-        res = new IR(kConstraintElem, OP3("FOREIGN KEY (", ") REFERENCES", ""), tmp1, tmp2);
+        res = new IR(kConstraintElem_1, OP3("FOREIGN KEY (", ") REFERENCES", ""), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kConstraintElem, OP3("", "", ""), res, tmp3);
+        res = new IR(kConstraintElem_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $10;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -5075,7 +5075,7 @@ part_elem:
     ColId opt_collate opt_class {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kPartElem, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kPartElem_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5084,7 +5084,7 @@ part_elem:
     | func_expr_windowless opt_collate opt_class {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kPartElem, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kPartElem_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5093,7 +5093,7 @@ part_elem:
     | '(' a_expr ')' opt_collate opt_class {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kPartElem, OP3("(", ")", ""), tmp1, tmp2);
+        res = new IR(kPartElem_1, OP3("(", ")", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5227,7 +5227,7 @@ CreateStatsStmt:
     CREATE STATISTICS any_name opt_name_list ON stats_params FROM from_list {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateStatsStmt, OP3("CREATE STATISTICS", "", "ON"), tmp1, tmp2);
+        res = new IR(kCreateStatsStmt_1, OP3("CREATE STATISTICS", "", "ON"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCreateStatsStmt, OP3("", "FROM", ""), res, tmp3);
         $$ = res;
@@ -5236,7 +5236,7 @@ CreateStatsStmt:
     | CREATE STATISTICS IF_P NOT EXISTS any_name opt_name_list ON stats_params FROM from_list {
         auto tmp1 = $6;
         auto tmp2 = $7;
-        res = new IR(kCreateStatsStmt, OP3("CREATE STATISTICS IF NOT EXISTS", "", "ON"), tmp1, tmp2);
+        res = new IR(kCreateStatsStmt_1, OP3("CREATE STATISTICS IF NOT EXISTS", "", "ON"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCreateStatsStmt, OP3("", "FROM", ""), res, tmp3);
         $$ = res;
@@ -5335,7 +5335,7 @@ CreateAsStmt:
     CREATE OptTemp TABLE create_as_target AS SelectStmt opt_with_data {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateAsStmt, OP3("CREATE", "TABLE", "AS"), tmp1, tmp2);
+        res = new IR(kCreateAsStmt_1, OP3("CREATE", "TABLE", "AS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCreateAsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5344,7 +5344,7 @@ CreateAsStmt:
     | CREATE OptTemp TABLE IF_P NOT EXISTS create_as_target AS SelectStmt opt_with_data {
         auto tmp1 = $2;
         auto tmp2 = $7;
-        res = new IR(kCreateAsStmt, OP3("CREATE", "TABLE IF NOT EXISTS", "AS"), tmp1, tmp2);
+        res = new IR(kCreateAsStmt_1, OP3("CREATE", "TABLE IF NOT EXISTS", "AS"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCreateAsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5358,9 +5358,9 @@ create_as_target:
     qualified_name opt_column_list table_access_method_clause OptWith OnCommitOption OptTableSpace {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kCreateAsTarget, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kCreateAsTarget_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kCreateAsTarget, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateAsTarget_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
         res = new IR(kCreateAsTarget, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -5402,7 +5402,7 @@ CreateMatViewStmt:
     CREATE OptNoLog MATERIALIZED VIEW create_mv_target AS SelectStmt opt_with_data {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kCreateMatViewStmt, OP3("CREATE", "MATERIALIZED VIEW", "AS"), tmp1, tmp2);
+        res = new IR(kCreateMatViewStmt_1, OP3("CREATE", "MATERIALIZED VIEW", "AS"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kCreateMatViewStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5411,7 +5411,7 @@ CreateMatViewStmt:
     | CREATE OptNoLog MATERIALIZED VIEW IF_P NOT EXISTS create_mv_target AS SelectStmt opt_with_data {
         auto tmp1 = $2;
         auto tmp2 = $8;
-        res = new IR(kCreateMatViewStmt, OP3("CREATE", "MATERIALIZED VIEW IF NOT EXISTS", "AS"), tmp1, tmp2);
+        res = new IR(kCreateMatViewStmt_1, OP3("CREATE", "MATERIALIZED VIEW IF NOT EXISTS", "AS"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kCreateMatViewStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5425,9 +5425,9 @@ create_mv_target:
     qualified_name opt_column_list table_access_method_clause opt_reloptions OptTableSpace {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kCreateMvTarget, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kCreateMvTarget_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kCreateMvTarget, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateMvTarget_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
         res = new IR(kCreateMvTarget, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -5464,7 +5464,7 @@ RefreshMatViewStmt:
     REFRESH MATERIALIZED VIEW opt_concurrently qualified_name opt_with_data {
         auto tmp1 = $4;
         auto tmp2 = $5;
-        res = new IR(kRefreshMatViewStmt, OP3("REFRESH MATERIALIZED VIEW", "", ""), tmp1, tmp2);
+        res = new IR(kRefreshMatViewStmt_1, OP3("REFRESH MATERIALIZED VIEW", "", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kRefreshMatViewStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5487,7 +5487,7 @@ CreateSeqStmt:
     CREATE OptTemp SEQUENCE qualified_name OptSeqOptList {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateSeqStmt, OP3("CREATE", "SEQUENCE", ""), tmp1, tmp2);
+        res = new IR(kCreateSeqStmt_1, OP3("CREATE", "SEQUENCE", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreateSeqStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5496,7 +5496,7 @@ CreateSeqStmt:
     | CREATE OptTemp SEQUENCE IF_P NOT EXISTS qualified_name OptSeqOptList {
         auto tmp1 = $2;
         auto tmp2 = $7;
-        res = new IR(kCreateSeqStmt, OP3("CREATE", "SEQUENCE IF NOT EXISTS", ""), tmp1, tmp2);
+        res = new IR(kCreateSeqStmt_1, OP3("CREATE", "SEQUENCE IF NOT EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateSeqStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5733,7 +5733,7 @@ CreatePLangStmt:
     CREATE opt_or_replace opt_trusted opt_procedural LANGUAGE name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kCreatePLangStmt, OP3("CREATE", "", ""), tmp1, tmp2);
+        res = new IR(kCreatePLangStmt_1, OP3("CREATE", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kCreatePLangStmt, OP3("", "LANGUAGE", ""), res, tmp3);
         $$ = res;
@@ -5742,11 +5742,11 @@ CreatePLangStmt:
     | CREATE opt_or_replace opt_trusted opt_procedural LANGUAGE name HANDLER handler_name opt_inline_handler opt_validator {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kCreatePLangStmt, OP3("CREATE", "", ""), tmp1, tmp2);
+        res = new IR(kCreatePLangStmt_1, OP3("CREATE", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kCreatePLangStmt, OP3("", "LANGUAGE", "HANDLER"), res, tmp3);
+        res = new IR(kCreatePLangStmt_2, OP3("", "LANGUAGE", "HANDLER"), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kCreatePLangStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreatePLangStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $10;
         res = new IR(kCreatePLangStmt, OP3("", "", ""), res, tmp5);
         $$ = res;
@@ -5867,7 +5867,7 @@ CreateTableSpaceStmt:
     CREATE TABLESPACE name OptTableSpaceOwner LOCATION Sconst opt_reloptions {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateTableSpaceStmt, OP3("CREATE TABLESPACE", "", "LOCATION"), tmp1, tmp2);
+        res = new IR(kCreateTableSpaceStmt_1, OP3("CREATE TABLESPACE", "", "LOCATION"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCreateTableSpaceStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5932,7 +5932,7 @@ CreateExtensionStmt:
     CREATE EXTENSION name opt_with create_extension_opt_list {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateExtensionStmt, OP3("CREATE EXTENSION", "", ""), tmp1, tmp2);
+        res = new IR(kCreateExtensionStmt_1, OP3("CREATE EXTENSION", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreateExtensionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -5941,7 +5941,7 @@ CreateExtensionStmt:
     | CREATE EXTENSION IF_P NOT EXISTS name opt_with create_extension_opt_list {
         auto tmp1 = $6;
         auto tmp2 = $7;
-        res = new IR(kCreateExtensionStmt, OP3("CREATE EXTENSION IF NOT EXISTS", "", ""), tmp1, tmp2);
+        res = new IR(kCreateExtensionStmt_1, OP3("CREATE EXTENSION IF NOT EXISTS", "", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateExtensionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6052,7 +6052,7 @@ AlterExtensionContentsStmt:
     ALTER EXTENSION name add_drop object_type_name name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", ""), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6061,7 +6061,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop object_type_any_name any_name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", ""), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6070,7 +6070,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop AGGREGATE aggregate_with_argtypes {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "AGGREGATE"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "AGGREGATE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6079,7 +6079,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop CAST '(' Typename AS Typename ')' {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "CAST ("), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "CAST ("), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "AS", ")"), res, tmp3);
         $$ = res;
@@ -6088,7 +6088,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop DOMAIN_P Typename {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "DOMAIN"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "DOMAIN"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6097,7 +6097,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop FUNCTION function_with_argtypes {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "FUNCTION"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "FUNCTION"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6106,7 +6106,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop OPERATOR operator_with_argtypes {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "OPERATOR"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "OPERATOR"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6115,7 +6115,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop OPERATOR CLASS any_name USING name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "OPERATOR CLASS"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "OPERATOR CLASS"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "USING", ""), res, tmp3);
         $$ = res;
@@ -6124,7 +6124,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop OPERATOR FAMILY any_name USING name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "OPERATOR FAMILY"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "OPERATOR FAMILY"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "USING", ""), res, tmp3);
         $$ = res;
@@ -6133,7 +6133,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop PROCEDURE function_with_argtypes {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "PROCEDURE"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "PROCEDURE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6142,7 +6142,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop ROUTINE function_with_argtypes {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "ROUTINE"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "ROUTINE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6151,7 +6151,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop TRANSFORM FOR Typename LANGUAGE name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "TRANSFORM FOR"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "TRANSFORM FOR"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "LANGUAGE", ""), res, tmp3);
         $$ = res;
@@ -6160,7 +6160,7 @@ AlterExtensionContentsStmt:
     | ALTER EXTENSION name add_drop TYPE_P Typename {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterExtensionContentsStmt, OP3("ALTER EXTENSION", "", "TYPE"), tmp1, tmp2);
+        res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", "TYPE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6181,7 +6181,7 @@ CreateFdwStmt:
     CREATE FOREIGN DATA_P WRAPPER name opt_fdw_options create_generic_options {
         auto tmp1 = $5;
         auto tmp2 = $6;
-        res = new IR(kCreateFdwStmt, OP3("CREATE FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
+        res = new IR(kCreateFdwStmt_1, OP3("CREATE FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kCreateFdwStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6263,7 +6263,7 @@ AlterFdwStmt:
     ALTER FOREIGN DATA_P WRAPPER name opt_fdw_options alter_generic_options {
         auto tmp1 = $5;
         auto tmp2 = $6;
-        res = new IR(kAlterFdwStmt, OP3("ALTER FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterFdwStmt_1, OP3("ALTER FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterFdwStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6420,9 +6420,9 @@ CreateForeignServerStmt:
     CREATE SERVER name opt_type opt_foreign_server_version FOREIGN DATA_P WRAPPER name create_generic_options {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateForeignServerStmt, OP3("CREATE SERVER", "", ""), tmp1, tmp2);
+        res = new IR(kCreateForeignServerStmt_1, OP3("CREATE SERVER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kCreateForeignServerStmt, OP3("", "FOREIGN DATA WRAPPER", ""), res, tmp3);
+        res = new IR(kCreateForeignServerStmt_2, OP3("", "FOREIGN DATA WRAPPER", ""), res, tmp3);
         auto tmp4 = $10;
         res = new IR(kCreateForeignServerStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6431,9 +6431,9 @@ CreateForeignServerStmt:
     | CREATE SERVER IF_P NOT EXISTS name opt_type opt_foreign_server_version FOREIGN DATA_P WRAPPER name create_generic_options {
         auto tmp1 = $6;
         auto tmp2 = $7;
-        res = new IR(kCreateForeignServerStmt, OP3("CREATE SERVER IF NOT EXISTS", "", ""), tmp1, tmp2);
+        res = new IR(kCreateForeignServerStmt_1, OP3("CREATE SERVER IF NOT EXISTS", "", ""), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kCreateForeignServerStmt, OP3("", "FOREIGN DATA WRAPPER", ""), res, tmp3);
+        res = new IR(kCreateForeignServerStmt_2, OP3("", "FOREIGN DATA WRAPPER", ""), res, tmp3);
         auto tmp4 = $13;
         res = new IR(kCreateForeignServerStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6503,7 +6503,7 @@ AlterForeignServerStmt:
     ALTER SERVER name foreign_server_version alter_generic_options {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterForeignServerStmt, OP3("ALTER SERVER", "", ""), tmp1, tmp2);
+        res = new IR(kAlterForeignServerStmt_1, OP3("ALTER SERVER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterForeignServerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6538,9 +6538,9 @@ CreateForeignTableStmt:
     CREATE FOREIGN TABLE qualified_name '(' OptTableElementList ')' OptInherit SERVER name create_generic_options {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateForeignTableStmt, OP3("CREATE FOREIGN TABLE", "(", ")"), tmp1, tmp2);
+        res = new IR(kCreateForeignTableStmt_1, OP3("CREATE FOREIGN TABLE", "(", ")"), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kCreateForeignTableStmt, OP3("", "SERVER", ""), res, tmp3);
+        res = new IR(kCreateForeignTableStmt_2, OP3("", "SERVER", ""), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6549,9 +6549,9 @@ CreateForeignTableStmt:
     | CREATE FOREIGN TABLE IF_P NOT EXISTS qualified_name '(' OptTableElementList ')' OptInherit SERVER name create_generic_options {
         auto tmp1 = $7;
         auto tmp2 = $9;
-        res = new IR(kCreateForeignTableStmt, OP3("CREATE FOREIGN TABLE IF NOT EXISTS", "(", ")"), tmp1, tmp2);
+        res = new IR(kCreateForeignTableStmt_1, OP3("CREATE FOREIGN TABLE IF NOT EXISTS", "(", ")"), tmp1, tmp2);
         auto tmp3 = $11;
-        res = new IR(kCreateForeignTableStmt, OP3("", "SERVER", ""), res, tmp3);
+        res = new IR(kCreateForeignTableStmt_2, OP3("", "SERVER", ""), res, tmp3);
         auto tmp4 = $14;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6560,9 +6560,9 @@ CreateForeignTableStmt:
     | CREATE FOREIGN TABLE qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec SERVER name create_generic_options {
         auto tmp1 = $4;
         auto tmp2 = $7;
-        res = new IR(kCreateForeignTableStmt, OP3("CREATE FOREIGN TABLE", "PARTITION OF", ""), tmp1, tmp2);
+        res = new IR(kCreateForeignTableStmt_1, OP3("CREATE FOREIGN TABLE", "PARTITION OF", ""), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kCreateForeignTableStmt, OP3("", "", "SERVER"), res, tmp3);
+        res = new IR(kCreateForeignTableStmt_2, OP3("", "", "SERVER"), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6571,9 +6571,9 @@ CreateForeignTableStmt:
     | CREATE FOREIGN TABLE IF_P NOT EXISTS qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec SERVER name create_generic_options {
         auto tmp1 = $7;
         auto tmp2 = $10;
-        res = new IR(kCreateForeignTableStmt, OP3("CREATE FOREIGN TABLE IF NOT EXISTS", "PARTITION OF", ""), tmp1, tmp2);
+        res = new IR(kCreateForeignTableStmt_1, OP3("CREATE FOREIGN TABLE IF NOT EXISTS", "PARTITION OF", ""), tmp1, tmp2);
         auto tmp3 = $11;
-        res = new IR(kCreateForeignTableStmt, OP3("", "", "SERVER"), res, tmp3);
+        res = new IR(kCreateForeignTableStmt_2, OP3("", "", "SERVER"), res, tmp3);
         auto tmp4 = $14;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6596,9 +6596,9 @@ ImportForeignSchemaStmt:
     IMPORT_P FOREIGN SCHEMA name import_qualification FROM SERVER name INTO name create_generic_options {
         auto tmp1 = $4;
         auto tmp2 = $5;
-        res = new IR(kImportForeignSchemaStmt, OP3("IMPORT FOREIGN SCHEMA", "", "FROM SERVER"), tmp1, tmp2);
+        res = new IR(kImportForeignSchemaStmt_1, OP3("IMPORT FOREIGN SCHEMA", "", "FROM SERVER"), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kImportForeignSchemaStmt, OP3("", "INTO", ""), res, tmp3);
+        res = new IR(kImportForeignSchemaStmt_2, OP3("", "INTO", ""), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kImportForeignSchemaStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6651,7 +6651,7 @@ CreateUserMappingStmt:
     CREATE USER MAPPING FOR auth_ident SERVER name create_generic_options {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kCreateUserMappingStmt, OP3("CREATE USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
+        res = new IR(kCreateUserMappingStmt_1, OP3("CREATE USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateUserMappingStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6660,7 +6660,7 @@ CreateUserMappingStmt:
     | CREATE USER MAPPING IF_P NOT EXISTS FOR auth_ident SERVER name create_generic_options {
         auto tmp1 = $8;
         auto tmp2 = $10;
-        res = new IR(kCreateUserMappingStmt, OP3("CREATE USER MAPPING IF NOT EXISTS FOR", "SERVER", ""), tmp1, tmp2);
+        res = new IR(kCreateUserMappingStmt_1, OP3("CREATE USER MAPPING IF NOT EXISTS FOR", "SERVER", ""), tmp1, tmp2);
         auto tmp3 = $11;
         res = new IR(kCreateUserMappingStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6726,7 +6726,7 @@ AlterUserMappingStmt:
     ALTER USER MAPPING FOR auth_ident SERVER name alter_generic_options {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kAlterUserMappingStmt, OP3("ALTER USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
+        res = new IR(kAlterUserMappingStmt_1, OP3("ALTER USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterUserMappingStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6753,11 +6753,11 @@ CreatePolicyStmt:
     CREATE POLICY name ON qualified_name RowSecurityDefaultPermissive RowSecurityDefaultForCmd RowSecurityDefaultToRole RowSecurityOptionalExpr RowSecurityOptionalWithCheck {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kCreatePolicyStmt, OP3("CREATE POLICY", "ON", ""), tmp1, tmp2);
+        res = new IR(kCreatePolicyStmt_1, OP3("CREATE POLICY", "ON", ""), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kCreatePolicyStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreatePolicyStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kCreatePolicyStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreatePolicyStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $10;
         res = new IR(kCreatePolicyStmt, OP3("", "", ""), res, tmp5);
         $$ = res;
@@ -6771,9 +6771,9 @@ AlterPolicyStmt:
     ALTER POLICY name ON qualified_name RowSecurityOptionalToRole RowSecurityOptionalExpr RowSecurityOptionalWithCheck {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kAlterPolicyStmt, OP3("ALTER POLICY", "ON", ""), tmp1, tmp2);
+        res = new IR(kAlterPolicyStmt_1, OP3("ALTER POLICY", "ON", ""), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kAlterPolicyStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kAlterPolicyStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kAlterPolicyStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -6919,7 +6919,7 @@ CreateAmStmt:
     CREATE ACCESS METHOD name TYPE_P am_type HANDLER handler_name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateAmStmt, OP3("CREATE ACCESS METHOD", "TYPE", "HANDLER"), tmp1, tmp2);
+        res = new IR(kCreateAmStmt_1, OP3("CREATE ACCESS METHOD", "TYPE", "HANDLER"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateAmStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -6955,15 +6955,15 @@ CreateTrigStmt:
     CREATE opt_or_replace TRIGGER name TriggerActionTime TriggerEvents ON qualified_name TriggerReferencing TriggerForSpec TriggerWhen EXECUTE FUNCTION_or_PROCEDURE func_name '(' TriggerFuncArgs ')' {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateTrigStmt, OP3("CREATE", "TRIGGER", ""), tmp1, tmp2);
+        res = new IR(kCreateTrigStmt_1, OP3("CREATE", "TRIGGER", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kCreateTrigStmt, OP3("", "", "ON"), res, tmp3);
+        res = new IR(kCreateTrigStmt_2, OP3("", "", "ON"), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kCreateTrigStmt, OP3("", "", ""), res, tmp4);
+        res = new IR(kCreateTrigStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $10;
-        res = new IR(kCreateTrigStmt, OP3("", "", "EXECUTE"), res, tmp5);
+        res = new IR(kCreateTrigStmt_4, OP3("", "", "EXECUTE"), res, tmp5);
         auto tmp6 = $13;
-        res = new IR(kCreateTrigStmt, OP3("", "", "("), res, tmp6);
+        res = new IR(kCreateTrigStmt_5, OP3("", "", "("), res, tmp6);
         auto tmp7 = $16;
         res = new IR(kCreateTrigStmt, OP3("", ")", ""), res, tmp7);
         $$ = res;
@@ -6972,13 +6972,13 @@ CreateTrigStmt:
     | CREATE opt_or_replace CONSTRAINT TRIGGER name AFTER TriggerEvents ON qualified_name OptConstrFromTable ConstraintAttributeSpec FOR EACH ROW TriggerWhen EXECUTE FUNCTION_or_PROCEDURE func_name '(' TriggerFuncArgs ')' {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kCreateTrigStmt, OP3("CREATE", "CONSTRAINT TRIGGER", "AFTER"), tmp1, tmp2);
+        res = new IR(kCreateTrigStmt_1, OP3("CREATE", "CONSTRAINT TRIGGER", "AFTER"), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kCreateTrigStmt, OP3("", "ON", ""), res, tmp3);
+        res = new IR(kCreateTrigStmt_2, OP3("", "ON", ""), res, tmp3);
         auto tmp4 = $10;
-        res = new IR(kCreateTrigStmt, OP3("", "", "FOR EACH ROW"), res, tmp4);
+        res = new IR(kCreateTrigStmt_3, OP3("", "", "FOR EACH ROW"), res, tmp4);
         auto tmp5 = $15;
-        res = new IR(kCreateTrigStmt, OP3("", "EXECUTE", ""), res, tmp5);
+        res = new IR(kCreateTrigStmt_4, OP3("", "EXECUTE", ""), res, tmp5);
         auto tmp6 = $18;
         res = new IR(kCreateTrigStmt, OP3("", "(", ")"), res, tmp6);
         $$ = res;
@@ -7095,7 +7095,7 @@ TriggerTransition:
     TransitionOldOrNew TransitionRowOrTable opt_as TransitionRelName {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kTriggerTransition, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kTriggerTransition_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kTriggerTransition, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7356,7 +7356,7 @@ CreateEventTrigStmt:
     CREATE EVENT TRIGGER name ON ColLabel EXECUTE FUNCTION_or_PROCEDURE func_name '(' ')' {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateEventTrigStmt, OP3("CREATE EVENT TRIGGER", "ON", "EXECUTE"), tmp1, tmp2);
+        res = new IR(kCreateEventTrigStmt_1, OP3("CREATE EVENT TRIGGER", "ON", "EXECUTE"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateEventTrigStmt, OP3("", "", "( )"), res, tmp3);
         $$ = res;
@@ -7365,9 +7365,9 @@ CreateEventTrigStmt:
     | CREATE EVENT TRIGGER name ON ColLabel WHEN event_trigger_when_list EXECUTE FUNCTION_or_PROCEDURE func_name '(' ')' {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateEventTrigStmt, OP3("CREATE EVENT TRIGGER", "ON", "WHEN"), tmp1, tmp2);
+        res = new IR(kCreateEventTrigStmt_1, OP3("CREATE EVENT TRIGGER", "ON", "WHEN"), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kCreateEventTrigStmt, OP3("", "EXECUTE", ""), res, tmp3);
+        res = new IR(kCreateEventTrigStmt_2, OP3("", "EXECUTE", ""), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kCreateEventTrigStmt, OP3("", "( )", ""), res, tmp4);
         $$ = res;
@@ -7471,7 +7471,7 @@ CreateAssertionStmt:
     CREATE ASSERTION any_name CHECK '(' a_expr ')' ConstraintAttributeSpec {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kCreateAssertionStmt, OP3("CREATE ASSERTION", "CHECK (", ")"), tmp1, tmp2);
+        res = new IR(kCreateAssertionStmt_1, OP3("CREATE ASSERTION", "CHECK (", ")"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateAssertionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7493,7 +7493,7 @@ DefineStmt:
     CREATE opt_or_replace AGGREGATE func_name aggr_args definition {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kDefineStmt, OP3("CREATE", "AGGREGATE", ""), tmp1, tmp2);
+        res = new IR(kDefineStmt_1, OP3("CREATE", "AGGREGATE", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kDefineStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7502,7 +7502,7 @@ DefineStmt:
     | CREATE opt_or_replace AGGREGATE func_name old_aggr_definition {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kDefineStmt, OP3("CREATE", "AGGREGATE", ""), tmp1, tmp2);
+        res = new IR(kDefineStmt_1, OP3("CREATE", "AGGREGATE", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kDefineStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7786,7 +7786,7 @@ AlterEnumStmt:
     ALTER TYPE_P any_name ADD_P VALUE_P opt_if_not_exists Sconst {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterEnumStmt, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
+        res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7795,7 +7795,7 @@ AlterEnumStmt:
     | ALTER TYPE_P any_name ADD_P VALUE_P opt_if_not_exists Sconst BEFORE Sconst {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterEnumStmt, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
+        res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterEnumStmt, OP3("", "BEFORE", ""), res, tmp3);
         $$ = res;
@@ -7804,7 +7804,7 @@ AlterEnumStmt:
     | ALTER TYPE_P any_name ADD_P VALUE_P opt_if_not_exists Sconst AFTER Sconst {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterEnumStmt, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
+        res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterEnumStmt, OP3("", "AFTER", ""), res, tmp3);
         $$ = res;
@@ -7813,7 +7813,7 @@ AlterEnumStmt:
     | ALTER TYPE_P any_name RENAME VALUE_P Sconst TO Sconst {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterEnumStmt, OP3("ALTER TYPE", "RENAME VALUE", "TO"), tmp1, tmp2);
+        res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "RENAME VALUE", "TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7854,9 +7854,9 @@ CreateOpClassStmt:
     CREATE OPERATOR CLASS any_name opt_default FOR TYPE_P Typename USING name opt_opfamily AS opclass_item_list {
         auto tmp1 = $4;
         auto tmp2 = $5;
-        res = new IR(kCreateOpClassStmt, OP3("CREATE OPERATOR CLASS", "", "FOR TYPE"), tmp1, tmp2);
+        res = new IR(kCreateOpClassStmt_1, OP3("CREATE OPERATOR CLASS", "", "FOR TYPE"), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kCreateOpClassStmt, OP3("", "USING", ""), res, tmp3);
+        res = new IR(kCreateOpClassStmt_2, OP3("", "USING", ""), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kCreateOpClassStmt, OP3("", "AS", ""), res, tmp4);
         $$ = res;
@@ -7888,7 +7888,7 @@ opclass_item:
     OPERATOR Iconst any_operator opclass_purpose opt_recheck {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kOpclassItem, OP3("OPERATOR", "", ""), tmp1, tmp2);
+        res = new IR(kOpclassItem_1, OP3("OPERATOR", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kOpclassItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7897,7 +7897,7 @@ opclass_item:
     | OPERATOR Iconst operator_with_argtypes opclass_purpose opt_recheck {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kOpclassItem, OP3("OPERATOR", "", ""), tmp1, tmp2);
+        res = new IR(kOpclassItem_1, OP3("OPERATOR", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kOpclassItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -7913,7 +7913,7 @@ opclass_item:
     | FUNCTION Iconst '(' type_list ')' function_with_argtypes {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kOpclassItem, OP3("FUNCTION", "(", ")"), tmp1, tmp2);
+        res = new IR(kOpclassItem_1, OP3("FUNCTION", "(", ")"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kOpclassItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8013,7 +8013,7 @@ AlterOpFamilyStmt:
     ALTER OPERATOR FAMILY any_name USING name ADD_P opclass_item_list {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kAlterOpFamilyStmt, OP3("ALTER OPERATOR FAMILY", "USING", "ADD"), tmp1, tmp2);
+        res = new IR(kAlterOpFamilyStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "ADD"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterOpFamilyStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8022,7 +8022,7 @@ AlterOpFamilyStmt:
     | ALTER OPERATOR FAMILY any_name USING name DROP opclass_drop_list {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kAlterOpFamilyStmt, OP3("ALTER OPERATOR FAMILY", "USING", "DROP"), tmp1, tmp2);
+        res = new IR(kAlterOpFamilyStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "DROP"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterOpFamilyStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8074,7 +8074,7 @@ DropOpClassStmt:
     DROP OPERATOR CLASS any_name USING name opt_drop_behavior {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kDropOpClassStmt, OP3("DROP OPERATOR CLASS", "USING", ""), tmp1, tmp2);
+        res = new IR(kDropOpClassStmt_1, OP3("DROP OPERATOR CLASS", "USING", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kDropOpClassStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8083,7 +8083,7 @@ DropOpClassStmt:
     | DROP OPERATOR CLASS IF_P EXISTS any_name USING name opt_drop_behavior {
         auto tmp1 = $6;
         auto tmp2 = $8;
-        res = new IR(kDropOpClassStmt, OP3("DROP OPERATOR CLASS IF EXISTS", "USING", ""), tmp1, tmp2);
+        res = new IR(kDropOpClassStmt_1, OP3("DROP OPERATOR CLASS IF EXISTS", "USING", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kDropOpClassStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8097,7 +8097,7 @@ DropOpFamilyStmt:
     DROP OPERATOR FAMILY any_name USING name opt_drop_behavior {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kDropOpFamilyStmt, OP3("DROP OPERATOR FAMILY", "USING", ""), tmp1, tmp2);
+        res = new IR(kDropOpFamilyStmt_1, OP3("DROP OPERATOR FAMILY", "USING", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kDropOpFamilyStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8106,7 +8106,7 @@ DropOpFamilyStmt:
     | DROP OPERATOR FAMILY IF_P EXISTS any_name USING name opt_drop_behavior {
         auto tmp1 = $6;
         auto tmp2 = $8;
-        res = new IR(kDropOpFamilyStmt, OP3("DROP OPERATOR FAMILY IF EXISTS", "USING", ""), tmp1, tmp2);
+        res = new IR(kDropOpFamilyStmt_1, OP3("DROP OPERATOR FAMILY IF EXISTS", "USING", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kDropOpFamilyStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8162,7 +8162,7 @@ DropStmt:
     DROP object_type_any_name IF_P EXISTS any_name_list opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kDropStmt, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
+        res = new IR(kDropStmt_1, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8171,7 +8171,7 @@ DropStmt:
     | DROP object_type_any_name any_name_list opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kDropStmt, OP3("DROP", "", ""), tmp1, tmp2);
+        res = new IR(kDropStmt_1, OP3("DROP", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8180,7 +8180,7 @@ DropStmt:
     | DROP drop_type_name IF_P EXISTS name_list opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kDropStmt, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
+        res = new IR(kDropStmt_1, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8189,7 +8189,7 @@ DropStmt:
     | DROP drop_type_name name_list opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kDropStmt, OP3("DROP", "", ""), tmp1, tmp2);
+        res = new IR(kDropStmt_1, OP3("DROP", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8198,7 +8198,7 @@ DropStmt:
     | DROP object_type_name_on_any_name name ON any_name opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kDropStmt, OP3("DROP", "", "ON"), tmp1, tmp2);
+        res = new IR(kDropStmt_1, OP3("DROP", "", "ON"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8207,7 +8207,7 @@ DropStmt:
     | DROP object_type_name_on_any_name IF_P EXISTS name ON any_name opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kDropStmt, OP3("DROP", "IF EXISTS", "ON"), tmp1, tmp2);
+        res = new IR(kDropStmt_1, OP3("DROP", "IF EXISTS", "ON"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8517,7 +8517,7 @@ TruncateStmt:
     TRUNCATE opt_table relation_expr_list opt_restart_seqs opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kTruncateStmt, OP3("TRUNCATE", "", ""), tmp1, tmp2);
+        res = new IR(kTruncateStmt_1, OP3("TRUNCATE", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kTruncateStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8557,7 +8557,7 @@ CommentStmt:
     COMMENT ON object_type_any_name any_name IS comment_text {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCommentStmt, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8573,7 +8573,7 @@ CommentStmt:
     | COMMENT ON object_type_name name IS comment_text {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCommentStmt, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8617,7 +8617,7 @@ CommentStmt:
     | COMMENT ON CONSTRAINT name ON any_name IS comment_text {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCommentStmt, OP3("COMMENT ON CONSTRAINT", "ON", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON CONSTRAINT", "ON", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8626,7 +8626,7 @@ CommentStmt:
     | COMMENT ON CONSTRAINT name ON DOMAIN_P any_name IS comment_text {
         auto tmp1 = $4;
         auto tmp2 = $7;
-        res = new IR(kCommentStmt, OP3("COMMENT ON CONSTRAINT", "ON DOMAIN", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON CONSTRAINT", "ON DOMAIN", "IS"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8635,7 +8635,7 @@ CommentStmt:
     | COMMENT ON object_type_name_on_any_name name ON any_name IS comment_text {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCommentStmt, OP3("COMMENT ON", "", "ON"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON", "", "ON"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCommentStmt, OP3("", "IS", ""), res, tmp3);
         $$ = res;
@@ -8658,7 +8658,7 @@ CommentStmt:
     | COMMENT ON TRANSFORM FOR Typename LANGUAGE name IS comment_text {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kCommentStmt, OP3("COMMENT ON TRANSFORM FOR", "LANGUAGE", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON TRANSFORM FOR", "LANGUAGE", "IS"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8667,7 +8667,7 @@ CommentStmt:
     | COMMENT ON OPERATOR CLASS any_name USING name IS comment_text {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kCommentStmt, OP3("COMMENT ON OPERATOR CLASS", "USING", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON OPERATOR CLASS", "USING", "IS"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8676,7 +8676,7 @@ CommentStmt:
     | COMMENT ON OPERATOR FAMILY any_name USING name IS comment_text {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kCommentStmt, OP3("COMMENT ON OPERATOR FAMILY", "USING", "IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON OPERATOR FAMILY", "USING", "IS"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8692,7 +8692,7 @@ CommentStmt:
     | COMMENT ON CAST '(' Typename AS Typename ')' IS comment_text {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kCommentStmt, OP3("COMMENT ON CAST (", "AS", ") IS"), tmp1, tmp2);
+        res = new IR(kCommentStmt_1, OP3("COMMENT ON CAST (", "AS", ") IS"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8732,7 +8732,7 @@ SecLabelStmt:
     SECURITY LABEL opt_provider ON object_type_any_name any_name IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kSecLabelStmt, OP3("", "IS", ""), res, tmp3);
         $$ = res;
@@ -8741,7 +8741,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON COLUMN any_name IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON COLUMN", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON COLUMN", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8750,7 +8750,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON object_type_name name IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kSecLabelStmt, OP3("", "IS", ""), res, tmp3);
         $$ = res;
@@ -8759,7 +8759,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON TYPE_P Typename IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON TYPE", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON TYPE", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8768,7 +8768,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON DOMAIN_P Typename IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON DOMAIN", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON DOMAIN", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8777,7 +8777,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON AGGREGATE aggregate_with_argtypes IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON AGGREGATE", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON AGGREGATE", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8786,7 +8786,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON FUNCTION function_with_argtypes IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON FUNCTION", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON FUNCTION", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8795,7 +8795,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON LARGE_P OBJECT_P NumericOnly IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $7;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON LARGE OBJECT", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON LARGE OBJECT", "IS"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8804,7 +8804,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON PROCEDURE function_with_argtypes IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON PROCEDURE", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON PROCEDURE", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8813,7 +8813,7 @@ SecLabelStmt:
     | SECURITY LABEL opt_provider ON ROUTINE function_with_argtypes IS security_label {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kSecLabelStmt, OP3("SECURITY LABEL", "ON ROUTINE", "IS"), tmp1, tmp2);
+        res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON ROUTINE", "IS"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8924,7 +8924,7 @@ fetch_args:
     | ABSOLUTE_P SignedIconst opt_from_in cursor_name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kFetchArgs, OP3("ABSOLUTE", "", ""), tmp1, tmp2);
+        res = new IR(kFetchArgs_1, OP3("ABSOLUTE", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8933,7 +8933,7 @@ fetch_args:
     | RELATIVE_P SignedIconst opt_from_in cursor_name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kFetchArgs, OP3("RELATIVE", "", ""), tmp1, tmp2);
+        res = new IR(kFetchArgs_1, OP3("RELATIVE", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8942,7 +8942,7 @@ fetch_args:
     | SignedIconst opt_from_in cursor_name {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kFetchArgs, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kFetchArgs_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8965,7 +8965,7 @@ fetch_args:
     | FORWARD SignedIconst opt_from_in cursor_name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kFetchArgs, OP3("FORWARD", "", ""), tmp1, tmp2);
+        res = new IR(kFetchArgs_1, OP3("FORWARD", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -8988,7 +8988,7 @@ fetch_args:
     | BACKWARD SignedIconst opt_from_in cursor_name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kFetchArgs, OP3("BACKWARD", "", ""), tmp1, tmp2);
+        res = new IR(kFetchArgs_1, OP3("BACKWARD", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9047,9 +9047,9 @@ GrantStmt:
     GRANT privileges ON privilege_target TO grantee_list opt_grant_grant_option opt_granted_by {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kGrantStmt, OP3("GRANT", "ON", "TO"), tmp1, tmp2);
+        res = new IR(kGrantStmt_1, OP3("GRANT", "ON", "TO"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kGrantStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kGrantStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kGrantStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9063,9 +9063,9 @@ RevokeStmt:
     REVOKE privileges ON privilege_target FROM grantee_list opt_granted_by opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kRevokeStmt, OP3("REVOKE", "ON", "FROM"), tmp1, tmp2);
+        res = new IR(kRevokeStmt_1, OP3("REVOKE", "ON", "FROM"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kRevokeStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kRevokeStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kRevokeStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9074,9 +9074,9 @@ RevokeStmt:
     | REVOKE GRANT OPTION FOR privileges ON privilege_target FROM grantee_list opt_granted_by opt_drop_behavior {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kRevokeStmt, OP3("REVOKE GRANT OPTION FOR", "ON", "FROM"), tmp1, tmp2);
+        res = new IR(kRevokeStmt_1, OP3("REVOKE GRANT OPTION FOR", "ON", "FROM"), tmp1, tmp2);
         auto tmp3 = $9;
-        res = new IR(kRevokeStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kRevokeStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kRevokeStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9368,7 +9368,7 @@ GrantRoleStmt:
     GRANT privilege_list TO role_list opt_grant_admin_option opt_granted_by {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kGrantRoleStmt, OP3("GRANT", "TO", ""), tmp1, tmp2);
+        res = new IR(kGrantRoleStmt_1, OP3("GRANT", "TO", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kGrantRoleStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9382,7 +9382,7 @@ RevokeRoleStmt:
     REVOKE privilege_list FROM role_list opt_granted_by opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kRevokeRoleStmt, OP3("REVOKE", "FROM", ""), tmp1, tmp2);
+        res = new IR(kRevokeRoleStmt_1, OP3("REVOKE", "FROM", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kRevokeRoleStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9391,7 +9391,7 @@ RevokeRoleStmt:
     | REVOKE ADMIN OPTION FOR privilege_list FROM role_list opt_granted_by opt_drop_behavior {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kRevokeRoleStmt, OP3("REVOKE ADMIN OPTION FOR", "FROM", ""), tmp1, tmp2);
+        res = new IR(kRevokeRoleStmt_1, OP3("REVOKE ADMIN OPTION FOR", "FROM", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRevokeRoleStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9498,7 +9498,7 @@ DefACLAction:
     GRANT privileges ON defacl_privilege_target TO grantee_list opt_grant_grant_option {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kDefACLAction, OP3("GRANT", "ON", "TO"), tmp1, tmp2);
+        res = new IR(kDefACLAction_1, OP3("GRANT", "ON", "TO"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kDefACLAction, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9507,7 +9507,7 @@ DefACLAction:
     | REVOKE privileges ON defacl_privilege_target FROM grantee_list opt_drop_behavior {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kDefACLAction, OP3("REVOKE", "ON", "FROM"), tmp1, tmp2);
+        res = new IR(kDefACLAction_1, OP3("REVOKE", "ON", "FROM"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kDefACLAction, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9516,7 +9516,7 @@ DefACLAction:
     | REVOKE GRANT OPTION FOR privileges ON defacl_privilege_target FROM grantee_list opt_drop_behavior {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kDefACLAction, OP3("REVOKE GRANT OPTION FOR", "ON", "FROM"), tmp1, tmp2);
+        res = new IR(kDefACLAction_1, OP3("REVOKE GRANT OPTION FOR", "ON", "FROM"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kDefACLAction, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9574,13 +9574,13 @@ IndexStmt:
     CREATE opt_unique INDEX opt_concurrently opt_index_name ON relation_expr access_method_clause '(' index_params ')' opt_include opt_reloptions OptTableSpace where_clause {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kIndexStmt, OP3("CREATE", "INDEX", ""), tmp1, tmp2);
+        res = new IR(kIndexStmt_1, OP3("CREATE", "INDEX", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kIndexStmt, OP3("", "ON", ""), res, tmp3);
+        res = new IR(kIndexStmt_2, OP3("", "ON", ""), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kIndexStmt, OP3("", "(", ")"), res, tmp4);
+        res = new IR(kIndexStmt_3, OP3("", "(", ")"), res, tmp4);
         auto tmp5 = $12;
-        res = new IR(kIndexStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kIndexStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $14;
         res = new IR(kIndexStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -9589,13 +9589,13 @@ IndexStmt:
     | CREATE opt_unique INDEX opt_concurrently IF_P NOT EXISTS name ON relation_expr access_method_clause '(' index_params ')' opt_include opt_reloptions OptTableSpace where_clause {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kIndexStmt, OP3("CREATE", "INDEX", "IF NOT EXISTS"), tmp1, tmp2);
+        res = new IR(kIndexStmt_1, OP3("CREATE", "INDEX", "IF NOT EXISTS"), tmp1, tmp2);
         auto tmp3 = $8;
-        res = new IR(kIndexStmt, OP3("", "ON", ""), res, tmp3);
+        res = new IR(kIndexStmt_2, OP3("", "ON", ""), res, tmp3);
         auto tmp4 = $11;
-        res = new IR(kIndexStmt, OP3("", "(", ")"), res, tmp4);
+        res = new IR(kIndexStmt_3, OP3("", "(", ")"), res, tmp4);
         auto tmp5 = $15;
-        res = new IR(kIndexStmt, OP3("", "", ""), res, tmp5);
+        res = new IR(kIndexStmt_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $17;
         res = new IR(kIndexStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -9690,7 +9690,7 @@ index_elem_options:
     opt_collate opt_class opt_asc_desc opt_nulls_order {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kIndexElemOptions, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kIndexElemOptions_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kIndexElemOptions, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -9699,9 +9699,9 @@ index_elem_options:
     | opt_collate any_name reloptions opt_asc_desc opt_nulls_order {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kIndexElemOptions, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kIndexElemOptions_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kIndexElemOptions, OP3("", "", ""), res, tmp3);
+        res = new IR(kIndexElemOptions_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
         res = new IR(kIndexElemOptions, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9864,9 +9864,9 @@ CreateFunctionStmt:
     CREATE opt_or_replace FUNCTION func_name func_args_with_defaults RETURNS func_return opt_createfunc_opt_list opt_routine_body {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateFunctionStmt, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
+        res = new IR(kCreateFunctionStmt_1, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kCreateFunctionStmt, OP3("", "RETURNS", ""), res, tmp3);
+        res = new IR(kCreateFunctionStmt_2, OP3("", "RETURNS", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9875,9 +9875,9 @@ CreateFunctionStmt:
     | CREATE opt_or_replace FUNCTION func_name func_args_with_defaults RETURNS TABLE '(' table_func_column_list ')' opt_createfunc_opt_list opt_routine_body {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateFunctionStmt, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
+        res = new IR(kCreateFunctionStmt_1, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kCreateFunctionStmt, OP3("", "RETURNS TABLE (", ")"), res, tmp3);
+        res = new IR(kCreateFunctionStmt_2, OP3("", "RETURNS TABLE (", ")"), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9886,9 +9886,9 @@ CreateFunctionStmt:
     | CREATE opt_or_replace FUNCTION func_name func_args_with_defaults opt_createfunc_opt_list opt_routine_body {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateFunctionStmt, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
+        res = new IR(kCreateFunctionStmt_1, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateFunctionStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -9897,9 +9897,9 @@ CreateFunctionStmt:
     | CREATE opt_or_replace PROCEDURE func_name func_args_with_defaults opt_createfunc_opt_list opt_routine_body {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateFunctionStmt, OP3("CREATE", "PROCEDURE", ""), tmp1, tmp2);
+        res = new IR(kCreateFunctionStmt_1, OP3("CREATE", "PROCEDURE", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateFunctionStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -10059,7 +10059,7 @@ func_arg:
     arg_class param_name func_type {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kFuncArg, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kFuncArg_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kFuncArg, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10068,7 +10068,7 @@ func_arg:
     | param_name arg_class func_type {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kFuncArg, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kFuncArg_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kFuncArg, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10654,7 +10654,7 @@ AlterFunctionStmt:
     ALTER FUNCTION function_with_argtypes alterfunc_opt_list opt_restrict {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterFunctionStmt, OP3("ALTER FUNCTION", "", ""), tmp1, tmp2);
+        res = new IR(kAlterFunctionStmt_1, OP3("ALTER FUNCTION", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterFunctionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10663,7 +10663,7 @@ AlterFunctionStmt:
     | ALTER PROCEDURE function_with_argtypes alterfunc_opt_list opt_restrict {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterFunctionStmt, OP3("ALTER PROCEDURE", "", ""), tmp1, tmp2);
+        res = new IR(kAlterFunctionStmt_1, OP3("ALTER PROCEDURE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterFunctionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10672,7 +10672,7 @@ AlterFunctionStmt:
     | ALTER ROUTINE function_with_argtypes alterfunc_opt_list opt_restrict {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterFunctionStmt, OP3("ALTER ROUTINE", "", ""), tmp1, tmp2);
+        res = new IR(kAlterFunctionStmt_1, OP3("ALTER ROUTINE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterFunctionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10957,7 +10957,7 @@ CreateCastStmt:
     CREATE CAST '(' Typename AS Typename ')' WITH FUNCTION function_with_argtypes cast_context {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateCastStmt, OP3("CREATE CAST (", "AS", ") WITH FUNCTION"), tmp1, tmp2);
+        res = new IR(kCreateCastStmt_1, OP3("CREATE CAST (", "AS", ") WITH FUNCTION"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kCreateCastStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10966,7 +10966,7 @@ CreateCastStmt:
     | CREATE CAST '(' Typename AS Typename ')' WITHOUT FUNCTION cast_context {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateCastStmt, OP3("CREATE CAST (", "AS", ") WITHOUT FUNCTION"), tmp1, tmp2);
+        res = new IR(kCreateCastStmt_1, OP3("CREATE CAST (", "AS", ") WITHOUT FUNCTION"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kCreateCastStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -10975,7 +10975,7 @@ CreateCastStmt:
     | CREATE CAST '(' Typename AS Typename ')' WITH INOUT cast_context {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kCreateCastStmt, OP3("CREATE CAST (", "AS", ") WITH INOUT"), tmp1, tmp2);
+        res = new IR(kCreateCastStmt_1, OP3("CREATE CAST (", "AS", ") WITH INOUT"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kCreateCastStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11010,7 +11010,7 @@ DropCastStmt:
     DROP CAST opt_if_exists '(' Typename AS Typename ')' opt_drop_behavior {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kDropCastStmt, OP3("DROP CAST", "(", "AS"), tmp1, tmp2);
+        res = new IR(kDropCastStmt_1, OP3("DROP CAST", "(", "AS"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kDropCastStmt, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -11046,7 +11046,7 @@ CreateTransformStmt:
     CREATE opt_or_replace TRANSFORM FOR Typename LANGUAGE name '(' transform_element_list ')' {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kCreateTransformStmt, OP3("CREATE", "TRANSFORM FOR", "LANGUAGE"), tmp1, tmp2);
+        res = new IR(kCreateTransformStmt_1, OP3("CREATE", "TRANSFORM FOR", "LANGUAGE"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kCreateTransformStmt, OP3("", "(", ")"), res, tmp3);
         $$ = res;
@@ -11092,7 +11092,7 @@ DropTransformStmt:
     DROP TRANSFORM opt_if_exists FOR Typename LANGUAGE name opt_drop_behavior {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kDropTransformStmt, OP3("DROP TRANSFORM", "FOR", "LANGUAGE"), tmp1, tmp2);
+        res = new IR(kDropTransformStmt_1, OP3("DROP TRANSFORM", "FOR", "LANGUAGE"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kDropTransformStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11114,7 +11114,7 @@ ReindexStmt:
     REINDEX reindex_target_type opt_concurrently qualified_name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kReindexStmt, OP3("REINDEX", "", ""), tmp1, tmp2);
+        res = new IR(kReindexStmt_1, OP3("REINDEX", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11123,7 +11123,7 @@ ReindexStmt:
     | REINDEX reindex_target_multitable opt_concurrently name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kReindexStmt, OP3("REINDEX", "", ""), tmp1, tmp2);
+        res = new IR(kReindexStmt_1, OP3("REINDEX", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11132,7 +11132,7 @@ ReindexStmt:
     | REINDEX '(' utility_option_list ')' reindex_target_type opt_concurrently qualified_name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kReindexStmt, OP3("REINDEX (", ")", ""), tmp1, tmp2);
+        res = new IR(kReindexStmt_1, OP3("REINDEX (", ")", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11141,7 +11141,7 @@ ReindexStmt:
     | REINDEX '(' utility_option_list ')' reindex_target_multitable opt_concurrently name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kReindexStmt, OP3("REINDEX (", ")", ""), tmp1, tmp2);
+        res = new IR(kReindexStmt_1, OP3("REINDEX (", ")", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11254,7 +11254,7 @@ RenameStmt:
     | ALTER DOMAIN_P any_name RENAME CONSTRAINT name TO name {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER DOMAIN", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER DOMAIN", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11284,7 +11284,7 @@ RenameStmt:
     | ALTER opt_procedural LANGUAGE name RENAME TO name {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kRenameStmt, OP3("ALTER", "LANGUAGE", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER", "LANGUAGE", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11293,7 +11293,7 @@ RenameStmt:
     | ALTER OPERATOR CLASS any_name USING name RENAME TO name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER OPERATOR CLASS", "USING", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER OPERATOR CLASS", "USING", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11302,7 +11302,7 @@ RenameStmt:
     | ALTER OPERATOR FAMILY any_name USING name RENAME TO name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER OPERATOR FAMILY", "USING", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11311,7 +11311,7 @@ RenameStmt:
     | ALTER POLICY name ON qualified_name RENAME TO name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kRenameStmt, OP3("ALTER POLICY", "ON", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER POLICY", "ON", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11320,7 +11320,7 @@ RenameStmt:
     | ALTER POLICY IF_P EXISTS name ON qualified_name RENAME TO name {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kRenameStmt, OP3("ALTER POLICY IF EXISTS", "ON", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER POLICY IF EXISTS", "ON", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11455,7 +11455,7 @@ RenameStmt:
     | ALTER TABLE relation_expr RENAME opt_column name TO name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kRenameStmt, OP3("ALTER TABLE", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER TABLE", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11464,7 +11464,7 @@ RenameStmt:
     | ALTER TABLE IF_P EXISTS relation_expr RENAME opt_column name TO name {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kRenameStmt, OP3("ALTER TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11473,7 +11473,7 @@ RenameStmt:
     | ALTER VIEW qualified_name RENAME opt_column name TO name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kRenameStmt, OP3("ALTER VIEW", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER VIEW", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11482,7 +11482,7 @@ RenameStmt:
     | ALTER VIEW IF_P EXISTS qualified_name RENAME opt_column name TO name {
         auto tmp1 = $5;
         auto tmp2 = $7;
-        res = new IR(kRenameStmt, OP3("ALTER VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11491,7 +11491,7 @@ RenameStmt:
     | ALTER MATERIALIZED VIEW qualified_name RENAME opt_column name TO name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER MATERIALIZED VIEW", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER MATERIALIZED VIEW", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11500,7 +11500,7 @@ RenameStmt:
     | ALTER MATERIALIZED VIEW IF_P EXISTS qualified_name RENAME opt_column name TO name {
         auto tmp1 = $6;
         auto tmp2 = $8;
-        res = new IR(kRenameStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11509,7 +11509,7 @@ RenameStmt:
     | ALTER TABLE relation_expr RENAME CONSTRAINT name TO name {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER TABLE", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER TABLE", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11518,7 +11518,7 @@ RenameStmt:
     | ALTER TABLE IF_P EXISTS relation_expr RENAME CONSTRAINT name TO name {
         auto tmp1 = $5;
         auto tmp2 = $8;
-        res = new IR(kRenameStmt, OP3("ALTER TABLE IF EXISTS", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER TABLE IF EXISTS", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11527,7 +11527,7 @@ RenameStmt:
     | ALTER FOREIGN TABLE relation_expr RENAME opt_column name TO name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER FOREIGN TABLE", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11536,7 +11536,7 @@ RenameStmt:
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr RENAME opt_column name TO name {
         auto tmp1 = $6;
         auto tmp2 = $8;
-        res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kRenameStmt, OP3("", "TO", ""), res, tmp3);
         $$ = res;
@@ -11545,7 +11545,7 @@ RenameStmt:
     | ALTER RULE name ON qualified_name RENAME TO name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kRenameStmt, OP3("ALTER RULE", "ON", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER RULE", "ON", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11554,7 +11554,7 @@ RenameStmt:
     | ALTER TRIGGER name ON qualified_name RENAME TO name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kRenameStmt, OP3("ALTER TRIGGER", "ON", "RENAME TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER TRIGGER", "ON", "RENAME TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11633,7 +11633,7 @@ RenameStmt:
     | ALTER TYPE_P any_name RENAME ATTRIBUTE name TO name opt_drop_behavior {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kRenameStmt, OP3("ALTER TYPE", "RENAME ATTRIBUTE", "TO"), tmp1, tmp2);
+        res = new IR(kRenameStmt_1, OP3("ALTER TYPE", "RENAME ATTRIBUTE", "TO"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11683,7 +11683,7 @@ AlterObjectDependsStmt:
     ALTER FUNCTION function_with_argtypes opt_no DEPENDS ON EXTENSION name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterObjectDependsStmt, OP3("ALTER FUNCTION", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER FUNCTION", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11692,7 +11692,7 @@ AlterObjectDependsStmt:
     | ALTER PROCEDURE function_with_argtypes opt_no DEPENDS ON EXTENSION name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterObjectDependsStmt, OP3("ALTER PROCEDURE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER PROCEDURE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11701,7 +11701,7 @@ AlterObjectDependsStmt:
     | ALTER ROUTINE function_with_argtypes opt_no DEPENDS ON EXTENSION name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterObjectDependsStmt, OP3("ALTER ROUTINE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER ROUTINE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11710,7 +11710,7 @@ AlterObjectDependsStmt:
     | ALTER TRIGGER name ON qualified_name opt_no DEPENDS ON EXTENSION name {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kAlterObjectDependsStmt, OP3("ALTER TRIGGER", "ON", ""), tmp1, tmp2);
+        res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER TRIGGER", "ON", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterObjectDependsStmt, OP3("", "DEPENDS ON EXTENSION", ""), res, tmp3);
         $$ = res;
@@ -11719,7 +11719,7 @@ AlterObjectDependsStmt:
     | ALTER MATERIALIZED VIEW qualified_name opt_no DEPENDS ON EXTENSION name {
         auto tmp1 = $4;
         auto tmp2 = $5;
-        res = new IR(kAlterObjectDependsStmt, OP3("ALTER MATERIALIZED VIEW", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER MATERIALIZED VIEW", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11728,7 +11728,7 @@ AlterObjectDependsStmt:
     | ALTER INDEX qualified_name opt_no DEPENDS ON EXTENSION name {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kAlterObjectDependsStmt, OP3("ALTER INDEX", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER INDEX", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11812,7 +11812,7 @@ AlterObjectSchemaStmt:
     | ALTER OPERATOR CLASS any_name USING name SET SCHEMA name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kAlterObjectSchemaStmt, OP3("ALTER OPERATOR CLASS", "USING", "SET SCHEMA"), tmp1, tmp2);
+        res = new IR(kAlterObjectSchemaStmt_1, OP3("ALTER OPERATOR CLASS", "USING", "SET SCHEMA"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -11821,7 +11821,7 @@ AlterObjectSchemaStmt:
     | ALTER OPERATOR FAMILY any_name USING name SET SCHEMA name {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kAlterObjectSchemaStmt, OP3("ALTER OPERATOR FAMILY", "USING", "SET SCHEMA"), tmp1, tmp2);
+        res = new IR(kAlterObjectSchemaStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "SET SCHEMA"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12119,7 +12119,7 @@ AlterOwnerStmt:
     | ALTER opt_procedural LANGUAGE name OWNER TO RoleSpec {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kAlterOwnerStmt, OP3("ALTER", "LANGUAGE", "OWNER TO"), tmp1, tmp2);
+        res = new IR(kAlterOwnerStmt_1, OP3("ALTER", "LANGUAGE", "OWNER TO"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12142,7 +12142,7 @@ AlterOwnerStmt:
     | ALTER OPERATOR CLASS any_name USING name OWNER TO RoleSpec {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kAlterOwnerStmt, OP3("ALTER OPERATOR CLASS", "USING", "OWNER TO"), tmp1, tmp2);
+        res = new IR(kAlterOwnerStmt_1, OP3("ALTER OPERATOR CLASS", "USING", "OWNER TO"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12151,7 +12151,7 @@ AlterOwnerStmt:
     | ALTER OPERATOR FAMILY any_name USING name OWNER TO RoleSpec {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kAlterOwnerStmt, OP3("ALTER OPERATOR FAMILY", "USING", "OWNER TO"), tmp1, tmp2);
+        res = new IR(kAlterOwnerStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "OWNER TO"), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12263,7 +12263,7 @@ CreatePublicationStmt:
     CREATE PUBLICATION name opt_publication_for_tables opt_definition {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreatePublicationStmt, OP3("CREATE PUBLICATION", "", ""), tmp1, tmp2);
+        res = new IR(kCreatePublicationStmt_1, OP3("CREATE PUBLICATION", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreatePublicationStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12361,7 +12361,7 @@ CreateSubscriptionStmt:
     CREATE SUBSCRIPTION name CONNECTION Sconst PUBLICATION name_list opt_definition {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kCreateSubscriptionStmt, OP3("CREATE SUBSCRIPTION", "CONNECTION", "PUBLICATION"), tmp1, tmp2);
+        res = new IR(kCreateSubscriptionStmt_1, OP3("CREATE SUBSCRIPTION", "CONNECTION", "PUBLICATION"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kCreateSubscriptionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12402,7 +12402,7 @@ AlterSubscriptionStmt:
     | ALTER SUBSCRIPTION name ADD_P PUBLICATION name_list opt_definition {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "ADD PUBLICATION", ""), tmp1, tmp2);
+        res = new IR(kAlterSubscriptionStmt_1, OP3("ALTER SUBSCRIPTION", "ADD PUBLICATION", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterSubscriptionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12411,7 +12411,7 @@ AlterSubscriptionStmt:
     | ALTER SUBSCRIPTION name DROP PUBLICATION name_list opt_definition {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "DROP PUBLICATION", ""), tmp1, tmp2);
+        res = new IR(kAlterSubscriptionStmt_1, OP3("ALTER SUBSCRIPTION", "DROP PUBLICATION", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterSubscriptionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12420,7 +12420,7 @@ AlterSubscriptionStmt:
     | ALTER SUBSCRIPTION name SET PUBLICATION name_list opt_definition {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "SET PUBLICATION", ""), tmp1, tmp2);
+        res = new IR(kAlterSubscriptionStmt_1, OP3("ALTER SUBSCRIPTION", "SET PUBLICATION", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterSubscriptionStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -12477,11 +12477,11 @@ RuleStmt:
     CREATE opt_or_replace RULE name AS ON event TO qualified_name where_clause DO opt_instead RuleActionList {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kRuleStmt, OP3("CREATE", "RULE", "AS ON"), tmp1, tmp2);
+        res = new IR(kRuleStmt_1, OP3("CREATE", "RULE", "AS ON"), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kRuleStmt, OP3("", "TO", ""), res, tmp3);
+        res = new IR(kRuleStmt_2, OP3("", "TO", ""), res, tmp3);
         auto tmp4 = $10;
-        res = new IR(kRuleStmt, OP3("", "DO", ""), res, tmp4);
+        res = new IR(kRuleStmt_3, OP3("", "DO", ""), res, tmp4);
         auto tmp5 = $13;
         res = new IR(kRuleStmt, OP3("", "", ""), res, tmp5);
         $$ = res;
@@ -12929,9 +12929,9 @@ ViewStmt:
     CREATE OptTemp VIEW qualified_name opt_column_list opt_reloptions AS SelectStmt opt_check_option {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kViewStmt, OP3("CREATE", "VIEW", ""), tmp1, tmp2);
+        res = new IR(kViewStmt_1, OP3("CREATE", "VIEW", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kViewStmt, OP3("", "", "AS"), res, tmp3);
+        res = new IR(kViewStmt_2, OP3("", "", "AS"), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -12940,9 +12940,9 @@ ViewStmt:
     | CREATE OR REPLACE OptTemp VIEW qualified_name opt_column_list opt_reloptions AS SelectStmt opt_check_option {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kViewStmt, OP3("CREATE OR REPLACE", "VIEW", ""), tmp1, tmp2);
+        res = new IR(kViewStmt_1, OP3("CREATE OR REPLACE", "VIEW", ""), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kViewStmt, OP3("", "", "AS"), res, tmp3);
+        res = new IR(kViewStmt_2, OP3("", "", "AS"), res, tmp3);
         auto tmp4 = $10;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -12951,9 +12951,9 @@ ViewStmt:
     | CREATE OptTemp RECURSIVE VIEW qualified_name '(' columnList ')' opt_reloptions AS SelectStmt opt_check_option {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kViewStmt, OP3("CREATE", "RECURSIVE VIEW", "("), tmp1, tmp2);
+        res = new IR(kViewStmt_1, OP3("CREATE", "RECURSIVE VIEW", "("), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kViewStmt, OP3("", ")", "AS"), res, tmp3);
+        res = new IR(kViewStmt_2, OP3("", ")", "AS"), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -12962,9 +12962,9 @@ ViewStmt:
     | CREATE OR REPLACE OptTemp RECURSIVE VIEW qualified_name '(' columnList ')' opt_reloptions AS SelectStmt opt_check_option {
         auto tmp1 = $4;
         auto tmp2 = $7;
-        res = new IR(kViewStmt, OP3("CREATE OR REPLACE", "RECURSIVE VIEW", "("), tmp1, tmp2);
+        res = new IR(kViewStmt_1, OP3("CREATE OR REPLACE", "RECURSIVE VIEW", "("), tmp1, tmp2);
         auto tmp3 = $9;
-        res = new IR(kViewStmt, OP3("", ")", "AS"), res, tmp3);
+        res = new IR(kViewStmt_2, OP3("", ")", "AS"), res, tmp3);
         auto tmp4 = $13;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -13028,7 +13028,7 @@ CreatedbStmt:
     CREATE DATABASE name opt_with createdb_opt_list {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreatedbStmt, OP3("CREATE DATABASE", "", ""), tmp1, tmp2);
+        res = new IR(kCreatedbStmt_1, OP3("CREATE DATABASE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreatedbStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13076,7 +13076,7 @@ createdb_opt_item:
     createdb_opt_name opt_equal SignedIconst {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kCreatedbOptItem, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kCreatedbOptItem_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13085,7 +13085,7 @@ createdb_opt_item:
     | createdb_opt_name opt_equal opt_boolean_or_string {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kCreatedbOptItem, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kCreatedbOptItem_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13241,7 +13241,7 @@ DropdbStmt:
     | DROP DATABASE name opt_with '(' drop_option_list ')' {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kDropdbStmt, OP3("DROP DATABASE", "", "("), tmp1, tmp2);
+        res = new IR(kDropdbStmt_1, OP3("DROP DATABASE", "", "("), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kDropdbStmt, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -13250,7 +13250,7 @@ DropdbStmt:
     | DROP DATABASE IF_P EXISTS name opt_with '(' drop_option_list ')' {
         auto tmp1 = $5;
         auto tmp2 = $6;
-        res = new IR(kDropdbStmt, OP3("DROP DATABASE IF EXISTS", "", "("), tmp1, tmp2);
+        res = new IR(kDropdbStmt_1, OP3("DROP DATABASE IF EXISTS", "", "("), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kDropdbStmt, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -13345,7 +13345,7 @@ CreateDomainStmt:
     CREATE DOMAIN_P any_name opt_as Typename ColQualList {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreateDomainStmt, OP3("CREATE DOMAIN", "", ""), tmp1, tmp2);
+        res = new IR(kCreateDomainStmt_1, OP3("CREATE DOMAIN", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kCreateDomainStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13385,7 +13385,7 @@ AlterDomainStmt:
     | ALTER DOMAIN_P any_name DROP CONSTRAINT name opt_drop_behavior {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "DROP CONSTRAINT", ""), tmp1, tmp2);
+        res = new IR(kAlterDomainStmt_1, OP3("ALTER DOMAIN", "DROP CONSTRAINT", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterDomainStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13394,7 +13394,7 @@ AlterDomainStmt:
     | ALTER DOMAIN_P any_name DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior {
         auto tmp1 = $3;
         auto tmp2 = $8;
-        res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "DROP CONSTRAINT IF EXISTS", ""), tmp1, tmp2);
+        res = new IR(kAlterDomainStmt_1, OP3("ALTER DOMAIN", "DROP CONSTRAINT IF EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterDomainStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13449,7 +13449,7 @@ AlterTSConfigurationStmt:
     ALTER TEXT_P SEARCH CONFIGURATION any_name ADD_P MAPPING FOR name_list any_with any_name_list {
         auto tmp1 = $5;
         auto tmp2 = $9;
-        res = new IR(kAlterTSConfigurationStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "ADD MAPPING FOR", ""), tmp1, tmp2);
+        res = new IR(kAlterTSConfigurationStmt_1, OP3("ALTER TEXT SEARCH CONFIGURATION", "ADD MAPPING FOR", ""), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13458,7 +13458,7 @@ AlterTSConfigurationStmt:
     | ALTER TEXT_P SEARCH CONFIGURATION any_name ALTER MAPPING FOR name_list any_with any_name_list {
         auto tmp1 = $5;
         auto tmp2 = $9;
-        res = new IR(kAlterTSConfigurationStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING FOR", ""), tmp1, tmp2);
+        res = new IR(kAlterTSConfigurationStmt_1, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING FOR", ""), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13467,7 +13467,7 @@ AlterTSConfigurationStmt:
     | ALTER TEXT_P SEARCH CONFIGURATION any_name ALTER MAPPING REPLACE any_name any_with any_name {
         auto tmp1 = $5;
         auto tmp2 = $9;
-        res = new IR(kAlterTSConfigurationStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING REPLACE", ""), tmp1, tmp2);
+        res = new IR(kAlterTSConfigurationStmt_1, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING REPLACE", ""), tmp1, tmp2);
         auto tmp3 = $10;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13476,9 +13476,9 @@ AlterTSConfigurationStmt:
     | ALTER TEXT_P SEARCH CONFIGURATION any_name ALTER MAPPING FOR name_list REPLACE any_name any_with any_name {
         auto tmp1 = $5;
         auto tmp2 = $9;
-        res = new IR(kAlterTSConfigurationStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING FOR", "REPLACE"), tmp1, tmp2);
+        res = new IR(kAlterTSConfigurationStmt_1, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING FOR", "REPLACE"), tmp1, tmp2);
         auto tmp3 = $11;
-        res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kAlterTSConfigurationStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $13;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -13532,9 +13532,9 @@ CreateConversionStmt:
     CREATE opt_default CONVERSION_P any_name FOR Sconst TO Sconst FROM any_name {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCreateConversionStmt, OP3("CREATE", "CONVERSION", "FOR"), tmp1, tmp2);
+        res = new IR(kCreateConversionStmt_1, OP3("CREATE", "CONVERSION", "FOR"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kCreateConversionStmt, OP3("", "TO", "FROM"), res, tmp3);
+        res = new IR(kCreateConversionStmt_2, OP3("", "TO", "FROM"), res, tmp3);
         auto tmp4 = $10;
         res = new IR(kCreateConversionStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -13558,7 +13558,7 @@ ClusterStmt:
     CLUSTER opt_verbose qualified_name cluster_index_specification {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kClusterStmt, OP3("CLUSTER", "", ""), tmp1, tmp2);
+        res = new IR(kClusterStmt_1, OP3("CLUSTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13567,7 +13567,7 @@ ClusterStmt:
     | CLUSTER '(' utility_option_list ')' qualified_name cluster_index_specification {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kClusterStmt, OP3("CLUSTER (", ")", ""), tmp1, tmp2);
+        res = new IR(kClusterStmt_1, OP3("CLUSTER (", ")", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13582,7 +13582,7 @@ ClusterStmt:
     | CLUSTER opt_verbose name ON qualified_name {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kClusterStmt, OP3("CLUSTER", "", "ON"), tmp1, tmp2);
+        res = new IR(kClusterStmt_1, OP3("CLUSTER", "", "ON"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13621,9 +13621,9 @@ VacuumStmt:
     VACUUM opt_full opt_freeze opt_verbose opt_analyze opt_vacuum_relation_list {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kVacuumStmt, OP3("VACUUM", "", ""), tmp1, tmp2);
+        res = new IR(kVacuumStmt_1, OP3("VACUUM", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kVacuumStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kVacuumStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $6;
         res = new IR(kVacuumStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -13644,7 +13644,7 @@ AnalyzeStmt:
     analyze_keyword opt_verbose opt_vacuum_relation_list {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kAnalyzeStmt, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kAnalyzeStmt_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kAnalyzeStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13653,7 +13653,7 @@ AnalyzeStmt:
     | analyze_keyword '(' utility_option_list ')' opt_vacuum_relation_list {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAnalyzeStmt, OP3("", "(", ")"), tmp1, tmp2);
+        res = new IR(kAnalyzeStmt_1, OP3("", "(", ")"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAnalyzeStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13889,7 +13889,7 @@ ExplainStmt:
     | EXPLAIN analyze_keyword opt_verbose ExplainableStmt {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kExplainStmt, OP3("EXPLAIN", "", ""), tmp1, tmp2);
+        res = new IR(kExplainStmt_1, OP3("EXPLAIN", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kExplainStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -13982,7 +13982,7 @@ PrepareStmt:
     PREPARE name prep_type_clause AS PreparableStmt {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kPrepareStmt, OP3("PREPARE", "", "AS"), tmp1, tmp2);
+        res = new IR(kPrepareStmt_1, OP3("PREPARE", "", "AS"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kPrepareStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14055,9 +14055,9 @@ ExecuteStmt:
     | CREATE OptTemp TABLE create_as_target AS EXECUTE name execute_param_clause opt_with_data {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kExecuteStmt, OP3("CREATE", "TABLE", "AS EXECUTE"), tmp1, tmp2);
+        res = new IR(kExecuteStmt_1, OP3("CREATE", "TABLE", "AS EXECUTE"), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kExecuteStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kExecuteStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $9;
         res = new IR(kExecuteStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14066,9 +14066,9 @@ ExecuteStmt:
     | CREATE OptTemp TABLE IF_P NOT EXISTS create_as_target AS EXECUTE name execute_param_clause opt_with_data {
         auto tmp1 = $2;
         auto tmp2 = $7;
-        res = new IR(kExecuteStmt, OP3("CREATE", "TABLE IF NOT EXISTS", "AS EXECUTE"), tmp1, tmp2);
+        res = new IR(kExecuteStmt_1, OP3("CREATE", "TABLE IF NOT EXISTS", "AS EXECUTE"), tmp1, tmp2);
         auto tmp3 = $10;
-        res = new IR(kExecuteStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kExecuteStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $12;
         res = new IR(kExecuteStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14139,9 +14139,9 @@ InsertStmt:
     opt_with_clause INSERT INTO insert_target insert_rest opt_on_conflict returning_clause {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kInsertStmt, OP3("", "INSERT INTO", ""), tmp1, tmp2);
+        res = new IR(kInsertStmt_1, OP3("", "INSERT INTO", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kInsertStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kInsertStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kInsertStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14199,7 +14199,7 @@ insert_rest:
     | '(' insert_column_list ')' OVERRIDING override_kind VALUE_P SelectStmt {
         auto tmp1 = $2;
         auto tmp2 = $5;
-        res = new IR(kInsertRest, OP3("(", ") OVERRIDING", "VALUE"), tmp1, tmp2);
+        res = new IR(kInsertRest_1, OP3("(", ") OVERRIDING", "VALUE"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kInsertRest, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14263,7 +14263,7 @@ opt_on_conflict:
     ON CONFLICT opt_conf_expr DO UPDATE SET set_clause_list where_clause {
         auto tmp1 = $3;
         auto tmp2 = $7;
-        res = new IR(kOptOnConflict, OP3("ON CONFLICT", "DO UPDATE SET", ""), tmp1, tmp2);
+        res = new IR(kOptOnConflict_1, OP3("ON CONFLICT", "DO UPDATE SET", ""), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kOptOnConflict, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14335,9 +14335,9 @@ DeleteStmt:
     opt_with_clause DELETE_P FROM relation_expr_opt_alias using_clause where_or_current_clause returning_clause {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kDeleteStmt, OP3("", "DELETE FROM", ""), tmp1, tmp2);
+        res = new IR(kDeleteStmt_1, OP3("", "DELETE FROM", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kDeleteStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kDeleteStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kDeleteStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14375,7 +14375,7 @@ LockStmt:
     LOCK_P opt_table relation_expr_list opt_lock opt_nowait {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kLockStmt, OP3("LOCK", "", ""), tmp1, tmp2);
+        res = new IR(kLockStmt_1, OP3("LOCK", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kLockStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14493,9 +14493,9 @@ UpdateStmt:
     opt_with_clause UPDATE relation_expr_opt_alias SET set_clause_list from_clause where_or_current_clause returning_clause {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kUpdateStmt, OP3("", "UPDATE", "SET"), tmp1, tmp2);
+        res = new IR(kUpdateStmt_1, OP3("", "UPDATE", "SET"), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kUpdateStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kUpdateStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kUpdateStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14583,7 +14583,7 @@ DeclareCursorStmt:
     DECLARE cursor_name cursor_options CURSOR opt_hold FOR SelectStmt {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kDeclareCursorStmt, OP3("DECLARE", "", "CURSOR"), tmp1, tmp2);
+        res = new IR(kDeclareCursorStmt_1, OP3("DECLARE", "", "CURSOR"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kDeclareCursorStmt, OP3("", "FOR", ""), res, tmp3);
         $$ = res;
@@ -14771,7 +14771,7 @@ select_no_parens:
     | select_clause opt_sort_clause for_locking_clause opt_select_limit {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSelectNoParens_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14780,7 +14780,7 @@ select_no_parens:
     | select_clause opt_sort_clause select_limit opt_for_locking_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSelectNoParens_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14796,7 +14796,7 @@ select_no_parens:
     | with_clause select_clause sort_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSelectNoParens_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14805,9 +14805,9 @@ select_no_parens:
     | with_clause select_clause opt_sort_clause for_locking_clause opt_select_limit {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSelectNoParens_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp3);
+        res = new IR(kSelectNoParens_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14816,9 +14816,9 @@ select_no_parens:
     | with_clause select_clause opt_sort_clause select_limit opt_for_locking_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSelectNoParens_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp3);
+        res = new IR(kSelectNoParens_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -14877,11 +14877,11 @@ simple_select:
     SELECT opt_all_clause opt_target_list into_clause from_clause where_clause group_clause having_clause window_clause {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kSimpleSelect, OP3("SELECT", "", ""), tmp1, tmp2);
+        res = new IR(kSimpleSelect_1, OP3("SELECT", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
+        res = new IR(kSimpleSelect_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $6;
-        res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp4);
+        res = new IR(kSimpleSelect_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $8;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp5);
         $$ = res;
@@ -14890,11 +14890,11 @@ simple_select:
     | SELECT distinct_clause target_list into_clause from_clause where_clause group_clause having_clause window_clause {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kSimpleSelect, OP3("SELECT", "", ""), tmp1, tmp2);
+        res = new IR(kSimpleSelect_1, OP3("SELECT", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
+        res = new IR(kSimpleSelect_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $6;
-        res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp4);
+        res = new IR(kSimpleSelect_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $8;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp5);
         $$ = res;
@@ -14915,7 +14915,7 @@ simple_select:
     | select_clause UNION set_quantifier select_clause {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSimpleSelect, OP3("", "UNION", ""), tmp1, tmp2);
+        res = new IR(kSimpleSelect_1, OP3("", "UNION", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14924,7 +14924,7 @@ simple_select:
     | select_clause INTERSECT set_quantifier select_clause {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSimpleSelect, OP3("", "INTERSECT", ""), tmp1, tmp2);
+        res = new IR(kSimpleSelect_1, OP3("", "INTERSECT", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14933,7 +14933,7 @@ simple_select:
     | select_clause EXCEPT set_quantifier select_clause {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSimpleSelect, OP3("", "EXCEPT", ""), tmp1, tmp2);
+        res = new IR(kSimpleSelect_1, OP3("", "EXCEPT", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -14996,9 +14996,9 @@ common_table_expr:
     name opt_name_list AS opt_materialized '(' PreparableStmt ')' opt_search_clause opt_cycle_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kCommonTableExpr, OP3("", "", "AS"), tmp1, tmp2);
+        res = new IR(kCommonTableExpr_1, OP3("", "", "AS"), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kCommonTableExpr, OP3("", "(", ")"), res, tmp3);
+        res = new IR(kCommonTableExpr_2, OP3("", "(", ")"), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kCommonTableExpr, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -15056,9 +15056,9 @@ opt_cycle_clause:
     CYCLE columnList SET ColId TO AexprConst DEFAULT AexprConst USING ColId {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kOptCycleClause, OP3("CYCLE", "SET", "TO"), tmp1, tmp2);
+        res = new IR(kOptCycleClause_1, OP3("CYCLE", "SET", "TO"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kOptCycleClause, OP3("", "DEFAULT", "USING"), res, tmp3);
+        res = new IR(kOptCycleClause_2, OP3("", "DEFAULT", "USING"), res, tmp3);
         auto tmp4 = $10;
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp4);
         $$ = res;
@@ -15067,7 +15067,7 @@ opt_cycle_clause:
     | CYCLE columnList SET ColId USING ColId {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kOptCycleClause, OP3("CYCLE", "SET", "USING"), tmp1, tmp2);
+        res = new IR(kOptCycleClause_1, OP3("CYCLE", "SET", "USING"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -15319,7 +15319,7 @@ sortby:
     a_expr USING qual_all_Op opt_nulls_order {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSortby, OP3("", "USING", ""), tmp1, tmp2);
+        res = new IR(kSortby_1, OP3("", "USING", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kSortby, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -15328,7 +15328,7 @@ sortby:
     | a_expr opt_asc_desc opt_nulls_order {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kSortby, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSortby_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kSortby, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -15403,7 +15403,7 @@ limit_clause:
     | FETCH first_or_next select_fetch_first_value row_or_rows ONLY {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kLimitClause, OP3("FETCH", "", ""), tmp1, tmp2);
+        res = new IR(kLimitClause_1, OP3("FETCH", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kLimitClause, OP3("", "ONLY", ""), res, tmp3);
         $$ = res;
@@ -15412,7 +15412,7 @@ limit_clause:
     | FETCH first_or_next select_fetch_first_value row_or_rows WITH TIES {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kLimitClause, OP3("FETCH", "", ""), tmp1, tmp2);
+        res = new IR(kLimitClause_1, OP3("FETCH", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kLimitClause, OP3("", "WITH TIES", ""), res, tmp3);
         $$ = res;
@@ -15778,7 +15778,7 @@ for_locking_item:
     for_locking_strength locked_rels_list opt_nowait_or_skip {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kForLockingItem, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kForLockingItem_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kForLockingItem, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -15910,7 +15910,7 @@ table_ref:
     | relation_expr opt_alias_clause tablesample_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kTableRef, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kTableRef_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kTableRef, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16010,7 +16010,7 @@ joined_table:
     | table_ref join_type JOIN table_ref join_qual {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kJoinedTable, OP3("", "", "JOIN"), tmp1, tmp2);
+        res = new IR(kJoinedTable_1, OP3("", "", "JOIN"), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kJoinedTable, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16019,7 +16019,7 @@ joined_table:
     | table_ref JOIN table_ref join_qual {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kJoinedTable, OP3("", "JOIN", ""), tmp1, tmp2);
+        res = new IR(kJoinedTable_1, OP3("", "JOIN", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kJoinedTable, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16028,7 +16028,7 @@ joined_table:
     | table_ref NATURAL join_type JOIN table_ref {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kJoinedTable, OP3("", "NATURAL", "JOIN"), tmp1, tmp2);
+        res = new IR(kJoinedTable_1, OP3("", "NATURAL", "JOIN"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kJoinedTable, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16319,7 +16319,7 @@ tablesample_clause:
     TABLESAMPLE func_name '(' expr_list ')' opt_repeatable_clause {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kTablesampleClause, OP3("TABLESAMPLE", "(", ")"), tmp1, tmp2);
+        res = new IR(kTablesampleClause_1, OP3("TABLESAMPLE", "(", ")"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kTablesampleClause, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16516,7 +16516,7 @@ TableFuncElement:
     ColId Typename opt_collate_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kTableFuncElement, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kTableFuncElement_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kTableFuncElement, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16533,7 +16533,7 @@ xmltable:
     XMLTABLE '(' c_expr xmlexists_argument COLUMNS xmltable_column_list ')' {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kXmltable, OP3("XMLTABLE (", "", "COLUMNS"), tmp1, tmp2);
+        res = new IR(kXmltable_1, OP3("XMLTABLE (", "", "COLUMNS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kXmltable, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -16542,7 +16542,7 @@ xmltable:
     | XMLTABLE '(' XMLNAMESPACES '(' xml_namespace_list ')' ',' c_expr xmlexists_argument COLUMNS xmltable_column_list ')' {
         auto tmp1 = $5;
         auto tmp2 = $8;
-        res = new IR(kXmltable, OP3("XMLTABLE ( XMLNAMESPACES (", ") ,", ""), tmp1, tmp2);
+        res = new IR(kXmltable_1, OP3("XMLTABLE ( XMLNAMESPACES (", ") ,", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kXmltable, OP3("", "COLUMNS", ")"), res, tmp3);
         $$ = res;
@@ -16581,7 +16581,7 @@ xmltable_column_el:
     | ColId Typename xmltable_column_option_list {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kXmltableColumnEl, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kXmltableColumnEl_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kXmltableColumnEl, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -16863,7 +16863,7 @@ GenericType:
     | type_function_name attrs opt_type_modifiers {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kGenericType, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kGenericType_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kGenericType, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17467,7 +17467,7 @@ a_expr:
     | a_expr qual_Op a_expr %prec Op {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kAExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17516,7 +17516,7 @@ a_expr:
     | a_expr LIKE a_expr ESCAPE a_expr %prec LIKE {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "LIKE", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "LIKE", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17532,7 +17532,7 @@ a_expr:
     | a_expr NOT_LA LIKE a_expr ESCAPE a_expr %prec NOT_LA {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kAExpr, OP3("", "NOT LIKE", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "NOT LIKE", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17548,7 +17548,7 @@ a_expr:
     | a_expr ILIKE a_expr ESCAPE a_expr %prec ILIKE {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "ILIKE", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "ILIKE", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17564,7 +17564,7 @@ a_expr:
     | a_expr NOT_LA ILIKE a_expr ESCAPE a_expr %prec NOT_LA {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kAExpr, OP3("", "NOT ILIKE", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "NOT ILIKE", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17580,7 +17580,7 @@ a_expr:
     | a_expr SIMILAR TO a_expr ESCAPE a_expr %prec SIMILAR {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kAExpr, OP3("", "SIMILAR TO", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "SIMILAR TO", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17596,7 +17596,7 @@ a_expr:
     | a_expr NOT_LA SIMILAR TO a_expr ESCAPE a_expr %prec NOT_LA /* NullTest clause * Define SQL-style Null test clause. {
         auto tmp1 = $1;
         auto tmp2 = $5;
-        res = new IR(kAExpr, OP3("", "NOT SIMILAR TO", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "NOT SIMILAR TO", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17686,7 +17686,7 @@ a_expr:
     | a_expr BETWEEN opt_asymmetric b_expr AND a_expr %prec BETWEEN {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "BETWEEN", ""), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "BETWEEN", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAExpr, OP3("", "AND", ""), res, tmp3);
         $$ = res;
@@ -17695,7 +17695,7 @@ a_expr:
     | a_expr NOT_LA BETWEEN opt_asymmetric b_expr AND a_expr %prec NOT_LA {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kAExpr, OP3("", "NOT BETWEEN", ""), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "NOT BETWEEN", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAExpr, OP3("", "AND", ""), res, tmp3);
         $$ = res;
@@ -17704,7 +17704,7 @@ a_expr:
     | a_expr BETWEEN SYMMETRIC b_expr AND a_expr %prec BETWEEN {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kAExpr, OP3("", "BETWEEN SYMMETRIC", "AND"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "BETWEEN SYMMETRIC", "AND"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17713,7 +17713,7 @@ a_expr:
     | a_expr NOT_LA BETWEEN SYMMETRIC b_expr AND a_expr %prec NOT_LA {
         auto tmp1 = $1;
         auto tmp2 = $5;
-        res = new IR(kAExpr, OP3("", "NOT BETWEEN SYMMETRIC", "AND"), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "NOT BETWEEN SYMMETRIC", "AND"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17736,7 +17736,7 @@ a_expr:
     | a_expr subquery_Op sub_type select_with_parens %prec Op {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kAExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -17745,7 +17745,7 @@ a_expr:
     | a_expr subquery_Op sub_type '(' a_expr ')' %prec Op {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kAExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kAExpr_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kAExpr, OP3("", "(", ")"), res, tmp3);
         $$ = res;
@@ -17926,7 +17926,7 @@ b_expr:
     | b_expr qual_Op b_expr %prec Op {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kBExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kBExpr_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kBExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -18078,7 +18078,7 @@ func_application:
     | func_name '(' func_arg_list opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kFuncApplication, OP3("", "(", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_1, OP3("", "(", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18087,7 +18087,7 @@ func_application:
     | func_name '(' VARIADIC func_arg_expr opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kFuncApplication, OP3("", "( VARIADIC", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_1, OP3("", "( VARIADIC", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18096,7 +18096,7 @@ func_application:
     | func_name '(' func_arg_list ',' VARIADIC func_arg_expr opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kFuncApplication, OP3("", "(", ", VARIADIC"), tmp1, tmp2);
+        res = new IR(kFuncApplication_1, OP3("", "(", ", VARIADIC"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
         $$ = res;
@@ -18105,7 +18105,7 @@ func_application:
     | func_name '(' ALL func_arg_list opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kFuncApplication, OP3("", "( ALL", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_1, OP3("", "( ALL", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18114,7 +18114,7 @@ func_application:
     | func_name '(' DISTINCT func_arg_list opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kFuncApplication, OP3("", "( DISTINCT", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_1, OP3("", "( DISTINCT", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18144,7 +18144,7 @@ func_expr:
     func_application within_group_clause filter_clause over_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kFuncExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kFuncExpr_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kFuncExpr, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -18413,7 +18413,7 @@ func_expr_common_subexpr:
     | XMLELEMENT '(' NAME_P ColLabel ',' xml_attributes ',' expr_list ')' {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ",", ","), tmp1, tmp2);
+        res = new IR(kFuncExprCommonSubexpr_1, OP3("XMLELEMENT ( NAME", ",", ","), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kFuncExprCommonSubexpr, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18435,7 +18435,7 @@ func_expr_common_subexpr:
     | XMLPARSE '(' document_or_content a_expr xml_whitespace_option ')' {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kFuncExprCommonSubexpr, OP3("XMLPARSE (", "", ""), tmp1, tmp2);
+        res = new IR(kFuncExprCommonSubexpr_1, OP3("XMLPARSE (", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kFuncExprCommonSubexpr, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18457,7 +18457,7 @@ func_expr_common_subexpr:
     | XMLROOT '(' a_expr ',' xml_root_version opt_xml_root_standalone ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFuncExprCommonSubexpr, OP3("XMLROOT (", ",", ""), tmp1, tmp2);
+        res = new IR(kFuncExprCommonSubexpr_1, OP3("XMLROOT (", ",", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18466,7 +18466,7 @@ func_expr_common_subexpr:
     | XMLSERIALIZE '(' document_or_content a_expr AS SimpleTypename ')' {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kFuncExprCommonSubexpr, OP3("XMLSERIALIZE (", "", "AS"), tmp1, tmp2);
+        res = new IR(kFuncExprCommonSubexpr_1, OP3("XMLSERIALIZE (", "", "AS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -18627,7 +18627,7 @@ xmlexists_argument:
     | PASSING xml_passing_mech c_expr xml_passing_mech {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kXmlexistsArgument, OP3("PASSING", "", ""), tmp1, tmp2);
+        res = new IR(kXmlexistsArgument_1, OP3("PASSING", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kXmlexistsArgument, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -18764,7 +18764,7 @@ window_specification:
     '(' opt_existing_window_name opt_partition_clause opt_sort_clause opt_frame_clause ')' {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kWindowSpecification, OP3("(", "", ""), tmp1, tmp2);
+        res = new IR(kWindowSpecification_1, OP3("(", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kWindowSpecification, OP3("", "", ")"), res, tmp3);
         $$ = res;
@@ -19396,7 +19396,7 @@ overlay_list:
     a_expr PLACING a_expr FROM a_expr FOR a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kOverlayList, OP3("", "PLACING", "FROM"), tmp1, tmp2);
+        res = new IR(kOverlayList_1, OP3("", "PLACING", "FROM"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kOverlayList, OP3("", "FOR", ""), res, tmp3);
         $$ = res;
@@ -19405,7 +19405,7 @@ overlay_list:
     | a_expr PLACING a_expr FROM a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kOverlayList, OP3("", "PLACING", "FROM"), tmp1, tmp2);
+        res = new IR(kOverlayList_1, OP3("", "PLACING", "FROM"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kOverlayList, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -19449,7 +19449,7 @@ substr_list:
     a_expr FROM a_expr FOR a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSubstrList, OP3("", "FROM", "FOR"), tmp1, tmp2);
+        res = new IR(kSubstrList_1, OP3("", "FROM", "FOR"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kSubstrList, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -19458,7 +19458,7 @@ substr_list:
     | a_expr FOR a_expr FROM a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSubstrList, OP3("", "FOR", "FROM"), tmp1, tmp2);
+        res = new IR(kSubstrList_1, OP3("", "FOR", "FROM"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kSubstrList, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -19481,7 +19481,7 @@ substr_list:
     | a_expr SIMILAR a_expr ESCAPE a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kSubstrList, OP3("", "SIMILAR", "ESCAPE"), tmp1, tmp2);
+        res = new IR(kSubstrList_1, OP3("", "SIMILAR", "ESCAPE"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kSubstrList, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -19543,7 +19543,7 @@ case_expr:
     CASE case_arg when_clause_list case_default END_P {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kCaseExpr, OP3("CASE", "", ""), tmp1, tmp2);
+        res = new IR(kCaseExpr_1, OP3("CASE", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kCaseExpr, OP3("", "END", ""), res, tmp3);
         $$ = res;
@@ -19969,7 +19969,7 @@ AexprConst:
     | func_name '(' func_arg_list opt_sort_clause ')' Sconst {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAexprConst, OP3("", "(", ""), tmp1, tmp2);
+        res = new IR(kAexprConst_1, OP3("", "(", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAexprConst, OP3("", ")", ""), res, tmp3);
         $$ = res;
@@ -19985,7 +19985,7 @@ AexprConst:
     | ConstInterval Sconst opt_interval {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kAexprConst_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -19994,7 +19994,7 @@ AexprConst:
     | ConstInterval '(' Iconst ')' Sconst {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAexprConst, OP3("", "(", ")"), tmp1, tmp2);
+        res = new IR(kAexprConst_1, OP3("", "(", ")"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
         $$ = res;
@@ -20131,13 +20131,13 @@ PLpgSQL_Expr:
     opt_distinct_clause opt_target_list from_clause where_clause group_clause having_clause window_clause opt_sort_clause opt_select_limit opt_for_locking_clause {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kPLpgSQLExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kPLpgSQLExpr_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
-        res = new IR(kPLpgSQLExpr, OP3("", "", ""), res, tmp3);
+        res = new IR(kPLpgSQLExpr_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $5;
-        res = new IR(kPLpgSQLExpr, OP3("", "", ""), res, tmp4);
+        res = new IR(kPLpgSQLExpr_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $7;
-        res = new IR(kPLpgSQLExpr, OP3("", "", ""), res, tmp5);
+        res = new IR(kPLpgSQLExpr_4, OP3("", "", ""), res, tmp5);
         auto tmp6 = $9;
         res = new IR(kPLpgSQLExpr, OP3("", "", ""), res, tmp6);
         $$ = res;
@@ -20155,7 +20155,7 @@ PLAssignStmt:
     plassign_target opt_indirection plassign_equals PLpgSQL_Expr {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kPLAssignStmt, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kPLAssignStmt_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kPLAssignStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
