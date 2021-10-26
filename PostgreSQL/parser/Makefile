@@ -38,7 +38,7 @@ CPPFLAGS += "-Wno-write-strings"
 
 COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
 
-parser.o: parser.cpp
+parser.o: parser.cpp bison_parser.cpp flex_lexer.cpp
 	g++ $< -o $@ -c -I ./include/
 
 %.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
