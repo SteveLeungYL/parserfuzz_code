@@ -261,6 +261,7 @@ def translate_preprocessing(data):
 
     """Remove original actions here. """
     data = re.sub('\{.*?\}', '', data, flags=re.S)
+    data = data.strip()
 
     all_new_data = "" # not necessary. But it works now, no need to change. :-o
     new_data = ""
@@ -300,6 +301,12 @@ def translate_preprocessing(data):
 
     return all_new_data
 
+def remove_comments_inside_statement(text):
+    text = text.strip()
+    if not (text.startswith("/*") and text.endswith("*/") and text.count("/*") == 1):
+        text = remove_comments_if_necessary(text, True)
+    return text
+
 
 def translate(data):
 
@@ -311,7 +318,7 @@ def translate(data):
 
     first_alpha_after_colon = find_first_alpha_index(data, data.find(":"))
     first_child_element = data[first_alpha_after_colon: data.find("\n", first_alpha_after_colon)]
-    first_child_element = remove_comments_if_necessary(first_child_element, True)
+    first_child_element = remove_comments_inside_statement(first_child_element)
     first_child_body = translate_single_line(first_child_element, parent_element)
     
     mapped_first_child_element = repace_special_keyword_with_token(first_child_element)
@@ -327,7 +334,7 @@ def translate(data):
     rest_children_elements = [line.strip() for line in data.splitlines() if "|" in line]
     rest_children_elements = [line[1:].strip() for line in rest_children_elements if line.startswith("|")]
     for child_element in rest_children_elements:
-        child_element = remove_comments_if_necessary(child_element, True)
+        child_element = remove_comments_inside_statement(child_element)
         child_body = translate_single_line(child_element, parent_element)
         
         mapped_child_element = repace_special_keyword_with_token(child_element)
