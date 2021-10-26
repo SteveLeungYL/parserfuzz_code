@@ -182,6 +182,7 @@ def translate_single_line(line, parent):
     tmp_num = 1
     body = ""
     need_more_ir = False
+    default_ir_type = "kUnknown"
     while ( i < len(token_sequence)):
         left_token, left_keywords = search_next_keyword(token_sequence, i)
         logger.debug(f"Left tokens: '{left_token}', Left keywords: '{left_keywords}'")
@@ -200,12 +201,12 @@ def translate_single_line(line, parent):
         if need_more_ir:
             # body += "PUSH(res);"
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
-            body += f"""res = new IR(kUnknown, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), res, tmp{tmp_num});""" + "\n"
+            body += f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), res, tmp{tmp_num});""" + "\n"
             tmp_num += 1
         elif right_token and right_token.is_keyword == False:
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
-            body += f"""res = new IR(kUnknown, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});""" + "\n"
+            body += f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), tmp{tmp_num}, tmp{tmp_num+1});""" + "\n"
             
             tmp_num += 2
             need_more_ir = True
@@ -214,10 +215,10 @@ def translate_single_line(line, parent):
                 if left_keywords_str.startswith("/*") and left_keywords_str.endswith("*/"):
                     # HACK for empty grammar eg. /* EMPTY */
                     left_keywords_str = ""
-                body += f"""res = new IR(kUnknown, string("{left_keywords_str}"));""" + "\n"
+                body += f"""res = new IR({default_ir_type}, string("{left_keywords_str}"));""" + "\n"
                 break
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
-            body += f"""res = new IR(kUnknown, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});""" + "\n"
+            body += f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", ""), tmp{tmp_num});""" + "\n"
             
             tmp_num += 1
             need_more_ir = True
@@ -235,8 +236,11 @@ def translate_single_line(line, parent):
 
     # fix the IR type to kUnknown
     ir_type_str = ir_type_str_rewrite(parent)
-    if body: 
-        body = f"k{ir_type_str}".join(body.rsplit("kUnknown", 1))
+    if body:
+        default_ir_type_num = body.count(default_ir_type)
+        for idx in range(default_ir_type_num-1):
+            body = body.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
+        body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
         body += "$$ = res;" 
 
 
