@@ -4127,6 +4127,65 @@ c_expr:		columnref								{ $$ = $1; }
 #     TODO
 
 
+def TestMultipleComments():
+    data = """
+bare_label_keyword: /* EMPTY */
+			  ABORT_P
+			  /* EMPTY */
+			| /* EMPTY */
+			  ABSOLUTE_P /* EMPTY */
+			| /* EMPTY */ ACCESS
+			| ACTION /* EMPTY */
+			| /* EMPTY */ XMLTABLE /* EMPTY */
+			/* EMPTY */
+			| /* EMPTY */
+			  YES_P
+			| ZONE
+			  /* EMPTY */
+	    ;
+"""
+    expect = """
+bare_label_keyword:
+
+    ABORT_P {
+        res = new IR(kBareLabelKeyword, OP3("ABORT", "", ""));
+        $$ = res;
+    }
+
+    | ABSOLUTE_P {
+        res = new IR(kBareLabelKeyword, OP3("ABSOLUTE", "", ""));
+        $$ = res;
+    }
+
+    | ACCESS {
+        res = new IR(kBareLabelKeyword, OP3("ACCESS", "", ""));
+        $$ = res;
+    }
+
+    | ACTION {
+        res = new IR(kBareLabelKeyword, OP3("ACTION", "", ""));
+        $$ = res;
+    }
+
+    | XMLTABLE {
+        res = new IR(kBareLabelKeyword, OP3("XMLTABLE", "", ""));
+        $$ = res;
+    }
+
+    | YES_P {
+        res = new IR(kBareLabelKeyword, OP3("YES", "", ""));
+        $$ = res;
+    }
+
+    | ZONE {
+        res = new IR(kBareLabelKeyword, OP3("ZONE", "", ""));
+        $$ = res;
+    }
+
+;
+"""
+    _test(data, expect)
+
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
 def test(print_output):
@@ -4153,6 +4212,7 @@ def test(print_output):
         TestQualifiedNameList()
         TestMappingKeywords()
         TestCExpr()
+        TestMultipleComments()
         print("All tests passed!")
     except Exception as e:
         logger.exception(e)
