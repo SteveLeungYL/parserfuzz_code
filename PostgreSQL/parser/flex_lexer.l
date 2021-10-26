@@ -85,11 +85,11 @@ bool		standard_conforming_strings = true;
  */
 #define PG_KEYWORD(kwname, value, category) value,
 
+#undef PG_KEYWORD
+
 const uint16 ScanKeywordTokens[] = {
 #include "parser/kwlist.h"
 };
-
-#undef PG_KEYWORD
 
 /*
  * Set the type of YYSTYPE.

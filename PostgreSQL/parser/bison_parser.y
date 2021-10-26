@@ -49,22 +49,22 @@
 #include <limits.h>
 
 #include "../include/ast.h"
-#include "access/tableam.h"
-#include "catalog/index.h"
-#include "catalog/namespace.h"
+//#include "access/tableam.h"
+//#include "catalog/index.h"
+//#include "catalog/namespace.h"
 #include "catalog/pg_am.h"
 #include "catalog/pg_trigger.h"
 #include "commands/defrem.h"
-#include "commands/trigger.h"
-#include "nodes/makefuncs.h"
-#include "nodes/nodeFuncs.h"
+//#include "commands/trigger.h"
+//#include "nodes/makefuncs.h"
+//#include "nodes/nodeFuncs.h"
 #include "parser/gramparse.h"
 #include "parser/parser.h"
-#include "storage/lmgr.h"
+//#include "storage/lmgr.h"
 #include "utils/date.h"
 #include "utils/datetime.h"
 #include "utils/numeric.h"
-#include "utils/xml.h"
+//#include "utils/xml.h"
 #include "../include/define.h"
 
 
@@ -165,9 +165,9 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 
 %}
 
-//%pure-parser
 %define api.pure
 %expect 0
+// JUST USE THE OLD STYLE, PLEASE!!!!
 %name-prefix="base_yy"
 //%define api.prefix {base_yy}
 %locations
