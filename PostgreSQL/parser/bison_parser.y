@@ -165,9 +165,9 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 
 %}
 
-%pure-parser
+%define api.pure
 %expect 0
-%name-prefix="base_yy"
+%define api.prefix {base_yy}
 %locations
 
 %parse-param {IR* res} {core_yyscan_t yyscanner}
