@@ -366,7 +366,6 @@
   V(kGroupClause)      \
   V(kGroupByList)      \
   V(kGroupByItem)      \
-  V(kEmptyGroupingSet)      \
   V(kRollupClause)      \
   V(kCubeClause)      \
   V(kGroupingSetsClause)      \
@@ -657,7 +656,25 @@
   V(kPartitionBoundSpec)      \
   V(kHashPartbound)      \
   V(kHashPartboundElem)      \
-  \
+  V(kOptAs)                  \
+  V(kOptUsing)               \
+  V(kOptProcedural)          \
+  V(kAnalyzeKeyword)         \
+  V(kFromIn)                 \
+  V(kOptFromIn)              \
+  V(kPlassignEquals)         \
+  V(kOptColumn)              \
+  V(kOptBy)                  \
+  V(kFunctionOrProcedure)    \
+  V(kTriggerForOptEach)      \
+  V(kXmlPassingMech)         \
+  V(kOptOuter)               \
+  V(kOptTable)               \
+  V(kOptRestrict)            \
+  V(kOptEqual)               \
+  V(kAnyWith)                \
+  V(kOptAllClause)           \
+  V(kEmptyGroupingSet)       \
   \
   \
   \
@@ -751,7 +768,6 @@
   V(kNumLiteral)                                                               \
   V(kIntLiteral)                                                               \
   V(kFloatLiteral)                                                             \
-  V(kOptColumn)                                                                \
   V(kOptIfNotExist)                                                            \
   V(kOptIfExist)                                                               \
   V(kIdentifier)                                                               \
@@ -809,9 +825,7 @@
   V(kGroupNameList)                                                            \
   V(kValuesStmt)                                                            \
   V(kExprListWithParens)                                                            \
-  V(kOptTable)                                                            \
   V(kAllorDistinct)                                                            \
-  V(kOptAllClause)                                                           \
   V(kOptSelectTarget)                                                           \
   V(kOrderClause)                                                           \
   V(kTableNameList)                                                        \
@@ -852,7 +866,6 @@
   V(kAlterConversionStmt)                                                       \
   V(kConversionName)                                                            \
   V(kOptWithReplotions) \
-  V(kOptBy) \
  
 
 #define ALLDATATYPE(V)                                                         \
