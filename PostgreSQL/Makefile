@@ -1,8 +1,8 @@
 SUB_DIRS := oracle src AFL
 
 PARSER_SRCS := $(wildcard parser/parser.cpp)
-PARSER_SRCS += $(patsubst %_2.y,%.cpp,$(wildcard parser/*_2.y))
-PARSER_SRCS += $(patsubst %_2.l,%.cpp,$(wildcard parser/*_2.l))
+PARSER_SRCS += $(patsubst %.y,%.cpp,$(wildcard parser/*.y))
+PARSER_SRCS += $(patsubst %.l,%.cpp,$(wildcard parser/*.l))
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
