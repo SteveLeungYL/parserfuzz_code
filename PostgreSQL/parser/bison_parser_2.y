@@ -534,7 +534,7 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 
 %type <ir> opt_with opt_as opt_using opt_procedural analyze_keyword from_in opt_from_in opt_transaction
 %type <ir> plassign_equals opt_column opt_by FUNCTION_or_PROCEDURE TriggerForOptEach xml_passing_mech
-%type <ir> opt_outer opt_table opt_restrict opt_equal any_with opt_all_clause
+%type <ir> opt_outer opt_table opt_restrict opt_equal any_with opt_all_clause opt_asymmetric
 
 
 
@@ -550,8 +550,8 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
  * DOT_DOT is unused in the core SQL grammar, and so will always provoke
  * parse errors.  It is needed by PL/pgSQL.
  */
-%token <str>	IDENT UIDENT FCONST SCONST USCONST BCONST XCONST Op
-%token <ival>	ICONST PARAM
+%token <ir>	IDENT UIDENT FCONST SCONST USCONST BCONST XCONST Op
+%token <ir>	ICONST PARAM
 %token			TYPECAST DOT_DOT COLON_EQUALS EQUALS_GREATER
 %token			LESS_EQUALS GREATER_EQUALS NOT_EQUALS
 
@@ -563,7 +563,7 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
  */
 
 /* ordinary key words in alphabetical order */
-%token <keyword> ABORT_P ABSOLUTE_P ACCESS ACTION ADD_P ADMIN AFTER
+%token <ir> ABORT_P ABSOLUTE_P ACCESS ACTION ADD_P ADMIN AFTER
 	AGGREGATE ALL ALSO ALTER ALWAYS ANALYSE ANALYZE AND ANY ARRAY AS ASC
 	ASENSITIVE ASSERTION ASSIGNMENT ASYMMETRIC ATOMIC AT ATTACH ATTRIBUTE AUTHORIZATION
 
@@ -17246,7 +17246,7 @@ a_expr:
         $$ = res;
     }
 
-    | a_expr AT TIME ZONE a_expr %prec AT /* * These operators must be called out explicitly in order to make use * of bison's automatic operator-precedence handling. All other * operator names are handled by the generic productions using "Op", * below; and all those operators will have the same precedence. * * If you add more explicitly-known operators, be sure to add them * also to b_expr and to the MathOp list below. */ {
+    | a_expr AT TIME ZONE a_expr %prec AT  {
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr, OP3("", "AT TIME ZONE", ""), tmp1, tmp2);
@@ -17478,7 +17478,7 @@ a_expr:
         $$ = res;
     }
 
-    | a_expr NOT_LA SIMILAR TO a_expr ESCAPE a_expr %prec NOT_LA /* NullTest clause * Define SQL-style Null test clause. {
+    | a_expr NOT_LA SIMILAR TO a_expr ESCAPE a_expr %prec NOT_LA {
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kUnknown, OP3("", "NOT SIMILAR TO", "ESCAPE"), tmp1, tmp2);
@@ -19591,8 +19591,13 @@ opt_indirection:
 
 ;
 
-opt_asymmetric: ASYMMETRIC
-| /*EMPTY*/
+opt_asymmetric: 
+    ASYMMETRIC {
+        $$ = new IR(kOptAsymmetric, OP3("ASYMMETRIC", "", ""));
+    }
+    | /*EMPTY*/ {
+        $$ = new IR(kOptAsymmetric, OP0());
+    }
 ;
 
 

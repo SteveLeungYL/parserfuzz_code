@@ -675,6 +675,7 @@
   V(kAnyWith)                \
   V(kOptAllClause)           \
   V(kEmptyGroupingSet)       \
+  V(kOptAsymmetric)          \
   \
   \
   \
