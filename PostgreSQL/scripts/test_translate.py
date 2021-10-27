@@ -1151,8 +1151,25 @@ when_clause_list:
 			| when_clause_list when_clause			{ $$ = lappend($1, $2); }
 		;    
 """
-    translate(data)
-#     FIXME:
+    expect = """
+when_clause_list:
+
+    when_clause {
+        auto tmp1 = $1;
+        res = new IR(kWhenClauseList, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | when_clause_list when_clause {
+        auto tmp1 = $1;
+        auto tmp2 = $2;
+        res = new IR(kWhenClauseList, OP3("", "", ""), tmp1, tmp2);
+        $$ = res;
+    }
+
+;    
+"""
+    _test(data, expect)
 
 def TestOptCreatefuncOptList():
     data = """
@@ -1216,76 +1233,145 @@ event:
 
 def TestFuncApplication():
     data = """
+func_application: func_name '(' ')'
+				{
+					$$ = (Node *) makeFuncCall($1, NIL,
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+				}
+			| func_name '(' func_arg_list opt_sort_clause ')'
+				{
+					FuncCall *n = makeFuncCall($1, $3,
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+					n->agg_order = $4;
+					$$ = (Node *)n;
+				}
+			| func_name '(' VARIADIC func_arg_expr opt_sort_clause ')'
+				{
+					FuncCall *n = makeFuncCall($1, list_make1($4),
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+					n->func_variadic = true;
+					n->agg_order = $5;
+					$$ = (Node *)n;
+				}
+			| func_name '(' func_arg_list ',' VARIADIC func_arg_expr opt_sort_clause ')'
+				{
+					FuncCall *n = makeFuncCall($1, lappend($3, $6),
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+					n->func_variadic = true;
+					n->agg_order = $7;
+					$$ = (Node *)n;
+				}
+			| func_name '(' ALL func_arg_list opt_sort_clause ')'
+				{
+					FuncCall *n = makeFuncCall($1, $4,
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+					n->agg_order = $5;
+					/* Ideally we'd mark the FuncCall node to indicate
+					 * "must be an aggregate", but there's no provision
+					 * for that in FuncCall at the moment.
+					 */
+					$$ = (Node *)n;
+				}
+			| func_name '(' DISTINCT func_arg_list opt_sort_clause ')'
+				{
+					FuncCall *n = makeFuncCall($1, $4,
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+					n->agg_order = $5;
+					n->agg_distinct = true;
+					$$ = (Node *)n;
+				}
+			| func_name '(' '*' ')'
+				{
+					/*
+					 * We consider AGGREGATE(*) to invoke a parameterless
+					 * aggregate.  This does the right thing for COUNT(*),
+					 * and there are no other aggregates in SQL that accept
+					 * '*' as parameter.
+					 *
+					 * The FuncCall node is also marked agg_star = true,
+					 * so that later processing can detect what the argument
+					 * really was.
+					 */
+					FuncCall *n = makeFuncCall($1, NIL,
+											   COERCE_EXPLICIT_CALL,
+											   @1);
+					n->agg_star = true;
+					$$ = (Node *)n;
+				}
+		;
 
+"""
+    expect = """
 func_application:
 
     func_name '(' ')' {
         auto tmp1 = $1;
-        auto tmp2 = $3;
-        res = new IR(kFuncApplication, OP3("", "( )", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication, OP3("", "( )", ""), tmp1);
         $$ = res;
     }
 
     | func_name '(' func_arg_list opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kUnknown, OP3("", "(", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_1, OP3("", "(", ""), tmp1, tmp2);
         auto tmp3 = $4;
-        res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
+        res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
         $$ = res;
     }
 
     | func_name '(' VARIADIC func_arg_expr opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kUnknown, OP3("", "( VARIADIC", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_2, OP3("", "( VARIADIC", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
+        res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
         $$ = res;
     }
 
     | func_name '(' func_arg_list ',' VARIADIC func_arg_expr opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kUnknown, OP3("", "(", ""), tmp1, tmp2);
-        auto tmp3 = $4;
-        res = new IR(kUnknown, OP3("", "VARIADIC", ""), res, tmp3);
+        res = new IR(kFuncApplication_3, OP3("", "(", ", VARIADIC"), tmp1, tmp2);
+        auto tmp3 = $6;
+        res = new IR(kFuncApplication_4, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
-        res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp4);
+        res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp4);
         $$ = res;
     }
 
     | func_name '(' ALL func_arg_list opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kUnknown, OP3("", "( ALL", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_5, OP3("", "( ALL", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
+        res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
         $$ = res;
     }
 
     | func_name '(' DISTINCT func_arg_list opt_sort_clause ')' {
         auto tmp1 = $1;
         auto tmp2 = $4;
-        res = new IR(kUnknown, OP3("", "( DISTINCT", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication_6, OP3("", "( DISTINCT", ""), tmp1, tmp2);
         auto tmp3 = $5;
-        res = new IR(kFuncApplication, OP3("", ")", ""), res, tmp3);
+        res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
         $$ = res;
     }
 
     | func_name '(' '*' ')' {
         auto tmp1 = $1;
-        auto tmp2 = $4;
-        res = new IR(kFuncApplication, OP3("", "( * )", ""), tmp1, tmp2);
+        res = new IR(kFuncApplication, OP3("", "( * )", ""), tmp1);
         $$ = res;
     }
 
 ;
 """
-    expect = """
-    
-"""
-    translate(data)
+    _test(data, expect)
 
 def TestBareLabelKeyword():
     data = """
@@ -3998,32 +4084,7 @@ def TestCExpr():
 c_expr:		columnref								{ $$ = $1; }
 			| AexprConst							{ $$ = $1; }
 			| PARAM opt_indirection
-				{
-					ParamRef *p = makeNode(ParamRef);
-					p->number = $1;
-					p->location = @1;
-					if ($2)
-					{
-						A_Indirection *n = makeNode(A_Indirection);
-						n->arg = (Node *) p;
-						n->indirection = check_indirection($2, yyscanner);
-						$$ = (Node *) n;
-					}
-					else
-						$$ = (Node *) p;
-				}
 			| '(' a_expr ')' opt_indirection
-				{
-					if ($4)
-					{
-						A_Indirection *n = makeNode(A_Indirection);
-						n->arg = $2;
-						n->indirection = check_indirection($4, yyscanner);
-						$$ = (Node *)n;
-					}
-					else
-						$$ = $2;
-				}
 			| case_expr
 				{ $$ = $1; }
 			| func_expr
@@ -4122,9 +4183,97 @@ c_expr:		columnref								{ $$ = $1; }
 		;
 """
     expect = """
+c_expr:
+
+    columnref {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | AexprConst {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | PARAM opt_indirection {
+        auto tmp1 = $2;
+        res = new IR(kCExpr, OP3("PARAM", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | '(' a_expr ')' opt_indirection {
+        auto tmp1 = $2;
+        auto tmp2 = $4;
+        res = new IR(kCExpr, OP3("(", ")", ""), tmp1, tmp2);
+        $$ = res;
+    }
+
+    | case_expr {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | func_expr {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | select_with_parens %prec UMINUS {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | select_with_parens indirection {
+        auto tmp1 = $1;
+        auto tmp2 = $2;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1, tmp2);
+        $$ = res;
+    }
+
+    | EXISTS select_with_parens {
+        auto tmp1 = $2;
+        res = new IR(kCExpr, OP3("EXISTS", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | ARRAY select_with_parens {
+        auto tmp1 = $2;
+        res = new IR(kCExpr, OP3("ARRAY", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | ARRAY array_expr {
+        auto tmp1 = $2;
+        res = new IR(kCExpr, OP3("ARRAY", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | explicit_row {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | implicit_row {
+        auto tmp1 = $1;
+        res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        $$ = res;
+    }
+
+    | GROUPING '(' expr_list ')' {
+        auto tmp1 = $3;
+        res = new IR(kCExpr, OP3("GROUPING (", ")", ""), tmp1);
+        $$ = res;
+    }
+
+;
 """
-    translate(data)
-#     TODO
+    _test(data, expect)
 
 
 def TestMultipleComments():
