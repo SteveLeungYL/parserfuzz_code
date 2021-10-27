@@ -1,7 +1,9 @@
-import click 
+import click
 import sys
 from loguru import logger
 from translate import translate
+
+
 def _test(data, expect):
     assert expect.strip() == translate(data).strip()
 
@@ -45,19 +47,19 @@ DropSubscriptionStmt:
 
 ;
     """
-    
+
     _test(data, expect)
 
 
-def TestStmtBlock(): 
-        data = """
+def TestStmtBlock():
+    data = """
 stmtblock:	stmtmulti
 			{
 				pg_yyget_extra(yyscanner)->parsetree = $1;
 			}
 		;    
 """
-        expect = """
+    expect = """
 stmtblock:
 
     stmtmulti {
@@ -67,9 +69,9 @@ stmtblock:
     }
 
 ;    
-"""        
-        _test(data, expect)
-        
+"""
+    _test(data, expect)
+
 
 def TestCreateUserStmt():
     data = """
@@ -100,6 +102,7 @@ CreateUserStmt:
 """
 
     _test(data, expect)
+
 
 def TestStmtMulti():
     data = """
@@ -140,6 +143,7 @@ stmtmulti:
 """
     _test(data, expect)
 
+
 def TestOnlyKeywords():
     data = """
 stmtmulti:	CREATE USER
@@ -158,6 +162,7 @@ stmtmulti:
 ;
 """
     _test(data, expect)
+
 
 def TestStmt():
     data = """
@@ -1039,6 +1044,7 @@ stmt:
 """
     _test(data, expect)
 
+
 def TestSingleLine():
 
     data = """
@@ -1056,6 +1062,7 @@ name:
 ;
 """
     _test(data, expect)
+
 
 def TestConstraintAttributeSpec():
     data = """
@@ -1106,6 +1113,7 @@ ConstraintAttributeSpec:
 ;
 """
     _test(data, expect)
+
 
 def TestEventTriggerWhenItem():
     data = """
@@ -1171,6 +1179,7 @@ when_clause_list:
 """
     _test(data, expect)
 
+
 def TestOptCreatefuncOptList():
     data = """
 opt_createfunc_opt_list:
@@ -1195,6 +1204,7 @@ opt_createfunc_opt_list:
 ;    
 """
     _test(data, expect)
+
 
 def TestEvent():
     data = """
@@ -1230,6 +1240,7 @@ event:
 ;
 """
     _test(data, expect)
+
 
 def TestFuncApplication():
     data = """
@@ -1372,6 +1383,7 @@ func_application:
 ;
 """
     _test(data, expect)
+
 
 def TestBareLabelKeyword():
     data = """
@@ -3895,6 +3907,7 @@ bare_label_keyword:
 """
     _test(data, expect)
 
+
 def TestOnlyMultipleKeywords():
     data = """
 document_or_content: DOCUMENT_P						{ $$ = XMLOPTION_DOCUMENT; }
@@ -3924,8 +3937,9 @@ document_or_content:
 """
     _test(data, expect)
 
+
 def TestQualifiedNameList():
-    data ="""
+    data = """
 qualified_name_list:
 			qualified_name							{ $$ = list_make1($1); }
 			| qualified_name_list ',' qualified_name { $$ = lappend($1, $3); }
@@ -3950,6 +3964,7 @@ qualified_name_list:
 ;
 """
     _test(data, expect)
+
 
 def TestMappingKeywords():
     data = """
@@ -4078,6 +4093,7 @@ Numeric:
 ;
 """
     _test(data, expect)
+
 
 def TestCExpr():
     data = """
@@ -4359,6 +4375,7 @@ opt_equal:
 """
     _test(data, expect)
 
+
 def TestCopyStmt():
     data = """
 CopyStmt:	COPY opt_binary qualified_name opt_column_list
@@ -4490,13 +4507,14 @@ CopyStmt:
 
     _test(data, expect)
 
+
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
 def test(print_output):
     if not print_output:
         logger.remove()
         logger.add(sys.stderr, level="ERROR")
-    
+
     try:
         TestDropSubscriptionStmt()
         TestStmtBlock()
@@ -4522,7 +4540,6 @@ def test(print_output):
         logger.info("All tests passed!")
     except Exception as e:
         logger.exception(e)
-        
 
 
 if __name__ == "__main__":
