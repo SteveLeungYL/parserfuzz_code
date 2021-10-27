@@ -1275,6 +1275,7 @@
   V(kReservedKeyword)   \
   V(kBareLabelKeyword)   \
   V(kEmptyGroupingSet)   \
+  V(kIdentifier)         \
     \
   \
   \
@@ -1370,7 +1371,6 @@
   V(kFloatLiteral)                                                             \
   V(kOptIfNotExist)                                                            \
   V(kOptIfExist)                                                               \
-  V(kIdentifier)                                                               \
   V(kTableName)                                                                \
   V(kColumnName)                                                               \
   V(kViewName)                                                                 \
@@ -1494,6 +1494,7 @@
   V(DataDatabaseName)                                                          \
   V(DataSystemName)                                                            \
   V(DataConversionName)                                                        \
+  V(DataAggregateArguments)                                                        \
 
 
 #define SWITCHSTART switch (case_idx_) {
