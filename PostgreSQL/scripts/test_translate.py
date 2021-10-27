@@ -4208,7 +4208,138 @@ opt_equal:
 
 ;
 """
-    translate(data)
+    _test(data, expect)
+
+def TestCopyStmt():
+    data = """
+CopyStmt:	COPY opt_binary qualified_name opt_column_list
+			copy_from opt_program copy_file_name copy_delimiter opt_with
+			copy_options where_clause
+				{
+					CopyStmt *n = makeNode(CopyStmt);
+					n->relation = $3;
+					n->query = NULL;
+					n->attlist = $4;
+					n->is_from = $5;
+					n->is_program = $6;
+					n->filename = $7;
+					n->whereClause = $11;
+
+					if (n->is_program && n->filename == NULL)
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("STDIN/STDOUT not allowed with PROGRAM"),
+								 parser_errposition(@8)));
+
+					if (!n->is_from && n->whereClause != NULL)
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("WHERE clause not allowed with COPY TO"),
+								 parser_errposition(@11)));
+
+					n->options = NIL;
+					/* Concatenate user-supplied flags */
+					if ($2)
+						n->options = lappend(n->options, $2);
+					if ($8)
+						n->options = lappend(n->options, $8);
+					if ($10)
+						n->options = list_concat(n->options, $10);
+					$$ = (Node *)n;
+				}
+			| COPY opt_binary CREATE qualified_name USER opt_column_list
+			CHECK copy_from PASSWORD opt_program POLICY copy_file_name STORAGE copy_delimiter ROLLBACK opt_with
+			DESC copy_options ACTION where_clause SEARCH 
+			    {
+			        CopyStmt *n = makeNode(CopyStmt);
+			    }
+			| COPY '(' PreparableStmt ')' TO opt_program copy_file_name opt_with copy_options
+				{
+					CopyStmt *n = makeNode(CopyStmt);
+					n->relation = NULL;
+					n->query = $3;
+					n->attlist = NIL;
+					n->is_from = false;
+					n->is_program = $6;
+					n->filename = $7;
+					n->options = $9;
+
+					if (n->is_program && n->filename == NULL)
+						ereport(ERROR,
+								(errcode(ERRCODE_SYNTAX_ERROR),
+								 errmsg("STDIN/STDOUT not allowed with PROGRAM"),
+								 parser_errposition(@5)));
+
+					$$ = (Node *)n;
+				}
+		;
+"""
+    expect = """
+CopyStmt:
+
+    COPY opt_binary qualified_name opt_column_list copy_from opt_program copy_file_name copy_delimiter opt_with copy_options where_clause {
+        auto tmp1 = $2;
+        auto tmp2 = $3;
+        res = new IR(kCopyStmt_1, OP3("COPY", "", ""), tmp1, tmp2);
+        auto tmp3 = $4;
+        res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
+        auto tmp4 = $5;
+        res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
+        auto tmp5 = $6;
+        res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
+        auto tmp6 = $7;
+        res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
+        auto tmp7 = $8;
+        res = new IR(kCopyStmt_6, OP3("", "", ""), res, tmp7);
+        auto tmp8 = $9;
+        res = new IR(kCopyStmt_7, OP3("", "", ""), res, tmp8);
+        auto tmp9 = $10;
+        res = new IR(kCopyStmt_8, OP3("", "", ""), res, tmp9);
+        auto tmp10 = $11;
+        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
+        $$ = res;
+    }
+
+    | COPY opt_binary CREATE qualified_name USER opt_column_list CHECK copy_from PASSWORD opt_program POLICY copy_file_name STORAGE copy_delimiter ROLLBACK opt_with DESC copy_options ACTION where_clause SEARCH {
+        auto tmp1 = $2;
+        auto tmp2 = $4;
+        res = new IR(kCopyStmt_1, OP3("COPY", "CREATE", "USER"), tmp1, tmp2);
+        auto tmp3 = $6;
+        res = new IR(kCopyStmt_2, OP3("", "", "CHECK"), res, tmp3);
+        auto tmp4 = $8;
+        res = new IR(kCopyStmt_3, OP3("", "", "PASSWORD"), res, tmp4);
+        auto tmp5 = $10;
+        res = new IR(kCopyStmt_4, OP3("", "", "POLICY"), res, tmp5);
+        auto tmp6 = $12;
+        res = new IR(kCopyStmt_5, OP3("", "", "STORAGE"), res, tmp6);
+        auto tmp7 = $14;
+        res = new IR(kCopyStmt_6, OP3("", "", "ROLLBACK"), res, tmp7);
+        auto tmp8 = $16;
+        res = new IR(kCopyStmt_7, OP3("", "", "DESC"), res, tmp8);
+        auto tmp9 = $18;
+        res = new IR(kCopyStmt_8, OP3("", "", "ACTION"), res, tmp9);
+        auto tmp10 = $20;
+        res = new IR(kCopyStmt, OP3("", "", "SEARCH"), res, tmp10);
+        $$ = res;
+    }
+
+    | COPY '(' PreparableStmt ')' TO opt_program copy_file_name opt_with copy_options {
+        auto tmp1 = $3;
+        auto tmp2 = $6;
+        res = new IR(kCopyStmt_1, OP3("COPY (", ") TO", ""), tmp1, tmp2);
+        auto tmp3 = $7;
+        res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
+        auto tmp4 = $8;
+        res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
+        auto tmp5 = $9;
+        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp5);
+        $$ = res;
+    }
+
+;    
+"""
+
+    _test(data, expect)
 
 @click.command()
 @click.option("-p", "--print-output", is_flag=True, default=False)
@@ -4218,26 +4349,27 @@ def test(print_output):
         logger.add(sys.stderr, level="ERROR")
     
     try:
-        TestDropSubscriptionStmt()
-        TestStmtBlock()
-        TestCreateUserStmt()
-        TestStmtMulti()
-        TestOnlyKeywords()
-        TestStmt()
-        TestSingleLine()
-        TestConstraintAttributeSpec()
-        TestEventTriggerWhenItem()
-        TestWhenClauseList()
-        TestOptCreatefuncOptList()
-        TestEvent()
-        TestFuncApplication()
-        TestBareLabelKeyword()
-        TestOnlyMultipleKeywords()
-        TestQualifiedNameList()
-        TestMappingKeywords()
-        TestCExpr()
-        TestMultipleComments()
-        TestOptEqual()
+        # TestDropSubscriptionStmt()
+        # TestStmtBlock()
+        # TestCreateUserStmt()
+        # TestStmtMulti()
+        # TestOnlyKeywords()
+        # TestStmt()
+        # TestSingleLine()
+        # TestConstraintAttributeSpec()
+        # TestEventTriggerWhenItem()
+        # TestWhenClauseList()
+        # TestOptCreatefuncOptList()
+        # TestEvent()
+        # TestFuncApplication()
+        # TestBareLabelKeyword()
+        # TestOnlyMultipleKeywords()
+        # TestQualifiedNameList()
+        # TestMappingKeywords()
+        # TestCExpr()
+        # TestMultipleComments()
+        # TestOptEqual()
+        TestCopyStmt()
         logger.info("All tests passed!")
     except Exception as e:
         logger.exception(e)

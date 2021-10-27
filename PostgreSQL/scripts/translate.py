@@ -213,10 +213,18 @@ def translate_single_line(line, parent):
         
 
         if need_more_ir:
+
             # body += "PUSH(res);"
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
-            body += f"""res = new IR({default_ir_type}, OP3("{left_keywords_str}", "{mid_keywords_str}", "{right_keywords_str}"), res, tmp{tmp_num});""" + "\n"
+            body += f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});""" + "\n"
             tmp_num += 1
+
+            if right_token:
+                # body += "PUSH(res);"
+                body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
+                body += f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});""" + "\n"
+                tmp_num += 1
+
         elif right_token and right_token.is_keyword == False:
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += f"auto tmp{tmp_num+1} = ${right_token.index+1};" + "\n"
