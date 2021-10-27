@@ -552,7 +552,8 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
  * DOT_DOT is unused in the core SQL grammar, and so will always provoke
  * parse errors.  It is needed by PL/pgSQL.
  */
-%token <ir>	IDENT UIDENT FCONST SCONST USCONST BCONST XCONST Op
+%token <str> IDENT  // TODO::Should be the same as the line below. Move and change one by one!!! 
+%token <ir>	UIDENT FCONST SCONST USCONST BCONST XCONST Op
 %token <ir>	ICONST PARAM
 %token			TYPECAST DOT_DOT COLON_EQUALS EQUALS_GREATER
 %token			LESS_EQUALS GREATER_EQUALS NOT_EQUALS
@@ -1701,8 +1702,9 @@ AlterOptRoleElem:
     }
 
     | UNENCRYPTED PASSWORD Sconst {
+        /* Yu: Force change it to ENCRYPTED PASSWORD. UNENCRYPTED PASSWORD is not supported anymore. */
         auto tmp1 = $3;
-        res = new IR(kAlterOptRoleElem, OP3("UNENCRYPTED PASSWORD", "", ""), tmp1);
+        res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
         $$ = res;
     }
 
@@ -1730,7 +1732,27 @@ AlterOptRoleElem:
     }
 
     | IDENT {
-        res = new IR(kAlterOptRoleElem, OP3("IDENT", "", ""));
+        /* Yu: Restricted the possible option for ALTER role option list. If unreconized, change it to superuser. */
+        auto tmp1 = $1;
+        if (strcmp($1, "superuser") ||
+		    strcmp($1, "nosuperuser") ||
+		    strcmp($1, "createrole") ||
+		    strcmp($1, "nocreaterole") ||
+		    strcmp($1, "replication") ||
+		    strcmp($1, "noreplication") ||
+		    strcmp($1, "createdb") ||
+		    strcmp($1, "nocreatedb") ||
+		    strcmp($1, "login") ||
+		    strcmp($1, "nologin") ||
+		    strcmp($1, "bypassrls") ||
+		    strcmp($1, "nobypassrls") ||
+		    strcmp($1, "noinherit"))
+		{
+            res = new IR(kAlterOptRoleElem, OP3(string($1), "", ""));
+		} else {
+            res = new IR(kAlterOptRoleElem, OP3("superuser", "", ""));
+        }
+        free($1);
         $$ = res;
     }
 
@@ -2016,18 +2038,23 @@ CreateSchemaStmt:
     }
 
     | CREATE SCHEMA IF_P NOT EXISTS OptSchemaName AUTHORIZATION RoleSpec OptSchemaEltList {
+        /* Yu: Ignore optSchemaEltList. It is not supported here. */
+        if ($9) {
+            $9 -> deep_drop();
+        }
         auto tmp1 = $6;
         auto tmp2 = $8;
-        res = new IR(kCreateSchemaStmt_2, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
-        auto tmp3 = $9;
-        res = new IR(kCreateSchemaStmt, OP3("", "", ""), res, tmp3);
+        res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | CREATE SCHEMA IF_P NOT EXISTS ColId OptSchemaEltList {
+        /* Yu: Ignore optSchemaEltList. It is not supported here. */
+        if ($7) {
+            $7 -> deep_drop();
+        }
         auto tmp1 = $6;
-        auto tmp2 = $7;
-        res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "", ""), tmp1, tmp2);
+        res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "", ""), tmp1);
         $$ = res;
     }
 
@@ -2390,7 +2417,9 @@ zone_value:
     }
 
     | IDENT {
-        res = new IR(kZoneValue, OP3("IDENT", "", ""));
+        /* Yu: Change it to a fixed location. Do not accept in random string.  */
+        free($1);
+        res = new IR(kZoneValue, OP3("America/Chicago", "", ""));
         $$ = res;
     }
 
@@ -6993,7 +7022,15 @@ RowSecurityOptionalToRole:
 RowSecurityDefaultPermissive:
 
     AS IDENT {
-        res = new IR(kRowSecurityDefaultPermissive, OP3("AS IDENT", "", ""));
+        if ($2) {
+            if (strcmp($2, "permissive") == 0)
+                res = new IR(kRowSecurityDefaultPermissive, OP3("permissive", "", ""));
+			else if (strcmp($2, "restrictive") == 0)
+                res = new IR(kRowSecurityDefaultPermissive, OP3("restrictive", "", ""));
+            free($2);
+        } else {
+            res = new IR(kRowSecurityDefaultPermissive, OP3("restrictive", "", ""));
+        }
         $$ = res;
     }
 
@@ -7901,10 +7938,39 @@ old_aggr_list:
 old_aggr_elem:
 
     IDENT '=' def_arg {
-        auto tmp1 = $3;
-        res = new IR(kOldAggrElem, OP3("IDENT =", "", ""), tmp1);
-        $$ = res;
+        /* Yu: Fixing it as an identifier = config. We might need to fix them later in the validate function */
+        if (    strcmp($1, "SFUNC") == 0 || // Required
+                strcmp($1, "STYPE") == 0 || // Required
+                strcmp($1, "SSPACE") == 0 || // Optional
+                strcmp($1, "FINALFUNC") == 0 || // Optional
+                strcmp($1, "FINALFUNC_EXTRA") == 0 || // Optional
+                strcmp($1, "FINALFUNC_MODIFY") == 0 || // Optional
+                strcmp($1, "COMBINEFUNC") == 0 || // Optional
+                strcmp($1, "SERIALFUNC") == 0 || // Optional
+                strcmp($1, "DESERIALFUNC") == 0 || // Optional
+                strcmp($1, "INITCOND") == 0 || // Optional
+                strcmp($1, "MSFUNC") == 0 || // Optional
+                strcmp($1, "MINVFUNC") == 0 || // Optional
+                strcmp($1, "MSTYPE") == 0 || // Optional
+                strcmp($1, "MSSPACE") == 0 || // Optional
+                strcmp($1, "MFINALFUNC") == 0 || // Optional
+                strcmp($1, "MFINALFUNC_EXTRA") == 0 || // Optional
+                strcmp($1, "MFINALFUNC_MODIFY") == 0 || // Optional
+                strcmp($1, "MINITCOND") == 0 || // Optional
+                strcmp($1, "SORTOP") == 0 || // Optional
+                strcmp($1, "PARALLEL") == 0 // Optional 
+        ) {
+            auto tmp1 = new IR(kIdentifier, string($1), kDataAggregateArguments, kFlagUnknown);
+            free($1);
+        } else {
+            auto tmp1 = new IR(kIdentifier, string("SFUNC"), kDataAggregateArguments, kFlagUnknown);
+            free($1);
+        }
+
+        auto tmp2 = $3;
+        $$ = new IR(kOldAggrElem, OP3("", "=", ""), tmp1, tmp2);
     }
+}
 
 ;
 
@@ -13411,7 +13477,9 @@ createdb_opt_item:
 createdb_opt_name:
 
     IDENT {
-        res = new IR(kCreatedbOptName, OP3("IDENT", "", ""));
+        /* Yu: Weird. I don't see any documents mentioned we can define anything here.  */
+        free($1);
+        res = new IR(kCreatedbOptName, OP3("TEMPLATE", "", ""));
         $$ = res;
     }
 
@@ -16974,7 +17042,8 @@ xmltable_column_option_el:
 
     IDENT b_expr {
         auto tmp1 = $2;
-        res = new IR(kXmltableColumnOptionEl, OP3("IDENT", "", ""), tmp1);
+        free($1);
+        res = new IR(kXmltableColumnOptionEl, OP3("DEFAULT", "", ""), tmp1);
         $$ = res;
     }
 
@@ -19692,7 +19761,12 @@ extract_list:
 extract_arg:
 
     IDENT {
-        res = new IR(kExtractArg, OP3("IDENT", "", ""));
+        /* The IDENT is used for extensions.
+        ** However, it is rare for us to encounter these cases, and IDENT can produce a lot of semantic error. 
+        ** Ignore IDENT and change it to DAY as default. 
+        */
+        free($1);
+        res = new IR(kExtractArg, OP3("DAY", "", ""));
         $$ = res;
     }
 

@@ -225,6 +225,16 @@ public:
   void update_right(IR *);
 
   void print_ir();
+
+  string get_prefix();
+  string get_middle();
+  string get_suffix();
+  string get_str_val();
+
+  void set_prefix(string);
+  void set_middle(string);
+  void set_suffix(string);
+  void set_str_val(string);
 };
 
 DATATYPE get_datatype_by_string(string s);

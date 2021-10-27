@@ -342,3 +342,56 @@ void IR::print_ir() {
 
   return;
 }
+
+string IR::get_prefix(){
+  if (op_) {
+    return op_->prefix_;
+  }
+  return "";
+}
+
+string IR::get_middle() {
+  if (op_) {
+    return op_->middle_;
+  }
+  return "";
+}
+
+string IR::get_suffix() {
+  if (op_) {
+    return op_->suffix_;
+  }
+  return "";
+}
+
+string IR::get_str_val() {
+  return str_val_;
+}
+
+void IR::set_prefix(string in) {
+  if (op_) {
+    op_->prefix_ = in;
+  } else {
+    op_ = OP3(in, "", "");
+  }
+}
+
+void IR::set_middle(string in) {
+  if (op_) {
+    op_->middle_ = in;
+  } else {
+    op_ = OP3("", in, "");
+  }
+}
+
+void IR::set_suffix(string in) {
+  if (op_) {
+    op_->suffix_ = in;
+  } else {
+    op_ = OP3("", "", in);
+  }
+}
+
+void IR::set_str_val(string in) {
+  str_val_ = in;
+}
