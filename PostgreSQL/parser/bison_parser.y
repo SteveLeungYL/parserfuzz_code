@@ -17949,7 +17949,7 @@ a_expr:
         $$ = res;
     }
 
-    | a_expr NOT_LA SIMILAR TO a_expr ESCAPE a_expr %prec NOT_LA /* NullTest clause * Define SQL-style Null test clause. {
+    | a_expr NOT_LA SIMILAR TO a_expr ESCAPE a_expr %prec NOT_LA {
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr_7, OP3("", "NOT SIMILAR TO", "ESCAPE"), tmp1, tmp2);
