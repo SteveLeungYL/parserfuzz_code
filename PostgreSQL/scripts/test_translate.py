@@ -92,7 +92,7 @@ CreateUserStmt:
         auto tmp2 = $5;
         res = new IR(kCreateUserStmt_1, OP3("CREATE USER", "USER", "CREATE"), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kCreateUserStmt, OP3("", "USER", ""), res, tmp3);
+        res = new IR(kCreateUserStmt, OP3("", "", "USER"), res, tmp3);
         $$ = res;
     }
 
@@ -4303,21 +4303,21 @@ CopyStmt:
     | COPY opt_binary CREATE qualified_name USER opt_column_list CHECK copy_from PASSWORD opt_program POLICY copy_file_name STORAGE copy_delimiter ROLLBACK opt_with DESC copy_options ACTION where_clause SEARCH {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kCopyStmt_1, OP3("COPY", "CREATE", "USER"), tmp1, tmp2);
+        res = new IR(kCopyStmt_9, OP3("COPY", "CREATE", "USER"), tmp1, tmp2);
         auto tmp3 = $6;
-        res = new IR(kCopyStmt_2, OP3("", "", "CHECK"), res, tmp3);
+        res = new IR(kCopyStmt_10, OP3("", "", "CHECK"), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kCopyStmt_3, OP3("", "", "PASSWORD"), res, tmp4);
+        res = new IR(kCopyStmt_11, OP3("", "", "PASSWORD"), res, tmp4);
         auto tmp5 = $10;
-        res = new IR(kCopyStmt_4, OP3("", "", "POLICY"), res, tmp5);
+        res = new IR(kCopyStmt_12, OP3("", "", "POLICY"), res, tmp5);
         auto tmp6 = $12;
-        res = new IR(kCopyStmt_5, OP3("", "", "STORAGE"), res, tmp6);
+        res = new IR(kCopyStmt_13, OP3("", "", "STORAGE"), res, tmp6);
         auto tmp7 = $14;
-        res = new IR(kCopyStmt_6, OP3("", "", "ROLLBACK"), res, tmp7);
+        res = new IR(kCopyStmt_14, OP3("", "", "ROLLBACK"), res, tmp7);
         auto tmp8 = $16;
-        res = new IR(kCopyStmt_7, OP3("", "", "DESC"), res, tmp8);
+        res = new IR(kCopyStmt_15, OP3("", "", "DESC"), res, tmp8);
         auto tmp9 = $18;
-        res = new IR(kCopyStmt_8, OP3("", "", "ACTION"), res, tmp9);
+        res = new IR(kCopyStmt_16, OP3("", "", "ACTION"), res, tmp9);
         auto tmp10 = $20;
         res = new IR(kCopyStmt, OP3("", "", "SEARCH"), res, tmp10);
         $$ = res;
@@ -4326,17 +4326,17 @@ CopyStmt:
     | COPY '(' PreparableStmt ')' TO opt_program copy_file_name opt_with copy_options {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kCopyStmt_1, OP3("COPY (", ") TO", ""), tmp1, tmp2);
+        res = new IR(kCopyStmt_17, OP3("COPY (", ") TO", ""), tmp1, tmp2);
         auto tmp3 = $7;
-        res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
+        res = new IR(kCopyStmt_18, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
-        res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
+        res = new IR(kCopyStmt_19, OP3("", "", ""), res, tmp4);
         auto tmp5 = $9;
         res = new IR(kCopyStmt, OP3("", "", ""), res, tmp5);
         $$ = res;
     }
 
-;    
+;
 """
 
     _test(data, expect)
@@ -4349,26 +4349,26 @@ def test(print_output):
         logger.add(sys.stderr, level="ERROR")
     
     try:
-        # TestDropSubscriptionStmt()
-        # TestStmtBlock()
-        # TestCreateUserStmt()
-        # TestStmtMulti()
-        # TestOnlyKeywords()
-        # TestStmt()
-        # TestSingleLine()
-        # TestConstraintAttributeSpec()
-        # TestEventTriggerWhenItem()
-        # TestWhenClauseList()
-        # TestOptCreatefuncOptList()
-        # TestEvent()
-        # TestFuncApplication()
-        # TestBareLabelKeyword()
-        # TestOnlyMultipleKeywords()
-        # TestQualifiedNameList()
-        # TestMappingKeywords()
-        # TestCExpr()
-        # TestMultipleComments()
-        # TestOptEqual()
+        TestDropSubscriptionStmt()
+        TestStmtBlock()
+        TestCreateUserStmt()
+        TestStmtMulti()
+        TestOnlyKeywords()
+        TestStmt()
+        TestSingleLine()
+        TestConstraintAttributeSpec()
+        TestEventTriggerWhenItem()
+        TestWhenClauseList()
+        TestOptCreatefuncOptList()
+        TestEvent()
+        TestFuncApplication()
+        TestBareLabelKeyword()
+        TestOnlyMultipleKeywords()
+        TestQualifiedNameList()
+        TestMappingKeywords()
+        TestCExpr()
+        TestMultipleComments()
+        TestOptEqual()
         TestCopyStmt()
         logger.info("All tests passed!")
     except Exception as e:

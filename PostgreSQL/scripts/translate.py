@@ -9,6 +9,7 @@ import re
 
 ONETAB = " "*4
 ONESPACE = " "
+default_ir_type = "kUnknown"
 
 saved_ir_type = []
 
@@ -196,7 +197,6 @@ def translate_single_line(line, parent):
     tmp_num = 1
     body = ""
     need_more_ir = False
-    default_ir_type = "kUnknown"
     while ( i < len(token_sequence)):
         left_token, left_keywords = search_next_keyword(token_sequence, i)
         logger.debug(f"Left tokens: '{left_token}', Left keywords: '{left_keywords}'")
@@ -219,7 +219,7 @@ def translate_single_line(line, parent):
             body += f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});""" + "\n"
             tmp_num += 1
 
-            if right_token:
+            if right_token and not right_token.is_keyword:
                 # body += "PUSH(res);"
                 body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
                 body += f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});""" + "\n"
@@ -257,26 +257,11 @@ def translate_single_line(line, parent):
         max_index_token = max(compare_tokens)
         i = max_index_token.index + 1
 
-
-    # fix the IR type to kUnknown
-    with open('all_ir_types.txt', 'a') as f:
+    if body:
         ir_type_str = ir_type_str_rewrite(parent)
-        if body:
-            if ir_type_str not in saved_ir_type:
-                saved_ir_type.append(ir_type_str)
-                f.write(f"V(k{ir_type_str})   \\\n")
-
-            default_ir_type_num = body.count(default_ir_type)
-            for idx in range(default_ir_type_num-1):
-                body = body.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
-                # body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
-                if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
-                    saved_ir_type.append(f"{ir_type_str}_{idx+1}")
-                    f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
-            body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
-            body += "$$ = res;" 
-
-
+        body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
+        body += "$$ = res;" 
+        
     logger.debug(f"Result: \n{body}")
     return body
 
@@ -378,6 +363,25 @@ def translate(data):
 """
 
     translation += "\n;"
+    
+    
+    # fix the IR type to kUnknown
+    with open('all_ir_types.txt', 'a') as f:
+        ir_type_str = ir_type_str_rewrite(parent_element)
+        
+        if ir_type_str not in saved_ir_type:
+            saved_ir_type.append(ir_type_str)
+            f.write(f"V(k{ir_type_str})   \\\n")
+
+        default_ir_type_num = translation.count(default_ir_type)
+        for idx in range(default_ir_type_num):
+            translation = translation.replace(default_ir_type, f"k{ir_type_str}_{idx+1}", 1)
+            # body = body.replace(default_ir_type, f"k{ir_type_str}", 1)
+            if f"{ir_type_str}_{idx+1}" not in saved_ir_type:
+                saved_ir_type.append(f"{ir_type_str}_{idx+1}")
+                f.write(f"V(k{ir_type_str}_{idx+1})   \\\n")
+    
+    
     logger.info(translation)
     return translation
 
