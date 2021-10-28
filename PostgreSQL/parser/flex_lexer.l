@@ -1260,10 +1260,14 @@ scanner_finish(core_yyscan_t yyscanner)
 	 * We do bother to pfree the scanbuf and literal buffer, but only if they
 	 * represent a nontrivial amount of space.  The 8K cutoff is arbitrary.
 	 */
-	if (yyextra->scanbuflen >= 8192)
-		pfree(yyextra->scanbuf);
-	if (yyextra->literalalloc >= 8192)
-		pfree(yyextra->literalbuf);
+	//if (yyextra->scanbuflen >= 8192)
+	pfree(yyextra->scanbuf);
+	//if (yyextra->literalalloc >= 8192)
+	pfree(yyextra->literalbuf);
+
+  yylex_destroy(yyscanner);
+
+  
 }
 
 
