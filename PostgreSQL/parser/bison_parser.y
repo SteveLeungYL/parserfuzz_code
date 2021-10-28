@@ -3495,20 +3495,23 @@ reloption_list:
 reloption_elem:
 
     ColLabel '=' def_arg {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kReloptionElem, OP3("", "=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ColLabel {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kReloptionElem, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | ColLabel '.' ColLabel '=' def_arg {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
         auto tmp3 = $5;
@@ -3517,8 +3520,10 @@ reloption_elem:
     }
 
     | ColLabel '.' ColLabel {
-        auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kReloptionElem, OP3("", ".", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -4049,7 +4054,8 @@ copy_generic_opt_list:
 copy_generic_opt_elem:
 
     ColLabel copy_generic_opt_arg {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kCopyGenericOptElem, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -6558,7 +6564,8 @@ generic_option_elem:
 generic_option_name:
 
     ColLabel {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kGenericOptionName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -7486,7 +7493,8 @@ TriggerFuncArg:
     }
 
     | ColLabel {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -7575,7 +7583,8 @@ CreateEventTrigStmt:
 
     CREATE EVENT TRIGGER name ON ColLabel EXECUTE FUNCTION_or_PROCEDURE func_name '(' ')' {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCreateEventTrigStmt_1, OP3("CREATE EVENT TRIGGER", "ON", "EXECUTE"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateEventTrigStmt_2, OP3("", "", ""), res, tmp3);
@@ -7586,7 +7595,8 @@ CreateEventTrigStmt:
 
     | CREATE EVENT TRIGGER name ON ColLabel WHEN event_trigger_when_list EXECUTE FUNCTION_or_PROCEDURE func_name '(' ')' {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCreateEventTrigStmt_3, OP3("CREATE EVENT TRIGGER", "ON", "WHEN"), tmp1, tmp2);
         auto tmp3 = $8;
         res = new IR(kCreateEventTrigStmt_4, OP3("", "", "EXECUTE"), res, tmp3);
@@ -7866,14 +7876,16 @@ def_list:
 def_elem:
 
     ColLabel '=' def_arg {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kDefElem, OP3("", "=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ColLabel {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kDefElem, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -12375,13 +12387,15 @@ operator_def_list:
 operator_def_elem:
 
     ColLabel '=' NONE {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOperatorDefElem, OP3("", "= NONE", ""), tmp1);
         $$ = res;
     }
 
     | ColLabel '=' operator_def_arg {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kOperatorDefElem, OP3("", "=", ""), tmp1, tmp2);
         $$ = res;
@@ -17126,7 +17140,8 @@ xml_namespace_el:
 
     b_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kXmlNamespaceEl, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -18868,27 +18883,31 @@ func_expr_common_subexpr:
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ')' {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ")", ""), tmp1);
         $$ = res;
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ',' xml_attributes ')' {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ",", ")"), tmp1, tmp2);
         $$ = res;
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ',' expr_list ')' {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ",", ")"), tmp1, tmp2);
         $$ = res;
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ',' xml_attributes ',' expr_list ')' {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr_1, OP3("XMLELEMENT ( NAME", ",", ","), tmp1, tmp2);
         auto tmp3 = $8;
@@ -18919,13 +18938,15 @@ func_expr_common_subexpr:
     }
 
     | XMLPI '(' NAME_P ColLabel ')' {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLPI ( NAME", ")", ""), tmp1);
         $$ = res;
     }
 
     | XMLPI '(' NAME_P ColLabel ',' a_expr ')' {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLPI ( NAME", ",", ")"), tmp1, tmp2);
         $$ = res;
@@ -19029,7 +19050,8 @@ xml_attribute_el:
 
     a_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kXmlAttributeEl, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -20260,7 +20282,8 @@ target_el:
 
     a_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kTargetEl, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -20369,7 +20392,8 @@ name:
 attr_name:
 
     ColLabel {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kAttrName, OP3("", "", ""), tmp1);
         $$ = res;
     }
