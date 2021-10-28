@@ -10435,9 +10435,7 @@ arg_class:
 param_name:
 
     type_function_name {
-        auto tmp1 = $1;
-        res = new IR(kParamName, OP3("", "", ""), tmp1);
-        $$ = res;
+        $$ = $1;
     }
 
 ;
@@ -20671,20 +20669,15 @@ plassign_equals:
 ColId:
 
     IDENT {
-        res = new IR(kColId, OP3("IDENT", "", ""));
-        $$ = res;
+        $$ = $1;
     }
 
     | unreserved_keyword {
-        auto tmp1 = $1;
-        res = new IR(kColId, OP3("", "", ""), tmp1);
-        $$ = res;
+        $$ = $1;
     }
 
     | col_name_keyword {
-        auto tmp1 = $1;
-        res = new IR(kColId, OP3("", "", ""), tmp1);
-        $$ = res;
+        $$ = $1;
     }
 
 ;
@@ -20695,15 +20688,15 @@ ColId:
 type_function_name:
 
     IDENT {
-        return $1;
+        $$ = $1;
     }
 
     | unreserved_keyword {
-        return $1;
+        $$ = $1;
     }
 
     | type_func_name_keyword {
-        return $1;
+        $$ = $1;
     }
 
 ;
@@ -20714,19 +20707,19 @@ type_function_name:
 NonReservedWord:
 
     IDENT {
-        return $1;
+        $$ = $1;
     }
 
     | unreserved_keyword {
-        return $1;
+        $$ = $1;
     }
 
     | col_name_keyword {
-        return $1;
+        $$ = $1;
     }
 
     | type_func_name_keyword {
-        return $1;
+        $$ = $1;
     }
 
 ;
@@ -20738,23 +20731,23 @@ NonReservedWord:
 ColLabel:
 
     IDENT {
-        return $1;
+        $$ = $1;
     }
 
     | unreserved_keyword {
-        return $1;
+        $$ = $1;
     }
 
     | col_name_keyword {
-        return $1;
+        $$ = $1;
     }
 
     | type_func_name_keyword {
-        return $1;
+        $$ = $1;
     }
 
     | reserved_keyword {
-        return $1;
+        $$ = $1;
     }
 
 ;
@@ -20766,11 +20759,11 @@ ColLabel:
 BareColLabel:
 
     IDENT {
-        return $1;
+        $$ = $1;
     }
 
     | bare_label_keyword {
-        return $1;
+        $$ = $1;
     }
 
 ;
@@ -20795,1227 +20788,1227 @@ BareColLabel:
 unreserved_keyword:
 
     ABORT_P {
-        $$ = "ABORT"
+        $$ = $1;
     }
 
     | ABSOLUTE_P {
-        $$ = "ABSOLUTE"
+        $$ = $1;
     }
 
     | ACCESS {
-        $$ = "ACCESS";
+        $$ = $1;
     }
 
     | ACTION {
-        $$ = "ACTION";
+        $$ = $1;
     }
 
     | ADD_P {
-        $$ = "ADD";
+        $$ = $1;
     }
 
     | ADMIN {
-        $$ = "ADMIN"
+        $$ = $1;
     }
 
     | AFTER {
-        $$ = "AFTER";
+        $$ = $1;
     }
 
     | AGGREGATE {
-        $$ = "AGGREGATE";
+        $$ = $1;
     }
 
     | ALSO {
-        $$ = "ALSO";
+        $$ = $1;
     }
 
     | ALTER {
-        $$ = "ALTER";
+        $$ = $1;
     }
 
     | ALWAYS {
-        $$ = "ALWAYS";
+        $$ = $1;
     }
 
     | ASENSITIVE {
-        $$ = "ASENSITIVE";
+        $$ = $1;
     }
 
     | ASSERTION {
-        $$ = "ASSERTION";
+        $$ = $1;
     }
 
     | ASSIGNMENT {
-        $$ = "ASSIGNMENT";
+        $$ = $1;
     }
 
     | AT {
-        $$ = "AT";
+        $$ = $1;
     }
 
     | ATOMIC {
-        $$ = "ATOMIC";
+        $$ = $1;
     }
 
     | ATTACH {
-        $$ = "ATTACH";
+        $$ = $1;
     }
 
     | ATTRIBUTE {
-        $$ = "ATTRIBUTE";
+        $$ = $1;
     }
 
     | BACKWARD {
-        $$ = "BACKWARD";
+        $$ = $1;
     }
 
     | BEFORE {
-        $$ = "BEFORE";
+        $$ = $1;
     }
 
     | BEGIN_P {
-        $$ = "BEGIN";
+        $$ = $1;
     }
 
     | BREADTH {
-        $$ = "BREADTH"
+        $$ = $1;
     }
 
     | BY {
-        $$ = "BY";
+        $$ = $1;
     }
 
     | CACHE {
-        $$ = "CACHE";
+        $$ = $1;
     }
 
     | CALL {
-       $$ = "CALL"; 
+       $$ = $1;
     }
 
     | CALLED {
-        $$ = "CALLED";
+        $$ = $1;
     }
 
     | CASCADE {
-        $$ = "CASCADE";
+        $$ = $1;
     }
 
     | CASCADED {
-        $$ = "CASCADED";
+        $$ = $1;
     }
 
     | CATALOG_P {
-        $$ = "CATALOG";
+        $$ = $1;
     }
 
     | CHAIN {
-        $$ = "CHAIN";
+        $$ = $1;
     }
 
     | CHARACTERISTICS {
-        $$ = "CHARACTERISTICS";
+        $$ = $1;
     }
 
     | CHECKPOINT {
-        $$ = "CHECKPOINT";
+        $$ = $1;
     }
 
     | CLASS {
-        $$ = "CLASS";
+        $$ = $1;
     }
 
     | CLOSE {
-        $$ = "CLOSE";
+        $$ = $1;
     }
 
     | CLUSTER {
-        $$ = "CLUSTER";
+        $$ = $1;
     }
 
     | COLUMNS {
-        $$ = "COLUMNS";
+        $$ = $1;
     }
 
     | COMMENT {
-        $$ = "COMMENT";
+        $$ = $1;
     }
 
     | COMMENTS {
-        $$ = "COMMENTS";
+        $$ = $1;
     }
 
     | COMMIT {
-        $$ = "COMMIT";
+        $$ = $1;
     }
 
     | COMMITTED {
-        $$ = "COMMITTED";
+        $$ = $1;
     }
 
     | COMPRESSION {
-        $$ = "COMPRESSION";
+        $$ = $1;
     }
 
     | CONFIGURATION {
-        $$ = "CONFIGURATION";
+        $$ = $1;
     }
 
     | CONFLICT {
-        $$ = "CONFLICT";
+        $$ = $1;
     }
 
     | CONNECTION {
-        $$ = "CONNECTION";
+        $$ = $1;
     }
 
     | CONSTRAINTS {
-        $$ = "CONSTRAINTS";
+        $$ = $1;
     }
 
     | CONTENT_P {
-        $$ = "CONTENT";
+        $$ = $1;
     }
 
     | CONTINUE_P {
-        $$ = "CONTINUE";
+        $$ = $1;
     }
 
     | CONVERSION_P {
-        $$ = "CONVERSION";
+        $$ = $1;
     }
 
     | COPY {
-        $$ = "COPY";
+        $$ = $1;
     }
 
     | COST {
-        $$ = "COST";
+        $$ = $1;
     }
 
     | CSV {
-        $$ = "CSV";
+        $$ = $1;
     }
 
     | CUBE {
-        $$ = "CUBE";
+        $$ = $1;
     }
 
     | CURRENT_P {
-        $$ = "CURRENT";
+        $$ = $1;
     }
 
     | CURSOR {
-        $$ = "CURSOR";
+        $$ = $1;
     }
 
     | CYCLE {
-        $$ = "CYCLE";
+        $$ = $1;
     }
 
     | DATA_P {
-        $$ = "DATA";
+        $$ = $1;
     }
 
     | DATABASE {
-        $$ = "DATABASE";
+        $$ = $1;
     }
 
     | DAY_P {
-        $$ = "DAY";
+        $$ = $1;
     }
 
     | DEALLOCATE {
-        $$ = "DEALLOCATE";
+        $$ = $1;
     }
 
     | DECLARE {
-        $$ = "DECLARE";
+        $$ = $1;
     }
 
     | DEFAULTS {
-        $$ = "DEFAULTS";
+        $$ = $1;
     }
 
     | DEFERRED {
-        $$ = "DEFERRED";
+        $$ = $1;
     }
 
     | DEFINER {
-        $$ = "DEFINER";
+        $$ = $1;
     }
 
     | DELETE_P {
-        $$ = "DELETE";
+        $$ = $1;
     }
 
     | DELIMITER {
-        $$ = "DELIMITER";
+        $$ = $1;
     }
 
     | DELIMITERS {
-        $$ = "DELIMITERS";
+        $$ = $1;
     }
 
     | DEPENDS {
-        $$ = "DEPENDS";
+        $$ = $1;
     }
 
     | DEPTH {
-        $$ = "DEPTH";
+        $$ = $1;
     }
 
     | DETACH {
-        $$ = "DETACH";
+        $$ = $1;
     }
 
     | DICTIONARY {
-        $$ = "DICTIONARY";
+        $$ = $1;
     }
 
     | DISABLE_P {
-        $$ = "DISABLE";
+        $$ = $1;
     }
 
     | DISCARD {
-        $$ = "DISCARD";
+        $$ = $1;
     }
 
     | DOCUMENT_P {
-        $$ = "DOCUMENT";
+        $$ = $1;
     }
 
     | DOMAIN_P {
-        $$ = "DOMAIN";
+        $$ = $1;
     }
 
     | DOUBLE_P {
-        $$ = "DOUBLE";
+        $$ = $1;
     }
 
     | DROP {
-        $$ = "DROP";
+        $$ = $1;
     }
 
     | EACH {
-        $$ = "EACH";
+        $$ = $1;
     }
 
     | ENABLE_P {
-        $$ = "ENABLE";
+        $$ = $1;
     }
 
     | ENCODING {
-        $$ = "ENCODING";
+        $$ = $1;
     }
 
     | ENCRYPTED {
-        $$ = "ENCRYPTED";
+        $$ = $1;
     }
 
     | ENUM_P {
-        $$ = "ENUM";
+        $$ = $1;
     }
 
     | ESCAPE {
-        $$ = "ESCAPE";
+        $$ = $1;
     }
 
     | EVENT {
-        $$ = "EVENT";
+        $$ = $1;
     }
 
     | EXCLUDE {
-        $$ = "EXCLUDE";
+        $$ = $1;
     }
 
     | EXCLUDING {
-        $$ = "EXCLUDING";
+        $$ = $1;
     }
 
     | EXCLUSIVE {
-        $$ = "EXCLUSIVE";
+        $$ = $1;
     }
 
     | EXECUTE {
-        $$ = "EXECUTE";
+        $$ = $1;
     }
 
     | EXPLAIN {
-        $$ = "EXPLAIN";
+        $$ = $1;
     }
 
     | EXPRESSION {
-        $$ = "EXPRESSION";
+        $$ = $1;
     }
 
     | EXTENSION {
-        $$ = "EXTENSION";
+        $$ = $1;
     }
 
     | EXTERNAL {
-        $$ = "EXTERNAL";
+        $$ = $1;
     }
 
     | FAMILY {
-        $$ = "FAMILY";
+        $$ = $1;
     }
 
     | FILTER {
-        $$ = "FILTER";
+        $$ = $1;
     }
 
     | FINALIZE {
-        $$ = "FINALIZE";
+        $$ = $1;
     }
 
     | FIRST_P {
-        $$ = "FIRST";
+        $$ = $1;
     }
 
     | FOLLOWING {
-        $$ = "FOLLOWING";
+        $$ = $1;
     }
 
     | FORCE {
-        $$ = "FORCE";
+        $$ = $1;
     }
 
     | FORWARD {
-        $$ = "FORWARD";
+        $$ = $1;
     }
 
     | FUNCTION {
-        $$ = "FUNCTION";
+        $$ = $1;
     }
 
     | FUNCTIONS {
-        $$ = "FUNCTIONS";
+        $$ = $1;
     }
 
     | GENERATED {
-        $$ = "GENERATED";
+        $$ = $1;
     }
 
     | GLOBAL {
-        $$ = "GLOBAL";
+        $$ = $1;
     }
 
     | GRANTED {
-        $$ = "GRANTED";
+        $$ = $1;
     }
 
     | GROUPS {
-        $$ = "GROUPS";
+        $$ = $1;
     }
 
     | HANDLER {
-        $$ = "HANDLER";
+        $$ = $1;
     }
 
     | HEADER_P {
-        $$ = "HEADER";
+        $$ = $1;
     }
 
     | HOLD {
-        $$ = "HOLD";
+        $$ = $1;
     }
 
     | HOUR_P {
-        $$ = "HOUR";
+        $$ = $1;
     }
 
     | IDENTITY_P {
-        $$ = "IDENTITY";
+        $$ = $1;
     }
 
     | IF_P {
-        $$ = "IF";
+        $$ = $1;
     }
 
     | IMMEDIATE {
-        $$ = "IMMEDIATE";
+        $$ = $1;
     }
 
     | IMMUTABLE {
-        $$ = "IMMUTABLE";
+        $$ = $1;
     }
 
     | IMPLICIT_P {
-        $$ = "IMPLICIT";
+        $$ = $1;
     }
 
     | IMPORT_P {
-        $$ = "IMPORT";
+        $$ = $1;
     }
 
     | INCLUDE {
-        $$ = "INCLUDE";
+        $$ = $1;
     }
 
     | INCLUDING {
-        $$ = "INCLUDING";
+        $$ = $1;
     }
 
     | INCREMENT {
-        $$ = "INCREMENT";
+        $$ = $1;
     }
 
     | INDEX {
-        $$ = "INDEX";
+        $$ = $1;
     }
 
     | INDEXES {
-        $$ = "INDEXES";
+        $$ = $1;
     }
 
     | INHERIT {
-        $$ = "INHERIT";
+        $$ = $1;
     }
 
     | INHERITS {
-        $$ = "INHERITS";
+        $$ = $1;
     }
 
     | INLINE_P {
-        $$ = "INLINE";
+        $$ = $1;
     }
 
     | INPUT_P {
-        $$ = "INPUT";
+        $$ = $1;
     }
 
     | INSENSITIVE {
-        $$ = "INSENSITIVE";
+        $$ = $1;
     }
 
     | INSERT {
-        $$ = "INSERT";
+        $$ = $1;
     }
 
     | INSTEAD {
-        $$ = "INSTEAD";
+        $$ = $1;
     }
 
     | INVOKER {
-        $$ = "INVOKER";
+        $$ = $1;
     }
 
     | ISOLATION {
-        $$ = "ISOLATION";
+        $$ = $1;
     }
 
     | KEY {
-        $$ = "KEY";
+        $$ = $1;
     }
 
     | LABEL {
-        $$ = "LABEL";
+        $$ = $1;
     }
 
     | LANGUAGE {
-        $$ = "LANGUAGE";
+        $$ = $1;
     }
 
     | LARGE_P {
-        $$ = "LARGE";
+        $$ = $1;
     }
 
     | LAST_P {
-        $$ = "LAST";
+        $$ = $1;
     }
 
     | LEAKPROOF {
-        $$ = "LEAKPROOF";
+        $$ = $1;
     }
 
     | LEVEL {
-        $$ = "LEVEL";
+        $$ = $1;
     }
 
     | LISTEN {
-        $$ = "LISTEN";
+        $$ = $1;
     }
 
     | LOAD {
-        $$ = "LOAD";
+        $$ = $1;
     }
 
     | LOCAL {
-        $$ = "LOCAL";
+        $$ = $1;
     }
 
     | LOCATION {
-        $$ = "LOCATION";
+        $$ = $1;
     }
 
     | LOCK_P {
-        $$ = "LOCK";
+        $$ = $1;
     }
 
     | LOCKED {
-        $$ = "LOCKED";
+        $$ = $1;
     }
 
     | LOGGED {
-        $$ = "LOGGED";
+        $$ = $1;
     }
 
     | MAPPING {
-        $$ = "MAPPING";
+        $$ = $1;
     }
 
     | MATCH {
-        $$ = "MATCH";
+        $$ = $1;
     }
 
     | MATERIALIZED {
-        $$ = "MATERIALIZED";
+        $$ = $1;
     }
 
     | MAXVALUE {
-        $$ = "MAXVALUE";
+        $$ = $1;
     }
 
     | METHOD {
-        $$ = "METHOD";
+        $$ = $1;
     }
 
     | MINUTE_P {
-        $$ = "MINUTE";
+        $$ = $1;
     }
 
     | MINVALUE {
-        $$ = "MINVALUE";
+        $$ = $1;
     }
 
     | MODE {
-        $$ = "MODE";
+        $$ = $1;
     }
 
     | MONTH_P {
-        $$ = "MONTH";
+        $$ = $1;
     }
 
     | MOVE {
-        $$ = "MOVE";
+        $$ = $1;
     }
 
     | NAME_P {
-        $$ = "NAME";
+        $$ = $1;
     }
 
     | NAMES {
-        $$ = "NAMES";
+        $$ = $1;
     }
 
     | NEW {
-        $$ = "NEW";
+        $$ = $1;
     }
 
     | NEXT {
-        $$ = "NEXT";
+        $$ = $1;
     }
 
     | NFC {
-        $$ = "NFC";
+        $$ = $1;
     }
 
     | NFD {
-        $$ = "NFD";
+        $$ = $1;
     }
 
     | NFKC {
-        $$ = "NFKC";
+        $$ = $1;
     }
 
     | NFKD {
-        $$ = "NFKD";
+        $$ = $1;
     }
 
     | NO {
-        $$ = "NO";
+        $$ = $1;
     }
 
     | NORMALIZED {
-        $$ = "NORMALIZED";
+        $$ = $1;
     }
 
     | NOTHING {
-        $$ = "NOTHING";
+        $$ = $1;
     }
 
     | NOTIFY {
-        $$ = "NOTIFY";
+        $$ = $1;
     }
 
     | NOWAIT {
-        $$ = "NOWAIT";
+        $$ = $1;
     }
 
     | NULLS_P {
-        $$ = "NULLS";
+        $$ = $1;
     }
 
     | OBJECT_P {
-        $$ = "OBJECT";
+        $$ = $1;
     }
 
     | OF {
-        $$ = "OF";
+        $$ = $1;
     }
 
     | OFF {
-        $$ = "OFF";
+        $$ = $1;
     }
 
     | OIDS {
-        $$ = "OIDS";
+        $$ = $1;
     }
 
     | OLD {
-        $$ = "OLD";
+        $$ = $1;
     }
 
     | OPERATOR {
-        $$ = "OPERATOR";
+        $$ = $1;
     }
 
     | OPTION {
-        $$ = "OPTION";
+        $$ = $1;
     }
 
     | OPTIONS {
-        $$ = "OPTIONS";
+        $$ = $1;
     }
 
     | ORDINALITY {
-        $$ = "ORDINALITY";
+        $$ = $1;
     }
 
     | OTHERS {
-        $$ = "OTHERS";
+        $$ = $1;
     }
 
     | OVER {
-        $$ = "OVER";
+        $$ = $1;
     }
 
     | OVERRIDING {
-        $$ = "OVERRIDING";
+        $$ = $1;
     }
 
     | OWNED {
-        $$ = "OWNED";
+        $$ = $1;
     }
 
     | OWNER {
-        $$ = "OWNER";
+        $$ = $1;
     }
 
     | PARALLEL {
-        $$ = "PARALLEL";
+        $$ = $1;
     }
 
     | PARSER {
-        $$ = "PARSER";
+        $$ = $1;
     }
 
     | PARTIAL {
-        $$ = "PARTIAL";
+        $$ = $1;
     }
 
     | PARTITION {
-        $$ = "PARTITION";
+        $$ = $1;
     }
 
     | PASSING {
-        $$ = "PASSING";
+        $$ = $1;
     }
 
     | PASSWORD {
-        $$ = "PASSWORD";
+        $$ = $1;
     }
 
     | PLANS {
-        $$ = "PLANS";
+        $$ = $1;
     }
 
     | POLICY {
-        $$ = "POLICY";
+        $$ = $1;
     }
 
     | PRECEDING {
-        $$ = "PRECEDING";
+        $$ = $1;
     }
 
     | PREPARE {
-        $$ = "PREPARE";
+        $$ = $1;
     }
 
     | PREPARED {
-        $$ = "PREPARED";
+        $$ = $1;
     }
 
     | PRESERVE {
-        $$ = "PRESERVE";
+        $$ = $1;
     }
 
     | PRIOR {
-        $$ = "PRIOR";
+        $$ = $1;
     }
 
     | PRIVILEGES {
-        $$ = "PRIVILEGES";
+        $$ = $1;
     }
 
     | PROCEDURAL {
-        $$ = "PROCEDURAL";
+        $$ = $1;
     }
 
     | PROCEDURE {
-        $$ = "PROCEDURE";
+        $$ = $1;
     }
 
     | PROCEDURES {
-        $$ = "PROCEDURES";
+        $$ = $1;
     }
 
     | PROGRAM {
-        $$ = "PROGRAM";
+        $$ = $1;
     }
 
     | PUBLICATION {
-        $$ = "PUBLICATION";
+        $$ = $1;
     }
 
     | QUOTE {
-        $$ = "QUOTE";
+        $$ = $1;
     }
 
     | RANGE {
-        $$ = "RANGE";
+        $$ = $1;
     }
 
     | READ {
-        $$ = "READ";
+        $$ = $1;
     }
 
     | REASSIGN {
-        $$ = "REASSIGN";
+        $$ = $1;
     }
 
     | RECHECK {
-        $$ = "RECHECK";
+        $$ = $1;
     }
 
     | RECURSIVE {
-        $$ = "RECURSIVE";
+        $$ = $1;
     }
 
     | REF {
-        $$ = "REF";
+        $$ = $1;
     }
 
     | REFERENCING {
-        $$ = "REFERENCING";
+        $$ = $1;
     }
 
     | REFRESH {
-        $$ = "REFRESH";
+        $$ = $1;
     }
 
     | REINDEX {
-        $$ = "REINDEX";
+        $$ = $1;
     }
 
     | RELATIVE_P {
-        $$ = "RELATIVE";
+        $$ = $1;
     }
 
     | RELEASE {
-        $$ = "RELEASE";
+        $$ = $1;
     }
 
     | RENAME {
-        $$ = "RENAME";
+        $$ = $1;
     }
 
     | REPEATABLE {
-        $$ = "REPEATABLE";
+        $$ = $1;
     }
 
     | REPLACE {
-        $$ = "REPLACE";
+        $$ = $1;
     }
 
     | REPLICA {
-        $$ = "REPLICA";
+        $$ = $1;
     }
 
     | RESET {
-        $$ = "RESET";
+        $$ = $1;
     }
 
     | RESTART {
-        $$ = "RESTART";
+        $$ = $1;
     }
 
     | RESTRICT {
-        $$ = "RESTRICT";
+        $$ = $1;
     }
 
     | RETURN {
-        $$ = "RETURN";
+        $$ = $1;
     }
 
     | RETURNS {
-        $$ = "RETURNS";
+        $$ = $1;
     }
 
     | REVOKE {
-        $$ = "REVOKE";
+        $$ = $1;
     }
 
     | ROLE {
-        $$ = "ROLE";
+        $$ = $1;
     }
 
     | ROLLBACK {
-        $$ = "ROLLBACK";
+        $$ = $1;
     }
 
     | ROLLUP {
-        $$ = "ROLLUP";
+        $$ = $1;
     }
 
     | ROUTINE {
-        $$ = "ROUTINE";
+        $$ = $1;
     }
 
     | ROUTINES {
-        $$ = "ROUTINES";
+        $$ = $1;
     }
 
     | ROWS {
-        $$ = "ROWS";
+        $$ = $1;
     }
 
     | RULE {
-        $$ = "RULE";
+        $$ = $1;
     }
 
     | SAVEPOINT {
-        $$ = "SAVEPOINT";
+        $$ = $1;
     }
 
     | SCHEMA {
-        $$ = "SCHEMA";
+        $$ = $1;
     }
 
     | SCHEMAS {
-        $$ = "SCHEMAS";
+        $$ = $1;
     }
 
     | SCROLL {
-        $$ = "SCROLL";
+        $$ = $1;
     }
 
     | SEARCH {
-        $$ = "SEARCH";
+        $$ = $1;
     }
 
     | SECOND_P {
-        $$ = "SECOND";
+        $$ = $1;
     }
 
     | SECURITY {
-        $$ = "SECURITY";
+        $$ = $1;
     }
 
     | SEQUENCE {
-        $$ = "SEQUENCE";
+        $$ = $1;
     }
 
     | SEQUENCES {
-        $$ = "SEQUENCES";
+        $$ = $1;
     }
 
     | SERIALIZABLE {
-        $$ = "SERIALIZABLE";
+        $$ = $1;
     }
 
     | SERVER {
-        $$ = "SERVER";
+        $$ = $1;
     }
 
     | SESSION {
-        $$ = "SESSION";
+        $$ = $1;
     }
 
     | SET {
-        $$ = "SET";
+        $$ = $1;
     }
 
     | SETS {
-        $$ = "SETS";
+        $$ = $1;
     }
 
     | SHARE {
-        $$ = "SHARE";
+        $$ = $1;
     }
 
     | SHOW {
-        $$ = "SHOW";
+        $$ = $1;
     }
 
     | SIMPLE {
-        $$ = "SIMPLE";
+        $$ = $1;
     }
 
     | SKIP {
-        $$ = "SKIP";
+        $$ = $1;
     }
 
     | SNAPSHOT {
-        $$ = "SNAPSHOT";
+        $$ = $1;
     }
 
     | SQL_P {
-        $$ = "SQL";
+        $$ = $1;
     }
 
     | STABLE {
-        $$ = "STABLE";
+        $$ = $1;
     }
 
     | STANDALONE_P {
-        $$ = "STANDALONE";
+        $$ = $1;
     }
 
     | START {
-        $$ = "START";
+        $$ = $1;
     }
 
     | STATEMENT {
-        $$ = "STATEMENT";
+        $$ = $1;
     }
 
     | STATISTICS {
-        $$ = "STATISTICS";
+        $$ = $1;
     }
 
     | STDIN {
-        $$ = "STDIN";
+        $$ = $1;
     }
 
     | STDOUT {
-        $$ = "STDOUT";
+        $$ = $1;
     }
 
     | STORAGE {
-        $$ = "STORAGE";
+        $$ = $1;
     }
 
     | STORED {
-        $$ = "STORED";
+        $$ = $1;
     }
 
     | STRICT_P {
-        $$ = "STRICT";
+        $$ = $1;
     }
 
     | STRIP_P {
-        $$ = "STRIP";
+        $$ = $1;
     }
 
     | SUBSCRIPTION {
-        $$ = "SUBSCRIPTION";
+        $$ = $1;
     }
 
     | SUPPORT {
-        $$ = "SUPPORT";
+        $$ = $1;
     }
 
     | SYSID {
-        $$ = "SYSID";
+        $$ = $1;
     }
 
     | SYSTEM_P {
-        $$ = "SYSTEM";
+        $$ = $1;
     }
 
     | TABLES {
-        $$ = "TABLES";
+        $$ = $1;
     }
 
     | TABLESPACE {
-        $$ = "TABLESPACE";
+        $$ = $1;
     }
 
     | TEMP {
-        $$ = "TEMP";
+        $$ = $1;
     }
 
     | TEMPLATE {
-        $$ = "TEMPLATE";
+        $$ = $1;
     }
 
     | TEMPORARY {
-        $$ = "TEMPORARY";
+        $$ = $1;
     }
 
     | TEXT_P {
-        $$ = "TEXT";
+        $$ = $1;
     }
 
     | TIES {
-        $$ = "TIES";
+        $$ = $1;
     }
 
     | TRANSACTION {
-        $$ = "TRANSACTION";
+        $$ = $1;
     }
 
     | TRANSFORM {
-        $$ = "TRANSFORM";
+        $$ = $1;
     }
 
     | TRIGGER {
-        $$ = "TRIGGER";
+        $$ = $1;
     }
 
     | TRUNCATE {
-        $$ = "TRUNCATE";
+        $$ = $1;
     }
 
     | TRUSTED {
-        $$ = "TRUSTED";
+        $$ = $1;
     }
 
     | TYPE_P {
-        $$ = "TYPE";
+        $$ = $1;
     }
 
     | TYPES_P {
-        $$ = "TYPES";
+        $$ = $1;
     }
 
     | UESCAPE {
-        $$ = "UESCAPE";
+        $$ = $1;
     }
 
     | UNBOUNDED {
-        $$ = "UNBOUNDED";
+        $$ = $1;
     }
 
     | UNCOMMITTED {
-        $$ = "UNCOMMITTED";
+        $$ = $1;
     }
 
     | UNENCRYPTED {
-        $$ = "UNENCRYPTED";
+        $$ = $1;
     }
 
     | UNKNOWN {
-        $$ = "UNKNOWN";
+        $$ = $1;
     }
 
     | UNLISTEN {
-        $$ = "UNLISTEN";
+        $$ = $1;
     }
 
     | UNLOGGED {
-        $$ = "UNLOGGED";
+        $$ = $1;
     }
 
     | UNTIL {
-        $$ = "UNTIL";
+        $$ = $1;
     }
 
     | UPDATE {
-        $$ = "UPDATE";
+        $$ = $1;
     }
 
     | VACUUM {
-        $$ = "VACUUM";
+        $$ = $1;
     }
 
     | VALID {
-        $$ = "VALID";
+        $$ = $1;
     }
 
     | VALIDATE {
-        $$ = "VALIDATE";
+        $$ = $1;
     }
 
     | VALIDATOR {
-        $$ = "VALIDATOR";
+        $$ = $1;
     }
 
     | VALUE_P {
-        $$ = "VALUE";
+        $$ = $1;
     }
 
     | VARYING {
-        $$ = "VARYING";
+        $$ = $1;
     }
 
     | VERSION_P {
-        $$ = "VERSION";
+        $$ = $1;
     }
 
     | VIEW {
-        $$ = "VIEW";
+        $$ = $1;
     }
 
     | VIEWS {
-        $$ = "VIEWS";
+        $$ = $1;
     }
 
     | VOLATILE {
-        $$ = "VOLATILE";
+        $$ = $1;
     }
 
     | WHITESPACE_P {
-        $$ = "WHITESPACE";
+        $$ = $1;
     }
 
     | WITHIN {
-        $$ = "WITHIN";
+        $$ = $1;
     }
 
     | WITHOUT {
-        $$ = "WITHOUT";
+        $$ = $1;
     }
 
     | WORK {
-        $$ = "WORK";
+        $$ = $1;
     }
 
     | WRAPPER {
-        $$ = "WRAPPER";
+        $$ = $1;
     }
 
     | WRITE {
-        $$ = "WRITE";
+        $$ = $1;
     }
 
     | XML_P {
-        $$ = "XML";
+        $$ = $1;
     }
 
     | YEAR_P {
-        $$ = "YEAR";
+        $$ = $1;
     }
 
     | YES_P {
-        $$ = "YES";
+        $$ = $1;
     }
 
     | ZONE {
-        $$ = "ZONE";
+        $$ = $1;
     }
 
 ;
@@ -22034,207 +22027,207 @@ unreserved_keyword:
 col_name_keyword:
 
     BETWEEN {
-        $$ = "BETWEEN";
+        $$ = $1;
     }
 
     | BIGINT {
-        $$ = "BIGINT";
+        $$ = $1;
     }
 
     | BIT {
-        $$ = "BIT";
+        $$ = $1;
     }
 
     | BOOLEAN_P {
-        $$ = "BOOLEAN";
+        $$ = $1;
     }
 
     | CHAR_P {
-        $$ = "CHAR";
+        $$ = $1;
     }
 
     | CHARACTER {
-        $$ = "CHARACTER";
+        $$ = $1;
     }
 
     | COALESCE {
-        $$ = "COALESCE";
+        $$ = $1;
     }
 
     | DEC {
-        $$ = "DEC";
+        $$ = $1;
     }
 
     | DECIMAL_P {
-        $$ = "DECIMAL";
+        $$ = $1;
     }
 
     | EXISTS {
-        $$ = "EXISTS";
+        $$ = $1;
     }
 
     | EXTRACT {
-        $$ = "EXTRACT";
+        $$ = $1;
     }
 
     | FLOAT_P {
-        $$ = "FLOAT";
+        $$ = $1;
     }
 
     | GREATEST {
-        $$ = "GREATEST";
+        $$ = $1;
     }
 
     | GROUPING {
-        $$ = "GROUPING";
+        $$ = $1;
     }
 
     | INOUT {
-        $$ = "INOUT";
+        $$ = $1;
     }
 
     | INT_P {
-        $$ = "INT";
+        $$ = $1;
     }
 
     | INTEGER {
-        $$ = "INTEGER";
+        $$ = $1;
     }
 
     | INTERVAL {
-        $$ = "INTERVAL";
+        $$ = $1;
     }
 
     | LEAST {
-        $$ = "LEAST";
+        $$ = $1;
     }
 
     | NATIONAL {
-        $$ = "NATIONAL";
+        $$ = $1;
     }
 
     | NCHAR {
-        $$ = "NCHAR";
+        $$ = $1;
     }
 
     | NONE {
-        $$ = "NONE";
+        $$ = $1;
     }
 
     | NORMALIZE {
-        $$ = "NORMALIZE";
+        $$ = $1;
     }
 
     | NULLIF {
-        $$ = "NULLIF";
+        $$ = $1;
     }
 
     | NUMERIC {
-        $$ = "NUMERIC";
+        $$ = $1;
     }
 
     | OUT_P {
-        $$ = "OUT";
+        $$ = $1;
     }
 
     | OVERLAY {
-        $$ = "OVERLAY";
+        $$ = $1;
     }
 
     | POSITION {
-        $$ = "POSITION";
+        $$ = $1;
     }
 
     | PRECISION {
-        $$ = "PRECISION";
+        $$ = $1;
     }
 
     | REAL {
-        $$ = "REAL";
+        $$ = $1;
     }
 
     | ROW {
-        $$ = "ROW";
+        $$ = $1;
     }
 
     | SETOF {
-        $$ = "SETOF";
+        $$ = $1;
     }
 
     | SMALLINT {
-        $$ = "SMALLINT";
+        $$ = $1;
     }
 
     | SUBSTRING {
-        $$ = "SUBSTRING";
+        $$ = $1;
     }
 
     | TIME {
-        $$ = "TIME";
+        $$ = $1;
     }
 
     | TIMESTAMP {
-        $$ = "TIMESTAMP";
+        $$ = $1;
     }
 
     | TREAT {
-        $$ = "TREAT";
+        $$ = $1;
     }
 
     | TRIM {
-        $$ = "TRIM";
+        $$ = $1;
     }
 
     | VALUES {
-        $$ = "VALUES";
+        $$ = $1;
     }
 
     | VARCHAR {
-        $$ = "VARCHAR";
+        $$ = $1;
     }
 
     | XMLATTRIBUTES {
-        $$ = "XMLATTRIBUTES";
+        $$ = $1;
     }
 
     | XMLCONCAT {
-        $$ = "XMLCONCAT";
+        $$ = $1;
     }
 
     | XMLELEMENT {
-        $$ = "XMLELEMENT";
+        $$ = $1;
     }
 
     | XMLEXISTS {
-        $$ = "XMLEXISTS";
+        $$ = $1;
     }
 
     | XMLFOREST {
-        $$ = "XMLFOREST";
+        $$ = $1;
     }
 
     | XMLNAMESPACES {
-        $$ = "XMLNAMESPACES";
+        $$ = $1;
     }
 
     | XMLPARSE {
-        $$ = "XMLPARSE";
+        $$ = $1;
     }
 
     | XMLPI {
-        $$ = "XMLPI";
+        $$ = $1;
     }
 
     | XMLROOT {
-        $$ = "XMLROOT";
+        $$ = $1;
     }
 
     | XMLSERIALIZE {
-        $$ = "XMLSERIALIZE";
+        $$ = $1;
     }
 
     | XMLTABLE {
-        $$ = "XMLTABLE";
+        $$ = $1;
     }
 
 ;
@@ -22253,95 +22246,95 @@ col_name_keyword:
 type_func_name_keyword:
 
     AUTHORIZATION {
-        $$ = "AUTHORIZATION";
+        $$ = $1;
     }
 
     | BINARY {
-        $$ = "BINARY";
+        $$ = $1;
     }
 
     | COLLATION {
-        $$ = "COLLATION";
+        $$ = $1;
     }
 
     | CONCURRENTLY {
-        $$ = "CONCURRENTLY";
+        $$ = $1;
     }
 
     | CROSS {
-        $$ = "CROSS";
+        $$ = $1;
     }
 
     | CURRENT_SCHEMA {
-        $$ = "CURRENT_SCHEMA";
+        $$ = $1;
     }
 
     | FREEZE {
-        $$ = "FREEZE";
+        $$ = $1;
     }
 
     | FULL {
-        $$ = "FULL";
+        $$ = $1;
     }
 
     | ILIKE {
-        $$ = "ILIKE";
+        $$ = $1;
     }
 
     | INNER_P {
-        $$ = "INNER";
+        $$ = $1;
     }
 
     | IS {
-        $$ = "IS";
+        $$ = $1;
     }
 
     | ISNULL {
-        $$ = "ISNULL";
+        $$ = $1;
     }
 
     | JOIN {
-        $$ = "JOIN";
+        $$ = $1;
     }
 
     | LEFT {
-        $$ = "LEFT";
+        $$ = $1;
     }
 
     | LIKE {
-        $$ = "LIKE";
+        $$ = $1;
     }
 
     | NATURAL {
-        $$ = "NATURAL";
+        $$ = $1;
     }
 
     | NOTNULL {
-        $$ = "NOTNULL";
+        $$ = $1;
     }
 
     | OUTER_P {
-        $$ = "OUTER";
+        $$ = $1;
     }
 
     | OVERLAPS {
-        $$ = "OVERLAPS";
+        $$ = $1;
     }
 
     | RIGHT {
-        $$ = "RIGHT";
+        $$ = $1;
     }
 
     | SIMILAR {
-        $$ = "SIMILAR";
+        $$ = $1;
     }
 
     | TABLESAMPLE {
-        $$ = "TABLESAMPLE";
+        $$ = $1;
     }
 
     | VERBOSE {
-        $$ = "VERBOSE";
+        $$ = $1;
     }
 
 ;
@@ -22356,311 +22349,311 @@ type_func_name_keyword:
 reserved_keyword:
 
     ALL {
-        $$ = "ALL";
+        $$ = $1;
     }
 
     | ANALYSE {
-        $$ = "ANALYSE";
+        $$ = $1;
     }
 
     | ANALYZE {
-        $$ = "ANALYZE";
+        $$ = $1;
     }
 
     | AND {
-        $$ = "AND";
+        $$ = $1;
     }
 
     | ANY {
-        $$ = "ANY";
+        $$ = $1;
     }
 
     | ARRAY {
-        $$ = "ARRAY";
+        $$ = $1;
     }
 
     | AS {
-        $$ = "AS";
+        $$ = $1;
     }
 
     | ASC {
-        $$ = "ASC";
+        $$ = $1;
     }
 
     | ASYMMETRIC {
-        $$ = "ASYMMETRIC";
+        $$ = $1;
     }
 
     | BOTH {
-        $$ = "BOTH";
+        $$ = $1;
     }
 
     | CASE {
-        $$ = "CASE";
+        $$ = $1;
     }
 
     | CAST {
-        $$ = "CAST";
+        $$ = $1;
     }
 
     | CHECK {
-        $$ = "CHECK";
+        $$ = $1;
     }
 
     | COLLATE {
-        $$ = "COLLATE";
+        $$ = $1;
     }
 
     | COLUMN {
-        $$ = "COLUMN";
+        $$ = $1;
     }
 
     | CONSTRAINT {
-        $$ = "CONSTRAINT";
+        $$ = $1;
     }
 
     | CREATE {
-        $$ = "CREATE";
+        $$ = $1;
     }
 
     | CURRENT_CATALOG {
-        $$ = "CURRENT_CATALOG";
+        $$ = $1;
     }
 
     | CURRENT_DATE {
-        $$ = "CURRENT_DATE";
+        $$ = $1;
     }
 
     | CURRENT_ROLE {
-        $$ = "CURRENT_ROLE";
+        $$ = $1;
     }
 
     | CURRENT_TIME {
-        $$ = "CURRENT_TIME";
+        $$ = $1;
     }
 
     | CURRENT_TIMESTAMP {
-        $$ = "CURRENT_TIMESTAMP";
+        $$ = $1;
     }
 
     | CURRENT_USER {
-        $$ = "CURRENT_USER";
+        $$ = $1;
     }
 
     | DEFAULT {
-        $$ = "DEFAULT";
+        $$ = $1;
     }
 
     | DEFERRABLE {
-        $$ = "DEFERRABLE";
+        $$ = $1;
     }
 
     | DESC {
-        $$ = "DESC";
+        $$ = $1;
     }
 
     | DISTINCT {
-        $$ = "DISTINCT";
+        $$ = $1;
     }
 
     | DO {
-        $$ = "DO";
+        $$ = $1;
     }
 
     | ELSE {
-        $$ = "ELSE";
+        $$ = $1;
     }
 
     | END_P {
-        $$ = "END";
+        $$ = $1;
     }
 
     | EXCEPT {
-        $$ = "EXCEPT";
+        $$ = $1;
     }
 
     | FALSE_P {
-        $$ = "FALSE";
+        $$ = $1;
     }
 
     | FETCH {
-        $$ = "FETCH";
+        $$ = $1;
     }
 
     | FOR {
-        $$ = "FOR";
+        $$ = $1;
     }
 
     | FOREIGN {
-        $$ = "FOREIGN";
+        $$ = $1;
     }
 
     | FROM {
-        $$ = "FROM";
+        $$ = $1;
     }
 
     | GRANT {
-        $$ = "GRANT";
+        $$ = $1;
     }
 
     | GROUP_P {
-        $$ = "GROUP";
+        $$ = $1;
     }
 
     | HAVING {
-        $$ = "HAVING";
+        $$ = $1;
     }
 
     | IN_P {
-        $$ = "IN";
+        $$ = $1;
     }
 
     | INITIALLY {
-        $$ = "INITIALLY";
+        $$ = $1;
     }
 
     | INTERSECT {
-        $$ = "INTERSECT";
+        $$ = $1;
     }
 
     | INTO {
-        $$ = "INTO";
+        $$ = $1;
     }
 
     | LATERAL_P {
-        $$ = "LATERAL";
+        $$ = $1;
     }
 
     | LEADING {
-        $$ = "LEADING";
+        $$ = $1;
     }
 
     | LIMIT {
-        $$ = "LIMIT";
+        $$ = $1;
     }
 
     | LOCALTIME {
-        $$ = "LOCALTIME";
+        $$ = $1;
     }
 
     | LOCALTIMESTAMP {
-        $$ = "LOCALTIMESTAMP";
+        $$ = $1;
     }
 
     | NOT {
-        $$ = "NOT";
+        $$ = $1;
     }
 
     | NULL_P {
-        $$ = "NULL";
+        $$ = $1;
     }
 
     | OFFSET {
-        $$ = "OFFSET";
+        $$ = $1;
     }
 
     | ON {
-        $$ = "ON";
+        $$ = $1;
     }
 
     | ONLY {
-        $$ = "ONLY";
+        $$ = $1;
     }
 
     | OR {
-        $$ = "OR";
+        $$ = $1;
     }
 
     | ORDER {
-        $$ = "ORDER";
+        $$ = $1;
     }
 
     | PLACING {
-        $$ = "PLACING";
+        $$ = $1;
     }
 
     | PRIMARY {
-        $$ = "PRIMARY";
+        $$ = $1;
     }
 
     | REFERENCES {
-        $$ = "REFERENCES";
+        $$ = $1;
     }
 
     | RETURNING {
-        $$ = "RETURNING";
+        $$ = $1;
     }
 
     | SELECT {
-        $$ = "SELECT";
+        $$ = $1;
     }
 
     | SESSION_USER {
-        $$ = "SESSION_USER";
+        $$ = $1;
     }
 
     | SOME {
-        $$ = "SOME";
+        $$ = $1;
     }
 
     | SYMMETRIC {
-        $$ = "SYMMETRIC";
+        $$ = $1;
     }
 
     | TABLE {
-        $$ = "TABLE";
+        $$ = $1;
     }
 
     | THEN {
-        $$ = "THEN";
+        $$ = $1;
     }
 
     | TO {
-        $$ = "TO";
+        $$ = $1;
     }
 
     | TRAILING {
-        $$ = "TRAILING";
+        $$ = $1;
     }
 
     | TRUE_P {
-        $$ = "TRUE";
+        $$ = $1;
     }
 
     | UNION {
-        $$ = "UNION";
+        $$ = $1;
     }
 
     | UNIQUE {
-        $$ = "UNIQUE";
+        $$ = $1;
     }
 
     | USER {
-        $$ = "USER";
+        $$ = $1;
     }
 
     | USING {
-        $$ = "USING";
+        $$ = $1;
     }
 
     | VARIADIC {
-        $$ = "VARIADIC";
+        $$ = $1;
     }
 
     | WHEN {
-        $$ = "WHEN";
+        $$ = $1;
     }
 
     | WHERE {
-        $$ = "WHERE";
+        $$ = $1;
     }
 
     | WINDOW {
-        $$ = "WINDOW";
+        $$ = $1;
     }
 
     | WITH {
-        $$ = "WITH";
+        $$ = $1;
     }
 
 ;
@@ -22678,1675 +22671,1675 @@ reserved_keyword:
 bare_label_keyword:
 
     ABORT_P {
-        $$ = "ABORT";
+        $$ = $1;
     }
 
     | ABSOLUTE_P {
-        $$ = "ABSOLUTE";
+        $$ = $1;
     }
 
     | ACCESS {
-        $$ = "ACCESS";
+        $$ = $1;
     }
 
     | ACTION {
-        $$ = "ACTION";
+        $$ = $1;
     }
 
     | ADD_P {
-        $$ = "ADD";
+        $$ = $1;
     }
 
     | ADMIN {
-        $$ = "ADMIN";
+        $$ = $1;
     }
 
     | AFTER {
-        $$ = "AFTER";
+        $$ = $1;
     }
 
     | AGGREGATE {
-        $$ = "AGGREGATE";
+        $$ = $1;
     }
 
     | ALL {
-        $$ = "ALL";
+        $$ = $1;
     }
 
     | ALSO {
-        $$ = "ALSO";
+        $$ = $1;
     }
 
     | ALTER {
-        $$ = "ALTER";
+        $$ = $1;
     }
 
     | ALWAYS {
-        $$ = "ALWAYS";
+        $$ = $1;
     }
 
     | ANALYSE {
-        $$ = "ANALYSE";
+        $$ = $1;
     }
 
     | ANALYZE {
-        $$ = "ANALYZE";
+        $$ = $1;
     }
 
     | AND {
-        $$ = "AND";
+        $$ = $1;
     }
 
     | ANY {
-        $$ = "ANY";
+        $$ = $1;
     }
 
     | ASC {
-        $$ = "ASC";
+        $$ = $1;
     }
 
     | ASENSITIVE {
-        $$ = "ASENSITIVE";
+        $$ = $1;
     }
 
     | ASSERTION {
-        $$ = "ASSERTION";
+        $$ = $1;
     }
 
     | ASSIGNMENT {
-        $$ = "ASSIGNMENT";
+        $$ = $1;
     }
 
     | ASYMMETRIC {
-        $$ = "ASYMMETRIC";
+        $$ = $1;
     }
 
     | AT {
-        $$ = "AT";
+        $$ = $1;
     }
 
     | ATOMIC {
-        $$ = "ATOMIC";
+        $$ = $1;
     }
 
     | ATTACH {
-        $$ = "ATTACH";
+        $$ = $1;
     }
 
     | ATTRIBUTE {
-        $$ = "ATTRIBUTE";
+        $$ = $1;
     }
 
     | AUTHORIZATION {
-        $$ = "AUTHORIZATION";
+        $$ = $1;
     }
 
     | BACKWARD {
-        $$ = "BACKWARD";
+        $$ = $1;
     }
 
     | BEFORE {
-        $$ = "BEFORE";
+        $$ = $1;
     }
 
     | BEGIN_P {
-        $$ = "BEGIN";
+        $$ = $1;
     }
 
     | BETWEEN {
-        $$ = "BETWEEN";
+        $$ = $1;
     }
 
     | BIGINT {
-        $$ = "BIGINT";
+        $$ = $1;
     }
 
     | BINARY {
-        $$ = "BINARY";
+        $$ = $1;
     }
 
     | BIT {
-        $$ = "BIT";
+        $$ = $1;
     }
 
     | BOOLEAN_P {
-        $$ = "BOOLEAN";
+        $$ = $1;
     }
 
     | BOTH {
-        $$ = "BOTH";
+        $$ = $1;
     }
 
     | BREADTH {
-        $$ = "BREADTH";
+        $$ = $1;
     }
 
     | BY {
-        $$ = "BY";
+        $$ = $1;
     }
 
     | CACHE {
-        $$ = "CACHE";
+        $$ = $1;
     }
 
     | CALL {
-        $$ = "CALL";
+        $$ = $1;
     }
 
     | CALLED {
-        $$ = "CALLED";
+        $$ = $1;
     }
 
     | CASCADE {
-        $$ = "CASCADE";
+        $$ = $1;
     }
 
     | CASCADED {
-        $$ = "CASCADED";
+        $$ = $1;
     }
 
     | CASE {
-        $$ = "CASE";
+        $$ = $1;
     }
 
     | CAST {
-        $$ = "CAST";
+        $$ = $1;
     }
 
     | CATALOG_P {
-        $$ = "CATALOG";
+        $$ = $1;
     }
 
     | CHAIN {
-        $$ = "CHAIN";
+        $$ = $1;
     }
 
     | CHARACTERISTICS {
-        $$ = "CHARACTERISTICS";
+        $$ = $1;
     }
 
     | CHECK {
-        $$ = "CHECK";
+        $$ = $1;
     }
 
     | CHECKPOINT {
-        $$ = "CHECKPOINT";
+        $$ = $1;
     }
 
     | CLASS {
-        $$ = "CLASS";
+        $$ = $1;
     }
 
     | CLOSE {
-        $$ = "CLOSE";
+        $$ = $1;
     }
 
     | CLUSTER {
-        $$ = "CLUSTER";
+        $$ = $1;
     }
 
     | COALESCE {
-        $$ = "COALESCE";
+        $$ = $1;
     }
 
     | COLLATE {
-        $$ = "COLLATE";
+        $$ = $1;
     }
 
     | COLLATION {
-        $$ = "COLLATION";
+        $$ = $1;
     }
 
     | COLUMN {
-        $$ = "COLUMN";
+        $$ = $1;
     }
 
     | COLUMNS {
-        $$ = "COLUMNS";
+        $$ = $1;
     }
 
     | COMMENT {
-        $$ = "COMMENT";
+        $$ = $1;
     }
 
     | COMMENTS {
-        $$ = "COMMENTS";
+        $$ = $1;
     }
 
     | COMMIT {
-        $$ = "COMMIT";
+        $$ = $1;
     }
 
     | COMMITTED {
-        $$ = "COMMITTED";
+        $$ = $1;
     }
 
     | COMPRESSION {
-        $$ = "COMPRESSION";
+        $$ = $1;
     }
 
     | CONCURRENTLY {
-        $$ = "CONCURRENTLY";
+        $$ = $1;
     }
 
     | CONFIGURATION {
-        $$ = "CONFIGURATION";
+        $$ = $1;
     }
 
     | CONFLICT {
-        $$ = "CONFLICT";
+        $$ = $1;
     }
 
     | CONNECTION {
-        $$ = "CONNECTION";
+        $$ = $1;
     }
 
     | CONSTRAINT {
-        $$ = "CONSTRAINT";
+        $$ = $1;
     }
 
     | CONSTRAINTS {
-        $$ = "CONSTRAINTS";
+        $$ = $1;
     }
 
     | CONTENT_P {
-        $$ = "CONTENT";
+        $$ = $1;
     }
 
     | CONTINUE_P {
-        $$ = "CONTINUE";
+        $$ = $1;
     }
 
     | CONVERSION_P {
-        $$ = "CONVERSION";
+        $$ = $1;
     }
 
     | COPY {
-        $$ = "COPY";
+        $$ = $1;
     }
 
     | COST {
-        $$ = "COST";
+        $$ = $1;
     }
 
     | CROSS {
-        $$ = "CROSS";
+        $$ = $1;
     }
 
     | CSV {
-        $$ = "CSV";
+        $$ = $1;
     }
 
     | CUBE {
-        $$ = "CUBE";
+        $$ = $1;
     }
 
     | CURRENT_P {
-        $$ = "CURRENT";
+        $$ = $1;
     }
 
     | CURRENT_CATALOG {
-        $$ = "CURRENT_CATALOG";
+        $$ = $1;
     }
 
     | CURRENT_DATE {
-        $$ = "CURRENT_DATE";
+        $$ = $1;
     }
 
     | CURRENT_ROLE {
-        $$ = "CURRENT_ROLE";
+        $$ = $1;
     }
 
     | CURRENT_SCHEMA {
-        $$ = "CURRENT_SCHEMA";
+        $$ = $1;
     }
 
     | CURRENT_TIME {
-        $$ = "CURRENT_TIME";
+        $$ = $1;
     }
 
     | CURRENT_TIMESTAMP {
-        $$ = "CURRENT_TIMESTAMP";
+        $$ = $1;
     }
 
     | CURRENT_USER {
-        $$ = "CURRENT_USER";
+        $$ = $1;
     }
 
     | CURSOR {
-        $$ = "CURSOR";
+        $$ = $1;
     }
 
     | CYCLE {
-        $$ = "CYCLE";
+        $$ = $1;
     }
 
     | DATA_P {
-        $$ = "DATA";
+        $$ = $1;
     }
 
     | DATABASE {
-        $$ = "DATABASE";
+        $$ = $1;
     }
 
     | DEALLOCATE {
-        $$ = "DEALLOCATE";
+        $$ = $1;
     }
 
     | DEC {
-        $$ = "DEC";
+        $$ = $1;
     }
 
     | DECIMAL_P {
-        $$ = "DECIMAL";
+        $$ = $1;
     }
 
     | DECLARE {
-        $$ = "DECLARE";
+        $$ = $1;
     }
 
     | DEFAULT {
-        $$ = "DEFAULT";
+        $$ = $1;
     }
 
     | DEFAULTS {
-        $$ = "DEFAULTS";
+        $$ = $1;
     }
 
     | DEFERRABLE {
-        $$ = "DEFERRABLE";
+        $$ = $1;
     }
 
     | DEFERRED {
-        $$ = "DEFERRED";
+        $$ = $1;
     }
 
     | DEFINER {
-        $$ = "DEFINER";
+        $$ = $1;
     }
 
     | DELETE_P {
-        $$ = "DELETE";
+        $$ = $1;
     }
 
     | DELIMITER {
-        $$ = "DELIMITER";
+        $$ = $1;
     }
 
     | DELIMITERS {
-        $$ = "DELIMITERS";
+        $$ = $1;
     }
 
     | DEPENDS {
-        $$ = "DEPENDS";
+        $$ = $1;
     }
 
     | DEPTH {
-        $$ = "DEPTH";
+        $$ = $1;
     }
 
     | DESC {
-        $$ = "DESC";
+        $$ = $1;
     }
 
     | DETACH {
-        $$ = "DETACH";
+        $$ = $1;
     }
 
     | DICTIONARY {
-        $$ = "DICTIONARY";
+        $$ = $1;
     }
 
     | DISABLE_P {
-        $$ = "DISABLE";
+        $$ = $1;
     }
 
     | DISCARD {
-        $$ = "DISCARD";
+        $$ = $1;
     }
 
     | DISTINCT {
-        $$ = "DISTINCT";
+        $$ = $1;
     }
 
     | DO {
-        $$ = "DO";
+        $$ = $1;
     }
 
     | DOCUMENT_P {
-        $$ = "DOCUMENT";
+        $$ = $1;
     }
 
     | DOMAIN_P {
-        $$ = "DOMAIN";
+        $$ = $1;
     }
 
     | DOUBLE_P {
-        $$ = "DOUBLE";
+        $$ = $1;
     }
 
     | DROP {
-        $$ = "DROP";
+        $$ = $1;
     }
 
     | EACH {
-        $$ = "EACH";
+        $$ = $1;
     }
 
     | ELSE {
-        $$ = "ELSE";
+        $$ = $1;
     }
 
     | ENABLE_P {
-        $$ = "ENABLE";
+        $$ = $1;
     }
 
     | ENCODING {
-        $$ = "ENCODING";
+        $$ = $1;
     }
 
     | ENCRYPTED {
-        $$ = "ENCRYPTED";
+        $$ = $1;
     }
 
     | END_P {
-        $$ = "END";
+        $$ = $1;
     }
 
     | ENUM_P {
-        $$ = "ENUM";
+        $$ = $1;
     }
 
     | ESCAPE {
-        $$ = "ESCAPE";
+        $$ = $1;
     }
 
     | EVENT {
-        $$ = "EVENT";
+        $$ = $1;
     }
 
     | EXCLUDE {
-        $$ = "EXCLUDE";
+        $$ = $1;
     }
 
     | EXCLUDING {
-        $$ = "EXCLUDING";
+        $$ = $1;
     }
 
     | EXCLUSIVE {
-        $$ = "EXCLUSIVE";
+        $$ = $1;
     }
 
     | EXECUTE {
-        $$ = "EXECUTE";
+        $$ = $1;
     }
 
     | EXISTS {
-        $$ = "EXISTS";
+        $$ = $1;
     }
 
     | EXPLAIN {
-        $$ = "EXPLAIN";
+        $$ = $1;
     }
 
     | EXPRESSION {
-        $$ = "EXPRESSION";
+        $$ = $1;
     }
 
     | EXTENSION {
-        $$ = "EXTENSION";
+        $$ = $1;
     }
 
     | EXTERNAL {
-        $$ = "EXTERNAL";
+        $$ = $1;
     }
 
     | EXTRACT {
-        $$ = "EXTRACT";
+        $$ = $1;
     }
 
     | FALSE_P {
-        $$ = "FALSE";
+        $$ = $1;
     }
 
     | FAMILY {
-        $$ = "FAMILY";
+        $$ = $1;
     }
 
     | FINALIZE {
-        $$ = "FINALIZE";
+        $$ = $1;
     }
 
     | FIRST_P {
-        $$ = "FIRST";
+        $$ = $1;
     }
 
     | FLOAT_P {
-        $$ = "FLOAT";
+        $$ = $1;
     }
 
     | FOLLOWING {
-        $$ = "FOLLOWING";
+        $$ = $1;
     }
 
     | FORCE {
-        $$ = "FORCE";
+        $$ = $1;
     }
 
     | FOREIGN {
-        $$ = "FOREIGN";
+        $$ = $1;
     }
 
     | FORWARD {
-        $$ = "FORWARD";
+        $$ = $1;
     }
 
     | FREEZE {
-        $$ = "FREEZE";
+        $$ = $1;
     }
 
     | FULL {
-        $$ = "FULL";
+        $$ = $1;
     }
 
     | FUNCTION {
-        $$ = "FUNCTION";
+        $$ = $1;
     }
 
     | FUNCTIONS {
-        $$ = "FUNCTIONS";
+        $$ = $1;
     }
 
     | GENERATED {
-        $$ = "GENERATED";
+        $$ = $1;
     }
 
     | GLOBAL {
-        $$ = "GLOBAL";
+        $$ = $1;
     }
 
     | GRANTED {
-        $$ = "GRANTED";
+        $$ = $1;
     }
 
     | GREATEST {
-        $$ = "GREATEST";
+        $$ = $1;
     }
 
     | GROUPING {
-        $$ = "GROUPING";
+        $$ = $1;
     }
 
     | GROUPS {
-        $$ = "GROUPS";
+        $$ = $1;
     }
 
     | HANDLER {
-        $$ = "HANDLER";
+        $$ = $1;
     }
 
     | HEADER_P {
-        $$ = "HEADER";
+        $$ = $1;
     }
 
     | HOLD {
-        $$ = "HOLD";
+        $$ = $1;
     }
 
     | IDENTITY_P {
-        $$ = "IDENTITY";
+        $$ = $1;
     }
 
     | IF_P {
-        $$ = "IF";
+        $$ = $1;
     }
 
     | ILIKE {
-        $$ = "ILIKE";
+        $$ = $1;
     }
 
     | IMMEDIATE {
-        $$ = "IMMEDIATE";
+        $$ = $1;
     }
 
     | IMMUTABLE {
-        $$ = "IMMUTABLE";
+        $$ = $1;
     }
 
     | IMPLICIT_P {
-        $$ = "IMPLICIT";
+        $$ = $1;
     }
 
     | IMPORT_P {
-        $$ = "IMPORT";
+        $$ = $1;
     }
 
     | IN_P {
-        $$ = "IN";
+        $$ = $1;
     }
 
     | INCLUDE {
-        $$ = "INCLUDE";
+        $$ = $1;
     }
 
     | INCLUDING {
-        $$ = "INCLUDING";
+        $$ = $1;
     }
 
     | INCREMENT {
-        $$ = "INCREMENT";
+        $$ = $1;
     }
 
     | INDEX {
-        $$ = "INDEX";
+        $$ = $1;
     }
 
     | INDEXES {
-        $$ = "INDEXES";
+        $$ = $1;
     }
 
     | INHERIT {
-        $$ = "INHERIT";
+        $$ = $1;
     }
 
     | INHERITS {
-        $$ = "INHERITS";
+        $$ = $1;
     }
 
     | INITIALLY {
-        $$ = "INITIALLY";
+        $$ = $1;
     }
 
     | INLINE_P {
-        $$ = "INLINE";
+        $$ = $1;
     }
 
     | INNER_P {
-        $$ = "INNER";
+        $$ = $1;
     }
 
     | INOUT {
-        $$ = "INOUT";
+        $$ = $1;
     }
 
     | INPUT_P {
-        $$ = "INPUT";
+        $$ = $1;
     }
 
     | INSENSITIVE {
-        $$ = "INSENSITIVE";
+        $$ = $1;
     }
 
     | INSERT {
-        $$ = "INSERT";
+        $$ = $1;
     }
 
     | INSTEAD {
-        $$ = "INSTEAD";
+        $$ = $1;
     }
 
     | INT_P {
-        $$ = "INT";
+        $$ = $1;
     }
 
     | INTEGER {
-        $$ = "INTEGER";
+        $$ = $1;
     }
 
     | INTERVAL {
-        $$ = "INTERVAL";
+        $$ = $1;
     }
 
     | INVOKER {
-        $$ = "INVOKER";
+        $$ = $1;
     }
 
     | IS {
-        $$ = "IS";
+        $$ = $1;
     }
 
     | ISOLATION {
-        $$ = "ISOLATION";
+        $$ = $1;
     }
 
     | JOIN {
-        $$ = "JOIN";
+        $$ = $1;
     }
 
     | KEY {
-        $$ = "KEY";
+        $$ = $1;
     }
 
     | LABEL {
-        $$ = "LABEL";
+        $$ = $1;
     }
 
     | LANGUAGE {
-        $$ = "LANGUAGE";
+        $$ = $1;
     }
 
     | LARGE_P {
-        $$ = "LARGE";
+        $$ = $1;
     }
 
     | LAST_P {
-        $$ = "LAST";
+        $$ = $1;
     }
 
     | LATERAL_P {
-        $$ = "LATERAL";
+        $$ = $1;
     }
 
     | LEADING {
-        $$ = "LEADING";
+        $$ = $1;
     }
 
     | LEAKPROOF {
-        $$ = "LEAKPROOF";
+        $$ = $1;
     }
 
     | LEAST {
-        $$ = "LEAST";
+        $$ = $1;
     }
 
     | LEFT {
-        $$ = "LEFT";
+        $$ = $1;
     }
 
     | LEVEL {
-        $$ = "LEVEL";
+        $$ = $1;
     }
 
     | LIKE {
-        $$ = "LIKE";
+        $$ = $1;
     }
 
     | LISTEN {
-        $$ = "LISTEN";
+        $$ = $1;
     }
 
     | LOAD {
-        $$ = "LOAD";
+        $$ = $1;
     }
 
     | LOCAL {
-        $$ = "LOCAL";
+        $$ = $1;
     }
 
     | LOCALTIME {
-        $$ = "LOCALTIME";
+        $$ = $1;
     }
 
     | LOCALTIMESTAMP {
-        $$ = "LOCALTIMESTAMP";
+        $$ = $1;
     }
 
     | LOCATION {
-        $$ = "LOCATION";
+        $$ = $1;
     }
 
     | LOCK_P {
-        $$ = "LOCK";
+        $$ = $1;
     }
 
     | LOCKED {
-        $$ = "LOCKED";
+        $$ = $1;
     }
 
     | LOGGED {
-        $$ = "LOGGED";
+        $$ = $1;
     }
 
     | MAPPING {
-        $$ = "MAPPING";
+        $$ = $1;
     }
 
     | MATCH {
-        $$ = "MATCH";
+        $$ = $1;
     }
 
     | MATERIALIZED {
-        $$ = "MATERIALIZED";
+        $$ = $1;
     }
 
     | MAXVALUE {
-        $$ = "MAXVALUE";
+        $$ = $1;
     }
 
     | METHOD {
-        $$ = "METHOD";
+        $$ = $1;
     }
 
     | MINVALUE {
-        $$ = "MINVALUE";
+        $$ = $1;
     }
 
     | MODE {
-        $$ = "MODE";
+        $$ = $1;
     }
 
     | MOVE {
-        $$ = "MOVE";
+        $$ = $1;
     }
 
     | NAME_P {
-        $$ = "NAME";
+        $$ = $1;
     }
 
     | NAMES {
-        $$ = "NAMES";
+        $$ = $1;
     }
 
     | NATIONAL {
-        $$ = "NATIONAL";
+        $$ = $1;
     }
 
     | NATURAL {
-        $$ = "NATURAL";
+        $$ = $1;
     }
 
     | NCHAR {
-        $$ = "NCHAR";
+        $$ = $1;
     }
 
     | NEW {
-        $$ = "NEW";
+        $$ = $1;
     }
 
     | NEXT {
-        $$ = "NEXT";
+        $$ = $1;
     }
 
     | NFC {
-        $$ = "NFC";
+        $$ = $1;
     }
 
     | NFD {
-        $$ = "NFD";
+        $$ = $1;
     }
 
     | NFKC {
-        $$ = "NFKC";
+        $$ = $1;
     }
 
     | NFKD {
-        $$ = "NFKD";
+        $$ = $1;
     }
 
     | NO {
-        $$ = "NO";
+        $$ = $1;
     }
 
     | NONE {
-        $$ = "NONE";
+        $$ = $1;
     }
 
     | NORMALIZE {
-        $$ = "NORMALIZE";
+        $$ = $1;
     }
 
     | NORMALIZED {
-        $$ = "NORMALIZED";
+        $$ = $1;
     }
 
     | NOT {
-        $$ = "NOT";
+        $$ = $1;
     }
 
     | NOTHING {
-        $$ = "NOTHING";
+        $$ = $1;
     }
 
     | NOTIFY {
-        $$ = "NOTIFY";
+        $$ = $1;
     }
 
     | NOWAIT {
-        $$ = "NOWAIT";
+        $$ = $1;
     }
 
     | NULL_P {
-        $$ = "NULL";
+        $$ = $1;
     }
 
     | NULLIF {
-        $$ = "NULLIF";
+        $$ = $1;
     }
 
     | NULLS_P {
-        $$ = "NULLS";
+        $$ = $1;
     }
 
     | NUMERIC {
-        $$ = "NUMERIC";
+        $$ = $1;
     }
 
     | OBJECT_P {
-        $$ = "OBJECT";
+        $$ = $1;
     }
 
     | OF {
-        $$ = "OF";
+        $$ = $1;
     }
 
     | OFF {
-        $$ = "OFF";
+        $$ = $1;
     }
 
     | OIDS {
-        $$ = "OIDS";
+        $$ = $1;
     }
 
     | OLD {
-        $$ = "OLD";
+        $$ = $1;
     }
 
     | ONLY {
-        $$ = "ONLY";
+        $$ = $1;
     }
 
     | OPERATOR {
-        $$ = "OPERATOR";
+        $$ = $1;
     }
 
     | OPTION {
-        $$ = "OPTION";
+        $$ = $1;
     }
 
     | OPTIONS {
-        $$ = "OPTIONS";
+        $$ = $1;
     }
 
     | OR {
-        $$ = "OR";
+        $$ = $1;
     }
 
     | ORDINALITY {
-        $$ = "ORDINALITY";
+        $$ = $1;
     }
 
     | OTHERS {
-        $$ = "OTHERS";
+        $$ = $1;
     }
 
     | OUT_P {
-        $$ = "OUT";
+        $$ = $1;
     }
 
     | OUTER_P {
-        $$ = "OUTER";
+        $$ = $1;
     }
 
     | OVERLAY {
-        $$ = "OVERLAY";
+        $$ = $1;
     }
 
     | OVERRIDING {
-        $$ = "OVERRIDING";
+        $$ = $1;
     }
 
     | OWNED {
-        $$ = "OWNED";
+        $$ = $1;
     }
 
     | OWNER {
-        $$ = "OWNER";
+        $$ = $1;
     }
 
     | PARALLEL {
-        $$ = "PARALLEL";
+        $$ = $1;
     }
 
     | PARSER {
-        $$ = "PARSER";
+        $$ = $1;
     }
 
     | PARTIAL {
-        $$ = "PARTIAL";
+        $$ = $1;
     }
 
     | PARTITION {
-        $$ = "PARTITION";
+        $$ = $1;
     }
 
     | PASSING {
-        $$ = "PASSING";
+        $$ = $1;
     }
 
     | PASSWORD {
-        $$ = "PASSWORD";
+        $$ = $1;
     }
 
     | PLACING {
-        $$ = "PLACING";
+        $$ = $1;
     }
 
     | PLANS {
-        $$ = "PLANS";
+        $$ = $1;
     }
 
     | POLICY {
-        $$ = "POLICY";
+        $$ = $1;
     }
 
     | POSITION {
-        $$ = "POSITION";
+        $$ = $1;
     }
 
     | PRECEDING {
-        $$ = "PRECEDING";
+        $$ = $1;
     }
 
     | PREPARE {
-        $$ = "PREPARE";
+        $$ = $1;
     }
 
     | PREPARED {
-        $$ = "PREPARED";
+        $$ = $1;
     }
 
     | PRESERVE {
-        $$ = "PRESERVE";
+        $$ = $1;
     }
 
     | PRIMARY {
-        $$ = "PRIMARY";
+        $$ = $1;
     }
 
     | PRIOR {
-        $$ = "PRIOR";
+        $$ = $1;
     }
 
     | PRIVILEGES {
-        $$ = "PRIVILEGES";
+        $$ = $1;
     }
 
     | PROCEDURAL {
-        $$ = "PROCEDURAL";
+        $$ = $1;
     }
 
     | PROCEDURE {
-        $$ = "PROCEDURE";
+        $$ = $1;
     }
 
     | PROCEDURES {
-        $$ = "PROCEDURES";
+        $$ = $1;
     }
 
     | PROGRAM {
-        $$ = "PROGRAM";
+        $$ = $1;
     }
 
     | PUBLICATION {
-        $$ = "PUBLICATION";
+        $$ = $1;
     }
 
     | QUOTE {
-        $$ = "QUOTE";
+        $$ = $1;
     }
 
     | RANGE {
-        $$ = "RANGE";
+        $$ = $1;
     }
 
     | READ {
-        $$ = "READ";
+        $$ = $1;
     }
 
     | REAL {
-        $$ = "REAL";
+        $$ = $1;
     }
 
     | REASSIGN {
-        $$ = "REASSIGN";
+        $$ = $1;
     }
 
     | RECHECK {
-        $$ = "RECHECK";
+        $$ = $1;
     }
 
     | RECURSIVE {
-        $$ = "RECURSIVE";
+        $$ = $1;
     }
 
     | REF {
-        $$ = "REF";
+        $$ = $1;
     }
 
     | REFERENCES {
-        $$ = "REFERENCES";
+        $$ = $1;
     }
 
     | REFERENCING {
-        $$ = "REFERENCING";
+        $$ = $1;
     }
 
     | REFRESH {
-        $$ = "REFRESH";
+        $$ = $1;
     }
 
     | REINDEX {
-        $$ = "REINDEX";
+        $$ = $1;
     }
 
     | RELATIVE_P {
-        $$ = "RELATIVE";
+        $$ = $1;
     }
 
     | RELEASE {
-        $$ = "RELEASE";
+        $$ = $1;
     }
 
     | RENAME {
-        $$ = "RENAME";
+        $$ = $1;
     }
 
     | REPEATABLE {
-        $$ = "REPEATABLE";
+        $$ = $1;
     }
 
     | REPLACE {
-        $$ = "REPLACE";
+        $$ = $1;
     }
 
     | REPLICA {
-        $$ = "REPLICA";
+        $$ = $1;
     }
 
     | RESET {
-        $$ = "RESET";
+        $$ = $1;
     }
 
     | RESTART {
-        $$ = "RESTART";
+        $$ = $1;
     }
 
     | RESTRICT {
-        $$ = "RESTRICT";
+        $$ = $1;
     }
 
     | RETURN {
-        $$ = "RETURN";
+        $$ = $1;
     }
 
     | RETURNS {
-        $$ = "RETURNS";
+        $$ = $1;
     }
 
     | REVOKE {
-        $$ = "REVOKE";
+        $$ = $1;
     }
 
     | RIGHT {
-        $$ = "RIGHT";
+        $$ = $1;
     }
 
     | ROLE {
-        $$ = "ROLE";
+        $$ = $1;
     }
 
     | ROLLBACK {
-        $$ = "ROLLBACK";
+        $$ = $1;
     }
 
     | ROLLUP {
-        $$ = "ROLLUP";
+        $$ = $1;
     }
 
     | ROUTINE {
-        $$ = "ROUTINE";
+        $$ = $1;
     }
 
     | ROUTINES {
-        $$ = "ROUTINES";
+        $$ = $1;
     }
 
     | ROW {
-        $$ = "ROW";
+        $$ = $1;
     }
 
     | ROWS {
-        $$ = "ROWS";
+        $$ = $1;
     }
 
     | RULE {
-        $$ = "RULE";
+        $$ = $1;
     }
 
     | SAVEPOINT {
-        $$ = "SAVEPOINT";
+        $$ = $1;
     }
 
     | SCHEMA {
-        $$ = "SCHEMA";
+        $$ = $1;
     }
 
     | SCHEMAS {
-        $$ = "SCHEMAS";
+        $$ = $1;
     }
 
     | SCROLL {
-        $$ = "SCROLL";
+        $$ = $1;
     }
 
     | SEARCH {
-        $$ = "SEARCH";
+        $$ = $1;
     }
 
     | SECURITY {
-        $$ = "SECURITY";
+        $$ = $1;
     }
 
     | SELECT {
-        $$ = "SELECT";
+        $$ = $1;
     }
 
     | SEQUENCE {
-        $$ = "SEQUENCE";
+        $$ = $1;
     }
 
     | SEQUENCES {
-        $$ = "SEQUENCES";
+        $$ = $1;
     }
 
     | SERIALIZABLE {
-        $$ = "SERIALIZABLE";
+        $$ = $1;
     }
 
     | SERVER {
-        $$ = "SERVER";
+        $$ = $1;
     }
 
     | SESSION {
-        $$ = "SESSION";
+        $$ = $1;
     }
 
     | SESSION_USER {
-        $$ = "SESSION_USER";
+        $$ = $1;
     }
 
     | SET {
-        $$ = "SET";
+        $$ = $1;
     }
 
     | SETOF {
-        $$ = "SETOF";
+        $$ = $1;
     }
 
     | SETS {
-        $$ = "SETS";
+        $$ = $1;
     }
 
     | SHARE {
-        $$ = "SHARE";
+        $$ = $1;
     }
 
     | SHOW {
-        $$ = "SHOW";
+        $$ = $1;
     }
 
     | SIMILAR {
-        $$ = "SIMILAR";
+        $$ = $1;
     }
 
     | SIMPLE {
-        $$ = "SIMPLE";
+        $$ = $1;
     }
 
     | SKIP {
-        $$ = "SKIP";
+        $$ = $1;
     }
 
     | SMALLINT {
-        $$ = "SMALLINT";
+        $$ = $1;
     }
 
     | SNAPSHOT {
-        $$ = "SNAPSHOT";
+        $$ = $1;
     }
 
     | SOME {
-        $$ = "SOME";
+        $$ = $1;
     }
 
     | SQL_P {
-        $$ = "SQL";
+        $$ = $1;
     }
 
     | STABLE {
-        $$ = "STABLE";
+        $$ = $1;
     }
 
     | STANDALONE_P {
-        $$ = "STANDALONE";
+        $$ = $1;
     }
 
     | START {
-        $$ = "START";
+        $$ = $1;
     }
 
     | STATEMENT {
-        $$ = "STATEMENT";
+        $$ = $1;
     }
 
     | STATISTICS {
-        $$ = "STATISTICS";
+        $$ = $1;
     }
 
     | STDIN {
-        $$ = "STDIN";
+        $$ = $1;
     }
 
     | STDOUT {
-        $$ = "STDOUT";
+        $$ = $1;
     }
 
     | STORAGE {
-        $$ = "STORAGE";
+        $$ = $1;
     }
 
     | STORED {
-        $$ = "STORED";
+        $$ = $1;
     }
 
     | STRICT_P {
-        $$ = "STRICT";
+        $$ = $1;
     }
 
     | STRIP_P {
-        $$ = "STRIP";
+        $$ = $1;
     }
 
     | SUBSCRIPTION {
-        $$ = "SUBSCRIPTION";
+        $$ = $1;
     }
 
     | SUBSTRING {
-        $$ = "SUBSTRING";
+        $$ = $1;
     }
 
     | SUPPORT {
-        $$ = "SUPPORT";
+        $$ = $1;
     }
 
     | SYMMETRIC {
-        $$ = "SYMMETRIC";
+        $$ = $1;
     }
 
     | SYSID {
-        $$ = "SYSID";
+        $$ = $1;
     }
 
     | SYSTEM_P {
-        $$ = "SYSTEM";
+        $$ = $1;
     }
 
     | TABLE {
-        $$ = "TABLE";
+        $$ = $1;
     }
 
     | TABLES {
-        $$ = "TABLES";
+        $$ = $1;
     }
 
     | TABLESAMPLE {
-        $$ = "TABLESAMPLE";
+        $$ = $1;
     }
 
     | TABLESPACE {
-        $$ = "TABLESPACE";
+        $$ = $1;
     }
 
     | TEMP {
-        $$ = "TEMP";
+        $$ = $1;
     }
 
     | TEMPLATE {
-        $$ = "TEMPLATE";
+        $$ = $1;
     }
 
     | TEMPORARY {
-        $$ = "TEMPORARY";
+        $$ = $1;
     }
 
     | TEXT_P {
-        $$ = "TEXT";
+        $$ = $1;
     }
 
     | THEN {
-        $$ = "THEN";
+        $$ = $1;
     }
 
     | TIES {
-        $$ = "TIES";
+        $$ = $1;
     }
 
     | TIME {
-        $$ = "TIME";
+        $$ = $1;
     }
 
     | TIMESTAMP {
-        $$ = "TIMESTAMP";
+        $$ = $1;
     }
 
     | TRAILING {
-        $$ = "TRAILING";
+        $$ = $1;
     }
 
     | TRANSACTION {
-        $$ = "TRANSACTION";
+        $$ = $1;
     }
 
     | TRANSFORM {
-        $$ = "TRANSFORM";
+        $$ = $1;
     }
 
     | TREAT {
-        $$ = "TREAT";
+        $$ = $1;
     }
 
     | TRIGGER {
-        $$ = "TRIGGER";
+        $$ = $1;
     }
 
     | TRIM {
-        $$ = "TRIM";
+        $$ = $1;
     }
 
     | TRUE_P {
-        $$ = "TRUE";
+        $$ = $1;
     }
 
     | TRUNCATE {
-        $$ = "TRUNCATE";
+        $$ = $1;
     }
 
     | TRUSTED {
-        $$ = "TRUSTED";
+        $$ = $1;
     }
 
     | TYPE_P {
-        $$ = "TYPE";
+        $$ = $1;
     }
 
     | TYPES_P {
-        $$ = "TYPES";
+        $$ = $1;
     }
 
     | UESCAPE {
-        $$ = "UESCAPE";
+        $$ = $1;
     }
 
     | UNBOUNDED {
-        $$ = "UNBOUNDED";
+        $$ = $1;
     }
 
     | UNCOMMITTED {
-        $$ = "UNCOMMITTED";
+        $$ = $1;
     }
 
     | UNENCRYPTED {
-        $$ = "UNENCRYPTED";
+        $$ = $1;
     }
 
     | UNIQUE {
-        $$ = "UNIQUE";
+        $$ = $1;
     }
 
     | UNKNOWN {
-        $$ = "UNKNOWN";
+        $$ = $1;
     }
 
     | UNLISTEN {
-        $$ = "UNLISTEN";
+        $$ = $1;
     }
 
     | UNLOGGED {
-        $$ = "UNLOGGED";
+        $$ = $1;
     }
 
     | UNTIL {
-        $$ = "UNTIL";
+        $$ = $1;
     }
 
     | UPDATE {
-        $$ = "UPDATE";
+        $$ = $1;
     }
 
     | USER {
-        $$ = "USER";
+        $$ = $1;
     }
 
     | USING {
-        $$ = "USING";
+        $$ = $1;
     }
 
     | VACUUM {
-        $$ = "VACUUM";
+        $$ = $1;
     }
 
     | VALID {
-        $$ = "VALID";
+        $$ = $1;
     }
 
     | VALIDATE {
-        $$ = "VALIDATE";
+        $$ = $1;
     }
 
     | VALIDATOR {
-        $$ = "VALIDATOR";
+        $$ = $1;
     }
 
     | VALUE_P {
-        $$ = "VALUE";
+        $$ = $1;
     }
 
     | VALUES {
-        $$ = "VALUES";
+        $$ = $1;
     }
 
     | VARCHAR {
-        $$ = "VARCHAR";
+        $$ = $1;
     }
 
     | VARIADIC {
-        $$ = "VARIADIC";
+        $$ = $1;
     }
 
     | VERBOSE {
-        $$ = "VERBOSE";
+        $$ = $1;
     }
 
     | VERSION_P {
-        $$ = "VERSION";
+        $$ = $1;
     }
 
     | VIEW {
-        $$ = "VIEW";
+        $$ = $1;
     }
 
     | VIEWS {
-        $$ = "VIEWS";
+        $$ = $1;
     }
 
     | VOLATILE {
-        $$ = "VOLATILE";
+        $$ = $1;
     }
 
     | WHEN {
-        $$ = "WHEN";
+        $$ = $1;
     }
 
     | WHITESPACE_P {
-        $$ = "WHITESPACE";
+        $$ = $1;
     }
 
     | WORK {
-        $$ = "WORK";
+        $$ = $1;
     }
 
     | WRAPPER {
-        $$ = "WRAPPER";
+        $$ = $1;
     }
 
     | WRITE {
-        $$ = "WRITE";
+        $$ = $1;
     }
 
     | XML_P {
-        $$ = "XML";
+        $$ = $1;
     }
 
     | XMLATTRIBUTES {
-        $$ = "XMLATTRIBUTES";
+        $$ = $1;
     }
 
     | XMLCONCAT {
-        $$ = "XMLCONCAT";
+        $$ = $1;
     }
 
     | XMLELEMENT {
-        $$ = "XMLELEMENT";
+        $$ = $1;
     }
 
     | XMLEXISTS {
-        $$ = "XMLEXISTS";
+        $$ = $1;
     }
 
     | XMLFOREST {
-        $$ = "XMLFOREST";
+        $$ = $1;
     }
 
     | XMLNAMESPACES {
-        $$ = "XMLNAMESPACES";
+        $$ = $1;
     }
 
     | XMLPARSE {
-        $$ = "XMLPARSE";
+        $$ = $1;
     }
 
     | XMLPI {
-        $$ = "XMLPI";
+        $$ = $1;
     }
 
     | XMLROOT {
-        $$ = "XMLROOT";
+        $$ = $1;
     }
 
     | XMLSERIALIZE {
-        $$ = "XMLSERIALIZE";
+        $$ = $1;
     }
 
     | XMLTABLE {
-        $$ = "XMLTABLE";
+        $$ = $1;
     }
 
     | YES_P {
-        $$ = "YES";
+        $$ = $1;
     }
 
     | ZONE {
-        $$ = "ZONE";
+        $$ = $1;
     }
 
 ;
