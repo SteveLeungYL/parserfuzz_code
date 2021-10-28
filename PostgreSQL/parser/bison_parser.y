@@ -163,8 +163,6 @@ typedef struct GroupClause
 static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 						 const char *msg);
 
-char *psprintf(const char *fmt,...);
-
 %}
 
 %define api.pure
@@ -2311,12 +2309,19 @@ set_rest_more:
 
 ;
 
-
 var_name:
 
     ColId 
     | var_name '.' ColId {
-        $$ = psprintf("%s.%s", $1, $3);
+        unsigned size = strlen($1) + 2 + strlen($3);
+        char * mem = (char *) calloc (size, 1);
+        char * p = mem;
+        strcat(p, $1);
+        p += strlen($1);
+        strcat(p, ".");
+        p += 1;
+        strcat(p, $3);
+        $$ = mem;
     }
 
 ;
@@ -21874,50 +21879,6 @@ bare_label_keyword:
 %%
 
 /*
- * psprintf
- *
- * Format text data under the control of fmt (an sprintf-style format string)
- * and return it in an allocated-on-demand buffer.  The buffer is allocated
- * with palloc in the backend, or malloc in frontend builds.  Caller is
- * responsible to free the buffer when no longer needed, if appropriate.
- *
- * Errors are not returned to the caller, but are reported via elog(ERROR)
- * in the backend, or printf-to-stderr-and-exit() in frontend builds.
- * One should therefore think twice about using this in libpq.
- */
-char *psprintf(const char *fmt,...)
-{
-	int			save_errno = errno;
-	size_t		len = 128;		/* initial assumption about buffer size */
-
-	for (;;)
-	{
-		char	   *result;
-		va_list		args;
-		size_t		newlen;
-
-		/*
-		 * Allocate result buffer.  Note that in frontend this maps to malloc
-		 * with exit-on-error.
-		 */
-		result = (char *) palloc(len);
-
-		/* Try to format the data. */
-		errno = save_errno;
-		va_start(args, fmt);
-		newlen = pvsnprintf(result, len, fmt, args);
-		va_end(args);
-
-		if (newlen < len)
-			return result;		/* success */
-
-		/* Release buffer and loop around to try again with larger len. */
-		pfree(result);
-		len = newlen;
-	}
-}
-
-/*
  * The signature of this function is required by bison.  However, we
  * ignore the passed yylloc and instead use the last token position
  * available from the scanner.
@@ -21935,4 +21896,19 @@ void
 parser_init(base_yy_extra_type *yyext)
 {
 	yyext->parsetree = NIL;		/* in case grammar forgets to set it */
+}
+
+
+/*
+ * the caller should release the allocated memory after finishing use
+ * the first and the second are not freed here also
+ */
+char * alloc_and_cat(char *first, char *second) {
+    unsigned size = strlen(first) + 1 + strlen(second);
+    char * mem = (char *) calloc (size, 1);
+    char * p = mem;
+    strcat(p, first);
+    p += strlen(first);
+    strcat(p, second);
+    return mem;
 }

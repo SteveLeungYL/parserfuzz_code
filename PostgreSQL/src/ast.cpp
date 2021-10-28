@@ -318,40 +318,6 @@ IR *IR::deep_copy() {
   return copy_res;
 }
 
-// move it here. seems no active use
-void IR::print_ir() {
-
-  if (this->left_ != NULL)
-    this->left_->print_ir();
-  if (this->right_ != NULL)
-    this->right_->print_ir();
-
-  if (this->operand_num_ == 0) {
-    cout << this->name_ << " = .str." << this->str_val_ << endl;
-  } else if (this->operand_num_ == 1) {
-    string res = "";
-    if (this->op_ != NULL) {
-      res += this->op_->prefix_ + " ";
-      res += this->left_->name_ + " ";
-      res += this->op_->middle_ + " ";
-      res += this->op_->suffix_ + " ";
-    }
-    cout << this->name_ << " = " << res << endl;
-  } else if (this->operand_num_ == 2) {
-    string res = "";
-    if (this->op_ != NULL) {
-      res += this->op_->prefix_ + " ";
-      res += this->left_->name_ + " ";
-      res += this->op_->middle_ + " ";
-      res += this->right_->name_ + " ";
-      res += this->op_->suffix_ + " ";
-    }
-    cout << this->name_ << " = " << res << endl;
-  }
-
-  return;
-}
-
 string IR::get_prefix(){
   if (op_) {
     return op_->prefix_;
@@ -377,29 +343,7 @@ string IR::get_str_val() {
   return str_val_;
 }
 
-void IR::set_prefix(string in) {
-  if (op_) {
-    op_->prefix_ = in;
-  } else {
-    op_ = OP3(in, "", "");
-  }
-}
 
-void IR::set_middle(string in) {
-  if (op_) {
-    op_->middle_ = in;
-  } else {
-    op_ = OP3("", in, "");
-  }
-}
-
-void IR::set_suffix(string in) {
-  if (op_) {
-    op_->suffix_ = in;
-  } else {
-    op_ = OP3("", "", in);
-  }
-}
 
 void IR::set_str_val(string in) {
   str_val_ = in;
