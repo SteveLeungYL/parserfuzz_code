@@ -554,8 +554,7 @@ char *psprintf(const char *fmt,...);
  * DOT_DOT is unused in the core SQL grammar, and so will always provoke
  * parse errors.  It is needed by PL/pgSQL.
  */
-%token <str> IDENT  // TODO::Should be the same as the line below. Move and change one by one!!! 
-%token <ir>	UIDENT FCONST SCONST USCONST BCONST XCONST Op
+%token <str>	IDENT UIDENT FCONST SCONST USCONST BCONST XCONST Op
 %token <ir>	ICONST PARAM
 %token			TYPECAST DOT_DOT COLON_EQUALS EQUALS_GREATER
 %token			LESS_EQUALS GREATER_EQUALS NOT_EQUALS
@@ -5856,17 +5855,23 @@ opt_by:
 NumericOnly:
 
     FCONST {
-        res = new IR(kNumericOnly, OP3("FCONST", "", ""));
+        auto tmp1 = new IR(kFloatLiteral, string($1));
+        res = new IR(kNumericOnly, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
     | '+' FCONST {
-        res = new IR(kNumericOnly, OP3("+ FCONST", "", ""));
+        auto tmp1 = new IR(kFloatLiteral, string($2));
+        res = new IR(kNumericOnly, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
     | '-' FCONST {
-        res = new IR(kNumericOnly, OP3("- FCONST", "", ""));
+        auto tmp1 = new IR(kFloatLiteral, string($2));
+        res = new IR(kNumericOnly, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
@@ -7515,7 +7520,9 @@ TriggerFuncArg:
     }
 
     | FCONST {
-        res = new IR(kTriggerFuncArg, OP3("FCONST", "", ""));
+        auto tmp1 = new IR(kFloatLiteral, string($1));
+        res = new IR(kTriggerFuncArg, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
@@ -7677,13 +7684,17 @@ event_trigger_when_item:
 event_trigger_value_list:
 
     SCONST {
-        res = new IR(kEventTriggerValueList, OP3("SCONST", "", ""));
+        auto tmp1 = new IR(kStringLiteral, string($1));
+        res = new IR(kEventTriggerValueList, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
     | event_trigger_value_list ',' SCONST {
         auto tmp1 = $1;
-        res = new IR(kEventTriggerValueList, OP3("", ", SCONST", ""), tmp1);
+        auto tmp2 = new IR(kStringLiteral, string($3));
+        res = new IR(kEventTriggerValueList, OP0(), tmp1, tmp2);
+        free($3);
         $$ = res;
     }
 
@@ -16058,7 +16069,9 @@ I_or_F_const:
     }
 
     | FCONST {
-        res = new IR(kIOrFConst, OP3("FCONST", "", ""));
+        auto tmp1 = new IR(kFloatLiteral, string($1));
+        res = new IR(kIOrFConst, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
@@ -20540,7 +20553,9 @@ AexprConst:
     }
 
     | FCONST {
-        res = new IR(kAexprConst, OP3("FCONST", "", ""));
+        auto tmp1 = new IR(kFloatLiteral, string($1));
+        res = new IR(kAexprConst, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
@@ -20551,12 +20566,15 @@ AexprConst:
     }
 
     | BCONST {
-        res = new IR(kAexprConst, OP3("BCONST", "", ""));
+        auto tmp1 = new IR(kBoolLiteral, string($1));
+        res = new IR(kAexprConst, OP0(), tmp1);
         $$ = res;
     }
 
     | XCONST {
-        res = new IR(kAexprConst, OP3("XCONST", "", ""));
+        /* Yu: This is actually deximal numberical string. */
+        auto tmp1 = new IR(kIntLiteral, string($1));
+        res = new IR(kAexprConst, OP0(), tmp1);
         $$ = res;
     }
 
@@ -20633,7 +20651,9 @@ Iconst:
 Sconst:
 
     SCONST {
-        res = new IR(kSconst, OP3("SCONST", "", ""));
+        auto tmp1 = new IR(kStringLiteral, string($1));
+        res = new IR(kSconst, OP0(), tmp1);
+        free($1);
         $$ = res;
     }
 
