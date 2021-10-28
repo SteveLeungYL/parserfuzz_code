@@ -163,6 +163,8 @@ typedef struct GroupClause
 static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 						 const char *msg);
 
+char *psprintf(const char *fmt,...);
+
 %}
 
 %define api.pure
@@ -472,16 +474,16 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 %type <ir>		Sconst comment_text notify_payload
 %type <ir>		RoleId opt_boolean_or_string
 %type <ir>	var_list
-%type <ir>		ColId ColLabel BareColLabel
-%type <ir>		NonReservedWord NonReservedWord_or_Sconst
-%type <ir>		var_name type_function_name param_name
+%type <str>		ColId ColLabel BareColLabel
+%type <str>		NonReservedWord NonReservedWord_or_Sconst
+%type <str>		var_name type_function_name param_name
 %type <ir>		createdb_opt_name plassign_target
 %type <ir>	var_value zone_value
 %type <ir> auth_ident RoleSpec opt_granted_by
 
-%type <ir> unreserved_keyword type_func_name_keyword
-%type <ir> col_name_keyword reserved_keyword
-%type <ir> bare_label_keyword
+%type <str> unreserved_keyword type_func_name_keyword
+%type <str> col_name_keyword reserved_keyword
+%type <str> bare_label_keyword
 
 %type <ir>	TableConstraint TableLikeClause
 %type <ir>	TableLikeOptionList TableLikeOption
@@ -2299,16 +2301,11 @@ set_rest_more:
 var_name:
 
     ColId {
-        auto tmp1 = $1;
-        res = new IR(kVarName, OP3("", "", ""), tmp1);
-        $$ = res;
+        $$ = $1;
     }
 
     | var_name '.' ColId {
-        auto tmp1 = $1;
-        auto tmp2 = $3;
-        res = new IR(kVarName, OP3("", ".", ""), tmp1, tmp2);
-        $$ = res;
+        $$ = psprintf("%s.%s", $1, $3);
     }
 
 ;
@@ -2484,15 +2481,11 @@ opt_encoding:
 NonReservedWord_or_Sconst:
 
     NonReservedWord {
-        auto tmp1 = $1;
-        res = new IR(kNonReservedWordOrSconst, OP3("", "", ""), tmp1);
-        $$ = res;
+        $$ = $1;
     }
 
     | Sconst {
-        auto tmp1 = $1;
-        res = new IR(kNonReservedWordOrSconst, OP3("", "", ""), tmp1);
-        $$ = res;
+        $$ = $1;
     }
 
 ;
@@ -19761,7 +19754,7 @@ extract_list:
 extract_arg:
 
     IDENT {
-        /* The IDENT is used for extensions.
+        /* Yu: The IDENT is used for extensions.
         ** However, it is rare for us to encounter these cases, and IDENT can produce a lot of semantic error. 
         ** Ignore IDENT and change it to DAY as default. 
         */
@@ -20357,9 +20350,17 @@ file_name:
 func_name:
 
     type_function_name {
-        auto tmp1 = $1;
-        res = new IR(kFuncName, OP3("", "", ""), tmp1);
-        $$ = res;
+        if ($1) {
+            auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, 0, kFlagUnknown);
+            res = new IR(kFuncName, OP3("", "", ""), tmp1);
+            $$ = res;
+            free($1);
+        } else {
+            /* Yu: Unexpected. Use dummy SUM */
+            auto tmp1 = new IR(kIdentifier, string("SUM"), kDataFunctionName, 0, kFlagUnknown);
+            res = new IR(kFuncName, OP3("", "", ""), tmp1);
+            $$ = res;
+        }
     }
 
     | ColId indirection {
@@ -20694,20 +20695,15 @@ ColId:
 type_function_name:
 
     IDENT {
-        res = new IR(kTypeFunctionName, OP3("IDENT", "", ""));
-        $$ = res;
+        return $1;
     }
 
     | unreserved_keyword {
-        auto tmp1 = $1;
-        res = new IR(kTypeFunctionName, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
     | type_func_name_keyword {
-        auto tmp1 = $1;
-        res = new IR(kTypeFunctionName, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
 ;
@@ -20718,26 +20714,19 @@ type_function_name:
 NonReservedWord:
 
     IDENT {
-        res = new IR(kNonReservedWord, OP3("IDENT", "", ""));
-        $$ = res;
+        return $1;
     }
 
     | unreserved_keyword {
-        auto tmp1 = $1;
-        res = new IR(kNonReservedWord, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
     | col_name_keyword {
-        auto tmp1 = $1;
-        res = new IR(kNonReservedWord, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
     | type_func_name_keyword {
-        auto tmp1 = $1;
-        res = new IR(kNonReservedWord, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
 ;
@@ -20749,32 +20738,23 @@ NonReservedWord:
 ColLabel:
 
     IDENT {
-        res = new IR(kColLabel, OP3("IDENT", "", ""));
-        $$ = res;
+        return $1;
     }
 
     | unreserved_keyword {
-        auto tmp1 = $1;
-        res = new IR(kColLabel, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
     | col_name_keyword {
-        auto tmp1 = $1;
-        res = new IR(kColLabel, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
     | type_func_name_keyword {
-        auto tmp1 = $1;
-        res = new IR(kColLabel, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
     | reserved_keyword {
-        auto tmp1 = $1;
-        res = new IR(kColLabel, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
 ;
@@ -20786,14 +20766,11 @@ ColLabel:
 BareColLabel:
 
     IDENT {
-        res = new IR(kBareColLabel, OP3("IDENT", "", ""));
-        $$ = res;
+        return $1;
     }
 
     | bare_label_keyword {
-        auto tmp1 = $1;
-        res = new IR(kBareColLabel, OP3("", "", ""), tmp1);
-        $$ = res;
+        return $1;
     }
 
 ;
@@ -20818,1533 +20795,1227 @@ BareColLabel:
 unreserved_keyword:
 
     ABORT_P {
-        res = new IR(kUnreservedKeyword, OP3("ABORT", "", ""));
-        $$ = res;
+        $$ = "ABORT"
     }
 
     | ABSOLUTE_P {
-        res = new IR(kUnreservedKeyword, OP3("ABSOLUTE", "", ""));
-        $$ = res;
+        $$ = "ABSOLUTE"
     }
 
     | ACCESS {
-        res = new IR(kUnreservedKeyword, OP3("ACCESS", "", ""));
-        $$ = res;
+        $$ = "ACCESS";
     }
 
     | ACTION {
-        res = new IR(kUnreservedKeyword, OP3("ACTION", "", ""));
-        $$ = res;
+        $$ = "ACTION";
     }
 
     | ADD_P {
-        res = new IR(kUnreservedKeyword, OP3("ADD", "", ""));
-        $$ = res;
+        $$ = "ADD";
     }
 
     | ADMIN {
-        res = new IR(kUnreservedKeyword, OP3("ADMIN", "", ""));
-        $$ = res;
+        $$ = "ADMIN"
     }
 
     | AFTER {
-        res = new IR(kUnreservedKeyword, OP3("AFTER", "", ""));
-        $$ = res;
+        $$ = "AFTER";
     }
 
     | AGGREGATE {
-        res = new IR(kUnreservedKeyword, OP3("AGGREGATE", "", ""));
-        $$ = res;
+        $$ = "AGGREGATE";
     }
 
     | ALSO {
-        res = new IR(kUnreservedKeyword, OP3("ALSO", "", ""));
-        $$ = res;
+        $$ = "ALSO";
     }
 
     | ALTER {
-        res = new IR(kUnreservedKeyword, OP3("ALTER", "", ""));
-        $$ = res;
+        $$ = "ALTER";
     }
 
     | ALWAYS {
-        res = new IR(kUnreservedKeyword, OP3("ALWAYS", "", ""));
-        $$ = res;
+        $$ = "ALWAYS";
     }
 
     | ASENSITIVE {
-        res = new IR(kUnreservedKeyword, OP3("ASENSITIVE", "", ""));
-        $$ = res;
+        $$ = "ASENSITIVE";
     }
 
     | ASSERTION {
-        res = new IR(kUnreservedKeyword, OP3("ASSERTION", "", ""));
-        $$ = res;
+        $$ = "ASSERTION";
     }
 
     | ASSIGNMENT {
-        res = new IR(kUnreservedKeyword, OP3("ASSIGNMENT", "", ""));
-        $$ = res;
+        $$ = "ASSIGNMENT";
     }
 
     | AT {
-        res = new IR(kUnreservedKeyword, OP3("AT", "", ""));
-        $$ = res;
+        $$ = "AT";
     }
 
     | ATOMIC {
-        res = new IR(kUnreservedKeyword, OP3("ATOMIC", "", ""));
-        $$ = res;
+        $$ = "ATOMIC";
     }
 
     | ATTACH {
-        res = new IR(kUnreservedKeyword, OP3("ATTACH", "", ""));
-        $$ = res;
+        $$ = "ATTACH";
     }
 
     | ATTRIBUTE {
-        res = new IR(kUnreservedKeyword, OP3("ATTRIBUTE", "", ""));
-        $$ = res;
+        $$ = "ATTRIBUTE";
     }
 
     | BACKWARD {
-        res = new IR(kUnreservedKeyword, OP3("BACKWARD", "", ""));
-        $$ = res;
+        $$ = "BACKWARD";
     }
 
     | BEFORE {
-        res = new IR(kUnreservedKeyword, OP3("BEFORE", "", ""));
-        $$ = res;
+        $$ = "BEFORE";
     }
 
     | BEGIN_P {
-        res = new IR(kUnreservedKeyword, OP3("BEGIN", "", ""));
-        $$ = res;
+        $$ = "BEGIN";
     }
 
     | BREADTH {
-        res = new IR(kUnreservedKeyword, OP3("BREADTH", "", ""));
-        $$ = res;
+        $$ = "BREADTH"
     }
 
     | BY {
-        res = new IR(kUnreservedKeyword, OP3("BY", "", ""));
-        $$ = res;
+        $$ = "BY";
     }
 
     | CACHE {
-        res = new IR(kUnreservedKeyword, OP3("CACHE", "", ""));
-        $$ = res;
+        $$ = "CACHE";
     }
 
     | CALL {
-        res = new IR(kUnreservedKeyword, OP3("CALL", "", ""));
-        $$ = res;
+       $$ = "CALL"; 
     }
 
     | CALLED {
-        res = new IR(kUnreservedKeyword, OP3("CALLED", "", ""));
-        $$ = res;
+        $$ = "CALLED";
     }
 
     | CASCADE {
-        res = new IR(kUnreservedKeyword, OP3("CASCADE", "", ""));
-        $$ = res;
+        $$ = "CASCADE";
     }
 
     | CASCADED {
-        res = new IR(kUnreservedKeyword, OP3("CASCADED", "", ""));
-        $$ = res;
+        $$ = "CASCADED";
     }
 
     | CATALOG_P {
-        res = new IR(kUnreservedKeyword, OP3("CATALOG", "", ""));
-        $$ = res;
+        $$ = "CATALOG";
     }
 
     | CHAIN {
-        res = new IR(kUnreservedKeyword, OP3("CHAIN", "", ""));
-        $$ = res;
+        $$ = "CHAIN";
     }
 
     | CHARACTERISTICS {
-        res = new IR(kUnreservedKeyword, OP3("CHARACTERISTICS", "", ""));
-        $$ = res;
+        $$ = "CHARACTERISTICS";
     }
 
     | CHECKPOINT {
-        res = new IR(kUnreservedKeyword, OP3("CHECKPOINT", "", ""));
-        $$ = res;
+        $$ = "CHECKPOINT";
     }
 
     | CLASS {
-        res = new IR(kUnreservedKeyword, OP3("CLASS", "", ""));
-        $$ = res;
+        $$ = "CLASS";
     }
 
     | CLOSE {
-        res = new IR(kUnreservedKeyword, OP3("CLOSE", "", ""));
-        $$ = res;
+        $$ = "CLOSE";
     }
 
     | CLUSTER {
-        res = new IR(kUnreservedKeyword, OP3("CLUSTER", "", ""));
-        $$ = res;
+        $$ = "CLUSTER";
     }
 
     | COLUMNS {
-        res = new IR(kUnreservedKeyword, OP3("COLUMNS", "", ""));
-        $$ = res;
+        $$ = "COLUMNS";
     }
 
     | COMMENT {
-        res = new IR(kUnreservedKeyword, OP3("COMMENT", "", ""));
-        $$ = res;
+        $$ = "COMMENT";
     }
 
     | COMMENTS {
-        res = new IR(kUnreservedKeyword, OP3("COMMENTS", "", ""));
-        $$ = res;
+        $$ = "COMMENTS";
     }
 
     | COMMIT {
-        res = new IR(kUnreservedKeyword, OP3("COMMIT", "", ""));
-        $$ = res;
+        $$ = "COMMIT";
     }
 
     | COMMITTED {
-        res = new IR(kUnreservedKeyword, OP3("COMMITTED", "", ""));
-        $$ = res;
+        $$ = "COMMITTED";
     }
 
     | COMPRESSION {
-        res = new IR(kUnreservedKeyword, OP3("COMPRESSION", "", ""));
-        $$ = res;
+        $$ = "COMPRESSION";
     }
 
     | CONFIGURATION {
-        res = new IR(kUnreservedKeyword, OP3("CONFIGURATION", "", ""));
-        $$ = res;
+        $$ = "CONFIGURATION";
     }
 
     | CONFLICT {
-        res = new IR(kUnreservedKeyword, OP3("CONFLICT", "", ""));
-        $$ = res;
+        $$ = "CONFLICT";
     }
 
     | CONNECTION {
-        res = new IR(kUnreservedKeyword, OP3("CONNECTION", "", ""));
-        $$ = res;
+        $$ = "CONNECTION";
     }
 
     | CONSTRAINTS {
-        res = new IR(kUnreservedKeyword, OP3("CONSTRAINTS", "", ""));
-        $$ = res;
+        $$ = "CONSTRAINTS";
     }
 
     | CONTENT_P {
-        res = new IR(kUnreservedKeyword, OP3("CONTENT", "", ""));
-        $$ = res;
+        $$ = "CONTENT";
     }
 
     | CONTINUE_P {
-        res = new IR(kUnreservedKeyword, OP3("CONTINUE", "", ""));
-        $$ = res;
+        $$ = "CONTINUE";
     }
 
     | CONVERSION_P {
-        res = new IR(kUnreservedKeyword, OP3("CONVERSION", "", ""));
-        $$ = res;
+        $$ = "CONVERSION";
     }
 
     | COPY {
-        res = new IR(kUnreservedKeyword, OP3("COPY", "", ""));
-        $$ = res;
+        $$ = "COPY";
     }
 
     | COST {
-        res = new IR(kUnreservedKeyword, OP3("COST", "", ""));
-        $$ = res;
+        $$ = "COST";
     }
 
     | CSV {
-        res = new IR(kUnreservedKeyword, OP3("CSV", "", ""));
-        $$ = res;
+        $$ = "CSV";
     }
 
     | CUBE {
-        res = new IR(kUnreservedKeyword, OP3("CUBE", "", ""));
-        $$ = res;
+        $$ = "CUBE";
     }
 
     | CURRENT_P {
-        res = new IR(kUnreservedKeyword, OP3("CURRENT", "", ""));
-        $$ = res;
+        $$ = "CURRENT";
     }
 
     | CURSOR {
-        res = new IR(kUnreservedKeyword, OP3("CURSOR", "", ""));
-        $$ = res;
+        $$ = "CURSOR";
     }
 
     | CYCLE {
-        res = new IR(kUnreservedKeyword, OP3("CYCLE", "", ""));
-        $$ = res;
+        $$ = "CYCLE";
     }
 
     | DATA_P {
-        res = new IR(kUnreservedKeyword, OP3("DATA", "", ""));
-        $$ = res;
+        $$ = "DATA";
     }
 
     | DATABASE {
-        res = new IR(kUnreservedKeyword, OP3("DATABASE", "", ""));
-        $$ = res;
+        $$ = "DATABASE";
     }
 
     | DAY_P {
-        res = new IR(kUnreservedKeyword, OP3("DAY", "", ""));
-        $$ = res;
+        $$ = "DAY";
     }
 
     | DEALLOCATE {
-        res = new IR(kUnreservedKeyword, OP3("DEALLOCATE", "", ""));
-        $$ = res;
+        $$ = "DEALLOCATE";
     }
 
     | DECLARE {
-        res = new IR(kUnreservedKeyword, OP3("DECLARE", "", ""));
-        $$ = res;
+        $$ = "DECLARE";
     }
 
     | DEFAULTS {
-        res = new IR(kUnreservedKeyword, OP3("DEFAULTS", "", ""));
-        $$ = res;
+        $$ = "DEFAULTS";
     }
 
     | DEFERRED {
-        res = new IR(kUnreservedKeyword, OP3("DEFERRED", "", ""));
-        $$ = res;
+        $$ = "DEFERRED";
     }
 
     | DEFINER {
-        res = new IR(kUnreservedKeyword, OP3("DEFINER", "", ""));
-        $$ = res;
+        $$ = "DEFINER";
     }
 
     | DELETE_P {
-        res = new IR(kUnreservedKeyword, OP3("DELETE", "", ""));
-        $$ = res;
+        $$ = "DELETE";
     }
 
     | DELIMITER {
-        res = new IR(kUnreservedKeyword, OP3("DELIMITER", "", ""));
-        $$ = res;
+        $$ = "DELIMITER";
     }
 
     | DELIMITERS {
-        res = new IR(kUnreservedKeyword, OP3("DELIMITERS", "", ""));
-        $$ = res;
+        $$ = "DELIMITERS";
     }
 
     | DEPENDS {
-        res = new IR(kUnreservedKeyword, OP3("DEPENDS", "", ""));
-        $$ = res;
+        $$ = "DEPENDS";
     }
 
     | DEPTH {
-        res = new IR(kUnreservedKeyword, OP3("DEPTH", "", ""));
-        $$ = res;
+        $$ = "DEPTH";
     }
 
     | DETACH {
-        res = new IR(kUnreservedKeyword, OP3("DETACH", "", ""));
-        $$ = res;
+        $$ = "DETACH";
     }
 
     | DICTIONARY {
-        res = new IR(kUnreservedKeyword, OP3("DICTIONARY", "", ""));
-        $$ = res;
+        $$ = "DICTIONARY";
     }
 
     | DISABLE_P {
-        res = new IR(kUnreservedKeyword, OP3("DISABLE", "", ""));
-        $$ = res;
+        $$ = "DISABLE";
     }
 
     | DISCARD {
-        res = new IR(kUnreservedKeyword, OP3("DISCARD", "", ""));
-        $$ = res;
+        $$ = "DISCARD";
     }
 
     | DOCUMENT_P {
-        res = new IR(kUnreservedKeyword, OP3("DOCUMENT", "", ""));
-        $$ = res;
+        $$ = "DOCUMENT";
     }
 
     | DOMAIN_P {
-        res = new IR(kUnreservedKeyword, OP3("DOMAIN", "", ""));
-        $$ = res;
+        $$ = "DOMAIN";
     }
 
     | DOUBLE_P {
-        res = new IR(kUnreservedKeyword, OP3("DOUBLE", "", ""));
-        $$ = res;
+        $$ = "DOUBLE";
     }
 
     | DROP {
-        res = new IR(kUnreservedKeyword, OP3("DROP", "", ""));
-        $$ = res;
+        $$ = "DROP";
     }
 
     | EACH {
-        res = new IR(kUnreservedKeyword, OP3("EACH", "", ""));
-        $$ = res;
+        $$ = "EACH";
     }
 
     | ENABLE_P {
-        res = new IR(kUnreservedKeyword, OP3("ENABLE", "", ""));
-        $$ = res;
+        $$ = "ENABLE";
     }
 
     | ENCODING {
-        res = new IR(kUnreservedKeyword, OP3("ENCODING", "", ""));
-        $$ = res;
+        $$ = "ENCODING";
     }
 
     | ENCRYPTED {
-        res = new IR(kUnreservedKeyword, OP3("ENCRYPTED", "", ""));
-        $$ = res;
+        $$ = "ENCRYPTED";
     }
 
     | ENUM_P {
-        res = new IR(kUnreservedKeyword, OP3("ENUM", "", ""));
-        $$ = res;
+        $$ = "ENUM";
     }
 
     | ESCAPE {
-        res = new IR(kUnreservedKeyword, OP3("ESCAPE", "", ""));
-        $$ = res;
+        $$ = "ESCAPE";
     }
 
     | EVENT {
-        res = new IR(kUnreservedKeyword, OP3("EVENT", "", ""));
-        $$ = res;
+        $$ = "EVENT";
     }
 
     | EXCLUDE {
-        res = new IR(kUnreservedKeyword, OP3("EXCLUDE", "", ""));
-        $$ = res;
+        $$ = "EXCLUDE";
     }
 
     | EXCLUDING {
-        res = new IR(kUnreservedKeyword, OP3("EXCLUDING", "", ""));
-        $$ = res;
+        $$ = "EXCLUDING";
     }
 
     | EXCLUSIVE {
-        res = new IR(kUnreservedKeyword, OP3("EXCLUSIVE", "", ""));
-        $$ = res;
+        $$ = "EXCLUSIVE";
     }
 
     | EXECUTE {
-        res = new IR(kUnreservedKeyword, OP3("EXECUTE", "", ""));
-        $$ = res;
+        $$ = "EXECUTE";
     }
 
     | EXPLAIN {
-        res = new IR(kUnreservedKeyword, OP3("EXPLAIN", "", ""));
-        $$ = res;
+        $$ = "EXPLAIN";
     }
 
     | EXPRESSION {
-        res = new IR(kUnreservedKeyword, OP3("EXPRESSION", "", ""));
-        $$ = res;
+        $$ = "EXPRESSION";
     }
 
     | EXTENSION {
-        res = new IR(kUnreservedKeyword, OP3("EXTENSION", "", ""));
-        $$ = res;
+        $$ = "EXTENSION";
     }
 
     | EXTERNAL {
-        res = new IR(kUnreservedKeyword, OP3("EXTERNAL", "", ""));
-        $$ = res;
+        $$ = "EXTERNAL";
     }
 
     | FAMILY {
-        res = new IR(kUnreservedKeyword, OP3("FAMILY", "", ""));
-        $$ = res;
+        $$ = "FAMILY";
     }
 
     | FILTER {
-        res = new IR(kUnreservedKeyword, OP3("FILTER", "", ""));
-        $$ = res;
+        $$ = "FILTER";
     }
 
     | FINALIZE {
-        res = new IR(kUnreservedKeyword, OP3("FINALIZE", "", ""));
-        $$ = res;
+        $$ = "FINALIZE";
     }
 
     | FIRST_P {
-        res = new IR(kUnreservedKeyword, OP3("FIRST", "", ""));
-        $$ = res;
+        $$ = "FIRST";
     }
 
     | FOLLOWING {
-        res = new IR(kUnreservedKeyword, OP3("FOLLOWING", "", ""));
-        $$ = res;
+        $$ = "FOLLOWING";
     }
 
     | FORCE {
-        res = new IR(kUnreservedKeyword, OP3("FORCE", "", ""));
-        $$ = res;
+        $$ = "FORCE";
     }
 
     | FORWARD {
-        res = new IR(kUnreservedKeyword, OP3("FORWARD", "", ""));
-        $$ = res;
+        $$ = "FORWARD";
     }
 
     | FUNCTION {
-        res = new IR(kUnreservedKeyword, OP3("FUNCTION", "", ""));
-        $$ = res;
+        $$ = "FUNCTION";
     }
 
     | FUNCTIONS {
-        res = new IR(kUnreservedKeyword, OP3("FUNCTIONS", "", ""));
-        $$ = res;
+        $$ = "FUNCTIONS";
     }
 
     | GENERATED {
-        res = new IR(kUnreservedKeyword, OP3("GENERATED", "", ""));
-        $$ = res;
+        $$ = "GENERATED";
     }
 
     | GLOBAL {
-        res = new IR(kUnreservedKeyword, OP3("GLOBAL", "", ""));
-        $$ = res;
+        $$ = "GLOBAL";
     }
 
     | GRANTED {
-        res = new IR(kUnreservedKeyword, OP3("GRANTED", "", ""));
-        $$ = res;
+        $$ = "GRANTED";
     }
 
     | GROUPS {
-        res = new IR(kUnreservedKeyword, OP3("GROUPS", "", ""));
-        $$ = res;
+        $$ = "GROUPS";
     }
 
     | HANDLER {
-        res = new IR(kUnreservedKeyword, OP3("HANDLER", "", ""));
-        $$ = res;
+        $$ = "HANDLER";
     }
 
     | HEADER_P {
-        res = new IR(kUnreservedKeyword, OP3("HEADER", "", ""));
-        $$ = res;
+        $$ = "HEADER";
     }
 
     | HOLD {
-        res = new IR(kUnreservedKeyword, OP3("HOLD", "", ""));
-        $$ = res;
+        $$ = "HOLD";
     }
 
     | HOUR_P {
-        res = new IR(kUnreservedKeyword, OP3("HOUR", "", ""));
-        $$ = res;
+        $$ = "HOUR";
     }
 
     | IDENTITY_P {
-        res = new IR(kUnreservedKeyword, OP3("IDENTITY", "", ""));
-        $$ = res;
+        $$ = "IDENTITY";
     }
 
     | IF_P {
-        res = new IR(kUnreservedKeyword, OP3("IF", "", ""));
-        $$ = res;
+        $$ = "IF";
     }
 
     | IMMEDIATE {
-        res = new IR(kUnreservedKeyword, OP3("IMMEDIATE", "", ""));
-        $$ = res;
+        $$ = "IMMEDIATE";
     }
 
     | IMMUTABLE {
-        res = new IR(kUnreservedKeyword, OP3("IMMUTABLE", "", ""));
-        $$ = res;
+        $$ = "IMMUTABLE";
     }
 
     | IMPLICIT_P {
-        res = new IR(kUnreservedKeyword, OP3("IMPLICIT", "", ""));
-        $$ = res;
+        $$ = "IMPLICIT";
     }
 
     | IMPORT_P {
-        res = new IR(kUnreservedKeyword, OP3("IMPORT", "", ""));
-        $$ = res;
+        $$ = "IMPORT";
     }
 
     | INCLUDE {
-        res = new IR(kUnreservedKeyword, OP3("INCLUDE", "", ""));
-        $$ = res;
+        $$ = "INCLUDE";
     }
 
     | INCLUDING {
-        res = new IR(kUnreservedKeyword, OP3("INCLUDING", "", ""));
-        $$ = res;
+        $$ = "INCLUDING";
     }
 
     | INCREMENT {
-        res = new IR(kUnreservedKeyword, OP3("INCREMENT", "", ""));
-        $$ = res;
+        $$ = "INCREMENT";
     }
 
     | INDEX {
-        res = new IR(kUnreservedKeyword, OP3("INDEX", "", ""));
-        $$ = res;
+        $$ = "INDEX";
     }
 
     | INDEXES {
-        res = new IR(kUnreservedKeyword, OP3("INDEXES", "", ""));
-        $$ = res;
+        $$ = "INDEXES";
     }
 
     | INHERIT {
-        res = new IR(kUnreservedKeyword, OP3("INHERIT", "", ""));
-        $$ = res;
+        $$ = "INHERIT";
     }
 
     | INHERITS {
-        res = new IR(kUnreservedKeyword, OP3("INHERITS", "", ""));
-        $$ = res;
+        $$ = "INHERITS";
     }
 
     | INLINE_P {
-        res = new IR(kUnreservedKeyword, OP3("INLINE", "", ""));
-        $$ = res;
+        $$ = "INLINE";
     }
 
     | INPUT_P {
-        res = new IR(kUnreservedKeyword, OP3("INPUT", "", ""));
-        $$ = res;
+        $$ = "INPUT";
     }
 
     | INSENSITIVE {
-        res = new IR(kUnreservedKeyword, OP3("INSENSITIVE", "", ""));
-        $$ = res;
+        $$ = "INSENSITIVE";
     }
 
     | INSERT {
-        res = new IR(kUnreservedKeyword, OP3("INSERT", "", ""));
-        $$ = res;
+        $$ = "INSERT";
     }
 
     | INSTEAD {
-        res = new IR(kUnreservedKeyword, OP3("INSTEAD", "", ""));
-        $$ = res;
+        $$ = "INSTEAD";
     }
 
     | INVOKER {
-        res = new IR(kUnreservedKeyword, OP3("INVOKER", "", ""));
-        $$ = res;
+        $$ = "INVOKER";
     }
 
     | ISOLATION {
-        res = new IR(kUnreservedKeyword, OP3("ISOLATION", "", ""));
-        $$ = res;
+        $$ = "ISOLATION";
     }
 
     | KEY {
-        res = new IR(kUnreservedKeyword, OP3("KEY", "", ""));
-        $$ = res;
+        $$ = "KEY";
     }
 
     | LABEL {
-        res = new IR(kUnreservedKeyword, OP3("LABEL", "", ""));
-        $$ = res;
+        $$ = "LABEL";
     }
 
     | LANGUAGE {
-        res = new IR(kUnreservedKeyword, OP3("LANGUAGE", "", ""));
-        $$ = res;
+        $$ = "LANGUAGE";
     }
 
     | LARGE_P {
-        res = new IR(kUnreservedKeyword, OP3("LARGE", "", ""));
-        $$ = res;
+        $$ = "LARGE";
     }
 
     | LAST_P {
-        res = new IR(kUnreservedKeyword, OP3("LAST", "", ""));
-        $$ = res;
+        $$ = "LAST";
     }
 
     | LEAKPROOF {
-        res = new IR(kUnreservedKeyword, OP3("LEAKPROOF", "", ""));
-        $$ = res;
+        $$ = "LEAKPROOF";
     }
 
     | LEVEL {
-        res = new IR(kUnreservedKeyword, OP3("LEVEL", "", ""));
-        $$ = res;
+        $$ = "LEVEL";
     }
 
     | LISTEN {
-        res = new IR(kUnreservedKeyword, OP3("LISTEN", "", ""));
-        $$ = res;
+        $$ = "LISTEN";
     }
 
     | LOAD {
-        res = new IR(kUnreservedKeyword, OP3("LOAD", "", ""));
-        $$ = res;
+        $$ = "LOAD";
     }
 
     | LOCAL {
-        res = new IR(kUnreservedKeyword, OP3("LOCAL", "", ""));
-        $$ = res;
+        $$ = "LOCAL";
     }
 
     | LOCATION {
-        res = new IR(kUnreservedKeyword, OP3("LOCATION", "", ""));
-        $$ = res;
+        $$ = "LOCATION";
     }
 
     | LOCK_P {
-        res = new IR(kUnreservedKeyword, OP3("LOCK", "", ""));
-        $$ = res;
+        $$ = "LOCK";
     }
 
     | LOCKED {
-        res = new IR(kUnreservedKeyword, OP3("LOCKED", "", ""));
-        $$ = res;
+        $$ = "LOCKED";
     }
 
     | LOGGED {
-        res = new IR(kUnreservedKeyword, OP3("LOGGED", "", ""));
-        $$ = res;
+        $$ = "LOGGED";
     }
 
     | MAPPING {
-        res = new IR(kUnreservedKeyword, OP3("MAPPING", "", ""));
-        $$ = res;
+        $$ = "MAPPING";
     }
 
     | MATCH {
-        res = new IR(kUnreservedKeyword, OP3("MATCH", "", ""));
-        $$ = res;
+        $$ = "MATCH";
     }
 
     | MATERIALIZED {
-        res = new IR(kUnreservedKeyword, OP3("MATERIALIZED", "", ""));
-        $$ = res;
+        $$ = "MATERIALIZED";
     }
 
     | MAXVALUE {
-        res = new IR(kUnreservedKeyword, OP3("MAXVALUE", "", ""));
-        $$ = res;
+        $$ = "MAXVALUE";
     }
 
     | METHOD {
-        res = new IR(kUnreservedKeyword, OP3("METHOD", "", ""));
-        $$ = res;
+        $$ = "METHOD";
     }
 
     | MINUTE_P {
-        res = new IR(kUnreservedKeyword, OP3("MINUTE", "", ""));
-        $$ = res;
+        $$ = "MINUTE";
     }
 
     | MINVALUE {
-        res = new IR(kUnreservedKeyword, OP3("MINVALUE", "", ""));
-        $$ = res;
+        $$ = "MINVALUE";
     }
 
     | MODE {
-        res = new IR(kUnreservedKeyword, OP3("MODE", "", ""));
-        $$ = res;
+        $$ = "MODE";
     }
 
     | MONTH_P {
-        res = new IR(kUnreservedKeyword, OP3("MONTH", "", ""));
-        $$ = res;
+        $$ = "MONTH";
     }
 
     | MOVE {
-        res = new IR(kUnreservedKeyword, OP3("MOVE", "", ""));
-        $$ = res;
+        $$ = "MOVE";
     }
 
     | NAME_P {
-        res = new IR(kUnreservedKeyword, OP3("NAME", "", ""));
-        $$ = res;
+        $$ = "NAME";
     }
 
     | NAMES {
-        res = new IR(kUnreservedKeyword, OP3("NAMES", "", ""));
-        $$ = res;
+        $$ = "NAMES";
     }
 
     | NEW {
-        res = new IR(kUnreservedKeyword, OP3("NEW", "", ""));
-        $$ = res;
+        $$ = "NEW";
     }
 
     | NEXT {
-        res = new IR(kUnreservedKeyword, OP3("NEXT", "", ""));
-        $$ = res;
+        $$ = "NEXT";
     }
 
     | NFC {
-        res = new IR(kUnreservedKeyword, OP3("NFC", "", ""));
-        $$ = res;
+        $$ = "NFC";
     }
 
     | NFD {
-        res = new IR(kUnreservedKeyword, OP3("NFD", "", ""));
-        $$ = res;
+        $$ = "NFD";
     }
 
     | NFKC {
-        res = new IR(kUnreservedKeyword, OP3("NFKC", "", ""));
-        $$ = res;
+        $$ = "NFKC";
     }
 
     | NFKD {
-        res = new IR(kUnreservedKeyword, OP3("NFKD", "", ""));
-        $$ = res;
+        $$ = "NFKD";
     }
 
     | NO {
-        res = new IR(kUnreservedKeyword, OP3("NO", "", ""));
-        $$ = res;
+        $$ = "NO";
     }
 
     | NORMALIZED {
-        res = new IR(kUnreservedKeyword, OP3("NORMALIZED", "", ""));
-        $$ = res;
+        $$ = "NORMALIZED";
     }
 
     | NOTHING {
-        res = new IR(kUnreservedKeyword, OP3("NOTHING", "", ""));
-        $$ = res;
+        $$ = "NOTHING";
     }
 
     | NOTIFY {
-        res = new IR(kUnreservedKeyword, OP3("NOTIFY", "", ""));
-        $$ = res;
+        $$ = "NOTIFY";
     }
 
     | NOWAIT {
-        res = new IR(kUnreservedKeyword, OP3("NOWAIT", "", ""));
-        $$ = res;
+        $$ = "NOWAIT";
     }
 
     | NULLS_P {
-        res = new IR(kUnreservedKeyword, OP3("NULLS", "", ""));
-        $$ = res;
+        $$ = "NULLS";
     }
 
     | OBJECT_P {
-        res = new IR(kUnreservedKeyword, OP3("OBJECT", "", ""));
-        $$ = res;
+        $$ = "OBJECT";
     }
 
     | OF {
-        res = new IR(kUnreservedKeyword, OP3("OF", "", ""));
-        $$ = res;
+        $$ = "OF";
     }
 
     | OFF {
-        res = new IR(kUnreservedKeyword, OP3("OFF", "", ""));
-        $$ = res;
+        $$ = "OFF";
     }
 
     | OIDS {
-        res = new IR(kUnreservedKeyword, OP3("OIDS", "", ""));
-        $$ = res;
+        $$ = "OIDS";
     }
 
     | OLD {
-        res = new IR(kUnreservedKeyword, OP3("OLD", "", ""));
-        $$ = res;
+        $$ = "OLD";
     }
 
     | OPERATOR {
-        res = new IR(kUnreservedKeyword, OP3("OPERATOR", "", ""));
-        $$ = res;
+        $$ = "OPERATOR";
     }
 
     | OPTION {
-        res = new IR(kUnreservedKeyword, OP3("OPTION", "", ""));
-        $$ = res;
+        $$ = "OPTION";
     }
 
     | OPTIONS {
-        res = new IR(kUnreservedKeyword, OP3("OPTIONS", "", ""));
-        $$ = res;
+        $$ = "OPTIONS";
     }
 
     | ORDINALITY {
-        res = new IR(kUnreservedKeyword, OP3("ORDINALITY", "", ""));
-        $$ = res;
+        $$ = "ORDINALITY";
     }
 
     | OTHERS {
-        res = new IR(kUnreservedKeyword, OP3("OTHERS", "", ""));
-        $$ = res;
+        $$ = "OTHERS";
     }
 
     | OVER {
-        res = new IR(kUnreservedKeyword, OP3("OVER", "", ""));
-        $$ = res;
+        $$ = "OVER";
     }
 
     | OVERRIDING {
-        res = new IR(kUnreservedKeyword, OP3("OVERRIDING", "", ""));
-        $$ = res;
+        $$ = "OVERRIDING";
     }
 
     | OWNED {
-        res = new IR(kUnreservedKeyword, OP3("OWNED", "", ""));
-        $$ = res;
+        $$ = "OWNED";
     }
 
     | OWNER {
-        res = new IR(kUnreservedKeyword, OP3("OWNER", "", ""));
-        $$ = res;
+        $$ = "OWNER";
     }
 
     | PARALLEL {
-        res = new IR(kUnreservedKeyword, OP3("PARALLEL", "", ""));
-        $$ = res;
+        $$ = "PARALLEL";
     }
 
     | PARSER {
-        res = new IR(kUnreservedKeyword, OP3("PARSER", "", ""));
-        $$ = res;
+        $$ = "PARSER";
     }
 
     | PARTIAL {
-        res = new IR(kUnreservedKeyword, OP3("PARTIAL", "", ""));
-        $$ = res;
+        $$ = "PARTIAL";
     }
 
     | PARTITION {
-        res = new IR(kUnreservedKeyword, OP3("PARTITION", "", ""));
-        $$ = res;
+        $$ = "PARTITION";
     }
 
     | PASSING {
-        res = new IR(kUnreservedKeyword, OP3("PASSING", "", ""));
-        $$ = res;
+        $$ = "PASSING";
     }
 
     | PASSWORD {
-        res = new IR(kUnreservedKeyword, OP3("PASSWORD", "", ""));
-        $$ = res;
+        $$ = "PASSWORD";
     }
 
     | PLANS {
-        res = new IR(kUnreservedKeyword, OP3("PLANS", "", ""));
-        $$ = res;
+        $$ = "PLANS";
     }
 
     | POLICY {
-        res = new IR(kUnreservedKeyword, OP3("POLICY", "", ""));
-        $$ = res;
+        $$ = "POLICY";
     }
 
     | PRECEDING {
-        res = new IR(kUnreservedKeyword, OP3("PRECEDING", "", ""));
-        $$ = res;
+        $$ = "PRECEDING";
     }
 
     | PREPARE {
-        res = new IR(kUnreservedKeyword, OP3("PREPARE", "", ""));
-        $$ = res;
+        $$ = "PREPARE";
     }
 
     | PREPARED {
-        res = new IR(kUnreservedKeyword, OP3("PREPARED", "", ""));
-        $$ = res;
+        $$ = "PREPARED";
     }
 
     | PRESERVE {
-        res = new IR(kUnreservedKeyword, OP3("PRESERVE", "", ""));
-        $$ = res;
+        $$ = "PRESERVE";
     }
 
     | PRIOR {
-        res = new IR(kUnreservedKeyword, OP3("PRIOR", "", ""));
-        $$ = res;
+        $$ = "PRIOR";
     }
 
     | PRIVILEGES {
-        res = new IR(kUnreservedKeyword, OP3("PRIVILEGES", "", ""));
-        $$ = res;
+        $$ = "PRIVILEGES";
     }
 
     | PROCEDURAL {
-        res = new IR(kUnreservedKeyword, OP3("PROCEDURAL", "", ""));
-        $$ = res;
+        $$ = "PROCEDURAL";
     }
 
     | PROCEDURE {
-        res = new IR(kUnreservedKeyword, OP3("PROCEDURE", "", ""));
-        $$ = res;
+        $$ = "PROCEDURE";
     }
 
     | PROCEDURES {
-        res = new IR(kUnreservedKeyword, OP3("PROCEDURES", "", ""));
-        $$ = res;
+        $$ = "PROCEDURES";
     }
 
     | PROGRAM {
-        res = new IR(kUnreservedKeyword, OP3("PROGRAM", "", ""));
-        $$ = res;
+        $$ = "PROGRAM";
     }
 
     | PUBLICATION {
-        res = new IR(kUnreservedKeyword, OP3("PUBLICATION", "", ""));
-        $$ = res;
+        $$ = "PUBLICATION";
     }
 
     | QUOTE {
-        res = new IR(kUnreservedKeyword, OP3("QUOTE", "", ""));
-        $$ = res;
+        $$ = "QUOTE";
     }
 
     | RANGE {
-        res = new IR(kUnreservedKeyword, OP3("RANGE", "", ""));
-        $$ = res;
+        $$ = "RANGE";
     }
 
     | READ {
-        res = new IR(kUnreservedKeyword, OP3("READ", "", ""));
-        $$ = res;
+        $$ = "READ";
     }
 
     | REASSIGN {
-        res = new IR(kUnreservedKeyword, OP3("REASSIGN", "", ""));
-        $$ = res;
+        $$ = "REASSIGN";
     }
 
     | RECHECK {
-        res = new IR(kUnreservedKeyword, OP3("RECHECK", "", ""));
-        $$ = res;
+        $$ = "RECHECK";
     }
 
     | RECURSIVE {
-        res = new IR(kUnreservedKeyword, OP3("RECURSIVE", "", ""));
-        $$ = res;
+        $$ = "RECURSIVE";
     }
 
     | REF {
-        res = new IR(kUnreservedKeyword, OP3("REF", "", ""));
-        $$ = res;
+        $$ = "REF";
     }
 
     | REFERENCING {
-        res = new IR(kUnreservedKeyword, OP3("REFERENCING", "", ""));
-        $$ = res;
+        $$ = "REFERENCING";
     }
 
     | REFRESH {
-        res = new IR(kUnreservedKeyword, OP3("REFRESH", "", ""));
-        $$ = res;
+        $$ = "REFRESH";
     }
 
     | REINDEX {
-        res = new IR(kUnreservedKeyword, OP3("REINDEX", "", ""));
-        $$ = res;
+        $$ = "REINDEX";
     }
 
     | RELATIVE_P {
-        res = new IR(kUnreservedKeyword, OP3("RELATIVE", "", ""));
-        $$ = res;
+        $$ = "RELATIVE";
     }
 
     | RELEASE {
-        res = new IR(kUnreservedKeyword, OP3("RELEASE", "", ""));
-        $$ = res;
+        $$ = "RELEASE";
     }
 
     | RENAME {
-        res = new IR(kUnreservedKeyword, OP3("RENAME", "", ""));
-        $$ = res;
+        $$ = "RENAME";
     }
 
     | REPEATABLE {
-        res = new IR(kUnreservedKeyword, OP3("REPEATABLE", "", ""));
-        $$ = res;
+        $$ = "REPEATABLE";
     }
 
     | REPLACE {
-        res = new IR(kUnreservedKeyword, OP3("REPLACE", "", ""));
-        $$ = res;
+        $$ = "REPLACE";
     }
 
     | REPLICA {
-        res = new IR(kUnreservedKeyword, OP3("REPLICA", "", ""));
-        $$ = res;
+        $$ = "REPLICA";
     }
 
     | RESET {
-        res = new IR(kUnreservedKeyword, OP3("RESET", "", ""));
-        $$ = res;
+        $$ = "RESET";
     }
 
     | RESTART {
-        res = new IR(kUnreservedKeyword, OP3("RESTART", "", ""));
-        $$ = res;
+        $$ = "RESTART";
     }
 
     | RESTRICT {
-        res = new IR(kUnreservedKeyword, OP3("RESTRICT", "", ""));
-        $$ = res;
+        $$ = "RESTRICT";
     }
 
     | RETURN {
-        res = new IR(kUnreservedKeyword, OP3("RETURN", "", ""));
-        $$ = res;
+        $$ = "RETURN";
     }
 
     | RETURNS {
-        res = new IR(kUnreservedKeyword, OP3("RETURNS", "", ""));
-        $$ = res;
+        $$ = "RETURNS";
     }
 
     | REVOKE {
-        res = new IR(kUnreservedKeyword, OP3("REVOKE", "", ""));
-        $$ = res;
+        $$ = "REVOKE";
     }
 
     | ROLE {
-        res = new IR(kUnreservedKeyword, OP3("ROLE", "", ""));
-        $$ = res;
+        $$ = "ROLE";
     }
 
     | ROLLBACK {
-        res = new IR(kUnreservedKeyword, OP3("ROLLBACK", "", ""));
-        $$ = res;
+        $$ = "ROLLBACK";
     }
 
     | ROLLUP {
-        res = new IR(kUnreservedKeyword, OP3("ROLLUP", "", ""));
-        $$ = res;
+        $$ = "ROLLUP";
     }
 
     | ROUTINE {
-        res = new IR(kUnreservedKeyword, OP3("ROUTINE", "", ""));
-        $$ = res;
+        $$ = "ROUTINE";
     }
 
     | ROUTINES {
-        res = new IR(kUnreservedKeyword, OP3("ROUTINES", "", ""));
-        $$ = res;
+        $$ = "ROUTINES";
     }
 
     | ROWS {
-        res = new IR(kUnreservedKeyword, OP3("ROWS", "", ""));
-        $$ = res;
+        $$ = "ROWS";
     }
 
     | RULE {
-        res = new IR(kUnreservedKeyword, OP3("RULE", "", ""));
-        $$ = res;
+        $$ = "RULE";
     }
 
     | SAVEPOINT {
-        res = new IR(kUnreservedKeyword, OP3("SAVEPOINT", "", ""));
-        $$ = res;
+        $$ = "SAVEPOINT";
     }
 
     | SCHEMA {
-        res = new IR(kUnreservedKeyword, OP3("SCHEMA", "", ""));
-        $$ = res;
+        $$ = "SCHEMA";
     }
 
     | SCHEMAS {
-        res = new IR(kUnreservedKeyword, OP3("SCHEMAS", "", ""));
-        $$ = res;
+        $$ = "SCHEMAS";
     }
 
     | SCROLL {
-        res = new IR(kUnreservedKeyword, OP3("SCROLL", "", ""));
-        $$ = res;
+        $$ = "SCROLL";
     }
 
     | SEARCH {
-        res = new IR(kUnreservedKeyword, OP3("SEARCH", "", ""));
-        $$ = res;
+        $$ = "SEARCH";
     }
 
     | SECOND_P {
-        res = new IR(kUnreservedKeyword, OP3("SECOND", "", ""));
-        $$ = res;
+        $$ = "SECOND";
     }
 
     | SECURITY {
-        res = new IR(kUnreservedKeyword, OP3("SECURITY", "", ""));
-        $$ = res;
+        $$ = "SECURITY";
     }
 
     | SEQUENCE {
-        res = new IR(kUnreservedKeyword, OP3("SEQUENCE", "", ""));
-        $$ = res;
+        $$ = "SEQUENCE";
     }
 
     | SEQUENCES {
-        res = new IR(kUnreservedKeyword, OP3("SEQUENCES", "", ""));
-        $$ = res;
+        $$ = "SEQUENCES";
     }
 
     | SERIALIZABLE {
-        res = new IR(kUnreservedKeyword, OP3("SERIALIZABLE", "", ""));
-        $$ = res;
+        $$ = "SERIALIZABLE";
     }
 
     | SERVER {
-        res = new IR(kUnreservedKeyword, OP3("SERVER", "", ""));
-        $$ = res;
+        $$ = "SERVER";
     }
 
     | SESSION {
-        res = new IR(kUnreservedKeyword, OP3("SESSION", "", ""));
-        $$ = res;
+        $$ = "SESSION";
     }
 
     | SET {
-        res = new IR(kUnreservedKeyword, OP3("SET", "", ""));
-        $$ = res;
+        $$ = "SET";
     }
 
     | SETS {
-        res = new IR(kUnreservedKeyword, OP3("SETS", "", ""));
-        $$ = res;
+        $$ = "SETS";
     }
 
     | SHARE {
-        res = new IR(kUnreservedKeyword, OP3("SHARE", "", ""));
-        $$ = res;
+        $$ = "SHARE";
     }
 
     | SHOW {
-        res = new IR(kUnreservedKeyword, OP3("SHOW", "", ""));
-        $$ = res;
+        $$ = "SHOW";
     }
 
     | SIMPLE {
-        res = new IR(kUnreservedKeyword, OP3("SIMPLE", "", ""));
-        $$ = res;
+        $$ = "SIMPLE";
     }
 
     | SKIP {
-        res = new IR(kUnreservedKeyword, OP3("SKIP", "", ""));
-        $$ = res;
+        $$ = "SKIP";
     }
 
     | SNAPSHOT {
-        res = new IR(kUnreservedKeyword, OP3("SNAPSHOT", "", ""));
-        $$ = res;
+        $$ = "SNAPSHOT";
     }
 
     | SQL_P {
-        res = new IR(kUnreservedKeyword, OP3("SQL", "", ""));
-        $$ = res;
+        $$ = "SQL";
     }
 
     | STABLE {
-        res = new IR(kUnreservedKeyword, OP3("STABLE", "", ""));
-        $$ = res;
+        $$ = "STABLE";
     }
 
     | STANDALONE_P {
-        res = new IR(kUnreservedKeyword, OP3("STANDALONE", "", ""));
-        $$ = res;
+        $$ = "STANDALONE";
     }
 
     | START {
-        res = new IR(kUnreservedKeyword, OP3("START", "", ""));
-        $$ = res;
+        $$ = "START";
     }
 
     | STATEMENT {
-        res = new IR(kUnreservedKeyword, OP3("STATEMENT", "", ""));
-        $$ = res;
+        $$ = "STATEMENT";
     }
 
     | STATISTICS {
-        res = new IR(kUnreservedKeyword, OP3("STATISTICS", "", ""));
-        $$ = res;
+        $$ = "STATISTICS";
     }
 
     | STDIN {
-        res = new IR(kUnreservedKeyword, OP3("STDIN", "", ""));
-        $$ = res;
+        $$ = "STDIN";
     }
 
     | STDOUT {
-        res = new IR(kUnreservedKeyword, OP3("STDOUT", "", ""));
-        $$ = res;
+        $$ = "STDOUT";
     }
 
     | STORAGE {
-        res = new IR(kUnreservedKeyword, OP3("STORAGE", "", ""));
-        $$ = res;
+        $$ = "STORAGE";
     }
 
     | STORED {
-        res = new IR(kUnreservedKeyword, OP3("STORED", "", ""));
-        $$ = res;
+        $$ = "STORED";
     }
 
     | STRICT_P {
-        res = new IR(kUnreservedKeyword, OP3("STRICT", "", ""));
-        $$ = res;
+        $$ = "STRICT";
     }
 
     | STRIP_P {
-        res = new IR(kUnreservedKeyword, OP3("STRIP", "", ""));
-        $$ = res;
+        $$ = "STRIP";
     }
 
     | SUBSCRIPTION {
-        res = new IR(kUnreservedKeyword, OP3("SUBSCRIPTION", "", ""));
-        $$ = res;
+        $$ = "SUBSCRIPTION";
     }
 
     | SUPPORT {
-        res = new IR(kUnreservedKeyword, OP3("SUPPORT", "", ""));
-        $$ = res;
+        $$ = "SUPPORT";
     }
 
     | SYSID {
-        res = new IR(kUnreservedKeyword, OP3("SYSID", "", ""));
-        $$ = res;
+        $$ = "SYSID";
     }
 
     | SYSTEM_P {
-        res = new IR(kUnreservedKeyword, OP3("SYSTEM", "", ""));
-        $$ = res;
+        $$ = "SYSTEM";
     }
 
     | TABLES {
-        res = new IR(kUnreservedKeyword, OP3("TABLES", "", ""));
-        $$ = res;
+        $$ = "TABLES";
     }
 
     | TABLESPACE {
-        res = new IR(kUnreservedKeyword, OP3("TABLESPACE", "", ""));
-        $$ = res;
+        $$ = "TABLESPACE";
     }
 
     | TEMP {
-        res = new IR(kUnreservedKeyword, OP3("TEMP", "", ""));
-        $$ = res;
+        $$ = "TEMP";
     }
 
     | TEMPLATE {
-        res = new IR(kUnreservedKeyword, OP3("TEMPLATE", "", ""));
-        $$ = res;
+        $$ = "TEMPLATE";
     }
 
     | TEMPORARY {
-        res = new IR(kUnreservedKeyword, OP3("TEMPORARY", "", ""));
-        $$ = res;
+        $$ = "TEMPORARY";
     }
 
     | TEXT_P {
-        res = new IR(kUnreservedKeyword, OP3("TEXT", "", ""));
-        $$ = res;
+        $$ = "TEXT";
     }
 
     | TIES {
-        res = new IR(kUnreservedKeyword, OP3("TIES", "", ""));
-        $$ = res;
+        $$ = "TIES";
     }
 
     | TRANSACTION {
-        res = new IR(kUnreservedKeyword, OP3("TRANSACTION", "", ""));
-        $$ = res;
+        $$ = "TRANSACTION";
     }
 
     | TRANSFORM {
-        res = new IR(kUnreservedKeyword, OP3("TRANSFORM", "", ""));
-        $$ = res;
+        $$ = "TRANSFORM";
     }
 
     | TRIGGER {
-        res = new IR(kUnreservedKeyword, OP3("TRIGGER", "", ""));
-        $$ = res;
+        $$ = "TRIGGER";
     }
 
     | TRUNCATE {
-        res = new IR(kUnreservedKeyword, OP3("TRUNCATE", "", ""));
-        $$ = res;
+        $$ = "TRUNCATE";
     }
 
     | TRUSTED {
-        res = new IR(kUnreservedKeyword, OP3("TRUSTED", "", ""));
-        $$ = res;
+        $$ = "TRUSTED";
     }
 
     | TYPE_P {
-        res = new IR(kUnreservedKeyword, OP3("TYPE", "", ""));
-        $$ = res;
+        $$ = "TYPE";
     }
 
     | TYPES_P {
-        res = new IR(kUnreservedKeyword, OP3("TYPES", "", ""));
-        $$ = res;
+        $$ = "TYPES";
     }
 
     | UESCAPE {
-        res = new IR(kUnreservedKeyword, OP3("UESCAPE", "", ""));
-        $$ = res;
+        $$ = "UESCAPE";
     }
 
     | UNBOUNDED {
-        res = new IR(kUnreservedKeyword, OP3("UNBOUNDED", "", ""));
-        $$ = res;
+        $$ = "UNBOUNDED";
     }
 
     | UNCOMMITTED {
-        res = new IR(kUnreservedKeyword, OP3("UNCOMMITTED", "", ""));
-        $$ = res;
+        $$ = "UNCOMMITTED";
     }
 
     | UNENCRYPTED {
-        res = new IR(kUnreservedKeyword, OP3("UNENCRYPTED", "", ""));
-        $$ = res;
+        $$ = "UNENCRYPTED";
     }
 
     | UNKNOWN {
-        res = new IR(kUnreservedKeyword, OP3("UNKNOWN", "", ""));
-        $$ = res;
+        $$ = "UNKNOWN";
     }
 
     | UNLISTEN {
-        res = new IR(kUnreservedKeyword, OP3("UNLISTEN", "", ""));
-        $$ = res;
+        $$ = "UNLISTEN";
     }
 
     | UNLOGGED {
-        res = new IR(kUnreservedKeyword, OP3("UNLOGGED", "", ""));
-        $$ = res;
+        $$ = "UNLOGGED";
     }
 
     | UNTIL {
-        res = new IR(kUnreservedKeyword, OP3("UNTIL", "", ""));
-        $$ = res;
+        $$ = "UNTIL";
     }
 
     | UPDATE {
-        res = new IR(kUnreservedKeyword, OP3("UPDATE", "", ""));
-        $$ = res;
+        $$ = "UPDATE";
     }
 
     | VACUUM {
-        res = new IR(kUnreservedKeyword, OP3("VACUUM", "", ""));
-        $$ = res;
+        $$ = "VACUUM";
     }
 
     | VALID {
-        res = new IR(kUnreservedKeyword, OP3("VALID", "", ""));
-        $$ = res;
+        $$ = "VALID";
     }
 
     | VALIDATE {
-        res = new IR(kUnreservedKeyword, OP3("VALIDATE", "", ""));
-        $$ = res;
+        $$ = "VALIDATE";
     }
 
     | VALIDATOR {
-        res = new IR(kUnreservedKeyword, OP3("VALIDATOR", "", ""));
-        $$ = res;
+        $$ = "VALIDATOR";
     }
 
     | VALUE_P {
-        res = new IR(kUnreservedKeyword, OP3("VALUE", "", ""));
-        $$ = res;
+        $$ = "VALUE";
     }
 
     | VARYING {
-        res = new IR(kUnreservedKeyword, OP3("VARYING", "", ""));
-        $$ = res;
+        $$ = "VARYING";
     }
 
     | VERSION_P {
-        res = new IR(kUnreservedKeyword, OP3("VERSION", "", ""));
-        $$ = res;
+        $$ = "VERSION";
     }
 
     | VIEW {
-        res = new IR(kUnreservedKeyword, OP3("VIEW", "", ""));
-        $$ = res;
+        $$ = "VIEW";
     }
 
     | VIEWS {
-        res = new IR(kUnreservedKeyword, OP3("VIEWS", "", ""));
-        $$ = res;
+        $$ = "VIEWS";
     }
 
     | VOLATILE {
-        res = new IR(kUnreservedKeyword, OP3("VOLATILE", "", ""));
-        $$ = res;
+        $$ = "VOLATILE";
     }
 
     | WHITESPACE_P {
-        res = new IR(kUnreservedKeyword, OP3("WHITESPACE", "", ""));
-        $$ = res;
+        $$ = "WHITESPACE";
     }
 
     | WITHIN {
-        res = new IR(kUnreservedKeyword, OP3("WITHIN", "", ""));
-        $$ = res;
+        $$ = "WITHIN";
     }
 
     | WITHOUT {
-        res = new IR(kUnreservedKeyword, OP3("WITHOUT", "", ""));
-        $$ = res;
+        $$ = "WITHOUT";
     }
 
     | WORK {
-        res = new IR(kUnreservedKeyword, OP3("WORK", "", ""));
-        $$ = res;
+        $$ = "WORK";
     }
 
     | WRAPPER {
-        res = new IR(kUnreservedKeyword, OP3("WRAPPER", "", ""));
-        $$ = res;
+        $$ = "WRAPPER";
     }
 
     | WRITE {
-        res = new IR(kUnreservedKeyword, OP3("WRITE", "", ""));
-        $$ = res;
+        $$ = "WRITE";
     }
 
     | XML_P {
-        res = new IR(kUnreservedKeyword, OP3("XML", "", ""));
-        $$ = res;
+        $$ = "XML";
     }
 
     | YEAR_P {
-        res = new IR(kUnreservedKeyword, OP3("YEAR", "", ""));
-        $$ = res;
+        $$ = "YEAR";
     }
 
     | YES_P {
-        res = new IR(kUnreservedKeyword, OP3("YES", "", ""));
-        $$ = res;
+        $$ = "YES";
     }
 
     | ZONE {
-        res = new IR(kUnreservedKeyword, OP3("ZONE", "", ""));
-        $$ = res;
+        $$ = "ZONE";
     }
 
 ;
@@ -22363,258 +22034,207 @@ unreserved_keyword:
 col_name_keyword:
 
     BETWEEN {
-        res = new IR(kColNameKeyword, OP3("BETWEEN", "", ""));
-        $$ = res;
+        $$ = "BETWEEN";
     }
 
     | BIGINT {
-        res = new IR(kColNameKeyword, OP3("BIGINT", "", ""));
-        $$ = res;
+        $$ = "BIGINT";
     }
 
     | BIT {
-        res = new IR(kColNameKeyword, OP3("BIT", "", ""));
-        $$ = res;
+        $$ = "BIT";
     }
 
     | BOOLEAN_P {
-        res = new IR(kColNameKeyword, OP3("BOOLEAN", "", ""));
-        $$ = res;
+        $$ = "BOOLEAN";
     }
 
     | CHAR_P {
-        res = new IR(kColNameKeyword, OP3("CHAR", "", ""));
-        $$ = res;
+        $$ = "CHAR";
     }
 
     | CHARACTER {
-        res = new IR(kColNameKeyword, OP3("CHARACTER", "", ""));
-        $$ = res;
+        $$ = "CHARACTER";
     }
 
     | COALESCE {
-        res = new IR(kColNameKeyword, OP3("COALESCE", "", ""));
-        $$ = res;
+        $$ = "COALESCE";
     }
 
     | DEC {
-        res = new IR(kColNameKeyword, OP3("DEC", "", ""));
-        $$ = res;
+        $$ = "DEC";
     }
 
     | DECIMAL_P {
-        res = new IR(kColNameKeyword, OP3("DECIMAL", "", ""));
-        $$ = res;
+        $$ = "DECIMAL";
     }
 
     | EXISTS {
-        res = new IR(kColNameKeyword, OP3("EXISTS", "", ""));
-        $$ = res;
+        $$ = "EXISTS";
     }
 
     | EXTRACT {
-        res = new IR(kColNameKeyword, OP3("EXTRACT", "", ""));
-        $$ = res;
+        $$ = "EXTRACT";
     }
 
     | FLOAT_P {
-        res = new IR(kColNameKeyword, OP3("FLOAT", "", ""));
-        $$ = res;
+        $$ = "FLOAT";
     }
 
     | GREATEST {
-        res = new IR(kColNameKeyword, OP3("GREATEST", "", ""));
-        $$ = res;
+        $$ = "GREATEST";
     }
 
     | GROUPING {
-        res = new IR(kColNameKeyword, OP3("GROUPING", "", ""));
-        $$ = res;
+        $$ = "GROUPING";
     }
 
     | INOUT {
-        res = new IR(kColNameKeyword, OP3("INOUT", "", ""));
-        $$ = res;
+        $$ = "INOUT";
     }
 
     | INT_P {
-        res = new IR(kColNameKeyword, OP3("INT", "", ""));
-        $$ = res;
+        $$ = "INT";
     }
 
     | INTEGER {
-        res = new IR(kColNameKeyword, OP3("INTEGER", "", ""));
-        $$ = res;
+        $$ = "INTEGER";
     }
 
     | INTERVAL {
-        res = new IR(kColNameKeyword, OP3("INTERVAL", "", ""));
-        $$ = res;
+        $$ = "INTERVAL";
     }
 
     | LEAST {
-        res = new IR(kColNameKeyword, OP3("LEAST", "", ""));
-        $$ = res;
+        $$ = "LEAST";
     }
 
     | NATIONAL {
-        res = new IR(kColNameKeyword, OP3("NATIONAL", "", ""));
-        $$ = res;
+        $$ = "NATIONAL";
     }
 
     | NCHAR {
-        res = new IR(kColNameKeyword, OP3("NCHAR", "", ""));
-        $$ = res;
+        $$ = "NCHAR";
     }
 
     | NONE {
-        res = new IR(kColNameKeyword, OP3("NONE", "", ""));
-        $$ = res;
+        $$ = "NONE";
     }
 
     | NORMALIZE {
-        res = new IR(kColNameKeyword, OP3("NORMALIZE", "", ""));
-        $$ = res;
+        $$ = "NORMALIZE";
     }
 
     | NULLIF {
-        res = new IR(kColNameKeyword, OP3("NULLIF", "", ""));
-        $$ = res;
+        $$ = "NULLIF";
     }
 
     | NUMERIC {
-        res = new IR(kColNameKeyword, OP3("NUMERIC", "", ""));
-        $$ = res;
+        $$ = "NUMERIC";
     }
 
     | OUT_P {
-        res = new IR(kColNameKeyword, OP3("OUT", "", ""));
-        $$ = res;
+        $$ = "OUT";
     }
 
     | OVERLAY {
-        res = new IR(kColNameKeyword, OP3("OVERLAY", "", ""));
-        $$ = res;
+        $$ = "OVERLAY";
     }
 
     | POSITION {
-        res = new IR(kColNameKeyword, OP3("POSITION", "", ""));
-        $$ = res;
+        $$ = "POSITION";
     }
 
     | PRECISION {
-        res = new IR(kColNameKeyword, OP3("PRECISION", "", ""));
-        $$ = res;
+        $$ = "PRECISION";
     }
 
     | REAL {
-        res = new IR(kColNameKeyword, OP3("REAL", "", ""));
-        $$ = res;
+        $$ = "REAL";
     }
 
     | ROW {
-        res = new IR(kColNameKeyword, OP3("ROW", "", ""));
-        $$ = res;
+        $$ = "ROW";
     }
 
     | SETOF {
-        res = new IR(kColNameKeyword, OP3("SETOF", "", ""));
-        $$ = res;
+        $$ = "SETOF";
     }
 
     | SMALLINT {
-        res = new IR(kColNameKeyword, OP3("SMALLINT", "", ""));
-        $$ = res;
+        $$ = "SMALLINT";
     }
 
     | SUBSTRING {
-        res = new IR(kColNameKeyword, OP3("SUBSTRING", "", ""));
-        $$ = res;
+        $$ = "SUBSTRING";
     }
 
     | TIME {
-        res = new IR(kColNameKeyword, OP3("TIME", "", ""));
-        $$ = res;
+        $$ = "TIME";
     }
 
     | TIMESTAMP {
-        res = new IR(kColNameKeyword, OP3("TIMESTAMP", "", ""));
-        $$ = res;
+        $$ = "TIMESTAMP";
     }
 
     | TREAT {
-        res = new IR(kColNameKeyword, OP3("TREAT", "", ""));
-        $$ = res;
+        $$ = "TREAT";
     }
 
     | TRIM {
-        res = new IR(kColNameKeyword, OP3("TRIM", "", ""));
-        $$ = res;
+        $$ = "TRIM";
     }
 
     | VALUES {
-        res = new IR(kColNameKeyword, OP3("VALUES", "", ""));
-        $$ = res;
+        $$ = "VALUES";
     }
 
     | VARCHAR {
-        res = new IR(kColNameKeyword, OP3("VARCHAR", "", ""));
-        $$ = res;
+        $$ = "VARCHAR";
     }
 
     | XMLATTRIBUTES {
-        res = new IR(kColNameKeyword, OP3("XMLATTRIBUTES", "", ""));
-        $$ = res;
+        $$ = "XMLATTRIBUTES";
     }
 
     | XMLCONCAT {
-        res = new IR(kColNameKeyword, OP3("XMLCONCAT", "", ""));
-        $$ = res;
+        $$ = "XMLCONCAT";
     }
 
     | XMLELEMENT {
-        res = new IR(kColNameKeyword, OP3("XMLELEMENT", "", ""));
-        $$ = res;
+        $$ = "XMLELEMENT";
     }
 
     | XMLEXISTS {
-        res = new IR(kColNameKeyword, OP3("XMLEXISTS", "", ""));
-        $$ = res;
+        $$ = "XMLEXISTS";
     }
 
     | XMLFOREST {
-        res = new IR(kColNameKeyword, OP3("XMLFOREST", "", ""));
-        $$ = res;
+        $$ = "XMLFOREST";
     }
 
     | XMLNAMESPACES {
-        res = new IR(kColNameKeyword, OP3("XMLNAMESPACES", "", ""));
-        $$ = res;
+        $$ = "XMLNAMESPACES";
     }
 
     | XMLPARSE {
-        res = new IR(kColNameKeyword, OP3("XMLPARSE", "", ""));
-        $$ = res;
+        $$ = "XMLPARSE";
     }
 
     | XMLPI {
-        res = new IR(kColNameKeyword, OP3("XMLPI", "", ""));
-        $$ = res;
+        $$ = "XMLPI";
     }
 
     | XMLROOT {
-        res = new IR(kColNameKeyword, OP3("XMLROOT", "", ""));
-        $$ = res;
+        $$ = "XMLROOT";
     }
 
     | XMLSERIALIZE {
-        res = new IR(kColNameKeyword, OP3("XMLSERIALIZE", "", ""));
-        $$ = res;
+        $$ = "XMLSERIALIZE";
     }
 
     | XMLTABLE {
-        res = new IR(kColNameKeyword, OP3("XMLTABLE", "", ""));
-        $$ = res;
+        $$ = "XMLTABLE";
     }
 
 ;
@@ -22633,118 +22253,95 @@ col_name_keyword:
 type_func_name_keyword:
 
     AUTHORIZATION {
-        res = new IR(kTypeFuncNameKeyword, OP3("AUTHORIZATION", "", ""));
-        $$ = res;
+        $$ = "AUTHORIZATION";
     }
 
     | BINARY {
-        res = new IR(kTypeFuncNameKeyword, OP3("BINARY", "", ""));
-        $$ = res;
+        $$ = "BINARY";
     }
 
     | COLLATION {
-        res = new IR(kTypeFuncNameKeyword, OP3("COLLATION", "", ""));
-        $$ = res;
+        $$ = "COLLATION";
     }
 
     | CONCURRENTLY {
-        res = new IR(kTypeFuncNameKeyword, OP3("CONCURRENTLY", "", ""));
-        $$ = res;
+        $$ = "CONCURRENTLY";
     }
 
     | CROSS {
-        res = new IR(kTypeFuncNameKeyword, OP3("CROSS", "", ""));
-        $$ = res;
+        $$ = "CROSS";
     }
 
     | CURRENT_SCHEMA {
-        res = new IR(kTypeFuncNameKeyword, OP3("CURRENT_SCHEMA", "", ""));
-        $$ = res;
+        $$ = "CURRENT_SCHEMA";
     }
 
     | FREEZE {
-        res = new IR(kTypeFuncNameKeyword, OP3("FREEZE", "", ""));
-        $$ = res;
+        $$ = "FREEZE";
     }
 
     | FULL {
-        res = new IR(kTypeFuncNameKeyword, OP3("FULL", "", ""));
-        $$ = res;
+        $$ = "FULL";
     }
 
     | ILIKE {
-        res = new IR(kTypeFuncNameKeyword, OP3("ILIKE", "", ""));
-        $$ = res;
+        $$ = "ILIKE";
     }
 
     | INNER_P {
-        res = new IR(kTypeFuncNameKeyword, OP3("INNER", "", ""));
-        $$ = res;
+        $$ = "INNER";
     }
 
     | IS {
-        res = new IR(kTypeFuncNameKeyword, OP3("IS", "", ""));
-        $$ = res;
+        $$ = "IS";
     }
 
     | ISNULL {
-        res = new IR(kTypeFuncNameKeyword, OP3("ISNULL", "", ""));
-        $$ = res;
+        $$ = "ISNULL";
     }
 
     | JOIN {
-        res = new IR(kTypeFuncNameKeyword, OP3("JOIN", "", ""));
-        $$ = res;
+        $$ = "JOIN";
     }
 
     | LEFT {
-        res = new IR(kTypeFuncNameKeyword, OP3("LEFT", "", ""));
-        $$ = res;
+        $$ = "LEFT";
     }
 
     | LIKE {
-        res = new IR(kTypeFuncNameKeyword, OP3("LIKE", "", ""));
-        $$ = res;
+        $$ = "LIKE";
     }
 
     | NATURAL {
-        res = new IR(kTypeFuncNameKeyword, OP3("NATURAL", "", ""));
-        $$ = res;
+        $$ = "NATURAL";
     }
 
     | NOTNULL {
-        res = new IR(kTypeFuncNameKeyword, OP3("NOTNULL", "", ""));
-        $$ = res;
+        $$ = "NOTNULL";
     }
 
     | OUTER_P {
-        res = new IR(kTypeFuncNameKeyword, OP3("OUTER", "", ""));
-        $$ = res;
+        $$ = "OUTER";
     }
 
     | OVERLAPS {
-        res = new IR(kTypeFuncNameKeyword, OP3("OVERLAPS", "", ""));
-        $$ = res;
+        $$ = "OVERLAPS";
     }
 
     | RIGHT {
-        res = new IR(kTypeFuncNameKeyword, OP3("RIGHT", "", ""));
-        $$ = res;
+        $$ = "RIGHT";
     }
 
     | SIMILAR {
-        res = new IR(kTypeFuncNameKeyword, OP3("SIMILAR", "", ""));
-        $$ = res;
+        $$ = "SIMILAR";
     }
 
     | TABLESAMPLE {
-        res = new IR(kTypeFuncNameKeyword, OP3("TABLESAMPLE", "", ""));
-        $$ = res;
+        $$ = "TABLESAMPLE";
     }
 
     | VERBOSE {
-        res = new IR(kTypeFuncNameKeyword, OP3("VERBOSE", "", ""));
-        $$ = res;
+        $$ = "VERBOSE";
     }
 
 ;
@@ -22759,388 +22356,311 @@ type_func_name_keyword:
 reserved_keyword:
 
     ALL {
-        res = new IR(kReservedKeyword, OP3("ALL", "", ""));
-        $$ = res;
+        $$ = "ALL";
     }
 
     | ANALYSE {
-        res = new IR(kReservedKeyword, OP3("ANALYSE", "", ""));
-        $$ = res;
+        $$ = "ANALYSE";
     }
 
     | ANALYZE {
-        res = new IR(kReservedKeyword, OP3("ANALYZE", "", ""));
-        $$ = res;
+        $$ = "ANALYZE";
     }
 
     | AND {
-        res = new IR(kReservedKeyword, OP3("AND", "", ""));
-        $$ = res;
+        $$ = "AND";
     }
 
     | ANY {
-        res = new IR(kReservedKeyword, OP3("ANY", "", ""));
-        $$ = res;
+        $$ = "ANY";
     }
 
     | ARRAY {
-        res = new IR(kReservedKeyword, OP3("ARRAY", "", ""));
-        $$ = res;
+        $$ = "ARRAY";
     }
 
     | AS {
-        res = new IR(kReservedKeyword, OP3("AS", "", ""));
-        $$ = res;
+        $$ = "AS";
     }
 
     | ASC {
-        res = new IR(kReservedKeyword, OP3("ASC", "", ""));
-        $$ = res;
+        $$ = "ASC";
     }
 
     | ASYMMETRIC {
-        res = new IR(kReservedKeyword, OP3("ASYMMETRIC", "", ""));
-        $$ = res;
+        $$ = "ASYMMETRIC";
     }
 
     | BOTH {
-        res = new IR(kReservedKeyword, OP3("BOTH", "", ""));
-        $$ = res;
+        $$ = "BOTH";
     }
 
     | CASE {
-        res = new IR(kReservedKeyword, OP3("CASE", "", ""));
-        $$ = res;
+        $$ = "CASE";
     }
 
     | CAST {
-        res = new IR(kReservedKeyword, OP3("CAST", "", ""));
-        $$ = res;
+        $$ = "CAST";
     }
 
     | CHECK {
-        res = new IR(kReservedKeyword, OP3("CHECK", "", ""));
-        $$ = res;
+        $$ = "CHECK";
     }
 
     | COLLATE {
-        res = new IR(kReservedKeyword, OP3("COLLATE", "", ""));
-        $$ = res;
+        $$ = "COLLATE";
     }
 
     | COLUMN {
-        res = new IR(kReservedKeyword, OP3("COLUMN", "", ""));
-        $$ = res;
+        $$ = "COLUMN";
     }
 
     | CONSTRAINT {
-        res = new IR(kReservedKeyword, OP3("CONSTRAINT", "", ""));
-        $$ = res;
+        $$ = "CONSTRAINT";
     }
 
     | CREATE {
-        res = new IR(kReservedKeyword, OP3("CREATE", "", ""));
-        $$ = res;
+        $$ = "CREATE";
     }
 
     | CURRENT_CATALOG {
-        res = new IR(kReservedKeyword, OP3("CURRENT_CATALOG", "", ""));
-        $$ = res;
+        $$ = "CURRENT_CATALOG";
     }
 
     | CURRENT_DATE {
-        res = new IR(kReservedKeyword, OP3("CURRENT_DATE", "", ""));
-        $$ = res;
+        $$ = "CURRENT_DATE";
     }
 
     | CURRENT_ROLE {
-        res = new IR(kReservedKeyword, OP3("CURRENT_ROLE", "", ""));
-        $$ = res;
+        $$ = "CURRENT_ROLE";
     }
 
     | CURRENT_TIME {
-        res = new IR(kReservedKeyword, OP3("CURRENT_TIME", "", ""));
-        $$ = res;
+        $$ = "CURRENT_TIME";
     }
 
     | CURRENT_TIMESTAMP {
-        res = new IR(kReservedKeyword, OP3("CURRENT_TIMESTAMP", "", ""));
-        $$ = res;
+        $$ = "CURRENT_TIMESTAMP";
     }
 
     | CURRENT_USER {
-        res = new IR(kReservedKeyword, OP3("CURRENT_USER", "", ""));
-        $$ = res;
+        $$ = "CURRENT_USER";
     }
 
     | DEFAULT {
-        res = new IR(kReservedKeyword, OP3("DEFAULT", "", ""));
-        $$ = res;
+        $$ = "DEFAULT";
     }
 
     | DEFERRABLE {
-        res = new IR(kReservedKeyword, OP3("DEFERRABLE", "", ""));
-        $$ = res;
+        $$ = "DEFERRABLE";
     }
 
     | DESC {
-        res = new IR(kReservedKeyword, OP3("DESC", "", ""));
-        $$ = res;
+        $$ = "DESC";
     }
 
     | DISTINCT {
-        res = new IR(kReservedKeyword, OP3("DISTINCT", "", ""));
-        $$ = res;
+        $$ = "DISTINCT";
     }
 
     | DO {
-        res = new IR(kReservedKeyword, OP3("DO", "", ""));
-        $$ = res;
+        $$ = "DO";
     }
 
     | ELSE {
-        res = new IR(kReservedKeyword, OP3("ELSE", "", ""));
-        $$ = res;
+        $$ = "ELSE";
     }
 
     | END_P {
-        res = new IR(kReservedKeyword, OP3("END", "", ""));
-        $$ = res;
+        $$ = "END";
     }
 
     | EXCEPT {
-        res = new IR(kReservedKeyword, OP3("EXCEPT", "", ""));
-        $$ = res;
+        $$ = "EXCEPT";
     }
 
     | FALSE_P {
-        res = new IR(kReservedKeyword, OP3("FALSE", "", ""));
-        $$ = res;
+        $$ = "FALSE";
     }
 
     | FETCH {
-        res = new IR(kReservedKeyword, OP3("FETCH", "", ""));
-        $$ = res;
+        $$ = "FETCH";
     }
 
     | FOR {
-        res = new IR(kReservedKeyword, OP3("FOR", "", ""));
-        $$ = res;
+        $$ = "FOR";
     }
 
     | FOREIGN {
-        res = new IR(kReservedKeyword, OP3("FOREIGN", "", ""));
-        $$ = res;
+        $$ = "FOREIGN";
     }
 
     | FROM {
-        res = new IR(kReservedKeyword, OP3("FROM", "", ""));
-        $$ = res;
+        $$ = "FROM";
     }
 
     | GRANT {
-        res = new IR(kReservedKeyword, OP3("GRANT", "", ""));
-        $$ = res;
+        $$ = "GRANT";
     }
 
     | GROUP_P {
-        res = new IR(kReservedKeyword, OP3("GROUP", "", ""));
-        $$ = res;
+        $$ = "GROUP";
     }
 
     | HAVING {
-        res = new IR(kReservedKeyword, OP3("HAVING", "", ""));
-        $$ = res;
+        $$ = "HAVING";
     }
 
     | IN_P {
-        res = new IR(kReservedKeyword, OP3("IN", "", ""));
-        $$ = res;
+        $$ = "IN";
     }
 
     | INITIALLY {
-        res = new IR(kReservedKeyword, OP3("INITIALLY", "", ""));
-        $$ = res;
+        $$ = "INITIALLY";
     }
 
     | INTERSECT {
-        res = new IR(kReservedKeyword, OP3("INTERSECT", "", ""));
-        $$ = res;
+        $$ = "INTERSECT";
     }
 
     | INTO {
-        res = new IR(kReservedKeyword, OP3("INTO", "", ""));
-        $$ = res;
+        $$ = "INTO";
     }
 
     | LATERAL_P {
-        res = new IR(kReservedKeyword, OP3("LATERAL", "", ""));
-        $$ = res;
+        $$ = "LATERAL";
     }
 
     | LEADING {
-        res = new IR(kReservedKeyword, OP3("LEADING", "", ""));
-        $$ = res;
+        $$ = "LEADING";
     }
 
     | LIMIT {
-        res = new IR(kReservedKeyword, OP3("LIMIT", "", ""));
-        $$ = res;
+        $$ = "LIMIT";
     }
 
     | LOCALTIME {
-        res = new IR(kReservedKeyword, OP3("LOCALTIME", "", ""));
-        $$ = res;
+        $$ = "LOCALTIME";
     }
 
     | LOCALTIMESTAMP {
-        res = new IR(kReservedKeyword, OP3("LOCALTIMESTAMP", "", ""));
-        $$ = res;
+        $$ = "LOCALTIMESTAMP";
     }
 
     | NOT {
-        res = new IR(kReservedKeyword, OP3("NOT", "", ""));
-        $$ = res;
+        $$ = "NOT";
     }
 
     | NULL_P {
-        res = new IR(kReservedKeyword, OP3("NULL", "", ""));
-        $$ = res;
+        $$ = "NULL";
     }
 
     | OFFSET {
-        res = new IR(kReservedKeyword, OP3("OFFSET", "", ""));
-        $$ = res;
+        $$ = "OFFSET";
     }
 
     | ON {
-        res = new IR(kReservedKeyword, OP3("ON", "", ""));
-        $$ = res;
+        $$ = "ON";
     }
 
     | ONLY {
-        res = new IR(kReservedKeyword, OP3("ONLY", "", ""));
-        $$ = res;
+        $$ = "ONLY";
     }
 
     | OR {
-        res = new IR(kReservedKeyword, OP3("OR", "", ""));
-        $$ = res;
+        $$ = "OR";
     }
 
     | ORDER {
-        res = new IR(kReservedKeyword, OP3("ORDER", "", ""));
-        $$ = res;
+        $$ = "ORDER";
     }
 
     | PLACING {
-        res = new IR(kReservedKeyword, OP3("PLACING", "", ""));
-        $$ = res;
+        $$ = "PLACING";
     }
 
     | PRIMARY {
-        res = new IR(kReservedKeyword, OP3("PRIMARY", "", ""));
-        $$ = res;
+        $$ = "PRIMARY";
     }
 
     | REFERENCES {
-        res = new IR(kReservedKeyword, OP3("REFERENCES", "", ""));
-        $$ = res;
+        $$ = "REFERENCES";
     }
 
     | RETURNING {
-        res = new IR(kReservedKeyword, OP3("RETURNING", "", ""));
-        $$ = res;
+        $$ = "RETURNING";
     }
 
     | SELECT {
-        res = new IR(kReservedKeyword, OP3("SELECT", "", ""));
-        $$ = res;
+        $$ = "SELECT";
     }
 
     | SESSION_USER {
-        res = new IR(kReservedKeyword, OP3("SESSION_USER", "", ""));
-        $$ = res;
+        $$ = "SESSION_USER";
     }
 
     | SOME {
-        res = new IR(kReservedKeyword, OP3("SOME", "", ""));
-        $$ = res;
+        $$ = "SOME";
     }
 
     | SYMMETRIC {
-        res = new IR(kReservedKeyword, OP3("SYMMETRIC", "", ""));
-        $$ = res;
+        $$ = "SYMMETRIC";
     }
 
     | TABLE {
-        res = new IR(kReservedKeyword, OP3("TABLE", "", ""));
-        $$ = res;
+        $$ = "TABLE";
     }
 
     | THEN {
-        res = new IR(kReservedKeyword, OP3("THEN", "", ""));
-        $$ = res;
+        $$ = "THEN";
     }
 
     | TO {
-        res = new IR(kReservedKeyword, OP3("TO", "", ""));
-        $$ = res;
+        $$ = "TO";
     }
 
     | TRAILING {
-        res = new IR(kReservedKeyword, OP3("TRAILING", "", ""));
-        $$ = res;
+        $$ = "TRAILING";
     }
 
     | TRUE_P {
-        res = new IR(kReservedKeyword, OP3("TRUE", "", ""));
-        $$ = res;
+        $$ = "TRUE";
     }
 
     | UNION {
-        res = new IR(kReservedKeyword, OP3("UNION", "", ""));
-        $$ = res;
+        $$ = "UNION";
     }
 
     | UNIQUE {
-        res = new IR(kReservedKeyword, OP3("UNIQUE", "", ""));
-        $$ = res;
+        $$ = "UNIQUE";
     }
 
     | USER {
-        res = new IR(kReservedKeyword, OP3("USER", "", ""));
-        $$ = res;
+        $$ = "USER";
     }
 
     | USING {
-        res = new IR(kReservedKeyword, OP3("USING", "", ""));
-        $$ = res;
+        $$ = "USING";
     }
 
     | VARIADIC {
-        res = new IR(kReservedKeyword, OP3("VARIADIC", "", ""));
-        $$ = res;
+        $$ = "VARIADIC";
     }
 
     | WHEN {
-        res = new IR(kReservedKeyword, OP3("WHEN", "", ""));
-        $$ = res;
+        $$ = "WHEN";
     }
 
     | WHERE {
-        res = new IR(kReservedKeyword, OP3("WHERE", "", ""));
-        $$ = res;
+        $$ = "WHERE";
     }
 
     | WINDOW {
-        res = new IR(kReservedKeyword, OP3("WINDOW", "", ""));
-        $$ = res;
+        $$ = "WINDOW";
     }
 
     | WITH {
-        res = new IR(kReservedKeyword, OP3("WITH", "", ""));
-        $$ = res;
+        $$ = "WITH";
     }
 
 ;
@@ -23158,2098 +22678,1724 @@ reserved_keyword:
 bare_label_keyword:
 
     ABORT_P {
-        res = new IR(kBareLabelKeyword, OP3("ABORT", "", ""));
-        $$ = res;
+        $$ = "ABORT";
     }
 
     | ABSOLUTE_P {
-        res = new IR(kBareLabelKeyword, OP3("ABSOLUTE", "", ""));
-        $$ = res;
+        $$ = "ABSOLUTE";
     }
 
     | ACCESS {
-        res = new IR(kBareLabelKeyword, OP3("ACCESS", "", ""));
-        $$ = res;
+        $$ = "ACCESS";
     }
 
     | ACTION {
-        res = new IR(kBareLabelKeyword, OP3("ACTION", "", ""));
-        $$ = res;
+        $$ = "ACTION";
     }
 
     | ADD_P {
-        res = new IR(kBareLabelKeyword, OP3("ADD", "", ""));
-        $$ = res;
+        $$ = "ADD";
     }
 
     | ADMIN {
-        res = new IR(kBareLabelKeyword, OP3("ADMIN", "", ""));
-        $$ = res;
+        $$ = "ADMIN";
     }
 
     | AFTER {
-        res = new IR(kBareLabelKeyword, OP3("AFTER", "", ""));
-        $$ = res;
+        $$ = "AFTER";
     }
 
     | AGGREGATE {
-        res = new IR(kBareLabelKeyword, OP3("AGGREGATE", "", ""));
-        $$ = res;
+        $$ = "AGGREGATE";
     }
 
     | ALL {
-        res = new IR(kBareLabelKeyword, OP3("ALL", "", ""));
-        $$ = res;
+        $$ = "ALL";
     }
 
     | ALSO {
-        res = new IR(kBareLabelKeyword, OP3("ALSO", "", ""));
-        $$ = res;
+        $$ = "ALSO";
     }
 
     | ALTER {
-        res = new IR(kBareLabelKeyword, OP3("ALTER", "", ""));
-        $$ = res;
+        $$ = "ALTER";
     }
 
     | ALWAYS {
-        res = new IR(kBareLabelKeyword, OP3("ALWAYS", "", ""));
-        $$ = res;
+        $$ = "ALWAYS";
     }
 
     | ANALYSE {
-        res = new IR(kBareLabelKeyword, OP3("ANALYSE", "", ""));
-        $$ = res;
+        $$ = "ANALYSE";
     }
 
     | ANALYZE {
-        res = new IR(kBareLabelKeyword, OP3("ANALYZE", "", ""));
-        $$ = res;
+        $$ = "ANALYZE";
     }
 
     | AND {
-        res = new IR(kBareLabelKeyword, OP3("AND", "", ""));
-        $$ = res;
+        $$ = "AND";
     }
 
     | ANY {
-        res = new IR(kBareLabelKeyword, OP3("ANY", "", ""));
-        $$ = res;
+        $$ = "ANY";
     }
 
     | ASC {
-        res = new IR(kBareLabelKeyword, OP3("ASC", "", ""));
-        $$ = res;
+        $$ = "ASC";
     }
 
     | ASENSITIVE {
-        res = new IR(kBareLabelKeyword, OP3("ASENSITIVE", "", ""));
-        $$ = res;
+        $$ = "ASENSITIVE";
     }
 
     | ASSERTION {
-        res = new IR(kBareLabelKeyword, OP3("ASSERTION", "", ""));
-        $$ = res;
+        $$ = "ASSERTION";
     }
 
     | ASSIGNMENT {
-        res = new IR(kBareLabelKeyword, OP3("ASSIGNMENT", "", ""));
-        $$ = res;
+        $$ = "ASSIGNMENT";
     }
 
     | ASYMMETRIC {
-        res = new IR(kBareLabelKeyword, OP3("ASYMMETRIC", "", ""));
-        $$ = res;
+        $$ = "ASYMMETRIC";
     }
 
     | AT {
-        res = new IR(kBareLabelKeyword, OP3("AT", "", ""));
-        $$ = res;
+        $$ = "AT";
     }
 
     | ATOMIC {
-        res = new IR(kBareLabelKeyword, OP3("ATOMIC", "", ""));
-        $$ = res;
+        $$ = "ATOMIC";
     }
 
     | ATTACH {
-        res = new IR(kBareLabelKeyword, OP3("ATTACH", "", ""));
-        $$ = res;
+        $$ = "ATTACH";
     }
 
     | ATTRIBUTE {
-        res = new IR(kBareLabelKeyword, OP3("ATTRIBUTE", "", ""));
-        $$ = res;
+        $$ = "ATTRIBUTE";
     }
 
     | AUTHORIZATION {
-        res = new IR(kBareLabelKeyword, OP3("AUTHORIZATION", "", ""));
-        $$ = res;
+        $$ = "AUTHORIZATION";
     }
 
     | BACKWARD {
-        res = new IR(kBareLabelKeyword, OP3("BACKWARD", "", ""));
-        $$ = res;
+        $$ = "BACKWARD";
     }
 
     | BEFORE {
-        res = new IR(kBareLabelKeyword, OP3("BEFORE", "", ""));
-        $$ = res;
+        $$ = "BEFORE";
     }
 
     | BEGIN_P {
-        res = new IR(kBareLabelKeyword, OP3("BEGIN", "", ""));
-        $$ = res;
+        $$ = "BEGIN";
     }
 
     | BETWEEN {
-        res = new IR(kBareLabelKeyword, OP3("BETWEEN", "", ""));
-        $$ = res;
+        $$ = "BETWEEN";
     }
 
     | BIGINT {
-        res = new IR(kBareLabelKeyword, OP3("BIGINT", "", ""));
-        $$ = res;
+        $$ = "BIGINT";
     }
 
     | BINARY {
-        res = new IR(kBareLabelKeyword, OP3("BINARY", "", ""));
-        $$ = res;
+        $$ = "BINARY";
     }
 
     | BIT {
-        res = new IR(kBareLabelKeyword, OP3("BIT", "", ""));
-        $$ = res;
+        $$ = "BIT";
     }
 
     | BOOLEAN_P {
-        res = new IR(kBareLabelKeyword, OP3("BOOLEAN", "", ""));
-        $$ = res;
+        $$ = "BOOLEAN";
     }
 
     | BOTH {
-        res = new IR(kBareLabelKeyword, OP3("BOTH", "", ""));
-        $$ = res;
+        $$ = "BOTH";
     }
 
     | BREADTH {
-        res = new IR(kBareLabelKeyword, OP3("BREADTH", "", ""));
-        $$ = res;
+        $$ = "BREADTH";
     }
 
     | BY {
-        res = new IR(kBareLabelKeyword, OP3("BY", "", ""));
-        $$ = res;
+        $$ = "BY";
     }
 
     | CACHE {
-        res = new IR(kBareLabelKeyword, OP3("CACHE", "", ""));
-        $$ = res;
+        $$ = "CACHE";
     }
 
     | CALL {
-        res = new IR(kBareLabelKeyword, OP3("CALL", "", ""));
-        $$ = res;
+        $$ = "CALL";
     }
 
     | CALLED {
-        res = new IR(kBareLabelKeyword, OP3("CALLED", "", ""));
-        $$ = res;
+        $$ = "CALLED";
     }
 
     | CASCADE {
-        res = new IR(kBareLabelKeyword, OP3("CASCADE", "", ""));
-        $$ = res;
+        $$ = "CASCADE";
     }
 
     | CASCADED {
-        res = new IR(kBareLabelKeyword, OP3("CASCADED", "", ""));
-        $$ = res;
+        $$ = "CASCADED";
     }
 
     | CASE {
-        res = new IR(kBareLabelKeyword, OP3("CASE", "", ""));
-        $$ = res;
+        $$ = "CASE";
     }
 
     | CAST {
-        res = new IR(kBareLabelKeyword, OP3("CAST", "", ""));
-        $$ = res;
+        $$ = "CAST";
     }
 
     | CATALOG_P {
-        res = new IR(kBareLabelKeyword, OP3("CATALOG", "", ""));
-        $$ = res;
+        $$ = "CATALOG";
     }
 
     | CHAIN {
-        res = new IR(kBareLabelKeyword, OP3("CHAIN", "", ""));
-        $$ = res;
+        $$ = "CHAIN";
     }
 
     | CHARACTERISTICS {
-        res = new IR(kBareLabelKeyword, OP3("CHARACTERISTICS", "", ""));
-        $$ = res;
+        $$ = "CHARACTERISTICS";
     }
 
     | CHECK {
-        res = new IR(kBareLabelKeyword, OP3("CHECK", "", ""));
-        $$ = res;
+        $$ = "CHECK";
     }
 
     | CHECKPOINT {
-        res = new IR(kBareLabelKeyword, OP3("CHECKPOINT", "", ""));
-        $$ = res;
+        $$ = "CHECKPOINT";
     }
 
     | CLASS {
-        res = new IR(kBareLabelKeyword, OP3("CLASS", "", ""));
-        $$ = res;
+        $$ = "CLASS";
     }
 
     | CLOSE {
-        res = new IR(kBareLabelKeyword, OP3("CLOSE", "", ""));
-        $$ = res;
+        $$ = "CLOSE";
     }
 
     | CLUSTER {
-        res = new IR(kBareLabelKeyword, OP3("CLUSTER", "", ""));
-        $$ = res;
+        $$ = "CLUSTER";
     }
 
     | COALESCE {
-        res = new IR(kBareLabelKeyword, OP3("COALESCE", "", ""));
-        $$ = res;
+        $$ = "COALESCE";
     }
 
     | COLLATE {
-        res = new IR(kBareLabelKeyword, OP3("COLLATE", "", ""));
-        $$ = res;
+        $$ = "COLLATE";
     }
 
     | COLLATION {
-        res = new IR(kBareLabelKeyword, OP3("COLLATION", "", ""));
-        $$ = res;
+        $$ = "COLLATION";
     }
 
     | COLUMN {
-        res = new IR(kBareLabelKeyword, OP3("COLUMN", "", ""));
-        $$ = res;
+        $$ = "COLUMN";
     }
 
     | COLUMNS {
-        res = new IR(kBareLabelKeyword, OP3("COLUMNS", "", ""));
-        $$ = res;
+        $$ = "COLUMNS";
     }
 
     | COMMENT {
-        res = new IR(kBareLabelKeyword, OP3("COMMENT", "", ""));
-        $$ = res;
+        $$ = "COMMENT";
     }
 
     | COMMENTS {
-        res = new IR(kBareLabelKeyword, OP3("COMMENTS", "", ""));
-        $$ = res;
+        $$ = "COMMENTS";
     }
 
     | COMMIT {
-        res = new IR(kBareLabelKeyword, OP3("COMMIT", "", ""));
-        $$ = res;
+        $$ = "COMMIT";
     }
 
     | COMMITTED {
-        res = new IR(kBareLabelKeyword, OP3("COMMITTED", "", ""));
-        $$ = res;
+        $$ = "COMMITTED";
     }
 
     | COMPRESSION {
-        res = new IR(kBareLabelKeyword, OP3("COMPRESSION", "", ""));
-        $$ = res;
+        $$ = "COMPRESSION";
     }
 
     | CONCURRENTLY {
-        res = new IR(kBareLabelKeyword, OP3("CONCURRENTLY", "", ""));
-        $$ = res;
+        $$ = "CONCURRENTLY";
     }
 
     | CONFIGURATION {
-        res = new IR(kBareLabelKeyword, OP3("CONFIGURATION", "", ""));
-        $$ = res;
+        $$ = "CONFIGURATION";
     }
 
     | CONFLICT {
-        res = new IR(kBareLabelKeyword, OP3("CONFLICT", "", ""));
-        $$ = res;
+        $$ = "CONFLICT";
     }
 
     | CONNECTION {
-        res = new IR(kBareLabelKeyword, OP3("CONNECTION", "", ""));
-        $$ = res;
+        $$ = "CONNECTION";
     }
 
     | CONSTRAINT {
-        res = new IR(kBareLabelKeyword, OP3("CONSTRAINT", "", ""));
-        $$ = res;
+        $$ = "CONSTRAINT";
     }
 
     | CONSTRAINTS {
-        res = new IR(kBareLabelKeyword, OP3("CONSTRAINTS", "", ""));
-        $$ = res;
+        $$ = "CONSTRAINTS";
     }
 
     | CONTENT_P {
-        res = new IR(kBareLabelKeyword, OP3("CONTENT", "", ""));
-        $$ = res;
+        $$ = "CONTENT";
     }
 
     | CONTINUE_P {
-        res = new IR(kBareLabelKeyword, OP3("CONTINUE", "", ""));
-        $$ = res;
+        $$ = "CONTINUE";
     }
 
     | CONVERSION_P {
-        res = new IR(kBareLabelKeyword, OP3("CONVERSION", "", ""));
-        $$ = res;
+        $$ = "CONVERSION";
     }
 
     | COPY {
-        res = new IR(kBareLabelKeyword, OP3("COPY", "", ""));
-        $$ = res;
+        $$ = "COPY";
     }
 
     | COST {
-        res = new IR(kBareLabelKeyword, OP3("COST", "", ""));
-        $$ = res;
+        $$ = "COST";
     }
 
     | CROSS {
-        res = new IR(kBareLabelKeyword, OP3("CROSS", "", ""));
-        $$ = res;
+        $$ = "CROSS";
     }
 
     | CSV {
-        res = new IR(kBareLabelKeyword, OP3("CSV", "", ""));
-        $$ = res;
+        $$ = "CSV";
     }
 
     | CUBE {
-        res = new IR(kBareLabelKeyword, OP3("CUBE", "", ""));
-        $$ = res;
+        $$ = "CUBE";
     }
 
     | CURRENT_P {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT", "", ""));
-        $$ = res;
+        $$ = "CURRENT";
     }
 
     | CURRENT_CATALOG {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_CATALOG", "", ""));
-        $$ = res;
+        $$ = "CURRENT_CATALOG";
     }
 
     | CURRENT_DATE {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_DATE", "", ""));
-        $$ = res;
+        $$ = "CURRENT_DATE";
     }
 
     | CURRENT_ROLE {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_ROLE", "", ""));
-        $$ = res;
+        $$ = "CURRENT_ROLE";
     }
 
     | CURRENT_SCHEMA {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_SCHEMA", "", ""));
-        $$ = res;
+        $$ = "CURRENT_SCHEMA";
     }
 
     | CURRENT_TIME {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_TIME", "", ""));
-        $$ = res;
+        $$ = "CURRENT_TIME";
     }
 
     | CURRENT_TIMESTAMP {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_TIMESTAMP", "", ""));
-        $$ = res;
+        $$ = "CURRENT_TIMESTAMP";
     }
 
     | CURRENT_USER {
-        res = new IR(kBareLabelKeyword, OP3("CURRENT_USER", "", ""));
-        $$ = res;
+        $$ = "CURRENT_USER";
     }
 
     | CURSOR {
-        res = new IR(kBareLabelKeyword, OP3("CURSOR", "", ""));
-        $$ = res;
+        $$ = "CURSOR";
     }
 
     | CYCLE {
-        res = new IR(kBareLabelKeyword, OP3("CYCLE", "", ""));
-        $$ = res;
+        $$ = "CYCLE";
     }
 
     | DATA_P {
-        res = new IR(kBareLabelKeyword, OP3("DATA", "", ""));
-        $$ = res;
+        $$ = "DATA";
     }
 
     | DATABASE {
-        res = new IR(kBareLabelKeyword, OP3("DATABASE", "", ""));
-        $$ = res;
+        $$ = "DATABASE";
     }
 
     | DEALLOCATE {
-        res = new IR(kBareLabelKeyword, OP3("DEALLOCATE", "", ""));
-        $$ = res;
+        $$ = "DEALLOCATE";
     }
 
     | DEC {
-        res = new IR(kBareLabelKeyword, OP3("DEC", "", ""));
-        $$ = res;
+        $$ = "DEC";
     }
 
     | DECIMAL_P {
-        res = new IR(kBareLabelKeyword, OP3("DECIMAL", "", ""));
-        $$ = res;
+        $$ = "DECIMAL";
     }
 
     | DECLARE {
-        res = new IR(kBareLabelKeyword, OP3("DECLARE", "", ""));
-        $$ = res;
+        $$ = "DECLARE";
     }
 
     | DEFAULT {
-        res = new IR(kBareLabelKeyword, OP3("DEFAULT", "", ""));
-        $$ = res;
+        $$ = "DEFAULT";
     }
 
     | DEFAULTS {
-        res = new IR(kBareLabelKeyword, OP3("DEFAULTS", "", ""));
-        $$ = res;
+        $$ = "DEFAULTS";
     }
 
     | DEFERRABLE {
-        res = new IR(kBareLabelKeyword, OP3("DEFERRABLE", "", ""));
-        $$ = res;
+        $$ = "DEFERRABLE";
     }
 
     | DEFERRED {
-        res = new IR(kBareLabelKeyword, OP3("DEFERRED", "", ""));
-        $$ = res;
+        $$ = "DEFERRED";
     }
 
     | DEFINER {
-        res = new IR(kBareLabelKeyword, OP3("DEFINER", "", ""));
-        $$ = res;
+        $$ = "DEFINER";
     }
 
     | DELETE_P {
-        res = new IR(kBareLabelKeyword, OP3("DELETE", "", ""));
-        $$ = res;
+        $$ = "DELETE";
     }
 
     | DELIMITER {
-        res = new IR(kBareLabelKeyword, OP3("DELIMITER", "", ""));
-        $$ = res;
+        $$ = "DELIMITER";
     }
 
     | DELIMITERS {
-        res = new IR(kBareLabelKeyword, OP3("DELIMITERS", "", ""));
-        $$ = res;
+        $$ = "DELIMITERS";
     }
 
     | DEPENDS {
-        res = new IR(kBareLabelKeyword, OP3("DEPENDS", "", ""));
-        $$ = res;
+        $$ = "DEPENDS";
     }
 
     | DEPTH {
-        res = new IR(kBareLabelKeyword, OP3("DEPTH", "", ""));
-        $$ = res;
+        $$ = "DEPTH";
     }
 
     | DESC {
-        res = new IR(kBareLabelKeyword, OP3("DESC", "", ""));
-        $$ = res;
+        $$ = "DESC";
     }
 
     | DETACH {
-        res = new IR(kBareLabelKeyword, OP3("DETACH", "", ""));
-        $$ = res;
+        $$ = "DETACH";
     }
 
     | DICTIONARY {
-        res = new IR(kBareLabelKeyword, OP3("DICTIONARY", "", ""));
-        $$ = res;
+        $$ = "DICTIONARY";
     }
 
     | DISABLE_P {
-        res = new IR(kBareLabelKeyword, OP3("DISABLE", "", ""));
-        $$ = res;
+        $$ = "DISABLE";
     }
 
     | DISCARD {
-        res = new IR(kBareLabelKeyword, OP3("DISCARD", "", ""));
-        $$ = res;
+        $$ = "DISCARD";
     }
 
     | DISTINCT {
-        res = new IR(kBareLabelKeyword, OP3("DISTINCT", "", ""));
-        $$ = res;
+        $$ = "DISTINCT";
     }
 
     | DO {
-        res = new IR(kBareLabelKeyword, OP3("DO", "", ""));
-        $$ = res;
+        $$ = "DO";
     }
 
     | DOCUMENT_P {
-        res = new IR(kBareLabelKeyword, OP3("DOCUMENT", "", ""));
-        $$ = res;
+        $$ = "DOCUMENT";
     }
 
     | DOMAIN_P {
-        res = new IR(kBareLabelKeyword, OP3("DOMAIN", "", ""));
-        $$ = res;
+        $$ = "DOMAIN";
     }
 
     | DOUBLE_P {
-        res = new IR(kBareLabelKeyword, OP3("DOUBLE", "", ""));
-        $$ = res;
+        $$ = "DOUBLE";
     }
 
     | DROP {
-        res = new IR(kBareLabelKeyword, OP3("DROP", "", ""));
-        $$ = res;
+        $$ = "DROP";
     }
 
     | EACH {
-        res = new IR(kBareLabelKeyword, OP3("EACH", "", ""));
-        $$ = res;
+        $$ = "EACH";
     }
 
     | ELSE {
-        res = new IR(kBareLabelKeyword, OP3("ELSE", "", ""));
-        $$ = res;
+        $$ = "ELSE";
     }
 
     | ENABLE_P {
-        res = new IR(kBareLabelKeyword, OP3("ENABLE", "", ""));
-        $$ = res;
+        $$ = "ENABLE";
     }
 
     | ENCODING {
-        res = new IR(kBareLabelKeyword, OP3("ENCODING", "", ""));
-        $$ = res;
+        $$ = "ENCODING";
     }
 
     | ENCRYPTED {
-        res = new IR(kBareLabelKeyword, OP3("ENCRYPTED", "", ""));
-        $$ = res;
+        $$ = "ENCRYPTED";
     }
 
     | END_P {
-        res = new IR(kBareLabelKeyword, OP3("END", "", ""));
-        $$ = res;
+        $$ = "END";
     }
 
     | ENUM_P {
-        res = new IR(kBareLabelKeyword, OP3("ENUM", "", ""));
-        $$ = res;
+        $$ = "ENUM";
     }
 
     | ESCAPE {
-        res = new IR(kBareLabelKeyword, OP3("ESCAPE", "", ""));
-        $$ = res;
+        $$ = "ESCAPE";
     }
 
     | EVENT {
-        res = new IR(kBareLabelKeyword, OP3("EVENT", "", ""));
-        $$ = res;
+        $$ = "EVENT";
     }
 
     | EXCLUDE {
-        res = new IR(kBareLabelKeyword, OP3("EXCLUDE", "", ""));
-        $$ = res;
+        $$ = "EXCLUDE";
     }
 
     | EXCLUDING {
-        res = new IR(kBareLabelKeyword, OP3("EXCLUDING", "", ""));
-        $$ = res;
+        $$ = "EXCLUDING";
     }
 
     | EXCLUSIVE {
-        res = new IR(kBareLabelKeyword, OP3("EXCLUSIVE", "", ""));
-        $$ = res;
+        $$ = "EXCLUSIVE";
     }
 
     | EXECUTE {
-        res = new IR(kBareLabelKeyword, OP3("EXECUTE", "", ""));
-        $$ = res;
+        $$ = "EXECUTE";
     }
 
     | EXISTS {
-        res = new IR(kBareLabelKeyword, OP3("EXISTS", "", ""));
-        $$ = res;
+        $$ = "EXISTS";
     }
 
     | EXPLAIN {
-        res = new IR(kBareLabelKeyword, OP3("EXPLAIN", "", ""));
-        $$ = res;
+        $$ = "EXPLAIN";
     }
 
     | EXPRESSION {
-        res = new IR(kBareLabelKeyword, OP3("EXPRESSION", "", ""));
-        $$ = res;
+        $$ = "EXPRESSION";
     }
 
     | EXTENSION {
-        res = new IR(kBareLabelKeyword, OP3("EXTENSION", "", ""));
-        $$ = res;
+        $$ = "EXTENSION";
     }
 
     | EXTERNAL {
-        res = new IR(kBareLabelKeyword, OP3("EXTERNAL", "", ""));
-        $$ = res;
+        $$ = "EXTERNAL";
     }
 
     | EXTRACT {
-        res = new IR(kBareLabelKeyword, OP3("EXTRACT", "", ""));
-        $$ = res;
+        $$ = "EXTRACT";
     }
 
     | FALSE_P {
-        res = new IR(kBareLabelKeyword, OP3("FALSE", "", ""));
-        $$ = res;
+        $$ = "FALSE";
     }
 
     | FAMILY {
-        res = new IR(kBareLabelKeyword, OP3("FAMILY", "", ""));
-        $$ = res;
+        $$ = "FAMILY";
     }
 
     | FINALIZE {
-        res = new IR(kBareLabelKeyword, OP3("FINALIZE", "", ""));
-        $$ = res;
+        $$ = "FINALIZE";
     }
 
     | FIRST_P {
-        res = new IR(kBareLabelKeyword, OP3("FIRST", "", ""));
-        $$ = res;
+        $$ = "FIRST";
     }
 
     | FLOAT_P {
-        res = new IR(kBareLabelKeyword, OP3("FLOAT", "", ""));
-        $$ = res;
+        $$ = "FLOAT";
     }
 
     | FOLLOWING {
-        res = new IR(kBareLabelKeyword, OP3("FOLLOWING", "", ""));
-        $$ = res;
+        $$ = "FOLLOWING";
     }
 
     | FORCE {
-        res = new IR(kBareLabelKeyword, OP3("FORCE", "", ""));
-        $$ = res;
+        $$ = "FORCE";
     }
 
     | FOREIGN {
-        res = new IR(kBareLabelKeyword, OP3("FOREIGN", "", ""));
-        $$ = res;
+        $$ = "FOREIGN";
     }
 
     | FORWARD {
-        res = new IR(kBareLabelKeyword, OP3("FORWARD", "", ""));
-        $$ = res;
+        $$ = "FORWARD";
     }
 
     | FREEZE {
-        res = new IR(kBareLabelKeyword, OP3("FREEZE", "", ""));
-        $$ = res;
+        $$ = "FREEZE";
     }
 
     | FULL {
-        res = new IR(kBareLabelKeyword, OP3("FULL", "", ""));
-        $$ = res;
+        $$ = "FULL";
     }
 
     | FUNCTION {
-        res = new IR(kBareLabelKeyword, OP3("FUNCTION", "", ""));
-        $$ = res;
+        $$ = "FUNCTION";
     }
 
     | FUNCTIONS {
-        res = new IR(kBareLabelKeyword, OP3("FUNCTIONS", "", ""));
-        $$ = res;
+        $$ = "FUNCTIONS";
     }
 
     | GENERATED {
-        res = new IR(kBareLabelKeyword, OP3("GENERATED", "", ""));
-        $$ = res;
+        $$ = "GENERATED";
     }
 
     | GLOBAL {
-        res = new IR(kBareLabelKeyword, OP3("GLOBAL", "", ""));
-        $$ = res;
+        $$ = "GLOBAL";
     }
 
     | GRANTED {
-        res = new IR(kBareLabelKeyword, OP3("GRANTED", "", ""));
-        $$ = res;
+        $$ = "GRANTED";
     }
 
     | GREATEST {
-        res = new IR(kBareLabelKeyword, OP3("GREATEST", "", ""));
-        $$ = res;
+        $$ = "GREATEST";
     }
 
     | GROUPING {
-        res = new IR(kBareLabelKeyword, OP3("GROUPING", "", ""));
-        $$ = res;
+        $$ = "GROUPING";
     }
 
     | GROUPS {
-        res = new IR(kBareLabelKeyword, OP3("GROUPS", "", ""));
-        $$ = res;
+        $$ = "GROUPS";
     }
 
     | HANDLER {
-        res = new IR(kBareLabelKeyword, OP3("HANDLER", "", ""));
-        $$ = res;
+        $$ = "HANDLER";
     }
 
     | HEADER_P {
-        res = new IR(kBareLabelKeyword, OP3("HEADER", "", ""));
-        $$ = res;
+        $$ = "HEADER";
     }
 
     | HOLD {
-        res = new IR(kBareLabelKeyword, OP3("HOLD", "", ""));
-        $$ = res;
+        $$ = "HOLD";
     }
 
     | IDENTITY_P {
-        res = new IR(kBareLabelKeyword, OP3("IDENTITY", "", ""));
-        $$ = res;
+        $$ = "IDENTITY";
     }
 
     | IF_P {
-        res = new IR(kBareLabelKeyword, OP3("IF", "", ""));
-        $$ = res;
+        $$ = "IF";
     }
 
     | ILIKE {
-        res = new IR(kBareLabelKeyword, OP3("ILIKE", "", ""));
-        $$ = res;
+        $$ = "ILIKE";
     }
 
     | IMMEDIATE {
-        res = new IR(kBareLabelKeyword, OP3("IMMEDIATE", "", ""));
-        $$ = res;
+        $$ = "IMMEDIATE";
     }
 
     | IMMUTABLE {
-        res = new IR(kBareLabelKeyword, OP3("IMMUTABLE", "", ""));
-        $$ = res;
+        $$ = "IMMUTABLE";
     }
 
     | IMPLICIT_P {
-        res = new IR(kBareLabelKeyword, OP3("IMPLICIT", "", ""));
-        $$ = res;
+        $$ = "IMPLICIT";
     }
 
     | IMPORT_P {
-        res = new IR(kBareLabelKeyword, OP3("IMPORT", "", ""));
-        $$ = res;
+        $$ = "IMPORT";
     }
 
     | IN_P {
-        res = new IR(kBareLabelKeyword, OP3("IN", "", ""));
-        $$ = res;
+        $$ = "IN";
     }
 
     | INCLUDE {
-        res = new IR(kBareLabelKeyword, OP3("INCLUDE", "", ""));
-        $$ = res;
+        $$ = "INCLUDE";
     }
 
     | INCLUDING {
-        res = new IR(kBareLabelKeyword, OP3("INCLUDING", "", ""));
-        $$ = res;
+        $$ = "INCLUDING";
     }
 
     | INCREMENT {
-        res = new IR(kBareLabelKeyword, OP3("INCREMENT", "", ""));
-        $$ = res;
+        $$ = "INCREMENT";
     }
 
     | INDEX {
-        res = new IR(kBareLabelKeyword, OP3("INDEX", "", ""));
-        $$ = res;
+        $$ = "INDEX";
     }
 
     | INDEXES {
-        res = new IR(kBareLabelKeyword, OP3("INDEXES", "", ""));
-        $$ = res;
+        $$ = "INDEXES";
     }
 
     | INHERIT {
-        res = new IR(kBareLabelKeyword, OP3("INHERIT", "", ""));
-        $$ = res;
+        $$ = "INHERIT";
     }
 
     | INHERITS {
-        res = new IR(kBareLabelKeyword, OP3("INHERITS", "", ""));
-        $$ = res;
+        $$ = "INHERITS";
     }
 
     | INITIALLY {
-        res = new IR(kBareLabelKeyword, OP3("INITIALLY", "", ""));
-        $$ = res;
+        $$ = "INITIALLY";
     }
 
     | INLINE_P {
-        res = new IR(kBareLabelKeyword, OP3("INLINE", "", ""));
-        $$ = res;
+        $$ = "INLINE";
     }
 
     | INNER_P {
-        res = new IR(kBareLabelKeyword, OP3("INNER", "", ""));
-        $$ = res;
+        $$ = "INNER";
     }
 
     | INOUT {
-        res = new IR(kBareLabelKeyword, OP3("INOUT", "", ""));
-        $$ = res;
+        $$ = "INOUT";
     }
 
     | INPUT_P {
-        res = new IR(kBareLabelKeyword, OP3("INPUT", "", ""));
-        $$ = res;
+        $$ = "INPUT";
     }
 
     | INSENSITIVE {
-        res = new IR(kBareLabelKeyword, OP3("INSENSITIVE", "", ""));
-        $$ = res;
+        $$ = "INSENSITIVE";
     }
 
     | INSERT {
-        res = new IR(kBareLabelKeyword, OP3("INSERT", "", ""));
-        $$ = res;
+        $$ = "INSERT";
     }
 
     | INSTEAD {
-        res = new IR(kBareLabelKeyword, OP3("INSTEAD", "", ""));
-        $$ = res;
+        $$ = "INSTEAD";
     }
 
     | INT_P {
-        res = new IR(kBareLabelKeyword, OP3("INT", "", ""));
-        $$ = res;
+        $$ = "INT";
     }
 
     | INTEGER {
-        res = new IR(kBareLabelKeyword, OP3("INTEGER", "", ""));
-        $$ = res;
+        $$ = "INTEGER";
     }
 
     | INTERVAL {
-        res = new IR(kBareLabelKeyword, OP3("INTERVAL", "", ""));
-        $$ = res;
+        $$ = "INTERVAL";
     }
 
     | INVOKER {
-        res = new IR(kBareLabelKeyword, OP3("INVOKER", "", ""));
-        $$ = res;
+        $$ = "INVOKER";
     }
 
     | IS {
-        res = new IR(kBareLabelKeyword, OP3("IS", "", ""));
-        $$ = res;
+        $$ = "IS";
     }
 
     | ISOLATION {
-        res = new IR(kBareLabelKeyword, OP3("ISOLATION", "", ""));
-        $$ = res;
+        $$ = "ISOLATION";
     }
 
     | JOIN {
-        res = new IR(kBareLabelKeyword, OP3("JOIN", "", ""));
-        $$ = res;
+        $$ = "JOIN";
     }
 
     | KEY {
-        res = new IR(kBareLabelKeyword, OP3("KEY", "", ""));
-        $$ = res;
+        $$ = "KEY";
     }
 
     | LABEL {
-        res = new IR(kBareLabelKeyword, OP3("LABEL", "", ""));
-        $$ = res;
+        $$ = "LABEL";
     }
 
     | LANGUAGE {
-        res = new IR(kBareLabelKeyword, OP3("LANGUAGE", "", ""));
-        $$ = res;
+        $$ = "LANGUAGE";
     }
 
     | LARGE_P {
-        res = new IR(kBareLabelKeyword, OP3("LARGE", "", ""));
-        $$ = res;
+        $$ = "LARGE";
     }
 
     | LAST_P {
-        res = new IR(kBareLabelKeyword, OP3("LAST", "", ""));
-        $$ = res;
+        $$ = "LAST";
     }
 
     | LATERAL_P {
-        res = new IR(kBareLabelKeyword, OP3("LATERAL", "", ""));
-        $$ = res;
+        $$ = "LATERAL";
     }
 
     | LEADING {
-        res = new IR(kBareLabelKeyword, OP3("LEADING", "", ""));
-        $$ = res;
+        $$ = "LEADING";
     }
 
     | LEAKPROOF {
-        res = new IR(kBareLabelKeyword, OP3("LEAKPROOF", "", ""));
-        $$ = res;
+        $$ = "LEAKPROOF";
     }
 
     | LEAST {
-        res = new IR(kBareLabelKeyword, OP3("LEAST", "", ""));
-        $$ = res;
+        $$ = "LEAST";
     }
 
     | LEFT {
-        res = new IR(kBareLabelKeyword, OP3("LEFT", "", ""));
-        $$ = res;
+        $$ = "LEFT";
     }
 
     | LEVEL {
-        res = new IR(kBareLabelKeyword, OP3("LEVEL", "", ""));
-        $$ = res;
+        $$ = "LEVEL";
     }
 
     | LIKE {
-        res = new IR(kBareLabelKeyword, OP3("LIKE", "", ""));
-        $$ = res;
+        $$ = "LIKE";
     }
 
     | LISTEN {
-        res = new IR(kBareLabelKeyword, OP3("LISTEN", "", ""));
-        $$ = res;
+        $$ = "LISTEN";
     }
 
     | LOAD {
-        res = new IR(kBareLabelKeyword, OP3("LOAD", "", ""));
-        $$ = res;
+        $$ = "LOAD";
     }
 
     | LOCAL {
-        res = new IR(kBareLabelKeyword, OP3("LOCAL", "", ""));
-        $$ = res;
+        $$ = "LOCAL";
     }
 
     | LOCALTIME {
-        res = new IR(kBareLabelKeyword, OP3("LOCALTIME", "", ""));
-        $$ = res;
+        $$ = "LOCALTIME";
     }
 
     | LOCALTIMESTAMP {
-        res = new IR(kBareLabelKeyword, OP3("LOCALTIMESTAMP", "", ""));
-        $$ = res;
+        $$ = "LOCALTIMESTAMP";
     }
 
     | LOCATION {
-        res = new IR(kBareLabelKeyword, OP3("LOCATION", "", ""));
-        $$ = res;
+        $$ = "LOCATION";
     }
 
     | LOCK_P {
-        res = new IR(kBareLabelKeyword, OP3("LOCK", "", ""));
-        $$ = res;
+        $$ = "LOCK";
     }
 
     | LOCKED {
-        res = new IR(kBareLabelKeyword, OP3("LOCKED", "", ""));
-        $$ = res;
+        $$ = "LOCKED";
     }
 
     | LOGGED {
-        res = new IR(kBareLabelKeyword, OP3("LOGGED", "", ""));
-        $$ = res;
+        $$ = "LOGGED";
     }
 
     | MAPPING {
-        res = new IR(kBareLabelKeyword, OP3("MAPPING", "", ""));
-        $$ = res;
+        $$ = "MAPPING";
     }
 
     | MATCH {
-        res = new IR(kBareLabelKeyword, OP3("MATCH", "", ""));
-        $$ = res;
+        $$ = "MATCH";
     }
 
     | MATERIALIZED {
-        res = new IR(kBareLabelKeyword, OP3("MATERIALIZED", "", ""));
-        $$ = res;
+        $$ = "MATERIALIZED";
     }
 
     | MAXVALUE {
-        res = new IR(kBareLabelKeyword, OP3("MAXVALUE", "", ""));
-        $$ = res;
+        $$ = "MAXVALUE";
     }
 
     | METHOD {
-        res = new IR(kBareLabelKeyword, OP3("METHOD", "", ""));
-        $$ = res;
+        $$ = "METHOD";
     }
 
     | MINVALUE {
-        res = new IR(kBareLabelKeyword, OP3("MINVALUE", "", ""));
-        $$ = res;
+        $$ = "MINVALUE";
     }
 
     | MODE {
-        res = new IR(kBareLabelKeyword, OP3("MODE", "", ""));
-        $$ = res;
+        $$ = "MODE";
     }
 
     | MOVE {
-        res = new IR(kBareLabelKeyword, OP3("MOVE", "", ""));
-        $$ = res;
+        $$ = "MOVE";
     }
 
     | NAME_P {
-        res = new IR(kBareLabelKeyword, OP3("NAME", "", ""));
-        $$ = res;
+        $$ = "NAME";
     }
 
     | NAMES {
-        res = new IR(kBareLabelKeyword, OP3("NAMES", "", ""));
-        $$ = res;
+        $$ = "NAMES";
     }
 
     | NATIONAL {
-        res = new IR(kBareLabelKeyword, OP3("NATIONAL", "", ""));
-        $$ = res;
+        $$ = "NATIONAL";
     }
 
     | NATURAL {
-        res = new IR(kBareLabelKeyword, OP3("NATURAL", "", ""));
-        $$ = res;
+        $$ = "NATURAL";
     }
 
     | NCHAR {
-        res = new IR(kBareLabelKeyword, OP3("NCHAR", "", ""));
-        $$ = res;
+        $$ = "NCHAR";
     }
 
     | NEW {
-        res = new IR(kBareLabelKeyword, OP3("NEW", "", ""));
-        $$ = res;
+        $$ = "NEW";
     }
 
     | NEXT {
-        res = new IR(kBareLabelKeyword, OP3("NEXT", "", ""));
-        $$ = res;
+        $$ = "NEXT";
     }
 
     | NFC {
-        res = new IR(kBareLabelKeyword, OP3("NFC", "", ""));
-        $$ = res;
+        $$ = "NFC";
     }
 
     | NFD {
-        res = new IR(kBareLabelKeyword, OP3("NFD", "", ""));
-        $$ = res;
+        $$ = "NFD";
     }
 
     | NFKC {
-        res = new IR(kBareLabelKeyword, OP3("NFKC", "", ""));
-        $$ = res;
+        $$ = "NFKC";
     }
 
     | NFKD {
-        res = new IR(kBareLabelKeyword, OP3("NFKD", "", ""));
-        $$ = res;
+        $$ = "NFKD";
     }
 
     | NO {
-        res = new IR(kBareLabelKeyword, OP3("NO", "", ""));
-        $$ = res;
+        $$ = "NO";
     }
 
     | NONE {
-        res = new IR(kBareLabelKeyword, OP3("NONE", "", ""));
-        $$ = res;
+        $$ = "NONE";
     }
 
     | NORMALIZE {
-        res = new IR(kBareLabelKeyword, OP3("NORMALIZE", "", ""));
-        $$ = res;
+        $$ = "NORMALIZE";
     }
 
     | NORMALIZED {
-        res = new IR(kBareLabelKeyword, OP3("NORMALIZED", "", ""));
-        $$ = res;
+        $$ = "NORMALIZED";
     }
 
     | NOT {
-        res = new IR(kBareLabelKeyword, OP3("NOT", "", ""));
-        $$ = res;
+        $$ = "NOT";
     }
 
     | NOTHING {
-        res = new IR(kBareLabelKeyword, OP3("NOTHING", "", ""));
-        $$ = res;
+        $$ = "NOTHING";
     }
 
     | NOTIFY {
-        res = new IR(kBareLabelKeyword, OP3("NOTIFY", "", ""));
-        $$ = res;
+        $$ = "NOTIFY";
     }
 
     | NOWAIT {
-        res = new IR(kBareLabelKeyword, OP3("NOWAIT", "", ""));
-        $$ = res;
+        $$ = "NOWAIT";
     }
 
     | NULL_P {
-        res = new IR(kBareLabelKeyword, OP3("NULL", "", ""));
-        $$ = res;
+        $$ = "NULL";
     }
 
     | NULLIF {
-        res = new IR(kBareLabelKeyword, OP3("NULLIF", "", ""));
-        $$ = res;
+        $$ = "NULLIF";
     }
 
     | NULLS_P {
-        res = new IR(kBareLabelKeyword, OP3("NULLS", "", ""));
-        $$ = res;
+        $$ = "NULLS";
     }
 
     | NUMERIC {
-        res = new IR(kBareLabelKeyword, OP3("NUMERIC", "", ""));
-        $$ = res;
+        $$ = "NUMERIC";
     }
 
     | OBJECT_P {
-        res = new IR(kBareLabelKeyword, OP3("OBJECT", "", ""));
-        $$ = res;
+        $$ = "OBJECT";
     }
 
     | OF {
-        res = new IR(kBareLabelKeyword, OP3("OF", "", ""));
-        $$ = res;
+        $$ = "OF";
     }
 
     | OFF {
-        res = new IR(kBareLabelKeyword, OP3("OFF", "", ""));
-        $$ = res;
+        $$ = "OFF";
     }
 
     | OIDS {
-        res = new IR(kBareLabelKeyword, OP3("OIDS", "", ""));
-        $$ = res;
+        $$ = "OIDS";
     }
 
     | OLD {
-        res = new IR(kBareLabelKeyword, OP3("OLD", "", ""));
-        $$ = res;
+        $$ = "OLD";
     }
 
     | ONLY {
-        res = new IR(kBareLabelKeyword, OP3("ONLY", "", ""));
-        $$ = res;
+        $$ = "ONLY";
     }
 
     | OPERATOR {
-        res = new IR(kBareLabelKeyword, OP3("OPERATOR", "", ""));
-        $$ = res;
+        $$ = "OPERATOR";
     }
 
     | OPTION {
-        res = new IR(kBareLabelKeyword, OP3("OPTION", "", ""));
-        $$ = res;
+        $$ = "OPTION";
     }
 
     | OPTIONS {
-        res = new IR(kBareLabelKeyword, OP3("OPTIONS", "", ""));
-        $$ = res;
+        $$ = "OPTIONS";
     }
 
     | OR {
-        res = new IR(kBareLabelKeyword, OP3("OR", "", ""));
-        $$ = res;
+        $$ = "OR";
     }
 
     | ORDINALITY {
-        res = new IR(kBareLabelKeyword, OP3("ORDINALITY", "", ""));
-        $$ = res;
+        $$ = "ORDINALITY";
     }
 
     | OTHERS {
-        res = new IR(kBareLabelKeyword, OP3("OTHERS", "", ""));
-        $$ = res;
+        $$ = "OTHERS";
     }
 
     | OUT_P {
-        res = new IR(kBareLabelKeyword, OP3("OUT", "", ""));
-        $$ = res;
+        $$ = "OUT";
     }
 
     | OUTER_P {
-        res = new IR(kBareLabelKeyword, OP3("OUTER", "", ""));
-        $$ = res;
+        $$ = "OUTER";
     }
 
     | OVERLAY {
-        res = new IR(kBareLabelKeyword, OP3("OVERLAY", "", ""));
-        $$ = res;
+        $$ = "OVERLAY";
     }
 
     | OVERRIDING {
-        res = new IR(kBareLabelKeyword, OP3("OVERRIDING", "", ""));
-        $$ = res;
+        $$ = "OVERRIDING";
     }
 
     | OWNED {
-        res = new IR(kBareLabelKeyword, OP3("OWNED", "", ""));
-        $$ = res;
+        $$ = "OWNED";
     }
 
     | OWNER {
-        res = new IR(kBareLabelKeyword, OP3("OWNER", "", ""));
-        $$ = res;
+        $$ = "OWNER";
     }
 
     | PARALLEL {
-        res = new IR(kBareLabelKeyword, OP3("PARALLEL", "", ""));
-        $$ = res;
+        $$ = "PARALLEL";
     }
 
     | PARSER {
-        res = new IR(kBareLabelKeyword, OP3("PARSER", "", ""));
-        $$ = res;
+        $$ = "PARSER";
     }
 
     | PARTIAL {
-        res = new IR(kBareLabelKeyword, OP3("PARTIAL", "", ""));
-        $$ = res;
+        $$ = "PARTIAL";
     }
 
     | PARTITION {
-        res = new IR(kBareLabelKeyword, OP3("PARTITION", "", ""));
-        $$ = res;
+        $$ = "PARTITION";
     }
 
     | PASSING {
-        res = new IR(kBareLabelKeyword, OP3("PASSING", "", ""));
-        $$ = res;
+        $$ = "PASSING";
     }
 
     | PASSWORD {
-        res = new IR(kBareLabelKeyword, OP3("PASSWORD", "", ""));
-        $$ = res;
+        $$ = "PASSWORD";
     }
 
     | PLACING {
-        res = new IR(kBareLabelKeyword, OP3("PLACING", "", ""));
-        $$ = res;
+        $$ = "PLACING";
     }
 
     | PLANS {
-        res = new IR(kBareLabelKeyword, OP3("PLANS", "", ""));
-        $$ = res;
+        $$ = "PLANS";
     }
 
     | POLICY {
-        res = new IR(kBareLabelKeyword, OP3("POLICY", "", ""));
-        $$ = res;
+        $$ = "POLICY";
     }
 
     | POSITION {
-        res = new IR(kBareLabelKeyword, OP3("POSITION", "", ""));
-        $$ = res;
+        $$ = "POSITION";
     }
 
     | PRECEDING {
-        res = new IR(kBareLabelKeyword, OP3("PRECEDING", "", ""));
-        $$ = res;
+        $$ = "PRECEDING";
     }
 
     | PREPARE {
-        res = new IR(kBareLabelKeyword, OP3("PREPARE", "", ""));
-        $$ = res;
+        $$ = "PREPARE";
     }
 
     | PREPARED {
-        res = new IR(kBareLabelKeyword, OP3("PREPARED", "", ""));
-        $$ = res;
+        $$ = "PREPARED";
     }
 
     | PRESERVE {
-        res = new IR(kBareLabelKeyword, OP3("PRESERVE", "", ""));
-        $$ = res;
+        $$ = "PRESERVE";
     }
 
     | PRIMARY {
-        res = new IR(kBareLabelKeyword, OP3("PRIMARY", "", ""));
-        $$ = res;
+        $$ = "PRIMARY";
     }
 
     | PRIOR {
-        res = new IR(kBareLabelKeyword, OP3("PRIOR", "", ""));
-        $$ = res;
+        $$ = "PRIOR";
     }
 
     | PRIVILEGES {
-        res = new IR(kBareLabelKeyword, OP3("PRIVILEGES", "", ""));
-        $$ = res;
+        $$ = "PRIVILEGES";
     }
 
     | PROCEDURAL {
-        res = new IR(kBareLabelKeyword, OP3("PROCEDURAL", "", ""));
-        $$ = res;
+        $$ = "PROCEDURAL";
     }
 
     | PROCEDURE {
-        res = new IR(kBareLabelKeyword, OP3("PROCEDURE", "", ""));
-        $$ = res;
+        $$ = "PROCEDURE";
     }
 
     | PROCEDURES {
-        res = new IR(kBareLabelKeyword, OP3("PROCEDURES", "", ""));
-        $$ = res;
+        $$ = "PROCEDURES";
     }
 
     | PROGRAM {
-        res = new IR(kBareLabelKeyword, OP3("PROGRAM", "", ""));
-        $$ = res;
+        $$ = "PROGRAM";
     }
 
     | PUBLICATION {
-        res = new IR(kBareLabelKeyword, OP3("PUBLICATION", "", ""));
-        $$ = res;
+        $$ = "PUBLICATION";
     }
 
     | QUOTE {
-        res = new IR(kBareLabelKeyword, OP3("QUOTE", "", ""));
-        $$ = res;
+        $$ = "QUOTE";
     }
 
     | RANGE {
-        res = new IR(kBareLabelKeyword, OP3("RANGE", "", ""));
-        $$ = res;
+        $$ = "RANGE";
     }
 
     | READ {
-        res = new IR(kBareLabelKeyword, OP3("READ", "", ""));
-        $$ = res;
+        $$ = "READ";
     }
 
     | REAL {
-        res = new IR(kBareLabelKeyword, OP3("REAL", "", ""));
-        $$ = res;
+        $$ = "REAL";
     }
 
     | REASSIGN {
-        res = new IR(kBareLabelKeyword, OP3("REASSIGN", "", ""));
-        $$ = res;
+        $$ = "REASSIGN";
     }
 
     | RECHECK {
-        res = new IR(kBareLabelKeyword, OP3("RECHECK", "", ""));
-        $$ = res;
+        $$ = "RECHECK";
     }
 
     | RECURSIVE {
-        res = new IR(kBareLabelKeyword, OP3("RECURSIVE", "", ""));
-        $$ = res;
+        $$ = "RECURSIVE";
     }
 
     | REF {
-        res = new IR(kBareLabelKeyword, OP3("REF", "", ""));
-        $$ = res;
+        $$ = "REF";
     }
 
     | REFERENCES {
-        res = new IR(kBareLabelKeyword, OP3("REFERENCES", "", ""));
-        $$ = res;
+        $$ = "REFERENCES";
     }
 
     | REFERENCING {
-        res = new IR(kBareLabelKeyword, OP3("REFERENCING", "", ""));
-        $$ = res;
+        $$ = "REFERENCING";
     }
 
     | REFRESH {
-        res = new IR(kBareLabelKeyword, OP3("REFRESH", "", ""));
-        $$ = res;
+        $$ = "REFRESH";
     }
 
     | REINDEX {
-        res = new IR(kBareLabelKeyword, OP3("REINDEX", "", ""));
-        $$ = res;
+        $$ = "REINDEX";
     }
 
     | RELATIVE_P {
-        res = new IR(kBareLabelKeyword, OP3("RELATIVE", "", ""));
-        $$ = res;
+        $$ = "RELATIVE";
     }
 
     | RELEASE {
-        res = new IR(kBareLabelKeyword, OP3("RELEASE", "", ""));
-        $$ = res;
+        $$ = "RELEASE";
     }
 
     | RENAME {
-        res = new IR(kBareLabelKeyword, OP3("RENAME", "", ""));
-        $$ = res;
+        $$ = "RENAME";
     }
 
     | REPEATABLE {
-        res = new IR(kBareLabelKeyword, OP3("REPEATABLE", "", ""));
-        $$ = res;
+        $$ = "REPEATABLE";
     }
 
     | REPLACE {
-        res = new IR(kBareLabelKeyword, OP3("REPLACE", "", ""));
-        $$ = res;
+        $$ = "REPLACE";
     }
 
     | REPLICA {
-        res = new IR(kBareLabelKeyword, OP3("REPLICA", "", ""));
-        $$ = res;
+        $$ = "REPLICA";
     }
 
     | RESET {
-        res = new IR(kBareLabelKeyword, OP3("RESET", "", ""));
-        $$ = res;
+        $$ = "RESET";
     }
 
     | RESTART {
-        res = new IR(kBareLabelKeyword, OP3("RESTART", "", ""));
-        $$ = res;
+        $$ = "RESTART";
     }
 
     | RESTRICT {
-        res = new IR(kBareLabelKeyword, OP3("RESTRICT", "", ""));
-        $$ = res;
+        $$ = "RESTRICT";
     }
 
     | RETURN {
-        res = new IR(kBareLabelKeyword, OP3("RETURN", "", ""));
-        $$ = res;
+        $$ = "RETURN";
     }
 
     | RETURNS {
-        res = new IR(kBareLabelKeyword, OP3("RETURNS", "", ""));
-        $$ = res;
+        $$ = "RETURNS";
     }
 
     | REVOKE {
-        res = new IR(kBareLabelKeyword, OP3("REVOKE", "", ""));
-        $$ = res;
+        $$ = "REVOKE";
     }
 
     | RIGHT {
-        res = new IR(kBareLabelKeyword, OP3("RIGHT", "", ""));
-        $$ = res;
+        $$ = "RIGHT";
     }
 
     | ROLE {
-        res = new IR(kBareLabelKeyword, OP3("ROLE", "", ""));
-        $$ = res;
+        $$ = "ROLE";
     }
 
     | ROLLBACK {
-        res = new IR(kBareLabelKeyword, OP3("ROLLBACK", "", ""));
-        $$ = res;
+        $$ = "ROLLBACK";
     }
 
     | ROLLUP {
-        res = new IR(kBareLabelKeyword, OP3("ROLLUP", "", ""));
-        $$ = res;
+        $$ = "ROLLUP";
     }
 
     | ROUTINE {
-        res = new IR(kBareLabelKeyword, OP3("ROUTINE", "", ""));
-        $$ = res;
+        $$ = "ROUTINE";
     }
 
     | ROUTINES {
-        res = new IR(kBareLabelKeyword, OP3("ROUTINES", "", ""));
-        $$ = res;
+        $$ = "ROUTINES";
     }
 
     | ROW {
-        res = new IR(kBareLabelKeyword, OP3("ROW", "", ""));
-        $$ = res;
+        $$ = "ROW";
     }
 
     | ROWS {
-        res = new IR(kBareLabelKeyword, OP3("ROWS", "", ""));
-        $$ = res;
+        $$ = "ROWS";
     }
 
     | RULE {
-        res = new IR(kBareLabelKeyword, OP3("RULE", "", ""));
-        $$ = res;
+        $$ = "RULE";
     }
 
     | SAVEPOINT {
-        res = new IR(kBareLabelKeyword, OP3("SAVEPOINT", "", ""));
-        $$ = res;
+        $$ = "SAVEPOINT";
     }
 
     | SCHEMA {
-        res = new IR(kBareLabelKeyword, OP3("SCHEMA", "", ""));
-        $$ = res;
+        $$ = "SCHEMA";
     }
 
     | SCHEMAS {
-        res = new IR(kBareLabelKeyword, OP3("SCHEMAS", "", ""));
-        $$ = res;
+        $$ = "SCHEMAS";
     }
 
     | SCROLL {
-        res = new IR(kBareLabelKeyword, OP3("SCROLL", "", ""));
-        $$ = res;
+        $$ = "SCROLL";
     }
 
     | SEARCH {
-        res = new IR(kBareLabelKeyword, OP3("SEARCH", "", ""));
-        $$ = res;
+        $$ = "SEARCH";
     }
 
     | SECURITY {
-        res = new IR(kBareLabelKeyword, OP3("SECURITY", "", ""));
-        $$ = res;
+        $$ = "SECURITY";
     }
 
     | SELECT {
-        res = new IR(kBareLabelKeyword, OP3("SELECT", "", ""));
-        $$ = res;
+        $$ = "SELECT";
     }
 
     | SEQUENCE {
-        res = new IR(kBareLabelKeyword, OP3("SEQUENCE", "", ""));
-        $$ = res;
+        $$ = "SEQUENCE";
     }
 
     | SEQUENCES {
-        res = new IR(kBareLabelKeyword, OP3("SEQUENCES", "", ""));
-        $$ = res;
+        $$ = "SEQUENCES";
     }
 
     | SERIALIZABLE {
-        res = new IR(kBareLabelKeyword, OP3("SERIALIZABLE", "", ""));
-        $$ = res;
+        $$ = "SERIALIZABLE";
     }
 
     | SERVER {
-        res = new IR(kBareLabelKeyword, OP3("SERVER", "", ""));
-        $$ = res;
+        $$ = "SERVER";
     }
 
     | SESSION {
-        res = new IR(kBareLabelKeyword, OP3("SESSION", "", ""));
-        $$ = res;
+        $$ = "SESSION";
     }
 
     | SESSION_USER {
-        res = new IR(kBareLabelKeyword, OP3("SESSION_USER", "", ""));
-        $$ = res;
+        $$ = "SESSION_USER";
     }
 
     | SET {
-        res = new IR(kBareLabelKeyword, OP3("SET", "", ""));
-        $$ = res;
+        $$ = "SET";
     }
 
     | SETOF {
-        res = new IR(kBareLabelKeyword, OP3("SETOF", "", ""));
-        $$ = res;
+        $$ = "SETOF";
     }
 
     | SETS {
-        res = new IR(kBareLabelKeyword, OP3("SETS", "", ""));
-        $$ = res;
+        $$ = "SETS";
     }
 
     | SHARE {
-        res = new IR(kBareLabelKeyword, OP3("SHARE", "", ""));
-        $$ = res;
+        $$ = "SHARE";
     }
 
     | SHOW {
-        res = new IR(kBareLabelKeyword, OP3("SHOW", "", ""));
-        $$ = res;
+        $$ = "SHOW";
     }
 
     | SIMILAR {
-        res = new IR(kBareLabelKeyword, OP3("SIMILAR", "", ""));
-        $$ = res;
+        $$ = "SIMILAR";
     }
 
     | SIMPLE {
-        res = new IR(kBareLabelKeyword, OP3("SIMPLE", "", ""));
-        $$ = res;
+        $$ = "SIMPLE";
     }
 
     | SKIP {
-        res = new IR(kBareLabelKeyword, OP3("SKIP", "", ""));
-        $$ = res;
+        $$ = "SKIP";
     }
 
     | SMALLINT {
-        res = new IR(kBareLabelKeyword, OP3("SMALLINT", "", ""));
-        $$ = res;
+        $$ = "SMALLINT";
     }
 
     | SNAPSHOT {
-        res = new IR(kBareLabelKeyword, OP3("SNAPSHOT", "", ""));
-        $$ = res;
+        $$ = "SNAPSHOT";
     }
 
     | SOME {
-        res = new IR(kBareLabelKeyword, OP3("SOME", "", ""));
-        $$ = res;
+        $$ = "SOME";
     }
 
     | SQL_P {
-        res = new IR(kBareLabelKeyword, OP3("SQL", "", ""));
-        $$ = res;
+        $$ = "SQL";
     }
 
     | STABLE {
-        res = new IR(kBareLabelKeyword, OP3("STABLE", "", ""));
-        $$ = res;
+        $$ = "STABLE";
     }
 
     | STANDALONE_P {
-        res = new IR(kBareLabelKeyword, OP3("STANDALONE", "", ""));
-        $$ = res;
+        $$ = "STANDALONE";
     }
 
     | START {
-        res = new IR(kBareLabelKeyword, OP3("START", "", ""));
-        $$ = res;
+        $$ = "START";
     }
 
     | STATEMENT {
-        res = new IR(kBareLabelKeyword, OP3("STATEMENT", "", ""));
-        $$ = res;
+        $$ = "STATEMENT";
     }
 
     | STATISTICS {
-        res = new IR(kBareLabelKeyword, OP3("STATISTICS", "", ""));
-        $$ = res;
+        $$ = "STATISTICS";
     }
 
     | STDIN {
-        res = new IR(kBareLabelKeyword, OP3("STDIN", "", ""));
-        $$ = res;
+        $$ = "STDIN";
     }
 
     | STDOUT {
-        res = new IR(kBareLabelKeyword, OP3("STDOUT", "", ""));
-        $$ = res;
+        $$ = "STDOUT";
     }
 
     | STORAGE {
-        res = new IR(kBareLabelKeyword, OP3("STORAGE", "", ""));
-        $$ = res;
+        $$ = "STORAGE";
     }
 
     | STORED {
-        res = new IR(kBareLabelKeyword, OP3("STORED", "", ""));
-        $$ = res;
+        $$ = "STORED";
     }
 
     | STRICT_P {
-        res = new IR(kBareLabelKeyword, OP3("STRICT", "", ""));
-        $$ = res;
+        $$ = "STRICT";
     }
 
     | STRIP_P {
-        res = new IR(kBareLabelKeyword, OP3("STRIP", "", ""));
-        $$ = res;
+        $$ = "STRIP";
     }
 
     | SUBSCRIPTION {
-        res = new IR(kBareLabelKeyword, OP3("SUBSCRIPTION", "", ""));
-        $$ = res;
+        $$ = "SUBSCRIPTION";
     }
 
     | SUBSTRING {
-        res = new IR(kBareLabelKeyword, OP3("SUBSTRING", "", ""));
-        $$ = res;
+        $$ = "SUBSTRING";
     }
 
     | SUPPORT {
-        res = new IR(kBareLabelKeyword, OP3("SUPPORT", "", ""));
-        $$ = res;
+        $$ = "SUPPORT";
     }
 
     | SYMMETRIC {
-        res = new IR(kBareLabelKeyword, OP3("SYMMETRIC", "", ""));
-        $$ = res;
+        $$ = "SYMMETRIC";
     }
 
     | SYSID {
-        res = new IR(kBareLabelKeyword, OP3("SYSID", "", ""));
-        $$ = res;
+        $$ = "SYSID";
     }
 
     | SYSTEM_P {
-        res = new IR(kBareLabelKeyword, OP3("SYSTEM", "", ""));
-        $$ = res;
+        $$ = "SYSTEM";
     }
 
     | TABLE {
-        res = new IR(kBareLabelKeyword, OP3("TABLE", "", ""));
-        $$ = res;
+        $$ = "TABLE";
     }
 
     | TABLES {
-        res = new IR(kBareLabelKeyword, OP3("TABLES", "", ""));
-        $$ = res;
+        $$ = "TABLES";
     }
 
     | TABLESAMPLE {
-        res = new IR(kBareLabelKeyword, OP3("TABLESAMPLE", "", ""));
-        $$ = res;
+        $$ = "TABLESAMPLE";
     }
 
     | TABLESPACE {
-        res = new IR(kBareLabelKeyword, OP3("TABLESPACE", "", ""));
-        $$ = res;
+        $$ = "TABLESPACE";
     }
 
     | TEMP {
-        res = new IR(kBareLabelKeyword, OP3("TEMP", "", ""));
-        $$ = res;
+        $$ = "TEMP";
     }
 
     | TEMPLATE {
-        res = new IR(kBareLabelKeyword, OP3("TEMPLATE", "", ""));
-        $$ = res;
+        $$ = "TEMPLATE";
     }
 
     | TEMPORARY {
-        res = new IR(kBareLabelKeyword, OP3("TEMPORARY", "", ""));
-        $$ = res;
+        $$ = "TEMPORARY";
     }
 
     | TEXT_P {
-        res = new IR(kBareLabelKeyword, OP3("TEXT", "", ""));
-        $$ = res;
+        $$ = "TEXT";
     }
 
     | THEN {
-        res = new IR(kBareLabelKeyword, OP3("THEN", "", ""));
-        $$ = res;
+        $$ = "THEN";
     }
 
     | TIES {
-        res = new IR(kBareLabelKeyword, OP3("TIES", "", ""));
-        $$ = res;
+        $$ = "TIES";
     }
 
     | TIME {
-        res = new IR(kBareLabelKeyword, OP3("TIME", "", ""));
-        $$ = res;
+        $$ = "TIME";
     }
 
     | TIMESTAMP {
-        res = new IR(kBareLabelKeyword, OP3("TIMESTAMP", "", ""));
-        $$ = res;
+        $$ = "TIMESTAMP";
     }
 
     | TRAILING {
-        res = new IR(kBareLabelKeyword, OP3("TRAILING", "", ""));
-        $$ = res;
+        $$ = "TRAILING";
     }
 
     | TRANSACTION {
-        res = new IR(kBareLabelKeyword, OP3("TRANSACTION", "", ""));
-        $$ = res;
+        $$ = "TRANSACTION";
     }
 
     | TRANSFORM {
-        res = new IR(kBareLabelKeyword, OP3("TRANSFORM", "", ""));
-        $$ = res;
+        $$ = "TRANSFORM";
     }
 
     | TREAT {
-        res = new IR(kBareLabelKeyword, OP3("TREAT", "", ""));
-        $$ = res;
+        $$ = "TREAT";
     }
 
     | TRIGGER {
-        res = new IR(kBareLabelKeyword, OP3("TRIGGER", "", ""));
-        $$ = res;
+        $$ = "TRIGGER";
     }
 
     | TRIM {
-        res = new IR(kBareLabelKeyword, OP3("TRIM", "", ""));
-        $$ = res;
+        $$ = "TRIM";
     }
 
     | TRUE_P {
-        res = new IR(kBareLabelKeyword, OP3("TRUE", "", ""));
-        $$ = res;
+        $$ = "TRUE";
     }
 
     | TRUNCATE {
-        res = new IR(kBareLabelKeyword, OP3("TRUNCATE", "", ""));
-        $$ = res;
+        $$ = "TRUNCATE";
     }
 
     | TRUSTED {
-        res = new IR(kBareLabelKeyword, OP3("TRUSTED", "", ""));
-        $$ = res;
+        $$ = "TRUSTED";
     }
 
     | TYPE_P {
-        res = new IR(kBareLabelKeyword, OP3("TYPE", "", ""));
-        $$ = res;
+        $$ = "TYPE";
     }
 
     | TYPES_P {
-        res = new IR(kBareLabelKeyword, OP3("TYPES", "", ""));
-        $$ = res;
+        $$ = "TYPES";
     }
 
     | UESCAPE {
-        res = new IR(kBareLabelKeyword, OP3("UESCAPE", "", ""));
-        $$ = res;
+        $$ = "UESCAPE";
     }
 
     | UNBOUNDED {
-        res = new IR(kBareLabelKeyword, OP3("UNBOUNDED", "", ""));
-        $$ = res;
+        $$ = "UNBOUNDED";
     }
 
     | UNCOMMITTED {
-        res = new IR(kBareLabelKeyword, OP3("UNCOMMITTED", "", ""));
-        $$ = res;
+        $$ = "UNCOMMITTED";
     }
 
     | UNENCRYPTED {
-        res = new IR(kBareLabelKeyword, OP3("UNENCRYPTED", "", ""));
-        $$ = res;
+        $$ = "UNENCRYPTED";
     }
 
     | UNIQUE {
-        res = new IR(kBareLabelKeyword, OP3("UNIQUE", "", ""));
-        $$ = res;
+        $$ = "UNIQUE";
     }
 
     | UNKNOWN {
-        res = new IR(kBareLabelKeyword, OP3("UNKNOWN", "", ""));
-        $$ = res;
+        $$ = "UNKNOWN";
     }
 
     | UNLISTEN {
-        res = new IR(kBareLabelKeyword, OP3("UNLISTEN", "", ""));
-        $$ = res;
+        $$ = "UNLISTEN";
     }
 
     | UNLOGGED {
-        res = new IR(kBareLabelKeyword, OP3("UNLOGGED", "", ""));
-        $$ = res;
+        $$ = "UNLOGGED";
     }
 
     | UNTIL {
-        res = new IR(kBareLabelKeyword, OP3("UNTIL", "", ""));
-        $$ = res;
+        $$ = "UNTIL";
     }
 
     | UPDATE {
-        res = new IR(kBareLabelKeyword, OP3("UPDATE", "", ""));
-        $$ = res;
+        $$ = "UPDATE";
     }
 
     | USER {
-        res = new IR(kBareLabelKeyword, OP3("USER", "", ""));
-        $$ = res;
+        $$ = "USER";
     }
 
     | USING {
-        res = new IR(kBareLabelKeyword, OP3("USING", "", ""));
-        $$ = res;
+        $$ = "USING";
     }
 
     | VACUUM {
-        res = new IR(kBareLabelKeyword, OP3("VACUUM", "", ""));
-        $$ = res;
+        $$ = "VACUUM";
     }
 
     | VALID {
-        res = new IR(kBareLabelKeyword, OP3("VALID", "", ""));
-        $$ = res;
+        $$ = "VALID";
     }
 
     | VALIDATE {
-        res = new IR(kBareLabelKeyword, OP3("VALIDATE", "", ""));
-        $$ = res;
+        $$ = "VALIDATE";
     }
 
     | VALIDATOR {
-        res = new IR(kBareLabelKeyword, OP3("VALIDATOR", "", ""));
-        $$ = res;
+        $$ = "VALIDATOR";
     }
 
     | VALUE_P {
-        res = new IR(kBareLabelKeyword, OP3("VALUE", "", ""));
-        $$ = res;
+        $$ = "VALUE";
     }
 
     | VALUES {
-        res = new IR(kBareLabelKeyword, OP3("VALUES", "", ""));
-        $$ = res;
+        $$ = "VALUES";
     }
 
     | VARCHAR {
-        res = new IR(kBareLabelKeyword, OP3("VARCHAR", "", ""));
-        $$ = res;
+        $$ = "VARCHAR";
     }
 
     | VARIADIC {
-        res = new IR(kBareLabelKeyword, OP3("VARIADIC", "", ""));
-        $$ = res;
+        $$ = "VARIADIC";
     }
 
     | VERBOSE {
-        res = new IR(kBareLabelKeyword, OP3("VERBOSE", "", ""));
-        $$ = res;
+        $$ = "VERBOSE";
     }
 
     | VERSION_P {
-        res = new IR(kBareLabelKeyword, OP3("VERSION", "", ""));
-        $$ = res;
+        $$ = "VERSION";
     }
 
     | VIEW {
-        res = new IR(kBareLabelKeyword, OP3("VIEW", "", ""));
-        $$ = res;
+        $$ = "VIEW";
     }
 
     | VIEWS {
-        res = new IR(kBareLabelKeyword, OP3("VIEWS", "", ""));
-        $$ = res;
+        $$ = "VIEWS";
     }
 
     | VOLATILE {
-        res = new IR(kBareLabelKeyword, OP3("VOLATILE", "", ""));
-        $$ = res;
+        $$ = "VOLATILE";
     }
 
     | WHEN {
-        res = new IR(kBareLabelKeyword, OP3("WHEN", "", ""));
-        $$ = res;
+        $$ = "WHEN";
     }
 
     | WHITESPACE_P {
-        res = new IR(kBareLabelKeyword, OP3("WHITESPACE", "", ""));
-        $$ = res;
+        $$ = "WHITESPACE";
     }
 
     | WORK {
-        res = new IR(kBareLabelKeyword, OP3("WORK", "", ""));
-        $$ = res;
+        $$ = "WORK";
     }
 
     | WRAPPER {
-        res = new IR(kBareLabelKeyword, OP3("WRAPPER", "", ""));
-        $$ = res;
+        $$ = "WRAPPER";
     }
 
     | WRITE {
-        res = new IR(kBareLabelKeyword, OP3("WRITE", "", ""));
-        $$ = res;
+        $$ = "WRITE";
     }
 
     | XML_P {
-        res = new IR(kBareLabelKeyword, OP3("XML", "", ""));
-        $$ = res;
+        $$ = "XML";
     }
 
     | XMLATTRIBUTES {
-        res = new IR(kBareLabelKeyword, OP3("XMLATTRIBUTES", "", ""));
-        $$ = res;
+        $$ = "XMLATTRIBUTES";
     }
 
     | XMLCONCAT {
-        res = new IR(kBareLabelKeyword, OP3("XMLCONCAT", "", ""));
-        $$ = res;
+        $$ = "XMLCONCAT";
     }
 
     | XMLELEMENT {
-        res = new IR(kBareLabelKeyword, OP3("XMLELEMENT", "", ""));
-        $$ = res;
+        $$ = "XMLELEMENT";
     }
 
     | XMLEXISTS {
-        res = new IR(kBareLabelKeyword, OP3("XMLEXISTS", "", ""));
-        $$ = res;
+        $$ = "XMLEXISTS";
     }
 
     | XMLFOREST {
-        res = new IR(kBareLabelKeyword, OP3("XMLFOREST", "", ""));
-        $$ = res;
+        $$ = "XMLFOREST";
     }
 
     | XMLNAMESPACES {
-        res = new IR(kBareLabelKeyword, OP3("XMLNAMESPACES", "", ""));
-        $$ = res;
+        $$ = "XMLNAMESPACES";
     }
 
     | XMLPARSE {
-        res = new IR(kBareLabelKeyword, OP3("XMLPARSE", "", ""));
-        $$ = res;
+        $$ = "XMLPARSE";
     }
 
     | XMLPI {
-        res = new IR(kBareLabelKeyword, OP3("XMLPI", "", ""));
-        $$ = res;
+        $$ = "XMLPI";
     }
 
     | XMLROOT {
-        res = new IR(kBareLabelKeyword, OP3("XMLROOT", "", ""));
-        $$ = res;
+        $$ = "XMLROOT";
     }
 
     | XMLSERIALIZE {
-        res = new IR(kBareLabelKeyword, OP3("XMLSERIALIZE", "", ""));
-        $$ = res;
+        $$ = "XMLSERIALIZE";
     }
 
     | XMLTABLE {
-        res = new IR(kBareLabelKeyword, OP3("XMLTABLE", "", ""));
-        $$ = res;
+        $$ = "XMLTABLE";
     }
 
     | YES_P {
-        res = new IR(kBareLabelKeyword, OP3("YES", "", ""));
-        $$ = res;
+        $$ = "YES";
     }
 
     | ZONE {
-        res = new IR(kBareLabelKeyword, OP3("ZONE", "", ""));
-        $$ = res;
+        $$ = "ZONE";
     }
 
 ;
 
 %%
+
+/*
+ * psprintf
+ *
+ * Format text data under the control of fmt (an sprintf-style format string)
+ * and return it in an allocated-on-demand buffer.  The buffer is allocated
+ * with palloc in the backend, or malloc in frontend builds.  Caller is
+ * responsible to free the buffer when no longer needed, if appropriate.
+ *
+ * Errors are not returned to the caller, but are reported via elog(ERROR)
+ * in the backend, or printf-to-stderr-and-exit() in frontend builds.
+ * One should therefore think twice about using this in libpq.
+ */
+char *psprintf(const char *fmt,...)
+{
+	int			save_errno = errno;
+	size_t		len = 128;		/* initial assumption about buffer size */
+
+	for (;;)
+	{
+		char	   *result;
+		va_list		args;
+		size_t		newlen;
+
+		/*
+		 * Allocate result buffer.  Note that in frontend this maps to malloc
+		 * with exit-on-error.
+		 */
+		result = (char *) palloc(len);
+
+		/* Try to format the data. */
+		errno = save_errno;
+		va_start(args, fmt);
+		newlen = pvsnprintf(result, len, fmt, args);
+		va_end(args);
+
+		if (newlen < len)
+			return result;		/* success */
+
+		/* Release buffer and loop around to try again with larger len. */
+		pfree(result);
+		len = newlen;
+	}
+}
 
 /*
  * The signature of this function is required by bison.  However, we

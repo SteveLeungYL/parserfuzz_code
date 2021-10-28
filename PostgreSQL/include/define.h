@@ -1494,7 +1494,8 @@
   V(DataDatabaseName)                                                          \
   V(DataSystemName)                                                            \
   V(DataConversionName)                                                        \
-  V(DataAggregateArguments)                                                        \
+  V(DataAggregateArguments)                                                    \
+  V(DataNonReservedWord)                                                       \
 
 
 #define SWITCHSTART switch (case_idx_) {
