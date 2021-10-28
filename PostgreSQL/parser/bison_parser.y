@@ -163,6 +163,9 @@ typedef struct GroupClause
 static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 						 const char *msg);
 
+char* alloc_and_cat(char*, char*);
+char* alloc_and_cat(char*, char*, char*);
+
 %}
 
 %define api.pure
@@ -2313,14 +2316,7 @@ var_name:
 
     ColId 
     | var_name '.' ColId {
-        unsigned size = strlen($1) + 2 + strlen($3);
-        char * mem = (char *) calloc (size, 1);
-        char * p = mem;
-        strcat(p, $1);
-        p += strlen($1);
-        strcat(p, ".");
-        p += 1;
-        strcat(p, $3);
+        char* mem = alloc_and_cat($1, '.', $3);
         $$ = mem;
     }
 
@@ -21909,6 +21905,18 @@ char * alloc_and_cat(char *first, char *second) {
     char * p = mem;
     strcat(p, first);
     p += strlen(first);
+    strcat(p, second);
+    return mem;
+}
+
+char * alloc_and_cat(char *first, char* middle, char *second) {
+    unsigned size = strlen(first) + strlen(second) + strlen(middle) + 1;
+    char * mem = (char *) calloc (size, 1);
+    char * p = mem;
+    strcat(p, first);
+    p += strlen(first);
+    strcat(p, middle);
+    p += strlen(middle);
     strcat(p, second);
     return mem;
 }
