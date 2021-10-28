@@ -3595,9 +3595,16 @@ PartitionBoundSpec:
 hash_partbound_elem:
 
     NonReservedWord Iconst {
-        auto tmp1 = $1;
-        auto tmp2 = $2;
-        res = new IR(kHashPartboundElem, OP3("", "", ""), tmp1, tmp2);
+        /* Yu: From the documentation, I can only see "modulus" and "remainder" available for NonReserveredWord. */
+        IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
+        if ($1) {
+            if (strcmp($1, "modulus") == 0 || strcmp($1, "remainder") == 0) {
+                res = new IR(kHashPartboundElem, OP3($1, "", ""), tmp1);
+            } else {
+                res = new IR(kHashPartboundElem, OP3("modulus", "", ""), tmp1);
+            }
+        }
+        free($1);
         $$ = res;
     }
 
@@ -14067,9 +14074,17 @@ analyze_keyword:
 utility_option_elem:
 
     utility_option_name utility_option_arg {
-        auto tmp1 = $1;
-        auto tmp2 = $2;
-        res = new IR(kUtilityOptionElem, OP3("", "", ""), tmp1, tmp2);
+        /* Yu: We do not know what is the possible values or types for this utility_option_name. 
+        ** Do not change it to kIdentifier. 
+        */
+        auto tmp1 = $2;
+        if ($1) {
+            res = new IR(kUtilityOptionElem, OP3(string($1), "", ""), tmp1);
+        }
+        else {
+            res = new IR(kUtilityOptionElem, OP3("", "", ""), tmp1);
+        }
+        free($1);
         $$ = res;
     }
 
@@ -14078,18 +14093,8 @@ utility_option_elem:
 
 utility_option_name:
 
-    NonReservedWord {
-        auto tmp1 = $1;
-        res = new IR(kUtilityOptionName, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
-    | analyze_keyword {
-        auto tmp1 = $1;
-        res = new IR(kUtilityOptionName, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
+    NonReservedWord 
+    | analyze_keyword 
 ;
 
 
@@ -20522,7 +20527,19 @@ RoleId:
 RoleSpec:
 
     NonReservedWord {
-        auto tmp1 = $1;
+        /* This is for kUse of kDataRoleName. */
+        IR* tmp1 = NULL;
+        if ($1) {
+            if (strcmp($1, "none") == 0) {
+                tmp1 = new IR(kIdentifier, string("public"), kDataRoleName, 0, kUse);
+            }
+            else {
+                tmp1 = new IR(kidentifier, string($1), kDataRoleName, 0, kUse);
+            }
+        } else {
+            tmp1 = new IR(kIdentifier, string("public"), kDataRoleName, 0, kUse);
+        }
+        free($1);
         res = new IR(kRoleSpec, OP3("", "", ""), tmp1);
         $$ = res;
     }
