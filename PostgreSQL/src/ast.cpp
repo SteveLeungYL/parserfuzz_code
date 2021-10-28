@@ -190,18 +190,27 @@ void IR::to_string_core(string& res) {
     return;
   }
 
-  if (op_ != NULL) {
-    res += op_->prefix_ + " ";
+  if (op_) {
+    res += op_->prefix_;
+    res += " ";
   }
-  if (left_ != NULL)
+
+  if (left_) {
     left_->to_string_core(res);
     res += " ";
-  if (op_ != NULL)
-    res += op_->middle_ + " ";
-  if (right_ != NULL)
+  }
+
+  if (op_) {
+    res += op_->middle_;
+    res += + " ";
+  }
+
+  if (right_) {
     right_->to_string_core(res);
     res += " ";
-  if (op_ != NULL)
+  }
+
+  if (op_)
     res += op_->suffix_;
 
   return;
@@ -298,7 +307,7 @@ IR *IR::deep_copy() {
   if (this->right_)
     right = this->right_->deep_copy();
 
-  if (this->op_ != NULL)
+  if (this->op_)
     op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
   copy_res = new IR(this->type_, op, left, right, this->float_val_,

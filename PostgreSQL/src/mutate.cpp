@@ -47,9 +47,8 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
   if (root->right_)
     right = deep_copy_with_record(root->right_, record);
 
-  if (root->op_ != NULL)
-    copy_res =
-        new IR(root->type_,
+  if (root->op_)
+    copy_res = new IR(root->type_,
                OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_),
                left, right, root->float_val_, root->str_val_, root->name_,
                root->mutated_times_, root->scope_, root->data_flag_);
@@ -1198,7 +1197,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (ir_to_fix ->get_parent() ->get_parent()->type_ == kColumnDef) {
             IR* type_name_ir = ir_to_fix->get_parent()->right_->left_;   // identifier -> kColumnDef(kUnknown) -> type_name -> kNumericType or kCharacterType
             if (type_name_ir->type_ == kNumericType) { // NumericalType
-              if (type_name_ir->op_ && type_name_ir->op_->prefix_ == "BOOLEAN") {
+              if (type_name_ir->op_ && strcmp(type_name_ir->op_->prefix_, "BOOLEAN") == 0) {
                 m_column2datatype[new_name] = 3;  // boolean
               } else {
                 m_column2datatype[new_name] = 1;  // numerial
