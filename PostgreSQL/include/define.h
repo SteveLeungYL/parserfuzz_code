@@ -1496,6 +1496,7 @@
   V(DataConversionName)                                                        \
   V(DataAggregateArguments)                                                    \
   V(DataNonReservedWord)                                                       \
+  V(DataFixLater)                                                              \
 
 
 #define SWITCHSTART switch (case_idx_) {

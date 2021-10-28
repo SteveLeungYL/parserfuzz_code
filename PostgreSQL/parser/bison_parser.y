@@ -1736,19 +1736,19 @@ AlterOptRoleElem:
     | IDENT {
         /* Yu: Restricted the possible option for ALTER role option list. If unreconized, change it to superuser. */
         auto tmp1 = $1;
-        if (strcmp($1, "superuser") ||
-		    strcmp($1, "nosuperuser") ||
-		    strcmp($1, "createrole") ||
-		    strcmp($1, "nocreaterole") ||
-		    strcmp($1, "replication") ||
-		    strcmp($1, "noreplication") ||
-		    strcmp($1, "createdb") ||
-		    strcmp($1, "nocreatedb") ||
-		    strcmp($1, "login") ||
-		    strcmp($1, "nologin") ||
-		    strcmp($1, "bypassrls") ||
-		    strcmp($1, "nobypassrls") ||
-		    strcmp($1, "noinherit"))
+        if (!strcmp($1, "superuser") ||
+		    !strcmp($1, "nosuperuser") ||
+		    !strcmp($1, "createrole") ||
+		    !strcmp($1, "nocreaterole") ||
+		    !strcmp($1, "replication") ||
+		    !strcmp($1, "noreplication") ||
+		    !strcmp($1, "createdb") ||
+		    !strcmp($1, "nocreatedb") ||
+		    !strcmp($1, "login") ||
+		    !strcmp($1, "nologin") ||
+		    !strcmp($1, "bypassrls") ||
+		    !strcmp($1, "nobypassrls") ||
+		    !strcmp($1, "noinherit"))
 		{
             res = new IR(kAlterOptRoleElem, OP3(string($1), "", ""));
 		} else {
@@ -2200,27 +2200,31 @@ set_rest:
 generic_set:
 
     var_name TO var_list {
-        auto tmp1 = $1;
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kGenericSet, OP3("", "TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | var_name '=' var_list {
-        auto tmp1 = $1;
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kGenericSet, OP3("", "=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | var_name TO DEFAULT {
-        auto tmp1 = $1;
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kGenericSet, OP3("", "TO DEFAULT", ""), tmp1);
         $$ = res;
     }
 
     | var_name '=' DEFAULT {
-        auto tmp1 = $1;
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kGenericSet, OP3("", "= DEFAULT", ""), tmp1);
         $$ = res;
     }
@@ -2237,7 +2241,8 @@ set_rest_more:
     }
 
     | var_name FROM CURRENT_P {
-        auto tmp1 = $1;
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kSetRestMore, OP3("", "FROM CURRENT", ""), tmp1);
         $$ = res;
     }
@@ -2269,11 +2274,7 @@ set_rest_more:
     | ROLE NonReservedWord_or_Sconst {
         /* Yu: Cannot find exact example shown on the documentation. Use it as kUse of Role. */
         IR* tmp1;
-        if ($2) {
-            tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
-        } else {
-            tmp1 = new IR(kIdentifier, string("abc"), kDataRoleName, 0, kUse);
-        }
+        tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
         free($2);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         $$ = res;
@@ -2282,11 +2283,7 @@ set_rest_more:
     | SESSION AUTHORIZATION NonReservedWord_or_Sconst {
         /* Yu: This is username. This is just the wrapper for Role. */
         IR* tmp1;
-        if ($3) {
-            tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
-        } else {
-            tmp1 = new IR(kIdentifier, string("abc"), kDataRoleName, 0, kUse);
-        }
+        tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
         free($3);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         $$ = res;
@@ -2543,7 +2540,7 @@ reset_rest:
 generic_reset:
 
     var_name {
-        auto tmp1 = $1;
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kGenericReset, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -2596,7 +2593,8 @@ FunctionSetResetClause:
 VariableShowStmt:
 
     SHOW var_name {
-        auto tmp1 = $2;
+        IR* tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kVariableShowStmt, OP3("SHOW", "", ""), tmp1);
         $$ = res;
     }
@@ -10396,7 +10394,8 @@ func_arg:
 
     arg_class param_name func_type {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kFuncArg_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kFuncArg, OP3("", "", ""), res, tmp3);
@@ -10404,7 +10403,8 @@ func_arg:
     }
 
     | param_name arg_class func_type {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kFuncArg_2, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -10413,7 +10413,8 @@ func_arg:
     }
 
     | param_name func_type {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kFuncArg, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -10470,7 +10471,6 @@ arg_class:
 */
 
 param_name:
-
     type_function_name 
 ;
 
@@ -10500,14 +10500,16 @@ func_type:
     }
 
     | type_function_name attrs '%' TYPE_P {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kFuncType, OP3("", "", "% TYPE"), tmp1, tmp2);
         $$ = res;
     }
 
     | SETOF type_function_name attrs '%' TYPE_P {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $3;
         res = new IR(kFuncType, OP3("SETOF", "", "% TYPE"), tmp1, tmp2);
         $$ = res;
@@ -10954,7 +10956,8 @@ opt_definition:
 table_func_column:
 
     param_name func_type {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kTableFuncColumn, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -17314,14 +17317,16 @@ ConstTypename:
 GenericType:
 
     type_function_name opt_type_modifiers {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kGenericType, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | type_function_name attrs opt_type_modifiers {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kGenericType_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -19687,14 +19692,16 @@ func_arg_expr:
     }
 
     | param_name COLON_EQUALS a_expr {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kFuncArgExpr, OP3("", "COLON_EQUALS", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | param_name EQUALS_GREATER a_expr {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kFuncArgExpr, OP3("", "EQUALS_GREATER", ""), tmp1, tmp2);
         $$ = res;
@@ -20816,10 +20823,7 @@ unreserved_keyword:
     | BREADTH 
     | BY 
     | CACHE 
-    | CALL {
-       $$ = $1;
-    }
-
+    | CALL
     | CALLED 
     | CASCADE 
     | CASCADED 
