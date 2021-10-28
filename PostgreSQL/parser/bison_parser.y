@@ -160,8 +160,8 @@ typedef struct GroupClause
 #define parser_yyerror(msg)  scanner_yyerror(msg, yyscanner)
 #define parser_errposition(pos)  scanner_errposition(pos, yyscanner)
 
-static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
-						 const char *msg);
+static void base_yyerror(YYLTYPE *yylloc, IR* result, IR **pIR,
+            core_yyscan_t yyscanner, const char *msg);
 
 %}
 
@@ -172,7 +172,7 @@ static void base_yyerror(YYLTYPE *yylloc, IR* result, core_yyscan_t yyscanner,
 //%define api.prefix {base_yy}
 %locations
 
-%parse-param {IR* res} {core_yyscan_t yyscanner}
+%parse-param {IR* res} {IR **pIR} {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
 
 %union
@@ -750,38 +750,38 @@ parse_toplevel:
 
     stmtmulti {
         auto tmp1 = $1;
-        res = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = res;
+        *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
+        $$ = NULL;
     }
 
     | MODE_TYPE_NAME Typename {
         auto tmp1 = $2;
-        res = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = res;
+        *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
+        $$ = NULL;
     }
 
     | MODE_PLPGSQL_EXPR PLpgSQL_Expr {
         auto tmp1 = $2;
-        res = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = res;
+        *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
+        $$ = NULL;
     }
 
     | MODE_PLPGSQL_ASSIGN1 PLAssignStmt {
         auto tmp1 = $2;
-        res = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = res;
+        *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
+        $$ = NULL;
     }
 
     | MODE_PLPGSQL_ASSIGN2 PLAssignStmt {
         auto tmp1 = $2;
-        res = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = res;
+        *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
+        $$ = NULL;
     }
 
     | MODE_PLPGSQL_ASSIGN3 PLAssignStmt {
         auto tmp1 = $2;
-        res = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = res;
+        *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
+        $$ = NULL;
     }
 
 ;
@@ -21884,7 +21884,7 @@ bare_label_keyword:
  * available from the scanner.
  */
 static void
-base_yyerror(YYLTYPE *yylloc, IR* ir, core_yyscan_t yyscanner, const char *msg)
+base_yyerror(YYLTYPE *yylloc, IR* ir, IR **pIR, core_yyscan_t yyscanner, const char *msg)
 {
 	parser_yyerror(msg);
 }
