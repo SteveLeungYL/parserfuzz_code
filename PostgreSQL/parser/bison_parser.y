@@ -251,7 +251,7 @@ char *psprintf(const char *fmt,...);
 				create_extension_opt_item alter_extension_opt_item
 
 %type <ir>	opt_lock lock_type cast_context
-%type <ir>		utility_option_name
+%type <str>		utility_option_name
 %type <ir>	utility_option_elem
 %type <ir>	utility_option_list
 %type <ir>	utility_option_arg
@@ -567,7 +567,7 @@ char *psprintf(const char *fmt,...);
  */
 
 /* ordinary key words in alphabetical order */
-%token <ir> ABORT_P ABSOLUTE_P ACCESS ACTION ADD_P ADMIN AFTER
+%token <str> ABORT_P ABSOLUTE_P ACCESS ACTION ADD_P ADMIN AFTER
 	AGGREGATE ALL ALSO ALTER ALWAYS ANALYSE ANALYZE AND ANY ARRAY AS ASC
 	ASENSITIVE ASSERTION ASSIGNMENT ASYMMETRIC ATOMIC AT ATTACH ATTRIBUTE AUTHORIZATION
 
@@ -3064,7 +3064,8 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_6, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
-        auto tmp3 = $6;
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -3532,7 +3533,8 @@ reloption_elem:
     | ColLabel '.' ColLabel '=' def_arg {
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kReloptionElem, OP3("", "", ""), res, tmp3);
@@ -5864,14 +5866,14 @@ NumericOnly:
     | '+' FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($2));
         res = new IR(kNumericOnly, OP0(), tmp1);
-        free($1);
+        free($2);
         $$ = res;
     }
 
     | '-' FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($2));
         res = new IR(kNumericOnly, OP0(), tmp1);
-        free($1);
+        free($2);
         $$ = res;
     }
 
@@ -6168,7 +6170,7 @@ create_extension_opt_item:
     | VERSION_P NonReservedWord_or_Sconst {
         /* Yu: The version string of the extension. No need to mutate I guess. */
         if($2) {
-            res = new IR(kCreateExtensionOptItem, OP3("VERSION", string($2), "");
+            res = new IR(kCreateExtensionOptItem, OP3("VERSION", string($2), ""));
         } else {
             res = new IR(kCreateExtensionOptItem, OP3("VERSION", "", ""));
         }
@@ -7948,7 +7950,8 @@ def_arg:
     }
 
     | reserved_keyword {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -8017,6 +8020,7 @@ old_aggr_elem:
 
     IDENT '=' def_arg {
         /* Yu: Fixing it as an identifier = config. We might need to fix them later in the validate function */
+        IR* tmp1;
         if (    strcmp($1, "SFUNC") == 0 || // Required
                 strcmp($1, "STYPE") == 0 || // Required
                 strcmp($1, "SSPACE") == 0 || // Optional
@@ -8038,17 +8042,16 @@ old_aggr_elem:
                 strcmp($1, "SORTOP") == 0 || // Optional
                 strcmp($1, "PARALLEL") == 0 // Optional 
         ) {
-            auto tmp1 = new IR(kIdentifier, string($1), kDataAggregateArguments, kFlagUnknown);
+            tmp1 = new IR(kIdentifier, string($1), kDataAggregateArguments, kFlagUnknown);
             free($1);
         } else {
-            auto tmp1 = new IR(kIdentifier, string("SFUNC"), kDataAggregateArguments, kFlagUnknown);
+            tmp1 = new IR(kIdentifier, string("SFUNC"), kDataAggregateArguments, kFlagUnknown);
             free($1);
         }
 
         auto tmp2 = $3;
         $$ = new IR(kOldAggrElem, OP3("", "=", ""), tmp1, tmp2);
     }
-}
 
 ;
 
@@ -9167,9 +9170,9 @@ opt_provider:
         ** Do not mutate it for now. 
         */
         if ($2) {
-            res = new IR(kOptProvider, OP3("FOR", string($2), ""), tmp1);
+            res = new IR(kOptProvider, OP3("FOR", string($2), ""));
         } else {
-            res = new IR(kOptProvider, OP3("FOR", "", ""), tmp1);
+            res = new IR(kOptProvider, OP3("FOR", "", ""));
         }
         free($2);
         $$ = res;
@@ -10382,7 +10385,8 @@ function_with_argtypes:
     }
 
     | type_func_name_keyword {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -12467,7 +12471,8 @@ operator_def_arg:
     }
 
     | reserved_keyword {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -14199,7 +14204,7 @@ utility_option_elem:
             res = new IR(kUtilityOptionElem, OP3(string($1), "", ""), tmp1);
         }
         else {
-            res = new IR(kUtilityOptionElem, OP3("", "", ""), tmp1);
+            res = new IR(kUtilityOptionElem, OP0(), tmp1);
         }
         free($1);
         $$ = res;
@@ -15598,7 +15603,8 @@ opt_cycle_clause:
         res = new IR(kOptCycleClause_2, OP3("", "", "DEFAULT"), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kOptCycleClause_3, OP3("", "", "USING"), res, tmp4);
-        auto tmp5 = $10;
+        auto tmp5 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        free($10);
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp5);
         $$ = res;
     }
@@ -19134,7 +19140,7 @@ xml_attribute_el:
 
     a_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kXmlAttributeEl, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
@@ -19607,7 +19613,8 @@ sub_type:
 all_Op:
 
     Op {
-        res = new IR(kAllOp, OP3("OP", "", ""));
+        res = new IR(kAllOp, string($1));
+        free($1);
         $$ = res;
     }
 
@@ -19668,17 +19675,17 @@ MathOp:
     }
 
     | LESS_EQUALS {
-        res = new IR(kMathOp, OP3("LESS_EQUALS", "", ""));
+        res = new IR(kMathOp, OP3("<=", "", ""));
         $$ = res;
     }
 
     | GREATER_EQUALS {
-        res = new IR(kMathOp, OP3("GREATER_EQUALS", "", ""));
+        res = new IR(kMathOp, OP3(">=", "", ""));
         $$ = res;
     }
 
     | NOT_EQUALS {
-        res = new IR(kMathOp, OP3("NOT_EQUALS", "", ""));
+        res = new IR(kMathOp, OP3("!=", "", ""));
         $$ = res;
     }
 
@@ -20705,7 +20712,7 @@ RoleSpec:
                 tmp1 = new IR(kIdentifier, string("public"), kDataRoleName, 0, kUse);
             }
             else {
-                tmp1 = new IR(kidentifier, string($1), kDataRoleName, 0, kUse);
+                tmp1 = new IR(kIdentifier, string($1), kDataRoleName, 0, kUse);
             }
         } else {
             tmp1 = new IR(kIdentifier, string("public"), kDataRoleName, 0, kUse);
