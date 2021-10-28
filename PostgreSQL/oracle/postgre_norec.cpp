@@ -79,9 +79,9 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
         // cerr << "count_func_ir parent structures corrected. \n\n\n";
         if (
         /* enforce COUNT(*) now */
-        findStringIn(count_func_ir->left_->op_->prefix_, "COUNT") &&    // kFuncExpr -> kFuncName
+        strstr(count_func_ir->left_->op_->prefix_, "COUNT") &&    // kFuncExpr -> kFuncName
         count_func_ir->right_->op_ &&   // kFuncExpr -> kFuncArgs
-        count_func_ir->right_->op_->prefix_ == "*"     // Enforce * in COUNT()
+        *count_func_ir->right_->op_->prefix_ == '*'     // Enforce * in COUNT()
         ) {
           // cerr << "count_func_ir enforce COUNT(*) succeed. \n\n\n";
           return true;

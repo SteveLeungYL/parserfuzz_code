@@ -6,6 +6,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <cstring>
 
 bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type,
     bool is_subquery, int stmt_idx){
@@ -598,9 +599,9 @@ vector<IR*> IRWrapper::get_selectclauselist_vec(IR* cur_stmt){
             select_clause_ir->left_->op_ &&
             select_clause_ir->left_->left_ &&
             (
-                select_clause_ir->left_->op_->middle_ == "UNION" ||
-                select_clause_ir->left_->op_->middle_ == "INTERSECT" ||
-                select_clause_ir->left_->op_->middle_ == "EXCEPT"
+                strcmp(select_clause_ir->left_->op_->middle_, "UNION") == 0 ||
+                strcmp(select_clause_ir->left_->op_->middle_, "INTERSECT") == 0 ||
+                strcmp(select_clause_ir->left_->op_->middle_, "EXCEPT") == 0
             )
         ) {
             res_select_clause_list_vec.push_back(select_clause_ir->left_->left_);
@@ -630,7 +631,7 @@ bool IRWrapper::append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, stri
     if (idx < selectclause_vec.size()) {
         IR* insert_pos_ir = selectclause_vec[idx];
 
-        IR* combineClauseIR = new IR(kCombineClause, OP3(set_oper_str, "", ""));
+        IR* combineClauseIR = new IR(kCombineClause, OP3(set_oper_str.c_str(), "", ""));
         IR* new_res = new IR(kUnknown, OP3("", "", ""), app_ir, combineClauseIR);
         new_res = new IR(kSelectClauseList, OP3("", "", ""), new_res, NULL);
 

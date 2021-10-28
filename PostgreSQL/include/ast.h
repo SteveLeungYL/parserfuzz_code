@@ -60,12 +60,14 @@ string get_string_by_data_flag(DATAFLAG flag_type_);
 
 class IROperator {
 public:
-  IROperator(string prefix = "", string middle = "", string suffix = "")
+  IROperator(const char *prefix = "",
+             const char *middle = "",
+             const char *suffix = "")
       : prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
-  string prefix_;
-  string middle_;
-  string suffix_;
+  const char *prefix_;
+  const char *middle_;
+  const char *suffix_;
 };
 
 enum UnionType {
