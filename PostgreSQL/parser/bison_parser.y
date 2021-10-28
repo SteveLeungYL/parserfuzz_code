@@ -2270,7 +2270,7 @@ set_rest_more:
         /* Yu: Cannot find exact example shown on the documentation. Use it as kUse of Role. */
         IR* tmp1;
         if ($2) {
-            tmp1 = new IR(kIdentifier, $2, kDataRoleName, 0, kUse);
+            tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
         } else {
             tmp1 = new IR(kIdentifier, string("abc"), kDataRoleName, 0, kUse);
         }
@@ -2282,12 +2282,12 @@ set_rest_more:
     | SESSION AUTHORIZATION NonReservedWord_or_Sconst {
         /* Yu: This is username. This is just the wrapper for Role. */
         IR* tmp1;
-        if ($2) {
-            tmp1 = new IR(kIdentifier, $2, kDataRoleName, 0, kUse);
+        if ($3) {
+            tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
         } else {
             tmp1 = new IR(kIdentifier, string("abc"), kDataRoleName, 0, kUse);
         }
-        free($2);
+        free($3);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         $$ = res;
     }
@@ -2400,7 +2400,14 @@ opt_boolean_or_string:
     }
 
     | NonReservedWord_or_Sconst {
-        auto tmp1 = $1;
+        /* Yu: This is kStringLiteral. If unexpected NULL return, assign "OFF" to it. */
+        IR *tmp1;
+        if ($1) {
+            tmp1 = new IR(kStringLiteral, string("$1"));
+        } else {
+            tmp1 = new IR(kStringLiteral, string("OFF"));
+        }
+        free($1);
         res = new IR(kOptBooleanOrString, OP3("", "", ""), tmp1);
         $$ = res;
     }
