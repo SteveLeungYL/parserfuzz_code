@@ -1734,6 +1734,7 @@ AlterOptRoleElem:
 
     | IDENT {
         /* Yu: Restricted the possible option for ALTER role option list. If unreconized, change it to superuser. */
+        /* FixLater: Can we directly give $1 to OP3()?*/
         auto tmp1 = $1;
         if (!strcmp($1, "superuser") ||
 		    !strcmp($1, "nosuperuser") ||
@@ -1749,11 +1750,11 @@ AlterOptRoleElem:
 		    !strcmp($1, "nobypassrls") ||
 		    !strcmp($1, "noinherit"))
 		{
-            res = new IR(kAlterOptRoleElem, OP3(string($1), "", ""));
+            res = new IR(kAlterOptRoleElem, OP3($1, "", ""));
 		} else {
             res = new IR(kAlterOptRoleElem, OP3("superuser", "", ""));
         }
-        free($1);
+        // free($1);
         $$ = res;
     }
 
@@ -6169,12 +6170,13 @@ create_extension_opt_item:
 
     | VERSION_P NonReservedWord_or_Sconst {
         /* Yu: The version string of the extension. No need to mutate I guess. */
+        /* FixLater: Can we just input $2 into the OP3?*/
         if($2) {
-            res = new IR(kCreateExtensionOptItem, OP3("VERSION", string($2), ""));
+            res = new IR(kCreateExtensionOptItem, OP3("VERSION", $2, ""));
         } else {
             res = new IR(kCreateExtensionOptItem, OP3("VERSION", "", ""));
         }
-        free($2);
+        // free($2);
         $$ = res;
     }
 
@@ -6232,12 +6234,13 @@ alter_extension_opt_item:
 
     TO NonReservedWord_or_Sconst {
         /* Yu: This is again, just the verion name for the extension. No need to mutate.  */
+        /* FixLater: Can we give $2 to OP3 directly? */
         if ($2) {
-            res = new IR(kAlterExtensionOptItem, OP3("TO", string($2), ""));
+            res = new IR(kAlterExtensionOptItem, OP3("TO", $2, ""));
         } else {
             res = new IR(kAlterExtensionOptItem, OP3("TO", "", ""));
         }
-        free($2);
+        // free($2);
         $$ = res;
     }
 
@@ -9168,13 +9171,14 @@ opt_provider:
     FOR NonReservedWord_or_Sconst {
         /* Yu: This is for the security label string. I do not understand its context and usage. 
         ** Do not mutate it for now. 
+        ** FixLater: $2 into OP3.
         */
         if ($2) {
-            res = new IR(kOptProvider, OP3("FOR", string($2), ""));
+            res = new IR(kOptProvider, OP3("FOR", $2, ""));
         } else {
             res = new IR(kOptProvider, OP3("FOR", "", ""));
         }
-        free($2);
+        // free($2);
         $$ = res;
     }
 
@@ -10872,9 +10876,10 @@ createfunc_opt_item:
     | LANGUAGE NonReservedWord_or_Sconst {
         /* Yu: Assigning program language for the function. It can be c, sql, internal and other user defined language. 
         ** Ignore user defined language for now.
+        ** FixLater: $2 to OP3
         */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
-            res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", string($2), ""));
+            res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", $2, ""));
         } else {
             res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", "sql", ""));
         }
@@ -11351,8 +11356,9 @@ dostmt_opt_item:
 
     | LANGUAGE NonReservedWord_or_Sconst {
         /* Yu: Programming language used for the DO stmt. Do not mutate.  */
+        /* FixLater: $2 into OP3 */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
-            res = new IR(kDostmtOptItem, OP3("LANGUAGE", string($2), ""));
+            res = new IR(kDostmtOptItem, OP3("LANGUAGE", $2, ""));
         } else {
             res = new IR(kDostmtOptItem, OP3("LANGUAGE", "sql", ""));
         }
@@ -14198,10 +14204,11 @@ utility_option_elem:
     utility_option_name utility_option_arg {
         /* Yu: We do not know what is the possible values or types for this utility_option_name. 
         ** Do not change it to kIdentifier. 
+        ** FixLater: $1 into OP3
         */
         auto tmp1 = $2;
         if ($1) {
-            res = new IR(kUtilityOptionElem, OP3(string($1), "", ""), tmp1);
+            res = new IR(kUtilityOptionElem, OP3($1, "", ""), tmp1);
         }
         else {
             res = new IR(kUtilityOptionElem, OP0(), tmp1);
