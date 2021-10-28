@@ -2267,14 +2267,28 @@ set_rest_more:
     }
 
     | ROLE NonReservedWord_or_Sconst {
-        auto tmp1 = $2;
+        /* Yu: Cannot find exact example shown on the documentation. Use it as kUse of Role. */
+        IR* tmp1;
+        if ($2) {
+            tmp1 = new IR(kIdentifier, $2, kDataRoleName, 0, kUse);
+        } else {
+            tmp1 = new IR(kIdentifier, string("abc"), kDataRoleName, 0, kUse);
+        }
+        free($2);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         $$ = res;
     }
 
     | SESSION AUTHORIZATION NonReservedWord_or_Sconst {
-        auto tmp1 = $3;
-        res = new IR(kSetRestMore, OP3("SESSION AUTHORIZATION", "", ""), tmp1);
+        /* Yu: This is username. This is just the wrapper for Role. */
+        IR* tmp1;
+        if ($2) {
+            tmp1 = new IR(kIdentifier, $2, kDataRoleName, 0, kUse);
+        } else {
+            tmp1 = new IR(kIdentifier, string("abc"), kDataRoleName, 0, kUse);
+        }
+        free($2);
+        res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         $$ = res;
     }
 
@@ -2300,10 +2314,7 @@ set_rest_more:
 
 var_name:
 
-    ColId {
-        $$ = $1;
-    }
-
+    ColId 
     | var_name '.' ColId {
         $$ = psprintf("%s.%s", $1, $3);
     }
@@ -2480,14 +2491,8 @@ opt_encoding:
 
 NonReservedWord_or_Sconst:
 
-    NonReservedWord {
-        $$ = $1;
-    }
-
-    | Sconst {
-        $$ = $1;
-    }
-
+    NonReservedWord 
+    | Sconst 
 ;
 
 
@@ -10441,10 +10446,7 @@ arg_class:
 
 param_name:
 
-    type_function_name {
-        $$ = $1;
-    }
-
+    type_function_name 
 ;
 
 
@@ -20685,18 +20687,9 @@ plassign_equals:
 
 ColId:
 
-    IDENT {
-        $$ = $1;
-    }
-
-    | unreserved_keyword {
-        $$ = $1;
-    }
-
-    | col_name_keyword {
-        $$ = $1;
-    }
-
+    IDENT 
+    | unreserved_keyword 
+    | col_name_keyword 
 ;
 
 /* Type/function identifier --- names that can be type or function names.
@@ -20704,18 +20697,9 @@ ColId:
 
 type_function_name:
 
-    IDENT {
-        $$ = $1;
-    }
-
-    | unreserved_keyword {
-        $$ = $1;
-    }
-
-    | type_func_name_keyword {
-        $$ = $1;
-    }
-
+    IDENT 
+    | unreserved_keyword 
+    | type_func_name_keyword 
 ;
 
 /* Any not-fully-reserved word --- these names can be, eg, role names.
@@ -20723,22 +20707,10 @@ type_function_name:
 
 NonReservedWord:
 
-    IDENT {
-        $$ = $1;
-    }
-
-    | unreserved_keyword {
-        $$ = $1;
-    }
-
-    | col_name_keyword {
-        $$ = $1;
-    }
-
-    | type_func_name_keyword {
-        $$ = $1;
-    }
-
+    IDENT 
+    | unreserved_keyword 
+    | col_name_keyword 
+    | type_func_name_keyword 
 ;
 
 /* Column label --- allowed labels in "AS" clauses.
@@ -20747,26 +20719,11 @@ NonReservedWord:
 
 ColLabel:
 
-    IDENT {
-        $$ = $1;
-    }
-
-    | unreserved_keyword {
-        $$ = $1;
-    }
-
-    | col_name_keyword {
-        $$ = $1;
-    }
-
-    | type_func_name_keyword {
-        $$ = $1;
-    }
-
-    | reserved_keyword {
-        $$ = $1;
-    }
-
+    IDENT 
+    | unreserved_keyword 
+    | col_name_keyword 
+    | type_func_name_keyword 
+    | reserved_keyword 
 ;
 
 /* Bare column label --- names that can be column labels without writing "AS".
@@ -20775,14 +20732,8 @@ ColLabel:
 
 BareColLabel:
 
-    IDENT {
-        $$ = $1;
-    }
-
-    | bare_label_keyword {
-        $$ = $1;
-    }
-
+    IDENT 
+    | bare_label_keyword 
 ;
 
 
@@ -20804,1230 +20755,315 @@ BareColLabel:
 
 unreserved_keyword:
 
-    ABORT_P {
-        $$ = $1;
-    }
-
-    | ABSOLUTE_P {
-        $$ = $1;
-    }
-
-    | ACCESS {
-        $$ = $1;
-    }
-
-    | ACTION {
-        $$ = $1;
-    }
-
-    | ADD_P {
-        $$ = $1;
-    }
-
-    | ADMIN {
-        $$ = $1;
-    }
-
-    | AFTER {
-        $$ = $1;
-    }
-
-    | AGGREGATE {
-        $$ = $1;
-    }
-
-    | ALSO {
-        $$ = $1;
-    }
-
-    | ALTER {
-        $$ = $1;
-    }
-
-    | ALWAYS {
-        $$ = $1;
-    }
-
-    | ASENSITIVE {
-        $$ = $1;
-    }
-
-    | ASSERTION {
-        $$ = $1;
-    }
-
-    | ASSIGNMENT {
-        $$ = $1;
-    }
-
-    | AT {
-        $$ = $1;
-    }
-
-    | ATOMIC {
-        $$ = $1;
-    }
-
-    | ATTACH {
-        $$ = $1;
-    }
-
-    | ATTRIBUTE {
-        $$ = $1;
-    }
-
-    | BACKWARD {
-        $$ = $1;
-    }
-
-    | BEFORE {
-        $$ = $1;
-    }
-
-    | BEGIN_P {
-        $$ = $1;
-    }
-
-    | BREADTH {
-        $$ = $1;
-    }
-
-    | BY {
-        $$ = $1;
-    }
-
-    | CACHE {
-        $$ = $1;
-    }
-
+    ABORT_P 
+    | ABSOLUTE_P 
+    | ACCESS 
+    | ACTION 
+    | ADD_P 
+    | ADMIN 
+    | AFTER 
+    | AGGREGATE 
+    | ALSO 
+    | ALTER 
+    | ALWAYS 
+    | ASENSITIVE 
+    | ASSERTION 
+    | ASSIGNMENT 
+    | AT 
+    | ATOMIC 
+    | ATTACH 
+    | ATTRIBUTE 
+    | BACKWARD 
+    | BEFORE 
+    | BEGIN_P 
+    | BREADTH 
+    | BY 
+    | CACHE 
     | CALL {
        $$ = $1;
     }
 
-    | CALLED {
-        $$ = $1;
-    }
-
-    | CASCADE {
-        $$ = $1;
-    }
-
-    | CASCADED {
-        $$ = $1;
-    }
-
-    | CATALOG_P {
-        $$ = $1;
-    }
-
-    | CHAIN {
-        $$ = $1;
-    }
-
-    | CHARACTERISTICS {
-        $$ = $1;
-    }
-
-    | CHECKPOINT {
-        $$ = $1;
-    }
-
-    | CLASS {
-        $$ = $1;
-    }
-
-    | CLOSE {
-        $$ = $1;
-    }
-
-    | CLUSTER {
-        $$ = $1;
-    }
-
-    | COLUMNS {
-        $$ = $1;
-    }
-
-    | COMMENT {
-        $$ = $1;
-    }
-
-    | COMMENTS {
-        $$ = $1;
-    }
-
-    | COMMIT {
-        $$ = $1;
-    }
-
-    | COMMITTED {
-        $$ = $1;
-    }
-
-    | COMPRESSION {
-        $$ = $1;
-    }
-
-    | CONFIGURATION {
-        $$ = $1;
-    }
-
-    | CONFLICT {
-        $$ = $1;
-    }
-
-    | CONNECTION {
-        $$ = $1;
-    }
-
-    | CONSTRAINTS {
-        $$ = $1;
-    }
-
-    | CONTENT_P {
-        $$ = $1;
-    }
-
-    | CONTINUE_P {
-        $$ = $1;
-    }
-
-    | CONVERSION_P {
-        $$ = $1;
-    }
-
-    | COPY {
-        $$ = $1;
-    }
-
-    | COST {
-        $$ = $1;
-    }
-
-    | CSV {
-        $$ = $1;
-    }
-
-    | CUBE {
-        $$ = $1;
-    }
-
-    | CURRENT_P {
-        $$ = $1;
-    }
-
-    | CURSOR {
-        $$ = $1;
-    }
-
-    | CYCLE {
-        $$ = $1;
-    }
-
-    | DATA_P {
-        $$ = $1;
-    }
-
-    | DATABASE {
-        $$ = $1;
-    }
-
-    | DAY_P {
-        $$ = $1;
-    }
-
-    | DEALLOCATE {
-        $$ = $1;
-    }
-
-    | DECLARE {
-        $$ = $1;
-    }
-
-    | DEFAULTS {
-        $$ = $1;
-    }
-
-    | DEFERRED {
-        $$ = $1;
-    }
-
-    | DEFINER {
-        $$ = $1;
-    }
-
-    | DELETE_P {
-        $$ = $1;
-    }
-
-    | DELIMITER {
-        $$ = $1;
-    }
-
-    | DELIMITERS {
-        $$ = $1;
-    }
-
-    | DEPENDS {
-        $$ = $1;
-    }
-
-    | DEPTH {
-        $$ = $1;
-    }
-
-    | DETACH {
-        $$ = $1;
-    }
-
-    | DICTIONARY {
-        $$ = $1;
-    }
-
-    | DISABLE_P {
-        $$ = $1;
-    }
-
-    | DISCARD {
-        $$ = $1;
-    }
-
-    | DOCUMENT_P {
-        $$ = $1;
-    }
-
-    | DOMAIN_P {
-        $$ = $1;
-    }
-
-    | DOUBLE_P {
-        $$ = $1;
-    }
-
-    | DROP {
-        $$ = $1;
-    }
-
-    | EACH {
-        $$ = $1;
-    }
-
-    | ENABLE_P {
-        $$ = $1;
-    }
-
-    | ENCODING {
-        $$ = $1;
-    }
-
-    | ENCRYPTED {
-        $$ = $1;
-    }
-
-    | ENUM_P {
-        $$ = $1;
-    }
-
-    | ESCAPE {
-        $$ = $1;
-    }
-
-    | EVENT {
-        $$ = $1;
-    }
-
-    | EXCLUDE {
-        $$ = $1;
-    }
-
-    | EXCLUDING {
-        $$ = $1;
-    }
-
-    | EXCLUSIVE {
-        $$ = $1;
-    }
-
-    | EXECUTE {
-        $$ = $1;
-    }
-
-    | EXPLAIN {
-        $$ = $1;
-    }
-
-    | EXPRESSION {
-        $$ = $1;
-    }
-
-    | EXTENSION {
-        $$ = $1;
-    }
-
-    | EXTERNAL {
-        $$ = $1;
-    }
-
-    | FAMILY {
-        $$ = $1;
-    }
-
-    | FILTER {
-        $$ = $1;
-    }
-
-    | FINALIZE {
-        $$ = $1;
-    }
-
-    | FIRST_P {
-        $$ = $1;
-    }
-
-    | FOLLOWING {
-        $$ = $1;
-    }
-
-    | FORCE {
-        $$ = $1;
-    }
-
-    | FORWARD {
-        $$ = $1;
-    }
-
-    | FUNCTION {
-        $$ = $1;
-    }
-
-    | FUNCTIONS {
-        $$ = $1;
-    }
-
-    | GENERATED {
-        $$ = $1;
-    }
-
-    | GLOBAL {
-        $$ = $1;
-    }
-
-    | GRANTED {
-        $$ = $1;
-    }
-
-    | GROUPS {
-        $$ = $1;
-    }
-
-    | HANDLER {
-        $$ = $1;
-    }
-
-    | HEADER_P {
-        $$ = $1;
-    }
-
-    | HOLD {
-        $$ = $1;
-    }
-
-    | HOUR_P {
-        $$ = $1;
-    }
-
-    | IDENTITY_P {
-        $$ = $1;
-    }
-
-    | IF_P {
-        $$ = $1;
-    }
-
-    | IMMEDIATE {
-        $$ = $1;
-    }
-
-    | IMMUTABLE {
-        $$ = $1;
-    }
-
-    | IMPLICIT_P {
-        $$ = $1;
-    }
-
-    | IMPORT_P {
-        $$ = $1;
-    }
-
-    | INCLUDE {
-        $$ = $1;
-    }
-
-    | INCLUDING {
-        $$ = $1;
-    }
-
-    | INCREMENT {
-        $$ = $1;
-    }
-
-    | INDEX {
-        $$ = $1;
-    }
-
-    | INDEXES {
-        $$ = $1;
-    }
-
-    | INHERIT {
-        $$ = $1;
-    }
-
-    | INHERITS {
-        $$ = $1;
-    }
-
-    | INLINE_P {
-        $$ = $1;
-    }
-
-    | INPUT_P {
-        $$ = $1;
-    }
-
-    | INSENSITIVE {
-        $$ = $1;
-    }
-
-    | INSERT {
-        $$ = $1;
-    }
-
-    | INSTEAD {
-        $$ = $1;
-    }
-
-    | INVOKER {
-        $$ = $1;
-    }
-
-    | ISOLATION {
-        $$ = $1;
-    }
-
-    | KEY {
-        $$ = $1;
-    }
-
-    | LABEL {
-        $$ = $1;
-    }
-
-    | LANGUAGE {
-        $$ = $1;
-    }
-
-    | LARGE_P {
-        $$ = $1;
-    }
-
-    | LAST_P {
-        $$ = $1;
-    }
-
-    | LEAKPROOF {
-        $$ = $1;
-    }
-
-    | LEVEL {
-        $$ = $1;
-    }
-
-    | LISTEN {
-        $$ = $1;
-    }
-
-    | LOAD {
-        $$ = $1;
-    }
-
-    | LOCAL {
-        $$ = $1;
-    }
-
-    | LOCATION {
-        $$ = $1;
-    }
-
-    | LOCK_P {
-        $$ = $1;
-    }
-
-    | LOCKED {
-        $$ = $1;
-    }
-
-    | LOGGED {
-        $$ = $1;
-    }
-
-    | MAPPING {
-        $$ = $1;
-    }
-
-    | MATCH {
-        $$ = $1;
-    }
-
-    | MATERIALIZED {
-        $$ = $1;
-    }
-
-    | MAXVALUE {
-        $$ = $1;
-    }
-
-    | METHOD {
-        $$ = $1;
-    }
-
-    | MINUTE_P {
-        $$ = $1;
-    }
-
-    | MINVALUE {
-        $$ = $1;
-    }
-
-    | MODE {
-        $$ = $1;
-    }
-
-    | MONTH_P {
-        $$ = $1;
-    }
-
-    | MOVE {
-        $$ = $1;
-    }
-
-    | NAME_P {
-        $$ = $1;
-    }
-
-    | NAMES {
-        $$ = $1;
-    }
-
-    | NEW {
-        $$ = $1;
-    }
-
-    | NEXT {
-        $$ = $1;
-    }
-
-    | NFC {
-        $$ = $1;
-    }
-
-    | NFD {
-        $$ = $1;
-    }
-
-    | NFKC {
-        $$ = $1;
-    }
-
-    | NFKD {
-        $$ = $1;
-    }
-
-    | NO {
-        $$ = $1;
-    }
-
-    | NORMALIZED {
-        $$ = $1;
-    }
-
-    | NOTHING {
-        $$ = $1;
-    }
-
-    | NOTIFY {
-        $$ = $1;
-    }
-
-    | NOWAIT {
-        $$ = $1;
-    }
-
-    | NULLS_P {
-        $$ = $1;
-    }
-
-    | OBJECT_P {
-        $$ = $1;
-    }
-
-    | OF {
-        $$ = $1;
-    }
-
-    | OFF {
-        $$ = $1;
-    }
-
-    | OIDS {
-        $$ = $1;
-    }
-
-    | OLD {
-        $$ = $1;
-    }
-
-    | OPERATOR {
-        $$ = $1;
-    }
-
-    | OPTION {
-        $$ = $1;
-    }
-
-    | OPTIONS {
-        $$ = $1;
-    }
-
-    | ORDINALITY {
-        $$ = $1;
-    }
-
-    | OTHERS {
-        $$ = $1;
-    }
-
-    | OVER {
-        $$ = $1;
-    }
-
-    | OVERRIDING {
-        $$ = $1;
-    }
-
-    | OWNED {
-        $$ = $1;
-    }
-
-    | OWNER {
-        $$ = $1;
-    }
-
-    | PARALLEL {
-        $$ = $1;
-    }
-
-    | PARSER {
-        $$ = $1;
-    }
-
-    | PARTIAL {
-        $$ = $1;
-    }
-
-    | PARTITION {
-        $$ = $1;
-    }
-
-    | PASSING {
-        $$ = $1;
-    }
-
-    | PASSWORD {
-        $$ = $1;
-    }
-
-    | PLANS {
-        $$ = $1;
-    }
-
-    | POLICY {
-        $$ = $1;
-    }
-
-    | PRECEDING {
-        $$ = $1;
-    }
-
-    | PREPARE {
-        $$ = $1;
-    }
-
-    | PREPARED {
-        $$ = $1;
-    }
-
-    | PRESERVE {
-        $$ = $1;
-    }
-
-    | PRIOR {
-        $$ = $1;
-    }
-
-    | PRIVILEGES {
-        $$ = $1;
-    }
-
-    | PROCEDURAL {
-        $$ = $1;
-    }
-
-    | PROCEDURE {
-        $$ = $1;
-    }
-
-    | PROCEDURES {
-        $$ = $1;
-    }
-
-    | PROGRAM {
-        $$ = $1;
-    }
-
-    | PUBLICATION {
-        $$ = $1;
-    }
-
-    | QUOTE {
-        $$ = $1;
-    }
-
-    | RANGE {
-        $$ = $1;
-    }
-
-    | READ {
-        $$ = $1;
-    }
-
-    | REASSIGN {
-        $$ = $1;
-    }
-
-    | RECHECK {
-        $$ = $1;
-    }
-
-    | RECURSIVE {
-        $$ = $1;
-    }
-
-    | REF {
-        $$ = $1;
-    }
-
-    | REFERENCING {
-        $$ = $1;
-    }
-
-    | REFRESH {
-        $$ = $1;
-    }
-
-    | REINDEX {
-        $$ = $1;
-    }
-
-    | RELATIVE_P {
-        $$ = $1;
-    }
-
-    | RELEASE {
-        $$ = $1;
-    }
-
-    | RENAME {
-        $$ = $1;
-    }
-
-    | REPEATABLE {
-        $$ = $1;
-    }
-
-    | REPLACE {
-        $$ = $1;
-    }
-
-    | REPLICA {
-        $$ = $1;
-    }
-
-    | RESET {
-        $$ = $1;
-    }
-
-    | RESTART {
-        $$ = $1;
-    }
-
-    | RESTRICT {
-        $$ = $1;
-    }
-
-    | RETURN {
-        $$ = $1;
-    }
-
-    | RETURNS {
-        $$ = $1;
-    }
-
-    | REVOKE {
-        $$ = $1;
-    }
-
-    | ROLE {
-        $$ = $1;
-    }
-
-    | ROLLBACK {
-        $$ = $1;
-    }
-
-    | ROLLUP {
-        $$ = $1;
-    }
-
-    | ROUTINE {
-        $$ = $1;
-    }
-
-    | ROUTINES {
-        $$ = $1;
-    }
-
-    | ROWS {
-        $$ = $1;
-    }
-
-    | RULE {
-        $$ = $1;
-    }
-
-    | SAVEPOINT {
-        $$ = $1;
-    }
-
-    | SCHEMA {
-        $$ = $1;
-    }
-
-    | SCHEMAS {
-        $$ = $1;
-    }
-
-    | SCROLL {
-        $$ = $1;
-    }
-
-    | SEARCH {
-        $$ = $1;
-    }
-
-    | SECOND_P {
-        $$ = $1;
-    }
-
-    | SECURITY {
-        $$ = $1;
-    }
-
-    | SEQUENCE {
-        $$ = $1;
-    }
-
-    | SEQUENCES {
-        $$ = $1;
-    }
-
-    | SERIALIZABLE {
-        $$ = $1;
-    }
-
-    | SERVER {
-        $$ = $1;
-    }
-
-    | SESSION {
-        $$ = $1;
-    }
-
-    | SET {
-        $$ = $1;
-    }
-
-    | SETS {
-        $$ = $1;
-    }
-
-    | SHARE {
-        $$ = $1;
-    }
-
-    | SHOW {
-        $$ = $1;
-    }
-
-    | SIMPLE {
-        $$ = $1;
-    }
-
-    | SKIP {
-        $$ = $1;
-    }
-
-    | SNAPSHOT {
-        $$ = $1;
-    }
-
-    | SQL_P {
-        $$ = $1;
-    }
-
-    | STABLE {
-        $$ = $1;
-    }
-
-    | STANDALONE_P {
-        $$ = $1;
-    }
-
-    | START {
-        $$ = $1;
-    }
-
-    | STATEMENT {
-        $$ = $1;
-    }
-
-    | STATISTICS {
-        $$ = $1;
-    }
-
-    | STDIN {
-        $$ = $1;
-    }
-
-    | STDOUT {
-        $$ = $1;
-    }
-
-    | STORAGE {
-        $$ = $1;
-    }
-
-    | STORED {
-        $$ = $1;
-    }
-
-    | STRICT_P {
-        $$ = $1;
-    }
-
-    | STRIP_P {
-        $$ = $1;
-    }
-
-    | SUBSCRIPTION {
-        $$ = $1;
-    }
-
-    | SUPPORT {
-        $$ = $1;
-    }
-
-    | SYSID {
-        $$ = $1;
-    }
-
-    | SYSTEM_P {
-        $$ = $1;
-    }
-
-    | TABLES {
-        $$ = $1;
-    }
-
-    | TABLESPACE {
-        $$ = $1;
-    }
-
-    | TEMP {
-        $$ = $1;
-    }
-
-    | TEMPLATE {
-        $$ = $1;
-    }
-
-    | TEMPORARY {
-        $$ = $1;
-    }
-
-    | TEXT_P {
-        $$ = $1;
-    }
-
-    | TIES {
-        $$ = $1;
-    }
-
-    | TRANSACTION {
-        $$ = $1;
-    }
-
-    | TRANSFORM {
-        $$ = $1;
-    }
-
-    | TRIGGER {
-        $$ = $1;
-    }
-
-    | TRUNCATE {
-        $$ = $1;
-    }
-
-    | TRUSTED {
-        $$ = $1;
-    }
-
-    | TYPE_P {
-        $$ = $1;
-    }
-
-    | TYPES_P {
-        $$ = $1;
-    }
-
-    | UESCAPE {
-        $$ = $1;
-    }
-
-    | UNBOUNDED {
-        $$ = $1;
-    }
-
-    | UNCOMMITTED {
-        $$ = $1;
-    }
-
-    | UNENCRYPTED {
-        $$ = $1;
-    }
-
-    | UNKNOWN {
-        $$ = $1;
-    }
-
-    | UNLISTEN {
-        $$ = $1;
-    }
-
-    | UNLOGGED {
-        $$ = $1;
-    }
-
-    | UNTIL {
-        $$ = $1;
-    }
-
-    | UPDATE {
-        $$ = $1;
-    }
-
-    | VACUUM {
-        $$ = $1;
-    }
-
-    | VALID {
-        $$ = $1;
-    }
-
-    | VALIDATE {
-        $$ = $1;
-    }
-
-    | VALIDATOR {
-        $$ = $1;
-    }
-
-    | VALUE_P {
-        $$ = $1;
-    }
-
-    | VARYING {
-        $$ = $1;
-    }
-
-    | VERSION_P {
-        $$ = $1;
-    }
-
-    | VIEW {
-        $$ = $1;
-    }
-
-    | VIEWS {
-        $$ = $1;
-    }
-
-    | VOLATILE {
-        $$ = $1;
-    }
-
-    | WHITESPACE_P {
-        $$ = $1;
-    }
-
-    | WITHIN {
-        $$ = $1;
-    }
-
-    | WITHOUT {
-        $$ = $1;
-    }
-
-    | WORK {
-        $$ = $1;
-    }
-
-    | WRAPPER {
-        $$ = $1;
-    }
-
-    | WRITE {
-        $$ = $1;
-    }
-
-    | XML_P {
-        $$ = $1;
-    }
-
-    | YEAR_P {
-        $$ = $1;
-    }
-
-    | YES_P {
-        $$ = $1;
-    }
-
-    | ZONE {
-        $$ = $1;
-    }
-
+    | CALLED 
+    | CASCADE 
+    | CASCADED 
+    | CATALOG_P 
+    | CHAIN 
+    | CHARACTERISTICS 
+    | CHECKPOINT 
+    | CLASS 
+    | CLOSE 
+    | CLUSTER 
+    | COLUMNS 
+    | COMMENT 
+    | COMMENTS 
+    | COMMIT 
+    | COMMITTED 
+    | COMPRESSION 
+    | CONFIGURATION 
+    | CONFLICT 
+    | CONNECTION 
+    | CONSTRAINTS 
+    | CONTENT_P 
+    | CONTINUE_P 
+    | CONVERSION_P 
+    | COPY 
+    | COST 
+    | CSV 
+    | CUBE 
+    | CURRENT_P 
+    | CURSOR 
+    | CYCLE 
+    | DATA_P 
+    | DATABASE 
+    | DAY_P 
+    | DEALLOCATE 
+    | DECLARE 
+    | DEFAULTS 
+    | DEFERRED 
+    | DEFINER 
+    | DELETE_P 
+    | DELIMITER 
+    | DELIMITERS 
+    | DEPENDS 
+    | DEPTH 
+    | DETACH 
+    | DICTIONARY 
+    | DISABLE_P 
+    | DISCARD 
+    | DOCUMENT_P 
+    | DOMAIN_P 
+    | DOUBLE_P 
+    | DROP 
+    | EACH 
+    | ENABLE_P 
+    | ENCODING 
+    | ENCRYPTED 
+    | ENUM_P 
+    | ESCAPE 
+    | EVENT 
+    | EXCLUDE 
+    | EXCLUDING 
+    | EXCLUSIVE 
+    | EXECUTE 
+    | EXPLAIN 
+    | EXPRESSION 
+    | EXTENSION 
+    | EXTERNAL 
+    | FAMILY 
+    | FILTER 
+    | FINALIZE 
+    | FIRST_P 
+    | FOLLOWING 
+    | FORCE 
+    | FORWARD 
+    | FUNCTION 
+    | FUNCTIONS 
+    | GENERATED 
+    | GLOBAL 
+    | GRANTED 
+    | GROUPS 
+    | HANDLER 
+    | HEADER_P 
+    | HOLD 
+    | HOUR_P 
+    | IDENTITY_P 
+    | IF_P 
+    | IMMEDIATE 
+    | IMMUTABLE 
+    | IMPLICIT_P 
+    | IMPORT_P 
+    | INCLUDE 
+    | INCLUDING 
+    | INCREMENT 
+    | INDEX 
+    | INDEXES 
+    | INHERIT 
+    | INHERITS 
+    | INLINE_P 
+    | INPUT_P 
+    | INSENSITIVE 
+    | INSERT 
+    | INSTEAD 
+    | INVOKER 
+    | ISOLATION 
+    | KEY 
+    | LABEL 
+    | LANGUAGE 
+    | LARGE_P 
+    | LAST_P 
+    | LEAKPROOF 
+    | LEVEL 
+    | LISTEN 
+    | LOAD 
+    | LOCAL 
+    | LOCATION 
+    | LOCK_P 
+    | LOCKED 
+    | LOGGED 
+    | MAPPING 
+    | MATCH 
+    | MATERIALIZED 
+    | MAXVALUE 
+    | METHOD 
+    | MINUTE_P 
+    | MINVALUE 
+    | MODE 
+    | MONTH_P 
+    | MOVE 
+    | NAME_P 
+    | NAMES 
+    | NEW 
+    | NEXT 
+    | NFC 
+    | NFD 
+    | NFKC 
+    | NFKD 
+    | NO 
+    | NORMALIZED 
+    | NOTHING 
+    | NOTIFY 
+    | NOWAIT 
+    | NULLS_P 
+    | OBJECT_P 
+    | OF 
+    | OFF 
+    | OIDS 
+    | OLD 
+    | OPERATOR 
+    | OPTION 
+    | OPTIONS 
+    | ORDINALITY 
+    | OTHERS 
+    | OVER 
+    | OVERRIDING 
+    | OWNED 
+    | OWNER 
+    | PARALLEL 
+    | PARSER 
+    | PARTIAL 
+    | PARTITION 
+    | PASSING 
+    | PASSWORD 
+    | PLANS 
+    | POLICY 
+    | PRECEDING 
+    | PREPARE 
+    | PREPARED 
+    | PRESERVE 
+    | PRIOR 
+    | PRIVILEGES 
+    | PROCEDURAL 
+    | PROCEDURE 
+    | PROCEDURES 
+    | PROGRAM 
+    | PUBLICATION 
+    | QUOTE 
+    | RANGE 
+    | READ 
+    | REASSIGN 
+    | RECHECK 
+    | RECURSIVE 
+    | REF 
+    | REFERENCING 
+    | REFRESH 
+    | REINDEX 
+    | RELATIVE_P 
+    | RELEASE 
+    | RENAME 
+    | REPEATABLE 
+    | REPLACE 
+    | REPLICA 
+    | RESET 
+    | RESTART 
+    | RESTRICT 
+    | RETURN 
+    | RETURNS 
+    | REVOKE 
+    | ROLE 
+    | ROLLBACK 
+    | ROLLUP 
+    | ROUTINE 
+    | ROUTINES 
+    | ROWS 
+    | RULE 
+    | SAVEPOINT 
+    | SCHEMA 
+    | SCHEMAS 
+    | SCROLL 
+    | SEARCH 
+    | SECOND_P 
+    | SECURITY 
+    | SEQUENCE 
+    | SEQUENCES 
+    | SERIALIZABLE 
+    | SERVER 
+    | SESSION 
+    | SET 
+    | SETS 
+    | SHARE 
+    | SHOW 
+    | SIMPLE 
+    | SKIP 
+    | SNAPSHOT 
+    | SQL_P 
+    | STABLE 
+    | STANDALONE_P 
+    | START 
+    | STATEMENT 
+    | STATISTICS 
+    | STDIN 
+    | STDOUT 
+    | STORAGE 
+    | STORED 
+    | STRICT_P 
+    | STRIP_P 
+    | SUBSCRIPTION 
+    | SUPPORT 
+    | SYSID 
+    | SYSTEM_P 
+    | TABLES 
+    | TABLESPACE 
+    | TEMP 
+    | TEMPLATE 
+    | TEMPORARY 
+    | TEXT_P 
+    | TIES 
+    | TRANSACTION 
+    | TRANSFORM 
+    | TRIGGER 
+    | TRUNCATE 
+    | TRUSTED 
+    | TYPE_P 
+    | TYPES_P 
+    | UESCAPE 
+    | UNBOUNDED 
+    | UNCOMMITTED 
+    | UNENCRYPTED 
+    | UNKNOWN 
+    | UNLISTEN 
+    | UNLOGGED 
+    | UNTIL 
+    | UPDATE 
+    | VACUUM 
+    | VALID 
+    | VALIDATE 
+    | VALIDATOR 
+    | VALUE_P 
+    | VARYING 
+    | VERSION_P 
+    | VIEW 
+    | VIEWS 
+    | VOLATILE 
+    | WHITESPACE_P 
+    | WITHIN 
+    | WITHOUT 
+    | WORK 
+    | WRAPPER 
+    | WRITE 
+    | XML_P 
+    | YEAR_P 
+    | YES_P 
+    | ZONE 
 ;
 
 /* Column identifier --- keywords that can be column, table, etc names.
@@ -22043,210 +21079,57 @@ unreserved_keyword:
 
 col_name_keyword:
 
-    BETWEEN {
-        $$ = $1;
-    }
-
-    | BIGINT {
-        $$ = $1;
-    }
-
-    | BIT {
-        $$ = $1;
-    }
-
-    | BOOLEAN_P {
-        $$ = $1;
-    }
-
-    | CHAR_P {
-        $$ = $1;
-    }
-
-    | CHARACTER {
-        $$ = $1;
-    }
-
-    | COALESCE {
-        $$ = $1;
-    }
-
-    | DEC {
-        $$ = $1;
-    }
-
-    | DECIMAL_P {
-        $$ = $1;
-    }
-
-    | EXISTS {
-        $$ = $1;
-    }
-
-    | EXTRACT {
-        $$ = $1;
-    }
-
-    | FLOAT_P {
-        $$ = $1;
-    }
-
-    | GREATEST {
-        $$ = $1;
-    }
-
-    | GROUPING {
-        $$ = $1;
-    }
-
-    | INOUT {
-        $$ = $1;
-    }
-
-    | INT_P {
-        $$ = $1;
-    }
-
-    | INTEGER {
-        $$ = $1;
-    }
-
-    | INTERVAL {
-        $$ = $1;
-    }
-
-    | LEAST {
-        $$ = $1;
-    }
-
-    | NATIONAL {
-        $$ = $1;
-    }
-
-    | NCHAR {
-        $$ = $1;
-    }
-
-    | NONE {
-        $$ = $1;
-    }
-
-    | NORMALIZE {
-        $$ = $1;
-    }
-
-    | NULLIF {
-        $$ = $1;
-    }
-
-    | NUMERIC {
-        $$ = $1;
-    }
-
-    | OUT_P {
-        $$ = $1;
-    }
-
-    | OVERLAY {
-        $$ = $1;
-    }
-
-    | POSITION {
-        $$ = $1;
-    }
-
-    | PRECISION {
-        $$ = $1;
-    }
-
-    | REAL {
-        $$ = $1;
-    }
-
-    | ROW {
-        $$ = $1;
-    }
-
-    | SETOF {
-        $$ = $1;
-    }
-
-    | SMALLINT {
-        $$ = $1;
-    }
-
-    | SUBSTRING {
-        $$ = $1;
-    }
-
-    | TIME {
-        $$ = $1;
-    }
-
-    | TIMESTAMP {
-        $$ = $1;
-    }
-
-    | TREAT {
-        $$ = $1;
-    }
-
-    | TRIM {
-        $$ = $1;
-    }
-
-    | VALUES {
-        $$ = $1;
-    }
-
-    | VARCHAR {
-        $$ = $1;
-    }
-
-    | XMLATTRIBUTES {
-        $$ = $1;
-    }
-
-    | XMLCONCAT {
-        $$ = $1;
-    }
-
-    | XMLELEMENT {
-        $$ = $1;
-    }
-
-    | XMLEXISTS {
-        $$ = $1;
-    }
-
-    | XMLFOREST {
-        $$ = $1;
-    }
-
-    | XMLNAMESPACES {
-        $$ = $1;
-    }
-
-    | XMLPARSE {
-        $$ = $1;
-    }
-
-    | XMLPI {
-        $$ = $1;
-    }
-
-    | XMLROOT {
-        $$ = $1;
-    }
-
-    | XMLSERIALIZE {
-        $$ = $1;
-    }
-
-    | XMLTABLE {
-        $$ = $1;
-    }
-
+    BETWEEN 
+    | BIGINT 
+    | BIT 
+    | BOOLEAN_P 
+    | CHAR_P 
+    | CHARACTER 
+    | COALESCE 
+    | DEC 
+    | DECIMAL_P 
+    | EXISTS 
+    | EXTRACT 
+    | FLOAT_P 
+    | GREATEST 
+    | GROUPING 
+    | INOUT 
+    | INT_P 
+    | INTEGER 
+    | INTERVAL 
+    | LEAST 
+    | NATIONAL 
+    | NCHAR 
+    | NONE 
+    | NORMALIZE 
+    | NULLIF 
+    | NUMERIC 
+    | OUT_P 
+    | OVERLAY 
+    | POSITION 
+    | PRECISION 
+    | REAL 
+    | ROW 
+    | SETOF 
+    | SMALLINT 
+    | SUBSTRING 
+    | TIME 
+    | TIMESTAMP 
+    | TREAT 
+    | TRIM 
+    | VALUES 
+    | VARCHAR 
+    | XMLATTRIBUTES 
+    | XMLCONCAT 
+    | XMLELEMENT 
+    | XMLEXISTS 
+    | XMLFOREST 
+    | XMLNAMESPACES 
+    | XMLPARSE 
+    | XMLPI 
+    | XMLROOT 
+    | XMLSERIALIZE 
+    | XMLTABLE 
 ;
 
 /* Type/function identifier --- keywords that can be type or function names.
@@ -22262,98 +21145,29 @@ col_name_keyword:
 
 type_func_name_keyword:
 
-    AUTHORIZATION {
-        $$ = $1;
-    }
-
-    | BINARY {
-        $$ = $1;
-    }
-
-    | COLLATION {
-        $$ = $1;
-    }
-
-    | CONCURRENTLY {
-        $$ = $1;
-    }
-
-    | CROSS {
-        $$ = $1;
-    }
-
-    | CURRENT_SCHEMA {
-        $$ = $1;
-    }
-
-    | FREEZE {
-        $$ = $1;
-    }
-
-    | FULL {
-        $$ = $1;
-    }
-
-    | ILIKE {
-        $$ = $1;
-    }
-
-    | INNER_P {
-        $$ = $1;
-    }
-
-    | IS {
-        $$ = $1;
-    }
-
-    | ISNULL {
-        $$ = $1;
-    }
-
-    | JOIN {
-        $$ = $1;
-    }
-
-    | LEFT {
-        $$ = $1;
-    }
-
-    | LIKE {
-        $$ = $1;
-    }
-
-    | NATURAL {
-        $$ = $1;
-    }
-
-    | NOTNULL {
-        $$ = $1;
-    }
-
-    | OUTER_P {
-        $$ = $1;
-    }
-
-    | OVERLAPS {
-        $$ = $1;
-    }
-
-    | RIGHT {
-        $$ = $1;
-    }
-
-    | SIMILAR {
-        $$ = $1;
-    }
-
-    | TABLESAMPLE {
-        $$ = $1;
-    }
-
-    | VERBOSE {
-        $$ = $1;
-    }
-
+    AUTHORIZATION 
+    | BINARY 
+    | COLLATION 
+    | CONCURRENTLY 
+    | CROSS 
+    | CURRENT_SCHEMA 
+    | FREEZE 
+    | FULL 
+    | ILIKE 
+    | INNER_P 
+    | IS 
+    | ISNULL 
+    | JOIN 
+    | LEFT 
+    | LIKE 
+    | NATURAL 
+    | NOTNULL 
+    | OUTER_P 
+    | OVERLAPS 
+    | RIGHT 
+    | SIMILAR 
+    | TABLESAMPLE 
+    | VERBOSE 
 ;
 
 /* Reserved keyword --- these keywords are usable only as a ColLabel.
@@ -22365,314 +21179,83 @@ type_func_name_keyword:
 
 reserved_keyword:
 
-    ALL {
-        $$ = $1;
-    }
-
-    | ANALYSE {
-        $$ = $1;
-    }
-
-    | ANALYZE {
-        $$ = $1;
-    }
-
-    | AND {
-        $$ = $1;
-    }
-
-    | ANY {
-        $$ = $1;
-    }
-
-    | ARRAY {
-        $$ = $1;
-    }
-
-    | AS {
-        $$ = $1;
-    }
-
-    | ASC {
-        $$ = $1;
-    }
-
-    | ASYMMETRIC {
-        $$ = $1;
-    }
-
-    | BOTH {
-        $$ = $1;
-    }
-
-    | CASE {
-        $$ = $1;
-    }
-
-    | CAST {
-        $$ = $1;
-    }
-
-    | CHECK {
-        $$ = $1;
-    }
-
-    | COLLATE {
-        $$ = $1;
-    }
-
-    | COLUMN {
-        $$ = $1;
-    }
-
-    | CONSTRAINT {
-        $$ = $1;
-    }
-
-    | CREATE {
-        $$ = $1;
-    }
-
-    | CURRENT_CATALOG {
-        $$ = $1;
-    }
-
-    | CURRENT_DATE {
-        $$ = $1;
-    }
-
-    | CURRENT_ROLE {
-        $$ = $1;
-    }
-
-    | CURRENT_TIME {
-        $$ = $1;
-    }
-
-    | CURRENT_TIMESTAMP {
-        $$ = $1;
-    }
-
-    | CURRENT_USER {
-        $$ = $1;
-    }
-
-    | DEFAULT {
-        $$ = $1;
-    }
-
-    | DEFERRABLE {
-        $$ = $1;
-    }
-
-    | DESC {
-        $$ = $1;
-    }
-
-    | DISTINCT {
-        $$ = $1;
-    }
-
-    | DO {
-        $$ = $1;
-    }
-
-    | ELSE {
-        $$ = $1;
-    }
-
-    | END_P {
-        $$ = $1;
-    }
-
-    | EXCEPT {
-        $$ = $1;
-    }
-
-    | FALSE_P {
-        $$ = $1;
-    }
-
-    | FETCH {
-        $$ = $1;
-    }
-
-    | FOR {
-        $$ = $1;
-    }
-
-    | FOREIGN {
-        $$ = $1;
-    }
-
-    | FROM {
-        $$ = $1;
-    }
-
-    | GRANT {
-        $$ = $1;
-    }
-
-    | GROUP_P {
-        $$ = $1;
-    }
-
-    | HAVING {
-        $$ = $1;
-    }
-
-    | IN_P {
-        $$ = $1;
-    }
-
-    | INITIALLY {
-        $$ = $1;
-    }
-
-    | INTERSECT {
-        $$ = $1;
-    }
-
-    | INTO {
-        $$ = $1;
-    }
-
-    | LATERAL_P {
-        $$ = $1;
-    }
-
-    | LEADING {
-        $$ = $1;
-    }
-
-    | LIMIT {
-        $$ = $1;
-    }
-
-    | LOCALTIME {
-        $$ = $1;
-    }
-
-    | LOCALTIMESTAMP {
-        $$ = $1;
-    }
-
-    | NOT {
-        $$ = $1;
-    }
-
-    | NULL_P {
-        $$ = $1;
-    }
-
-    | OFFSET {
-        $$ = $1;
-    }
-
-    | ON {
-        $$ = $1;
-    }
-
-    | ONLY {
-        $$ = $1;
-    }
-
-    | OR {
-        $$ = $1;
-    }
-
-    | ORDER {
-        $$ = $1;
-    }
-
-    | PLACING {
-        $$ = $1;
-    }
-
-    | PRIMARY {
-        $$ = $1;
-    }
-
-    | REFERENCES {
-        $$ = $1;
-    }
-
-    | RETURNING {
-        $$ = $1;
-    }
-
-    | SELECT {
-        $$ = $1;
-    }
-
-    | SESSION_USER {
-        $$ = $1;
-    }
-
-    | SOME {
-        $$ = $1;
-    }
-
-    | SYMMETRIC {
-        $$ = $1;
-    }
-
-    | TABLE {
-        $$ = $1;
-    }
-
-    | THEN {
-        $$ = $1;
-    }
-
-    | TO {
-        $$ = $1;
-    }
-
-    | TRAILING {
-        $$ = $1;
-    }
-
-    | TRUE_P {
-        $$ = $1;
-    }
-
-    | UNION {
-        $$ = $1;
-    }
-
-    | UNIQUE {
-        $$ = $1;
-    }
-
-    | USER {
-        $$ = $1;
-    }
-
-    | USING {
-        $$ = $1;
-    }
-
-    | VARIADIC {
-        $$ = $1;
-    }
-
-    | WHEN {
-        $$ = $1;
-    }
-
-    | WHERE {
-        $$ = $1;
-    }
-
-    | WINDOW {
-        $$ = $1;
-    }
-
-    | WITH {
-        $$ = $1;
-    }
-
+    ALL 
+    | ANALYSE 
+    | ANALYZE 
+    | AND 
+    | ANY 
+    | ARRAY 
+    | AS 
+    | ASC 
+    | ASYMMETRIC 
+    | BOTH 
+    | CASE 
+    | CAST 
+    | CHECK 
+    | COLLATE 
+    | COLUMN 
+    | CONSTRAINT 
+    | CREATE 
+    | CURRENT_CATALOG 
+    | CURRENT_DATE 
+    | CURRENT_ROLE 
+    | CURRENT_TIME 
+    | CURRENT_TIMESTAMP 
+    | CURRENT_USER 
+    | DEFAULT 
+    | DEFERRABLE 
+    | DESC 
+    | DISTINCT 
+    | DO 
+    | ELSE 
+    | END_P 
+    | EXCEPT 
+    | FALSE_P 
+    | FETCH 
+    | FOR 
+    | FOREIGN 
+    | FROM 
+    | GRANT 
+    | GROUP_P 
+    | HAVING 
+    | IN_P 
+    | INITIALLY 
+    | INTERSECT 
+    | INTO 
+    | LATERAL_P 
+    | LEADING 
+    | LIMIT 
+    | LOCALTIME 
+    | LOCALTIMESTAMP 
+    | NOT 
+    | NULL_P 
+    | OFFSET 
+    | ON 
+    | ONLY 
+    | OR 
+    | ORDER 
+    | PLACING 
+    | PRIMARY 
+    | REFERENCES 
+    | RETURNING 
+    | SELECT 
+    | SESSION_USER 
+    | SOME 
+    | SYMMETRIC 
+    | TABLE 
+    | THEN 
+    | TO 
+    | TRAILING 
+    | TRUE_P 
+    | UNION 
+    | UNIQUE 
+    | USER 
+    | USING 
+    | VARIADIC 
+    | WHEN 
+    | WHERE 
+    | WINDOW 
+    | WITH 
 ;
 
 /*
@@ -22687,1678 +21270,424 @@ reserved_keyword:
 
 bare_label_keyword:
 
-    ABORT_P {
-        $$ = $1;
-    }
-
-    | ABSOLUTE_P {
-        $$ = $1;
-    }
-
-    | ACCESS {
-        $$ = $1;
-    }
-
-    | ACTION {
-        $$ = $1;
-    }
-
-    | ADD_P {
-        $$ = $1;
-    }
-
-    | ADMIN {
-        $$ = $1;
-    }
-
-    | AFTER {
-        $$ = $1;
-    }
-
-    | AGGREGATE {
-        $$ = $1;
-    }
-
-    | ALL {
-        $$ = $1;
-    }
-
-    | ALSO {
-        $$ = $1;
-    }
-
-    | ALTER {
-        $$ = $1;
-    }
-
-    | ALWAYS {
-        $$ = $1;
-    }
-
-    | ANALYSE {
-        $$ = $1;
-    }
-
-    | ANALYZE {
-        $$ = $1;
-    }
-
-    | AND {
-        $$ = $1;
-    }
-
-    | ANY {
-        $$ = $1;
-    }
-
-    | ASC {
-        $$ = $1;
-    }
-
-    | ASENSITIVE {
-        $$ = $1;
-    }
-
-    | ASSERTION {
-        $$ = $1;
-    }
-
-    | ASSIGNMENT {
-        $$ = $1;
-    }
-
-    | ASYMMETRIC {
-        $$ = $1;
-    }
-
-    | AT {
-        $$ = $1;
-    }
-
-    | ATOMIC {
-        $$ = $1;
-    }
-
-    | ATTACH {
-        $$ = $1;
-    }
-
-    | ATTRIBUTE {
-        $$ = $1;
-    }
-
-    | AUTHORIZATION {
-        $$ = $1;
-    }
-
-    | BACKWARD {
-        $$ = $1;
-    }
-
-    | BEFORE {
-        $$ = $1;
-    }
-
-    | BEGIN_P {
-        $$ = $1;
-    }
-
-    | BETWEEN {
-        $$ = $1;
-    }
-
-    | BIGINT {
-        $$ = $1;
-    }
-
-    | BINARY {
-        $$ = $1;
-    }
-
-    | BIT {
-        $$ = $1;
-    }
-
-    | BOOLEAN_P {
-        $$ = $1;
-    }
-
-    | BOTH {
-        $$ = $1;
-    }
-
-    | BREADTH {
-        $$ = $1;
-    }
-
-    | BY {
-        $$ = $1;
-    }
-
-    | CACHE {
-        $$ = $1;
-    }
-
-    | CALL {
-        $$ = $1;
-    }
-
-    | CALLED {
-        $$ = $1;
-    }
-
-    | CASCADE {
-        $$ = $1;
-    }
-
-    | CASCADED {
-        $$ = $1;
-    }
-
-    | CASE {
-        $$ = $1;
-    }
-
-    | CAST {
-        $$ = $1;
-    }
-
-    | CATALOG_P {
-        $$ = $1;
-    }
-
-    | CHAIN {
-        $$ = $1;
-    }
-
-    | CHARACTERISTICS {
-        $$ = $1;
-    }
-
-    | CHECK {
-        $$ = $1;
-    }
-
-    | CHECKPOINT {
-        $$ = $1;
-    }
-
-    | CLASS {
-        $$ = $1;
-    }
-
-    | CLOSE {
-        $$ = $1;
-    }
-
-    | CLUSTER {
-        $$ = $1;
-    }
-
-    | COALESCE {
-        $$ = $1;
-    }
-
-    | COLLATE {
-        $$ = $1;
-    }
-
-    | COLLATION {
-        $$ = $1;
-    }
-
-    | COLUMN {
-        $$ = $1;
-    }
-
-    | COLUMNS {
-        $$ = $1;
-    }
-
-    | COMMENT {
-        $$ = $1;
-    }
-
-    | COMMENTS {
-        $$ = $1;
-    }
-
-    | COMMIT {
-        $$ = $1;
-    }
-
-    | COMMITTED {
-        $$ = $1;
-    }
-
-    | COMPRESSION {
-        $$ = $1;
-    }
-
-    | CONCURRENTLY {
-        $$ = $1;
-    }
-
-    | CONFIGURATION {
-        $$ = $1;
-    }
-
-    | CONFLICT {
-        $$ = $1;
-    }
-
-    | CONNECTION {
-        $$ = $1;
-    }
-
-    | CONSTRAINT {
-        $$ = $1;
-    }
-
-    | CONSTRAINTS {
-        $$ = $1;
-    }
-
-    | CONTENT_P {
-        $$ = $1;
-    }
-
-    | CONTINUE_P {
-        $$ = $1;
-    }
-
-    | CONVERSION_P {
-        $$ = $1;
-    }
-
-    | COPY {
-        $$ = $1;
-    }
-
-    | COST {
-        $$ = $1;
-    }
-
-    | CROSS {
-        $$ = $1;
-    }
-
-    | CSV {
-        $$ = $1;
-    }
-
-    | CUBE {
-        $$ = $1;
-    }
-
-    | CURRENT_P {
-        $$ = $1;
-    }
-
-    | CURRENT_CATALOG {
-        $$ = $1;
-    }
-
-    | CURRENT_DATE {
-        $$ = $1;
-    }
-
-    | CURRENT_ROLE {
-        $$ = $1;
-    }
-
-    | CURRENT_SCHEMA {
-        $$ = $1;
-    }
-
-    | CURRENT_TIME {
-        $$ = $1;
-    }
-
-    | CURRENT_TIMESTAMP {
-        $$ = $1;
-    }
-
-    | CURRENT_USER {
-        $$ = $1;
-    }
-
-    | CURSOR {
-        $$ = $1;
-    }
-
-    | CYCLE {
-        $$ = $1;
-    }
-
-    | DATA_P {
-        $$ = $1;
-    }
-
-    | DATABASE {
-        $$ = $1;
-    }
-
-    | DEALLOCATE {
-        $$ = $1;
-    }
-
-    | DEC {
-        $$ = $1;
-    }
-
-    | DECIMAL_P {
-        $$ = $1;
-    }
-
-    | DECLARE {
-        $$ = $1;
-    }
-
-    | DEFAULT {
-        $$ = $1;
-    }
-
-    | DEFAULTS {
-        $$ = $1;
-    }
-
-    | DEFERRABLE {
-        $$ = $1;
-    }
-
-    | DEFERRED {
-        $$ = $1;
-    }
-
-    | DEFINER {
-        $$ = $1;
-    }
-
-    | DELETE_P {
-        $$ = $1;
-    }
-
-    | DELIMITER {
-        $$ = $1;
-    }
-
-    | DELIMITERS {
-        $$ = $1;
-    }
-
-    | DEPENDS {
-        $$ = $1;
-    }
-
-    | DEPTH {
-        $$ = $1;
-    }
-
-    | DESC {
-        $$ = $1;
-    }
-
-    | DETACH {
-        $$ = $1;
-    }
-
-    | DICTIONARY {
-        $$ = $1;
-    }
-
-    | DISABLE_P {
-        $$ = $1;
-    }
-
-    | DISCARD {
-        $$ = $1;
-    }
-
-    | DISTINCT {
-        $$ = $1;
-    }
-
-    | DO {
-        $$ = $1;
-    }
-
-    | DOCUMENT_P {
-        $$ = $1;
-    }
-
-    | DOMAIN_P {
-        $$ = $1;
-    }
-
-    | DOUBLE_P {
-        $$ = $1;
-    }
-
-    | DROP {
-        $$ = $1;
-    }
-
-    | EACH {
-        $$ = $1;
-    }
-
-    | ELSE {
-        $$ = $1;
-    }
-
-    | ENABLE_P {
-        $$ = $1;
-    }
-
-    | ENCODING {
-        $$ = $1;
-    }
-
-    | ENCRYPTED {
-        $$ = $1;
-    }
-
-    | END_P {
-        $$ = $1;
-    }
-
-    | ENUM_P {
-        $$ = $1;
-    }
-
-    | ESCAPE {
-        $$ = $1;
-    }
-
-    | EVENT {
-        $$ = $1;
-    }
-
-    | EXCLUDE {
-        $$ = $1;
-    }
-
-    | EXCLUDING {
-        $$ = $1;
-    }
-
-    | EXCLUSIVE {
-        $$ = $1;
-    }
-
-    | EXECUTE {
-        $$ = $1;
-    }
-
-    | EXISTS {
-        $$ = $1;
-    }
-
-    | EXPLAIN {
-        $$ = $1;
-    }
-
-    | EXPRESSION {
-        $$ = $1;
-    }
-
-    | EXTENSION {
-        $$ = $1;
-    }
-
-    | EXTERNAL {
-        $$ = $1;
-    }
-
-    | EXTRACT {
-        $$ = $1;
-    }
-
-    | FALSE_P {
-        $$ = $1;
-    }
-
-    | FAMILY {
-        $$ = $1;
-    }
-
-    | FINALIZE {
-        $$ = $1;
-    }
-
-    | FIRST_P {
-        $$ = $1;
-    }
-
-    | FLOAT_P {
-        $$ = $1;
-    }
-
-    | FOLLOWING {
-        $$ = $1;
-    }
-
-    | FORCE {
-        $$ = $1;
-    }
-
-    | FOREIGN {
-        $$ = $1;
-    }
-
-    | FORWARD {
-        $$ = $1;
-    }
-
-    | FREEZE {
-        $$ = $1;
-    }
-
-    | FULL {
-        $$ = $1;
-    }
-
-    | FUNCTION {
-        $$ = $1;
-    }
-
-    | FUNCTIONS {
-        $$ = $1;
-    }
-
-    | GENERATED {
-        $$ = $1;
-    }
-
-    | GLOBAL {
-        $$ = $1;
-    }
-
-    | GRANTED {
-        $$ = $1;
-    }
-
-    | GREATEST {
-        $$ = $1;
-    }
-
-    | GROUPING {
-        $$ = $1;
-    }
-
-    | GROUPS {
-        $$ = $1;
-    }
-
-    | HANDLER {
-        $$ = $1;
-    }
-
-    | HEADER_P {
-        $$ = $1;
-    }
-
-    | HOLD {
-        $$ = $1;
-    }
-
-    | IDENTITY_P {
-        $$ = $1;
-    }
-
-    | IF_P {
-        $$ = $1;
-    }
-
-    | ILIKE {
-        $$ = $1;
-    }
-
-    | IMMEDIATE {
-        $$ = $1;
-    }
-
-    | IMMUTABLE {
-        $$ = $1;
-    }
-
-    | IMPLICIT_P {
-        $$ = $1;
-    }
-
-    | IMPORT_P {
-        $$ = $1;
-    }
-
-    | IN_P {
-        $$ = $1;
-    }
-
-    | INCLUDE {
-        $$ = $1;
-    }
-
-    | INCLUDING {
-        $$ = $1;
-    }
-
-    | INCREMENT {
-        $$ = $1;
-    }
-
-    | INDEX {
-        $$ = $1;
-    }
-
-    | INDEXES {
-        $$ = $1;
-    }
-
-    | INHERIT {
-        $$ = $1;
-    }
-
-    | INHERITS {
-        $$ = $1;
-    }
-
-    | INITIALLY {
-        $$ = $1;
-    }
-
-    | INLINE_P {
-        $$ = $1;
-    }
-
-    | INNER_P {
-        $$ = $1;
-    }
-
-    | INOUT {
-        $$ = $1;
-    }
-
-    | INPUT_P {
-        $$ = $1;
-    }
-
-    | INSENSITIVE {
-        $$ = $1;
-    }
-
-    | INSERT {
-        $$ = $1;
-    }
-
-    | INSTEAD {
-        $$ = $1;
-    }
-
-    | INT_P {
-        $$ = $1;
-    }
-
-    | INTEGER {
-        $$ = $1;
-    }
-
-    | INTERVAL {
-        $$ = $1;
-    }
-
-    | INVOKER {
-        $$ = $1;
-    }
-
-    | IS {
-        $$ = $1;
-    }
-
-    | ISOLATION {
-        $$ = $1;
-    }
-
-    | JOIN {
-        $$ = $1;
-    }
-
-    | KEY {
-        $$ = $1;
-    }
-
-    | LABEL {
-        $$ = $1;
-    }
-
-    | LANGUAGE {
-        $$ = $1;
-    }
-
-    | LARGE_P {
-        $$ = $1;
-    }
-
-    | LAST_P {
-        $$ = $1;
-    }
-
-    | LATERAL_P {
-        $$ = $1;
-    }
-
-    | LEADING {
-        $$ = $1;
-    }
-
-    | LEAKPROOF {
-        $$ = $1;
-    }
-
-    | LEAST {
-        $$ = $1;
-    }
-
-    | LEFT {
-        $$ = $1;
-    }
-
-    | LEVEL {
-        $$ = $1;
-    }
-
-    | LIKE {
-        $$ = $1;
-    }
-
-    | LISTEN {
-        $$ = $1;
-    }
-
-    | LOAD {
-        $$ = $1;
-    }
-
-    | LOCAL {
-        $$ = $1;
-    }
-
-    | LOCALTIME {
-        $$ = $1;
-    }
-
-    | LOCALTIMESTAMP {
-        $$ = $1;
-    }
-
-    | LOCATION {
-        $$ = $1;
-    }
-
-    | LOCK_P {
-        $$ = $1;
-    }
-
-    | LOCKED {
-        $$ = $1;
-    }
-
-    | LOGGED {
-        $$ = $1;
-    }
-
-    | MAPPING {
-        $$ = $1;
-    }
-
-    | MATCH {
-        $$ = $1;
-    }
-
-    | MATERIALIZED {
-        $$ = $1;
-    }
-
-    | MAXVALUE {
-        $$ = $1;
-    }
-
-    | METHOD {
-        $$ = $1;
-    }
-
-    | MINVALUE {
-        $$ = $1;
-    }
-
-    | MODE {
-        $$ = $1;
-    }
-
-    | MOVE {
-        $$ = $1;
-    }
-
-    | NAME_P {
-        $$ = $1;
-    }
-
-    | NAMES {
-        $$ = $1;
-    }
-
-    | NATIONAL {
-        $$ = $1;
-    }
-
-    | NATURAL {
-        $$ = $1;
-    }
-
-    | NCHAR {
-        $$ = $1;
-    }
-
-    | NEW {
-        $$ = $1;
-    }
-
-    | NEXT {
-        $$ = $1;
-    }
-
-    | NFC {
-        $$ = $1;
-    }
-
-    | NFD {
-        $$ = $1;
-    }
-
-    | NFKC {
-        $$ = $1;
-    }
-
-    | NFKD {
-        $$ = $1;
-    }
-
-    | NO {
-        $$ = $1;
-    }
-
-    | NONE {
-        $$ = $1;
-    }
-
-    | NORMALIZE {
-        $$ = $1;
-    }
-
-    | NORMALIZED {
-        $$ = $1;
-    }
-
-    | NOT {
-        $$ = $1;
-    }
-
-    | NOTHING {
-        $$ = $1;
-    }
-
-    | NOTIFY {
-        $$ = $1;
-    }
-
-    | NOWAIT {
-        $$ = $1;
-    }
-
-    | NULL_P {
-        $$ = $1;
-    }
-
-    | NULLIF {
-        $$ = $1;
-    }
-
-    | NULLS_P {
-        $$ = $1;
-    }
-
-    | NUMERIC {
-        $$ = $1;
-    }
-
-    | OBJECT_P {
-        $$ = $1;
-    }
-
-    | OF {
-        $$ = $1;
-    }
-
-    | OFF {
-        $$ = $1;
-    }
-
-    | OIDS {
-        $$ = $1;
-    }
-
-    | OLD {
-        $$ = $1;
-    }
-
-    | ONLY {
-        $$ = $1;
-    }
-
-    | OPERATOR {
-        $$ = $1;
-    }
-
-    | OPTION {
-        $$ = $1;
-    }
-
-    | OPTIONS {
-        $$ = $1;
-    }
-
-    | OR {
-        $$ = $1;
-    }
-
-    | ORDINALITY {
-        $$ = $1;
-    }
-
-    | OTHERS {
-        $$ = $1;
-    }
-
-    | OUT_P {
-        $$ = $1;
-    }
-
-    | OUTER_P {
-        $$ = $1;
-    }
-
-    | OVERLAY {
-        $$ = $1;
-    }
-
-    | OVERRIDING {
-        $$ = $1;
-    }
-
-    | OWNED {
-        $$ = $1;
-    }
-
-    | OWNER {
-        $$ = $1;
-    }
-
-    | PARALLEL {
-        $$ = $1;
-    }
-
-    | PARSER {
-        $$ = $1;
-    }
-
-    | PARTIAL {
-        $$ = $1;
-    }
-
-    | PARTITION {
-        $$ = $1;
-    }
-
-    | PASSING {
-        $$ = $1;
-    }
-
-    | PASSWORD {
-        $$ = $1;
-    }
-
-    | PLACING {
-        $$ = $1;
-    }
-
-    | PLANS {
-        $$ = $1;
-    }
-
-    | POLICY {
-        $$ = $1;
-    }
-
-    | POSITION {
-        $$ = $1;
-    }
-
-    | PRECEDING {
-        $$ = $1;
-    }
-
-    | PREPARE {
-        $$ = $1;
-    }
-
-    | PREPARED {
-        $$ = $1;
-    }
-
-    | PRESERVE {
-        $$ = $1;
-    }
-
-    | PRIMARY {
-        $$ = $1;
-    }
-
-    | PRIOR {
-        $$ = $1;
-    }
-
-    | PRIVILEGES {
-        $$ = $1;
-    }
-
-    | PROCEDURAL {
-        $$ = $1;
-    }
-
-    | PROCEDURE {
-        $$ = $1;
-    }
-
-    | PROCEDURES {
-        $$ = $1;
-    }
-
-    | PROGRAM {
-        $$ = $1;
-    }
-
-    | PUBLICATION {
-        $$ = $1;
-    }
-
-    | QUOTE {
-        $$ = $1;
-    }
-
-    | RANGE {
-        $$ = $1;
-    }
-
-    | READ {
-        $$ = $1;
-    }
-
-    | REAL {
-        $$ = $1;
-    }
-
-    | REASSIGN {
-        $$ = $1;
-    }
-
-    | RECHECK {
-        $$ = $1;
-    }
-
-    | RECURSIVE {
-        $$ = $1;
-    }
-
-    | REF {
-        $$ = $1;
-    }
-
-    | REFERENCES {
-        $$ = $1;
-    }
-
-    | REFERENCING {
-        $$ = $1;
-    }
-
-    | REFRESH {
-        $$ = $1;
-    }
-
-    | REINDEX {
-        $$ = $1;
-    }
-
-    | RELATIVE_P {
-        $$ = $1;
-    }
-
-    | RELEASE {
-        $$ = $1;
-    }
-
-    | RENAME {
-        $$ = $1;
-    }
-
-    | REPEATABLE {
-        $$ = $1;
-    }
-
-    | REPLACE {
-        $$ = $1;
-    }
-
-    | REPLICA {
-        $$ = $1;
-    }
-
-    | RESET {
-        $$ = $1;
-    }
-
-    | RESTART {
-        $$ = $1;
-    }
-
-    | RESTRICT {
-        $$ = $1;
-    }
-
-    | RETURN {
-        $$ = $1;
-    }
-
-    | RETURNS {
-        $$ = $1;
-    }
-
-    | REVOKE {
-        $$ = $1;
-    }
-
-    | RIGHT {
-        $$ = $1;
-    }
-
-    | ROLE {
-        $$ = $1;
-    }
-
-    | ROLLBACK {
-        $$ = $1;
-    }
-
-    | ROLLUP {
-        $$ = $1;
-    }
-
-    | ROUTINE {
-        $$ = $1;
-    }
-
-    | ROUTINES {
-        $$ = $1;
-    }
-
-    | ROW {
-        $$ = $1;
-    }
-
-    | ROWS {
-        $$ = $1;
-    }
-
-    | RULE {
-        $$ = $1;
-    }
-
-    | SAVEPOINT {
-        $$ = $1;
-    }
-
-    | SCHEMA {
-        $$ = $1;
-    }
-
-    | SCHEMAS {
-        $$ = $1;
-    }
-
-    | SCROLL {
-        $$ = $1;
-    }
-
-    | SEARCH {
-        $$ = $1;
-    }
-
-    | SECURITY {
-        $$ = $1;
-    }
-
-    | SELECT {
-        $$ = $1;
-    }
-
-    | SEQUENCE {
-        $$ = $1;
-    }
-
-    | SEQUENCES {
-        $$ = $1;
-    }
-
-    | SERIALIZABLE {
-        $$ = $1;
-    }
-
-    | SERVER {
-        $$ = $1;
-    }
-
-    | SESSION {
-        $$ = $1;
-    }
-
-    | SESSION_USER {
-        $$ = $1;
-    }
-
-    | SET {
-        $$ = $1;
-    }
-
-    | SETOF {
-        $$ = $1;
-    }
-
-    | SETS {
-        $$ = $1;
-    }
-
-    | SHARE {
-        $$ = $1;
-    }
-
-    | SHOW {
-        $$ = $1;
-    }
-
-    | SIMILAR {
-        $$ = $1;
-    }
-
-    | SIMPLE {
-        $$ = $1;
-    }
-
-    | SKIP {
-        $$ = $1;
-    }
-
-    | SMALLINT {
-        $$ = $1;
-    }
-
-    | SNAPSHOT {
-        $$ = $1;
-    }
-
-    | SOME {
-        $$ = $1;
-    }
-
-    | SQL_P {
-        $$ = $1;
-    }
-
-    | STABLE {
-        $$ = $1;
-    }
-
-    | STANDALONE_P {
-        $$ = $1;
-    }
-
-    | START {
-        $$ = $1;
-    }
-
-    | STATEMENT {
-        $$ = $1;
-    }
-
-    | STATISTICS {
-        $$ = $1;
-    }
-
-    | STDIN {
-        $$ = $1;
-    }
-
-    | STDOUT {
-        $$ = $1;
-    }
-
-    | STORAGE {
-        $$ = $1;
-    }
-
-    | STORED {
-        $$ = $1;
-    }
-
-    | STRICT_P {
-        $$ = $1;
-    }
-
-    | STRIP_P {
-        $$ = $1;
-    }
-
-    | SUBSCRIPTION {
-        $$ = $1;
-    }
-
-    | SUBSTRING {
-        $$ = $1;
-    }
-
-    | SUPPORT {
-        $$ = $1;
-    }
-
-    | SYMMETRIC {
-        $$ = $1;
-    }
-
-    | SYSID {
-        $$ = $1;
-    }
-
-    | SYSTEM_P {
-        $$ = $1;
-    }
-
-    | TABLE {
-        $$ = $1;
-    }
-
-    | TABLES {
-        $$ = $1;
-    }
-
-    | TABLESAMPLE {
-        $$ = $1;
-    }
-
-    | TABLESPACE {
-        $$ = $1;
-    }
-
-    | TEMP {
-        $$ = $1;
-    }
-
-    | TEMPLATE {
-        $$ = $1;
-    }
-
-    | TEMPORARY {
-        $$ = $1;
-    }
-
-    | TEXT_P {
-        $$ = $1;
-    }
-
-    | THEN {
-        $$ = $1;
-    }
-
-    | TIES {
-        $$ = $1;
-    }
-
-    | TIME {
-        $$ = $1;
-    }
-
-    | TIMESTAMP {
-        $$ = $1;
-    }
-
-    | TRAILING {
-        $$ = $1;
-    }
-
-    | TRANSACTION {
-        $$ = $1;
-    }
-
-    | TRANSFORM {
-        $$ = $1;
-    }
-
-    | TREAT {
-        $$ = $1;
-    }
-
-    | TRIGGER {
-        $$ = $1;
-    }
-
-    | TRIM {
-        $$ = $1;
-    }
-
-    | TRUE_P {
-        $$ = $1;
-    }
-
-    | TRUNCATE {
-        $$ = $1;
-    }
-
-    | TRUSTED {
-        $$ = $1;
-    }
-
-    | TYPE_P {
-        $$ = $1;
-    }
-
-    | TYPES_P {
-        $$ = $1;
-    }
-
-    | UESCAPE {
-        $$ = $1;
-    }
-
-    | UNBOUNDED {
-        $$ = $1;
-    }
-
-    | UNCOMMITTED {
-        $$ = $1;
-    }
-
-    | UNENCRYPTED {
-        $$ = $1;
-    }
-
-    | UNIQUE {
-        $$ = $1;
-    }
-
-    | UNKNOWN {
-        $$ = $1;
-    }
-
-    | UNLISTEN {
-        $$ = $1;
-    }
-
-    | UNLOGGED {
-        $$ = $1;
-    }
-
-    | UNTIL {
-        $$ = $1;
-    }
-
-    | UPDATE {
-        $$ = $1;
-    }
-
-    | USER {
-        $$ = $1;
-    }
-
-    | USING {
-        $$ = $1;
-    }
-
-    | VACUUM {
-        $$ = $1;
-    }
-
-    | VALID {
-        $$ = $1;
-    }
-
-    | VALIDATE {
-        $$ = $1;
-    }
-
-    | VALIDATOR {
-        $$ = $1;
-    }
-
-    | VALUE_P {
-        $$ = $1;
-    }
-
-    | VALUES {
-        $$ = $1;
-    }
-
-    | VARCHAR {
-        $$ = $1;
-    }
-
-    | VARIADIC {
-        $$ = $1;
-    }
-
-    | VERBOSE {
-        $$ = $1;
-    }
-
-    | VERSION_P {
-        $$ = $1;
-    }
-
-    | VIEW {
-        $$ = $1;
-    }
-
-    | VIEWS {
-        $$ = $1;
-    }
-
-    | VOLATILE {
-        $$ = $1;
-    }
-
-    | WHEN {
-        $$ = $1;
-    }
-
-    | WHITESPACE_P {
-        $$ = $1;
-    }
-
-    | WORK {
-        $$ = $1;
-    }
-
-    | WRAPPER {
-        $$ = $1;
-    }
-
-    | WRITE {
-        $$ = $1;
-    }
-
-    | XML_P {
-        $$ = $1;
-    }
-
-    | XMLATTRIBUTES {
-        $$ = $1;
-    }
-
-    | XMLCONCAT {
-        $$ = $1;
-    }
-
-    | XMLELEMENT {
-        $$ = $1;
-    }
-
-    | XMLEXISTS {
-        $$ = $1;
-    }
-
-    | XMLFOREST {
-        $$ = $1;
-    }
-
-    | XMLNAMESPACES {
-        $$ = $1;
-    }
-
-    | XMLPARSE {
-        $$ = $1;
-    }
-
-    | XMLPI {
-        $$ = $1;
-    }
-
-    | XMLROOT {
-        $$ = $1;
-    }
-
-    | XMLSERIALIZE {
-        $$ = $1;
-    }
-
-    | XMLTABLE {
-        $$ = $1;
-    }
-
-    | YES_P {
-        $$ = $1;
-    }
-
-    | ZONE {
-        $$ = $1;
-    }
-
+    ABORT_P 
+    | ABSOLUTE_P 
+    | ACCESS 
+    | ACTION 
+    | ADD_P 
+    | ADMIN 
+    | AFTER 
+    | AGGREGATE 
+    | ALL 
+    | ALSO 
+    | ALTER 
+    | ALWAYS 
+    | ANALYSE 
+    | ANALYZE 
+    | AND 
+    | ANY 
+    | ASC 
+    | ASENSITIVE 
+    | ASSERTION 
+    | ASSIGNMENT 
+    | ASYMMETRIC 
+    | AT 
+    | ATOMIC 
+    | ATTACH 
+    | ATTRIBUTE 
+    | AUTHORIZATION 
+    | BACKWARD 
+    | BEFORE 
+    | BEGIN_P 
+    | BETWEEN 
+    | BIGINT 
+    | BINARY 
+    | BIT 
+    | BOOLEAN_P 
+    | BOTH 
+    | BREADTH 
+    | BY 
+    | CACHE 
+    | CALL 
+    | CALLED 
+    | CASCADE 
+    | CASCADED 
+    | CASE 
+    | CAST 
+    | CATALOG_P 
+    | CHAIN 
+    | CHARACTERISTICS 
+    | CHECK 
+    | CHECKPOINT 
+    | CLASS 
+    | CLOSE 
+    | CLUSTER 
+    | COALESCE 
+    | COLLATE 
+    | COLLATION 
+    | COLUMN 
+    | COLUMNS 
+    | COMMENT 
+    | COMMENTS 
+    | COMMIT 
+    | COMMITTED 
+    | COMPRESSION 
+    | CONCURRENTLY 
+    | CONFIGURATION 
+    | CONFLICT 
+    | CONNECTION 
+    | CONSTRAINT 
+    | CONSTRAINTS 
+    | CONTENT_P 
+    | CONTINUE_P 
+    | CONVERSION_P 
+    | COPY 
+    | COST 
+    | CROSS 
+    | CSV 
+    | CUBE 
+    | CURRENT_P 
+    | CURRENT_CATALOG 
+    | CURRENT_DATE 
+    | CURRENT_ROLE 
+    | CURRENT_SCHEMA 
+    | CURRENT_TIME 
+    | CURRENT_TIMESTAMP 
+    | CURRENT_USER 
+    | CURSOR 
+    | CYCLE 
+    | DATA_P 
+    | DATABASE 
+    | DEALLOCATE 
+    | DEC 
+    | DECIMAL_P 
+    | DECLARE 
+    | DEFAULT 
+    | DEFAULTS 
+    | DEFERRABLE 
+    | DEFERRED 
+    | DEFINER 
+    | DELETE_P 
+    | DELIMITER 
+    | DELIMITERS 
+    | DEPENDS 
+    | DEPTH 
+    | DESC 
+    | DETACH 
+    | DICTIONARY 
+    | DISABLE_P 
+    | DISCARD 
+    | DISTINCT 
+    | DO 
+    | DOCUMENT_P 
+    | DOMAIN_P 
+    | DOUBLE_P 
+    | DROP 
+    | EACH 
+    | ELSE 
+    | ENABLE_P 
+    | ENCODING 
+    | ENCRYPTED 
+    | END_P 
+    | ENUM_P 
+    | ESCAPE 
+    | EVENT 
+    | EXCLUDE 
+    | EXCLUDING 
+    | EXCLUSIVE 
+    | EXECUTE 
+    | EXISTS 
+    | EXPLAIN 
+    | EXPRESSION 
+    | EXTENSION 
+    | EXTERNAL 
+    | EXTRACT 
+    | FALSE_P 
+    | FAMILY 
+    | FINALIZE 
+    | FIRST_P 
+    | FLOAT_P 
+    | FOLLOWING 
+    | FORCE 
+    | FOREIGN 
+    | FORWARD 
+    | FREEZE 
+    | FULL 
+    | FUNCTION 
+    | FUNCTIONS 
+    | GENERATED 
+    | GLOBAL 
+    | GRANTED 
+    | GREATEST 
+    | GROUPING 
+    | GROUPS 
+    | HANDLER 
+    | HEADER_P 
+    | HOLD 
+    | IDENTITY_P 
+    | IF_P 
+    | ILIKE 
+    | IMMEDIATE 
+    | IMMUTABLE 
+    | IMPLICIT_P 
+    | IMPORT_P 
+    | IN_P 
+    | INCLUDE 
+    | INCLUDING 
+    | INCREMENT 
+    | INDEX 
+    | INDEXES 
+    | INHERIT 
+    | INHERITS 
+    | INITIALLY 
+    | INLINE_P 
+    | INNER_P 
+    | INOUT 
+    | INPUT_P 
+    | INSENSITIVE 
+    | INSERT 
+    | INSTEAD 
+    | INT_P 
+    | INTEGER 
+    | INTERVAL 
+    | INVOKER 
+    | IS 
+    | ISOLATION 
+    | JOIN 
+    | KEY 
+    | LABEL 
+    | LANGUAGE 
+    | LARGE_P 
+    | LAST_P 
+    | LATERAL_P 
+    | LEADING 
+    | LEAKPROOF 
+    | LEAST 
+    | LEFT 
+    | LEVEL 
+    | LIKE 
+    | LISTEN 
+    | LOAD 
+    | LOCAL 
+    | LOCALTIME 
+    | LOCALTIMESTAMP 
+    | LOCATION 
+    | LOCK_P 
+    | LOCKED 
+    | LOGGED 
+    | MAPPING 
+    | MATCH 
+    | MATERIALIZED 
+    | MAXVALUE 
+    | METHOD 
+    | MINVALUE 
+    | MODE 
+    | MOVE 
+    | NAME_P 
+    | NAMES 
+    | NATIONAL 
+    | NATURAL 
+    | NCHAR 
+    | NEW 
+    | NEXT 
+    | NFC 
+    | NFD 
+    | NFKC 
+    | NFKD 
+    | NO 
+    | NONE 
+    | NORMALIZE 
+    | NORMALIZED 
+    | NOT 
+    | NOTHING 
+    | NOTIFY 
+    | NOWAIT 
+    | NULL_P 
+    | NULLIF 
+    | NULLS_P 
+    | NUMERIC 
+    | OBJECT_P 
+    | OF 
+    | OFF 
+    | OIDS 
+    | OLD 
+    | ONLY 
+    | OPERATOR 
+    | OPTION 
+    | OPTIONS 
+    | OR 
+    | ORDINALITY 
+    | OTHERS 
+    | OUT_P 
+    | OUTER_P 
+    | OVERLAY 
+    | OVERRIDING 
+    | OWNED 
+    | OWNER 
+    | PARALLEL 
+    | PARSER 
+    | PARTIAL 
+    | PARTITION 
+    | PASSING 
+    | PASSWORD 
+    | PLACING 
+    | PLANS 
+    | POLICY 
+    | POSITION 
+    | PRECEDING 
+    | PREPARE 
+    | PREPARED 
+    | PRESERVE 
+    | PRIMARY 
+    | PRIOR 
+    | PRIVILEGES 
+    | PROCEDURAL 
+    | PROCEDURE 
+    | PROCEDURES 
+    | PROGRAM 
+    | PUBLICATION 
+    | QUOTE 
+    | RANGE 
+    | READ 
+    | REAL 
+    | REASSIGN 
+    | RECHECK 
+    | RECURSIVE 
+    | REF 
+    | REFERENCES 
+    | REFERENCING 
+    | REFRESH 
+    | REINDEX 
+    | RELATIVE_P 
+    | RELEASE 
+    | RENAME 
+    | REPEATABLE 
+    | REPLACE 
+    | REPLICA 
+    | RESET 
+    | RESTART 
+    | RESTRICT 
+    | RETURN 
+    | RETURNS 
+    | REVOKE 
+    | RIGHT 
+    | ROLE 
+    | ROLLBACK 
+    | ROLLUP 
+    | ROUTINE 
+    | ROUTINES 
+    | ROW 
+    | ROWS 
+    | RULE 
+    | SAVEPOINT 
+    | SCHEMA 
+    | SCHEMAS 
+    | SCROLL 
+    | SEARCH 
+    | SECURITY 
+    | SELECT 
+    | SEQUENCE 
+    | SEQUENCES 
+    | SERIALIZABLE 
+    | SERVER 
+    | SESSION 
+    | SESSION_USER 
+    | SET 
+    | SETOF 
+    | SETS 
+    | SHARE 
+    | SHOW 
+    | SIMILAR 
+    | SIMPLE 
+    | SKIP 
+    | SMALLINT 
+    | SNAPSHOT 
+    | SOME 
+    | SQL_P 
+    | STABLE 
+    | STANDALONE_P 
+    | START 
+    | STATEMENT 
+    | STATISTICS 
+    | STDIN 
+    | STDOUT 
+    | STORAGE 
+    | STORED 
+    | STRICT_P 
+    | STRIP_P 
+    | SUBSCRIPTION 
+    | SUBSTRING 
+    | SUPPORT 
+    | SYMMETRIC 
+    | SYSID 
+    | SYSTEM_P 
+    | TABLE 
+    | TABLES 
+    | TABLESAMPLE 
+    | TABLESPACE 
+    | TEMP 
+    | TEMPLATE 
+    | TEMPORARY 
+    | TEXT_P 
+    | THEN 
+    | TIES 
+    | TIME 
+    | TIMESTAMP 
+    | TRAILING 
+    | TRANSACTION 
+    | TRANSFORM 
+    | TREAT 
+    | TRIGGER 
+    | TRIM 
+    | TRUE_P 
+    | TRUNCATE 
+    | TRUSTED 
+    | TYPE_P 
+    | TYPES_P 
+    | UESCAPE 
+    | UNBOUNDED 
+    | UNCOMMITTED 
+    | UNENCRYPTED 
+    | UNIQUE 
+    | UNKNOWN 
+    | UNLISTEN 
+    | UNLOGGED 
+    | UNTIL 
+    | UPDATE 
+    | USER 
+    | USING 
+    | VACUUM 
+    | VALID 
+    | VALIDATE 
+    | VALIDATOR 
+    | VALUE_P 
+    | VALUES 
+    | VARCHAR 
+    | VARIADIC 
+    | VERBOSE 
+    | VERSION_P 
+    | VIEW 
+    | VIEWS 
+    | VOLATILE 
+    | WHEN 
+    | WHITESPACE_P 
+    | WORK 
+    | WRAPPER 
+    | WRITE 
+    | XML_P 
+    | XMLATTRIBUTES 
+    | XMLCONCAT 
+    | XMLELEMENT 
+    | XMLEXISTS 
+    | XMLFOREST 
+    | XMLNAMESPACES 
+    | XMLPARSE 
+    | XMLPI 
+    | XMLROOT 
+    | XMLSERIALIZE 
+    | XMLTABLE 
+    | YES_P 
+    | ZONE 
 ;
 
 %%
