@@ -2033,7 +2033,8 @@ CreateSchemaStmt:
     }
 
     | CREATE SCHEMA ColId OptSchemaEltList {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA", "", ""), tmp1, tmp2);
         $$ = res;
@@ -2055,7 +2056,8 @@ CreateSchemaStmt:
         if ($7) {
             $7 -> deep_drop();
         }
-        auto tmp1 = $6;
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "", ""), tmp1);
         $$ = res;
     }
@@ -2066,7 +2068,8 @@ CreateSchemaStmt:
 OptSchemaName:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOptSchemaName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -2978,7 +2981,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId alter_column_default {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -2987,35 +2991,40 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP NOT NULL_P {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP NOT NULL"), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER opt_column ColId SET NOT NULL_P {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET NOT NULL"), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER opt_column ColId DROP EXPRESSION {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP EXPRESSION"), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER opt_column ColId DROP EXPRESSION IF_P EXISTS {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP EXPRESSION IF EXISTS"), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER opt_column ColId SET STATISTICS SignedIconst {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_2, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3033,7 +3042,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET reloptions {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_4, OP3("ALTER", "", "SET"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3042,7 +3052,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId RESET reloptions {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_5, OP3("ALTER", "", "RESET"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3051,7 +3062,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET STORAGE ColId {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_6, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3060,7 +3072,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET column_compression {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_7, OP3("ALTER", "", "SET"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3069,7 +3082,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId ADD_P GENERATED generated_when AS IDENTITY_P OptParenthesizedSeqOptList {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_8, OP3("ALTER", "", "ADD GENERATED"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd_9, OP3("", "", "AS IDENTITY"), res, tmp3);
@@ -3080,7 +3094,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId alter_identity_column_option_list {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_10, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3089,21 +3104,24 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP IDENTITY_P {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY"), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER opt_column ColId DROP IDENTITY_P IF_P EXISTS {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY IF EXISTS"), tmp1, tmp2);
         $$ = res;
     }
 
     | DROP opt_column IF_P EXISTS ColId opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = $5;
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kAlterTableCmd_11, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3112,7 +3130,8 @@ alter_table_cmd:
 
     | DROP opt_column ColId opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_12, OP3("DROP", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3121,7 +3140,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId opt_set_data TYPE_P Typename opt_collate_clause alter_using {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_13, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd_14, OP3("", "", "TYPE"), res, tmp3);
@@ -3136,7 +3156,8 @@ alter_table_cmd:
 
     | ALTER opt_column ColId alter_generic_options {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd_17, OP3("ALTER", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3691,21 +3712,24 @@ alter_type_cmd:
     }
 
     | DROP ATTRIBUTE IF_P EXISTS ColId opt_drop_behavior {
-        auto tmp1 = $5;
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         auto tmp2 = $6;
         res = new IR(kAlterTypeCmd, OP3("DROP ATTRIBUTE IF EXISTS", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | DROP ATTRIBUTE ColId opt_drop_behavior {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterTypeCmd, OP3("DROP ATTRIBUTE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER ATTRIBUTE ColId opt_set_data TYPE_P Typename opt_collate_clause opt_drop_behavior {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $4;
         res = new IR(kAlterTypeCmd_1, OP3("ALTER ATTRIBUTE", "", "TYPE"), tmp1, tmp2);
         auto tmp3 = $6;
@@ -4437,7 +4461,8 @@ TypedTableElement:
 columnDef:
 
     ColId Typename opt_column_compression create_generic_options ColQualList {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kColumnDef_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -4455,14 +4480,16 @@ columnDef:
 columnOptions:
 
     ColId ColQualList {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kColumnOptions, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ColId WITH OPTIONS ColQualList {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $4;
         res = new IR(kColumnOptions, OP3("", "WITH OPTIONS", ""), tmp1, tmp2);
         $$ = res;
@@ -4474,7 +4501,8 @@ columnOptions:
 column_compression:
 
     COMPRESSION ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kColumnCompression, OP3("COMPRESSION", "", ""), tmp1);
         $$ = res;
     }
@@ -4938,7 +4966,8 @@ columnList:
 columnElem:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kColumnElem, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -5170,7 +5199,8 @@ OptPartitionSpec:
 PartitionSpec:
 
     PARTITION BY ColId '(' part_params ')' {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $5;
         res = new IR(kPartitionSpec, OP3("PARTITION BY", "(", ")"), tmp1, tmp2);
         $$ = res;
@@ -5200,7 +5230,8 @@ part_params:
 part_elem:
 
     ColId opt_collate opt_class {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kPartElem_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -5404,7 +5435,8 @@ stats_params:
 stats_param:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kStatsParam, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -7364,7 +7396,8 @@ TransitionRowOrTable:
 TransitionRelName:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kTransitionRelName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -7631,7 +7664,8 @@ event_trigger_when_list:
 event_trigger_when_item:
 
     ColId IN_P '(' event_trigger_value_list ')' {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $4;
         res = new IR(kEventTriggerWhenItem, OP3("", "IN (", ")"), tmp1, tmp2);
         $$ = res;
@@ -8737,13 +8771,15 @@ any_name_list:
 any_name:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kAnyName, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | ColId attrs {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kAnyName, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -9471,7 +9507,8 @@ privilege:
     }
 
     | ColId opt_column_list {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kPrivilege, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -10054,7 +10091,8 @@ index_elem_options:
 index_elem:
 
     ColId index_elem_options {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kIndexElem, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -10339,13 +10377,15 @@ function_with_argtypes:
     }
 
     | ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | ColId indirection {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -10797,7 +10837,8 @@ common_func_opt_item:
     }
 
     | PARALLEL ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kCommonFuncOptItem, OP3("PARALLEL", "", ""), tmp1);
         $$ = res;
     }
@@ -11207,7 +11248,8 @@ any_operator:
     }
 
     | ColId '.' any_operator {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kAnyOperator, OP3("", ".", ""), tmp1, tmp2);
         $$ = res;
@@ -13039,7 +13081,8 @@ opt_instead:
 NotifyStmt:
 
     NOTIFY ColId notify_payload {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $3;
         res = new IR(kNotifyStmt, OP3("NOTIFY", "", ""), tmp1, tmp2);
         $$ = res;
@@ -13067,7 +13110,8 @@ notify_payload:
 ListenStmt:
 
     LISTEN ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kListenStmt, OP3("LISTEN", "", ""), tmp1);
         $$ = res;
     }
@@ -13078,7 +13122,8 @@ ListenStmt:
 UnlistenStmt:
 
     UNLISTEN ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kUnlistenStmt, OP3("UNLISTEN", "", ""), tmp1);
         $$ = res;
     }
@@ -13131,33 +13176,38 @@ TransactionStmt:
     }
 
     | SAVEPOINT ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kTransactionStmt, OP3("SAVEPOINT", "", ""), tmp1);
         $$ = res;
     }
 
     | RELEASE SAVEPOINT ColId {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kTransactionStmt, OP3("RELEASE SAVEPOINT", "", ""), tmp1);
         $$ = res;
     }
 
     | RELEASE ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kTransactionStmt, OP3("RELEASE", "", ""), tmp1);
         $$ = res;
     }
 
     | ROLLBACK opt_transaction TO SAVEPOINT ColId {
         auto tmp1 = $2;
-        auto tmp2 = $5;
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "TO SAVEPOINT", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ROLLBACK opt_transaction TO ColId {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -14602,7 +14652,8 @@ insert_target:
 
     | qualified_name AS ColId {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kInsertTarget, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -14685,7 +14736,8 @@ insert_column_list:
 insert_column_item:
 
     ColId opt_indirection {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kInsertColumnItem, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -14988,7 +15040,8 @@ set_clause:
 set_target:
 
     ColId opt_indirection {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kSetTarget, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -15501,14 +15554,16 @@ opt_search_clause:
 
     SEARCH DEPTH FIRST_P BY columnList SET ColId {
         auto tmp1 = $5;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kOptSearchClause, OP3("SEARCH DEPTH FIRST BY", "SET", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | SEARCH BREADTH FIRST_P BY columnList SET ColId {
         auto tmp1 = $5;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kOptSearchClause, OP3("SEARCH BREADTH FIRST BY", "SET", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -15525,7 +15580,8 @@ opt_cycle_clause:
 
     CYCLE columnList SET ColId TO AexprConst DEFAULT AexprConst USING ColId {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kOptCycleClause_1, OP3("CYCLE", "SET", "TO"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kOptCycleClause_2, OP3("", "", "DEFAULT"), res, tmp3);
@@ -15538,9 +15594,11 @@ opt_cycle_clause:
 
     | CYCLE columnList SET ColId USING ColId {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kOptCycleClause_4, OP3("CYCLE", "SET", "USING"), tmp1, tmp2);
-        auto tmp3 = $6;
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -16521,27 +16579,31 @@ joined_table:
 alias_clause:
 
     AS ColId '(' name_list ')' {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $4;
         res = new IR(kAliasClause, OP3("AS", "(", ")"), tmp1, tmp2);
         $$ = res;
     }
 
     | AS ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kAliasClause, OP3("AS", "", ""), tmp1);
         $$ = res;
     }
 
     | ColId '(' name_list ')' {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kAliasClause, OP3("", "(", ")"), tmp1, tmp2);
         $$ = res;
     }
 
     | ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kAliasClause, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -16574,7 +16636,8 @@ opt_alias_clause:
 opt_alias_clause_for_join_using:
 
     AS ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kOptAliasClauseForJoinUsing, OP3("AS", "", ""), tmp1);
         $$ = res;
     }
@@ -16606,14 +16669,16 @@ func_alias_clause:
     }
 
     | AS ColId '(' TableFuncElementList ')' {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $4;
         res = new IR(kFuncAliasClause, OP3("AS", "(", ")"), tmp1, tmp2);
         $$ = res;
     }
 
     | ColId '(' TableFuncElementList ')' {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kFuncAliasClause, OP3("", "(", ")"), tmp1, tmp2);
         $$ = res;
@@ -16770,14 +16835,16 @@ relation_expr_opt_alias:
 
     | relation_expr ColId {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kRelationExprOptAlias, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | relation_expr AS ColId {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kRelationExprOptAlias, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -16988,7 +17055,8 @@ TableFuncElementList:
 TableFuncElement:
 
     ColId Typename opt_collate_clause {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kTableFuncElement_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -17048,14 +17116,16 @@ xmltable_column_list:
 xmltable_column_el:
 
     ColId Typename {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kXmltableColumnEl, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ColId Typename xmltable_column_option_list {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kXmltableColumnEl_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -17064,7 +17134,8 @@ xmltable_column_el:
     }
 
     | ColId FOR ORDINALITY {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kXmltableColumnEl, OP3("", "FOR ORDINALITY", ""), tmp1);
         $$ = res;
     }
@@ -19227,7 +19298,8 @@ window_definition_list:
 window_definition:
 
     ColId AS window_specification {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kWindowDefinition, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
@@ -19245,7 +19317,8 @@ over_clause:
     }
 
     | OVER ColId {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kOverClause, OP3("OVER", "", ""), tmp1);
         $$ = res;
     }
@@ -19287,7 +19360,8 @@ window_specification:
 opt_existing_window_name:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOptExistingWindowName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20127,13 +20201,15 @@ case_arg:
 columnref:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kColumnref, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | ColId indirection {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kColumnref, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -20344,13 +20420,15 @@ qualified_name_list:
 qualified_name:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kQualifiedName, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | ColId indirection {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kQualifiedName, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -20381,7 +20459,8 @@ name_list:
 name:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20437,7 +20516,8 @@ func_name:
     }
 
     | ColId indirection {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kFuncName, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -20711,7 +20791,8 @@ PLAssignStmt:
 plassign_target:
 
     ColId {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kPlassignTarget, OP3("", "", ""), tmp1);
         $$ = res;
     }
