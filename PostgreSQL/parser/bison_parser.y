@@ -20366,7 +20366,8 @@ target_el:
 
     | a_expr BareColLabel {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kTargetEl, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
