@@ -266,11 +266,19 @@
  * to mis-estimate likelihoods.
  */
 #if __GNUC__ >= 3
+#ifndef likely
 #define likely(x)	__builtin_expect((x) != 0, 1)
+#endif
+#ifndef unlikely
 #define unlikely(x) __builtin_expect((x) != 0, 0)
+#endif
 #else
+#ifndef likely
 #define likely(x)	((x) != 0)
+#endif
+#ifndef unlikely
 #define unlikely(x) ((x) != 0)
+#endif
 #endif
 
 /*
