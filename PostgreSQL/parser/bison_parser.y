@@ -12284,59 +12284,69 @@ RenameStmt:
     }
 
     | ALTER TABLESPACE name RENAME TO name {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt, OP3("ALTER TABLESPACE", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER STATISTICS any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt, OP3("ALTER STATISTICS", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH PARSER any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH PARSER", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH DICTIONARY any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH TEMPLATE any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH TEMPLATE", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH CONFIGURATION any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TYPE_P any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt, OP3("ALTER TYPE", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TYPE_P any_name RENAME ATTRIBUTE name TO name opt_drop_behavior {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt_27, OP3("ALTER TYPE", "RENAME ATTRIBUTE", "TO"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kRenameStmt_28, OP3("", "", ""), res, tmp3);
         auto tmp4 = $9;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
