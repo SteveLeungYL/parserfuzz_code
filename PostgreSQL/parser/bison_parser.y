@@ -290,10 +290,10 @@ char* alloc_and_cat(char*, char*, char*);
 
 %type <ir>		copy_file_name
 				access_method_clause 
-				table_access_method_clause cursor_name file_name
+				table_access_method_clause file_name
 				opt_index_name cluster_index_specification
 
-%type <str>     attr_name name
+%type <str>     attr_name name cursor_name
 
 %type <ir>	func_name handler_name qual_Op qual_all_Op subquery_Op
 				opt_class opt_inline_handler opt_validator validator_clause
@@ -3801,7 +3801,8 @@ alter_type_cmd:
 ClosePortalStmt:
 
     CLOSE cursor_name {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kClosePortalStmt, OP3("CLOSE", "", ""), tmp1);
         $$ = res;
     }
@@ -9400,42 +9401,48 @@ FetchStmt:
 fetch_args:
 
     cursor_name {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kFetchArgs, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | from_in cursor_name {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kFetchArgs, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | NEXT opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("NEXT", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | PRIOR opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("PRIOR", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | FIRST_P opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("FIRST", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | LAST_P opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("LAST", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -9444,7 +9451,8 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_1, OP3("ABSOLUTE", "", ""), tmp1, tmp2);
-        auto tmp3 = $4;
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -9453,7 +9461,8 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_2, OP3("RELATIVE", "", ""), tmp1, tmp2);
-        auto tmp3 = $4;
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -9462,21 +9471,24 @@ fetch_args:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFetchArgs_3, OP3("", "", ""), tmp1, tmp2);
-        auto tmp3 = $3;
+        auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | ALL opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("ALL", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | FORWARD opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("FORWARD", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -9485,21 +9497,24 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_4, OP3("FORWARD", "", ""), tmp1, tmp2);
-        auto tmp3 = $4;
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | FORWARD ALL opt_from_in cursor_name {
         auto tmp1 = $3;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFetchArgs, OP3("FORWARD ALL", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | BACKWARD opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFetchArgs, OP3("BACKWARD", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -9508,14 +9523,16 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_5, OP3("BACKWARD", "", ""), tmp1, tmp2);
-        auto tmp3 = $4;
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | BACKWARD ALL opt_from_in cursor_name {
         auto tmp1 = $3;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kFetchArgs, OP3("BACKWARD ALL", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -15491,7 +15508,8 @@ set_target_list:
 DeclareCursorStmt:
 
     DECLARE cursor_name cursor_options CURSOR opt_hold FOR SelectStmt {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $3;
         res = new IR(kDeclareCursorStmt_1, OP3("DECLARE", "", "CURSOR"), tmp1, tmp2);
         auto tmp3 = $5;
@@ -15505,14 +15523,7 @@ DeclareCursorStmt:
 
 
 cursor_name:
-
-    name {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
-        res = new IR(kCursorName, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
+    name 
 ;
 
 
@@ -17422,7 +17433,8 @@ where_or_current_clause:
     }
 
     | WHERE CURRENT_P OF cursor_name {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kWhereOrCurrentClause, OP3("WHERE CURRENT OF", "", ""), tmp1);
         $$ = res;
     }
