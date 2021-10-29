@@ -14,7 +14,9 @@ PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
 
 export CC = g++
-export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ -g -O3 $(ASAN_FLAGS)
+export DEBUG =
+export OPT = -O3
+export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
 LDFLAGS = -ldl -lpq -pg
 
 
@@ -34,9 +36,16 @@ test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 	cp test-parser ./fuzz_root
 
-asan: ASAN_FLAGS := -fsanitize=address
+debug: DEBUG = -g
+debug: OPT = -O0
+debug:
+	$(MAKE) -e
+
+asan: ASAN_FLAGS = -fsanitize=address
+asan: DEBUG = -g
+asan: OPT = -O0
 asan:
-	$(MAKE) -B -e ASAN_FLAGS=-fsanitize=address
+	$(MAKE) -e
 
 .PHONY: parser $(SUB_DIRS)
 
