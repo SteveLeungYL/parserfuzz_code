@@ -1759,11 +1759,11 @@ AlterOptRoleElem:
 		    !strcmp($1, "nobypassrls") ||
 		    !strcmp($1, "noinherit"))
 		{
-            res = new IR(kAlterOptRoleElem, OP3($1, "", ""));
+            res = new IR(kAlterOptRoleElem, string($1));
 		} else {
             res = new IR(kAlterOptRoleElem, OP3("superuser", "", ""));
         }
-        // free($1);
+        free($1);
         $$ = res;
     }
 
@@ -3679,7 +3679,7 @@ hash_partbound_elem:
         /* Yu: From the documentation, I can only see "modulus" and "remainder" available for NonReserveredWord. */
         IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
         if ($1) {
-            if (strcmp($1, "modulus") == 0 || strcmp($1, "remainder") == 0) {
+            if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
                 res = new IR(kHashPartboundElem_1, string($1));
             } else {
                 res = new IR(kHashPartboundElem_1, string("modulus"));
@@ -6243,12 +6243,9 @@ create_extension_opt_item:
     | VERSION_P NonReservedWord_or_Sconst {
         /* Yu: The version string of the extension. No need to mutate I guess. */
         /* FixLater: Can we just input $2 into the OP3?*/
-        if($2) {
-            res = new IR(kCreateExtensionOptItem, OP3("VERSION", $2, ""));
-        } else {
-            res = new IR(kCreateExtensionOptItem, OP3("VERSION", "", ""));
-        }
-        // free($2);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
+        res = new IR(kCreateExtensionOptItem, OP3("VERSION", "", ""), tmp1);
         $$ = res;
     }
 
@@ -6308,12 +6305,9 @@ alter_extension_opt_item:
     TO NonReservedWord_or_Sconst {
         /* Yu: This is again, just the verion name for the extension. No need to mutate.  */
         /* FixLater: Can we give $2 to OP3 directly? */
-        if ($2) {
-            res = new IR(kAlterExtensionOptItem, OP3("TO", $2, ""));
-        } else {
-            res = new IR(kAlterExtensionOptItem, OP3("TO", "", ""));
-        }
-        // free($2);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
+        res = new IR(kAlterExtensionOptItem, OP3("TO", "", ""), tmp1);
         $$ = res;
     }
 
@@ -11060,7 +11054,8 @@ createfunc_opt_item:
         ** FixLater: $2 to OP3
         */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
-            res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", $2, ""));
+            auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+            res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", "", ""), tmp1);
         } else {
             res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", "sql", ""));
         }
@@ -11543,7 +11538,8 @@ dostmt_opt_item:
         /* Yu: Programming language used for the DO stmt. Do not mutate.  */
         /* FixLater: $2 into OP3 */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
-            res = new IR(kDostmtOptItem, OP3("LANGUAGE", $2, ""));
+            auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+            res = new IR(kDostmtOptItem, OP3("LANGUAGE", "", ""), tmp1);
         } else {
             res = new IR(kDostmtOptItem, OP3("LANGUAGE", "sql", ""));
         }
@@ -14597,13 +14593,9 @@ utility_option_elem:
         ** Do not change it to kIdentifier. 
         ** FixLater: $1 into OP3
         */
-        auto tmp1 = $2;
-        if ($1) {
-            res = new IR(kUtilityOptionElem, OP3($1, "", ""), tmp1);
-        }
-        else {
-            res = new IR(kUtilityOptionElem, OP0(), tmp1);
-        }
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = $2;
+        res = new IR(kUtilityOptionElem, OP3("", "", ""), tmp1, tmp2);
         free($1);
         $$ = res;
     }
