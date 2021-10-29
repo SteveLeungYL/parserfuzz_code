@@ -290,10 +290,10 @@ char* alloc_and_cat(char*, char*, char*);
 
 %type <ir>		copy_file_name
 				access_method_clause 
-				table_access_method_clause file_name
+				table_access_method_clause 
 				opt_index_name cluster_index_specification
 
-%type <str>     attr_name name cursor_name
+%type <str>     attr_name name cursor_name file_name
 
 %type <ir>	func_name handler_name qual_Op qual_all_Op subquery_Op
 				opt_class opt_inline_handler opt_validator validator_clause
@@ -451,7 +451,7 @@ char* alloc_and_cat(char*, char*, char*);
 %type <ir>	tablesample_clause opt_repeatable_clause
 %type <ir>	target_el set_target insert_column_item
 
-%type <ir>		generic_option_name
+%type <str>		generic_option_name
 %type <ir>	generic_option_arg
 %type <ir>	generic_option_elem alter_generic_option_elem
 %type <ir>	generic_option_list alter_generic_option_list
@@ -6676,7 +6676,8 @@ alter_generic_option_elem:
     }
 
     | DROP generic_option_name {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kAlterGenericOptionElem, OP3("DROP", "", ""), tmp1);
         $$ = res;
     }
@@ -6687,7 +6688,8 @@ alter_generic_option_elem:
 generic_option_elem:
 
     generic_option_name generic_option_arg {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kGenericOptionElem, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
@@ -6697,14 +6699,7 @@ generic_option_elem:
 
 
 generic_option_name:
-
-    ColLabel {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
-        res = new IR(kGenericOptionName, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
+    ColLabel 
 ;
 
 /* We could use def_arg here, but the spec only requires string literals */
@@ -9340,13 +9335,9 @@ opt_provider:
         ** Do not mutate it for now. 
         ** FixLater: $2 into OP3.
         */
-        if ($2) {
-            res = new IR(kOptProvider, OP3("FOR", $2, ""));
-        } else {
-            res = new IR(kOptProvider, OP3("FOR", "", ""));
-        }
-        // free($2);
-        $$ = res;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
+        $$ = new IR(kOptProvider, OP3("FOR", "", ""), tmp1);
     }
 
     | /* EMPTY */ {
@@ -13877,7 +13868,8 @@ opt_check_option:
 LoadStmt:
 
     LOAD file_name {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kLoadStmt, OP3("LOAD", "", ""), tmp1);
         $$ = res;
     }
@@ -20106,7 +20098,8 @@ MathOp:
 qual_Op:
 
     Op {
-        res = new IR(kQualOp, OP3("OP", "", ""));
+        res = new IR(kQualOp, string($1));
+        free($1);
         $$ = res;
     }
 
@@ -20903,14 +20896,7 @@ attr_name:
 
 
 file_name:
-
-    Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
-        res = new IR(kFileName, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
+    Sconst 
 ;
 
 /*

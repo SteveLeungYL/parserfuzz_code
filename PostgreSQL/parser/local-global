@@ -27,4 +27,7 @@ Local:
   attr_name
   name
   cursor_name
+  file_name
+  Op    // Op comes from yytext. It is in heap. 
+  generic_option_name
   
