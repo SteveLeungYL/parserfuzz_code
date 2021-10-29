@@ -3650,11 +3650,12 @@ hash_partbound_elem:
         IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
         if ($1) {
             if (strcmp($1, "modulus") == 0 || strcmp($1, "remainder") == 0) {
-                res = new IR(kHashPartboundElem, OP3($1, "", ""), tmp1);
+                res = new IR(kHashPartboundElem_1, string($1));
             } else {
-                res = new IR(kHashPartboundElem, OP3("modulus", "", ""), tmp1);
+                res = new IR(kHashPartboundElem_1, string("modulus"));
             }
         }
+        res = new IR(kHashPartboundElem_1, OP0(), res, tmp1);
         free($1);
         $$ = res;
     }
@@ -7982,8 +7983,8 @@ def_arg:
     }
 
     | reserved_keyword {
+        /* This is a specitial use, we are using a read-only char to initialize the string! */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -9102,7 +9103,9 @@ CommentStmt:
 comment_text:
 
     Sconst
-    | NULL_P
+    | NULL_P {
+        $$ = strdup($1);
+    }
 ;
 
 
@@ -10442,8 +10445,8 @@ function_with_argtypes:
     }
 
     | type_func_name_keyword {
+        /* This is a specitial use, we are using a read-only char to initialize the string! */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -12540,8 +12543,8 @@ operator_def_arg:
     }
 
     | reserved_keyword {
+        /* This is a specitial use, we are using a read-only char to initialize the string! */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20805,33 +20808,25 @@ RoleId:
 RoleSpec:
 
     NonReservedWord {
+        /* Don't free $1, this is read-only text. */
         if (strcmp($1, "none") == 0) {
-            char* mem = (char *) calloc(8, 1);
-            strcpy(mem, "public");
-            $$ = mem;
-            free($1);
+            $$ = strdup("public");
         }
         else {
-            $$ = $1;
+            $$ = strdup($1);
         }
     }
 
     | CURRENT_ROLE {
-        char* mem = (char *) calloc(14, 1);
-        strcpy(mem, $1);
-        $$ = mem;
+        $$ = strdup($1);
     }
 
     | CURRENT_USER {
-        char* mem = (char *) calloc(14, 1);
-        strcpy(mem, $1);
-        $$ = mem;
+        $$ = strdup($1);
     }
 
     | SESSION_USER {
-        char* mem = (char *) calloc(14, 1);
-        strcpy(mem, $1);
-        $$ = mem;
+        $$ = strdup($1);
     }
 
 ;
@@ -20965,7 +20960,7 @@ ColId:
 
     IDENT 
     | unreserved_keyword { $$ = strdup($1); }
-    | col_name_keyword 
+    | col_name_keyword  {$$ = strdup($1);}
 ;
 
 /* Type/function identifier --- names that can be type or function names.
@@ -20975,7 +20970,7 @@ type_function_name:
 
     IDENT 
     | unreserved_keyword { $$ = strdup($1); }
-    | type_func_name_keyword 
+    | type_func_name_keyword {$$ = strdup($1);} 
 ;
 
 /* Any not-fully-reserved word --- these names can be, eg, role names.
@@ -20997,9 +20992,9 @@ ColLabel:
 
     IDENT 
     | unreserved_keyword { $$ = strdup($1); }
-    | col_name_keyword 
-    | type_func_name_keyword 
-    | reserved_keyword 
+    | col_name_keyword {$$ = strdup($1);} 
+    | type_func_name_keyword  {$$ = strdup($1);}
+    | reserved_keyword  {$$ = strdup($1);}
 ;
 
 /* Bare column label --- names that can be column labels without writing "AS".
@@ -21009,7 +21004,7 @@ ColLabel:
 BareColLabel:
 
     IDENT 
-    | bare_label_keyword 
+    | bare_label_keyword  {$$ = strdup($1);}
 ;
 
 

@@ -2,7 +2,9 @@ Global:
 
   unreserved_keyword
   col_name_keyword
+  bare_label_keyword
   type_func_name_keyword
+  reserved_keyword
 
 Local:
 
@@ -12,3 +14,14 @@ Local:
   NonReservedWord
   opt_boolean_or_string
   NonReservedWord_or_Sconst
+  ColLabel
+  BareColLabel
+  comment_text
+  notify_payload
+  RoleSpec
+  RoleId
+  ColId
+  var_name
+  type_func_name
+  param_name
+  

@@ -1466,6 +1466,7 @@
   V(kAlterConversionStmt)                                                       \
   V(kConversionName)                                                            \
   V(kOptWithReplotions) \
+  V(kHashPartboundElem_1) \
 
 
 #define ALLDATATYPE(V)                                                         \
