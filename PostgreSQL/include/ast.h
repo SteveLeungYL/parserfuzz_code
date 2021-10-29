@@ -228,10 +228,12 @@ public:
 
   void print_ir();
 
-  string get_prefix();
-  string get_middle();
-  string get_suffix();
+  const char* get_prefix();
+  const char* get_middle();
+  const char* get_suffix();
   string get_str_val();
+
+  bool is_empty();
 
   void set_str_val(string);
 };

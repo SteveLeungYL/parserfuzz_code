@@ -3631,9 +3631,17 @@ alter_identity_column_option:
     }
 
     | SET SeqOptElem {
+        /* Yu: Avoid using seqoptelem that is not supported.  */
         auto tmp1 = $2;
-        res = new IR(kAlterIdentityColumnOption, OP3("SET", "", ""), tmp1);
-        $$ = res;
+        if (tmp1) {
+            const char* tmp_char = tmp1->get_prefix();
+            if (!strcmp(tmp_char, "AS") || !strcmp(tmp_char, "RESTART") || !strcmp(tmp_char, "OWNED_BY")) {
+                $2 -> deep_drop();
+            }
+            $$ = new IR(kAlterIdentityColumnOption, OP3("RESTART", "", ""));
+        } else {
+            $$ = new IR(kAlterIdentityColumnOption, OP3("SET", "", ""), tmp1);
+        }
     }
 
     | SET GENERATED generated_when {
@@ -3844,6 +3852,8 @@ ClosePortalStmt:
 CopyStmt:
 
     COPY opt_binary qualified_name opt_column_list copy_from opt_program copy_file_name copy_delimiter opt_with copy_options where_clause {
+        /* Yu: Do not allow opt_program and copy_file_name at the same time.  */
+        /* Yu: Do not allow copy_from and where_clause at the same time.  */
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kCopyStmt_1, OP3("COPY", "", ""), tmp1, tmp2);
@@ -3853,16 +3863,25 @@ CopyStmt:
         res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $6;
         res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
-        auto tmp6 = $7;
-        res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
+        if ($6->is_empty() && $6->get_prefix() == "STDIN" || $6->get_prefix() == "STDOUT"){
+            auto tmp6 = $7;
+            res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
+        } else {
+            $7 -> deep_drop();
+        }
         auto tmp7 = $8;
         res = new IR(kCopyStmt_6, OP3("", "", ""), res, tmp7);
         auto tmp8 = $9;
         res = new IR(kCopyStmt_7, OP3("", "", ""), res, tmp8);
         auto tmp9 = $10;
         res = new IR(kCopyStmt_8, OP3("", "", ""), res, tmp9);
-        auto tmp10 = $11;
-        res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
+        
+        if ($5->is_empty()) {
+            auto tmp10 = $11;
+            res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
+        } else {
+            $11->deep_drop();
+        }
         $$ = res;
     }
 
@@ -3870,8 +3889,12 @@ CopyStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kCopyStmt_9, OP3("COPY (", ") TO", ""), tmp1, tmp2);
-        auto tmp3 = $7;
-        res = new IR(kCopyStmt_10, OP3("", "", ""), res, tmp3);
+        if ($6->is_empty() && $6->get_prefix() == "STDIN" || $6->get_prefix() == "STDOUT"){
+            auto tmp3 = $7;
+            res = new IR(kCopyStmt_10, OP3("", "", ""), res, tmp3);
+        } else {
+            $7 -> deep_drop();
+        }
         auto tmp4 = $8;
         res = new IR(kCopyStmt_11, OP3("", "", ""), res, tmp4);
         auto tmp5 = $9;
@@ -4698,7 +4721,12 @@ ColConstraintElem:
     }
 
     | GENERATED generated_when AS '(' a_expr ')' STORED {
+        /* Yu: Enforced ALWAYS in the generated_when. */
         auto tmp1 = $2;
+        if (!strcmp(tmp1->get_prefix(), "BY DEFAULT")){
+            tmp1->deep_drop();
+            tmp1 = new IR(kGeneratedWhen, OP3("ALWAYS", "", ""));
+        }
         auto tmp2 = $5;
         res = new IR(kColConstraintElem, OP3("GENERATED", "AS (", ") STORED"), tmp1, tmp2);
         $$ = res;
@@ -5058,7 +5086,8 @@ key_match:
     }
 
     | MATCH PARTIAL {
-        res = new IR(kKeyMatch, OP3("MATCH PARTIAL", "", ""));
+        /* Yu: MATCH PARTIAL is not yet implemented. */
+        res = new IR(kKeyMatch, OP3("MATCH FULL", "", ""));
         $$ = res;
     }
 
@@ -7339,7 +7368,12 @@ CreateTrigStmt:
     }
 
     | CREATE opt_or_replace CONSTRAINT TRIGGER name AFTER TriggerEvents ON qualified_name OptConstrFromTable ConstraintAttributeSpec FOR EACH ROW TriggerWhen EXECUTE FUNCTION_or_PROCEDURE func_name '(' TriggerFuncArgs ')' {
+        /* Yu: Do not allow "OR REPLACE" in this sentence. */
         auto tmp1 = $2;
+        if (!tmp1->is_empty()){
+            tmp1 ->deep_drop();
+            tmp1 = new IR(kOptOrReplace, OP3("", "", ""));
+        }
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kCreateTrigStmt_10, OP3("CREATE", "CONSTRAINT TRIGGER", "AFTER"), tmp1, tmp2);
@@ -8439,7 +8473,8 @@ opclass_purpose:
 opt_recheck:
 
     RECHECK {
-        res = new IR(kOptRecheck, OP3("RECHECK", "", ""));
+        /* Yu: RECHECK no longer needed. Remove it. */
+        res = new IR(kOptRecheck, OP3("", "", ""));
         $$ = res;
     }
 
@@ -11412,8 +11447,9 @@ RemoveOperStmt:
 oper_argtypes:
 
     '(' Typename ')' {
+        /* Yu: This syntax is not permitted. (Weird). Change it to the third form. */
         auto tmp1 = $2;
-        res = new IR(kOperArgtypes, OP3("(", ")", ""), tmp1);
+        res = new IR(kOperArgtypes, OP3("( NONE ,", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -13798,6 +13834,7 @@ ViewStmt:
     }
 
     | CREATE OptTemp RECURSIVE VIEW qualified_name '(' columnList ')' opt_reloptions AS SelectStmt opt_check_option {
+        /* Yu: Do not allow for opt_check_option */
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kViewStmt_9, OP3("CREATE", "RECURSIVE VIEW", "("), tmp1, tmp2);
@@ -13808,11 +13845,14 @@ ViewStmt:
         auto tmp5 = $11;
         res = new IR(kViewStmt_12, OP3("", "", ""), res, tmp5);
         auto tmp6 = $12;
+        tmp6 -> deep_drop();
+        tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
     }
 
     | CREATE OR REPLACE OptTemp RECURSIVE VIEW qualified_name '(' columnList ')' opt_reloptions AS SelectStmt opt_check_option {
+        /* Yu: Do not allow for opt_check_option. */
         auto tmp1 = $4;
         auto tmp2 = $7;
         res = new IR(kViewStmt_13, OP3("CREATE OR REPLACE", "RECURSIVE VIEW", "("), tmp1, tmp2);
@@ -13823,6 +13863,8 @@ ViewStmt:
         auto tmp5 = $13;
         res = new IR(kViewStmt_16, OP3("", "", ""), res, tmp5);
         auto tmp6 = $14;
+        tmp6 -> deep_drop();
+        tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
     }
@@ -16092,16 +16134,18 @@ OptTempTableName:
     }
 
     | GLOBAL TEMPORARY opt_table qualified_name {
+        /* Yu: GLOBAL TEMPORARY is not supported. */
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kOptTempTableName, OP3("GLOBAL TEMPORARY", "", ""), tmp1, tmp2);
+        res = new IR(kOptTempTableName, OP3("LOCAL TEMPORARY", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | GLOBAL TEMP opt_table qualified_name {
+        /* Yu: GLOBAL TEMP is not supported. */
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kOptTempTableName, OP3("GLOBAL TEMP", "", ""), tmp1, tmp2);
+        res = new IR(kOptTempTableName, OP3("LOCAL TEMP", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -16338,9 +16382,11 @@ limit_clause:
     }
 
     | LIMIT select_limit_value ',' select_offset_value {
+        /* Yu: Remove select_offset_value. It is not supported by Postgres.   */
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kLimitClause, OP3("LIMIT", ",", ""), tmp1, tmp2);
+        tmp2->deep_drop();
+        res = new IR(kLimitClause, OP3("LIMIT", "", ""), tmp1);
         $$ = res;
     }
 
@@ -18728,8 +18774,9 @@ a_expr:
     }
 
     | UNIQUE select_with_parens {
+        /* Yu: UNIQUE is not yet implemented. Removed it.  */
         auto tmp1 = $2;
-        res = new IR(kAExpr, OP3("UNIQUE", "", ""), tmp1);
+        res = new IR(kAExpr, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
@@ -19844,7 +19891,12 @@ opt_frame_clause:
 frame_extent:
 
     frame_bound {
+        /* Yu: Avoid unsupported bound options.  */
         auto tmp1 = $1;
+        if (!strcmp(tmp1->get_prefix(), "UNBOUNDED FOLLOWING") || !strcmp(tmp1->get_prefix(), "FOLLOWING")) {
+            tmp1->deep_drop();
+            tmp1 = new IR(kFrameBound, OP3("CURRENT ROW", "", ""));
+        }
         res = new IR(kFrameExtent, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20978,11 +21030,13 @@ AexprConst:
     }
 
     | func_name '(' func_arg_list opt_sort_clause ')' Sconst {
+        /* Yu: Do not allow opt_sort_clause here. Not supported by Postgres. */
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAexprConst_1, OP3("", "(", ""), tmp1, tmp2);
-        auto tmp3 = $4;
-        res = new IR(kAexprConst_2, OP3("", "", ")"), res, tmp3);
+        // auto tmp3 = $4;
+        // res = new IR(kAexprConst_2, OP3("", "", ")"), res, tmp3);
+        $4 -> deep_drop();
         auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp4);

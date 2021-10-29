@@ -318,21 +318,21 @@ IR *IR::deep_copy() {
   return copy_res;
 }
 
-string IR::get_prefix(){
+const char* IR::get_prefix(){
   if (op_) {
     return op_->prefix_;
   }
   return "";
 }
 
-string IR::get_middle() {
+const char* IR::get_middle() {
   if (op_) {
     return op_->middle_;
   }
   return "";
 }
 
-string IR::get_suffix() {
+const char* IR::get_suffix() {
   if (op_) {
     return op_->suffix_;
   }
@@ -343,7 +343,20 @@ string IR::get_str_val() {
   return str_val_;
 }
 
-
+bool IR::is_empty() {
+    if (op_) {
+        if (strcmp(op_->prefix_, "") || strcmp(op_->middle_, "") || strcmp(op_->suffix_, "")) {
+            return false;
+        }
+    }
+    if (str_val_ != "") {
+        return false;
+    }
+    if (left_ || right_) {
+        return false;
+    }
+    return true;
+}
 
 void IR::set_str_val(string in) {
   str_val_ = in;
