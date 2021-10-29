@@ -13666,10 +13666,10 @@ createdb_opt_item:
 
     | createdb_opt_name opt_equal opt_boolean_or_string {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
-        free($3);
+        auto tmp2 = $2;
         res = new IR(kCreatedbOptItem_2, OP3("", "", ""), tmp1, tmp2);
-        auto tmp3 = $3;
+        auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -20964,7 +20964,7 @@ plassign_equals:
 ColId:
 
     IDENT 
-    | unreserved_keyword 
+    | unreserved_keyword { $$ = strdup($1); }
     | col_name_keyword 
 ;
 
@@ -20974,7 +20974,7 @@ ColId:
 type_function_name:
 
     IDENT 
-    | unreserved_keyword 
+    | unreserved_keyword { $$ = strdup($1); }
     | type_func_name_keyword 
 ;
 
@@ -20984,9 +20984,9 @@ type_function_name:
 NonReservedWord:
 
     IDENT 
-    | unreserved_keyword 
-    | col_name_keyword 
-    | type_func_name_keyword 
+    | unreserved_keyword { $$ = strdup($1); }
+    | col_name_keyword { $$ = strdup($1); }
+    | type_func_name_keyword { $$ = strdup($1); }
 ;
 
 /* Column label --- allowed labels in "AS" clauses.
@@ -20996,7 +20996,7 @@ NonReservedWord:
 ColLabel:
 
     IDENT 
-    | unreserved_keyword 
+    | unreserved_keyword { $$ = strdup($1); }
     | col_name_keyword 
     | type_func_name_keyword 
     | reserved_keyword 

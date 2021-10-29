@@ -1,0 +1,14 @@
+Global:
+
+  unreserved_keyword
+  col_name_keyword
+  type_func_name_keyword
+
+Local:
+
+  IDENT
+  SCONST
+  Sconst
+  NonReservedWord
+  opt_boolean_or_string
+  NonReservedWord_or_Sconst
