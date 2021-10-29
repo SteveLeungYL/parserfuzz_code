@@ -3853,7 +3853,9 @@ CopyStmt:
         res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $6;
         res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
-        if ($6->is_empty() && $6->get_prefix() == "STDIN" || $6->get_prefix() == "STDOUT"){
+        if ($6->is_empty() &&
+            (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
+        ){
             auto tmp6 = $7;
             res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
         } else {
@@ -3876,10 +3878,13 @@ CopyStmt:
     }
 
     | COPY '(' PreparableStmt ')' TO opt_program copy_file_name opt_with copy_options {
+        /* Yu: Do not allow opt_program and copy_file_name at the same time.  */
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kCopyStmt_9, OP3("COPY (", ") TO", ""), tmp1, tmp2);
-        if ($6->is_empty() && $6->get_prefix() == "STDIN" || $6->get_prefix() == "STDOUT"){
+        if ($6->is_empty() &&
+            (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
+        ){
             auto tmp3 = $7;
             res = new IR(kCopyStmt_10, OP3("", "", ""), res, tmp3);
         } else {
