@@ -828,18 +828,8 @@ stmtmulti:
 
 toplevel_stmt:
 
-    stmt {
-        auto tmp1 = $1;
-        res = new IR(kToplevelStmt, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
-    | TransactionStmtLegacy {
-        auto tmp1 = $1;
-        res = new IR(kToplevelStmt, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
+    stmt
+    | TransactionStmtLegacy
 ;
 
 
