@@ -362,3 +362,19 @@ bool IR::is_empty() {
 void IR::set_str_val(string in) {
   str_val_ = in;
 }
+
+IRTYPE IR::get_ir_type() {
+  return type_;
+}
+
+DATATYPE IR::get_data_type() {
+  return data_type_;
+}
+
+IR* IR::get_left() {
+  return left_;
+}
+
+IR* IR::get_right() {
+  return right_;
+}

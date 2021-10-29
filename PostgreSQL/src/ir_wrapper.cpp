@@ -8,19 +8,6 @@
 #include <algorithm>
 #include <cstring>
 
-bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type,
-    bool is_subquery, int stmt_idx){
-
-    vector<IR*> matching_IR_vec =
-      this->get_ir_node_in_stmt_with_type(ir_type, is_subquery, stmt_idx);
-
-    if (matching_IR_vec.size() == 0){
-        return false;
-    } else {
-        return true;
-    }
-}
-
 bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt,
     IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery) {
 
@@ -92,28 +79,6 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
 
 }
 
-bool IRWrapper::is_in_insert_rest(IR* cur_stmt, IR* check_node,
-    bool output_debug)  {
-
-    IR* cur_iter = check_node;
-    while (1) {
-        if (cur_iter == NULL) { // Iter to the parent node. This is Not a subquery. 
-            return false;
-        }
-        else if (cur_iter == cur_stmt) {
-            return false;
-        }
-        else if (cur_iter->type_ == kStmtlist) { // Iter to the parent node. This is Not a subquery. 
-            return false;
-        }
-        else if (cur_iter->type_ == kInsertRest){
-            return true;
-        }
-        cur_iter = cur_iter->get_parent(); // Assuming cur_iter->get_parent() will always get to kStatementList. Otherwise, it would be error. 
-        continue;
-    }
-}
-
 bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
     bool output_debug) {
 
@@ -122,42 +87,31 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
         if (cur_iter == NULL) { // Iter to the parent node. This is Not a subquery. 
             return false;
         }
-        else if (cur_iter == cur_stmt) {
+        else if (cur_iter == cur_stmt) { // Iter to the cur_stmt node already. Not in a  subquery.
             return false;
         }
         else if (cur_iter->type_ == kStmtlist) { // Iter to the parent node. This is Not a subquery. 
             return false;
         }
-        // else if (
-        //     cur_iter->type_ == kSimpleSelect &&
-        //     get_parent_type(cur_iter, 0) != kSelectNoParens &&
-        //     get_parent_type(cur_iter, 0) != kSelectWithParens &&
-        //     get_parent_type(cur_iter, 1) != kSelectStmt &&
-        //     get_parent_type(cur_iter, 2) != kStmt
-        // ) {
-        //     return true;
-        // }
-        else if ( 
-            cur_iter->type_ == kSelectNoParens &&
-            get_parent_type(cur_iter, 0) != kSelectStmt &&
-            get_parent_type(cur_iter, 1) != kStmt
-        ) {
-            return true;
+        else if (
+                cur_iter->get_ir_type() == kSelectStmt &&
+                get_parent_type(cur_iter) != kStmt
+                ) {
+            return true; //In a subquery.
         }
-        cur_iter = cur_iter->get_parent(); // Assuming cur_iter->get_parent() will always get to kStatementList. Otherwise, it would be error. 
+        else if (
+            cur_iter->get_ir_type() == kSelectStmt &&
+            get_parent_type(cur_iter) != kSelectWithParens &&
+            get_parent_type(cur_iter) != kSelectStmt &&
+            get_parent_type(cur_iter) != kSelectClause
+        ){
+            return true; // In a subquery.
+        }
+        cur_iter = cur_iter->get_parent(); // Assuming cur_iter->get_parent() will always get to kStatementList. Otherwise, it would be error.
         continue;
     }
-}
-
-vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IRTYPE ir_type,
-    bool is_subquery, int stmt_idx) {
-
-    if (stmt_idx < 0) {
-      FATAL("Checking on non-existing stmt. Function: IRWrapper::get_ir_node__in_stmt_with_type. Idx < 0. idx: '%d' \n", stmt_idx);
-    }
-    IR* cur_stmt = this->get_ir_node_for_stmt_with_idx(stmt_idx);
-
-    return this->get_ir_node_in_stmt_with_type(cur_stmt, ir_type, is_subquery);
+    /* Unexpected, should not happen. */
+    return false;
 }
 
 IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
@@ -170,7 +124,7 @@ IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
         FATAL("Root IR not found in IRWrapper::get_ir_node_for_stmt_with_idx(); Forgot to initilize the IRWrapper? \n");
     }
 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+    vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
     if (idx >= stmt_list_v.size()){
         std::cerr << "Statement with idx " << idx << " not found in the IR. " << std::endl;
@@ -235,7 +189,7 @@ bool IRWrapper::is_ir_after(IR* f, IR* l){
 
 vector<IRTYPE> IRWrapper::get_all_stmt_ir_type(){
 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+    vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
     vector<IRTYPE> all_types;
     for (auto iter = stmt_list_v.begin(); iter != stmt_list_v.end(); iter++){
@@ -246,11 +200,11 @@ vector<IRTYPE> IRWrapper::get_all_stmt_ir_type(){
 }
 
 int IRWrapper::get_stmt_num(){
-    return this->get_stmtlist_IR_vec().size();
+    return this->get_stmtmulti_IR_vec().size();
 }
 
 int IRWrapper::get_stmt_num(IR* cur_root) {
-    if (cur_root->type_ != kProgram) {
+    if (cur_root->type_ != kParseToplevel) {
         cerr << "Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n";
         FATAL("Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n");
     }
@@ -258,23 +212,49 @@ int IRWrapper::get_stmt_num(IR* cur_root) {
     return this->get_stmt_num();
 }
 
-vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
-    IR* stmt_IR_p = this->ir_root->left_;
+IR* IRWrapper::get_first_stmtmulti_from_root() {
+
+    /* First of all, given the root, we need to get to kStmtmulti. */
+
+    if (ir_root == NULL ) {
+        cerr << "Error: In ir_wrapper::get_stmtmulti_IR_vec, receiving empty IR root. \n";
+        return NULL;
+    }
+    if (ir_root->get_left()->get_ir_type() != kStmtmulti) {
+        cerr << "Error: In ir_wrapper:get_stmtmulti_IR_vec, cannot find the kStmtmulti " \
+            "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \
+            "PLAssignStmt is not currently supported. \n";
+        return NULL;
+    }
+
+    return ir_root->get_left();
+}
+
+IR* IRWrapper::get_first_stmtmulti_from_root(IR* cur_root) {
+    this->ir_root = cur_root;
+    return get_first_stmtmulti_from_root();
+}
+
+vector<IR*> IRWrapper::get_stmtmulti_IR_vec(){
+
+    IR* stmt_IR_p = get_first_stmtmulti_from_root();
+
     vector<IR*> stmt_list_v;
 
-
-    while (true){ // Iterate from the first kstatementlist to the last. 
+    while (stmt_IR_p){ // Iterate from the first kstatementlist to the last.
         stmt_list_v.push_back(stmt_IR_p);
-        if (stmt_IR_p->right_ == nullptr || stmt_IR_p->left_ == nullptr) break; // This is the last kstatementlist. 
+        if (stmt_IR_p->get_right() == nullptr || stmt_IR_p->get_left() == nullptr) break; // This is the last kstatementlist.
         stmt_IR_p = stmt_IR_p -> right_; // Lead to the next kstatementlist. 
     }
 
     return stmt_list_v;
 }
 
+
+
 bool IRWrapper::append_stmt_at_idx(string app_str, int idx, Mutator& g_mutator){
 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+    vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
     if (idx != -1 && idx > stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
@@ -282,11 +262,22 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx, Mutator& g_mutator){
     }
 
     // Parse and get the new statement. 
-    vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_->left_;  // Program -> kStatementlist -> kStatement -> kSpecificStmt. 
+    IR* app_IR_root = g_mutator.parse_query_str_get_ir_set(app_str).back();
+    IR* app_stmtmulti = get_first_stmtmulti_from_root();
+
+    if (!app_stmtmulti) {
+        cerr << "Error: get_first_stmtmulti_from_root returns NULL. \n";
+        return false;
+    }
+
+
+    IR* app_IR_node = get_stmt_ir_from_stmtmulti(app_stmtmulti);
+    if (!app_IR_node) {
+        cerr << "Error: get_stmt_ir_from_stmtmulti returns NULL. \n";
+        return false;
+    }
     app_IR_node = app_IR_node->deep_copy();
-    app_IR_vec.back()->deep_drop();
-    app_IR_vec.clear();
+    app_IR_root->deep_drop();
 
     return this->append_stmt_at_idx(app_IR_node, idx);
 
@@ -294,14 +285,26 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx, Mutator& g_mutator){
 
 bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
-    // Parse and get the new statement. 
-    vector<IR*> app_IR_vec = g_mutator.parse_query_str_get_ir_set(app_str);
-    IR* app_IR_node = app_IR_vec.back()->left_->left_->left_;  // Program -> Statementlist -> Statement -> kSpecificStmt
+    vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
+
+    // Parse and get the new statement.
+    IR* app_IR_root = g_mutator.parse_query_str_get_ir_set(app_str).back();
+    IR* app_stmtmulti = get_first_stmtmulti_from_root();
+
+    if (!app_stmtmulti) {
+        cerr << "Error: get_first_stmtmulti_from_root returns NULL. \n";
+        return false;
+    }
+
+
+    IR* app_IR_node = get_stmt_ir_from_stmtmulti(app_stmtmulti);
+    if (!app_IR_node) {
+        cerr << "Error: get_stmt_ir_from_stmtmulti returns NULL. \n";
+        return false;
+    }
     app_IR_node = app_IR_node->deep_copy();
-    app_IR_vec.back()->deep_drop();
-    app_IR_vec.clear();
+    app_IR_root->deep_drop();
 
     return this->append_stmt_at_idx(app_IR_node, stmt_list_v.size());
     
@@ -315,8 +318,8 @@ bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR*
 
 }
 
-bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Specific_Statement*) type, do not provide IR*(StatementList*) type.
+    vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
     if (idx < 0 && idx > stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
@@ -329,7 +332,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     if (idx < stmt_list_v.size()) {
         IR* insert_pos_ir = stmt_list_v[idx];
 
-        auto new_res = new IR(kStmtlist, OPMID(";"), app_IR_node, NULL);
+        auto new_res = new IR(kStmtmulti, OPMID(";"), app_IR_node, NULL);
 
         if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
             new_res->deep_drop();
@@ -348,7 +351,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
             return false;
         }
 
-        auto new_res = new IR(kStmtlist, OPMID(";"), app_IR_node, NULL);
+        auto new_res = new IR(kStmtmulti, OPMID(";"), app_IR_node, NULL);
         insert_pos_ir->update_right(new_res);
 
         return true;
@@ -358,7 +361,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
 
 bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
-    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+    vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
     if (idx >= stmt_list_v.size() && idx < 0){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
@@ -389,11 +392,17 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 }
 
 vector<IR*> IRWrapper::get_stmt_ir_vec() {
-    vector<IR*> stmtlist_vec = this->get_stmtlist_IR_vec(), stmt_vec;
+
+    vector<IR*> stmtlist_vec = this->get_stmtmulti_IR_vec(), stmt_vec;
     if (stmtlist_vec.size() == 0) return stmt_vec;
 
     for (int i = 0; i < stmtlist_vec.size(); i++){
-        stmt_vec.push_back(stmtlist_vec[i]->left_->left_); // kStatementlist -> kStatement -> specific_statement_type
+        if (!stmtlist_vec[i]) {
+            cerr << "Error: Found some stmtlist_vec == NULL. Return empty vector. \n";
+            vector<IR*> tmp;
+            return tmp;
+        }
+        stmt_vec.push_back(get_stmt_ir_from_stmtmulti(stmtlist_vec[i]));
     }
     
     // // DEBUG
@@ -466,7 +475,7 @@ vector<IR*> IRWrapper::get_all_ir_node() {
     if (this->ir_root == nullptr) {
         std::cerr << "Error: IRWrapper::ir_root is nullptr. Forget to initilized? \n";
     }
-    // Iterate IR binary tree, depth prioritized. (not left depth prioritized)
+    // Iterate IR binary tree, depth prioritized.
     bool is_finished_search = false;
     std::vector<IR*> ir_vec_iter;
     std::vector<IR*> all_ir_node_vec;
@@ -474,8 +483,8 @@ vector<IR*> IRWrapper::get_all_ir_node() {
     // Begin iterating. 
     while (!is_finished_search) {
         ir_vec_iter.push_back(cur_IR);
-        if (cur_IR->type_ != kProgram) 
-            {all_ir_node_vec.push_back(cur_IR);} // Ignore kProgram at the moment, put it at the end of the vector. 
+        if (cur_IR->type_ != kParseToplevel)
+            {all_ir_node_vec.push_back(cur_IR);} // Ignore kParserTopLevel at the moment, put it at the end of the vector.
 
         if (cur_IR->left_ != nullptr){
             cur_IR = cur_IR->left_;
@@ -735,3 +744,25 @@ IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR* cur_ir) {
 }
 
 
+IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
+    if (cur_stmtmulti->get_ir_type() != kStmtmulti) {
+        cerr << "Error: In IRWrapper::get_stmt_ir_from_stmtmulti(), not getting type kStmtmulti. \n";
+        return NULL;
+    }
+
+    if (cur_stmtmulti->get_right() &&
+        cur_stmtmulti->get_right()->get_left()
+    ) {
+        /* kstmtmulti -> ktoplevelstmt -> stmt -> specific_stmt_type */
+        return cur_stmtmulti->get_right()->get_left();
+
+    } else if (cur_stmtmulti->get_left() &&
+               cur_stmtmulti->get_left()->get_left()
+    ) {
+        /* kstmtmulti -> ktoplevelstmt -> stmt -> specific_stmt_type */
+        return cur_stmtmulti->get_left()->get_left();
+    } else {
+        cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
+        return NULL;
+    }
+}

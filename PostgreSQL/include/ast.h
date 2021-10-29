@@ -233,6 +233,12 @@ public:
   const char* get_suffix();
   string get_str_val();
 
+  IR* get_left();
+  IR* get_right();
+
+  IRTYPE get_ir_type();
+  DATATYPE get_data_type();
+
   bool is_empty();
 
   void set_str_val(string);

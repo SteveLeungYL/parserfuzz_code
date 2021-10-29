@@ -12,6 +12,12 @@ public:
     void set_ir_root (IR* in) {this->ir_root = in;} 
     IR* get_ir_root () {return this->ir_root;}
 
+    IR* get_first_stmtmulti_from_root(IR* cur_root);
+    IR* get_first_stmtmulti_from_root();
+
+    IR* get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti);
+
+
     vector<IR*> get_all_ir_node (IR* cur_ir_root);
     vector<IR*> get_all_ir_node ();
 
@@ -25,8 +31,6 @@ public:
 
     vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, 
         bool is_subquery = false, bool ignore_is_subquery = false);
-    vector<IR*> get_ir_node_in_stmt_with_type(IRTYPE ir_type, 
-        bool is_subquery = false, int stmt_idx = -1);
     vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type);
 
     bool append_stmt_at_idx(string, int idx, Mutator& g_mutator);
@@ -60,8 +64,8 @@ public:
     vector<IR*> get_stmt_ir_vec();
     vector<IR*> get_stmt_ir_vec(IR* root) {this->set_ir_root(root); return this->get_stmt_ir_vec();}
 
-    vector<IR*> get_stmtlist_IR_vec();
-    vector<IR*> get_stmtlist_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtlist_IR_vec();}
+    vector<IR*> get_stmtmulti_IR_vec();
+    vector<IR*> get_stmtmulti_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtmulti_IR_vec();}
 
     bool is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug = false);
     bool is_in_insert_rest(IR* cur_stmt, IR* check_node, bool output_debug=false);
@@ -70,7 +74,7 @@ public:
     ** Iterately find the parent type. Skip kUnknown and keep iterating until not kUnknown is found. Return the parent IRTYPE. 
     ** If parent_ is NULL. Return kUnknown instead. 
     */
-    IRTYPE get_parent_type(IR* cur_IR, int depth);
+    IRTYPE get_parent_type(IR* cur_IR, int depth=0);
     IR* get_p_parent_with_a_type(IR* cur_IR, int depth=0);
 
     /**/
