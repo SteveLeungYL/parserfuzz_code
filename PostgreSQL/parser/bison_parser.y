@@ -473,14 +473,15 @@ char* alloc_and_cat(char*, char*, char*);
 
 %type <ir>	Iconst SignedIconst
 %type <str>		Sconst comment_text notify_payload
-%type <ir>		RoleId opt_boolean_or_string
+%type <str>		RoleId opt_boolean_or_string
 %type <ir>	var_list
 %type <str>		ColId ColLabel BareColLabel
 %type <str>		NonReservedWord NonReservedWord_or_Sconst
 %type <str>		var_name type_function_name param_name
 %type <ir>		createdb_opt_name plassign_target
 %type <ir>	var_value zone_value
-%type <ir> auth_ident RoleSpec opt_granted_by
+%type <ir> auth_ident  opt_granted_by
+%type <str> RoleSpec
 
 %type <str> unreserved_keyword type_func_name_keyword
 %type <str> col_name_keyword reserved_keyword
@@ -1613,7 +1614,8 @@ CallStmt:
 CreateRoleStmt:
 
     CREATE ROLE RoleId opt_with OptRoleList {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $4;
         res = new IR(kCreateRoleStmt_1, OP3("CREATE ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1817,7 +1819,8 @@ CreateOptRoleElem:
 CreateUserStmt:
 
     CREATE USER RoleId opt_with OptRoleList {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kCreateUserStmt_1, OP3("CREATE USER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1838,7 +1841,8 @@ CreateUserStmt:
 AlterRoleStmt:
 
     ALTER ROLE RoleSpec opt_with AlterOptRoleList {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleStmt_1, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1847,7 +1851,8 @@ AlterRoleStmt:
     }
 
     | ALTER USER RoleSpec opt_with AlterOptRoleList {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleStmt_2, OP3("ALTER USER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1877,7 +1882,8 @@ opt_in_database:
 AlterRoleSetStmt:
 
     ALTER ROLE RoleSpec opt_in_database SetResetClause {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleSetStmt_1, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1893,7 +1899,8 @@ AlterRoleSetStmt:
     }
 
     | ALTER USER RoleSpec opt_in_database SetResetClause {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleSetStmt_2, OP3("ALTER USER", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1972,7 +1979,8 @@ DropRoleStmt:
 CreateGroupStmt:
 
     CREATE GROUP_P RoleId opt_with OptRoleList {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kCreateGroupStmt_1, OP3("CREATE GROUP", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -1993,7 +2001,8 @@ CreateGroupStmt:
 AlterGroupStmt:
 
     ALTER GROUP_P RoleSpec add_drop USER role_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterGroupStmt_1, OP3("ALTER GROUP", "", "USER"), tmp1, tmp2);
         auto tmp3 = $6;
@@ -2030,7 +2039,8 @@ CreateSchemaStmt:
 
     CREATE SCHEMA OptSchemaName AUTHORIZATION RoleSpec OptSchemaEltList {
         auto tmp1 = $3;
-        auto tmp2 = $5;
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kCreateSchemaStmt_1, OP3("CREATE SCHEMA", "AUTHORIZATION", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCreateSchemaStmt, OP3("", "", ""), res, tmp3);
@@ -2051,7 +2061,8 @@ CreateSchemaStmt:
             $9 -> deep_drop();
         }
         auto tmp1 = $6;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -2353,7 +2364,8 @@ var_list:
 var_value:
 
     opt_boolean_or_string {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kVarValue, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -2395,32 +2407,18 @@ iso_level:
 opt_boolean_or_string:
 
     TRUE_P {
-        res = new IR(kOptBooleanOrString, OP3("TRUE", "", ""));
-        $$ = res;
+        $$ = strdup($1);
     }
 
     | FALSE_P {
-        res = new IR(kOptBooleanOrString, OP3("FALSE", "", ""));
-        $$ = res;
+        $$ = strdup($1);
     }
 
     | ON {
-        res = new IR(kOptBooleanOrString, OP3("ON", "", ""));
-        $$ = res;
+        $$ = strdup($1);
     }
 
-    | NonReservedWord_or_Sconst {
-        /* Yu: This is kStringLiteral. If unexpected NULL return, assign "OFF" to it. */
-        IR *tmp1;
-        if ($1) {
-            tmp1 = new IR(kStringLiteral, string("$1"));
-        } else {
-            tmp1 = new IR(kStringLiteral, string("OFF"));
-        }
-        free($1);
-        res = new IR(kOptBooleanOrString, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
+    | NonReservedWord_or_Sconst
 
 ;
 
@@ -3330,7 +3328,8 @@ alter_table_cmd:
     }
 
     | OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterTableCmd, OP3("OWNER TO", "", ""), tmp1);
         $$ = res;
     }
@@ -4114,7 +4113,8 @@ copy_generic_opt_elem:
 copy_generic_opt_arg:
 
     opt_boolean_or_string {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kCopyGenericOptArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -4166,7 +4166,8 @@ copy_generic_opt_arg_list:
 copy_generic_opt_arg_list_item:
 
     opt_boolean_or_string {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kCopyGenericOptArgListItem, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -6094,7 +6095,8 @@ CreateTableSpaceStmt:
 OptTableSpaceOwner:
 
     OWNER RoleSpec {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kOptTableSpaceOwner, OP3("OWNER", "", ""), tmp1);
         $$ = res;
     }
@@ -6935,7 +6937,8 @@ CreateUserMappingStmt:
 auth_ident:
 
     RoleSpec {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kAuthIdent, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -8506,7 +8509,8 @@ ReassignOwnedStmt:
 
     REASSIGN OWNED BY role_list TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kReassignOwnedStmt, OP3("REASSIGN OWNED BY", "TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -9732,13 +9736,15 @@ grantee_list:
 grantee:
 
     RoleSpec {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kGrantee, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | GROUP_P RoleSpec {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kGrantee, OP3("GROUP", "", ""), tmp1);
         $$ = res;
     }
@@ -9829,7 +9835,8 @@ opt_grant_admin_option:
 opt_granted_by:
 
     GRANTED BY RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kOptGrantedBy, OP3("GRANTED BY", "", ""), tmp1);
         $$ = res;
     }
@@ -11760,8 +11767,10 @@ RenameStmt:
     }
 
     | ALTER GROUP_P RoleId RENAME TO RoleId {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt, OP3("ALTER GROUP", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -12069,15 +12078,19 @@ RenameStmt:
     }
 
     | ALTER ROLE RoleId RENAME TO RoleId {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt, OP3("ALTER ROLE", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER USER RoleId RENAME TO RoleId {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kRenameStmt, OP3("ALTER USER", "RENAME TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -12585,42 +12598,48 @@ AlterOwnerStmt:
 
     ALTER AGGREGATE aggregate_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER AGGREGATE", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER COLLATION any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER COLLATION", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER CONVERSION_P any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER CONVERSION", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER DATABASE name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DATABASE", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER DOMAIN_P any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DOMAIN", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER FUNCTION function_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FUNCTION", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -12629,21 +12648,24 @@ AlterOwnerStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kAlterOwnerStmt_1, OP3("ALTER", "LANGUAGE", "OWNER TO"), tmp1, tmp2);
-        auto tmp3 = $7;
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | ALTER LARGE_P OBJECT_P NumericOnly OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER LARGE OBJECT", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER OPERATOR operator_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER OPERATOR", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -12652,7 +12674,8 @@ AlterOwnerStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kAlterOwnerStmt_2, OP3("ALTER OPERATOR CLASS", "USING", "OWNER TO"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -12661,98 +12684,112 @@ AlterOwnerStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kAlterOwnerStmt_3, OP3("ALTER OPERATOR FAMILY", "USING", "OWNER TO"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | ALTER PROCEDURE function_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PROCEDURE", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER ROUTINE function_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER ROUTINE", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SCHEMA name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SCHEMA", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TYPE_P any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TYPE", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TABLESPACE name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TABLESPACE", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER STATISTICS any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER STATISTICS", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH DICTIONARY any_name OWNER TO RoleSpec {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH CONFIGURATION any_name OWNER TO RoleSpec {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER FOREIGN DATA_P WRAPPER name OWNER TO RoleSpec {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FOREIGN DATA WRAPPER", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SERVER name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SERVER", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER EVENT TRIGGER name OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER EVENT TRIGGER", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER PUBLICATION name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PUBLICATION", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SUBSCRIPTION name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SUBSCRIPTION", "OWNER TO", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -13629,7 +13666,8 @@ createdb_opt_item:
 
     | createdb_opt_name opt_equal opt_boolean_or_string {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCreatedbOptItem_2, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
@@ -14289,7 +14327,8 @@ utility_option_name:
 utility_option_arg:
 
     opt_boolean_or_string {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kUtilityOptionArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20759,49 +20798,40 @@ SignedIconst:
 /* Role specifications */
 
 RoleId:
-
-    RoleSpec {
-        auto tmp1 = $1;
-        res = new IR(kRoleId, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
+    RoleSpec
 ;
 
 
 RoleSpec:
 
     NonReservedWord {
-        /* This is for kUse of kDataRoleName. */
-        IR* tmp1 = NULL;
-        if ($1) {
-            if (strcmp($1, "none") == 0) {
-                tmp1 = new IR(kIdentifier, string("public"), kDataRoleName, 0, kUse);
-            }
-            else {
-                tmp1 = new IR(kIdentifier, string($1), kDataRoleName, 0, kUse);
-            }
-        } else {
-            tmp1 = new IR(kIdentifier, string("public"), kDataRoleName, 0, kUse);
+        if (strcmp($1, "none") == 0) {
+            char* mem = (char *) calloc(8, 1);
+            strcpy(mem, "public");
+            $$ = mem;
+            free($1);
         }
-        free($1);
-        res = new IR(kRoleSpec, OP3("", "", ""), tmp1);
-        $$ = res;
+        else {
+            $$ = $1;
+        }
     }
 
     | CURRENT_ROLE {
-        res = new IR(kRoleSpec, OP3("CURRENT_ROLE", "", ""));
-        $$ = res;
+        char* mem = (char *) calloc(14, 1);
+        strcpy(mem, $1);
+        $$ = mem;
     }
 
     | CURRENT_USER {
-        res = new IR(kRoleSpec, OP3("CURRENT_USER", "", ""));
-        $$ = res;
+        char* mem = (char *) calloc(14, 1);
+        strcpy(mem, $1);
+        $$ = mem;
     }
 
     | SESSION_USER {
-        res = new IR(kRoleSpec, OP3("SESSION_USER", "", ""));
-        $$ = res;
+        char* mem = (char *) calloc(14, 1);
+        strcpy(mem, $1);
+        $$ = mem;
     }
 
 ;
@@ -20810,14 +20840,16 @@ RoleSpec:
 role_list:
 
     RoleSpec {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kRoleList, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | role_list ',' RoleSpec {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kRoleList, OP3("", ",", ""), tmp1, tmp2);
         $$ = res;
     }
