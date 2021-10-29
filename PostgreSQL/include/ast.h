@@ -233,9 +233,6 @@ public:
   string get_suffix();
   string get_str_val();
 
-  void set_prefix(string);
-  void set_middle(string);
-  void set_suffix(string);
   void set_str_val(string);
 };
 

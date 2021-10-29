@@ -472,7 +472,7 @@ char* alloc_and_cat(char*, char*, char*);
 %type <ir> opt_varying opt_timezone opt_no_inherit
 
 %type <ir>	Iconst SignedIconst
-%type <ir>		Sconst comment_text notify_payload
+%type <str>		Sconst comment_text notify_payload
 %type <ir>		RoleId opt_boolean_or_string
 %type <ir>	var_list
 %type <str>		ColId ColLabel BareColLabel
@@ -1687,7 +1687,8 @@ AlterOptRoleList:
 AlterOptRoleElem:
 
     PASSWORD Sconst {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kAlterOptRoleElem, OP3("PASSWORD", "", ""), tmp1);
         $$ = res;
     }
@@ -1698,14 +1699,16 @@ AlterOptRoleElem:
     }
 
     | ENCRYPTED PASSWORD Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
         $$ = res;
     }
 
     | UNENCRYPTED PASSWORD Sconst {
         /* Yu: Force change it to ENCRYPTED PASSWORD. UNENCRYPTED PASSWORD is not supported anymore. */
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
         $$ = res;
     }
@@ -1722,7 +1725,8 @@ AlterOptRoleElem:
     }
 
     | VALID UNTIL Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterOptRoleElem, OP3("VALID UNTIL", "", ""), tmp1);
         $$ = res;
     }
@@ -2258,13 +2262,15 @@ set_rest_more:
     }
 
     | CATALOG_P Sconst {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kSetRestMore, OP3("CATALOG", "", ""), tmp1);
         $$ = res;
     }
 
     | SCHEMA Sconst {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kSetRestMore, OP3("SCHEMA", "", ""), tmp1);
         $$ = res;
     }
@@ -2305,7 +2311,8 @@ set_rest_more:
     }
 
     | TRANSACTION SNAPSHOT Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kSetRestMore, OP3("TRANSACTION SNAPSHOT", "", ""), tmp1);
         $$ = res;
     }
@@ -2316,7 +2323,9 @@ var_name:
 
     ColId 
     | var_name '.' ColId {
-        char* mem = alloc_and_cat($1, '.', $3);
+        char* mem = alloc_and_cat($1, ".", $3);
+        free($1);
+        free($3);
         $$ = mem;
     }
 
@@ -2427,7 +2436,8 @@ opt_boolean_or_string:
 zone_value:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kZoneValue, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -2441,7 +2451,8 @@ zone_value:
 
     | ConstInterval Sconst opt_interval {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kZoneValue_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
@@ -2452,7 +2463,8 @@ zone_value:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kZoneValue_2, OP3("", "(", ")"), tmp1, tmp2);
-        auto tmp3 = $5;
+        auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -2479,7 +2491,8 @@ zone_value:
 opt_encoding:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOptEncoding, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -3875,7 +3888,8 @@ opt_program:
 copy_file_name:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kCopyFileName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -3942,14 +3956,16 @@ copy_opt_item:
 
     | DELIMITER opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCopyOptItem, OP3("DELIMITER", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | NULL_P opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCopyOptItem, OP3("NULL", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -3966,14 +3982,16 @@ copy_opt_item:
 
     | QUOTE opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCopyOptItem, OP3("QUOTE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ESCAPE opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCopyOptItem, OP3("ESCAPE", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -4002,7 +4020,8 @@ copy_opt_item:
     }
 
     | ENCODING Sconst {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kCopyOptItem, OP3("ENCODING", "", ""), tmp1);
         $$ = res;
     }
@@ -4031,7 +4050,8 @@ copy_delimiter:
 
     opt_using DELIMITERS Sconst {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kCopyDelimiter, OP3("", "DELIMITERS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -6060,7 +6080,8 @@ CreateTableSpaceStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCreateTableSpaceStmt_1, OP3("CREATE TABLESPACE", "", "LOCATION"), tmp1, tmp2);
-        auto tmp3 = $6;
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCreateTableSpaceStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $7;
         res = new IR(kCreateTableSpaceStmt, OP3("", "", ""), res, tmp4);
@@ -6620,7 +6641,8 @@ generic_option_name:
 generic_option_arg:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kGenericOptionArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -6669,7 +6691,8 @@ CreateForeignServerStmt:
 opt_type:
 
     TYPE_P Sconst {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kOptType, OP3("TYPE", "", ""), tmp1);
         $$ = res;
     }
@@ -6686,7 +6709,8 @@ opt_type:
 foreign_server_version:
 
     VERSION_P Sconst {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kForeignServerVersion, OP3("VERSION", "", ""), tmp1);
         $$ = res;
     }
@@ -7533,7 +7557,8 @@ TriggerFuncArg:
     }
 
     | Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -7973,7 +7998,8 @@ def_arg:
     }
 
     | Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -8079,14 +8105,16 @@ opt_enum_val_list:
 enum_val_list:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kEnumValList, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | enum_val_list ',' Sconst {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kEnumValList, OP3("", ",", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -8106,7 +8134,8 @@ AlterEnumStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
-        auto tmp3 = $7;
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -8115,9 +8144,11 @@ AlterEnumStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_2, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
-        auto tmp3 = $7;
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterEnumStmt_3, OP3("", "", "BEFORE"), res, tmp3);
-        auto tmp4 = $9;
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
@@ -8126,18 +8157,22 @@ AlterEnumStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_4, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
-        auto tmp3 = $7;
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterEnumStmt_5, OP3("", "", "AFTER"), res, tmp3);
-        auto tmp4 = $9;
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
 
     | ALTER TYPE_P any_name RENAME VALUE_P Sconst TO Sconst {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterEnumStmt_6, OP3("ALTER TYPE", "RENAME VALUE", "TO"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -8897,14 +8932,16 @@ CommentStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCommentStmt_1, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
-        auto tmp3 = $6;
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | COMMENT ON COLUMN any_name IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON COLUMN", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -8913,42 +8950,48 @@ CommentStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCommentStmt_2, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
-        auto tmp3 = $6;
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | COMMENT ON TYPE_P Typename IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON TYPE", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | COMMENT ON DOMAIN_P Typename IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON DOMAIN", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | COMMENT ON AGGREGATE aggregate_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON AGGREGATE", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | COMMENT ON FUNCTION function_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON FUNCTION", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | COMMENT ON OPERATOR operator_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON OPERATOR", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -8957,7 +9000,8 @@ CommentStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kCommentStmt_3, OP3("COMMENT ON CONSTRAINT", "ON", "IS"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -8966,7 +9010,8 @@ CommentStmt:
         auto tmp1 = $4;
         auto tmp2 = $7;
         res = new IR(kCommentStmt_4, OP3("COMMENT ON CONSTRAINT", "ON DOMAIN", "IS"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -8977,21 +9022,24 @@ CommentStmt:
         res = new IR(kCommentStmt_5, OP3("COMMENT ON", "", "ON"), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kCommentStmt_6, OP3("", "", "IS"), res, tmp3);
-        auto tmp4 = $8;
+        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
 
     | COMMENT ON PROCEDURE function_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON PROCEDURE", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | COMMENT ON ROUTINE function_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON ROUTINE", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -9000,7 +9048,8 @@ CommentStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kCommentStmt_7, OP3("COMMENT ON TRANSFORM FOR", "LANGUAGE", "IS"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -9009,7 +9058,8 @@ CommentStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kCommentStmt_8, OP3("COMMENT ON OPERATOR CLASS", "USING", "IS"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -9018,14 +9068,16 @@ CommentStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kCommentStmt_9, OP3("COMMENT ON OPERATOR FAMILY", "USING", "IS"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | COMMENT ON LARGE_P OBJECT_P NumericOnly IS comment_text {
         auto tmp1 = $5;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kCommentStmt, OP3("COMMENT ON LARGE OBJECT", "IS", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -9034,7 +9086,8 @@ CommentStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kCommentStmt_10, OP3("COMMENT ON CAST (", "AS", ") IS"), tmp1, tmp2);
-        auto tmp3 = $10;
+        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        free($10);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -9044,17 +9097,8 @@ CommentStmt:
 
 comment_text:
 
-    Sconst {
-        auto tmp1 = $1;
-        res = new IR(kCommentText, OP3("", "", ""), tmp1);
-        $$ = res;
-    }
-
-    | NULL_P {
-        res = new IR(kCommentText, OP3("NULL", "", ""));
-        $$ = res;
-    }
-
+    Sconst
+    | NULL_P
 ;
 
 
@@ -9194,7 +9238,8 @@ opt_provider:
 security_label:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kSecurityLabel, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -10911,14 +10956,17 @@ createfunc_opt_item:
 func_as:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kFuncAs, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | Sconst ',' Sconst {
-        auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kFuncAs, OP3("", ",", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -11350,7 +11398,8 @@ dostmt_opt_list:
 dostmt_opt_item:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kDostmtOptItem, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -12497,7 +12546,8 @@ operator_def_arg:
     }
 
     | Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -12819,7 +12869,8 @@ CreateSubscriptionStmt:
 
     CREATE SUBSCRIPTION name CONNECTION Sconst PUBLICATION name_list opt_definition {
         auto tmp1 = $3;
-        auto tmp2 = $5;
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kCreateSubscriptionStmt_1, OP3("CREATE SUBSCRIPTION", "CONNECTION", "PUBLICATION"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kCreateSubscriptionStmt_2, OP3("", "", ""), res, tmp3);
@@ -12848,7 +12899,8 @@ AlterSubscriptionStmt:
 
     | ALTER SUBSCRIPTION name CONNECTION Sconst {
         auto tmp1 = $3;
-        auto tmp2 = $5;
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "CONNECTION", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -13106,7 +13158,8 @@ NotifyStmt:
     NOTIFY ColId notify_payload {
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kNotifyStmt, OP3("NOTIFY", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -13117,14 +13170,14 @@ NotifyStmt:
 notify_payload:
 
     ',' Sconst {
-        auto tmp1 = $2;
-        res = new IR(kNotifyPayload, OP3(",", "", ""), tmp1);
-        $$ = res;
+        $$ = alloc_and_cat(",", $2);
+        free($2);
     }
 
     | /*EMPTY*/ {
-        res = new IR(kNotifyPayload, OP3("", "", ""));
-        $$ = res;
+        char* mem = (char*) calloc(2, 1);
+        strcpy(mem, "");
+        $$ = mem;
     }
 
 ;
@@ -13236,19 +13289,22 @@ TransactionStmt:
     }
 
     | PREPARE TRANSACTION Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kTransactionStmt, OP3("PREPARE TRANSACTION", "", ""), tmp1);
         $$ = res;
     }
 
     | COMMIT PREPARED Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kTransactionStmt, OP3("COMMIT PREPARED", "", ""), tmp1);
         $$ = res;
     }
 
     | ROLLBACK PREPARED Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kTransactionStmt, OP3("ROLLBACK PREPARED", "", ""), tmp1);
         $$ = res;
     }
@@ -14034,9 +14090,11 @@ CreateConversionStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateConversionStmt_1, OP3("CREATE", "CONVERSION", "FOR"), tmp1, tmp2);
-        auto tmp3 = $6;
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kCreateConversionStmt_2, OP3("", "", "TO"), res, tmp3);
-        auto tmp4 = $8;
+        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kCreateConversionStmt_3, OP3("", "", "FROM"), res, tmp4);
         auto tmp5 = $10;
         res = new IR(kCreateConversionStmt, OP3("", "", ""), res, tmp5);
@@ -19967,7 +20025,8 @@ extract_arg:
     }
 
     | Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kExtractArg, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20512,7 +20571,8 @@ attr_name:
 file_name:
 
     Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kFileName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20575,7 +20635,8 @@ AexprConst:
     }
 
     | Sconst {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -20595,7 +20656,8 @@ AexprConst:
 
     | func_name Sconst {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -20606,21 +20668,24 @@ AexprConst:
         res = new IR(kAexprConst_1, OP3("", "(", ""), tmp1, tmp2);
         auto tmp3 = $4;
         res = new IR(kAexprConst_2, OP3("", "", ")"), res, tmp3);
-        auto tmp4 = $6;
+        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
 
     | ConstTypename Sconst {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ConstInterval Sconst opt_interval {
         auto tmp1 = $1;
-        auto tmp2 = $2;
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kAexprConst_3, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
@@ -20631,7 +20696,8 @@ AexprConst:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAexprConst_4, OP3("", "(", ")"), tmp1, tmp2);
-        auto tmp3 = $5;
+        auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -20664,14 +20730,7 @@ Iconst:
 ;
 
 Sconst:
-
-    SCONST {
-        auto tmp1 = new IR(kStringLiteral, string($1));
-        res = new IR(kSconst, OP0(), tmp1);
-        free($1);
-        $$ = res;
-    }
-
+    SCONST 
 ;
 
 
