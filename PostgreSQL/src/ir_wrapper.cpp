@@ -776,25 +776,19 @@ bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
 //     return true;
 // }
 
-vector<IR*> IRWrapper::get_expr_list_in_select_target(IR* cur_stmt){
+vector<IR*> IRWrapper::get_target_el_in_select_target(IR* cur_stmt){
     vector<IR*> res_vec;
 
-    vector<IR*> select_target_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kSelectTarget, false); // vec[0]
-    if (select_target_vec.size() == 0) {
-        return res_vec;
-    }
-    IR* select_target = select_target_vec[0];
-    IR* expr_list = select_target->left_;
-    if (expr_list->type_ != kExprList) {
-        cerr << "Error: cannot find expr_list in select_target. \n";
-        return res_vec;  // empty. 
+    vector<IR*> select_target_list = this->get_ir_node_in_stmt_with_type(cur_stmt, kTargetList, false);
+
+    for (IR* cur_list : select_target_list){
+        if (cur_list->get_right()) {
+            res_vec.push_back(cur_list->get_right());
+        } else {
+            res_vec.push_back(cur_list->get_left());
+        }
     }
 
-    res_vec.push_back(expr_list);
-    while(expr_list->right_ != NULL && expr_list->right_->type_ == kExprList) {
-        expr_list = expr_list->right_;
-        res_vec.push_back(expr_list);
-    }
     return res_vec;
 }
 
@@ -804,7 +798,7 @@ IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR* cur_ir) {
         if (cur_ir->type_ == kStmt) {
             return cur_ir->left_->type_;
         }
-        if (cur_ir->type_ == kStmtlist) {
+        if (cur_ir->type_ == kStmtmulti) {
             if (cur_ir->right_ == nullptr) {
                 if (cur_ir->left_->type_ == kStmt) {return cur_ir->left_->left_->type_;}
                 else {return cur_ir->left_->type_;}

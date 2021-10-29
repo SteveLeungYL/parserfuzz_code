@@ -96,8 +96,8 @@ public:
     bool is_exist_EXCEPT_SELECT(IR* cur_stmt);
     bool is_exist_set_operator(IR* cur_stmt);
 
-    vector<IR*> get_expr_list_in_select_target(IR* cur_stmt);
-    int get_num_expr_list_in_select_clause(IR* cur_stmt) { return this->get_expr_list_in_select_target(cur_stmt).size(); }
+    vector<IR*> get_target_el_in_select_target(IR* cur_stmt);
+    int get_num_target_el_in_select_clause(IR* cur_stmt) { return this->get_target_el_in_select_target(cur_stmt).size(); }
 
 
 private:
