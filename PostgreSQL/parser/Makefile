@@ -34,7 +34,7 @@ test:
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
-CPPFLAGS += "-Wno-write-strings"
+#CPPFLAGS += "-Wno-write-strings"
 
 COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
 

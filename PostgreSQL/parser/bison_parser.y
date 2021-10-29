@@ -162,9 +162,8 @@ typedef struct GroupClause
 
 static void base_yyerror(YYLTYPE *yylloc, IR* result, IR **pIR,
             core_yyscan_t yyscanner, const char *msg);
-
-char* alloc_and_cat(char*, char*);
-char* alloc_and_cat(char*, char*, char*);
+static char* alloc_and_cat(const char*, const char*);
+static char* alloc_and_cat(const char*, const char*, const char*);
 
 %}
 
@@ -22312,7 +22311,7 @@ parser_init(base_yy_extra_type *yyext)
  * the caller should release the allocated memory after finishing use
  * the first and the second are not freed here also
  */
-char * alloc_and_cat(char *first, char *second) {
+char * alloc_and_cat(const char *first, const char *second) {
     unsigned size = strlen(first) + 1 + strlen(second);
     char * mem = (char *) calloc (size, 1);
     char * p = mem;
@@ -22322,7 +22321,7 @@ char * alloc_and_cat(char *first, char *second) {
     return mem;
 }
 
-char * alloc_and_cat(char *first, char* middle, char *second) {
+char * alloc_and_cat(const char *first, const char* middle, const char *second) {
     unsigned size = strlen(first) + strlen(second) + strlen(middle) + 1;
     char * mem = (char *) calloc (size, 1);
     char * p = mem;
