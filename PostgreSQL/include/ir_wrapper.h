@@ -67,6 +67,8 @@ public:
     vector<IR*> get_stmtmulti_IR_vec();
     vector<IR*> get_stmtmulti_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtmulti_IR_vec();}
 
+    bool compare_ir_type(IRTYPE,IRTYPE);
+
     bool is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug = false);
     bool is_in_insert_rest(IR* cur_stmt, IR* check_node, bool output_debug=false);
 
@@ -78,9 +80,9 @@ public:
     IR* get_p_parent_with_a_type(IR* cur_IR, int depth=0);
 
     /**/
-    bool is_exist_group_by(IR*);
-    bool is_exist_having(IR*);
-    bool is_exist_limit(IR*);
+    bool is_exist_group_clause(IR*);
+    bool is_exist_having_clause(IR*);
+    bool is_exist_limit_clause(IR*);
 
     /**/
     vector<IR*> get_selectclauselist_vec(IR*);

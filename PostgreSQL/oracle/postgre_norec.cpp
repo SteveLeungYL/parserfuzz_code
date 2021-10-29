@@ -48,7 +48,7 @@ bool SQL_NOREC::is_oracle_valid_stmt(const string &query) {
 }
 
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
-  if (ir_wrapper.is_exist_group_by(cur_stmt) || ir_wrapper.is_exist_having(cur_stmt) || ir_wrapper.is_exist_limit(cur_stmt)) {
+  if (ir_wrapper.is_exist_group_clause(cur_stmt) || ir_wrapper.is_exist_having_clause(cur_stmt) || ir_wrapper.is_exist_limit_clause(cur_stmt)) {
     return false;
   }
 

@@ -537,45 +537,66 @@ bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
     return true;
 }
 
+bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right) {
+    /* Compare two IRTYPE, and see whether they are in the same type of stmt. */
+    string left_str = get_string_by_ir_type(left);
+    string right_str = get_string_by_ir_type(right);
+
+    /* Cut suffix. */
+    size_t cut_pos = left_str.find("_");
+    if (cut_pos != -1) {
+        left_str = left_str.substr(0, cut_pos);
+    }
+
+    cut_pos = right_str.find("_");
+    if (cut_pos != -1) {
+        right_str = right_str.substr(0, cut_pos);
+    }
+
+    if (left_str == right_str) {return true;}
+    else {return false;}
+}
+
 IRTYPE IRWrapper::get_parent_type(IR* cur_IR, int depth = 0){
     IR* output_IR = this->get_p_parent_with_a_type(cur_IR, depth);
     if (output_IR == nullptr) {
         return kUnknown;
     } else {
-        return output_IR->type_;
+        return output_IR->get_ir_type();
     }
 }
 
 IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
-    while (cur_IR ->parent_ != nullptr) {
+    IRTYPE prev_ir_type = cur_IR->get_ir_type();
+    while (cur_IR ->get_parent() != nullptr) {
         IRTYPE parent_type = cur_IR->parent_->type_;
-        if (parent_type != kUnknown) {
+        if (parent_type != kUnknown && compare_ir_type(parent_type, prev_ir_type)) {
+            prev_ir_type = parent_type;
             depth--;
             if (depth <= 0) {
-                return cur_IR->parent_;
+                return cur_IR->get_parent();
             }   
         }
-        cur_IR = cur_IR->parent_;
+        cur_IR = cur_IR->get_parent();
     }
-    // cerr << "Error: Find get_parent_type without parent_ ? \n";
     return nullptr;
 }
 
-bool IRWrapper::is_exist_group_by(IR* cur_stmt){
+bool IRWrapper::is_exist_group_clause(IR* cur_stmt){
     if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false)) {
         return true;
     }
     return false;
 }
 
-bool IRWrapper::is_exist_having(IR* cur_stmt){
+bool IRWrapper::is_exist_having_clause(IR* cur_stmt){
     if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false)) {
         return true;
     }
     return false;
 }
 
-bool IRWrapper::is_exist_limit(IR* cur_stmt){
+bool IRWrapper::is_exist_limit_clause(IR* cur_stmt){
     if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false)) {
         return true;
     }
