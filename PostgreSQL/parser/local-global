@@ -24,4 +24,6 @@ Local:
   var_name
   type_func_name
   param_name
+  attr_name
+  name
   
