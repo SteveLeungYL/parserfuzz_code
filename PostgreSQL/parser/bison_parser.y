@@ -540,10 +540,11 @@ char* alloc_and_cat(char*, char*, char*);
 %type <ir>		hash_partbound
 %type <ir>		hash_partbound_elem
 
-%type <ir> opt_with opt_as opt_using opt_procedural analyze_keyword from_in opt_from_in opt_transaction
+%type <ir> opt_with opt_as opt_using opt_procedural from_in opt_from_in opt_transaction
 %type <ir> plassign_equals opt_column opt_by FUNCTION_or_PROCEDURE TriggerForOptEach xml_passing_mech
 %type <ir> opt_outer opt_table opt_restrict opt_equal any_with opt_all_clause opt_asymmetric
 
+%type <str> analyze_keyword
 
 
 /*
@@ -14533,7 +14534,8 @@ VacuumStmt:
 AnalyzeStmt:
 
     analyze_keyword opt_verbose opt_vacuum_relation_list {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kAnalyzeStmt_1, OP3("", "", ""), tmp1, tmp2);
         auto tmp3 = $3;
@@ -14542,7 +14544,8 @@ AnalyzeStmt:
     }
 
     | analyze_keyword '(' utility_option_list ')' opt_vacuum_relation_list {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $3;
         res = new IR(kAnalyzeStmt_2, OP3("", "(", ")"), tmp1, tmp2);
         auto tmp3 = $5;
@@ -14574,13 +14577,11 @@ utility_option_list:
 analyze_keyword:
 
     ANALYZE {
-        res = new IR(kAnalyzeKeyword, OP3("ANALYZE", "", ""));
-        $$ = res;
+        $$ = strdup("ANALYZE");
     }
 
     | ANALYSE {
-        res = new IR(kAnalyzeKeyword, OP3("ANALYSE", "", ""));
-        $$ = res;
+        $$ = strdup("ANALYSE");
     }
 
 ;
@@ -14636,7 +14637,8 @@ utility_option_arg:
 opt_analyze:
 
     analyze_keyword {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kOptAnalyze, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -14774,7 +14776,8 @@ ExplainStmt:
     }
 
     | EXPLAIN analyze_keyword opt_verbose ExplainableStmt {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $3;
         res = new IR(kExplainStmt_1, OP3("EXPLAIN", "", ""), tmp1, tmp2);
         auto tmp3 = $4;
