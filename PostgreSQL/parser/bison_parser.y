@@ -12405,7 +12405,8 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER FUNCTION", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -12414,7 +12415,8 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_2, OP3("ALTER PROCEDURE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -12423,18 +12425,21 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_3, OP3("ALTER ROUTINE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | ALTER TRIGGER name ON qualified_name opt_no DEPENDS ON EXTENSION name {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $5;
         res = new IR(kAlterObjectDependsStmt_4, OP3("ALTER TRIGGER", "ON", ""), tmp1, tmp2);
         auto tmp3 = $6;
         res = new IR(kAlterObjectDependsStmt_5, OP3("", "", "DEPENDS ON EXTENSION"), res, tmp3);
-        auto tmp4 = $10;
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        free($10);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
@@ -12443,7 +12448,8 @@ AlterObjectDependsStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterObjectDependsStmt_6, OP3("ALTER MATERIALIZED VIEW", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -12452,7 +12458,8 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_7, OP3("ALTER INDEX", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
-        auto tmp3 = $8;
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -12485,193 +12492,223 @@ AlterObjectSchemaStmt:
 
     ALTER AGGREGATE aggregate_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER AGGREGATE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER COLLATION any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER COLLATION", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER CONVERSION_P any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER CONVERSION", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER DOMAIN_P any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER DOMAIN", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER EXTENSION name SET SCHEMA name {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER EXTENSION", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER FUNCTION function_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FUNCTION", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER OPERATOR operator_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER OPERATOR", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER OPERATOR CLASS any_name USING name SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt_1, OP3("ALTER OPERATOR CLASS", "USING", "SET SCHEMA"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | ALTER OPERATOR FAMILY any_name USING name SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt_2, OP3("ALTER OPERATOR FAMILY", "USING", "SET SCHEMA"), tmp1, tmp2);
-        auto tmp3 = $9;
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
     | ALTER PROCEDURE function_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER PROCEDURE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER ROUTINE function_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER ROUTINE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TABLE relation_expr SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TABLE IF_P EXISTS relation_expr SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER STATISTICS any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER STATISTICS", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH PARSER any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH PARSER", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH DICTIONARY any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH TEMPLATE any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH TEMPLATE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TEXT_P SEARCH CONFIGURATION any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SEQUENCE qualified_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SEQUENCE IF_P EXISTS qualified_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER VIEW qualified_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER VIEW IF_P EXISTS qualified_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER MATERIALIZED VIEW qualified_name SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER MATERIALIZED VIEW", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER MATERIALIZED VIEW IF_P EXISTS qualified_name SET SCHEMA name {
         auto tmp1 = $6;
-        auto tmp2 = $9;
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER FOREIGN TABLE relation_expr SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = $7;
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FOREIGN TABLE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr SET SCHEMA name {
         auto tmp1 = $6;
-        auto tmp2 = $9;
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER TYPE_P any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TYPE", "SET SCHEMA", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -12826,7 +12863,8 @@ AlterOwnerStmt:
     }
 
     | ALTER DATABASE name OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DATABASE", "OWNER TO", ""), tmp1, tmp2);
@@ -12851,7 +12889,8 @@ AlterOwnerStmt:
 
     | ALTER opt_procedural LANGUAGE name OWNER TO RoleSpec {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kAlterOwnerStmt_1, OP3("ALTER", "LANGUAGE", "OWNER TO"), tmp1, tmp2);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
@@ -12877,7 +12916,8 @@ AlterOwnerStmt:
 
     | ALTER OPERATOR CLASS any_name USING name OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt_2, OP3("ALTER OPERATOR CLASS", "USING", "OWNER TO"), tmp1, tmp2);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
@@ -12887,7 +12927,8 @@ AlterOwnerStmt:
 
     | ALTER OPERATOR FAMILY any_name USING name OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterOwnerStmt_3, OP3("ALTER OPERATOR FAMILY", "USING", "OWNER TO"), tmp1, tmp2);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
@@ -12912,7 +12953,8 @@ AlterOwnerStmt:
     }
 
     | ALTER SCHEMA name OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SCHEMA", "OWNER TO", ""), tmp1, tmp2);
@@ -12928,7 +12970,8 @@ AlterOwnerStmt:
     }
 
     | ALTER TABLESPACE name OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TABLESPACE", "OWNER TO", ""), tmp1, tmp2);
@@ -12960,7 +13003,8 @@ AlterOwnerStmt:
     }
 
     | ALTER FOREIGN DATA_P WRAPPER name OWNER TO RoleSpec {
-        auto tmp1 = $5;
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FOREIGN DATA WRAPPER", "OWNER TO", ""), tmp1, tmp2);
@@ -12968,7 +13012,8 @@ AlterOwnerStmt:
     }
 
     | ALTER SERVER name OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SERVER", "OWNER TO", ""), tmp1, tmp2);
@@ -12976,7 +13021,8 @@ AlterOwnerStmt:
     }
 
     | ALTER EVENT TRIGGER name OWNER TO RoleSpec {
-        auto tmp1 = $4;
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER EVENT TRIGGER", "OWNER TO", ""), tmp1, tmp2);
@@ -12984,7 +13030,8 @@ AlterOwnerStmt:
     }
 
     | ALTER PUBLICATION name OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PUBLICATION", "OWNER TO", ""), tmp1, tmp2);
@@ -12992,7 +13039,8 @@ AlterOwnerStmt:
     }
 
     | ALTER SUBSCRIPTION name OWNER TO RoleSpec {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SUBSCRIPTION", "OWNER TO", ""), tmp1, tmp2);
@@ -13012,7 +13060,8 @@ AlterOwnerStmt:
 CreatePublicationStmt:
 
     CREATE PUBLICATION name opt_publication_for_tables opt_definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kCreatePublicationStmt_1, OP3("CREATE PUBLICATION", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -13071,28 +13120,32 @@ publication_for_tables:
 AlterPublicationStmt:
 
     ALTER PUBLICATION name SET definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $5;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "SET", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER PUBLICATION name ADD_P TABLE relation_expr_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "ADD TABLE", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER PUBLICATION name SET TABLE relation_expr_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "SET TABLE", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER PUBLICATION name DROP TABLE relation_expr_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "DROP TABLE", ""), tmp1, tmp2);
         $$ = res;
@@ -13110,7 +13163,8 @@ AlterPublicationStmt:
 CreateSubscriptionStmt:
 
     CREATE SUBSCRIPTION name CONNECTION Sconst PUBLICATION name_list opt_definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kCreateSubscriptionStmt_1, OP3("CREATE SUBSCRIPTION", "CONNECTION", "PUBLICATION"), tmp1, tmp2);
@@ -13133,14 +13187,16 @@ CreateSubscriptionStmt:
 AlterSubscriptionStmt:
 
     ALTER SUBSCRIPTION name SET definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $5;
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "SET", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SUBSCRIPTION name CONNECTION Sconst {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "CONNECTION", ""), tmp1, tmp2);
@@ -13148,14 +13204,16 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name REFRESH PUBLICATION opt_definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "REFRESH PUBLICATION", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER SUBSCRIPTION name ADD_P PUBLICATION name_list opt_definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt_1, OP3("ALTER SUBSCRIPTION", "ADD PUBLICATION", ""), tmp1, tmp2);
         auto tmp3 = $7;
@@ -13164,7 +13222,8 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name DROP PUBLICATION name_list opt_definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt_2, OP3("ALTER SUBSCRIPTION", "DROP PUBLICATION", ""), tmp1, tmp2);
         auto tmp3 = $7;
@@ -13173,7 +13232,8 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name SET PUBLICATION name_list opt_definition {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt_3, OP3("ALTER SUBSCRIPTION", "SET PUBLICATION", ""), tmp1, tmp2);
         auto tmp3 = $7;
@@ -13182,13 +13242,15 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name ENABLE_P {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "ENABLE", ""), tmp1);
         $$ = res;
     }
 
     | ALTER SUBSCRIPTION name DISABLE_P {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "DISABLE", ""), tmp1);
         $$ = res;
     }
@@ -13205,14 +13267,16 @@ AlterSubscriptionStmt:
 DropSubscriptionStmt:
 
     DROP SUBSCRIPTION name opt_drop_behavior {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kDropSubscriptionStmt, OP3("DROP SUBSCRIPTION", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | DROP SUBSCRIPTION IF_P EXISTS name opt_drop_behavior {
-        auto tmp1 = $5;
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         auto tmp2 = $6;
         res = new IR(kDropSubscriptionStmt, OP3("DROP SUBSCRIPTION IF EXISTS", "", ""), tmp1, tmp2);
         $$ = res;
@@ -13231,7 +13295,8 @@ RuleStmt:
 
     CREATE opt_or_replace RULE name AS ON event TO qualified_name where_clause DO opt_instead RuleActionList {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        free($4);
         res = new IR(kRuleStmt_1, OP3("CREATE", "RULE", "AS ON"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kRuleStmt_2, OP3("", "", "TO"), res, tmp3);
@@ -13813,7 +13878,8 @@ LoadStmt:
 CreatedbStmt:
 
     CREATE DATABASE name opt_with createdb_opt_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kCreatedbStmt_1, OP3("CREATE DATABASE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
@@ -13971,22 +14037,26 @@ opt_equal:
 AlterDatabaseStmt:
 
     ALTER DATABASE name WITH createdb_opt_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $5;
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "WITH", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER DATABASE name createdb_opt_list {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | ALTER DATABASE name SET TABLESPACE name {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "SET TABLESPACE", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -13997,7 +14067,8 @@ AlterDatabaseStmt:
 AlterDatabaseSetStmt:
 
     ALTER DATABASE name SetResetClause {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterDatabaseSetStmt, OP3("ALTER DATABASE", "", ""), tmp1, tmp2);
         $$ = res;
@@ -14017,19 +14088,22 @@ AlterDatabaseSetStmt:
 DropdbStmt:
 
     DROP DATABASE name {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kDropdbStmt, OP3("DROP DATABASE", "", ""), tmp1);
         $$ = res;
     }
 
     | DROP DATABASE IF_P EXISTS name {
-        auto tmp1 = $5;
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kDropdbStmt, OP3("DROP DATABASE IF EXISTS", "", ""), tmp1);
         $$ = res;
     }
 
     | DROP DATABASE name opt_with '(' drop_option_list ')' {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kDropdbStmt_1, OP3("DROP DATABASE", "", "("), tmp1, tmp2);
         auto tmp3 = $6;
@@ -14038,7 +14112,8 @@ DropdbStmt:
     }
 
     | DROP DATABASE IF_P EXISTS name opt_with '(' drop_option_list ')' {
-        auto tmp1 = $5;
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         auto tmp2 = $6;
         res = new IR(kDropdbStmt_2, OP3("DROP DATABASE IF EXISTS", "", "("), tmp1, tmp2);
         auto tmp3 = $8;
@@ -14176,7 +14251,8 @@ AlterDomainStmt:
 
     | ALTER DOMAIN_P any_name DROP CONSTRAINT name opt_drop_behavior {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterDomainStmt_1, OP3("ALTER DOMAIN", "DROP CONSTRAINT", ""), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kAlterDomainStmt, OP3("", "", ""), res, tmp3);
@@ -14185,7 +14261,8 @@ AlterDomainStmt:
 
     | ALTER DOMAIN_P any_name DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior {
         auto tmp1 = $3;
-        auto tmp2 = $8;
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        free($8);
         res = new IR(kAlterDomainStmt_2, OP3("ALTER DOMAIN", "DROP CONSTRAINT IF EXISTS", ""), tmp1, tmp2);
         auto tmp3 = $9;
         res = new IR(kAlterDomainStmt, OP3("", "", ""), res, tmp3);
@@ -14194,7 +14271,8 @@ AlterDomainStmt:
 
     | ALTER DOMAIN_P any_name VALIDATE CONSTRAINT name {
         auto tmp1 = $3;
-        auto tmp2 = $6;
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        free($6);
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "VALIDATE CONSTRAINT", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -14385,7 +14463,8 @@ ClusterStmt:
 
     | CLUSTER opt_verbose name ON qualified_name {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kClusterStmt_3, OP3("CLUSTER", "", "ON"), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
@@ -14398,7 +14477,8 @@ ClusterStmt:
 cluster_index_specification:
 
     USING name {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kClusterIndexSpecification, OP3("USING", "", ""), tmp1);
         $$ = res;
     }
@@ -14786,7 +14866,8 @@ ExplainableStmt:
 PrepareStmt:
 
     PREPARE name prep_type_clause AS PreparableStmt {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $3;
         res = new IR(kPrepareStmt_1, OP3("PREPARE", "", "AS"), tmp1, tmp2);
         auto tmp3 = $5;
@@ -14852,7 +14933,8 @@ PreparableStmt:
 ExecuteStmt:
 
     EXECUTE name execute_param_clause {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         auto tmp2 = $3;
         res = new IR(kExecuteStmt, OP3("EXECUTE", "", ""), tmp1, tmp2);
         $$ = res;
@@ -14862,7 +14944,8 @@ ExecuteStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kExecuteStmt_1, OP3("CREATE", "TABLE", "AS EXECUTE"), tmp1, tmp2);
-        auto tmp3 = $7;
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        free($7);
         res = new IR(kExecuteStmt_2, OP3("", "", ""), res, tmp3);
         auto tmp4 = $8;
         res = new IR(kExecuteStmt_3, OP3("", "", ""), res, tmp4);
@@ -14875,7 +14958,8 @@ ExecuteStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kExecuteStmt_4, OP3("CREATE", "TABLE IF NOT EXISTS", "AS EXECUTE"), tmp1, tmp2);
-        auto tmp3 = $10;
+        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        free($10);
         res = new IR(kExecuteStmt_5, OP3("", "", ""), res, tmp3);
         auto tmp4 = $11;
         res = new IR(kExecuteStmt_6, OP3("", "", ""), res, tmp4);
@@ -14913,13 +14997,15 @@ execute_param_clause:
 DeallocateStmt:
 
     DEALLOCATE name {
-        auto tmp1 = $2;
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        free($2);
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE", "", ""), tmp1);
         $$ = res;
     }
 
     | DEALLOCATE PREPARE name {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE PREPARE", "", ""), tmp1);
         $$ = res;
     }
@@ -15107,7 +15193,8 @@ opt_conf_expr:
     }
 
     | ON CONSTRAINT name {
-        auto tmp1 = $3;
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kOptConfExpr, OP3("ON CONSTRAINT", "", ""), tmp1);
         $$ = res;
     }
@@ -15420,7 +15507,8 @@ DeclareCursorStmt:
 cursor_name:
 
     name {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kCursorName, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -15839,7 +15927,8 @@ cte_list:
 common_table_expr:
 
     name opt_name_list AS opt_materialized '(' PreparableStmt ')' opt_search_clause opt_cycle_clause {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         auto tmp2 = $2;
         res = new IR(kCommonTableExpr_1, OP3("", "", "AS"), tmp1, tmp2);
         auto tmp3 = $4;
@@ -20773,14 +20862,16 @@ qualified_name:
 name_list:
 
     name {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         res = new IR(kNameList, OP3("", "", ""), tmp1);
         $$ = res;
     }
 
     | name_list ',' name {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         res = new IR(kNameList, OP3("", ",", ""), tmp1, tmp2);
         $$ = res;
     }
