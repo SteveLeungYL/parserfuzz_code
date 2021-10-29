@@ -21,7 +21,7 @@ bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt,
 }
 
 vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
-    IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery) {
+    IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery, bool ignore_type_suffix) {
 
     // Iterate IR binary tree, left depth prioritized.
     bool is_finished_search = false;
@@ -31,7 +31,9 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
     // Begin iterating. 
     while (!is_finished_search) {
         ir_vec_iter.push_back(cur_IR);
-        if (cur_IR->type_ == ir_type) {
+        if (!ignore_type_suffix && cur_IR->type_ == ir_type) {
+            ir_vec_matching_type.push_back(cur_IR);
+        } else if (ignore_type_suffix && compare_ir_type(cur_IR->type_, ir_type)) {
             ir_vec_matching_type.push_back(cur_IR);
         }
 
@@ -131,7 +133,7 @@ IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
         return nullptr;
     }
     IR* cur_stmt_list = stmt_list_v[idx];
-    IR* cur_stmt = cur_stmt_list -> left_ ->left_;  /* stmt_list -> stmt -> specific_stmt */
+    IR* cur_stmt = get_stmt_ir_from_stmtmulti(cur_stmt_list);
     return cur_stmt;
 }
 
@@ -603,123 +605,176 @@ bool IRWrapper::is_exist_limit_clause(IR* cur_stmt){
     return false;
 }
 
-vector<IR*> IRWrapper::get_selectclauselist_vec(IR* cur_stmt){
-    if (cur_stmt->type_ != kSelectStmt) {
-        // cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
-        vector<IR*> tmp; return tmp;
+bool IRWrapper::is_exist_UNION_SELECT(IR* cur_stmt) {
+    if (!cur_stmt) {
+        cerr << "Error: Given cur_stmt is NULL. \n";
+        return false;
     }
-    // cerr << "In Func: IRWrapper::get_selectclauselist_vec(IR*), we have cur_stmt to_string: " << cur_stmt->to_string() << "\n\n\n";
-
-    vector<IR*> res_selectcore_vec;
-    vector<IR*> select_clause_list_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kSimpleSelect, false);
-    vector<IR*> res_select_clause_list_vec;
-
-    /* Should be able to return the list directly. */
-    // return select_clause_list_vec;
-
-    IR *p_r;
-    for (IR* select_clause_ir : select_clause_list_vec) {
-        if (select_clause_ir->right_){
-            p_r = select_clause_ir->right_;
-        } else {
-            continue;
+    // Do not ignore suffix.
+    vector<IR*> v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kSimpleSelect_13, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "UNION") {
+            return true;
         }
-        if (select_clause_ir->left_ && 
-            select_clause_ir->left_->type_ == kUnknown &&
-            select_clause_ir->left_->op_ &&
-            select_clause_ir->left_->left_ &&
-            (
-                strcmp(select_clause_ir->left_->op_->middle_, "UNION") == 0 ||
-                strcmp(select_clause_ir->left_->op_->middle_, "INTERSECT") == 0 ||
-                strcmp(select_clause_ir->left_->op_->middle_, "EXCEPT") == 0
-            )
-        ) {
-            res_select_clause_list_vec.push_back(select_clause_ir->left_->left_);
-            res_select_clause_list_vec.push_back(p_r);
-        } 
     }
-
-    return res_select_clause_list_vec;
+    return false;
 }
 
-bool IRWrapper::append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx){
-    if (app_ir->type_ != kSelectClause) {
-        cerr << "Error: Not receiving kSelectCore in the func: IRWrapper::append_selectcore_clause(). \n";
+
+bool IRWrapper::is_exist_INTERSECT_SELECT(IR* cur_stmt) {
+    if (!cur_stmt) {
+        cerr << "Error: Given cur_stmt is NULL. \n";
         return false;
     }
-    if (cur_stmt->type_ != kSelectStmt) {
-        cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::append_selectcore_clause(). \n";
-        return false;
-    }
-
-    vector<IR*> selectclause_vec = this->get_selectclauselist_vec(cur_stmt);
-    if (selectclause_vec.size() > idx) {
-        cerr << "Idx exceeding the maximum number of selectcore in the statement. \n";
-        return false;
-    }
-
-    if (idx < selectclause_vec.size()) {
-        IR* insert_pos_ir = selectclause_vec[idx];
-
-        IR* combineClauseIR = new IR(kCombineClause, OP3(set_oper_str.c_str(), "", ""));
-        IR* new_res = new IR(kUnknown, OP3("", "", ""), app_ir, combineClauseIR);
-        new_res = new IR(kSelectClauseList, OP3("", "", ""), new_res, NULL);
-
-        if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
-            new_res->deep_drop();
-            // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. \n");
-            std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. idx = " << idx << "\n";
-            return false;
+    // Do not ignore suffix.
+    vector<IR*> v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kSimpleSelect_14, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "INTERSECT") {
+            return true;
         }
-
-        new_res->update_right(insert_pos_ir);
-
-        return true;
-    } else { // idx == selectclause_vec.size()
-        IR* new_res = new IR(kSelectClauseList, OP3("", "", ""), app_ir);
-
-        IR* insert_pos_ir = selectclause_vec[idx-1];
-        if (insert_pos_ir->right_ != NULL) {
-            std::cerr << "Error: The last selectclause_vec is having right_ sub-node. In function IRWrapper::append_stmt_at_idx. \n";
-            return false;
-        }
-
-        insert_pos_ir->update_right(new_res);
-
-        return true;    
     }
+    return false;
 }
 
-bool IRWrapper::remove_selectclause_clause_at_idx_and_free(IR* cur_stmt, int idx) {
-    vector<IR*> selectclause_vec = this->get_selectclauselist_vec(cur_stmt);
-
-    if (idx >= selectclause_vec.size() && idx < 0){
-        std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+bool IRWrapper::is_exist_EXCEPT_SELECT(IR* cur_stmt) {
+    if (!cur_stmt) {
+        cerr << "Error: Given cur_stmt is NULL. \n";
         return false;
     }
-
-    if (selectclause_vec.size() == 1) {
-        // std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
-        return false;
+    // Do not ignore suffix.
+    vector<IR*> v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kSimpleSelect_15, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "EXCEPT") {
+            return true;
+        }
     }
-
-    IR* rov_clause = selectclause_vec[idx];
-
-    if (idx < selectclause_vec.size()-1){
-        IR* parent_node = rov_clause->get_parent();
-        IR* next_clause = rov_clause->right_;
-        parent_node->swap_node(rov_clause, next_clause);
-        rov_clause->right_ = NULL;
-        rov_clause->deep_drop();
-
-    } else { // idx == stmt_list_v.size()-1. Remove the last stmt. 
-        IR* parent_node = rov_clause->get_parent();
-        parent_node->detach_node(rov_clause);
-        rov_clause->deep_drop();
-    }
-
-    return true;
+    return false;
 }
+
+bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
+    return is_exist_UNION_SELECT(cur_stmt) && is_exist_INTERSECT_SELECT(cur_stmt) && is_exist_EXCEPT_SELECT(cur_stmt);
+}
+
+/* Remove get_selectclauselist_vec functions and its related functions.
+ * They are too complicated to use.
+ * */
+// vector<IR*> IRWrapper::get_selectclauselist_vec(IR* cur_stmt){
+//     if (cur_stmt->type_ != kSelectStmt) {
+//         // cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
+//         vector<IR*> tmp; return tmp;
+//     }
+//     // cerr << "In Func: IRWrapper::get_selectclauselist_vec(IR*), we have cur_stmt to_string: " << cur_stmt->to_string() << "\n\n\n";
+
+//     vector<IR*> res_selectcore_vec;
+//     vector<IR*> select_clause_list_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kSimpleSelect, false);
+//     vector<IR*> res_select_clause_list_vec;
+
+//     /* Should be able to return the list directly. */
+//     // return select_clause_list_vec;
+
+//     IR *p_r;
+//     for (IR* select_clause_ir : select_clause_list_vec) {
+//         if (select_clause_ir->right_){
+//             p_r = select_clause_ir->right_;
+//         } else {
+//             continue;
+//         }
+//         if (select_clause_ir->left_ &&
+//             select_clause_ir->left_->type_ == kUnknown &&
+//             select_clause_ir->left_->op_ &&
+//             select_clause_ir->left_->left_ &&
+//             (
+//                 strcmp(select_clause_ir->left_->op_->middle_, "UNION") == 0 ||
+//                 strcmp(select_clause_ir->left_->op_->middle_, "INTERSECT") == 0 ||
+//                 strcmp(select_clause_ir->left_->op_->middle_, "EXCEPT") == 0
+//             )
+//         ) {
+//             res_select_clause_list_vec.push_back(select_clause_ir->left_->left_);
+//             res_select_clause_list_vec.push_back(p_r);
+//         }
+//     }
+
+//     return res_select_clause_list_vec;
+// }
+
+// bool IRWrapper::append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx){
+//     if (app_ir->type_ != kSelectClause) {
+//         cerr << "Error: Not receiving kSelectCore in the func: IRWrapper::append_selectcore_clause(). \n";
+//         return false;
+//     }
+//     if (cur_stmt->type_ != kSelectStmt) {
+//         cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::append_selectcore_clause(). \n";
+//         return false;
+//     }
+
+//     vector<IR*> selectclause_vec = this->get_selectclauselist_vec(cur_stmt);
+//     if (selectclause_vec.size() > idx) {
+//         cerr << "Idx exceeding the maximum number of selectcore in the statement. \n";
+//         return false;
+//     }
+
+//     if (idx < selectclause_vec.size()) {
+//         IR* insert_pos_ir = selectclause_vec[idx];
+
+//         IR* combineClauseIR = new IR(kCombineClause, OP3(set_oper_str.c_str(), "", ""));
+//         IR* new_res = new IR(kUnknown, OP3("", "", ""), app_ir, combineClauseIR);
+//         new_res = new IR(kSelectClauseList, OP3("", "", ""), new_res, NULL);
+
+//         if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir.
+//             new_res->deep_drop();
+//             // FATAL("Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. \n");
+//             std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. idx = " << idx << "\n";
+//             return false;
+//         }
+
+//         new_res->update_right(insert_pos_ir);
+
+//         return true;
+//     } else { // idx == selectclause_vec.size()
+//         IR* new_res = new IR(kSelectClauseList, OP3("", "", ""), app_ir);
+
+//         IR* insert_pos_ir = selectclause_vec[idx-1];
+//         if (insert_pos_ir->right_ != NULL) {
+//             std::cerr << "Error: The last selectclause_vec is having right_ sub-node. In function IRWrapper::append_stmt_at_idx. \n";
+//             return false;
+//         }
+
+//         insert_pos_ir->update_right(new_res);
+
+//         return true;
+//     }
+// }
+
+// bool IRWrapper::remove_selectclause_clause_at_idx_and_free(IR* cur_stmt, int idx) {
+//     vector<IR*> selectclause_vec = this->get_selectclauselist_vec(cur_stmt);
+
+//     if (idx >= selectclause_vec.size() && idx < 0){
+//         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+//         return false;
+//     }
+
+//     if (selectclause_vec.size() == 1) {
+//         // std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+//         return false;
+//     }
+
+//     IR* rov_clause = selectclause_vec[idx];
+
+//     if (idx < selectclause_vec.size()-1){
+//         IR* parent_node = rov_clause->get_parent();
+//         IR* next_clause = rov_clause->right_;
+//         parent_node->swap_node(rov_clause, next_clause);
+//         rov_clause->right_ = NULL;
+//         rov_clause->deep_drop();
+
+//     } else { // idx == stmt_list_v.size()-1. Remove the last stmt.
+//         IR* parent_node = rov_clause->get_parent();
+//         parent_node->detach_node(rov_clause);
+//         rov_clause->deep_drop();
+//     }
+
+//     return true;
+// }
 
 vector<IR*> IRWrapper::get_expr_list_in_select_target(IR* cur_stmt){
     vector<IR*> res_vec;

@@ -24,8 +24,7 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
   // Remove UNION ALL, UNION, EXCEPT and INTERCEPT
-  int num_selectclause = ir_wrapper.get_num_selectclause(cur_stmt);
-  if (num_selectclause > 1) {
+  if (ir_wrapper.is_exist_set_operator(cur_stmt)) {
     // cerr << "In func: SQL_TLP::is_oracle_select_stmt(IR*), not a oracle_select because multiple selectclause detected. \n\n\n";
     return false;
   }

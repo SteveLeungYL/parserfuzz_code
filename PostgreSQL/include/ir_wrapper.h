@@ -29,9 +29,11 @@ public:
         bool is_subquery = false, bool ignore_is_subquery = false);
     bool is_exist_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type);
 
+    /* By default, is_ignore_type_suffix == true.
+     * Which means kSelectStmt_1 and kSelectStmt_2 is the same type
+     */
     vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, 
-        bool is_subquery = false, bool ignore_is_subquery = false);
-    vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type);
+        bool is_subquery = false, bool ignore_is_subquery = false, bool is_ignore_type_suffix = true);
 
     bool append_stmt_at_idx(string, int idx, Mutator& g_mutator);
     bool append_stmt_at_end(string, Mutator& g_mutator);
@@ -88,7 +90,11 @@ public:
     vector<IR*> get_selectclauselist_vec(IR*);
     bool append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx);
     bool remove_selectclause_clause_at_idx_and_free(IR* cur_stmt, int idx);
-    int get_num_selectclause(IR* cur_stmt) {return this->get_selectclauselist_vec(cur_stmt).size();}
+    // int get_num_selectclause(IR* cur_stmt) {return this->get_selectclauselist_vec(cur_stmt).size();}
+    bool is_exist_UNION_SELECT(IR* cur_stmt);
+    bool is_exist_INTERSECT_SELECT(IR* cur_stmt);
+    bool is_exist_EXCEPT_SELECT(IR* cur_stmt);
+    bool is_exist_set_operator(IR* cur_stmt);
 
     vector<IR*> get_expr_list_in_select_target(IR* cur_stmt);
     int get_num_expr_list_in_select_clause(IR* cur_stmt) { return this->get_expr_list_in_select_target(cur_stmt).size(); }
