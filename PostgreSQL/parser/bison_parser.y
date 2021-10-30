@@ -1606,8 +1606,8 @@ CallStmt:
 CreateRoleStmt:
 
     CREATE ROLE RoleId opt_with OptRoleList {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
-        free($1);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kCreateRoleStmt_1, OP3("CREATE ROLE", "", ""), tmp1, tmp2);
         auto tmp3 = $5;
