@@ -39,7 +39,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
 
 parser.o: parser.cpp bison_parser.cpp flex_lexer.cpp
-	g++ $< -o $@ -c -I ./include/
+	g++ $< -o $@ -c -I ./include/ $(DEBUG) $(OPT)
 
 %.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
