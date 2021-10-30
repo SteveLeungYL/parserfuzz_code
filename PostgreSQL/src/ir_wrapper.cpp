@@ -133,6 +133,7 @@ IR* IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
         return nullptr;
     }
     IR* cur_stmt_list = stmt_list_v[idx];
+    // cerr << "Debug: 136: cur_stmt_list type: " << get_string_by_ir_type(cur_stmt_list->get_ir_type()) << "\n";
     IR* cur_stmt = get_stmt_ir_from_stmtmulti(cur_stmt_list);
     return cur_stmt;
 }
@@ -243,7 +244,7 @@ vector<IR*> IRWrapper::get_stmtmulti_IR_vec(){
 
     vector<IR*> stmt_list_v;
 
-    while (stmt_IR_p){ // Iterate from the first kstatementlist to the last.
+    while (stmt_IR_p && stmt_IR_p -> get_ir_type() == kStmtmulti){ // Iterate from the first kstatementlist to the last.
         stmt_list_v.push_back(stmt_IR_p);
         if (stmt_IR_p->get_right() == nullptr || stmt_IR_p->get_left() == nullptr) break; // This is the last kstatementlist.
         stmt_IR_p = stmt_IR_p -> right_; // Lead to the next kstatementlist. 
@@ -272,6 +273,7 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx, Mutator& g_mutator){
         return false;
     }
 
+    // cerr << "Debug: 276: app_stmtmulti type: " << get_string_by_ir_type(app_stmtmulti->get_ir_type()) << "\n";
 
     IR* app_IR_node = get_stmt_ir_from_stmtmulti(app_stmtmulti);
     if (!app_IR_node) {
@@ -292,6 +294,7 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 
     // Parse and get the new statement.
     IR* app_IR_root = g_mutator.parse_query_str_get_ir_set(app_str).back();
+
     IR* app_stmtmulti = get_first_stmtmulti_from_root();
 
     if (!app_stmtmulti) {
@@ -299,6 +302,8 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
         return false;
     }
 
+
+    // cerr << "Debug: 306: app_stmtmulti type: " << get_string_by_ir_type(app_stmtmulti->get_ir_type()) << "\n";
 
     IR* app_IR_node = get_stmt_ir_from_stmtmulti(app_stmtmulti);
     if (!app_IR_node) {
@@ -404,6 +409,8 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
             vector<IR*> tmp;
             return tmp;
         }
+        // cerr << "Debug: 407: stmtlist_vec type: " << get_string_by_ir_type(stmtlist_vec[i]->get_ir_type()) << "\n";
+
         stmt_vec.push_back(get_stmt_ir_from_stmtmulti(stmtlist_vec[i]));
     }
     
@@ -559,7 +566,7 @@ bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right) {
     else {return false;}
 }
 
-string IRWrapper::get_parent_type_str(IR* cur_IR, int depth = 0){
+string IRWrapper::get_parent_type_str(IR* cur_IR, int depth){
     IR* output_IR = this->get_p_parent_with_a_type(cur_IR, depth);
     if (output_IR == nullptr) {
         return "kUnknown";
@@ -843,6 +850,7 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
 
 IR* IRWrapper::get_first_stmt_from_root(IR* cur_root) {
     this->ir_root = cur_root;
+    return get_first_stmt_from_root();
 }
 
 IR* IRWrapper::get_first_stmt_from_root() {
