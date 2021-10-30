@@ -823,16 +823,29 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     if (cur_stmtmulti->get_right() &&
         cur_stmtmulti->get_right()->get_left()
     ) {
-        /* kstmtmulti -> ktoplevelstmt -> stmt -> specific_stmt_type */
+        /* kstmtmulti -> stmt -> specific_stmt_type */
         return cur_stmtmulti->get_right()->get_left();
 
     } else if (cur_stmtmulti->get_left() &&
                cur_stmtmulti->get_left()->get_left()
     ) {
-        /* kstmtmulti -> ktoplevelstmt -> stmt -> specific_stmt_type */
+        /* kstmtmulti ->  stmt -> specific_stmt_type */
         return cur_stmtmulti->get_left()->get_left();
     } else {
         cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
         return NULL;
     }
+}
+
+IR* IRWrapper:get_first_stmt_from_root(IR* cur_root) {
+    this->ir_root = cur_root;
+}
+
+IR* IRWrapper:get_first_stmt_from_root() {
+    IR* first_stmtmulti = this->get_first_stmtmulti_from_root();
+    if (first_stmtmulti == NULL) {
+        return NULL;
+    }
+
+    return this->get_stmt_ir_from_stmtmulti(first_stmtmulti);
 }
