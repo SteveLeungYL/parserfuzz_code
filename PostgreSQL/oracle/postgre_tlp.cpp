@@ -5,27 +5,13 @@
 #include <regex>
 #include <string>
 
-int SQL_TLP::count_valid_stmts(const string &input) {
-  int norec_select_count = 0;
-  vector<string> queries_vector = string_splitter(input, ';');
-  for (string &query : queries_vector)
-    if (this->is_oracle_valid_stmt(query))
-      norec_select_count++;
-  return norec_select_count;
-}
-
-bool SQL_TLP::is_oracle_valid_stmt(const string &query) {
-  return false;
-}
-
 bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
   if (ir_wrapper.is_exist_group_clause(cur_stmt) || ir_wrapper.is_exist_having_clause(cur_stmt) || ir_wrapper.is_exist_limit_clause(cur_stmt)) {
     return false;
   }
 
-  // Remove UNION ALL, UNION, EXCEPT and INTERCEPT
+  // Ignore stmts with UNION ALL, UNION, EXCEPT and INTERCEPT
   if (ir_wrapper.is_exist_set_operator(cur_stmt)) {
-    // cerr << "In func: SQL_TLP::is_oracle_select_stmt(IR*), not a oracle_select because multiple selectclause detected. \n\n\n";
     return false;
   }
 
@@ -42,51 +28,15 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
 }
 
 bool SQL_TLP::mark_all_valid_node(vector<IR *> &v_ir_collector) {
-  bool is_mark_successfully = false;
-
-  IR *root = v_ir_collector[v_ir_collector.size() - 1];
-  IR *par_ir = nullptr;
-  IR *par_par_ir = nullptr;
-  IR *par_par_par_ir = nullptr; // If we find the correct selectnoparen, this
-                                // should be the statementlist.
-  for (auto ir : v_ir_collector) {
-    if (ir != nullptr)
-      ir->is_node_struct_fixed = false;
-  }
-  for (auto ir : v_ir_collector) {
-    if (ir != nullptr && ir->type_ == kSelectClause) {
-      par_ir = root->locate_parent(ir);
-      if (par_ir != nullptr && par_ir->type_ == kSelectStmt) {
-        par_par_ir = root->locate_parent(par_ir);
-        if (par_par_ir != nullptr && par_par_ir->type_ == kStmt) {
-          par_par_par_ir = root->locate_parent(par_par_ir);
-          if (par_par_par_ir != nullptr &&
-              par_par_par_ir->type_ == kStmt) {
-            g_mutator->extract_struct(ir);
-            string query = ir->to_string();
-            if (!(this->is_oracle_valid_stmt(query)))
-              continue; // Not norec compatible. Jump to the next ir.
-            query.clear();
-            is_mark_successfully = this->mark_node_valid(ir);
-            // cerr << "\n\n\nThe marked norec ir is: " <<
-            // this->extract_struct(ir) << " \n\n\n";
-            par_ir->is_node_struct_fixed = true;
-            par_par_ir->is_node_struct_fixed = true;
-            par_par_par_ir->is_node_struct_fixed = true;
-          }
-        }
-      }
-    }
-  }
-
-  return is_mark_successfully;
+  // TODO::FixLater.
+  return true;
 }
 
 vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id){
   vector<IR*> trans_IR_vec;
   cur_stmt->parent_ = NULL;
 
-
+  /* Let's take care of the first stmt. Remove (all?) its kWhereClause */
   IR* first_stmt = cur_stmt->deep_copy();
   vector<IR*> where_clause_in_first_vec = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, kWhereClause, false);
   for (IR* where_clause_in_first : where_clause_in_first_vec) {
@@ -119,21 +69,21 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     vector<IR*> tmp; return tmp;
   }
   IR* where_first_stmt_ = v_where_first_stmt[0];
-  if (where_first_stmt_->left_ == NULL) {
+  if (where_first_stmt_->get_left() == NULL) {
     first_stmt->deep_drop();
     first_part_TLP->deep_drop();
     cerr << "Error: The retrived where_first_stmt_ doesn't have the left_ child node. \n\n\n";
   }
-  IR* where_first_expr_ = where_first_stmt_->left_;
+  IR* where_first_expr_ = where_first_stmt_->get_left();
   
   first_part_TLP->swap_node(where_first_expr_, expr_ir_);
   operand_ir_->update_left(where_first_expr_);
 
   /* Modify the second part of TLP. Pu the Whereclause into (Not (kWhereClause)) */
-  IR* operand_0 = new IR(kExpr, OP3("(", ")", "")); // For brackets
-  IR* unary_expr_ = new IR(kUnaryExpr, OP3("NOT", "", ""), operand_0); // NOT (kWhereClause)
-  IR* operand_1 = new IR(kExpr, OP3("(", ")", ""), unary_expr_); // For the second brackets. (NOT (kWhereClause))
-  IR* expr_ = new IR(kExpr, OP0(), operand_1);
+  IR* operand_0 = new IR(kAExpr, OP3("(", ")", "")); // For brackets
+  IR* unary_expr_ = new IR(kAExpr, OP3("NOT", "", ""), operand_0); // NOT (kWhereClause)
+  IR* operand_1 = new IR(kAExpr, OP3("(", ")", ""), unary_expr_); // For the second brackets. (NOT (kWhereClause))
+  IR* expr_ = new IR(kAExpr, OP0(), operand_1);
 
   IR* second_part_TLP = src_simple_select_->deep_copy();
   /* vector size has been double checked before */
@@ -172,14 +122,14 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
 
   /* Parse and retrive the IR tree for the TLP template. */
   IR* ori_transformed_temp_ir = transformed_temp_vec.back();
-  IR* trans_stmt_ir = ori_transformed_temp_ir->left_->left_->left_->deep_copy();      // Program -> stmtlist -> stmt -> transformed_stmt;
+  IR* trans_stmt_ir = ir_wrapper.get_first_stmt_from_root(ori_transformed_temp_ir);
   trans_stmt_ir->parent_ = NULL;
   ori_transformed_temp_ir->deep_drop();
 
   /* Fill in the three parts of TLP stmt into trans_stmt_ir; */
   vector<IR*> v_dest_select_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kSelectClause, false);
   /* For the first part */
-  IR* dest_simple_select_first = v_dest_select_clause[0]->left_;
+  IR* dest_simple_select_first = v_dest_select_clause[1]->left_;
   trans_stmt_ir->swap_node(dest_simple_select_first, first_part_TLP);
   dest_simple_select_first->deep_drop();
 
@@ -198,25 +148,6 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
 
   return trans_IR_vec;
 
-}
-
-void SQL_TLP::rewrite_valid_stmt_from_ori(string &query, string &rew_1,
-                                            string &rew_2, string &rew_3,
-                                            unsigned multi_run_id) {
-}
-
-string SQL_TLP::remove_valid_stmts_from_str(string query) {
-  string output_query = "";
-  vector<string> queries_vector = string_splitter(query, ';');
-
-  for (auto current_stmt : queries_vector) {
-    if (is_str_empty(current_stmt))
-      continue;
-    if (!is_oracle_valid_stmt(current_stmt))
-      output_query += current_stmt + "; ";
-  }
-
-  return output_query;
 }
 
 void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
