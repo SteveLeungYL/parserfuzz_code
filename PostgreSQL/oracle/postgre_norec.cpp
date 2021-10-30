@@ -55,7 +55,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
         /* The Func expression structure is enforced. Next ensure the func is COUNT */
         IR* func_app_ir = count_func_ir->get_parent();
         // Enforce '*'
-        if (!strcmp(func_app_ir, "( * )")) {
+        if (!strcmp(func_app_ir->get_middle(), "( * )")) {
           IR* iden_ir = count_func_ir->get_left();
           // Enforce count.
           if (iden_ir &&
@@ -115,7 +115,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 
   /* Take care of WHERE and FROM clauses. */
   IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0]->get_left()->deep_copy();
-  IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kAExprConst, true)[0];
+  IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kAexprConst, true)[0];
 
   IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false)[0]->left_->deep_copy();
   IR* dest_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kFromClause, true)[0];

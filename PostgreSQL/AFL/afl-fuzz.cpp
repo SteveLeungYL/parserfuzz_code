@@ -1698,22 +1698,20 @@ static void update_bitmap_score(struct queue_entry *q)
 }
 
 
-void debug_oracle_rewrite() {
-  string query = " SELECT t0.c0 FROM t3*, t0* INNER JOIN ONLY t1 ON (initcap('YY') SIMILAR TO upper((('')||(B'1110110010011100100000011000')))) WHERE NOT (((NOT (pg_is_other_temp_schema()))OR(((0.7888163054438270815893474718905054032802581787109375)=(t1.c0)))));";
-  string expect = "SELECT SUM(count) FROM (SELECT ALL (NOT (((NOT (pg_is_other_temp_schema()))OR(((0.7888163054438270815893474718905054032802581787109375)=(t1.c0))))))::INT as count FROM t3*, t0* JOIN ONLY t1 ON (initcap('YY') SIMILAR TO upper((('')||(B'1110110010011100100000011000'))))) as res;";
-  int mul_run_id =1;
-  string rew_1 = "", rew_2 = "", rew_3 = "";
-  
-  p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3,
-                                        mul_run_id);
+// void debug_oracle_rewrite() {
+//   string query = " SELECT t0.c0 FROM t3*, t0* INNER JOIN ONLY t1 ON (initcap('YY') SIMILAR TO upper((('')||(B'1110110010011100100000011000')))) WHERE NOT (((NOT (pg_is_other_temp_schema()))OR(((0.7888163054438270815893474718905054032802581787109375)=(t1.c0)))));";
+//   string expect = "SELECT SUM(count) FROM (SELECT ALL (NOT (((NOT (pg_is_other_temp_schema()))OR(((0.7888163054438270815893474718905054032802581787109375)=(t1.c0))))))::INT as count FROM t3*, t0* JOIN ONLY t1 ON (initcap('YY') SIMILAR TO upper((('')||(B'1110110010011100100000011000'))))) as res;";
+//   int mul_run_id =1;
+//   string rew_1 = "", rew_2 = "", rew_3 = "";
 
-  cout << "############" << endl;
-  cout << "rewrite query: " << endl;
-  cout << rew_1 << endl;
-  cout << "############" << endl;
-  cout << "expected query: " << endl;
-  cout << expect << endl;
-}
+//   p_oracle->post_fix_transfrom_select_stmt(query, 0);
+//   cout << "############" << endl;
+//   cout << "rewrite query: " << endl;
+//   cout << rew_1 << endl;
+//   cout << "############" << endl;
+//   cout << "expected query: " << endl;
+//   cout << expect << endl;
+// }
 
 void debug_postgre_output() {
   auto result = g_psql_client.execute("select 'asd';SELECT 'BEGIN VERI 0';");
@@ -1813,7 +1811,7 @@ void debug_get_random_mutated_valid_stmt() {
 
   do_libary_initialize();
 
-  p_oracle->get_random_mutated_valid_stmt();
+  p_oracle->get_random_mutated_select_stmt();
 }
 
 
@@ -3019,75 +3017,6 @@ inline void print_norec_exec_debug_info()
   return;
 }
 
-string expand_valid_stmts_str(vector<string> &queries_vector,
-                              const bool is_mark = false,
-                              const unsigned mul_run_id = 0)
-{
-  string current_output = "";
-
-  for (string &query : queries_vector)
-  {
-    if (is_str_empty(query))
-      continue;
-
-    if (p_oracle->is_oracle_valid_stmt(query))
-    {
-      // cout << "query: " << query << endl;
-      string rew_1 = "", rew_2 = "", rew_3 = "";
-      p_oracle->rewrite_valid_stmt_from_ori(query, rew_1, rew_2, rew_3,
-                                            mul_run_id);
-
-      if (query != "")
-      {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 0'; \n";
-        current_output += query + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 0'; \n";
-      }
-
-      if (rew_1 != "" && mul_run_id <= 1)
-      {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 1'; \n";
-        current_output += rew_1 + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 1'; \n";
-      }
-
-      if (rew_2 != "" && mul_run_id <= 1)
-      {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 2'; \n";
-        current_output += rew_2 + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 2'; \n";
-      }
-
-      if (rew_3 != "" && mul_run_id <= 1)
-      {
-        if (is_mark)
-          current_output += "SELECT 'BEGIN VERI 3'; \n";
-        current_output += rew_3 + "; \n";
-        if (is_mark)
-          current_output += "SELECT 'END VERI 3'; \n";
-
-      }
-    }
-    else if (p_oracle->is_oracle_valid_stmt_2(
-                 query))  // always false
-    { // If required to rewrite non-select statement
-      p_oracle->rewrite_valid_stmt_from_ori_2(query, mul_run_id);
-      current_output += query + "; \n";
-    }
-    else
-    {
-      current_output += query + "; \n";
-    }
-  }
-  return current_output;
-}
-
 void extract_query_result(const string &res, vector<string> &res_vec_out,
                           const string &begin_sign, const string &end_sign)
 {
@@ -3481,7 +3410,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+  stream_output_res(all_comp_res, cerr);
 
   if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
@@ -4248,7 +4177,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     return keeping; // return 0; Empty string. Not added.
 
   string stripped_query_string =
-      p_oracle->remove_valid_stmts_from_str(query_str);
+      p_oracle->remove_oracle_select_stmt_from_str(query_str);
   if (is_str_empty(stripped_query_string))
     return keeping;
 
@@ -6203,7 +6132,7 @@ void get_ori_valid_stmts(vector<IR*> &v_valid_stmts, int valid_max_num = 10) {
       break;
     }
     // cout << "get_ori_valid_stmts trial times: " << trial << endl;
-    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_valid_stmt();
+    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
       cerr << "new_norec_stmts is empty. \n";
       continue;
@@ -6227,7 +6156,7 @@ void split_queries_into_small_pieces(string &large_query, vector<string> &v_smal
 
   vector<string> queries = string_splitter(large_query, ';');
   for (string tmp_str : queries) {
-    if (p_oracle->is_oracle_valid_stmt(tmp_str)) {
+    if (p_oracle->is_oracle_select_stmt(tmp_str)) {
       oracle_queries.push_back(tmp_str+";");
     } else {
       database_queries += tmp_str + ";";

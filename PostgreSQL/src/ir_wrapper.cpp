@@ -841,11 +841,11 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     }
 }
 
-IR* IRWrapper:get_first_stmt_from_root(IR* cur_root) {
+IR* IRWrapper::get_first_stmt_from_root(IR* cur_root) {
     this->ir_root = cur_root;
 }
 
-IR* IRWrapper:get_first_stmt_from_root() {
+IR* IRWrapper::get_first_stmt_from_root() {
     IR* first_stmtmulti = this->get_first_stmtmulti_from_root();
     if (first_stmtmulti == NULL) {
         return NULL;

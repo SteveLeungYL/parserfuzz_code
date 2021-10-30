@@ -1891,12 +1891,12 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
           *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
       
       if (ori_norec_select == "" ||
-          !p_oracle->is_oracle_valid_stmt(ori_norec_select))
+          !p_oracle->is_oracle_select_stmt(ori_norec_select))
         continue;
       use_temp = false;
     } else {
       /* Pick the query from the template, pass to the mutator. */
-      ori_norec_select = p_oracle->get_temp_valid_stmts();
+      ori_norec_select = p_oracle->get_template_select_stmts();
       use_temp = true;
     }
 

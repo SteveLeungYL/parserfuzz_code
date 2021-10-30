@@ -280,3 +280,60 @@ void SQL_ORACLE::remove_oracle_select_stmt_from_ir(IR* ir_root) {
   }
   return;
 }
+
+string SQL_ORACLE::remove_select_stmt_from_str(string in) {
+  vector<IR*> ir_set = g_mutator->parse_query_str_get_ir_set(in);
+  if (ir_set.size()==0) {
+    cerr << "Error: ir_set size is 0. \n";
+  }
+  IR* ir_root = ir_set.back();
+  remove_select_stmt_from_ir(ir_root);
+  string res_str = ir_root->to_string();
+  ir_root->deep_drop();
+  return res_str;
+}
+
+string SQL_ORACLE::remove_oracle_select_stmt_from_str(string in) {
+  vector<IR*> ir_set = g_mutator->parse_query_str_get_ir_set(in);
+  if (ir_set.size()==0) {
+    cerr << "Error: ir_set size is 0. \n";
+  }
+  IR* ir_root = ir_set.back();
+  remove_oracle_select_stmt_from_ir(ir_root);
+  string res_str = ir_root->to_string();
+  ir_root->deep_drop();
+  return res_str;
+}
+
+
+bool SQL_ORACLE::is_oracle_select_stmt(string in) {
+    vector<IR*> ir_vec = g_mutator->parse_query_str_get_ir_set(in);
+    if(!ir_vec.size()) {
+        cerr << "Error: getting empty ir_vec. Parsing failed. \n";
+        return false;
+    }
+    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_vec.back());
+    if(cur_stmt == NULL) {
+        cerr << "Error: Cannot find the stmt inside the ir_vec(). \n";
+        return false;
+    }
+    bool res = is_oracle_select_stmt(cur_stmt);
+    ir_vec.back()->deep_drop();
+    return res;
+}
+
+bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
+    vector<IR*> ir_vec = g_mutator->parse_query_str_get_ir_set(in);
+    if(!ir_vec.size()) {
+        cerr << "Error: getting empty ir_vec. Parsing failed. \n";
+        return false;
+    }
+    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_vec.back());
+    if(cur_stmt == NULL) {
+        cerr << "Error: Cannot find the stmt inside the ir_vec(). \n";
+        return false;
+    }
+    bool res = is_oracle_normal_stmt(cur_stmt);
+    ir_vec.back()->deep_drop();
+    return res;
+}

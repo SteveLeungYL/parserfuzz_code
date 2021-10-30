@@ -23,6 +23,9 @@ public:
   virtual bool is_oracle_select_stmt(IR* cur_IR);
   virtual bool is_oracle_normal_stmt(IR* cur_IR) {return false;}
 
+  virtual bool is_oracle_select_stmt(string);
+  virtual bool is_oracle_normal_stmt(string);
+
   /* Randomly add some statements into the query sets. Will append to the query
    * in a pretty early stage. Can be used to append some non-select verification
    * statements into the query set, and rewrite using
@@ -36,6 +39,8 @@ public:
 
   virtual void remove_select_stmt_from_ir(IR* ir_root);
   virtual void remove_oracle_select_stmt_from_ir(IR* ir_root);
+  string remove_select_stmt_from_str(string in);
+  string remove_oracle_select_stmt_from_str(string in);
 
   /* Compare the results from validation statements ori, rewrite_1 and
      rewrite_2.
