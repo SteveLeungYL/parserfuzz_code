@@ -57,7 +57,7 @@ explain (costs off) select * from pg_proc where proname ~ '^(abc)?d';
 explain (costs off) select * from pg_proc where proname ~ '^abcd(x|(?=\w\w)q)';
 select 'a' ~ '($|^)*';
 select 'a' ~ '(^)+^';
-select 'a' ~ '$($$)+';
+select 'a' ~ '$()+';
 select 'a' ~ '($^)+';
 select 'a' ~ '(^$)*';
 select 'aa bb cc' ~ '(^(?!aa))+';

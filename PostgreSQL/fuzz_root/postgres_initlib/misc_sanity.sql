@@ -1,6 +1,6 @@
 SELECT *FROM pg_depend as d1WHERE refclassid = 0 OR refobjid = 0 OR      deptype NOT IN ('a', 'e', 'i', 'n', 'p') OR      (deptype != 'p' AND (classid = 0 OR objid = 0)) OR      (deptype = 'p' AND (classid != 0 OR objid != 0 OR objsubid != 0));
 SELECT *FROM pg_shdepend as d1WHERE refclassid = 0 OR refobjid = 0 OR      deptype NOT IN ('a', 'o', 'p', 'r') OR      (deptype != 'p' AND (classid = 0 OR objid = 0)) OR      (deptype = 'p' AND (dbid != 0 OR classid != 0 OR objid != 0 OR objsubid != 0));
-do $$declare relnm text;
+do declare relnm text;
   reloid oid;
   shared bool;
   lowoid oid;
@@ -13,5 +13,5 @@ beginfor relnm, reloid, shared in  select relname, oid, relisshared from pg_clas
   if not pinned then    raise notice '% contains unpinned initdb-created object(s)', relnm;
   end if;
 end loop;
-end$$;
+end;
 SELECT relname, attname, atttypid::regtypeFROM pg_class c JOIN pg_attribute a ON c.oid = attrelidWHERE c.oid < 16384 AND      reltoastrelid = 0 AND      relkind = 'r' AND      attstorage != 'p'ORDER BY 1, 2;

@@ -1,6 +1,6 @@
 CREATE TABLE test_extdep_commands (command text);
 COPY test_extdep_commands FROM stdin;
- CREATE SCHEMA test_ext CREATE EXTENSION test_ext5 SCHEMA test_ext SET search_path TO test_ext CREATE TABLE a (a1 int) CREATE FUNCTION b() RETURNS TRIGGER LANGUAGE plpgsql AS\n   $$ BEGIN NEW.a1 := NEW.a1 + 42;
+ CREATE SCHEMA test_ext CREATE EXTENSION test_ext5 SCHEMA test_ext SET search_path TO test_ext CREATE TABLE a (a1 int) CREATE FUNCTION b() RETURNS TRIGGER LANGUAGE plpgsql AS\n    BEGIN NEW.a1 := NEW.a1 + 42;
  RETURN NEW;
  END;
  END;

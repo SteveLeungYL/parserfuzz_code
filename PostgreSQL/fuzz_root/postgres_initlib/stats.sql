@@ -2,7 +2,7 @@ SHOW track_counts;  SET enable_seqscan TO on;
 SET enable_indexscan TO on;
 SET enable_indexonlyscan TO off;
 CREATE TABLE prevstats ASSELECT t.seq_scan, t.seq_tup_read, t.idx_scan, t.idx_tup_fetch,       (b.heap_blks_read + b.heap_blks_hit) AS heap_blks,       (b.idx_blks_read + b.idx_blks_hit) AS idx_blks,       pg_stat_get_snapshot_timestamp() as snap_ts  FROM pg_catalog.pg_stat_user_tables AS t,       pg_catalog.pg_statio_user_tables AS b WHERE t.relname='tenk2' AND b.relname='tenk2';
-create function wait_for_stats() returns void as $$declare  start_time timestamptz := clock_timestamp();
+create function wait_for_stats() returns void as declare  start_time timestamptz := clock_timestamp();
   updated1 bool;
   updated2 bool;
   updated3 bool;
@@ -16,7 +16,7 @@ begin    for i in 1 .. 300 loop                        SELECT (st.seq_scan >= pr
         perform pg_stat_clear_snapshot();
   end loop;
     raise log 'wait_for_stats delayed % seconds',    extract(epoch from clock_timestamp() - start_time);
-end$$ language plpgsql;
+end language plpgsql;
 CREATE TABLE trunc_stats_test(id serial);
 CREATE TABLE trunc_stats_test1(id serial, stuff text);
 CREATE TABLE trunc_stats_test2(id serial);

@@ -1,5 +1,5 @@
 CREATE EXTENSION test_ddl_deparse;
-CREATE OR REPLACE FUNCTION test_ddl_deparse()  RETURNS event_trigger LANGUAGE plpgsql AS$$DECLARE	r record;
+CREATE OR REPLACE FUNCTION test_ddl_deparse()  RETURNS event_trigger LANGUAGE plpgsql ASDECLARE	r record;
 	r2 record;
 	cmdtype text;
 	objtype text;
@@ -16,5 +16,5 @@ BEGIN	FOR r IN SELECT * FROM pg_event_trigger_ddl_commands()	LOOP				tag = publi
 		END IF;
 	END LOOP;
 END;
-$$;
+;
 CREATE EVENT TRIGGER test_ddl_deparseON ddl_command_end EXECUTE PROCEDURE test_ddl_deparse();

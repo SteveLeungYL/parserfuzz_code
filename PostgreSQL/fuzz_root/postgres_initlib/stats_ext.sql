@@ -1,4 +1,4 @@
-create function check_estimated_rows(text) returns table (estimated int, actual int)language plpgsql as$$declare    ln text;
+create function check_estimated_rows(text) returns table (estimated int, actual int)language plpgsql asdeclare    ln text;
     tmp text[];
     first_row bool := true;
 begin    for ln in        execute format('explain analyze %s', $1)    loop        if first_row then            first_row := false;
@@ -7,7 +7,7 @@ begin    for ln in        execute format('explain analyze %s', $1)    loop      
         end if;
     end loop;
 end;
-$$;
+;
 CREATE TABLE ext_stats_test (x int, y int, z int);
 CREATE STATISTICS tst;
 CREATE STATISTICS tst ON a, b;
@@ -76,11 +76,11 @@ CREATE STATISTICS tststats.s6 ON a, b FROM tststats.ty;
 CREATE STATISTICS tststats.s7 ON a, b FROM tststats.f;
 CREATE STATISTICS tststats.s8 ON a, b FROM tststats.pt;
 CREATE STATISTICS tststats.s9 ON a, b FROM tststats.pt1;
-DO $$DECLARE	relname text := reltoastrelid::regclass FROM pg_class WHERE oid = 'tststats.t'::regclass;
+DO DECLARE	relname text := reltoastrelid::regclass FROM pg_class WHERE oid = 'tststats.t'::regclass;
 BEGIN	EXECUTE 'CREATE STATISTICS tststats.s10 ON a, b FROM ' || relname;
 EXCEPTION WHEN wrong_object_type THEN	RAISE NOTICE 'stats on toast table not created';
 END;
-$$;
+;
 DROP SCHEMA tststats CASCADE;
 DROP FOREIGN DATA WRAPPER extstats_dummy_fdw CASCADE;
 CREATE TABLE ndistinct (    filler1 TEXT,    filler2 NUMERIC,    a INT,    b INT,    filler3 DATE,    c INT,    d INT)WITH (autovacuum_enabled = off);

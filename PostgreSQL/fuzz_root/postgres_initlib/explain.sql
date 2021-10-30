@@ -1,4 +1,4 @@
-create function explain_filter(text) returns setof textlanguage plpgsql as$$declare    ln text;
+create function explain_filter(text) returns setof textlanguage plpgsql asdeclare    ln text;
 begin    for ln in execute $1    loop                ln := regexp_replace(ln, '\m\d+\M', 'N', 'g');
                 ln := regexp_replace(ln, '\m\d+kB', 'NkB', 'g');
                         CONTINUE WHEN (ln ~ ' +Buffers: .*');
@@ -6,15 +6,15 @@ begin    for ln in execute $1    loop                ln := regexp_replace(ln, '\
         return next ln;
     end loop;
 end;
-$$;
-create function explain_filter_to_json(text) returns jsonblanguage plpgsql as$$declare    data text := '';
+;
+create function explain_filter_to_json(text) returns jsonblanguage plpgsql asdeclare    data text := '';
     ln text;
 begin    for ln in execute $1    loop                ln := regexp_replace(ln, '\m\d+\M', '0', 'g');
         data := data || ln;
     end loop;
     return data::jsonb;
 end;
-$$;
+;
 select explain_filter('explain select * from int8_tbl i8');
 select explain_filter('explain (analyze) select * from int8_tbl i8');
 select explain_filter('explain (analyze, verbose) select * from int8_tbl i8');

@@ -181,9 +181,9 @@ select * from    int4_tbl i4,    lateral (        select i4.f1 > 1 as b, 1 as id
 create temp sequence ts1;
 select * from  (select distinct ten from tenk1) ss  where ten < 10 + nextval('ts1')  order by 1;
 select nextval('ts1');
-create function tattle(x int, y int) returns boolvolatile language plpgsql as $$begin  raise notice 'x = %, y = %', x, y;
+create function tattle(x int, y int) returns boolvolatile language plpgsql as begin  raise notice 'x = %, y = %', x, y;
   return x > y;
-end$$;
+end;
 explain (verbose, costs off)select * from  (select 9 as x, unnest(array[1,2,3,11,12,13]) as u) ss  where tattle(x, 8);
 select * from  (select 9 as x, unnest(array[1,2,3,11,12,13]) as u) ss  where tattle(x, 8);
 alter function tattle(x int, y int) stable;
@@ -194,12 +194,12 @@ select * from  (select 9 as x, unnest(array[1,2,3,11,12,13]) as u) ss  where tat
 drop function tattle(x int, y int);
 create table sq_limit (pk int primary key, c1 int, c2 int);
 insert into sq_limit values    (1, 1, 1),    (2, 2, 2),    (3, 3, 3),    (4, 4, 4),    (5, 1, 1),    (6, 2, 2),    (7, 3, 3),    (8, 4, 4);
-create function explain_sq_limit() returns setof text language plpgsql as$$declare ln text;
+create function explain_sq_limit() returns setof text language plpgsql asdeclare ln text;
 begin    for ln in        explain (analyze, summary off, timing off, costs off)        select * from (select pk,c2 from sq_limit order by c1,pk) as x limit 3    loop        ln := regexp_replace(ln, 'Memory: \S*',  'Memory: xxx');
         return next ln;
     end loop;
 end;
-$$;
+;
 select * from explain_sq_limit();
 select * from (select pk,c2 from sq_limit order by c1,pk) as x limit 3;
 drop function explain_sq_limit();

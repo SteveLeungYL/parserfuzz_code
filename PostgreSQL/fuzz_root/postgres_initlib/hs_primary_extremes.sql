@@ -1,6 +1,6 @@
 drop table if exists hs_extreme;
 create table hs_extreme (col1 integer);
-CREATE OR REPLACE FUNCTION hs_subxids (n integer)RETURNS voidLANGUAGE plpgsqlAS $$    BEGIN      IF n <= 0 THEN RETURN;
+CREATE OR REPLACE FUNCTION hs_subxids (n integer)RETURNS voidLANGUAGE plpgsqlAS     BEGIN      IF n <= 0 THEN RETURN;
  END IF;
  END IF;
       INSERT INTO hs_extreme VALUES (n);
@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION hs_subxids (n integer)RETURNS voidLANGUAGE plpgsqlAS 
     EXCEPTION WHEN raise_exception THEN NULL;
  END;
  END;
-$$;
+;
 BEGIN;
 SELECT hs_subxids(257);
 ROLLBACK;
@@ -17,7 +17,7 @@ BEGIN;
 SELECT hs_subxids(257);
 COMMIT;
 set client_min_messages = 'warning';
-CREATE OR REPLACE FUNCTION hs_locks_create (n integer)RETURNS voidLANGUAGE plpgsqlAS $$    BEGIN      IF n <= 0 THEN		CHECKPOINT;
+CREATE OR REPLACE FUNCTION hs_locks_create (n integer)RETURNS voidLANGUAGE plpgsqlAS     BEGIN      IF n <= 0 THEN		CHECKPOINT;
 		RETURN;
 	  END IF;
       EXECUTE 'CREATE TABLE hs_locks_' || n::text || ' ()';
@@ -26,8 +26,8 @@ CREATE OR REPLACE FUNCTION hs_locks_create (n integer)RETURNS voidLANGUAGE plpgs
     EXCEPTION WHEN raise_exception THEN NULL;
  END;
  END;
-$$;
-CREATE OR REPLACE FUNCTION hs_locks_drop (n integer)RETURNS voidLANGUAGE plpgsqlAS $$    BEGIN      IF n <= 0 THEN		CHECKPOINT;
+;
+CREATE OR REPLACE FUNCTION hs_locks_drop (n integer)RETURNS voidLANGUAGE plpgsqlAS     BEGIN      IF n <= 0 THEN		CHECKPOINT;
 		RETURN;
 	  END IF;
 	  EXECUTE 'DROP TABLE IF EXISTS hs_locks_' || n::text;
@@ -36,7 +36,7 @@ CREATE OR REPLACE FUNCTION hs_locks_drop (n integer)RETURNS voidLANGUAGE plpgsql
     EXCEPTION WHEN raise_exception THEN NULL;
  END;
  END;
-$$;
+;
 BEGIN;
 SELECT hs_locks_drop(257);
 SELECT hs_locks_create(257);

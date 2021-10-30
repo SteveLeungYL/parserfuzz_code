@@ -11,9 +11,9 @@ UPDATE indtoasttest SET cnt = cnt +1, f1 = '-'||f1||'-' RETURNING substring(indt
 SELECT substring(indtoasttest::text, 1, 200) FROM indtoasttest;
 VACUUM FREEZE indtoasttest;
 SELECT substring(indtoasttest::text, 1, 200) FROM indtoasttest;
-CREATE FUNCTION update_using_indirect()        RETURNS trigger        LANGUAGE plpgsql AS $$BEGIN    NEW := make_tuple_indirect(NEW);
+CREATE FUNCTION update_using_indirect()        RETURNS trigger        LANGUAGE plpgsql AS BEGIN    NEW := make_tuple_indirect(NEW);
     RETURN NEW;
-END$$;
+END;
 CREATE TRIGGER indtoasttest_update_indirect        BEFORE INSERT OR UPDATE        ON indtoasttest        FOR EACH ROW        EXECUTE PROCEDURE update_using_indirect();
 UPDATE indtoasttest SET cnt = cnt +1 RETURNING substring(indtoasttest::text, 1, 200);
 UPDATE indtoasttest SET cnt = cnt +1, f1 = f1 RETURNING substring(indtoasttest::text, 1, 200);

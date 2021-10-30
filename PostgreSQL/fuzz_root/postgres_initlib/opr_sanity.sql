@@ -1,4 +1,4 @@
-create function binary_coercible(oid, oid) returns bool as $$begin  if $1 = $2 then return true;
+create function binary_coercible(oid, oid) returns bool as begin  if $1 = $2 then return true;
  end if;
  end if;
   if EXISTS(select 1 from pg_catalog.pg_cast where            castsource = $1 and casttarget = $2 and            castmethod = 'b' and castcontext = 'i')  then return true;
@@ -16,8 +16,8 @@ create function binary_coercible(oid, oid) returns bool as $$begin  if $1 = $2 t
  end if;
   end if;
   return false;
-end$$ language plpgsql strict stable;
-create function explicitly_binary_coercible(oid, oid) returns bool as $$begin  if $1 = $2 then return true;
+end language plpgsql strict stable;
+create function explicitly_binary_coercible(oid, oid) returns bool as begin  if $1 = $2 then return true;
  end if;
  end if;
   if EXISTS(select 1 from pg_catalog.pg_cast where            castsource = $1 and casttarget = $2 and            castmethod = 'b')  then return true;
@@ -35,7 +35,7 @@ create function explicitly_binary_coercible(oid, oid) returns bool as $$begin  i
  end if;
   end if;
   return false;
-end$$ language plpgsql strict stable;
+end language plpgsql strict stable;
 SELECT p1.oid, p1.pronameFROM pg_proc as p1WHERE p1.prolang = 0 OR p1.prorettype = 0 OR       p1.pronargs < 0 OR       p1.pronargdefaults < 0 OR       p1.pronargdefaults > p1.pronargs OR       array_lower(p1.proargtypes, 1) != 0 OR       array_upper(p1.proargtypes, 1) != p1.pronargs-1 OR       0::oid = ANY (p1.proargtypes) OR       procost <= 0 OR       CASE WHEN proretset THEN prorows <= 0 ELSE prorows != 0 END OR       prokind NOT IN ('f', 'a', 'w', 'p') OR       provolatile NOT IN ('i', 's', 'v') OR       proparallel NOT IN ('s', 'r', 'u');
 SELECT p1.oid, p1.pronameFROM pg_proc as p1WHERE prosrc IS NULL OR prosrc = '' OR prosrc = '-';
 SELECT p1.oid, p1.pronameFROM pg_proc AS p1WHERE proretset AND prokind != 'f';

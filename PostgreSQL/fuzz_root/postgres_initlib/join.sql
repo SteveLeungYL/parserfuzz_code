@@ -274,10 +274,10 @@ explain (verbose, costs off)select * from  (select 1 as x) ss1 left join (select
 select * from  (select 1 as x) ss1 left join (select 2 as y) ss2 on (true),  lateral (select ss2.y as z limit 1) ss3;
 explain (costs off)select * from  (select 0 as z) as t1  left join  (select true as a) as t2  on true,  lateral (select true as b           union all           select a as b) as t3where b;
 select * from  (select 0 as z) as t1  left join  (select true as a) as t2  on true,  lateral (select true as b           union all           select a as b) as t3where b;
-create function f_immutable_int4(i integer) returns integer as$$ begin return i;
+create function f_immutable_int4(i integer) returns integer as begin return i;
  end;
- $$ language plpgsql immutable;
- $$ language plpgsql immutable;
+  language plpgsql immutable;
+  language plpgsql immutable;
 explain (costs off)select unique1 from tenk1, (select * from f_immutable_int4(1) x) xwhere x = unique1;
 explain (verbose, costs off)select unique1, x.*from tenk1, (select *, random() from f_immutable_int4(1) x) xwhere x = unique1;
 explain (costs off)select unique1 from tenk1, f_immutable_int4(1) x where x = unique1;
@@ -289,8 +289,8 @@ explain (costs off)select unique1, x from tenk1 full join f_immutable_int4(1) x 
 explain (costs off)select unique1 from tenk1, f_immutable_int4(1) x where x = 42;
 explain (costs off)select nt3.idfrom nt3 as nt3  left join    (select nt2.*, (nt2.b1 or i4 = 42) AS b3     from nt2 as nt2       left join         f_immutable_int4(0) i4         on i4 = nt2.nt1_id    ) as ss2    on ss2.id = nt3.nt2_idwhere nt3.id = 1 and ss2.b3;
 drop function f_immutable_int4(int);
-create function mki8(bigint, bigint) returns int8_tbl as$$select row($1,$2)::int8_tbl$$ language sql;
-create function mki4(int) returns int4_tbl as$$select row($1)::int4_tbl$$ language sql;
+create function mki8(bigint, bigint) returns int8_tbl asselect row($1,$2)::int8_tbl language sql;
+create function mki4(int) returns int4_tbl asselect row($1)::int4_tbl language sql;
 explain (verbose, costs off)select * from mki8(1,2);
 select * from mki8(1,2);
 explain (verbose, costs off)select * from mki4(42);

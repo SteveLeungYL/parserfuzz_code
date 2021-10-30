@@ -1,6 +1,6 @@
-CREATE FUNCTION alter_op_test_fn(boolean, boolean)RETURNS boolean AS $$ SELECT NULL::BOOLEAN;
- $$ LANGUAGE sql IMMUTABLE;
- $$ LANGUAGE sql IMMUTABLE;
+CREATE FUNCTION alter_op_test_fn(boolean, boolean)RETURNS boolean AS  SELECT NULL::BOOLEAN;
+  LANGUAGE sql IMMUTABLE;
+  LANGUAGE sql IMMUTABLE;
 CREATE FUNCTION customcontsel(internal, oid, internal, integer)RETURNS float8 AS 'contsel' LANGUAGE internal STABLE STRICT;
 CREATE OPERATOR === (    LEFTARG = boolean,    RIGHTARG = boolean,    PROCEDURE = alter_op_test_fn,    COMMUTATOR = ===,    NEGATOR = !==,    RESTRICT = customcontsel,    JOIN = contjoinsel,    HASHES, MERGES);
 SELECT pg_describe_object(refclassid,refobjid,refobjsubid) as ref, deptypeFROM pg_dependWHERE classid = 'pg_operator'::regclass AND      objid = '===(bool,bool)'::regoperatorORDER BY 1;

@@ -7,7 +7,7 @@ CREATE USER regress_seclabel_user2;
 CREATE TABLE seclabel_tbl1 (a int, b text);
 CREATE TABLE seclabel_tbl2 (x int, y text);
 CREATE VIEW seclabel_view1 AS SELECT * FROM seclabel_tbl2;
-CREATE FUNCTION seclabel_four() RETURNS integer AS $$SELECT 4$$ language sql;
+CREATE FUNCTION seclabel_four() RETURNS integer AS SELECT 4 language sql;
 CREATE DOMAIN seclabel_domain AS text;
 ALTER TABLE seclabel_tbl1 OWNER TO regress_seclabel_user1;
 ALTER TABLE seclabel_tbl2 OWNER TO regress_seclabel_user2;

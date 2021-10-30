@@ -304,8 +304,8 @@ CREATE USER MAPPING FOR regress_unprivileged_role SERVER s10 OPTIONS (user 'secr
 \deu+SET ROLE regress_unprivileged_role;
 \deu+RESET ROLE;
 DROP SERVER s10 CASCADE;
-CREATE FUNCTION dummy_trigger() RETURNS TRIGGER AS $$  BEGIN    RETURN NULL;
-  END$$ language plpgsql;
+CREATE FUNCTION dummy_trigger() RETURNS TRIGGER AS   BEGIN    RETURN NULL;
+  END language plpgsql;
 CREATE TRIGGER trigtest_before_stmt BEFORE INSERT OR UPDATE OR DELETEON foreign_schema.foreign_table_1FOR EACH STATEMENTEXECUTE PROCEDURE dummy_trigger();
 CREATE TRIGGER trigtest_after_stmt AFTER INSERT OR UPDATE OR DELETEON foreign_schema.foreign_table_1FOR EACH STATEMENTEXECUTE PROCEDURE dummy_trigger();
 CREATE TRIGGER trigtest_after_stmt_tt AFTER INSERT OR UPDATE OR DELETE ON foreign_schema.foreign_table_1REFERENCING NEW TABLE AS new_tableFOR EACH STATEMENTEXECUTE PROCEDURE dummy_trigger();

@@ -1,9 +1,9 @@
-CREATE OR REPLACE FUNCTION chkrolattr() RETURNS TABLE ("role" name, rolekeyword text, canlogin bool, replication bool) AS $$SELECT r.rolname, v.keyword, r.rolcanlogin, r.rolreplication FROM pg_roles r JOIN (VALUES(CURRENT_USER, 'current_user'),             (SESSION_USER, 'session_user'),             ('current_user', '-'),             ('session_user', '-'),             ('Public', '-'),             ('None', '-'))      AS v(uname, keyword)      ON (r.rolname = v.uname) ORDER BY 1;
-$$ LANGUAGE SQL;
-CREATE OR REPLACE FUNCTION chksetconfig() RETURNS TABLE (db name, "role" name, rolkeyword text, setconfig text[]) AS $$SELECT COALESCE(d.datname, 'ALL'), COALESCE(r.rolname, 'ALL'),	   COALESCE(v.keyword, '-'), s.setconfig FROM pg_db_role_setting s LEFT JOIN pg_roles r ON (r.oid = s.setrole) LEFT JOIN pg_database d ON (d.oid = s.setdatabase) LEFT JOIN (VALUES(CURRENT_USER, 'current_user'),             (SESSION_USER, 'session_user'))      AS v(uname, keyword)      ON (r.rolname = v.uname)   WHERE (r.rolname) IN ('Public', 'current_user', 'regress_testrol1', 'regress_testrol2')ORDER BY 1, 2;
-$$ LANGUAGE SQL;
-CREATE OR REPLACE FUNCTION chkumapping() RETURNS TABLE (umname name, umserver name, umoptions text[]) AS $$SELECT r.rolname, s.srvname, m.umoptions FROM pg_user_mapping m LEFT JOIN pg_roles r ON (r.oid = m.umuser) JOIN pg_foreign_server s ON (s.oid = m.umserver) ORDER BY 2;
-$$ LANGUAGE SQL;
+CREATE OR REPLACE FUNCTION chkrolattr() RETURNS TABLE ("role" name, rolekeyword text, canlogin bool, replication bool) AS SELECT r.rolname, v.keyword, r.rolcanlogin, r.rolreplication FROM pg_roles r JOIN (VALUES(CURRENT_USER, 'current_user'),             (SESSION_USER, 'session_user'),             ('current_user', '-'),             ('session_user', '-'),             ('Public', '-'),             ('None', '-'))      AS v(uname, keyword)      ON (r.rolname = v.uname) ORDER BY 1;
+ LANGUAGE SQL;
+CREATE OR REPLACE FUNCTION chksetconfig() RETURNS TABLE (db name, "role" name, rolkeyword text, setconfig text[]) AS SELECT COALESCE(d.datname, 'ALL'), COALESCE(r.rolname, 'ALL'),	   COALESCE(v.keyword, '-'), s.setconfig FROM pg_db_role_setting s LEFT JOIN pg_roles r ON (r.oid = s.setrole) LEFT JOIN pg_database d ON (d.oid = s.setdatabase) LEFT JOIN (VALUES(CURRENT_USER, 'current_user'),             (SESSION_USER, 'session_user'))      AS v(uname, keyword)      ON (r.rolname = v.uname)   WHERE (r.rolname) IN ('Public', 'current_user', 'regress_testrol1', 'regress_testrol2')ORDER BY 1, 2;
+ LANGUAGE SQL;
+CREATE OR REPLACE FUNCTION chkumapping() RETURNS TABLE (umname name, umserver name, umoptions text[]) AS SELECT r.rolname, s.srvname, m.umoptions FROM pg_user_mapping m LEFT JOIN pg_roles r ON (r.oid = m.umuser) JOIN pg_foreign_server s ON (s.oid = m.umserver) ORDER BY 2;
+ LANGUAGE SQL;
 SET client_min_messages = ERROR;
 CREATE ROLE "Public";
 CREATE ROLE "None";
