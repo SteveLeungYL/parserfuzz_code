@@ -92,20 +92,20 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
         else if (cur_iter == cur_stmt) { // Iter to the cur_stmt node already. Not in a  subquery.
             return false;
         }
-        else if (cur_iter->type_ == kStmtlist) { // Iter to the parent node. This is Not a subquery. 
+        else if (cur_iter->type_ == kStmtmulti) { // Iter to the parent node. This is Not a subquery.
             return false;
         }
         else if (
                 cur_iter->get_ir_type() == kSelectStmt &&
-                get_parent_type(cur_iter) != kStmt
+                get_parent_type_str(cur_iter) != "kStmt"
                 ) {
             return true; //In a subquery.
         }
         else if (
             cur_iter->get_ir_type() == kSelectStmt &&
-            get_parent_type(cur_iter) != kSelectWithParens &&
-            get_parent_type(cur_iter) != kSelectStmt &&
-            get_parent_type(cur_iter) != kSelectClause
+            get_parent_type_str(cur_iter) != "kSelectWithParens" &&
+            get_parent_type_str(cur_iter) != "kSelectStmt" &&
+            get_parent_type_str(cur_iter) != "kSelectClause"
         ){
             return true; // In a subquery.
         }
@@ -559,19 +559,23 @@ bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right) {
     else {return false;}
 }
 
-IRTYPE IRWrapper::get_parent_type(IR* cur_IR, int depth = 0){
+string IRWrapper::get_parent_type_str(IR* cur_IR, int depth = 0){
     IR* output_IR = this->get_p_parent_with_a_type(cur_IR, depth);
     if (output_IR == nullptr) {
-        return kUnknown;
+        return "kUnknown";
     } else {
-        return output_IR->get_ir_type();
+        IRTYPE res_ir_type = output_IR->get_ir_type();
+        string res_type_str = get_string_by_ir_type(res_ir_type);
+        size_t suffix_pos = res_type_str.find("_");
+        res_type_str = res_type_str.substr(0, suffix_pos);
+        return res_type_str;
     }
 }
 
 IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
     IRTYPE prev_ir_type = cur_IR->get_ir_type();
     while (cur_IR ->get_parent() != nullptr) {
-        IRTYPE parent_type = cur_IR->parent_->type_;
+        IRTYPE parent_type = cur_IR->get_parent()->get_ir_type();
         if (parent_type != kUnknown && compare_ir_type(parent_type, prev_ir_type)) {
             prev_ir_type = parent_type;
             depth--;
