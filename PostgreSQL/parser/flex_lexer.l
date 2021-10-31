@@ -76,6 +76,8 @@ int			backslash_quote = BACKSLASH_QUOTE_SAFE_ENCODING;
 bool		escape_string_warning = true;
 bool		standard_conforming_strings = true;
 
+/* Global variables */
+ErrorContextCallback *error_context_stack = NULL;
 /*
  * Constant data exported from this file.  This array maps from the
  * zero-based keyword numbers returned by ScanKeywordLookup to the
@@ -466,9 +468,8 @@ other			.
 					/* ignore */
 				}
 
-<<EOF>>			{
-					yyerror("unterminated /* comment");
-				}
+<<EOF>>			{ yyerror("unterminated /* comment"); return 0; }
+
 } /* <xc> */
 
 {xbstart}		{
@@ -487,7 +488,7 @@ other			.
 <xb>{xbinside}	{
 					addlit(yytext, yyleng, yyscanner);
 				}
-<xb><<EOF>>		{ yyerror("unterminated bit string literal"); }
+<xb><<EOF>>		{ yyerror("unterminated bit string literal"); return 0; }
 
 {xhstart}		{
 					/* Hexadecimal bit type.
@@ -501,7 +502,7 @@ other			.
 					startlit();
 					addlitchar('x', yyscanner);
 				}
-<xh><<EOF>>		{ yyerror("unterminated hexadecimal string literal"); }
+<xh><<EOF>>		{ yyerror("unterminated hexadecimal string literal"); return 0; }
 
 {xnstart}		{
 					/* National character.
@@ -615,6 +616,7 @@ other			.
 							return USCONST;
 						default:
 							yyerror("unhandled previous state in xqs");
+              return 0;
 					}
 				}
 
@@ -729,7 +731,7 @@ other			.
 					/* This is only needed for \ just before EOF */
 					addlitchar(yytext[0], yyscanner);
 				}
-<xq,xe,xus><<EOF>>		{ yyerror("unterminated quoted string"); }
+<xq,xe,xus><<EOF>>		{ yyerror("unterminated quoted string"); return 0; }
 
 {dolqdelim}		{
 					SET_YYLLOC();
@@ -774,7 +776,7 @@ other			.
 					/* This is only needed for $ inside the quoted text */
 					addlitchar(yytext[0], yyscanner);
 				}
-<xdolq><<EOF>>	{ yyerror("unterminated dollar-quoted string"); }
+<xdolq><<EOF>>	{ yyerror("unterminated dollar-quoted string"); return 0; }
 
 {xdstart}		{
 					SET_YYLLOC();
@@ -812,7 +814,7 @@ other			.
 <xd,xui>{xdinside}	{
 					addlit(yytext, yyleng, yyscanner);
 				}
-<xd,xui><<EOF>>		{ yyerror("unterminated quoted identifier"); }
+<xd,xui><<EOF>>		{ yyerror("unterminated quoted identifier"); return 0; }
 
 {xufailed}	{
 					char	   *ident;
@@ -1148,9 +1150,9 @@ setup_scanner_errposition_callback(ScannerCallbackState *scbstate,
 	scbstate->location = location;
   // FIXME: temporar comment out
 	//scbstate->errcallback.callback = scb_error_callback;
-	//scbstate->errcallback.arg = (void *) scbstate;
-	//scbstate->errcallback.previous = error_context_stack;
-	//error_context_stack = &scbstate->errcallback;
+	scbstate->errcallback.arg = (void *) scbstate;
+	scbstate->errcallback.previous = error_context_stack;
+	error_context_stack = &scbstate->errcallback;
 }
 
 /*
@@ -1160,7 +1162,7 @@ void
 cancel_scanner_errposition_callback(ScannerCallbackState *scbstate)
 {
 	/* Pop the error context stack */
-	//error_context_stack = scbstate->errcallback.previous;
+	error_context_stack = scbstate->errcallback.previous;
 }
 
 /*
