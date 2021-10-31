@@ -596,22 +596,31 @@ IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
 }
 
 bool IRWrapper::is_exist_group_clause(IR* cur_stmt){
-    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false)) {
-        return true;
+    vector<IR*> v_group_clause = get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
+    for (IR* group_clause : v_group_clause) {
+        if (! group_clause->is_empty()) {
+            return true;
+        }
     }
     return false;
 }
 
 bool IRWrapper::is_exist_having_clause(IR* cur_stmt){
-    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false)) {
-        return true;
+    vector<IR*> v_having_clause = get_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false);
+    for (IR* having_clause : v_having_clause) {
+        if (! having_clause->is_empty()) {
+            return true;
+        }
     }
     return false;
 }
 
 bool IRWrapper::is_exist_limit_clause(IR* cur_stmt){
-    if (this->is_exist_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false)) {
-        return true;
+    vector<IR*> v_limit_clause = get_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false);
+    for (IR* limit_clause : v_limit_clause) {
+        if (! limit_clause->is_empty()) {
+            return true;
+        }
     }
     return false;
 }
