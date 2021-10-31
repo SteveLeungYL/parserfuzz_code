@@ -19825,7 +19825,7 @@ opt_existing_window_name:
     }
 
     | %prec Op {
-
+        $$ = NULL;
     }
 
 ;
