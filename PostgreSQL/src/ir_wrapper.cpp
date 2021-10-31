@@ -97,16 +97,19 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
         }
         else if (
                 cur_iter->get_ir_type() == kSelectStmt &&
+                cur_iter->get_parent() != NULL &&
                 get_parent_type_str(cur_iter) != "kStmt"
                 ) {
+            // cerr << "Debug: for " << cur_iter->to_string() << ", kSelectStmt return true. returns " << get_parent_type_str(cur_iter) << "\n";
             return true; //In a subquery.
         }
         else if (
-            cur_iter->get_ir_type() == kSelectStmt &&
+            cur_iter->get_ir_type() == kSelectWithParens &&
             get_parent_type_str(cur_iter) != "kSelectWithParens" &&
             get_parent_type_str(cur_iter) != "kSelectStmt" &&
             get_parent_type_str(cur_iter) != "kSelectClause"
         ){
+            // cerr << "Debug: for " << cur_iter->to_string() << ", kSelectWithParens return true \n";
             return true; // In a subquery.
         }
         cur_iter = cur_iter->get_parent(); // Assuming cur_iter->get_parent() will always get to kStatementList. Otherwise, it would be error.
@@ -562,6 +565,8 @@ bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right) {
         right_str = right_str.substr(0, cut_pos);
     }
 
+    // cerr << "Debug: Comparing " << left_str << " " << right_str << "\n";
+
     if (left_str == right_str) {return true;}
     else {return false;}
 }
@@ -583,7 +588,7 @@ IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
     IRTYPE prev_ir_type = cur_IR->get_ir_type();
     while (cur_IR ->get_parent() != nullptr) {
         IRTYPE parent_type = cur_IR->get_parent()->get_ir_type();
-        if (parent_type != kUnknown && compare_ir_type(parent_type, prev_ir_type)) {
+        if (parent_type != kUnknown && !compare_ir_type(parent_type, prev_ir_type)) {
             prev_ir_type = parent_type;
             depth--;
             if (depth <= 0) {
