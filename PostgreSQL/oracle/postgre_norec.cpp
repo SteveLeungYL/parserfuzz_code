@@ -7,16 +7,19 @@
 
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   if (ir_wrapper.is_exist_group_clause(cur_stmt) || ir_wrapper.is_exist_having_clause(cur_stmt) || ir_wrapper.is_exist_limit_clause(cur_stmt)) {
+    cerr << "Debug: is_group" << ir_wrapper.is_exist_group_clause(cur_stmt);
     return false;
   }
 
   // Ignore statements with UNION, EXCEPT and INTERCEPT
   if (ir_wrapper.is_exist_set_operator(cur_stmt)) {
+    cerr << "Debug: Found set_operator. Return not oracle_select. \n";
     return false;
   }
 
+  // cerr << "num_target_el: " << ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) << "\n";
+
   if (
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kSelectStmt, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false) &&
     ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) == 1
@@ -40,8 +43,20 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
      *              23: kIdentifier: data_functionName: kUnknown: 23: count
      * */
 
+
+
     vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFuncName, false);
     for (IR* count_func_ir : count_func_vec){
+
+      cerr << "Debug: norec get parent 1: " << ir_wrapper.get_parent_type_str(count_func_ir, 1) << "\n";
+      cerr << "Debug: norec get parent 2: " << ir_wrapper.get_parent_type_str(count_func_ir, 2) << "\n";
+      cerr << "Debug: norec get parent 3: " << ir_wrapper.get_parent_type_str(count_func_ir, 3) << "\n";
+      cerr << "Debug: norec get parent 4: " << ir_wrapper.get_parent_type_str(count_func_ir, 4) << "\n";
+      cerr << "Debug: norec get parent 5: " << ir_wrapper.get_parent_type_str(count_func_ir, 5) << "\n";
+      cerr << "Debug: norec get parent 6: " << ir_wrapper.get_parent_type_str(count_func_ir, 6) << "\n";
+      cerr << "Debug: norec get parent 7: " << ir_wrapper.get_parent_type_str(count_func_ir, 7) << "\n";
+      cerr << "Debug: norec get parent 8: " << ir_wrapper.get_parent_type_str(count_func_ir, 8) << "\n";
+
       if (
         ir_wrapper.get_parent_type_str(count_func_ir, 1) == "kFuncApplication" &&
         ir_wrapper.get_parent_type_str(count_func_ir, 2) == "kFuncExpr"  &&
@@ -50,7 +65,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
         ir_wrapper.get_parent_type_str(count_func_ir, 5) == "kTargetEl" &&
         ir_wrapper.get_parent_type_str(count_func_ir, 6) == "kTargetList" &&
         ir_wrapper.get_parent_type_str(count_func_ir, 7) == "kOptTargetList" &&
-        ir_wrapper.get_parent_type_str(count_func_ir, 7) == "kSimpleSelect"
+        ir_wrapper.get_parent_type_str(count_func_ir, 8) == "kSimpleSelect"
       ) {
         /* The Func expression structure is enforced. Next ensure the func is COUNT */
         IR* func_app_ir = count_func_ir->get_parent();

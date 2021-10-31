@@ -19825,7 +19825,8 @@ opt_existing_window_name:
     }
 
     | %prec Op {
-        $$ = NULL;
+        res = new IR(kOptExistingWindowName, OP0());
+        $$ = res;
     }
 
 ;
