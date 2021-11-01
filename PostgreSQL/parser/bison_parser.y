@@ -3778,8 +3778,8 @@ alter_type_cmd:
     }
 
     | ALTER ATTRIBUTE ColId opt_set_data TYPE_P Typename opt_collate_clause opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
-        free($2);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        free($3);
         auto tmp2 = $4;
         res = new IR(kAlterTypeCmd_1, OP3("ALTER ATTRIBUTE", "", "TYPE"), tmp1, tmp2);
         auto tmp3 = $6;
