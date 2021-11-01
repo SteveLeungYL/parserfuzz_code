@@ -7229,15 +7229,18 @@ RowSecurityOptionalToRole:
 RowSecurityDefaultPermissive:
 
     AS IDENT {
-        if ($2) {
-            if (strcmp($2, "permissive") == 0)
-                res = new IR(kRowSecurityDefaultPermissive, OP3("permissive", "", ""));
-			else if (strcmp($2, "restrictive") == 0)
-                res = new IR(kRowSecurityDefaultPermissive, OP3("restrictive", "", ""));
-            free($2);
-        } else {
-            res = new IR(kRowSecurityDefaultPermissive, OP3("restrictive", "", ""));
+        if (strcmp($2, "permissive") == 0)
+            res = new IR(kRowSecurityDefaultPermissive, OP3("AS permissive", "", ""));
+        else if (strcmp($2, "restrictive") == 0)
+            res = new IR(kRowSecurityDefaultPermissive, OP3("AS restrictive", "", ""));
+        else if (strcmp($2, "") == 0) {
+            res = new IR(kRowSecurityDefaultPermissive, OP0());
         }
+        else {
+            /* Force using empty, if the option is not supported.  */
+            res = new IR(kRowSecurityDefaultPermissive, OP0());
+        }
+        free($2);
         $$ = res;
     }
 
