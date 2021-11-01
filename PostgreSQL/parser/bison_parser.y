@@ -8708,8 +8708,8 @@ DropStmt:
 
     | DROP object_type_name_on_any_name IF_P EXISTS name ON any_name opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
-        free($3);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        free($5);
         res = new IR(kDropStmt_7, OP3("DROP", "IF EXISTS", "ON"), tmp1, tmp2);
         auto tmp3 = $7;
         res = new IR(kDropStmt_8, OP3("", "", ""), res, tmp3);
