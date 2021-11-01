@@ -152,6 +152,9 @@ vector<string> get_all_files_in_dir(const char *dir_name) {
 }
 
 void ensure_semicolon_at_query_end(string &stmt) {
+  if (stmt.size() == 0) {
+    return;
+  }
   auto idx = stmt.rbegin();
   if (*idx != ';')
     stmt += "; ";

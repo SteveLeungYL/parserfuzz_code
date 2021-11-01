@@ -319,6 +319,12 @@ vector<IR*> IRWrapper::get_stmtmulti_IR_vec(){
 
     stmt_list_v.clear();
 
+    // cerr << "In get_stmtmulti: we have: \n";
+    // for (IR* stmtmulti: res_stmt_list_v) {
+    //     cerr << stmtmulti->to_string() << "\n";
+    // }
+    // cerr << "get_stmtmulti finished. \n";
+
     return res_stmt_list_v;
 }
 
@@ -463,6 +469,8 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     IR* rov_stmt = stmt_list_v[idx];
 
+    cerr << "Removing stmt: " << rov_stmt->to_string() << "\n";
+
     if ( idx != 0 && idx < stmt_list_v.size() ){
         IR* parent_node = rov_stmt->get_parent();
         IR* next_stmt = rov_stmt->left_;
@@ -499,6 +507,12 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     // for (auto stmt : stmt_vec) {
     //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
     // }
+
+    cerr << "In get_stmt_ir_vec: we have: \n";
+    for (IR* stmt: stmt_vec) {
+        cerr << stmt->to_string() << "\n";
+    }
+    cerr << "get_stmt finished. \n";
 
     return stmt_vec;
 }
@@ -930,14 +944,12 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
 
 
-    if (cur_stmtmulti->get_right() &&
-        cur_stmtmulti->get_right()->get_left()
+    if (cur_stmtmulti->get_right()
     ) {
         /* kstmtmulti -> stmt -> specific_stmt_type */
         return cur_stmtmulti->get_right()->get_left();
 
-    } else if (cur_stmtmulti->get_left() &&
-               cur_stmtmulti->get_left()->get_left()
+    } else if (cur_stmtmulti->get_left()
     ) {
         /* kstmtmulti ->  stmt -> specific_stmt_type */
         return cur_stmtmulti->get_left()->get_left();

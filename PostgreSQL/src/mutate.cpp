@@ -2031,6 +2031,9 @@ void Mutator::add_all_to_library(string whole_query_str,
   int i = 0; // For counting oracle valid stmt IDs.
   for (auto current_query : queries_vector) {
     trim_string(current_query);
+    if (current_query == "") {
+      continue;
+    }
     current_query += ";";
     // check the validity of the IR here
     // The unique_id_in_tree_ variable are being set inside the parsing func.

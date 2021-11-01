@@ -7,6 +7,14 @@
 
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
+  if (cur_stmt == NULL) {
+    return false;
+  }
+
+  if (cur_stmt->get_ir_type() != kSelectStmt) {
+    return false;
+  }
+
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
   vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
   for (IR* group_clause : v_group_clause) {
@@ -43,6 +51,18 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) == 1
   ) {
 
+    /* Make sure from clause and where clause are not empty.  */
+    IR* from_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false)[0];
+    // The first one should be the parent one.
+    if (from_clause->is_empty()) {
+      return false;
+    }
+    IR* where_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0];
+    // The first one should be the parent one.
+    if (where_clause->is_empty()) {
+      return false;
+    }
+
     /* Here, we need to ensure the SELECT COUNT(*) structure is enforced.  */
     /* This is the IR tree structure that we need to enforce:
      *
@@ -66,14 +86,14 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFuncName, false);
     for (IR* count_func_ir : count_func_vec){
 
-      cerr << "Debug: norec get parent 1: " << ir_wrapper.get_parent_type_str(count_func_ir, 1) << "\n";
-      cerr << "Debug: norec get parent 2: " << ir_wrapper.get_parent_type_str(count_func_ir, 2) << "\n";
-      cerr << "Debug: norec get parent 3: " << ir_wrapper.get_parent_type_str(count_func_ir, 3) << "\n";
-      cerr << "Debug: norec get parent 4: " << ir_wrapper.get_parent_type_str(count_func_ir, 4) << "\n";
-      cerr << "Debug: norec get parent 5: " << ir_wrapper.get_parent_type_str(count_func_ir, 5) << "\n";
-      cerr << "Debug: norec get parent 6: " << ir_wrapper.get_parent_type_str(count_func_ir, 6) << "\n";
-      cerr << "Debug: norec get parent 7: " << ir_wrapper.get_parent_type_str(count_func_ir, 7) << "\n";
-      cerr << "Debug: norec get parent 8: " << ir_wrapper.get_parent_type_str(count_func_ir, 8) << "\n";
+      // cerr << "Debug: norec get parent 1: " << ir_wrapper.get_parent_type_str(count_func_ir, 1) << "\n";
+      // cerr << "Debug: norec get parent 2: " << ir_wrapper.get_parent_type_str(count_func_ir, 2) << "\n";
+      // cerr << "Debug: norec get parent 3: " << ir_wrapper.get_parent_type_str(count_func_ir, 3) << "\n";
+      // cerr << "Debug: norec get parent 4: " << ir_wrapper.get_parent_type_str(count_func_ir, 4) << "\n";
+      // cerr << "Debug: norec get parent 5: " << ir_wrapper.get_parent_type_str(count_func_ir, 5) << "\n";
+      // cerr << "Debug: norec get parent 6: " << ir_wrapper.get_parent_type_str(count_func_ir, 6) << "\n";
+      // cerr << "Debug: norec get parent 7: " << ir_wrapper.get_parent_type_str(count_func_ir, 7) << "\n";
+      // cerr << "Debug: norec get parent 8: " << ir_wrapper.get_parent_type_str(count_func_ir, 8) << "\n";
 
       if (
         ir_wrapper.get_parent_type_str(count_func_ir, 1) == "kFuncApplication" &&
@@ -124,7 +144,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   }
 
   IR* transformed_temp_ir = transformed_temp_vec.back();
-  IR* trans_stmt_ir = ir_wrapper.get_first_stmt_from_root(transformed_temp_ir);
+  IR* trans_stmt_ir = ir_wrapper.get_first_stmt_from_root(transformed_temp_ir)->deep_copy();
   trans_stmt_ir->parent_ = NULL;
   transformed_temp_ir->deep_drop();
 
