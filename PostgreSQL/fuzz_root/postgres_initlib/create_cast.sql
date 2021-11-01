@@ -9,7 +9,7 @@ SELECT casttestfunc('foo'::text); CREATE CAST (text AS casttesttype) WITHOUT FUN
 SELECT casttestfunc('foo'::text); SELECT casttestfunc('foo'::text::casttesttype); DROP CAST (text AS casttesttype); CREATE CAST (text AS casttesttype) WITHOUT FUNCTION AS IMPLICIT;
 SELECT casttestfunc('foo'::text); SELECT 1234::int4::casttesttype; CREATE CAST (int4 AS casttesttype) WITH INOUT;
 SELECT 1234::int4::casttesttype; DROP CAST (int4 AS casttesttype);
-CREATE FUNCTION int4_casttesttype(int4) RETURNS casttesttype LANGUAGE SQL AS SELECT ('foo'::text || $1::text)::casttesttype;
+CREATE FUNCTION int4_casttesttype(int4) RETURNS casttesttype LANGUAGE SQL AS SELECT ('foo'::text ||  1::text)::casttesttype;
  ;
  ;
 CREATE CAST (int4 AS casttesttype) WITH FUNCTION int4_casttesttype(int4) AS IMPLICIT;

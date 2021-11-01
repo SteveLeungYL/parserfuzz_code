@@ -10,7 +10,7 @@ CREATE OPERATOR !=- (   leftarg = int8,		   procedure = factorial);
 SELECT 2 !=-;
 SELECT 2 !=  1;
 DO    declare r boolean;
-  begin    execute $e$ select 2 !=      1 $e$ into r;
+  begin    execute  e  select 2 !=      1  e  into r;
     raise info 'r = %', r;
   end;
 ;

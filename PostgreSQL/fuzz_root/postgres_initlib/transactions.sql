@@ -205,7 +205,7 @@ DROP TABLE trans_foo;
 DROP TABLE trans_baz;
 DROP TABLE trans_barbaz;
 create function inverse(int) returns float8 asbegin  analyze revalidate_bug;
-  return 1::float8/$1;
+  return 1::float8/ 1;
 exception  when division_by_zero then return 0;
 end language plpgsql volatile;
 create table revalidate_bug (c float8 unique);

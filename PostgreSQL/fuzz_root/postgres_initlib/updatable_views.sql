@@ -319,7 +319,7 @@ SELECT * FROM information_schema.views WHERE table_name LIKE E'rw\\_view_' ORDER
 INSERT INTO rw_view1 VALUES (-1); INSERT INTO rw_view1 VALUES (1); INSERT INTO rw_view2 VALUES (-2); INSERT INTO rw_view2 VALUES (2); INSERT INTO rw_view3 VALUES (-3); INSERT INTO rw_view3 VALUES (3); DROP TABLE base_tbl CASCADE;
 CREATE TABLE base_tbl (a int, b int[]);
 CREATE VIEW rw_view1 AS SELECT * FROM base_tbl WHERE a = ANY (b)  WITH CHECK OPTION;
-INSERT INTO rw_view1 VALUES (1, ARRAY[1,2,3]); INSERT INTO rw_view1 VALUES (10, ARRAY[4,5]); UPDATE rw_view1 SET b[2] = -b[2] WHERE a = 1; UPDATE rw_view1 SET b[1] = -b[1] WHERE a = 1; PREPARE ins(int, int[]) AS INSERT INTO rw_view1 VALUES($1, $2);
+INSERT INTO rw_view1 VALUES (1, ARRAY[1,2,3]); INSERT INTO rw_view1 VALUES (10, ARRAY[4,5]); UPDATE rw_view1 SET b[2] = -b[2] WHERE a = 1; UPDATE rw_view1 SET b[1] = -b[1] WHERE a = 1; PREPARE ins(int, int[]) AS INSERT INTO rw_view1 VALUES( 1,  2);
 EXECUTE ins(2, ARRAY[1,2,3]); EXECUTE ins(10, ARRAY[4,5]); DEALLOCATE PREPARE ins;
 DROP TABLE base_tbl CASCADE;
 CREATE TABLE base_tbl (a int);
@@ -368,7 +368,7 @@ INSERT INTO rw_view2 VALUES (2,3); DROP TABLE base_tbl CASCADE;
 CREATE TABLE base_tbl (person text, visibility text);
 INSERT INTO base_tbl VALUES ('Tom', 'public'),                            ('Dick', 'private'),                            ('Harry', 'public');
 CREATE VIEW rw_view1 AS  SELECT person FROM base_tbl WHERE visibility = 'public';
-CREATE FUNCTION snoop(anyelement)RETURNS boolean ASBEGIN  RAISE NOTICE 'snooped value: %', $1;
+CREATE FUNCTION snoop(anyelement)RETURNS boolean ASBEGIN  RAISE NOTICE 'snooped value: %',  1;
   RETURN true;
 END;
 LANGUAGE plpgsql COST 0.000001;

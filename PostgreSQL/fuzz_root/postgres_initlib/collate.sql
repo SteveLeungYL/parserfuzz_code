@@ -66,11 +66,11 @@ SELECT * FROM collate_test10 WHERE (x, y) NOT IN (SELECT y COLLATE "C", x COLLAT
 SELECT CAST('42' AS text COLLATE "C");
 SELECT a, CAST(b AS varchar) FROM collate_test1 ORDER BY 2;
 SELECT a, CAST(b AS varchar) FROM collate_test2 ORDER BY 2;
-CREATE FUNCTION vc (text) RETURNS text LANGUAGE sql    AS 'select $1::varchar';
+CREATE FUNCTION vc (text) RETURNS text LANGUAGE sql    AS 'select  1::varchar';
 SELECT a, b FROM collate_test1 ORDER BY a, vc(b);
 SELECT * FROM unnest((SELECT array_agg(b ORDER BY b) FROM collate_test1)) ORDER BY 1;
 SELECT * FROM unnest((SELECT array_agg(b ORDER BY b) FROM collate_test2)) ORDER BY 1;
-CREATE FUNCTION dup (anyelement) RETURNS anyelement    AS 'select $1' LANGUAGE sql;
+CREATE FUNCTION dup (anyelement) RETURNS anyelement    AS 'select  1' LANGUAGE sql;
 SELECT a, dup(b) FROM collate_test1 ORDER BY 2;
 SELECT a, dup(b) FROM collate_test2 ORDER BY 2;
 CREATE INDEX collate_test1_idx1 ON collate_test1 (b);

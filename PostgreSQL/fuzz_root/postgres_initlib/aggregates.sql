@@ -349,7 +349,7 @@ create aggregate my_half_sum(int4)(   stype = int4,   sfunc = sum_transfn,   fin
 select my_sum(one),my_half_sum(one) from (values(1),(2),(3),(4)) t(one);
 rollback;
 BEGIN;
-CREATE FUNCTION balkifnull(int8, int4)RETURNS int8STRICTLANGUAGE plpgsql AS BEGIN    IF $1 IS NULL THEN       RAISE 'erroneously called with NULL argument';
+CREATE FUNCTION balkifnull(int8, int4)RETURNS int8STRICTLANGUAGE plpgsql AS BEGIN    IF  1 IS NULL THEN       RAISE 'erroneously called with NULL argument';
     END IF;
     RETURN NULL;
 END;
@@ -357,7 +357,7 @@ CREATE AGGREGATE balk(int4)(    SFUNC = balkifnull(int8, int4),    STYPE = int8,
 SELECT balk(hundred) FROM tenk1;
 ROLLBACK;
 BEGIN ISOLATION LEVEL REPEATABLE READ;
-CREATE FUNCTION balkifnull(int8, int8)RETURNS int8PARALLEL SAFESTRICTLANGUAGE plpgsql AS BEGIN    IF $1 IS NULL THEN       RAISE 'erroneously called with NULL argument';
+CREATE FUNCTION balkifnull(int8, int8)RETURNS int8PARALLEL SAFESTRICTLANGUAGE plpgsql AS BEGIN    IF  1 IS NULL THEN       RAISE 'erroneously called with NULL argument';
     END IF;
     RETURN NULL;
 END;

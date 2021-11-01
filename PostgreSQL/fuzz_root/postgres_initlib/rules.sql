@@ -237,7 +237,7 @@ create view rtest_vview1 as select a, b from rtest_view1 X	where 0 < (select cou
 create view rtest_vview2 as select a, b from rtest_view1 where v;
 create view rtest_vview3 as select a, b from rtest_vview2 X	where 0 < (select count(*) from rtest_view2 Y where Y.a = X.a);
 create view rtest_vview4 as select X.a, X.b, count(Y.a) as refcount	from rtest_view1 X, rtest_view2 Y	where X.a = Y.a	group by X.a, X.b;
-create function rtest_viewfunc1(int4) returns int4 as	'select count(*)::int4 from rtest_view2 where a = $1'	language sql;
+create function rtest_viewfunc1(int4) returns int4 as	'select count(*)::int4 from rtest_view2 where a =  1'	language sql;
 create view rtest_vview5 as select a, b, rtest_viewfunc1(a) as refcount	from rtest_view1;
 insert into rtest_view1 values (1, 'item 1', 't');
 insert into rtest_view1 values (2, 'item 2', 't');

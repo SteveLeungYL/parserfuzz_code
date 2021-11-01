@@ -172,7 +172,7 @@ SHOW DateStyle;
 SELECT '' AS "65", d1 AS european_sql FROM TIMESTAMP_TBL;
 RESET DateStyle;
 SELECT to_timestamp('0097/Feb/16 SELECT to_timestamp('97/2/16 8:14:30', 'FMYYYY/FMMM/FMDD FMHH:FMMI:FMSS');
-SELECT to_timestamp('2011$03!18 23_38_15', 'YYYY-MM-DD HH24:MI:SS');
+SELECT to_timestamp('2011 03!18 23_38_15', 'YYYY-MM-DD HH24:MI:SS');
 SELECT to_timestamp('1985 January 12', 'YYYY FMMonth DD');
 SELECT to_timestamp('1985 FMMonth 12', 'YYYY "FMMonth" DD');
 SELECT to_timestamp('1985 \ 12', 'YYYY \\ DD');

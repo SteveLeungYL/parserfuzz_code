@@ -727,7 +727,7 @@ create table parted_trig3 (like parted_trig);
 alter table parted_trig attach partition parted_trig3 for values in (3);
 insert into parted_trig values (1), (2), (3);
 drop table parted_trig;
-create function bark(text) returns bool language plpgsql immutable  as  begin raise notice '% <- woof!', $1;
+create function bark(text) returns bool language plpgsql immutable  as  begin raise notice '% <- woof!',  1;
  return true;
  end;
  ;

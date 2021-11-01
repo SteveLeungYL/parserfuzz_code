@@ -127,7 +127,7 @@ explain (costs off)select distinct q1 from  (select distinct * from int8_tbl i81
 select distinct q1 from  (select distinct * from int8_tbl i81   union all   select distinct * from int8_tbl i82) sswhere q2 = q2;
 explain (costs off)select distinct q1 from  (select distinct * from int8_tbl i81   union all   select distinct * from int8_tbl i82) sswhere -q1 = q2;
 select distinct q1 from  (select distinct * from int8_tbl i81   union all   select distinct * from int8_tbl i82) sswhere -q1 = q2;
-create function expensivefunc(int) returns intlanguage plpgsql immutable strict cost 10000as begin return $1;
+create function expensivefunc(int) returns intlanguage plpgsql immutable strict cost 10000as begin return  1;
  end;
  end;
 create temp table t3 as select generate_series(-1000,1000) as x;

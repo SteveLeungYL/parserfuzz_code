@@ -97,7 +97,7 @@ SELECT xmlagg(data) FROM xmltest WHERE id > 10;
 SELECT xmlelement(name employees, xmlagg(xmlelement(name name, name))) FROM emp;
 SELECT xmlpi(name ":::_xml_abc135.%-&_");
 SELECT xmlpi(name "123");
-PREPARE foo (xml) AS SELECT xmlconcat('<foo/>', $1);
+PREPARE foo (xml) AS SELECT xmlconcat('<foo/>',  1);
 SET XML OPTION DOCUMENT;
 EXECUTE foo ('<bar/>');
 EXECUTE foo ('bad');

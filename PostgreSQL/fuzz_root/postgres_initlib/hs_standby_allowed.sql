@@ -56,7 +56,7 @@ fetch 1 from hsc;
 CLOSE hsc;
 COMMIT;
 PREPARE hsp AS select count(*) from hs1;
-PREPARE hsp_noexec (integer) AS insert into hs1 values ($1);
+PREPARE hsp_noexec (integer) AS insert into hs1 values ( 1);
 EXECUTE hsp;
 DEALLOCATE hsp;
 BEGIN;

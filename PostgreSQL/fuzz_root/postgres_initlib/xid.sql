@@ -59,7 +59,7 @@ SELECT pg_xact_status(:rolledback::text::xid8) AS rolledback;
 SELECT pg_xact_status(:inprogress::text::xid8) AS inprogress;
 SELECT pg_xact_status('1'::xid8); SELECT pg_xact_status('2'::xid8); SELECT pg_xact_status('3'::xid8); COMMIT;
 BEGIN;
-CREATE FUNCTION test_future_xid_status(xid8)RETURNS voidLANGUAGE plpgsqlASBEGIN  PERFORM pg_xact_status($1);
+CREATE FUNCTION test_future_xid_status(xid8)RETURNS voidLANGUAGE plpgsqlASBEGIN  PERFORM pg_xact_status( 1);
   RAISE EXCEPTION 'didn''t ERROR at xid in the future as expected';
 EXCEPTION  WHEN invalid_parameter_value THEN    RAISE NOTICE 'Got expected error for xid in the future';
 END;

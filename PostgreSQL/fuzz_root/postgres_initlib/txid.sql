@@ -35,7 +35,7 @@ SELECT txid_status(:rolledback) AS rolledback;
 SELECT txid_status(:inprogress) AS inprogress;
 SELECT txid_status(1); SELECT txid_status(2); SELECT txid_status(3); COMMIT;
 BEGIN;
-CREATE FUNCTION test_future_xid_status(bigint)RETURNS voidLANGUAGE plpgsqlASBEGIN  PERFORM txid_status($1);
+CREATE FUNCTION test_future_xid_status(bigint)RETURNS voidLANGUAGE plpgsqlASBEGIN  PERFORM txid_status( 1);
   RAISE EXCEPTION 'didn''t ERROR at xid in the future as expected';
 EXCEPTION  WHEN invalid_parameter_value THEN    RAISE NOTICE 'Got expected error for xid in the future';
 END;

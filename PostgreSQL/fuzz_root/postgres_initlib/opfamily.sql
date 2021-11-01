@@ -14,6 +14,6 @@ create function int8alias1eq(int8alias1, int8alias1) returns bool  strict immuta
 create operator = (    procedure = int8alias1eq,    leftarg = int8alias1, rightarg = int8alias1,    commutator = =,    restrict = eqsel, join = eqjoinsel,    merges);
 alter operator family integer_ops using btree add  operator 3 = (int8alias1, int8alias1);
 create type ctype as (f1 int, f2 text);
-create function same(ctype, ctype) returns boolean language sqlas 'select $1.f1 is not distinct from $2.f1 and $1.f2 is not distinct from $2.f2';
+create function same(ctype, ctype) returns boolean language sqlas 'select  1.f1 is not distinct from  2.f1 and  1.f2 is not distinct from  2.f2';
 create operator =(procedure = same, leftarg  = ctype, rightarg = ctype);
 create operator class ctype_hash_ops  default for type ctype using hash as  operator 1 =(ctype, ctype);

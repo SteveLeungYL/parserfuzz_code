@@ -76,7 +76,7 @@ CREATE TABLE audit_tbls.schema_one_table_two(the_value text);
 CREATE TABLE schema_two.table_two(a int);
 CREATE TABLE schema_two.table_three(a int, b text);
 CREATE TABLE audit_tbls.schema_two_table_three(the_value text);
-CREATE OR REPLACE FUNCTION schema_two.add(int, int) RETURNS int LANGUAGE plpgsql  CALLED ON NULL INPUT  AS  BEGIN RETURN coalesce($1,0) + coalesce($2,0);
+CREATE OR REPLACE FUNCTION schema_two.add(int, int) RETURNS int LANGUAGE plpgsql  CALLED ON NULL INPUT  AS  BEGIN RETURN coalesce( 1,0) + coalesce( 2,0);
  END;
  ;
  ;

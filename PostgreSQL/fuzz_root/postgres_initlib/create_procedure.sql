@@ -9,7 +9,7 @@ CREATE PROCEDURE ptest2()LANGUAGE SQLAS SELECT 5;
 CALL ptest2();
 TRUNCATE cp_test;
 CREATE PROCEDURE ptest3(y text)LANGUAGE SQLAS CALL ptest1(y);
-CALL ptest1($1);
+CALL ptest1( 1);
 ;
 CALL ptest3('b');
 SELECT * FROM cp_test;

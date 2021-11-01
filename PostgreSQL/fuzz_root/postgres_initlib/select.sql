@@ -72,7 +72,7 @@ select unique1, unique2 from onek2  where (unique2 = 11 or unique1 = 0) and stri
 explain (costs off)select unique1, unique2 from onek2  where (unique2 = 11 and stringu1 < 'B') or unique1 = 0;
 select unique1, unique2 from onek2  where (unique2 = 11 and stringu1 < 'B') or unique1 = 0;
 SELECT 1 AS x ORDER BY x;
-create function sillysrf(int) returns setof int as  'values (1),(10),(2),($1)' language sql immutable;
+create function sillysrf(int) returns setof int as  'values (1),(10),(2),( 1)' language sql immutable;
 select sillysrf(42);
 select sillysrf(-1) order by 1;
 drop function sillysrf(int);

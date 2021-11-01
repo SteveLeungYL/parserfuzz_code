@@ -1,5 +1,5 @@
 create function explain_filter(text) returns setof textlanguage plpgsql asdeclare    ln text;
-begin    for ln in execute $1    loop                ln := regexp_replace(ln, '\m\d+\M', 'N', 'g');
+begin    for ln in execute  1    loop                ln := regexp_replace(ln, '\m\d+\M', 'N', 'g');
                 ln := regexp_replace(ln, '\m\d+kB', 'NkB', 'g');
                         CONTINUE WHEN (ln ~ ' +Buffers: .*');
                         CONTINUE WHEN (ln = 'Planning:');
@@ -9,7 +9,7 @@ end;
 ;
 create function explain_filter_to_json(text) returns jsonblanguage plpgsql asdeclare    data text := '';
     ln text;
-begin    for ln in execute $1    loop                ln := regexp_replace(ln, '\m\d+\M', '0', 'g');
+begin    for ln in execute  1    loop                ln := regexp_replace(ln, '\m\d+\M', '0', 'g');
         data := data || ln;
     end loop;
     return data::jsonb;

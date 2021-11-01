@@ -198,7 +198,7 @@ select * from  zt2 left join zt3 on (f2 = f3)      left join zt1 on (f3 = f1)whe
 create temp view zv1 as select *,'dummy'::text AS junk from zt1;
 select * from  zt2 left join zt3 on (f2 = f3)      left join zv1 on (f3 = f1)where f2 = 53;
 select a.unique2, a.ten, b.tenthous, b.unique2, b.hundredfrom tenk1 a left join tenk1 b on a.unique2 = b.tenthouswhere a.unique1 = 42 and      ((b.unique2 is null and a.ten = 2) or b.hundred = 3);
-prepare foo(bool) as  select count(*) from tenk1 a left join tenk1 b    on (a.unique2 = b.unique1 and exists        (select 1 from tenk1 c where c.thousand = b.unique2 and $1));
+prepare foo(bool) as  select count(*) from tenk1 a left join tenk1 b    on (a.unique2 = b.unique1 and exists        (select 1 from tenk1 c where c.thousand = b.unique2 and  1));
 execute foo(true);
 execute foo(false);
 begin;
@@ -289,8 +289,8 @@ explain (costs off)select unique1, x from tenk1 full join f_immutable_int4(1) x 
 explain (costs off)select unique1 from tenk1, f_immutable_int4(1) x where x = 42;
 explain (costs off)select nt3.idfrom nt3 as nt3  left join    (select nt2.*, (nt2.b1 or i4 = 42) AS b3     from nt2 as nt2       left join         f_immutable_int4(0) i4         on i4 = nt2.nt1_id    ) as ss2    on ss2.id = nt3.nt2_idwhere nt3.id = 1 and ss2.b3;
 drop function f_immutable_int4(int);
-create function mki8(bigint, bigint) returns int8_tbl asselect row($1,$2)::int8_tbl language sql;
-create function mki4(int) returns int4_tbl asselect row($1)::int4_tbl language sql;
+create function mki8(bigint, bigint) returns int8_tbl asselect row( 1, 2)::int8_tbl language sql;
+create function mki4(int) returns int4_tbl asselect row( 1)::int4_tbl language sql;
 explain (verbose, costs off)select * from mki8(1,2);
 select * from mki8(1,2);
 explain (verbose, costs off)select * from mki4(42);
