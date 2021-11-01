@@ -233,7 +233,12 @@ IR* IRWrapper::get_first_stmtmulti_from_root() {
         return NULL;
     }
 
-    return ir_root->get_left();
+    vector<IR*> stmtmulti_v = get_stmtmulti_IR_vec();
+    if (stmtmulti_v.size() != 0) {
+        return stmtmulti_v.front();
+    } else {
+        return NULL;
+    }
 }
 
 IR* IRWrapper::get_first_stmtmulti_from_root(IR* cur_root) {
@@ -241,19 +246,80 @@ IR* IRWrapper::get_first_stmtmulti_from_root(IR* cur_root) {
     return get_first_stmtmulti_from_root();
 }
 
+IR* IRWrapper::get_first_stmt_from_root() {
+    IR* first_stmtmulti = this->get_first_stmtmulti_from_root();
+    if (first_stmtmulti == NULL) {
+        return NULL;
+    }
+
+    return this->get_stmt_ir_from_stmtmulti(first_stmtmulti);
+}
+
+IR* IRWrapper::get_first_stmt_from_root(IR* cur_root) {
+    this->ir_root = cur_root;
+    return get_first_stmt_from_root();
+}
+
+IR* IRWrapper::get_last_stmtmulti_from_root() {
+
+    /* First of all, given the root, we need to get to kStmtmulti. */
+
+    if (ir_root == NULL ) {
+        cerr << "Error: In ir_wrapper::get_stmtmulti_IR_vec, receiving empty IR root. \n";
+        return NULL;
+    }
+    if (ir_root->get_left()->get_ir_type() != kStmtmulti) {
+        cerr << "Error: In ir_wrapper:get_stmtmulti_IR_vec, cannot find the kStmtmulti " \
+            "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \
+            "PLAssignStmt is not currently supported. \n";
+        return NULL;
+    }
+
+    return ir_root->get_left();
+}
+
+IR* IRWrapper::get_last_stmtmulti_from_root(IR* cur_root) {
+    this->ir_root = cur_root;
+    return get_last_stmtmulti_from_root();
+}
+
+IR* IRWrapper::get_last_stmt_from_root() {
+    IR* last_stmtmulti = this->get_last_stmtmulti_from_root();
+    if (last_stmtmulti == NULL) {
+        return NULL;
+    }
+
+    return this->get_stmt_ir_from_stmtmulti(last_stmtmulti);
+}
+
+IR* IRWrapper::get_last_stmt_from_root(IR* cur_root) {
+    this->ir_root = cur_root;
+    return get_last_stmt_from_root();
+}
+
+
 vector<IR*> IRWrapper::get_stmtmulti_IR_vec(){
 
-    IR* stmt_IR_p = get_first_stmtmulti_from_root();
+    IR* stmt_IR_p = get_last_stmtmulti_from_root();
 
     vector<IR*> stmt_list_v;
 
     while (stmt_IR_p && stmt_IR_p -> get_ir_type() == kStmtmulti){ // Iterate from the first kstatementlist to the last.
         stmt_list_v.push_back(stmt_IR_p);
-        if (stmt_IR_p->get_right() == nullptr || stmt_IR_p->get_left() == nullptr) break; // This is the last kstatementlist.
-        stmt_IR_p = stmt_IR_p -> right_; // Lead to the next kstatementlist. 
+        if (stmt_IR_p->get_right() == nullptr) break; // This is the last kstatementlist.
+        stmt_IR_p = stmt_IR_p -> get_left(); // Lead to the next kstatementlist.
     }
 
-    return stmt_list_v;
+    vector<IR*> res_stmt_list_v;
+    for (auto iter = stmt_list_v.rbegin(); iter != stmt_list_v.rend(); iter++) {
+        if (*iter == NULL || get_stmt_ir_from_stmtmulti(*iter) == NULL )
+            {continue;}
+        res_stmt_list_v.push_back(*iter);
+    }
+
+    stmt_list_v.clear();
+
+    return res_stmt_list_v;
 }
 
 
@@ -331,6 +397,17 @@ bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR*
 bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Specific_Statement*) type, do not provide IR*(StatementList*) type.
     vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
+    if (stmt_list_v.size() == 0) {
+        cerr << "Error: Getting stmt_list_v.size() == 0; \n";
+    }
+
+    cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have stmtmulti: \n";
+
+    for (IR* stmt_list : stmt_list_v) {
+        cerr << "DEBUG: Stmtmulti is: " << stmt_list->to_string() << "\n";
+    }
+    cerr << "End stmtlist. \n";
+
     if (idx < 0 && idx > stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
@@ -339,10 +416,10 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
 
     app_IR_node = new IR(kStmt, OP0(), app_IR_node);
 
-    if (idx < stmt_list_v.size()) {
-        IR* insert_pos_ir = stmt_list_v[idx];
+    if (idx <= stmt_list_v.size()) {
+        IR* insert_pos_ir = stmt_list_v[idx-1];
 
-        auto new_res = new IR(kStmtmulti, OPMID(";"), app_IR_node, NULL);
+        auto new_res = new IR(kStmtmulti, OPMID(";"), NULL, app_IR_node);
 
         if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
             new_res->deep_drop();
@@ -351,18 +428,19 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
             return false;
         }
 
-        new_res->update_right(insert_pos_ir);
+        new_res->update_left(insert_pos_ir);
 
         return true;
-    } else { // idx == stmt_list_v.size()
-        IR* insert_pos_ir = stmt_list_v[idx-1];
+    } else { // idx == 0
+        IR* insert_pos_ir = stmt_list_v[0];
         if (insert_pos_ir -> right_ != NULL ){
-            std::cerr << "Error: The last stmt_list is having right_ sub-node. In function IRWrapper::append_stmt_at_idx. \n";
+            std::cerr << "Error: The first stmt_list is having right_ sub-node. In function IRWrapper::append_stmt_at_idx. \n";
             return false;
         }
 
         auto new_res = new IR(kStmtmulti, OPMID(";"), app_IR_node, NULL);
-        insert_pos_ir->update_right(new_res);
+        insert_pos_ir->update_right(insert_pos_ir->get_left());
+        insert_pos_ir->update_left(new_res);
 
         return true;
     
@@ -378,23 +456,24 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
         return false;
     }
 
-    if (stmt_list_v.size() == 1) {
+    if (stmt_list_v.size() <= 1) {
         // std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
         return false;
     }
 
     IR* rov_stmt = stmt_list_v[idx];
 
-    if (idx < stmt_list_v.size()-1){
+    if ( idx != 0 && idx < stmt_list_v.size() ){
         IR* parent_node = rov_stmt->get_parent();
-        IR* next_stmt = rov_stmt->right_;
+        IR* next_stmt = rov_stmt->left_;
         parent_node->swap_node(rov_stmt, next_stmt);
-        rov_stmt->right_ = NULL;
+        rov_stmt->left_ = NULL;
         rov_stmt->deep_drop();
 
-    } else { // idx == stmt_list_v.size()-1. Remove the last stmt. 
+    } else { // idx == 0. Remove the first stmt.
         IR* parent_node = rov_stmt->get_parent();
-        parent_node->detach_node(rov_stmt);
+        parent_node->update_left(parent_node->get_right());
+        parent_node->right_ = NULL;
         rov_stmt->deep_drop();
     }
 
@@ -409,8 +488,7 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     for (int i = 0; i < stmtlist_vec.size(); i++){
         if (!stmtlist_vec[i]) {
             cerr << "Error: Found some stmtlist_vec == NULL. Return empty vector. \n";
-            vector<IR*> tmp;
-            return tmp;
+            continue;
         }
         // cerr << "Debug: 407: stmtlist_vec type: " << get_string_by_ir_type(stmtlist_vec[i]->get_ir_type()) << "\n";
 
@@ -840,10 +918,17 @@ IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR* cur_ir) {
 
 
 IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
+    if (cur_stmtmulti == NULL) {
+        cerr << "Getting NULL cur_stmtmulti. \n";
+        return NULL;
+    }
     if (cur_stmtmulti->get_ir_type() != kStmtmulti) {
         cerr << "Error: In IRWrapper::get_stmt_ir_from_stmtmulti(), not getting type kStmtmulti. \n";
         return NULL;
     }
+
+    cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
+
 
     if (cur_stmtmulti->get_right() &&
         cur_stmtmulti->get_right()->get_left()
@@ -862,16 +947,3 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     }
 }
 
-IR* IRWrapper::get_first_stmt_from_root(IR* cur_root) {
-    this->ir_root = cur_root;
-    return get_first_stmt_from_root();
-}
-
-IR* IRWrapper::get_first_stmt_from_root() {
-    IR* first_stmtmulti = this->get_first_stmtmulti_from_root();
-    if (first_stmtmulti == NULL) {
-        return NULL;
-    }
-
-    return this->get_stmt_ir_from_stmtmulti(first_stmtmulti);
-}

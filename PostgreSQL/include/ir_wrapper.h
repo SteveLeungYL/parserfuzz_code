@@ -17,6 +17,12 @@ public:
     IR* get_first_stmt_from_root(IR* cur_root);
     IR* get_first_stmt_from_root();
 
+
+    IR* get_last_stmtmulti_from_root(IR* cur_root);
+    IR* get_last_stmtmulti_from_root();
+    IR* get_last_stmt_from_root(IR* cur_root);
+    IR* get_last_stmt_from_root();
+
     IR* get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti);
 
 
