@@ -97,12 +97,13 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
         }
         else if (
                 cur_iter->get_ir_type() == kSelectStmt &&
+                cur_iter->get_parent() != NULL &&
                 get_parent_type_str(cur_iter) != "kStmt"
                 ) {
             return true; //In a subquery.
         }
         else if (
-            cur_iter->get_ir_type() == kSelectStmt &&
+            cur_iter->get_ir_type() == kSelectNoParens &&
             get_parent_type_str(cur_iter) != "kSelectWithParens" &&
             get_parent_type_str(cur_iter) != "kSelectStmt" &&
             get_parent_type_str(cur_iter) != "kSelectClause"
@@ -583,7 +584,7 @@ IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
     IRTYPE prev_ir_type = cur_IR->get_ir_type();
     while (cur_IR ->get_parent() != nullptr) {
         IRTYPE parent_type = cur_IR->get_parent()->get_ir_type();
-        if (parent_type != kUnknown && compare_ir_type(parent_type, prev_ir_type)) {
+        if (parent_type != kUnknown && !compare_ir_type(parent_type, prev_ir_type)) {
             prev_ir_type = parent_type;
             depth--;
             if (depth <= 0) {

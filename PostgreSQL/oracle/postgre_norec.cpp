@@ -6,8 +6,28 @@
 #include <string>
 
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
-  if (ir_wrapper.is_exist_group_clause(cur_stmt) || ir_wrapper.is_exist_having_clause(cur_stmt) || ir_wrapper.is_exist_limit_clause(cur_stmt)) {
-    return false;
+
+  /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
+  vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
+  for (IR* group_clause : v_group_clause) {
+    if (!group_clause->is_empty()){
+      return false;
+    }
+  }
+
+
+  vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false);
+  for (IR* having_clause : v_having_clause) {
+    if (!having_clause->is_empty()){
+      return false;
+    }
+  }
+
+  vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false);
+  for (IR* limit_clause : v_limit_clause) {
+    if (!limit_clause->is_empty()){
+      return false;
+    }
   }
 
   // Ignore statements with UNION, EXCEPT and INTERCEPT
@@ -16,7 +36,6 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
   if (
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kSelectStmt, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false) &&
     ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) == 1
@@ -50,7 +69,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
         ir_wrapper.get_parent_type_str(count_func_ir, 5) == "kTargetEl" &&
         ir_wrapper.get_parent_type_str(count_func_ir, 6) == "kTargetList" &&
         ir_wrapper.get_parent_type_str(count_func_ir, 7) == "kOptTargetList" &&
-        ir_wrapper.get_parent_type_str(count_func_ir, 7) == "kSimpleSelect"
+        ir_wrapper.get_parent_type_str(count_func_ir, 8) == "kSimpleSelect"
       ) {
         /* The Func expression structure is enforced. Next ensure the func is COUNT */
         IR* func_app_ir = count_func_ir->get_parent();
