@@ -407,12 +407,12 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
         cerr << "Error: Getting stmt_list_v.size() == 0; \n";
     }
 
-    cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have stmtmulti: \n";
+    // cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have stmtmulti: \n";
 
-    for (IR* stmt_list : stmt_list_v) {
-        cerr << "DEBUG: Stmtmulti is: " << stmt_list->to_string() << "\n";
-    }
-    cerr << "End stmtlist. \n";
+    // for (IR* stmt_list : stmt_list_v) {
+    //     cerr << "DEBUG: Stmtmulti is: " << stmt_list->to_string() << "\n";
+    // }
+    // cerr << "End stmtlist. \n";
 
     if (stmt_list_v.size() == 0) {
         return false;
@@ -473,7 +473,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     IR* rov_stmt = stmt_list_v[idx];
 
-    cerr << "Removing stmt: " << rov_stmt->to_string() << "\n";
+    // cerr << "Removing stmt: " << rov_stmt->to_string() << "\n";
 
     if ( idx != 0 && idx < stmt_list_v.size() ){
         IR* parent_node = rov_stmt->get_parent();
@@ -512,11 +512,11 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
     // }
 
-    cerr << "In get_stmt_ir_vec: we have: \n";
-    for (IR* stmt: stmt_vec) {
-        cerr << stmt->to_string() << "\n";
-    }
-    cerr << "get_stmt finished. \n";
+    // cerr << "In get_stmt_ir_vec: we have: \n";
+    // for (IR* stmt: stmt_vec) {
+    //     cerr << stmt->to_string() << "\n";
+    // }
+    // cerr << "get_stmt finished. \n";
 
     return stmt_vec;
 }
@@ -945,7 +945,7 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
         return NULL;
     }
 
-    cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
+    // cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
 
 
     if (cur_stmtmulti->get_right()
