@@ -26,7 +26,7 @@ public:
 private:
 
 // Postgres need to generate
-  string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
+  string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x=0;";
 
   string oracle_type = "NOREC";
   string post_fix_temp = "SELECT COALESCE( SUM(countt), 0) FROM ( SELECT ALL( true ) :: INT as countt FROM v2 ORDER BY ( v1 ) ) as ress;" ;

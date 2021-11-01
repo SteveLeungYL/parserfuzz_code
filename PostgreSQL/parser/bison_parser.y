@@ -757,37 +757,43 @@ parse_toplevel:
     stmtmulti {
         auto tmp1 = $1;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = NULL;
+        res = *pIR;
+        $$ = res;
     }
 
     | MODE_TYPE_NAME Typename {
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = NULL;
+        res = *pIR;
+        $$ = res;
     }
 
     | MODE_PLPGSQL_EXPR PLpgSQL_Expr {
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = NULL;
+        res = *pIR;
+        $$ = res;
     }
 
     | MODE_PLPGSQL_ASSIGN1 PLAssignStmt {
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = NULL;
+        res = *pIR;
+        $$ = res;
     }
 
     | MODE_PLPGSQL_ASSIGN2 PLAssignStmt {
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = NULL;
+        res = *pIR;
+        $$ = res;
     }
 
     | MODE_PLPGSQL_ASSIGN3 PLAssignStmt {
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
-        $$ = NULL;
+        res = *pIR;
+        $$ = res;
     }
 
 ;
