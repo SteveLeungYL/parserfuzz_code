@@ -35,6 +35,8 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
+  // cerr << "num_target_el: " << ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) << "\n";
+
   if (
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false) &&
@@ -59,8 +61,20 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
      *              23: kIdentifier: data_functionName: kUnknown: 23: count
      * */
 
+
+
     vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFuncName, false);
     for (IR* count_func_ir : count_func_vec){
+
+      cerr << "Debug: norec get parent 1: " << ir_wrapper.get_parent_type_str(count_func_ir, 1) << "\n";
+      cerr << "Debug: norec get parent 2: " << ir_wrapper.get_parent_type_str(count_func_ir, 2) << "\n";
+      cerr << "Debug: norec get parent 3: " << ir_wrapper.get_parent_type_str(count_func_ir, 3) << "\n";
+      cerr << "Debug: norec get parent 4: " << ir_wrapper.get_parent_type_str(count_func_ir, 4) << "\n";
+      cerr << "Debug: norec get parent 5: " << ir_wrapper.get_parent_type_str(count_func_ir, 5) << "\n";
+      cerr << "Debug: norec get parent 6: " << ir_wrapper.get_parent_type_str(count_func_ir, 6) << "\n";
+      cerr << "Debug: norec get parent 7: " << ir_wrapper.get_parent_type_str(count_func_ir, 7) << "\n";
+      cerr << "Debug: norec get parent 8: " << ir_wrapper.get_parent_type_str(count_func_ir, 8) << "\n";
+
       if (
         ir_wrapper.get_parent_type_str(count_func_ir, 1) == "kFuncApplication" &&
         ir_wrapper.get_parent_type_str(count_func_ir, 2) == "kFuncExpr"  &&
