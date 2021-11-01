@@ -414,7 +414,11 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     }
     cerr << "End stmtlist. \n";
 
-    if (idx < 0 && idx > stmt_list_v.size()){
+    if (stmt_list_v.size() == 0) {
+        return false;
+    }
+
+    if (idx < 0 || idx > stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
         return false;
@@ -457,7 +461,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     vector<IR*> stmt_list_v = this->get_stmtmulti_IR_vec();
 
-    if (idx >= stmt_list_v.size() && idx < 0){
+    if (idx >= stmt_list_v.size() || idx < 0){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
         return false;
     }
