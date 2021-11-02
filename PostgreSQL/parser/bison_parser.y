@@ -18435,7 +18435,7 @@ a_expr:
     | a_expr TYPECAST Typename {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "TYPECAST", ""), tmp1, tmp2);
+        res = new IR(kAExpr, OP3("", "::", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -18917,7 +18917,7 @@ b_expr:
     | b_expr TYPECAST Typename {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kBExpr, OP3("", "TYPECAST", ""), tmp1, tmp2);
+        res = new IR(kBExpr, OP3("", "::", ""), tmp1, tmp2);
         $$ = res;
     }
 

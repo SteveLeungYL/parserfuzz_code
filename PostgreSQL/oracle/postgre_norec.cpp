@@ -193,7 +193,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0]->get_left()->deep_copy();
   IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kAexprConst, true)[0];
 
-  IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false)[0]->left_->deep_copy();
+  IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false)[0]->deep_copy();
   IR* dest_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kFromClause, true)[0];
 
   if (!trans_stmt_ir->swap_node(dest_where_expr, src_where_expr)){
