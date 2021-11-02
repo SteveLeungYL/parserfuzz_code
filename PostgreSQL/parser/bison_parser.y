@@ -559,7 +559,8 @@ static char* alloc_and_cat(const char*, const char*, const char*);
  * parse errors.  It is needed by PL/pgSQL.
  */
 %token <str>	IDENT UIDENT FCONST SCONST USCONST BCONST XCONST Op
-%token <ir>	ICONST PARAM
+%token <ir>	PARAM
+%token <ival>   ICONST
 %token			TYPECAST DOT_DOT COLON_EQUALS EQUALS_GREATER
 %token			LESS_EQUALS GREATER_EQUALS NOT_EQUALS
 
@@ -21091,7 +21092,7 @@ AexprConst:
 Iconst:
 
     ICONST {
-        res = new IR(kIconst, OP3("ICONST", "", ""));
+        res = new IR(kIntLiteral, $1);
         $$ = res;
     }
 
