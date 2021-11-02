@@ -378,3 +378,31 @@ IR* IR::get_left() {
 IR* IR::get_right() {
   return right_;
 }
+
+void IR::set_ir_type(IRTYPE type) {
+  this->type_ = type;
+}
+
+void IR::set_data_type(DATATYPE data_type) {
+  this->data_type_ = data_type;
+}
+
+void IR::set_data_flag(DATAFLAG data_flag) {
+  this->data_flag_ = data_flag;
+}
+
+bool IR::set_qualified_name_type(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
+  if (cur_ir->get_ir_type() != kQualifiedName) {
+    return false;
+  }
+
+  if (!cur_ir->get_left() || cur_ir->get_left()->get_ir_type() != kIdentifier) {
+    return false;
+  }
+
+  IR* iden = cur_ir->get_left();
+  iden->set_data_type(data_type);
+  iden->set_data_flag(data_flag);
+
+  return true;
+}

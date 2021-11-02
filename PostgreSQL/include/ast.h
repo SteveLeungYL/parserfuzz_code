@@ -242,6 +242,16 @@ public:
   bool is_empty();
 
   void set_str_val(string);
+
+  void set_ir_type(IRTYPE);
+  void set_data_type(DATATYPE);
+  void set_data_flag(DATAFLAG);
+
+  /* helper functions for the IR type */
+
+  // Return is succeed.
+  bool set_qualified_name_type(IR*, DATATYPE, DATAFLAG);
+
 };
 
 DATATYPE get_datatype_by_string(string s);
