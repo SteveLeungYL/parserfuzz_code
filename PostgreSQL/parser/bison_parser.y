@@ -4565,6 +4565,8 @@ columnDef:
         auto tmp5 = $5;
         res = new IR(kColumnDef, OP3("", "", ""), res, tmp5);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kDefine);
     }
 
 ;
@@ -4578,6 +4580,8 @@ columnOptions:
         auto tmp2 = $2;
         res = new IR(kColumnOptions, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kDefine);
     }
 
     | ColId WITH OPTIONS ColQualList {
@@ -4586,6 +4590,8 @@ columnOptions:
         auto tmp2 = $4;
         res = new IR(kColumnOptions, OP3("", "WITH OPTIONS", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kDefine);
     }
 
 ;
@@ -4919,6 +4925,8 @@ TableConstraint:
         auto tmp2 = $3;
         res = new IR(kTableConstraint, OP3("CONSTRAINT", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataConstraintName, kDefine);
     }
 
     | ConstraintElem {
@@ -5070,6 +5078,8 @@ columnElem:
         free($1);
         res = new IR(kColumnElem, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
 ;
@@ -16133,6 +16143,9 @@ OptTempTableName:
         auto tmp2 = $3;
         res = new IR(kOptTempTableName, OP3("TEMPORARY", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
     | TEMP opt_table qualified_name {
@@ -16140,6 +16153,9 @@ OptTempTableName:
         auto tmp2 = $3;
         res = new IR(kOptTempTableName, OP3("TEMP", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
     | LOCAL TEMPORARY opt_table qualified_name {
@@ -16147,6 +16163,8 @@ OptTempTableName:
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMPORARY", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | LOCAL TEMP opt_table qualified_name {
@@ -16154,6 +16172,8 @@ OptTempTableName:
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMP", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | GLOBAL TEMPORARY opt_table qualified_name {
@@ -16162,6 +16182,8 @@ OptTempTableName:
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMPORARY", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | GLOBAL TEMP opt_table qualified_name {
@@ -16170,6 +16192,8 @@ OptTempTableName:
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMP", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | UNLOGGED opt_table qualified_name {
@@ -16177,18 +16201,24 @@ OptTempTableName:
         auto tmp2 = $3;
         res = new IR(kOptTempTableName, OP3("UNLOGGED", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | TABLE qualified_name {
         auto tmp1 = $2;
         res = new IR(kOptTempTableName, OP3("TABLE", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | qualified_name {
         auto tmp1 = $1;
         res = new IR(kOptTempTableName, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kDefine);
     }
 
 ;
@@ -17069,6 +17099,8 @@ alias_clause:
         auto tmp2 = $4;
         res = new IR(kAliasClause, OP3("AS", "(", ")"), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataAliasName, kDefine);
     }
 
     | AS ColId {
@@ -17076,6 +17108,8 @@ alias_clause:
         free($2);
         res = new IR(kAliasClause, OP3("AS", "", ""), tmp1);
         $$ = res;
+        tmp1->set_iden_type(kDataAliasName, kDefine);
+
     }
 
     | ColId '(' name_list ')' {
@@ -17084,6 +17118,9 @@ alias_clause:
         auto tmp2 = $3;
         res = new IR(kAliasClause, OP3("", "(", ")"), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataAliasName, kDefine);
+
     }
 
     | ColId {
@@ -17091,6 +17128,9 @@ alias_clause:
         free($1);
         res = new IR(kAliasClause, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_iden_type(kDataAliasName, kDefine);
+
     }
 
 ;
@@ -17258,24 +17298,32 @@ relation_expr:
         auto tmp1 = $1;
         res = new IR(kRelationExpr, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
     | qualified_name '*' {
         auto tmp1 = $1;
         res = new IR(kRelationExpr, OP3("", "*", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
     | ONLY qualified_name {
         auto tmp1 = $2;
         res = new IR(kRelationExpr, OP3("ONLY", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
     | ONLY '(' qualified_name ')' {
         auto tmp1 = $3;
         res = new IR(kRelationExpr, OP3("ONLY (", ")", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
@@ -20859,6 +20907,8 @@ target_el:
         free($3);
         res = new IR(kTargetEl, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_iden_type(kDataAliasName, kDefine);
     }
 
     | a_expr BareColLabel {
@@ -20996,7 +21046,7 @@ func_name:
     }
 
     | ColId indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, 0, kFlagUnknown);
         free($1);
         auto tmp2 = $2;
         res = new IR(kFuncName, OP3("", "", ""), tmp1, tmp2);

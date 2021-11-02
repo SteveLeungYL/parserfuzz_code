@@ -392,6 +392,7 @@ void IR::set_data_flag(DATAFLAG data_flag) {
 }
 
 bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
+  // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
   assert(this->get_ir_type() == kQualifiedName);
   assert(this->get_left() && this->get_left()->get_ir_type() == kIdentifier);
 
@@ -403,6 +404,7 @@ bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
 }
 
 bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
+  // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
   assert(this->get_ir_type() == kIdentifier);
 
   this->set_data_type(data_type);
