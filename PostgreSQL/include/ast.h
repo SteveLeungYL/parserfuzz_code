@@ -250,7 +250,8 @@ public:
   /* helper functions for the IR type */
 
   // Return is succeed.
-  bool set_qualified_name_type(IR*, DATATYPE, DATAFLAG);
+  bool set_qualified_name_type(DATATYPE, DATAFLAG);
+  bool set_iden_type(DATATYPE, DATAFLAG);
 
 };
 

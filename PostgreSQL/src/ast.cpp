@@ -391,18 +391,22 @@ void IR::set_data_flag(DATAFLAG data_flag) {
   this->data_flag_ = data_flag;
 }
 
-bool IR::set_qualified_name_type(IR* cur_ir, DATATYPE data_type, DATAFLAG data_flag) {
-  if (cur_ir->get_ir_type() != kQualifiedName) {
-    return false;
-  }
+bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kQualifiedName);
+  assert(this->get_left() && this->get_left()->get_ir_type() == kIdentifier);
 
-  if (!cur_ir->get_left() || cur_ir->get_left()->get_ir_type() != kIdentifier) {
-    return false;
-  }
-
-  IR* iden = cur_ir->get_left();
+  IR* iden = this->get_left();
   iden->set_data_type(data_type);
   iden->set_data_flag(data_flag);
+
+  return true;
+}
+
+bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kIdentifier);
+
+  this->set_data_type(data_type);
+  this->set_data_flag(data_flag);
 
   return true;
 }

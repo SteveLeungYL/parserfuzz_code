@@ -4256,6 +4256,8 @@ CreateStmt:
         auto tmp9 = $13;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
     }
 
     | CREATE OptTemp TABLE IF_P NOT EXISTS qualified_name '(' OptTableElementList ')' OptInherit OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
@@ -4277,6 +4279,9 @@ CreateStmt:
         auto tmp9 = $16;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
     | CREATE OptTemp TABLE qualified_name OF any_name OptTypedTableElementList OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
@@ -4298,6 +4303,9 @@ CreateStmt:
         auto tmp9 = $12;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
     | CREATE OptTemp TABLE IF_P NOT EXISTS qualified_name OF any_name OptTypedTableElementList OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
@@ -4319,6 +4327,9 @@ CreateStmt:
         auto tmp9 = $15;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
     | CREATE OptTemp TABLE qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
@@ -4342,6 +4353,9 @@ CreateStmt:
         auto tmp10 = $14;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp10);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
     | CREATE OptTemp TABLE IF_P NOT EXISTS qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec OptPartitionSpec table_access_method_clause OptWith OnCommitOption OptTableSpace {
@@ -4365,6 +4379,9 @@ CreateStmt:
         auto tmp10 = $17;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp10);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kDefine);
+
     }
 
 ;
@@ -15105,14 +15122,19 @@ insert_target:
         auto tmp1 = $1;
         res = new IR(kInsertTarget, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
+
     }
 
     | qualified_name AS ColId {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataAliasName, 0, kDefine);
         free($3);
         res = new IR(kInsertTarget, OP3("", "AS", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
@@ -15198,6 +15220,8 @@ insert_column_item:
         auto tmp2 = $2;
         res = new IR(kInsertColumnItem, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
 ;
