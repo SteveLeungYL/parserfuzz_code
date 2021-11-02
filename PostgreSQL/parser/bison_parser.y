@@ -3629,11 +3629,8 @@ alter_identity_column_option:
         /* Yu: Avoid using seqoptelem that is not supported.  */
         auto tmp1 = $2;
         if (tmp1) {
-            const char* tmp_char = tmp1->get_prefix();
-            if (!strcmp(tmp_char, "AS") || !strcmp(tmp_char, "RESTART") || !strcmp(tmp_char, "OWNED_BY")) {
-                $2 -> deep_drop();
-            }
-            $$ = new IR(kAlterIdentityColumnOption, OP3("RESTART", "", ""));
+            tmp1 -> deep_drop();
+            $$ = new IR(kAlterIdentityColumnOption, OP3("SET RESTART", "", ""));
         } else {
             $$ = new IR(kAlterIdentityColumnOption, OP3("SET", "", ""), tmp1);
         }
@@ -3682,12 +3679,10 @@ hash_partbound_elem:
     NonReservedWord Iconst {
         /* Yu: From the documentation, I can only see "modulus" and "remainder" available for NonReserveredWord. */
         IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
-        if ($1) {
-            if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
-                res = new IR(kHashPartboundElem_1, string($1));
-            } else {
-                res = new IR(kHashPartboundElem_1, string("modulus"));
-            }
+        if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
+            res = new IR(kHashPartboundElem_1, string($1));
+        } else {
+            res = new IR(kHashPartboundElem_1, string("modulus"));
         }
         res = new IR(kHashPartboundElem_1, OP0(), res, tmp1);
         free($1);
@@ -3858,7 +3853,7 @@ CopyStmt:
         res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
         auto tmp5 = $6;
         res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
-        if ($6->is_empty() &&
+        if (!$6->is_empty() &&
             (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
         ){
             auto tmp6 = $7;
@@ -3873,7 +3868,7 @@ CopyStmt:
         auto tmp9 = $10;
         res = new IR(kCopyStmt_8, OP3("", "", ""), res, tmp9);
         
-        if ($5->is_empty()) {
+        if (!$5->is_empty()) {
             auto tmp10 = $11;
             res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
         } else {
@@ -3887,7 +3882,7 @@ CopyStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kCopyStmt_9, OP3("COPY (", ") TO", ""), tmp1, tmp2);
-        if ($6->is_empty() &&
+        if (!$6->is_empty() &&
             (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
         ){
             auto tmp3 = $7;
