@@ -18531,21 +18531,21 @@ a_expr:
     | a_expr LESS_EQUALS a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "LESS_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kAExpr, OP3("", "<=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | a_expr GREATER_EQUALS a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "GREATER_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kAExpr, OP3("", ">=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | a_expr NOT_EQUALS a_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kAExpr, OP3("", "NOT_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kAExpr, OP3("", "!=", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -18999,21 +18999,21 @@ b_expr:
     | b_expr LESS_EQUALS b_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kBExpr, OP3("", "LESS_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kBExpr, OP3("", "<=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | b_expr GREATER_EQUALS b_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kBExpr, OP3("", "GREATER_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kBExpr, OP3("", ">=", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | b_expr NOT_EQUALS b_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kBExpr, OP3("", "NOT_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kBExpr, OP3("", "!=", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -20334,7 +20334,7 @@ func_arg_expr:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         auto tmp2 = $3;
-        res = new IR(kFuncArgExpr, OP3("", "COLON_EQUALS", ""), tmp1, tmp2);
+        res = new IR(kFuncArgExpr, OP3("", ":=", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -20342,7 +20342,7 @@ func_arg_expr:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         auto tmp2 = $3;
-        res = new IR(kFuncArgExpr, OP3("", "EQUALS_GREATER", ""), tmp1, tmp2);
+        res = new IR(kFuncArgExpr, OP3("", "=>", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -20749,6 +20749,8 @@ columnref:
         free($1);
         res = new IR(kColumnref, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1 -> set_iden_type(kDataColumnName, kUse);
     }
 
     | ColId indirection {
@@ -20757,6 +20759,8 @@ columnref:
         auto tmp2 = $2;
         res = new IR(kColumnref, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1 -> set_iden_type(kDataColumnName, kUse);
     }
 
 ;
@@ -21076,7 +21080,7 @@ AexprConst:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, string($1));
         free($1);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1);
         $$ = res;
@@ -21090,7 +21094,7 @@ AexprConst:
 
     | XCONST {
         /* Yu: This is actually deximal numberical string. */
-        auto tmp1 = new IR(kIntLiteral, string($1));
+        auto tmp1 = new IR(kIntLiteral, atoi($1));
         res = new IR(kAexprConst, OP0(), tmp1);
         $$ = res;
     }
@@ -21331,7 +21335,7 @@ plassign_target:
 plassign_equals:
 
     COLON_EQUALS {
-        res = new IR(kPlassignEquals, OP3("COLON_EQUALS", "", ""));
+        res = new IR(kPlassignEquals, OP3(":=", "", ""));
         $$ = res;
     }
 
