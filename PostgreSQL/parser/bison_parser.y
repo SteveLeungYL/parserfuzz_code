@@ -22295,7 +22295,7 @@ static void
 base_yyerror(YYLTYPE *yylloc, IR* res, IR **pIR, core_yyscan_t yyscanner, const char *msg)
 {
   if (res) res->deep_drop();
-	parser_yyerror(msg);
+	/* parser_yyerror(msg); */
 }
 
 /* parser_init()

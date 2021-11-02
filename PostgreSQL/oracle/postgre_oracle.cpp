@@ -62,7 +62,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         continue;
       }
 
-    cerr << "DEBUG: In get_random_mutated_select_stmt: getting ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n" << cur_ir_stmt->to_string() << "\n\n\n\n";
+    // cerr << "DEBUG: In get_random_mutated_select_stmt: getting ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n" << cur_ir_stmt->to_string() << "\n\n\n\n";
 
     if (!g_mutator->check_node_num(root, 400)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
@@ -166,7 +166,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         // cerr << "swap node to new_mutated_ir_node failure. \n";
         continue;
       }
-      cout << "mutated query: " <<  root->to_string() << "\n\n\n\n\n";
+      // cout << "mutated query: " <<  root->to_string() << "\n\n\n\n\n";
       // cout << "################################" << endl;
       // exit(0);
 

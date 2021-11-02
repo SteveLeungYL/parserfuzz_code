@@ -63,6 +63,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
       return false;
     }
 
+
     /* Here, we need to ensure the SELECT COUNT(*) structure is enforced.  */
     /* This is the IR tree structure that we need to enforce:
      *
@@ -117,6 +118,11 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
                 iden_ir->get_str_val() == "COUNT"
               )
           ) {
+            // cerr << "For is_oracle stmt: " << cur_stmt->to_string() << "\n";
+            // cerr << "is_oracle DEBUG: for where_clause, getting to_string(): " << where_clause->to_string() << "\n";
+            // cerr << "size: " << ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false).size() << "\n\n\n";
+            // g_mutator->debug(cur_stmt, 0);
+            // cerr << "\n\n\n";
             return true;
           }
         }
@@ -134,8 +140,26 @@ bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector) {
 
 vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id){
   vector<IR*> trans_IR_vec;
+
   cur_stmt->parent_ = NULL;
-  trans_IR_vec.push_back(cur_stmt->deep_copy()); // Save the original version. 
+
+  /* Double check whether the stmt is norec compatible */
+  if (!is_oracle_select_stmt(cur_stmt)) {
+    return trans_IR_vec;
+  }
+
+  trans_IR_vec.push_back(cur_stmt->deep_copy()); // Save the original version.
+
+  // cerr << "DEBUG: Getting post_fix cur_stmt: " << cur_stmt->to_string() << " \n\n\n";
+
+  // cerr << "DEBUG: Getting where_clause " <<  ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false).size() << "\n\n\n";
+
+  /* Take care of WHERE and FROM clauses. */
+  // cerr << "Printing post_fix tree: ";
+  // g_mutator->debug(cur_stmt, 0);
+  // cerr << "\n\n\n\n\n\n\n";
+
+  is_oracle_select_stmt(cur_stmt);
 
   vector<IR*> transformed_temp_vec = g_mutator->parse_query_str_get_ir_set(this->post_fix_temp);
   if (transformed_temp_vec.size() == 0) {
@@ -166,7 +190,6 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     dest_order_clause->deep_drop();
   }
 
-  /* Take care of WHERE and FROM clauses. */
   IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0]->get_left()->deep_copy();
   IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kAexprConst, true)[0];
 

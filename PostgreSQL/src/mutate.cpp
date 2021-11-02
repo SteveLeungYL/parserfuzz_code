@@ -309,6 +309,8 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
   // init lib from multiple sql
   while (getline(input_test, line)) {
 
+    cerr << "Parsing init line: " << line << "\n";
+
     vector<IR *> v_ir = parse_query_str_get_ir_set(line);
     if (v_ir.size() <= 0) {
       cerr << "failed to parse: " << line << endl;
@@ -324,9 +326,11 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
     if (v_ir.size() <= 0) {
       cerr << "failed to parse after extract_struct:" << endl
            << line << endl
-           << strip_sql << endl;
+           << strip_sql << "\n\n\n";
       continue;
     }
+
+    cerr << "Parsing succeed. \n\n\n";
 
     add_all_to_library(v_ir.back());
     v_ir.back()->deep_drop();
