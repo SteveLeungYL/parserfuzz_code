@@ -178,6 +178,17 @@ void IR::to_string_core(string& res) {
       res += std::to_string(float_val_);
     }
     return;
+  case kBoolLiteral:
+    if (str_val_ != "") {
+      res += str_val_;
+    }  else {
+      if (bool_val_) {
+        res += " TRUE ";
+      } else {
+        res += " FALSE ";
+      }
+    }
+    return;
   case kIdentifier:
   case kStringLiteral:
     if (str_val_ != "") {
@@ -406,6 +417,15 @@ bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
 bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
   // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
   assert(this->get_ir_type() == kIdentifier);
+
+  this->set_data_type(data_type);
+  this->set_data_flag(data_flag);
+
+  return true;
+}
+
+bool IR::set_reloption_elem_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kReloptionElem);
 
   this->set_data_type(data_type);
   this->set_data_flag(data_flag);

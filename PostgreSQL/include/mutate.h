@@ -28,6 +28,14 @@ enum STMT_TYPE {
   ORACLE_NORMAL = 2
 };
 
+enum DEF_ARG_TYPE {
+  boolean = 0,
+  integer = 1,
+  floating_point = 2,
+  str = 3,
+  on_off_auto = 4
+};
+
 class Mutator {
 
 public:
@@ -196,7 +204,10 @@ public:
   static vector<string> v_alias_names_single; // All alias name local to one query statement.  
   static map<string, vector<string>> m_table2alias_single;   // Table name to alias mapping. 
   static map<string, int> m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_. 
-  static vector<string> v_column_names_single; // All used column names in one query statement. Used to confirm literal type. 
+  static vector<string> v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
+
+
+  static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
 
   // added by vancir
   map<unsigned long, bool> norec_hash;

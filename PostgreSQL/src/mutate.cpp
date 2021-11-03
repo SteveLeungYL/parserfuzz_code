@@ -35,7 +35,9 @@ vector<string> Mutator::v_create_table_names_single; // All table names just cre
 vector<string> Mutator::v_alias_names_single; // All alias name local to one query statement.  
 map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping. 
 map<string, int> Mutator::m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_. 
-vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type. 
+vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
+
+map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 
 //#define GRAPHLOG
 
@@ -301,6 +303,35 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
                                  kDropViewStmt, kSelectStmt, kUpdateStmt,
                                  kInsertStmt, kAlterStmt, kReindexStmt});
   }
+
+  // Initialize the storage parameters from the CREATE TABLE stmt.
+
+  vector<pair<string, DEF_ARG_TYPE>> storage_parameter_pair;
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("fillfactor", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("toast_tuple_target", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("parallel_workers", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_enabled", DEF_ARG_TYPE::boolean));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("vacuum_index_cleanup", DEF_ARG_TYPE::on_off_auto));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("vacuum_truncate", DEF_ARG_TYPE::boolean));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_vacuum_threshold", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_vacuum_scale_factor", DEF_ARG_TYPE::floating_point));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_vacuum_insert_threshold", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_vacuum_insert_scale_factor", DEF_ARG_TYPE::floating_point));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_analyze_scale_factor", DEF_ARG_TYPE::floating_point));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_vacuum_cost_delay", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_vacuum_cost_limit", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_freeze_min_age", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_freeze_max_age", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_multixact_freeze_min_age", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_multixact_freeze_max_age", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("autovacuum_multixact_freeze_table_age", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("log_autovacuum_min_duration", DEF_ARG_TYPE::integer));
+  storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("user_catalog_table", DEF_ARG_TYPE::boolean));
+
+  this->m_reloption[kCreateStmt] = storage_parameter_pair;
+
+
+
 
 
   ifstream input_test(f_testcase);
@@ -1073,7 +1104,7 @@ static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
 void
 Mutator::fix_preprocessing(IR *stmt_root,
                      vector<IR*> &ordered_all_subquery_ir) {
-  set<DATATYPE> type_to_fix = {kDataColumnName, kDataTableName, kDataPragmaKey, kDataPragmaValue, kDataLiteral};
+  set<DATATYPE> type_to_fix = {kDataColumnName, kDataTableName, kDataPragmaKey, kDataPragmaValue, kDataLiteral, kDataRelOption};
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
@@ -1083,6 +1114,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
   if (is_debug_info) {
     cerr << "Fix_dependency: cur_stmt_root: " << cur_stmt_root->to_string() << "\n\n\n";
   }
+
+  /* Used to mark the IRs that are needed to be deep_drop(). However, it is not a good idea
+   * to deep_drop in the middle of the fix_dependency() function, some ir_to_fix node might have
+   * nested IR strcuture. Use this vector to save all IR that needs deep_drop, and drop them at the end
+   * of the function.
+   * */
+  vector<IR*> ir_to_deep_drop;
 
   bool is_replace_table = false, is_replace_column = false;
   for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {  // Loop for substmt. 
@@ -1395,6 +1433,90 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
+    /* Fix for reloptions. (Related options. ) */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_data_type() == kDataRelOption) {
+        vector<pair<string, DEF_ARG_TYPE>>& v_reloption = this->m_reloption[cur_stmt_root->get_ir_type()];
+
+        if (v_reloption.size() == 0) {
+        /* No reloption found.  */
+          break;
+        }
+
+        auto &cur_chosen_reloption = v_reloption[get_rand_int(v_reloption.size())];
+
+        // cerr << "DEBUG: cur_chosen_reloption.first: " << cur_chosen_reloption.first << "\n\n\n";
+        IR* new_reloption_label = new IR(kIdentifier, string(cur_chosen_reloption.first));
+
+        DEF_ARG_TYPE arg_type = cur_chosen_reloption.second;
+
+        IR* new_reloption_args = NULL;
+
+        /* Boolean */
+        if (arg_type == DEF_ARG_TYPE::boolean) {
+          if (get_rand_int(2) < 1) {
+            new_reloption_args = new IR(kBoolLiteral, string("TRUE"));
+            new_reloption_args->bool_val_ = true;
+          } else {
+            new_reloption_args = new IR(kBoolLiteral, string("FALSE"));
+            new_reloption_args->bool_val_ = false;
+          }
+          cerr << "DEBUG: new_reloption_args->str_val_: " << new_reloption_args->str_val_ << "\n\n\n";
+        }
+        /* Integer */
+        else if (arg_type == DEF_ARG_TYPE::integer) {
+          if (get_rand_int(100) < 50) {
+            if (value_library_.size() == 0) {
+              FATAL("Error: value_library_ is not being init properly. \n");
+            }
+            new_reloption_args = new IR(kIntLiteral, string(""));
+            new_reloption_args->int_val_ = vector_rand_ele(value_library_);
+            if (new_reloption_args->int_val_ < 0) {
+              new_reloption_args->int_val_ = - new_reloption_args->int_val_;
+            }
+            new_reloption_args->str_val_ = to_string(new_reloption_args->int_val_);
+          } else {
+            new_reloption_args = new IR(kIntLiteral, string(""));
+            new_reloption_args->int_val_ = get_rand_int(100);
+            new_reloption_args->str_val_ = to_string(new_reloption_args->int_val_);
+          }
+        }
+        /* Floating point */
+        else if (arg_type == DEF_ARG_TYPE::floating_point) {
+          new_reloption_args = new IR(kFloatLiteral, string(""));
+          new_reloption_args->float_val_ = (double)(get_rand_int(100));
+          new_reloption_args->str_val_ = to_string(new_reloption_args->float_val_);
+        }
+        /* On Off Auto */
+        else if (arg_type == DEF_ARG_TYPE::on_off_auto) {
+          int tmp = get_rand_int(3);
+          if (tmp == 0) {
+            new_reloption_args = new IR(kStringLiteral, string("ON"));
+          } else if (tmp == 1) {
+            new_reloption_args = new IR(kStringLiteral, string("OFF"));
+          } else {
+            new_reloption_args = new IR(kStringLiteral, string("AUTO"));
+          }
+        }
+        /* some unknown string type. Give up and ignored.  */
+        else {
+          new_reloption_label->deep_drop();
+          continue;
+        }
+
+
+        IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""), new_reloption_label, new_reloption_args);
+
+        /* Replace the old reloption ir to the new one. But only deep_drop it at the end of the fix_dependency.  */
+        cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+        /* If nested reloption_elem happens, this will crash the program.
+         * But I don't think that is a possible case in practice.
+         * */
+        ir_to_deep_drop.push_back(ir_to_fix);
+
+      }
+    }
+
     /* TODO:: Support for Aliases. */
 
   }  /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
@@ -1500,6 +1622,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       /* TODO:: Support for CREATE TABLE AS stmt. */
 
     } // for (IR* ir_to_fix : ir_to_fix_vec)
+  }
+
+  for (IR* ir_to_drop : ir_to_deep_drop) {
+    if (ir_to_drop) {
+      ir_to_drop->deep_drop();
+    }
   }
 
   return true;

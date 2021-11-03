@@ -249,9 +249,10 @@ public:
 
   /* helper functions for the IR type */
 
-  // Return is succeed.
-  bool set_qualified_name_type(DATATYPE, DATAFLAG);
+  // Return is_succeed.
   bool set_iden_type(DATATYPE, DATAFLAG);
+  bool set_qualified_name_type(DATATYPE, DATAFLAG);
+  bool set_reloption_elem_type(DATATYPE, DATAFLAG);
 
 };
 

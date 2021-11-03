@@ -163,10 +163,10 @@ int main(int argc, char *argv[]) {
       p_oracle->ir_wrapper.append_stmt_at_end(cur_root);
     }
   }
-  if (root) root->deep_drop();
+  // if (root) root->deep_drop();
 
   // Ignore validation right now. Will fix later. 
-  // try_validate_query(root);
+  try_validate_query(root);
 
   return 0;
 }

@@ -1498,7 +1498,9 @@
   V(DataAggregateArguments)                                                    \
   V(DataNonReservedWord)                                                       \
   V(DataFixLater)                                                              \
-  V(DataConstraintName)
+  V(DataConstraintName)                                                        \
+  V(DataRelOption)                                              \
+  V(DataNoModi)
 
 
 #define SWITCHSTART switch (case_idx_) {

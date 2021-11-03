@@ -3561,6 +3561,8 @@ reloption_elem:
         free($1);
         auto tmp2 = $3;
         res = new IR(kReloptionElem, OP3("", "=", ""), tmp1, tmp2);
+
+        res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
     }
 
@@ -3568,6 +3570,8 @@ reloption_elem:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kReloptionElem, OP3("", "", ""), tmp1);
+
+        res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
     }
 
@@ -3579,6 +3583,8 @@ reloption_elem:
         res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
         auto tmp3 = $5;
         res = new IR(kReloptionElem, OP3("", "", ""), res, tmp3);
+
+        res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
     }
 
@@ -3588,6 +3594,8 @@ reloption_elem:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kReloptionElem, OP3("", ".", ""), tmp1, tmp2);
+
+        res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
     }
 
