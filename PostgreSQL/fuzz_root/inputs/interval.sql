@@ -1,13 +1,5 @@
 SET DATESTYLE = 'ISO';
 SET IntervalStyle to postgres;
-SELECT INTERVAL '01:00' AS "One hour";
-SELECT INTERVAL '+02:00' AS "Two hours";
-SELECT INTERVAL '-08:00' AS "Eight hours";
-SELECT INTERVAL '-1 +02:03' AS "22 hours ago...";
-SELECT INTERVAL '-1 days +02:03' AS "22 hours ago...";
-SELECT INTERVAL '1.5 weeks' AS "Ten days twelve hours";
-SELECT INTERVAL '1.5 months' AS "One month 15 days";
-SELECT INTERVAL '10 years -11 month -12 days +13:14' AS "9 years...";
 CREATE TABLE INTERVAL_TBL (f1 interval);
 INSERT INTO INTERVAL_TBL (f1) VALUES ('@ 1 minute');
 INSERT INTO INTERVAL_TBL (f1) VALUES ('@ 5 hour');
