@@ -2780,6 +2780,9 @@ AlterTableStmt:
         auto tmp3 = $10;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp2->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | ALTER TABLE ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
@@ -2793,6 +2796,9 @@ AlterTableStmt:
         auto tmp4 = $13;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp3->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | ALTER INDEX qualified_name alter_table_cmds {
@@ -2800,6 +2806,8 @@ AlterTableStmt:
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataIndexName, kUse);
     }
 
     | ALTER INDEX IF_P EXISTS qualified_name alter_table_cmds {
@@ -2807,6 +2815,8 @@ AlterTableStmt:
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX IF EXISTS", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataIndexName, kUse);
     }
 
     | ALTER INDEX qualified_name index_partition_cmd {
@@ -2814,6 +2824,8 @@ AlterTableStmt:
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataIndexName, kUse);
     }
 
     | ALTER INDEX ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
@@ -2825,6 +2837,9 @@ AlterTableStmt:
         auto tmp3 = $10;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp2->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | ALTER INDEX ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
@@ -2838,6 +2853,9 @@ AlterTableStmt:
         auto tmp4 = $13;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp3->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | ALTER SEQUENCE qualified_name alter_table_cmds {
@@ -2845,6 +2863,8 @@ AlterTableStmt:
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER SEQUENCE", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataSequenceName, kUse);
     }
 
     | ALTER SEQUENCE IF_P EXISTS qualified_name alter_table_cmds {
@@ -2852,6 +2872,8 @@ AlterTableStmt:
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER SEQUENCE IF EXISTS", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataSequenceName, kUse);
     }
 
     | ALTER VIEW qualified_name alter_table_cmds {
@@ -2859,6 +2881,8 @@ AlterTableStmt:
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER VIEW", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataViewName, kUse);
     }
 
     | ALTER VIEW IF_P EXISTS qualified_name alter_table_cmds {
@@ -2866,6 +2890,8 @@ AlterTableStmt:
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER VIEW IF EXISTS", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataViewName, kUse);
     }
 
     | ALTER MATERIALIZED VIEW qualified_name alter_table_cmds {
@@ -2873,6 +2899,8 @@ AlterTableStmt:
         auto tmp2 = $5;
         res = new IR(kAlterTableStmt, OP3("ALTER MATERIALIZED VIEW", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataViewName, kUse);
     }
 
     | ALTER MATERIALIZED VIEW IF_P EXISTS qualified_name alter_table_cmds {
@@ -2880,6 +2908,8 @@ AlterTableStmt:
         auto tmp2 = $7;
         res = new IR(kAlterTableStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataViewName, kUse);
     }
 
     | ALTER MATERIALIZED VIEW ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
@@ -2891,6 +2921,9 @@ AlterTableStmt:
         auto tmp3 = $11;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp2->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | ALTER MATERIALIZED VIEW ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
@@ -2904,6 +2937,9 @@ AlterTableStmt:
         auto tmp4 = $14;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp4);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp3->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | ALTER FOREIGN TABLE relation_expr alter_table_cmds {
