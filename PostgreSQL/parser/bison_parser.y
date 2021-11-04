@@ -3455,6 +3455,8 @@ opt_collate_clause:
         auto tmp1 = $2;
         res = new IR(kOptCollateClause, OP3("COLLATE", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_any_name_type(kDataColumnName, kUse);
     }
 
     | /* EMPTY */ {
@@ -4681,6 +4683,8 @@ ColConstraint:
         auto tmp1 = $2;
         res = new IR(kColConstraint, OP3("COLLATE", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_any_name_type(kDataColumnName, kUse);
     }
 
 ;
@@ -5323,6 +5327,8 @@ PartitionSpec:
         auto tmp2 = $5;
         res = new IR(kPartitionSpec, OP3("PARTITION BY", "(", ")"), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
 ;
@@ -10418,6 +10424,9 @@ opt_collate:
         auto tmp1 = $2;
         res = new IR(kOptCollate, OP3("COLLATE", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_any_name_type(kDataColumnName, kUse);
+
     }
 
     | /*EMPTY*/ {
@@ -18452,6 +18461,9 @@ a_expr:
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "COLLATE", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp2->set_any_name_type(kDataColumnName, kUse);
+
     }
 
     | a_expr AT TIME ZONE a_expr %prec AT {
@@ -19923,6 +19935,8 @@ opt_partition_clause:
         auto tmp1 = $3;
         res = new IR(kOptPartitionClause, OP3("PARTITION BY", "", ""), tmp1);
         $$ = res;
+
+
     }
 
     | /*EMPTY*/ {

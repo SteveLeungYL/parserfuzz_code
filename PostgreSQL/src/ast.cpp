@@ -432,3 +432,14 @@ bool IR::set_reloption_elem_type(DATATYPE data_type, DATAFLAG data_flag) {
 
   return true;
 }
+
+bool IR::set_any_name_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kAnyName);
+
+  IR* iden = this->get_left();
+
+  iden->set_data_type(data_type);
+  iden->set_data_flag(data_flag);
+
+  return true;
+}
