@@ -10317,6 +10317,8 @@ opt_index_name:
         free($1);
         res = new IR(kOptIndexName, OP3("", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_iden_type(kDataIndexName, kDefine);
     }
 
     | /*EMPTY*/ {
