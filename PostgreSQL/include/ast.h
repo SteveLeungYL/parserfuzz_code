@@ -40,6 +40,7 @@ enum DATAFLAG {
   kAlias = 0x80,
   kMapToAll = 0x20,
   kDefine = 0x1,
+  kNoModi = 0x200,
   kFlagUnknown = 0x0
 };
 
@@ -238,6 +239,7 @@ public:
 
   IRTYPE get_ir_type();
   DATATYPE get_data_type();
+  DATAFLAG get_data_flag();
 
   bool is_empty();
 

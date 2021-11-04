@@ -382,6 +382,10 @@ DATATYPE IR::get_data_type() {
   return data_type_;
 }
 
+DATAFLAG IR::get_data_flag() {
+  return data_flag_;
+}
+
 IR* IR::get_left() {
   return left_;
 }

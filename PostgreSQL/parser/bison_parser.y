@@ -18003,6 +18003,8 @@ GenericType:
         auto tmp2 = $2;
         res = new IR(kGenericType, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataGenericType, kNoModi);
     }
 
     | type_function_name attrs opt_type_modifiers {
@@ -18013,6 +18015,9 @@ GenericType:
         auto tmp3 = $3;
         res = new IR(kGenericType, OP3("", "", ""), res, tmp3);
         $$ = res;
+
+        tmp1->set_iden_type(kDataGenericType, kNoModi);
+
     }
 
 ;

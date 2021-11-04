@@ -1500,7 +1500,8 @@
   V(DataFixLater)                                                              \
   V(DataConstraintName)                                                        \
   V(DataRelOption)                                              \
-  V(DataNoModi)
+  V(DataGenericType)
+
 
 
 #define SWITCHSTART switch (case_idx_) {
