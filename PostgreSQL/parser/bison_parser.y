@@ -5492,6 +5492,8 @@ OptTableSpace:
         free($2);
         res = new IR(kOptTableSpace, OP3("TABLESPACE", "", ""), tmp1);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTableSpaceName, kUse);
     }
 
     | /*EMPTY*/ {
@@ -5700,6 +5702,8 @@ create_as_target:
         auto tmp6 = $6;
         res = new IR(kCreateAsTarget, OP3("", "", ""), res, tmp6);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kDefine);
     }
 
 ;
