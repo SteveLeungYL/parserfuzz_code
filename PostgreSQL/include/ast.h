@@ -258,6 +258,9 @@ public:
   bool set_reloption_elem_type(DATATYPE, DATAFLAG);
   bool set_any_name_type(DATATYPE, DATAFLAG);
 
+  bool set_opt_columnlist_type(DATATYPE, DATAFLAG);
+  bool set_columnlist_type(DATATYPE, DATAFLAG);
+
 };
 
 DATATYPE get_datatype_by_string(string s);

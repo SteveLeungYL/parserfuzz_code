@@ -13909,6 +13909,10 @@ ViewStmt:
         auto tmp6 = $9;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataViewName, kDefine);
+        tmp3->set_opt_columnlist_type(kDataColumnName, kDefine);
+
     }
 
     | CREATE OR REPLACE OptTemp VIEW qualified_name opt_column_list opt_reloptions AS SelectStmt opt_check_option {
@@ -13924,6 +13928,9 @@ ViewStmt:
         auto tmp6 = $11;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataViewName, kDefine);
+        tmp3->set_opt_columnlist_type(kDataColumnName, kDefine);
     }
 
     | CREATE OptTemp RECURSIVE VIEW qualified_name '(' columnList ')' opt_reloptions AS SelectStmt opt_check_option {
@@ -13942,6 +13949,10 @@ ViewStmt:
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataViewName, kDefine);
+        tmp3->set_columnlist_type(kDataColumnName, kDefine);
+
     }
 
     | CREATE OR REPLACE OptTemp RECURSIVE VIEW qualified_name '(' columnList ')' opt_reloptions AS SelectStmt opt_check_option {
@@ -13960,6 +13971,10 @@ ViewStmt:
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataViewName, kDefine);
+        tmp3->set_columnlist_type(kDataColumnName, kDefine);
+
     }
 
 ;

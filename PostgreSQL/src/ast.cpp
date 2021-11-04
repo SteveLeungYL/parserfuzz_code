@@ -447,3 +447,34 @@ bool IR::set_any_name_type(DATATYPE data_type, DATAFLAG data_flag) {
 
   return true;
 }
+
+bool IR::set_opt_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kOptColumnList);
+
+  IR* columnlist_ir = this->get_left();
+  if (columnlist_ir) {
+    return columnlist_ir->set_columnlist_type(data_type, data_flag);
+  }
+  return true;
+}
+
+bool IR::set_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kColumnList);
+
+  IR* column_elem_ir = NULL;
+  if (this->get_right()) {
+    column_elem_ir = this->get_right();
+  } else {
+    column_elem_ir = this->get_left();
+  }
+  IR* iden = column_elem_ir->get_left();
+  iden->set_iden_type(data_type, data_flag);
+
+  /* This is a list, iterate all the columnElem possible.  */
+  if (this->get_right()) {
+    return this->get_left()->set_columnlist_type(data_type, data_flag);
+  }
+
+  return true;
+
+}
