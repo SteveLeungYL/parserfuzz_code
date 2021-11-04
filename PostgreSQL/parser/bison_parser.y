@@ -7942,6 +7942,8 @@ AlterEventTrigStmt:
         auto tmp2 = $5;
         res = new IR(kAlterEventTrigStmt, OP3("ALTER EVENT TRIGGER", "", ""), tmp1, tmp2);
         $$ = res;
+
+        tmp1->set_iden_type(kDataTriggerName, kUse);
     }
 
 ;
