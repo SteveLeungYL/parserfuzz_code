@@ -717,6 +717,8 @@ void Mutator::_extract_struct(IR *root) {
     extract_struct(root->right_);
   }
 
+  if (root->get_data_flag() == kDataNoModi) {return;}
+
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
     return;
 
