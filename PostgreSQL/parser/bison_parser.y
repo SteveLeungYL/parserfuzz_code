@@ -10277,6 +10277,9 @@ IndexStmt:
         auto tmp10 = $18;
         res = new IR(kIndexStmt, OP3("", "", ""), res, tmp10);
         $$ = res;
+
+        tmp3->set_iden_type(kDataIndexName, kDefine);
+
     }
 
 ;
