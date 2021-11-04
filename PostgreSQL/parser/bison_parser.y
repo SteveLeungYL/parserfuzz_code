@@ -10412,6 +10412,9 @@ index_elem:
         auto tmp2 = $2;
         res = new IR(kIndexElem, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
+
+        /* Yu: This index_elem is actually pointing to table columns. */
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
     | func_expr_windowless index_elem_options {

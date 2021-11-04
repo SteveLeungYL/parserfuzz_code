@@ -1106,7 +1106,7 @@ static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
 void
 Mutator::fix_preprocessing(IR *stmt_root,
                      vector<IR*> &ordered_all_subquery_ir) {
-  set<DATATYPE> type_to_fix = {kDataColumnName, kDataTableName, kDataPragmaKey, kDataPragmaValue, kDataLiteral, kDataRelOption};
+  set<DATATYPE> type_to_fix = {kDataColumnName, kDataTableName, kDataPragmaKey, kDataPragmaValue, kDataLiteral, kDataRelOption, kDataIndexName};
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
@@ -1372,6 +1372,23 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency Error: In kDataColumnName, kUse, cannot find mapping from table_name" << closest_table_name << ". \n\n\n";
           }
         }
+      }
+    }
+
+    /* Fix of kDataIndex name. */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_data_type() == kDataIndexName) {
+        if (ir_to_fix->get_data_flag() == kDefine) {
+          string tmp_index_name = gen_index_name();
+          ir_to_fix->set_str_val(tmp_index_name);
+
+          /* Find the table used in this stmt. */
+          if (v_table_names_single.size() != 0) {
+            string tmp_table_name = v_table_names_single[0];
+            m_table2index[tmp_table_name].push_back(tmp_index_name);
+          }
+        }
+        // TODO:: SUPPORT FOR kUndefine
       }
     }
 
