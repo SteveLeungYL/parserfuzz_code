@@ -478,3 +478,13 @@ bool IR::set_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 
 }
+
+bool IR::add_drop_is_add(){
+  assert(this->get_ir_type() == kAddDrop);
+
+  if(!strcmp(this->get_prefix(), "ADD")) {
+    return true;
+  } else {
+    return false;
+  }
+}
