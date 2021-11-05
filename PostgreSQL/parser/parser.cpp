@@ -73,7 +73,8 @@ raw_parser(const char *str, RawParseMode mode)
   IR **pIR = &ir_root;
 
 	/* Parse! */
-	yyresult = base_yyparse(ir_dumb, pIR, yyscanner);
+	vector<IR*> all_gen_ir;
+	yyresult = base_yyparse(ir_dumb, pIR, all_gen_ir, yyscanner);
 
 	/* Clean up (release memory) */
 	scanner_finish(yyscanner);
@@ -318,7 +319,7 @@ str_udeescape(const char *str, char escape,
 	 * padding for Unicode conversion.
 	 */
 	new_len = strlen(str) + MAX_UNICODE_EQUIVALENT_STRING + 1;
-	new_char_operator = (char*)(palloc(new_len));
+	new_char_operator = (char*)(palloc(new_len+2));
 
 	in = str;
 	out = new_char_operator;

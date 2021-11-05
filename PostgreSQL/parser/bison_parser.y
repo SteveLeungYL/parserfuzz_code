@@ -47,6 +47,7 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <vector>
 
 #include "../include/ast.h"
 //#include "access/tableam.h"
@@ -160,7 +161,7 @@ typedef struct GroupClause
 #define parser_yyerror(msg)  scanner_yyerror(msg, yyscanner)
 #define parser_errposition(pos)  scanner_errposition(pos, yyscanner)
 
-static void base_yyerror(YYLTYPE *yylloc, IR* result, IR **pIR,
+static void base_yyerror(YYLTYPE *yylloc, IR* result, IR **pIR, vector<IR*> all_gen_ir,
             core_yyscan_t yyscanner, const char *msg);
 static char* alloc_and_cat(const char*, const char*);
 static char* alloc_and_cat(const char*, const char*, const char*);
@@ -174,7 +175,7 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 //%define api.prefix {base_yy}
 %locations
 
-%parse-param {IR* res} {IR **pIR} {core_yyscan_t yyscanner}
+     %parse-param {IR* res} {IR **pIR} {vector<IR*> all_gen_ir} {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
 
 %union
@@ -288,8 +289,8 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 %type <ir>		enable_trigger
 
 %type <ir>		copy_file_name
-				access_method_clause 
-				table_access_method_clause 
+				access_method_clause
+				table_access_method_clause
 				opt_index_name cluster_index_specification
 
 %type <str>     attr_name name cursor_name file_name
@@ -759,6 +760,7 @@ parse_toplevel:
         auto tmp1 = $1;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
         res = *pIR;
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -766,6 +768,7 @@ parse_toplevel:
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
         res = *pIR;
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -773,6 +776,7 @@ parse_toplevel:
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
         res = *pIR;
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -780,6 +784,7 @@ parse_toplevel:
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
         res = *pIR;
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -787,6 +792,7 @@ parse_toplevel:
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
         res = *pIR;
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -794,6 +800,7 @@ parse_toplevel:
         auto tmp1 = $2;
         *pIR = new IR(kParseToplevel, OP3("", "", ""), tmp1);
         res = *pIR;
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -816,12 +823,14 @@ stmtmulti:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kStmtmulti, OP3("", ";", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | toplevel_stmt {
         auto tmp1 = $1;
         res = new IR(kStmtmulti, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -844,743 +853,867 @@ stmt:
     AlterEventTrigStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterCollationStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterDatabaseStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterDatabaseSetStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterDefaultPrivilegesStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterDomainStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterEnumStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterExtensionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterExtensionContentsStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterFdwStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterForeignServerStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterFunctionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterGroupStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterObjectDependsStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterObjectSchemaStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterOwnerStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterOperatorStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterTypeStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterPolicyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterSeqStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterSystemStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterTableStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterTblSpcStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterCompositeTypeStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterPublicationStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterRoleSetStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterRoleStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterSubscriptionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterStatsStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterTSConfigurationStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterTSDictionaryStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterUserMappingStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AnalyzeStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CallStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CheckPointStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ClosePortalStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ClusterStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CommentStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ConstraintsSetStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CopyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateAmStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateAsStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateAssertionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateCastStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateConversionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateDomainStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateExtensionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateFdwStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateForeignServerStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateForeignTableStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateFunctionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateGroupStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateMatViewStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateOpClassStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateOpFamilyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreatePublicationStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AlterOpFamilyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreatePolicyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreatePLangStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateSchemaStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateSeqStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateSubscriptionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateStatsStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateTableSpaceStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateTransformStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateTrigStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateEventTrigStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateRoleStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateUserStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateUserMappingStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreatedbStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeallocateStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeclareCursorStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DefineStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeleteStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DiscardStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DoStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropCastStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropOpClassStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropOpFamilyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropOwnedStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropSubscriptionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropTableSpaceStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropTransformStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropRoleStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropUserMappingStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DropdbStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ExecuteStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ExplainStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FetchStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GrantStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GrantRoleStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ImportForeignSchemaStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IndexStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | InsertStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ListenStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RefreshMatViewStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LoadStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LockStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NotifyStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PrepareStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ReassignOwnedStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ReindexStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RemoveAggrStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RemoveFuncStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RemoveOperStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RenameStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RevokeStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RevokeRoleStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RuleStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SecLabelStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SelectStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TransactionStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TruncateStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UnlistenStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UpdateStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VacuumStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VariableResetStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VariableSetStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VariableShowStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ViewStmt {
         auto tmp1 = $1;
         res = new IR(kStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kStmt, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1598,6 +1731,7 @@ CallStmt:
     CALL func_application {
         auto tmp1 = $2;
         res = new IR(kCallStmt, OP3("CALL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1617,9 +1751,13 @@ CreateRoleStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateRoleStmt_1, OP3("CREATE ROLE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateRoleStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataRoleName, kNoModi);
     }
 
 ;
@@ -1630,16 +1768,19 @@ opt_with:
 
     WITH {
         res = new IR(kOptWith, OP3("WITH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH_LA {
         res = new IR(kOptWith, OP3("WITH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptWith, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1657,11 +1798,13 @@ OptRoleList:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kOptRoleList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptRoleList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1674,11 +1817,13 @@ AlterOptRoleList:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAlterOptRoleList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kAlterOptRoleList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1691,11 +1836,13 @@ AlterOptRoleElem:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAlterOptRoleElem, OP3("PASSWORD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PASSWORD NULL_P {
         res = new IR(kAlterOptRoleElem, OP3("PASSWORD NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1703,6 +1850,7 @@ AlterOptRoleElem:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1711,17 +1859,20 @@ AlterOptRoleElem:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INHERIT {
         res = new IR(kAlterOptRoleElem, OP3("INHERIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CONNECTION LIMIT SignedIconst {
         auto tmp1 = $3;
         res = new IR(kAlterOptRoleElem, OP3("CONNECTION LIMIT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1729,12 +1880,14 @@ AlterOptRoleElem:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterOptRoleElem, OP3("VALID UNTIL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | USER role_list {
         auto tmp1 = $2;
         res = new IR(kAlterOptRoleElem, OP3("USER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1757,8 +1910,10 @@ AlterOptRoleElem:
 		    !strcmp($1, "noinherit"))
 		{
             res = new IR(kAlterOptRoleElem, string($1));
+        all_gen_ir.push_back(res);
 		} else {
             res = new IR(kAlterOptRoleElem, OP3("superuser", "", ""));
+        all_gen_ir.push_back(res);
         }
         free($1);
         $$ = res;
@@ -1772,36 +1927,42 @@ CreateOptRoleElem:
     AlterOptRoleElem {
         auto tmp1 = $1;
         res = new IR(kCreateOptRoleElem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SYSID Iconst {
         auto tmp1 = $2;
         res = new IR(kCreateOptRoleElem, OP3("SYSID", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ADMIN role_list {
         auto tmp1 = $2;
         res = new IR(kCreateOptRoleElem, OP3("ADMIN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROLE role_list {
         auto tmp1 = $2;
         res = new IR(kCreateOptRoleElem, OP3("ROLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IN_P ROLE role_list {
         auto tmp1 = $3;
         res = new IR(kCreateOptRoleElem, OP3("IN ROLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IN_P GROUP_P role_list {
         auto tmp1 = $3;
         res = new IR(kCreateOptRoleElem, OP3("IN GROUP", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1822,8 +1983,10 @@ CreateUserStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateUserStmt_1, OP3("CREATE USER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateUserStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1844,8 +2007,10 @@ AlterRoleStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleStmt_1, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterRoleStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1854,8 +2019,10 @@ AlterRoleStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleStmt_2, OP3("ALTER USER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterRoleStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1866,6 +2033,7 @@ opt_in_database:
 
     /* EMPTY */ {
         res = new IR(kOptInDatabase, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1873,6 +2041,7 @@ opt_in_database:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kOptInDatabase, OP3("IN DATABASE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1886,8 +2055,10 @@ AlterRoleSetStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleSetStmt_1, OP3("ALTER ROLE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterRoleSetStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1895,6 +2066,7 @@ AlterRoleSetStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterRoleSetStmt, OP3("ALTER ROLE ALL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1903,8 +2075,10 @@ AlterRoleSetStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterRoleSetStmt_2, OP3("ALTER USER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterRoleSetStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1912,6 +2086,7 @@ AlterRoleSetStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterRoleSetStmt, OP3("ALTER USER ALL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1933,36 +2108,42 @@ DropRoleStmt:
     DROP ROLE role_list {
         auto tmp1 = $3;
         res = new IR(kDropRoleStmt, OP3("DROP ROLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP ROLE IF_P EXISTS role_list {
         auto tmp1 = $5;
         res = new IR(kDropRoleStmt, OP3("DROP ROLE IF EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP USER role_list {
         auto tmp1 = $3;
         res = new IR(kDropRoleStmt, OP3("DROP USER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP USER IF_P EXISTS role_list {
         auto tmp1 = $5;
         res = new IR(kDropRoleStmt, OP3("DROP USER IF EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP GROUP_P role_list {
         auto tmp1 = $3;
         res = new IR(kDropRoleStmt, OP3("DROP GROUP", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP GROUP_P IF_P EXISTS role_list {
         auto tmp1 = $5;
         res = new IR(kDropRoleStmt, OP3("DROP GROUP IF EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -1983,8 +2164,10 @@ CreateGroupStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateGroupStmt_1, OP3("CREATE GROUP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateGroupStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2005,9 +2188,15 @@ AlterGroupStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterGroupStmt_1, OP3("ALTER GROUP", "", "USER"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterGroupStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
+
+        if (tmp2->add_drop_is_add()) {
+            printf("This is add");
+        }
     }
 
 ;
@@ -2017,11 +2206,13 @@ add_drop:
 
     ADD_P {
         res = new IR(kAddDrop, OP3("ADD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP {
         res = new IR(kAddDrop, OP3("DROP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2042,8 +2233,10 @@ CreateSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kCreateSchemaStmt_1, OP3("CREATE SCHEMA", "AUTHORIZATION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCreateSchemaStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2052,6 +2245,7 @@ CreateSchemaStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2064,6 +2258,7 @@ CreateSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2075,6 +2270,7 @@ CreateSchemaStmt:
         auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2087,11 +2283,13 @@ OptSchemaName:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOptSchemaName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptSchemaName, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2104,11 +2302,13 @@ OptSchemaEltList:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kOptSchemaEltList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptSchemaEltList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2124,36 +2324,42 @@ schema_stmt:
     CreateStmt {
         auto tmp1 = $1;
         res = new IR(kSchemaStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IndexStmt {
         auto tmp1 = $1;
         res = new IR(kSchemaStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateSeqStmt {
         auto tmp1 = $1;
         res = new IR(kSchemaStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateTrigStmt {
         auto tmp1 = $1;
         res = new IR(kSchemaStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GrantStmt {
         auto tmp1 = $1;
         res = new IR(kSchemaStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ViewStmt {
         auto tmp1 = $1;
         res = new IR(kSchemaStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2175,18 +2381,21 @@ VariableSetStmt:
     SET set_rest {
         auto tmp1 = $2;
         res = new IR(kVariableSetStmt, OP3("SET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET LOCAL set_rest {
         auto tmp1 = $3;
         res = new IR(kVariableSetStmt, OP3("SET LOCAL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET SESSION set_rest {
         auto tmp1 = $3;
         res = new IR(kVariableSetStmt, OP3("SET SESSION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2198,18 +2407,21 @@ set_rest:
     TRANSACTION transaction_mode_list {
         auto tmp1 = $2;
         res = new IR(kSetRest, OP3("TRANSACTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SESSION CHARACTERISTICS AS TRANSACTION transaction_mode_list {
         auto tmp1 = $5;
         res = new IR(kSetRest, OP3("SESSION CHARACTERISTICS AS TRANSACTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | set_rest_more {
         auto tmp1 = $1;
         res = new IR(kSetRest, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2223,6 +2435,7 @@ generic_set:
         free($1);
         auto tmp2 = $3;
         res = new IR(kGenericSet, OP3("", "TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2231,6 +2444,7 @@ generic_set:
         free($1);
         auto tmp2 = $3;
         res = new IR(kGenericSet, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2238,6 +2452,7 @@ generic_set:
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kGenericSet, OP3("", "TO DEFAULT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2245,6 +2460,7 @@ generic_set:
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kGenericSet, OP3("", "= DEFAULT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2256,6 +2472,7 @@ set_rest_more:
     generic_set {
         auto tmp1 = $1;
         res = new IR(kSetRestMore, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2263,12 +2480,14 @@ set_rest_more:
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kSetRestMore, OP3("", "FROM CURRENT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TIME ZONE zone_value {
         auto tmp1 = $3;
         res = new IR(kSetRestMore, OP3("TIME ZONE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2276,6 +2495,7 @@ set_rest_more:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kSetRestMore, OP3("CATALOG", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2283,12 +2503,14 @@ set_rest_more:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kSetRestMore, OP3("SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NAMES opt_encoding {
         auto tmp1 = $2;
         res = new IR(kSetRestMore, OP3("NAMES", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2298,6 +2520,7 @@ set_rest_more:
         tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
         free($2);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2307,17 +2530,20 @@ set_rest_more:
         tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
         free($3);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SESSION AUTHORIZATION DEFAULT {
         res = new IR(kSetRestMore, OP3("SESSION AUTHORIZATION DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | XML_P OPTION document_or_content {
         auto tmp1 = $3;
         res = new IR(kSetRestMore, OP3("XML OPTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2325,6 +2551,7 @@ set_rest_more:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kSetRestMore, OP3("TRANSACTION SNAPSHOT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2332,7 +2559,7 @@ set_rest_more:
 
 var_name:
 
-    ColId 
+    ColId
     | var_name '.' ColId {
         char* mem = alloc_and_cat($1, ".", $3);
         free($1);
@@ -2348,6 +2575,7 @@ var_list:
     var_value {
         auto tmp1 = $1;
         res = new IR(kVarList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2355,6 +2583,7 @@ var_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kVarList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2367,12 +2596,14 @@ var_value:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kVarValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NumericOnly {
         auto tmp1 = $1;
         res = new IR(kVarValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2383,21 +2614,25 @@ iso_level:
 
     READ UNCOMMITTED {
         res = new IR(kIsoLevel, OP3("READ UNCOMMITTED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | READ COMMITTED {
         res = new IR(kIsoLevel, OP3("READ COMMITTED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | REPEATABLE READ {
         res = new IR(kIsoLevel, OP3("REPEATABLE READ", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SERIALIZABLE {
         res = new IR(kIsoLevel, OP3("SERIALIZABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2437,6 +2672,7 @@ zone_value:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kZoneValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2444,6 +2680,7 @@ zone_value:
         /* Yu: Change it to a fixed location. Do not accept in random string.  */
         free($1);
         res = new IR(kZoneValue, OP3("America/Chicago", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2452,8 +2689,10 @@ zone_value:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kZoneValue_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2461,25 +2700,30 @@ zone_value:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kZoneValue_2, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NumericOnly {
         auto tmp1 = $1;
         res = new IR(kZoneValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT {
         res = new IR(kZoneValue, OP3("DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCAL {
         res = new IR(kZoneValue, OP3("LOCAL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2492,16 +2736,19 @@ opt_encoding:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOptEncoding, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT {
         res = new IR(kOptEncoding, OP3("DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptEncoding, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2510,8 +2757,8 @@ opt_encoding:
 
 NonReservedWord_or_Sconst:
 
-    NonReservedWord 
-    | Sconst 
+    NonReservedWord
+    | Sconst
 ;
 
 
@@ -2520,6 +2767,7 @@ VariableResetStmt:
     RESET reset_rest {
         auto tmp1 = $2;
         res = new IR(kVariableResetStmt, OP3("RESET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2531,21 +2779,25 @@ reset_rest:
     generic_reset {
         auto tmp1 = $1;
         res = new IR(kResetRest, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TIME ZONE {
         res = new IR(kResetRest, OP3("TIME ZONE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRANSACTION ISOLATION LEVEL {
         res = new IR(kResetRest, OP3("TRANSACTION ISOLATION LEVEL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SESSION AUTHORIZATION {
         res = new IR(kResetRest, OP3("SESSION AUTHORIZATION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2557,11 +2809,13 @@ generic_reset:
     var_name {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kGenericReset, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL {
         res = new IR(kGenericReset, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2574,12 +2828,14 @@ SetResetClause:
     SET set_rest {
         auto tmp1 = $2;
         res = new IR(kSetResetClause, OP3("SET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VariableResetStmt {
         auto tmp1 = $1;
         res = new IR(kSetResetClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2592,12 +2848,14 @@ FunctionSetResetClause:
     SET set_rest_more {
         auto tmp1 = $2;
         res = new IR(kFunctionSetResetClause, OP3("SET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VariableResetStmt {
         auto tmp1 = $1;
         res = new IR(kFunctionSetResetClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2611,26 +2869,31 @@ VariableShowStmt:
         IR* tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kVariableShowStmt, OP3("SHOW", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHOW TIME ZONE {
         res = new IR(kVariableShowStmt, OP3("SHOW TIME ZONE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHOW TRANSACTION ISOLATION LEVEL {
         res = new IR(kVariableShowStmt, OP3("SHOW TRANSACTION ISOLATION LEVEL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHOW SESSION AUTHORIZATION {
         res = new IR(kVariableShowStmt, OP3("SHOW SESSION AUTHORIZATION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHOW ALL {
         res = new IR(kVariableShowStmt, OP3("SHOW ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2644,6 +2907,7 @@ ConstraintsSetStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kConstraintsSetStmt, OP3("SET CONSTRAINTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2654,12 +2918,14 @@ constraints_set_list:
 
     ALL {
         res = new IR(kConstraintsSetList, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | qualified_name_list {
         auto tmp1 = $1;
         res = new IR(kConstraintsSetList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2670,11 +2936,13 @@ constraints_set_mode:
 
     DEFERRED {
         res = new IR(kConstraintsSetMode, OP3("DEFERRED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IMMEDIATE {
         res = new IR(kConstraintsSetMode, OP3("IMMEDIATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2689,6 +2957,7 @@ CheckPointStmt:
 
     CHECKPOINT {
         res = new IR(kCheckPointStmt, OP3("CHECKPOINT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2706,26 +2975,31 @@ DiscardStmt:
 
     DISCARD ALL {
         res = new IR(kDiscardStmt, OP3("DISCARD ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISCARD TEMP {
         res = new IR(kDiscardStmt, OP3("DISCARD TEMP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISCARD TEMPORARY {
         res = new IR(kDiscardStmt, OP3("DISCARD TEMPORARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISCARD PLANS {
         res = new IR(kDiscardStmt, OP3("DISCARD PLANS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISCARD SEQUENCES {
         res = new IR(kDiscardStmt, OP3("DISCARD SEQUENCES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2747,6 +3021,7 @@ AlterTableStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2754,6 +3029,7 @@ AlterTableStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2761,6 +3037,7 @@ AlterTableStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2768,6 +3045,7 @@ AlterTableStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2777,8 +3055,10 @@ AlterTableStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterTableStmt_1, OP3("ALTER TABLE ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -2790,11 +3070,14 @@ AlterTableStmt:
         free($6);
         auto tmp2 = $9;
         res = new IR(kAlterTableStmt_2, OP3("ALTER TABLE ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($12), kDataFixLater, 0, kFlagUnknown);
         free($12);
         res = new IR(kAlterTableStmt_3, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $13;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -2805,6 +3088,7 @@ AlterTableStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataIndexName, kUse);
@@ -2814,6 +3098,7 @@ AlterTableStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataIndexName, kUse);
@@ -2823,6 +3108,7 @@ AlterTableStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER INDEX", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataIndexName, kUse);
@@ -2834,8 +3120,10 @@ AlterTableStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterTableStmt_4, OP3("ALTER INDEX ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -2847,11 +3135,14 @@ AlterTableStmt:
         free($6);
         auto tmp2 = $9;
         res = new IR(kAlterTableStmt_5, OP3("ALTER INDEX ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($12), kDataFixLater, 0, kFlagUnknown);
         free($12);
         res = new IR(kAlterTableStmt_6, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $13;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -2862,6 +3153,7 @@ AlterTableStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER SEQUENCE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataSequenceName, kUse);
@@ -2871,6 +3163,7 @@ AlterTableStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER SEQUENCE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataSequenceName, kUse);
@@ -2880,6 +3173,7 @@ AlterTableStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTableStmt, OP3("ALTER VIEW", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataViewName, kUse);
@@ -2889,6 +3183,7 @@ AlterTableStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterTableStmt, OP3("ALTER VIEW IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataViewName, kUse);
@@ -2898,6 +3193,7 @@ AlterTableStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterTableStmt, OP3("ALTER MATERIALIZED VIEW", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataViewName, kUse);
@@ -2907,6 +3203,7 @@ AlterTableStmt:
         auto tmp1 = $6;
         auto tmp2 = $7;
         res = new IR(kAlterTableStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataViewName, kUse);
@@ -2918,8 +3215,10 @@ AlterTableStmt:
         auto tmp2 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kAlterTableStmt_7, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $11;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -2931,11 +3230,14 @@ AlterTableStmt:
         free($7);
         auto tmp2 = $10;
         res = new IR(kAlterTableStmt_8, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($13), kDataFixLater, 0, kFlagUnknown);
         free($13);
         res = new IR(kAlterTableStmt_9, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $14;
         res = new IR(kAlterTableStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -2946,6 +3248,7 @@ AlterTableStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterTableStmt, OP3("ALTER FOREIGN TABLE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2953,6 +3256,7 @@ AlterTableStmt:
         auto tmp1 = $6;
         auto tmp2 = $7;
         res = new IR(kAlterTableStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2964,6 +3268,7 @@ alter_table_cmds:
     alter_table_cmd {
         auto tmp1 = $1;
         res = new IR(kAlterTableCmds, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2971,6 +3276,7 @@ alter_table_cmds:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAlterTableCmds, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2983,6 +3289,7 @@ partition_cmd:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kPartitionCmd, OP3("ATTACH PARTITION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -2990,12 +3297,14 @@ partition_cmd:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kPartitionCmd, OP3("DETACH PARTITION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DETACH PARTITION qualified_name FINALIZE {
         auto tmp1 = $3;
         res = new IR(kPartitionCmd, OP3("DETACH PARTITION", "FINALIZE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3007,6 +3316,7 @@ index_partition_cmd:
     ATTACH PARTITION qualified_name {
         auto tmp1 = $3;
         res = new IR(kIndexPartitionCmd, OP3("ATTACH PARTITION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3018,24 +3328,28 @@ alter_table_cmd:
     ADD_P columnDef {
         auto tmp1 = $2;
         res = new IR(kAlterTableCmd, OP3("ADD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ADD_P IF_P NOT EXISTS columnDef {
         auto tmp1 = $5;
         res = new IR(kAlterTableCmd, OP3("ADD IF NOT EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ADD_P COLUMN columnDef {
         auto tmp1 = $3;
         res = new IR(kAlterTableCmd, OP3("ADD COLUMN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ADD_P COLUMN IF_P NOT EXISTS columnDef {
         auto tmp1 = $6;
         res = new IR(kAlterTableCmd, OP3("ADD COLUMN IF NOT EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3044,8 +3358,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3054,6 +3370,7 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP NOT NULL"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3062,6 +3379,7 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET NOT NULL"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3070,6 +3388,7 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP EXPRESSION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3078,6 +3397,7 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP EXPRESSION IF EXISTS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3086,8 +3406,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_2, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3095,8 +3417,10 @@ alter_table_cmd:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kAlterTableCmd_3, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3105,8 +3429,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_4, OP3("ALTER", "", "SET"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3115,8 +3441,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_5, OP3("ALTER", "", "RESET"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3125,9 +3453,11 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_6, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3136,8 +3466,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_7, OP3("ALTER", "", "SET"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3146,10 +3478,13 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_8, OP3("ALTER", "", "ADD GENERATED"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd_9, OP3("", "", "AS IDENTITY"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3158,8 +3493,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_10, OP3("ALTER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3168,6 +3505,7 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3176,6 +3514,7 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY IF EXISTS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3184,8 +3523,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kAlterTableCmd_11, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3194,8 +3535,10 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_12, OP3("DROP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3204,14 +3547,19 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_13, OP3("ALTER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd_14, OP3("", "", "TYPE"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kAlterTableCmd_15, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $7;
         res = new IR(kAlterTableCmd_16, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $8;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3220,14 +3568,17 @@ alter_table_cmd:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd_17, OP3("ALTER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ADD_P TableConstraint {
         auto tmp1 = $2;
         res = new IR(kAlterTableCmd, OP3("ADD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3236,6 +3587,7 @@ alter_table_cmd:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterTableCmd, OP3("ALTER CONSTRAINT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3243,6 +3595,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("VALIDATE CONSTRAINT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3251,6 +3604,7 @@ alter_table_cmd:
         free($5);
         auto tmp2 = $6;
         res = new IR(kAlterTableCmd, OP3("DROP CONSTRAINT IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3259,11 +3613,13 @@ alter_table_cmd:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterTableCmd, OP3("DROP CONSTRAINT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET WITHOUT OIDS {
         res = new IR(kAlterTableCmd, OP3("SET WITHOUT OIDS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3271,21 +3627,25 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("CLUSTER ON", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET WITHOUT CLUSTER {
         res = new IR(kAlterTableCmd, OP3("SET WITHOUT CLUSTER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET LOGGED {
         res = new IR(kAlterTableCmd, OP3("SET LOGGED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET UNLOGGED {
         res = new IR(kAlterTableCmd, OP3("SET UNLOGGED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3293,6 +3653,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ENABLE TRIGGER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3300,6 +3661,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE ALWAYS TRIGGER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3307,16 +3669,19 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE REPLICA TRIGGER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ENABLE_P TRIGGER ALL {
         res = new IR(kAlterTableCmd, OP3("ENABLE TRIGGER ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ENABLE_P TRIGGER USER {
         res = new IR(kAlterTableCmd, OP3("ENABLE TRIGGER USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3324,16 +3689,19 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("DISABLE TRIGGER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISABLE_P TRIGGER ALL {
         res = new IR(kAlterTableCmd, OP3("DISABLE TRIGGER ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISABLE_P TRIGGER USER {
         res = new IR(kAlterTableCmd, OP3("DISABLE TRIGGER USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3341,6 +3709,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("ENABLE RULE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3348,6 +3717,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE ALWAYS RULE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3355,6 +3725,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE REPLICA RULE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3362,29 +3733,34 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("DISABLE RULE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INHERIT qualified_name {
         auto tmp1 = $2;
         res = new IR(kAlterTableCmd, OP3("INHERIT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO INHERIT qualified_name {
         auto tmp1 = $3;
         res = new IR(kAlterTableCmd, OP3("NO INHERIT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OF any_name {
         auto tmp1 = $2;
         res = new IR(kAlterTableCmd, OP3("OF", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT OF {
         res = new IR(kAlterTableCmd, OP3("NOT OF", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3392,6 +3768,7 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("OWNER TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3399,50 +3776,59 @@ alter_table_cmd:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterTableCmd, OP3("SET TABLESPACE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET reloptions {
         auto tmp1 = $2;
         res = new IR(kAlterTableCmd, OP3("SET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RESET reloptions {
         auto tmp1 = $2;
         res = new IR(kAlterTableCmd, OP3("RESET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | REPLICA IDENTITY_P replica_identity {
         auto tmp1 = $3;
         res = new IR(kAlterTableCmd, OP3("REPLICA IDENTITY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ENABLE_P ROW LEVEL SECURITY {
         res = new IR(kAlterTableCmd, OP3("ENABLE ROW LEVEL SECURITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISABLE_P ROW LEVEL SECURITY {
         res = new IR(kAlterTableCmd, OP3("DISABLE ROW LEVEL SECURITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FORCE ROW LEVEL SECURITY {
         res = new IR(kAlterTableCmd, OP3("FORCE ROW LEVEL SECURITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO FORCE ROW LEVEL SECURITY {
         res = new IR(kAlterTableCmd, OP3("NO FORCE ROW LEVEL SECURITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | alter_generic_options {
         auto tmp1 = $1;
         res = new IR(kAlterTableCmd, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3454,11 +3840,13 @@ alter_column_default:
     SET DEFAULT a_expr {
         auto tmp1 = $3;
         res = new IR(kAlterColumnDefault, OP3("SET DEFAULT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DROP DEFAULT {
         res = new IR(kAlterColumnDefault, OP3("DROP DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3469,16 +3857,19 @@ opt_drop_behavior:
 
     CASCADE {
         res = new IR(kOptDropBehavior, OP3("CASCADE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RESTRICT {
         res = new IR(kOptDropBehavior, OP3("RESTRICT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptDropBehavior, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3490,6 +3881,7 @@ opt_collate_clause:
     COLLATE any_name {
         auto tmp1 = $2;
         res = new IR(kOptCollateClause, OP3("COLLATE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_any_name_type(kDataColumnName, kUse);
@@ -3497,6 +3889,7 @@ opt_collate_clause:
 
     | /* EMPTY */ {
         res = new IR(kOptCollateClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3508,11 +3901,13 @@ alter_using:
     USING a_expr {
         auto tmp1 = $2;
         res = new IR(kAlterUsing, OP3("USING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kAlterUsing, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3523,16 +3918,19 @@ replica_identity:
 
     NOTHING {
         res = new IR(kReplicaIdentity, OP3("NOTHING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FULL {
         res = new IR(kReplicaIdentity, OP3("FULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT {
         res = new IR(kReplicaIdentity, OP3("DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3540,6 +3938,7 @@ replica_identity:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kReplicaIdentity, OP3("USING INDEX", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3551,6 +3950,7 @@ reloptions:
     '(' reloption_list ')' {
         auto tmp1 = $2;
         res = new IR(kReloptions, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3562,11 +3962,13 @@ opt_reloptions:
     WITH reloptions {
         auto tmp1 = $2;
         res = new IR(kOptReloptions, OP3("WITH", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptReloptions, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3578,6 +3980,7 @@ reloption_list:
     reloption_elem {
         auto tmp1 = $1;
         res = new IR(kReloptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3585,6 +3988,7 @@ reloption_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kReloptionList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3599,6 +4003,7 @@ reloption_elem:
         free($1);
         auto tmp2 = $3;
         res = new IR(kReloptionElem, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
@@ -3608,6 +4013,7 @@ reloption_elem:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kReloptionElem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
@@ -3619,8 +4025,10 @@ reloption_elem:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kReloptionElem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
@@ -3632,6 +4040,7 @@ reloption_elem:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kReloptionElem, OP3("", ".", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
         $$ = res;
@@ -3645,6 +4054,7 @@ alter_identity_column_option_list:
     alter_identity_column_option {
         auto tmp1 = $1;
         res = new IR(kAlterIdentityColumnOptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3652,6 +4062,7 @@ alter_identity_column_option_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAlterIdentityColumnOptionList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3662,6 +4073,7 @@ alter_identity_column_option:
 
     RESTART {
         res = new IR(kAlterIdentityColumnOption, OP3("RESTART", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3669,6 +4081,7 @@ alter_identity_column_option:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kAlterIdentityColumnOption, OP3("RESTART", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3686,6 +4099,7 @@ alter_identity_column_option:
     | SET GENERATED generated_when {
         auto tmp1 = $3;
         res = new IR(kAlterIdentityColumnOption, OP3("SET GENERATED", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3697,12 +4111,14 @@ PartitionBoundSpec:
     FOR VALUES WITH '(' hash_partbound ')' {
         auto tmp1 = $5;
         res = new IR(kPartitionBoundSpec, OP3("FOR VALUES WITH (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR VALUES IN_P '(' expr_list ')' {
         auto tmp1 = $5;
         res = new IR(kPartitionBoundSpec, OP3("FOR VALUES IN (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3710,11 +4126,13 @@ PartitionBoundSpec:
         auto tmp1 = $5;
         auto tmp2 = $9;
         res = new IR(kPartitionBoundSpec, OP3("FOR VALUES FROM (", ") TO (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT {
         res = new IR(kPartitionBoundSpec, OP3("DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3728,10 +4146,13 @@ hash_partbound_elem:
         IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
         if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
             res = new IR(kHashPartboundElem_1, string($1));
+        all_gen_ir.push_back(res);
         } else {
             res = new IR(kHashPartboundElem_1, string("modulus"));
+        all_gen_ir.push_back(res);
         }
         res = new IR(kHashPartboundElem_1, OP0(), res, tmp1);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -3744,6 +4165,7 @@ hash_partbound:
     hash_partbound_elem {
         auto tmp1 = $1;
         res = new IR(kHashPartbound, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3751,6 +4173,7 @@ hash_partbound:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kHashPartbound, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3770,6 +4193,7 @@ AlterCompositeTypeStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterCompositeTypeStmt, OP3("ALTER TYPE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3781,6 +4205,7 @@ alter_type_cmds:
     alter_type_cmd {
         auto tmp1 = $1;
         res = new IR(kAlterTypeCmds, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3788,6 +4213,7 @@ alter_type_cmds:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAlterTypeCmds, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3800,6 +4226,7 @@ alter_type_cmd:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterTypeCmd, OP3("ADD ATTRIBUTE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3808,6 +4235,7 @@ alter_type_cmd:
         free($5);
         auto tmp2 = $6;
         res = new IR(kAlterTypeCmd, OP3("DROP ATTRIBUTE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3816,6 +4244,7 @@ alter_type_cmd:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterTypeCmd, OP3("DROP ATTRIBUTE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3824,12 +4253,16 @@ alter_type_cmd:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterTypeCmd_1, OP3("ALTER ATTRIBUTE", "", "TYPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterTypeCmd_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kAlterTypeCmd_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kAlterTypeCmd, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3850,11 +4283,13 @@ ClosePortalStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kClosePortalStmt, OP3("CLOSE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CLOSE ALL {
         res = new IR(kClosePortalStmt, OP3("CLOSE ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3894,30 +4329,39 @@ CopyStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kCopyStmt_1, OP3("COPY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kCopyStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kCopyStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $6;
         res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         if (!$6->is_empty() &&
             (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
         ){
             auto tmp6 = $7;
             res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         } else {
             $7 -> deep_drop();
         }
         auto tmp7 = $8;
         res = new IR(kCopyStmt_6, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $9;
         res = new IR(kCopyStmt_7, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $10;
         res = new IR(kCopyStmt_8, OP3("", "", ""), res, tmp9);
-        
+        all_gen_ir.push_back(res);
+
         if (!$5->is_empty()) {
             auto tmp10 = $11;
             res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
+        all_gen_ir.push_back(res);
         } else {
             $11->deep_drop();
         }
@@ -3929,18 +4373,22 @@ CopyStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kCopyStmt_9, OP3("COPY (", ") TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         if (!$6->is_empty() &&
             (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
         ){
             auto tmp3 = $7;
             res = new IR(kCopyStmt_10, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         } else {
             $7 -> deep_drop();
         }
         auto tmp4 = $8;
         res = new IR(kCopyStmt_11, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $9;
         res = new IR(kCopyStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3951,11 +4399,13 @@ copy_from:
 
     FROM {
         res = new IR(kCopyFrom, OP3("FROM", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TO {
         res = new IR(kCopyFrom, OP3("TO", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3966,11 +4416,13 @@ opt_program:
 
     PROGRAM {
         res = new IR(kOptProgram, OP3("PROGRAM", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptProgram, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -3988,16 +4440,19 @@ copy_file_name:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kCopyFileName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STDIN {
         res = new IR(kCopyFileName, OP3("STDIN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STDOUT {
         res = new IR(kCopyFileName, OP3("STDOUT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4009,12 +4464,14 @@ copy_options:
     copy_opt_list {
         auto tmp1 = $1;
         res = new IR(kCopyOptions, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' copy_generic_opt_list ')' {
         auto tmp1 = $2;
         res = new IR(kCopyOptions, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4028,11 +4485,13 @@ copy_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCopyOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kCopyOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4043,11 +4502,13 @@ copy_opt_item:
 
     BINARY {
         res = new IR(kCopyOptItem, OP3("BINARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FREEZE {
         res = new IR(kCopyOptItem, OP3("FREEZE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4056,6 +4517,7 @@ copy_opt_item:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kCopyOptItem, OP3("DELIMITER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4064,16 +4526,19 @@ copy_opt_item:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kCopyOptItem, OP3("NULL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CSV {
         res = new IR(kCopyOptItem, OP3("CSV", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | HEADER_P {
         res = new IR(kCopyOptItem, OP3("HEADER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4082,6 +4547,7 @@ copy_opt_item:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kCopyOptItem, OP3("QUOTE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4090,29 +4556,34 @@ copy_opt_item:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kCopyOptItem, OP3("ESCAPE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FORCE QUOTE columnList {
         auto tmp1 = $3;
         res = new IR(kCopyOptItem, OP3("FORCE QUOTE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FORCE QUOTE '*' {
         res = new IR(kCopyOptItem, OP3("FORCE QUOTE *", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FORCE NOT NULL_P columnList {
         auto tmp1 = $4;
         res = new IR(kCopyOptItem, OP3("FORCE NOT NULL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FORCE NULL_P columnList {
         auto tmp1 = $3;
         res = new IR(kCopyOptItem, OP3("FORCE NULL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4120,6 +4591,7 @@ copy_opt_item:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kCopyOptItem, OP3("ENCODING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4132,11 +4604,13 @@ opt_binary:
 
     BINARY {
         res = new IR(kOptBinary, OP3("BINARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptBinary, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4150,11 +4624,13 @@ copy_delimiter:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kCopyDelimiter, OP3("", "DELIMITERS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kCopyDelimiter, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4165,11 +4641,13 @@ opt_using:
 
     USING {
         res = new IR(kOptUsing, OP3("USING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptUsing, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4182,6 +4660,7 @@ copy_generic_opt_list:
     copy_generic_opt_elem {
         auto tmp1 = $1;
         res = new IR(kCopyGenericOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4189,6 +4668,7 @@ copy_generic_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kCopyGenericOptList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4202,6 +4682,7 @@ copy_generic_opt_elem:
         free($1);
         auto tmp2 = $2;
         res = new IR(kCopyGenericOptElem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4214,28 +4695,33 @@ copy_generic_opt_arg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kCopyGenericOptArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NumericOnly {
         auto tmp1 = $1;
         res = new IR(kCopyGenericOptArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '*' {
         res = new IR(kCopyGenericOptArg, OP3("*", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' copy_generic_opt_arg_list ')' {
         auto tmp1 = $2;
         res = new IR(kCopyGenericOptArg, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kCopyGenericOptArg, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4247,6 +4733,7 @@ copy_generic_opt_arg_list:
     copy_generic_opt_arg_list_item {
         auto tmp1 = $1;
         res = new IR(kCopyGenericOptArgList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4254,6 +4741,7 @@ copy_generic_opt_arg_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kCopyGenericOptArgList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4267,6 +4755,7 @@ copy_generic_opt_arg_list_item:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kCopyGenericOptArgListItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4287,20 +4776,28 @@ CreateStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateStmt_1, OP3("CREATE", "TABLE", "("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCreateStmt_2, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kCreateStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $9;
         res = new IR(kCreateStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $10;
         res = new IR(kCreateStmt_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $11;
         res = new IR(kCreateStmt_6, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $12;
         res = new IR(kCreateStmt_7, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $13;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -4310,20 +4807,28 @@ CreateStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kCreateStmt_8, OP3("CREATE", "TABLE IF NOT EXISTS", "("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kCreateStmt_9, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kCreateStmt_10, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $12;
         res = new IR(kCreateStmt_11, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $13;
         res = new IR(kCreateStmt_12, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $14;
         res = new IR(kCreateStmt_13, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $15;
         res = new IR(kCreateStmt_14, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $16;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -4334,20 +4839,28 @@ CreateStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateStmt_15, OP3("CREATE", "TABLE", "OF"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCreateStmt_16, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kCreateStmt_17, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kCreateStmt_18, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kCreateStmt_19, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $10;
         res = new IR(kCreateStmt_20, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $11;
         res = new IR(kCreateStmt_21, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $12;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -4358,20 +4871,28 @@ CreateStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kCreateStmt_22, OP3("CREATE", "TABLE IF NOT EXISTS", "OF"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kCreateStmt_23, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $10;
         res = new IR(kCreateStmt_24, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kCreateStmt_25, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $12;
         res = new IR(kCreateStmt_26, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $13;
         res = new IR(kCreateStmt_27, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $14;
         res = new IR(kCreateStmt_28, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $15;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -4382,22 +4903,31 @@ CreateStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateStmt_29, OP3("CREATE", "TABLE", "PARTITION OF"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kCreateStmt_30, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kCreateStmt_31, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $9;
         res = new IR(kCreateStmt_32, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $10;
         res = new IR(kCreateStmt_33, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $11;
         res = new IR(kCreateStmt_34, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $12;
         res = new IR(kCreateStmt_35, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $13;
         res = new IR(kCreateStmt_36, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $14;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp10);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -4408,22 +4938,31 @@ CreateStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kCreateStmt_37, OP3("CREATE", "TABLE IF NOT EXISTS", "PARTITION OF"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kCreateStmt_38, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kCreateStmt_39, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $12;
         res = new IR(kCreateStmt_40, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $13;
         res = new IR(kCreateStmt_41, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $14;
         res = new IR(kCreateStmt_42, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $15;
         res = new IR(kCreateStmt_43, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $16;
         res = new IR(kCreateStmt_44, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $17;
         res = new IR(kCreateStmt, OP3("", "", ""), res, tmp10);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -4448,41 +4987,49 @@ OptTemp:
 
     TEMPORARY {
         res = new IR(kOptTemp, OP3("TEMPORARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TEMP {
         res = new IR(kOptTemp, OP3("TEMP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCAL TEMPORARY {
         res = new IR(kOptTemp, OP3("LOCAL TEMPORARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCAL TEMP {
         res = new IR(kOptTemp, OP3("LOCAL TEMP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GLOBAL TEMPORARY {
         res = new IR(kOptTemp, OP3("GLOBAL TEMPORARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GLOBAL TEMP {
         res = new IR(kOptTemp, OP3("GLOBAL TEMP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UNLOGGED {
         res = new IR(kOptTemp, OP3("UNLOGGED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTemp, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4494,11 +5041,13 @@ OptTableElementList:
     TableElementList {
         auto tmp1 = $1;
         res = new IR(kOptTableElementList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTableElementList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4510,11 +5059,13 @@ OptTypedTableElementList:
     '(' TypedTableElementList ')' {
         auto tmp1 = $2;
         res = new IR(kOptTypedTableElementList, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTypedTableElementList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4526,6 +5077,7 @@ TableElementList:
     TableElement {
         auto tmp1 = $1;
         res = new IR(kTableElementList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4533,6 +5085,7 @@ TableElementList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTableElementList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4544,6 +5097,7 @@ TypedTableElementList:
     TypedTableElement {
         auto tmp1 = $1;
         res = new IR(kTypedTableElementList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4551,6 +5105,7 @@ TypedTableElementList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTypedTableElementList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4562,18 +5117,21 @@ TableElement:
     columnDef {
         auto tmp1 = $1;
         res = new IR(kTableElement, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TableLikeClause {
         auto tmp1 = $1;
         res = new IR(kTableElement, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TableConstraint {
         auto tmp1 = $1;
         res = new IR(kTableElement, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4585,12 +5143,14 @@ TypedTableElement:
     columnOptions {
         auto tmp1 = $1;
         res = new IR(kTypedTableElement, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TableConstraint {
         auto tmp1 = $1;
         res = new IR(kTypedTableElement, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4604,12 +5164,16 @@ columnDef:
         free($1);
         auto tmp2 = $2;
         res = new IR(kColumnDef_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kColumnDef_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kColumnDef_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kColumnDef, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataColumnName, kDefine);
@@ -4625,6 +5189,7 @@ columnOptions:
         free($1);
         auto tmp2 = $2;
         res = new IR(kColumnOptions, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataColumnName, kDefine);
@@ -4635,6 +5200,7 @@ columnOptions:
         free($1);
         auto tmp2 = $4;
         res = new IR(kColumnOptions, OP3("", "WITH OPTIONS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataColumnName, kDefine);
@@ -4649,11 +5215,13 @@ column_compression:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kColumnCompression, OP3("COMPRESSION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | COMPRESSION DEFAULT {
         res = new IR(kColumnCompression, OP3("COMPRESSION DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4665,11 +5233,13 @@ opt_column_compression:
     column_compression {
         auto tmp1 = $1;
         res = new IR(kOptColumnCompression, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptColumnCompression, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4682,11 +5252,13 @@ ColQualList:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kColQualList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kColQualList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4700,24 +5272,28 @@ ColConstraint:
         free($2);
         auto tmp2 = $3;
         res = new IR(kColConstraint, OP3("CONSTRAINT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ColConstraintElem {
         auto tmp1 = $1;
         res = new IR(kColConstraint, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ConstraintAttr {
         auto tmp1 = $1;
         res = new IR(kColConstraint, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | COLLATE any_name {
         auto tmp1 = $2;
         res = new IR(kColConstraint, OP3("COLLATE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_any_name_type(kDataColumnName, kUse);
@@ -4745,11 +5321,13 @@ ColConstraintElem:
 
     NOT NULL_P {
         res = new IR(kColConstraintElem, OP3("NOT NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NULL_P {
         res = new IR(kColConstraintElem, OP3("NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4757,6 +5335,7 @@ ColConstraintElem:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kColConstraintElem, OP3("UNIQUE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4764,6 +5343,7 @@ ColConstraintElem:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kColConstraintElem, OP3("PRIMARY KEY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4771,12 +5351,14 @@ ColConstraintElem:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kColConstraintElem, OP3("CHECK (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT b_expr {
         auto tmp1 = $2;
         res = new IR(kColConstraintElem, OP3("DEFAULT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4784,6 +5366,7 @@ ColConstraintElem:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kColConstraintElem, OP3("GENERATED", "AS IDENTITY", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4796,6 +5379,7 @@ ColConstraintElem:
         }
         auto tmp2 = $5;
         res = new IR(kColConstraintElem, OP3("GENERATED", "AS (", ") STORED"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4803,10 +5387,13 @@ ColConstraintElem:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kColConstraintElem_1, OP3("REFERENCES", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kColConstraintElem_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kColConstraintElem, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4817,11 +5404,13 @@ generated_when:
 
     ALWAYS {
         res = new IR(kGeneratedWhen, OP3("ALWAYS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BY DEFAULT {
         res = new IR(kGeneratedWhen, OP3("BY DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4847,21 +5436,25 @@ ConstraintAttr:
 
     DEFERRABLE {
         res = new IR(kConstraintAttr, OP3("DEFERRABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT DEFERRABLE {
         res = new IR(kConstraintAttr, OP3("NOT DEFERRABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INITIALLY DEFERRED {
         res = new IR(kConstraintAttr, OP3("INITIALLY DEFERRED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INITIALLY IMMEDIATE {
         res = new IR(kConstraintAttr, OP3("INITIALLY IMMEDIATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4875,6 +5468,7 @@ TableLikeClause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTableLikeClause, OP3("LIKE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4887,6 +5481,7 @@ TableLikeOptionList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTableLikeOptionList, OP3("", "INCLUDING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4894,11 +5489,13 @@ TableLikeOptionList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTableLikeOptionList, OP3("", "EXCLUDING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kTableLikeOptionList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4909,51 +5506,61 @@ TableLikeOption:
 
     COMMENTS {
         res = new IR(kTableLikeOption, OP3("COMMENTS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | COMPRESSION {
         res = new IR(kTableLikeOption, OP3("COMPRESSION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CONSTRAINTS {
         res = new IR(kTableLikeOption, OP3("CONSTRAINTS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULTS {
         res = new IR(kTableLikeOption, OP3("DEFAULTS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IDENTITY_P {
         res = new IR(kTableLikeOption, OP3("IDENTITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GENERATED {
         res = new IR(kTableLikeOption, OP3("GENERATED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INDEXES {
         res = new IR(kTableLikeOption, OP3("INDEXES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STATISTICS {
         res = new IR(kTableLikeOption, OP3("STATISTICS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STORAGE {
         res = new IR(kTableLikeOption, OP3("STORAGE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL {
         res = new IR(kTableLikeOption, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4972,6 +5579,7 @@ TableConstraint:
         free($2);
         auto tmp2 = $3;
         res = new IR(kTableConstraint, OP3("CONSTRAINT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataConstraintName, kDefine);
@@ -4980,6 +5588,7 @@ TableConstraint:
     | ConstraintElem {
         auto tmp1 = $1;
         res = new IR(kTableConstraint, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4992,6 +5601,7 @@ ConstraintElem:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kConstraintElem, OP3("CHECK (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -4999,12 +5609,16 @@ ConstraintElem:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kConstraintElem_1, OP3("UNIQUE (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kConstraintElem_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kConstraintElem_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5012,6 +5626,7 @@ ConstraintElem:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kConstraintElem, OP3("UNIQUE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5019,12 +5634,16 @@ ConstraintElem:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kConstraintElem_4, OP3("PRIMARY KEY (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kConstraintElem_5, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kConstraintElem_6, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $9;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5032,6 +5651,7 @@ ConstraintElem:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kConstraintElem, OP3("PRIMARY KEY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5039,16 +5659,22 @@ ConstraintElem:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kConstraintElem_7, OP3("EXCLUDE", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kConstraintElem_8, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kConstraintElem_9, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kConstraintElem_10, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kConstraintElem_11, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $10;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5056,14 +5682,19 @@ ConstraintElem:
         auto tmp1 = $4;
         auto tmp2 = $7;
         res = new IR(kConstraintElem_12, OP3("FOREIGN KEY (", ") REFERENCES", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kConstraintElem_13, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kConstraintElem_14, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $10;
         res = new IR(kConstraintElem_15, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $11;
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5074,11 +5705,13 @@ opt_no_inherit:
 
     NO INHERIT {
         res = new IR(kOptNoInherit, OP3("NO INHERIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptNoInherit, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5090,11 +5723,13 @@ opt_column_list:
     '(' columnList ')' {
         auto tmp1 = $2;
         res = new IR(kOptColumnList, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptColumnList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5106,6 +5741,7 @@ columnList:
     columnElem {
         auto tmp1 = $1;
         res = new IR(kColumnList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5113,6 +5749,7 @@ columnList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kColumnList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5125,6 +5762,7 @@ columnElem:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kColumnElem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataColumnName, kUse);
@@ -5138,11 +5776,13 @@ opt_c_include:
     INCLUDE '(' columnList ')' {
         auto tmp1 = $3;
         res = new IR(kOptCInclude, OP3("INCLUDE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptCInclude, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5153,22 +5793,26 @@ key_match:
 
     MATCH FULL {
         res = new IR(kKeyMatch, OP3("MATCH FULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MATCH PARTIAL {
         /* Yu: MATCH PARTIAL is not yet implemented. */
         res = new IR(kKeyMatch, OP3("MATCH FULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MATCH SIMPLE {
         res = new IR(kKeyMatch, OP3("MATCH SIMPLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kKeyMatch, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5180,6 +5824,7 @@ ExclusionConstraintList:
     ExclusionConstraintElem {
         auto tmp1 = $1;
         res = new IR(kExclusionConstraintList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5187,6 +5832,7 @@ ExclusionConstraintList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kExclusionConstraintList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5199,6 +5845,7 @@ ExclusionConstraintElem:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kExclusionConstraintElem, OP3("", "WITH", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5206,6 +5853,7 @@ ExclusionConstraintElem:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kExclusionConstraintElem, OP3("", "WITH OPERATOR (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5217,11 +5865,13 @@ OptWhereClause:
     WHERE '(' a_expr ')' {
         auto tmp1 = $3;
         res = new IR(kOptWhereClause, OP3("WHERE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptWhereClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5239,12 +5889,14 @@ key_actions:
     key_update {
         auto tmp1 = $1;
         res = new IR(kKeyActions, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | key_delete {
         auto tmp1 = $1;
         res = new IR(kKeyActions, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5252,6 +5904,7 @@ key_actions:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kKeyActions, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5259,11 +5912,13 @@ key_actions:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kKeyActions, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kKeyActions, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5275,6 +5930,7 @@ key_update:
     ON UPDATE key_action {
         auto tmp1 = $3;
         res = new IR(kKeyUpdate, OP3("ON UPDATE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5286,6 +5942,7 @@ key_delete:
     ON DELETE_P key_action {
         auto tmp1 = $3;
         res = new IR(kKeyDelete, OP3("ON DELETE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5296,26 +5953,31 @@ key_action:
 
     NO ACTION {
         res = new IR(kKeyAction, OP3("NO ACTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RESTRICT {
         res = new IR(kKeyAction, OP3("RESTRICT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CASCADE {
         res = new IR(kKeyAction, OP3("CASCADE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET NULL_P {
         res = new IR(kKeyAction, OP3("SET NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET DEFAULT {
         res = new IR(kKeyAction, OP3("SET DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5327,11 +5989,13 @@ OptInherit:
     INHERITS '(' qualified_name_list ')' {
         auto tmp1 = $3;
         res = new IR(kOptInherit, OP3("INHERITS (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptInherit, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5344,11 +6008,13 @@ OptPartitionSpec:
     PartitionSpec {
         auto tmp1 = $1;
         res = new IR(kOptPartitionSpec, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptPartitionSpec, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5362,6 +6028,7 @@ PartitionSpec:
         free($3);
         auto tmp2 = $5;
         res = new IR(kPartitionSpec, OP3("PARTITION BY", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataColumnName, kUse);
@@ -5375,6 +6042,7 @@ part_params:
     part_elem {
         auto tmp1 = $1;
         res = new IR(kPartParams, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5382,6 +6050,7 @@ part_params:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kPartParams, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5395,8 +6064,10 @@ part_elem:
         free($1);
         auto tmp2 = $2;
         res = new IR(kPartElem_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5404,8 +6075,10 @@ part_elem:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kPartElem_2, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5413,8 +6086,10 @@ part_elem:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kPartElem_3, OP3("(", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5427,11 +6102,13 @@ table_access_method_clause:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kTableAccessMethodClause, OP3("USING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kTableAccessMethodClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5444,16 +6121,19 @@ OptWith:
     WITH reloptions {
         auto tmp1 = $2;
         res = new IR(kOptWith, OP3("WITH", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITHOUT OIDS {
         res = new IR(kOptWith, OP3("WITHOUT OIDS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptWith, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5464,21 +6144,25 @@ OnCommitOption:
 
     ON COMMIT DROP {
         res = new IR(kOnCommitOption, OP3("ON COMMIT DROP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ON COMMIT DELETE_P ROWS {
         res = new IR(kOnCommitOption, OP3("ON COMMIT DELETE ROWS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ON COMMIT PRESERVE ROWS {
         res = new IR(kOnCommitOption, OP3("ON COMMIT PRESERVE ROWS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOnCommitOption, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5491,6 +6175,7 @@ OptTableSpace:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kOptTableSpace, OP3("TABLESPACE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
@@ -5498,6 +6183,7 @@ OptTableSpace:
 
     | /*EMPTY*/ {
         res = new IR(kOptTableSpace, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5510,11 +6196,13 @@ OptConsTableSpace:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kOptConsTableSpace, OP3("USING INDEX TABLESPACE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptConsTableSpace, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5527,6 +6215,7 @@ ExistingIndex:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kExistingIndex, OP3("USING INDEX", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5553,10 +6242,13 @@ CreateStatsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCreateStatsStmt_1, OP3("CREATE STATISTICS", "", "ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCreateStatsStmt_2, OP3("", "", "FROM"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kCreateStatsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5564,10 +6256,13 @@ CreateStatsStmt:
         auto tmp1 = $6;
         auto tmp2 = $7;
         res = new IR(kCreateStatsStmt_3, OP3("CREATE STATISTICS IF NOT EXISTS", "", "ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kCreateStatsStmt_4, OP3("", "", "FROM"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kCreateStatsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5586,6 +6281,7 @@ stats_params:
     stats_param {
         auto tmp1 = $1;
         res = new IR(kStatsParams, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5593,6 +6289,7 @@ stats_params:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kStatsParams, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5605,18 +6302,21 @@ stats_param:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kStatsParam, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | func_expr_windowless {
         auto tmp1 = $1;
         res = new IR(kStatsParam, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' a_expr ')' {
         auto tmp1 = $2;
         res = new IR(kStatsParam, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5637,6 +6337,7 @@ AlterStatsStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterStatsStmt, OP3("ALTER STATISTICS", "SET STATISTICS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5644,6 +6345,7 @@ AlterStatsStmt:
         auto tmp1 = $5;
         auto tmp2 = $8;
         res = new IR(kAlterStatsStmt, OP3("ALTER STATISTICS IF EXISTS", "SET STATISTICS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5666,10 +6368,13 @@ CreateAsStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateAsStmt_1, OP3("CREATE", "TABLE", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCreateAsStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kCreateAsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5677,10 +6382,13 @@ CreateAsStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kCreateAsStmt_3, OP3("CREATE", "TABLE IF NOT EXISTS", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kCreateAsStmt_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $10;
         res = new IR(kCreateAsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5693,14 +6401,19 @@ create_as_target:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreateAsTarget_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kCreateAsTarget_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kCreateAsTarget_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kCreateAsTarget_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $6;
         res = new IR(kCreateAsTarget, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kDefine);
@@ -5713,16 +6426,19 @@ opt_with_data:
 
     WITH DATA_P {
         res = new IR(kOptWithData, OP3("WITH DATA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH NO DATA_P {
         res = new IR(kOptWithData, OP3("WITH NO DATA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptWithData, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5743,10 +6459,13 @@ CreateMatViewStmt:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kCreateMatViewStmt_1, OP3("CREATE", "MATERIALIZED VIEW", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kCreateMatViewStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kCreateMatViewStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5754,10 +6473,13 @@ CreateMatViewStmt:
         auto tmp1 = $2;
         auto tmp2 = $8;
         res = new IR(kCreateMatViewStmt_3, OP3("CREATE", "MATERIALIZED VIEW IF NOT EXISTS", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kCreateMatViewStmt_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kCreateMatViewStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5770,12 +6492,16 @@ create_mv_target:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreateMvTarget_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kCreateMvTarget_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kCreateMvTarget_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kCreateMvTarget, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5786,11 +6512,13 @@ OptNoLog:
 
     UNLOGGED {
         res = new IR(kOptNoLog, OP3("UNLOGGED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptNoLog, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5811,8 +6539,10 @@ RefreshMatViewStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kRefreshMatViewStmt_1, OP3("REFRESH MATERIALIZED VIEW", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kRefreshMatViewStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5834,8 +6564,10 @@ CreateSeqStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateSeqStmt_1, OP3("CREATE", "SEQUENCE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateSeqStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5843,8 +6575,10 @@ CreateSeqStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kCreateSeqStmt_2, OP3("CREATE", "SEQUENCE IF NOT EXISTS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateSeqStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5857,6 +6591,7 @@ AlterSeqStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterSeqStmt, OP3("ALTER SEQUENCE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5864,6 +6599,7 @@ AlterSeqStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterSeqStmt, OP3("ALTER SEQUENCE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5875,11 +6611,13 @@ OptSeqOptList:
     SeqOptList {
         auto tmp1 = $1;
         res = new IR(kOptSeqOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptSeqOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5891,11 +6629,13 @@ OptParenthesizedSeqOptList:
     '(' SeqOptList ')' {
         auto tmp1 = $2;
         res = new IR(kOptParenthesizedSeqOptList, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptParenthesizedSeqOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5907,6 +6647,7 @@ SeqOptList:
     SeqOptElem {
         auto tmp1 = $1;
         res = new IR(kSeqOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5914,6 +6655,7 @@ SeqOptList:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSeqOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5925,22 +6667,26 @@ SeqOptElem:
     AS SimpleTypename {
         auto tmp1 = $2;
         res = new IR(kSeqOptElem, OP3("AS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CACHE NumericOnly {
         auto tmp1 = $2;
         res = new IR(kSeqOptElem, OP3("CACHE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CYCLE {
         res = new IR(kSeqOptElem, OP3("CYCLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO CYCLE {
         res = new IR(kSeqOptElem, OP3("NO CYCLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5948,40 +6694,47 @@ SeqOptElem:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kSeqOptElem, OP3("INCREMENT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MAXVALUE NumericOnly {
         auto tmp1 = $2;
         res = new IR(kSeqOptElem, OP3("MAXVALUE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MINVALUE NumericOnly {
         auto tmp1 = $2;
         res = new IR(kSeqOptElem, OP3("MINVALUE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO MAXVALUE {
         res = new IR(kSeqOptElem, OP3("NO MAXVALUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO MINVALUE {
         res = new IR(kSeqOptElem, OP3("NO MINVALUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OWNED BY any_name {
         auto tmp1 = $3;
         res = new IR(kSeqOptElem, OP3("OWNED BY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SEQUENCE NAME_P any_name {
         auto tmp1 = $3;
         res = new IR(kSeqOptElem, OP3("SEQUENCE NAME", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -5989,11 +6742,13 @@ SeqOptElem:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kSeqOptElem, OP3("START", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RESTART {
         res = new IR(kSeqOptElem, OP3("RESTART", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6001,6 +6756,7 @@ SeqOptElem:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kSeqOptElem, OP3("RESTART", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6011,11 +6767,13 @@ opt_by:
 
     BY {
         res = new IR(kOptBy, OP3("BY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptBy, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6027,6 +6785,7 @@ NumericOnly:
     FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($1));
         res = new IR(kNumericOnly, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -6034,6 +6793,7 @@ NumericOnly:
     | '+' FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($2));
         res = new IR(kNumericOnly, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($2);
         $$ = res;
     }
@@ -6041,6 +6801,7 @@ NumericOnly:
     | '-' FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($2));
         res = new IR(kNumericOnly, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($2);
         $$ = res;
     }
@@ -6048,6 +6809,7 @@ NumericOnly:
     | SignedIconst {
         auto tmp1 = $1;
         res = new IR(kNumericOnly, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6059,6 +6821,7 @@ NumericOnly_list:
     NumericOnly {
         auto tmp1 = $1;
         res = new IR(kNumericOnlyList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6066,6 +6829,7 @@ NumericOnly_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kNumericOnlyList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6086,11 +6850,14 @@ CreatePLangStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kCreatePLangStmt_1, OP3("CREATE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kCreatePLangStmt_2, OP3("", "", "LANGUAGE"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreatePLangStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6098,17 +6865,23 @@ CreatePLangStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kCreatePLangStmt_3, OP3("CREATE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kCreatePLangStmt_4, OP3("", "", "LANGUAGE"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreatePLangStmt_5, OP3("", "", "HANDLER"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kCreatePLangStmt_6, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kCreatePLangStmt_7, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $10;
         res = new IR(kCreatePLangStmt, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6119,11 +6892,13 @@ opt_trusted:
 
     TRUSTED {
         res = new IR(kOptTrusted, OP3("TRUSTED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTrusted, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6140,6 +6915,7 @@ handler_name:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kHandlerName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6148,6 +6924,7 @@ handler_name:
         free($1);
         auto tmp2 = $2;
         res = new IR(kHandlerName, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6159,11 +6936,13 @@ opt_inline_handler:
     INLINE_P handler_name {
         auto tmp1 = $2;
         res = new IR(kOptInlineHandler, OP3("INLINE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptInlineHandler, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6175,11 +6954,13 @@ validator_clause:
     VALIDATOR handler_name {
         auto tmp1 = $2;
         res = new IR(kValidatorClause, OP3("VALIDATOR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO VALIDATOR {
         res = new IR(kValidatorClause, OP3("NO VALIDATOR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6191,11 +6972,13 @@ opt_validator:
     validator_clause {
         auto tmp1 = $1;
         res = new IR(kOptValidator, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptValidator, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6206,11 +6989,13 @@ opt_procedural:
 
     PROCEDURAL {
         res = new IR(kOptProcedural, OP3("PROCEDURAL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptProcedural, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6231,11 +7016,14 @@ CreateTableSpaceStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateTableSpaceStmt_1, OP3("CREATE TABLESPACE", "", "LOCATION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreateTableSpaceStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kCreateTableSpaceStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6248,11 +7036,13 @@ OptTableSpaceOwner:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kOptTableSpaceOwner, OP3("OWNER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY */ {
         res = new IR(kOptTableSpaceOwner, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6275,6 +7065,7 @@ DropTableSpaceStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kDropTableSpaceStmt, OP3("DROP TABLESPACE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6282,6 +7073,7 @@ DropTableSpaceStmt:
         auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kDropTableSpaceStmt, OP3("DROP TABLESPACE IF EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6303,8 +7095,10 @@ CreateExtensionStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateExtensionStmt_1, OP3("CREATE EXTENSION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateExtensionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6313,8 +7107,10 @@ CreateExtensionStmt:
         free($6);
         auto tmp2 = $7;
         res = new IR(kCreateExtensionStmt_2, OP3("CREATE EXTENSION IF NOT EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateExtensionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6327,11 +7123,13 @@ create_extension_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreateExtensionOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kCreateExtensionOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6344,6 +7142,7 @@ create_extension_opt_item:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kCreateExtensionOptItem, OP3("SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6353,6 +7152,7 @@ create_extension_opt_item:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kCreateExtensionOptItem, OP3("VERSION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6360,11 +7160,13 @@ create_extension_opt_item:
         /* Yu: This symtax no longer supported. Change it to CASCADE. */
         free($2);
         res = new IR(kCreateExtensionOptItem, OP3("CASCADE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CASCADE {
         res = new IR(kCreateExtensionOptItem, OP3("CASCADE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6384,6 +7186,7 @@ AlterExtensionStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterExtensionStmt, OP3("ALTER EXTENSION", "UPDATE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6396,11 +7199,13 @@ alter_extension_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAlterExtensionOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kAlterExtensionOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6415,6 +7220,7 @@ alter_extension_opt_item:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAlterExtensionOptItem, OP3("TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6434,11 +7240,14 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_1, OP3("ALTER EXTENSION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterExtensionContentsStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6447,10 +7256,13 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_3, OP3("ALTER EXTENSION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterExtensionContentsStmt_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6459,8 +7271,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_5, OP3("ALTER EXTENSION", "", "AGGREGATE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6469,10 +7283,13 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_6, OP3("ALTER EXTENSION", "", "CAST ("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_7, OP3("", "", "AS"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6481,8 +7298,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_8, OP3("ALTER EXTENSION", "", "DOMAIN"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6491,8 +7310,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_9, OP3("ALTER EXTENSION", "", "FUNCTION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6501,8 +7322,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_10, OP3("ALTER EXTENSION", "", "OPERATOR"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6511,11 +7334,14 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_11, OP3("ALTER EXTENSION", "", "OPERATOR CLASS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_12, OP3("", "", "USING"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6524,11 +7350,14 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_13, OP3("ALTER EXTENSION", "", "OPERATOR FAMILY"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_14, OP3("", "", "USING"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6537,8 +7366,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_15, OP3("ALTER EXTENSION", "", "PROCEDURE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6547,8 +7378,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_16, OP3("ALTER EXTENSION", "", "ROUTINE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6557,11 +7390,14 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_17, OP3("ALTER EXTENSION", "", "TRANSFORM FOR"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_18, OP3("", "", "LANGUAGE"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6570,8 +7406,10 @@ AlterExtensionContentsStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterExtensionContentsStmt_19, OP3("ALTER EXTENSION", "", "TYPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6592,8 +7430,10 @@ CreateFdwStmt:
         free($5);
         auto tmp2 = $6;
         res = new IR(kCreateFdwStmt_1, OP3("CREATE FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kCreateFdwStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6605,22 +7445,26 @@ fdw_option:
     HANDLER handler_name {
         auto tmp1 = $2;
         res = new IR(kFdwOption, OP3("HANDLER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO HANDLER {
         res = new IR(kFdwOption, OP3("NO HANDLER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VALIDATOR handler_name {
         auto tmp1 = $2;
         res = new IR(kFdwOption, OP3("VALIDATOR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO VALIDATOR {
         res = new IR(kFdwOption, OP3("NO VALIDATOR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6632,6 +7476,7 @@ fdw_options:
     fdw_option {
         auto tmp1 = $1;
         res = new IR(kFdwOptions, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6639,6 +7484,7 @@ fdw_options:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFdwOptions, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6650,11 +7496,13 @@ opt_fdw_options:
     fdw_options {
         auto tmp1 = $1;
         res = new IR(kOptFdwOptions, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptFdwOptions, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6675,8 +7523,10 @@ AlterFdwStmt:
         free($5);
         auto tmp2 = $6;
         res = new IR(kAlterFdwStmt_1, OP3("ALTER FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterFdwStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6685,6 +7535,7 @@ AlterFdwStmt:
         free($5);
         auto tmp2 = $6;
         res = new IR(kAlterFdwStmt, OP3("ALTER FOREIGN DATA WRAPPER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6697,11 +7548,13 @@ create_generic_options:
     OPTIONS '(' generic_option_list ')' {
         auto tmp1 = $3;
         res = new IR(kCreateGenericOptions, OP3("OPTIONS (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kCreateGenericOptions, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6713,6 +7566,7 @@ generic_option_list:
     generic_option_elem {
         auto tmp1 = $1;
         res = new IR(kGenericOptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6720,6 +7574,7 @@ generic_option_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kGenericOptionList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6732,6 +7587,7 @@ alter_generic_options:
     OPTIONS '(' alter_generic_option_list ')' {
         auto tmp1 = $3;
         res = new IR(kAlterGenericOptions, OP3("OPTIONS (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6743,6 +7599,7 @@ alter_generic_option_list:
     alter_generic_option_elem {
         auto tmp1 = $1;
         res = new IR(kAlterGenericOptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6750,6 +7607,7 @@ alter_generic_option_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAlterGenericOptionList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6761,18 +7619,21 @@ alter_generic_option_elem:
     generic_option_elem {
         auto tmp1 = $1;
         res = new IR(kAlterGenericOptionElem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SET generic_option_elem {
         auto tmp1 = $2;
         res = new IR(kAlterGenericOptionElem, OP3("SET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ADD_P generic_option_elem {
         auto tmp1 = $2;
         res = new IR(kAlterGenericOptionElem, OP3("ADD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6780,6 +7641,7 @@ alter_generic_option_elem:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAlterGenericOptionElem, OP3("DROP", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6793,6 +7655,7 @@ generic_option_elem:
         free($1);
         auto tmp2 = $2;
         res = new IR(kGenericOptionElem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6800,7 +7663,7 @@ generic_option_elem:
 
 
 generic_option_name:
-    ColLabel 
+    ColLabel
 ;
 
 /* We could use def_arg here, but the spec only requires string literals */
@@ -6811,6 +7674,7 @@ generic_option_arg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kGenericOptionArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6831,13 +7695,17 @@ CreateForeignServerStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateForeignServerStmt_1, OP3("CREATE SERVER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateForeignServerStmt_2, OP3("", "", "FOREIGN DATA WRAPPER"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kCreateForeignServerStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $10;
         res = new IR(kCreateForeignServerStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6846,13 +7714,17 @@ CreateForeignServerStmt:
         free($6);
         auto tmp2 = $7;
         res = new IR(kCreateForeignServerStmt_4, OP3("CREATE SERVER IF NOT EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateForeignServerStmt_5, OP3("", "", "FOREIGN DATA WRAPPER"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($12), kDataFixLater, 0, kFlagUnknown);
         free($12);
         res = new IR(kCreateForeignServerStmt_6, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $13;
         res = new IR(kCreateForeignServerStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6865,11 +7737,13 @@ opt_type:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kOptType, OP3("TYPE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptType, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6883,11 +7757,13 @@ foreign_server_version:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kForeignServerVersion, OP3("VERSION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VERSION_P NULL_P {
         res = new IR(kForeignServerVersion, OP3("VERSION NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6899,11 +7775,13 @@ opt_foreign_server_version:
     foreign_server_version {
         auto tmp1 = $1;
         res = new IR(kOptForeignServerVersion, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptForeignServerVersion, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6924,8 +7802,10 @@ AlterForeignServerStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterForeignServerStmt_1, OP3("ALTER SERVER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterForeignServerStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6934,6 +7814,7 @@ AlterForeignServerStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterForeignServerStmt, OP3("ALTER SERVER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6942,6 +7823,7 @@ AlterForeignServerStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterForeignServerStmt, OP3("ALTER SERVER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6961,13 +7843,17 @@ CreateForeignTableStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kCreateForeignTableStmt_1, OP3("CREATE FOREIGN TABLE", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateForeignTableStmt_2, OP3("", "", "SERVER"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kCreateForeignTableStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6975,13 +7861,17 @@ CreateForeignTableStmt:
         auto tmp1 = $7;
         auto tmp2 = $9;
         res = new IR(kCreateForeignTableStmt_4, OP3("CREATE FOREIGN TABLE IF NOT EXISTS", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $11;
         res = new IR(kCreateForeignTableStmt_5, OP3("", "", "SERVER"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($13), kDataFixLater, 0, kFlagUnknown);
         free($13);
         res = new IR(kCreateForeignTableStmt_6, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $14;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -6989,15 +7879,20 @@ CreateForeignTableStmt:
         auto tmp1 = $4;
         auto tmp2 = $7;
         res = new IR(kCreateForeignTableStmt_7, OP3("CREATE FOREIGN TABLE", "PARTITION OF", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateForeignTableStmt_8, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kCreateForeignTableStmt_9, OP3("", "", "SERVER"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = new IR(kIdentifier, string($11), kDataFixLater, 0, kFlagUnknown);
         free($11);
         res = new IR(kCreateForeignTableStmt_10, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $12;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7005,15 +7900,20 @@ CreateForeignTableStmt:
         auto tmp1 = $7;
         auto tmp2 = $10;
         res = new IR(kCreateForeignTableStmt_11, OP3("CREATE FOREIGN TABLE IF NOT EXISTS", "PARTITION OF", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $11;
         res = new IR(kCreateForeignTableStmt_12, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $12;
         res = new IR(kCreateForeignTableStmt_13, OP3("", "", "SERVER"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = new IR(kIdentifier, string($14), kDataFixLater, 0, kFlagUnknown);
         free($14);
         res = new IR(kCreateForeignTableStmt_14, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $15;
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7036,14 +7936,18 @@ ImportForeignSchemaStmt:
         free($4);
         auto tmp2 = $5;
         res = new IR(kImportForeignSchemaStmt_1, OP3("IMPORT FOREIGN SCHEMA", "", "FROM SERVER"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kImportForeignSchemaStmt_2, OP3("", "", "INTO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kImportForeignSchemaStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kImportForeignSchemaStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7054,11 +7958,13 @@ import_qualification_type:
 
     LIMIT TO {
         res = new IR(kImportQualificationType, OP3("LIMIT TO", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXCEPT {
         res = new IR(kImportQualificationType, OP3("EXCEPT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7071,11 +7977,13 @@ import_qualification:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kImportQualification, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kImportQualification, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7096,8 +8004,10 @@ CreateUserMappingStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kCreateUserMappingStmt_1, OP3("CREATE USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateUserMappingStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7106,8 +8016,10 @@ CreateUserMappingStmt:
         auto tmp2 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kCreateUserMappingStmt_2, OP3("CREATE USER MAPPING IF NOT EXISTS FOR", "SERVER", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $11;
         res = new IR(kCreateUserMappingStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7121,11 +8033,13 @@ auth_ident:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kAuthIdent, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | USER {
         res = new IR(kAuthIdent, OP3("USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7148,6 +8062,7 @@ DropUserMappingStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kDropUserMappingStmt, OP3("DROP USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7156,6 +8071,7 @@ DropUserMappingStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kDropUserMappingStmt, OP3("DROP USER MAPPING IF EXISTS FOR", "SERVER", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7176,8 +8092,10 @@ AlterUserMappingStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterUserMappingStmt_1, OP3("ALTER USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kAlterUserMappingStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7204,16 +8122,22 @@ CreatePolicyStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kCreatePolicyStmt_1, OP3("CREATE POLICY", "ON", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCreatePolicyStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kCreatePolicyStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kCreatePolicyStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kCreatePolicyStmt_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $10;
         res = new IR(kCreatePolicyStmt, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7227,12 +8151,16 @@ AlterPolicyStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterPolicyStmt_1, OP3("ALTER POLICY", "ON", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterPolicyStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kAlterPolicyStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kAlterPolicyStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7244,11 +8172,13 @@ RowSecurityOptionalExpr:
     USING '(' a_expr ')' {
         auto tmp1 = $3;
         res = new IR(kRowSecurityOptionalExpr, OP3("USING (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kRowSecurityOptionalExpr, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7260,11 +8190,13 @@ RowSecurityOptionalWithCheck:
     WITH CHECK '(' a_expr ')' {
         auto tmp1 = $4;
         res = new IR(kRowSecurityOptionalWithCheck, OP3("WITH CHECK (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kRowSecurityOptionalWithCheck, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7276,11 +8208,13 @@ RowSecurityDefaultToRole:
     TO role_list {
         auto tmp1 = $2;
         res = new IR(kRowSecurityDefaultToRole, OP3("TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kRowSecurityDefaultToRole, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7292,11 +8226,13 @@ RowSecurityOptionalToRole:
     TO role_list {
         auto tmp1 = $2;
         res = new IR(kRowSecurityOptionalToRole, OP3("TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kRowSecurityOptionalToRole, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7306,16 +8242,22 @@ RowSecurityOptionalToRole:
 RowSecurityDefaultPermissive:
 
     AS IDENT {
-        if (strcmp($2, "permissive") == 0)
+        if (strcmp($2, "permissive") == 0) {
             res = new IR(kRowSecurityDefaultPermissive, OP3("AS permissive", "", ""));
-        else if (strcmp($2, "restrictive") == 0)
+            all_gen_ir.push_back(res);
+        }
+        else if (strcmp($2, "restrictive") == 0) {
             res = new IR(kRowSecurityDefaultPermissive, OP3("AS restrictive", "", ""));
+            all_gen_ir.push_back(res);
+        }
         else if (strcmp($2, "") == 0) {
             res = new IR(kRowSecurityDefaultPermissive, OP0());
+            all_gen_ir.push_back(res);
         }
         else {
             /* Force using empty, if the option is not supported.  */
             res = new IR(kRowSecurityDefaultPermissive, OP0());
+            all_gen_ir.push_back(res);
         }
         free($2);
         $$ = res;
@@ -7323,6 +8265,7 @@ RowSecurityDefaultPermissive:
 
     | /* EMPTY */ {
         res = new IR(kRowSecurityDefaultPermissive, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7334,11 +8277,13 @@ RowSecurityDefaultForCmd:
     FOR row_security_cmd {
         auto tmp1 = $2;
         res = new IR(kRowSecurityDefaultForCmd, OP3("FOR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kRowSecurityDefaultForCmd, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7349,26 +8294,31 @@ row_security_cmd:
 
     ALL {
         res = new IR(kRowSecurityCmd, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SELECT {
         res = new IR(kRowSecurityCmd, OP3("SELECT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INSERT {
         res = new IR(kRowSecurityCmd, OP3("INSERT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UPDATE {
         res = new IR(kRowSecurityCmd, OP3("UPDATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DELETE_P {
         res = new IR(kRowSecurityCmd, OP3("DELETE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7389,8 +8339,10 @@ CreateAmStmt:
         free($4);
         auto tmp2 = $6;
         res = new IR(kCreateAmStmt_1, OP3("CREATE ACCESS METHOD", "TYPE", "HANDLER"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateAmStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7401,11 +8353,13 @@ am_type:
 
     INDEX {
         res = new IR(kAmType, OP3("INDEX", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLE {
         res = new IR(kAmType, OP3("TABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7426,24 +8380,34 @@ CreateTrigStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kCreateTrigStmt_1, OP3("CREATE", "TRIGGER", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateTrigStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kCreateTrigStmt_3, OP3("", "", "ON"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kCreateTrigStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kCreateTrigStmt_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $10;
         res = new IR(kCreateTrigStmt_6, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $11;
         res = new IR(kCreateTrigStmt_7, OP3("", "", "EXECUTE"), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $13;
         res = new IR(kCreateTrigStmt_8, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $14;
         res = new IR(kCreateTrigStmt_9, OP3("", "", "("), res, tmp10);
+        all_gen_ir.push_back(res);
         auto tmp11 = $16;
         res = new IR(kCreateTrigStmt, OP3("", "", ")"), res, tmp11);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7457,22 +8421,31 @@ CreateTrigStmt:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kCreateTrigStmt_10, OP3("CREATE", "CONSTRAINT TRIGGER", "AFTER"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kCreateTrigStmt_11, OP3("", "", "ON"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kCreateTrigStmt_12, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $10;
         res = new IR(kCreateTrigStmt_13, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $11;
         res = new IR(kCreateTrigStmt_14, OP3("", "", "FOR EACH ROW"), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $15;
         res = new IR(kCreateTrigStmt_15, OP3("", "", "EXECUTE"), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $17;
         res = new IR(kCreateTrigStmt_16, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $18;
         res = new IR(kCreateTrigStmt_17, OP3("", "", "("), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $20;
         res = new IR(kCreateTrigStmt, OP3("", "", ")"), res, tmp10);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7483,16 +8456,19 @@ TriggerActionTime:
 
     BEFORE {
         res = new IR(kTriggerActionTime, OP3("BEFORE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AFTER {
         res = new IR(kTriggerActionTime, OP3("AFTER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INSTEAD OF {
         res = new IR(kTriggerActionTime, OP3("INSTEAD OF", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7504,6 +8480,7 @@ TriggerEvents:
     TriggerOneEvent {
         auto tmp1 = $1;
         res = new IR(kTriggerEvents, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7511,6 +8488,7 @@ TriggerEvents:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTriggerEvents, OP3("", "OR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7521,27 +8499,32 @@ TriggerOneEvent:
 
     INSERT {
         res = new IR(kTriggerOneEvent, OP3("INSERT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DELETE_P {
         res = new IR(kTriggerOneEvent, OP3("DELETE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UPDATE {
         res = new IR(kTriggerOneEvent, OP3("UPDATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UPDATE OF columnList {
         auto tmp1 = $3;
         res = new IR(kTriggerOneEvent, OP3("UPDATE OF", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRUNCATE {
         res = new IR(kTriggerOneEvent, OP3("TRUNCATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7553,11 +8536,13 @@ TriggerReferencing:
     REFERENCING TriggerTransitions {
         auto tmp1 = $2;
         res = new IR(kTriggerReferencing, OP3("REFERENCING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kTriggerReferencing, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7569,6 +8554,7 @@ TriggerTransitions:
     TriggerTransition {
         auto tmp1 = $1;
         res = new IR(kTriggerTransitions, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7576,6 +8562,7 @@ TriggerTransitions:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTriggerTransitions, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7588,10 +8575,13 @@ TriggerTransition:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTriggerTransition_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kTriggerTransition_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kTriggerTransition, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7602,11 +8592,13 @@ TransitionOldOrNew:
 
     NEW {
         res = new IR(kTransitionOldOrNew, OP3("NEW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OLD {
         res = new IR(kTransitionOldOrNew, OP3("OLD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7617,11 +8609,13 @@ TransitionRowOrTable:
 
     TABLE {
         res = new IR(kTransitionRowOrTable, OP3("TABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROW {
         res = new IR(kTransitionRowOrTable, OP3("ROW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7634,6 +8628,7 @@ TransitionRelName:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kTransitionRelName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7646,11 +8641,13 @@ TriggerForSpec:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTriggerForSpec, OP3("FOR", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kTriggerForSpec, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7661,11 +8658,13 @@ TriggerForOptEach:
 
     EACH {
         res = new IR(kTriggerForOptEach, OP3("EACH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kTriggerForOptEach, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7676,11 +8675,13 @@ TriggerForType:
 
     ROW {
         res = new IR(kTriggerForType, OP3("ROW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STATEMENT {
         res = new IR(kTriggerForType, OP3("STATEMENT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7692,11 +8693,13 @@ TriggerWhen:
     WHEN '(' a_expr ')' {
         auto tmp1 = $3;
         res = new IR(kTriggerWhen, OP3("WHEN (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kTriggerWhen, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7707,11 +8710,13 @@ FUNCTION_or_PROCEDURE:
 
     FUNCTION {
         res = new IR(kFUNCTIONOrPROCEDURE, OP3("FUNCTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PROCEDURE {
         res = new IR(kFUNCTIONOrPROCEDURE, OP3("PROCEDURE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7723,6 +8728,7 @@ TriggerFuncArgs:
     TriggerFuncArg {
         auto tmp1 = $1;
         res = new IR(kTriggerFuncArgs, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7730,11 +8736,13 @@ TriggerFuncArgs:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTriggerFuncArgs, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kTriggerFuncArgs, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7746,12 +8754,14 @@ TriggerFuncArg:
     Iconst {
         auto tmp1 = $1;
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($1));
         res = new IR(kTriggerFuncArg, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -7760,6 +8770,7 @@ TriggerFuncArg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7767,6 +8778,7 @@ TriggerFuncArg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7778,11 +8790,13 @@ OptConstrFromTable:
     FROM qualified_name {
         auto tmp1 = $2;
         res = new IR(kOptConstrFromTable, OP3("FROM", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptConstrFromTable, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7793,6 +8807,7 @@ ConstraintAttributeSpec:
 
     /*EMPTY*/ {
         res = new IR(kConstraintAttributeSpec, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7800,6 +8815,7 @@ ConstraintAttributeSpec:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kConstraintAttributeSpec, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7810,31 +8826,37 @@ ConstraintAttributeElem:
 
     NOT DEFERRABLE {
         res = new IR(kConstraintAttributeElem, OP3("NOT DEFERRABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFERRABLE {
         res = new IR(kConstraintAttributeElem, OP3("DEFERRABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INITIALLY IMMEDIATE {
         res = new IR(kConstraintAttributeElem, OP3("INITIALLY IMMEDIATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INITIALLY DEFERRED {
         res = new IR(kConstraintAttributeElem, OP3("INITIALLY DEFERRED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT VALID {
         res = new IR(kConstraintAttributeElem, OP3("NOT VALID", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NO INHERIT {
         res = new IR(kConstraintAttributeElem, OP3("NO INHERIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7858,10 +8880,13 @@ CreateEventTrigStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreateEventTrigStmt_1, OP3("CREATE EVENT TRIGGER", "ON", "EXECUTE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateEventTrigStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kCreateEventTrigStmt, OP3("", "", "( )"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7871,12 +8896,16 @@ CreateEventTrigStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreateEventTrigStmt_3, OP3("CREATE EVENT TRIGGER", "ON", "WHEN"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateEventTrigStmt_4, OP3("", "", "EXECUTE"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $10;
         res = new IR(kCreateEventTrigStmt_5, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kCreateEventTrigStmt, OP3("", "", "( )"), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7888,6 +8917,7 @@ event_trigger_when_list:
     event_trigger_when_item {
         auto tmp1 = $1;
         res = new IR(kEventTriggerWhenList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7895,6 +8925,7 @@ event_trigger_when_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kEventTriggerWhenList, OP3("", "AND", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7908,6 +8939,7 @@ event_trigger_when_item:
         free($1);
         auto tmp2 = $4;
         res = new IR(kEventTriggerWhenItem, OP3("", "IN (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7919,6 +8951,7 @@ event_trigger_value_list:
     SCONST {
         auto tmp1 = new IR(kStringLiteral, string($1));
         res = new IR(kEventTriggerValueList, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -7927,6 +8960,7 @@ event_trigger_value_list:
         auto tmp1 = $1;
         auto tmp2 = new IR(kStringLiteral, string($3));
         res = new IR(kEventTriggerValueList, OP0(), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         free($3);
         $$ = res;
     }
@@ -7941,6 +8975,7 @@ AlterEventTrigStmt:
         free($4);
         auto tmp2 = $5;
         res = new IR(kAlterEventTrigStmt, OP3("ALTER EVENT TRIGGER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataTriggerName, kUse);
@@ -7953,21 +8988,25 @@ enable_trigger:
 
     ENABLE_P {
         res = new IR(kEnableTrigger, OP3("ENABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ENABLE_P REPLICA {
         res = new IR(kEnableTrigger, OP3("ENABLE REPLICA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ENABLE_P ALWAYS {
         res = new IR(kEnableTrigger, OP3("ENABLE ALWAYS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISABLE_P {
         res = new IR(kEnableTrigger, OP3("DISABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -7987,8 +9026,10 @@ CreateAssertionStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kCreateAssertionStmt_1, OP3("CREATE ASSERTION", "CHECK (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateAssertionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8009,10 +9050,13 @@ DefineStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kDefineStmt_1, OP3("CREATE", "AGGREGATE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kDefineStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kDefineStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8020,8 +9064,10 @@ DefineStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kDefineStmt_3, OP3("CREATE", "AGGREGATE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kDefineStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8029,6 +9075,7 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kDefineStmt, OP3("CREATE OPERATOR", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8036,12 +9083,14 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kDefineStmt, OP3("CREATE TYPE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CREATE TYPE_P any_name {
         auto tmp1 = $3;
         res = new IR(kDefineStmt, OP3("CREATE TYPE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8049,6 +9098,7 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kDefineStmt, OP3("CREATE TYPE", "AS (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8056,6 +9106,7 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $7;
         res = new IR(kDefineStmt, OP3("CREATE TYPE", "AS ENUM (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8063,6 +9114,7 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kDefineStmt, OP3("CREATE TYPE", "AS RANGE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8070,6 +9122,7 @@ DefineStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kDefineStmt, OP3("CREATE TEXT SEARCH PARSER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8077,6 +9130,7 @@ DefineStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kDefineStmt, OP3("CREATE TEXT SEARCH DICTIONARY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8084,6 +9138,7 @@ DefineStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kDefineStmt, OP3("CREATE TEXT SEARCH TEMPLATE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8091,6 +9146,7 @@ DefineStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kDefineStmt, OP3("CREATE TEXT SEARCH CONFIGURATION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8098,6 +9154,7 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kDefineStmt, OP3("CREATE COLLATION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8105,6 +9162,7 @@ DefineStmt:
         auto tmp1 = $6;
         auto tmp2 = $7;
         res = new IR(kDefineStmt, OP3("CREATE COLLATION IF NOT EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8112,6 +9170,7 @@ DefineStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kDefineStmt, OP3("CREATE COLLATION", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8119,6 +9178,7 @@ DefineStmt:
         auto tmp1 = $6;
         auto tmp2 = $8;
         res = new IR(kDefineStmt, OP3("CREATE COLLATION IF NOT EXISTS", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8130,6 +9190,7 @@ definition:
     '(' def_list ')' {
         auto tmp1 = $2;
         res = new IR(kDefinition, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8141,6 +9202,7 @@ def_list:
     def_elem {
         auto tmp1 = $1;
         res = new IR(kDefList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8148,6 +9210,7 @@ def_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kDefList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8161,6 +9224,7 @@ def_elem:
         free($1);
         auto tmp2 = $3;
         res = new IR(kDefElem, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8168,6 +9232,7 @@ def_elem:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kDefElem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8180,6 +9245,7 @@ def_arg:
     func_type {
         auto tmp1 = $1;
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8187,18 +9253,21 @@ def_arg:
         /* This is a specitial use, we are using a read-only char to initialize the string! */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | qual_all_Op {
         auto tmp1 = $1;
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NumericOnly {
         auto tmp1 = $1;
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8206,11 +9275,13 @@ def_arg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NONE {
         res = new IR(kDefArg, OP3("NONE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8222,6 +9293,7 @@ old_aggr_definition:
     '(' old_aggr_list ')' {
         auto tmp1 = $2;
         res = new IR(kOldAggrDefinition, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8233,6 +9305,7 @@ old_aggr_list:
     old_aggr_elem {
         auto tmp1 = $1;
         res = new IR(kOldAggrList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8240,6 +9313,7 @@ old_aggr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOldAggrList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8275,7 +9349,7 @@ old_aggr_elem:
                 strcmp($1, "MFINALFUNC_MODIFY") == 0 || // Optional
                 strcmp($1, "MINITCOND") == 0 || // Optional
                 strcmp($1, "SORTOP") == 0 || // Optional
-                strcmp($1, "PARALLEL") == 0 // Optional 
+                strcmp($1, "PARALLEL") == 0 // Optional
         ) {
             tmp1 = new IR(kIdentifier, string($1), kDataAggregateArguments, kFlagUnknown);
             free($1);
@@ -8296,11 +9370,13 @@ opt_enum_val_list:
     enum_val_list {
         auto tmp1 = $1;
         res = new IR(kOptEnumValList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptEnumValList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8313,6 +9389,7 @@ enum_val_list:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kEnumValList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8321,6 +9398,7 @@ enum_val_list:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kEnumValList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8339,9 +9417,11 @@ AlterEnumStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8349,12 +9429,15 @@ AlterEnumStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_2, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterEnumStmt_3, OP3("", "", "BEFORE"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8362,12 +9445,15 @@ AlterEnumStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_4, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterEnumStmt_5, OP3("", "", "AFTER"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8376,9 +9462,11 @@ AlterEnumStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterEnumStmt_6, OP3("ALTER TYPE", "RENAME VALUE", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8389,11 +9477,13 @@ opt_if_not_exists:
 
     IF_P NOT EXISTS {
         res = new IR(kOptIfNotExists, OP3("IF NOT EXISTS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptIfNotExists, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8418,15 +9508,20 @@ CreateOpClassStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kCreateOpClassStmt_1, OP3("CREATE OPERATOR CLASS", "", "FOR TYPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kCreateOpClassStmt_2, OP3("", "", "USING"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kCreateOpClassStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kCreateOpClassStmt_4, OP3("", "", "AS"), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $13;
         res = new IR(kCreateOpClassStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8438,6 +9533,7 @@ opclass_item_list:
     opclass_item {
         auto tmp1 = $1;
         res = new IR(kOpclassItemList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8445,6 +9541,7 @@ opclass_item_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOpclassItemList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8457,10 +9554,13 @@ opclass_item:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOpclassItem_1, OP3("OPERATOR", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kOpclassItem_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kOpclassItem, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8468,10 +9568,13 @@ opclass_item:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOpclassItem_3, OP3("OPERATOR", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kOpclassItem_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kOpclassItem, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8479,6 +9582,7 @@ opclass_item:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOpclassItem, OP3("FUNCTION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8486,14 +9590,17 @@ opclass_item:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kOpclassItem_5, OP3("FUNCTION", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kOpclassItem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STORAGE Typename {
         auto tmp1 = $2;
         res = new IR(kOpclassItem, OP3("STORAGE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8504,11 +9611,13 @@ opt_default:
 
     DEFAULT {
         res = new IR(kOptDefault, OP3("DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptDefault, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8520,11 +9629,13 @@ opt_opfamily:
     FAMILY any_name {
         auto tmp1 = $2;
         res = new IR(kOptOpfamily, OP3("FAMILY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptOpfamily, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8535,17 +9646,20 @@ opclass_purpose:
 
     FOR SEARCH {
         res = new IR(kOpclassPurpose, OP3("FOR SEARCH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR ORDER BY any_name {
         auto tmp1 = $4;
         res = new IR(kOpclassPurpose, OP3("FOR ORDER BY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOpclassPurpose, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8557,11 +9671,13 @@ opt_recheck:
     RECHECK {
         /* Yu: RECHECK no longer needed. Remove it. */
         res = new IR(kOptRecheck, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptRecheck, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8576,6 +9692,7 @@ CreateOpFamilyStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreateOpFamilyStmt, OP3("CREATE OPERATOR FAMILY", "USING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8589,8 +9706,10 @@ AlterOpFamilyStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOpFamilyStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "ADD"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kAlterOpFamilyStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8599,8 +9718,10 @@ AlterOpFamilyStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOpFamilyStmt_2, OP3("ALTER OPERATOR FAMILY", "USING", "DROP"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kAlterOpFamilyStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8612,6 +9733,7 @@ opclass_drop_list:
     opclass_drop {
         auto tmp1 = $1;
         res = new IR(kOpclassDropList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8619,6 +9741,7 @@ opclass_drop_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOpclassDropList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8631,6 +9754,7 @@ opclass_drop:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kOpclassDrop, OP3("OPERATOR", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8638,6 +9762,7 @@ opclass_drop:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kOpclassDrop, OP3("FUNCTION", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8652,8 +9777,10 @@ DropOpClassStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kDropOpClassStmt_1, OP3("DROP OPERATOR CLASS", "USING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kDropOpClassStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8662,8 +9789,10 @@ DropOpClassStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kDropOpClassStmt_2, OP3("DROP OPERATOR CLASS IF EXISTS", "USING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kDropOpClassStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8677,8 +9806,10 @@ DropOpFamilyStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kDropOpFamilyStmt_1, OP3("DROP OPERATOR FAMILY", "USING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kDropOpFamilyStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8687,8 +9818,10 @@ DropOpFamilyStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kDropOpFamilyStmt_2, OP3("DROP OPERATOR FAMILY IF EXISTS", "USING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kDropOpFamilyStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8710,6 +9843,7 @@ DropOwnedStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kDropOwnedStmt, OP3("DROP OWNED BY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8723,6 +9857,7 @@ ReassignOwnedStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kReassignOwnedStmt, OP3("REASSIGN OWNED BY", "TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8744,8 +9879,10 @@ DropStmt:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kDropStmt_1, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8753,8 +9890,10 @@ DropStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kDropStmt_2, OP3("DROP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8762,8 +9901,10 @@ DropStmt:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kDropStmt_3, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8771,8 +9912,10 @@ DropStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kDropStmt_4, OP3("DROP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8781,10 +9924,13 @@ DropStmt:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kDropStmt_5, OP3("DROP", "", "ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kDropStmt_6, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8793,10 +9939,13 @@ DropStmt:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kDropStmt_7, OP3("DROP", "IF EXISTS", "ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kDropStmt_8, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8804,6 +9953,7 @@ DropStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kDropStmt, OP3("DROP TYPE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8811,6 +9961,7 @@ DropStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kDropStmt, OP3("DROP TYPE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8818,6 +9969,7 @@ DropStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kDropStmt, OP3("DROP DOMAIN", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8825,6 +9977,7 @@ DropStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kDropStmt, OP3("DROP DOMAIN IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8832,6 +9985,7 @@ DropStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kDropStmt, OP3("DROP INDEX CONCURRENTLY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8839,6 +9993,7 @@ DropStmt:
         auto tmp1 = $6;
         auto tmp2 = $7;
         res = new IR(kDropStmt, OP3("DROP INDEX CONCURRENTLY IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8850,66 +10005,79 @@ object_type_any_name:
 
     TABLE {
         res = new IR(kObjectTypeAnyName, OP3("TABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SEQUENCE {
         res = new IR(kObjectTypeAnyName, OP3("SEQUENCE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VIEW {
         res = new IR(kObjectTypeAnyName, OP3("VIEW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MATERIALIZED VIEW {
         res = new IR(kObjectTypeAnyName, OP3("MATERIALIZED VIEW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INDEX {
         res = new IR(kObjectTypeAnyName, OP3("INDEX", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOREIGN TABLE {
         res = new IR(kObjectTypeAnyName, OP3("FOREIGN TABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | COLLATION {
         res = new IR(kObjectTypeAnyName, OP3("COLLATION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CONVERSION_P {
         res = new IR(kObjectTypeAnyName, OP3("CONVERSION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STATISTICS {
         res = new IR(kObjectTypeAnyName, OP3("STATISTICS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TEXT_P SEARCH PARSER {
         res = new IR(kObjectTypeAnyName, OP3("TEXT SEARCH PARSER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TEXT_P SEARCH DICTIONARY {
         res = new IR(kObjectTypeAnyName, OP3("TEXT SEARCH DICTIONARY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TEXT_P SEARCH TEMPLATE {
         res = new IR(kObjectTypeAnyName, OP3("TEXT SEARCH TEMPLATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TEXT_P SEARCH CONFIGURATION {
         res = new IR(kObjectTypeAnyName, OP3("TEXT SEARCH CONFIGURATION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8927,26 +10095,31 @@ object_type_name:
     drop_type_name {
         auto tmp1 = $1;
         res = new IR(kObjectTypeName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DATABASE {
         res = new IR(kObjectTypeName, OP3("DATABASE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROLE {
         res = new IR(kObjectTypeName, OP3("ROLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SUBSCRIPTION {
         res = new IR(kObjectTypeName, OP3("SUBSCRIPTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLESPACE {
         res = new IR(kObjectTypeName, OP3("TABLESPACE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -8957,42 +10130,50 @@ drop_type_name:
 
     ACCESS METHOD {
         res = new IR(kDropTypeName, OP3("ACCESS METHOD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EVENT TRIGGER {
         res = new IR(kDropTypeName, OP3("EVENT TRIGGER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXTENSION {
         res = new IR(kDropTypeName, OP3("EXTENSION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOREIGN DATA_P WRAPPER {
         res = new IR(kDropTypeName, OP3("FOREIGN DATA WRAPPER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | opt_procedural LANGUAGE {
         auto tmp1 = $1;
         res = new IR(kDropTypeName, OP3("", "LANGUAGE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PUBLICATION {
         res = new IR(kDropTypeName, OP3("PUBLICATION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SCHEMA {
         res = new IR(kDropTypeName, OP3("SCHEMA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SERVER {
         res = new IR(kDropTypeName, OP3("SERVER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9004,16 +10185,19 @@ object_type_name_on_any_name:
 
     POLICY {
         res = new IR(kObjectTypeNameOnAnyName, OP3("POLICY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RULE {
         res = new IR(kObjectTypeNameOnAnyName, OP3("RULE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRIGGER {
         res = new IR(kObjectTypeNameOnAnyName, OP3("TRIGGER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9025,6 +10209,7 @@ any_name_list:
     any_name {
         auto tmp1 = $1;
         res = new IR(kAnyNameList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9032,6 +10217,7 @@ any_name_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAnyNameList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9044,6 +10230,7 @@ any_name:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kAnyName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9052,6 +10239,7 @@ any_name:
         free($1);
         auto tmp2 = $2;
         res = new IR(kAnyName, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9064,6 +10252,7 @@ attrs:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAttrs, OP3(".", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9072,6 +10261,7 @@ attrs:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAttrs, OP3("", ".", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9083,6 +10273,7 @@ type_name_list:
     Typename {
         auto tmp1 = $1;
         res = new IR(kTypeNameList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9090,6 +10281,7 @@ type_name_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTypeNameList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9109,10 +10301,13 @@ TruncateStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTruncateStmt_1, OP3("TRUNCATE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kTruncateStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kTruncateStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9123,16 +10318,19 @@ opt_restart_seqs:
 
     CONTINUE_P IDENTITY_P {
         res = new IR(kOptRestartSeqs, OP3("CONTINUE IDENTITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RESTART IDENTITY_P {
         res = new IR(kOptRestartSeqs, OP3("RESTART IDENTITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptRestartSeqs, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9151,9 +10349,11 @@ CommentStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCommentStmt_1, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9162,6 +10362,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON COLUMN", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9170,9 +10371,11 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kCommentStmt_2, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9181,6 +10384,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON TYPE", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9189,6 +10393,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON DOMAIN", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9197,6 +10402,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON AGGREGATE", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9205,6 +10411,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON FUNCTION", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9213,6 +10420,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON OPERATOR", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9221,9 +10429,11 @@ CommentStmt:
         free($4);
         auto tmp2 = $6;
         res = new IR(kCommentStmt_3, OP3("COMMENT ON CONSTRAINT", "ON", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9232,9 +10442,11 @@ CommentStmt:
         free($4);
         auto tmp2 = $7;
         res = new IR(kCommentStmt_4, OP3("COMMENT ON CONSTRAINT", "ON DOMAIN", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9243,11 +10455,14 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kCommentStmt_5, OP3("COMMENT ON", "", "ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kCommentStmt_6, OP3("", "", "IS"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9256,6 +10471,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON PROCEDURE", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9264,6 +10480,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON ROUTINE", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9272,9 +10489,11 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kCommentStmt_7, OP3("COMMENT ON TRANSFORM FOR", "LANGUAGE", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9283,9 +10502,11 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kCommentStmt_8, OP3("COMMENT ON OPERATOR CLASS", "USING", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9294,9 +10515,11 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kCommentStmt_9, OP3("COMMENT ON OPERATOR FAMILY", "USING", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9305,6 +10528,7 @@ CommentStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kCommentStmt, OP3("COMMENT ON LARGE OBJECT", "IS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9312,9 +10536,11 @@ CommentStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kCommentStmt_10, OP3("COMMENT ON CAST (", "AS", ") IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9346,10 +10572,13 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kSecLabelStmt_1, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kSecLabelStmt_2, OP3("", "", "IS"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9357,8 +10586,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_3, OP3("SECURITY LABEL", "ON COLUMN", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9366,11 +10597,14 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kSecLabelStmt_4, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kSecLabelStmt_5, OP3("", "", "IS"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9378,8 +10612,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_6, OP3("SECURITY LABEL", "ON TYPE", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9387,8 +10623,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_7, OP3("SECURITY LABEL", "ON DOMAIN", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9396,8 +10634,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_8, OP3("SECURITY LABEL", "ON AGGREGATE", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9405,8 +10645,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_9, OP3("SECURITY LABEL", "ON FUNCTION", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9414,8 +10656,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $7;
         res = new IR(kSecLabelStmt_10, OP3("SECURITY LABEL", "ON LARGE OBJECT", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9423,8 +10667,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_11, OP3("SECURITY LABEL", "ON PROCEDURE", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9432,8 +10678,10 @@ SecLabelStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kSecLabelStmt_12, OP3("SECURITY LABEL", "ON ROUTINE", "IS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kSecLabelStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9443,8 +10691,8 @@ SecLabelStmt:
 opt_provider:
 
     FOR NonReservedWord_or_Sconst {
-        /* Yu: This is for the security label string. I do not understand its context and usage. 
-        ** Do not mutate it for now. 
+        /* Yu: This is for the security label string. I do not understand its context and usage.
+        ** Do not mutate it for now.
         ** FixLater: $2 into OP3.
         */
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
@@ -9454,6 +10702,7 @@ opt_provider:
 
     | /* EMPTY */ {
         res = new IR(kOptProvider, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9466,11 +10715,13 @@ security_label:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kSecurityLabel, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NULL_P {
         res = new IR(kSecurityLabel, OP3("NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9489,12 +10740,14 @@ FetchStmt:
     FETCH fetch_args {
         auto tmp1 = $2;
         res = new IR(kFetchStmt, OP3("FETCH", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MOVE fetch_args {
         auto tmp1 = $2;
         res = new IR(kFetchStmt, OP3("MOVE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9507,6 +10760,7 @@ fetch_args:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kFetchArgs, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9515,6 +10769,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kFetchArgs, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9523,6 +10778,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("NEXT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9531,6 +10787,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("PRIOR", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9539,6 +10796,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("FIRST", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9547,6 +10805,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("LAST", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9554,9 +10813,11 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_1, OP3("ABSOLUTE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9564,9 +10825,11 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_2, OP3("RELATIVE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9574,9 +10837,11 @@ fetch_args:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFetchArgs_3, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9585,6 +10850,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("ALL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9593,6 +10859,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("FORWARD", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9600,9 +10867,11 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_4, OP3("FORWARD", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9611,6 +10880,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFetchArgs, OP3("FORWARD ALL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9619,6 +10889,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFetchArgs, OP3("BACKWARD", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9626,9 +10897,11 @@ fetch_args:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kFetchArgs_5, OP3("BACKWARD", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9637,6 +10910,7 @@ fetch_args:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFetchArgs, OP3("BACKWARD ALL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9647,11 +10921,13 @@ from_in:
 
     FROM {
         res = new IR(kFromIn, OP3("FROM", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IN_P {
         res = new IR(kFromIn, OP3("IN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9663,11 +10939,13 @@ opt_from_in:
     from_in {
         auto tmp1 = $1;
         res = new IR(kOptFromIn, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptFromIn, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9687,12 +10965,16 @@ GrantStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kGrantStmt_1, OP3("GRANT", "ON", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kGrantStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kGrantStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kGrantStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9705,12 +10987,16 @@ RevokeStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kRevokeStmt_1, OP3("REVOKE", "ON", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kRevokeStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kRevokeStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kRevokeStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9718,12 +11004,16 @@ RevokeStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kRevokeStmt_4, OP3("REVOKE GRANT OPTION FOR", "ON", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kRevokeStmt_5, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $10;
         res = new IR(kRevokeStmt_6, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kRevokeStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9745,28 +11035,33 @@ privileges:
     privilege_list {
         auto tmp1 = $1;
         res = new IR(kPrivileges, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL {
         res = new IR(kPrivileges, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL PRIVILEGES {
         res = new IR(kPrivileges, OP3("ALL PRIVILEGES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL '(' columnList ')' {
         auto tmp1 = $3;
         res = new IR(kPrivileges, OP3("ALL (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL PRIVILEGES '(' columnList ')' {
         auto tmp1 = $4;
         res = new IR(kPrivileges, OP3("ALL PRIVILEGES (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9778,6 +11073,7 @@ privilege_list:
     privilege {
         auto tmp1 = $1;
         res = new IR(kPrivilegeList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9785,6 +11081,7 @@ privilege_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kPrivilegeList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9796,18 +11093,21 @@ privilege:
     SELECT opt_column_list {
         auto tmp1 = $2;
         res = new IR(kPrivilege, OP3("SELECT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | REFERENCES opt_column_list {
         auto tmp1 = $2;
         res = new IR(kPrivilege, OP3("REFERENCES", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CREATE opt_column_list {
         auto tmp1 = $2;
         res = new IR(kPrivilege, OP3("CREATE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9816,6 +11116,7 @@ privilege:
         free($1);
         auto tmp2 = $2;
         res = new IR(kPrivilege, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9831,120 +11132,140 @@ privilege_target:
     qualified_name_list {
         auto tmp1 = $1;
         res = new IR(kPrivilegeTarget, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLE qualified_name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("TABLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SEQUENCE qualified_name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("SEQUENCE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOREIGN DATA_P WRAPPER name_list {
         auto tmp1 = $4;
         res = new IR(kPrivilegeTarget, OP3("FOREIGN DATA WRAPPER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOREIGN SERVER name_list {
         auto tmp1 = $3;
         res = new IR(kPrivilegeTarget, OP3("FOREIGN SERVER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FUNCTION function_with_argtypes_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("FUNCTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PROCEDURE function_with_argtypes_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("PROCEDURE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROUTINE function_with_argtypes_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("ROUTINE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DATABASE name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("DATABASE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DOMAIN_P any_name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("DOMAIN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LANGUAGE name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("LANGUAGE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LARGE_P OBJECT_P NumericOnly_list {
         auto tmp1 = $3;
         res = new IR(kPrivilegeTarget, OP3("LARGE OBJECT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SCHEMA name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLESPACE name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("TABLESPACE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TYPE_P any_name_list {
         auto tmp1 = $2;
         res = new IR(kPrivilegeTarget, OP3("TYPE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL TABLES IN_P SCHEMA name_list {
         auto tmp1 = $5;
         res = new IR(kPrivilegeTarget, OP3("ALL TABLES IN SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL SEQUENCES IN_P SCHEMA name_list {
         auto tmp1 = $5;
         res = new IR(kPrivilegeTarget, OP3("ALL SEQUENCES IN SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL FUNCTIONS IN_P SCHEMA name_list {
         auto tmp1 = $5;
         res = new IR(kPrivilegeTarget, OP3("ALL FUNCTIONS IN SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL PROCEDURES IN_P SCHEMA name_list {
         auto tmp1 = $5;
         res = new IR(kPrivilegeTarget, OP3("ALL PROCEDURES IN SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL ROUTINES IN_P SCHEMA name_list {
         auto tmp1 = $5;
         res = new IR(kPrivilegeTarget, OP3("ALL ROUTINES IN SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9957,6 +11278,7 @@ grantee_list:
     grantee {
         auto tmp1 = $1;
         res = new IR(kGranteeList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9964,6 +11286,7 @@ grantee_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kGranteeList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9976,6 +11299,7 @@ grantee:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kGrantee, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9983,6 +11307,7 @@ grantee:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kGrantee, OP3("GROUP", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -9994,11 +11319,13 @@ opt_grant_grant_option:
 
     WITH GRANT OPTION {
         res = new IR(kOptGrantGrantOption, OP3("WITH GRANT OPTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptGrantGrantOption, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10017,10 +11344,13 @@ GrantRoleStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kGrantRoleStmt_1, OP3("GRANT", "TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kGrantRoleStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kGrantRoleStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10033,10 +11363,13 @@ RevokeRoleStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kRevokeRoleStmt_1, OP3("REVOKE", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kRevokeRoleStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kRevokeRoleStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10044,10 +11377,13 @@ RevokeRoleStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kRevokeRoleStmt_3, OP3("REVOKE ADMIN OPTION FOR", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kRevokeRoleStmt_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kRevokeRoleStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10058,11 +11394,13 @@ opt_grant_admin_option:
 
     WITH ADMIN OPTION {
         res = new IR(kOptGrantAdminOption, OP3("WITH ADMIN OPTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptGrantAdminOption, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10075,11 +11413,13 @@ opt_granted_by:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kOptGrantedBy, OP3("GRANTED BY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptGrantedBy, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10098,6 +11438,7 @@ AlterDefaultPrivilegesStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterDefaultPrivilegesStmt, OP3("ALTER DEFAULT PRIVILEGES", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10110,11 +11451,13 @@ DefACLOptionList:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kDefACLOptionList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kDefACLOptionList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10126,18 +11469,21 @@ DefACLOption:
     IN_P SCHEMA name_list {
         auto tmp1 = $3;
         res = new IR(kDefACLOption, OP3("IN SCHEMA", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR ROLE role_list {
         auto tmp1 = $3;
         res = new IR(kDefACLOption, OP3("FOR ROLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR USER role_list {
         auto tmp1 = $3;
         res = new IR(kDefACLOption, OP3("FOR USER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10154,10 +11500,13 @@ DefACLAction:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kDefACLAction_1, OP3("GRANT", "ON", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kDefACLAction_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kDefACLAction, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10165,10 +11514,13 @@ DefACLAction:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kDefACLAction_3, OP3("REVOKE", "ON", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kDefACLAction_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kDefACLAction, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10176,10 +11528,13 @@ DefACLAction:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kDefACLAction_5, OP3("REVOKE GRANT OPTION FOR", "ON", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kDefACLAction_6, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $10;
         res = new IR(kDefACLAction, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10190,31 +11545,37 @@ defacl_privilege_target:
 
     TABLES {
         res = new IR(kDefaclPrivilegeTarget, OP3("TABLES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FUNCTIONS {
         res = new IR(kDefaclPrivilegeTarget, OP3("FUNCTIONS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROUTINES {
         res = new IR(kDefaclPrivilegeTarget, OP3("ROUTINES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SEQUENCES {
         res = new IR(kDefaclPrivilegeTarget, OP3("SEQUENCES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TYPES_P {
         res = new IR(kDefaclPrivilegeTarget, OP3("TYPES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SCHEMAS {
         res = new IR(kDefaclPrivilegeTarget, OP3("SCHEMAS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10236,22 +11597,31 @@ IndexStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kIndexStmt_1, OP3("CREATE", "INDEX", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kIndexStmt_2, OP3("", "", "ON"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kIndexStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kIndexStmt_4, OP3("", "", "("), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $10;
         res = new IR(kIndexStmt_5, OP3("", "", ")"), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $12;
         res = new IR(kIndexStmt_6, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $13;
         res = new IR(kIndexStmt_7, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $14;
         res = new IR(kIndexStmt_8, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $15;
         res = new IR(kIndexStmt, OP3("", "", ""), res, tmp10);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10259,23 +11629,32 @@ IndexStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kIndexStmt_9, OP3("CREATE", "INDEX", "IF NOT EXISTS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kIndexStmt_10, OP3("", "", "ON"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $10;
         res = new IR(kIndexStmt_11, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kIndexStmt_12, OP3("", "", "("), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $13;
         res = new IR(kIndexStmt_13, OP3("", "", ")"), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $15;
         res = new IR(kIndexStmt_14, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $16;
         res = new IR(kIndexStmt_15, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $17;
         res = new IR(kIndexStmt_16, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $18;
         res = new IR(kIndexStmt, OP3("", "", ""), res, tmp10);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp3->set_iden_type(kDataIndexName, kDefine);
@@ -10289,11 +11668,13 @@ opt_unique:
 
     UNIQUE {
         res = new IR(kOptUnique, OP3("UNIQUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptUnique, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10304,11 +11685,13 @@ opt_concurrently:
 
     CONCURRENTLY {
         res = new IR(kOptConcurrently, OP3("CONCURRENTLY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptConcurrently, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10321,6 +11704,7 @@ opt_index_name:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOptIndexName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataIndexName, kDefine);
@@ -10328,6 +11712,7 @@ opt_index_name:
 
     | /*EMPTY*/ {
         res = new IR(kOptIndexName, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10340,11 +11725,13 @@ access_method_clause:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAccessMethodClause, OP3("USING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kAccessMethodClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10356,6 +11743,7 @@ index_params:
     index_elem {
         auto tmp1 = $1;
         res = new IR(kIndexParams, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10363,6 +11751,7 @@ index_params:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kIndexParams, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10376,10 +11765,13 @@ index_elem_options:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kIndexElemOptions_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kIndexElemOptions_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kIndexElemOptions, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10387,12 +11779,16 @@ index_elem_options:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kIndexElemOptions_3, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kIndexElemOptions_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kIndexElemOptions_5, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kIndexElemOptions, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10411,6 +11807,7 @@ index_elem:
         free($1);
         auto tmp2 = $2;
         res = new IR(kIndexElem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         /* Yu: This index_elem is actually pointing to table columns. */
@@ -10421,6 +11818,7 @@ index_elem:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kIndexElem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10428,6 +11826,7 @@ index_elem:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kIndexElem, OP3("(", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10439,11 +11838,13 @@ opt_include:
     INCLUDE '(' index_including_params ')' {
         auto tmp1 = $3;
         res = new IR(kOptInclude, OP3("INCLUDE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptInclude, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10455,6 +11856,7 @@ index_including_params:
     index_elem {
         auto tmp1 = $1;
         res = new IR(kIndexIncludingParams, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10462,6 +11864,7 @@ index_including_params:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kIndexIncludingParams, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10473,6 +11876,7 @@ opt_collate:
     COLLATE any_name {
         auto tmp1 = $2;
         res = new IR(kOptCollate, OP3("COLLATE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_any_name_type(kDataColumnName, kUse);
@@ -10481,6 +11885,7 @@ opt_collate:
 
     | /*EMPTY*/ {
         res = new IR(kOptCollate, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10492,11 +11897,13 @@ opt_class:
     any_name {
         auto tmp1 = $1;
         res = new IR(kOptClass, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptClass, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10507,16 +11914,19 @@ opt_asc_desc:
 
     ASC {
         res = new IR(kOptAscDesc, OP3("ASC", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DESC {
         res = new IR(kOptAscDesc, OP3("DESC", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptAscDesc, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10527,16 +11937,19 @@ opt_nulls_order:
 
     NULLS_LA FIRST_P {
         res = new IR(kOptNullsOrder, OP3("NULLS_LA FIRST", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NULLS_LA LAST_P {
         res = new IR(kOptNullsOrder, OP3("NULLS_LA LAST", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptNullsOrder, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10561,14 +11974,19 @@ CreateFunctionStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateFunctionStmt_1, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateFunctionStmt_2, OP3("", "", "RETURNS"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kCreateFunctionStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kCreateFunctionStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10576,14 +11994,19 @@ CreateFunctionStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateFunctionStmt_5, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateFunctionStmt_6, OP3("", "", "RETURNS TABLE ("), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kCreateFunctionStmt_7, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kCreateFunctionStmt_8, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $12;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10591,12 +12014,16 @@ CreateFunctionStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateFunctionStmt_9, OP3("CREATE", "FUNCTION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateFunctionStmt_10, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kCreateFunctionStmt_11, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $7;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10604,12 +12031,16 @@ CreateFunctionStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateFunctionStmt_12, OP3("CREATE", "PROCEDURE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateFunctionStmt_13, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kCreateFunctionStmt_14, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $7;
         res = new IR(kCreateFunctionStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10620,11 +12051,13 @@ opt_or_replace:
 
     OR REPLACE {
         res = new IR(kOptOrReplace, OP3("OR REPLACE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptOrReplace, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10636,11 +12069,13 @@ func_args:
     '(' func_args_list ')' {
         auto tmp1 = $2;
         res = new IR(kFuncArgs, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' ')' {
         res = new IR(kFuncArgs, OP3("( )", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10652,6 +12087,7 @@ func_args_list:
     func_arg {
         auto tmp1 = $1;
         res = new IR(kFuncArgsList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10659,6 +12095,7 @@ func_args_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncArgsList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10670,6 +12107,7 @@ function_with_argtypes_list:
     function_with_argtypes {
         auto tmp1 = $1;
         res = new IR(kFunctionWithArgtypesList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10677,6 +12115,7 @@ function_with_argtypes_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFunctionWithArgtypesList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10689,6 +12128,7 @@ function_with_argtypes:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10696,6 +12136,7 @@ function_with_argtypes:
         /* This is a specitial use, we are using a read-only char to initialize the string! */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10703,6 +12144,7 @@ function_with_argtypes:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10711,6 +12153,7 @@ function_with_argtypes:
         free($1);
         auto tmp2 = $2;
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10726,11 +12169,13 @@ func_args_with_defaults:
     '(' func_args_with_defaults_list ')' {
         auto tmp1 = $2;
         res = new IR(kFuncArgsWithDefaults, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' ')' {
         res = new IR(kFuncArgsWithDefaults, OP3("( )", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10742,6 +12187,7 @@ func_args_with_defaults_list:
     func_arg_with_default {
         auto tmp1 = $1;
         res = new IR(kFuncArgsWithDefaultsList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10749,6 +12195,7 @@ func_args_with_defaults_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncArgsWithDefaultsList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10772,8 +12219,10 @@ func_arg:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kFuncArg_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kFuncArg, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10782,8 +12231,10 @@ func_arg:
         free($1);
         auto tmp2 = $2;
         res = new IR(kFuncArg_2, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kFuncArg, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10792,6 +12243,7 @@ func_arg:
         free($1);
         auto tmp2 = $2;
         res = new IR(kFuncArg, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10799,12 +12251,14 @@ func_arg:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFuncArg, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | func_type {
         auto tmp1 = $1;
         res = new IR(kFuncArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10816,26 +12270,31 @@ arg_class:
 
     IN_P {
         res = new IR(kArgClass, OP3("IN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OUT_P {
         res = new IR(kArgClass, OP3("OUT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INOUT {
         res = new IR(kArgClass, OP3("INOUT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IN_P OUT_P {
         res = new IR(kArgClass, OP3("IN OUT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VARIADIC {
         res = new IR(kArgClass, OP3("VARIADIC", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10846,7 +12305,7 @@ arg_class:
 */
 
 param_name:
-    type_function_name 
+    type_function_name
 ;
 
 
@@ -10855,6 +12314,7 @@ func_return:
     func_type {
         auto tmp1 = $1;
         res = new IR(kFuncReturn, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10871,6 +12331,7 @@ func_type:
     Typename {
         auto tmp1 = $1;
         res = new IR(kFuncType, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10879,6 +12340,7 @@ func_type:
         free($1);
         auto tmp2 = $2;
         res = new IR(kFuncType, OP3("", "", "% TYPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10887,6 +12349,7 @@ func_type:
         free($2);
         auto tmp2 = $3;
         res = new IR(kFuncType, OP3("SETOF", "", "% TYPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10898,6 +12361,7 @@ func_arg_with_default:
     func_arg {
         auto tmp1 = $1;
         res = new IR(kFuncArgWithDefault, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10905,6 +12369,7 @@ func_arg_with_default:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncArgWithDefault, OP3("", "DEFAULT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10912,6 +12377,7 @@ func_arg_with_default:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncArgWithDefault, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10924,6 +12390,7 @@ aggr_arg:
     func_arg {
         auto tmp1 = $1;
         res = new IR(kAggrArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10963,18 +12430,21 @@ aggr_args:
 
     '(' '*' ')' {
         res = new IR(kAggrArgs, OP3("( * )", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' aggr_args_list ')' {
         auto tmp1 = $2;
         res = new IR(kAggrArgs, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' ORDER BY aggr_args_list ')' {
         auto tmp1 = $4;
         res = new IR(kAggrArgs, OP3("( ORDER BY", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10982,6 +12452,7 @@ aggr_args:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kAggrArgs, OP3("(", "ORDER BY", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -10993,6 +12464,7 @@ aggr_args_list:
     aggr_arg {
         auto tmp1 = $1;
         res = new IR(kAggrArgsList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11000,6 +12472,7 @@ aggr_args_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAggrArgsList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11012,6 +12485,7 @@ aggregate_with_argtypes:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAggregateWithArgtypes, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11023,6 +12497,7 @@ aggregate_with_argtypes_list:
     aggregate_with_argtypes {
         auto tmp1 = $1;
         res = new IR(kAggregateWithArgtypesList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11030,6 +12505,7 @@ aggregate_with_argtypes_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAggregateWithArgtypesList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11041,11 +12517,13 @@ opt_createfunc_opt_list:
     createfunc_opt_list {
         auto tmp1 = $1;
         res = new IR(kOptCreatefuncOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptCreatefuncOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11057,6 +12535,7 @@ createfunc_opt_list:
     createfunc_opt_item {
         auto tmp1 = $1;
         res = new IR(kCreatefuncOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11064,6 +12543,7 @@ createfunc_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreatefuncOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11077,85 +12557,101 @@ common_func_opt_item:
 
     CALLED ON NULL_P INPUT_P {
         res = new IR(kCommonFuncOptItem, OP3("CALLED ON NULL INPUT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RETURNS NULL_P ON NULL_P INPUT_P {
         res = new IR(kCommonFuncOptItem, OP3("RETURNS NULL ON NULL INPUT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STRICT_P {
         res = new IR(kCommonFuncOptItem, OP3("STRICT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | IMMUTABLE {
         res = new IR(kCommonFuncOptItem, OP3("IMMUTABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STABLE {
         res = new IR(kCommonFuncOptItem, OP3("STABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VOLATILE {
         res = new IR(kCommonFuncOptItem, OP3("VOLATILE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXTERNAL SECURITY DEFINER {
         res = new IR(kCommonFuncOptItem, OP3("EXTERNAL SECURITY DEFINER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXTERNAL SECURITY INVOKER {
         res = new IR(kCommonFuncOptItem, OP3("EXTERNAL SECURITY INVOKER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SECURITY DEFINER {
         res = new IR(kCommonFuncOptItem, OP3("SECURITY DEFINER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SECURITY INVOKER {
         res = new IR(kCommonFuncOptItem, OP3("SECURITY INVOKER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LEAKPROOF {
         res = new IR(kCommonFuncOptItem, OP3("LEAKPROOF", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT LEAKPROOF {
         res = new IR(kCommonFuncOptItem, OP3("NOT LEAKPROOF", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | COST NumericOnly {
         auto tmp1 = $2;
         res = new IR(kCommonFuncOptItem, OP3("COST", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROWS NumericOnly {
         auto tmp1 = $2;
         res = new IR(kCommonFuncOptItem, OP3("ROWS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SUPPORT any_name {
         auto tmp1 = $2;
         res = new IR(kCommonFuncOptItem, OP3("SUPPORT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FunctionSetResetClause {
         auto tmp1 = $1;
         res = new IR(kCommonFuncOptItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11163,6 +12659,7 @@ common_func_opt_item:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kCommonFuncOptItem, OP3("PARALLEL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11174,19 +12671,22 @@ createfunc_opt_item:
     AS func_as {
         auto tmp1 = $2;
         res = new IR(kCreatefuncOptItem, OP3("AS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LANGUAGE NonReservedWord_or_Sconst {
-        /* Yu: Assigning program language for the function. It can be c, sql, internal and other user defined language. 
+        /* Yu: Assigning program language for the function. It can be c, sql, internal and other user defined language.
         ** Ignore user defined language for now.
         ** FixLater: $2 to OP3
         */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
             auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
             res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         } else {
             res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", "sql", ""));
+        all_gen_ir.push_back(res);
         }
         free($2);
         $$ = res;
@@ -11195,17 +12695,20 @@ createfunc_opt_item:
     | TRANSFORM transform_type_list {
         auto tmp1 = $2;
         res = new IR(kCreatefuncOptItem, OP3("TRANSFORM", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WINDOW {
         res = new IR(kCreatefuncOptItem, OP3("WINDOW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | common_func_opt_item {
         auto tmp1 = $1;
         res = new IR(kCreatefuncOptItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11218,6 +12721,7 @@ func_as:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kFuncAs, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11227,6 +12731,7 @@ func_as:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kFuncAs, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11238,6 +12743,7 @@ ReturnStmt:
     RETURN a_expr {
         auto tmp1 = $2;
         res = new IR(kReturnStmt, OP3("RETURN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11249,17 +12755,20 @@ opt_routine_body:
     ReturnStmt {
         auto tmp1 = $1;
         res = new IR(kOptRoutineBody, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BEGIN_P ATOMIC routine_body_stmt_list END_P {
         auto tmp1 = $3;
         res = new IR(kOptRoutineBody, OP3("BEGIN ATOMIC", "END", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptRoutineBody, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11272,11 +12781,13 @@ routine_body_stmt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kRoutineBodyStmtList, OP3("", "", ";"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kRoutineBodyStmtList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11288,12 +12799,14 @@ routine_body_stmt:
     stmt {
         auto tmp1 = $1;
         res = new IR(kRoutineBodyStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ReturnStmt {
         auto tmp1 = $1;
         res = new IR(kRoutineBodyStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11305,6 +12818,7 @@ transform_type_list:
     FOR TYPE_P Typename {
         auto tmp1 = $3;
         res = new IR(kTransformTypeList, OP3("FOR TYPE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11312,6 +12826,7 @@ transform_type_list:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kTransformTypeList, OP3("", ", FOR TYPE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11323,11 +12838,13 @@ opt_definition:
     WITH definition {
         auto tmp1 = $2;
         res = new IR(kOptDefinition, OP3("WITH", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptDefinition, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11341,6 +12858,7 @@ table_func_column:
         free($1);
         auto tmp2 = $2;
         res = new IR(kTableFuncColumn, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11352,6 +12870,7 @@ table_func_column_list:
     table_func_column {
         auto tmp1 = $1;
         res = new IR(kTableFuncColumnList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11359,6 +12878,7 @@ table_func_column_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTableFuncColumnList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11379,8 +12899,10 @@ AlterFunctionStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterFunctionStmt_1, OP3("ALTER FUNCTION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterFunctionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11388,8 +12910,10 @@ AlterFunctionStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterFunctionStmt_2, OP3("ALTER PROCEDURE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterFunctionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11397,8 +12921,10 @@ AlterFunctionStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterFunctionStmt_3, OP3("ALTER ROUTINE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAlterFunctionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11410,6 +12936,7 @@ alterfunc_opt_list:
     common_func_opt_item {
         auto tmp1 = $1;
         res = new IR(kAlterfuncOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11417,6 +12944,7 @@ alterfunc_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAlterfuncOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11428,11 +12956,13 @@ opt_restrict:
 
     RESTRICT {
         res = new IR(kOptRestrict, OP3("RESTRICT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptRestrict, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11458,6 +12988,7 @@ RemoveFuncStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kRemoveFuncStmt, OP3("DROP FUNCTION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11465,6 +12996,7 @@ RemoveFuncStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kRemoveFuncStmt, OP3("DROP FUNCTION IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11472,6 +13004,7 @@ RemoveFuncStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kRemoveFuncStmt, OP3("DROP PROCEDURE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11479,6 +13012,7 @@ RemoveFuncStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kRemoveFuncStmt, OP3("DROP PROCEDURE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11486,6 +13020,7 @@ RemoveFuncStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kRemoveFuncStmt, OP3("DROP ROUTINE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11493,6 +13028,7 @@ RemoveFuncStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kRemoveFuncStmt, OP3("DROP ROUTINE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11505,6 +13041,7 @@ RemoveAggrStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kRemoveAggrStmt, OP3("DROP AGGREGATE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11512,6 +13049,7 @@ RemoveAggrStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kRemoveAggrStmt, OP3("DROP AGGREGATE IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11524,6 +13062,7 @@ RemoveOperStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kRemoveOperStmt, OP3("DROP OPERATOR", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11531,6 +13070,7 @@ RemoveOperStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kRemoveOperStmt, OP3("DROP OPERATOR IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11543,6 +13083,7 @@ oper_argtypes:
         /* Yu: This syntax is not permitted. (Weird). Change it to the third form. */
         auto tmp1 = $2;
         res = new IR(kOperArgtypes, OP3("( NONE ,", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11550,18 +13091,21 @@ oper_argtypes:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kOperArgtypes, OP3("(", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' NONE ',' Typename ')' {
         auto tmp1 = $4;
         res = new IR(kOperArgtypes, OP3("( NONE ,", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' Typename ',' NONE ')' {
         auto tmp1 = $2;
         res = new IR(kOperArgtypes, OP3("(", ", NONE )", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11573,6 +13117,7 @@ any_operator:
     all_Op {
         auto tmp1 = $1;
         res = new IR(kAnyOperator, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11581,6 +13126,7 @@ any_operator:
         free($1);
         auto tmp2 = $3;
         res = new IR(kAnyOperator, OP3("", ".", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11592,6 +13138,7 @@ operator_with_argtypes_list:
     operator_with_argtypes {
         auto tmp1 = $1;
         res = new IR(kOperatorWithArgtypesList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11599,6 +13146,7 @@ operator_with_argtypes_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOperatorWithArgtypesList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11611,6 +13159,7 @@ operator_with_argtypes:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kOperatorWithArgtypes, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11631,6 +13180,7 @@ DoStmt:
     DO dostmt_opt_list {
         auto tmp1 = $2;
         res = new IR(kDoStmt, OP3("DO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11642,6 +13192,7 @@ dostmt_opt_list:
     dostmt_opt_item {
         auto tmp1 = $1;
         res = new IR(kDostmtOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11649,6 +13200,7 @@ dostmt_opt_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kDostmtOptList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11661,6 +13213,7 @@ dostmt_opt_item:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kDostmtOptItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11670,8 +13223,10 @@ dostmt_opt_item:
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
             auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
             res = new IR(kDostmtOptItem, OP3("LANGUAGE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         } else {
             res = new IR(kDostmtOptItem, OP3("LANGUAGE", "sql", ""));
+        all_gen_ir.push_back(res);
         }
         free($2);
         $$ = res;
@@ -11692,10 +13247,13 @@ CreateCastStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kCreateCastStmt_1, OP3("CREATE CAST (", "AS", ") WITH FUNCTION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kCreateCastStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kCreateCastStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11703,8 +13261,10 @@ CreateCastStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kCreateCastStmt_3, OP3("CREATE CAST (", "AS", ") WITHOUT FUNCTION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kCreateCastStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11712,8 +13272,10 @@ CreateCastStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kCreateCastStmt_4, OP3("CREATE CAST (", "AS", ") WITH INOUT"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kCreateCastStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11724,16 +13286,19 @@ cast_context:
 
     AS IMPLICIT_P {
         res = new IR(kCastContext, OP3("AS IMPLICIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AS ASSIGNMENT {
         res = new IR(kCastContext, OP3("AS ASSIGNMENT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kCastContext, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11747,10 +13312,13 @@ DropCastStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kDropCastStmt_1, OP3("DROP CAST", "(", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kDropCastStmt_2, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kDropCastStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11761,11 +13329,13 @@ opt_if_exists:
 
     IF_P EXISTS {
         res = new IR(kOptIfExists, OP3("IF EXISTS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptIfExists, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11785,11 +13355,14 @@ CreateTransformStmt:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kCreateTransformStmt_1, OP3("CREATE", "TRANSFORM FOR", "LANGUAGE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kCreateTransformStmt_2, OP3("", "", "("), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kCreateTransformStmt, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11802,6 +13375,7 @@ transform_element_list:
         auto tmp1 = $5;
         auto tmp2 = $11;
         res = new IR(kTransformElementList, OP3("FROM SQL WITH FUNCTION", ", TO SQL WITH FUNCTION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11809,18 +13383,21 @@ transform_element_list:
         auto tmp1 = $5;
         auto tmp2 = $11;
         res = new IR(kTransformElementList, OP3("TO SQL WITH FUNCTION", ", FROM SQL WITH FUNCTION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FROM SQL_P WITH FUNCTION function_with_argtypes {
         auto tmp1 = $5;
         res = new IR(kTransformElementList, OP3("FROM SQL WITH FUNCTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TO SQL_P WITH FUNCTION function_with_argtypes {
         auto tmp1 = $5;
         res = new IR(kTransformElementList, OP3("TO SQL WITH FUNCTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11834,11 +13411,14 @@ DropTransformStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kDropTransformStmt_1, OP3("DROP TRANSFORM", "FOR", "LANGUAGE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kDropTransformStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kDropTransformStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11859,8 +13439,10 @@ ReindexStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kReindexStmt_1, OP3("REINDEX", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11868,9 +13450,11 @@ ReindexStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kReindexStmt_2, OP3("REINDEX", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11878,10 +13462,13 @@ ReindexStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kReindexStmt_3, OP3("REINDEX (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kReindexStmt_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11889,11 +13476,14 @@ ReindexStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kReindexStmt_5, OP3("REINDEX (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kReindexStmt_6, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11903,11 +13493,13 @@ reindex_target_type:
 
     INDEX {
         res = new IR(kReindexTargetType, OP3("INDEX", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLE {
         res = new IR(kReindexTargetType, OP3("TABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11917,16 +13509,19 @@ reindex_target_multitable:
 
     SCHEMA {
         res = new IR(kReindexTargetMultitable, OP3("SCHEMA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SYSTEM_P {
         res = new IR(kReindexTargetMultitable, OP3("SYSTEM", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DATABASE {
         res = new IR(kReindexTargetMultitable, OP3("DATABASE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11946,6 +13541,7 @@ AlterTblSpcStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterTblSpcStmt, OP3("ALTER TABLESPACE", "SET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11954,6 +13550,7 @@ AlterTblSpcStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterTblSpcStmt, OP3("ALTER TABLESPACE", "RESET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11973,6 +13570,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER AGGREGATE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11981,6 +13579,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER COLLATION", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11989,6 +13588,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kRenameStmt, OP3("ALTER CONVERSION", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -11998,6 +13598,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER DATABASE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12006,6 +13607,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER DOMAIN", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12014,9 +13616,11 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_1, OP3("ALTER DOMAIN", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12026,6 +13630,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN DATA WRAPPER", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12034,6 +13639,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER FUNCTION", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12043,6 +13649,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER GROUP", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12051,9 +13658,11 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kRenameStmt_2, OP3("ALTER", "LANGUAGE", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12062,9 +13671,11 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_3, OP3("ALTER OPERATOR CLASS", "USING", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12073,9 +13684,11 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_4, OP3("ALTER OPERATOR FAMILY", "USING", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12084,9 +13697,11 @@ RenameStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kRenameStmt_5, OP3("ALTER POLICY", "ON", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12095,9 +13710,11 @@ RenameStmt:
         free($5);
         auto tmp2 = $7;
         res = new IR(kRenameStmt_6, OP3("ALTER POLICY IF EXISTS", "ON", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12106,6 +13723,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER PROCEDURE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12115,6 +13733,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER PUBLICATION", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12123,6 +13742,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER ROUTINE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12132,6 +13752,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SCHEMA", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12141,6 +13762,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SERVER", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12150,6 +13772,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SUBSCRIPTION", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12158,6 +13781,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER TABLE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12166,6 +13790,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12174,6 +13799,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12182,6 +13808,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12190,6 +13817,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER VIEW", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12198,6 +13826,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER VIEW IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12206,6 +13835,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kRenameStmt, OP3("ALTER MATERIALIZED VIEW", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12214,6 +13844,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12222,6 +13853,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER INDEX", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12230,6 +13862,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER INDEX IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12238,6 +13871,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12246,6 +13880,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12253,12 +13888,15 @@ RenameStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kRenameStmt_7, OP3("ALTER TABLE", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_8, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12266,12 +13904,15 @@ RenameStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kRenameStmt_9, OP3("ALTER TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt_10, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12279,12 +13920,15 @@ RenameStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kRenameStmt_11, OP3("ALTER VIEW", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_12, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12292,12 +13936,15 @@ RenameStmt:
         auto tmp1 = $5;
         auto tmp2 = $7;
         res = new IR(kRenameStmt_13, OP3("ALTER VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt_14, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12305,12 +13952,15 @@ RenameStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kRenameStmt_15, OP3("ALTER MATERIALIZED VIEW", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kRenameStmt_16, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12318,12 +13968,15 @@ RenameStmt:
         auto tmp1 = $6;
         auto tmp2 = $8;
         res = new IR(kRenameStmt_17, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt_18, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($11), kDataFixLater, 0, kFlagUnknown);
         free($11);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12332,9 +13985,11 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_19, OP3("ALTER TABLE", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12343,9 +13998,11 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt_20, OP3("ALTER TABLE IF EXISTS", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12353,12 +14010,15 @@ RenameStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kRenameStmt_21, OP3("ALTER FOREIGN TABLE", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kRenameStmt_22, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12366,12 +14026,15 @@ RenameStmt:
         auto tmp1 = $6;
         auto tmp2 = $8;
         res = new IR(kRenameStmt_23, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kRenameStmt_24, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($11), kDataFixLater, 0, kFlagUnknown);
         free($11);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12380,9 +14043,11 @@ RenameStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kRenameStmt_25, OP3("ALTER RULE", "ON", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12391,9 +14056,11 @@ RenameStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kRenameStmt_26, OP3("ALTER TRIGGER", "ON", "RENAME TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12403,6 +14070,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kRenameStmt, OP3("ALTER EVENT TRIGGER", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12412,6 +14080,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER ROLE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12421,6 +14090,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER USER", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12430,6 +14100,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER TABLESPACE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12438,6 +14109,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER STATISTICS", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12446,6 +14118,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH PARSER", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12454,6 +14127,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12462,6 +14136,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH TEMPLATE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12470,6 +14145,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12478,6 +14154,7 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER TYPE", "RENAME TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12486,11 +14163,14 @@ RenameStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kRenameStmt_27, OP3("ALTER TYPE", "RENAME ATTRIBUTE", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kRenameStmt_28, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12501,11 +14181,13 @@ opt_column:
 
     COLUMN {
         res = new IR(kOptColumn, OP3("COLUMN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptColumn, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12516,11 +14198,13 @@ opt_set_data:
 
     SET DATA_P {
         res = new IR(kOptSetData, OP3("SET DATA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptSetData, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12539,9 +14223,11 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER FUNCTION", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12549,9 +14235,11 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_2, OP3("ALTER PROCEDURE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12559,9 +14247,11 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_3, OP3("ALTER ROUTINE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12570,11 +14260,14 @@ AlterObjectDependsStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterObjectDependsStmt_4, OP3("ALTER TRIGGER", "ON", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAlterObjectDependsStmt_5, OP3("", "", "DEPENDS ON EXTENSION"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12582,9 +14275,11 @@ AlterObjectDependsStmt:
         auto tmp1 = $4;
         auto tmp2 = $5;
         res = new IR(kAlterObjectDependsStmt_6, OP3("ALTER MATERIALIZED VIEW", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12592,9 +14287,11 @@ AlterObjectDependsStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_7, OP3("ALTER INDEX", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12605,11 +14302,13 @@ opt_no:
 
     NO {
         res = new IR(kOptNo, OP3("NO", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptNo, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12629,6 +14328,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER AGGREGATE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12637,6 +14337,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER COLLATION", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12645,6 +14346,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER CONVERSION", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12653,6 +14355,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER DOMAIN", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12662,6 +14365,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER EXTENSION", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12670,6 +14374,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FUNCTION", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12678,6 +14383,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER OPERATOR", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12686,9 +14392,11 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt_1, OP3("ALTER OPERATOR CLASS", "USING", "SET SCHEMA"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12697,9 +14405,11 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt_2, OP3("ALTER OPERATOR FAMILY", "USING", "SET SCHEMA"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12708,6 +14418,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER PROCEDURE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12716,6 +14427,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER ROUTINE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12724,6 +14436,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12732,6 +14445,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12740,6 +14454,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER STATISTICS", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12748,6 +14463,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH PARSER", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12756,6 +14472,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12764,6 +14481,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH TEMPLATE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12772,6 +14490,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12780,6 +14499,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12788,6 +14508,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12796,6 +14517,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12804,6 +14526,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12812,6 +14535,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER MATERIALIZED VIEW", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12820,6 +14544,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12828,6 +14553,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FOREIGN TABLE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12836,6 +14562,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12844,6 +14571,7 @@ AlterObjectSchemaStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TYPE", "SET SCHEMA", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12862,6 +14590,7 @@ AlterOperatorStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterOperatorStmt, OP3("ALTER OPERATOR", "SET (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12873,6 +14602,7 @@ operator_def_list:
     operator_def_elem {
         auto tmp1 = $1;
         res = new IR(kOperatorDefList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12880,6 +14610,7 @@ operator_def_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOperatorDefList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12892,6 +14623,7 @@ operator_def_elem:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOperatorDefElem, OP3("", "= NONE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12900,6 +14632,7 @@ operator_def_elem:
         free($1);
         auto tmp2 = $3;
         res = new IR(kOperatorDefElem, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12912,6 +14645,7 @@ operator_def_arg:
     func_type {
         auto tmp1 = $1;
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12919,18 +14653,21 @@ operator_def_arg:
         /* This is a specitial use, we are using a read-only char to initialize the string! */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | qual_all_Op {
         auto tmp1 = $1;
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NumericOnly {
         auto tmp1 = $1;
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12938,6 +14675,7 @@ operator_def_arg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12958,6 +14696,7 @@ AlterTypeStmt:
         auto tmp1 = $3;
         auto tmp2 = $6;
         res = new IR(kAlterTypeStmt, OP3("ALTER TYPE", "SET (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12977,6 +14716,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER AGGREGATE", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12985,6 +14725,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER COLLATION", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -12993,6 +14734,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER CONVERSION", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13002,6 +14744,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DATABASE", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13010,6 +14753,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DOMAIN", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13018,6 +14762,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FUNCTION", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13026,9 +14771,11 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kAlterOwnerStmt_1, OP3("ALTER", "LANGUAGE", "OWNER TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13037,6 +14784,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER LARGE OBJECT", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13045,6 +14793,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER OPERATOR", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13053,9 +14802,11 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt_2, OP3("ALTER OPERATOR CLASS", "USING", "OWNER TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13064,9 +14815,11 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt_3, OP3("ALTER OPERATOR FAMILY", "USING", "OWNER TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
         free($9);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13075,6 +14828,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PROCEDURE", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13083,6 +14837,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER ROUTINE", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13092,6 +14847,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SCHEMA", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13100,6 +14856,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TYPE", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13109,6 +14866,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TABLESPACE", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13117,6 +14875,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER STATISTICS", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13125,6 +14884,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13133,6 +14893,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13142,6 +14903,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FOREIGN DATA WRAPPER", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13151,6 +14913,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SERVER", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13160,6 +14923,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER EVENT TRIGGER", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13169,6 +14933,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PUBLICATION", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13178,6 +14943,7 @@ AlterOwnerStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SUBSCRIPTION", "OWNER TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13198,8 +14964,10 @@ CreatePublicationStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreatePublicationStmt_1, OP3("CREATE PUBLICATION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreatePublicationStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13211,11 +14979,13 @@ opt_publication_for_tables:
     publication_for_tables {
         auto tmp1 = $1;
         res = new IR(kOptPublicationForTables, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptPublicationForTables, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13227,11 +14997,13 @@ publication_for_tables:
     FOR TABLE relation_expr_list {
         auto tmp1 = $3;
         res = new IR(kPublicationForTables, OP3("FOR TABLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR ALL TABLES {
         res = new IR(kPublicationForTables, OP3("FOR ALL TABLES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13258,6 +15030,7 @@ AlterPublicationStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "SET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13266,6 +15039,7 @@ AlterPublicationStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "ADD TABLE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13274,6 +15048,7 @@ AlterPublicationStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "SET TABLE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13282,6 +15057,7 @@ AlterPublicationStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterPublicationStmt, OP3("ALTER PUBLICATION", "DROP TABLE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13302,10 +15078,13 @@ CreateSubscriptionStmt:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kCreateSubscriptionStmt_1, OP3("CREATE SUBSCRIPTION", "CONNECTION", "PUBLICATION"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kCreateSubscriptionStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kCreateSubscriptionStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13325,6 +15104,7 @@ AlterSubscriptionStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "SET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13334,6 +15114,7 @@ AlterSubscriptionStmt:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "CONNECTION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13342,6 +15123,7 @@ AlterSubscriptionStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "REFRESH PUBLICATION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13350,8 +15132,10 @@ AlterSubscriptionStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt_1, OP3("ALTER SUBSCRIPTION", "ADD PUBLICATION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterSubscriptionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13360,8 +15144,10 @@ AlterSubscriptionStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt_2, OP3("ALTER SUBSCRIPTION", "DROP PUBLICATION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterSubscriptionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13370,8 +15156,10 @@ AlterSubscriptionStmt:
         free($3);
         auto tmp2 = $6;
         res = new IR(kAlterSubscriptionStmt_3, OP3("ALTER SUBSCRIPTION", "SET PUBLICATION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterSubscriptionStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13379,6 +15167,7 @@ AlterSubscriptionStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "ENABLE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13386,6 +15175,7 @@ AlterSubscriptionStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "DISABLE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13405,6 +15195,7 @@ DropSubscriptionStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kDropSubscriptionStmt, OP3("DROP SUBSCRIPTION", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13413,6 +15204,7 @@ DropSubscriptionStmt:
         free($5);
         auto tmp2 = $6;
         res = new IR(kDropSubscriptionStmt, OP3("DROP SUBSCRIPTION IF EXISTS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13432,16 +15224,22 @@ RuleStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kRuleStmt_1, OP3("CREATE", "RULE", "AS ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kRuleStmt_2, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kRuleStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $10;
         res = new IR(kRuleStmt_4, OP3("", "", "DO"), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $12;
         res = new IR(kRuleStmt_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $13;
         res = new IR(kRuleStmt, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13452,18 +15250,21 @@ RuleActionList:
 
     NOTHING {
         res = new IR(kRuleActionList, OP3("NOTHING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RuleActionStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' RuleActionMulti ')' {
         auto tmp1 = $2;
         res = new IR(kRuleActionList, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13477,12 +15278,14 @@ RuleActionMulti:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kRuleActionMulti, OP3("", ";", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RuleActionStmtOrEmpty {
         auto tmp1 = $1;
         res = new IR(kRuleActionMulti, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13494,30 +15297,35 @@ RuleActionStmt:
     SelectStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | InsertStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UpdateStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeleteStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NotifyStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13529,11 +15337,13 @@ RuleActionStmtOrEmpty:
     RuleActionStmt {
         auto tmp1 = $1;
         res = new IR(kRuleActionStmtOrEmpty, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kRuleActionStmtOrEmpty, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13544,21 +15354,25 @@ event:
 
     SELECT {
         res = new IR(kEvent, OP3("SELECT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UPDATE {
         res = new IR(kEvent, OP3("UPDATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DELETE_P {
         res = new IR(kEvent, OP3("DELETE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INSERT {
         res = new IR(kEvent, OP3("INSERT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13569,16 +15383,19 @@ opt_instead:
 
     INSTEAD {
         res = new IR(kOptInstead, OP3("INSTEAD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALSO {
         res = new IR(kOptInstead, OP3("ALSO", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptInstead, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13602,6 +15419,7 @@ NotifyStmt:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kNotifyStmt, OP3("NOTIFY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13630,6 +15448,7 @@ ListenStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kListenStmt, OP3("LISTEN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13642,11 +15461,13 @@ UnlistenStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kUnlistenStmt, OP3("UNLISTEN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UNLISTEN '*' {
         res = new IR(kUnlistenStmt, OP3("UNLISTEN *", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13669,12 +15490,14 @@ TransactionStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTransactionStmt, OP3("ABORT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | START TRANSACTION transaction_mode_list_or_empty {
         auto tmp1 = $3;
         res = new IR(kTransactionStmt, OP3("START TRANSACTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13682,6 +15505,7 @@ TransactionStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTransactionStmt, OP3("COMMIT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13689,6 +15513,7 @@ TransactionStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13696,6 +15521,7 @@ TransactionStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kTransactionStmt, OP3("SAVEPOINT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13703,6 +15529,7 @@ TransactionStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kTransactionStmt, OP3("RELEASE SAVEPOINT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13710,6 +15537,7 @@ TransactionStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kTransactionStmt, OP3("RELEASE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13718,6 +15546,7 @@ TransactionStmt:
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "TO SAVEPOINT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13726,6 +15555,7 @@ TransactionStmt:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13733,6 +15563,7 @@ TransactionStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kTransactionStmt, OP3("PREPARE TRANSACTION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13740,6 +15571,7 @@ TransactionStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kTransactionStmt, OP3("COMMIT PREPARED", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13747,6 +15579,7 @@ TransactionStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kTransactionStmt, OP3("ROLLBACK PREPARED", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13759,6 +15592,7 @@ TransactionStmtLegacy:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTransactionStmtLegacy, OP3("BEGIN", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13766,6 +15600,7 @@ TransactionStmtLegacy:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTransactionStmtLegacy, OP3("END", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13776,16 +15611,19 @@ opt_transaction:
 
     WORK {
         res = new IR(kOptTransaction, OP3("WORK", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRANSACTION {
         res = new IR(kOptTransaction, OP3("TRANSACTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTransaction, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13797,26 +15635,31 @@ transaction_mode_item:
     ISOLATION LEVEL iso_level {
         auto tmp1 = $3;
         res = new IR(kTransactionModeItem, OP3("ISOLATION LEVEL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | READ ONLY {
         res = new IR(kTransactionModeItem, OP3("READ ONLY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | READ WRITE {
         res = new IR(kTransactionModeItem, OP3("READ WRITE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFERRABLE {
         res = new IR(kTransactionModeItem, OP3("DEFERRABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT DEFERRABLE {
         res = new IR(kTransactionModeItem, OP3("NOT DEFERRABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13829,6 +15672,7 @@ transaction_mode_list:
     transaction_mode_item {
         auto tmp1 = $1;
         res = new IR(kTransactionModeList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13836,6 +15680,7 @@ transaction_mode_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTransactionModeList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13843,6 +15688,7 @@ transaction_mode_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTransactionModeList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13854,11 +15700,13 @@ transaction_mode_list_or_empty:
     transaction_mode_list {
         auto tmp1 = $1;
         res = new IR(kTransactionModeListOrEmpty, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kTransactionModeListOrEmpty, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13869,16 +15717,19 @@ opt_transaction_chain:
 
     AND CHAIN {
         res = new IR(kOptTransactionChain, OP3("AND CHAIN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AND NO CHAIN {
         res = new IR(kOptTransactionChain, OP3("AND NO CHAIN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptTransactionChain, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -13900,14 +15751,19 @@ ViewStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kViewStmt_1, OP3("CREATE", "VIEW", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kViewStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kViewStmt_3, OP3("", "", "AS"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kViewStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataViewName, kDefine);
@@ -13919,14 +15775,19 @@ ViewStmt:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kViewStmt_5, OP3("CREATE OR REPLACE", "VIEW", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kViewStmt_6, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kViewStmt_7, OP3("", "", "AS"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $10;
         res = new IR(kViewStmt_8, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $11;
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataViewName, kDefine);
@@ -13938,16 +15799,21 @@ ViewStmt:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kViewStmt_9, OP3("CREATE", "RECURSIVE VIEW", "("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kViewStmt_10, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $9;
         res = new IR(kViewStmt_11, OP3("", "", "AS"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $11;
         res = new IR(kViewStmt_12, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $12;
         tmp6 -> deep_drop();
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataViewName, kDefine);
@@ -13960,16 +15826,21 @@ ViewStmt:
         auto tmp1 = $4;
         auto tmp2 = $7;
         res = new IR(kViewStmt_13, OP3("CREATE OR REPLACE", "RECURSIVE VIEW", "("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kViewStmt_14, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kViewStmt_15, OP3("", "", "AS"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $13;
         res = new IR(kViewStmt_16, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $14;
         tmp6 -> deep_drop();
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataViewName, kDefine);
@@ -13984,21 +15855,25 @@ opt_check_option:
 
     WITH CHECK OPTION {
         res = new IR(kOptCheckOption, OP3("WITH CHECK OPTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH CASCADED CHECK OPTION {
         res = new IR(kOptCheckOption, OP3("WITH CASCADED CHECK OPTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH LOCAL CHECK OPTION {
         res = new IR(kOptCheckOption, OP3("WITH LOCAL CHECK OPTION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptCheckOption, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14018,6 +15893,7 @@ LoadStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kLoadStmt, OP3("LOAD", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14038,8 +15914,10 @@ CreatedbStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreatedbStmt_1, OP3("CREATE DATABASE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreatedbStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14051,11 +15929,13 @@ createdb_opt_list:
     createdb_opt_items {
         auto tmp1 = $1;
         res = new IR(kCreatedbOptList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kCreatedbOptList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14067,6 +15947,7 @@ createdb_opt_items:
     createdb_opt_item {
         auto tmp1 = $1;
         res = new IR(kCreatedbOptItems, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14074,6 +15955,7 @@ createdb_opt_items:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreatedbOptItems, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14086,8 +15968,10 @@ createdb_opt_item:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreatedbOptItem_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14095,9 +15979,11 @@ createdb_opt_item:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreatedbOptItem_2, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14105,6 +15991,7 @@ createdb_opt_item:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCreatedbOptItem, OP3("", "", "DEFAULT"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14128,36 +16015,43 @@ createdb_opt_name:
         /* Yu: Weird. I don't see any documents mentioned we can define anything here.  */
         free($1);
         res = new IR(kCreatedbOptName, OP3("TEMPLATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CONNECTION LIMIT {
         res = new IR(kCreatedbOptName, OP3("CONNECTION LIMIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ENCODING {
         res = new IR(kCreatedbOptName, OP3("ENCODING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCATION {
         res = new IR(kCreatedbOptName, OP3("LOCATION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OWNER {
         res = new IR(kCreatedbOptName, OP3("OWNER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLESPACE {
         res = new IR(kCreatedbOptName, OP3("TABLESPACE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TEMPLATE {
         res = new IR(kCreatedbOptName, OP3("TEMPLATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14172,11 +16066,13 @@ opt_equal:
 
     '=' {
         res = new IR(kOptEqual, OP3("=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptEqual, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14197,6 +16093,7 @@ AlterDatabaseStmt:
         free($3);
         auto tmp2 = $5;
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "WITH", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14205,6 +16102,7 @@ AlterDatabaseStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14214,6 +16112,7 @@ AlterDatabaseStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "SET TABLESPACE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14227,6 +16126,7 @@ AlterDatabaseSetStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kAlterDatabaseSetStmt, OP3("ALTER DATABASE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14247,6 +16147,7 @@ DropdbStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kDropdbStmt, OP3("DROP DATABASE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14254,6 +16155,7 @@ DropdbStmt:
         auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kDropdbStmt, OP3("DROP DATABASE IF EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14262,8 +16164,10 @@ DropdbStmt:
         free($3);
         auto tmp2 = $4;
         res = new IR(kDropdbStmt_1, OP3("DROP DATABASE", "", "("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kDropdbStmt, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14272,8 +16176,10 @@ DropdbStmt:
         free($5);
         auto tmp2 = $6;
         res = new IR(kDropdbStmt_2, OP3("DROP DATABASE IF EXISTS", "", "("), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kDropdbStmt, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14285,6 +16191,7 @@ drop_option_list:
     drop_option {
         auto tmp1 = $1;
         res = new IR(kDropOptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14292,6 +16199,7 @@ drop_option_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kDropOptionList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14306,6 +16214,7 @@ drop_option:
 
     FORCE {
         res = new IR(kDropOption, OP3("FORCE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14323,6 +16232,7 @@ AlterCollationStmt:
     ALTER COLLATION any_name REFRESH VERSION_P {
         auto tmp1 = $3;
         res = new IR(kAlterCollationStmt, OP3("ALTER COLLATION", "REFRESH VERSION", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14342,12 +16252,14 @@ AlterSystemStmt:
     ALTER SYSTEM_P SET generic_set {
         auto tmp1 = $4;
         res = new IR(kAlterSystemStmt, OP3("ALTER SYSTEM SET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALTER SYSTEM_P RESET generic_reset {
         auto tmp1 = $4;
         res = new IR(kAlterSystemStmt, OP3("ALTER SYSTEM RESET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14367,10 +16279,13 @@ CreateDomainStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCreateDomainStmt_1, OP3("CREATE DOMAIN", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kCreateDomainStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kCreateDomainStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14383,18 +16298,21 @@ AlterDomainStmt:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALTER DOMAIN_P any_name DROP NOT NULL_P {
         auto tmp1 = $3;
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "DROP NOT NULL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALTER DOMAIN_P any_name SET NOT NULL_P {
         auto tmp1 = $3;
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "SET NOT NULL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14402,6 +16320,7 @@ AlterDomainStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "ADD", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14410,8 +16329,10 @@ AlterDomainStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterDomainStmt_1, OP3("ALTER DOMAIN", "DROP CONSTRAINT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAlterDomainStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14420,8 +16341,10 @@ AlterDomainStmt:
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kAlterDomainStmt_2, OP3("ALTER DOMAIN", "DROP CONSTRAINT IF EXISTS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kAlterDomainStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14430,6 +16353,7 @@ AlterDomainStmt:
         auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "VALIDATE CONSTRAINT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14440,11 +16364,13 @@ opt_as:
 
     AS {
         res = new IR(kOptAs, OP3("AS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptAs, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14464,6 +16390,7 @@ AlterTSDictionaryStmt:
         auto tmp1 = $5;
         auto tmp2 = $6;
         res = new IR(kAlterTSDictionaryStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14476,10 +16403,13 @@ AlterTSConfigurationStmt:
         auto tmp1 = $5;
         auto tmp2 = $9;
         res = new IR(kAlterTSConfigurationStmt_1, OP3("ALTER TEXT SEARCH CONFIGURATION", "ADD MAPPING FOR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kAlterTSConfigurationStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14487,10 +16417,13 @@ AlterTSConfigurationStmt:
         auto tmp1 = $5;
         auto tmp2 = $9;
         res = new IR(kAlterTSConfigurationStmt_3, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING FOR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kAlterTSConfigurationStmt_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14498,10 +16431,13 @@ AlterTSConfigurationStmt:
         auto tmp1 = $5;
         auto tmp2 = $9;
         res = new IR(kAlterTSConfigurationStmt_5, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING REPLACE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $10;
         res = new IR(kAlterTSConfigurationStmt_6, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14509,12 +16445,16 @@ AlterTSConfigurationStmt:
         auto tmp1 = $5;
         auto tmp2 = $9;
         res = new IR(kAlterTSConfigurationStmt_7, OP3("ALTER TEXT SEARCH CONFIGURATION", "ALTER MAPPING FOR", "REPLACE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $11;
         res = new IR(kAlterTSConfigurationStmt_8, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $12;
         res = new IR(kAlterTSConfigurationStmt_9, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $13;
         res = new IR(kAlterTSConfigurationStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14522,6 +16462,7 @@ AlterTSConfigurationStmt:
         auto tmp1 = $5;
         auto tmp2 = $9;
         res = new IR(kAlterTSConfigurationStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "DROP MAPPING FOR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14529,6 +16470,7 @@ AlterTSConfigurationStmt:
         auto tmp1 = $5;
         auto tmp2 = $11;
         res = new IR(kAlterTSConfigurationStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "DROP MAPPING IF EXISTS FOR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14540,11 +16482,13 @@ any_with:
 
     WITH {
         res = new IR(kAnyWith, OP3("WITH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH_LA {
         res = new IR(kAnyWith, OP3("WITH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14567,14 +16511,18 @@ CreateConversionStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCreateConversionStmt_1, OP3("CREATE", "CONVERSION", "FOR"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kCreateConversionStmt_2, OP3("", "", "TO"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
         free($8);
         res = new IR(kCreateConversionStmt_3, OP3("", "", "FROM"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $10;
         res = new IR(kCreateConversionStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14597,8 +16545,10 @@ ClusterStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kClusterStmt_1, OP3("CLUSTER", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14606,14 +16556,17 @@ ClusterStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kClusterStmt_2, OP3("CLUSTER (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CLUSTER opt_verbose {
         auto tmp1 = $2;
         res = new IR(kClusterStmt, OP3("CLUSTER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14622,8 +16575,10 @@ ClusterStmt:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kClusterStmt_3, OP3("CLUSTER", "", "ON"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14636,11 +16591,13 @@ cluster_index_specification:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kClusterIndexSpecification, OP3("USING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kClusterIndexSpecification, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14662,12 +16619,16 @@ VacuumStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kVacuumStmt_1, OP3("VACUUM", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kVacuumStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kVacuumStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $6;
         res = new IR(kVacuumStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14675,6 +16636,7 @@ VacuumStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kVacuumStmt, OP3("VACUUM (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14688,8 +16650,10 @@ AnalyzeStmt:
         free($1);
         auto tmp2 = $2;
         res = new IR(kAnalyzeStmt_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kAnalyzeStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14698,8 +16662,10 @@ AnalyzeStmt:
         free($1);
         auto tmp2 = $3;
         res = new IR(kAnalyzeStmt_2, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAnalyzeStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14711,6 +16677,7 @@ utility_option_list:
     utility_option_elem {
         auto tmp1 = $1;
         res = new IR(kUtilityOptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14718,6 +16685,7 @@ utility_option_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kUtilityOptionList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14740,13 +16708,14 @@ analyze_keyword:
 utility_option_elem:
 
     utility_option_name utility_option_arg {
-        /* Yu: We do not know what is the possible values or types for this utility_option_name. 
-        ** Do not change it to kIdentifier. 
+        /* Yu: We do not know what is the possible values or types for this utility_option_name.
+        ** Do not change it to kIdentifier.
         ** FixLater: $1 into OP3
         */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         auto tmp2 = $2;
         res = new IR(kUtilityOptionElem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -14756,8 +16725,8 @@ utility_option_elem:
 
 utility_option_name:
 
-    NonReservedWord 
-    | analyze_keyword 
+    NonReservedWord
+    | analyze_keyword
 ;
 
 
@@ -14767,17 +16736,20 @@ utility_option_arg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kUtilityOptionArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NumericOnly {
         auto tmp1 = $1;
         res = new IR(kUtilityOptionArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kUtilityOptionArg, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14790,11 +16762,13 @@ opt_analyze:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOptAnalyze, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptAnalyze, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14805,11 +16779,13 @@ opt_verbose:
 
     VERBOSE {
         res = new IR(kOptVerbose, OP3("VERBOSE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptVerbose, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14820,11 +16796,13 @@ opt_full:
 
     FULL {
         res = new IR(kOptFull, OP3("FULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptFull, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14835,11 +16813,13 @@ opt_freeze:
 
     FREEZE {
         res = new IR(kOptFreeze, OP3("FREEZE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptFreeze, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14851,11 +16831,13 @@ opt_name_list:
     '(' name_list ')' {
         auto tmp1 = $2;
         res = new IR(kOptNameList, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptNameList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14868,6 +16850,7 @@ vacuum_relation:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kVacuumRelation, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14879,6 +16862,7 @@ vacuum_relation_list:
     vacuum_relation {
         auto tmp1 = $1;
         res = new IR(kVacuumRelationList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14886,6 +16870,7 @@ vacuum_relation_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kVacuumRelationList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14897,11 +16882,13 @@ opt_vacuum_relation_list:
     vacuum_relation_list {
         auto tmp1 = $1;
         res = new IR(kOptVacuumRelationList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptVacuumRelationList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14922,6 +16909,7 @@ ExplainStmt:
     EXPLAIN ExplainableStmt {
         auto tmp1 = $2;
         res = new IR(kExplainStmt, OP3("EXPLAIN", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14930,14 +16918,17 @@ ExplainStmt:
         free($2);
         auto tmp2 = $3;
         res = new IR(kExplainStmt_1, OP3("EXPLAIN", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kExplainStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXPLAIN VERBOSE ExplainableStmt {
         auto tmp1 = $3;
         res = new IR(kExplainStmt, OP3("EXPLAIN VERBOSE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14945,6 +16936,7 @@ ExplainStmt:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kExplainStmt, OP3("EXPLAIN (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -14956,54 +16948,63 @@ ExplainableStmt:
     SelectStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | InsertStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UpdateStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeleteStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeclareCursorStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateAsStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CreateMatViewStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RefreshMatViewStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ExecuteStmt {
         auto tmp1 = $1;
         res = new IR(kExplainableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15024,8 +17025,10 @@ PrepareStmt:
         free($2);
         auto tmp2 = $3;
         res = new IR(kPrepareStmt_1, OP3("PREPARE", "", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kPrepareStmt, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15037,11 +17040,13 @@ prep_type_clause:
     '(' type_list ')' {
         auto tmp1 = $2;
         res = new IR(kPrepTypeClause, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kPrepTypeClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15053,24 +17058,28 @@ PreparableStmt:
     SelectStmt {
         auto tmp1 = $1;
         res = new IR(kPreparableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | InsertStmt {
         auto tmp1 = $1;
         res = new IR(kPreparableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UpdateStmt {
         auto tmp1 = $1;
         res = new IR(kPreparableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DeleteStmt {
         auto tmp1 = $1;
         res = new IR(kPreparableStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15091,6 +17100,7 @@ ExecuteStmt:
         free($2);
         auto tmp2 = $3;
         res = new IR(kExecuteStmt, OP3("EXECUTE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15098,13 +17108,17 @@ ExecuteStmt:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kExecuteStmt_1, OP3("CREATE", "TABLE", "AS EXECUTE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kExecuteStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kExecuteStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $9;
         res = new IR(kExecuteStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15112,13 +17126,17 @@ ExecuteStmt:
         auto tmp1 = $2;
         auto tmp2 = $7;
         res = new IR(kExecuteStmt_4, OP3("CREATE", "TABLE IF NOT EXISTS", "AS EXECUTE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kExecuteStmt_5, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kExecuteStmt_6, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $12;
         res = new IR(kExecuteStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15130,11 +17148,13 @@ execute_param_clause:
     '(' expr_list ')' {
         auto tmp1 = $2;
         res = new IR(kExecuteParamClause, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kExecuteParamClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15154,6 +17174,7 @@ DeallocateStmt:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15161,16 +17182,19 @@ DeallocateStmt:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE PREPARE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEALLOCATE ALL {
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEALLOCATE PREPARE ALL {
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE PREPARE ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15190,12 +17214,16 @@ InsertStmt:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kInsertStmt_1, OP3("", "INSERT INTO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kInsertStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kInsertStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $7;
         res = new IR(kInsertStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15213,6 +17241,7 @@ insert_target:
     qualified_name {
         auto tmp1 = $1;
         res = new IR(kInsertTarget, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kUse);
@@ -15224,6 +17253,7 @@ insert_target:
         auto tmp2 = new IR(kIdentifier, string($3), kDataAliasName, 0, kDefine);
         free($3);
         res = new IR(kInsertTarget, OP3("", "AS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kUse);
@@ -15237,6 +17267,7 @@ insert_rest:
     SelectStmt {
         auto tmp1 = $1;
         res = new IR(kInsertRest, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15244,6 +17275,7 @@ insert_rest:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kInsertRest, OP3("OVERRIDING", "VALUE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15251,6 +17283,7 @@ insert_rest:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kInsertRest, OP3("(", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15258,13 +17291,16 @@ insert_rest:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kInsertRest_1, OP3("(", ") OVERRIDING", "VALUE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kInsertRest, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT VALUES {
         res = new IR(kInsertRest, OP3("DEFAULT VALUES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15275,11 +17311,13 @@ override_kind:
 
     USER {
         res = new IR(kOverrideKind, OP3("USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SYSTEM_P {
         res = new IR(kOverrideKind, OP3("SYSTEM", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15291,6 +17329,7 @@ insert_column_list:
     insert_column_item {
         auto tmp1 = $1;
         res = new IR(kInsertColumnList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15298,6 +17337,7 @@ insert_column_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kInsertColumnList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15311,6 +17351,7 @@ insert_column_item:
         free($1);
         auto tmp2 = $2;
         res = new IR(kInsertColumnItem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataColumnName, kUse);
@@ -15325,19 +17366,23 @@ opt_on_conflict:
         auto tmp1 = $3;
         auto tmp2 = $7;
         res = new IR(kOptOnConflict_1, OP3("ON CONFLICT", "DO UPDATE SET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kOptOnConflict, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ON CONFLICT opt_conf_expr DO NOTHING {
         auto tmp1 = $3;
         res = new IR(kOptOnConflict, OP3("ON CONFLICT", "DO NOTHING", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptOnConflict, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15350,6 +17395,7 @@ opt_conf_expr:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kOptConfExpr, OP3("(", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15357,11 +17403,13 @@ opt_conf_expr:
         auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kOptConfExpr, OP3("ON CONSTRAINT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptConfExpr, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15373,11 +17421,13 @@ returning_clause:
     RETURNING target_list {
         auto tmp1 = $2;
         res = new IR(kReturningClause, OP3("RETURNING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kReturningClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15398,12 +17448,16 @@ DeleteStmt:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kDeleteStmt_1, OP3("", "DELETE FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kDeleteStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kDeleteStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $7;
         res = new IR(kDeleteStmt, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15415,11 +17469,13 @@ using_clause:
     USING from_list {
         auto tmp1 = $2;
         res = new IR(kUsingClause, OP3("USING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kUsingClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15440,10 +17496,13 @@ LockStmt:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kLockStmt_1, OP3("LOCK", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kLockStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kLockStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15455,11 +17514,13 @@ opt_lock:
     IN_P lock_type MODE {
         auto tmp1 = $2;
         res = new IR(kOptLock, OP3("IN", "MODE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptLock, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15470,41 +17531,49 @@ lock_type:
 
     ACCESS SHARE {
         res = new IR(kLockType, OP3("ACCESS SHARE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROW SHARE {
         res = new IR(kLockType, OP3("ROW SHARE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROW EXCLUSIVE {
         res = new IR(kLockType, OP3("ROW EXCLUSIVE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHARE UPDATE EXCLUSIVE {
         res = new IR(kLockType, OP3("SHARE UPDATE EXCLUSIVE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHARE {
         res = new IR(kLockType, OP3("SHARE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SHARE ROW EXCLUSIVE {
         res = new IR(kLockType, OP3("SHARE ROW EXCLUSIVE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXCLUSIVE {
         res = new IR(kLockType, OP3("EXCLUSIVE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ACCESS EXCLUSIVE {
         res = new IR(kLockType, OP3("ACCESS EXCLUSIVE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15515,11 +17584,13 @@ opt_nowait:
 
     NOWAIT {
         res = new IR(kOptNowait, OP3("NOWAIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptNowait, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15530,16 +17601,19 @@ opt_nowait_or_skip:
 
     NOWAIT {
         res = new IR(kOptNowaitOrSkip, OP3("NOWAIT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SKIP LOCKED {
         res = new IR(kOptNowaitOrSkip, OP3("SKIP LOCKED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptNowaitOrSkip, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15560,14 +17634,19 @@ UpdateStmt:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kUpdateStmt_1, OP3("", "UPDATE", "SET"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kUpdateStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kUpdateStmt_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $7;
         res = new IR(kUpdateStmt_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $8;
         res = new IR(kUpdateStmt, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15579,6 +17658,7 @@ set_clause_list:
     set_clause {
         auto tmp1 = $1;
         res = new IR(kSetClauseList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15586,6 +17666,7 @@ set_clause_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSetClauseList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15598,6 +17679,7 @@ set_clause:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSetClause, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15605,6 +17687,7 @@ set_clause:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kSetClause, OP3("(", ") =", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15618,6 +17701,7 @@ set_target:
         free($1);
         auto tmp2 = $2;
         res = new IR(kSetTarget, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15629,6 +17713,7 @@ set_target_list:
     set_target {
         auto tmp1 = $1;
         res = new IR(kSetTargetList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15636,6 +17721,7 @@ set_target_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSetTargetList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15656,10 +17742,13 @@ DeclareCursorStmt:
         free($2);
         auto tmp2 = $3;
         res = new IR(kDeclareCursorStmt_1, OP3("DECLARE", "", "CURSOR"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kDeclareCursorStmt_2, OP3("", "", "FOR"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kDeclareCursorStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15667,7 +17756,7 @@ DeclareCursorStmt:
 
 
 cursor_name:
-    name 
+    name
 ;
 
 
@@ -15675,36 +17764,42 @@ cursor_options:
 
     /*EMPTY*/ {
         res = new IR(kCursorOptions, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | cursor_options NO SCROLL {
         auto tmp1 = $1;
         res = new IR(kCursorOptions, OP3("", "NO SCROLL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | cursor_options SCROLL {
         auto tmp1 = $1;
         res = new IR(kCursorOptions, OP3("", "SCROLL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | cursor_options BINARY {
         auto tmp1 = $1;
         res = new IR(kCursorOptions, OP3("", "BINARY", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | cursor_options ASENSITIVE {
         auto tmp1 = $1;
         res = new IR(kCursorOptions, OP3("", "ASENSITIVE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | cursor_options INSENSITIVE {
         auto tmp1 = $1;
         res = new IR(kCursorOptions, OP3("", "INSENSITIVE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15715,16 +17810,19 @@ opt_hold:
 
     /* EMPTY */ {
         res = new IR(kOptHold, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH HOLD {
         res = new IR(kOptHold, OP3("WITH HOLD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITHOUT HOLD {
         res = new IR(kOptHold, OP3("WITHOUT HOLD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15781,12 +17879,14 @@ SelectStmt:
     select_no_parens %prec UMINUS {
         auto tmp1 = $1;
         res = new IR(kSelectStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | select_with_parens %prec UMINUS {
         auto tmp1 = $1;
         res = new IR(kSelectStmt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15798,12 +17898,14 @@ select_with_parens:
     '(' select_no_parens ')' {
         auto tmp1 = $2;
         res = new IR(kSelectWithParens, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' select_with_parens ')' {
         auto tmp1 = $2;
         res = new IR(kSelectWithParens, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15826,6 +17928,7 @@ select_no_parens:
     simple_select {
         auto tmp1 = $1;
         res = new IR(kSelectNoParens, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15833,6 +17936,7 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15840,10 +17944,13 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15851,10 +17958,13 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens_3, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15862,6 +17972,7 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15869,8 +17980,10 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens_5, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15878,12 +17991,16 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens_6, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens_7, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kSelectNoParens_8, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15891,12 +18008,16 @@ select_no_parens:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectNoParens_9, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kSelectNoParens_10, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kSelectNoParens_11, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kSelectNoParens, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15908,12 +18029,14 @@ select_clause:
     simple_select {
         auto tmp1 = $1;
         res = new IR(kSelectClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | select_with_parens {
         auto tmp1 = $1;
         res = new IR(kSelectClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15954,18 +18077,25 @@ simple_select:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kSimpleSelect_1, OP3("SELECT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kSimpleSelect_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $6;
         res = new IR(kSimpleSelect_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $7;
         res = new IR(kSimpleSelect_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $8;
         res = new IR(kSimpleSelect_6, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $9;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -15973,30 +18103,39 @@ simple_select:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kSimpleSelect_7, OP3("SELECT", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect_8, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kSimpleSelect_9, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $6;
         res = new IR(kSimpleSelect_10, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $7;
         res = new IR(kSimpleSelect_11, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $8;
         res = new IR(kSimpleSelect_12, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $9;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | values_clause {
         auto tmp1 = $1;
         res = new IR(kSimpleSelect, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TABLE relation_expr {
         auto tmp1 = $2;
         res = new IR(kSimpleSelect, OP3("TABLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16004,8 +18143,10 @@ simple_select:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSimpleSelect_13, OP3("", "UNION", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16013,8 +18154,10 @@ simple_select:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSimpleSelect_14, OP3("", "INTERSECT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16022,8 +18165,10 @@ simple_select:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSimpleSelect_15, OP3("", "EXCEPT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kSimpleSelect, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16043,18 +18188,21 @@ with_clause:
     WITH cte_list {
         auto tmp1 = $2;
         res = new IR(kWithClause, OP3("WITH", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH_LA cte_list {
         auto tmp1 = $2;
         res = new IR(kWithClause, OP3("WITH", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITH RECURSIVE cte_list {
         auto tmp1 = $3;
         res = new IR(kWithClause, OP3("WITH RECURSIVE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16066,6 +18214,7 @@ cte_list:
     common_table_expr {
         auto tmp1 = $1;
         res = new IR(kCteList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16073,6 +18222,7 @@ cte_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kCteList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16086,14 +18236,19 @@ common_table_expr:
         free($1);
         auto tmp2 = $2;
         res = new IR(kCommonTableExpr_1, OP3("", "", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kCommonTableExpr_2, OP3("", "", "("), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kCommonTableExpr_3, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $8;
         res = new IR(kCommonTableExpr_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $9;
         res = new IR(kCommonTableExpr, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16104,16 +18259,19 @@ opt_materialized:
 
     MATERIALIZED {
         res = new IR(kOptMaterialized, OP3("MATERIALIZED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT MATERIALIZED {
         res = new IR(kOptMaterialized, OP3("NOT MATERIALIZED", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptMaterialized, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16127,6 +18285,7 @@ opt_search_clause:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kOptSearchClause, OP3("SEARCH DEPTH FIRST BY", "SET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16135,11 +18294,13 @@ opt_search_clause:
         auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
         free($7);
         res = new IR(kOptSearchClause, OP3("SEARCH BREADTH FIRST BY", "SET", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptSearchClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16153,13 +18314,17 @@ opt_cycle_clause:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kOptCycleClause_1, OP3("CYCLE", "SET", "TO"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kOptCycleClause_2, OP3("", "", "DEFAULT"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $8;
         res = new IR(kOptCycleClause_3, OP3("", "", "USING"), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
         free($10);
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16168,14 +18333,17 @@ opt_cycle_clause:
         auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kOptCycleClause_4, OP3("CYCLE", "SET", "USING"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptCycleClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16187,11 +18355,13 @@ opt_with_clause:
     with_clause {
         auto tmp1 = $1;
         res = new IR(kOptWithClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptWithClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16203,11 +18373,13 @@ into_clause:
     INTO OptTempTableName {
         auto tmp1 = $2;
         res = new IR(kIntoClause, OP3("INTO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kIntoClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16224,6 +18396,7 @@ OptTempTableName:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOptTempTableName, OP3("TEMPORARY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16234,6 +18407,7 @@ OptTempTableName:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOptTempTableName, OP3("TEMP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16244,6 +18418,7 @@ OptTempTableName:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMPORARY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16253,6 +18428,7 @@ OptTempTableName:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16263,6 +18439,7 @@ OptTempTableName:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMPORARY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16273,6 +18450,7 @@ OptTempTableName:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kOptTempTableName, OP3("LOCAL TEMP", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16282,6 +18460,7 @@ OptTempTableName:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOptTempTableName, OP3("UNLOGGED", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
@@ -16290,6 +18469,7 @@ OptTempTableName:
     | TABLE qualified_name {
         auto tmp1 = $2;
         res = new IR(kOptTempTableName, OP3("TABLE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kDefine);
@@ -16298,6 +18478,7 @@ OptTempTableName:
     | qualified_name {
         auto tmp1 = $1;
         res = new IR(kOptTempTableName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kDefine);
@@ -16310,11 +18491,13 @@ opt_table:
 
     TABLE {
         res = new IR(kOptTable, OP3("TABLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTable, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16325,16 +18508,19 @@ set_quantifier:
 
     ALL {
         res = new IR(kSetQuantifier, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISTINCT {
         res = new IR(kSetQuantifier, OP3("DISTINCT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kSetQuantifier, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16348,12 +18534,14 @@ distinct_clause:
 
     DISTINCT {
         res = new IR(kDistinctClause, OP3("DISTINCT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DISTINCT ON '(' expr_list ')' {
         auto tmp1 = $4;
         res = new IR(kDistinctClause, OP3("DISTINCT ON (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16364,11 +18552,13 @@ opt_all_clause:
 
     ALL {
         res = new IR(kOptAllClause, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptAllClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16380,12 +18570,14 @@ opt_distinct_clause:
     distinct_clause {
         auto tmp1 = $1;
         res = new IR(kOptDistinctClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | opt_all_clause {
         auto tmp1 = $1;
         res = new IR(kOptDistinctClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16397,11 +18589,13 @@ opt_sort_clause:
     sort_clause {
         auto tmp1 = $1;
         res = new IR(kOptSortClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptSortClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16413,6 +18607,7 @@ sort_clause:
     ORDER BY sortby_list {
         auto tmp1 = $3;
         res = new IR(kSortClause, OP3("ORDER BY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16424,6 +18619,7 @@ sortby_list:
     sortby {
         auto tmp1 = $1;
         res = new IR(kSortbyList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16431,6 +18627,7 @@ sortby_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSortbyList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16443,8 +18640,10 @@ sortby:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSortby_1, OP3("", "USING", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kSortby, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16452,8 +18651,10 @@ sortby:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSortby_2, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kSortby, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16467,6 +18668,7 @@ select_limit:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectLimit, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16474,18 +18676,21 @@ select_limit:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSelectLimit, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | limit_clause {
         auto tmp1 = $1;
         res = new IR(kSelectLimit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | offset_clause {
         auto tmp1 = $1;
         res = new IR(kSelectLimit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16497,11 +18702,13 @@ opt_select_limit:
     select_limit {
         auto tmp1 = $1;
         res = new IR(kOptSelectLimit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptSelectLimit, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16513,6 +18720,7 @@ limit_clause:
     LIMIT select_limit_value {
         auto tmp1 = $2;
         res = new IR(kLimitClause, OP3("LIMIT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16522,6 +18730,7 @@ limit_clause:
         auto tmp2 = $4;
         tmp2->deep_drop();
         res = new IR(kLimitClause, OP3("LIMIT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16529,8 +18738,10 @@ limit_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kLimitClause_1, OP3("FETCH", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kLimitClause, OP3("", "", "ONLY"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16538,8 +18749,10 @@ limit_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kLimitClause_2, OP3("FETCH", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kLimitClause, OP3("", "", "WITH TIES"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16547,6 +18760,7 @@ limit_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kLimitClause, OP3("FETCH", "", "ONLY"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16554,6 +18768,7 @@ limit_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kLimitClause, OP3("FETCH", "", "WITH TIES"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16565,6 +18780,7 @@ offset_clause:
     OFFSET select_offset_value {
         auto tmp1 = $2;
         res = new IR(kOffsetClause, OP3("OFFSET", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16572,6 +18788,7 @@ offset_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOffsetClause, OP3("OFFSET", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16583,11 +18800,13 @@ select_limit_value:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kSelectLimitValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL {
         res = new IR(kSelectLimitValue, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16599,6 +18818,7 @@ select_offset_value:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kSelectOffsetValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16626,18 +18846,21 @@ select_fetch_first_value:
     c_expr {
         auto tmp1 = $1;
         res = new IR(kSelectFetchFirstValue, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '+' I_or_F_const {
         auto tmp1 = $2;
         res = new IR(kSelectFetchFirstValue, OP3("+", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '-' I_or_F_const {
         auto tmp1 = $2;
         res = new IR(kSelectFetchFirstValue, OP3("-", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16649,12 +18872,14 @@ I_or_F_const:
     Iconst {
         auto tmp1 = $1;
         res = new IR(kIOrFConst, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($1));
         res = new IR(kIOrFConst, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -16667,11 +18892,13 @@ row_or_rows:
 
     ROW {
         res = new IR(kRowOrRows, OP3("ROW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROWS {
         res = new IR(kRowOrRows, OP3("ROWS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16682,11 +18909,13 @@ first_or_next:
 
     FIRST_P {
         res = new IR(kFirstOrNext, OP3("FIRST", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NEXT {
         res = new IR(kFirstOrNext, OP3("NEXT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16720,11 +18949,13 @@ group_clause:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kGroupClause, OP3("GROUP BY", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kGroupClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16736,6 +18967,7 @@ group_by_list:
     group_by_item {
         auto tmp1 = $1;
         res = new IR(kGroupByList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16743,6 +18975,7 @@ group_by_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kGroupByList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16754,40 +18987,46 @@ group_by_item:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kGroupByItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | empty_grouping_set {
         auto tmp1 = $1;
         res = new IR(kGroupByItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | cube_clause {
         auto tmp1 = $1;
         res = new IR(kGroupByItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | rollup_clause {
         auto tmp1 = $1;
         res = new IR(kGroupByItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | grouping_sets_clause {
         auto tmp1 = $1;
         res = new IR(kGroupByItem, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
 ;
 
-   
+
 empty_grouping_set:
 
     '(' ')' {
         res = new IR(kEmptyGroupingSet, OP3("( )", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16806,6 +19045,7 @@ rollup_clause:
     ROLLUP '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kRollupClause, OP3("ROLLUP (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16817,6 +19057,7 @@ cube_clause:
     CUBE '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kCubeClause, OP3("CUBE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16828,6 +19069,7 @@ grouping_sets_clause:
     GROUPING SETS '(' group_by_list ')' {
         auto tmp1 = $4;
         res = new IR(kGroupingSetsClause, OP3("GROUPING SETS (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16839,11 +19081,13 @@ having_clause:
     HAVING a_expr {
         auto tmp1 = $2;
         res = new IR(kHavingClause, OP3("HAVING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kHavingClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16855,11 +19099,13 @@ for_locking_clause:
     for_locking_items {
         auto tmp1 = $1;
         res = new IR(kForLockingClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR READ ONLY {
         res = new IR(kForLockingClause, OP3("FOR READ ONLY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16871,11 +19117,13 @@ opt_for_locking_clause:
     for_locking_clause {
         auto tmp1 = $1;
         res = new IR(kOptForLockingClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptForLockingClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16887,6 +19135,7 @@ for_locking_items:
     for_locking_item {
         auto tmp1 = $1;
         res = new IR(kForLockingItems, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16894,6 +19143,7 @@ for_locking_items:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kForLockingItems, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16906,8 +19156,10 @@ for_locking_item:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kForLockingItem_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kForLockingItem, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16918,21 +19170,25 @@ for_locking_strength:
 
     FOR UPDATE {
         res = new IR(kForLockingStrength, OP3("FOR UPDATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR NO KEY UPDATE {
         res = new IR(kForLockingStrength, OP3("FOR NO KEY UPDATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR SHARE {
         res = new IR(kForLockingStrength, OP3("FOR SHARE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FOR KEY SHARE {
         res = new IR(kForLockingStrength, OP3("FOR KEY SHARE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16944,11 +19200,13 @@ locked_rels_list:
     OF qualified_name_list {
         auto tmp1 = $2;
         res = new IR(kLockedRelsList, OP3("OF", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kLockedRelsList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16966,6 +19224,7 @@ values_clause:
     VALUES '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kValuesClause, OP3("VALUES (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16973,6 +19232,7 @@ values_clause:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kValuesClause, OP3("", ", (", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -16993,11 +19253,13 @@ from_clause:
     FROM from_list {
         auto tmp1 = $2;
         res = new IR(kFromClause, OP3("FROM", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kFromClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17009,6 +19271,7 @@ from_list:
     table_ref {
         auto tmp1 = $1;
         res = new IR(kFromList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17016,6 +19279,7 @@ from_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFromList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17031,6 +19295,7 @@ table_ref:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTableRef, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17038,8 +19303,10 @@ table_ref:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTableRef_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kTableRef, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17047,6 +19314,7 @@ table_ref:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTableRef, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17054,6 +19322,7 @@ table_ref:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTableRef, OP3("LATERAL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17061,6 +19330,7 @@ table_ref:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTableRef, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17068,6 +19338,7 @@ table_ref:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTableRef, OP3("LATERAL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17075,6 +19346,7 @@ table_ref:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTableRef, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17082,12 +19354,14 @@ table_ref:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTableRef, OP3("LATERAL", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | joined_table {
         auto tmp1 = $1;
         res = new IR(kTableRef, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17095,6 +19369,7 @@ table_ref:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kTableRef, OP3("(", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17124,6 +19399,7 @@ joined_table:
     '(' joined_table ')' {
         auto tmp1 = $2;
         res = new IR(kJoinedTable, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17131,6 +19407,7 @@ joined_table:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kJoinedTable, OP3("", "CROSS JOIN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17138,10 +19415,13 @@ joined_table:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kJoinedTable_1, OP3("", "", "JOIN"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kJoinedTable_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kJoinedTable, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17149,8 +19429,10 @@ joined_table:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kJoinedTable_3, OP3("", "JOIN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kJoinedTable, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17158,8 +19440,10 @@ joined_table:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kJoinedTable_4, OP3("", "NATURAL", "JOIN"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kJoinedTable, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17167,6 +19451,7 @@ joined_table:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kJoinedTable, OP3("", "NATURAL JOIN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17180,6 +19465,7 @@ alias_clause:
         free($2);
         auto tmp2 = $4;
         res = new IR(kAliasClause, OP3("AS", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataAliasName, kDefine);
@@ -17189,6 +19475,7 @@ alias_clause:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAliasClause, OP3("AS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
         tmp1->set_iden_type(kDataAliasName, kDefine);
 
@@ -17199,6 +19486,7 @@ alias_clause:
         free($1);
         auto tmp2 = $3;
         res = new IR(kAliasClause, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataAliasName, kDefine);
@@ -17209,6 +19497,7 @@ alias_clause:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kAliasClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataAliasName, kDefine);
@@ -17223,11 +19512,13 @@ opt_alias_clause:
     alias_clause {
         auto tmp1 = $1;
         res = new IR(kOptAliasClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptAliasClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17246,11 +19537,13 @@ opt_alias_clause_for_join_using:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kOptAliasClauseForJoinUsing, OP3("AS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptAliasClauseForJoinUsing, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17266,12 +19559,14 @@ func_alias_clause:
     alias_clause {
         auto tmp1 = $1;
         res = new IR(kFuncAliasClause, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AS '(' TableFuncElementList ')' {
         auto tmp1 = $3;
         res = new IR(kFuncAliasClause, OP3("AS (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17280,6 +19575,7 @@ func_alias_clause:
         free($2);
         auto tmp2 = $4;
         res = new IR(kFuncAliasClause, OP3("AS", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17288,11 +19584,13 @@ func_alias_clause:
         free($1);
         auto tmp2 = $3;
         res = new IR(kFuncAliasClause, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kFuncAliasClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17304,23 +19602,27 @@ join_type:
     FULL opt_outer {
         auto tmp1 = $2;
         res = new IR(kJoinType, OP3("FULL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LEFT opt_outer {
         auto tmp1 = $2;
         res = new IR(kJoinType, OP3("LEFT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | RIGHT opt_outer {
         auto tmp1 = $2;
         res = new IR(kJoinType, OP3("RIGHT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INNER_P {
         res = new IR(kJoinType, OP3("INNER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17332,11 +19634,13 @@ opt_outer:
 
     OUTER_P {
         res = new IR(kOptOuter, OP3("OUTER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptOuter, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17361,12 +19665,14 @@ join_qual:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kJoinQual, OP3("USING (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ON a_expr {
         auto tmp1 = $2;
         res = new IR(kJoinQual, OP3("ON", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17379,6 +19685,7 @@ relation_expr:
     qualified_name {
         auto tmp1 = $1;
         res = new IR(kRelationExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kUse);
@@ -17387,6 +19694,7 @@ relation_expr:
     | qualified_name '*' {
         auto tmp1 = $1;
         res = new IR(kRelationExpr, OP3("", "*", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kUse);
@@ -17395,6 +19703,7 @@ relation_expr:
     | ONLY qualified_name {
         auto tmp1 = $2;
         res = new IR(kRelationExpr, OP3("ONLY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kUse);
@@ -17403,6 +19712,7 @@ relation_expr:
     | ONLY '(' qualified_name ')' {
         auto tmp1 = $3;
         res = new IR(kRelationExpr, OP3("ONLY (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kUse);
@@ -17417,6 +19727,7 @@ relation_expr_list:
     relation_expr {
         auto tmp1 = $1;
         res = new IR(kRelationExprList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17424,6 +19735,7 @@ relation_expr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kRelationExprList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17445,6 +19757,7 @@ relation_expr_opt_alias:
     relation_expr %prec UMINUS {
         auto tmp1 = $1;
         res = new IR(kRelationExprOptAlias, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17453,6 +19766,7 @@ relation_expr_opt_alias:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kRelationExprOptAlias, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17461,6 +19775,7 @@ relation_expr_opt_alias:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kRelationExprOptAlias, OP3("", "AS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17476,8 +19791,10 @@ tablesample_clause:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kTablesampleClause_1, OP3("TABLESAMPLE", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kTablesampleClause, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17489,11 +19806,13 @@ opt_repeatable_clause:
     REPEATABLE '(' a_expr ')' {
         auto tmp1 = $3;
         res = new IR(kOptRepeatableClause, OP3("REPEATABLE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptRepeatableClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17518,6 +19837,7 @@ func_table:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFuncTable, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17525,6 +19845,7 @@ func_table:
         auto tmp1 = $4;
         auto tmp2 = $6;
         res = new IR(kFuncTable, OP3("ROWS FROM (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17537,6 +19858,7 @@ rowsfrom_item:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kRowsfromItem, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17548,6 +19870,7 @@ rowsfrom_list:
     rowsfrom_item {
         auto tmp1 = $1;
         res = new IR(kRowsfromList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17555,6 +19878,7 @@ rowsfrom_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kRowsfromList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17566,11 +19890,13 @@ opt_col_def_list:
     AS '(' TableFuncElementList ')' {
         auto tmp1 = $3;
         res = new IR(kOptColDefList, OP3("AS (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptColDefList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17581,11 +19907,13 @@ opt_ordinality:
 
     WITH_LA ORDINALITY {
         res = new IR(kOptOrdinality, OP3("WITH ORDINALITY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptOrdinality, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17598,11 +19926,13 @@ where_clause:
     WHERE a_expr {
         auto tmp1 = $2;
         res = new IR(kWhereClause, OP3("WHERE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kWhereClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17615,6 +19945,7 @@ where_or_current_clause:
     WHERE a_expr {
         auto tmp1 = $2;
         res = new IR(kWhereOrCurrentClause, OP3("WHERE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17622,11 +19953,13 @@ where_or_current_clause:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kWhereOrCurrentClause, OP3("WHERE CURRENT OF", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kWhereOrCurrentClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17639,11 +19972,13 @@ OptTableFuncElementList:
     TableFuncElementList {
         auto tmp1 = $1;
         res = new IR(kOptTableFuncElementList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTableFuncElementList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17655,6 +19990,7 @@ TableFuncElementList:
     TableFuncElement {
         auto tmp1 = $1;
         res = new IR(kTableFuncElementList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17662,6 +19998,7 @@ TableFuncElementList:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTableFuncElementList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17675,8 +20012,10 @@ TableFuncElement:
         free($1);
         auto tmp2 = $2;
         res = new IR(kTableFuncElement_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kTableFuncElement, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17692,8 +20031,10 @@ xmltable:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kXmltable_1, OP3("XMLTABLE (", "", "COLUMNS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kXmltable, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17701,10 +20042,13 @@ xmltable:
         auto tmp1 = $5;
         auto tmp2 = $8;
         res = new IR(kXmltable_2, OP3("XMLTABLE ( XMLNAMESPACES (", ") ,", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $9;
         res = new IR(kXmltable_3, OP3("", "", "COLUMNS"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $11;
         res = new IR(kXmltable, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17716,6 +20060,7 @@ xmltable_column_list:
     xmltable_column_el {
         auto tmp1 = $1;
         res = new IR(kXmltableColumnList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17723,6 +20068,7 @@ xmltable_column_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kXmltableColumnList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17736,6 +20082,7 @@ xmltable_column_el:
         free($1);
         auto tmp2 = $2;
         res = new IR(kXmltableColumnEl, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17744,8 +20091,10 @@ xmltable_column_el:
         free($1);
         auto tmp2 = $2;
         res = new IR(kXmltableColumnEl_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kXmltableColumnEl, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17753,6 +20102,7 @@ xmltable_column_el:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kXmltableColumnEl, OP3("", "FOR ORDINALITY", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17764,6 +20114,7 @@ xmltable_column_option_list:
     xmltable_column_option_el {
         auto tmp1 = $1;
         res = new IR(kXmltableColumnOptionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17771,6 +20122,7 @@ xmltable_column_option_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kXmltableColumnOptionList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17783,22 +20135,26 @@ xmltable_column_option_el:
         auto tmp1 = $2;
         free($1);
         res = new IR(kXmltableColumnOptionEl, OP3("DEFAULT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT b_expr {
         auto tmp1 = $2;
         res = new IR(kXmltableColumnOptionEl, OP3("DEFAULT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT NULL_P {
         res = new IR(kXmltableColumnOptionEl, OP3("NOT NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NULL_P {
         res = new IR(kXmltableColumnOptionEl, OP3("NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17810,6 +20166,7 @@ xml_namespace_list:
     xml_namespace_el {
         auto tmp1 = $1;
         res = new IR(kXmlNamespaceList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17817,6 +20174,7 @@ xml_namespace_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kXmlNamespaceList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17830,12 +20188,14 @@ xml_namespace_el:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kXmlNamespaceEl, OP3("", "AS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT b_expr {
         auto tmp1 = $2;
         res = new IR(kXmlNamespaceEl, OP3("DEFAULT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17858,6 +20218,7 @@ Typename:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kTypename, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17865,6 +20226,7 @@ Typename:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTypename, OP3("SETOF", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17872,6 +20234,7 @@ Typename:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kTypename, OP3("", "ARRAY [", "]"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17879,18 +20242,21 @@ Typename:
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kTypename, OP3("SETOF", "ARRAY [", "]"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SimpleTypename ARRAY {
         auto tmp1 = $1;
         res = new IR(kTypename, OP3("", "ARRAY", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SETOF SimpleTypename ARRAY {
         auto tmp1 = $2;
         res = new IR(kTypename, OP3("SETOF", "ARRAY", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17902,6 +20268,7 @@ opt_array_bounds:
     opt_array_bounds '[' ']' {
         auto tmp1 = $1;
         res = new IR(kOptArrayBounds, OP3("", "[ ]", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17909,11 +20276,13 @@ opt_array_bounds:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOptArrayBounds, OP3("", "[", "]"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptArrayBounds, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17925,30 +20294,35 @@ SimpleTypename:
     GenericType {
         auto tmp1 = $1;
         res = new IR(kSimpleTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | Numeric {
         auto tmp1 = $1;
         res = new IR(kSimpleTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | Bit {
         auto tmp1 = $1;
         res = new IR(kSimpleTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | Character {
         auto tmp1 = $1;
         res = new IR(kSimpleTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ConstDatetime {
         auto tmp1 = $1;
         res = new IR(kSimpleTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17956,6 +20330,7 @@ SimpleTypename:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kSimpleTypename, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17963,6 +20338,7 @@ SimpleTypename:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSimpleTypename, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -17985,24 +20361,28 @@ ConstTypename:
     Numeric {
         auto tmp1 = $1;
         res = new IR(kConstTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ConstBit {
         auto tmp1 = $1;
         res = new IR(kConstTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ConstCharacter {
         auto tmp1 = $1;
         res = new IR(kConstTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ConstDatetime {
         auto tmp1 = $1;
         res = new IR(kConstTypename, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18023,6 +20403,7 @@ GenericType:
         free($1);
         auto tmp2 = $2;
         res = new IR(kGenericType, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataGenericType, kNoModi);
@@ -18033,8 +20414,10 @@ GenericType:
         free($1);
         auto tmp2 = $2;
         res = new IR(kGenericType_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kGenericType, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1->set_iden_type(kDataGenericType, kNoModi);
@@ -18049,11 +20432,13 @@ opt_type_modifiers:
     '(' expr_list ')' {
         auto tmp1 = $2;
         res = new IR(kOptTypeModifiers, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptTypeModifiers, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18067,60 +20452,71 @@ Numeric:
 
     INT_P {
         res = new IR(kNumeric, OP3("INT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | INTEGER {
         res = new IR(kNumeric, OP3("INTEGER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SMALLINT {
         res = new IR(kNumeric, OP3("SMALLINT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BIGINT {
         res = new IR(kNumeric, OP3("BIGINT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | REAL {
         res = new IR(kNumeric, OP3("REAL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FLOAT_P opt_float {
         auto tmp1 = $2;
         res = new IR(kNumeric, OP3("FLOAT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DOUBLE_P PRECISION {
         res = new IR(kNumeric, OP3("DOUBLE PRECISION", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DECIMAL_P opt_type_modifiers {
         auto tmp1 = $2;
         res = new IR(kNumeric, OP3("DECIMAL", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEC opt_type_modifiers {
         auto tmp1 = $2;
         res = new IR(kNumeric, OP3("DEC", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NUMERIC opt_type_modifiers {
         auto tmp1 = $2;
         res = new IR(kNumeric, OP3("NUMERIC", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BOOLEAN_P {
         res = new IR(kNumeric, OP3("BOOLEAN", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18132,11 +20528,13 @@ opt_float:
     '(' Iconst ')' {
         auto tmp1 = $2;
         res = new IR(kOptFloat, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptFloat, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18152,12 +20550,14 @@ Bit:
     BitWithLength {
         auto tmp1 = $1;
         res = new IR(kBit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BitWithoutLength {
         auto tmp1 = $1;
         res = new IR(kBit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18171,12 +20571,14 @@ ConstBit:
     BitWithLength {
         auto tmp1 = $1;
         res = new IR(kConstBit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BitWithoutLength {
         auto tmp1 = $1;
         res = new IR(kConstBit, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18189,6 +20591,7 @@ BitWithLength:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kBitWithLength, OP3("BIT", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18200,6 +20603,7 @@ BitWithoutLength:
     BIT opt_varying {
         auto tmp1 = $2;
         res = new IR(kBitWithoutLength, OP3("BIT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18216,12 +20620,14 @@ Character:
     CharacterWithLength {
         auto tmp1 = $1;
         res = new IR(kCharacter, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CharacterWithoutLength {
         auto tmp1 = $1;
         res = new IR(kCharacter, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18233,12 +20639,14 @@ ConstCharacter:
     CharacterWithLength {
         auto tmp1 = $1;
         res = new IR(kConstCharacter, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CharacterWithoutLength {
         auto tmp1 = $1;
         res = new IR(kConstCharacter, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18251,6 +20659,7 @@ CharacterWithLength:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kCharacterWithLength, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18262,6 +20671,7 @@ CharacterWithoutLength:
     character {
         auto tmp1 = $1;
         res = new IR(kCharacterWithoutLength, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18273,35 +20683,41 @@ character:
     CHARACTER opt_varying {
         auto tmp1 = $2;
         res = new IR(kCharacter, OP3("CHARACTER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CHAR_P opt_varying {
         auto tmp1 = $2;
         res = new IR(kCharacter, OP3("CHAR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VARCHAR {
         res = new IR(kCharacter, OP3("VARCHAR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NATIONAL CHARACTER opt_varying {
         auto tmp1 = $3;
         res = new IR(kCharacter, OP3("NATIONAL CHARACTER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NATIONAL CHAR_P opt_varying {
         auto tmp1 = $3;
         res = new IR(kCharacter, OP3("NATIONAL CHAR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NCHAR opt_varying {
         auto tmp1 = $2;
         res = new IR(kCharacter, OP3("NCHAR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18312,11 +20728,13 @@ opt_varying:
 
     VARYING {
         res = new IR(kOptVarying, OP3("VARYING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptVarying, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18332,12 +20750,14 @@ ConstDatetime:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kConstDatetime, OP3("TIMESTAMP (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TIMESTAMP opt_timezone {
         auto tmp1 = $2;
         res = new IR(kConstDatetime, OP3("TIMESTAMP", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18345,12 +20765,14 @@ ConstDatetime:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kConstDatetime, OP3("TIME (", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TIME opt_timezone {
         auto tmp1 = $2;
         res = new IR(kConstDatetime, OP3("TIME", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18361,6 +20783,7 @@ ConstInterval:
 
     INTERVAL {
         res = new IR(kConstInterval, OP3("INTERVAL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18371,16 +20794,19 @@ opt_timezone:
 
     WITH_LA TIME ZONE {
         res = new IR(kOptTimezone, OP3("WITH TIME ZONE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | WITHOUT TIME ZONE {
         res = new IR(kOptTimezone, OP3("WITHOUT TIME ZONE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptTimezone, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18391,75 +20817,89 @@ opt_interval:
 
     YEAR_P {
         res = new IR(kOptInterval, OP3("YEAR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MONTH_P {
         res = new IR(kOptInterval, OP3("MONTH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DAY_P {
         res = new IR(kOptInterval, OP3("DAY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | HOUR_P {
         res = new IR(kOptInterval, OP3("HOUR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MINUTE_P {
         res = new IR(kOptInterval, OP3("MINUTE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | interval_second {
         auto tmp1 = $1;
         res = new IR(kOptInterval, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | YEAR_P TO MONTH_P {
         res = new IR(kOptInterval, OP3("YEAR TO MONTH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DAY_P TO HOUR_P {
         res = new IR(kOptInterval, OP3("DAY TO HOUR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DAY_P TO MINUTE_P {
         res = new IR(kOptInterval, OP3("DAY TO MINUTE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DAY_P TO interval_second {
         auto tmp1 = $3;
         res = new IR(kOptInterval, OP3("DAY TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | HOUR_P TO MINUTE_P {
         res = new IR(kOptInterval, OP3("HOUR TO MINUTE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | HOUR_P TO interval_second {
         auto tmp1 = $3;
         res = new IR(kOptInterval, OP3("HOUR TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MINUTE_P TO interval_second {
         auto tmp1 = $3;
         res = new IR(kOptInterval, OP3("MINUTE TO", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptInterval, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18470,12 +20910,14 @@ interval_second:
 
     SECOND_P {
         res = new IR(kIntervalSecond, OP3("SECOND", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SECOND_P '(' Iconst ')' {
         auto tmp1 = $3;
         res = new IR(kIntervalSecond, OP3("SECOND (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18516,6 +20958,7 @@ a_expr:
     c_expr {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18523,6 +20966,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "::", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18530,6 +20974,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "COLLATE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_any_name_type(kDataColumnName, kUse);
@@ -18540,18 +20985,21 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr, OP3("", "AT TIME ZONE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '+' a_expr %prec UMINUS {
         auto tmp1 = $2;
         res = new IR(kAExpr, OP3("+", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '-' a_expr %prec UMINUS {
         auto tmp1 = $2;
         res = new IR(kAExpr, OP3("-", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18559,6 +21007,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "+", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18566,6 +21015,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "-", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18573,6 +21023,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "*", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18580,6 +21031,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "/", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18587,6 +21039,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "%", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18594,6 +21047,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "^", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18601,6 +21055,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "<", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18608,6 +21063,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", ">", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18615,6 +21071,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18622,6 +21079,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "<=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18629,6 +21087,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", ">=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18636,6 +21095,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "!=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18643,8 +21103,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAExpr_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18652,6 +21114,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAExpr, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18659,6 +21122,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "AND", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18666,18 +21130,21 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "OR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT a_expr {
         auto tmp1 = $2;
         res = new IR(kAExpr, OP3("NOT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT_LA a_expr %prec NOT {
         auto tmp1 = $2;
         res = new IR(kAExpr, OP3("NOT", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18685,6 +21152,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "LIKE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18692,8 +21160,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr_2, OP3("", "LIKE", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18701,6 +21171,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr, OP3("", "NOT LIKE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18708,8 +21179,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr_3, OP3("", "NOT LIKE", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18717,6 +21190,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "ILIKE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18724,8 +21198,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr_4, OP3("", "ILIKE", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18733,6 +21209,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr, OP3("", "NOT ILIKE", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18740,8 +21217,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr_5, OP3("", "NOT ILIKE", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18749,6 +21228,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr, OP3("", "SIMILAR TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18756,8 +21236,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr_6, OP3("", "SIMILAR TO", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18765,6 +21247,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr, OP3("", "NOT SIMILAR TO", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18772,32 +21255,38 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr_7, OP3("", "NOT SIMILAR TO", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NULL_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NULL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr ISNULL {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "ISNULL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NOT NULL_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NOT NULL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr NOTNULL {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "NOTNULL", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18805,42 +21294,49 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "OVERLAPS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS TRUE_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS TRUE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NOT TRUE_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NOT TRUE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS FALSE_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS FALSE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NOT FALSE_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NOT FALSE", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS UNKNOWN %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS UNKNOWN", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NOT UNKNOWN %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NOT UNKNOWN", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18848,6 +21344,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr, OP3("", "IS DISTINCT FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18855,6 +21352,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $6;
         res = new IR(kAExpr, OP3("", "IS NOT DISTINCT FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18862,10 +21360,13 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr_8, OP3("", "BETWEEN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kAExpr_9, OP3("", "", "AND"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18873,10 +21374,13 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr_10, OP3("", "NOT BETWEEN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kAExpr_11, OP3("", "", "AND"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18884,8 +21388,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr_12, OP3("", "BETWEEN SYMMETRIC", "AND"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18893,8 +21399,10 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kAExpr_13, OP3("", "NOT BETWEEN SYMMETRIC", "AND"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $7;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18902,6 +21410,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "IN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18909,6 +21418,7 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr, OP3("", "NOT IN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18916,10 +21426,13 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAExpr_14, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kAExpr_15, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kAExpr, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18927,10 +21440,13 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kAExpr_16, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kAExpr_17, OP3("", "", "("), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kAExpr, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18938,24 +21454,28 @@ a_expr:
         /* Yu: UNIQUE is not yet implemented. Removed it.  */
         auto tmp1 = $2;
         res = new IR(kAExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS DOCUMENT_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS DOCUMENT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NOT DOCUMENT_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NOT DOCUMENT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NORMALIZED %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NORMALIZED", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18963,12 +21483,14 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAExpr, OP3("", "IS", "NORMALIZED"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr IS NOT NORMALIZED %prec IS {
         auto tmp1 = $1;
         res = new IR(kAExpr, OP3("", "IS NOT NORMALIZED", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -18976,11 +21498,13 @@ a_expr:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kAExpr, OP3("", "IS NOT", "NORMALIZED"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DEFAULT {
         res = new IR(kAExpr, OP3("DEFAULT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19001,6 +21525,7 @@ b_expr:
     c_expr {
         auto tmp1 = $1;
         res = new IR(kBExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19008,18 +21533,21 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "::", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '+' b_expr %prec UMINUS {
         auto tmp1 = $2;
         res = new IR(kBExpr, OP3("+", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '-' b_expr %prec UMINUS {
         auto tmp1 = $2;
         res = new IR(kBExpr, OP3("-", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19027,6 +21555,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "+", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19034,6 +21563,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "-", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19041,6 +21571,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "*", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19048,6 +21579,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "/", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19055,6 +21587,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "%", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19062,6 +21595,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "^", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19069,6 +21603,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "<", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19076,6 +21611,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", ">", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19083,6 +21619,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19090,6 +21627,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "<=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19097,6 +21635,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", ">=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19104,6 +21643,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kBExpr, OP3("", "!=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19111,8 +21651,10 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kBExpr_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kBExpr, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19120,6 +21662,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kBExpr, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19127,6 +21670,7 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $5;
         res = new IR(kBExpr, OP3("", "IS DISTINCT FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19134,18 +21678,21 @@ b_expr:
         auto tmp1 = $1;
         auto tmp2 = $6;
         res = new IR(kBExpr, OP3("", "IS NOT DISTINCT FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | b_expr IS DOCUMENT_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kBExpr, OP3("", "IS DOCUMENT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | b_expr IS NOT DOCUMENT_P %prec IS {
         auto tmp1 = $1;
         res = new IR(kBExpr, OP3("", "IS NOT DOCUMENT", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19165,18 +21712,21 @@ c_expr:
     columnref {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | AexprConst {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PARAM opt_indirection {
         auto tmp1 = $2;
         res = new IR(kCExpr, OP3("PARAM", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19184,24 +21734,28 @@ c_expr:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kCExpr, OP3("(", ")", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | case_expr {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | func_expr {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | select_with_parens %prec UMINUS {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19209,42 +21763,49 @@ c_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kCExpr, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXISTS select_with_parens {
         auto tmp1 = $2;
         res = new IR(kCExpr, OP3("EXISTS", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ARRAY select_with_parens {
         auto tmp1 = $2;
         res = new IR(kCExpr, OP3("ARRAY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ARRAY array_expr {
         auto tmp1 = $2;
         res = new IR(kCExpr, OP3("ARRAY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | explicit_row {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | implicit_row {
         auto tmp1 = $1;
         res = new IR(kCExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GROUPING '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kCExpr, OP3("GROUPING (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19256,6 +21817,7 @@ func_application:
     func_name '(' ')' {
         auto tmp1 = $1;
         res = new IR(kFuncApplication, OP3("", "( )", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19263,8 +21825,10 @@ func_application:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncApplication_1, OP3("", "(", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19272,8 +21836,10 @@ func_application:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kFuncApplication_2, OP3("", "( VARIADIC", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19281,10 +21847,13 @@ func_application:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncApplication_3, OP3("", "(", ", VARIADIC"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kFuncApplication_4, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19292,8 +21861,10 @@ func_application:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kFuncApplication_5, OP3("", "( ALL", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19301,14 +21872,17 @@ func_application:
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kFuncApplication_6, OP3("", "( DISTINCT", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kFuncApplication, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | func_name '(' '*' ')' {
         auto tmp1 = $1;
         res = new IR(kFuncApplication, OP3("", "( * )", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19331,16 +21905,20 @@ func_expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFuncExpr_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kFuncExpr_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kFuncExpr, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | func_expr_common_subexpr {
         auto tmp1 = $1;
         res = new IR(kFuncExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19358,12 +21936,14 @@ func_expr_windowless:
     func_application {
         auto tmp1 = $1;
         res = new IR(kFuncExprWindowless, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | func_expr_common_subexpr {
         auto tmp1 = $1;
         res = new IR(kFuncExprWindowless, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19378,85 +21958,101 @@ func_expr_common_subexpr:
     COLLATION FOR '(' a_expr ')' {
         auto tmp1 = $4;
         res = new IR(kFuncExprCommonSubexpr, OP3("COLLATION FOR (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_DATE {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_DATE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_TIME {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_TIME", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_TIME '(' Iconst ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_TIME (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_TIMESTAMP {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_TIMESTAMP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_TIMESTAMP '(' Iconst ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_TIMESTAMP (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCALTIME {
         res = new IR(kFuncExprCommonSubexpr, OP3("LOCALTIME", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCALTIME '(' Iconst ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("LOCALTIME (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCALTIMESTAMP {
         res = new IR(kFuncExprCommonSubexpr, OP3("LOCALTIMESTAMP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LOCALTIMESTAMP '(' Iconst ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("LOCALTIMESTAMP (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_ROLE {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_ROLE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_USER {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SESSION_USER {
         res = new IR(kFuncExprCommonSubexpr, OP3("SESSION_USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | USER {
         res = new IR(kFuncExprCommonSubexpr, OP3("USER", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_CATALOG {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_CATALOG", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_SCHEMA {
         res = new IR(kFuncExprCommonSubexpr, OP3("CURRENT_SCHEMA", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19464,18 +22060,21 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kFuncExprCommonSubexpr, OP3("CAST (", "AS", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXTRACT '(' extract_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("EXTRACT (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NORMALIZE '(' a_expr ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("NORMALIZE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19483,36 +22082,42 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kFuncExprCommonSubexpr, OP3("NORMALIZE (", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OVERLAY '(' overlay_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("OVERLAY (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OVERLAY '(' func_arg_list_opt ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("OVERLAY (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | POSITION '(' position_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("POSITION (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SUBSTRING '(' substr_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("SUBSTRING (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SUBSTRING '(' func_arg_list_opt ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("SUBSTRING (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19520,30 +22125,35 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kFuncExprCommonSubexpr, OP3("TREAT (", "AS", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRIM '(' BOTH trim_list ')' {
         auto tmp1 = $4;
         res = new IR(kFuncExprCommonSubexpr, OP3("TRIM ( BOTH", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRIM '(' LEADING trim_list ')' {
         auto tmp1 = $4;
         res = new IR(kFuncExprCommonSubexpr, OP3("TRIM ( LEADING", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRIM '(' TRAILING trim_list ')' {
         auto tmp1 = $4;
         res = new IR(kFuncExprCommonSubexpr, OP3("TRIM ( TRAILING", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRIM '(' trim_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("TRIM (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19551,30 +22161,35 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kFuncExprCommonSubexpr, OP3("NULLIF (", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | COALESCE '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("COALESCE (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GREATEST '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("GREATEST (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LEAST '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("LEAST (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | XMLCONCAT '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLCONCAT (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19582,6 +22197,7 @@ func_expr_common_subexpr:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19590,6 +22206,7 @@ func_expr_common_subexpr:
         free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19598,6 +22215,7 @@ func_expr_common_subexpr:
         free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19606,8 +22224,10 @@ func_expr_common_subexpr:
         free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr_1, OP3("XMLELEMENT ( NAME", ",", ","), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $8;
         res = new IR(kFuncExprCommonSubexpr, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19615,12 +22235,14 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLEXISTS (", "", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | XMLFOREST '(' xml_attribute_list ')' {
         auto tmp1 = $3;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLFOREST (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19628,8 +22250,10 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kFuncExprCommonSubexpr_2, OP3("XMLPARSE (", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kFuncExprCommonSubexpr, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19637,6 +22261,7 @@ func_expr_common_subexpr:
         auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
         free($4);
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLPI ( NAME", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19645,6 +22270,7 @@ func_expr_common_subexpr:
         free($4);
         auto tmp2 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLPI ( NAME", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19652,8 +22278,10 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $5;
         res = new IR(kFuncExprCommonSubexpr_3, OP3("XMLROOT (", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19661,8 +22289,10 @@ func_expr_common_subexpr:
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kFuncExprCommonSubexpr_4, OP3("XMLSERIALIZE (", "", "AS"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $6;
         res = new IR(kFuncExprCommonSubexpr, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19677,11 +22307,13 @@ xml_root_version:
     VERSION_P a_expr {
         auto tmp1 = $2;
         res = new IR(kXmlRootVersion, OP3("VERSION", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | VERSION_P NO VALUE_P {
         res = new IR(kXmlRootVersion, OP3("VERSION NO VALUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19692,21 +22324,25 @@ opt_xml_root_standalone:
 
     ',' STANDALONE_P YES_P {
         res = new IR(kOptXmlRootStandalone, OP3(", STANDALONE YES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ',' STANDALONE_P NO {
         res = new IR(kOptXmlRootStandalone, OP3(", STANDALONE NO", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ',' STANDALONE_P NO VALUE_P {
         res = new IR(kOptXmlRootStandalone, OP3(", STANDALONE NO VALUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptXmlRootStandalone, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19718,6 +22354,7 @@ xml_attributes:
     XMLATTRIBUTES '(' xml_attribute_list ')' {
         auto tmp1 = $3;
         res = new IR(kXmlAttributes, OP3("XMLATTRIBUTES (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19729,6 +22366,7 @@ xml_attribute_list:
     xml_attribute_el {
         auto tmp1 = $1;
         res = new IR(kXmlAttributeList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19736,6 +22374,7 @@ xml_attribute_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kXmlAttributeList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19749,12 +22388,14 @@ xml_attribute_el:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kXmlAttributeEl, OP3("", "AS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr {
         auto tmp1 = $1;
         res = new IR(kXmlAttributeEl, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19765,11 +22406,13 @@ document_or_content:
 
     DOCUMENT_P {
         res = new IR(kDocumentOrContent, OP3("DOCUMENT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CONTENT_P {
         res = new IR(kDocumentOrContent, OP3("CONTENT", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19780,16 +22423,19 @@ xml_whitespace_option:
 
     PRESERVE WHITESPACE_P {
         res = new IR(kXmlWhitespaceOption, OP3("PRESERVE WHITESPACE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | STRIP_P WHITESPACE_P {
         res = new IR(kXmlWhitespaceOption, OP3("STRIP WHITESPACE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kXmlWhitespaceOption, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19802,6 +22448,7 @@ xmlexists_argument:
     PASSING c_expr {
         auto tmp1 = $2;
         res = new IR(kXmlexistsArgument, OP3("PASSING", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19809,6 +22456,7 @@ xmlexists_argument:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kXmlexistsArgument, OP3("PASSING", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19816,6 +22464,7 @@ xmlexists_argument:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kXmlexistsArgument, OP3("PASSING", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19823,8 +22472,10 @@ xmlexists_argument:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kXmlexistsArgument_1, OP3("PASSING", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kXmlexistsArgument, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19835,11 +22486,13 @@ xml_passing_mech:
 
     BY REF {
         res = new IR(kXmlPassingMech, OP3("BY REF", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BY VALUE_P {
         res = new IR(kXmlPassingMech, OP3("BY VALUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19855,11 +22508,13 @@ within_group_clause:
     WITHIN GROUP_P '(' sort_clause ')' {
         auto tmp1 = $4;
         res = new IR(kWithinGroupClause, OP3("WITHIN GROUP (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kWithinGroupClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19871,11 +22526,13 @@ filter_clause:
     FILTER '(' WHERE a_expr ')' {
         auto tmp1 = $4;
         res = new IR(kFilterClause, OP3("FILTER ( WHERE", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kFilterClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19891,11 +22548,13 @@ window_clause:
     WINDOW window_definition_list {
         auto tmp1 = $2;
         res = new IR(kWindowClause, OP3("WINDOW", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kWindowClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19907,6 +22566,7 @@ window_definition_list:
     window_definition {
         auto tmp1 = $1;
         res = new IR(kWindowDefinitionList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19914,6 +22574,7 @@ window_definition_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kWindowDefinitionList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19927,6 +22588,7 @@ window_definition:
         free($1);
         auto tmp2 = $3;
         res = new IR(kWindowDefinition, OP3("", "AS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19938,6 +22600,7 @@ over_clause:
     OVER window_specification {
         auto tmp1 = $2;
         res = new IR(kOverClause, OP3("OVER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19945,11 +22608,13 @@ over_clause:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kOverClause, OP3("OVER", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOverClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19962,10 +22627,13 @@ window_specification:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kWindowSpecification_1, OP3("(", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kWindowSpecification_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $5;
         res = new IR(kWindowSpecification, OP3("", "", ")"), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -19988,11 +22656,13 @@ opt_existing_window_name:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kOptExistingWindowName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | %prec Op {
         res = new IR(kOptExistingWindowName, OP0());
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20004,6 +22674,7 @@ opt_partition_clause:
     PARTITION BY expr_list {
         auto tmp1 = $3;
         res = new IR(kOptPartitionClause, OP3("PARTITION BY", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
 
@@ -20011,6 +22682,7 @@ opt_partition_clause:
 
     | /*EMPTY*/ {
         res = new IR(kOptPartitionClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20027,6 +22699,7 @@ opt_frame_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOptFrameClause, OP3("RANGE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20034,6 +22707,7 @@ opt_frame_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOptFrameClause, OP3("ROWS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20041,11 +22715,13 @@ opt_frame_clause:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kOptFrameClause, OP3("GROUPS", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptFrameClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20062,6 +22738,7 @@ frame_extent:
             tmp1 = new IR(kFrameBound, OP3("CURRENT ROW", "", ""));
         }
         res = new IR(kFrameExtent, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20069,6 +22746,7 @@ frame_extent:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kFrameExtent, OP3("BETWEEN", "AND", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20084,28 +22762,33 @@ frame_bound:
 
     UNBOUNDED PRECEDING {
         res = new IR(kFrameBound, OP3("UNBOUNDED PRECEDING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | UNBOUNDED FOLLOWING {
         res = new IR(kFrameBound, OP3("UNBOUNDED FOLLOWING", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | CURRENT_P ROW {
         res = new IR(kFrameBound, OP3("CURRENT ROW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr PRECEDING {
         auto tmp1 = $1;
         res = new IR(kFrameBound, OP3("", "PRECEDING", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr FOLLOWING {
         auto tmp1 = $1;
         res = new IR(kFrameBound, OP3("", "FOLLOWING", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20116,26 +22799,31 @@ opt_window_exclusion_clause:
 
     EXCLUDE CURRENT_P ROW {
         res = new IR(kOptWindowExclusionClause, OP3("EXCLUDE CURRENT ROW", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXCLUDE GROUP_P {
         res = new IR(kOptWindowExclusionClause, OP3("EXCLUDE GROUP", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXCLUDE TIES {
         res = new IR(kOptWindowExclusionClause, OP3("EXCLUDE TIES", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | EXCLUDE NO OTHERS {
         res = new IR(kOptWindowExclusionClause, OP3("EXCLUDE NO OTHERS", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptWindowExclusionClause, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20158,11 +22846,13 @@ row:
     ROW '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kRow, OP3("ROW (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROW '(' ')' {
         res = new IR(kRow, OP3("ROW ( )", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20170,6 +22860,7 @@ row:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kRow, OP3("(", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20181,11 +22872,13 @@ explicit_row:
     ROW '(' expr_list ')' {
         auto tmp1 = $3;
         res = new IR(kExplicitRow, OP3("ROW (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ROW '(' ')' {
         res = new IR(kExplicitRow, OP3("ROW ( )", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20198,6 +22891,7 @@ implicit_row:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kImplicitRow, OP3("(", ",", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20208,16 +22902,19 @@ sub_type:
 
     ANY {
         res = new IR(kSubType, OP3("ANY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SOME {
         res = new IR(kSubType, OP3("SOME", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ALL {
         res = new IR(kSubType, OP3("ALL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20228,6 +22925,7 @@ all_Op:
 
     Op {
         res = new IR(kAllOp, string($1));
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -20235,6 +22933,7 @@ all_Op:
     | MathOp {
         auto tmp1 = $1;
         res = new IR(kAllOp, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20245,61 +22944,73 @@ MathOp:
 
     '+' {
         res = new IR(kMathOp, OP3("+", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '-' {
         res = new IR(kMathOp, OP3("-", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '*' {
         res = new IR(kMathOp, OP3("*", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '/' {
         res = new IR(kMathOp, OP3("/", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '%' {
         res = new IR(kMathOp, OP3("%", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '^' {
         res = new IR(kMathOp, OP3("^", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '<' {
         res = new IR(kMathOp, OP3("<", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '>' {
         res = new IR(kMathOp, OP3(">", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '=' {
         res = new IR(kMathOp, OP3("=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LESS_EQUALS {
         res = new IR(kMathOp, OP3("<=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | GREATER_EQUALS {
         res = new IR(kMathOp, OP3(">=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT_EQUALS {
         res = new IR(kMathOp, OP3("!=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20310,6 +23021,7 @@ qual_Op:
 
     Op {
         res = new IR(kQualOp, string($1));
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -20317,6 +23029,7 @@ qual_Op:
     | OPERATOR '(' any_operator ')' {
         auto tmp1 = $3;
         res = new IR(kQualOp, OP3("OPERATOR (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20328,12 +23041,14 @@ qual_all_Op:
     all_Op {
         auto tmp1 = $1;
         res = new IR(kQualAllOp, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OPERATOR '(' any_operator ')' {
         auto tmp1 = $3;
         res = new IR(kQualAllOp, OP3("OPERATOR (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20345,32 +23060,38 @@ subquery_Op:
     all_Op {
         auto tmp1 = $1;
         res = new IR(kSubqueryOp, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | OPERATOR '(' any_operator ')' {
         auto tmp1 = $3;
         res = new IR(kSubqueryOp, OP3("OPERATOR (", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | LIKE {
         res = new IR(kSubqueryOp, OP3("LIKE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT_LA LIKE {
         res = new IR(kSubqueryOp, OP3("NOT LIKE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | ILIKE {
         res = new IR(kSubqueryOp, OP3("ILIKE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NOT_LA ILIKE {
         res = new IR(kSubqueryOp, OP3("NOT ILIKE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20382,6 +23103,7 @@ expr_list:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kExprList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20389,6 +23111,7 @@ expr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kExprList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20401,6 +23124,7 @@ func_arg_list:
     func_arg_expr {
         auto tmp1 = $1;
         res = new IR(kFuncArgList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20408,6 +23132,7 @@ func_arg_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kFuncArgList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20419,6 +23144,7 @@ func_arg_expr:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kFuncArgExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20427,6 +23153,7 @@ func_arg_expr:
         free($1);
         auto tmp2 = $3;
         res = new IR(kFuncArgExpr, OP3("", ":=", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20435,6 +23162,7 @@ func_arg_expr:
         free($1);
         auto tmp2 = $3;
         res = new IR(kFuncArgExpr, OP3("", "=>", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20446,11 +23174,13 @@ func_arg_list_opt:
     func_arg_list {
         auto tmp1 = $1;
         res = new IR(kFuncArgListOpt, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kFuncArgListOpt, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20462,6 +23192,7 @@ type_list:
     Typename {
         auto tmp1 = $1;
         res = new IR(kTypeList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20469,6 +23200,7 @@ type_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTypeList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20480,17 +23212,20 @@ array_expr:
     '[' expr_list ']' {
         auto tmp1 = $2;
         res = new IR(kArrayExpr, OP3("[", "]", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '[' array_expr_list ']' {
         auto tmp1 = $2;
         res = new IR(kArrayExpr, OP3("[", "]", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '[' ']' {
         res = new IR(kArrayExpr, OP3("[ ]", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20502,6 +23237,7 @@ array_expr_list:
     array_expr {
         auto tmp1 = $1;
         res = new IR(kArrayExprList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20509,6 +23245,7 @@ array_expr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kArrayExprList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20522,6 +23259,7 @@ extract_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kExtractList, OP3("", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20535,41 +23273,48 @@ extract_arg:
 
     IDENT {
         /* Yu: The IDENT is used for extensions.
-        ** However, it is rare for us to encounter these cases, and IDENT can produce a lot of semantic error. 
-        ** Ignore IDENT and change it to DAY as default. 
+        ** However, it is rare for us to encounter these cases, and IDENT can produce a lot of semantic error.
+        ** Ignore IDENT and change it to DAY as default.
         */
         free($1);
         res = new IR(kExtractArg, OP3("DAY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | YEAR_P {
         res = new IR(kExtractArg, OP3("YEAR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MONTH_P {
         res = new IR(kExtractArg, OP3("MONTH", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | DAY_P {
         res = new IR(kExtractArg, OP3("DAY", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | HOUR_P {
         res = new IR(kExtractArg, OP3("HOUR", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | MINUTE_P {
         res = new IR(kExtractArg, OP3("MINUTE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | SECOND_P {
         res = new IR(kExtractArg, OP3("SECOND", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20577,6 +23322,7 @@ extract_arg:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kExtractArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20587,21 +23333,25 @@ unicode_normal_form:
 
     NFC {
         res = new IR(kUnicodeNormalForm, OP3("NFC", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NFD {
         res = new IR(kUnicodeNormalForm, OP3("NFD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NFKC {
         res = new IR(kUnicodeNormalForm, OP3("NFKC", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NFKD {
         res = new IR(kUnicodeNormalForm, OP3("NFKD", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20615,10 +23365,13 @@ overlay_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOverlayList_1, OP3("", "PLACING", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kOverlayList_2, OP3("", "", "FOR"), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $7;
         res = new IR(kOverlayList, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20626,8 +23379,10 @@ overlay_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kOverlayList_3, OP3("", "PLACING", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kOverlayList, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20641,6 +23396,7 @@ position_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kPositionList, OP3("", "IN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20670,8 +23426,10 @@ substr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSubstrList_1, OP3("", "FROM", "FOR"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kSubstrList, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20679,8 +23437,10 @@ substr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSubstrList_2, OP3("", "FOR", "FROM"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kSubstrList, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20688,6 +23448,7 @@ substr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSubstrList, OP3("", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20695,6 +23456,7 @@ substr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSubstrList, OP3("", "FOR", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20702,8 +23464,10 @@ substr_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kSubstrList_3, OP3("", "SIMILAR", "ESCAPE"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $5;
         res = new IR(kSubstrList, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20716,18 +23480,21 @@ trim_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTrimList, OP3("", "FROM", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FROM expr_list {
         auto tmp1 = $2;
         res = new IR(kTrimList, OP3("FROM", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | expr_list {
         auto tmp1 = $1;
         res = new IR(kTrimList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20739,12 +23506,14 @@ in_expr:
     select_with_parens {
         auto tmp1 = $1;
         res = new IR(kInExpr, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '(' expr_list ')' {
         auto tmp1 = $2;
         res = new IR(kInExpr, OP3("(", ")", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20764,8 +23533,10 @@ case_expr:
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kCaseExpr_1, OP3("CASE", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $4;
         res = new IR(kCaseExpr, OP3("", "", "END"), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20777,6 +23548,7 @@ when_clause_list:
     when_clause {
         auto tmp1 = $1;
         res = new IR(kWhenClauseList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20784,6 +23556,7 @@ when_clause_list:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kWhenClauseList, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20796,6 +23569,7 @@ when_clause:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kWhenClause, OP3("WHEN", "THEN", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20807,11 +23581,13 @@ case_default:
     ELSE a_expr {
         auto tmp1 = $2;
         res = new IR(kCaseDefault, OP3("ELSE", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kCaseDefault, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20823,11 +23599,13 @@ case_arg:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kCaseArg, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kCaseArg, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20840,6 +23618,7 @@ columnref:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kColumnref, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1 -> set_iden_type(kDataColumnName, kUse);
@@ -20850,6 +23629,7 @@ columnref:
         free($1);
         auto tmp2 = $2;
         res = new IR(kColumnref, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp1 -> set_iden_type(kDataColumnName, kUse);
@@ -20864,17 +23644,20 @@ indirection_el:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kIndirectionEl, OP3(".", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '.' '*' {
         res = new IR(kIndirectionEl, OP3(". *", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '[' a_expr ']' {
         auto tmp1 = $2;
         res = new IR(kIndirectionEl, OP3("[", "]", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20882,6 +23665,7 @@ indirection_el:
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kIndirectionEl, OP3("[", ":", "]"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20893,11 +23677,13 @@ opt_slice_bound:
     a_expr {
         auto tmp1 = $1;
         res = new IR(kOptSliceBound, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptSliceBound, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20909,6 +23695,7 @@ indirection:
     indirection_el {
         auto tmp1 = $1;
         res = new IR(kIndirection, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20916,6 +23703,7 @@ indirection:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kIndirection, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20926,6 +23714,7 @@ opt_indirection:
 
     /*EMPTY*/ {
         res = new IR(kOptIndirection, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20933,6 +23722,7 @@ opt_indirection:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kOptIndirection, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20943,11 +23733,13 @@ opt_asymmetric:
 
     ASYMMETRIC {
         res = new IR(kOptAsymmetric, OP3("ASYMMETRIC", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /*EMPTY*/ {
         res = new IR(kOptAsymmetric, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20966,11 +23758,13 @@ opt_target_list:
     target_list {
         auto tmp1 = $1;
         res = new IR(kOptTargetList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | /* EMPTY */ {
         res = new IR(kOptTargetList, OP3("", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20982,6 +23776,7 @@ target_list:
     target_el {
         auto tmp1 = $1;
         res = new IR(kTargetList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -20989,6 +23784,7 @@ target_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kTargetList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21002,6 +23798,7 @@ target_el:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kTargetEl, OP3("", "AS", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
 
         tmp2->set_iden_type(kDataAliasName, kDefine);
@@ -21012,17 +23809,20 @@ target_el:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kTargetEl, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | a_expr {
         auto tmp1 = $1;
         res = new IR(kTargetEl, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '*' {
         res = new IR(kTargetEl, OP3("*", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21041,6 +23841,7 @@ qualified_name_list:
     qualified_name {
         auto tmp1 = $1;
         res = new IR(kQualifiedNameList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21048,6 +23849,7 @@ qualified_name_list:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kQualifiedNameList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21067,6 +23869,7 @@ qualified_name:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kQualifiedName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21075,6 +23878,7 @@ qualified_name:
         free($1);
         auto tmp2 = $2;
         res = new IR(kQualifiedName, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21087,6 +23891,7 @@ name_list:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kNameList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21095,6 +23900,7 @@ name_list:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kNameList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21103,17 +23909,17 @@ name_list:
 
 
 name:
-    ColId 
+    ColId
 ;
 
 
 attr_name:
-    ColLabel 
+    ColLabel
 ;
 
 
 file_name:
-    Sconst 
+    Sconst
 ;
 
 /*
@@ -21131,12 +23937,14 @@ func_name:
         if ($1) {
             auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, 0, kFlagUnknown);
             res = new IR(kFuncName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
             $$ = res;
             free($1);
         } else {
             /* Yu: Unexpected. Use dummy SUM */
             auto tmp1 = new IR(kIdentifier, string("SUM"), kDataFunctionName, 0, kFlagUnknown);
             res = new IR(kFuncName, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
             $$ = res;
         }
     }
@@ -21146,6 +23954,7 @@ func_name:
         free($1);
         auto tmp2 = $2;
         res = new IR(kFuncName, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21161,12 +23970,14 @@ AexprConst:
     Iconst {
         auto tmp1 = $1;
         res = new IR(kAexprConst, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FCONST {
         auto tmp1 = new IR(kFloatLiteral, string($1));
         res = new IR(kAexprConst, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         free($1);
         $$ = res;
     }
@@ -21175,12 +23986,14 @@ AexprConst:
         auto tmp1 = new IR(kStringLiteral, string($1));
         free($1);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | BCONST {
         auto tmp1 = new IR(kBoolLiteral, string($1));
         res = new IR(kAexprConst, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21188,6 +24001,7 @@ AexprConst:
         /* Yu: This is actually deximal numberical string. */
         auto tmp1 = new IR(kIntLiteral, atoi($1));
         res = new IR(kAexprConst, OP0(), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21196,6 +24010,7 @@ AexprConst:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21204,12 +24019,15 @@ AexprConst:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAexprConst_1, OP3("", "(", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         // auto tmp3 = $4;
         // res = new IR(kAexprConst_2, OP3("", "", ")"), res, tmp3);
+        all_gen_ir.push_back(res);
         $4 -> deep_drop();
         auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21218,6 +24036,7 @@ AexprConst:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21226,8 +24045,10 @@ AexprConst:
         auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         free($2);
         res = new IR(kAexprConst_3, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21235,24 +24056,29 @@ AexprConst:
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kAexprConst_4, OP3("", "(", ")"), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         free($5);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | TRUE_P {
         res = new IR(kAexprConst, OP3("TRUE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | FALSE_P {
         res = new IR(kAexprConst, OP3("FALSE", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NULL_P {
         res = new IR(kAexprConst, OP3("NULL", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21263,13 +24089,14 @@ Iconst:
 
     ICONST {
         res = new IR(kIntLiteral, $1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
 ;
 
 Sconst:
-    SCONST 
+    SCONST
 ;
 
 
@@ -21278,18 +24105,21 @@ SignedIconst:
     Iconst {
         auto tmp1 = $1;
         res = new IR(kSignedIconst, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '+' Iconst {
         auto tmp1 = $2;
         res = new IR(kSignedIconst, OP3("+", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '-' Iconst {
         auto tmp1 = $2;
         res = new IR(kSignedIconst, OP3("-", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21335,6 +24165,7 @@ role_list:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kRoleList, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21343,6 +24174,7 @@ role_list:
         auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
         free($3);
         res = new IR(kRoleList, OP3("", ",", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21365,22 +24197,31 @@ PLpgSQL_Expr:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kPLpgSQLExpr_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kPLpgSQLExpr_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kPLpgSQLExpr_3, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         auto tmp5 = $5;
         res = new IR(kPLpgSQLExpr_4, OP3("", "", ""), res, tmp5);
+        all_gen_ir.push_back(res);
         auto tmp6 = $6;
         res = new IR(kPLpgSQLExpr_5, OP3("", "", ""), res, tmp6);
+        all_gen_ir.push_back(res);
         auto tmp7 = $7;
         res = new IR(kPLpgSQLExpr_6, OP3("", "", ""), res, tmp7);
+        all_gen_ir.push_back(res);
         auto tmp8 = $8;
         res = new IR(kPLpgSQLExpr_7, OP3("", "", ""), res, tmp8);
+        all_gen_ir.push_back(res);
         auto tmp9 = $9;
         res = new IR(kPLpgSQLExpr_8, OP3("", "", ""), res, tmp9);
+        all_gen_ir.push_back(res);
         auto tmp10 = $10;
         res = new IR(kPLpgSQLExpr, OP3("", "", ""), res, tmp10);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21397,10 +24238,13 @@ PLAssignStmt:
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kPLAssignStmt_1, OP3("", "", ""), tmp1, tmp2);
+        all_gen_ir.push_back(res);
         auto tmp3 = $3;
         res = new IR(kPLAssignStmt_2, OP3("", "", ""), res, tmp3);
+        all_gen_ir.push_back(res);
         auto tmp4 = $4;
         res = new IR(kPLAssignStmt, OP3("", "", ""), res, tmp4);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21413,11 +24257,13 @@ plassign_target:
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         free($1);
         res = new IR(kPlassignTarget, OP3("", "", ""), tmp1);
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | PARAM {
         res = new IR(kPlassignTarget, OP3("PARAM", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21428,11 +24274,13 @@ plassign_equals:
 
     COLON_EQUALS {
         res = new IR(kPlassignEquals, OP3(":=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | '=' {
         res = new IR(kPlassignEquals, OP3("=", "", ""));
+        all_gen_ir.push_back(res);
         $$ = res;
     }
 
@@ -21455,7 +24303,7 @@ plassign_equals:
 
 ColId:
 
-    IDENT 
+    IDENT
     | unreserved_keyword { $$ = strdup($1); }
     | col_name_keyword  {$$ = strdup($1);}
 ;
@@ -21465,9 +24313,9 @@ ColId:
 
 type_function_name:
 
-    IDENT 
+    IDENT
     | unreserved_keyword { $$ = strdup($1); }
-    | type_func_name_keyword {$$ = strdup($1);} 
+    | type_func_name_keyword {$$ = strdup($1);}
 ;
 
 /* Any not-fully-reserved word --- these names can be, eg, role names.
@@ -21475,7 +24323,7 @@ type_function_name:
 
 NonReservedWord:
 
-    IDENT 
+    IDENT
     | unreserved_keyword { $$ = strdup($1); }
     | col_name_keyword { $$ = strdup($1); }
     | type_func_name_keyword { $$ = strdup($1); }
@@ -21487,9 +24335,9 @@ NonReservedWord:
 
 ColLabel:
 
-    IDENT 
+    IDENT
     | unreserved_keyword { $$ = strdup($1); }
-    | col_name_keyword {$$ = strdup($1);} 
+    | col_name_keyword {$$ = strdup($1);}
     | type_func_name_keyword  {$$ = strdup($1);}
     | reserved_keyword  {$$ = strdup($1);}
 ;
@@ -21500,7 +24348,7 @@ ColLabel:
 
 BareColLabel:
 
-    IDENT 
+    IDENT
     | bare_label_keyword  {$$ = strdup($1);}
 ;
 
@@ -21523,312 +24371,312 @@ BareColLabel:
 
 unreserved_keyword:
 
-    ABORT_P 
-    | ABSOLUTE_P 
-    | ACCESS 
-    | ACTION 
-    | ADD_P 
-    | ADMIN 
-    | AFTER 
-    | AGGREGATE 
-    | ALSO 
-    | ALTER 
-    | ALWAYS 
-    | ASENSITIVE 
-    | ASSERTION 
-    | ASSIGNMENT 
-    | AT 
-    | ATOMIC 
-    | ATTACH 
-    | ATTRIBUTE 
-    | BACKWARD 
-    | BEFORE 
-    | BEGIN_P 
-    | BREADTH 
-    | BY 
-    | CACHE 
+    ABORT_P
+    | ABSOLUTE_P
+    | ACCESS
+    | ACTION
+    | ADD_P
+    | ADMIN
+    | AFTER
+    | AGGREGATE
+    | ALSO
+    | ALTER
+    | ALWAYS
+    | ASENSITIVE
+    | ASSERTION
+    | ASSIGNMENT
+    | AT
+    | ATOMIC
+    | ATTACH
+    | ATTRIBUTE
+    | BACKWARD
+    | BEFORE
+    | BEGIN_P
+    | BREADTH
+    | BY
+    | CACHE
     | CALL
-    | CALLED 
-    | CASCADE 
-    | CASCADED 
-    | CATALOG_P 
-    | CHAIN 
-    | CHARACTERISTICS 
-    | CHECKPOINT 
-    | CLASS 
-    | CLOSE 
-    | CLUSTER 
-    | COLUMNS 
-    | COMMENT 
-    | COMMENTS 
-    | COMMIT 
-    | COMMITTED 
-    | COMPRESSION 
-    | CONFIGURATION 
-    | CONFLICT 
-    | CONNECTION 
-    | CONSTRAINTS 
-    | CONTENT_P 
-    | CONTINUE_P 
-    | CONVERSION_P 
-    | COPY 
-    | COST 
-    | CSV 
-    | CUBE 
-    | CURRENT_P 
-    | CURSOR 
-    | CYCLE 
-    | DATA_P 
-    | DATABASE 
-    | DAY_P 
-    | DEALLOCATE 
-    | DECLARE 
-    | DEFAULTS 
-    | DEFERRED 
-    | DEFINER 
-    | DELETE_P 
-    | DELIMITER 
-    | DELIMITERS 
-    | DEPENDS 
-    | DEPTH 
-    | DETACH 
-    | DICTIONARY 
-    | DISABLE_P 
-    | DISCARD 
-    | DOCUMENT_P 
-    | DOMAIN_P 
-    | DOUBLE_P 
-    | DROP 
-    | EACH 
-    | ENABLE_P 
-    | ENCODING 
-    | ENCRYPTED 
-    | ENUM_P 
-    | ESCAPE 
-    | EVENT 
-    | EXCLUDE 
-    | EXCLUDING 
-    | EXCLUSIVE 
-    | EXECUTE 
-    | EXPLAIN 
-    | EXPRESSION 
-    | EXTENSION 
-    | EXTERNAL 
-    | FAMILY 
-    | FILTER 
-    | FINALIZE 
-    | FIRST_P 
-    | FOLLOWING 
-    | FORCE 
-    | FORWARD 
-    | FUNCTION 
-    | FUNCTIONS 
-    | GENERATED 
-    | GLOBAL 
-    | GRANTED 
-    | GROUPS 
-    | HANDLER 
-    | HEADER_P 
-    | HOLD 
-    | HOUR_P 
-    | IDENTITY_P 
-    | IF_P 
-    | IMMEDIATE 
-    | IMMUTABLE 
-    | IMPLICIT_P 
-    | IMPORT_P 
-    | INCLUDE 
-    | INCLUDING 
-    | INCREMENT 
-    | INDEX 
-    | INDEXES 
-    | INHERIT 
-    | INHERITS 
-    | INLINE_P 
-    | INPUT_P 
-    | INSENSITIVE 
-    | INSERT 
-    | INSTEAD 
-    | INVOKER 
-    | ISOLATION 
-    | KEY 
-    | LABEL 
-    | LANGUAGE 
-    | LARGE_P 
-    | LAST_P 
-    | LEAKPROOF 
-    | LEVEL 
-    | LISTEN 
-    | LOAD 
-    | LOCAL 
-    | LOCATION 
-    | LOCK_P 
-    | LOCKED 
-    | LOGGED 
-    | MAPPING 
-    | MATCH 
-    | MATERIALIZED 
-    | MAXVALUE 
-    | METHOD 
-    | MINUTE_P 
-    | MINVALUE 
-    | MODE 
-    | MONTH_P 
-    | MOVE 
-    | NAME_P 
-    | NAMES 
-    | NEW 
-    | NEXT 
-    | NFC 
-    | NFD 
-    | NFKC 
-    | NFKD 
-    | NO 
-    | NORMALIZED 
-    | NOTHING 
-    | NOTIFY 
-    | NOWAIT 
-    | NULLS_P 
-    | OBJECT_P 
-    | OF 
-    | OFF 
-    | OIDS 
-    | OLD 
-    | OPERATOR 
-    | OPTION 
-    | OPTIONS 
-    | ORDINALITY 
-    | OTHERS 
-    | OVER 
-    | OVERRIDING 
-    | OWNED 
-    | OWNER 
-    | PARALLEL 
-    | PARSER 
-    | PARTIAL 
-    | PARTITION 
-    | PASSING 
-    | PASSWORD 
-    | PLANS 
-    | POLICY 
-    | PRECEDING 
-    | PREPARE 
-    | PREPARED 
-    | PRESERVE 
-    | PRIOR 
-    | PRIVILEGES 
-    | PROCEDURAL 
-    | PROCEDURE 
-    | PROCEDURES 
-    | PROGRAM 
-    | PUBLICATION 
-    | QUOTE 
-    | RANGE 
-    | READ 
-    | REASSIGN 
-    | RECHECK 
-    | RECURSIVE 
-    | REF 
-    | REFERENCING 
-    | REFRESH 
-    | REINDEX 
-    | RELATIVE_P 
-    | RELEASE 
-    | RENAME 
-    | REPEATABLE 
-    | REPLACE 
-    | REPLICA 
-    | RESET 
-    | RESTART 
-    | RESTRICT 
-    | RETURN 
-    | RETURNS 
-    | REVOKE 
-    | ROLE 
-    | ROLLBACK 
-    | ROLLUP 
-    | ROUTINE 
-    | ROUTINES 
-    | ROWS 
-    | RULE 
-    | SAVEPOINT 
-    | SCHEMA 
-    | SCHEMAS 
-    | SCROLL 
-    | SEARCH 
-    | SECOND_P 
-    | SECURITY 
-    | SEQUENCE 
-    | SEQUENCES 
-    | SERIALIZABLE 
-    | SERVER 
-    | SESSION 
-    | SET 
-    | SETS 
-    | SHARE 
-    | SHOW 
-    | SIMPLE 
-    | SKIP 
-    | SNAPSHOT 
-    | SQL_P 
-    | STABLE 
-    | STANDALONE_P 
-    | START 
-    | STATEMENT 
-    | STATISTICS 
-    | STDIN 
-    | STDOUT 
-    | STORAGE 
-    | STORED 
-    | STRICT_P 
-    | STRIP_P 
-    | SUBSCRIPTION 
-    | SUPPORT 
-    | SYSID 
-    | SYSTEM_P 
-    | TABLES 
-    | TABLESPACE 
-    | TEMP 
-    | TEMPLATE 
-    | TEMPORARY 
-    | TEXT_P 
-    | TIES 
-    | TRANSACTION 
-    | TRANSFORM 
-    | TRIGGER 
-    | TRUNCATE 
-    | TRUSTED 
-    | TYPE_P 
-    | TYPES_P 
-    | UESCAPE 
-    | UNBOUNDED 
-    | UNCOMMITTED 
-    | UNENCRYPTED 
-    | UNKNOWN 
-    | UNLISTEN 
-    | UNLOGGED 
-    | UNTIL 
-    | UPDATE 
-    | VACUUM 
-    | VALID 
-    | VALIDATE 
-    | VALIDATOR 
-    | VALUE_P 
-    | VARYING 
-    | VERSION_P 
-    | VIEW 
-    | VIEWS 
-    | VOLATILE 
-    | WHITESPACE_P 
-    | WITHIN 
-    | WITHOUT 
-    | WORK 
-    | WRAPPER 
-    | WRITE 
-    | XML_P 
-    | YEAR_P 
-    | YES_P 
-    | ZONE 
+    | CALLED
+    | CASCADE
+    | CASCADED
+    | CATALOG_P
+    | CHAIN
+    | CHARACTERISTICS
+    | CHECKPOINT
+    | CLASS
+    | CLOSE
+    | CLUSTER
+    | COLUMNS
+    | COMMENT
+    | COMMENTS
+    | COMMIT
+    | COMMITTED
+    | COMPRESSION
+    | CONFIGURATION
+    | CONFLICT
+    | CONNECTION
+    | CONSTRAINTS
+    | CONTENT_P
+    | CONTINUE_P
+    | CONVERSION_P
+    | COPY
+    | COST
+    | CSV
+    | CUBE
+    | CURRENT_P
+    | CURSOR
+    | CYCLE
+    | DATA_P
+    | DATABASE
+    | DAY_P
+    | DEALLOCATE
+    | DECLARE
+    | DEFAULTS
+    | DEFERRED
+    | DEFINER
+    | DELETE_P
+    | DELIMITER
+    | DELIMITERS
+    | DEPENDS
+    | DEPTH
+    | DETACH
+    | DICTIONARY
+    | DISABLE_P
+    | DISCARD
+    | DOCUMENT_P
+    | DOMAIN_P
+    | DOUBLE_P
+    | DROP
+    | EACH
+    | ENABLE_P
+    | ENCODING
+    | ENCRYPTED
+    | ENUM_P
+    | ESCAPE
+    | EVENT
+    | EXCLUDE
+    | EXCLUDING
+    | EXCLUSIVE
+    | EXECUTE
+    | EXPLAIN
+    | EXPRESSION
+    | EXTENSION
+    | EXTERNAL
+    | FAMILY
+    | FILTER
+    | FINALIZE
+    | FIRST_P
+    | FOLLOWING
+    | FORCE
+    | FORWARD
+    | FUNCTION
+    | FUNCTIONS
+    | GENERATED
+    | GLOBAL
+    | GRANTED
+    | GROUPS
+    | HANDLER
+    | HEADER_P
+    | HOLD
+    | HOUR_P
+    | IDENTITY_P
+    | IF_P
+    | IMMEDIATE
+    | IMMUTABLE
+    | IMPLICIT_P
+    | IMPORT_P
+    | INCLUDE
+    | INCLUDING
+    | INCREMENT
+    | INDEX
+    | INDEXES
+    | INHERIT
+    | INHERITS
+    | INLINE_P
+    | INPUT_P
+    | INSENSITIVE
+    | INSERT
+    | INSTEAD
+    | INVOKER
+    | ISOLATION
+    | KEY
+    | LABEL
+    | LANGUAGE
+    | LARGE_P
+    | LAST_P
+    | LEAKPROOF
+    | LEVEL
+    | LISTEN
+    | LOAD
+    | LOCAL
+    | LOCATION
+    | LOCK_P
+    | LOCKED
+    | LOGGED
+    | MAPPING
+    | MATCH
+    | MATERIALIZED
+    | MAXVALUE
+    | METHOD
+    | MINUTE_P
+    | MINVALUE
+    | MODE
+    | MONTH_P
+    | MOVE
+    | NAME_P
+    | NAMES
+    | NEW
+    | NEXT
+    | NFC
+    | NFD
+    | NFKC
+    | NFKD
+    | NO
+    | NORMALIZED
+    | NOTHING
+    | NOTIFY
+    | NOWAIT
+    | NULLS_P
+    | OBJECT_P
+    | OF
+    | OFF
+    | OIDS
+    | OLD
+    | OPERATOR
+    | OPTION
+    | OPTIONS
+    | ORDINALITY
+    | OTHERS
+    | OVER
+    | OVERRIDING
+    | OWNED
+    | OWNER
+    | PARALLEL
+    | PARSER
+    | PARTIAL
+    | PARTITION
+    | PASSING
+    | PASSWORD
+    | PLANS
+    | POLICY
+    | PRECEDING
+    | PREPARE
+    | PREPARED
+    | PRESERVE
+    | PRIOR
+    | PRIVILEGES
+    | PROCEDURAL
+    | PROCEDURE
+    | PROCEDURES
+    | PROGRAM
+    | PUBLICATION
+    | QUOTE
+    | RANGE
+    | READ
+    | REASSIGN
+    | RECHECK
+    | RECURSIVE
+    | REF
+    | REFERENCING
+    | REFRESH
+    | REINDEX
+    | RELATIVE_P
+    | RELEASE
+    | RENAME
+    | REPEATABLE
+    | REPLACE
+    | REPLICA
+    | RESET
+    | RESTART
+    | RESTRICT
+    | RETURN
+    | RETURNS
+    | REVOKE
+    | ROLE
+    | ROLLBACK
+    | ROLLUP
+    | ROUTINE
+    | ROUTINES
+    | ROWS
+    | RULE
+    | SAVEPOINT
+    | SCHEMA
+    | SCHEMAS
+    | SCROLL
+    | SEARCH
+    | SECOND_P
+    | SECURITY
+    | SEQUENCE
+    | SEQUENCES
+    | SERIALIZABLE
+    | SERVER
+    | SESSION
+    | SET
+    | SETS
+    | SHARE
+    | SHOW
+    | SIMPLE
+    | SKIP
+    | SNAPSHOT
+    | SQL_P
+    | STABLE
+    | STANDALONE_P
+    | START
+    | STATEMENT
+    | STATISTICS
+    | STDIN
+    | STDOUT
+    | STORAGE
+    | STORED
+    | STRICT_P
+    | STRIP_P
+    | SUBSCRIPTION
+    | SUPPORT
+    | SYSID
+    | SYSTEM_P
+    | TABLES
+    | TABLESPACE
+    | TEMP
+    | TEMPLATE
+    | TEMPORARY
+    | TEXT_P
+    | TIES
+    | TRANSACTION
+    | TRANSFORM
+    | TRIGGER
+    | TRUNCATE
+    | TRUSTED
+    | TYPE_P
+    | TYPES_P
+    | UESCAPE
+    | UNBOUNDED
+    | UNCOMMITTED
+    | UNENCRYPTED
+    | UNKNOWN
+    | UNLISTEN
+    | UNLOGGED
+    | UNTIL
+    | UPDATE
+    | VACUUM
+    | VALID
+    | VALIDATE
+    | VALIDATOR
+    | VALUE_P
+    | VARYING
+    | VERSION_P
+    | VIEW
+    | VIEWS
+    | VOLATILE
+    | WHITESPACE_P
+    | WITHIN
+    | WITHOUT
+    | WORK
+    | WRAPPER
+    | WRITE
+    | XML_P
+    | YEAR_P
+    | YES_P
+    | ZONE
 ;
 
 /* Column identifier --- keywords that can be column, table, etc names.
@@ -21844,57 +24692,57 @@ unreserved_keyword:
 
 col_name_keyword:
 
-    BETWEEN 
-    | BIGINT 
-    | BIT 
-    | BOOLEAN_P 
-    | CHAR_P 
-    | CHARACTER 
-    | COALESCE 
-    | DEC 
-    | DECIMAL_P 
-    | EXISTS 
-    | EXTRACT 
-    | FLOAT_P 
-    | GREATEST 
-    | GROUPING 
-    | INOUT 
-    | INT_P 
-    | INTEGER 
-    | INTERVAL 
-    | LEAST 
-    | NATIONAL 
-    | NCHAR 
-    | NONE 
-    | NORMALIZE 
-    | NULLIF 
-    | NUMERIC 
-    | OUT_P 
-    | OVERLAY 
-    | POSITION 
-    | PRECISION 
-    | REAL 
-    | ROW 
-    | SETOF 
-    | SMALLINT 
-    | SUBSTRING 
-    | TIME 
-    | TIMESTAMP 
-    | TREAT 
-    | TRIM 
-    | VALUES 
-    | VARCHAR 
-    | XMLATTRIBUTES 
-    | XMLCONCAT 
-    | XMLELEMENT 
-    | XMLEXISTS 
-    | XMLFOREST 
-    | XMLNAMESPACES 
-    | XMLPARSE 
-    | XMLPI 
-    | XMLROOT 
-    | XMLSERIALIZE 
-    | XMLTABLE 
+    BETWEEN
+    | BIGINT
+    | BIT
+    | BOOLEAN_P
+    | CHAR_P
+    | CHARACTER
+    | COALESCE
+    | DEC
+    | DECIMAL_P
+    | EXISTS
+    | EXTRACT
+    | FLOAT_P
+    | GREATEST
+    | GROUPING
+    | INOUT
+    | INT_P
+    | INTEGER
+    | INTERVAL
+    | LEAST
+    | NATIONAL
+    | NCHAR
+    | NONE
+    | NORMALIZE
+    | NULLIF
+    | NUMERIC
+    | OUT_P
+    | OVERLAY
+    | POSITION
+    | PRECISION
+    | REAL
+    | ROW
+    | SETOF
+    | SMALLINT
+    | SUBSTRING
+    | TIME
+    | TIMESTAMP
+    | TREAT
+    | TRIM
+    | VALUES
+    | VARCHAR
+    | XMLATTRIBUTES
+    | XMLCONCAT
+    | XMLELEMENT
+    | XMLEXISTS
+    | XMLFOREST
+    | XMLNAMESPACES
+    | XMLPARSE
+    | XMLPI
+    | XMLROOT
+    | XMLSERIALIZE
+    | XMLTABLE
 ;
 
 /* Type/function identifier --- keywords that can be type or function names.
@@ -21910,29 +24758,29 @@ col_name_keyword:
 
 type_func_name_keyword:
 
-    AUTHORIZATION 
-    | BINARY 
-    | COLLATION 
-    | CONCURRENTLY 
-    | CROSS 
-    | CURRENT_SCHEMA 
-    | FREEZE 
-    | FULL 
-    | ILIKE 
-    | INNER_P 
-    | IS 
-    | ISNULL 
-    | JOIN 
-    | LEFT 
-    | LIKE 
-    | NATURAL 
-    | NOTNULL 
-    | OUTER_P 
-    | OVERLAPS 
-    | RIGHT 
-    | SIMILAR 
-    | TABLESAMPLE 
-    | VERBOSE 
+    AUTHORIZATION
+    | BINARY
+    | COLLATION
+    | CONCURRENTLY
+    | CROSS
+    | CURRENT_SCHEMA
+    | FREEZE
+    | FULL
+    | ILIKE
+    | INNER_P
+    | IS
+    | ISNULL
+    | JOIN
+    | LEFT
+    | LIKE
+    | NATURAL
+    | NOTNULL
+    | OUTER_P
+    | OVERLAPS
+    | RIGHT
+    | SIMILAR
+    | TABLESAMPLE
+    | VERBOSE
 ;
 
 /* Reserved keyword --- these keywords are usable only as a ColLabel.
@@ -21944,83 +24792,83 @@ type_func_name_keyword:
 
 reserved_keyword:
 
-    ALL 
-    | ANALYSE 
-    | ANALYZE 
-    | AND 
-    | ANY 
-    | ARRAY 
-    | AS 
-    | ASC 
-    | ASYMMETRIC 
-    | BOTH 
-    | CASE 
-    | CAST 
-    | CHECK 
-    | COLLATE 
-    | COLUMN 
-    | CONSTRAINT 
-    | CREATE 
-    | CURRENT_CATALOG 
-    | CURRENT_DATE 
-    | CURRENT_ROLE 
-    | CURRENT_TIME 
-    | CURRENT_TIMESTAMP 
-    | CURRENT_USER 
-    | DEFAULT 
-    | DEFERRABLE 
-    | DESC 
-    | DISTINCT 
-    | DO 
-    | ELSE 
-    | END_P 
-    | EXCEPT 
-    | FALSE_P 
-    | FETCH 
-    | FOR 
-    | FOREIGN 
-    | FROM 
-    | GRANT 
-    | GROUP_P 
-    | HAVING 
-    | IN_P 
-    | INITIALLY 
-    | INTERSECT 
-    | INTO 
-    | LATERAL_P 
-    | LEADING 
-    | LIMIT 
-    | LOCALTIME 
-    | LOCALTIMESTAMP 
-    | NOT 
-    | NULL_P 
-    | OFFSET 
-    | ON 
-    | ONLY 
-    | OR 
-    | ORDER 
-    | PLACING 
-    | PRIMARY 
-    | REFERENCES 
-    | RETURNING 
-    | SELECT 
-    | SESSION_USER 
-    | SOME 
-    | SYMMETRIC 
-    | TABLE 
-    | THEN 
-    | TO 
-    | TRAILING 
-    | TRUE_P 
-    | UNION 
-    | UNIQUE 
-    | USER 
-    | USING 
-    | VARIADIC 
-    | WHEN 
-    | WHERE 
-    | WINDOW 
-    | WITH 
+    ALL
+    | ANALYSE
+    | ANALYZE
+    | AND
+    | ANY
+    | ARRAY
+    | AS
+    | ASC
+    | ASYMMETRIC
+    | BOTH
+    | CASE
+    | CAST
+    | CHECK
+    | COLLATE
+    | COLUMN
+    | CONSTRAINT
+    | CREATE
+    | CURRENT_CATALOG
+    | CURRENT_DATE
+    | CURRENT_ROLE
+    | CURRENT_TIME
+    | CURRENT_TIMESTAMP
+    | CURRENT_USER
+    | DEFAULT
+    | DEFERRABLE
+    | DESC
+    | DISTINCT
+    | DO
+    | ELSE
+    | END_P
+    | EXCEPT
+    | FALSE_P
+    | FETCH
+    | FOR
+    | FOREIGN
+    | FROM
+    | GRANT
+    | GROUP_P
+    | HAVING
+    | IN_P
+    | INITIALLY
+    | INTERSECT
+    | INTO
+    | LATERAL_P
+    | LEADING
+    | LIMIT
+    | LOCALTIME
+    | LOCALTIMESTAMP
+    | NOT
+    | NULL_P
+    | OFFSET
+    | ON
+    | ONLY
+    | OR
+    | ORDER
+    | PLACING
+    | PRIMARY
+    | REFERENCES
+    | RETURNING
+    | SELECT
+    | SESSION_USER
+    | SOME
+    | SYMMETRIC
+    | TABLE
+    | THEN
+    | TO
+    | TRAILING
+    | TRUE_P
+    | UNION
+    | UNIQUE
+    | USER
+    | USING
+    | VARIADIC
+    | WHEN
+    | WHERE
+    | WINDOW
+    | WITH
 ;
 
 /*
@@ -22035,424 +24883,424 @@ reserved_keyword:
 
 bare_label_keyword:
 
-    ABORT_P 
-    | ABSOLUTE_P 
-    | ACCESS 
-    | ACTION 
-    | ADD_P 
-    | ADMIN 
-    | AFTER 
-    | AGGREGATE 
-    | ALL 
-    | ALSO 
-    | ALTER 
-    | ALWAYS 
-    | ANALYSE 
-    | ANALYZE 
-    | AND 
-    | ANY 
-    | ASC 
-    | ASENSITIVE 
-    | ASSERTION 
-    | ASSIGNMENT 
-    | ASYMMETRIC 
-    | AT 
-    | ATOMIC 
-    | ATTACH 
-    | ATTRIBUTE 
-    | AUTHORIZATION 
-    | BACKWARD 
-    | BEFORE 
-    | BEGIN_P 
-    | BETWEEN 
-    | BIGINT 
-    | BINARY 
-    | BIT 
-    | BOOLEAN_P 
-    | BOTH 
-    | BREADTH 
-    | BY 
-    | CACHE 
-    | CALL 
-    | CALLED 
-    | CASCADE 
-    | CASCADED 
-    | CASE 
-    | CAST 
-    | CATALOG_P 
-    | CHAIN 
-    | CHARACTERISTICS 
-    | CHECK 
-    | CHECKPOINT 
-    | CLASS 
-    | CLOSE 
-    | CLUSTER 
-    | COALESCE 
-    | COLLATE 
-    | COLLATION 
-    | COLUMN 
-    | COLUMNS 
-    | COMMENT 
-    | COMMENTS 
-    | COMMIT 
-    | COMMITTED 
-    | COMPRESSION 
-    | CONCURRENTLY 
-    | CONFIGURATION 
-    | CONFLICT 
-    | CONNECTION 
-    | CONSTRAINT 
-    | CONSTRAINTS 
-    | CONTENT_P 
-    | CONTINUE_P 
-    | CONVERSION_P 
-    | COPY 
-    | COST 
-    | CROSS 
-    | CSV 
-    | CUBE 
-    | CURRENT_P 
-    | CURRENT_CATALOG 
-    | CURRENT_DATE 
-    | CURRENT_ROLE 
-    | CURRENT_SCHEMA 
-    | CURRENT_TIME 
-    | CURRENT_TIMESTAMP 
-    | CURRENT_USER 
-    | CURSOR 
-    | CYCLE 
-    | DATA_P 
-    | DATABASE 
-    | DEALLOCATE 
-    | DEC 
-    | DECIMAL_P 
-    | DECLARE 
-    | DEFAULT 
-    | DEFAULTS 
-    | DEFERRABLE 
-    | DEFERRED 
-    | DEFINER 
-    | DELETE_P 
-    | DELIMITER 
-    | DELIMITERS 
-    | DEPENDS 
-    | DEPTH 
-    | DESC 
-    | DETACH 
-    | DICTIONARY 
-    | DISABLE_P 
-    | DISCARD 
-    | DISTINCT 
-    | DO 
-    | DOCUMENT_P 
-    | DOMAIN_P 
-    | DOUBLE_P 
-    | DROP 
-    | EACH 
-    | ELSE 
-    | ENABLE_P 
-    | ENCODING 
-    | ENCRYPTED 
-    | END_P 
-    | ENUM_P 
-    | ESCAPE 
-    | EVENT 
-    | EXCLUDE 
-    | EXCLUDING 
-    | EXCLUSIVE 
-    | EXECUTE 
-    | EXISTS 
-    | EXPLAIN 
-    | EXPRESSION 
-    | EXTENSION 
-    | EXTERNAL 
-    | EXTRACT 
-    | FALSE_P 
-    | FAMILY 
-    | FINALIZE 
-    | FIRST_P 
-    | FLOAT_P 
-    | FOLLOWING 
-    | FORCE 
-    | FOREIGN 
-    | FORWARD 
-    | FREEZE 
-    | FULL 
-    | FUNCTION 
-    | FUNCTIONS 
-    | GENERATED 
-    | GLOBAL 
-    | GRANTED 
-    | GREATEST 
-    | GROUPING 
-    | GROUPS 
-    | HANDLER 
-    | HEADER_P 
-    | HOLD 
-    | IDENTITY_P 
-    | IF_P 
-    | ILIKE 
-    | IMMEDIATE 
-    | IMMUTABLE 
-    | IMPLICIT_P 
-    | IMPORT_P 
-    | IN_P 
-    | INCLUDE 
-    | INCLUDING 
-    | INCREMENT 
-    | INDEX 
-    | INDEXES 
-    | INHERIT 
-    | INHERITS 
-    | INITIALLY 
-    | INLINE_P 
-    | INNER_P 
-    | INOUT 
-    | INPUT_P 
-    | INSENSITIVE 
-    | INSERT 
-    | INSTEAD 
-    | INT_P 
-    | INTEGER 
-    | INTERVAL 
-    | INVOKER 
-    | IS 
-    | ISOLATION 
-    | JOIN 
-    | KEY 
-    | LABEL 
-    | LANGUAGE 
-    | LARGE_P 
-    | LAST_P 
-    | LATERAL_P 
-    | LEADING 
-    | LEAKPROOF 
-    | LEAST 
-    | LEFT 
-    | LEVEL 
-    | LIKE 
-    | LISTEN 
-    | LOAD 
-    | LOCAL 
-    | LOCALTIME 
-    | LOCALTIMESTAMP 
-    | LOCATION 
-    | LOCK_P 
-    | LOCKED 
-    | LOGGED 
-    | MAPPING 
-    | MATCH 
-    | MATERIALIZED 
-    | MAXVALUE 
-    | METHOD 
-    | MINVALUE 
-    | MODE 
-    | MOVE 
-    | NAME_P 
-    | NAMES 
-    | NATIONAL 
-    | NATURAL 
-    | NCHAR 
-    | NEW 
-    | NEXT 
-    | NFC 
-    | NFD 
-    | NFKC 
-    | NFKD 
-    | NO 
-    | NONE 
-    | NORMALIZE 
-    | NORMALIZED 
-    | NOT 
-    | NOTHING 
-    | NOTIFY 
-    | NOWAIT 
-    | NULL_P 
-    | NULLIF 
-    | NULLS_P 
-    | NUMERIC 
-    | OBJECT_P 
-    | OF 
-    | OFF 
-    | OIDS 
-    | OLD 
-    | ONLY 
-    | OPERATOR 
-    | OPTION 
-    | OPTIONS 
-    | OR 
-    | ORDINALITY 
-    | OTHERS 
-    | OUT_P 
-    | OUTER_P 
-    | OVERLAY 
-    | OVERRIDING 
-    | OWNED 
-    | OWNER 
-    | PARALLEL 
-    | PARSER 
-    | PARTIAL 
-    | PARTITION 
-    | PASSING 
-    | PASSWORD 
-    | PLACING 
-    | PLANS 
-    | POLICY 
-    | POSITION 
-    | PRECEDING 
-    | PREPARE 
-    | PREPARED 
-    | PRESERVE 
-    | PRIMARY 
-    | PRIOR 
-    | PRIVILEGES 
-    | PROCEDURAL 
-    | PROCEDURE 
-    | PROCEDURES 
-    | PROGRAM 
-    | PUBLICATION 
-    | QUOTE 
-    | RANGE 
-    | READ 
-    | REAL 
-    | REASSIGN 
-    | RECHECK 
-    | RECURSIVE 
-    | REF 
-    | REFERENCES 
-    | REFERENCING 
-    | REFRESH 
-    | REINDEX 
-    | RELATIVE_P 
-    | RELEASE 
-    | RENAME 
-    | REPEATABLE 
-    | REPLACE 
-    | REPLICA 
-    | RESET 
-    | RESTART 
-    | RESTRICT 
-    | RETURN 
-    | RETURNS 
-    | REVOKE 
-    | RIGHT 
-    | ROLE 
-    | ROLLBACK 
-    | ROLLUP 
-    | ROUTINE 
-    | ROUTINES 
-    | ROW 
-    | ROWS 
-    | RULE 
-    | SAVEPOINT 
-    | SCHEMA 
-    | SCHEMAS 
-    | SCROLL 
-    | SEARCH 
-    | SECURITY 
-    | SELECT 
-    | SEQUENCE 
-    | SEQUENCES 
-    | SERIALIZABLE 
-    | SERVER 
-    | SESSION 
-    | SESSION_USER 
-    | SET 
-    | SETOF 
-    | SETS 
-    | SHARE 
-    | SHOW 
-    | SIMILAR 
-    | SIMPLE 
-    | SKIP 
-    | SMALLINT 
-    | SNAPSHOT 
-    | SOME 
-    | SQL_P 
-    | STABLE 
-    | STANDALONE_P 
-    | START 
-    | STATEMENT 
-    | STATISTICS 
-    | STDIN 
-    | STDOUT 
-    | STORAGE 
-    | STORED 
-    | STRICT_P 
-    | STRIP_P 
-    | SUBSCRIPTION 
-    | SUBSTRING 
-    | SUPPORT 
-    | SYMMETRIC 
-    | SYSID 
-    | SYSTEM_P 
-    | TABLE 
-    | TABLES 
-    | TABLESAMPLE 
-    | TABLESPACE 
-    | TEMP 
-    | TEMPLATE 
-    | TEMPORARY 
-    | TEXT_P 
-    | THEN 
-    | TIES 
-    | TIME 
-    | TIMESTAMP 
-    | TRAILING 
-    | TRANSACTION 
-    | TRANSFORM 
-    | TREAT 
-    | TRIGGER 
-    | TRIM 
-    | TRUE_P 
-    | TRUNCATE 
-    | TRUSTED 
-    | TYPE_P 
-    | TYPES_P 
-    | UESCAPE 
-    | UNBOUNDED 
-    | UNCOMMITTED 
-    | UNENCRYPTED 
-    | UNIQUE 
-    | UNKNOWN 
-    | UNLISTEN 
-    | UNLOGGED 
-    | UNTIL 
-    | UPDATE 
-    | USER 
-    | USING 
-    | VACUUM 
-    | VALID 
-    | VALIDATE 
-    | VALIDATOR 
-    | VALUE_P 
-    | VALUES 
-    | VARCHAR 
-    | VARIADIC 
-    | VERBOSE 
-    | VERSION_P 
-    | VIEW 
-    | VIEWS 
-    | VOLATILE 
-    | WHEN 
-    | WHITESPACE_P 
-    | WORK 
-    | WRAPPER 
-    | WRITE 
-    | XML_P 
-    | XMLATTRIBUTES 
-    | XMLCONCAT 
-    | XMLELEMENT 
-    | XMLEXISTS 
-    | XMLFOREST 
-    | XMLNAMESPACES 
-    | XMLPARSE 
-    | XMLPI 
-    | XMLROOT 
-    | XMLSERIALIZE 
-    | XMLTABLE 
-    | YES_P 
-    | ZONE 
+    ABORT_P
+    | ABSOLUTE_P
+    | ACCESS
+    | ACTION
+    | ADD_P
+    | ADMIN
+    | AFTER
+    | AGGREGATE
+    | ALL
+    | ALSO
+    | ALTER
+    | ALWAYS
+    | ANALYSE
+    | ANALYZE
+    | AND
+    | ANY
+    | ASC
+    | ASENSITIVE
+    | ASSERTION
+    | ASSIGNMENT
+    | ASYMMETRIC
+    | AT
+    | ATOMIC
+    | ATTACH
+    | ATTRIBUTE
+    | AUTHORIZATION
+    | BACKWARD
+    | BEFORE
+    | BEGIN_P
+    | BETWEEN
+    | BIGINT
+    | BINARY
+    | BIT
+    | BOOLEAN_P
+    | BOTH
+    | BREADTH
+    | BY
+    | CACHE
+    | CALL
+    | CALLED
+    | CASCADE
+    | CASCADED
+    | CASE
+    | CAST
+    | CATALOG_P
+    | CHAIN
+    | CHARACTERISTICS
+    | CHECK
+    | CHECKPOINT
+    | CLASS
+    | CLOSE
+    | CLUSTER
+    | COALESCE
+    | COLLATE
+    | COLLATION
+    | COLUMN
+    | COLUMNS
+    | COMMENT
+    | COMMENTS
+    | COMMIT
+    | COMMITTED
+    | COMPRESSION
+    | CONCURRENTLY
+    | CONFIGURATION
+    | CONFLICT
+    | CONNECTION
+    | CONSTRAINT
+    | CONSTRAINTS
+    | CONTENT_P
+    | CONTINUE_P
+    | CONVERSION_P
+    | COPY
+    | COST
+    | CROSS
+    | CSV
+    | CUBE
+    | CURRENT_P
+    | CURRENT_CATALOG
+    | CURRENT_DATE
+    | CURRENT_ROLE
+    | CURRENT_SCHEMA
+    | CURRENT_TIME
+    | CURRENT_TIMESTAMP
+    | CURRENT_USER
+    | CURSOR
+    | CYCLE
+    | DATA_P
+    | DATABASE
+    | DEALLOCATE
+    | DEC
+    | DECIMAL_P
+    | DECLARE
+    | DEFAULT
+    | DEFAULTS
+    | DEFERRABLE
+    | DEFERRED
+    | DEFINER
+    | DELETE_P
+    | DELIMITER
+    | DELIMITERS
+    | DEPENDS
+    | DEPTH
+    | DESC
+    | DETACH
+    | DICTIONARY
+    | DISABLE_P
+    | DISCARD
+    | DISTINCT
+    | DO
+    | DOCUMENT_P
+    | DOMAIN_P
+    | DOUBLE_P
+    | DROP
+    | EACH
+    | ELSE
+    | ENABLE_P
+    | ENCODING
+    | ENCRYPTED
+    | END_P
+    | ENUM_P
+    | ESCAPE
+    | EVENT
+    | EXCLUDE
+    | EXCLUDING
+    | EXCLUSIVE
+    | EXECUTE
+    | EXISTS
+    | EXPLAIN
+    | EXPRESSION
+    | EXTENSION
+    | EXTERNAL
+    | EXTRACT
+    | FALSE_P
+    | FAMILY
+    | FINALIZE
+    | FIRST_P
+    | FLOAT_P
+    | FOLLOWING
+    | FORCE
+    | FOREIGN
+    | FORWARD
+    | FREEZE
+    | FULL
+    | FUNCTION
+    | FUNCTIONS
+    | GENERATED
+    | GLOBAL
+    | GRANTED
+    | GREATEST
+    | GROUPING
+    | GROUPS
+    | HANDLER
+    | HEADER_P
+    | HOLD
+    | IDENTITY_P
+    | IF_P
+    | ILIKE
+    | IMMEDIATE
+    | IMMUTABLE
+    | IMPLICIT_P
+    | IMPORT_P
+    | IN_P
+    | INCLUDE
+    | INCLUDING
+    | INCREMENT
+    | INDEX
+    | INDEXES
+    | INHERIT
+    | INHERITS
+    | INITIALLY
+    | INLINE_P
+    | INNER_P
+    | INOUT
+    | INPUT_P
+    | INSENSITIVE
+    | INSERT
+    | INSTEAD
+    | INT_P
+    | INTEGER
+    | INTERVAL
+    | INVOKER
+    | IS
+    | ISOLATION
+    | JOIN
+    | KEY
+    | LABEL
+    | LANGUAGE
+    | LARGE_P
+    | LAST_P
+    | LATERAL_P
+    | LEADING
+    | LEAKPROOF
+    | LEAST
+    | LEFT
+    | LEVEL
+    | LIKE
+    | LISTEN
+    | LOAD
+    | LOCAL
+    | LOCALTIME
+    | LOCALTIMESTAMP
+    | LOCATION
+    | LOCK_P
+    | LOCKED
+    | LOGGED
+    | MAPPING
+    | MATCH
+    | MATERIALIZED
+    | MAXVALUE
+    | METHOD
+    | MINVALUE
+    | MODE
+    | MOVE
+    | NAME_P
+    | NAMES
+    | NATIONAL
+    | NATURAL
+    | NCHAR
+    | NEW
+    | NEXT
+    | NFC
+    | NFD
+    | NFKC
+    | NFKD
+    | NO
+    | NONE
+    | NORMALIZE
+    | NORMALIZED
+    | NOT
+    | NOTHING
+    | NOTIFY
+    | NOWAIT
+    | NULL_P
+    | NULLIF
+    | NULLS_P
+    | NUMERIC
+    | OBJECT_P
+    | OF
+    | OFF
+    | OIDS
+    | OLD
+    | ONLY
+    | OPERATOR
+    | OPTION
+    | OPTIONS
+    | OR
+    | ORDINALITY
+    | OTHERS
+    | OUT_P
+    | OUTER_P
+    | OVERLAY
+    | OVERRIDING
+    | OWNED
+    | OWNER
+    | PARALLEL
+    | PARSER
+    | PARTIAL
+    | PARTITION
+    | PASSING
+    | PASSWORD
+    | PLACING
+    | PLANS
+    | POLICY
+    | POSITION
+    | PRECEDING
+    | PREPARE
+    | PREPARED
+    | PRESERVE
+    | PRIMARY
+    | PRIOR
+    | PRIVILEGES
+    | PROCEDURAL
+    | PROCEDURE
+    | PROCEDURES
+    | PROGRAM
+    | PUBLICATION
+    | QUOTE
+    | RANGE
+    | READ
+    | REAL
+    | REASSIGN
+    | RECHECK
+    | RECURSIVE
+    | REF
+    | REFERENCES
+    | REFERENCING
+    | REFRESH
+    | REINDEX
+    | RELATIVE_P
+    | RELEASE
+    | RENAME
+    | REPEATABLE
+    | REPLACE
+    | REPLICA
+    | RESET
+    | RESTART
+    | RESTRICT
+    | RETURN
+    | RETURNS
+    | REVOKE
+    | RIGHT
+    | ROLE
+    | ROLLBACK
+    | ROLLUP
+    | ROUTINE
+    | ROUTINES
+    | ROW
+    | ROWS
+    | RULE
+    | SAVEPOINT
+    | SCHEMA
+    | SCHEMAS
+    | SCROLL
+    | SEARCH
+    | SECURITY
+    | SELECT
+    | SEQUENCE
+    | SEQUENCES
+    | SERIALIZABLE
+    | SERVER
+    | SESSION
+    | SESSION_USER
+    | SET
+    | SETOF
+    | SETS
+    | SHARE
+    | SHOW
+    | SIMILAR
+    | SIMPLE
+    | SKIP
+    | SMALLINT
+    | SNAPSHOT
+    | SOME
+    | SQL_P
+    | STABLE
+    | STANDALONE_P
+    | START
+    | STATEMENT
+    | STATISTICS
+    | STDIN
+    | STDOUT
+    | STORAGE
+    | STORED
+    | STRICT_P
+    | STRIP_P
+    | SUBSCRIPTION
+    | SUBSTRING
+    | SUPPORT
+    | SYMMETRIC
+    | SYSID
+    | SYSTEM_P
+    | TABLE
+    | TABLES
+    | TABLESAMPLE
+    | TABLESPACE
+    | TEMP
+    | TEMPLATE
+    | TEMPORARY
+    | TEXT_P
+    | THEN
+    | TIES
+    | TIME
+    | TIMESTAMP
+    | TRAILING
+    | TRANSACTION
+    | TRANSFORM
+    | TREAT
+    | TRIGGER
+    | TRIM
+    | TRUE_P
+    | TRUNCATE
+    | TRUSTED
+    | TYPE_P
+    | TYPES_P
+    | UESCAPE
+    | UNBOUNDED
+    | UNCOMMITTED
+    | UNENCRYPTED
+    | UNIQUE
+    | UNKNOWN
+    | UNLISTEN
+    | UNLOGGED
+    | UNTIL
+    | UPDATE
+    | USER
+    | USING
+    | VACUUM
+    | VALID
+    | VALIDATE
+    | VALIDATOR
+    | VALUE_P
+    | VALUES
+    | VARCHAR
+    | VARIADIC
+    | VERBOSE
+    | VERSION_P
+    | VIEW
+    | VIEWS
+    | VOLATILE
+    | WHEN
+    | WHITESPACE_P
+    | WORK
+    | WRAPPER
+    | WRITE
+    | XML_P
+    | XMLATTRIBUTES
+    | XMLCONCAT
+    | XMLELEMENT
+    | XMLEXISTS
+    | XMLFOREST
+    | XMLNAMESPACES
+    | XMLPARSE
+    | XMLPI
+    | XMLROOT
+    | XMLSERIALIZE
+    | XMLTABLE
+    | YES_P
+    | ZONE
 ;
 
 %%
@@ -22463,9 +25311,14 @@ bare_label_keyword:
  * available from the scanner.
  */
 static void
-base_yyerror(YYLTYPE *yylloc, IR* res, IR **pIR, core_yyscan_t yyscanner, const char *msg)
+base_yyerror(YYLTYPE *yylloc, IR* res, IR **pIR, vector<IR*> all_gen_ir, core_yyscan_t yyscanner, const char *msg)
 {
-  if (res) res->deep_drop();
+    for (IR* gen_ir : all_gen_ir) {
+        gen_ir->drop();
+    }
+  /* if (res) res->deep_drop(); */
+  // DEBUG: Should be crashing for the next line.
+  /* if (*pIR) (*pIR)->deep_drop(); */
 	/* parser_yyerror(msg); */
 }
 
