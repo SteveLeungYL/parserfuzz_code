@@ -261,7 +261,7 @@ public:
   bool set_opt_columnlist_type(DATATYPE, DATAFLAG);
   bool set_columnlist_type(DATATYPE, DATAFLAG);
 
-  bool add_drop_is_add(DATATYPE, DATAFLAG);
+  bool add_drop_is_add();
 
 };
 
