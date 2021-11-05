@@ -198,14 +198,14 @@ SELECT 'Goldmann' < 'Götz' COLLATE "de-x-icu", 'Goldmann' > 'Götz' COLLATE tes
 CREATE COLLATION ctest_det (provider = icu, locale = '', deterministic = true);
 CREATE COLLATION ctest_nondet (provider = icu, locale = '', deterministic = false);
 CREATE TABLE test6 (a int, b text);
-INSERT INTO test6 VALUES (1, U&'\00E4bc');
-INSERT INTO test6 VALUES (2, U&'\0061\0308bc');
+INSERT INTO test6 VALUES (1, '1');
+INSERT INTO test6 VALUES (2, '39');
 SELECT * FROM test6;
 SELECT * FROM test6 WHERE b = 'äbc' COLLATE ctest_det;
 SELECT * FROM test6 WHERE b = 'äbc' COLLATE ctest_nondet;
 CREATE TABLE test6a (a int, b text[]);
-INSERT INTO test6a VALUES (1, ARRAY[U&'\00E4bc']);
-INSERT INTO test6a VALUES (2, ARRAY[U&'\0061\0308bc']);
+INSERT INTO test6a VALUES (1, ARRAY['i']);
+INSERT INTO test6a VALUES (2, ARRAY['123']);
 SELECT * FROM test6a;
 SELECT * FROM test6a WHERE b = ARRAY['äbc'] COLLATE ctest_det;
 SELECT * FROM test6a WHERE b = ARRAY['äbc'] COLLATE ctest_nondet;
