@@ -616,6 +616,8 @@ downcase_identifier(const char *ident, int len, bool warn, bool truncate)
 	if (i >= NAMEDATALEN && truncate)
 		truncate_identifier(result, i, warn);
 
+	/* Debug: */
+	// printf("In downcase_identifier: getting result: %s\n", result);
 	return result;
 }
 
