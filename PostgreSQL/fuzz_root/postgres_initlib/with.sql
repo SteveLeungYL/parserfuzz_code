@@ -192,7 +192,7 @@ SELECT * FROM (	WITH t AS (UPDATE y SET a=a+1 RETURNING *)	SELECT * FROM t) ss;
 CREATE RULE y_rule AS ON INSERT TO y WHERE a=0 DO INSTEAD DELETE FROM y;
 WITH t AS (	INSERT INTO y VALUES(0))VALUES(FALSE);
 DROP RULE y_rule ON y;
-create table foo (with baz);  create table foo (with ordinality);  with ordinality as (select 1 as x) select * from ordinality;
+with ordinality as (select 1 as x) select * from ordinality;
 WITH test AS (SELECT 42) INSERT INTO test VALUES (1);
 create temp table test (i int);
 with test as (select 42) insert into test select * from test;
