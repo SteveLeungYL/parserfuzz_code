@@ -176,7 +176,7 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 //%define api.prefix {base_yy}
 %locations
 
-%parse-param {IR* res} {IR **pIR} {vector<IR*> all_gen_ir} {vector<IR*> rov_ir } {core_yyscan_t yyscanner}
+%parse-param {IR* res} {IR **pIR} {vector<IR*> all_gen_ir} {vector<IR*>& rov_ir } {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
 
 %union
@@ -4445,15 +4445,17 @@ CopyStmt:
         auto tmp5 = $6;
         res = new IR(kCopyStmt_4, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
-        if (!$6->is_empty() &&
-            (!strcmp($6->get_prefix(), "STDIN") || !strcmp($6->get_prefix(), "STDOUT"))
+        if ($6->is_empty() &&
+            (!strcmp($7->get_prefix(), "STDIN") || !strcmp($7->get_prefix(), "STDOUT"))
         ){
             auto tmp6 = $7;
             res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
             all_gen_ir.push_back(res);
+            printf("In 1");
         } else {
             /* $7 -> deep_drop(); */
             rov_ir.push_back($7);
+            printf("In 2\n");
         }
         auto tmp7 = $8;
         res = new IR(kCopyStmt_6, OP3("", "", ""), res, tmp7);

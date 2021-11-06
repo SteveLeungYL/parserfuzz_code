@@ -1,6 +1,8 @@
 //#include "flex_lexer_2.h"
 //#include "bison_parser_2.h"
 
+// #include "iostream"
+
 #include "postgres.h"
 
 #include "mb/pg_wchar.h"
@@ -70,7 +72,7 @@ raw_parser(const char *str, RawParseMode mode)
 	parser_init(&yyextra);
 
 	IR *ir_dumb = NULL, *ir_root = NULL;
-  IR **pIR = &ir_root;
+	IR **pIR = &ir_root;
 
 	/* Parse! */
 	vector<IR*> all_gen_ir;
@@ -80,10 +82,11 @@ raw_parser(const char *str, RawParseMode mode)
 	/* Clean up (release memory) */
 	scanner_finish(yyscanner);
 
-	if (yyresult)				/* error */
+	if (yyresult) {				/* error */
 		return NULL;
-	else {
+	} else {
 		for (IR* rov_ir : v_rov_ir) {
+			// std::cerr << "Removing " << get_string_by_ir_type(rov_ir->get_ir_type()) << "\n";
 			rov_ir->deep_drop();
 		}
 	}
