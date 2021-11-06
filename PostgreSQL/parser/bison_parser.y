@@ -4450,7 +4450,7 @@ CopyStmt:
         ){
             auto tmp6 = $7;
             res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
         } else {
             /* $7 -> deep_drop(); */
             rov_ir.push_back($7);
@@ -4468,7 +4468,7 @@ CopyStmt:
         if (!$5->is_empty()) {
             auto tmp10 = $11;
             res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
         } else {
             /* $11->deep_drop(); */
             rov_ir.push_back($11);
@@ -4487,7 +4487,7 @@ CopyStmt:
         ){
             auto tmp3 = $7;
             res = new IR(kCopyStmt_10, OP3("", "", ""), res, tmp3);
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
         } else {
             /* $7 -> deep_drop(); */
             rov_ir.push_back($7);
@@ -5501,6 +5501,7 @@ ColConstraintElem:
             /* tmp1->deep_drop(); */
             rov_ir.push_back(tmp1);
             tmp1 = new IR(kGeneratedWhen, OP3("ALWAYS", "", ""));
+            all_gen_ir.push_back(tmp1);
         }
         auto tmp2 = $5;
         res = new IR(kColConstraintElem, OP3("GENERATED", "AS (", ") STORED"), tmp1, tmp2);
@@ -8619,6 +8620,7 @@ CreateTrigStmt:
             /* tmp1 ->deep_drop(); */
             rov_ir.push_back(tmp1);
             tmp1 = new IR(kOptOrReplace, OP3("", "", ""));
+            all_gen_ir.push_back(tmp1);
         }
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
@@ -16323,6 +16325,7 @@ ViewStmt:
         /* tmp6 -> deep_drop(); */
         rov_ir.push_back(tmp6);
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
+        all_gen_ir.push_back(tmp6);
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
@@ -16351,6 +16354,7 @@ ViewStmt:
         /* tmp6 -> deep_drop(); */
         rov_ir.push_back(tmp6);
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
+        all_gen_ir.push_back(tmp6);
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
@@ -23321,6 +23325,7 @@ frame_extent:
             /* tmp1->deep_drop(); */
             rov_ir.push_back(tmp1);
             tmp1 = new IR(kFrameBound, OP3("CURRENT ROW", "", ""));
+            all_gen_ir.push_back(tmp1);
         }
         res = new IR(kFrameExtent, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -24747,10 +24752,11 @@ RoleSpec:
     NonReservedWord {
         /* Don't free $1, this is read-only text. */
         if (strcmp($1, "none") == 0) {
+            free($1);
             $$ = strdup("public");
         }
         else {
-            $$ = strdup($1);
+            $$ = $1;
         }
     }
 

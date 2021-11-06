@@ -22,7 +22,7 @@ Local:
   RoleId
   ColId
   var_name
-  type_func_name
+  type_func_name_keyword
   param_name
   attr_name
   name
