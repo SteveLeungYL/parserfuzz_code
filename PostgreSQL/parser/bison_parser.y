@@ -2463,6 +2463,7 @@ generic_set:
 
     var_name TO var_list {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         free($1);
         auto tmp2 = $3;
         res = new IR(kGenericSet, OP3("", "TO", ""), tmp1, tmp2);
@@ -2472,6 +2473,7 @@ generic_set:
 
     | var_name '=' var_list {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         free($1);
         auto tmp2 = $3;
         res = new IR(kGenericSet, OP3("", "=", ""), tmp1, tmp2);
@@ -2481,6 +2483,7 @@ generic_set:
 
     | var_name TO DEFAULT {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         free($1);
         res = new IR(kGenericSet, OP3("", "TO DEFAULT", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -2489,6 +2492,7 @@ generic_set:
 
     | var_name '=' DEFAULT {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         free($1);
         res = new IR(kGenericSet, OP3("", "= DEFAULT", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -2509,6 +2513,7 @@ set_rest_more:
 
     | var_name FROM CURRENT_P {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         free($1);
         res = new IR(kSetRestMore, OP3("", "FROM CURRENT", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -2549,8 +2554,8 @@ set_rest_more:
 
     | ROLE NonReservedWord_or_Sconst {
         /* Yu: Cannot find exact example shown on the documentation. Use it as kUse of Role. */
-        IR* tmp1;
-        tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
+        IR* tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
+        all_gen_ir.push_back(tmp1);
         free($2);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -2559,8 +2564,8 @@ set_rest_more:
 
     | SESSION AUTHORIZATION NonReservedWord_or_Sconst {
         /* Yu: This is username. This is just the wrapper for Role. */
-        IR* tmp1;
-        tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
+        IR* tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
+        all_gen_ir.push_back(tmp1);
         free($3);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -2847,6 +2852,7 @@ generic_reset:
 
     var_name {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         res = new IR(kGenericReset, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
@@ -2906,6 +2912,7 @@ VariableShowStmt:
 
     SHOW var_name {
         IR* tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         free($2);
         res = new IR(kVariableShowStmt, OP3("SHOW", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -4237,6 +4244,7 @@ hash_partbound_elem:
     NonReservedWord Iconst {
         /* Yu: From the documentation, I can only see "modulus" and "remainder" available for NonReserveredWord. */
         IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
+        all_gen_ir.push_back(tmp1);
         if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
             res = new IR(kHashPartboundElem_1, string($1));
         all_gen_ir.push_back(res);
