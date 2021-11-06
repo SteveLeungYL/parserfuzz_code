@@ -757,7 +757,7 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 %destructor { free($$); } Sconst NonReservedWord opt_boolean_or_string NonReservedWord_or_Sconst
 %destructor { free($$); } ColLabel BareColLabel comment_text notify_payload RoleSpec RoleId ColId
 %destructor { free($$); } var_name type_func_name_keyword param_name attr_name name cursor_name file_name
-%destructor { free($$); } generic_option_name analyze_keyword
+%destructor { free($$); } generic_option_name analyze_keyword type_function_name
 
 
 
@@ -24540,17 +24540,17 @@ func_name:
     type_function_name {
         if ($1) {
             auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, 0, kFlagUnknown);
-        all_gen_ir.push_back( tmp1 );
+            all_gen_ir.push_back( tmp1 );
             res = new IR(kFuncName, OP3("", "", ""), tmp1);
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
             $$ = res;
             free($1);
         } else {
             /* Yu: Unexpected. Use dummy SUM */
             auto tmp1 = new IR(kIdentifier, string("SUM"), kDataFunctionName, 0, kFlagUnknown);
-        all_gen_ir.push_back( tmp1 );
+            all_gen_ir.push_back( tmp1 );
             res = new IR(kFuncName, OP3("", "", ""), tmp1);
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
             $$ = res;
         }
     }
@@ -24601,6 +24601,7 @@ AexprConst:
 
     | BCONST {
         auto tmp1 = new IR(kBoolLiteral, string($1));
+        free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -24610,6 +24611,7 @@ AexprConst:
     | XCONST {
         /* Yu: This is actually deximal numberical string. */
         auto tmp1 = new IR(kIntLiteral, atoi($1));
+        free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -24706,6 +24708,7 @@ Iconst:
 
     ICONST {
         res = new IR(kIntLiteral, $1);
+        /* free((void*)($1)); */
         all_gen_ir.push_back(res);
         $$ = res;
     }
