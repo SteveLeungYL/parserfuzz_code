@@ -758,6 +758,7 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 %destructor { free($$); } ColLabel BareColLabel comment_text notify_payload RoleSpec RoleId ColId
 %destructor { free($$); } var_name type_func_name_keyword param_name attr_name name cursor_name file_name
 %destructor { free($$); } generic_option_name analyze_keyword type_function_name
+/* %destructor { free((void*)$$); } ICONST */
 
 
 
@@ -4244,16 +4245,18 @@ hash_partbound_elem:
 
     NonReservedWord Iconst {
         /* Yu: From the documentation, I can only see "modulus" and "remainder" available for NonReserveredWord. */
-        IR* tmp1 = new IR(kIntLiteral, $2, kDataWhatever, 0, kFlagUnknown);
+        IR* tmp1 = $2;
         all_gen_ir.push_back(tmp1);
+
         if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
             res = new IR(kHashPartboundElem_1, string($1));
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
         } else {
             res = new IR(kHashPartboundElem_1, string("modulus"));
-        all_gen_ir.push_back(res);
+            all_gen_ir.push_back(res);
         }
-        res = new IR(kHashPartboundElem_1, OP0(), res, tmp1);
+
+        res = new IR(kHashPartboundElem, OP0(), res, tmp1);
         all_gen_ir.push_back(res);
         free($1);
         $$ = res;
@@ -24707,7 +24710,7 @@ AexprConst:
 Iconst:
 
     ICONST {
-        res = new IR(kIntLiteral, $1);
+        res = new IR(kIntLiteral, int($1), kDataFixLater, 0, kFlagUnknown);
         /* free((void*)($1)); */
         all_gen_ir.push_back(res);
         $$ = res;
