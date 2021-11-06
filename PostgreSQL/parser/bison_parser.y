@@ -753,6 +753,11 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 
 
 %destructor { free($$); } IDENT BCONST XCONST SCONST USCONST UIDENT Op FCONST
+%destructor { free($$); } Sconst NonReservedWord opt_boolean_or_string NonReservedWord_or_Sconst
+%destructor { free($$); } ColLabel BareColLabel comment_text notify_payload RoleSpec RoleId ColId
+%destructor { free($$); } var_name type_func_name_keyword param_name attr_name name cursor_name file_name
+%destructor { free($$); } generic_option_name analyze_keyword
+
 
 
 
