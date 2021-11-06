@@ -751,6 +751,11 @@ static char* alloc_and_cat(const char*, const char*, const char*);
  */
 %left		JOIN CROSS LEFT FULL RIGHT INNER_P NATURAL
 
+
+%destructor { free($$); } IDENT BCONST XCONST SCONST USCONST UIDENT Op FCONST
+
+
+
 %%
 
 
@@ -25316,9 +25321,7 @@ base_yyerror(YYLTYPE *yylloc, IR* res, IR **pIR, vector<IR*> all_gen_ir, core_yy
     for (IR* gen_ir : all_gen_ir) {
         gen_ir->drop();
     }
-  /* if (res) res->deep_drop(); */
-  // DEBUG: Should be crashing for the next line.
-  /* if (*pIR) (*pIR)->deep_drop(); */
+
 	/* parser_yyerror(msg); */
 }
 
