@@ -2852,6 +2852,7 @@ generic_reset:
 
     var_name {
         IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        free($1);
         all_gen_ir.push_back(tmp1);
         res = new IR(kGenericReset, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
