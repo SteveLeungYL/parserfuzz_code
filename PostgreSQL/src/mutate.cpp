@@ -698,6 +698,8 @@ Mutator::~Mutator() {
     delete iter;
   }
 
+
+
 }
 
 string Mutator::extract_struct(IR *root) {
@@ -2090,6 +2092,12 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
   } catch (...) {
     return ir_set;
   }
+
+
+  /* Debug */
+  // root_ir->deep_drop();
+  // vector<IR*>dummp_vec;
+  // return dummp_vec;
 
   ir_set = p_oracle->ir_wrapper.get_all_ir_node(root_ir);
 

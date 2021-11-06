@@ -74,13 +74,19 @@ raw_parser(const char *str, RawParseMode mode)
 
 	/* Parse! */
 	vector<IR*> all_gen_ir;
-	yyresult = base_yyparse(ir_dumb, pIR, all_gen_ir, yyscanner);
+	vector<IR*> v_rov_ir;
+	yyresult = base_yyparse(ir_dumb, pIR, all_gen_ir, v_rov_ir, yyscanner);
 
 	/* Clean up (release memory) */
 	scanner_finish(yyscanner);
 
 	if (yyresult)				/* error */
 		return NULL;
+	else {
+		for (IR* rov_ir : v_rov_ir) {
+			rov_ir->deep_drop();
+		}
+	}
 
 	return ir_root;
 }

@@ -161,7 +161,7 @@ typedef struct GroupClause
 #define parser_yyerror(msg)  scanner_yyerror(msg, yyscanner)
 #define parser_errposition(pos)  scanner_errposition(pos, yyscanner)
 
-static void base_yyerror(YYLTYPE *yylloc, IR* result, IR **pIR, vector<IR*> all_gen_ir,
+static void base_yyerror(YYLTYPE *yylloc, IR* result, IR **pIR, vector<IR*> all_gen_ir, vector<IR*> rov_ir,
             core_yyscan_t yyscanner, const char *msg);
 static char* alloc_and_cat(const char*, const char*);
 static char* alloc_and_cat(const char*, const char*, const char*);
@@ -175,7 +175,7 @@ static char* alloc_and_cat(const char*, const char*, const char*);
 //%define api.prefix {base_yy}
 %locations
 
-     %parse-param {IR* res} {IR **pIR} {vector<IR*> all_gen_ir} {core_yyscan_t yyscanner}
+%parse-param {IR* res} {IR **pIR} {vector<IR*> all_gen_ir} {vector<IR*> rov_ir } {core_yyscan_t yyscanner}
 %lex-param   {core_yyscan_t yyscanner}
 
 %union
@@ -2257,7 +2257,8 @@ CreateSchemaStmt:
     | CREATE SCHEMA IF_P NOT EXISTS OptSchemaName AUTHORIZATION RoleSpec OptSchemaEltList {
         /* Yu: Ignore optSchemaEltList. It is not supported here. */
         if ($9) {
-            $9 -> deep_drop();
+            /* $9 -> deep_drop(); */
+            rov_ir.push_back($9);
         }
         auto tmp1 = $6;
         auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
@@ -2270,7 +2271,8 @@ CreateSchemaStmt:
     | CREATE SCHEMA IF_P NOT EXISTS ColId OptSchemaEltList {
         /* Yu: Ignore optSchemaEltList. It is not supported here. */
         if ($7) {
-            $7 -> deep_drop();
+            /* $7 -> deep_drop(); */
+            rov_ir.push_back($7);
         }
         auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
@@ -4094,7 +4096,8 @@ alter_identity_column_option:
         /* Yu: Avoid using seqoptelem that is not supported.  */
         auto tmp1 = $2;
         if (tmp1) {
-            tmp1 -> deep_drop();
+            /* tmp1 -> deep_drop(); */
+            rov_ir.push_back(tmp1);
             $$ = new IR(kAlterIdentityColumnOption, OP3("SET RESTART", "", ""));
         } else {
             $$ = new IR(kAlterIdentityColumnOption, OP3("SET", "", ""), tmp1);
@@ -4351,7 +4354,8 @@ CopyStmt:
             res = new IR(kCopyStmt_5, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         } else {
-            $7 -> deep_drop();
+            /* $7 -> deep_drop(); */
+            rov_ir.push_back($7);
         }
         auto tmp7 = $8;
         res = new IR(kCopyStmt_6, OP3("", "", ""), res, tmp7);
@@ -4368,7 +4372,8 @@ CopyStmt:
             res = new IR(kCopyStmt, OP3("", "", ""), res, tmp10);
         all_gen_ir.push_back(res);
         } else {
-            $11->deep_drop();
+            /* $11->deep_drop(); */
+            rov_ir.push_back($11);
         }
         $$ = res;
     }
@@ -4386,7 +4391,8 @@ CopyStmt:
             res = new IR(kCopyStmt_10, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         } else {
-            $7 -> deep_drop();
+            /* $7 -> deep_drop(); */
+            rov_ir.push_back($7);
         }
         auto tmp4 = $8;
         res = new IR(kCopyStmt_11, OP3("", "", ""), res, tmp4);
@@ -5379,7 +5385,8 @@ ColConstraintElem:
         /* Yu: Enforced ALWAYS in the generated_when. */
         auto tmp1 = $2;
         if (!strcmp(tmp1->get_prefix(), "BY DEFAULT")){
-            tmp1->deep_drop();
+            /* tmp1->deep_drop(); */
+            rov_ir.push_back(tmp1);
             tmp1 = new IR(kGeneratedWhen, OP3("ALWAYS", "", ""));
         }
         auto tmp2 = $5;
@@ -8420,7 +8427,8 @@ CreateTrigStmt:
         /* Yu: Do not allow "OR REPLACE" in this sentence. */
         auto tmp1 = $2;
         if (!tmp1->is_empty()){
-            tmp1 ->deep_drop();
+            /* tmp1 ->deep_drop(); */
+            rov_ir.push_back(tmp1);
             tmp1 = new IR(kOptOrReplace, OP3("", "", ""));
         }
         auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
@@ -15815,7 +15823,8 @@ ViewStmt:
         res = new IR(kViewStmt_12, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         auto tmp6 = $12;
-        tmp6 -> deep_drop();
+        /* tmp6 -> deep_drop(); */
+        rov_ir.push_back(tmp6);
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
@@ -15842,7 +15851,8 @@ ViewStmt:
         res = new IR(kViewStmt_16, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         auto tmp6 = $14;
-        tmp6 -> deep_drop();
+        /* tmp6 -> deep_drop(); */
+        rov_ir.push_back(tmp6);
         tmp6 = new IR(kOptCheckOption, OP3("", "", ""));
         res = new IR(kViewStmt, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
@@ -18733,7 +18743,8 @@ limit_clause:
         /* Yu: Remove select_offset_value. It is not supported by Postgres.   */
         auto tmp1 = $2;
         auto tmp2 = $4;
-        tmp2->deep_drop();
+        /* tmp2->deep_drop(); */
+        rov_ir.push_back(tmp2);
         res = new IR(kLimitClause, OP3("LIMIT", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
@@ -22739,7 +22750,8 @@ frame_extent:
         /* Yu: Avoid unsupported bound options.  */
         auto tmp1 = $1;
         if (!strcmp(tmp1->get_prefix(), "UNBOUNDED FOLLOWING") || !strcmp(tmp1->get_prefix(), "FOLLOWING")) {
-            tmp1->deep_drop();
+            /* tmp1->deep_drop(); */
+            rov_ir.push_back(tmp1);
             tmp1 = new IR(kFrameBound, OP3("CURRENT ROW", "", ""));
         }
         res = new IR(kFrameExtent, OP3("", "", ""), tmp1);
@@ -24027,8 +24039,9 @@ AexprConst:
         all_gen_ir.push_back(res);
         // auto tmp3 = $4;
         // res = new IR(kAexprConst_2, OP3("", "", ")"), res, tmp3);
-        all_gen_ir.push_back(res);
-        $4 -> deep_drop();
+        /* all_gen_ir.push_back(res); */
+        /* $4 -> deep_drop(); */
+        rov_ir.push_back($4);
         auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
         free($6);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp4);
@@ -25316,7 +25329,7 @@ bare_label_keyword:
  * available from the scanner.
  */
 static void
-base_yyerror(YYLTYPE *yylloc, IR* res, IR **pIR, vector<IR*> all_gen_ir, core_yyscan_t yyscanner, const char *msg)
+base_yyerror(YYLTYPE *yylloc, IR* res, IR **pIR, vector<IR*> all_gen_ir, vector<IR*> rov_ir, core_yyscan_t yyscanner, const char *msg)
 {
     for (IR* gen_ir : all_gen_ir) {
         gen_ir->drop();
