@@ -83,9 +83,9 @@
 #include <fstream>
 #include <filesystem>
 
-#include "../oracle/postgre_norec.h"
-#include "../oracle/postgre_oracle.h"
-#include "../oracle/postgre_tlp.h"
+#include "../oracle/postgres_norec.h"
+#include "../oracle/postgres_oracle.h"
+#include "../oracle/postgres_tlp.h"
 
 #include "libpq-fe.h"
 using namespace std;

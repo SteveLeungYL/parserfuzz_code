@@ -2,8 +2,9 @@
 #include "../include/define.h"
 #include "../include/mutate.h"
 #include "../include/utils.h"
-#include "../oracle/postgre_oracle.h"
-#include "../oracle/postgre_norec.h"
+#include "../oracle/postgres_oracle.h"
+#include "../oracle/postgres_norec.h"
+#include "../oracle/postgres_tlp.h"
 
 #include <fstream>
 #include <iostream>
