@@ -79,7 +79,9 @@
 #include <vector>
 #include <time.h>
 
+
 #include <fstream>
+#include <filesystem>
 
 #include "../oracle/postgre_norec.h"
 #include "../oracle/postgre_oracle.h"
@@ -3292,9 +3294,8 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
   for (const string& cmd_string : cmd_string_vec) {
     if ((cmd_string.find("RANDOM") != std::string::npos) ||
-        (cmd_string.find("random") != std::string::npos) ||
-        (cmd_string.find("JULIANDAY") != std::string::npos) ||
-        (cmd_string.find("julianday") != std::string::npos)) {
+        (cmd_string.find("random") != std::string::npos)
+      ){
       return FAULT_ERROR;
     }
 
@@ -3414,9 +3415,14 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
   if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
-
     ofstream outputfile;
     bug_output_id++;
+    if ( !filesystem::exists("../Bug_Analysis/")) {
+      filesystem::create_directory("../Bug_Analysis/");
+    }
+    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
+      filesystem::create_directory("../Bug_Analysis/bug_samples");
+    }
 
     string bug_output_dir =
         "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
@@ -3427,6 +3433,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     outputfile.close();
 
     total_execs++;
+
   }
   else if (all_comp_res.final_res == ORA_COMP_RES::Pass)
   {
