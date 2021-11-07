@@ -10,7 +10,7 @@
 #include <ostream>
 #include <string>
 
-extern int ff_debug;
+extern int base_yydebug;
 
 using namespace std;
 
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // ff_debug = 1;
+  base_yydebug = 1;
 
   mutator.init("");
 
