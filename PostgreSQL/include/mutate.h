@@ -59,7 +59,8 @@ public:
 
   void init(string f_testcase = "", string f_common_string = "",
             string file2d = "", string file1d = "",
-            string f_gen_type = ""); 
+            string f_gen_type = "");
+  void init_library();
 
   void init_ir_library(string filename);         
   inline void init_value_library();                     

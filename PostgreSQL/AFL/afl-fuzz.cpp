@@ -1787,6 +1787,8 @@ static void do_libary_initialize()
     g_mutator.init(file_path);
   }
 
+  g_mutator.init_library();
+
   /* Debug code. */
   cout << "The size of ir_libary_2D_hash_ for kStatement is: "
        << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;

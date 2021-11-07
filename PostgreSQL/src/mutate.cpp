@@ -262,27 +262,11 @@ void Mutator::init_ir_library(string filename) {
 //   }
 // }
 
-void Mutator::init(string f_testcase, string f_common_string, string file2d,
-                   string file1d, string f_gen_type) {
-
-  // if (!f_testcase.empty())
-  //   init_ir_library(f_testcase);
+void Mutator::init_library() {
 
   // init value_library_
   init_value_library();
 
-  // init common_string_library
-  // if (!f_common_string.empty())
-    // {init_common_string(f_common_string);}
-
-  // init data_library_2d
-  // if (!file2d.empty())
-  //   init_data_library_2d(file2d);
-
-  // if (!file1d.empty())
-  //   init_data_library(file1d);
-  // if (!f_gen_type.empty())
-  //   init_safe_generate_type(f_gen_type);
 
   if (not_mutatable_types_.size() == 0) {
     float_types_.insert({kFloatLiteral});
@@ -303,6 +287,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
                                  kDropViewStmt, kSelectStmt, kUpdateStmt,
                                  kInsertStmt, kAlterStmt, kReindexStmt});
   }
+
 
   // Initialize the storage parameters from the CREATE TABLE stmt.
 
@@ -330,8 +315,28 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
 
   this->m_reloption[kCreateStmt] = storage_parameter_pair;
 
+}
 
 
+void Mutator::init(string f_testcase, string f_common_string, string file2d,
+                   string file1d, string f_gen_type) {
+
+  // if (!f_testcase.empty())
+  //   init_ir_library(f_testcase);
+
+
+  // init common_string_library
+  // if (!f_common_string.empty())
+    // {init_common_string(f_common_string);}
+
+  // init data_library_2d
+  // if (!file2d.empty())
+  //   init_data_library_2d(file2d);
+
+  // if (!file1d.empty())
+  //   init_data_library(file1d);
+  // if (!f_gen_type.empty())
+  //   init_safe_generate_type(f_gen_type);
 
 
   ifstream input_test(f_testcase);
@@ -340,7 +345,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
   // init lib from multiple sql
   while (getline(input_test, line)) {
 
-    cerr << "Parsing init line: " << line << "\n";
+    // cerr << "Parsing init line: " << line << "\n";
 
     vector<IR *> v_ir = parse_query_str_get_ir_set(line);
     if (v_ir.size() <= 0) {
@@ -361,7 +366,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
       continue;
     }
 
-    cerr << "Parsing succeed. \n\n\n";
+    // cerr << "Parsing succeed. \n\n\n";
 
     add_all_to_library(v_ir.back());
     v_ir.back()->deep_drop();
@@ -1482,7 +1487,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             new_reloption_args = new IR(kBoolLiteral, string("FALSE"));
             new_reloption_args->bool_val_ = false;
           }
-          cerr << "DEBUG: new_reloption_args->str_val_: " << new_reloption_args->str_val_ << "\n\n\n";
+          // cerr << "DEBUG: new_reloption_args->str_val_: " << new_reloption_args->str_val_ << "\n\n\n";
         }
         /* Integer */
         else if (arg_type == DEF_ARG_TYPE::integer) {
