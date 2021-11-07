@@ -405,6 +405,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
 
     if (stmt_list_v.size() == 0) {
         cerr << "Error: Getting stmt_list_v.size() == 0; \n";
+        app_IR_node->deep_drop();
     }
 
     // cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have stmtmulti: \n";

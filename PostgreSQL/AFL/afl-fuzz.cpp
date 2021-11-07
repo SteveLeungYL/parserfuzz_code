@@ -6377,6 +6377,9 @@ static u8 fuzz_one(char **argv)
       continue;
     }
 
+    // cerr << "Just after mutate, the statement is: \n" << ir_str << endl;
+
+
     /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
      * consider appending anything */
     vector<IR *> cur_ir_tree =
