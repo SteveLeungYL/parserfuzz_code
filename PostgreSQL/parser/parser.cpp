@@ -29,6 +29,9 @@ int ScanKeywordLookup(const char *str, const ScanKeywordList *keywords);
 void pg_unicode_to_server(pg_wchar c, unsigned char *s);
 int pg_mbcliplen(const char *str, int len, int limit);
 
+bool is_manual_lookahead = false;
+void* manual_lookahead_yylval = NULL;
+
 /*
  * raw_parser
  *		Given a query in string form, do lexical and grammatical analysis.
@@ -82,6 +85,14 @@ raw_parser(const char *str, RawParseMode mode)
 	/* Clean up (release memory) */
 	scanner_finish(yyscanner);
 
+
+	/* Clean up the manual lookahead. */
+	if (is_manual_lookahead) {
+		// printf("Cleaning memory in manual lookahead. \n");
+		free(manual_lookahead_yylval);
+	}
+
+
 	if (yyresult) {				/* error */
 		return NULL;
 	} else {
@@ -90,6 +101,7 @@ raw_parser(const char *str, RawParseMode mode)
 			rov_ir->deep_drop();
 		}
 	}
+
 
 	return ir_root;
 }
@@ -124,6 +136,9 @@ base_yylex(YYSTYPE *lvalp, YYLTYPE *llocp, core_yyscan_t yyscanner)
 	int			cur_token_length;
 	YYLTYPE		cur_yylloc;
 
+	// printf("Resetting is_manual_lookahead = false; \n");
+	is_manual_lookahead = false;
+
 	/* Get next token --- we might already have it */
 	if (yyextra->have_lookahead)
 	{
@@ -136,6 +151,7 @@ base_yylex(YYSTYPE *lvalp, YYLTYPE *llocp, core_yyscan_t yyscanner)
 	}
 	else
 		cur_token = core_yylex(&(lvalp->core_yystype), llocp, yyscanner);
+
 
 	/*
 	 * If this token isn't one that requires lookahead, just return it.  If it
@@ -184,6 +200,24 @@ base_yylex(YYSTYPE *lvalp, YYLTYPE *llocp, core_yyscan_t yyscanner)
 	next_token = core_yylex(&(yyextra->lookahead_yylval), llocp, yyscanner);
 	yyextra->lookahead_token = next_token;
 	yyextra->lookahead_yylloc = *llocp;
+
+
+	/* Yu: If we see this manual_lookahead, remember to clean up the memory. */
+	if (
+		next_token == IDENT ||
+		next_token == BCONST ||
+		next_token == XCONST ||
+		next_token == SCONST ||
+		next_token == USCONST ||
+		next_token == UIDENT ||
+		next_token == Op ||
+		next_token == FCONST
+	) {
+		// printf("is_manual_lookahead = true; \n");
+		is_manual_lookahead = true;
+		manual_lookahead_yylval = (void*)(yyextra->lookahead_yylval.str);
+	}
+
 
 	*llocp = cur_yylloc;
 
