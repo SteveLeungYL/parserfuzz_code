@@ -8,7 +8,6 @@ Global:
 
 Local:
 
-  IDENT
   SCONST
   Sconst
   NonReservedWord
@@ -23,6 +22,7 @@ Local:
   ColId
   var_name
   type_func_name_keyword
+  type_function_name
   param_name
   attr_name
   name
@@ -31,4 +31,12 @@ Local:
   Op    // Op comes from yytext. It is in heap. 
   generic_option_name
   analyze_keyword
-  
+  ICONST   <ival>
+  IDENT
+  BCONST
+  XCONST
+  SCONST
+  USCONST
+  UIDENT
+  Op
+  FCONST

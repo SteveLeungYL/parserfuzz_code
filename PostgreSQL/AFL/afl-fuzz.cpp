@@ -6112,9 +6112,9 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le)
   return 0;
 }
 
-void get_ori_valid_stmts(vector<IR*> &v_valid_stmts, int valid_max_num = 10) {
+void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_num = 10) {
 
-  // cout << "get_ori_valid_stmts" << endl;
+  // cout << "get_oracle_select_stmt" << endl;
   // exit(0);
   int trial = 0;
   int num_norec = 0;
@@ -6122,7 +6122,7 @@ void get_ori_valid_stmts(vector<IR*> &v_valid_stmts, int valid_max_num = 10) {
       valid_max_num * 3; // For each norec select stmt, we have on average 3
                          // chances to append the stmt and check.
 
-  // cerr << "Entering get_ori_valid_stmts func. \n";
+  // cerr << "Entering get_oracle_select_stmt func. \n";
 
   while (num_norec < valid_max_num)
   {
@@ -6131,20 +6131,20 @@ void get_ori_valid_stmts(vector<IR*> &v_valid_stmts, int valid_max_num = 10) {
       // cerr << "Break due to exceeding max_trial. \n";
       break;
     }
-    // cout << "get_ori_valid_stmts trial times: " << trial << endl;
+    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
     IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
       cerr << "new_norec_stmts is empty. \n";
       continue;
     }
     // ensure_semicolon_at_query_end(new_norec_stmts);
-    v_valid_stmts.push_back(std::move(new_oracle_select_stmts));
+    v_oracle_select_stmts.push_back(std::move(new_oracle_select_stmts));
 
     num_norec++;
     num_valid++;
   }
 
-  // cerr << "DEBUG: v_valid_stmts.size() is: " << v_valid_stmts.size() << ". \n";
+  // cerr << "DEBUG: v_oracle_select_stmts.size() is: " << v_oracle_select_stmts.size() << ". \n";
   return;
 }
 
@@ -6197,7 +6197,7 @@ static u8 fuzz_one(char **argv)
 
   vector<IR *> ir_set;
   vector<IR *> mutated_tree;
-  vector<IR*> ori_valid_stmts;
+  vector<IR*> v_oracle_select_stmts;
   char *tmp_name = stage_name;
   // string query_str;
   int skip_count;
@@ -6348,11 +6348,11 @@ static u8 fuzz_one(char **argv)
   stage_max = mutated_tree.size();
   stage_cur = 0;
 
-  ori_valid_stmts.clear();
+  v_oracle_select_stmts.clear();
 
-  get_ori_valid_stmts(ori_valid_stmts, 10);
+  get_oracle_select_stmts(v_oracle_select_stmts, 10);
 
-  // for (IR* tmp_valid_ir : ori_valid_stmts) {
+  // for (IR* tmp_valid_ir : v_oracle_select_stmts) {
   //   cout << "stmt: " << tmp_valid_ir->to_string() << endl;
   // }
   // exit(0);
@@ -6389,13 +6389,12 @@ static u8 fuzz_one(char **argv)
     num_reparse++;
     cur_reparse++;
 
-    // cerr << "Just after mutate_all and then re-parsing, the statement is: \n" << cur_ir_tree.back()->to_string() << endl;
-
-    for (IR* app_IR_node : ori_valid_stmts) {
+    for (IR* app_IR_node : v_oracle_select_stmts) {
       p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
-      p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT
-                        // stmts.
+      p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
     }
+
+    // cerr << "Just after appending the stmt, the statement is: \n" << cur_ir_tree.back()->to_string() << endl;
 
     num_append++;
     
@@ -6528,7 +6527,12 @@ abandon_entry:
   for (auto ir : mutated_tree) {
     deep_delete(ir);
   }
-  ori_valid_stmts.clear();
+
+  /* Free the generated oracle SELECT stmt.  */
+  for (IR* app_ir_node : v_oracle_select_stmts) {
+    app_ir_node->deep_drop();
+  }
+  v_oracle_select_stmts.clear();
 
   splicing_with = -1;
 
