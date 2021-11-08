@@ -2158,6 +2158,8 @@ DropRoleStmt:
         res = new IR(kDropRoleStmt, OP3("DROP GROUP", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUndefine);
     }
 
     | DROP GROUP_P IF_P EXISTS role_list {
@@ -2165,6 +2167,8 @@ DropRoleStmt:
         res = new IR(kDropRoleStmt, OP3("DROP GROUP IF EXISTS", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUndefine);
     }
 
 ;
