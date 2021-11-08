@@ -13840,9 +13840,9 @@ ReindexStmt:
         $$ = res;
 
         switch (tmp2->get_reindex_target_type()) {
-        case 2: tmp7->set_qualified_name_type(kDataSchemaName, kUse); break;
-        case 3: tmp7->set_qualified_name_type(kDataSystemName, kUse); break;
-        case 4: tmp7->set_qualified_name_type(kDataDatabaseName, kUse); break;
+        case 2: tmp3->set_qualified_name_type(kDataSchemaName, kUse); break;
+        case 3: tmp3->set_qualified_name_type(kDataSystemName, kUse); break;
+        case 4: tmp3->set_qualified_name_type(kDataDatabaseName, kUse); break;
         default: break;
         }
     }
@@ -13861,8 +13861,8 @@ ReindexStmt:
         $$ = res;
         
         switch (tmp2->get_reindex_target_type()) {
-        case 0: tmp7->set_qualified_name_type(kDataIndexName, kUse); break;
-        case 1: tmp7->set_qualified_name_type(kDataTableName, kUse); break;
+        case 0: tmp4->set_qualified_name_type(kDataIndexName, kUse); break;
+        case 1: tmp4->set_qualified_name_type(kDataTableName, kUse); break;
         default: break;
         }
     }
@@ -13883,9 +13883,9 @@ ReindexStmt:
         $$ = res;
 
         switch (tmp2->get_reindex_target_type()) {
-        case 2: tmp7->set_qualified_name_type(kDataSchemaName, kUse); break;
-        case 3: tmp7->set_qualified_name_type(kDataSystemName, kUse); break;
-        case 4: tmp7->set_qualified_name_type(kDataDatabaseName, kUse); break;
+        case 2: tmp4->set_qualified_name_type(kDataSchemaName, kUse); break;
+        case 3: tmp4->set_qualified_name_type(kDataSystemName, kUse); break;
+        case 4: tmp4->set_qualified_name_type(kDataDatabaseName, kUse); break;
         default: break;
         }
     }
@@ -14815,7 +14815,7 @@ AlterObjectDependsStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataIndexName, kUse);
-        tmp8->set_iden_type(kDataExtensionName, kUse);
+        tmp3->set_iden_type(kDataExtensionName, kUse);
     }
 
 ;
