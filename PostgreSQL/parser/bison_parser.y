@@ -10235,6 +10235,8 @@ DropStmt:
         res = new IR(kDropStmt, OP3("DROP INDEX CONCURRENTLY", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_any_name_list_type(kDataIndexName, kUndefine);
     }
 
     | DROP INDEX CONCURRENTLY IF_P EXISTS any_name_list opt_drop_behavior {
@@ -10243,6 +10245,8 @@ DropStmt:
         res = new IR(kDropStmt, OP3("DROP INDEX CONCURRENTLY IF EXISTS", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_any_name_list_type(kDataIndexName, kUndefine);
     }
 
 ;

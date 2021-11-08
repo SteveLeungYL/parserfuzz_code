@@ -257,6 +257,7 @@ public:
   bool set_qualified_name_type(DATATYPE, DATAFLAG);
   bool set_reloption_elem_type(DATATYPE, DATAFLAG);
   bool set_any_name_type(DATATYPE, DATAFLAG);
+  bool set_any_name_list_type(DATATYPE, DATAFLAG);
 
   bool set_opt_columnlist_type(DATATYPE, DATAFLAG);
   bool set_columnlist_type(DATATYPE, DATAFLAG);
