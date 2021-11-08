@@ -2986,36 +2986,36 @@ inline void print_norec_exec_debug_info()
 { 
   bool is_debug_info = true;
   if (is_debug_info) {
-    cout << string(30, '\n');
-    printf("\x1b[19A");
+    // cout << string(30, '\n');
+    // printf("\x1b[19A");
 
-    cout << "\n"
-       << "total_input_failed:      " << total_input_failed << "\n"
-       << "total_random_VALID:      " << p_oracle->total_rand_valid << " / "
+    cout << "\n\33[2K \n"
+       << "\33[2K total_input_failed:      " << total_input_failed << "\n"
+       << "\33[2K total_random_VALID:      " << p_oracle->total_rand_valid << " / "
        << p_oracle->total_temp << " "
        << p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid << "%\n"
-       << "total_add_to_queue:      " << total_add_to_queue << "\n"
-       << "total_mutate_all_failed: " << total_mutate_all_failed << "\n"
-       << "total_mutate_failed:     " << total_mutate_failed << "\n"
-       << "total_append_failed:     " << total_append_failed << "\n"
-       << "total_cri_valid_stmts:   "
+       << "\33[2K total_add_to_queue:      " << total_add_to_queue << "\n"
+       << "\33[2K total_mutate_all_failed: " << total_mutate_all_failed << "\n"
+       << "\33[2K total_mutate_failed:     " << total_mutate_failed << "\n"
+       << "\33[2K total_append_failed:     " << total_append_failed << "\n"
+       << "\33[2K total_cri_valid_stmts:   "
        << g_mutator.get_cri_valid_collection_size() << "\n"
-       << "total_valid_stmts:       " << g_mutator.get_valid_collection_size()
+       << "\33[2K total_valid_stmts:       " << g_mutator.get_valid_collection_size()
        << "\n"
-       << "total bad queries:       " << debug_error << " / "
+       << "\33[2K total bad queries:       " << debug_error << " / "
        << debug_error + debug_good << " ("
        << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
-       << "postgre_execute_ok:      " << postgre_execute_ok << "\n"
-       << "postgre_execute_error:   " << postgre_execute_error << "\n"
-       << "postgre_execute_total:   " << postgre_execute_total << "\n"
-       << "total_mutate_failed:     " << std::to_string(float(total_mutate_failed) / float(total_mutate_num) * 100.0) << ": " << total_mutate_failed << " / " 
+       << "\33[2K postgre_execute_ok:      " << postgre_execute_ok << "\n"
+       << "\33[2K postgre_execute_error:   " << postgre_execute_error << "\n"
+       << "\33[2K postgre_execute_total:   " << postgre_execute_total << "\n"
+       << "\33[2K total_mutate_failed:     " << std::to_string(float(total_mutate_failed) / float(total_mutate_num) * 100.0) << ": " << total_mutate_failed << " / "
        <<  total_mutate_num << "\n"
-       << "num_valid:               " << num_valid << "\n"
-       << "num_parse:               " << num_parse << "\n"
-       << "num_mutate_all:          " << num_mutate_all << "\n"
-       << "num_reparse:             " << num_reparse << "\n"
-       << "num_append:              " << num_append << "\n"
-       << "num_validate:            " << num_validate << endl;
+       << "\33[2K num_valid:               " << num_valid << "\n"
+       << "\33[2K num_parse:               " << num_parse << "\n"
+       << "\33[2K num_mutate_all:          " << num_mutate_all << "\n"
+       << "\33[2K num_reparse:             " << num_reparse << "\n"
+       << "\33[2K num_append:              " << num_append << "\n"
+       << "\33[2K num_validate:            " << num_validate << endl;
   }
 
   return;
@@ -4185,8 +4185,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
   if (is_str_empty(query_str))
     return keeping; // return 0; Empty string. Not added.
 
-  string stripped_query_string =
-      p_oracle->remove_oracle_select_stmt_from_str(query_str);
+  string stripped_query_string = query_str;
+      // p_oracle->remove_oracle_select_stmt_from_str(query_str);
   if (is_str_empty(stripped_query_string))
     return keeping;
 
@@ -6312,7 +6312,7 @@ static u8 fuzz_one(char **argv)
   IR* cur_root;
   cur_root = ir_set.back();
 
-  // p_oracle->remove_oracle_select_stmts_from_ir(ir_set.back());
+  p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
   // cerr << "After initial parsing, the imported input is: \n" << ir_set.back()->to_string() << "\n\n\n";
