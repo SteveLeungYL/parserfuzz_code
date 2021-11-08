@@ -10130,6 +10130,17 @@ DropStmt:
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp1->get_object_type()) {
+        case 0: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
+        case 1: tmp2->set_any_name_list_type(kDataSequenceName, kUndefine); break;
+        case 2: tmp2->set_any_name_list_type(kDataViewName, kUndefine); break;
+        case 3: tmp2->set_any_name_list_type(kDataViewName, kUndefine); break;
+        case 4: tmp2->set_any_name_list_type(kDataIndexName, kUndefine); break;
+        case 5: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
+        case 7: tmp2->set_any_name_list_type(kDataConversionName, kUndefine); break;
+        default: break;
+        }
     }
 
     | DROP object_type_any_name any_name_list opt_drop_behavior {
@@ -10141,6 +10152,17 @@ DropStmt:
         res = new IR(kDropStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp1->get_object_type()) {
+        case 0: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
+        case 1: tmp2->set_any_name_list_type(kDataSequenceName, kUndefine); break;
+        case 2: tmp2->set_any_name_list_type(kDataViewName, kUndefine); break;
+        case 3: tmp2->set_any_name_list_type(kDataViewName, kUndefine); break;
+        case 4: tmp2->set_any_name_list_type(kDataIndexName, kUndefine); break;
+        case 5: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
+        case 7: tmp2->set_any_name_list_type(kDataConversionName, kUndefine); break;
+        default: break;
+        }
     }
 
     | DROP drop_type_name IF_P EXISTS name_list opt_drop_behavior {

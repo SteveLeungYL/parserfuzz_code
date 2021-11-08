@@ -264,6 +264,7 @@ public:
   bool set_rolelist_type(DATATYPE, DATAFLAG);
 
   bool add_drop_is_add();
+  int get_object_type();
 
 };
 

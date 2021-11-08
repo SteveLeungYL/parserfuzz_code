@@ -528,3 +528,23 @@ bool IR::add_drop_is_add(){
     return false;
   }
 }
+
+int IR::get_object_type() {
+  assert(this->get_ir_type() == kObjectTypeAnyName);
+
+  if (!strncmp(this->get_prefix(), "TABLE", 5)) return 0;
+  else if (!strncmp(this->get_prefix(), "SEQUENCE", 8)) return 1;
+  else if (!strncmp(this->get_prefix(), "VIEW", 4)) return 2;
+  else if (!strncmp(this->get_prefix(), "MATERIALIZED VIEW", 17)) return 3;
+  else if (!strncmp(this->get_prefix(), "INDEX", 5)) return 4;
+  else if (!strncmp(this->get_prefix(), "FOREIGN TABLE", 13)) return 5;
+  else if (!strncmp(this->get_prefix(), "COLLATION", 9)) return 6;
+  else if (!strncmp(this->get_prefix(), "CONVERSION", 10)) return 7;
+  else if (!strncmp(this->get_prefix(), "STATISTICS", 10)) return 8;
+  else if (!strncmp(this->get_prefix(), "TEXT SEARCH PARSER", 18)) return 9;
+  else if (!strncmp(this->get_prefix(), "TEXT SEARCH DICTIONARY", 22)) return 10;
+  else if (!strncmp(this->get_prefix(), "TEXT SEARCH TEMPLATE", 20)) return 11;
+  else if (!strncmp(this->get_prefix(), "TEXT SEARCH CONFIGURATION", 25)) return 12;
+  else return -1;
+
+}
