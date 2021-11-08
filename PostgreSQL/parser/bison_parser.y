@@ -13839,11 +13839,11 @@ ReindexStmt:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        switch (tmp2->get_reindex_target_type()) {
-        case 2: tmp3->set_qualified_name_type(kDataSchemaName, kUse); break;
-        case 3: tmp3->set_qualified_name_type(kDataSystemName, kUse); break;
-        case 4: tmp3->set_qualified_name_type(kDataDatabaseName, kUse); break;
-        default: break;
+        switch (tmp1->get_reindex_target_type()) {
+            case 2: tmp3->set_iden_type(kDataSchemaName, kUse); break;
+            case 3: tmp3->set_iden_type(kDataSystemName, kUse); break;
+            case 4: tmp3->set_iden_type(kDataDatabaseName, kUse); break;
+            default: break;
         }
     }
 
@@ -13861,9 +13861,9 @@ ReindexStmt:
         $$ = res;
         
         switch (tmp2->get_reindex_target_type()) {
-        case 0: tmp4->set_qualified_name_type(kDataIndexName, kUse); break;
-        case 1: tmp4->set_qualified_name_type(kDataTableName, kUse); break;
-        default: break;
+            case 0: tmp4->set_qualified_name_type(kDataIndexName, kUse); break;
+            case 1: tmp4->set_qualified_name_type(kDataTableName, kUse); break;
+            default: break;
         }
     }
 
@@ -13883,10 +13883,10 @@ ReindexStmt:
         $$ = res;
 
         switch (tmp2->get_reindex_target_type()) {
-        case 2: tmp4->set_qualified_name_type(kDataSchemaName, kUse); break;
-        case 3: tmp4->set_qualified_name_type(kDataSystemName, kUse); break;
-        case 4: tmp4->set_qualified_name_type(kDataDatabaseName, kUse); break;
-        default: break;
+            case 2: tmp4->set_iden_type(kDataSchemaName, kUse); break;
+            case 3: tmp4->set_iden_type(kDataSystemName, kUse); break;
+            case 4: tmp4->set_iden_type(kDataDatabaseName, kUse); break;
+            default: break;
         }
     }
 
@@ -14313,7 +14313,7 @@ RenameStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataIndexName, kUndefine);
-        tmp2->set_qualified_name_type(kDataIndexName, kDefine);
+        tmp2->set_iden_type(kDataIndexName, kDefine);
     }
 
     | ALTER INDEX IF_P EXISTS qualified_name RENAME TO name {
@@ -14326,7 +14326,7 @@ RenameStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataIndexName, kUndefine);
-        tmp2->set_qualified_name_type(kDataIndexName, kDefine);
+        tmp2->set_iden_type(kDataIndexName, kDefine);
     }
 
     | ALTER FOREIGN TABLE relation_expr RENAME TO name {
