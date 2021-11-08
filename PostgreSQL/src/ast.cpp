@@ -498,6 +498,29 @@ bool IR::set_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
 
 }
 
+
+bool IR::set_insert_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
+
+  assert(this->get_ir_type() == kInsertColumnList);
+
+  IR* insert_column_elem_ir = NULL;
+  if (this->get_right()) {
+    insert_column_elem_ir = this->get_right();
+  } else {
+    insert_column_elem_ir = this->get_left();
+  }
+  IR* iden = insert_column_elem_ir->get_left();
+  iden->set_iden_type(data_type, data_flag);
+
+  /* This is a list, iterate all the columnElem possible.  */
+  if (this->get_right()) {
+    return this->get_left()->set_insert_columnlist_type(data_type, data_flag);
+  }
+
+  return true;
+
+}
+
 bool IR::set_rolelist_type(DATATYPE data_type, DATAFLAG data_flag) {
   assert(this->get_ir_type() == kRoleList);
 

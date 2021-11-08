@@ -17898,6 +17898,8 @@ insert_rest:
         res = new IR(kInsertRest, OP3("(", ")", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_insert_columnlist_type(kDataColumnName, kUse);
     }
 
     | '(' insert_column_list ')' OVERRIDING override_kind VALUE_P SelectStmt {
@@ -17909,6 +17911,8 @@ insert_rest:
         res = new IR(kInsertRest, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_insert_columnlist_type(kDataColumnName, kUse);
     }
 
     | DEFAULT VALUES {
@@ -18020,6 +18024,8 @@ opt_conf_expr:
         res = new IR(kOptConfExpr, OP3("ON CONSTRAINT", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataConstraintName, kUse);
     }
 
     | /*EMPTY*/ {
