@@ -6554,6 +6554,7 @@ create_as_target:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataTableName, kDefine);
+        tmp2->set_opt_columnlist_type(kDataColumnName, kDefine);
     }
 
 ;
