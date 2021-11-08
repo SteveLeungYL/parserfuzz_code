@@ -3198,6 +3198,7 @@ AlterTableStmt:
         $$ = res;
 
         tmp1->set_iden_type(kDataTableSpaceName, kUse);
+        tmp2->set_rolelist_type(kDataRoleName, kUse);
         tmp3->set_iden_type(kDataTableSpaceName, kUse);
     }
 
@@ -14221,6 +14222,9 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER INDEX", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataIndexName, kUndefine);
+        tmp2->set_qualified_name_type(kDataIndexName, kDefine);
     }
 
     | ALTER INDEX IF_P EXISTS qualified_name RENAME TO name {
@@ -14231,6 +14235,9 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER INDEX IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataIndexName, kUndefine);
+        tmp2->set_qualified_name_type(kDataIndexName, kDefine);
     }
 
     | ALTER FOREIGN TABLE relation_expr RENAME TO name {
@@ -14709,6 +14716,9 @@ AlterObjectDependsStmt:
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataIndexName, kUse);
+        tmp8->set_iden_type(kDataExtensionName, kUse);
     }
 
 ;
