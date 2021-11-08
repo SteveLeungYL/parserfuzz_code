@@ -10,7 +10,6 @@
 #include "../AFL/debug.h"
 
 #include "../parser/parser_for_sqlright.h"
-
 #include <sys/resource.h>
 #include <sys/time.h>
 
@@ -38,6 +37,8 @@ map<string, int> Mutator::m_column2datatype;   // Column name mapping to column 
 vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
+
+vector<string> Mutator::v_aggregate_func;
 
 //#define GRAPHLOG
 
@@ -314,6 +315,13 @@ void Mutator::init_library() {
   storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE> ("user_catalog_table", DEF_ARG_TYPE::boolean));
 
   this->m_reloption[kCreateStmt] = storage_parameter_pair;
+
+  /* added the supported aggregate functons.  */
+  this->v_aggregate_func.push_back("SUM");
+  this->v_aggregate_func.push_back("COUNT");
+  this->v_aggregate_func.push_back("MAX");
+  this->v_aggregate_func.push_back("MIN");
+  this->v_aggregate_func.push_back("AVG");
 
 }
 
@@ -726,6 +734,8 @@ void Mutator::_extract_struct(IR *root) {
 
   if (root->get_data_flag() == kNoModi) {return;}
 
+  if (root->get_data_type() == kDataFunctionName) {return;}
+
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
     return;
 
@@ -1113,7 +1123,11 @@ static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
 void
 Mutator::fix_preprocessing(IR *stmt_root,
                      vector<IR*> &ordered_all_subquery_ir) {
-  set<DATATYPE> type_to_fix = {kDataColumnName, kDataTableName, kDataPragmaKey, kDataPragmaValue, kDataLiteral, kDataRelOption, kDataIndexName};
+  set<DATATYPE> type_to_fix = {
+    kDataColumnName, kDataTableName, kDataPragmaKey,
+    kDataPragmaValue, kDataLiteral, kDataRelOption,
+    kDataIndexName, kDataFunctionName
+  };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
@@ -1459,7 +1473,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
-    /* Fix for reloptions. (Related options. ) */
+    /* Fix for reloptions. (Related options. ) and function names.  */
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_data_type() == kDataRelOption) {
         vector<pair<string, DEF_ARG_TYPE>>& v_reloption = this->m_reloption[cur_stmt_root->get_ir_type()];
@@ -1541,7 +1555,25 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         ir_to_deep_drop.push_back(ir_to_fix);
 
       }
+
+      /* Fixing for functions.  */
+      if (ir_to_fix->get_data_type() == kDataFunctionName) {
+        if (ir_to_fix->get_data_flag() == kNoModi) {
+          continue;
+        }
+
+        string cur_func_str = ir_to_fix->get_str_val();
+
+        for (string aggr_func : v_aggregate_func) {
+          if (findStringIn(cur_func_str, aggr_func) || cur_func_str == "x") {
+            /* This is a aggregate function. Randomly change it to another functions.  */
+            ir_to_fix->set_str_val(v_aggregate_func[get_rand_int(v_aggregate_func.size())]);
+            break;
+          }
+        }
+      }
     }
+
 
     /* TODO:: Support for Aliases. */
 

@@ -210,6 +210,8 @@ public:
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
 
+  static vector<string> v_aggregate_func;
+
   // added by vancir
   map<unsigned long, bool> norec_hash;
   vector<string *> all_valid_pstr_vec;
