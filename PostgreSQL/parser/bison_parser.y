@@ -13793,6 +13793,12 @@ ReindexStmt:
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp1->get_reindex_target_type()) {
+        case 0: tmp3->set_qualified_name_type(kDataIndexName, kUse); break;
+        case 1: tmp3->set_qualified_name_type(kDataTableName, kUse); break;
+        default: break;
+        }
     }
 
     | REINDEX reindex_target_multitable opt_concurrently name {
@@ -13806,6 +13812,13 @@ ReindexStmt:
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp2->get_reindex_target_type()) {
+        case 2: tmp7->set_qualified_name_type(kDataSchemaName, kUse); break;
+        case 3: tmp7->set_qualified_name_type(kDataSystemName, kUse); break;
+        case 4: tmp7->set_qualified_name_type(kDataDatabaseName, kUse); break;
+        default: break;
+        }
     }
 
     | REINDEX '(' utility_option_list ')' reindex_target_type opt_concurrently qualified_name {
@@ -13820,6 +13833,12 @@ ReindexStmt:
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+        
+        switch (tmp2->get_reindex_target_type()) {
+        case 0: tmp7->set_qualified_name_type(kDataIndexName, kUse); break;
+        case 1: tmp7->set_qualified_name_type(kDataTableName, kUse); break;
+        default: break;
+        }
     }
 
     | REINDEX '(' utility_option_list ')' reindex_target_multitable opt_concurrently name {
@@ -13836,6 +13855,13 @@ ReindexStmt:
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp2->get_reindex_target_type()) {
+        case 2: tmp7->set_qualified_name_type(kDataSchemaName, kUse); break;
+        case 3: tmp7->set_qualified_name_type(kDataSystemName, kUse); break;
+        case 4: tmp7->set_qualified_name_type(kDataDatabaseName, kUse); break;
+        default: break;
+        }
     }
 
 ;

@@ -571,3 +571,16 @@ int IR::get_object_type() {
   else return -1;
 
 }
+
+int IR::get_reindex_target_type() {
+  assert(this->get_ir_type() == kReindexTargetType ||
+        this->get_ir_type() == kReindexTargetMultitable);
+
+  if (!strncmp(this->get_prefix(), "INDEX", 5)) return 0;
+  else if (!strncmp(this->get_prefix(), "TABLE", 5)) return 1;
+  else if (!strncmp(this->get_prefix(), "SCHEMA", 6)) return 2;
+  else if (!strncmp(this->get_prefix(), "SYSTEM", 6)) return 3;
+  else if (!strncmp(this->get_prefix(), "DATABASE", 8)) return 4;
+  else return -1;
+
+}

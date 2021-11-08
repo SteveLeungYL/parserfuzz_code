@@ -266,6 +266,7 @@ public:
 
   bool add_drop_is_add();
   int get_object_type();
+  int get_reindex_target_type();
 
 };
 
