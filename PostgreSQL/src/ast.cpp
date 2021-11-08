@@ -479,6 +479,27 @@ bool IR::set_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
 
 }
 
+bool IR::set_rolelist_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kRoleList);
+
+  IR* role_spec_ir = NULL;
+  if (this->get_right()) {
+    role_spec_ir = this->get_right();
+  } else {
+    role_spec_ir = this->get_left();
+  }
+  IR* iden = role_spec_ir->get_left();
+  iden->set_iden_type(data_type, data_flag);
+
+  /* This is a list, iterate all the columnElem possible.  */
+  if (this->get_right()) {
+    return this->get_left()->set_rolelist_type(data_type, data_flag);
+  }
+
+  return true;
+
+}
+
 bool IR::add_drop_is_add(){
   assert(this->get_ir_type() == kAddDrop);
 

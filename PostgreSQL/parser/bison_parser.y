@@ -2216,9 +2216,8 @@ AlterGroupStmt:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        if (tmp2->add_drop_is_add()) {
-            printf("This is add");
-        }
+        tmp1->set_iden_type(kDataGroupName, kUse);
+        tmp3->set_rolelist_type(kDataUserName, kUse);
     }
 
 ;
@@ -13986,6 +13985,9 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER GROUP", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataRoleName, kUndefine);
+        tmp2->set_iden_type(kDataRoleName, kDefine);
     }
 
     | ALTER opt_procedural LANGUAGE name RENAME TO name {
