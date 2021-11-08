@@ -1903,6 +1903,8 @@ AlterOptRoleElem:
         res = new IR(kAlterOptRoleElem, OP3("USER", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUse);
     }
 
     | IDENT {
@@ -1957,6 +1959,8 @@ CreateOptRoleElem:
         res = new IR(kCreateOptRoleElem, OP3("ADMIN", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUse);
     }
 
     | ROLE role_list {
@@ -1964,6 +1968,8 @@ CreateOptRoleElem:
         res = new IR(kCreateOptRoleElem, OP3("ROLE", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUse);
     }
 
     | IN_P ROLE role_list {
@@ -1971,6 +1977,8 @@ CreateOptRoleElem:
         res = new IR(kCreateOptRoleElem, OP3("IN ROLE", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUse);
     }
 
     | IN_P GROUP_P role_list {
@@ -1978,6 +1986,8 @@ CreateOptRoleElem:
         res = new IR(kCreateOptRoleElem, OP3("IN GROUP", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_rolelist_type(kDataRoleName, kUse);
     }
 
 ;
@@ -2194,6 +2204,8 @@ CreateGroupStmt:
         res = new IR(kCreateGroupStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataGroupName, kNoModi);
     }
 
 ;
