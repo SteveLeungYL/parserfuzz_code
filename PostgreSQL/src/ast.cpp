@@ -418,6 +418,26 @@ bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
+bool IR::set_qualified_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kQualifiedNameList);
+
+  IR* qualified_name_ir = NULL;
+  if (this->get_right()) {
+    qualified_name_ir = this->get_right();
+  } else {
+    qualified_name_ir = this->get_left();
+  }
+  IR* iden = qualified_name_ir->get_left();
+  iden->set_iden_type(data_type, data_flag);
+
+  if (this->get_right()) {
+    return this->get_left()->set_qualified_name_list_type(data_type, data_flag);
+  }
+
+  return true;
+}
+
+
 bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
   // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
   assert(this->get_ir_type() == kIdentifier);

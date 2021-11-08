@@ -5416,6 +5416,8 @@ ColConstraint:
         res = new IR(kColConstraint, OP3("CONSTRAINT", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataConstraintName, kUse);
     }
 
     | ColConstraintElem {
@@ -5765,6 +5767,8 @@ ConstraintElem:
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_columnlist_type(kDataColumnName, kUse);
     }
 
     | UNIQUE ExistingIndex ConstraintAttributeSpec {
@@ -5790,6 +5794,8 @@ ConstraintElem:
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_columnlist_type(kDataColumnName, kUse);
     }
 
     | PRIMARY KEY ExistingIndex ConstraintAttributeSpec {
@@ -5841,6 +5847,10 @@ ConstraintElem:
         res = new IR(kConstraintElem, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_columnlist_type(kDataColumnName, kUse);
+        tmp2->set_qualified_name_type(kDataTableName, kUse);
+        tmp3->set_opt_columnlist_type(kDataColumnName, kUse);
     }
 
 ;
@@ -6137,6 +6147,8 @@ OptInherit:
         res = new IR(kOptInherit, OP3("INHERITS (", ")", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_list_type(kDataTableName, kUse);
     }
 
     | /*EMPTY*/ {
@@ -6369,6 +6381,8 @@ ExistingIndex:
         res = new IR(kExistingIndex, OP3("USING INDEX", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataIndexName, kUse);
     }
 
 ;
@@ -20253,6 +20267,8 @@ func_alias_clause:
         res = new IR(kFuncAliasClause, OP3("AS", "(", ")"), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataAliasName, kDefine);
     }
 
     | ColId '(' TableFuncElementList ')' {
@@ -20263,6 +20279,8 @@ func_alias_clause:
         res = new IR(kFuncAliasClause, OP3("", "(", ")"), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataAliasName, kDefine);
     }
 
     | /*EMPTY*/ {
@@ -20766,6 +20784,8 @@ xmltable_column_el:
         res = new IR(kXmltableColumnEl, OP3("", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
     | ColId Typename xmltable_column_option_list {
@@ -20779,6 +20799,8 @@ xmltable_column_el:
         res = new IR(kXmltableColumnEl, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
     | ColId FOR ORDINALITY {
@@ -20788,6 +20810,8 @@ xmltable_column_el:
         res = new IR(kXmltableColumnEl, OP3("", "FOR ORDINALITY", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
 ;
