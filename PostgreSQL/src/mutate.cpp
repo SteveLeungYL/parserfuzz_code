@@ -2247,6 +2247,11 @@ void Mutator::add_all_to_library(string whole_query_str,
     current_query += ";";
     // check the validity of the IR here
     // The unique_id_in_tree_ variable are being set inside the parsing func.
+
+    /* Debug */
+    cerr << "In initial library: getting current_query: " << current_query << "\n";
+
+
     vector<IR *> ir_set = parse_query_str_get_ir_set(current_query);
     if (ir_set.size() == 0)
       continue;

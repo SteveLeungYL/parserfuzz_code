@@ -313,10 +313,11 @@ vector<IR*> IRWrapper::get_stmtmulti_IR_vec(){
 
     vector<IR*> res_stmt_list_v;
     for (auto iter = stmt_list_v.rbegin(); iter != stmt_list_v.rend(); iter++) {
-        if (*iter == NULL || get_stmt_ir_from_stmtmulti(*iter) == NULL )
-            {continue;}
         res_stmt_list_v.push_back(*iter);
     }
+
+    /* Ignore the last kStmtmulti, the last one is just a semicolon.  */
+    res_stmt_list_v.pop_back();
 
     stmt_list_v.clear();
 
@@ -324,7 +325,7 @@ vector<IR*> IRWrapper::get_stmtmulti_IR_vec(){
     // for (IR* stmtmulti: res_stmt_list_v) {
     //     cerr << stmtmulti->to_string() << "\n";
     // }
-    // cerr << "get_stmtmulti finished. \n";
+    // cerr << "get_stmtmulti finished. \n\n";
 
     return res_stmt_list_v;
 }
@@ -397,6 +398,8 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
 
     int total_num = this->get_stmt_num();
+    if (total_num <= 1) return false;
+    // total_num = total_num - 1;
     return this->append_stmt_at_idx(app_IR_node, total_num);
 
 }
@@ -506,7 +509,10 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
         }
         // cerr << "Debug: 407: stmtlist_vec type: " << get_string_by_ir_type(stmtlist_vec[i]->get_ir_type()) << "\n";
 
-        stmt_vec.push_back(get_stmt_ir_from_stmtmulti(stmtlist_vec[i]));
+        IR* stmt_ir = get_stmt_ir_from_stmtmulti(stmtlist_vec[i]);
+        if (stmt_ir != NULL) {
+            stmt_vec.push_back(stmt_ir);
+        }
     }
     
     // // DEBUG
@@ -514,11 +520,11 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
     // }
 
-    // cerr << "In get_stmt_ir_vec: we have: \n";
-    // for (IR* stmt: stmt_vec) {
-    //     cerr << stmt->to_string() << "\n";
-    // }
-    // cerr << "get_stmt finished. \n";
+    cerr << "In get_stmt_ir_vec: we have: \n";
+    for (IR* stmt: stmt_vec) {
+        cerr << stmt->to_string() << "\n";
+    }
+    cerr << "get_stmt finished. \n";
 
     return stmt_vec;
 }
@@ -951,12 +957,27 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     // cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
 
 
-    if (cur_stmtmulti->get_right() && cur_stmtmulti->get_right()->get_left()
+    if (cur_stmtmulti->get_right()
     ) {
-        return cur_stmtmulti->get_right()->get_left();
-    } else if (cur_stmtmulti->get_left() && cur_stmtmulti->get_left()->get_left()
+
+        if (cur_stmtmulti->get_right()->get_left()) {
+            return cur_stmtmulti->get_right()->get_left();
+        } else {
+            /* Yu: If a stmt has right node, but the right node is an empty stmt, ignored.  */
+            return NULL;
+        }
+
+    } else if (cur_stmtmulti->get_left() && cur_stmtmulti->get_left()->get_ir_type() == kStmt && cur_stmtmulti->get_left()->get_left()
     ) {
+
         return cur_stmtmulti->get_left()->get_left();
+
+    } else if (cur_stmtmulti->get_left() &&
+               cur_stmtmulti->get_left()->get_ir_type() == kTransactionStmtLegacy
+    ) {
+
+        return cur_stmtmulti->get_left();
+
     } else {
         // cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
         return NULL;
