@@ -10,7 +10,18 @@
 
 using namespace std;
 
-enum class VALID_STMT_TYPE_TLP { UNIQ, NORM };
+enum class VALID_STMT_TYPE_TLP {
+AGGR_MIN,
+AGGR_MAX,
+AGGR_COUNT,
+AGGR_SUM,
+AGGR_AVG,
+DISTINCT,
+GROUP_BY,
+HAVING,
+NORMAL,
+TLP_UNKNOWN
+};
 
 class SQL_TLP : public SQL_ORACLE {
 public:
@@ -21,7 +32,7 @@ public:
 
   vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
 
-  string get_template_select_stmts() override { return temp_valid_stmts; };
+  string get_template_select_stmts() override { return temp_valid_stmts[get_rand_int(temp_valid_stmts.size())]; };
 
   string get_oracle_type() override { return this->oracle_type; }
 
@@ -31,16 +42,50 @@ private:
 
 //   string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
 // Postgres need to generate 
-  string temp_valid_stmts = "SELECT * FROM x WHERE x;";
+  vector<string> temp_valid_stmts = {
+    "SELECT * FROM x WHERE x=0;",
+    "SELECT x FROM x WHERE x=0 GROUP BY x;",
+    "SELECT x FROM x WHERE x=0 HAVING x;", // TODO:: Implement HAVING.
+    "SELECT DISTINCT x FROM x=0 WHERE x;",
+    "SELECT MIN(x) FROM x=0 WHERE x;",
+    "SELECT MAX(x) FROM x=0 WHERE x;",
+    "SELECT SUM(x) FROM x=0 WHERE x;",
+    "SELECT AVG(x) FROM x=0 WHERE x;"
+  };
 
   string oracle_type = "TLP";
   string post_fix_temp_UNION_ALL = "SELECT * FROM x WHERE (x=0) UNION ALL SELECT * FROM x WHERE (NOT (x=0)) UNION ALL SELECT * FROM x WHERE ((x=0) IS NULL);" ;
   string post_fix_temp_UNION = "SELECT * FROM x WHERE x=0 UNION SELECT * FROM x WHERE (NOT (x=0)) UNION SELECT * FROM x WHERE ((x=0) IS NULL);" ;
-  // string post_fix_temp = "SELECT SUM(countt) FROM ( SELECT ALL( true ) :: INT as countt FROM v2 ORDER BY ( v1 ) ) as ress;" ;
 
-  VALID_STMT_TYPE_TLP get_valid_type(const string &cur_stmt_str);
+  VALID_STMT_TYPE_TLP get_stmt_TLP_type(IR* cur_stmt);
   void get_v_valid_type(const string &cmd_str,
                                vector<VALID_STMT_TYPE_TLP> &v_valid_type);
+
+  IR* transform_non_aggr(IR*, bool, VALID_STMT_TYPE_TLP);
+  IR* transform_aggr(IR*, bool, VALID_STMT_TYPE_TLP);
+
+  /* Compare helper function */
+  bool compare_norm(COMP_RES &res); /* Handle normal valid stmt: SELECT * FROM
+                                       ...; Return is_err */
+  bool compare_uniq(COMP_RES &res); /* Handle results that is unique. Count row numbers, but results from the first stmt need to be unique. */
+  bool compare_aggr(COMP_RES &res); /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
+
+  /* If string contains 'GROUP BY' statement,
+   * then set final result to ALL_Error and skip it.
+   */
+  bool is_str_contains_group(const string &input_str);
+
+  /* If string contains aggregate function,
+   * then set final result to ALL_Error and skip it.
+   */
+  bool is_str_contains_aggregate(const string &input_str);
+
+
+  string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (v0);";
+  string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (v0);";
+  string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (v0);";
+  string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (v0);";
+  string trans_outer_AVG_tmp_str = "SELECT SUM(s)/SUM(c) FROM (v0);";
 };
 
 #endif
