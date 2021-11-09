@@ -6156,6 +6156,10 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
   }
 
   // cerr << "DEBUG: v_oracle_select_stmts.size() is: " << v_oracle_select_stmts.size() << ". \n";
+  // for (IR* v_oracle_select : v_oracle_select_stmts) {
+  //   cerr << "DEBUG: Getting oracle select: " << v_oracle_select->to_string() << "\n";
+  // }
+  // cerr << "\n\n\n";
   return;
 }
 
@@ -6406,6 +6410,8 @@ static u8 fuzz_one(char **argv)
     for (IR* app_IR_node : v_oracle_select_stmts) {
       p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
       p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
+      // cerr << "Appending stmt: " << cur_ir_tree.back()->to_string() << "\n\n\n";
+      // cerr << "v_oracle_select_stmts size(): " << v_oracle_select_stmts.size() << "\n\n\n";
     }
 
     // cerr << "Just after appending the stmt, the statement is: \n" << cur_ir_tree.back()->to_string() << endl;
@@ -6425,12 +6431,18 @@ static u8 fuzz_one(char **argv)
 
     // pre_fix_transformation from the oracle. 
     vector<STMT_TYPE> stmt_type_vec;
-    vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied. 
+    vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
+
+    // /* Debug  */
+    // cerr << "Just gone through pre_fix_transform, we have: \n";
+    // for (IR* cur_trans: all_pre_trans_vec) {
+    //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+    // }
+    // cerr << "Pre-fix transform end. \n\n\n";
 
     // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
 
     /* Build dependency graph, fix ir node, fill in concret values */
-    bool is_valid_succeed = true;
     for (IR* cur_trans_stmt : all_pre_trans_vec) {
       if(!g_mutator.validate(cur_trans_stmt)) { 
         // cerr << "Error: g_mutator.validate returns errors. \n";
@@ -6438,20 +6450,19 @@ static u8 fuzz_one(char **argv)
       }
     }
 
-    if (!is_valid_succeed) {
-      continue;
-    }
-
     /* post_fix_transformation from the oracle. All deep_copied. */
     vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
 
     for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
-      // Join the post_transformed statements into the IR tree. Easier to free memory later. 
-      // IR* cur_run_root = cur_root->deep_copy();
-      // if(!g_mutator.finalize_transform(cur_run_root, all_post_trans_vec)){
-      //   cerr << "Error: g_mutator.finalize_transform() function return error. Abort current query sequence. \n";
-      //   FATAL("g_mutator.finalize_transform failed. ");
+
+      // /* Debug */
+      // cerr << "After post-fix, we have: \n";
+      // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
+      //   for (IR* cur_post: cur_post_trans) {
+      //     cerr << "cur_post: " << cur_post->to_string() << "\n";
+      //   }
       // }
+      // cerr << "Post-fix Done. \n";
 
       // Final step, transform IR tree to string. Add marker to important statements. 
       pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
@@ -6512,7 +6523,8 @@ static u8 fuzz_one(char **argv)
       //   continue;
       // }
 
-      // cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str << "\n";
+      // if (query_str_vec.size() > 0)
+      //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
 
       if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
       {

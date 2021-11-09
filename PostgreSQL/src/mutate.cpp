@@ -984,6 +984,9 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
     if (post_trans_stmt_vec.size() > 0){
       all_post_trans_vec.push_back(post_trans_stmt_vec);
     } else {
+      /* Debug */
+      // cerr << "DEBUG: stmt: " << cur_pre_trans_ir->to_string() << " returns empty. \n";
+
       v_stmt_to_rov.push_back(i);
     }
   }
@@ -1556,22 +1559,23 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
       }
 
-      /* Fixing for functions.  */
-      if (ir_to_fix->get_data_type() == kDataFunctionName) {
-        if (ir_to_fix->get_data_flag() == kNoModi) {
-          continue;
-        }
+      /* Dont' fix for functions for now.  */
+      // /* Fixing for functions.  */
+      // if (ir_to_fix->get_data_type() == kDataFunctionName) {
+      //   if (ir_to_fix->get_data_flag() == kNoModi) {
+      //     continue;
+      //   }
 
-        string cur_func_str = ir_to_fix->get_str_val();
+      //   string cur_func_str = ir_to_fix->get_str_val();
 
-        for (string aggr_func : v_aggregate_func) {
-          if (findStringIn(cur_func_str, aggr_func) || cur_func_str == "x") {
-            /* This is a aggregate function. Randomly change it to another functions.  */
-            ir_to_fix->set_str_val(v_aggregate_func[get_rand_int(v_aggregate_func.size())]);
-            break;
-          }
-        }
-      }
+      //   for (string aggr_func : v_aggregate_func) {
+      //     if (findStringIn(cur_func_str, aggr_func) || cur_func_str == "x") {
+      //       /* This is a aggregate function. Randomly change it to another functions.  */
+      //       ir_to_fix->set_str_val(v_aggregate_func[get_rand_int(v_aggregate_func.size())]);
+      //       break;
+      //     }
+      //   }
+      // }
     }
 
 
@@ -2249,7 +2253,7 @@ void Mutator::add_all_to_library(string whole_query_str,
     // The unique_id_in_tree_ variable are being set inside the parsing func.
 
     /* Debug */
-    cerr << "In initial library: getting current_query: " << current_query << "\n";
+    // cerr << "In initial library: getting current_query: " << current_query << "\n";
 
 
     vector<IR *> ir_set = parse_query_str_get_ir_set(current_query);

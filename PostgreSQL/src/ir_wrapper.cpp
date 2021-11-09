@@ -520,11 +520,11 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
     // }
 
-    cerr << "In get_stmt_ir_vec: we have: \n";
-    for (IR* stmt: stmt_vec) {
-        cerr << stmt->to_string() << "\n";
-    }
-    cerr << "get_stmt finished. \n";
+    // cerr << "In get_stmt_ir_vec: we have: \n";
+    // for (IR* stmt: stmt_vec) {
+    //     cerr << stmt->to_string() << "\n";
+    // }
+    // cerr << "get_stmt finished. \n";
 
     return stmt_vec;
 }
