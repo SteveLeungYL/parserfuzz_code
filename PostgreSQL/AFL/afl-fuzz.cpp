@@ -3015,7 +3015,9 @@ inline void print_norec_exec_debug_info()
        << "\33[2K num_mutate_all:          " << num_mutate_all << "\n"
        << "\33[2K num_reparse:             " << num_reparse << "\n"
        << "\33[2K num_append:              " << num_append << "\n"
-       << "\33[2K num_validate:            " << num_validate << endl;
+       << "\33[2K num_validate:            " << num_validate << "\n"
+       << "\33[2K num_ora_select_succeed:  " << p_oracle->num_oracle_select_succeed << "\n"
+       << "\33[2K num_ora_select_mutate:   " << p_oracle->num_oracle_select_mutate << endl;
   }
 
   return;
@@ -6128,7 +6130,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
   int trial = 0;
   int num_norec = 0;
   int max_trial =
-      valid_max_num * 3; // For each norec select stmt, we have on average 3
+      valid_max_num * 10; // For each norec select stmt, we have on average 10
                          // chances to append the stmt and check.
 
   // cerr << "Entering get_oracle_select_stmt func. \n";

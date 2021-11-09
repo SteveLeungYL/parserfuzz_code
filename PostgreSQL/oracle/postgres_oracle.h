@@ -89,6 +89,10 @@ public:
   virtual bool init_ir_wrapper(vector<IR*> ir_vec) {return this->init_ir_wrapper(ir_vec.back());}
   IRWrapper ir_wrapper;
 
+  /* Debug */
+  int num_oracle_select_mutate = 0;
+  int num_oracle_select_succeed = 0;
+
 protected:
   Mutator *g_mutator;
 

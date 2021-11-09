@@ -286,6 +286,7 @@ IR* IRWrapper::get_last_stmtmulti_from_root(IR* cur_root) {
 IR* IRWrapper::get_last_stmt_from_root() {
     IR* last_stmtmulti = this->get_last_stmtmulti_from_root();
     if (last_stmtmulti == NULL) {
+        // cerr << "Getting empty last_stmtmulti;\n";
         return NULL;
     }
 
@@ -903,7 +904,8 @@ vector<IR*> IRWrapper::get_target_el_in_select_target(IR* cur_stmt){
 
     vector<IR*> select_target_list = this->get_ir_node_in_stmt_with_type(cur_stmt, kTargetList, false);
 
-    for (IR* cur_list : select_target_list){
+    if (select_target_list.size() > 0) {
+        IR* cur_list = select_target_list[0];
         if (cur_list->get_right()) {
             res_vec.push_back(cur_list->get_right());
         } else {
@@ -949,17 +951,14 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     // cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
 
 
-    if (cur_stmtmulti->get_right()
+    if (cur_stmtmulti->get_right() && cur_stmtmulti->get_right()->get_left()
     ) {
-        /* kstmtmulti -> stmt -> specific_stmt_type */
         return cur_stmtmulti->get_right()->get_left();
-
-    } else if (cur_stmtmulti->get_left()
+    } else if (cur_stmtmulti->get_left() && cur_stmtmulti->get_left()->get_left()
     ) {
-        /* kstmtmulti ->  stmt -> specific_stmt_type */
         return cur_stmtmulti->get_left()->get_left();
     } else {
-        cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
+        // cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
         return NULL;
     }
 }

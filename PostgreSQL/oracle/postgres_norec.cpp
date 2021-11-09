@@ -8,10 +8,12 @@
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   if (cur_stmt == NULL) {
+    // cerr << "Return false because cur_stmt is NULL; \n";
     return false;
   }
 
   if (cur_stmt->get_ir_type() != kSelectStmt) {
+    // cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
     return false;
   }
 
@@ -19,6 +21,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
   for (IR* group_clause : v_group_clause) {
     if (!group_clause->is_empty()){
+      // cerr << "Return false because of GROUP clause \n";
       return false;
     }
   }
@@ -27,6 +30,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false);
   for (IR* having_clause : v_having_clause) {
     if (!having_clause->is_empty()){
+      // cerr << "Return false because of having clause \n";
       return false;
     }
   }
@@ -34,12 +38,14 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false);
   for (IR* limit_clause : v_limit_clause) {
     if (!limit_clause->is_empty()){
+      // cerr << "Return false because of LIMIT clause \n";
       return false;
     }
   }
 
   // Ignore statements with UNION, EXCEPT and INTERCEPT
   if (ir_wrapper.is_exist_set_operator(cur_stmt)) {
+    // cerr << "Return false because of set operator \n";
     return false;
   }
 
@@ -55,11 +61,13 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     IR* from_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false)[0];
     // The first one should be the parent one.
     if (from_clause->is_empty()) {
+      // cerr << "Return false because FROM clause is empty \n";
       return false;
     }
     IR* where_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0];
     // The first one should be the parent one.
     if (where_clause->is_empty()) {
+      // cerr << "Return false because WHERE clause is empty \n";
       return false;
     }
 
@@ -128,7 +136,12 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
         }
       }
     }
+    // cerr << "Return false because of not found count (*) \n";
+    // cerr << "stmt is: " << cur_stmt->to_string() << "\n\n\n";
+    return false;
   }
+  // cerr << "return false because not found from and where clause. \n";
+  // cerr << "target_el: " << ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) << "\n";
   return false;
 
 }
