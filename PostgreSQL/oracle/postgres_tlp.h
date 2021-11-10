@@ -54,8 +54,6 @@ private:
   };
 
   string oracle_type = "TLP";
-  string post_fix_temp_UNION_ALL = "SELECT * FROM x WHERE (x=0) UNION ALL SELECT * FROM x WHERE (NOT (x=0)) UNION ALL SELECT * FROM x WHERE ((x=0) IS NULL);" ;
-  string post_fix_temp_UNION = "SELECT * FROM x WHERE x=0 UNION SELECT * FROM x WHERE (NOT (x=0)) UNION SELECT * FROM x WHERE ((x=0) IS NULL);" ;
 
   VALID_STMT_TYPE_TLP get_stmt_TLP_type(IR* cur_stmt);
   void get_v_valid_type(const string &cmd_str,
@@ -81,11 +79,11 @@ private:
   bool is_str_contains_aggregate(const string &input_str);
 
 
-  string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (v0);";
-  string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (v0);";
-  string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (v0);";
-  string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (v0);";
-  string trans_outer_AVG_tmp_str = "SELECT SUM(s)/SUM(c) FROM (v0);";
+  string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (SELECT *);";
+  string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (SELECT *);";
+  string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (SELECT *);";
+  string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (SELECT *);";
+  string trans_outer_AVG_tmp_str = "SELECT SUM(s)/SUM(c) FROM (SELECT *);";
 };
 
 #endif

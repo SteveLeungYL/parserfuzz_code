@@ -488,7 +488,7 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   for (IR* group_clause : v_group_clause) {
     if (group_clause->op_ != NULL &&
         group_clause->get_prefix() &&
-        !strcmp(group->get_prefix(), "GROUP BY")
+        !strcmp(group_clause->get_prefix(), "GROUP BY")
     ) {
       default_type_ = VALID_STMT_TYPE_TLP::GROUP_BY;
     }
@@ -561,14 +561,13 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
 
 }
 
-IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
+IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
 
   /* Retrive the kSimpleSelect, that is used to construct the TLP stmt. */
   vector<IR*> src_simple_select_vec_ = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSimpleSelect, false);
   if (src_simple_select_vec_.size() == 0) {
-    first_stmt->deep_drop();
     cerr << "Error: Failed to detect the kSimpleSelect node from the mutated oracle select stmt. Return failure. \n\n\n";
-    vector<IR*> tmp; return tmp;
+    return NULL;
   }
   /* If the logic has no error, should always pick the first one. Deep copid on every used. */
   IR* src_simple_select_ = src_simple_select_vec_[0];
@@ -581,16 +580,15 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
   IR* first_part_TLP = src_simple_select_->deep_copy();
   vector<IR*> v_where_first_stmt = ir_wrapper.get_ir_node_in_stmt_with_type(first_part_TLP, kWhereClause, false);
   if (v_where_first_stmt.size() == 0) {
-    first_stmt->deep_drop();
     first_part_TLP->deep_drop();
     cerr << "Error: Failed to detect the kWhereClause node from the mutated oracle select stmt. Return failure. \n\n\n";
-    vector<IR*> tmp; return tmp;
+    return NULL;
   }
   IR* where_first_stmt_ = v_where_first_stmt[0];
   if (where_first_stmt_->is_empty()) {
-    first_stmt->deep_drop();
     first_part_TLP->deep_drop();
     cerr << "Error: The retrived where_first_stmt_ doesn't have the left_ child node. \n\n\n";
+    return NULL;
   }
   IR* where_first_expr_ = where_first_stmt_->get_left();
 
@@ -634,40 +632,153 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
   operand_0->update_left(where_third_expr_);
 
   /* Finished the third part TLP.  */
-
-  /* Then, reconstruct the whole TLP stmt. */
-
-  vector<IR*> transformed_temp_vec;
-  if (get_valid_type(cur_stmt->to_string()) == VALID_STMT_TYPE_TLP::NORMAL) {
-    transformed_temp_vec = g_mutator->parse_query_str_get_ir_set(this->post_fix_temp_UNION_ALL);
+  cur_stmt = first_part_TLP;
+  if (is_UNION_ALL) {
+    IR* set_operator = new IR(kUnknown, OP3("", "UNION ALL", ""), second_part_TLP, third_part_TLP);
+    set_operator = new IR(kUnknown, OP3("", "UNION ALL", ""), first_part_TLP, set_operator);
+    cur_stmt = set_operator;
   } else {
-    transformed_temp_vec = g_mutator->parse_query_str_get_ir_set(this->post_fix_temp_UNION);
-  }
-  if (transformed_temp_vec.size() == 0) {
-    cerr << "Error: parsing the post_fix_temp from SQL_TLP::post_fix_transform_select_stmt returns empty IR vector. \n";
-    vector<IR*> tmp; return tmp;
+    IR* set_operator = new IR(kUnknown, OP3("", "UNION", ""), second_part_TLP, third_part_TLP);
+    set_operator = new IR(kUnknown, OP3("", "UNION", ""), first_part_TLP, set_operator);
+    cur_stmt = set_operator;
   }
 
-  /* Parse and retrive the IR tree for the TLP template. */
-  IR* ori_transformed_temp_ir = transformed_temp_vec.back();
-  IR* trans_stmt_ir = ir_wrapper.get_first_stmt_from_root(ori_transformed_temp_ir);
-  trans_stmt_ir->parent_ = NULL;
-  ori_transformed_temp_ir->deep_drop();
+  return cur_stmt;
+}
 
-  /* Fill in the three parts of TLP stmt into trans_stmt_ir; */
-  vector<IR*> v_dest_select_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kSelectClause, false);
-  /* For the first part */
-  IR* dest_simple_select_first = v_dest_select_clause[1]->left_;
-  trans_stmt_ir->swap_node(dest_simple_select_first, first_part_TLP);
-  dest_simple_select_first->deep_drop();
 
-  /* For the second part */
-  IR* dest_simple_select_second = v_dest_select_clause[2]->left_;
-  trans_stmt_ir->swap_node(dest_simple_select_second, second_part_TLP);
-  dest_simple_select_second->deep_drop();
+/*
+** Transform original stmt to TLP form. This function is used for SELECT stmt WITH aggregate functions
+** in the SELECT clause.
+** cur_stmt need to be freed outside this function.
+*/
 
-  /* For the third part */
-  IR* dest_simple_select_third = v_dest_select_clause[3]->left_;
-  trans_stmt_ir->swap_node(dest_simple_select_third, third_part_TLP);
-  dest_simple_select_third->deep_drop();
+IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
+  cur_stmt = cur_stmt->deep_copy();
+
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFuncName, false);
+  if (v_aggr_func_ir.size() == 0) {
+    cur_stmt->deep_drop();
+    // cerr << "Error: In SQL_TLP::transform_aggr, cannot find kFuncName. \n";
+    return NULL;
+  }
+
+  IR* aggr_func_ir = v_aggr_func_ir.front();
+
+  if (aggr_func_ir->get_left() == NULL) {
+    cerr << "ERROR: In transform_aggr, the kFuncName IR doesn't have the left sub-node. \n";
+    cur_stmt->deep_drop();
+    return NULL;
+  }
+
+  if (
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN
+  ) {
+
+    /* First of all, check whether there is existing alias name in the stmt */
+    vector<IR*> v_targetel = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetEl, false);
+    if (v_targetel.size() > 0) {
+      IR* targetel = v_targetel.front();
+      if (!strcmp(targetel->get_middle(), "AS")) {
+        /* Found the originally existed matching alias. Change it to aggr*/
+        IR* iden = targetel->get_right();
+        iden -> set_str_val(string("aggr"));
+      }
+      else {
+        /* We cannot find the existing alias, create our own */
+        IR *alias_id = new IR(kIdentifier, string("aggr"), kDataAliasName, 0, kDefine);
+        IR* res = new IR(kTargetEl, OP3("AS", "", ""), alias_id);
+        res = new IR(kTargetEl, OP0(), NULL, res);
+
+        /* Swap and reattach the original targetel */
+        cur_stmt->swap_node(targetel, res);
+        res->update_left(targetel);
+
+        /* Finished modification to the alias, if it is not AVG. */
+      }
+    }
+  } else {
+    /* Fix for VALID_STMT_TYPE_TLP::AGGR_AVG */
+    /* First of all, check whether there is existing alias name in the stmt */
+    vector<IR*> v_targetel = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetEl, false);
+    if (v_targetel.size() > 0) {
+      IR* targetel = v_targetel.front();
+      vector<IR*> v_func_name_ir = ir_wrapper.get_ir_node_in_stmt_with_type(targetel, kFuncName, false);
+      if (v_func_name_ir.size() == 0 ){
+        cerr << "Error: Cannot find kFuncName inside kTargetEl. TLP oracle logic error. \n";
+        cur_stmt->deep_drop();
+        return NULL;
+      }
+      IR* func_name_ir = v_func_name_ir.front();
+
+      IR* res_0 = NULL;
+      IR* res_1 = NULL;
+      if (targetel->target_el_is_exist_alias()) {
+        /* Found the originally existed matching alias. Change it to aggr*/
+        targetel->target_el_set_alias(string("c"));
+        func_name_ir->func_name_set_str("COUNT");
+        res_1 = targetel->deep_copy();
+
+
+        targetel->target_el_set_alias(string("s"));
+        func_name_ir->func_name_set_str("SUM");
+        res_0 = targetel->deep_copy();
+
+        IR* target_list_ir = new IR(kTargetList, OP3("", ",", ""), res_0, res_1);
+        cur_stmt->swap_node(targetel, target_list_ir);
+        targetel->deep_drop();
+
+      } else {
+        /* Cannot find existing alias, create our own */
+        func_name_ir->func_name_set_str("SUM");
+
+        IR *alias_id_0 = new IR(kIdentifier, string("s"), kDataAliasName, 0, kDefine);
+        res_0 = new IR(kTargetEl, OP3("AS", "", ""), alias_id_0);
+        res_0 = new IR(kTargetEl, OP0(), targetel->deep_copy(), res_0);
+
+
+        func_name_ir->func_name_set_str("COUNT");
+        IR *alias_id_1 = new IR(kIdentifier, string("c"), kDataAliasName, 0, kDefine);
+        res_1 = new IR(kTargetEl, OP3("AS", "", ""), alias_id_1);
+        res_1 = new IR(kTargetEl, OP0(), targetel->deep_copy(), res_1);
+
+
+        IR* target_list_ir = new IR(kTargetList, OP3("", ",", ""), res_0, res_1);
+        cur_stmt->swap_node(targetel, target_list_ir);
+        targetel->deep_drop();
+
+      }
+    }
+
+    /* Fix for aggregate function AVG completed. */
+  }
+
+  IR* cur_stmt_inner = transform_non_aggr(cur_stmt, is_UNION_ALL, tlp_type);
+  /* Finished generating inner stmt. Deep drop. */
+  cur_stmt->deep_drop();
+
+   /* Fill in SELECT AGGR(aggr) from (inner stmt) */
+  IR* cur_stmt_outer;
+  if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_SUM_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MIN_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MAX_tmp_str).back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_AVG) {
+    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_AVG_tmp_str).back();
+  }
+
+  IR* ori_outer_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_outer, kSelectNoParens, true).front();
+
+  cur_stmt_outer->swap_node(ori_outer_expr, cur_stmt_inner);
+  ori_outer_expr->deep_drop();
+
+  return cur_stmt_outer;
+
 }

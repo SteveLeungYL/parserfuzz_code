@@ -603,3 +603,32 @@ int IR::get_reindex_target_type() {
   else return -1;
 
 }
+
+bool IR::target_el_is_exist_alias() {
+  assert(get_ir_type() == kTargetEl);
+
+  if(is_empty()) return false;
+  if(!op_) return false;
+
+  if(!strcmp(get_middle(), "AS")) return true;
+
+  return false;
+ 
+}
+bool IR::target_el_set_alias(string in) {
+  assert(target_el_is_exist_alias());
+
+  IR* iden = get_right();
+  iden->set_str_val(string(in));
+
+  return true;
+}
+
+bool IR::func_name_set_str(string in) {
+  assert(get_ir_type() == kFuncName);
+
+  IR* iden = get_left();
+  iden->set_str_val(in);
+
+  return true;
+}
