@@ -678,7 +678,7 @@ COLTYPE IR::typename_ir_get_type() {
 
   if (sub_typename_ir->get_ir_type() == kNumeric) {
     string prefix_str = sub_typename_ir->get_prefix();
-    cerr << "DEBUG:: Prefix string: " << prefix_str << "\n\n\n";
+    // cerr << "DEBUG:: Prefix string: " << prefix_str << "\n\n\n";
     if (findStringIn(prefix_str, "INT")) {
       return COLTYPE::INT_T;
     } else if (findStringIn(prefix_str, "BOOL")) {
