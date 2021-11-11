@@ -24375,6 +24375,8 @@ indirection_el:
         res = new IR(kIndirectionEl, OP3(".", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
     | '.' '*' {
