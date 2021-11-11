@@ -49,6 +49,24 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
+
+  vector<IR*> v_target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetList, false);
+
+  if (v_target_list_ir.size() == 0) return false;
+
+  IR* target_list_ir = v_target_list_ir.front();
+
+  while ( target_list_ir->get_ir_type() == kTargetList && target_list_ir->get_right()) {
+    /* Clean all the extra select target clauses, only leave the first one untouched.
+     * If this is the first kTargetList, the right sub-node should be empty.
+     * */
+    target_list_ir->replace_op(OP0());
+    IR* extra_targetel_ir = target_list_ir->get_right();
+    target_list_ir->update_right(NULL);
+    extra_targetel_ir->deep_drop();
+    target_list_ir = target_list_ir->get_left();
+  }
+
   // cerr << "num_target_el: " << ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) << "\n";
 
   if (
