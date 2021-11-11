@@ -437,6 +437,15 @@ bool IR::set_qualified_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
+bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
+
+  /* Set type regardless of the node type. Do not use this unless necessary. */
+  this->set_data_type(data_type);
+  this->set_data_flag(data_flag);
+
+  return true;
+}
+
 
 bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
   // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";

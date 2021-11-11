@@ -1235,7 +1235,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
        * Change it to kDataLiteral, and it would be handled by later kDataLiteral logic.
        * */
       if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kValuesClause)) {
-        ir_to_fix->set_iden_type(kDataLiteral, kFlagUnknown);
+        ir_to_fix->set_type(kDataLiteral, kFlagUnknown);
         continue;
       }
 
@@ -1361,7 +1361,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
        * Change it to kDataLiteral, and it would be handled by later kDataLiteral logic.
        * */
       if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kValuesClause)) {
-        ir_to_fix->set_iden_type(kDataLiteral, kFlagUnknown);
+        ir_to_fix->set_type(kDataLiteral, kFlagUnknown);
         continue;
       }
 

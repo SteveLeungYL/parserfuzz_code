@@ -253,6 +253,7 @@ public:
   /* helper functions for the IR type */
 
   // Return is_succeed.
+  bool set_type(DATATYPE, DATAFLAG); // Set type regardless of its node type.
   bool set_iden_type(DATATYPE, DATAFLAG);
   bool set_qualified_name_type(DATATYPE, DATAFLAG);
   bool set_qualified_name_list_type(DATATYPE, DATAFLAG);
