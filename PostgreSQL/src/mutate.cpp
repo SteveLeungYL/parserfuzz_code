@@ -33,7 +33,7 @@ vector<string> Mutator::v_table_names_single; // All used table names in one que
 vector<string> Mutator::v_create_table_names_single; // All table names just created in the current stmt. 
 vector<string> Mutator::v_alias_names_single; // All alias name local to one query statement.  
 map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping. 
-map<string, int> Mutator::m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_. 
+map<string, COLTYPE> Mutator::m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_.
 vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
@@ -1282,21 +1282,17 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         /* Next, we save the column type to the mapping */
         if (ir_to_fix->data_flag_ == kDefine) {
           /* For normal tables, we need to save its column type. */
-          if (ir_to_fix ->get_parent() ->get_parent()->type_ == kColumnDef) {
-            IR* type_name_ir = ir_to_fix->get_parent()->right_->left_;   // identifier -> kColumnDef(kUnknown) -> type_name -> kNumericType or kCharacterType
-            if (type_name_ir->type_ == kNumericType) { // NumericalType
-              if (type_name_ir->op_ && strcmp(type_name_ir->op_->prefix_, "BOOLEAN") == 0) {
-                m_column2datatype[new_name] = 3;  // boolean
-              } else {
-                m_column2datatype[new_name] = 1;  // numerial
-              }
-            } 
-            else if (type_name_ir->type_ == kCharacterType) {m_column2datatype[new_name] = 2;} // kCharacterType
-            else {m_column2datatype[new_name] = 0;} // Unknown type. 
+          if (ir_to_fix ->get_parent() ->get_right() && ir_to_fix->get_parent()->get_right()->get_ir_type() == kTypename ) {
+
+            IR* typename_ir = ir_to_fix ->get_parent() ->get_right();
+            COLTYPE column_type = typename_ir->typename_ir_get_type();
+
+            m_column2datatype[new_name] = column_type;
+
           }
           /* For view, we don't have the obvious type information. Currently treat it as unknown types. */
           else {
-            m_column2datatype[new_name] = 0; // Unknown data type. 
+            m_column2datatype[new_name] = COLTYPE::UNKNOWN_T; // Unknown data type.
           }
           if (is_debug_info) {
             cerr << "Dependency: For newly declared column: " << new_name << ", we map with type: " << m_column2datatype[new_name] << "\n\n\n";
@@ -1307,7 +1303,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           set<DATATYPE> type_to_search = {kDataColumnName};
           collect_ir(cur_stmt_root, type_to_search, column_name_ir);
           string prev_column_name = column_name_ir[0]->str_val_;
-          int column_data_type = m_column2datatype[prev_column_name];
+          COLTYPE column_data_type = m_column2datatype[prev_column_name];
           m_column2datatype[new_name] = column_data_type;
           if (is_debug_info) {
             cerr << "Dependency: In the context of kReplace column mapping replace, we map the old column name: " << prev_column_name <<
@@ -1436,7 +1432,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->data_type_ == kDataLiteral) {
         cur_literal_idx++;
-        int column_data_type = 0;
+        COLTYPE column_data_type = COLTYPE::UNKNOWN_T;
         if (v_column_names_single.size() > cur_literal_idx) {
           /* For cases like INSERT INTO v0 (c1, c2) VALUES (1, 2); */
           string cur_column_name = v_column_names_single[cur_literal_idx];
@@ -1452,40 +1448,63 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: For fixing literal idx: " << cur_literal_idx << ", no column info found, but found table_name: " << v_table_names_single[0] << ", we choose column_data_type: " << column_data_type << ". \n\n\n";
           }
         } else {
-          column_data_type = 0;
+          column_data_type = COLTYPE::UNKNOWN_T;
           if (is_debug_info) {
             cerr << "Dependency Error: For fixing literal idx: " << cur_literal_idx << ". Cannot find any table or column name that help identify the literal type. Randomly choose now. \n\n\n";
           }
         }
 
-        if (!column_data_type) {column_data_type = (get_rand_int(3) + 1);} // Randomly choose Numerical, Character or Boolean. 
-        if (column_data_type == 1) { //Numbercal
-          /* 50/50 INT or FLOAT */
-          if (get_rand_int(100) < 50){ // INT
-            if (get_rand_int(100) < 50) {
-              if (value_library_.size() == 0) {
-                FATAL("Error: value_library_ is not being init properly. \n");
-              }
-              ir_to_fix->int_val_ = vector_rand_ele(value_library_);
-              ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
-            } else {
-              ir_to_fix->int_val_ = get_rand_int(100);
-              ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
-            }
-          } 
-          else {  // FLOAT
-            ir_to_fix->float_val_ = (double)(get_rand_int(100000000));
-            ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+        if (column_data_type == COLTYPE::UNKNOWN_T) {
+          // Randomly choose Numerical, Character or Boolean.
+          int rand_int = get_rand_int(4);
+          switch (rand_int) {
+            case 0:
+              column_data_type = COLTYPE::INT_T;
+              break;
+            case 1:
+              column_data_type = COLTYPE::FLOAT_T;
+              break;
+            case 2:
+              column_data_type = COLTYPE::BOOLEAN_T;
+              break;
+            case 3:
+              column_data_type = COLTYPE::STRING_T;
+              break;
           }
         }
-        else if (column_data_type == 3){ //Boolean
+
+        /* INT */
+        if (column_data_type == COLTYPE::INT_T){
+          /* 1/2 chances, use value_library, 1/2, use rand_int up to 2147483648 */
+          if (get_rand_int(100) < 50) {
+            if (value_library_.size() == 0) {
+              FATAL("Error: value_library_ is not being init properly. \n");
+            }
+            ir_to_fix->int_val_ = vector_rand_ele(value_library_);
+            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+          } else {
+            ir_to_fix->int_val_ = get_rand_int(2147483647);
+            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+          }
+        }
+
+        /* FLOAT */
+        else if (column_data_type == COLTYPE::FLOAT_T) {  // FLOAT
+          ir_to_fix->float_val_ = (double)(get_rand_int(100000000));
+          ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+        }
+
+        /* BOOLEAN */
+        else if (column_data_type == COLTYPE::BOOLEAN_T){
           if (get_rand_int(100) < 50){
             ir_to_fix->str_val_ = "TRUE";
           } else {
             ir_to_fix->str_val_ = "FALSE";
           }
         }
-        else { // Character
+
+        /* STRING */
+        else {
           ir_to_fix->str_val_ = get_a_string();
         }
       }

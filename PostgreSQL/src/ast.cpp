@@ -652,3 +652,44 @@ bool IR::replace_op(IROperator* op_in) {
   return true;
 
 }
+
+COLTYPE IR::typename_ir_get_type() {
+  assert(get_ir_type() == kTypename);
+
+  IR* simple_typename_ir = get_left();
+  if ( !simple_typename_ir || simple_typename_ir->get_ir_type() != kSimpleTypename) {
+    return COLTYPE::UNKNOWN_T;
+  }
+
+  IR* sub_typename_ir = simple_typename_ir->get_left();
+  if (!simple_typename_ir) {
+    return COLTYPE::UNKNOWN_T;
+  }
+
+  if (sub_typename_ir->get_ir_type() == kNumeric) {
+    string prefix_str = sub_typename_ir->get_prefix();
+    cerr << "DEBUG:: Prefix string: " << prefix_str << "\n\n\n";
+    if (findStringIn(prefix_str, "INT")) {
+      return COLTYPE::INT_T;
+    } else if (findStringIn(prefix_str, "BOOL")) {
+      return COLTYPE::BOOLEAN_T;
+    }
+    else if (
+      findStringIn(prefix_str, "REAL") ||
+      findStringIn(prefix_str, "DOUBLE") ||
+      findStringIn(prefix_str, "DEC") ||
+      findStringIn(prefix_str, "FLOAT")
+    ) {
+      return COLTYPE::FLOAT_T;
+    } else {
+      return COLTYPE::UNKNOWN_T;
+    }
+  } /* Finished for Numeric type */
+
+  /* Support the custom type later. Right now, treat all other types
+   * except Numeric as String type.
+   * */
+  return COLTYPE::STRING_T;
+
+
+}

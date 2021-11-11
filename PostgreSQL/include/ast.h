@@ -24,6 +24,14 @@ enum IRTYPE {
 #undef DECLARE_TYPE
 };
 
+enum COLTYPE {
+UNKNOWN_T,
+INT_T,
+FLOAT_T,
+BOOLEAN_T,
+STRING_T
+};
+
 enum DATATYPE {
 #define DECLARE_TYPE(v) k##v,
   ALLDATATYPE(DECLARE_TYPE)
@@ -275,6 +283,10 @@ public:
   bool func_name_set_str(string);
 
   bool replace_op(IROperator*);
+
+  /* From the kTypename ir, return the int representing the Postgres column type.
+  */
+  COLTYPE typename_ir_get_type();
 
 };
 
