@@ -89,6 +89,23 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
   vector<IR*> trans_IR_vec;
   cur_stmt->parent_ = NULL;
 
+  /* Directly cut all the extra targetEl inside the select target.
+   * Directly delete them on the source cur_stmt tree.
+   * */
+
+  IR* target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetList, false).front();
+  while ( target_list_ir->get_ir_type() == kTargetList && target_list_ir->get_right()) {
+    /* Clean all the extra select target clauses, only leave the first one untouched.
+     * If this is the first kTargetList, the right sub-node should be empty.
+     * */
+    target_list_ir->replace_op(OP0());
+    IR* extra_targetel_ir = target_list_ir->get_right();
+    target_list_ir->update_right(NULL);
+    extra_targetel_ir->deep_drop();
+    target_list_ir = target_list_ir->get_left();
+  }
+
+
   /* Let's take care of the first stmt. Remove (the last?) its kWhereClause */
   IR* first_stmt = cur_stmt->deep_copy();
   vector<IR*> where_clause_in_first_vec = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, kWhereClause, false);

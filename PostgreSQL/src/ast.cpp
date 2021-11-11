@@ -632,3 +632,14 @@ bool IR::func_name_set_str(string in) {
 
   return true;
 }
+
+bool IR::replace_op(IROperator* op_in) {
+  if (this->op_) {
+    delete this->op_;
+  }
+
+  this->op_ = op_in;
+
+  return true;
+
+}

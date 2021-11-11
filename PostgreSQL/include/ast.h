@@ -273,6 +273,7 @@ public:
   bool target_el_set_alias(string);
   bool func_name_set_str(string);
 
+  bool replace_op(IROperator*);
 
 };
 
