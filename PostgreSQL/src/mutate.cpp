@@ -901,11 +901,14 @@ bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
     substmt->parent_ = NULL;
 
     int tmp_node_num = calc_node(substmt);
+
     /* No sub-queries, then <= 150, sub-queries <= 120 */
-    if ((substmt_num == 1 && tmp_node_num > 200) || tmp_node_num > 180) {
-      // cerr << "Depedency Error: The subquery is too complicated to mutate, sub_query node_num: " << tmp_node_num << " is > 180. \n\n\n";
-      continue;
-    }
+    // if ((substmt_num == 1 && tmp_node_num > 230) || tmp_node_num > 200) {
+    //   if (is_debug_info) {
+    //     cerr << "\n\n\nDepedency Error: The subquery is too complicated to mutate, sub_query node_num: " << tmp_node_num << " is > 200. \n\n\n";
+    //   }
+    //   continue;
+    // }
 
     vector<IR*> cur_substmt_ir_to_fix;
     this->fix_preprocessing(substmt, cur_substmt_ir_to_fix);
@@ -1142,7 +1145,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
 bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info) {
 
   if (is_debug_info) {
-    cerr << "Fix_dependency: cur_stmt_root: " << cur_stmt_root->to_string() << "\n\n\n";
+    cerr << "Fix_dependency: cur_stmt_root: " << cur_stmt_root->to_string() << ", size of cur_stmt_ir_to_fix_vec " << cur_stmt_ir_to_fix_vec.size() << ". \n\n\n";
   }
 
   /* Used to mark the IRs that are needed to be deep_drop(). However, it is not a good idea
