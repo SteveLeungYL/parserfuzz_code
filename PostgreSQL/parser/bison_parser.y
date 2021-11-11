@@ -6951,7 +6951,7 @@ opt_by:
 NumericOnly:
 
     FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1));
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kNumericOnly, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -6960,7 +6960,7 @@ NumericOnly:
     }
 
     | '+' FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($2));
+        auto tmp1 = new IR(kFloatLiteral, string($2), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kNumericOnly, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -6969,7 +6969,7 @@ NumericOnly:
     }
 
     | '-' FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($2));
+        auto tmp1 = new IR(kFloatLiteral, string($2), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kNumericOnly, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -8998,7 +8998,7 @@ TriggerFuncArg:
     }
 
     | FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1));
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kTriggerFuncArg, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -9007,7 +9007,7 @@ TriggerFuncArg:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
@@ -19560,7 +19560,7 @@ I_or_F_const:
     }
 
     | FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1));
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kIOrFConst, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -24715,7 +24715,7 @@ AexprConst:
     }
 
     | FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1));
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -24724,7 +24724,7 @@ AexprConst:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kStringLiteral, string($1));
+        auto tmp1 = new IR(kStringLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1);
@@ -24733,7 +24733,7 @@ AexprConst:
     }
 
     | BCONST {
-        auto tmp1 = new IR(kBoolLiteral, string($1));
+        auto tmp1 = new IR(kBoolLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
@@ -24743,7 +24743,7 @@ AexprConst:
 
     | XCONST {
         /* Yu: This is actually deximal numberical string. */
-        auto tmp1 = new IR(kIntLiteral, atoi($1));
+        auto tmp1 = new IR(kIntLiteral, atoi($1), kDataLiteral, 0, kFlagUnknown);
         free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
@@ -24840,7 +24840,7 @@ AexprConst:
 Iconst:
 
     ICONST {
-        res = new IR(kIntLiteral, int($1), kDataFixLater, 0, kFlagUnknown);
+        res = new IR(kIntLiteral, int($1), kDataLiteral, 0, kFlagUnknown);
         /* free((void*)($1)); */
         all_gen_ir.push_back(res);
         $$ = res;
