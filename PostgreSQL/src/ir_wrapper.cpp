@@ -398,8 +398,11 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
 
     int total_num = this->get_stmt_num();
-    if (total_num <= 1) return false;
-    // total_num = total_num - 1;
+    if (total_num <= 1)  {
+        // cerr << "Directly deep_drop(); \n\n\n";
+        app_IR_node->deep_drop();
+        return false;
+    }
     return this->append_stmt_at_idx(app_IR_node, total_num);
 
 }
@@ -410,6 +413,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     if (stmt_list_v.size() == 0) {
         cerr << "Error: Getting stmt_list_v.size() == 0; \n";
         app_IR_node->deep_drop();
+        return false;
     }
 
     // cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have stmtmulti: \n";
@@ -419,13 +423,10 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     // }
     // cerr << "End stmtlist. \n";
 
-    if (stmt_list_v.size() == 0) {
-        return false;
-    }
-
     if (idx < 0 || idx > stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
+        app_IR_node->deep_drop();
         return false;
     }
 
@@ -450,6 +451,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
         IR* insert_pos_ir = stmt_list_v[0];
         if (insert_pos_ir -> right_ != NULL ){
             std::cerr << "Error: The first stmt_list is having right_ sub-node. In function IRWrapper::append_stmt_at_idx. \n";
+            app_IR_node->deep_drop();
             return false;
         }
 
