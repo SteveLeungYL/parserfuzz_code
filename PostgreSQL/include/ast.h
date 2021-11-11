@@ -63,6 +63,8 @@ static inline void clear_id() { g_id_counter = 0; }
 static string gen_id_name() { return "v" + to_string(g_id_counter++); }
 static string gen_column_name() {return "c" + to_string(g_id_counter++); }
 static string gen_index_name() {return "i" + to_string(g_id_counter++); }
+static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
+
 
 string get_string_by_ir_type(IRTYPE type);
 string get_string_by_data_type(DATATYPE type);

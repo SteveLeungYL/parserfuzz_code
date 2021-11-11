@@ -1131,7 +1131,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
-    kDataIndexName
+    kDataIndexName, kDataAliasName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1410,6 +1410,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
+
     /* Fix of kDataIndex name. */
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_data_type() == kDataIndexName) {
@@ -1426,6 +1427,61 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         // TODO:: SUPPORT FOR kUndefine
       }
     }
+
+    /* Fix of kAlias name. */
+    int alias_idx = 0;
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+
+      /* Assume all kAlias are alias to Table name.  */
+      if (ir_to_fix->data_type_ == kDataAliasName) {
+
+        string closest_table_name = "";
+
+        if (v_table_names_single.size() != 0) {
+          if (alias_idx < v_table_names_single.size()) {
+            closest_table_name = v_table_names_single[alias_idx];
+            alias_idx++;
+          } else {
+            closest_table_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+          }
+          if (is_debug_info) {
+            cerr << "Dependency: In kAlias Name Defined, find table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        } else if (v_create_table_names_single.size() != 0) {
+          closest_table_name = v_create_table_names_single[0];
+          if (is_debug_info) {
+            cerr << "Dependency: In kAlias defined, find newly declared table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        } else if (v_table_names.size() != 0) {
+          closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
+          if (is_debug_info) {
+            cerr << "Dependency Error: In defined of kDataAliasName, cannot find v_table_names_single. Thus find from v_table_name instead. Use table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        }
+
+        if (closest_table_name == "" || closest_table_name == "x" || closest_table_name == "y") {
+          if (is_debug_info) {
+            cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kAliasName Define. \n\n\n";
+          }
+          ir_to_fix->str_val_ = "y";
+          return false;
+        }
+
+        /* Found the table name that matched to the alias, now generate the alias and save it.  */
+        string alias_name = gen_alias_name();
+        ir_to_fix->set_str_val(alias_name);
+        vector<string>& cur_mapped_alias_vec = m_table2alias_single[closest_table_name];
+        cur_mapped_alias_vec.push_back(alias_name);
+
+        if (is_debug_info) {
+          cerr << "Dependency: In kAlias defined, generates: " << alias_name << " mapping to: " << closest_table_name << ". \n\n\n" << endl;
+        }
+      }
+    }
+    /* Assume all kAlias are alias to tablename.  */
+
+
+
 
     /* Fix the Literal. */
     int cur_literal_idx = -1;
