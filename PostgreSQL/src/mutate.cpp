@@ -1474,6 +1474,11 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           cur_chosen_table_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
         } else if (v_create_table_names_single.size()) {
           cur_chosen_table_name = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
+        } else if (v_table_names.size()) {
+          if (is_debug_info) {
+            cerr << "Dependency Error: In kDataTableNameFollow, cannot find mapping for cur_chosen_table_name in the local stmt, use v_table_names instead\n\n\n";
+          }
+          cur_chosen_table_name = v_table_names[get_rand_int(v_table_names.size())];
         } else {
           if (is_debug_info) {
             cerr << "Dependency Error: In kDataTableNameFollow, cannot find mapping for cur_chosen_table_name. \n\n\n";
