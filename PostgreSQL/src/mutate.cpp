@@ -32,9 +32,10 @@ vector<string> Mutator::v_table_names;  // All saved table names
 vector<string> Mutator::v_table_names_single; // All used table names in one query statement. 
 vector<string> Mutator::v_create_table_names_single; // All table names just created in the current stmt. 
 vector<string> Mutator::v_alias_names_single; // All alias name local to one query statement.  
-map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping. 
+map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping.
 map<string, COLTYPE> Mutator::m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_.
 vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
+vector<string> Mutator::v_table_name_follow_single;  // All used table names follow type in one query stmt.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 
@@ -1131,7 +1132,8 @@ Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
-    kDataIndexName, kDataAliasName
+    kDataIndexName, kDataAliasName, kDataTableNameFollow,
+    kDataColumnNameFollow
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1223,6 +1225,58 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency: In the context of replacing table, removing table_name: " << used_name << ". \n\n\n";
           }
+        }
+      }
+    }
+
+    /* Fix of kAlias name. */
+    int alias_idx = 0;
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+
+      /* Assume all kAlias are alias to Table name.  */
+      if (ir_to_fix->data_type_ == kDataAliasName) {
+
+        string closest_table_name = "";
+
+        if (v_table_names_single.size() != 0) {
+          if (alias_idx < v_table_names_single.size()) {
+            closest_table_name = v_table_names_single[alias_idx];
+            alias_idx++;
+          } else {
+            closest_table_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+          }
+          if (is_debug_info) {
+            cerr << "Dependency: In kAlias Name Defined, find table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        } else if (v_create_table_names_single.size() != 0) {
+          closest_table_name = v_create_table_names_single[0];
+          if (is_debug_info) {
+            cerr << "Dependency: In kAlias defined, find newly declared table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        } else if (v_table_names.size() != 0) {
+          closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
+          if (is_debug_info) {
+            cerr << "Dependency Error: In defined of kDataAliasName, cannot find v_table_names_single. Thus find from v_table_name instead. Use table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        }
+
+        if (closest_table_name == "" || closest_table_name == "x" || closest_table_name == "y") {
+          if (is_debug_info) {
+            cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kAliasName Define. \n\n\n";
+          }
+          ir_to_fix->str_val_ = "y";
+          return false;
+        }
+
+        /* Found the table name that matched to the alias, now generate the alias and save it.  */
+        string alias_name = gen_alias_name();
+        ir_to_fix->set_str_val(alias_name);
+        vector<string>& cur_mapped_alias_vec = m_table2alias_single[closest_table_name];
+        cur_mapped_alias_vec.push_back(alias_name);
+        v_alias_names_single.push_back(alias_name);
+
+        if (is_debug_info) {
+          cerr << "Dependency: In kAlias defined, generates: " << alias_name << " mapping to: " << closest_table_name << ". \n\n\n" << endl;
         }
       }
     }
@@ -1410,6 +1464,70 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
+    /* Fix for kDataTableNameFollow.  */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_data_type() == kDataTableNameFollow) {
+        /* This type is used in kDataTableNameFollow . kDataColumnNameFollow. */
+
+        string cur_chosen_table_name = "";
+        if (v_table_names_single.size()){
+          cur_chosen_table_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        } else if (v_create_table_names_single.size()) {
+          cur_chosen_table_name = v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
+        } else {
+          if (is_debug_info) {
+            cerr << "Dependency Error: In kDataTableNameFollow, cannot find mapping for cur_chosen_table_name. \n\n\n";
+          }
+          continue;
+        }
+
+        /* Save the chosen table name before change it to alias name.  */
+        v_table_name_follow_single.push_back(cur_chosen_table_name);
+
+        /* If the chosen table name has alias, use the alias */
+        if (m_table2alias_single[cur_chosen_table_name].size()) {
+          cur_chosen_table_name = m_table2alias_single[cur_chosen_table_name][0];
+        }
+
+        ir_to_fix->set_str_val(cur_chosen_table_name);
+
+        if (is_debug_info) {
+          cerr << "Dependency: In kDataTableNameFollow, choose table name: " << cur_chosen_table_name << ". \n\n\n";
+        }
+
+      }
+    }
+
+    /* Fix for kDataColumnNameFollow.  */
+    int table_follow_idx = 0;
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_data_type() == kDataColumnNameFollow) {
+        /* This type is used in kDataTableNameFollow . kDataColumnNameFollow. */
+
+        if (table_follow_idx < v_table_name_follow_single.size()) {
+          string cur_chosen_table_name = v_table_name_follow_single[table_follow_idx];
+          vector<string>& v_cur_mapped_column = m_tables[cur_chosen_table_name];
+          if ( !v_cur_mapped_column.size() ) {
+            if (is_debug_info) {
+              cerr << "Dependency Error: In kDataColumnNameFollow, choose table name: " << cur_chosen_table_name << " cannot find mapped column names. \n\n\n";
+            }
+            continue;
+          }
+
+          string cur_chosen_column_name = v_cur_mapped_column[get_rand_int(v_cur_mapped_column.size())];
+          ir_to_fix->set_str_val(cur_chosen_column_name);
+
+          if (is_debug_info) {
+            cerr << "Dependency: In kDataColumnNameFollow, choose table name: " << cur_chosen_table_name << ", mapped with kDataColumnName:" << cur_chosen_column_name << ". \n\n\n";
+          }
+
+        } else {
+            if (is_debug_info) {
+              cerr << "Dependency Error: In kDataColumnNameFollow, cannot find mapped table_follow names. \n\n\n";
+            }
+        }
+      }
+    }
 
     /* Fix of kDataIndex name. */
     for (IR* ir_to_fix : ir_to_fix_vec) {
@@ -1428,57 +1546,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
-    /* Fix of kAlias name. */
-    int alias_idx = 0;
-    for (IR* ir_to_fix : ir_to_fix_vec) {
-
-      /* Assume all kAlias are alias to Table name.  */
-      if (ir_to_fix->data_type_ == kDataAliasName) {
-
-        string closest_table_name = "";
-
-        if (v_table_names_single.size() != 0) {
-          if (alias_idx < v_table_names_single.size()) {
-            closest_table_name = v_table_names_single[alias_idx];
-            alias_idx++;
-          } else {
-            closest_table_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
-          }
-          if (is_debug_info) {
-            cerr << "Dependency: In kAlias Name Defined, find table name: " << closest_table_name << ". \n\n\n" << endl;
-          }
-        } else if (v_create_table_names_single.size() != 0) {
-          closest_table_name = v_create_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: In kAlias defined, find newly declared table name: " << closest_table_name << ". \n\n\n" << endl;
-          }
-        } else if (v_table_names.size() != 0) {
-          closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
-          if (is_debug_info) {
-            cerr << "Dependency Error: In defined of kDataAliasName, cannot find v_table_names_single. Thus find from v_table_name instead. Use table name: " << closest_table_name << ". \n\n\n" << endl;
-          }
-        }
-
-        if (closest_table_name == "" || closest_table_name == "x" || closest_table_name == "y") {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kAliasName Define. \n\n\n";
-          }
-          ir_to_fix->str_val_ = "y";
-          return false;
-        }
-
-        /* Found the table name that matched to the alias, now generate the alias and save it.  */
-        string alias_name = gen_alias_name();
-        ir_to_fix->set_str_val(alias_name);
-        vector<string>& cur_mapped_alias_vec = m_table2alias_single[closest_table_name];
-        cur_mapped_alias_vec.push_back(alias_name);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In kAlias defined, generates: " << alias_name << " mapping to: " << closest_table_name << ". \n\n\n" << endl;
-        }
-      }
-    }
-    /* Assume all kAlias are alias to tablename.  */
 
 
 
@@ -2077,6 +2144,7 @@ void Mutator::reset_data_library_single_stmt() {
   this->v_alias_names_single.clear();
   this->m_table2alias_single.clear();
   this->v_column_names_single.clear();
+  this->v_table_name_follow_single.clear();
 }
 
 void Mutator::reset_data_library() {
@@ -2090,6 +2158,7 @@ void Mutator::reset_data_library() {
   v_create_table_names_single.clear();
   v_alias_names_single.clear();
   v_column_names_single.clear();
+  v_table_name_follow_single.clear();
 }
 
 static IR *search_mapped_ir(IR *ir, DATATYPE type) {

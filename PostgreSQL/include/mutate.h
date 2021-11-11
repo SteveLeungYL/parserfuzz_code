@@ -203,9 +203,10 @@ public:
   static vector<string> v_table_names_single; // All used table names in one query statement. 
   static vector<string> v_create_table_names_single; // All table names just created in the current stmt. 
   static vector<string> v_alias_names_single; // All alias name local to one query statement.  
-  static map<string, vector<string>> m_table2alias_single;   // Table name to alias mapping. 
+  static map<string, vector<string>> m_table2alias_single;   // Table name to alias mapping.
   static map<string, COLTYPE> m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_.
   static vector<string> v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
+  static vector<string> v_table_name_follow_single; // All used table names follow type in one query stmt.
 
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;

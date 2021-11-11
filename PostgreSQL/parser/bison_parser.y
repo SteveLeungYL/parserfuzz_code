@@ -18024,7 +18024,7 @@ insert_column_item:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataColumnName, kUse);
+        tmp1->set_iden_type(kDataTableNameFollow, kUse);
     }
 
 ;
@@ -24360,7 +24360,7 @@ columnref:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1 -> set_iden_type(kDataTableName, kUse);
+        tmp1 -> set_iden_type(kDataTableNameFollow, kUse);
     }
 
 ;
@@ -24376,7 +24376,7 @@ indirection_el:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataColumnName, kUse);
+        tmp1->set_iden_type(kDataColumnNameFollow, kUse);
     }
 
     | '.' '*' {

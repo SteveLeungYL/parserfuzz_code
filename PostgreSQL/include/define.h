@@ -1499,8 +1499,11 @@
   V(DataNonReservedWord)                                                       \
   V(DataFixLater)                                                              \
   V(DataConstraintName)                                                        \
-  V(DataRelOption)                                              \
-  V(DataGenericType)
+  V(DataRelOption)                                                             \
+  V(DataGenericType)                                                           \
+  V(DataTableNameFollow)                                                       \
+  V(DataColumnNameFollow)
+
 
 
 

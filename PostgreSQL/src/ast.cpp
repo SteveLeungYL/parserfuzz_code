@@ -411,6 +411,16 @@ bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
   assert(this->get_ir_type() == kQualifiedName);
   assert(this->get_left() && this->get_left()->get_ir_type() == kIdentifier);
 
+  /* Dirty fix: if kQualifiedName contains right sub-node, do not assign the input type,
+   * treat it as kDataTableNameFollow
+   * */
+  if (get_right()) {
+    IR* iden = this->get_left();
+    iden->set_data_type(kDataTableNameFollow);
+    iden->set_data_flag(kUse);
+    return true;
+  }
+
   IR* iden = this->get_left();
   iden->set_data_type(data_type);
   iden->set_data_flag(data_flag);
