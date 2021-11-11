@@ -1230,11 +1230,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
     /* kDefine and kReplace of kDataColumnName */
     for (IR* ir_to_fix : ir_to_fix_vec){
-      // /* Don't fix values inside INSERT_REST as kDataColumnName. */
-      // if (p_oracle->ir_wrapper.is_in_insert_rest(cur_stmt_root, ir_to_fix, false)) {
-      //   ir_to_fix->data_type_ = kDataLiteral;
-      //   continue;
-      // }
+
+      /* Don't fix values inside the kValueClause. That is not permitted by Postgres semantics.
+       * Change it to kDataLiteral, and it would be handled by later kDataLiteral logic.
+       * */
+      if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kValuesClause)) {
+        ir_to_fix->set_iden_type(kDataLiteral, kFlagUnknown);
+        continue;
+      }
+
       if (ir_to_fix->data_type_ == kDataColumnName && (ir_to_fix->data_flag_ == kDefine || ir_to_fix->data_flag_ == kReplace)) {
         if (ir_to_fix->data_flag_ == kReplace) {
           is_replace_column = true;
@@ -1352,6 +1356,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
     /* kUse of kDataColumnName */
     for (IR* ir_to_fix : ir_to_fix_vec){
+
+      /* Don't fix values inside the kValueClause. That is not permitted by Postgres semantics.
+       * Change it to kDataLiteral, and it would be handled by later kDataLiteral logic.
+       * */
+      if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kValuesClause)) {
+        ir_to_fix->set_iden_type(kDataLiteral, kFlagUnknown);
+        continue;
+      }
+
 
       if (ir_to_fix->data_type_ == kDataColumnName && ir_to_fix->data_flag_ == kUse) {
 

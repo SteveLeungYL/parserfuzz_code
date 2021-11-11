@@ -986,3 +986,24 @@ IR* IRWrapper::get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti){
     }
 }
 
+bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
+
+    while (sub_ir) {
+        if (sub_ir == par_ir) {
+            return true;
+        }
+        sub_ir = sub_ir->get_parent();
+    }
+    return false;
+}
+
+bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
+
+    while (sub_ir) {
+        if (sub_ir->get_ir_type() == par_type) {
+            return true;
+        }
+        sub_ir = sub_ir->get_parent();
+    }
+    return false;
+}

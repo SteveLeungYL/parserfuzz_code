@@ -107,6 +107,9 @@ public:
     vector<IR*> get_target_el_in_select_target(IR* cur_stmt);
     int get_num_target_el_in_select_clause(IR* cur_stmt) { return this->get_target_el_in_select_target(cur_stmt).size(); }
 
+    bool is_ir_in(IR*, IR*);
+    bool is_ir_in(IR*, IRTYPE);
+
 
 private:
     IR* ir_root = nullptr;
