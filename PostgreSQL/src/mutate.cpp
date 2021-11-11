@@ -724,6 +724,11 @@ string Mutator::extract_struct(IR *root) {
 }
 
 void Mutator::_extract_struct(IR *root) {
+
+  if (root->get_data_flag() == kNoModi) {return;}
+  if (root->get_data_type() == kDataFunctionName) {return;}
+  if (root->get_ir_type() == kFuncName) {return;}
+
   auto type = root->type_;
   if (root->left_) {
     extract_struct(root->left_);
@@ -732,9 +737,6 @@ void Mutator::_extract_struct(IR *root) {
     extract_struct(root->right_);
   }
 
-  if (root->get_data_flag() == kNoModi) {return;}
-
-  if (root->get_data_type() == kDataFunctionName) {return;}
 
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
     return;
@@ -1129,7 +1131,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
-    kDataIndexName, kDataFunctionName
+    kDataIndexName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
