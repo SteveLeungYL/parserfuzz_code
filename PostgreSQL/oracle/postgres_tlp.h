@@ -79,11 +79,11 @@ private:
   bool is_str_contains_aggregate(const string &input_str);
 
 
-  string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (SELECT *);";
-  string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (SELECT *);";
-  string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (SELECT *);";
-  string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (SELECT *);";
-  string trans_outer_AVG_tmp_str = "SELECT SUM(s)/SUM(c) FROM (SELECT *);";
+  string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (SELECT *) AS subb;";
+  string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (SELECT *) AS subb;";
+  string trans_outer_SUM_tmp_str = "SELECT SUM(aggr) FROM (SELECT *) AS subb;";
+  string trans_outer_COUNT_tmp_str = "SELECT COUNT(aggr) FROM (SELECT *) AS subb;";
+  string trans_outer_AVG_tmp_str = "SELECT SUM(s)/SUM(c) FROM (SELECT *) AS subb;";
 };
 
 #endif

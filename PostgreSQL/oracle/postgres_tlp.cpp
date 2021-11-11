@@ -18,23 +18,22 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
 
-  /* TODO:: includes GROUP BY and HAVING in the future.  */
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
-  vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
-  for (IR* group_clause : v_group_clause) {
-    if (!group_clause->is_empty()){
-      // cerr << "Return false because of GROUP clause \n";
-      return false;
-    }
-  }
+  // vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
+  // for (IR* group_clause : v_group_clause) {
+  //   if (!group_clause->is_empty()){
+  //     // cerr << "Return false because of GROUP clause \n";
+  //     return false;
+  //   }
+  // }
 
-  vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false);
-  for (IR* having_clause : v_having_clause) {
-    if (!having_clause->is_empty()){
-      // cerr << "Return false because of having clause \n";
-      return false;
-    }
-  }
+  // vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false);
+  // for (IR* having_clause : v_having_clause) {
+  //   if (!having_clause->is_empty()){
+  //     // cerr << "Return false because of having clause \n";
+  //     return false;
+  //   }
+  // }
 
   vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false);
   for (IR* limit_clause : v_limit_clause) {
