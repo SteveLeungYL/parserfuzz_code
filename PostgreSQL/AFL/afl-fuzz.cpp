@@ -3774,7 +3774,8 @@ static void perform_dry_run(char **argv)
              "    '+' at the end of the value passed to -t ('-t %u+').\n",
              exec_tmout, exec_tmout);
 
-        FATAL("Test case '%s' results in a timeout", fn);
+        // FATAL("Test case '%s' results in a timeout", fn);
+        break;
       }
       else
       {
@@ -3790,7 +3791,8 @@ static void perform_dry_run(char **argv)
              "    altogether, and find one that is less of a CPU hog.\n",
              exec_tmout);
 
-        FATAL("Test case '%s' results in a timeout", fn);
+        // FATAL("Test case '%s' results in a timeout", fn);
+        break;
       }
 
     case FAULT_CRASH:
@@ -3888,11 +3890,13 @@ static void perform_dry_run(char **argv)
              "tips.\n");
       }
 
-      FATAL("Test case '%s' results in a crash", fn);
+      // FATAL("Test case '%s' results in a crash", fn);
+      break;
 
     case FAULT_ERROR:
 
-      FATAL("Unable to execute target application ('%s')", argv[0]);
+      // FATAL("Unable to execute target application ('%s')", argv[0]);
+      break;
 
     case FAULT_NOINST:
       cerr << "\033[1;31mNo instrumentation detected\033[0m\n\n\n";
