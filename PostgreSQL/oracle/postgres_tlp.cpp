@@ -138,11 +138,11 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
-    case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
-      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
-      trans_IR_vec.push_back(transformed_stmt);
-    }
-      break;
+    // case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
+    //   IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+    //   trans_IR_vec.push_back(transformed_stmt);
+    // }
+    //   break;
     case VALID_STMT_TYPE_TLP::AGGR_MAX: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
       trans_IR_vec.push_back(transformed_stmt);
@@ -599,6 +599,7 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
   IR* first_part_TLP = src_simple_select_->deep_copy();
   vector<IR*> v_where_first_stmt = ir_wrapper.get_ir_node_in_stmt_with_type(first_part_TLP, kWhereClause, false);
   if (v_where_first_stmt.size() == 0) {
+    expr_ir_->deep_drop();
     first_part_TLP->deep_drop();
     cerr << "Error: Failed to detect the kWhereClause node from the mutated oracle select stmt. Return failure. \n\n\n";
     return NULL;
@@ -606,6 +607,7 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
   IR* where_first_stmt_ = v_where_first_stmt[0];
   if (where_first_stmt_->is_empty()) {
     first_part_TLP->deep_drop();
+    expr_ir_->deep_drop();
     cerr << "Error: The retrived where_first_stmt_ doesn't have the left_ child node. \n\n\n";
     return NULL;
   }
@@ -691,7 +693,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
   }
 
   if (
-    tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
+    // tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
     tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM ||
     tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX ||
     tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN
@@ -783,8 +785,8 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
   IR* cur_stmt_outer;
   if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM) {
     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_SUM_tmp_str).back();
-  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT) {
-    cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
+  // } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT) {
+  //   cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN) {
     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MIN_tmp_str).back();
   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX) {

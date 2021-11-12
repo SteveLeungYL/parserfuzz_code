@@ -291,6 +291,22 @@ void Mutator::init_library() {
   }
 
 
+  // Initialize the common_string_library();
+  common_string_library_.push_back("HELLO");
+  common_string_library_.push_back("WORLD");
+  common_string_library_.push_back("test");
+  common_string_library_.push_back("files");
+  common_string_library_.push_back("music");
+  common_string_library_.push_back("score");
+  common_string_library_.push_back("green");
+  common_string_library_.push_back("red");
+  common_string_library_.push_back("right");
+  common_string_library_.push_back("left");
+  common_string_library_.push_back("plot");
+  common_string_library_.push_back("cov");
+  common_string_library_.push_back("bug");
+  common_string_library_.push_back("sample");
+
   // Initialize the storage parameters from the CREATE TABLE stmt.
 
   vector<pair<string, DEF_ARG_TYPE>> storage_parameter_pair;
@@ -334,9 +350,9 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
   //   init_ir_library(f_testcase);
 
 
-  // init common_string_library
-  // if (!f_common_string.empty())
-    // {init_common_string(f_common_string);}
+  /* init common_string_library */
+  if (!f_common_string.empty())
+    {init_common_string(f_common_string);}
 
   // init data_library_2d
   // if (!file2d.empty())
@@ -644,21 +660,21 @@ IR *Mutator::get_ir_from_library(IRTYPE type) {
 
 string Mutator::get_a_string() {
   unsigned com_size = common_string_library_.size();
-  unsigned lib_size = string_library_.size();
+  // unsigned lib_size = string_library_.size();
 
-  if (get_rand_int(3) <= 1) {
-    if (lib_size == 0) {
-      return "hello";
-    } else {
-      return string_library_[get_rand_int(lib_size)];
-    }
-  } else {
+  // if (get_rand_int(3) <= 1) {
+    // if (lib_size == 0) {
+    //   return "hello";
+    // } else {
+    //   return string_library_[get_rand_int(lib_size)];
+    // }
+  // } else {
     if (com_size == 0) {
       return "hello";
     } else {
       return common_string_library_[get_rand_int(com_size)];
     }
-  }
+  // }
 }
 
 unsigned long Mutator::get_a_val() {
@@ -1636,7 +1652,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* STRING */
         else {
-          ir_to_fix->str_val_ = get_a_string();
+          ir_to_fix->str_val_ = "'" + get_a_string() + "'";
         }
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
