@@ -174,6 +174,8 @@ int main(int argc, char *argv[]) {
 
   // cout << "\n\n\n At the end of the parsing, we get to_string: \n" << root->to_string() << "\n\n\n";
 
+  mutator.init_library();
+
   // Ignore validation right now. Will fix later. 
   try_validate_query(root);
 

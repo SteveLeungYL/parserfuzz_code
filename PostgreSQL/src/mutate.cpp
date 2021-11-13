@@ -1653,6 +1653,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         /* STRING */
         else {
           ir_to_fix->str_val_ = "'" + get_a_string() + "'";
+          if (is_debug_info) {
+            cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
+          }
         }
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
