@@ -1623,7 +1623,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         /* INT */
         if (column_data_type == COLTYPE::INT_T){
           /* 1/2 chances, use value_library, 1/2, use rand_int up to 2147483648 */
-          if (get_rand_int(100) < 50) {
+          if (get_rand_int(100) < 50 && value_library_.size()) {
             if (value_library_.size() == 0) {
               FATAL("Error: value_library_ is not being init properly. \n");
             }
@@ -1689,7 +1689,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
         /* Integer */
         else if (arg_type == DEF_ARG_TYPE::integer) {
-          if (get_rand_int(100) < 50) {
+          if (get_rand_int(100) < 50 && value_library_.size()) {
             if (value_library_.size() == 0) {
               FATAL("Error: value_library_ is not being init properly. \n");
             }

@@ -398,8 +398,8 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator& g_mutator) {
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
 
     int total_num = this->get_stmt_num();
-    if (total_num <= 1)  {
-        // cerr << "Directly deep_drop(); \n\n\n";
+    if (total_num < 1)  {
+        cerr << "Error: total_num of stmt < 1. Directly deep_drop(); \n\n\n";
         app_IR_node->deep_drop();
         return false;
     }

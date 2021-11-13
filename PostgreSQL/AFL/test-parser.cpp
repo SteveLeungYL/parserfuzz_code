@@ -155,16 +155,24 @@ int main(int argc, char *argv[]) {
 
     IR* cur_root = test_parse(line);
     if (cur_root == NULL) {
+      cout << "Parsing failed. Ignored. \n";
       continue;
     }
     if (root == NULL) {
       root = cur_root;
+      // cout << "Save to root. \n\n\n";
     } else {
+      IR* cur_stmt = p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root);
       p_oracle->ir_wrapper.set_ir_root(root);
-      p_oracle->ir_wrapper.append_stmt_at_end(cur_root);
+      p_oracle->ir_wrapper.append_stmt_at_end(cur_stmt->deep_copy());
+      // cout << "Appended stmts. \n\n\n";
+      // cout << "Cur to_string is: " << root->to_string() << "\n\n\n";
+      cur_root->deep_drop();
     }
   }
   // if (root) root->deep_drop();
+
+  // cout << "\n\n\n At the end of the parsing, we get to_string: \n" << root->to_string() << "\n\n\n";
 
   // Ignore validation right now. Will fix later. 
   try_validate_query(root);
