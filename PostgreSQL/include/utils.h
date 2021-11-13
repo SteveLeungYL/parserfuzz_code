@@ -37,6 +37,69 @@ inline int get_rand_int(int range) {
   } else
     return 0;
 }
+inline int get_rand_int(int start, int end) {
+  int range = end - start;
+  if (range > 0) {
+    std::uniform_int_distribution<int> uid(0, range - 1);
+    int res = uid(rng);
+    res += start;
+    return res;
+  } else {
+    return 0;
+  }
+}
+
+inline long long get_rand_long_long(long long range) {
+
+  if (range > 0) {
+    std::uniform_int_distribution<long long> uid(0, range-1);
+    return uid(rng);
+  } else {
+    return 0;
+  }
+}
+
+inline long long get_rand_long_long(long long start, long long end) {
+  long long range = end - start;
+  if (range > 0) {
+    std::uniform_int_distribution<long long> uid(0, range - 1);
+    long long res = uid(rng);
+    res += start;
+    return res;
+  } else {
+    return 0;
+  }
+}
+
+
+inline float get_rand_float(float min, float max) {
+  if ((max - min) < 0) {
+    return 0.0;
+  } else if ((max-min) == 0) {
+    return min;
+  }
+  int rand_int = get_rand_int(RAND_MAX);
+  return ((max - min) * ((float)rand_int / RAND_MAX)) + min;
+}
+inline float get_rand_float(float max) {
+  return get_rand_float(0, max);
+}
+
+inline double get_rand_double(double min, double max) {
+  if ((max - min) < 0) {
+    return 0.0;
+  } else if ((max-min) == 0) {
+    return min;
+  }
+  int rand_int = get_rand_int(RAND_MAX);
+  return ((max - min) * ((double)rand_int / RAND_MAX)) + min;
+}
+inline double get_rand_double(double max) {
+  return get_rand_double(0, max);
+}
+
+
+
 uint64_t fuzzing_hash(const void *key, int len);
 void trim_string(string &);
 std::string trim(const std::string &s);
