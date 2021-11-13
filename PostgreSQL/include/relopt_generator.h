@@ -6,6 +6,8 @@
 
 using namespace std;
 
+#define INT_MAX 2147483647
+
 enum RelOptionType {
 StorageParameters,
 SetConfigurationOptions,

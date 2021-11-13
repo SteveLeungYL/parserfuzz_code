@@ -63,7 +63,7 @@ pair<string, string> RelOptionGenerator::get_rel_option_storage_parameters() {
         }
         case 6: {
             string f = "autovacuum_analyze_threshold";
-            int s_int = get_rand_int(RAND_MAX);
+            int s_int = get_rand_int(INT_MAX);
             string s = to_string(s_int);
             return make_pair(f, s);
         }
@@ -111,7 +111,7 @@ pair<string, string> RelOptionGenerator::get_rel_option_storage_parameters() {
     }
 }
 
-pair<string, string> RelOptionGenerator::get_rel_option_() {
+pair<string, string> RelOptionGenerator::get_rel_option_set_configuration_options() {
 
     int cur_choice = get_rand_int(1);
 
@@ -164,82 +164,373 @@ pair<string, string> RelOptionGenerator::get_rel_option_() {
             string s = to_string(rand_int);
             return make_pair(f, s);
         }
+        case 8: {
+            string f = "track_functions";
+            vector<string> s_v_str = {"'none'", "'pl'", "'all'"};
+            string s = vector_rand_ele(s_v_str);
+            return make_pair(f, s);
+        }
+        case 9: {
+            string f = "vacuum_freeze_table_age";
+            vector<long long> s_v_int = {0, 5, 10, 100, 500, 2000000000};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 10: {
+            string f = "vacuum_multixact_freeze_table_age";
+            vector<long long> s_v_int = {0, 5, 10, 100, 500, 2000000000};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 11: {
+            string f = "vacuum_multixact_freeze_min_age";
+            vector<long long> s_v_int = {0, 5, 10, 100, 500, 1000000000};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 12: {
+            string f = "vacuum_cleanup_index_scale_factor";
+            vector<float> s_v_int = {0.0, 0.0000001, 0.00001, 0.01, 0.1, 1.0, 10.0, 100.0, 100000.0, 10000000000.0};
+            float s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 13: {
+            string f = "gin_fuzzy_search_limit";
+            int s_int = get_rand_int(2147483647);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 14: {
+            string f = "default_with_oids";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 15: {
+            string f = "synchronize_seqscans";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 16: {
+            string f = "synchronize_seqscans";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 17: {
+            string f = "enable_bitmapscan";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 18: {
+            string f = "enable_gathermerge";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 19: {
+            string f = "enable_hashjoin";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 20: {
+            string f = "enable_indexscan";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 21: {
+            string f = "enable_indexonlyscan";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 22: {
+            string f = "enable_material";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 23: {
+            string f = "enable_mergejoin";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 24: {
+            string f = "enable_nestloop";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 25: {
+            string f = "enable_parallel_append";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 26: {
+            string f = "enable_parallel_hash";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 27: {
+            string f = "enable_partition_pruning";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 28: {
+            string f = "enable_partitionwise_join";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 29: {
+            string f = "enable_partitionwise_aggregate";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 30: {
+            string f = "enable_seqscan";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 31: {
+            string f = "enable_sort";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 32: {
+            string f = "enable_tidscan";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 33: {
+            string f = "seq_page_cost";
+            vector<float> s_v_float = {0.0, 0.00001, 0.05, 0.1, 1.0, 10.0, 10000.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 34: {
+            string f = "random_page_cost";
+            vector<float> s_v_float = {0.0, 0.00001, 0.05, 0.1, 1.0, 10.0, 10000.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 35: {
+            string f = "cpu_tuple_cost";
+            vector<float> s_v_float = {0.0, 0.00001, 0.05, 0.1, 1.0, 10.0, 10000.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 36: {
+            string f = "cpu_index_tuple_cost";
+            vector<float> s_v_float = {0.0, 0.00001, 0.05, 0.1, 1.0, 10.0, 10000.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 37: {
+            string f = "cpu_operator_cost";
+            vector<float> s_v_float = {0.0, 0.00001, 0.05, 0.1, 1.0, 10.0, 10000.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 38: {
+            string f = "parallel_setup_cost";
+            long long s_int = get_rand_long_long(INT_MAX);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 39: {
+            string f = "parallel_tuple_cost";
+            long long s_int = get_rand_long_long(INT_MAX);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 40: {
+            string f = "min_parallel_table_scan_size";
+            int s_int = get_rand_int(715827882);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 41: {
+            string f = "min_parallel_index_scan_size";
+            int s_int = get_rand_int(715827882);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 42: {
+            string f = "min_parallel_index_scan_size";
+            int s_int = get_rand_int(INT_MAX);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 43: {
+            string f = "effective_cache_size";
+            int s_int = get_rand_int(INT_MAX);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 44: {
+            string f = "jit_above_cost";
+            vector<long long> s_v_int = {0, INT_MAX};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 45: {
+            string f = "jit_inline_above_cost";
+            vector<long long> s_v_int = {0, INT_MAX};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 46: {
+            string f = "jit_optimize_above_cost";
+            vector<long long> s_v_int = {0, INT_MAX};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 47: {
+            string f = "geqo";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 48: {
+            string f = "geqo_threshold";
+            int s_int = get_rand_int(2, 2147483647);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 49: {
+            string f = "geqo_effort";
+            int s_int = get_rand_int(1, 10);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 50: {
+            string f = "geqo_pool_size";
+            int s_int = get_rand_int(0, 2147483647);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 51: {
+            string f = "geqo_generations";
+            int s_int = get_rand_int(0, 2147483647);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 52: {
+            string f = "geqo_generations";
+            int s_int = get_rand_int(0, 2147483647);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 53: {
+            string f = "geqo_selection_bias";
+            vector<float> s_v_float = {1.5, 1.8, 2.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 54: {
+            string f = "geqo_selection_bias";
+            vector<float> s_v_float = {1.5, 1.8, 2.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 55: {
+            string f = "geqo_seed";
+            vector<float> s_v_float = {0, 0.5, 1.0};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 56: {
+            string f = "default_statistics_target";
+            int s_int = get_rand_int(1, 10000);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 57: {
+            string f = "constraint_exclusion";
+            vector<string> s_v_str = {"on", "off", "partition"};
+            string s = vector_rand_ele(s_v_str);
+            return make_pair(f, s);
+        }
+        case 58: {
+            string f = "cursor_tuple_fraction";
+            vector<float> s_v_float = {0.0, 0.1, 0.000001, 1.0, 0.5, 0.9999999};
+            float s_float = vector_rand_ele(s_v_float);
+            string s = to_string(s_float);
+            return make_pair(f, s);
+        }
+        case 59: {
+            string f = "from_collapse_limit";
+            int s_int = get_rand_int(1, INT_MAX);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 60: {
+            string f = "jit";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 61: {
+            string f = "join_collapse_limit";
+            int s_int = get_rand_int(1, INT_MAX);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 62: {
+            string f = "parallel_leader_participation";
+            int s_int = get_rand_int(2);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        case 63: {
+            string f = "force_parallel_mode";
+            vector<string> s_v_str = {"off", "on", "regress"};
+            string s = vector_rand_ele(s_v_str);
+            return make_pair(f, s);
+        }
+        case 64: {
+            string f = "plan_cache_mode";
+            vector<string> s_v_str = {"auto", "force_generic_plan", "force_custom_plan"};
+            string s = vector_rand_ele(s_v_str);
+            return make_pair(f, s);
+        }
+        case 65: {
+            string f = "vacuum_freeze_min_age";
+            vector<long long> s_v_int = {0, 5, 10, 100, 500, 1000000000};
+            long long s_int = vector_rand_ele(s_v_int);
+            string s = to_string(s_int);
+            return make_pair(f, s);
+        }
+        default: {
+            assert(false && "Fatal ERROR: Find unknown type inside: get_rel_option_set_configuration_options. \n ");
+        }
     }
-
 }
-
-
-        TRACK_FUNCTIONS("track_functions", (r) -> Randomly.fromOptions("'none'", "'pl'", "'all'")),
-        // stats_temp_directory
-        // TODO 19.9.2. Statistics Monitoring
-        // https://www.postgresql.org/docs/11/runtime-config-autovacuum.html
-        // all can only be set at server-conf time
-        // 19.11. Client Connection Defaults
-        VACUUM_FREEZE_TABLE_AGE("vacuum_freeze_table_age", (r) -> Randomly.fromOptions(0, 5, 10, 100, 500, 2000000000)),
-        VACUUM_FREEZE_MIN_AGE("vacuum_freeze_min_age", (r) -> Randomly.fromOptions(0, 5, 10, 100, 500, 1000000000)),
-        VACUUM_MULTIXACT_FREEZE_TABLE_AGE("vacuum_multixact_freeze_table_age",
-                (r) -> Randomly.fromOptions(0, 5, 10, 100, 500, 2000000000)),
-        VACUUM_MULTIXACT_FREEZE_MIN_AGE("vacuum_multixact_freeze_min_age",
-                (r) -> Randomly.fromOptions(0, 5, 10, 100, 500, 1000000000)),
-        VACUUM_CLEANUP_INDEX_SCALE_FACTOR("vacuum_cleanup_index_scale_factor",
-                (r) -> Randomly.fromOptions(0.0, 0.0000001, 0.00001, 0.01, 0.1, 1, 10, 100, 100000, 10000000000.0)),
-        // TODO others
-        GIN_FUZZY_SEARCH_LIMIT("gin_fuzzy_search_limit", (r) -> r.getInteger(0, 2147483647)),
-        // 19.13. Version and Platform Compatibility
-        DEFAULT_WITH_OIDS("default_with_oids", (r) -> Randomly.fromOptions(0, 1)),
-        SYNCHRONIZED_SEQSCANS("synchronize_seqscans", (r) -> Randomly.fromOptions(0, 1)),
-        // https://www.postgresql.org/docs/devel/runtime-config-query.html
-        ENABLE_BITMAPSCAN("enable_bitmapscan", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_GATHERMERGE("enable_gathermerge", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_HASHJOIN("enable_hashjoin", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_INDEXSCAN("enable_indexscan", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_INDEXONLYSCAN("enable_indexonlyscan", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_MATERIAL("enable_material", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_MERGEJOIN("enable_mergejoin", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_NESTLOOP("enable_nestloop", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_PARALLEL_APPEND("enable_parallel_append", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_PARALLEL_HASH("enable_parallel_hash", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_PARTITION_PRUNING("enable_partition_pruning", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_PARTITIONWISE_JOIN("enable_partitionwise_join", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_PARTITIONWISE_AGGREGATE("enable_partitionwise_aggregate", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_SEGSCAN("enable_seqscan", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_SORT("enable_sort", (r) -> Randomly.fromOptions(1, 0)),
-        ENABLE_TIDSCAN("enable_tidscan", (r) -> Randomly.fromOptions(1, 0)),
-        // 19.7.2. Planner Cost Constants (complete as of March 2020)
-        // https://www.postgresql.org/docs/current/runtime-config-query.html#RUNTIME-CONFIG-QUERY-CONSTANTS
-        SEQ_PAGE_COST("seq_page_cost", (r) -> Randomly.fromOptions(0d, 0.00001, 0.05, 0.1, 1, 10, 10000)),
-        RANDOM_PAGE_COST("random_page_cost", (r) -> Randomly.fromOptions(0d, 0.00001, 0.05, 0.1, 1, 10, 10000)),
-        CPU_TUPLE_COST("cpu_tuple_cost", (r) -> Randomly.fromOptions(0d, 0.00001, 0.05, 0.1, 1, 10, 10000)),
-        CPU_INDEX_TUPLE_COST("cpu_index_tuple_cost", (r) -> Randomly.fromOptions(0d, 0.00001, 0.05, 0.1, 1, 10, 10000)),
-        CPU_OPERATOR_COST("cpu_operator_cost", (r) -> Randomly.fromOptions(0d, 0.000001, 0.0025, 0.1, 1, 10, 10000)),
-        PARALLEL_SETUP_COST("parallel_setup_cost", (r) -> r.getLong(0, Long.MAX_VALUE)),
-        PARALLEL_TUPLE_COST("parallel_tuple_cost", (r) -> r.getLong(0, Long.MAX_VALUE)),
-        MIN_PARALLEL_TABLE_SCAN_SIZE("min_parallel_table_scan_size", (r) -> r.getInteger(0, 715827882)),
-        MIN_PARALLEL_INDEX_SCAN_SIZE("min_parallel_index_scan_size", (r) -> r.getInteger(0, 715827882)),
-        EFFECTIVE_CACHE_SIZE("effective_cache_size", (r) -> r.getInteger(1, 2147483647)),
-        JIT_ABOVE_COST("jit_above_cost", (r) -> Randomly.fromOptions(0, r.getLong(-1, Long.MAX_VALUE - 1))),
-        JIT_INLINE_ABOVE_COST("jit_inline_above_cost", (r) -> Randomly.fromOptions(0, r.getLong(-1, Long.MAX_VALUE))),
-        JIT_OPTIMIZE_ABOVE_COST("jit_optimize_above_cost",
-                (r) -> Randomly.fromOptions(0, r.getLong(-1, Long.MAX_VALUE))),
-        // 19.7.3. Genetic Query Optimizer (complete as of March 2020)
-        // https://www.postgresql.org/docs/current/runtime-config-query.html#RUNTIME-CONFIG-QUERY-GEQO
-        GEQO("geqo", (r) -> Randomly.fromOptions(1, 0)),
-        GEQO_THRESHOLD("geqo_threshold", (r) -> r.getInteger(2, 2147483647)),
-        GEQO_EFFORT("geqo_effort", (r) -> r.getInteger(1, 10)),
-        GEQO_POO_SIZE("geqo_pool_size", (r) -> r.getInteger(0, 2147483647)),
-        GEQO_GENERATIONS("geqo_generations", (r) -> r.getInteger(0, 2147483647)),
-        GEQO_SELECTION_BIAS("geqo_selection_bias", (r) -> Randomly.fromOptions(1.5, 1.8, 2.0)),
-        GEQO_SEED("geqo_seed", (r) -> Randomly.fromOptions(0, 0.5, 1)),
-        // 19.7.4. Other Planner Options (complete as of March 2020)
-        // https://www.postgresql.org/docs/current/runtime-config-query.html#RUNTIME-CONFIG-QUERY-OTHER
-        DEFAULT_STATISTICS_TARGET("default_statistics_target", (r) -> r.getInteger(1, 10000)),
-        CONSTRAINT_EXCLUSION("constraint_exclusion", (r) -> Randomly.fromOptions("on", "off", "partition")),
-        CURSOR_TUPLE_FRACTION("cursor_tuple_fraction",
-                (r) -> Randomly.fromOptions(0.0, 0.1, 0.000001, 1, 0.5, 0.9999999)),
-        FROM_COLLAPSE_LIMIT("from_collapse_limit", (r) -> r.getInteger(1, Integer.MAX_VALUE)),
-        JIT("jit", (r) -> Randomly.fromOptions(1, 0)),
-        JOIN_COLLAPSE_LIMIT("join_collapse_limit", (r) -> r.getInteger(1, Integer.MAX_VALUE)),
-        PARALLEL_LEADER_PARTICIPATION("parallel_leader_participation", (r) -> Randomly.fromOptions(1, 0)),
-        FORCE_PARALLEL_MODE("force_parallel_mode", (r) -> Randomly.fromOptions("off", "on", "regress")),
-        PLAN_CACHE_MODE("plan_cache_mode",
-                (r) -> Randomly.fromOptions("auto", "force_generic_plan", "force_custom_plan"));
