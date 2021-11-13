@@ -197,7 +197,13 @@ void IR::to_string_core(string& res) {
     return;
   }
 
-  if (type_ == kFuncArgs && str_val_ != "") {
+  // if (type_ == kFuncArgs && str_val_ != "") {
+  //   res += str_val_;
+  //   return;
+  // }
+
+  /* If we have str_val setup, directly return the str_val_; */
+  if (str_val_ != "") {
     res += str_val_;
     return;
   }

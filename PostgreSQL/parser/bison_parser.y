@@ -9470,13 +9470,17 @@ def_list:
 def_elem:
 
     ColLabel '=' def_arg {
+        /* Yu: Treat this as reloption type. Will fix later in the validate functions */
         auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
-        res = new IR(kDefElem, OP3("", "=", ""), tmp1, tmp2);
+        tmp2 -> deep_drop();
+        res = new IR(kDefElem, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_iden_type(kDataRelOption, kUse);
     }
 
     | ColLabel {
@@ -9486,6 +9490,8 @@ def_elem:
         res = new IR(kDefElem, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_iden_type(kDataRelOption, kUse);
     }
 
 ;
@@ -12292,13 +12298,13 @@ opt_asc_desc:
 opt_nulls_order:
 
     NULLS_LA FIRST_P {
-        res = new IR(kOptNullsOrder, OP3("NULLS_LA FIRST", "", ""));
+        res = new IR(kOptNullsOrder, OP3("NULLS FIRST", "", ""));
         all_gen_ir.push_back(res);
         $$ = res;
     }
 
     | NULLS_LA LAST_P {
-        res = new IR(kOptNullsOrder, OP3("NULLS_LA LAST", "", ""));
+        res = new IR(kOptNullsOrder, OP3("NULLS LAST", "", ""));
         all_gen_ir.push_back(res);
         $$ = res;
     }
