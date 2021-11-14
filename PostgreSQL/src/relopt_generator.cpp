@@ -8,7 +8,11 @@ pair<string, string> RelOptionGenerator::get_rel_option_pair(RelOptionType type)
             return get_rel_option_storage_parameters();
         }
         case SetConfigurationOptions: {
-            return get_rel_option_set_configuration_options();
+            pair<string, string> res_pair = get_rel_option_set_configuration_options();
+            if (get_rand_int(2)) {
+                res_pair.second = "DEFAULT";
+            }
+            return res_pair;
         }
         // TODO:: More options here...
         default: {

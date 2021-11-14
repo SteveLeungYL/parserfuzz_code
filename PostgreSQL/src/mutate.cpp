@@ -3,6 +3,7 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
+#include "../include/relopt_generator.h"
 
 #include "../oracle/postgres_norec.h"
 #include "../oracle/postgres_oracle.h"
@@ -1663,74 +1664,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     /* Fix for reloptions. (Related options. ) and function names.  */
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_data_type() == kDataRelOption) {
-        vector<pair<string, DEF_ARG_TYPE>>& v_reloption = this->m_reloption[cur_stmt_root->get_ir_type()];
 
-        if (v_reloption.size() == 0) {
-        /* No reloption found.  */
-          break;
+        if(is_debug_info) {
+          cerr << "Dependency: Fixing kDataRelOption, getting rel_option_type: " << ir_to_fix->get_rel_option_type() << "\n\n\n";
         }
 
-        auto &cur_chosen_reloption = v_reloption[get_rand_int(v_reloption.size())];
+        pair<string, string> reloption_choice = RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type());
 
-        // cerr << "DEBUG: cur_chosen_reloption.first: " << cur_chosen_reloption.first << "\n\n\n";
-        IR* new_reloption_label = new IR(kIdentifier, string(cur_chosen_reloption.first));
-
-        DEF_ARG_TYPE arg_type = cur_chosen_reloption.second;
-
-        IR* new_reloption_args = NULL;
-
-        /* Boolean */
-        if (arg_type == DEF_ARG_TYPE::boolean) {
-          if (get_rand_int(2) < 1) {
-            new_reloption_args = new IR(kBoolLiteral, string("TRUE"));
-            new_reloption_args->bool_val_ = true;
-          } else {
-            new_reloption_args = new IR(kBoolLiteral, string("FALSE"));
-            new_reloption_args->bool_val_ = false;
-          }
-          // cerr << "DEBUG: new_reloption_args->str_val_: " << new_reloption_args->str_val_ << "\n\n\n";
-        }
-        /* Integer */
-        else if (arg_type == DEF_ARG_TYPE::integer) {
-          if (get_rand_int(100) < 50 && value_library_.size()) {
-            if (value_library_.size() == 0) {
-              FATAL("Error: value_library_ is not being init properly. \n");
-            }
-            new_reloption_args = new IR(kIntLiteral, string(""));
-            new_reloption_args->int_val_ = vector_rand_ele(value_library_);
-            if (new_reloption_args->int_val_ < 0) {
-              new_reloption_args->int_val_ = - new_reloption_args->int_val_;
-            }
-            new_reloption_args->str_val_ = to_string(new_reloption_args->int_val_);
-          } else {
-            new_reloption_args = new IR(kIntLiteral, string(""));
-            new_reloption_args->int_val_ = get_rand_int(100);
-            new_reloption_args->str_val_ = to_string(new_reloption_args->int_val_);
-          }
-        }
-        /* Floating point */
-        else if (arg_type == DEF_ARG_TYPE::floating_point) {
-          new_reloption_args = new IR(kFloatLiteral, string(""));
-          new_reloption_args->float_val_ = (double)(get_rand_int(100));
-          new_reloption_args->str_val_ = to_string(new_reloption_args->float_val_);
-        }
-        /* On Off Auto */
-        else if (arg_type == DEF_ARG_TYPE::on_off_auto) {
-          int tmp = get_rand_int(3);
-          if (tmp == 0) {
-            new_reloption_args = new IR(kStringLiteral, string("ON"));
-          } else if (tmp == 1) {
-            new_reloption_args = new IR(kStringLiteral, string("OFF"));
-          } else {
-            new_reloption_args = new IR(kStringLiteral, string("AUTO"));
-          }
-        }
-        /* some unknown string type. Give up and ignored.  */
-        else {
-          new_reloption_label->deep_drop();
-          continue;
-        }
-
+        IR* new_reloption_label = new IR(kReloptionElem, reloption_choice.first);
+        IR* new_reloption_args = new IR(kReloptionElem, reloption_choice.second);
 
         IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""), new_reloption_label, new_reloption_args);
 

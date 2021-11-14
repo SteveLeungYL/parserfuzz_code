@@ -2,6 +2,7 @@
 #define __AST_H__
 
 #include "define.h"
+#include "relopt_generator.h"
 #include <map>
 #include <set>
 #include <string>
@@ -201,7 +202,8 @@ public:
   int scope_;
   int uniq_id_in_tree_ = -1;
   DATAFLAG data_flag_ = DATAFLAG::kFlagUnknown;
-  DATATYPE data_type_ = kDataWhatever;
+  DATATYPE data_type_ = DATATYPE::kDataWhatever;
+  RelOptionType option_type_ = RelOptionType::Unknown;
   IRTYPE type_;
   string name_;
 
@@ -251,6 +253,8 @@ public:
   IRTYPE get_ir_type();
   DATATYPE get_data_type();
   DATAFLAG get_data_flag();
+  RelOptionType get_rel_option_type();
+
 
   bool is_empty();
 
@@ -275,6 +279,8 @@ public:
   bool set_columnlist_type(DATATYPE, DATAFLAG);
   bool set_insert_columnlist_type(DATATYPE, DATAFLAG);
   bool set_rolelist_type(DATATYPE, DATAFLAG);
+
+  bool set_rel_option_type(RelOptionType);
 
   bool add_drop_is_add();
   int get_object_type();

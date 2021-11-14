@@ -51,6 +51,7 @@
 #include <vector>
 
 #include "../include/ast.h"
+#include "../include/relopt_generator.h"
 //#include "access/tableam.h"
 //#include "catalog/index.h"
 //#include "catalog/namespace.h"
@@ -4115,6 +4116,7 @@ reloption_elem:
         all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
+        res -> set_rel_option_type(RelOptionType::StorageParameters);
         $$ = res;
     }
 
@@ -4126,6 +4128,7 @@ reloption_elem:
         all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
+        res -> set_rel_option_type(RelOptionType::StorageParameters);
         $$ = res;
     }
 
@@ -4143,6 +4146,7 @@ reloption_elem:
         all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
+        res -> set_rel_option_type(RelOptionType::StorageParameters);
         $$ = res;
     }
 
@@ -4157,6 +4161,7 @@ reloption_elem:
         all_gen_ir.push_back(res);
 
         res->set_reloption_elem_type(kDataRelOption, kFlagUnknown);
+        res -> set_rel_option_type(RelOptionType::StorageParameters);
         $$ = res;
     }
 
@@ -9481,6 +9486,7 @@ def_elem:
         $$ = res;
 
         tmp1 -> set_iden_type(kDataRelOption, kUse);
+        tmp1 -> set_rel_option_type(RelOptionType::StorageParameters);
     }
 
     | ColLabel {
@@ -9492,6 +9498,7 @@ def_elem:
         $$ = res;
 
         tmp1 -> set_iden_type(kDataRelOption, kUse);
+        tmp1 -> set_rel_option_type(RelOptionType::StorageParameters);
     }
 
 ;

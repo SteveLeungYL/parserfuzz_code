@@ -709,3 +709,12 @@ COLTYPE IR::typename_ir_get_type() {
 
 
 }
+
+RelOptionType IR::get_rel_option_type() {
+  return this->option_type_;
+}
+
+bool IR::set_rel_option_type(RelOptionType type) {
+  this->option_type_ =  type;
+  return true;
+}
