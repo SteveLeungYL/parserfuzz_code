@@ -6208,7 +6208,7 @@ PartitionSpec:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataColumnName, kUse);
+        tmp1->set_iden_type(kDataFunctionName, kUse);
     }
 
 ;
