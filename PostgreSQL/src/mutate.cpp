@@ -93,14 +93,14 @@ vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mutate
         continue;
       }
 
-      if (!check_node_num(root, 300)) {
-        root->swap_node(new_ir, old_ir);
-        new_ir->deep_drop();
-        // cerr << "Aboard old_ir because check_node_num() failed. "
-        //      << "In func: Mutator::mutate_all(); \n";
-        total_mutate_failed++;
-        continue;
-      }
+      // if (!check_node_num(root, 300)) {
+      //   root->swap_node(new_ir, old_ir);
+      //   new_ir->deep_drop();
+      //   // cerr << "Aboard old_ir because check_node_num() failed. "
+      //   //      << "In func: Mutator::mutate_all(); \n";
+      //   total_mutate_failed++;
+      //   continue;
+      // }
 
       string tmp = root->to_string();
       unsigned tmp_hash = hash(tmp);
