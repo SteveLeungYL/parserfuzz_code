@@ -1248,6 +1248,16 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: In the context of replacing table, removing table_name: " << used_name << ". \n\n\n";
           }
         }
+
+        if (cur_stmt_root->get_ir_type() == kCreateStmt &&
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kTableLikeClause)) {
+
+            if (v_create_table_names_single.size() > 0) {
+              string newly_create_table_str = v_create_table_names_single.front();
+              m_tables[newly_create_table_str] = m_tables[ir_to_fix->get_str_val()];
+            }
+
+        }
       }
     }
 
@@ -1722,7 +1732,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       //   }
       // }
     }
-
 
     /* TODO:: Support for Aliases. */
 
