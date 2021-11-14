@@ -218,9 +218,13 @@ void IR::to_string_core(string& res) {
     }
     return;
   case kIdentifier:
-  case kStringLiteral:
     if (str_val_ != "") {
       res += str_val_;
+    }
+    return;
+  case kStringLiteral:
+    if (str_val_ != "") {
+      res += "'" + str_val_ + "'";
     }
     return;
   }

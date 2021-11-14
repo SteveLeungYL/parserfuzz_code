@@ -747,6 +747,7 @@ void Mutator::_extract_struct(IR *root) {
   if (root->get_data_flag() == kNoModi) {return;}
   if (root->get_data_type() == kDataFunctionName) {return;}
   if (root->get_ir_type() == kFuncName) {return;}
+  if (root->get_data_type() == kDataFixLater) {return;}
 
   auto type = root->type_;
   if (root->left_) {
@@ -1654,7 +1655,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* STRING */
         else {
-          ir_to_fix->str_val_ = "'" + get_a_string() + "'";
+          ir_to_fix->str_val_ = get_a_string();
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
