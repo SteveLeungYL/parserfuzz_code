@@ -6384,6 +6384,10 @@ static u8 fuzz_one(char **argv)
   for (auto &ir : mutated_tree)
   {
 
+    if (stop_soon) {
+      goto abandon_entry;
+    }
+
     string ir_str = ir->to_string();
     stage_name = "query_fix";
     
