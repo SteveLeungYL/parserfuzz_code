@@ -9493,13 +9493,12 @@ def_elem:
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
-        tmp2 -> deep_drop();
-        res = new IR(kDefElem, OP3("", "", ""), tmp1);
+        res = new IR(kDefElem, OP3("", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1 -> set_iden_type(kDataRelOption, kUse);
-        tmp1 -> set_rel_option_type(RelOptionType::StorageParameters);
+        res -> set_type(kDataRelOption, kUse);
+        res -> set_rel_option_type(RelOptionType::StorageParameters);
 
     }
 
