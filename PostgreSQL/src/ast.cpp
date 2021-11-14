@@ -754,4 +754,6 @@ bool IR::set_generic_set_type(DATATYPE data_type, DATAFLAG data_flag) {
   this->data_type_ = data_type;
   this->data_flag_ = data_flag;
 
+  return true;
+
 }
