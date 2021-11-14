@@ -1604,6 +1604,23 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
 
+        /* 9/10 chances, choose the original type. */
+        if (get_rand_int(10) < 9) {
+          if (ir_to_fix->get_ir_type() == kIntLiteral) {
+            column_data_type = COLTYPE::INT_T;
+          }
+          else if (ir_to_fix->get_ir_type() == kFloatLiteral) {
+            column_data_type = COLTYPE::FLOAT_T;
+          }
+          else if (ir_to_fix->get_ir_type() == kBoolLiteral) {
+            column_data_type = COLTYPE::BOOLEAN_T;
+          }
+          else if (ir_to_fix->get_ir_type() == kStringLiteral) {
+            column_data_type = COLTYPE::STRING_T;
+          }
+        }
+
+
         if (column_data_type == COLTYPE::UNKNOWN_T) {
           // Randomly choose Numerical, Character or Boolean.
           int rand_int = get_rand_int(4);
