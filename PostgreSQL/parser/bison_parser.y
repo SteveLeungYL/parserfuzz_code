@@ -9493,7 +9493,7 @@ def_elem:
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
-        res = new IR(kDefElem, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kDefElem, OP3("", "=", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
 
