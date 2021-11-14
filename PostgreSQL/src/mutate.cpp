@@ -1630,6 +1630,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
 
+        /* If it is used for defining length of column or text, use kIntLiteral */
+        if (
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
+        ) {
+          column_data_type = COLTYPE::INT_T;
+        }
+
 
         if (column_data_type == COLTYPE::UNKNOWN_T) {
           // Randomly choose Numerical, Character or Boolean.
@@ -1661,6 +1669,16 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           } else {
             ir_to_fix->int_val_ = get_rand_int(2147483647);
+            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+          }
+
+          if (
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
+          ) {
+
+            ir_to_fix->int_val_ = (get_rand_int(1000));
+            if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = - ir_to_fix->int_val_;
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
         }
