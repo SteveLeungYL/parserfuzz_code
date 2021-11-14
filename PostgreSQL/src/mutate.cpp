@@ -708,6 +708,7 @@ void Mutator::debug(IR *root, unsigned level) {
        << get_string_by_ir_type(root->type_) << ": "
        << get_string_by_data_type(root->data_type_) << ": "
        << get_string_by_data_flag(root->data_flag_) << ": "
+       << get_string_by_option_type(root->option_type_) << ": "
        << root->uniq_id_in_tree_ << ": "
        << root -> to_string() 
        << endl;
@@ -1666,7 +1667,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       if (ir_to_fix->get_data_type() == kDataRelOption) {
 
         if(is_debug_info) {
-          cerr << "Dependency: Fixing kDataRelOption, getting rel_option_type: " << ir_to_fix->get_rel_option_type() << "\n\n\n";
+          cerr << "Dependency: Fixing kDataRelOption: " << get_string_by_ir_type(ir_to_fix->get_ir_type()) << ", to_string(): " << ir_to_fix->to_string() << " getting rel_option_type: " << ir_to_fix->get_rel_option_type() << "\n\n\n";
         }
 
         pair<string, string> reloption_choice = RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type());

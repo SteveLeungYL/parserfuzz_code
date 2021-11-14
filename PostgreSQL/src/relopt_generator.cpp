@@ -117,7 +117,7 @@ pair<string, string> RelOptionGenerator::get_rel_option_storage_parameters() {
 
 pair<string, string> RelOptionGenerator::get_rel_option_set_configuration_options() {
 
-    int cur_choice = get_rand_int(1);
+    int cur_choice = get_rand_int(66);
 
     switch(cur_choice) {
         case 0: {

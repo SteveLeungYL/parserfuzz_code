@@ -2483,6 +2483,9 @@ generic_set:
         res = new IR(kGenericSet, OP3("", "TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        res -> set_generic_set_type(kDataRelOption, kUse);
+        res -> set_rel_option_type(RelOptionType::SetConfigurationOptions);
     }
 
     | var_name '=' var_list {
@@ -2493,6 +2496,9 @@ generic_set:
         res = new IR(kGenericSet, OP3("", "=", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        res -> set_generic_set_type(kDataRelOption, kUse);
+        res -> set_rel_option_type(RelOptionType::SetConfigurationOptions);
     }
 
     | var_name TO DEFAULT {
@@ -2502,6 +2508,9 @@ generic_set:
         res = new IR(kGenericSet, OP3("", "TO DEFAULT", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        res -> set_generic_set_type(kDataRelOption, kUse);
+        res -> set_rel_option_type(RelOptionType::SetConfigurationOptions);
     }
 
     | var_name '=' DEFAULT {
@@ -2511,6 +2520,10 @@ generic_set:
         res = new IR(kGenericSet, OP3("", "= DEFAULT", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        res -> set_generic_set_type(kDataRelOption, kUse);
+        res -> set_rel_option_type(RelOptionType::SetConfigurationOptions);
+
     }
 
 ;
@@ -9487,6 +9500,7 @@ def_elem:
 
         tmp1 -> set_iden_type(kDataRelOption, kUse);
         tmp1 -> set_rel_option_type(RelOptionType::StorageParameters);
+
     }
 
     | ColLabel {

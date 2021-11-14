@@ -23,6 +23,17 @@ string get_string_by_ir_type(IRTYPE type) {
   return "";
 }
 
+string get_string_by_option_type(RelOptionType type) {
+  switch (type) {
+    case Unknown:
+      return "option_unknown";
+    case StorageParameters:
+      return "option_storageParameters";
+    case SetConfigurationOptions:
+      return "option_setConfigurationOptions";
+  }
+}
+
 string get_string_by_data_type(DATATYPE type) {
 
   switch (type) {
@@ -76,6 +87,22 @@ string get_string_by_data_type(DATATYPE type) {
     return "data_SystemName";
   case kDataConversionName:
     return "data_ConversionName";
+  case kDataAggregateArguments:
+    return "data_aggregateArguments";
+  case kDataNonReservedWord:
+    return "data_nonReservedWord";
+  case kDataFixLater:
+    return "data_fixLater";
+  case kDataConstraintName:
+    return "data_constraintName";
+  case kDataRelOption:
+    return "data_relOption";
+  case kDataGenericType:
+    return "data_genericType";
+  case kDataTableNameFollow:
+    return "data_tableNameFollow";
+  case kDataColumnNameFollow:
+    return "data_columnNameFollow";
   default:
     return "data_unknown";
   }
@@ -150,6 +177,7 @@ IR *deep_copy(const IR *root) {
     right = deep_copy(root->right_);
 
   copy_res = new IR(root, left, right);
+
 
   return copy_res;
 }
@@ -332,6 +360,7 @@ IR *IR::deep_copy() {
                     this->str_val_, this->name_, this->mutated_times_);
   copy_res->data_type_ = this->data_type_;
   copy_res->data_flag_ = this->data_flag_;
+  copy_res->option_type_ = this->option_type_;
 
   return copy_res;
 }
@@ -715,6 +744,14 @@ RelOptionType IR::get_rel_option_type() {
 }
 
 bool IR::set_rel_option_type(RelOptionType type) {
-  this->option_type_ =  type;
+  this->option_type_ = type;
   return true;
+}
+
+bool IR::set_generic_set_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kGenericSet);
+
+  this->data_type_ = data_type;
+  this->data_flag_ = data_flag;
+
 }

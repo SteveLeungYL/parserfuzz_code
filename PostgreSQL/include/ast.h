@@ -69,6 +69,7 @@ static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
 
 string get_string_by_ir_type(IRTYPE type);
 string get_string_by_data_type(DATATYPE type);
+string get_string_by_option_type(RelOptionType);
 string get_string_by_data_flag(DATAFLAG flag_type_);
 
 class IROperator {
@@ -187,6 +188,7 @@ public:
     this->data_type_ = ir->data_type_;
     this->scope_ = ir->scope_;
     this->data_flag_ = ir->data_flag_;
+    this->option_type_ = ir->option_type_;
     this->name_ = ir->name_;
     this->operand_num_ = ir->operand_num_;
     this->mutated_times_ = ir->mutated_times_;
@@ -274,6 +276,8 @@ public:
   bool set_reloption_elem_type(DATATYPE, DATAFLAG);
   bool set_any_name_type(DATATYPE, DATAFLAG);
   bool set_any_name_list_type(DATATYPE, DATAFLAG);
+
+  bool set_generic_set_type(DATATYPE, DATAFLAG);
 
   bool set_opt_columnlist_type(DATATYPE, DATAFLAG);
   bool set_columnlist_type(DATATYPE, DATAFLAG);
