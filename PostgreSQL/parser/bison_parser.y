@@ -5634,6 +5634,8 @@ TableLikeClause:
         res = new IR(kTableLikeClause, OP3("LIKE", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
