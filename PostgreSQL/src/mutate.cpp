@@ -1597,6 +1597,20 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               }
             }
             v_index_name = tmp_v_index_name;
+          } else {
+            for (auto it = m_table2index.begin(); it != m_table2index.end(); it++) {
+              vector<string>& v_index_name = it->second;
+              if (!v_index_name.size()) continue;
+              tmp_index_name = vector_rand_ele(v_index_name);
+
+              vector<string> tmp_v_index_name;
+              for (string s: v_index_name) {
+                if (s != tmp_index_name) {
+                  tmp_v_index_name.push_back(s);
+                }
+              }
+              v_index_name = tmp_v_index_name;
+            }
           }
 
           ir_to_fix->set_str_val(tmp_index_name);
@@ -1612,7 +1626,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             vector<string>& v_index_name = m_table2index[tmp_table_name];
             if (!v_index_name.size()) continue;
             tmp_index_name = vector_rand_ele(v_index_name);
+          } else {
+            for (auto it = m_table2index.begin(); it != m_table2index.end(); it++) {
+              vector<string>& v_index_name = it->second;
+              if (!v_index_name.size()) continue;
+              tmp_index_name = vector_rand_ele(v_index_name);
+            }
           }
+
           ir_to_fix->set_str_val(tmp_index_name);
         }
       }
