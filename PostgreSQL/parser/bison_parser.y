@@ -21716,7 +21716,7 @@ a_expr:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_any_name_type(kDataCollate, kNoModi);
+        tmp2->set_any_name_type(kDataCollate, kNoModi);
 
     }
 
