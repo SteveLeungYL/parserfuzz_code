@@ -757,6 +757,20 @@ void Mutator::_extract_struct(IR *root) {
     extract_struct(root->right_);
   }
 
+  if (root->get_ir_type() == kIntLiteral) {
+    root->int_val_ = 0;
+    root->str_val_ = "0";
+    return;
+  } else if (root->get_ir_type() == kFloatLiteral) {
+    root->float_val_ = 0.0;
+    root->str_val_ = "0.0";
+    return;
+  } else if (root->get_ir_type() == kBoolLiteral) {
+    root->bool_val_ = true;
+    root->str_val_ = "true";
+    return;
+  }
+
 
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
     return;
