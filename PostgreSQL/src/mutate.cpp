@@ -71,53 +71,39 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
   return copy_res;
 }
 
-vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector, u64& total_mutate_failed, u64& total_mutate_num) {
-  vector<IR *> res;
-  IR *root = v_ir_collector.back();
+vector<IR *> Mutator::mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_mutate_failed, u64& total_mutate_num) {
 
-  mutated_root_ = root;
+  IR *root = ori_ir_root;
+  vector<IR*> res;
 
-  for (auto old_ir : v_ir_collector) {
-    if (not_mutatable_types_.find(old_ir->type_) != not_mutatable_types_.end())
-      {continue;}
+  vector<IR *> v_mutated_ir = mutate(ir_to_mutate);
 
-    vector<IR *> v_mutated_ir = mutate(old_ir);
-
-    for (auto new_ir : v_mutated_ir) {
-      total_mutate_num++;
-      if (!root->swap_node(old_ir, new_ir)) {
-        new_ir->deep_drop();
-        // cerr << "Aboard old_ir because swap_node failure. "
-        //      << "In func: Mutator::mutate_all(); \n";
-        total_mutate_failed++;
-        continue;
-      }
-
-      // if (!check_node_num(root, 300)) {
-      //   root->swap_node(new_ir, old_ir);
-      //   new_ir->deep_drop();
-      //   // cerr << "Aboard old_ir because check_node_num() failed. "
-      //   //      << "In func: Mutator::mutate_all(); \n";
-      //   total_mutate_failed++;
-      //   continue;
-      // }
-
-      string tmp = root->to_string();
-      unsigned tmp_hash = hash(tmp);
-      if (global_hash_.find(tmp_hash) != global_hash_.end()) {
-        root->swap_node(new_ir, old_ir);
-        new_ir->deep_drop();
-        total_mutate_failed++;
-        continue;
-      }
-
-      global_hash_.insert(tmp_hash);
-      res.push_back(root->deep_copy());
-      root->swap_node(new_ir, old_ir);
+  for (IR* new_ir : v_mutated_ir) {
+    total_mutate_num++;
+    if (!root->swap_node(ir_to_mutate, new_ir)) {
       new_ir->deep_drop();
+      total_mutate_failed++;
+      continue;
     }
+
+    string tmp = root->to_string();
+
+    /* Check whether the mutated IR is the same as before */
+    unsigned tmp_hash = hash(tmp);
+    if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+      root->swap_node(new_ir, ir_to_mutate);
+      new_ir->deep_drop();
+      total_mutate_failed++;
+      continue;
+    }
+    global_hash_.insert(tmp_hash);
+
+    /* Mutate successful. Save the mutation and recover the original ir_tree */
+    res.push_back(root->deep_copy());
+    root->swap_node(new_ir, ir_to_mutate);
+    new_ir->deep_drop();
   }
-  // cerr << "cur mutated_tree size: " << res.size() << "\n\n\n";
+
   return res;
 }
 

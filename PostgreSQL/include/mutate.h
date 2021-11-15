@@ -47,7 +47,7 @@ public:
 
   IR *ir_random_generator(vector<IR *> v_ir_collector);
 
-  vector<IR *> mutate_all(vector<IR *> &v_ir_collector, u64& total_mutate_failed, u64& total_mutated_num);       
+  vector<IR *> mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_mutate_failed, u64& total_mutate_num);
   vector<IR *> mutate(IR *input);                              
   IR *strategy_delete(IR *cur);                                
   IR *strategy_insert(IR *cur);                                

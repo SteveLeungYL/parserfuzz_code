@@ -6214,8 +6214,7 @@ static u8 fuzz_one(char **argv)
   u32 a_len = 0;
   IR *program;
 
-  vector<IR *> ir_set;
-  vector<IR *> mutated_tree;
+  vector<IR *> ori_ir_tree;
   vector<IR*> v_oracle_select_stmts;
   char *tmp_name = stage_name;
   // string query_str;
@@ -6313,19 +6312,26 @@ static u8 fuzz_one(char **argv)
 
   num_parse++;
 
-  ir_set = g_mutator.parse_query_str_get_ir_set(input);
-  if (ir_set.size() == 0) {
+  ori_ir_tree = g_mutator.parse_query_str_get_ir_set(input);
+  if (ori_ir_tree.size() == 0) {
     total_input_failed++;
     goto abandon_entry;
   }
 
   IR* cur_root;
-  cur_root = ir_set.back();
+  cur_root = ori_ir_tree.back();
 
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
-  // cerr << "After initial parsing, the imported input is: \n" << ir_set.back()->to_string() << "\n\n\n";
+  /* Because we deleted some stmts, we need to re-gather all the existing node in the vector */
+  ori_ir_tree.clear();
+  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
+
+  stage_max = ori_ir_tree.size();
+  stage_cur = 0;
+
+  // cerr << "After initial parsing, the imported input is: \n" << ori_ir_tree.back()->to_string() << "\n\n\n";
 
   // orig_perf = perf_score = calculate_score(queue_cur);
 
@@ -6344,213 +6350,189 @@ static u8 fuzz_one(char **argv)
   // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
   // current_hash = 0;
 
-  ir_set.clear();
-  ir_set = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
-
-  mutated_tree = g_mutator.mutate_all(ir_set, total_mutate_failed, total_mutate_num);
-  if (mutated_tree.size() < 1)
-  {
-    total_mutate_all_failed++;
-    ir_set.back()->deep_drop();
-    goto abandon_entry;
-  }
-  num_mutate_all++;
-
-  // for (auto mutated_ir : mutated_tree) {
-  //   cerr << "After mutate_all, the generated str: " << mutated_ir->to_string() << "\n\n\n";
-  // }
-
-  ir_set.back()->deep_drop();
-  ir_set.clear();
-  show_stats();
-
-  stage_max = mutated_tree.size();
-  stage_cur = 0;
-
+  /* Get some oracle compatible SELECT stmts.  */
   v_oracle_select_stmts.clear();
-
   get_oracle_select_stmts(v_oracle_select_stmts, 10);
 
-  // for (IR* tmp_valid_ir : v_oracle_select_stmts) {
-  //   cout << "stmt: " << tmp_valid_ir->to_string() << endl;
-  // }
-  // exit(0);
   int cur_reparse;
   cur_reparse = 0;
-  int cur_treesize;
-  cur_treesize = mutated_tree.size();
-  
-  // cerr << "Mutated_tree.size is: " << mutated_tree.size() << endl;
-  for (auto &ir : mutated_tree)
+
+
+  for (IR* ir_to_mutate : ori_ir_tree)
   {
 
     if (stop_soon) {
       goto abandon_entry;
     }
 
-    string ir_str = ir->to_string();
-    stage_name = "query_fix";
-    
-    /* Use to_string() here, validate() will be called just once, at the end of
-     * the query mutation. */
-    if (ir_str.size() == 0)
-    {
-      total_mutate_failed++;
-      skip_count++;
-      continue;
-    }
+    /* The mutated IR tree is deep_copied() */
+    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
 
-    // cerr << "Just after mutate, the statement is: \n" << ir_str << endl;
+    for (IR* mutated_ir_root : v_mutated_ir_root) {
 
-
-    /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
-     * consider appending anything */
-    vector<IR *> cur_ir_tree =
-        g_mutator.parse_query_str_get_ir_set(ir_str);
-    if (cur_ir_tree.size() == 0) {
-      total_mutate_failed++;
-      skip_count++;
-      continue;
-    }
-    num_reparse++;
-    cur_reparse++;
-
-    for (IR* app_IR_node : v_oracle_select_stmts) {
-      p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
-      p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
-      // cerr << "Appending stmt: " << cur_ir_tree.back()->to_string() << "\n\n\n";
-      // cerr << "v_oracle_select_stmts size(): " << v_oracle_select_stmts.size() << "\n\n\n";
-    }
-
-    // cerr << "Just after appending the stmt, the statement is: \n" << cur_ir_tree.back()->to_string() << endl;
-
-    num_append++;
-    
-    /* 
-    ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph, 
-    ** fix ir node, fill in concret values, 
-    ** and transform from IR to multi-run strings.  
-    */
-    vector<string> query_str_vec, query_str_no_marks_vec;
-
-    IR* cur_root = cur_ir_tree.back();
-
-    g_mutator.pre_validate(); // Reset global variables for query sequence. 
-
-    // pre_fix_transformation from the oracle. 
-    vector<STMT_TYPE> stmt_type_vec;
-    vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
-
-    // /* Debug  */
-    // cerr << "Just gone through pre_fix_transform, we have: \n";
-    // for (IR* cur_trans: all_pre_trans_vec) {
-    //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
-    // }
-    // cerr << "Pre-fix transform end. \n\n\n";
-
-    // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
-
-    /* Build dependency graph, fix ir node, fill in concret values */
-    for (IR* cur_trans_stmt : all_pre_trans_vec) {
-      if(!g_mutator.validate(cur_trans_stmt)) { 
-        // cerr << "Error: g_mutator.validate returns errors. \n";
-        /* Do nothing. */
-      }
-    }
-
-    /* post_fix_transformation from the oracle. All deep_copied. */
-    vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
-
-    for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
-
-      // /* Debug */
-      // cerr << "After post-fix, we have: \n";
-      // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
-      //   for (IR* cur_post: cur_post_trans) {
-      //     cerr << "cur_post: " << cur_post->to_string() << "\n";
-      //   }
-      // }
-      // cerr << "Post-fix Done. \n";
-
-      // Final step, transform IR tree to string. Add marker to important statements. 
-      pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
-      query_str_vec.push_back(query_str_pair.first);
-      query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements. 
-    }
-
-    // for (auto query_str : query_str_vec) {
-    //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
-    // }
-    // cerr << "End\n\n\n";
-
-    // Clean up allocated resource. 
-    // post_trans_vec are all being appended to the IR tree. Free up cur_run_root should take care of them.
-    // cur_run_root->deep_drop();
-    for (int i = 0; i < all_pre_trans_vec.size(); i++){
-      all_pre_trans_vec[i]->deep_drop();
-    }
-
-    for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
-      for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
-        for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
-          all_post_trans_vec_all_runs[i][j][k]->deep_drop();
-        }
-      }
-    }
-
-    num_validate++;
-    
-    if (cur_ir_tree.size() > 0){
-      cur_ir_tree.back()->deep_drop();
-    }
-
-    if (query_str_vec.size() == 0)
-    {
-      total_append_failed++;
-      skip_count++;
-      continue;
-    } else if (query_str_vec[0] == "" ){
-      total_append_failed++;
-      skip_count++;
-      continue;
-    }
-    else 
-    {
-      show_stats();
-      // cout << "Valid SQL: " << ir_str << endl;
-      // g_current_ir = ir; //this is not modified
-      stage_name = "fuzz";
-      // cerr << "IR_STR is: " << query_str << endl;
-
-      /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
-      // vector<string> small_query_testcases;
-      // split_queries_into_small_pieces(query_str, small_query_testcases);
-      // if (small_query_testcases.size() == 0) {
-      //   total_append_failed++;
-      //   skip_count++;
-      //   continue;
-      // }
-
-      // if (query_str_vec.size() > 0)
-      //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
-
-      if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
-      {
-        // goto abandon_entry;
+      if (!mutated_ir_root) {
         continue;
       }
-      total_execute++;
-      stage_cur++;
-      show_stats();
-    
-    }
-  } // mutated_tree vector
 
-  // cerr << "cur_reparse: " << cur_reparse << " " << cur_treesize << " " << std::to_string(float(cur_reparse)/float(cur_treesize) * 100.0) << "\n\n\n";
+      string ir_str = mutated_ir_root->to_string();
+      stage_name = "query_fix";
+
+      /* Use to_string() here, validate() will be called just once, at the end of
+      * the query mutation. */
+      if (ir_str.size() == 0)
+      {
+        total_mutate_failed++;
+        skip_count++;
+        continue;
+      }
+
+      /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
+      * consider appending anything */
+      vector<IR *> cur_ir_tree =
+          g_mutator.parse_query_str_get_ir_set(ir_str);
+      if (cur_ir_tree.size() == 0) {
+        total_mutate_failed++;
+        skip_count++;
+        continue;
+      }
+      num_reparse++;
+      cur_reparse++;
+
+      for (IR* app_IR_node : v_oracle_select_stmts) {
+        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
+        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
+      }
+
+      num_append++;
+
+      /*
+      ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
+      ** fix ir node, fill in concret values,
+      ** and transform from IR to multi-run strings.
+      */
+      vector<string> query_str_vec, query_str_no_marks_vec;
+
+      IR* cur_root = cur_ir_tree.back();
+
+      g_mutator.pre_validate(); // Reset global variables for query sequence.
+
+      // pre_fix_transformation from the oracle.
+      vector<STMT_TYPE> stmt_type_vec;
+      vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
+
+      // /* Debug  */
+      // cerr << "Just gone through pre_fix_transform, we have: \n";
+      // for (IR* cur_trans: all_pre_trans_vec) {
+      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+      // }
+      // cerr << "Pre-fix transform end. \n\n\n";
+
+      // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
+
+      /* Build dependency graph, fix ir node, fill in concret values */
+      for (IR* cur_trans_stmt : all_pre_trans_vec) {
+        if(!g_mutator.validate(cur_trans_stmt)) {
+          // cerr << "Error: g_mutator.validate returns errors. \n";
+          /* Do nothing. */
+        }
+      }
+
+      /* post_fix_transformation from the oracle. All deep_copied. */
+      vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
+
+      for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
+
+        // /* Debug */
+        // cerr << "After post-fix, we have: \n";
+        // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
+        //   for (IR* cur_post: cur_post_trans) {
+        //     cerr << "cur_post: " << cur_post->to_string() << "\n";
+        //   }
+        // }
+        // cerr << "Post-fix Done. \n";
+
+        // Final step, transform IR tree to string. Add marker to important statements.
+        pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+        query_str_vec.push_back(query_str_pair.first);
+        query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements.
+      }
+
+      // for (auto query_str : query_str_vec) {
+      //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
+      // }
+      // cerr << "End\n\n\n";
+
+      /* Clean up allocated resource.  */
+      for (int i = 0; i < all_pre_trans_vec.size(); i++){
+        all_pre_trans_vec[i]->deep_drop();
+      }
+
+      for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
+        for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
+          for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
+            all_post_trans_vec_all_runs[i][j][k]->deep_drop();
+          }
+        }
+      }
+
+      num_validate++;
+
+      if (cur_ir_tree.size() > 0){
+        cur_ir_tree.back()->deep_drop();
+      }
+
+      /* Finished clean up */
+
+      if (query_str_vec.size() == 0)
+      {
+        total_append_failed++;
+        skip_count++;
+        continue;
+      } else if (query_str_vec[0] == "" ){
+        total_append_failed++;
+        skip_count++;
+        continue;
+      }
+      else
+      {
+        show_stats();
+        // cout << "Valid SQL: " << ir_str << endl;
+        // g_current_ir = ir; //this is not modified
+        stage_name = "fuzz";
+        // cerr << "IR_STR is: " << query_str << endl;
+
+        /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
+        // vector<string> small_query_testcases;
+        // split_queries_into_small_pieces(query_str, small_query_testcases);
+        // if (small_query_testcases.size() == 0) {
+        //   total_append_failed++;
+        //   skip_count++;
+        //   continue;
+        // }
+
+        // if (query_str_vec.size() > 0)
+        //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
+
+        if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
+        {
+          // goto abandon_entry;
+          continue;
+        }
+        total_execute++;
+        stage_cur++;
+        show_stats();
+      }
+    } // v_mutated_ir_root
+
+    for (IR* mutated_ir_root : v_mutated_ir_root) {
+      mutated_ir_root->deep_drop();
+    }
+
+  } // ir_set vector
 
   stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
-  stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
+  stage_cycles[STAGE_FLIP1] += ori_ir_tree.size() - skip_count;
   stage_name = tmp_name;
 
   new_hit_cnt = queued_paths + unique_crashes;
@@ -6558,9 +6540,8 @@ static u8 fuzz_one(char **argv)
   ret_val = 0;
 
 abandon_entry:
-  for (auto ir : mutated_tree) {
-    deep_delete(ir);
-  }
+  /* Free the original ir tree */
+  ori_ir_tree.back()->deep_drop();
 
   /* Free the generated oracle SELECT stmt.  */
   for (IR* app_ir_node : v_oracle_select_stmts) {
