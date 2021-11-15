@@ -6440,6 +6440,8 @@ CreateStatsStmt:
         res = new IR(kCreateStatsStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_any_name_type(kDataStatisticName, kDefine);
     }
 
     | CREATE STATISTICS IF_P NOT EXISTS any_name opt_name_list ON stats_params FROM from_list {
@@ -6454,6 +6456,8 @@ CreateStatsStmt:
         res = new IR(kCreateStatsStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_any_name_type(kDataStatisticName, kDefine);
     }
 
 ;
@@ -6495,6 +6499,8 @@ stats_param:
         res = new IR(kStatsParam, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
     | func_expr_windowless {
@@ -10223,6 +10229,7 @@ DropStmt:
         case 4: tmp2->set_any_name_list_type(kDataIndexName, kUndefine); break;
         case 5: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
         case 7: tmp2->set_any_name_list_type(kDataConversionName, kUndefine); break;
+        case 8: tmp2->set_any_name_list_type(kDataStatisticName, kUndefine); break;
         default: break;
         }
     }

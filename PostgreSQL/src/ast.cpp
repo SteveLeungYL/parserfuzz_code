@@ -106,6 +106,8 @@ string get_string_by_data_type(DATATYPE type) {
     return "data_columnNameFollow";
   case kDataCollate:
     return "data_collate";
+  case kDataStatisticName:
+    return "data_statisticName";
   default:
     return "data_unknown";
   }

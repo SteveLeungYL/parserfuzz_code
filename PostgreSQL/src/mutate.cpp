@@ -37,6 +37,7 @@ map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to al
 map<string, COLTYPE> Mutator::m_column2datatype;   // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_.
 vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
 vector<string> Mutator::v_table_name_follow_single;  // All used table names follow type in one query stmt.
+vector<string> Mutator::v_statistics_name; // All statistic names defined in the current stmt.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 
@@ -863,7 +864,6 @@ bool Mutator::validate(IR *&cur_stmt, bool is_debug_info) {
 
 string Mutator::validate(string query, bool is_debug_info) {
   reset_data_library();
-  reset_data_library();
   reset_scope_library(true);
 
   vector<IR *> ir_set = parse_query_str_get_ir_set(query);
@@ -1155,7 +1155,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
-    kDataColumnNameFollow
+    kDataColumnNameFollow, kDataStatisticName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1619,9 +1619,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     }
 
 
-
-
-
     /* Fix the Literal. */
     int cur_literal_idx = -1;
     for (IR* ir_to_fix : ir_to_fix_vec) {
@@ -1800,7 +1797,43 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       // }
     }
 
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_data_type() == kDataStatisticName) {
+        if (ir_to_fix->get_data_flag() == kDefine) {
+          string cur_chosen_name = gen_statistic_name();
+          ir_to_fix->set_str_val(cur_chosen_name);
+          v_statistics_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUndefine) {
+          if (!v_statistics_name.size()) continue;
+          string cur_chosen_name = vector_rand_ele(v_statistics_name);
+          ir_to_fix->set_str_val(cur_chosen_name);
+
+          /* remove the statistic name from the vector */
+          vector<string> v_tmp;
+          for (string& s : v_statistics_name) {
+            if (s != cur_chosen_name) {
+              v_tmp.push_back(s);
+            }
+          }
+          v_statistics_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUse) {
+          if (!v_statistics_name.size()) continue;
+          string cur_chosen_name = vector_rand_ele(v_statistics_name);
+          ir_to_fix->set_str_val(cur_chosen_name);
+        }
+      }
+    }
+
+
   }  /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
+
+
+
+
 
   /* For the newly declared v_table_names_single, save all these newly declared statement to the global v_table_names. */
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(), v_create_table_names_single.end());
@@ -2221,6 +2254,7 @@ void Mutator::reset_data_library() {
   v_alias_names_single.clear();
   v_column_names_single.clear();
   v_table_name_follow_single.clear();
+  v_statistics_name.clear();
 }
 
 static IR *search_mapped_ir(IR *ir, DATATYPE type) {

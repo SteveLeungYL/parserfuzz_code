@@ -1503,7 +1503,8 @@
   V(DataGenericType)                                                           \
   V(DataTableNameFollow)                                                       \
   V(DataColumnNameFollow)                                                      \
-  V(DataCollate)
+  V(DataCollate)                                                               \
+  V(DataStatisticName)
 
 
 
