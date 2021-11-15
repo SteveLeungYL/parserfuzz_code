@@ -283,6 +283,10 @@ public:
   bool set_columnlist_type(DATATYPE, DATAFLAG);
   bool set_insert_columnlist_type(DATATYPE, DATAFLAG);
   bool set_rolelist_type(DATATYPE, DATAFLAG);
+  bool set_opt_name_list_type(DATATYPE, DATAFLAG);
+  bool set_name_list_type(DATATYPE, DATAFLAG);
+
+
 
   bool set_rel_option_type(RelOptionType);
 

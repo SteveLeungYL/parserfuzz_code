@@ -769,3 +769,31 @@ bool IR::set_generic_set_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 
 }
+
+bool IR::set_opt_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(get_ir_type() == kOptNameList);
+
+  if (!get_left()) return false;
+
+  IR* name_list_ir = get_left();
+
+  return name_list_ir->set_name_list_type(data_type, data_flag);
+
+}
+
+bool IR::set_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(get_ir_type() == kNameList);
+
+  if (get_right()) {
+    /* This is not the end of the name_list. Fix thte current one and iterate it */
+    IR* name_ir = get_right();
+    IR* next_name_list_ir = get_left();
+    return next_name_list_ir->set_name_list_type(data_type, data_flag) &&
+      name_ir->set_iden_type(data_type, data_flag);
+;
+  } else {
+    /* This is the last name list. Set it and return */
+    IR* name_ir = get_left();
+    return name_ir->set_iden_type(data_type, data_flag);
+  }
+}

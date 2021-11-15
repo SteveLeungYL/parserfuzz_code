@@ -17541,6 +17541,10 @@ vacuum_relation:
         res = new IR(kVacuumRelation, OP3("", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
+        tmp2->set_opt_name_list_type(kDataColumnName, kUse);
+
     }
 
 ;
