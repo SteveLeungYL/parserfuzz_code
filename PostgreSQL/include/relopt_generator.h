@@ -6,7 +6,9 @@
 
 using namespace std;
 
+#ifndef INT_MAX
 #define INT_MAX 2147483647
+#endif
 
 enum RelOptionType {
 Unknown,

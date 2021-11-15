@@ -32,6 +32,7 @@ string get_string_by_option_type(RelOptionType type) {
     case SetConfigurationOptions:
       return "option_setConfigurationOptions";
   }
+  return "option_unknown";
 }
 
 string get_string_by_data_type(DATATYPE type) {
