@@ -3528,6 +3528,8 @@ alter_table_cmd:
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp3->set_reloptions_option_type(RelOptionType::AlterAttribute);
     }
 
     | ALTER opt_column ColId RESET reloptions {
@@ -3541,6 +3543,8 @@ alter_table_cmd:
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp3->set_reloptions_option_type(RelOptionType::AlterAttributeReset);
     }
 
     | ALTER opt_column ColId SET STORAGE ColId {

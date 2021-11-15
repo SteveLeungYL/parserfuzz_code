@@ -797,3 +797,45 @@ bool IR::set_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
     return name_ir->set_iden_type(data_type, data_flag);
   }
 }
+
+bool IR::set_opt_reloptions_option_type(RelOptionType type) {
+  assert(get_ir_type() == kOptReloptions);
+
+  if (!get_left()) return false;
+
+  IR* reloptions_ir = get_left();
+
+  return reloptions_ir->set_reloptions_option_type(type);
+}
+
+bool IR::set_reloptions_option_type(RelOptionType type) {
+  assert(get_ir_type() == kReloptions);
+
+  if (!get_left()) return false;
+
+  IR* reloptions_list_ir = get_left();
+
+  return reloptions_list_ir->set_reloption_list_option_type(type);
+}
+
+bool IR::set_reloption_list_option_type(RelOptionType type) {
+  assert(get_ir_type() == kReloptionList);
+
+  if (get_right()) {
+    /* This is not the end of the list. Fix thte current one and iterate it */
+    IR* reloption_elem_ir = get_right();
+    IR* next_reloption_list_ir = get_left();
+    return next_reloption_list_ir->set_reloption_list_option_type(type) &&
+      reloption_elem_ir->set_reloption_elem_option_type(type);
+;
+  } else {
+    /* This is the last list. Set it and return */
+    IR* reloption_elem_ir= get_left();
+    return reloption_elem_ir->set_reloption_elem_option_type(type);
+  }
+}
+
+bool IR::set_reloption_elem_option_type(RelOptionType type) {
+  assert(get_ir_type() == kReloptionElem);
+  return set_rel_option_type(type);
+}

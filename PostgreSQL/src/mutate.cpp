@@ -1716,19 +1716,33 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           cerr << "Dependency: Fixing kDataRelOption: " << get_string_by_ir_type(ir_to_fix->get_ir_type()) << ", to_string(): " << ir_to_fix->to_string() << " getting rel_option_type: " << ir_to_fix->get_rel_option_type() << "\n\n\n";
         }
 
-        pair<string, string> reloption_choice = RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type());
+        pair<string, string> reloption_choice;
 
-        IR* new_reloption_label = new IR(kReloptionElem, reloption_choice.first);
-        IR* new_reloption_args = new IR(kReloptionElem, reloption_choice.second);
+        bool is_reset = RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type(), reloption_choice);
 
-        IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""), new_reloption_label, new_reloption_args);
+        if (!is_reset) {
+          IR* new_reloption_label = new IR(kReloptionElem, reloption_choice.first);
+          IR* new_reloption_args = new IR(kReloptionElem, reloption_choice.second);
 
-        /* Replace the old reloption ir to the new one. But only deep_drop it at the end of the fix_dependency.  */
-        cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-        /* If nested reloption_elem happens, this will crash the program.
-         * But I don't think that is a possible case in practice.
-         * */
-        ir_to_deep_drop.push_back(ir_to_fix);
+          IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""), new_reloption_label, new_reloption_args);
+
+          /* Replace the old reloption ir to the new one. But only deep_drop it at the end of the fix_dependency.  */
+          cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+          /* If nested reloption_elem happens, this will crash the program.
+          * But I don't think that is a possible case in practice.
+          * */
+          ir_to_deep_drop.push_back(ir_to_fix);
+        } else {
+          IR* new_reloption_label = new IR(kReloptionElem, reloption_choice.first);
+          IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "", ""), new_reloption_label);
+
+          /* Replace the old reloption ir to the new one. But only deep_drop it at the end of the fix_dependency.  */
+          cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+          /* If nested reloption_elem happens, this will crash the program.
+          * But I don't think that is a possible case in practice.
+          * */
+          ir_to_deep_drop.push_back(ir_to_fix);
+        }
 
       }
 

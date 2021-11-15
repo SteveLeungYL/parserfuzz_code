@@ -1,18 +1,27 @@
 #include "../include/relopt_generator.h"
 #include "../include/utils.h"
 
-pair<string, string> RelOptionGenerator::get_rel_option_pair(RelOptionType type) {
+bool RelOptionGenerator::get_rel_option_pair(RelOptionType type, pair<string, string>& res_pair) {
 
     switch (type) {
         case StorageParameters: {
-            return get_rel_option_storage_parameters();
+            res_pair = get_rel_option_storage_parameters();
+            return false;
         }
         case SetConfigurationOptions: {
-            pair<string, string> res_pair = get_rel_option_set_configuration_options();
+            res_pair = get_rel_option_set_configuration_options();
             if (get_rand_int(2)) {
                 res_pair.second = "DEFAULT";
             }
-            return res_pair;
+            return false;
+        }
+        case AlterAttribute: {
+            res_pair = get_rel_option_alter_attribute();
+            return false;
+        }
+        case AlterAttributeReset: {
+            res_pair = get_rel_option_alter_attribute();
+            return true;
         }
         // TODO:: More options here...
         default: {
@@ -537,4 +546,27 @@ pair<string, string> RelOptionGenerator::get_rel_option_set_configuration_option
             assert(false && "Fatal ERROR: Find unknown type inside: get_rel_option_set_configuration_options. \n ");
         }
     }
+}
+
+pair<string, string> RelOptionGenerator::get_rel_option_alter_attribute() {
+    int cur_choice = get_rand_int(2);
+
+    switch(cur_choice) {
+        case 0: {
+            string f = "n_distinct_inherited";
+            vector<string> s_v_str = { "-1", "-0.8", "-0.5", "-0.2", "-0.1", "-0.0001", "0","0.0001", "0.1", "1" };
+            string s = vector_rand_ele(s_v_str);
+            return make_pair(f, s);
+        }
+        case 1: {
+            string f = "n_distinct";
+            vector<string> s_v_str = { "-1", "-0.8", "-0.5", "-0.2", "-0.1", "-0.0001", "0","0.0001", "0.1", "1" };
+            string s = vector_rand_ele(s_v_str);
+            return make_pair(f, s);
+        }
+        default: {
+            assert(false && "Fatal ERROR: Find unknown type inside: get_rel_option_alter_attribute. \n ");
+        }
+    }
+
 }

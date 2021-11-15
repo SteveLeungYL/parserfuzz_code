@@ -14,16 +14,19 @@ enum RelOptionType {
 Unknown,
 StorageParameters,
 SetConfigurationOptions,
+AlterAttribute,
+AlterAttributeReset
 };
 
 class RelOptionGenerator {
 
 public:
-    static pair<string, string> get_rel_option_pair(RelOptionType);
+    static bool get_rel_option_pair(RelOptionType, pair<string, string>&);
 
 private:
     static pair<string, string> get_rel_option_storage_parameters();
     static pair<string, string> get_rel_option_set_configuration_options();
+    static pair<string, string> get_rel_option_alter_attribute();
 };
 
 #endif // RELOPT_GENERATOR_H_

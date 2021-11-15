@@ -288,6 +288,10 @@ public:
 
 
 
+  bool set_opt_reloptions_option_type(RelOptionType);
+  bool set_reloptions_option_type(RelOptionType);
+  bool set_reloption_list_option_type(RelOptionType);
+  bool set_reloption_elem_option_type(RelOptionType);
   bool set_rel_option_type(RelOptionType);
 
   bool add_drop_is_add();
