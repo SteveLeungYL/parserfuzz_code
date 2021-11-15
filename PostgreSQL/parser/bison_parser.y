@@ -9635,13 +9635,17 @@ old_aggr_elem:
         ) {
             tmp1 = new IR(kIdentifier, string($1), kDataAggregateArguments, kFlagUnknown);
             free($1);
+            all_gen_ir.push_back(tmp1);
         } else {
             tmp1 = new IR(kIdentifier, string("SFUNC"), kDataAggregateArguments, kFlagUnknown);
             free($1);
+            all_gen_ir.push_back(tmp1);
         }
 
         auto tmp2 = $3;
-        $$ = new IR(kOldAggrElem, OP3("", "=", ""), tmp1, tmp2);
+        auto res = new IR(kOldAggrElem, OP3("", "=", ""), tmp1, tmp2);
+        $$ = res;
+        all_gen_ir.push_back(res);
     }
 
 ;
