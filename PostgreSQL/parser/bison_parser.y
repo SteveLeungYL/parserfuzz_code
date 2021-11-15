@@ -4005,7 +4005,7 @@ opt_collate_clause:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_any_name_type(kDataColumnName, kUse);
+        tmp1->set_any_name_type(kDataCollate, kNoModi);
     }
 
     | /* EMPTY */ {
@@ -5458,7 +5458,7 @@ ColConstraint:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_any_name_type(kDataColumnName, kUse);
+        tmp1->set_any_name_type(kDataCollate, kNoModi);
     }
 
 ;
@@ -12263,7 +12263,7 @@ opt_collate:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_any_name_type(kDataColumnName, kUse);
+        tmp1->set_any_name_type(kDataCollate, kNoModi);
 
     }
 
@@ -21716,7 +21716,7 @@ a_expr:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp2->set_any_name_type(kDataColumnName, kUse);
+        tmp1->set_any_name_type(kDataCollate, kNoModi);
 
     }
 

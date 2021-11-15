@@ -103,6 +103,8 @@ string get_string_by_data_type(DATATYPE type) {
     return "data_tableNameFollow";
   case kDataColumnNameFollow:
     return "data_columnNameFollow";
+  case kDataCollate:
+    return "data_collate";
   default:
     return "data_unknown";
   }
@@ -191,6 +193,12 @@ string IR::to_string() {
 
 /* Very frequently called. Must be very fast. */
 void IR::to_string_core(string& res) {
+
+  if (data_type_ == kDataCollate) {
+    res += "'" + str_val_ + "'";
+    return;
+  }
+
   switch (type_) {
   case kIntLiteral:
     if (str_val_ != "") {
@@ -228,6 +236,7 @@ void IR::to_string_core(string& res) {
     }
     return;
   }
+
 
   // if (type_ == kFuncArgs && str_val_ != "") {
   //   res += str_val_;

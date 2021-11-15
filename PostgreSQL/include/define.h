@@ -1502,7 +1502,8 @@
   V(DataRelOption)                                                             \
   V(DataGenericType)                                                           \
   V(DataTableNameFollow)                                                       \
-  V(DataColumnNameFollow)
+  V(DataColumnNameFollow)                                                      \
+  V(DataCollate)
 
 
 
