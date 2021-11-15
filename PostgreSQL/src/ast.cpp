@@ -839,3 +839,12 @@ bool IR::set_reloption_elem_option_type(RelOptionType type) {
   assert(get_ir_type() == kReloptionElem);
   return set_rel_option_type(type);
 }
+
+bool IR::set_cluster_index_specification_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(get_ir_type() == kClusterIndexSpecification);
+
+  if (!get_left()) return false;
+
+  IR* iden = get_left();
+  return iden->set_iden_type(data_type, data_flag);
+}

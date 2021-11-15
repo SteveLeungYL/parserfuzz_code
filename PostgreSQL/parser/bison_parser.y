@@ -17236,6 +17236,10 @@ ClusterStmt:
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kUse);
+        tmp3->set_cluster_index_specification_type(kDataAliasName, kUse);
+
     }
 
     | CLUSTER '(' utility_option_list ')' qualified_name cluster_index_specification {
@@ -17247,6 +17251,9 @@ ClusterStmt:
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataTableName, kUse);
+        tmp3->set_cluster_index_specification_type(kDataAliasName, kUse);
     }
 
     | CLUSTER opt_verbose {
@@ -17267,6 +17274,9 @@ ClusterStmt:
         res = new IR(kClusterStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp2-> set_iden_type(kDataAliasName, kUse);
+        tmp3->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
@@ -17281,6 +17291,8 @@ cluster_index_specification:
         res = new IR(kClusterIndexSpecification, OP3("USING", "", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataAliasName, kUse);
     }
 
     | /*EMPTY*/ {

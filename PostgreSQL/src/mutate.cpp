@@ -1579,7 +1579,42 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             m_table2index[tmp_table_name].push_back(tmp_index_name);
           }
         }
-        // TODO:: SUPPORT FOR kUndefine
+        else if (ir_to_fix->get_data_flag() == kUndefine) {
+
+          string tmp_index_name = "y";
+
+          /* Find the table used in this stmt. */
+          if (v_table_names_single.size() != 0) {
+            string tmp_table_name = v_table_names_single[0];
+            vector<string>& v_index_name = m_table2index[tmp_table_name];
+            if (!v_index_name.size()) continue;
+            tmp_index_name = vector_rand_ele(v_index_name);
+
+            vector<string> tmp_v_index_name;
+            for (string s: v_index_name) {
+              if (s != tmp_index_name) {
+                tmp_v_index_name.push_back(s);
+              }
+            }
+            v_index_name = tmp_v_index_name;
+          }
+
+          ir_to_fix->set_str_val(tmp_index_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUse) {
+
+          string tmp_index_name = "y";
+
+          /* Find the table used in this stmt. */
+          if (v_table_names_single.size() != 0) {
+            string tmp_table_name = v_table_names_single[0];
+            vector<string>& v_index_name = m_table2index[tmp_table_name];
+            if (!v_index_name.size()) continue;
+            tmp_index_name = vector_rand_ele(v_index_name);
+          }
+          ir_to_fix->set_str_val(tmp_index_name);
+        }
       }
     }
 
@@ -1764,8 +1799,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       //   }
       // }
     }
-
-    /* TODO:: Support for Aliases. */
 
   }  /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
 

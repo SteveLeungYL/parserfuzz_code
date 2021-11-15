@@ -285,6 +285,7 @@ public:
   bool set_rolelist_type(DATATYPE, DATAFLAG);
   bool set_opt_name_list_type(DATATYPE, DATAFLAG);
   bool set_name_list_type(DATATYPE, DATAFLAG);
+  bool set_cluster_index_specification_type(DATATYPE, DATAFLAG);
 
 
 
