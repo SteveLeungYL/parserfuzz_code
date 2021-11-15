@@ -195,7 +195,7 @@ string IR::to_string() {
 void IR::to_string_core(string& res) {
 
   if (data_type_ == kDataCollate) {
-    res += "'" + str_val_ + "'";
+    res += "\"" + str_val_ + "\"";
     return;
   }
 
