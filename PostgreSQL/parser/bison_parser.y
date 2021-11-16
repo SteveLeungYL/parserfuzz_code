@@ -10717,7 +10717,7 @@ CommentStmt:
             case 4: tmp2->set_any_name_list_type(kDataIndexName, kUse); break;
             case 5: tmp2->set_any_name_list_type(kDataTableName, kUse); break;
             case 7: tmp2->set_any_name_list_type(kDataConversionName, kUse); break;
-            case 8: tmp2->set_any_name_list_type(kDataStatisticsName, kUse); break;
+            case 8: tmp2->set_any_name_list_type(kDataStatisticName, kUse); break;
             default: break;
         }
 
@@ -10758,7 +10758,7 @@ CommentStmt:
             case 4: tmp2->set_any_name_list_type(kDataIndexName, kUse); break;
             case 5: tmp2->set_any_name_list_type(kDataTableName, kUse); break;
             case 7: tmp2->set_any_name_list_type(kDataConversionName, kUse); break;
-            case 8: tmp2->set_any_name_list_type(kDataStatisticsName, kUse); break;
+            case 8: tmp2->set_any_name_list_type(kDataStatisticName, kUse); break;
             default: break;
         }
 
@@ -16126,7 +16126,7 @@ NotifyStmt:
 notify_payload:
 
     ',' Sconst {
-        $$ = alloc_and_cat(",", $2);
+        $$ = alloc_and_cat(", '", $2, "'");
         free($2);
     }
 
