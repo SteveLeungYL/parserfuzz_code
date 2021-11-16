@@ -6767,6 +6767,8 @@ CreateSeqStmt:
         res = new IR(kCreateSeqStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataSequenceName, kDefine);
     }
 
     | CREATE OptTemp SEQUENCE IF_P NOT EXISTS qualified_name OptSeqOptList {
@@ -6778,6 +6780,9 @@ CreateSeqStmt:
         res = new IR(kCreateSeqStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp2->set_qualified_name_type(kDataSequenceName, kDefine);
+
     }
 
 ;

@@ -38,6 +38,7 @@ map<string, COLTYPE> Mutator::m_column2datatype;   // Column name mapping to col
 vector<string> Mutator::v_column_names_single; // All used column names in one query statement. Used to confirm literal type.
 vector<string> Mutator::v_table_name_follow_single;  // All used table names follow type in one query stmt.
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the current stmt.
+vector<string> Mutator::v_sequence_name; // All sequence names defined in the current SQL.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 
@@ -1155,7 +1156,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
-    kDataColumnNameFollow, kDataStatisticName
+    kDataColumnNameFollow, kDataStatisticName, kDataSequenceName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1847,6 +1848,37 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           ir_to_fix->set_str_val(cur_chosen_name);
         }
       }
+
+      /* Fix for kDataSequenceName */
+      if (ir_to_fix->get_data_type() == kDataSequenceName) {
+        if (ir_to_fix->get_data_flag() == kDefine) {
+          string cur_chosen_name = gen_sequence_name();
+          ir_to_fix->set_str_val(cur_chosen_name);
+          v_sequence_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUndefine) {
+          if (!v_sequence_name.size()) continue;
+          string cur_chosen_name = vector_rand_ele(v_sequence_name);
+          ir_to_fix->set_str_val(cur_chosen_name);
+
+          /* remove the statistic name from the vector */
+          vector<string> v_tmp;
+          for (string& s : v_sequence_name) {
+            if (s != cur_chosen_name) {
+              v_tmp.push_back(s);
+            }
+          }
+          v_sequence_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUse) {
+          if (!v_sequence_name.size()) continue;
+          string cur_chosen_name = vector_rand_ele(v_sequence_name);
+          ir_to_fix->set_str_val(cur_chosen_name);
+        }
+      }
+
     }
 
 
