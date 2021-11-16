@@ -10708,6 +10708,19 @@ CommentStmt:
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp1->get_object_type()) {
+            case 0: tmp2->set_any_name_list_type(kDataTableName, kUse); break;
+            case 1: tmp2->set_any_name_list_type(kDataSequenceName, kUse); break;
+            case 2: tmp2->set_any_name_list_type(kDataViewName, kUse); break;
+            case 3: tmp2->set_any_name_list_type(kDataViewName, kUse); break;
+            case 4: tmp2->set_any_name_list_type(kDataIndexName, kUse); break;
+            case 5: tmp2->set_any_name_list_type(kDataTableName, kUse); break;
+            case 7: tmp2->set_any_name_list_type(kDataConversionName, kUse); break;
+            case 8: tmp2->set_any_name_list_type(kDataStatisticsName, kUse); break;
+            default: break;
+        }
+
     }
 
     | COMMENT ON COLUMN any_name IS comment_text {
@@ -10718,6 +10731,9 @@ CommentStmt:
         res = new IR(kCommentStmt, OP3("COMMENT ON COLUMN", "IS", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_any_name_list_type(kDataColumnName, kUse);
+
     }
 
     | COMMENT ON object_type_name name IS comment_text {
@@ -10733,6 +10749,20 @@ CommentStmt:
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        switch (tmp1->get_object_type()) {
+            case 0: tmp2->set_any_name_list_type(kDataTableName, kUse); break;
+            case 1: tmp2->set_any_name_list_type(kDataSequenceName, kUse); break;
+            case 2: tmp2->set_any_name_list_type(kDataViewName, kUse); break;
+            case 3: tmp2->set_any_name_list_type(kDataViewName, kUse); break;
+            case 4: tmp2->set_any_name_list_type(kDataIndexName, kUse); break;
+            case 5: tmp2->set_any_name_list_type(kDataTableName, kUse); break;
+            case 7: tmp2->set_any_name_list_type(kDataConversionName, kUse); break;
+            case 8: tmp2->set_any_name_list_type(kDataStatisticsName, kUse); break;
+            default: break;
+        }
+
+
     }
 
     | COMMENT ON TYPE_P Typename IS comment_text {
