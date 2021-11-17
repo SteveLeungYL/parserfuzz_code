@@ -10732,7 +10732,7 @@ CommentStmt:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_any_name_list_type(kDataColumnName, kUse);
+        tmp1->set_any_name_type(kDataColumnName, kUse);
 
     }
 
