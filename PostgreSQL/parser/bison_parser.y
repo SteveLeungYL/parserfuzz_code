@@ -10204,7 +10204,7 @@ DropStmt:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        switch (tmp1->get_object_type()) {
+        switch (tmp1->get_object_type_any_name()) {
         case 0: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
         case 1: tmp2->set_any_name_list_type(kDataSequenceName, kUndefine); break;
         case 2: tmp2->set_any_name_list_type(kDataViewName, kUndefine); break;
@@ -10226,7 +10226,7 @@ DropStmt:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        switch (tmp1->get_object_type()) {
+        switch (tmp1->get_object_type_any_name()) {
         case 0: tmp2->set_any_name_list_type(kDataTableName, kUndefine); break;
         case 1: tmp2->set_any_name_list_type(kDataSequenceName, kUndefine); break;
         case 2: tmp2->set_any_name_list_type(kDataViewName, kUndefine); break;
@@ -10709,7 +10709,7 @@ CommentStmt:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        switch (tmp1->get_object_type()) {
+        switch (tmp1->get_object_type_any_name()) {
             case 0: tmp2->set_any_name_type(kDataTableName, kUse); break;
             case 1: tmp2->set_any_name_type(kDataSequenceName, kUse); break;
             case 2: tmp2->set_any_name_type(kDataViewName, kUse); break;
@@ -10751,14 +10751,9 @@ CommentStmt:
         $$ = res;
 
         switch (tmp1->get_object_type()) {
-            case 0: tmp2->set_iden_type(kDataTableName, kUse); break;
-            case 1: tmp2->set_iden_type(kDataSequenceName, kUse); break;
-            case 2: tmp2->set_iden_type(kDataViewName, kUse); break;
-            case 3: tmp2->set_iden_type(kDataViewName, kUse); break;
-            case 4: tmp2->set_iden_type(kDataIndexName, kUse); break;
-            case 5: tmp2->set_iden_type(kDataTableName, kUse); break;
-            case 7: tmp2->set_iden_type(kDataConversionName, kUse); break;
-            case 8: tmp2->set_iden_type(kDataStatisticName, kUse); break;
+            case 0: tmp2->set_iden_type(kDataDatabaseName, kUse); break;
+            case 1: tmp2->set_iden_type(kDataRoleName, kUse); break;
+            case 3: tmp2->set_iden_type(kDataTableSpaceName, kUse); break;
             default: break;
         }
 
