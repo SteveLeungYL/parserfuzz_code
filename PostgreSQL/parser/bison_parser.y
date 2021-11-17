@@ -24934,7 +24934,7 @@ AexprConst:
 Iconst:
 
     ICONST {
-        res = new IR(kIntLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        res = new IR(kIntLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         /* free((void*)($1)); */
         all_gen_ir.push_back(res);
         $$ = res;
