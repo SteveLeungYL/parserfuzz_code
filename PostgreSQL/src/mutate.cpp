@@ -39,6 +39,8 @@ vector<string> Mutator::v_column_names_single; // All used column names in one q
 vector<string> Mutator::v_table_name_follow_single;  // All used table names follow type in one query stmt.
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the current stmt.
 vector<string> Mutator::v_sequence_name; // All sequence names defined in the current SQL.
+vector<string> Mutator::v_view_names; // All saved view names.
+
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 
@@ -1156,7 +1158,8 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
-    kDataColumnNameFollow, kDataStatisticName, kDataSequenceName
+    kDataColumnNameFollow, kDataStatisticName, kDataSequenceName,
+    kDataViewName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1262,6 +1265,45 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
+    /* kDefine of kDataViewName. */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kDefine) {
+        string new_view_name_str = gen_view_name();
+        ir_to_fix->set_str_val(new_view_name_str);
+
+        v_create_table_names_single.push_back(new_view_name_str);
+        v_view_names.push_back(new_view_name_str);
+
+        if(is_debug_info) {
+          cerr << "Dependency: In kDefine of kDataViewName, generating view name: " << new_view_name_str << "\n\n\n";
+        }
+      }
+    }
+
+
+    /* kUndefine of kDataViewName. */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUndefine) {
+        if (!v_view_names.size()) {
+          if (is_debug_info) {
+            cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
+          }
+          continue;
+        }
+        string view_to_rov_str = vector_rand_ele(v_view_names);
+        ir_to_fix->set_str_val(view_to_rov_str);
+
+        remove(v_view_names.begin(), v_view_names.end(), view_to_rov_str);
+        remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
+        remove(v_create_table_names_single.begin(), v_create_table_names_single.end(), view_to_rov_str);
+
+        if(is_debug_info) {
+          cerr << "Dependency: In kUndefine of kDataViewName, removing view name: " << view_to_rov_str << "\n\n\n";
+        }
+      }
+    }
+
+
     /* Fix of kAlias name. */
     int alias_idx = 0;
     for (IR* ir_to_fix : ir_to_fix_vec) {
@@ -1297,8 +1339,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kAliasName Define. \n\n\n";
           }
-          ir_to_fix->str_val_ = "y";
-          return false;
+          /* Randomly set an alias name to the defined table.
+           * And ignore the mapping for the moment
+           * */
+          ir_to_fix->str_val_ = gen_alias_name();
+          continue;
+          // return false;
         }
 
         /* Found the table name that matched to the alias, now generate the alias and save it.  */
@@ -1358,7 +1404,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. ";
             cerr << "cloest_table_name returns: " << closest_table_name << "In kDataColumnName, kDefine or kReplace. \n\n\n";
           }
-          return false;
+          // return false;
+          /* Randomly set a name to the defined column.
+           * And ignore the mapping for the moment
+           * */
+          ir_to_fix->str_val_ = gen_column_name();
+          continue;
         }
         if (is_debug_info) {
           cerr << "Dependency: For column_name: " << new_name << ", found closest_table_name: " << closest_table_name << ". \n\n\n";

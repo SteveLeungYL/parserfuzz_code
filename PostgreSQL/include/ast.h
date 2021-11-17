@@ -67,6 +67,7 @@ static string gen_index_name() {return "i" + to_string(g_id_counter++); }
 static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
 static string gen_statistic_name() {return "s" + to_string(g_id_counter++);}
 static string gen_sequence_name() {return "seq" + to_string(g_id_counter++);}
+static string gen_view_name() {return "view" + to_string(g_id_counter++);}
 
 
 string get_string_by_ir_type(IRTYPE type);

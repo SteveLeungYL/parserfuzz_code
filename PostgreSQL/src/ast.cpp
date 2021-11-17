@@ -45,7 +45,7 @@ string get_string_by_data_type(DATATYPE type) {
   case kDataColumnName:
     return "data_columnName";
   case kDataViewName:
-    return "data_viewNmae";
+    return "data_viewName";
   case kDataFunctionName:
     return "data_functionName";
   case kDataPragmaKey:
