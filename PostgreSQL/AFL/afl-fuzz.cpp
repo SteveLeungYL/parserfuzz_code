@@ -6540,8 +6540,11 @@ static u8 fuzz_one(char **argv)
   ret_val = 0;
 
 abandon_entry:
+
   /* Free the original ir tree */
-  ori_ir_tree.back()->deep_drop();
+  if (ori_ir_tree.size() != 0) {
+    ori_ir_tree.back()->deep_drop();
+  }
 
   /* Free the generated oracle SELECT stmt.  */
   for (IR* app_ir_node : v_oracle_select_stmts) {
