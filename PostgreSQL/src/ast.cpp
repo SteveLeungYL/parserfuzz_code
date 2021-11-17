@@ -639,7 +639,7 @@ bool IR::add_drop_is_add(){
   }
 }
 
-int IR::get_object_type() {
+int IR::get_object_type_any_name() {
   assert(this->get_ir_type() == kObjectTypeAnyName);
 
   if (!strncmp(this->get_prefix(), "TABLE", 5)) return 0;
@@ -655,6 +655,17 @@ int IR::get_object_type() {
   else if (!strncmp(this->get_prefix(), "TEXT SEARCH DICTIONARY", 22)) return 10;
   else if (!strncmp(this->get_prefix(), "TEXT SEARCH TEMPLATE", 20)) return 11;
   else if (!strncmp(this->get_prefix(), "TEXT SEARCH CONFIGURATION", 25)) return 12;
+  else return -1;
+
+}
+
+int IR::get_object_type() {
+  assert(this->get_ir_type() == kObjectTypeName);
+
+  if (!strncmp(this->get_prefix(), "DATABASE", 5)) return 0;
+  else if (!strncmp(this->get_prefix(), "ROLE", 8)) return 1;
+  else if (!strncmp(this->get_prefix(), "SUBSCRIPTION", 4)) return 2;
+  else if (!strncmp(this->get_prefix(), "TABLESPACE", 17)) return 3;
   else return -1;
 
 }

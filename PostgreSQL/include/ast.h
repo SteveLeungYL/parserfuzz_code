@@ -298,6 +298,7 @@ public:
   bool set_rel_option_type(RelOptionType);
 
   bool add_drop_is_add();
+  int get_object_type_any_name();
   int get_object_type();
   int get_reindex_target_type();
 
