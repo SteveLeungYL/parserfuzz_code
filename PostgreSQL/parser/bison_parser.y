@@ -49,6 +49,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <vector>
+#include <string>
 
 #include "../include/ast.h"
 #include "../include/relopt_generator.h"
@@ -4281,7 +4282,6 @@ hash_partbound_elem:
     NonReservedWord Iconst {
         /* Yu: From the documentation, I can only see "modulus" and "remainder" available for NonReserveredWord. */
         IR* tmp1 = $2;
-        all_gen_ir.push_back(tmp1);
 
         if (!strcmp($1, "modulus") || !strcmp($1, "remainder")) {
             res = new IR(kHashPartboundElem_1, string($1));
@@ -24837,7 +24837,7 @@ AexprConst:
 
     | XCONST {
         /* Yu: This is actually deximal numberical string. */
-        auto tmp1 = new IR(kIntLiteral, atoi($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIntLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
@@ -24934,7 +24934,7 @@ AexprConst:
 Iconst:
 
     ICONST {
-        res = new IR(kIntLiteral, int($1), kDataLiteral, 0, kFlagUnknown);
+        res = new IR(kIntLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
         /* free((void*)($1)); */
         all_gen_ir.push_back(res);
         $$ = res;
