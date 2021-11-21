@@ -738,6 +738,7 @@ void Mutator::_extract_struct(IR *root) {
   if (root->get_data_type() == kDataFunctionName) {return;}
   if (root->get_ir_type() == kFuncName) {return;}
   if (root->get_data_type() == kDataFixLater) {return;}
+  if (root->get_data_type() == kDataLiteral) {return;}
 
   auto type = root->type_;
   if (root->left_) {
@@ -1731,7 +1732,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             column_data_type = COLTYPE::BOOLEAN_T;
           }
           else if (ir_to_fix->get_ir_type() == kStringLiteral) {
-            column_data_type = COLTYPE::STRING_T;
+            if ( !is_str_empty(ir_to_fix->str_val_) && is_digits(ir_to_fix->get_str_val())) {
+              column_data_type = COLTYPE::FLOAT_T;
+            } else {
+              column_data_type = COLTYPE::STRING_T;
+            }
+          }
+
+          if (is_debug_info) {
+            cerr << "Dependency: For fixing literal idx: " << cur_literal_idx << ", str_val_: " << ir_to_fix->str_val_ << " choose to use the original type for the literal: " << column_data_type << "\n\n\n";
           }
         }
 
@@ -1777,6 +1786,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
 
+          /* Size of values, do not use too big values.  */
           if (
             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
@@ -1786,12 +1796,27 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = - ir_to_fix->int_val_;
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
+
+          /* Randomly use string format of the int */
+          // if ( get_rand_int(10) < 3 && ir_to_fix->str_val_.find("'") == string::npos) {
+          //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
+          // }
+
+          ir_to_fix->type_ = kIntLiteral;
         }
 
         /* FLOAT */
         else if (column_data_type == COLTYPE::FLOAT_T) {  // FLOAT
           ir_to_fix->float_val_ = (double)(get_rand_int(100000000));
           ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+
+          // /* Randomly use string format of the float */
+          // if ( get_rand_int(10) < 3 && ir_to_fix->str_val_.find("'") == string::npos) {
+          //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
+          //   ir_to_fix->type_ = kFloatLiteral;
+          // }
+
+          ir_to_fix->type_ = kFloatLiteral;
         }
 
         /* BOOLEAN */
@@ -1801,6 +1826,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           } else {
             ir_to_fix->str_val_ = "FALSE";
           }
+
+          ir_to_fix->type_ = kBoolLiteral;
         }
 
         /* STRING */
@@ -1809,6 +1836,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
+
+          ir_to_fix->type_ = kStringLiteral;
         }
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
