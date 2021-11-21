@@ -2649,7 +2649,12 @@ void Mutator::add_all_to_library(string whole_query_str,
       continue;
 
     IR *root = ir_set[ir_set.size() - 1];
-    IR* cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root)[0];
+    vector<IR*> v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
+    if (v_cur_stmt_ir.size() == 0) {
+      root->deep_drop();
+      return;
+    }
+    IR* cur_stmt_ir = v_cur_stmt_ir.front();
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
     // if (p_oracle->is_oracle_valid_stmt(current_query)) {
