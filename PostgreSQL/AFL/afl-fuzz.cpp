@@ -6454,7 +6454,7 @@ static u8 fuzz_one(char **argv)
         // Final step, transform IR tree to string. Add marker to important statements.
         pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
         query_str_vec.push_back(query_str_pair.first);
-        query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements.
+        query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
       }
 
       // for (auto query_str : query_str_vec) {
