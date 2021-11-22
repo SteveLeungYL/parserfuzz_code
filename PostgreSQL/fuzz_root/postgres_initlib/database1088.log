@@ -13,8 +13,7 @@ CREATE TABLE t2(LIKE t1);
 CREATE TABLE IF NOT EXISTS t3(c0 DECIMAL  NULL DEFAULT (0.35556849613748464644658042743685655295848846435546875), UNIQUE(c0)) PARTITION BY LIST((0.9126734227360145)uuid_bloom_ops);
 CREATE TEMPORARY TABLE IF NOT EXISTS t3(c0 FLOAT  PRIMARY KEY NULL UNIQUE, FOREIGN KEY (c0) REFERENCES t2(c2) ON DELETE NO ACTION DEFERRABLE, CHECK((CAST(-1.16942323E9 AS MONEY)) NOTNULL), UNIQUE(c0), EXCLUDE (c0 ASC WITH -) WHERE (NOT (((t3.c0)<(0.6326386500805333))))) INHERITS(t1) WITH (autovacuum_analyze_threshold=700958035, autovacuum_freeze_table_age=33063853, autovacuum_freeze_max_age=1503569964, autovacuum_vacuum_cost_delay=49, autovacuum_analyze_scale_factor=1.0E-5, autovacuum_freeze_min_age=260667987, autovacuum_vacuum_scale_factor=0.8, autovacuum_vacuum_threshold=1811118325, fillfactor=54, autovacuum_enabled=0, parallel_workers=936);
 CREATE TEMPORARY TABLE IF NOT EXISTS t3(LIKE t0);
-CREATE TEMPORARY TABLE t4(c0 REAL , c1 money , FOREIGN KEY (c0) REFERENCES t2(c0) ON DELETE RESTRICT ON UPDATE SET DEFAULT, UNIQUE(c0) WITH (autovacuum_freeze_table_age=1460616450, autovacuum_analyze_scale_factor=0.8, autovacuum_vacuum_cost_limit=1965, autovacuum_vacuum_threshold=674013560, autovacuum_vacuum_cost_delay=13, parallel_workers=841, autovacuum_freeze_min_age=86432106, autovacuum_vacuum_scale_factor=0.01, autovacuum_enabled=0), EXCLUDE (((('')||('
-CREATE TABLE IF NOT EXISTS t4(LIKE t2 EXCLUDING STORAGE);
+CREATE TEMPORARY TABLE t4(c0 REAL , c1 money , FOREIGN KEY (c0) REFERENCES t2(c0) ON DELETE RESTRICT ON UPDATE SET DEFAULT, UNIQUE(c0) WITH (autovacuum_freeze_table_age=1460616450, autovacuum_analyze_scale_factor=0.8, autovacuum_vacuum_cost_limit=1965, autovacuum_vacuum_threshold=674013560, autovacuum_vacuum_cost_delay=13, parallel_workers=841, autovacuum_freeze_min_age=86432106, autovacuum_vacuum_scale_factor=0.01, autovacuum_enabled=0), EXCLUDE (((('')||('CREATE TABLE IF NOT EXISTS t4(LIKE t2 EXCLUDING STORAGE);
 INSERT INTO t0(c0) VALUES(('0.1.230.213')::VARCHAR), ('dឳq⥟');
 INSERT INTO t1(c1, c0) VALUES(0.046014362657119445, '216.95.108.12');
 INSERT INTO t4(c2, c0) VALUES('107.85.138.246', '83.234.195.211'), ('20.171.230.120', '38.172.171.145');
@@ -85,7 +84,6 @@ ALTER TABLE  t4 ALTER c0 SET STATISTICS 2081, NOT OF;
 ALTER TABLE  t0 ALTER c0  TYPE money, DISABLE ROW LEVEL SECURITY, ADD CONSTRAINT z UNIQUE(c0) WITH (autovacuum_freeze_max_age=1870989881, parallel_workers=554, autovacuum_freeze_table_age=1645577353, autovacuum_freeze_min_age=882124199, fillfactor=61, autovacuum_vacuum_threshold=2127900982, autovacuum_vacuum_cost_delay=60, autovacuum_vacuum_scale_factor=1.0E-5), CLUSTER ON i0, NOT OF, SET WITHOUT OIDS;
 ALTER TABLE  ONLY t4 VALIDATE CONSTRAINT asdf, SET WITHOUT CLUSTER, ALTER c0  RESET(n_distinct_inherited, n_distinct), DROP  IF EXISTS c0 CASCADE, OWNER TO CURRENT_USER, REPLICA IDENTITY DEFAULT, ALTER c0 DROP DEFAULT, NOT OF, ADD CONSTRAINT S PRIMARY KEY(c1, c0, c2), NO FORCE ROW LEVEL SECURITY, ALTER c0 DROP NOT NULL, SET LOGGED, ALTER c2  SET(n_distinct=-1, n_distinct_inherited=1.0E-9), DISABLE ROW LEVEL SECURITY, ALTER c2 SET STORAGE EXTERNAL, ALTER c1 SET STATISTICS 2637, ENABLE ROW LEVEL SECURITY;
 ALTER TABLE  t4 ENABLE ROW LEVEL SECURITY, FORCE ROW LEVEL SECURITY;
-INSERT INTO t0(c0) VALUES('uOE'), ('gv9K
-DROP INDEX IF EXISTS i3, i1;
+INSERT INTO t0(c0) VALUES('uOE'), ('gv9KDROP INDEX IF EXISTS i3, i1;
 COMMIT;
 SET SESSION statement_timeout = 5000;

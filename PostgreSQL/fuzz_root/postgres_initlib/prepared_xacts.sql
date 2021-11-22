@@ -75,4 +75,6 @@ COMMIT PREPARED 'regress-two';
 SELECT * FROM pxtest3;
 SELECT gid FROM pg_prepared_xacts;
 DROP TABLE pxtest2;
-DROP TABLE pxtest3;  DROP TABLE pxtest4;
+DROP TABLE pxtest3;
+  DROP TABLE pxtest4;
+  DROP TABLE pxtest4;

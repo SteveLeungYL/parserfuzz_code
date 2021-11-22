@@ -73,5 +73,7 @@ SELECT  thousand		FROM onek WHERE thousand < 5		ORDER BY thousand FETCH FIRST 2 
 SELECT ''::text AS two, unique1, unique2, stringu1		FROM onek WHERE unique1 > 50		FETCH FIRST 2 ROW WITH TIES;
 CREATE VIEW limit_thousand_v_1 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST 5 ROWS WITH TIES OFFSET 10;
 \d+ limit_thousand_v_1CREATE VIEW limit_thousand_v_2 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand OFFSET 10 FETCH FIRST 5 ROWS ONLY;
-\d+ limit_thousand_v_2CREATE VIEW limit_thousand_v_3 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST NULL ROWS WITH TIES;		CREATE VIEW limit_thousand_v_3 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST (NULL+1) ROWS WITH TIES;
+\d+ limit_thousand_v_2CREATE VIEW limit_thousand_v_3 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST NULL ROWS WITH TIES;
+		CREATE VIEW limit_thousand_v_3 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST (NULL+1) ROWS WITH TIES;
+		CREATE VIEW limit_thousand_v_3 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST (NULL+1) ROWS WITH TIES;
 \d+ limit_thousand_v_3CREATE VIEW limit_thousand_v_4 AS SELECT thousand FROM onek WHERE thousand < 995		ORDER BY thousand FETCH FIRST NULL ROWS ONLY;

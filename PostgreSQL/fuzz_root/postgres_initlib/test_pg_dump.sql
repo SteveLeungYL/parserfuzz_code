@@ -1,7 +1,11 @@
 CREATE ROLE regress_dump_test_role;
 CREATE EXTENSION test_pg_dump;
-ALTER EXTENSION test_pg_dump ADD DATABASE postgres; CREATE TABLE test_pg_dump_t1 (c1 int, junk text);
-ALTER TABLE test_pg_dump_t1 DROP COLUMN junk;  CREATE VIEW test_pg_dump_v1 AS SELECT * FROM test_pg_dump_t1;
+ALTER EXTENSION test_pg_dump ADD DATABASE postgres;
+ CREATE TABLE test_pg_dump_t1 (c1 int, junk text);
+ CREATE TABLE test_pg_dump_t1 (c1 int, junk text);
+ALTER TABLE test_pg_dump_t1 DROP COLUMN junk;
+  CREATE VIEW test_pg_dump_v1 AS SELECT * FROM test_pg_dump_t1;
+  CREATE VIEW test_pg_dump_v1 AS SELECT * FROM test_pg_dump_t1;
 CREATE MATERIALIZED VIEW test_pg_dump_mv1 AS SELECT * FROM test_pg_dump_t1;
 CREATE SCHEMA test_pg_dump_s1;
 CREATE TYPE test_pg_dump_e1 AS ENUM ('abc', 'def');

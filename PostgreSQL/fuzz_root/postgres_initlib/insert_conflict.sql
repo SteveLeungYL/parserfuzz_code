@@ -39,7 +39,11 @@ insert into insertconflicttest values (3, 'Kiwi') on conflict (key, fruit) do up
 insert into insertconflicttest values (4, 'Mango') on conflict (fruit, key) do update set fruit = excluded.fruit;
 insert into insertconflicttest values (5, 'Lemon') on conflict (fruit) do update set fruit = excluded.fruit;
 insert into insertconflicttest values (6, 'Passionfruit') on conflict (lower(fruit)) do update set fruit = excluded.fruit;
-insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = excluded.fruit; insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = ict.fruit; insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = insertconflicttest.fruit; drop index key_index;
+insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = excluded.fruit;
+ insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = ict.fruit;
+ insert into insertconflicttest AS ict values (6, 'Passionfruit') on conflict (key) do update set fruit = insertconflicttest.fruit;
+ drop index key_index;
+ drop index key_index;
 create unique index comp_key_index on insertconflicttest(key, fruit);
 insert into insertconflicttest values (7, 'Raspberry') on conflict (key, fruit) do update set fruit = excluded.fruit;
 insert into insertconflicttest values (8, 'Lime') on conflict (fruit, key) do update set fruit = excluded.fruit;
@@ -160,7 +164,12 @@ insert into dropcol(key, keep1, keep2) values(1, '5', 5) on conflict(key)    do 
 DROP TABLE dropcol;
 create table twoconstraints (f1 int unique, f2 box,                             exclude using gist(f2 with &&));
 insert into twoconstraints values(1, '((0,0),(1,1))');
-insert into twoconstraints values(1, '((2,2),(3,3))');  insert into twoconstraints values(2, '((0,0),(1,2))');  insert into twoconstraints values(2, '((0,0),(1,2))')  on conflict on constraint twoconstraints_f1_key do nothing;  insert into twoconstraints values(2, '((0,0),(1,2))')  on conflict on constraint twoconstraints_f2_excl do nothing;  select * from twoconstraints;
+insert into twoconstraints values(1, '((2,2),(3,3))');
+  insert into twoconstraints values(2, '((0,0),(1,2))');
+  insert into twoconstraints values(2, '((0,0),(1,2))')  on conflict on constraint twoconstraints_f1_key do nothing;
+  insert into twoconstraints values(2, '((0,0),(1,2))')  on conflict on constraint twoconstraints_f2_excl do nothing;
+  select * from twoconstraints;
+  select * from twoconstraints;
 drop table twoconstraints;
 create table selfconflict (f1 int primary key, f2 int);
 begin transaction isolation level read committed;

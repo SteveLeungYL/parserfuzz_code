@@ -1,4 +1,9 @@
-SET password_encryption = 'novalue'; SET password_encryption = true; SET password_encryption = 'md5'; SET password_encryption = 'scram-sha-256'; SET password_encryption = 'md5';
+SET password_encryption = 'novalue';
+ SET password_encryption = true;
+ SET password_encryption = 'md5';
+ SET password_encryption = 'scram-sha-256';
+ SET password_encryption = 'md5';
+ SET password_encryption = 'md5';
 CREATE ROLE regress_passwd1 PASSWORD 'role_pwd1';
 SET password_encryption = 'on';
 CREATE ROLE regress_passwd2 PASSWORD 'role_pwd2';

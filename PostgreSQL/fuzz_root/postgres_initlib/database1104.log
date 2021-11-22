@@ -2,8 +2,7 @@ DROP DATABASE IF EXISTS database1104;
 CREATE DATABASE database1104  TEMPLATE template0;
 CREATE TABLE t0(c0 BIT VARYING(484) ) WITH (autovacuum_analyze_threshold=1277485033, fillfactor=14, autovacuum_enabled=1, autovacuum_vacuum_cost_delay=57, autovacuum_freeze_table_age=1174376999, autovacuum_freeze_max_age=983750398, autovacuum_analyze_scale_factor=1.0E-5, autovacuum_freeze_min_age=274338935);
 CREATE TEMP TABLE IF NOT EXISTS t1(c0 REAL , UNIQUE(c0) WITH (autovacuum_enabled=1, autovacuum_vacuum_threshold=22167220, autovacuum_freeze_max_age=1930802962, autovacuum_analyze_threshold=479578961, parallel_workers=157, fillfactor=97, autovacuum_freeze_min_age=303659870, autovacuum_vacuum_scale_factor=0.2, autovacuum_analyze_scale_factor=0.2, autovacuum_freeze_table_age=526329830, autovacuum_vacuum_cost_limit=3305), PRIMARY KEY(c0)) PARTITION BY RANGE(('164.88.46.27')char_ops) ON COMMIT DELETE ROWS ;
-CREATE TABLE t1(c0 int4range  PRIMARY KEY UNIQUE DEFAULT ((((('[-357867868,1504887342)'::int4range)*(((range_merge('(1373525338,1373525338]'::int4range, '[1,981452571)'::int4range))*((('[-1486651038,-938417832)'::int4range)*('(-51228435,594833710]'::int4range)))))))-('(-51228435,594833710)'::int4range))), EXCLUDE (c0 float8_ops ASC NULLS FIRST WITH <) WHERE ((CAST((upper('4腢>7%
-CREATE UNLOGGED TABLE IF NOT EXISTS t1(LIKE t0 EXCLUDING ALL);
+CREATE TABLE t1(c0 int4range  PRIMARY KEY UNIQUE DEFAULT ((((('[-357867868,1504887342)'::int4range)*(((range_merge('(1373525338,1373525338]'::int4range, '[1,981452571)'::int4range))*((('[-1486651038,-938417832)'::int4range)*('(-51228435,594833710]'::int4range)))))))-('(-51228435,594833710)'::int4range))), EXCLUDE (c0 float8_ops ASC NULLS FIRST WITH <) WHERE ((CAST((upper('4腢>7%CREATE UNLOGGED TABLE IF NOT EXISTS t1(LIKE t0 EXCLUDING ALL);
 CREATE TABLE IF NOT EXISTS t2(c0 inet , c1 REAL  DEFAULT (+ (((((+ (-2018678111))/(((-597392056)-(187617855)))))-((('Ep' COLLATE "en_US.utf8"))::INT)))) PRIMARY KEY UNIQUE, c2 BIT VARYING(218) , UNIQUE(c2, c0, c1), CHECK((((t2.c0)::INT)::VARCHAR SIMILAR TO (((upper('waBd'))||((('(1425846215,1504887342)'::int4range)-('[187617855,214197996]'::int4range)))) COLLATE "en_US.utf8")))) PARTITION BY LIST(((((((((('(-597392056,1055420828]'::int4range)-('[-819803278,1844740279]'::int4range)))*((('(-1218360383,782577796]'::int4range)*('[853601809,981452571)'::int4range)))))-((((('[-1444713921,-1260291934]'::int4range)*('(-575171023,1069397533]'::int4range)))*((('[-602439606,1203227832]'::int4range)-('[-1444713921,1389947671)'::int4range)))))))*(((CAST((-1.48665101E9)::MONEY AS int4range))-((((('(643855988,1069397533]'::int4range)*('[-575171023,-560583249]'::int4range)))-((('[1076007542,1161588130)'::int4range)-('(-585812049,1590360145)'::int4range)))))))))interval_minmax_multi_ops) WITH (autovacuum_vacuum_cost_delay=87, autovacuum_vacuum_cost_limit=1073, autovacuum_freeze_table_age=1268337703, autovacuum_vacuum_threshold=745044854, autovacuum_freeze_min_age=696198586);
 CREATE TEMP TABLE t2(LIKE t0 EXCLUDING INDEXES);
 CREATE TEMPORARY TABLE t3(c0 boolean , PRIMARY KEY(c0), FOREIGN KEY (c0) REFERENCES t1(c0) MATCH FULL ON DELETE SET DEFAULT ON UPDATE CASCADE) WITH (fillfactor=55, parallel_workers=715, autovacuum_freeze_table_age=1937879363, autovacuum_vacuum_cost_delay=17, autovacuum_vacuum_threshold=682267798, autovacuum_analyze_threshold=971711414) ON COMMIT DROP ;
@@ -34,8 +33,7 @@ INSERT INTO t5(c0) OVERRIDING SYSTEM VALUE VALUES(((((((((B'11111111111111111111
 INSERT INTO t0(c0) VALUES(B'110011011110011101010001010101');
 SET CONSTRAINTS ALL IMMEDIATE;
 DELETE FROM ONLY t3 RETURNING strpos(((((t3.c0) BETWEEN SYMMETRIC (t3.c0) AND (t3.c0))::VARCHAR(895))||(((('[-651503984,434232506)'::int4range)*('(1584661130,1872707133]'::int4range)))::BOOLEAN)), CAST(0.10455340609297214538031539632356725633144378662109375 AS VARCHAR));
-DELETE FROM t2 WHERE (((replace('(
-DELETE FROM t5 WHERE ((t5.c0)>(t5.c0)) RETURNING '26.77.121.31';
+DELETE FROM t2 WHERE (((replace('(DELETE FROM t5 WHERE ((t5.c0)>(t5.c0)) RETURNING '26.77.121.31';
 ANALYZE( SKIP_LOCKED);
 DROP INDEX IF EXISTS i1, i2;
 UPDATE t4 SET c0 = B'1111111111111111111111111111111111110110100011011010110100001001' WHERE TRUE;
@@ -85,8 +83,7 @@ CREATE INDEX i0 ON t3 USING BTREE(c0 ASC);
 CREATE UNIQUE INDEX i0 ON ONLY t3(c0 NULLS LAST) INCLUDE(c0) WHERE ((((((rpad(1587288413, '7l'))||(0.31351012)))||('58.155.81.209')))LIKE((((t3.c0)<<(t3.c0)))::VARCHAR));
 CREATE UNIQUE INDEX i0 ON ONLY t4 USING GIST((((((t4.c0)||(t4.c0)))>>(t4.c0))) poly_ops NULLS FIRST) INCLUDE(c0) WHERE (md5(('[-364178805,1740234668)'::int4range)::VARCHAR(422)) SIMILAR TO CAST(CAST((0.19708162115885763387979068284039385616779327392578125)::INT AS INT) AS VARCHAR));
 INSERT INTO t1(c0) VALUES(B'100110011000000111011001110100');
-CREATE TEMP RECURSIVE VIEW v0(c0, c1) AS (SELECT 0.3821692389186411, pg_is_other_temp_schema() FROM ONLY t4, ONLY t5, t3 WHERE (((((('')||('aTF8z?arX')))||(0.1523074457618263))!~(((NULL)||(-122187129)) COLLATE "C"))AND((((to_hex('2樿'))::VARCHAR(399))LIKE(((t3.c0)::BOOLEAN)::VARCHAR)))) GROUP BY (((((('' COLLATE "en_US.utf8"))||((('
-CREATE MATERIALIZED VIEW v0(c0) AS (SELECT ALL 0.11093225 FROM ONLY t2, ONLY t4, t1*, t5, t0, ONLY t3);
+CREATE TEMP RECURSIVE VIEW v0(c0, c1) AS (SELECT 0.3821692389186411, pg_is_other_temp_schema() FROM ONLY t4, ONLY t5, t3 WHERE (((((('')||('aTF8z?arX')))||(0.1523074457618263))!~(((NULL)||(-122187129)) COLLATE "C"))AND((((to_hex('2樿'))::VARCHAR(399))LIKE(((t3.c0)::BOOLEAN)::VARCHAR)))) GROUP BY (((((('' COLLATE "en_US.utf8"))||((('CREATE MATERIALIZED VIEW v0(c0) AS (SELECT ALL 0.11093225 FROM ONLY t2, ONLY t4, t1*, t5, t0, ONLY t3);
 CREATE MATERIALIZED VIEW v0(c0) AS (SELECT ((((lower('itB'))||(num_nonnulls(-1641915418))))||(upper_inf((('[-2013451965,-1933247433)'::int4range)*('(-1738995435,-1035077173]'::int4range))))) FROM t1*);
 COMMIT;
 SET SESSION statement_timeout = 5000;

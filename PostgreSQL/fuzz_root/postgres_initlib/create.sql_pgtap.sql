@@ -1,3 +1,1 @@
-\unset ECHO
-\i test/psql.sql
-CREATE EXTENSION pgtap;
+\unset ECHO\i test/psql.sqlCREATE EXTENSION pgtap;

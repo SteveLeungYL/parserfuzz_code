@@ -9,8 +9,7 @@ SELECT deptype, p.*  FROM pg_depend, pg_identify_object(classid, objid, objsubid
 DROP EXTENSION test_ext5;
 SELECT deptype, i.*  FROM pg_catalog.pg_depend, pg_identify_object(classid, objid, objsubid) iWHERE refclassid='pg_class'::regclass AND refobjid='test_ext.a'::regclass AND NOT deptype IN ('i', 'a');
 DROP SCHEMA test_ext CASCADE;
-DROP TABLE test_ext.a;		
-DROP TABLE test_ext.a CASCADE;
+DROP TABLE test_ext.a;		DROP TABLE test_ext.a CASCADE;
 SELECT deptype, i.*  FROM pg_catalog.pg_depend, pg_identify_object(classid, objid, objsubid) i WHERE refclassid='pg_extension'::regclass AND refobjid=(SELECT oid FROM pg_extension WHERE extname='test_ext5');
 DROP EXTENSION test_ext5;
 DROP SCHEMA test_ext CASCADE;

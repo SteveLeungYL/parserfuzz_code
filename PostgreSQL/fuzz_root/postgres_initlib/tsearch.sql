@@ -1,6 +1,8 @@
 SELECT oid, prsnameFROM pg_ts_parserWHERE prsnamespace = 0 OR prsstart = 0 OR prstoken = 0 OR prsend = 0 OR            prslextype = 0;
 SELECT oid, dictnameFROM pg_ts_dictWHERE dictnamespace = 0 OR dictowner = 0 OR dicttemplate = 0;
-SELECT oid, tmplnameFROM pg_ts_templateWHERE tmplnamespace = 0 OR tmpllexize = 0;  SELECT oid, cfgnameFROM pg_ts_configWHERE cfgnamespace = 0 OR cfgowner = 0 OR cfgparser = 0;
+SELECT oid, tmplnameFROM pg_ts_templateWHERE tmplnamespace = 0 OR tmpllexize = 0;
+  SELECT oid, cfgnameFROM pg_ts_configWHERE cfgnamespace = 0 OR cfgowner = 0 OR cfgparser = 0;
+  SELECT oid, cfgnameFROM pg_ts_configWHERE cfgnamespace = 0 OR cfgowner = 0 OR cfgparser = 0;
 SELECT mapcfg, maptokentype, mapseqnoFROM pg_ts_config_mapWHERE mapcfg = 0 OR mapdict = 0;
 SELECT * FROM  ( SELECT oid AS cfgid, (ts_token_type(cfgparser)).tokid AS tokid    FROM pg_ts_config ) AS ttRIGHT JOIN pg_ts_config_map AS m    ON (tt.cfgid=m.mapcfg AND tt.tokid=m.maptokentype)WHERE    tt.cfgid IS NULL OR tt.tokid IS NULL;
 SELECT count(*) FROM test_tsvector WHERE a @@ 'wr|qh';
@@ -270,7 +272,9 @@ Water, water, every where,  Nor any drop to drink.S. T. Coleridge (1772-1834)', 
 SELECT ts_headline('english', 'Day after day, day after day,  We stuck, nor breath nor motion,As idle as a painted Ship  Upon a painted Ocean.Water, water, every where  And all the boards did shrink;
 Water, water, every where,  Nor any drop to drink.S. T. Coleridge (1772-1834)', phraseto_tsquery('english', 'idle as a painted Ship'));
 SELECT ts_headline('english','Lorem ipsum urna.  Nullam nullam ullamcorper urna.',to_tsquery('english','Lorem') && phraseto_tsquery('english','ullamcorper urna'),'MaxWords=100, MinWords=1');
-SELECT ts_headline('english', '<html><!<body>Sea view wow <u>foo bar</u> <i>qq</i><a href="http://www.google.com/foo.bar.html" target="_blank">YES &nbsp;</a>ff-bg<script>       document.write(15);
+SELECT ts_headline('english', '<html><!<body>Sea view wow <u>foo bar</u> <i>qq</i><a href="http://www.google.com/foo.bar.html" target="_blank">YES &nbsp;
+</a>ff-bg<script>       document.write(15);
+</a>ff-bg<script>       document.write(15);
 </script></body></html>',to_tsquery('english', 'sea&foo'), 'HighlightAll=true');
 SELECT ts_headline('simple', '1 2 3 1 3'::text, '1 <-> 3', 'MaxWords=2, MinWords=1');
 SELECT ts_headline('simple', '1 2 3 1 3'::text, '1 & 3', 'MaxWords=4, MinWords=1');

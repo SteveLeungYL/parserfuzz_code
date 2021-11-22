@@ -1,3 +1,1 @@
-\i test/psql.sql
-
-BEGIN;
+\i test/psql.sqlBEGIN;
