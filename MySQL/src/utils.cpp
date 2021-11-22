@@ -3,6 +3,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cstring>
+
+using namespace std;
+
 void trim_string(string &res){
     int count = 0;
     int idx = 0;

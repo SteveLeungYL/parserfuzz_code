@@ -3,8 +3,8 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 #include "../parser/bison_parser.h"
-#include "../parser/flex_lexer.h"
 using std::vector;
 using std::string;
 
