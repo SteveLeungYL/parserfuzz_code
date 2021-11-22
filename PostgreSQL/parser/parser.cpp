@@ -560,9 +560,9 @@ truncate_identifier(char *ident, int len, bool warn)
 	if (len >= NAMEDATALEN)
 	{
 		len = pg_mbcliplen(ident, len, NAMEDATALEN - 1);
-		if (warn)
-      fprintf(stderr, "identifier \"%s\" will be truncated to \"%.*s\"\n",
-          ident, len, ident);
+	  // 	if (warn)
+      // fprintf(stderr, "identifier \"%s\" will be truncated to \"%.*s\"\n",
+      //     ident, len, ident);
 			//ereport(NOTICE,
 			//		(errcode(ERRCODE_NAME_TOO_LONG),
 			//		 errmsg("identifier \"%s\" will be truncated to \"%.*s\"",
