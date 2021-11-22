@@ -14,15 +14,15 @@ FLEX?=flex
 #$(error Flex version $(FLEX_VERSION) not supported. If you are using OS X, `flex` uses the system default instead of the brew version. Run FLEX=/usr/local/opt/flex/bin/flex make)
 #endif
 
-SRCS = bison_parser.cpp flex_lexer.cpp
+SRCS = bison_parser.cpp # flex_lexer.cpp
 
 all: $(SRCS:%.cpp=%.o)
 
 bison_parser.cpp: bison_parser.y
 	$(BISON) bison_parser.y  -t --output=bison_parser.cpp --defines=bison_parser.h --verbose -Wconflicts-rr # --debug
 
-flex_lexer.cpp: flex_lexer.l
-	$(FLEX) flex_lexer.l
+# flex_lexer.cpp: flex_lexer.l
+# 	$(FLEX) flex_lexer.l
 
 clean:
 	rm -rf bison_parser.cpp bison_bison.cpp flex_lexer.cpp flex_lexer.cpp bison_parser.h bison_parser.h flex_lexer.h flex_lexer.h *.output *.o .deps *.gch
@@ -36,10 +36,10 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 #CPPFLAGS += "-Wno-write-strings"
 
-COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./include/
+COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./ -I ./include/ -I ./sql/ -I ./libbinlogevents -std=c++17
 
 parser.o: parser.cpp bison_parser.cpp flex_lexer.cpp
-	g++ $< -o $@ -c -I ./include/ $(DEBUG) $(OPT)
+	g++ $< -o $@ -c -I ./ -I ./include/ -I ./sql -I ./libbinlogevents  $(DEBUG) $(OPT) -std=c++17
 
 %.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
