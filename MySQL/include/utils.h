@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "../include/ast.h"
 #include "../parser/bison_parser.h"
 using std::vector;
 using std::string;
@@ -24,5 +25,5 @@ int gen_int();
 
 uint64_t fucking_hash ( const void * key, int len );
 vector<string> get_all_files_in_dir(const char * dir_name);
-Program * parser(string sql);
+IR * parser(string sql);
 #endif

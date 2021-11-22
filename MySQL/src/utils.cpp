@@ -52,7 +52,7 @@ int gen_int(){
 
 typedef unsigned long uint64_t;
 
-Program * parser(string sql){
+IR * parser(string sql){
 
     yyscan_t scanner;
     YY_BUFFER_STATE state;
