@@ -179,6 +179,16 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     return trans_IR_vec;
   }
 
+  /* Remove the kOverClause, if exists.
+   * Doesn't need to worry about double free, because all overclause that we remove
+   * are not in subqueries.
+   * */
+  vector<IR* > v_over_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOverClause, false);
+  for (IR* over_clause: v_over_clause) {
+    cur_stmt->swap_node(over_clause, NULL);
+    over_clause->deep_drop();
+  }
+
   trans_IR_vec.push_back(cur_stmt->deep_copy()); // Save the original version.
 
   // cerr << "DEBUG: Getting post_fix cur_stmt: " << cur_stmt->to_string() << " \n\n\n";
