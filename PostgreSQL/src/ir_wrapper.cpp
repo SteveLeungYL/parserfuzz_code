@@ -694,7 +694,11 @@ IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
     IRTYPE prev_ir_type = cur_IR->get_ir_type();
     while (cur_IR ->get_parent() != nullptr) {
         IRTYPE parent_type = cur_IR->get_parent()->get_ir_type();
-        if (parent_type != kUnknown && !compare_ir_type(parent_type, prev_ir_type)) {
+        if (
+            parent_type == prev_ir_type
+            ||
+            (parent_type != kUnknown && !compare_ir_type(parent_type, prev_ir_type))
+        ){
             prev_ir_type = parent_type;
             depth--;
             if (depth <= 0) {
