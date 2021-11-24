@@ -296,7 +296,7 @@ int yylex(void *yylval, void *yythd);
 */
 
 static
-void MYSQLerror(YYLTYPE *location, THD *thd, Parse_tree_root **, vector<IR*> ir_vec, const char *s)
+void MYSQLerror(YYLTYPE *location, THD *thd, Parse_tree_root **, vector<IR*>& ir_vec, const char *s)
 {
   if (strcmp(s, "syntax error") == 0) {
     thd->syntax_error_at(*location);
@@ -504,7 +504,7 @@ void warn_about_deprecated_binary(THD *thd)
 %parse-param { class Parse_tree_root **parse_tree }
 
 %lex-param { class THD *YYTHD }
-%parse-param { vector<IR*> ir_vec }
+%parse-param { vector<IR*>& ir_vec }
 %pure-parser                                    /* We have threads */
 
 /*
