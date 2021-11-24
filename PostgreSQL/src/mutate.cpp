@@ -1976,6 +1976,28 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
   */
   for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {
 
+
+    /* Added mapping for Inheritance.  */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (
+        ir_to_fix->data_type_ == kDataTableName &&
+        cur_stmt_root->get_ir_type() == kCreateStmt &&
+        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kOptInherit) &&
+        ir_to_fix->data_flag_ == kUse
+        ) {
+        if (v_create_table_names_single.size() > 0) {
+          string cur_new_table_name_str = v_create_table_names_single.front();
+          string inherit_table_name_str = ir_to_fix->get_str_val();
+
+          vector<string>& inherit_m_tables = m_tables[inherit_table_name_str];
+
+          for (string col_name : inherit_m_tables) {
+            m_tables[cur_new_table_name_str].push_back(col_name);
+          }
+        }
+      }
+    }
+
     for (IR* ir_to_fix : ir_to_fix_vec){
       if (ir_to_fix->data_type_ != kDataTableName && ir_to_fix->data_type_ != kDataViewName) {
         continue;
