@@ -39,6 +39,8 @@ vector<string> Mutator::v_column_names_single; // All used column names in one q
 vector<string> Mutator::v_table_name_follow_single;  // All used table names follow type in one query stmt.
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the current stmt.
 vector<string> Mutator::v_sequence_name; // All sequence names defined in the current SQL.
+vector<string> Mutator::v_view_names; // All saved view names.
+
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 
@@ -736,6 +738,7 @@ void Mutator::_extract_struct(IR *root) {
   if (root->get_data_type() == kDataFunctionName) {return;}
   if (root->get_ir_type() == kFuncName) {return;}
   if (root->get_data_type() == kDataFixLater) {return;}
+  if (root->get_data_type() == kDataLiteral) {return;}
 
   auto type = root->type_;
   if (root->left_) {
@@ -1156,7 +1159,8 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
-    kDataColumnNameFollow, kDataStatisticName, kDataSequenceName
+    kDataColumnNameFollow, kDataStatisticName, kDataSequenceName,
+    kDataViewName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1262,6 +1266,45 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
+    /* kDefine of kDataViewName. */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kDefine) {
+        string new_view_name_str = gen_view_name();
+        ir_to_fix->set_str_val(new_view_name_str);
+
+        v_create_table_names_single.push_back(new_view_name_str);
+        v_view_names.push_back(new_view_name_str);
+
+        if(is_debug_info) {
+          cerr << "Dependency: In kDefine of kDataViewName, generating view name: " << new_view_name_str << "\n\n\n";
+        }
+      }
+    }
+
+
+    /* kUndefine of kDataViewName. */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUndefine) {
+        if (!v_view_names.size()) {
+          if (is_debug_info) {
+            cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
+          }
+          continue;
+        }
+        string view_to_rov_str = vector_rand_ele(v_view_names);
+        ir_to_fix->set_str_val(view_to_rov_str);
+
+        remove(v_view_names.begin(), v_view_names.end(), view_to_rov_str);
+        remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
+        remove(v_create_table_names_single.begin(), v_create_table_names_single.end(), view_to_rov_str);
+
+        if(is_debug_info) {
+          cerr << "Dependency: In kUndefine of kDataViewName, removing view name: " << view_to_rov_str << "\n\n\n";
+        }
+      }
+    }
+
+
     /* Fix of kAlias name. */
     int alias_idx = 0;
     for (IR* ir_to_fix : ir_to_fix_vec) {
@@ -1297,8 +1340,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kAliasName Define. \n\n\n";
           }
-          ir_to_fix->str_val_ = "y";
-          return false;
+          /* Randomly set an alias name to the defined table.
+           * And ignore the mapping for the moment
+           * */
+          ir_to_fix->str_val_ = gen_alias_name();
+          continue;
+          // return false;
         }
 
         /* Found the table name that matched to the alias, now generate the alias and save it.  */
@@ -1358,7 +1405,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. ";
             cerr << "cloest_table_name returns: " << closest_table_name << "In kDataColumnName, kDefine or kReplace. \n\n\n";
           }
-          return false;
+          // return false;
+          /* Randomly set a name to the defined column.
+           * And ignore the mapping for the moment
+           * */
+          ir_to_fix->str_val_ = gen_column_name();
+          continue;
         }
         if (is_debug_info) {
           cerr << "Dependency: For column_name: " << new_name << ", found closest_table_name: " << closest_table_name << ". \n\n\n";
@@ -1680,7 +1732,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             column_data_type = COLTYPE::BOOLEAN_T;
           }
           else if (ir_to_fix->get_ir_type() == kStringLiteral) {
-            column_data_type = COLTYPE::STRING_T;
+            if ( !is_str_empty(ir_to_fix->str_val_) && is_digits(ir_to_fix->get_str_val())) {
+              column_data_type = COLTYPE::FLOAT_T;
+            } else {
+              column_data_type = COLTYPE::STRING_T;
+            }
+          }
+
+          if (is_debug_info) {
+            cerr << "Dependency: For fixing literal idx: " << cur_literal_idx << ", str_val_: " << ir_to_fix->str_val_ << " choose to use the original type for the literal: " << column_data_type << "\n\n\n";
           }
         }
 
@@ -1726,6 +1786,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
 
+          /* Size of values, do not use too big values.  */
           if (
             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
@@ -1735,12 +1796,27 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = - ir_to_fix->int_val_;
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
+
+          /* Randomly use string format of the int */
+          // if ( get_rand_int(10) < 3 && ir_to_fix->str_val_.find("'") == string::npos) {
+          //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
+          // }
+
+          ir_to_fix->type_ = kIntLiteral;
         }
 
         /* FLOAT */
         else if (column_data_type == COLTYPE::FLOAT_T) {  // FLOAT
           ir_to_fix->float_val_ = (double)(get_rand_int(100000000));
           ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+
+          // /* Randomly use string format of the float */
+          // if ( get_rand_int(10) < 3 && ir_to_fix->str_val_.find("'") == string::npos) {
+          //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
+          //   ir_to_fix->type_ = kFloatLiteral;
+          // }
+
+          ir_to_fix->type_ = kFloatLiteral;
         }
 
         /* BOOLEAN */
@@ -1750,6 +1826,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           } else {
             ir_to_fix->str_val_ = "FALSE";
           }
+
+          ir_to_fix->type_ = kBoolLiteral;
         }
 
         /* STRING */
@@ -1758,6 +1836,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
+
+          ir_to_fix->type_ = kStringLiteral;
         }
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
@@ -1895,6 +1975,28 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
   ** Added missing dependency information that is missing before. 
   */
   for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {
+
+
+    /* Added mapping for Inheritance.  */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (
+        ir_to_fix->data_type_ == kDataTableName &&
+        cur_stmt_root->get_ir_type() == kCreateStmt &&
+        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kOptInherit) &&
+        ir_to_fix->data_flag_ == kUse
+        ) {
+        if (v_create_table_names_single.size() > 0) {
+          string cur_new_table_name_str = v_create_table_names_single.front();
+          string inherit_table_name_str = ir_to_fix->get_str_val();
+
+          vector<string>& inherit_m_tables = m_tables[inherit_table_name_str];
+
+          for (string col_name : inherit_m_tables) {
+            m_tables[cur_new_table_name_str].push_back(col_name);
+          }
+        }
+      }
+    }
 
     for (IR* ir_to_fix : ir_to_fix_vec){
       if (ir_to_fix->data_type_ != kDataTableName && ir_to_fix->data_type_ != kDataViewName) {
@@ -2569,7 +2671,12 @@ void Mutator::add_all_to_library(string whole_query_str,
       continue;
 
     IR *root = ir_set[ir_set.size() - 1];
-    IR* cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root)[0];
+    vector<IR*> v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
+    if (v_cur_stmt_ir.size() == 0) {
+      root->deep_drop();
+      return;
+    }
+    IR* cur_stmt_ir = v_cur_stmt_ir.front();
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
     // if (p_oracle->is_oracle_valid_stmt(current_query)) {

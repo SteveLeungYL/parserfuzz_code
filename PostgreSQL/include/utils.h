@@ -145,4 +145,9 @@ long gen_long();
 
 int gen_int();
 
+inline bool is_digits(string str) {
+  if (str == "NaN") return true;
+  return str.find_first_not_of("0123456789. ") == std::string::npos;
+}
+
 #endif

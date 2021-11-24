@@ -398,7 +398,14 @@ select t0.*from text_tbl t0 left join   (select case t1.ten when 0 then 'doh!'::
 rollback;
 explain (verbose, costs off)select i8.*, ss.v, t.unique2  from int8_tbl i8    left join int4_tbl i4 on i4.f1 = 1    left join lateral (select i4.f1 + 1 as v) as ss on true    left join tenk1 t on t.unique2 = ss.vwhere q2 = 456;
 select i8.*, ss.v, t.unique2  from int8_tbl i8    left join int4_tbl i4 on i4.f1 = 1    left join lateral (select i4.f1 + 1 as v) as ss on true    left join tenk1 t on t.unique2 = ss.vwhere q2 = 456;
-select * from  int8_tbl x join (int4_tbl x cross join int4_tbl y) j on q1 = f1; select * from  int8_tbl x join (int4_tbl x cross join int4_tbl y) j on q1 = y.f1; select * from  int8_tbl x join (int4_tbl x cross join int4_tbl y(ff)) j on q1 = f1; select t1.uunique1 from  tenk1 t1 join tenk2 t2 on t1.two = t2.two; select t2.uunique1 from  tenk1 t1 join tenk2 t2 on t1.two = t2.two; select uunique1 from  tenk1 t1 join tenk2 t2 on t1.two = t2.two; select atts.relid::regclass, s.* from pg_stats s join    pg_attribute a on s.attname = a.attname and s.tablename =    a.attrelid::regclass::text join (select unnest(indkey) attnum,    indexrelid from pg_index i) atts on atts.attnum = a.attnum where    schemaname != 'pg_catalog';
+select * from  int8_tbl x join (int4_tbl x cross join int4_tbl y) j on q1 = f1;
+ select * from  int8_tbl x join (int4_tbl x cross join int4_tbl y) j on q1 = y.f1;
+ select * from  int8_tbl x join (int4_tbl x cross join int4_tbl y(ff)) j on q1 = f1;
+ select t1.uunique1 from  tenk1 t1 join tenk2 t2 on t1.two = t2.two;
+ select t2.uunique1 from  tenk1 t1 join tenk2 t2 on t1.two = t2.two;
+ select uunique1 from  tenk1 t1 join tenk2 t2 on t1.two = t2.two;
+ select atts.relid::regclass, s.* from pg_stats s join    pg_attribute a on s.attname = a.attname and s.tablename =    a.attrelid::regclass::text join (select unnest(indkey) attnum,    indexrelid from pg_index i) atts on atts.attnum = a.attnum where    schemaname != 'pg_catalog';
+ select atts.relid::regclass, s.* from pg_stats s join    pg_attribute a on s.attname = a.attname and s.tablename =    a.attrelid::regclass::text join (select unnest(indkey) attnum,    indexrelid from pg_index i) atts on atts.attnum = a.attnum where    schemaname != 'pg_catalog';
 select unique2, x.*from tenk1 a, lateral (select * from int4_tbl b where f1 = a.unique1) x;
 explain (costs off)  select unique2, x.*  from tenk1 a, lateral (select * from int4_tbl b where f1 = a.unique1) x;
 select unique2, x.*from int4_tbl x, lateral (select unique2 from tenk1 where f1 = unique1) ss;

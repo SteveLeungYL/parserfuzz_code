@@ -179,7 +179,35 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     return trans_IR_vec;
   }
 
-  trans_IR_vec.push_back(cur_stmt->deep_copy()); // Save the original version.
+  IR* first_stmt = cur_stmt->deep_copy();
+
+  /* Remove the kOverClause, if exists.
+   * Doesn't need to worry about double free, because all overclause that we remove
+   * are not in subqueries.
+   * */
+  vector<IR* > v_over_clause = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, kOverClause, false);
+
+  if (v_over_clause.size() > 0) {
+    IR* over_clause = v_over_clause.front();
+    IR* new_over_clause = new IR(kOverClause, OP0());
+    first_stmt->swap_node(over_clause, new_over_clause);
+    over_clause->deep_drop();
+  }
+
+  /* Remove the kWindowClause, if exists.
+   * Doesn't need to worry about double free, because all windowclause that we remove
+   * are not in subqueries.
+   * */
+  vector<IR* > v_window_clause = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, kWindowClause, false);
+  if (v_window_clause.size() > 0) {
+    IR* window_clause = v_window_clause.front();
+    IR* new_window_clause = new IR(kWindowClause, OP0());
+    first_stmt->swap_node(window_clause, new_window_clause);
+    window_clause->deep_drop();
+  }
+
+
+  trans_IR_vec.push_back(first_stmt); // Save the original version.
 
   // cerr << "DEBUG: Getting post_fix cur_stmt: " << cur_stmt->to_string() << " \n\n\n";
 

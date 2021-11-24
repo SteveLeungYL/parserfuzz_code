@@ -78,6 +78,8 @@
 #include <unistd.h>
 #include <vector>
 #include <time.h>
+#include <chrono>
+#include <ctime>
 
 
 #include <fstream>
@@ -216,7 +218,7 @@ public:
     postgre_execute_total += 1;
 
     vector<string> cmd_vec = string_splitter(cmd, ';');
-    vector<string> timeout_cmd_vec = {"set statement_timeout to 3000; "};
+    vector<string> timeout_cmd_vec = {"set statement_timeout to 200; "};
     timeout_cmd_vec.insert(timeout_cmd_vec.end(), cmd_vec.begin(), cmd_vec.end());
     cmd_vec = timeout_cmd_vec;
 
@@ -2925,8 +2927,17 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str)
   MEM_BARRIER();
 BEGIN:
 
+  auto exec_start = std::chrono::system_clock::now();
+
   auto result = g_psql_client.execute(cmd_str);
   g_postgre_output = result.outputs;
+
+  auto exec_end = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> exec_used_time = exec_end - exec_start;
+
+  cout << "For execuing entry: " << current_entry << ", used time: " << exec_used_time.count() << ". \n\n\n";
+
 
   // cerr << "After running in run_target(), getting result.status" << result.status << "\n";
 
@@ -6221,6 +6232,8 @@ static u8 fuzz_one(char **argv)
   int skip_count;
   string input;
 
+  auto fuzz_one_start_time = std::chrono::system_clock::now();
+
 #ifdef IGNORE_FINDS
 
   /* In IGNORE_FINDS mode, skip any entries that weren't in the
@@ -6365,6 +6378,8 @@ static u8 fuzz_one(char **argv)
       goto abandon_entry;
     }
 
+    auto single_mutation_start_time = std::chrono::system_clock::now();
+
     /* The mutated IR tree is deep_copied() */
     vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
 
@@ -6454,7 +6469,7 @@ static u8 fuzz_one(char **argv)
         // Final step, transform IR tree to string. Add marker to important statements.
         pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
         query_str_vec.push_back(query_str_pair.first);
-        query_str_no_marks_vec.push_back(cur_ir_tree.back()->to_string()); // Without adding the pre_post_transformed statements.
+        query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
       }
 
       // for (auto query_str : query_str_vec) {
@@ -6524,6 +6539,11 @@ static u8 fuzz_one(char **argv)
       }
     } // v_mutated_ir_root
 
+    auto single_mutation_end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> single_mutation_used_time = single_mutation_end_time - single_mutation_start_time;
+
+    cout << "\n\nFor single mutation of seed: " << queue_cur->fname << ", used time: " << single_mutation_used_time.count() << ". \n\n\n";
+
     for (IR* mutated_ir_root : v_mutated_ir_root) {
       mutated_ir_root->deep_drop();
     }
@@ -6573,6 +6593,11 @@ abandon_entry:
 
   ck_free(eff_map);
   //ir_set.clear();
+
+  auto fuzz_one_end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> fuzz_one_used_time = fuzz_one_end_time - fuzz_one_start_time;
+
+  cout << "\n\nFor total fuzz_one of seed: " << queue_cur->fname << ", used time: " << fuzz_one_used_time.count() << ". \n\n\n";
 
   return ret_val;
 }

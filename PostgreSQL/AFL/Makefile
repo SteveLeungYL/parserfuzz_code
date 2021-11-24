@@ -8,7 +8,7 @@ AFL_FLAGS   += -w \
 				-DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 				-DBIN_PATH=\"$(BIN_PATH)\"
 
-SRCS = afl-fuzz.cpp test-parser.cpp
+SRCS = afl-fuzz.cpp test-parser.cpp generate_inputs.cpp
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d

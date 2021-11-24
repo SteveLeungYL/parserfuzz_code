@@ -9,6 +9,7 @@ DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
+GEN_OBJS:= AFL/generate_inputs.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -20,7 +21,7 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl -lpq -pg
 
 
-all: afl-fuzz test-parser
+all: afl-fuzz test-parser generate_inputs
 
 parser:
 	@$(MAKE) -C $@
@@ -35,6 +36,10 @@ afl-fuzz: $(SUB_DIRS)
 test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 	cp test-parser ./fuzz_root
+
+generate_inputs: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(GEN_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+	cp generate_inputs ./fuzz_root
 
 debug: DEBUG = -g
 debug: OPT = -O0
