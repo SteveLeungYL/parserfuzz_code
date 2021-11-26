@@ -14,7 +14,7 @@ FLEX?=flex
 #$(error Flex version $(FLEX_VERSION) not supported. If you are using OS X, `flex` uses the system default instead of the brew version. Run FLEX=/usr/local/opt/flex/bin/flex make)
 #endif
 
-SRCS = bison_parser.cpp # flex_lexer.cpp
+SRCS = bison_parser.cpp sql_parse_entry.cpp  # flex_lexer.cpp
 
 all: $(SRCS:%.cpp=%.o)
 
@@ -36,10 +36,10 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 #CPPFLAGS += "-Wno-write-strings"
 
-COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I ./ -I ./include/ -I ./sql/ -I ./libbinlogevents -std=c++17
+COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I include -I include/include -std=c++17
 
 parser.o: parser.cpp bison_parser.cpp flex_lexer.cpp
-	g++ $< -o $@ -c -I ./ -I ./include/ -I ./sql -I ./libbinlogevents  $(DEBUG) $(OPT) -std=c++17
+	g++ $< -o $@ -c -I include -I include/include $(DEBUG) $(OPT) -std=c++17
 
 %.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)
 	$(COMPILE.c) $(OUTPUT_OPTION) $<
