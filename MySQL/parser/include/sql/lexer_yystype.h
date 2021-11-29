@@ -25,6 +25,7 @@
 
 #include "lex_string.h"
 #include "sql/lex_symbol.h"
+#include "../../../include/ast.h"
 
 class PT_hint_list;
 struct CHARSET_INFO;
@@ -35,6 +36,7 @@ union Lexer_yystype {
   const CHARSET_INFO *charset;
   PT_hint_list *optimizer_hints;
   LEX_CSTRING hint_string;
+  IR* ir;
 };
 
 #endif  // LEXER_YYSTYPE_INCLUDED
