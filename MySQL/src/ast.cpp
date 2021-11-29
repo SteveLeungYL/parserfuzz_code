@@ -8,15 +8,6 @@ static string s_table_name;
 
 
 
-Node* generate_ast_node_by_type(IRTYPE type){
-    #define DECLARE_CASE(classname) \
-    if (type == k##classname) return new classname();
-
-    ALLCLASS(DECLARE_CASE);
-    #undef DECLARE_CASE
-    return NULL;
-}
-
 NODETYPE get_nodetype_by_string(string s){
     #define DECLARE_CASE(datatypename) \
     if(s == #datatypename) return k##datatypename;
@@ -66,16 +57,42 @@ void deep_delete(IR * root){
     delete root;
 }
 
-IR * deep_copy(const IR * root){
-    IR * left = NULL, * right = NULL, * copy_res;
+IR *IR::deep_copy() {
 
-    if(root->left_) left = deep_copy(root->left_); // do you have a second version for deep_copy that accept only one argument?                                                  
-    if(root->right_) right = deep_copy(root->right_);//no I forget to update here
+  IR *left = NULL, *right = NULL, *copy_res;
+  IROperator *op = NULL;
 
-    copy_res = new IR(root, left, right);
+  if (this->left_)
+    left = this->left_->deep_copy();
+  if (this->right_)
+    right = this->right_->deep_copy();
 
-    return copy_res;
+  if (this->op_)
+    op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
+  copy_res = new IR(this->type_, op, left, right, this->float_val_,
+                    this->str_val_, this->name_, this->mutated_times_, 0, kFlagUnknown);
+  copy_res->data_type_ = this->data_type_;
+  copy_res->data_flag_ = this->data_flag_;
+
+  return copy_res;
+}
+
+void IR::drop() {
+  if (this->op_)
+    delete this->op_;
+  delete this;
+}
+
+
+void IR::deep_drop() {
+  if (this->left_)
+    this->left_->deep_drop();
+
+  if (this->right_)
+    this->right_->deep_drop();
+
+  this->drop();
 }
 
 string IR::to_string(){
@@ -120,9 +137,4 @@ string IR::to_string_core(){
     //cout << "FUCK" << endl;
     //cout << "RETURN" << endl;
     return res;
-}
-
-
-IR* Node::translate(vector<IR *> &v_ir_collector){
-    return NULL;
 }

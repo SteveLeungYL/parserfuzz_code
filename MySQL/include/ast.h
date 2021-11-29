@@ -62,15 +62,16 @@ enum UnionType{
 
 
 enum DATAFLAG {
-	 kUse = 0x8,
-	 kMapToClosestOne = 0x10,
-	 kNoSplit = 0x100,
-	 kGlobal = 0x4,
-	 kReplace = 0x40,
-	 kUndefine = 0x2,
-	 kAlias = 0x80,
-	 kMapToAll = 0x20,
-	 kDefine = 0x1,
+	 kUse,
+	 kMapToClosestOne,
+	 kNoSplit,
+	 kGlobal,
+	 kReplace,
+	 kUndefine,
+	 kAlias,
+	 kMapToAll,
+	 kDefine,
+     kFlagUnknown
 };
 #define isUse(a) ((a) & kUse)
 #define isMapToClosestOne(a) ((a) & kMapToClosestOne)
@@ -149,6 +150,10 @@ public:
         bool bool_val_;
     };
 
+    IR* deep_copy();
+    void drop();
+    void deep_drop();
+
 
     int scope_;
     DATAFLAG data_flag_;
@@ -170,26 +175,10 @@ public:
     string to_string_core();
 };
 
-class Node{
-public:
-    void set_sub_type(unsigned int i){case_idx_ = i;}
-    NODETYPE type_;
-    DATATYPE data_type_;
-    DATAFLAG data_flag_;
-    int scope_;
-    unsigned int case_idx_;
-    virtual IR* translate(vector<IR*> &v_ir_collector);
-    virtual void generate(){}
-    virtual void deep_delete(){}
-    Node(){};
-    ~Node(){};
-};
 
-Node* generate_ast_node_by_type(IRTYPE);
 
 DATATYPE get_datatype_by_string(string s);
 
-NODETYPE get_nodetype_by_string(string s);
 
 string get_string_by_nodetype(NODETYPE tt);
 string get_string_by_datatype(DATATYPE tt);

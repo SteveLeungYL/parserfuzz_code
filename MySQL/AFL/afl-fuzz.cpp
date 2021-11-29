@@ -6395,23 +6395,13 @@ static u8 fuzz_one(char **argv)
 
   vector<IR *> ir_set;
   string input((const char *)out_buf);
-  Program *program = parser(input);
+  IR* root = parser(input);
 
-  if (program == NULL)
+  if (root == NULL)
   {
     goto abandon_entry;
   }
 
-  try
-  {
-    program->translate(ir_set);
-  }
-  catch (...)
-  {
-    program->deep_delete();
-    goto abandon_entry;
-  }
-  program->deep_delete();
   orig_perf = perf_score = calculate_score(queue_cur);
 
   doing_det = 1;
@@ -6427,6 +6417,10 @@ static u8 fuzz_one(char **argv)
   prev_cksum = queue_cur->exec_cksum;
   int skip_count;
   skip_count = 0;
+
+  /* TODO:: Yu:: DIRTY FIX FOR NOW!!! */
+  ir_set.clear();
+  ir_set.push_back(root);
   mutated_tree = g_mutator.mutate_all(ir_set);
   deep_delete(ir_set[ir_set.size() - 1]);
   ir_set.clear();
@@ -7680,13 +7674,15 @@ void test_mutate()
 {
   string test = "select a from b where c=0;";
   vector<IR *> tmp;
-  auto ast = parser(test);
-  auto ir1 = ast->translate(tmp);
+  IR* root = parser(test);
   cout << "Initing new_code" << endl;
   g_mutator.init("./init_lib/new_code");
   cout << "Finish init" << endl;
   exit(0);
 
+  /* TODO:: YU:: DIRTY FIX FOR NOW */
+  tmp.clear();
+  tmp.push_back(root);
   auto mutated_tree = g_mutator.mutate_all(tmp);
   deep_delete(tmp[tmp.size() - 1]);
   tmp.clear();
@@ -7712,7 +7708,7 @@ int main(int argc, char **argv)
 {
 
   //test_mutate();
-  ff_debug = 0;
+  // ff_debug = 0;
 
   is_server_up = -1;
   s32 opt;
