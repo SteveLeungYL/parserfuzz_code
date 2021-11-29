@@ -2778,9 +2778,14 @@ sql_statement:
         $$ = res;
     }
 
-    | simple_statement_or_begin ';' opt_end_of_input {
+    | simple_statement_or_begin
+    {
+
+    }
+    ';' opt_end_of_input 
+    {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kSqlStatement, OP3("", ";", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -8036,9 +8041,12 @@ part_value_list:
 
 
 part_value_item_list_paren:
+    '(' 
+    {
 
-    '(' part_value_item_list ')' {
-        auto tmp1 = $2;
+    }
+    part_value_item_list ')' {
+        auto tmp1 = $3;
         res = new IR(kPartValueItemListParen, OP3("(", ")", ""), tmp1);
         $$ = res;
     }
