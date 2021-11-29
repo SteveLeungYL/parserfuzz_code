@@ -38,7 +38,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CXX) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c -I include -I include/include -std=c++17
 
-parser.o: parser.cpp bison_parser.cpp flex_lexer.cpp
+parser.o: parser.cpp bison_parser.cpp 
 	g++ $< -o $@ -c -I include -I include/include $(DEBUG) $(OPT) -std=c++17
 
 %.o : %.cpp $(SRCS)  $(DEPDIR)/%.d | $(DEPDIR)

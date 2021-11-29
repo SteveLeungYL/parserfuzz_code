@@ -26,7 +26,7 @@ BIN_PATH    = $(PREFIX)/bin
 HELPER_PATH = $(PREFIX)/lib/afl
 DOC_PATH    = $(PREFIX)/share/doc/afl
 MISC_PATH   = $(PREFIX)/share/afl
-DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
+DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp
 
 # PROGS intentionally omit afl-as, which gets installed elsewhere.
 

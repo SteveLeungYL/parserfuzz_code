@@ -11,6 +11,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <deque>
+#include <cstring>
 #define _NON_REPLACE_
 
 using namespace std;
@@ -173,28 +174,26 @@ void Mutator::init_ir_library(string filename){
         if(p == NULL) continue;
         
         vector<IR *> v_ir;
-        auto res = p->translate(v_ir);
-        p->deep_delete();
-        p = NULL;
-        
+        // auto res = p->translate(v_ir);
+        // p->deep_delete();
+        // p = NULL;
 
-        add_ir_to_library(res);
-        deep_delete(res);      
+        add_ir_to_library(p);
     }
     return;
 }
 
-void Mutator::init_safe_generate_type(string filename){
-    ifstream input_file(filename);
-    string line;
+// void Mutator::init_safe_generate_type(string filename){
+//     ifstream input_file(filename);
+//     string line;
 
-    cout << "[*] init safe generate type: " << filename << endl;
-    while(getline(input_file, line)){
-        if(line.empty()) continue;
-        auto node_type = get_nodetype_by_string("k" + line);
-        safe_generate_type_.insert(node_type); 
-    }
-}
+//     cout << "[*] init safe generate type: " << filename << endl;
+//     while(getline(input_file, line)){
+//         if(line.empty()) continue;
+//         auto node_type = get_nodetype_by_string("k" + line);
+//         safe_generate_type_.insert(node_type);
+//     }
+// }
 
 
 void Mutator::init(string f_testcase, string f_common_string, string file2d, string file1d, string f_gen_type){
@@ -214,7 +213,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
     if(!file2d.empty()) init_data_library_2d(file2d);
 
     if(!file1d.empty()) init_data_library(file1d);
-    if(!f_gen_type.empty()) init_safe_generate_type(f_gen_type);
+    // if(!f_gen_type.empty()) init_safe_generate_type(f_gen_type);
     
     float_types_.insert({kFloatLiteral});
     int_types_.insert(kIntLiteral);
@@ -432,13 +431,15 @@ pair<string, string> Mutator::get_data_2d_by_type(DATATYPE type1, DATATYPE type2
 }
 
 IR* Mutator::generate_ir_by_type(IRTYPE type){
-    auto ast_node = generate_ast_node_by_type(type);
-    ast_node->generate();
-    vector<IR*> tmp_vector;
-    ast_node->translate(tmp_vector);
-    assert(tmp_vector.size());
+    // auto ast_node = generate_ast_node_by_type(type);
+    // ast_node->generate();
+    // vector<IR*> tmp_vector;
+    // ast_node->translate(tmp_vector);
+    // assert(tmp_vector.size());
 
-    return tmp_vector[tmp_vector.size() - 1];
+    // return tmp_vector[tmp_vector.size() - 1];
+    IR* ret_ir = new IR(type, OP0());
+    return ret_ir;
 }
 
 IR* Mutator::get_ir_from_library(IRTYPE type){
@@ -591,17 +592,18 @@ string Mutator::parse_data(string &input) {
 bool Mutator::validate(IR * &root){
     reset_data_library();
     string sql = root->to_string();
-    auto ast = parser(sql);
+    IR* ast = parser(sql);
     if(ast == NULL) return false;
     
-    deep_delete(root);
+    root->deep_drop();
     root = NULL;
 
-    vector<IR*> ir_vector;
-    ast->translate(ir_vector);
-    ast->deep_delete();
+    // vector<IR*> ir_vector;
+    // ast->translate(ir_vector);
+    // ast->deep_delete();
 
-    root = ir_vector[ir_vector.size() - 1];
+    // root = ir_vector[ir_vector.size() - 1];
+    root = ast;
     reset_id_counter();
 
     if(fix(root) == false){
@@ -1140,17 +1142,12 @@ IR * Mutator::find_closest_node(IR * stmt_root, IR * node, DATATYPE type){
 
 int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
     string sql(buf);
-    auto ast = parser(sql);
+    IR* ir_root = parser(sql);
 
     new_buf = buf;
     new_len = len;
-    if(ast == NULL) return 0;
-
-    vector<IR *> v_ir;
-    auto ir_root = ast->translate(v_ir);
-    ast->deep_delete();
-
     if(ir_root == NULL) return 0;
+
     bool fixed_result = validate(ir_root);
     string fixed;
     if(fixed_result != false){
