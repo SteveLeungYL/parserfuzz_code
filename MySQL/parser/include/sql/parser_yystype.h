@@ -23,6 +23,8 @@
 #ifndef PARSER_YYSTYPE_INCLUDED
 #define PARSER_YYSTYPE_INCLUDED
 
+#include "../../../include/ast.h"
+
 #include <assert.h>
 #include <sys/types.h>  // TODO: replace with cstdint
 
@@ -339,6 +341,8 @@ enum class Explain_format_type {
 #endif  // YYSTYPE_IS_DECLARED
 
 union YYSTYPE {
+  IR* ir;
+
   Lexer_yystype lexer;  // terminal values from the lexical scanner
   /*
     Hint parser section (sql_hints.yy)
