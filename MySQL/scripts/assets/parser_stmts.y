@@ -5213,7 +5213,7 @@ field_opt_list:
         ;
 
 field_option:
-          SIGNED_SYM   { $$ = 0; } // TODO: remove undocumented ignored syntax
+          SIGNED_SYM   { $$ = 0; }
         | UNSIGNED_SYM { $$ = UNSIGNED_FLAG; }
         | ZEROFILL_SYM {
             $$ = ZEROFILL_FLAG;

@@ -816,5 +816,7 @@
   "DELAYED_SYM",
   "IF",
   "COLUMNS",
-  "INSTANCE_SYM"
+  "INSTANCE_SYM",
+  "/* nothing */",
+  "/* Nothing */"
 ]

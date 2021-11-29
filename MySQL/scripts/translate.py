@@ -14,23 +14,10 @@ default_ir_type = "kUnknown"
 saved_ir_type = []
 
 custom_additional_keywords = {
-    "PASSWORD",
-    "CREATE",
-    "USER",
-    "DROP",
-    "SUBSCRIPTION",
-    "IF_P",
-    "EXISTS",
-    "/*EMPTY*/",
-    "/* EMPTY */",
-    "'('",
-    "')'",
-    "IN_P",
-    "/* There must be at least one */",
-    "SELECT",
-    "UPDATE",
-    "DELETE_P",
-    "INSERT",
+    "/* nothing */",
+    "/* Nothing */",
+    "/* empty */",
+    "/* Empty */",
     "%prec",
 }
 
@@ -51,15 +38,25 @@ if os.path.exists("assets/tokens.json"):
         total_tokens |= set(json.load(f))
 
 manually_translation = {
-    "empty_grouping_set": """
-empty_grouping_set:
+    "opt_returning_type": """
+opt_returning_type:
 
-    '(' ')' {
-        res = new IR(kEmptyGroupingSet, OP3("( )", "", ""));
+    // The default returning type is CHAR(512). (The max length of 512
+    // is chosen so that the returned values are not handled as BLOBs
+    // internally. See CONVERT_IF_BIGGER_TO_BLOB.)
+    {
+        res = new IR(kOptReturningType, OP3("", "", ""));
+        $$ = res;
+    }
+
+    | RETURNING_SYM cast_type {
+        auto tmp1 = $2;
+        res = new IR(kOptReturningType, OP3("RETURNING", "", ""), tmp1);
         $$ = res;
     }
 
 ;
+
 """
 }
 
@@ -228,7 +225,7 @@ def translate_single_line(line, parent):
 
         if need_more_ir:
 
-            # body += "PUSH(res);"
+            body += "PUSH(res);\n"
             body += f"auto tmp{tmp_num} = ${left_token.index+1};" + "\n"
             body += (
                 f"""res = new IR({default_ir_type}, OP3("", "{left_keywords_str}", "{mid_keywords_str}"), res, tmp{tmp_num});"""
@@ -237,7 +234,7 @@ def translate_single_line(line, parent):
             tmp_num += 1
 
             if right_token and not right_token.is_keyword:
-                # body += "PUSH(res);"
+                body += "PUSH(res);\n"
                 body += f"auto tmp{tmp_num} = ${right_token.index + 1};" + "\n"
                 body += (
                     f"""res = new IR({default_ir_type}, OP3("", "", "{right_keywords_str}"), res, tmp{tmp_num});"""
@@ -308,12 +305,31 @@ def find_first_alpha_index(data, start_index):
             return start_index + idx
 
 
+def remove_original_actions(data):
+    left_bracket_stack = []
+    right_bracket_stack = []
+
+    clean_data = data
+    for idx, ch in enumerate(data):
+        if ch == "{":
+            left_bracket_stack.append(idx)
+        elif ch == "}":
+            left_index = left_bracket_stack.pop()
+            right_index = idx + 1
+            length = right_index - left_index
+            clean_data = (
+                clean_data[:left_index] + " " * length + clean_data[right_index:]
+            )
+
+    # clean_data = re.sub(r"\{.*?\}", "", data, flags=re.S)
+    return clean_data.strip()
+
+
 def translate_preprocessing(data):
     """Remove comments, and remove the original actions from the parser"""
 
     """Remove original actions here. """
-    data = re.sub(r"\{.*?\}", "", data, flags=re.S)
-    data = data.strip()
+    data = remove_original_actions(data)
 
     all_new_data = ""  # not necessary. But it works now, no need to change. :-o
     new_data = ""
@@ -733,7 +749,7 @@ def get_gram_tokens():
         "change_replication_source_ssl_key",
         "sp_chistic",
         "dec_num_error",
-        "sql_statement",
+        "sql_statement.y.y",
         "execute",
         "sp_proc_stmt_iterate",
         "change_replication_source_ssl",
@@ -798,11 +814,6 @@ def remove_comments_if_necessary(text, need_remove):
         return text
 
     pattern = r"/\*.*?\*/"
-    return re.sub(pattern, "", text, flags=re.S)
-
-
-def remove_original_actions(text):
-    pattern = r"\{.*?\}"
     return re.sub(pattern, "", text, flags=re.S)
 
 
@@ -919,10 +930,31 @@ def run(output, remove_comments):
         )
 
     with open(output, "w") as f:
+        f.write("/*\n")
         f.write(marked_lines)
+
+
+def get_keywords_mapping():
+    with open("assets/lex.h") as f:
+        lines = [line.strip() for line in f.readlines()]
+        lines = [line for line in lines if line.startswith("{SYM")]
+
+    mapping = {}
+    for line in lines:
+        matched = line[line.find('"') : line.rfind(")")]
+        text, sym = matched.split(",")
+        text = text.strip().strip('"')
+        sym = sym.strip()
+        mapping[sym] = text
+
+    additional_mapping = {"END_OF_INPUT": ""}
+    mapping.update(additional_mapping)
+    with open("assets/keywords_mapping.json", "w") as f:
+        json.dump(mapping, f, indent=2, sort_keys=True)
 
 
 if __name__ == "__main__":
     # get_gram_tokens()
     # get_gram_keywords()
+    # get_keywords_mapping()
     run()
