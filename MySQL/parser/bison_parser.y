@@ -3705,9 +3705,11 @@ prepare_src:
 
 execute:
 
-    EXECUTE_SYM ident execute_using {
+    EXECUTE_SYM ident 
+    {}
+    execute_using {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kExecute, OP3("EXECUTE", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -4956,12 +4958,12 @@ create_resource_group_stmt:
 
 create:
 
-    CREATE DATABASE opt_if_not_exists ident opt_create_database_options {
+    CREATE DATABASE opt_if_not_exists ident {} opt_create_database_options {
         auto tmp1 = $3;
         auto tmp2 = $4;
         res = new IR(kCreate_1, OP3("CREATE SCHEMA", "", ""), tmp1, tmp2);
 
-        auto tmp3 = $5;
+        auto tmp3 = $6;
         res = new IR(kCreate, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -5245,24 +5247,24 @@ server_option:
 
 event_tail:
 
-    EVENT_SYM opt_if_not_exists sp_name ON_SYM SCHEDULE_SYM ev_schedule_time opt_ev_on_completion opt_ev_status opt_ev_comment DO_SYM ev_sql_stmt {
+    EVENT_SYM opt_if_not_exists sp_name {} ON_SYM SCHEDULE_SYM ev_schedule_time opt_ev_on_completion opt_ev_status opt_ev_comment DO_SYM ev_sql_stmt {
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kEventTail_1, OP3("EVENT", "", "ON SCHEDULE"), tmp1, tmp2);
 
-        auto tmp3 = $6;
+        auto tmp3 = $7;
         res = new IR(kEventTail_2, OP3("", "", ""), res, tmp3);
 
-        auto tmp4 = $7;
+        auto tmp4 = $8;
         res = new IR(kEventTail_3, OP3("", "", ""), res, tmp4);
 
-        auto tmp5 = $8;
+        auto tmp5 = $9;
         res = new IR(kEventTail_4, OP3("", "", ""), res, tmp5);
 
-        auto tmp6 = $9;
+        auto tmp6 = $10;
         res = new IR(kEventTail_5, OP3("", "", "DO"), res, tmp6);
 
-        auto tmp7 = $11;
+        auto tmp7 = $12;
         res = new IR(kEventTail, OP3("", "", ""), res, tmp7);
         $$ = res;
     }
@@ -5272,15 +5274,15 @@ event_tail:
 
 ev_schedule_time:
 
-    EVERY_SYM expr interval ev_starts ev_ends {
+    EVERY_SYM expr interval {} ev_starts ev_ends {
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kEvScheduleTime_1, OP3("EVERY", "", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $5;
         res = new IR(kEvScheduleTime_2, OP3("", "", ""), res, tmp3);
 
-        auto tmp4 = $5;
+        auto tmp4 = $6;
         res = new IR(kEvScheduleTime, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
@@ -5400,8 +5402,8 @@ opt_ev_comment:
 
 ev_sql_stmt:
 
-    ev_sql_stmt_inner {
-        auto tmp1 = $1;
+    {} ev_sql_stmt_inner {
+        auto tmp1 = $2;
         res = new IR(kEvSqlStmt, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -5855,19 +5857,19 @@ sp_decl:
         $$ = res;
     }
 
-    | DECLARE_SYM sp_handler_type HANDLER_SYM FOR_SYM sp_hcond_list sp_proc_stmt {
+    | DECLARE_SYM sp_handler_type HANDLER_SYM FOR_SYM {} sp_hcond_list sp_proc_stmt {
         auto tmp1 = $2;
-        auto tmp2 = $5;
+        auto tmp2 = $6;
         res = new IR(kSpDecl_3, OP3("DECLARE", "HANDLER FOR", ""), tmp1, tmp2);
 
-        auto tmp3 = $6;
+        auto tmp3 = $7;
         res = new IR(kSpDecl, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
-    | DECLARE_SYM ident CURSOR_SYM FOR_SYM select_stmt {
+    | DECLARE_SYM ident CURSOR_SYM FOR_SYM {} select_stmt {
         auto tmp1 = $2;
-        auto tmp2 = $5;
+        auto tmp2 = $6;
         res = new IR(kSpDecl, OP3("DECLARE", "CURSOR FOR", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -6527,10 +6529,12 @@ sp_proc_stmt:
 ;
 
 
+
 sp_proc_stmt_if:
 
-    IF sp_if END IF {
-        auto tmp1 = $2;
+    IF {}
+    sp_if END IF {
+        auto tmp1 = $3;
         res = new IR(kSpProcStmtIf, OP3("IF", "END IF", ""), tmp1);
         $$ = res;
     }
@@ -6539,9 +6543,10 @@ sp_proc_stmt_if:
 
 
 sp_proc_stmt_statement:
-
-    simple_statement {
-        auto tmp1 = $1;
+    {}
+    simple_statement 
+    {
+        auto tmp1 = $2;
         res = new IR(kSpProcStmtStatement, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -6551,8 +6556,9 @@ sp_proc_stmt_statement:
 
 sp_proc_stmt_return:
 
-    RETURN_SYM expr {
-        auto tmp1 = $2;
+    RETURN_SYM {}
+    expr {
+        auto tmp1 = $3;
         res = new IR(kSpProcStmtReturn, OP3("RETURN", "", ""), tmp1);
         $$ = res;
     }
@@ -6561,9 +6567,9 @@ sp_proc_stmt_return:
 
 
 sp_proc_stmt_unlabeled:
-
+    {}
     sp_unlabeled_control {
-        auto tmp1 = $1;
+        auto tmp1 = $2;
         res = new IR(kSpProcStmtUnlabeled, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -6669,13 +6675,15 @@ sp_fetch_list:
 
 
 sp_if:
-
-    expr THEN_SYM sp_proc_stmts1 sp_elseifs {
-        auto tmp1 = $1;
-        auto tmp2 = $3;
+    {}
+    expr {} 
+    THEN_SYM sp_proc_stmts1 {} 
+    sp_elseifs {
+        auto tmp1 = $2;
+        auto tmp2 = $5;
         res = new IR(kSpIf_1, OP3("", "THEN", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $7;
         res = new IR(kSpIf, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
