@@ -813,8 +813,29 @@ def remove_comments_if_necessary(text, need_remove):
     if not need_remove:
         return text
 
-    pattern = r"/\*.*?\*/"
-    return re.sub(pattern, "", text, flags=re.S)
+    left_comment_mark = []
+    clean_text = text
+
+    index = 0
+    while index < len(text) - 1:
+        lch = text[index]
+        rch = text[index + 1]
+        if lch == "/" and rch == "*":
+            left_comment_mark.append(index)
+        elif lch == "*" and rch == "/":
+            left_index = left_comment_mark.pop()
+            right_index = index + 1 + 1
+            length = right_index - left_index
+
+            clean_text = (
+                clean_text[:left_index] + " " * length + clean_text[right_index:]
+            )
+
+        index += 1
+
+    return clean_text.strip()
+    # pattern = r"/\*.*?\*/"
+    # return re.sub(pattern, "", text, flags=re.S)
 
 
 def select_translate_region(data):
