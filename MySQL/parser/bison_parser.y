@@ -199,19 +199,19 @@ static const int DEFAULT_NUMBER_OF_HISTOGRAM_BUCKETS= 100;
 
 int yylex(void *yylval, void *yythd);
 
-#define yyoverflow(A,B,C,D,E,F,G,H)           \
-  {                                           \
-    ulong val= *(H);                          \
-    if (my_yyoverflow((B), (D), (F), &val))   \
-    {                                         \
-      yyerror(NULL, YYTHD, NULL, ir_vec, (const char*) (A));\
-      return 2;                               \
-    }                                         \
-    else                                      \
-    {                                         \
-      *(H)= (YYSIZE_T)val;                    \
-    }                                         \
-  }
+// #define yyoverflow(A,B,C,D,E,F,G,H)           \
+//   {                                           \
+//     ulong val= *(H);                          \
+//     if (my_yyoverflow((B), (D), (F), &val))   \
+//     {                                         \
+//       yyerror(NULL, YYTHD, NULL, ir_vec, (const char*) (A));\
+//       return 2;                               \
+//     }                                         \
+//     else                                      \
+//     {                                         \
+//       *(H)= (YYSIZE_T)val;                    \
+//     }                                         \
+//   }
 
 #define MYSQL_YYABORT YYABORT
 
@@ -297,10 +297,10 @@ int yylex(void *yylval, void *yythd);
 */
 
 static
-void MYSQLerror(YYLTYPE *location, THD *thd, Parse_tree_root **, vector<IR*>& ir_vec, const char *s)
+void MYSQLerror(THD *thd, Parse_tree_root **, vector<IR*>& ir_vec, IR* res, const char *s)
 {
   if (strcmp(s, "syntax error") == 0) {
-    thd->syntax_error_at(*location);
+    // thd->syntax_error_at(*location);
   } else if (strcmp(s, "memory exhausted") == 0) {
     my_error(ER_DA_OOM, MYF(0));
   } else {
@@ -506,6 +506,7 @@ void warn_about_deprecated_binary(THD *thd)
 
 %lex-param { class THD *YYTHD }
 %parse-param { vector<IR*>& ir_vec }
+%parse-param {IR* res }
 %pure-parser                                    /* We have threads */
 
 /*
@@ -1434,7 +1435,7 @@ void warn_about_deprecated_binary(THD *thd)
 %left EMPTY_FROM_CLAUSE
 %right INTO
 
-%type <lexer.lex_str>
+%type <ir>
         IDENT IDENT_QUOTED TEXT_STRING DECIMAL_NUM FLOAT_NUM NUM LONG_NUM HEX_NUM
         LEX_HOSTNAME ULONGLONG_NUM select_alias ident opt_ident ident_or_text
         role_ident role_ident_or_text
@@ -1453,7 +1454,7 @@ void warn_about_deprecated_binary(THD *thd)
         engine_or_all
         opt_binlog_in
 
-%type <lex_cstr>
+%type <ir>
         key_cache_name
         label_ident
         opt_table_alias
@@ -1462,19 +1463,19 @@ void warn_about_deprecated_binary(THD *thd)
         json_attribute
         opt_channel
 
-%type <lex_str_list> TEXT_STRING_sys_list
+%type <ir> TEXT_STRING_sys_list
 
-%type <table>
+%type <ir>
         table_ident
 
-%type <simple_string>
+%type <ir>
         opt_db
 
-%type <string>
+%type <ir>
         text_string opt_gconcat_separator
         opt_xml_rows_identified_by
 
-%type <num>
+%type <ir>
         lock_option
         udf_type if_exists
         opt_no_write_to_binlog
@@ -1490,23 +1491,23 @@ void warn_about_deprecated_binary(THD *thd)
         opt_num_buckets
 
 
-%type <order_direction>
+%type <ir>
         ordering_direction opt_ordering_direction
 
 /*
   Bit field of MYSQL_START_TRANS_OPT_* flags.
 */
-%type <num> opt_start_transaction_option_list
-%type <num> start_transaction_option_list
-%type <num> start_transaction_option
+%type <ir> opt_start_transaction_option_list
+%type <ir> start_transaction_option_list
+%type <ir> start_transaction_option
 
-%type <m_yes_no_unk>
+%type <ir>
         opt_chain opt_release
 
-%type <m_fk_option>
+%type <ir>
         delete_option
 
-%type <ulong_num>
+%type <ir>
         ulong_num real_ulong_num merge_insert_types
         ws_num_codepoints func_datetime_precision
         now
@@ -1517,16 +1518,16 @@ void warn_about_deprecated_binary(THD *thd)
         profile_def
         factor
 
-%type <ulonglong_number>
+%type <ir>
         ulonglong_num real_ulonglong_num size_number
         option_autoextend_size
 
-%type <lock_type>
+%type <ir>
         replace_lock_option opt_low_priority insert_lock_option load_data_lock
 
-%type <locked_row_action> locked_row_action opt_locked_row_action
+%type <ir> locked_row_action opt_locked_row_action
 
-%type <item>
+%type <ir>
         literal insert_ident temporal_literal
         simple_ident expr opt_expr opt_else
         set_function_specification sum_expr
@@ -1561,74 +1562,74 @@ void warn_about_deprecated_binary(THD *thd)
         stable_integer
         param_or_var
 
-%type <item_string> window_name opt_existing_window_name
+%type <ir> window_name opt_existing_window_name
 
-%type <item_num> NUM_literal
+%type <ir> NUM_literal
         int64_literal
 
-%type <item_list>
+%type <ir>
         when_list
         opt_filter_db_list filter_db_list
         opt_filter_table_list filter_table_list
         opt_filter_string_list filter_string_list
         opt_filter_db_pair_list filter_db_pair_list
 
-%type <item_list2>
+%type <ir>
         expr_list udf_expr_list opt_udf_expr_list opt_expr_list select_item_list
         opt_paren_expr_list ident_list_arg ident_list values opt_values row_value fields
         fields_or_vars
         opt_field_or_var_spec
         row_value_explicit
 
-%type <var_type>
+%type <ir>
         option_type opt_var_type opt_var_ident_type opt_set_var_ident_type
 
-%type <key_type>
+%type <ir>
         opt_unique constraint_key_type
 
-%type <key_alg>
+%type <ir>
         index_type
 
-%type <string_list>
+%type <ir>
         string_list using_list opt_use_partition use_partition ident_string_list
         all_or_alt_part_name_list
 
-%type <key_part>
+%type <ir>
         key_part key_part_with_expression
 
-%type <date_time_type> date_time_type;
-%type <interval> interval
+%type <ir> date_time_type;
+%type <ir> interval
 
-%type <interval_time_st> interval_time_stamp
+%type <ir> interval_time_stamp
 
-%type <row_type> row_types
+%type <ir> row_types
 
-%type <resource_group_type> resource_group_types
+%type <ir> resource_group_types
 
-%type <resource_group_vcpu_list_type>
+%type <ir>
         opt_resource_group_vcpu_list
         vcpu_range_spec_list
 
-%type <resource_group_priority_type> opt_resource_group_priority
+%type <ir> opt_resource_group_priority
 
-%type <resource_group_state_type> opt_resource_group_enable_disable
+%type <ir> opt_resource_group_enable_disable
 
-%type <resource_group_flag_type> opt_force
+%type <ir> opt_force
 
-%type <thread_id_list_type> thread_id_list thread_id_list_options
+%type <ir> thread_id_list thread_id_list_options
 
-%type <vcpu_range_type> vcpu_num_or_range
+%type <ir> vcpu_num_or_range
 
-%type <tx_isolation> isolation_types
+%type <ir> isolation_types
 
-%type <ha_rkey_mode> handler_rkey_mode
+%type <ir> handler_rkey_mode
 
-%type <ha_read_mode> handler_scan_function
+%type <ir> handler_scan_function
         handler_rkey_function
 
-%type <cast_type> cast_type opt_returning_type
+%type <ir> cast_type opt_returning_type
 
-%type <lexer.keyword> ident_keyword label_keyword role_keyword
+%type <ir> ident_keyword label_keyword role_keyword
         lvalue_keyword
         ident_keywords_unambiguous
         ident_keywords_ambiguous_1_roles_and_labels
@@ -1636,9 +1637,9 @@ void warn_about_deprecated_binary(THD *thd)
         ident_keywords_ambiguous_3_roles
         ident_keywords_ambiguous_4_system_variables
 
-%type <lex_user> user_ident_or_text user create_user alter_user user_func role
+%type <ir> user_ident_or_text user create_user alter_user user_func role
 
-%type <lex_mfa>
+%type <ir>
         identification
         identified_by_password
         identified_by_random_password
@@ -1649,9 +1650,9 @@ void warn_about_deprecated_binary(THD *thd)
         opt_initial_auth
         opt_user_registration
 
-%type <lex_mfas> opt_create_user_with_mfa
+%type <ir> opt_create_user_with_mfa
 
-%type <lexer.charset>
+%type <ir>
         opt_collate
         charset_name
         old_or_new_charset_name
@@ -1662,38 +1663,38 @@ void warn_about_deprecated_binary(THD *thd)
         ascii unicode
         default_charset default_collation
 
-%type <boolfunc2creator> comp_op
+%type <ir> comp_op
 
-%type <num>  sp_decl_idents sp_opt_inout sp_handler_type sp_hcond_list
-%type <spcondvalue> sp_cond sp_hcond sqlstate signal_value opt_signal_value
-%type <spblock> sp_decls sp_decl
-%type <spname> sp_name
-%type <index_hint> index_hint_type
-%type <num> index_hint_clause
-%type <filetype> data_or_xml
+%type <ir>  sp_decl_idents sp_opt_inout sp_handler_type sp_hcond_list
+%type <ir> sp_cond sp_hcond sqlstate signal_value opt_signal_value
+%type <ir> sp_decls sp_decl
+%type <ir> sp_name
+%type <ir> index_hint_type
+%type <ir> index_hint_clause
+%type <ir> data_or_xml
 
-%type <da_condition_item_name> signal_condition_information_item_name
+%type <ir> signal_condition_information_item_name
 
-%type <diag_area> which_area;
-%type <diag_info> diagnostics_information;
-%type <stmt_info_item> statement_information_item;
-%type <stmt_info_item_name> statement_information_item_name;
-%type <stmt_info_list> statement_information;
-%type <cond_info_item> condition_information_item;
-%type <cond_info_item_name> condition_information_item_name;
-%type <cond_info_list> condition_information;
-%type <signal_item_list> signal_information_item_list;
-%type <signal_item_list> opt_set_signal_information;
+%type <ir> which_area;
+%type <ir> diagnostics_information;
+%type <ir> statement_information_item;
+%type <ir> statement_information_item_name;
+%type <ir> statement_information;
+%type <ir> condition_information_item;
+%type <ir> condition_information_item_name;
+%type <ir> condition_information;
+%type <ir> signal_information_item_list;
+%type <ir> opt_set_signal_information;
 
-%type <trg_characteristics> trigger_follows_precedes_clause;
-%type <trigger_action_order_type> trigger_action_order;
+%type <ir> trigger_follows_precedes_clause;
+%type <ir> trigger_action_order;
 
-%type <xid> xid;
-%type <xa_option_type> opt_join_or_resume;
-%type <xa_option_type> opt_suspend;
-%type <xa_option_type> opt_one_phase;
+%type <ir> xid;
+%type <ir> opt_join_or_resume;
+%type <ir> opt_suspend;
+%type <ir> opt_one_phase;
 
-%type <is_not_empty> opt_convert_xid opt_ignore opt_linear opt_bin_mod
+%type <ir> opt_convert_xid opt_ignore opt_linear opt_bin_mod
         opt_if_not_exists opt_temporary
         opt_grant_option opt_with_admin_option
         opt_full opt_extended
@@ -1706,142 +1707,142 @@ void warn_about_deprecated_binary(THD *thd)
         opt_not
         opt_interval
 
-%type <show_cmd_type> opt_show_cmd_type
+%type <ir> opt_show_cmd_type
 
 /*
   A bit field of SLAVE_IO, SLAVE_SQL flags.
 */
-%type <num> opt_replica_thread_option_list
-%type <num> replica_thread_option_list
-%type <num> replica_thread_option
+%type <ir> opt_replica_thread_option_list
+%type <ir> replica_thread_option_list
+%type <ir> replica_thread_option
 
-%type <key_usage_element> key_usage_element
+%type <ir> key_usage_element
 
-%type <key_usage_list> key_usage_list opt_key_usage_list index_hint_definition
+%type <ir> key_usage_list opt_key_usage_list index_hint_definition
         index_hints_list opt_index_hints_list opt_key_definition
         opt_cache_key_list
 
-%type <order_expr> order_expr alter_order_item
+%type <ir> order_expr alter_order_item
         grouping_expr
 
-%type <order_list> order_list group_list gorder_list opt_gorder_clause
+%type <ir> order_list group_list gorder_list opt_gorder_clause
       alter_order_list opt_partition_clause opt_window_order_by_clause
 
-%type <c_str> field_length opt_field_length type_datetime_precision
+%type <ir> field_length opt_field_length type_datetime_precision
         opt_place
 
-%type <precision> precision opt_precision float_options standard_float_options
+%type <ir> precision opt_precision float_options standard_float_options
 
-%type <charset_with_opt_binary> opt_charset_with_opt_binary
+%type <ir> opt_charset_with_opt_binary
 
-%type <limit_options> limit_options
+%type <ir> limit_options
 
-%type <limit_clause> limit_clause opt_limit_clause
+%type <ir> limit_clause opt_limit_clause
 
-%type <ulonglong_number> query_spec_option
+%type <ir> query_spec_option
 
-%type <select_options> select_option select_option_list select_options
+%type <ir> select_option select_option_list select_options
 
-%type <node>
+%type <ir>
           option_value
 
-%type <join_table> joined_table joined_table_parens
+%type <ir> joined_table joined_table_parens
 
-%type <table_reference_list> opt_from_clause from_clause from_tables
+%type <ir> opt_from_clause from_clause from_tables
         table_reference_list table_reference_list_parens explicit_table
 
-%type <olap_type> olap_opt
+%type <ir> olap_opt
 
-%type <group> opt_group_clause
+%type <ir> opt_group_clause
 
-%type <windows> opt_window_clause  ///< Definition of named windows
+%type <ir> opt_window_clause  ///< Definition of named windows
                                    ///< for the query specification
                 window_definition_list
 
-%type <window> window_definition window_spec window_spec_details window_name_or_spec
+%type <ir> window_definition window_spec window_spec_details window_name_or_spec
   windowing_clause   ///< Definition of unnamed window near the window function.
   opt_windowing_clause ///< For functions which can be either set or window
                        ///< functions (e.g. SUM), non-empty clause makes the difference.
 
-%type <window_frame> opt_window_frame_clause
+%type <ir> opt_window_frame_clause
 
-%type <frame_units> window_frame_units
+%type <ir> window_frame_units
 
-%type <frame_extent> window_frame_extent window_frame_between
+%type <ir> window_frame_extent window_frame_between
 
-%type <bound> window_frame_start window_frame_bound
+%type <ir> window_frame_start window_frame_bound
 
-%type <frame_exclusion> opt_window_frame_exclusion
+%type <ir> opt_window_frame_exclusion
 
-%type <null_treatment> opt_null_treatment
+%type <ir> opt_null_treatment
 
-%type <lead_lag_info> opt_lead_lag_info
+%type <ir> opt_lead_lag_info
 
-%type <from_first_last> opt_from_first_last
+%type <ir> opt_from_first_last
 
-%type <order> order_clause opt_order_clause
+%type <ir> order_clause opt_order_clause
 
-%type <locking_clause> locking_clause
+%type <ir> locking_clause
 
-%type <locking_clause_list> locking_clause_list
+%type <ir> locking_clause_list
 
-%type <lock_strength> lock_strength
+%type <ir> lock_strength
 
-%type <table_reference> table_reference esc_table_reference
+%type <ir> table_reference esc_table_reference
         table_factor single_table single_table_parens table_function
 
-%type <query_expression_body> query_expression_body
+%type <ir> query_expression_body
 
-%type <internal_variable_name> internal_variable_name
+%type <ir> internal_variable_name
 
-%type <option_value_following_option_type> option_value_following_option_type
+%type <ir> option_value_following_option_type
 
-%type <option_value_no_option_type> option_value_no_option_type
+%type <ir> option_value_no_option_type
 
-%type <option_value_list> option_value_list option_value_list_continued
+%type <ir> option_value_list option_value_list_continued
 
-%type <start_option_value_list> start_option_value_list
+%type <ir> start_option_value_list
 
-%type <transaction_access_mode> transaction_access_mode
+%type <ir> transaction_access_mode
         opt_transaction_access_mode
 
-%type <isolation_level> isolation_level opt_isolation_level
+%type <ir> isolation_level opt_isolation_level
 
-%type <transaction_characteristics> transaction_characteristics
+%type <ir> transaction_characteristics
 
-%type <start_option_value_list_following_option_type>
+%type <ir>
         start_option_value_list_following_option_type
 
-%type <set> set
+%type <ir> set
 
-%type <line_separators> line_term line_term_list opt_line_term
+%type <ir> line_term line_term_list opt_line_term
 
-%type <field_separators> field_term field_term_list opt_field_term
+%type <ir> field_term field_term_list opt_field_term
 
-%type <into_destination> into_destination into_clause
+%type <ir> into_destination into_clause
 
-%type <select_var_ident> select_var_ident
+%type <ir> select_var_ident
 
-%type <select_var_list> select_var_list
+%type <ir> select_var_list
 
-%type <query_primary>
+%type <ir>
         as_create_query_expression
         query_expression_or_parens
         query_expression_parens
         query_primary
         query_specification
 
-%type <query_expression> query_expression
+%type <ir> query_expression
 
-%type <subquery> subquery row_subquery table_subquery
+%type <ir> subquery row_subquery table_subquery
 
-%type <derived_table> derived_table
+%type <ir> derived_table
 
-%type <param_marker> param_marker
+%type <ir> param_marker
 
-%type <text_literal> text_literal
+%type <ir> text_literal
 
-%type <top_level_node>
+%type <ir>
         alter_instance_stmt
         alter_resource_group_stmt
         alter_table_stmt
@@ -1924,210 +1925,210 @@ void warn_about_deprecated_binary(THD *thd)
         truncate_stmt
         update_stmt
 
-%type <table_ident> table_ident_opt_wild
+%type <ir> table_ident_opt_wild
 
-%type <table_ident_list> table_alias_ref_list table_locking_list
+%type <ir> table_alias_ref_list table_locking_list
 
-%type <simple_ident_list> simple_ident_list opt_derived_column_list
+%type <ir> simple_ident_list opt_derived_column_list
 
-%type <num> opt_delete_options
+%type <ir> opt_delete_options
 
-%type <opt_delete_option> opt_delete_option
+%type <ir> opt_delete_option
 
-%type <column_value_pair>
+%type <ir>
         update_elem
 
-%type <column_value_list_pair>
+%type <ir>
         update_list
         opt_insert_update_list
 
-%type <values_list> values_list insert_values table_value_constructor
+%type <ir> values_list insert_values table_value_constructor
         values_row_list
 
-%type <insert_query_expression> insert_query_expression
+%type <ir> insert_query_expression
 
-%type <column_row_value_list_pair> insert_from_constructor
+%type <ir> insert_from_constructor
 
-%type <lexer.optimizer_hints> SELECT_SYM INSERT_SYM REPLACE_SYM UPDATE_SYM DELETE_SYM
+%type <ir> SELECT_SYM INSERT_SYM REPLACE_SYM UPDATE_SYM DELETE_SYM
 
-%type <join_type> outer_join_type natural_join_type inner_join_type
+%type <ir> outer_join_type natural_join_type inner_join_type
 
-%type <user_list> user_list role_list default_role_clause opt_except_role_list
+%type <ir> user_list role_list default_role_clause opt_except_role_list
 
-%type <alter_instance_cmd> alter_instance_action
+%type <ir> alter_instance_action
 
-%type <index_column_list> key_list key_list_with_expression
+%type <ir> key_list key_list_with_expression
 
-%type <index_options> opt_index_options index_options  opt_fulltext_index_options
+%type <ir> opt_index_options index_options  opt_fulltext_index_options
           fulltext_index_options opt_spatial_index_options spatial_index_options
 
-%type <opt_index_lock_and_algorithm> opt_index_lock_and_algorithm
+%type <ir> opt_index_lock_and_algorithm
 
-%type <index_option> index_option common_index_option fulltext_index_option
+%type <ir> index_option common_index_option fulltext_index_option
           spatial_index_option
           index_type_clause
           opt_index_type_clause
 
-%type <alter_table_algorithm> alter_algorithm_option_value
+%type <ir> alter_algorithm_option_value
         alter_algorithm_option
 
-%type <alter_table_lock> alter_lock_option_value alter_lock_option
+%type <ir> alter_lock_option_value alter_lock_option
 
-%type <table_constraint_def> table_constraint_def
+%type <ir> table_constraint_def
 
-%type <index_name_and_type> opt_index_name_and_type
+%type <ir> opt_index_name_and_type
 
-%type <visibility> visibility
+%type <ir> visibility
 
-%type <with_clause> with_clause opt_with_clause
-%type <with_list> with_list
-%type <common_table_expr> common_table_expr
+%type <ir> with_clause opt_with_clause
+%type <ir> with_list
+%type <ir> common_table_expr
 
-%type <partition_option> part_option
+%type <ir> part_option
 
-%type <partition_option_list> opt_part_options part_option_list
+%type <ir> opt_part_options part_option_list
 
-%type <sub_part_definition> sub_part_definition
+%type <ir> sub_part_definition
 
-%type <sub_part_list> sub_part_list opt_sub_partition
+%type <ir> sub_part_list opt_sub_partition
 
-%type <part_value_item> part_value_item
+%type <ir> part_value_item
 
-%type <part_value_item_list> part_value_item_list
+%type <ir> part_value_item_list
 
-%type <part_value_item_list_paren> part_value_item_list_paren part_func_max
+%type <ir> part_value_item_list_paren part_func_max
 
-%type <part_value_list> part_value_list
+%type <ir> part_value_list
 
-%type <part_values> part_values_in
+%type <ir> part_values_in
 
-%type <opt_part_values> opt_part_values
+%type <ir> opt_part_values
 
-%type <part_definition> part_definition
+%type <ir> part_definition
 
-%type <part_def_list> part_def_list opt_part_defs
+%type <ir> part_def_list opt_part_defs
 
-%type <ulong_num> opt_num_subparts opt_num_parts
+%type <ir> opt_num_subparts opt_num_parts
 
-%type <name_list> name_list opt_name_list
+%type <ir> name_list opt_name_list
 
-%type <opt_key_algo> opt_key_algo
+%type <ir> opt_key_algo
 
-%type <opt_sub_part> opt_sub_part
+%type <ir> opt_sub_part
 
-%type <part_type_def> part_type_def
+%type <ir> part_type_def
 
-%type <partition_clause> partition_clause
+%type <ir> partition_clause
 
-%type <mi_type> mi_repair_type mi_repair_types opt_mi_repair_types
+%type <ir> mi_repair_type mi_repair_types opt_mi_repair_types
         mi_check_type mi_check_types opt_mi_check_types
 
-%type <opt_restrict> opt_restrict;
+%type <ir> opt_restrict;
 
-%type <table_list> table_list opt_table_list
+%type <ir> table_list opt_table_list
 
-%type <ternary_option> ternary_option;
+%type <ir> ternary_option;
 
-%type <create_table_option> create_table_option
+%type <ir> create_table_option
 
-%type <create_table_options> create_table_options
+%type <ir> create_table_options
 
-%type <space_separated_alter_table_opts> create_table_options_space_separated
+%type <ir> create_table_options_space_separated
 
-%type <on_duplicate> duplicate opt_duplicate
+%type <ir> duplicate opt_duplicate
 
-%type <col_attr> column_attribute
+%type <ir> column_attribute
 
-%type <column_format> column_format
+%type <ir> column_format
 
-%type <storage_media> storage_media
+%type <ir> storage_media
 
-%type <col_attr_list> column_attribute_list opt_column_attribute_list
+%type <ir> column_attribute_list opt_column_attribute_list
 
-%type <virtual_or_stored> opt_stored_attribute
+%type <ir> opt_stored_attribute
 
-%type <field_option> field_option field_opt_list field_options
+%type <ir> field_option field_opt_list field_options
 
-%type <int_type> int_type
+%type <ir> int_type
 
-%type <type> spatial_type type
+%type <ir> spatial_type type
 
-%type <numeric_type> real_type numeric_type
+%type <ir> real_type numeric_type
 
-%type <sp_default> sp_opt_default
+%type <ir> sp_opt_default
 
-%type <field_def> field_def
+%type <ir> field_def
 
-%type <item> check_constraint
+%type <ir> check_constraint
 
-%type <table_constraint_def> opt_references
+%type <ir> opt_references
 
-%type <fk_options> opt_on_update_delete
+%type <ir> opt_on_update_delete
 
-%type <opt_match_clause> opt_match_clause
+%type <ir> opt_match_clause
 
-%type <reference_list> reference_list opt_ref_list
+%type <ir> reference_list opt_ref_list
 
-%type <fk_references> references
+%type <ir> references
 
-%type <column_def> column_def
+%type <ir> column_def
 
-%type <table_element> table_element
+%type <ir> table_element
 
-%type <table_element_list> table_element_list
+%type <ir> table_element_list
 
-%type <create_table_tail> opt_create_table_options_etc
+%type <ir> opt_create_table_options_etc
         opt_create_partitioning_etc opt_duplicate_as_qe
 
-%type <wild_or_where> opt_wild_or_where
+%type <ir> opt_wild_or_where
 
 // used by JSON_TABLE
-%type <jtc_list> columns_clause columns_list
-%type <jt_column> jt_column
-%type <json_on_response> json_on_response on_empty on_error
-%type <json_on_error_or_empty> opt_on_empty_or_error
+%type <ir> columns_clause columns_list
+%type <ir> jt_column
+%type <ir> json_on_response on_empty on_error
+%type <ir> opt_on_empty_or_error
         opt_on_empty_or_error_json_table
-%type <jt_column_type> jt_column_type
+%type <ir> jt_column_type
 
-%type <acl_type> opt_acl_type
-%type <histogram> opt_histogram
+%type <ir> opt_acl_type
+%type <ir> opt_histogram
 
-%type <lex_cstring_list> column_list opt_column_list
+%type <ir> column_list opt_column_list
 
-%type <role_or_privilege> role_or_privilege
+%type <ir> role_or_privilege
 
-%type <role_or_privilege_list> role_or_privilege_list
+%type <ir> role_or_privilege_list
 
-%type <with_validation> with_validation opt_with_validation
-/*%type <ts_access_mode> ts_access_mode*/
+%type <ir> with_validation opt_with_validation
+/*%type <ir> ts_access_mode*/
 
-%type <alter_table_action> alter_list_item alter_table_partition_options
-%type <ts_options> logfile_group_option_list opt_logfile_group_options
+%type <ir> alter_list_item alter_table_partition_options
+%type <ir> logfile_group_option_list opt_logfile_group_options
                    alter_logfile_group_option_list opt_alter_logfile_group_options
                    tablespace_option_list opt_tablespace_options
                    alter_tablespace_option_list opt_alter_tablespace_options
                    opt_drop_ts_options drop_ts_option_list
                    undo_tablespace_option_list opt_undo_tablespace_options
 
-%type <alter_table_standalone_action> standalone_alter_commands
+%type <ir> standalone_alter_commands
 
-%type <algo_and_lock_and_validation>alter_commands_modifier
+%type <ir>alter_commands_modifier
         alter_commands_modifier_list
 
-%type <alter_list> alter_list opt_alter_command_list opt_alter_table_actions
+%type <ir> alter_list opt_alter_command_list opt_alter_table_actions
 
-%type <standalone_alter_table_action> standalone_alter_table_action
+%type <ir> standalone_alter_table_action
 
-%type <assign_to_keycache> assign_to_keycache
+%type <ir> assign_to_keycache
 
-%type <keycache_list> keycache_list
+%type <ir> keycache_list
 
-%type <adm_partition> adm_partition
+%type <ir> adm_partition
 
-%type <preload_keys> preload_keys
+%type <ir> preload_keys
 
-%type <preload_list> preload_list
-%type <ts_option>
+%type <ir> preload_list
+%type <ir>
         alter_logfile_group_option
         alter_tablespace_option
         drop_ts_option
@@ -2148,21 +2149,21 @@ void warn_about_deprecated_binary(THD *thd)
         ts_option_encryption
         ts_option_engine_attribute
 
-%type <explain_format_type> opt_explain_format_type
-%type <explain_format_type> opt_explain_analyze_type
+%type <ir> opt_explain_format_type
+%type <ir> opt_explain_analyze_type
 
-%type <load_set_element> load_data_set_elem
+%type <ir> load_data_set_elem
 
-%type <load_set_list> load_data_set_list opt_load_data_set_spec
+%type <ir> load_data_set_list opt_load_data_set_spec
 
-%type <num> opt_array_cast
-%type <sql_cmd_srs_attributes> srs_attributes
+%type <ir> opt_array_cast
+%type <ir> srs_attributes
 
-%type <insert_update_values_reference> opt_values_reference
+%type <ir> opt_values_reference
 
-%type <alter_tablespace_type> undo_tablespace_state
+%type <ir> undo_tablespace_state
 
-%type <query_id> opt_for_query
+%type <ir> opt_for_query
 
 
 %type <ir> start_entry 
@@ -12503,7 +12504,7 @@ opt_user_option:
 opt_password_option:
 
     /* Empty */ {
-        $$ = new IR(kOptPasswordOption, OP3("", "", ""), tmp1);
+        $$ = new IR(kOptPasswordOption, OP3("", "", ""));
     }
 
     | PASSWORD EQ TEXT_STRING_sys {
@@ -12518,7 +12519,7 @@ opt_password_option:
 opt_default_auth_option:
 
     /* Empty */ {
-       $$ = new IR(kOptDefaultAuthOption, OP3("DEFAULT_AUTH =", "", ""), tmp1);
+       $$ = new IR(kOptDefaultAuthOption, OP3("DEFAULT_AUTH =", "", ""));
     }
 
     | DEFAULT_AUTH_SYM EQ TEXT_STRING_sys {
@@ -12533,7 +12534,7 @@ opt_default_auth_option:
 opt_plugin_dir_option:
 
     /* Empty */ {
-        $$ = new IR(kOptPluginDirOption, OP3("", "", ""), );
+        $$ = new IR(kOptPluginDirOption, OP3("", "", ""));
     }
 
     | PLUGIN_DIR_SYM EQ TEXT_STRING_sys {
@@ -20635,7 +20636,7 @@ use:
 
     USE_SYM ident {
         auto tmp1 = $2;
-        res = new IR(kUse, OP3("USE", "", ""), tmp1);
+        res = new IR(kUseSym, OP3("USE", "", ""), tmp1);
         $$ = res;
     }
 
