@@ -52,9 +52,9 @@ sql_statement:
         $$ = res;
     }
 
-    | simple_statement_or_begin ';' opt_end_of_input {
+    | simple_statement_or_begin {} ';' opt_end_of_input {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kSqlStatement, OP3("", ";", ""), tmp1, tmp2);
         $$ = res;
     }

@@ -818,5 +818,6 @@
   "COLUMNS",
   "INSTANCE_SYM",
   "/* nothing */",
-  "/* Nothing */"
+  "/* Nothing */",
+  "{}"
 ]

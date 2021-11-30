@@ -18,6 +18,7 @@ custom_additional_keywords = {
     "/* Nothing */",
     "/* empty */",
     "/* Empty */",
+    "{}",
     "%prec",
 }
 
@@ -307,7 +308,6 @@ def find_first_alpha_index(data, start_index):
 
 def remove_original_actions(data):
     left_bracket_stack = []
-    right_bracket_stack = []
 
     clean_data = data
     for idx, ch in enumerate(data):
@@ -320,6 +320,14 @@ def remove_original_actions(data):
             clean_data = (
                 clean_data[:left_index] + " " * length + clean_data[right_index:]
             )
+
+            if not left_bracket_stack:
+                # keep the outer most bracket for middle action
+                left_data = clean_data[:left_index]
+                right_data = clean_data[left_index + 2 :]
+                is_middle_action = right_data.strip()[0] not in [";", "|"]
+                if is_middle_action:
+                    clean_data = left_data + "{}" + right_data
 
     # clean_data = re.sub(r"\{.*?\}", "", data, flags=re.S)
     return clean_data.strip()
@@ -969,7 +977,7 @@ def get_keywords_mapping():
         if sym not in mapping:
             mapping[sym] = text
 
-    additional_mapping = {"END_OF_INPUT": ""}
+    additional_mapping = {"END_OF_INPUT": "", "{}": ""}
     mapping.update(additional_mapping)
     with open("assets/keywords_mapping.json", "w") as f:
         json.dump(mapping, f, indent=2, sort_keys=True)
@@ -978,5 +986,5 @@ def get_keywords_mapping():
 if __name__ == "__main__":
     # get_gram_tokens()
     # get_gram_keywords()
-    get_keywords_mapping()
+    # get_keywords_mapping()
     run()

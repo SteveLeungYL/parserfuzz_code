@@ -16,13 +16,14 @@ def render_code(code):
 def _test(data, expect):
     actual = translate(data)
     render_code(actual)
-    # assert expect.strip() == actual.strip()
+    assert expect.strip() == actual.strip()
 
 
 @pytest.mark.parametrize(
     "statement",
     [
         "sql_statement",
+        "part_value_item_list_paren",
     ],
 )
 def test_statement(statement):

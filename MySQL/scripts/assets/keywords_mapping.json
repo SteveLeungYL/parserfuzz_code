@@ -792,5 +792,6 @@
   "YEAR_MONTH_SYM": "YEAR_MONTH",
   "YEAR_SYM": "SQL_TSI_YEAR",
   "ZEROFILL_SYM": "ZEROFILL",
-  "ZONE_SYM": "ZONE"
+  "ZONE_SYM": "ZONE",
+  "{}": ""
 }
