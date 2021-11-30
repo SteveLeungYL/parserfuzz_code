@@ -945,7 +945,8 @@ def get_keywords_mapping():
         text, sym = matched.split(",")
         text = text.strip().strip('"')
         sym = sym.strip()
-        mapping[sym] = text
+        if sym not in mapping:
+            mapping[sym] = text
 
     additional_mapping = {"END_OF_INPUT": ""}
     mapping.update(additional_mapping)
@@ -956,5 +957,5 @@ def get_keywords_mapping():
 if __name__ == "__main__":
     # get_gram_tokens()
     # get_gram_keywords()
-    # get_keywords_mapping()
+    get_keywords_mapping()
     run()
