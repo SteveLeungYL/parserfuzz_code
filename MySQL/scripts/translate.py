@@ -331,7 +331,11 @@ def remove_original_actions(data):
                 # keep the outer most bracket for middle action
                 left_data = clean_data[:left_index]
                 right_data = clean_data[left_index + 2 :]
-                is_middle_action = right_data.strip()[0] not in [";", "|"]
+                right_data = right_data.strip()
+                is_middle_action = right_data[0] not in [
+                    ";",
+                    "|",
+                ] and not right_data.startswith("/*")
                 if is_middle_action:
                     clean_data = left_data + "{}" + right_data
 
