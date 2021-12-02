@@ -2779,12 +2779,7 @@ sql_statement:
         $$ = res;
     }
 
-    | simple_statement_or_begin
-    {
-
-    }
-    ';' opt_end_of_input 
-    {
+    | simple_statement_or_begin {} ';' opt_end_of_input {
         auto tmp1 = $1;
         auto tmp2 = $4;
         res = new IR(kSqlStatement, OP3("", ";", ""), tmp1, tmp2);
@@ -3706,9 +3701,7 @@ prepare_src:
 
 execute:
 
-    EXECUTE_SYM ident 
-    {}
-    execute_using {
+    EXECUTE_SYM ident {} execute_using {
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kExecute, OP3("EXECUTE", "", ""), tmp1, tmp2);
@@ -3767,8 +3760,8 @@ execute_var_ident:
 
 help:
 
-    HELP_SYM ident_or_text {
-        auto tmp1 = $2;
+    HELP_SYM {} ident_or_text {
+        auto tmp1 = $3;
         res = new IR(kHelp, OP3("HELP", "", ""), tmp1);
         $$ = res;
     }
@@ -3795,19 +3788,19 @@ change_replication_source:
 
 change:
 
-    CHANGE change_replication_source TO_SYM source_defs opt_channel {
+    CHANGE change_replication_source TO_SYM {} source_defs opt_channel {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = $5;
         res = new IR(kChange_1, OP3("CHANGE", "TO", ""), tmp1, tmp2);
 
-        auto tmp3 = $5;
+        auto tmp3 = $6;
         res = new IR(kChange, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
-    | CHANGE REPLICATION FILTER_SYM filter_defs opt_channel {
-        auto tmp1 = $4;
-        auto tmp2 = $5;
+    | CHANGE REPLICATION FILTER_SYM {} filter_defs opt_channel {
+        auto tmp1 = $5;
+        auto tmp2 = $6;
         res = new IR(kChange, OP3("CHANGE REPLICATION FILTER", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -4962,7 +4955,7 @@ create:
     CREATE DATABASE opt_if_not_exists ident {} opt_create_database_options {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreate_1, OP3("CREATE SCHEMA", "", ""), tmp1, tmp2);
+        res = new IR(kCreate_1, OP3("CREATE DATABASE", "", ""), tmp1, tmp2);
 
         auto tmp3 = $6;
         res = new IR(kCreate, OP3("", "", ""), res, tmp3);
@@ -4978,7 +4971,7 @@ create:
     | CREATE USER opt_if_not_exists create_user_list default_role_clause require_clause connect_options opt_account_lock_password_expire_options opt_user_attribute {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kCreate_2, OP3("CREATE SYSTEM_USER", "", ""), tmp1, tmp2);
+        res = new IR(kCreate_2, OP3("CREATE USER", "", ""), tmp1, tmp2);
 
         auto tmp3 = $5;
         res = new IR(kCreate_3, OP3("", "", ""), res, tmp3);
@@ -5203,7 +5196,7 @@ server_option:
 
     USER TEXT_STRING_sys {
         auto tmp1 = $2;
-        res = new IR(kServerOption, OP3("SYSTEM_USER", "", ""), tmp1);
+        res = new IR(kServerOption, OP3("USER", "", ""), tmp1);
         $$ = res;
     }
 
@@ -5215,7 +5208,7 @@ server_option:
 
     | DATABASE TEXT_STRING_sys {
         auto tmp1 = $2;
-        res = new IR(kServerOption, OP3("SCHEMA", "", ""), tmp1);
+        res = new IR(kServerOption, OP3("DATABASE", "", ""), tmp1);
         $$ = res;
     }
 
@@ -5403,8 +5396,8 @@ opt_ev_comment:
 
 ev_sql_stmt:
 
-    {} ev_sql_stmt_inner {
-        auto tmp1 = $2;
+    ev_sql_stmt_inner {
+        auto tmp1 = $1;
         res = new IR(kEvSqlStmt, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -6200,7 +6193,7 @@ get_diagnostics:
 
 which_area:
 
-    /* Empty */ {
+    /* If <which area> is not specified, then CURRENT is implicit. */ {
         res = new IR(kWhichArea, OP3("", "", ""));
         $$ = res;
     }
@@ -6530,11 +6523,9 @@ sp_proc_stmt:
 ;
 
 
-
 sp_proc_stmt_if:
 
-    IF {}
-    sp_if END IF {
+    IF {} sp_if END IF {
         auto tmp1 = $3;
         res = new IR(kSpProcStmtIf, OP3("IF", "END IF", ""), tmp1);
         $$ = res;
@@ -6557,8 +6548,7 @@ sp_proc_stmt_statement:
 
 sp_proc_stmt_return:
 
-    RETURN_SYM {}
-    expr {
+    RETURN_SYM {} expr {
         auto tmp1 = $3;
         res = new IR(kSpProcStmtReturn, OP3("RETURN", "", ""), tmp1);
         $$ = res;
@@ -6613,12 +6603,12 @@ sp_proc_stmt_open:
 
 sp_proc_stmt_fetch:
 
-    FETCH_SYM sp_opt_fetch_noise ident INTO sp_fetch_list {
+    FETCH_SYM sp_opt_fetch_noise ident INTO {} sp_fetch_list {
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kSpProcStmtFetch_1, OP3("FETCH", "", "INTO"), tmp1, tmp2);
 
-        auto tmp3 = $5;
+        auto tmp3 = $6;
         res = new IR(kSpProcStmtFetch, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -6676,10 +6666,8 @@ sp_fetch_list:
 
 
 sp_if:
-    {}
-    expr {} 
-    THEN_SYM sp_proc_stmts1 {} 
-    sp_elseifs {
+
+    {} expr {} THEN_SYM sp_proc_stmts1 {} sp_elseifs {
         auto tmp1 = $2;
         auto tmp2 = $5;
         res = new IR(kSpIf_1, OP3("", "THEN", ""), tmp1, tmp2);
@@ -6733,12 +6721,12 @@ case_stmt_specification:
 
 simple_case_stmt:
 
-    CASE_SYM expr simple_when_clause_list else_clause_opt END CASE_SYM {
-        auto tmp1 = $2;
-        auto tmp2 = $3;
+    CASE_SYM {} expr {} simple_when_clause_list else_clause_opt END CASE_SYM {
+        auto tmp1 = $3;
+        auto tmp2 = $5;
         res = new IR(kSimpleCaseStmt_1, OP3("CASE", "", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $6;
         res = new IR(kSimpleCaseStmt, OP3("", "", "END CASE"), res, tmp3);
         $$ = res;
     }
@@ -6748,9 +6736,9 @@ simple_case_stmt:
 
 searched_case_stmt:
 
-    CASE_SYM searched_when_clause_list else_clause_opt END CASE_SYM {
-        auto tmp1 = $2;
-        auto tmp2 = $3;
+    CASE_SYM {} searched_when_clause_list else_clause_opt END CASE_SYM {
+        auto tmp1 = $3;
+        auto tmp2 = $4;
         res = new IR(kSearchedCaseStmt, OP3("CASE", "", "END CASE"), tmp1, tmp2);
         $$ = res;
     }
@@ -6796,9 +6784,9 @@ searched_when_clause_list:
 
 simple_when_clause:
 
-    WHEN_SYM expr THEN_SYM sp_proc_stmts1 {
-        auto tmp1 = $2;
-        auto tmp2 = $4;
+    WHEN_SYM {} expr {} THEN_SYM sp_proc_stmts1 {
+        auto tmp1 = $3;
+        auto tmp2 = $6;
         res = new IR(kSimpleWhenClause, OP3("WHEN", "THEN", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -6808,9 +6796,9 @@ simple_when_clause:
 
 searched_when_clause:
 
-    WHEN_SYM expr THEN_SYM sp_proc_stmts1 {
-        auto tmp1 = $2;
-        auto tmp2 = $4;
+    WHEN_SYM {} expr {} THEN_SYM sp_proc_stmts1 {
+        auto tmp1 = $3;
+        auto tmp2 = $6;
         res = new IR(kSearchedWhenClause, OP3("WHEN", "THEN", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -6836,12 +6824,12 @@ else_clause_opt:
 
 sp_labeled_control:
 
-    label_ident ':' sp_unlabeled_control sp_opt_label {
+    label_ident ':' {} sp_unlabeled_control sp_opt_label {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kSpLabeledControl_1, OP3("", ":", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $5;
         res = new IR(kSpLabeledControl, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -6867,12 +6855,12 @@ sp_opt_label:
 
 sp_labeled_block:
 
-    label_ident ':' sp_block_content sp_opt_label {
+    label_ident ':' {} sp_block_content sp_opt_label {
         auto tmp1 = $1;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kSpLabeledBlock_1, OP3("", ":", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $5;
         res = new IR(kSpLabeledBlock, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -6893,9 +6881,9 @@ sp_unlabeled_block:
 
 sp_block_content:
 
-    BEGIN_SYM sp_decls sp_proc_stmts END {
-        auto tmp1 = $2;
-        auto tmp2 = $3;
+    BEGIN_SYM {} sp_decls sp_proc_stmts END {
+        auto tmp1 = $3;
+        auto tmp2 = $4;
         res = new IR(kSpBlockContent, OP3("BEGIN", "", "END"), tmp1, tmp2);
         $$ = res;
     }
@@ -6911,16 +6899,16 @@ sp_unlabeled_control:
         $$ = res;
     }
 
-    | WHILE_SYM expr DO_SYM sp_proc_stmts1 END WHILE_SYM {
-        auto tmp1 = $2;
-        auto tmp2 = $4;
+    | WHILE_SYM {} expr {} DO_SYM sp_proc_stmts1 END WHILE_SYM {
+        auto tmp1 = $3;
+        auto tmp2 = $6;
         res = new IR(kSpUnlabeledControl, OP3("WHILE", "DO", "END WHILE"), tmp1, tmp2);
         $$ = res;
     }
 
-    | REPEAT_SYM sp_proc_stmts1 UNTIL_SYM expr END REPEAT_SYM {
+    | REPEAT_SYM sp_proc_stmts1 UNTIL_SYM {} expr {} END REPEAT_SYM {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = $5;
         res = new IR(kSpUnlabeledControl, OP3("REPEAT", "UNTIL", "END REPEAT"), tmp1, tmp2);
         $$ = res;
     }
@@ -7773,7 +7761,7 @@ part_type_def:
 
     | RANGE_SYM COLUMNS '(' name_list ')' {
         auto tmp1 = $4;
-        res = new IR(kPartTypeDef, OP3("RANGE FIELDS (", ")", ""), tmp1);
+        res = new IR(kPartTypeDef, OP3("RANGE COLUMNS (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -7785,7 +7773,7 @@ part_type_def:
 
     | LIST_SYM COLUMNS '(' name_list ')' {
         auto tmp1 = $4;
-        res = new IR(kPartTypeDef, OP3("LIST FIELDS (", ")", ""), tmp1);
+        res = new IR(kPartTypeDef, OP3("LIST COLUMNS (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -8050,11 +8038,8 @@ part_value_list:
 
 
 part_value_item_list_paren:
-    '(' 
-    {
 
-    }
-    part_value_item_list ')' {
+    '(' {} part_value_item_list ')' {
         auto tmp1 = $3;
         res = new IR(kPartValueItemListParen, OP3("(", ")", ""), tmp1);
         $$ = res;
@@ -8780,12 +8765,12 @@ udf_type:
     }
 
     | DECIMAL_SYM {
-        res = new IR(kUdfType, OP3("DECIMAL", "", ""));
+        res = new IR(kUdfType, OP3("DEC", "", ""));
         $$ = res;
     }
 
     | INT_SYM {
-        res = new IR(kUdfType, OP3("INTEGER", "", ""));
+        res = new IR(kUdfType, OP3("INT", "", ""));
         $$ = res;
     }
 
@@ -9132,13 +9117,13 @@ type:
     | CHAR_SYM field_length opt_charset_with_opt_binary {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kType, OP3("CHARACTER", "", ""), tmp1, tmp2);
+        res = new IR(kType, OP3("CHAR", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | CHAR_SYM opt_charset_with_opt_binary {
         auto tmp1 = $2;
-        res = new IR(kType, OP3("CHARACTER", "", ""), tmp1);
+        res = new IR(kType, OP3("CHAR", "", ""), tmp1);
         $$ = res;
     }
 
@@ -9199,7 +9184,7 @@ type:
     | YEAR_SYM opt_field_length field_options {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kType, OP3("YEAR", "", ""), tmp1, tmp2);
+        res = new IR(kType, OP3("SQL_TSI_YEAR", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -9331,7 +9316,7 @@ spatial_type:
     }
 
     | GEOMETRYCOLLECTION_SYM {
-        res = new IR(kSpatialType, OP3("GEOMETRYCOLLECTION", "", ""));
+        res = new IR(kSpatialType, OP3("GEOMCOLLECTION", "", ""));
         $$ = res;
     }
 
@@ -9376,7 +9361,7 @@ nchar:
     }
 
     | NATIONAL_SYM CHAR_SYM {
-        res = new IR(kNchar, OP3("NATIONAL CHARACTER", "", ""));
+        res = new IR(kNchar, OP3("NATIONAL CHAR", "", ""));
         $$ = res;
     }
 
@@ -9386,12 +9371,12 @@ nchar:
 varchar:
 
     CHAR_SYM VARYING {
-        res = new IR(kVarchar, OP3("CHARACTER VARYING", "", ""));
+        res = new IR(kVarchar, OP3("CHAR VARYING", "", ""));
         $$ = res;
     }
 
     | VARCHAR_SYM {
-        res = new IR(kVarchar, OP3("VARCHARACTER", "", ""));
+        res = new IR(kVarchar, OP3("VARCHAR", "", ""));
         $$ = res;
     }
 
@@ -9401,7 +9386,7 @@ varchar:
 nvarchar:
 
     NATIONAL_SYM VARCHAR_SYM {
-        res = new IR(kNvarchar, OP3("NATIONAL VARCHARACTER", "", ""));
+        res = new IR(kNvarchar, OP3("NATIONAL VARCHAR", "", ""));
         $$ = res;
     }
 
@@ -9411,12 +9396,12 @@ nvarchar:
     }
 
     | NCHAR_SYM VARCHAR_SYM {
-        res = new IR(kNvarchar, OP3("NCHAR VARCHARACTER", "", ""));
+        res = new IR(kNvarchar, OP3("NCHAR VARCHAR", "", ""));
         $$ = res;
     }
 
     | NATIONAL_SYM CHAR_SYM VARYING {
-        res = new IR(kNvarchar, OP3("NATIONAL CHARACTER VARYING", "", ""));
+        res = new IR(kNvarchar, OP3("NATIONAL CHAR VARYING", "", ""));
         $$ = res;
     }
 
@@ -9431,27 +9416,27 @@ nvarchar:
 int_type:
 
     INT_SYM {
-        res = new IR(kIntType, OP3("INTEGER", "", ""));
+        res = new IR(kIntType, OP3("INT", "", ""));
         $$ = res;
     }
 
     | TINYINT_SYM {
-        res = new IR(kIntType, OP3("TINYINT", "", ""));
+        res = new IR(kIntType, OP3("INT1", "", ""));
         $$ = res;
     }
 
     | SMALLINT_SYM {
-        res = new IR(kIntType, OP3("SMALLINT", "", ""));
+        res = new IR(kIntType, OP3("INT2", "", ""));
         $$ = res;
     }
 
     | MEDIUMINT_SYM {
-        res = new IR(kIntType, OP3("MIDDLEINT", "", ""));
+        res = new IR(kIntType, OP3("INT3", "", ""));
         $$ = res;
     }
 
     | BIGINT_SYM {
-        res = new IR(kIntType, OP3("INT8", "", ""));
+        res = new IR(kIntType, OP3("BIGINT", "", ""));
         $$ = res;
     }
 
@@ -9467,7 +9452,7 @@ real_type:
 
     | DOUBLE_SYM opt_PRECISION {
         auto tmp1 = $2;
-        res = new IR(kRealType, OP3("FLOAT8", "", ""), tmp1);
+        res = new IR(kRealType, OP3("DOUBLE", "", ""), tmp1);
         $$ = res;
     }
 
@@ -9492,12 +9477,12 @@ opt_PRECISION:
 numeric_type:
 
     FLOAT_SYM {
-        res = new IR(kNumericType, OP3("FLOAT4", "", ""));
+        res = new IR(kNumericType, OP3("FLOAT", "", ""));
         $$ = res;
     }
 
     | DECIMAL_SYM {
-        res = new IR(kNumericType, OP3("DECIMAL", "", ""));
+        res = new IR(kNumericType, OP3("DEC", "", ""));
         $$ = res;
     }
 
@@ -9916,7 +9901,7 @@ now:
 
     NOW_SYM func_datetime_precision {
         auto tmp1 = $2;
-        res = new IR(kNow, OP3("NOW", "", ""), tmp1);
+        res = new IR(kNow, OP3("CURRENT_TIMESTAMP", "", ""), tmp1);
         $$ = res;
     }
 
@@ -9943,7 +9928,7 @@ now_or_signed_literal:
 character_set:
 
     CHAR_SYM SET_SYM {
-        res = new IR(kCharacterSet, OP3("CHARACTER SET", "", ""));
+        res = new IR(kCharacterSet, OP3("CHAR SET", "", ""));
         $$ = res;
     }
 
@@ -10174,7 +10159,7 @@ opt_bin_mod:
 
 ws_num_codepoints:
 
-    '(' real_ulong_num ')' {
+    '(' real_ulong_num {} ')' {
         auto tmp1 = $2;
         res = new IR(kWsNumCodepoints, OP3("(", ")", ""), tmp1);
         $$ = res;
@@ -10867,10 +10852,10 @@ alter_table_stmt:
 
 alter_database_stmt:
 
-    ALTER DATABASE ident_or_empty alter_database_options {
+    ALTER DATABASE ident_or_empty {} alter_database_options {
         auto tmp1 = $3;
-        auto tmp2 = $4;
-        res = new IR(kAlterDatabaseStmt, OP3("ALTER SCHEMA", "", ""), tmp1, tmp2);
+        auto tmp2 = $5;
+        res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -10879,9 +10864,9 @@ alter_database_stmt:
 
 alter_procedure_stmt:
 
-    ALTER PROCEDURE_SYM sp_name sp_a_chistics {
+    ALTER PROCEDURE_SYM sp_name {} sp_a_chistics {
         auto tmp1 = $3;
-        auto tmp2 = $4;
+        auto tmp2 = $5;
         res = new IR(kAlterProcedureStmt, OP3("ALTER PROCEDURE", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -10891,9 +10876,9 @@ alter_procedure_stmt:
 
 alter_function_stmt:
 
-    ALTER FUNCTION_SYM sp_name sp_a_chistics {
+    ALTER FUNCTION_SYM sp_name {} sp_a_chistics {
         auto tmp1 = $3;
-        auto tmp2 = $4;
+        auto tmp2 = $5;
         res = new IR(kAlterFunctionStmt, OP3("ALTER FUNCTION", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -10903,19 +10888,19 @@ alter_function_stmt:
 
 alter_view_stmt:
 
-    ALTER view_algorithm definer_opt view_tail {
+    ALTER view_algorithm definer_opt {} view_tail {
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kAlterViewStmt_1, OP3("ALTER", "", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $5;
         res = new IR(kAlterViewStmt, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
 
-    | ALTER definer_opt view_tail {
+    | ALTER definer_opt {} view_tail {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kAlterViewStmt, OP3("ALTER", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -10925,24 +10910,24 @@ alter_view_stmt:
 
 alter_event_stmt:
 
-    ALTER definer_opt EVENT_SYM sp_name ev_alter_on_schedule_completion opt_ev_rename_to opt_ev_status opt_ev_comment opt_ev_sql_stmt {
+    ALTER definer_opt EVENT_SYM sp_name {} ev_alter_on_schedule_completion opt_ev_rename_to opt_ev_status opt_ev_comment opt_ev_sql_stmt {
         auto tmp1 = $2;
         auto tmp2 = $4;
         res = new IR(kAlterEventStmt_1, OP3("ALTER", "EVENT", ""), tmp1, tmp2);
 
-        auto tmp3 = $5;
+        auto tmp3 = $6;
         res = new IR(kAlterEventStmt_2, OP3("", "", ""), res, tmp3);
 
-        auto tmp4 = $6;
+        auto tmp4 = $7;
         res = new IR(kAlterEventStmt_3, OP3("", "", ""), res, tmp4);
 
-        auto tmp5 = $7;
+        auto tmp5 = $8;
         res = new IR(kAlterEventStmt_4, OP3("", "", ""), res, tmp5);
 
-        auto tmp6 = $8;
+        auto tmp6 = $9;
         res = new IR(kAlterEventStmt_5, OP3("", "", ""), res, tmp6);
 
-        auto tmp7 = $9;
+        auto tmp7 = $10;
         res = new IR(kAlterEventStmt, OP3("", "", ""), res, tmp7);
         $$ = res;
     }
@@ -11179,7 +11164,7 @@ alter_user_command:
 
     ALTER USER if_exists {
         auto tmp1 = $3;
-        res = new IR(kAlterUserCommand, OP3("ALTER SYSTEM_USER", "", ""), tmp1);
+        res = new IR(kAlterUserCommand, OP3("ALTER USER", "", ""), tmp1);
         $$ = res;
     }
 
@@ -11260,7 +11245,7 @@ opt_account_lock_password_expire_option:
 
     | PASSWORD EXPIRE_SYM INTERVAL_SYM real_ulong_num DAY_SYM {
         auto tmp1 = $4;
-        res = new IR(kOptAccountLockPasswordExpireOption, OP3("PASSWORD EXPIRE INTERVAL", "SQL_TSI_DAY", ""), tmp1);
+        res = new IR(kOptAccountLockPasswordExpireOption, OP3("PASSWORD EXPIRE INTERVAL", "DAY", ""), tmp1);
         $$ = res;
     }
 
@@ -11287,7 +11272,7 @@ opt_account_lock_password_expire_option:
 
     | PASSWORD REUSE_SYM INTERVAL_SYM real_ulong_num DAY_SYM {
         auto tmp1 = $4;
-        res = new IR(kOptAccountLockPasswordExpireOption, OP3("PASSWORD REUSE INTERVAL", "SQL_TSI_DAY", ""), tmp1);
+        res = new IR(kOptAccountLockPasswordExpireOption, OP3("PASSWORD REUSE INTERVAL", "DAY", ""), tmp1);
         $$ = res;
     }
 
@@ -11397,7 +11382,7 @@ connect_option:
 user_func:
 
     USER '(' ')' {
-        res = new IR(kUserFunc, OP3("SYSTEM_USER ( )", "", ""));
+        res = new IR(kUserFunc, OP3("USER ( )", "", ""));
         $$ = res;
     }
 
@@ -12331,7 +12316,7 @@ group_replication_user:
 
     USER EQ TEXT_STRING_sys_nonewline {
         auto tmp1 = $3;
-        res = new IR(kGroupReplicationUser, OP3("SYSTEM_USER =", "", ""), tmp1);
+        res = new IR(kGroupReplicationUser, OP3("USER =", "", ""), tmp1);
         $$ = res;
     }
 
@@ -12392,27 +12377,27 @@ stop_replica_stmt:
 
 start_replica_stmt:
 
-    START_SYM replica opt_replica_thread_option_list opt_replica_until opt_user_option opt_password_option opt_default_auth_option opt_plugin_dir_option opt_channel {
+    START_SYM replica opt_replica_thread_option_list {} opt_replica_until opt_user_option opt_password_option opt_default_auth_option opt_plugin_dir_option {} opt_channel {
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kStartReplicaStmt_1, OP3("START", "", ""), tmp1, tmp2);
 
-        auto tmp3 = $4;
+        auto tmp3 = $5;
         res = new IR(kStartReplicaStmt_2, OP3("", "", ""), res, tmp3);
 
-        auto tmp4 = $5;
+        auto tmp4 = $6;
         res = new IR(kStartReplicaStmt_3, OP3("", "", ""), res, tmp4);
 
-        auto tmp5 = $6;
+        auto tmp5 = $7;
         res = new IR(kStartReplicaStmt_4, OP3("", "", ""), res, tmp5);
 
-        auto tmp6 = $7;
+        auto tmp6 = $8;
         res = new IR(kStartReplicaStmt_5, OP3("", "", ""), res, tmp6);
 
-        auto tmp7 = $8;
+        auto tmp7 = $9;
         res = new IR(kStartReplicaStmt_6, OP3("", "", ""), res, tmp7);
 
-        auto tmp8 = $9;
+        auto tmp8 = $11;
         res = new IR(kStartReplicaStmt, OP3("", "", ""), res, tmp8);
         $$ = res;
     }
@@ -12486,15 +12471,14 @@ start_transaction_option:
 
 
 opt_user_option:
-
-    /* Empty */ {
+    {
         res = new IR(kOptUserOption, OP3("", "", ""));
         $$ = res;
     }
 
     | USER EQ TEXT_STRING_sys {
         auto tmp1 = $3;
-        res = new IR(kOptUserOption, OP3("SYSTEM_USER =", "", ""), tmp1);
+        res = new IR(kOptUserOption, OP3("USER =", "", ""), tmp1);
         $$ = res;
     }
 
@@ -12503,8 +12487,9 @@ opt_user_option:
 
 opt_password_option:
 
-    /* Empty */ {
-        $$ = new IR(kOptPasswordOption, OP3("", "", ""));
+    {
+        res = new IR(kOptPasswordOption, OP3("", "", ""));
+        $$ = res;
     }
 
     | PASSWORD EQ TEXT_STRING_sys {
@@ -12518,8 +12503,9 @@ opt_password_option:
 
 opt_default_auth_option:
 
-    /* Empty */ {
-       $$ = new IR(kOptDefaultAuthOption, OP3("DEFAULT_AUTH =", "", ""));
+    {
+        res = new IR(kOptDefaultAuthOption, OP3("", "", ""));
+        $$ = res;
     }
 
     | DEFAULT_AUTH_SYM EQ TEXT_STRING_sys {
@@ -12532,9 +12518,9 @@ opt_default_auth_option:
 
 
 opt_plugin_dir_option:
-
-    /* Empty */ {
-        $$ = new IR(kOptPluginDirOption, OP3("", "", ""));
+    {
+        res = new IR(kOptPluginDirOption, OP3("", "", ""));
+        $$ = res;
     }
 
     | PLUGIN_DIR_SYM EQ TEXT_STRING_sys {
@@ -12588,7 +12574,7 @@ replica_thread_option:
     }
 
     | RELAY_THREAD {
-        res = new IR(kReplicaThreadOption, OP3("RELAY_THREAD", "", ""));
+        res = new IR(kReplicaThreadOption, OP3("IO_THREAD", "", ""));
         $$ = res;
     }
 
@@ -12941,16 +12927,16 @@ opt_no_write_to_binlog:
 
 rename:
 
-    RENAME table_or_tables table_to_table_list {
+    RENAME table_or_tables {} table_to_table_list {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kRename, OP3("RENAME", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | RENAME USER rename_list {
         auto tmp1 = $3;
-        res = new IR(kRename, OP3("RENAME SYSTEM_USER", "", ""), tmp1);
+        res = new IR(kRename, OP3("RENAME USER", "", ""), tmp1);
         $$ = res;
     }
 
@@ -14142,14 +14128,14 @@ predicate:
     | bit_expr REGEXP bit_expr {
         auto tmp1 = $1;
         auto tmp2 = $3;
-        res = new IR(kPredicate, OP3("", "RLIKE", ""), tmp1, tmp2);
+        res = new IR(kPredicate, OP3("", "REGEXP", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | bit_expr not REGEXP bit_expr {
         auto tmp1 = $1;
         auto tmp2 = $2;
-        res = new IR(kPredicate_14, OP3("", "", "RLIKE"), tmp1, tmp2);
+        res = new IR(kPredicate_14, OP3("", "", "REGEXP"), tmp1, tmp2);
 
         auto tmp3 = $4;
         res = new IR(kPredicate, OP3("", "", ""), res, tmp3);
@@ -14387,7 +14373,7 @@ comp_op:
     }
 
     | NE {
-        res = new IR(kCompOp, OP3("!=", "", ""));
+        res = new IR(kCompOp, OP3("<>", "", ""));
         $$ = res;
     }
 
@@ -14402,7 +14388,7 @@ all_or_any:
     }
 
     | ANY_SYM {
-        res = new IR(kAllOrAny, OP3("SOME", "", ""));
+        res = new IR(kAllOrAny, OP3("ANY", "", ""));
         $$ = res;
     }
 
@@ -14542,8 +14528,10 @@ simple_expr:
         $$ = res;
     }
 
-    | ' ' {
-        res = new IR(kSimpleExpr, OP3(" ", "", ""));
+    | '{' ident expr '}' {
+        auto tmp1 = $2;
+        auto tmp2 = $3;
+        res = new IR(kSimpleExpr, OP3("{", "", "}"), tmp1, tmp2);
         $$ = res;
     }
 
@@ -14684,14 +14672,14 @@ function_call_keyword:
 
     CHAR_SYM '(' expr_list ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("CHARACTER (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("CHAR (", ")", ""), tmp1);
         $$ = res;
     }
 
     | CHAR_SYM '(' expr_list USING charset_name ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallKeyword, OP3("CHARACTER (", "USING", ")"), tmp1, tmp2);
+        res = new IR(kFunctionCallKeyword, OP3("CHAR (", "USING", ")"), tmp1, tmp2);
         $$ = res;
     }
 
@@ -14709,13 +14697,13 @@ function_call_keyword:
 
     | DAY_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_DAY (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("DAY (", ")", ""), tmp1);
         $$ = res;
     }
 
     | HOUR_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_HOUR (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("HOUR (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -14771,13 +14759,13 @@ function_call_keyword:
 
     | MINUTE_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_MINUTE (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("MINUTE (", ")", ""), tmp1);
         $$ = res;
     }
 
     | MONTH_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_MONTH (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("MONTH (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -14790,7 +14778,7 @@ function_call_keyword:
 
     | SECOND_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_SECOND (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("SECOND (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -14866,13 +14854,13 @@ function_call_keyword:
     }
 
     | USER '(' ')' {
-        res = new IR(kFunctionCallKeyword, OP3("SYSTEM_USER ( )", "", ""));
+        res = new IR(kFunctionCallKeyword, OP3("USER ( )", "", ""));
         $$ = res;
     }
 
     | YEAR_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("YEAR (", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_YEAR (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -14912,13 +14900,13 @@ function_call_nonkeyword:
 
     | CURDATE optional_braces {
         auto tmp1 = $2;
-        res = new IR(kFunctionCallNonkeyword, OP3("CURDATE", "", ""), tmp1);
+        res = new IR(kFunctionCallNonkeyword, OP3("CURRENT_DATE", "", ""), tmp1);
         $$ = res;
     }
 
     | CURTIME func_datetime_precision {
         auto tmp1 = $2;
-        res = new IR(kFunctionCallNonkeyword, OP3("CURTIME", "", ""), tmp1);
+        res = new IR(kFunctionCallNonkeyword, OP3("CURRENT_TIME", "", ""), tmp1);
         $$ = res;
     }
 
@@ -14989,7 +14977,7 @@ function_call_nonkeyword:
     | SUBSTRING '(' expr ',' expr ',' expr ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallNonkeyword_5, OP3("SUBSTRING (", ",", ","), tmp1, tmp2);
+        res = new IR(kFunctionCallNonkeyword_5, OP3("MID (", ",", ","), tmp1, tmp2);
 
         auto tmp3 = $7;
         res = new IR(kFunctionCallNonkeyword, OP3("", "", ")"), res, tmp3);
@@ -14999,14 +14987,14 @@ function_call_nonkeyword:
     | SUBSTRING '(' expr ',' expr ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallNonkeyword, OP3("SUBSTRING (", ",", ")"), tmp1, tmp2);
+        res = new IR(kFunctionCallNonkeyword, OP3("MID (", ",", ")"), tmp1, tmp2);
         $$ = res;
     }
 
     | SUBSTRING '(' expr FROM expr FOR_SYM expr ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallNonkeyword_6, OP3("SUBSTRING (", "FROM", "FOR"), tmp1, tmp2);
+        res = new IR(kFunctionCallNonkeyword_6, OP3("MID (", "FROM", "FOR"), tmp1, tmp2);
 
         auto tmp3 = $7;
         res = new IR(kFunctionCallNonkeyword, OP3("", "", ")"), res, tmp3);
@@ -15016,7 +15004,7 @@ function_call_nonkeyword:
     | SUBSTRING '(' expr FROM expr ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallNonkeyword, OP3("SUBSTRING (", "FROM", ")"), tmp1, tmp2);
+        res = new IR(kFunctionCallNonkeyword, OP3("MID (", "FROM", ")"), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15120,7 +15108,7 @@ function_call_conflict:
     }
 
     | DATABASE '(' ')' {
-        res = new IR(kFunctionCallConflict, OP3("SCHEMA ( )", "", ""));
+        res = new IR(kFunctionCallConflict, OP3("DATABASE ( )", "", ""));
         $$ = res;
     }
 
@@ -15166,7 +15154,7 @@ function_call_conflict:
 
     | QUARTER_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallConflict, OP3("SQL_TSI_QUARTER (", ")", ""), tmp1);
+        res = new IR(kFunctionCallConflict, OP3("QUARTER (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -15207,14 +15195,14 @@ function_call_conflict:
 
     | WEEK_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallConflict, OP3("WEEK (", ")", ""), tmp1);
+        res = new IR(kFunctionCallConflict, OP3("SQL_TSI_WEEK (", ")", ""), tmp1);
         $$ = res;
     }
 
     | WEEK_SYM '(' expr ',' expr ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallConflict, OP3("WEEK (", ",", ")"), tmp1, tmp2);
+        res = new IR(kFunctionCallConflict, OP3("SQL_TSI_WEEK (", ",", ")"), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15227,7 +15215,7 @@ function_call_conflict:
     | WEIGHT_STRING_SYM '(' expr AS CHAR_SYM ws_num_codepoints ')' {
         auto tmp1 = $3;
         auto tmp2 = $6;
-        res = new IR(kFunctionCallConflict, OP3("WEIGHT_STRING (", "AS CHARACTER", ")"), tmp1, tmp2);
+        res = new IR(kFunctionCallConflict, OP3("WEIGHT_STRING (", "AS CHAR", ")"), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15264,7 +15252,7 @@ geometry_function:
 
     GEOMETRYCOLLECTION_SYM '(' opt_expr_list ')' {
         auto tmp1 = $3;
-        res = new IR(kGeometryFunction, OP3("GEOMETRYCOLLECTION (", ")", ""), tmp1);
+        res = new IR(kGeometryFunction, OP3("GEOMCOLLECTION (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -15461,7 +15449,7 @@ sum_expr:
     | AVG_SYM '(' DISTINCT in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kSumExpr, OP3("AVG ( DISTINCTROW", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("AVG ( DISTINCT", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15506,7 +15494,7 @@ sum_expr:
     | ST_COLLECT_SYM '(' DISTINCT in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kSumExpr, OP3("ST_COLLECT ( DISTINCTROW", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("ST_COLLECT ( DISTINCT", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15534,21 +15522,21 @@ sum_expr:
     | COUNT_SYM '(' DISTINCT expr_list ')' opt_windowing_clause {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kSumExpr, OP3("COUNT ( DISTINCTROW", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("COUNT ( DISTINCT", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
-    | MIN_SYM '(' in_sum_expr ')' opt_windowing_clause  {
+    | MIN_SYM '(' in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kSumExpr, OP3("MIN (", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | MIN_SYM '(' DISTINCT in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kSumExpr, OP3("MIN ( DISTINCTROW", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("MIN ( DISTINCT", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15562,21 +15550,21 @@ sum_expr:
     | MAX_SYM '(' DISTINCT in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kSumExpr, OP3("MAX ( DISTINCTROW", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("MAX ( DISTINCT", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | STD_SYM '(' in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kSumExpr, OP3("STDDEV_POP (", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("STD (", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
     | VARIANCE_SYM '(' in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kSumExpr, OP3("VAR_POP (", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("VARIANCE (", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15604,7 +15592,7 @@ sum_expr:
     | SUM_SYM '(' DISTINCT in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $4;
         auto tmp2 = $6;
-        res = new IR(kSumExpr, OP3("SUM ( DISTINCTROW", ")", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("SUM ( DISTINCT", ")", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -15630,8 +15618,8 @@ sum_expr:
 window_func_call:
 
     ROW_NUMBER_SYM '(' ')' windowing_clause {
-        auto tmp4 = $4;
-        res = new IR(kWindowFuncCall, OP3("ROW_NUMBER ( )", "", ""), tmp4);
+        auto tmp1 = $4;
+        res = new IR(kWindowFuncCall, OP3("ROW_NUMBER ( )", "", ""), tmp1);
         $$ = res;
     }
 
@@ -15983,7 +15971,7 @@ opt_window_order_by_clause:
 
 opt_window_frame_clause:
 
-    /* EMPTY */ {
+    /* Nothing*/ {
         res = new IR(kOptWindowFrameClause, OP3("", "", ""));
         $$ = res;
     }
@@ -16207,7 +16195,7 @@ opt_distinct:
     }
 
     | DISTINCT {
-        res = new IR(kOptDistinct, OP3("DISTINCTROW", "", ""));
+        res = new IR(kOptDistinct, OP3("DISTINCT", "", ""));
         $$ = res;
     }
 
@@ -16287,7 +16275,7 @@ cast_type:
     | CHAR_SYM opt_field_length opt_charset_with_opt_binary {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kCastType, OP3("CHARACTER", "", ""), tmp1, tmp2);
+        res = new IR(kCastType, OP3("CHAR", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -16304,7 +16292,7 @@ cast_type:
     }
 
     | SIGNED_SYM INT_SYM {
-        res = new IR(kCastType, OP3("SIGNED INTEGER", "", ""));
+        res = new IR(kCastType, OP3("SIGNED INT", "", ""));
         $$ = res;
     }
 
@@ -16314,7 +16302,7 @@ cast_type:
     }
 
     | UNSIGNED_SYM INT_SYM {
-        res = new IR(kCastType, OP3("UNSIGNED INTEGER", "", ""));
+        res = new IR(kCastType, OP3("UNSIGNED INT", "", ""));
         $$ = res;
     }
 
@@ -16324,7 +16312,7 @@ cast_type:
     }
 
     | YEAR_SYM {
-        res = new IR(kCastType, OP3("YEAR", "", ""));
+        res = new IR(kCastType, OP3("SQL_TSI_YEAR", "", ""));
         $$ = res;
     }
 
@@ -16342,7 +16330,7 @@ cast_type:
 
     | DECIMAL_SYM float_options {
         auto tmp1 = $2;
-        res = new IR(kCastType, OP3("DECIMAL", "", ""), tmp1);
+        res = new IR(kCastType, OP3("DEC", "", ""), tmp1);
         $$ = res;
     }
 
@@ -16359,7 +16347,7 @@ cast_type:
 
     | FLOAT_SYM standard_float_options {
         auto tmp1 = $2;
-        res = new IR(kCastType, OP3("FLOAT4", "", ""), tmp1);
+        res = new IR(kCastType, OP3("FLOAT", "", ""), tmp1);
         $$ = res;
     }
 
@@ -16394,7 +16382,7 @@ cast_type:
     }
 
     | GEOMETRYCOLLECTION_SYM {
-        res = new IR(kCastType, OP3("GEOMETRYCOLLECTION", "", ""));
+        res = new IR(kCastType, OP3("GEOMCOLLECTION", "", ""));
         $$ = res;
     }
 
@@ -16540,7 +16528,7 @@ table_reference:
 
     | '{' OJ_SYM esc_table_reference '}' {
         auto tmp1 = $3;
-        res = new IR(kTableReference, OP3("{ OJ", "", ""), tmp1);
+        res = new IR(kTableReference, OP3("{ OJ", "", "}"), tmp1);
         $$ = res;
     }
 
@@ -17024,7 +17012,7 @@ columns_clause:
 
     COLUMNS '(' columns_list ')' {
         auto tmp1 = $3;
-        res = new IR(kColumnsClause, OP3("FIELDS (", ")", ""), tmp1);
+        res = new IR(kColumnsClause, OP3("COLUMNS (", ")", ""), tmp1);
         $$ = res;
     }
 
@@ -17088,7 +17076,7 @@ jt_column:
 
 jt_column_type:
 
-    /* Empty */ {
+    {
         res = new IR(kJtColumnType, OP3("", "", ""));
         $$ = res;
     }
@@ -17454,37 +17442,37 @@ interval:
 interval_time_stamp:
 
     DAY_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_DAY", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("DAY", "", ""));
         $$ = res;
     }
 
     | WEEK_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("WEEK", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_WEEK", "", ""));
         $$ = res;
     }
 
     | HOUR_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_HOUR", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("HOUR", "", ""));
         $$ = res;
     }
 
     | MINUTE_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_MINUTE", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("MINUTE", "", ""));
         $$ = res;
     }
 
     | MONTH_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_MONTH", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("MONTH", "", ""));
         $$ = res;
     }
 
     | QUARTER_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_QUARTER", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("QUARTER", "", ""));
         $$ = res;
     }
 
     | SECOND_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_SECOND", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("SECOND", "", ""));
         $$ = res;
     }
 
@@ -17494,7 +17482,7 @@ interval_time_stamp:
     }
 
     | YEAR_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("YEAR", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_YEAR", "", ""));
         $$ = res;
     }
 
@@ -17793,8 +17781,49 @@ olap_opt:
         $$ = res;
     }
 
-    | WITH_ROLLUP_SYM  {
-        res = new IR(kOlapOpt, OP3("WITH ROLLUP", "", ""));
+    | WITH_ROLLUP_SYM {} /* 'WITH ROLLUP' is needed for backward compatibility, and cause LALR(2) conflicts. This syntax is not standard. {
+        auto tmp1 = $3;
+        auto tmp2 = $6;
+        res = new IR(kOlapOpt_1, OP3("WITH_ROLLUP_SYM", "'WITH ROLLUP'", ""), tmp1, tmp2);
+
+        auto tmp3 = $7;
+        res = new IR(kOlapOpt_2, OP3("", "", ""), res, tmp3);
+
+        auto tmp4 = $8;
+        res = new IR(kOlapOpt_3, OP3("", "", ""), res, tmp4);
+
+        auto tmp5 = $9;
+        res = new IR(kOlapOpt_4, OP3("", "", ""), res, tmp5);
+
+        auto tmp6 = $10;
+        res = new IR(kOlapOpt_5, OP3("", "", ""), res, tmp6);
+
+        auto tmp7 = $11;
+        res = new IR(kOlapOpt_6, OP3("", "", ""), res, tmp7);
+
+        auto tmp8 = $12;
+        res = new IR(kOlapOpt_7, OP3("", "", ""), res, tmp8);
+
+        auto tmp9 = $13;
+        res = new IR(kOlapOpt_8, OP3("", "", ""), res, tmp9);
+
+        auto tmp10 = $14;
+        res = new IR(kOlapOpt_9, OP3("", "", ""), res, tmp10);
+
+        auto tmp11 = $15;
+        res = new IR(kOlapOpt_10, OP3("", "", ""), res, tmp11);
+
+        auto tmp12 = $16;
+        res = new IR(kOlapOpt_11, OP3("", "", ""), res, tmp12);
+
+        auto tmp13 = $17;
+        res = new IR(kOlapOpt_12, OP3("", "", ""), res, tmp13);
+
+        auto tmp14 = $18;
+        res = new IR(kOlapOpt_13, OP3("", "", ""), res, tmp14);
+
+        auto tmp15 = $19;
+        res = new IR(kOlapOpt, OP3("", "", ""), res, tmp15);
         $$ = res;
     }
 
@@ -18300,7 +18329,7 @@ drop_database_stmt:
     DROP DATABASE if_exists ident {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kDropDatabaseStmt, OP3("DROP SCHEMA", "", ""), tmp1, tmp2);
+        res = new IR(kDropDatabaseStmt, OP3("DROP DATABASE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -18358,7 +18387,7 @@ drop_user_stmt:
     DROP USER if_exists user_list {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kDropUserStmt, OP3("DROP SYSTEM_USER", "", ""), tmp1, tmp2);
+        res = new IR(kDropUserStmt, OP3("DROP USER", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -19419,7 +19448,7 @@ show_databases_stmt:
 
     SHOW DATABASES opt_wild_or_where {
         auto tmp1 = $3;
-        res = new IR(kShowDatabasesStmt, OP3("SHOW SCHEMAS", "", ""), tmp1);
+        res = new IR(kShowDatabasesStmt, OP3("SHOW DATABASES", "", ""), tmp1);
         $$ = res;
     }
 
@@ -19540,7 +19569,7 @@ show_columns_stmt:
     SHOW opt_show_cmd_type COLUMNS from_or_in table_ident opt_db opt_wild_or_where {
         auto tmp1 = $2;
         auto tmp2 = $4;
-        res = new IR(kShowColumnsStmt_1, OP3("SHOW", "FIELDS", ""), tmp1, tmp2);
+        res = new IR(kShowColumnsStmt_1, OP3("SHOW", "COLUMNS", ""), tmp1, tmp2);
 
         auto tmp3 = $5;
         res = new IR(kShowColumnsStmt_2, OP3("", "", ""), res, tmp3);
@@ -19813,7 +19842,7 @@ show_create_database_stmt:
     SHOW CREATE DATABASE opt_if_not_exists ident {
         auto tmp1 = $4;
         auto tmp2 = $5;
-        res = new IR(kShowCreateDatabaseStmt, OP3("SHOW CREATE SCHEMA", "", ""), tmp1, tmp2);
+        res = new IR(kShowCreateDatabaseStmt, OP3("SHOW CREATE DATABASE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
@@ -19956,7 +19985,7 @@ show_create_user_stmt:
 
     SHOW CREATE USER user {
         auto tmp1 = $4;
-        res = new IR(kShowCreateUserStmt, OP3("SHOW CREATE SYSTEM_USER", "", ""), tmp1);
+        res = new IR(kShowCreateUserStmt, OP3("SHOW CREATE USER", "", ""), tmp1);
         $$ = res;
     }
 
@@ -20230,7 +20259,7 @@ describe_command:
     }
 
     | DESCRIBE {
-        res = new IR(kDescribeCommand, OP3("EXPLAIN", "", ""));
+        res = new IR(kDescribeCommand, OP3("DESCRIBE", "", ""));
         $$ = res;
     }
 
@@ -20297,9 +20326,9 @@ opt_describe_column:
 
 flush:
 
-    FLUSH_SYM opt_no_write_to_binlog flush_options {
+    FLUSH_SYM opt_no_write_to_binlog {} flush_options {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kFlush, OP3("FLUSH", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -20309,12 +20338,12 @@ flush:
 
 flush_options:
 
-    table_or_tables opt_table_list opt_flush_lock {
+    table_or_tables opt_table_list {} opt_flush_lock {
         auto tmp1 = $1;
         auto tmp2 = $2;
         res = new IR(kFlushOptions_1, OP3("", "", ""), tmp1, tmp2);
 
-        auto tmp3 = $3;
+        auto tmp3 = $4;
         res = new IR(kFlushOptions, OP3("", "", ""), res, tmp3);
         $$ = res;
     }
@@ -20340,7 +20369,7 @@ opt_flush_lock:
         $$ = res;
     }
 
-    | FOR_SYM EXPORT_SYM {
+    | FOR_SYM {} EXPORT_SYM {
         res = new IR(kOptFlushLock, OP3("FOR EXPORT", "", ""));
         $$ = res;
     }
@@ -20450,8 +20479,8 @@ opt_table_list:
 
 reset:
 
-    RESET_SYM reset_options {
-        auto tmp1 = $2;
+    RESET_SYM {} reset_options {
+        auto tmp1 = $3;
         res = new IR(kReset, OP3("RESET", "", ""), tmp1);
         $$ = res;
     }
@@ -20502,22 +20531,22 @@ opt_if_exists_ident:
 
 reset_option:
 
-    SLAVE opt_replica_reset_options opt_channel {
-        auto tmp1 = $2;
-        auto tmp2 = $3;
+    SLAVE {} opt_replica_reset_options opt_channel {
+        auto tmp1 = $3;
+        auto tmp2 = $4;
         res = new IR(kResetOption, OP3("SLAVE", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
-    | REPLICA_SYM opt_replica_reset_options opt_channel {
-        auto tmp1 = $2;
-        auto tmp2 = $3;
+    | REPLICA_SYM {} opt_replica_reset_options opt_channel {
+        auto tmp1 = $3;
+        auto tmp2 = $4;
         res = new IR(kResetOption, OP3("REPLICA", "", ""), tmp1, tmp2);
         $$ = res;
     }
 
-    | MASTER_SYM source_reset_options {
-        auto tmp1 = $2;
+    | MASTER_SYM {} source_reset_options {
+        auto tmp1 = $3;
         res = new IR(kResetOption, OP3("MASTER", "", ""), tmp1);
         $$ = res;
     }
@@ -20558,8 +20587,8 @@ source_reset_options:
 
 purge:
 
-    PURGE purge_options {
-        auto tmp1 = $2;
+    PURGE {} purge_options {
+        auto tmp1 = $3;
         res = new IR(kPurge, OP3("PURGE", "", ""), tmp1);
         $$ = res;
     }
@@ -20636,7 +20665,7 @@ use:
 
     USE_SYM ident {
         auto tmp1 = $2;
-        res = new IR(kUseSym, OP3("USE", "", ""), tmp1);
+        res = new IR(kUse, OP3("USE", "", ""), tmp1);
         $$ = res;
     }
 
@@ -20783,7 +20812,7 @@ opt_field_term:
 
     | COLUMNS field_term_list {
         auto tmp1 = $2;
-        res = new IR(kOptFieldTerm, OP3("FIELDS", "", ""), tmp1);
+        res = new IR(kOptFieldTerm, OP3("COLUMNS", "", ""), tmp1);
         $$ = res;
     }
 
@@ -22139,7 +22168,7 @@ ident_keywords_unambiguous:
     }
 
     | ANY_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SOME", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("ANY", "", ""));
         $$ = res;
     }
 
@@ -22289,7 +22318,7 @@ ident_keywords_unambiguous:
     }
 
     | COLUMNS {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("FIELDS", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("COLUMNS", "", ""));
         $$ = res;
     }
 
@@ -22404,7 +22433,7 @@ ident_keywords_unambiguous:
     }
 
     | DAY_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_DAY", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("DAY", "", ""));
         $$ = res;
     }
 
@@ -22644,7 +22673,7 @@ ident_keywords_unambiguous:
     }
 
     | GEOMETRYCOLLECTION_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("GEOMETRYCOLLECTION", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("GEOMCOLLECTION", "", ""));
         $$ = res;
     }
 
@@ -22709,7 +22738,7 @@ ident_keywords_unambiguous:
     }
 
     | HOUR_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_HOUR", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("HOUR", "", ""));
         $$ = res;
     }
 
@@ -23054,7 +23083,7 @@ ident_keywords_unambiguous:
     }
 
     | MINUTE_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_MINUTE", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("MINUTE", "", ""));
         $$ = res;
     }
 
@@ -23074,7 +23103,7 @@ ident_keywords_unambiguous:
     }
 
     | MONTH_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_MONTH", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("MONTH", "", ""));
         $$ = res;
     }
 
@@ -23124,7 +23153,7 @@ ident_keywords_unambiguous:
     }
 
     | NDBCLUSTER_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("NDBCLUSTER", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("NDB", "", ""));
         $$ = res;
     }
 
@@ -23364,7 +23393,7 @@ ident_keywords_unambiguous:
     }
 
     | QUARTER_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_QUARTER", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("QUARTER", "", ""));
         $$ = res;
     }
 
@@ -23439,7 +23468,7 @@ ident_keywords_unambiguous:
     }
 
     | RELAY_THREAD {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("RELAY_THREAD", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("IO_THREAD", "", ""));
         $$ = res;
     }
 
@@ -23639,7 +23668,7 @@ ident_keywords_unambiguous:
     }
 
     | SECOND_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_SECOND", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("SECOND", "", ""));
         $$ = res;
     }
 
@@ -24109,7 +24138,7 @@ ident_keywords_unambiguous:
     }
 
     | USER {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("SYSTEM_USER", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("USER", "", ""));
         $$ = res;
     }
 
@@ -24159,7 +24188,7 @@ ident_keywords_unambiguous:
     }
 
     | WEEK_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("WEEK", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_WEEK", "", ""));
         $$ = res;
     }
 
@@ -24199,7 +24228,7 @@ ident_keywords_unambiguous:
     }
 
     | YEAR_SYM {
-        res = new IR(kIdentKeywordsUnambiguous, OP3("YEAR", "", ""));
+        res = new IR(kIdentKeywordsUnambiguous, OP3("SQL_TSI_YEAR", "", ""));
         $$ = res;
     }
 
@@ -24969,9 +24998,9 @@ set_expr_or_default:
 
 lock:
 
-    LOCK_SYM table_or_tables table_lock_list {
+    LOCK_SYM table_or_tables {} table_lock_list {
         auto tmp1 = $2;
-        auto tmp2 = $3;
+        auto tmp2 = $4;
         res = new IR(kLock, OP3("LOCK", "", ""), tmp1, tmp2);
         $$ = res;
     }
@@ -25059,8 +25088,8 @@ lock_option:
 
 unlock:
 
-    UNLOCK_SYM table_or_tables {
-        auto tmp1 = $2;
+    UNLOCK_SYM {} table_or_tables {
+        auto tmp1 = $3;
         res = new IR(kUnlock, OP3("UNLOCK", "", ""), tmp1);
         $$ = res;
     }
@@ -25321,15 +25350,15 @@ revoke:
         $$ = res;
     }
 
-    | REVOKE ALL opt_privileges ON_SYM opt_acl_type grant_ident FROM user_list {
+    | REVOKE ALL opt_privileges {} ON_SYM opt_acl_type grant_ident FROM user_list {
         auto tmp1 = $3;
-        auto tmp2 = $5;
+        auto tmp2 = $6;
         res = new IR(kRevoke_3, OP3("REVOKE ALL", "ON", ""), tmp1, tmp2);
 
-        auto tmp3 = $6;
+        auto tmp3 = $7;
         res = new IR(kRevoke_4, OP3("", "", "FROM"), res, tmp3);
 
-        auto tmp4 = $8;
+        auto tmp4 = $9;
         res = new IR(kRevoke, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
@@ -25382,21 +25411,21 @@ grant:
         $$ = res;
     }
 
-    | GRANT ALL opt_privileges ON_SYM opt_acl_type grant_ident TO_SYM user_list grant_options opt_grant_as {
+    | GRANT ALL opt_privileges {} ON_SYM opt_acl_type grant_ident TO_SYM user_list grant_options opt_grant_as {
         auto tmp1 = $3;
-        auto tmp2 = $5;
+        auto tmp2 = $6;
         res = new IR(kGrant_6, OP3("GRANT ALL", "ON", ""), tmp1, tmp2);
 
-        auto tmp3 = $6;
+        auto tmp3 = $7;
         res = new IR(kGrant_7, OP3("", "", "TO"), res, tmp3);
 
-        auto tmp4 = $8;
+        auto tmp4 = $9;
         res = new IR(kGrant_8, OP3("", "", ""), res, tmp4);
 
-        auto tmp5 = $9;
+        auto tmp5 = $10;
         res = new IR(kGrant_9, OP3("", "", ""), res, tmp5);
 
-        auto tmp6 = $10;
+        auto tmp6 = $11;
         res = new IR(kGrant, OP3("", "", ""), res, tmp6);
         $$ = res;
     }
@@ -25573,7 +25602,7 @@ role_or_privilege:
     }
 
     | SHOW DATABASES {
-        res = new IR(kRoleOrPrivilege, OP3("SHOW SCHEMAS", "", ""));
+        res = new IR(kRoleOrPrivilege, OP3("SHOW DATABASES", "", ""));
         $$ = res;
     }
 
@@ -25623,7 +25652,7 @@ role_or_privilege:
     }
 
     | CREATE USER {
-        res = new IR(kRoleOrPrivilege, OP3("CREATE SYSTEM_USER", "", ""));
+        res = new IR(kRoleOrPrivilege, OP3("CREATE USER", "", ""));
         $$ = res;
     }
 
@@ -26405,8 +26434,8 @@ opt_grant_as:
 
 begin_stmt:
 
-    BEGIN_SYM opt_work {
-        auto tmp1 = $2;
+    BEGIN_SYM {} opt_work {
+        auto tmp1 = $3;
         res = new IR(kBeginStmt, OP3("BEGIN", "", ""), tmp1);
         $$ = res;
     }
@@ -26559,7 +26588,7 @@ union_option:
     }
 
     | DISTINCT {
-        res = new IR(kUnionOption, OP3("DISTINCTROW", "", ""));
+        res = new IR(kUnionOption, OP3("DISTINCT", "", ""));
         $$ = res;
     }
 
@@ -26617,7 +26646,7 @@ query_spec_option:
     }
 
     | DISTINCT {
-        res = new IR(kQuerySpecOption, OP3("DISTINCTROW", "", ""));
+        res = new IR(kQuerySpecOption, OP3("DISTINCT", "", ""));
         $$ = res;
     }
 
@@ -26905,7 +26934,7 @@ view_suid:
 
 view_tail:
 
-    view_suid VIEW_SYM table_ident opt_derived_column_list AS view_query_block {
+    view_suid VIEW_SYM table_ident opt_derived_column_list {} AS view_query_block {
         auto tmp1 = $1;
         auto tmp2 = $3;
         res = new IR(kViewTail_1, OP3("", "VIEW", ""), tmp1, tmp2);
@@ -26913,7 +26942,7 @@ view_tail:
         auto tmp3 = $4;
         res = new IR(kViewTail_2, OP3("", "", "AS"), res, tmp3);
 
-        auto tmp4 = $6;
+        auto tmp4 = $7;
         res = new IR(kViewTail, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
@@ -26998,7 +27027,7 @@ trigger_follows_precedes_clause:
 
 trigger_tail:
 
-    TRIGGER_SYM sp_name trg_action_time trg_event ON_SYM table_ident FOR_SYM EACH_SYM ROW_SYM trigger_follows_precedes_clause sp_proc_stmt {
+    TRIGGER_SYM sp_name trg_action_time trg_event ON_SYM table_ident FOR_SYM EACH_SYM ROW_SYM trigger_follows_precedes_clause {} sp_proc_stmt {
         auto tmp1 = $2;
         auto tmp2 = $3;
         res = new IR(kTriggerTail_1, OP3("TRIGGER", "", ""), tmp1, tmp2);
@@ -27012,7 +27041,7 @@ trigger_tail:
         auto tmp5 = $10;
         res = new IR(kTriggerTail_4, OP3("", "", ""), res, tmp5);
 
-        auto tmp6 = $11;
+        auto tmp6 = $12;
         res = new IR(kTriggerTail, OP3("", "", ""), res, tmp6);
         $$ = res;
     }
@@ -27053,21 +27082,21 @@ udf_tail:
 
 sf_tail:
 
-    FUNCTION_SYM sp_name '(' sp_fdparam_list ')' RETURNS_SYM type opt_collate sp_c_chistics sp_proc_stmt {
+    FUNCTION_SYM sp_name '(' {} sp_fdparam_list ')' {} RETURNS_SYM type opt_collate {} sp_c_chistics {} sp_proc_stmt {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = $5;
         res = new IR(kSfTail_1, OP3("FUNCTION", "(", ") RETURNS"), tmp1, tmp2);
 
-        auto tmp3 = $7;
+        auto tmp3 = $9;
         res = new IR(kSfTail_2, OP3("", "", ""), res, tmp3);
 
-        auto tmp4 = $8;
+        auto tmp4 = $10;
         res = new IR(kSfTail_3, OP3("", "", ""), res, tmp4);
 
-        auto tmp5 = $9;
+        auto tmp5 = $12;
         res = new IR(kSfTail_4, OP3("", "", ""), res, tmp5);
 
-        auto tmp6 = $10;
+        auto tmp6 = $14;
         res = new IR(kSfTail, OP3("", "", ""), res, tmp6);
         $$ = res;
     }
@@ -27077,15 +27106,15 @@ sf_tail:
 
 sp_tail:
 
-    PROCEDURE_SYM sp_name '(' sp_pdparam_list ')' sp_c_chistics sp_proc_stmt {
+    PROCEDURE_SYM sp_name {} '(' {} sp_pdparam_list ')' {} sp_c_chistics {} sp_proc_stmt {
         auto tmp1 = $2;
-        auto tmp2 = $4;
+        auto tmp2 = $6;
         res = new IR(kSpTail_1, OP3("PROCEDURE", "(", ")"), tmp1, tmp2);
 
-        auto tmp3 = $6;
+        auto tmp3 = $9;
         res = new IR(kSpTail_2, OP3("", "", ""), res, tmp3);
 
-        auto tmp4 = $7;
+        auto tmp4 = $11;
         res = new IR(kSpTail, OP3("", "", ""), res, tmp4);
         $$ = res;
     }
@@ -27393,7 +27422,7 @@ opt_ssl:
 resource_group_types:
 
     USER {
-        res = new IR(kResourceGroupTypes, OP3("SYSTEM_USER", "", ""));
+        res = new IR(kResourceGroupTypes, OP3("USER", "", ""));
         $$ = res;
     }
 
@@ -27535,6 +27564,11 @@ json_attribute:
     }
 
 ;
+
+
+/**
+@} (end of group Parser)
+*/
 
 /**
   @} (end of group Parser)
