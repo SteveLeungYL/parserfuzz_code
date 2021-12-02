@@ -1,5 +1,4 @@
 CREATE TABLE test_tablesample (id int, name text) WITH (fillfactor=10);
-INSERT INTO test_tablesample  SELECT i, repeat(i::text, 200) FROM generate_series(0, 9) s(i);
 SELECT t.id FROM test_tablesample AS t TABLESAMPLE SYSTEM (50) REPEATABLE (0);
 SELECT id FROM test_tablesample TABLESAMPLE SYSTEM (100.0/11) REPEATABLE (0);
 SELECT id FROM test_tablesample TABLESAMPLE SYSTEM (50) REPEATABLE (0);

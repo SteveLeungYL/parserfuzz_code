@@ -67,7 +67,6 @@ SELECT p1.oid, p1.pronameFROM pg_proc as p1WHERE proargnames IS NOT NULL AND    
 SELECT p1.oid, p1.pronameFROM pg_proc as p1WHERE proallargtypes IS NOT NULL AND proargmodes IS NOT NULL AND    array_length(proallargtypes,1) <> array_length(proargmodes,1);
 SELECT p1.oid, p1.pronameFROM pg_proc as p1WHERE proallargtypes IS NOT NULL AND proargnames IS NOT NULL AND    array_length(proallargtypes,1) <> array_length(proargnames,1);
 SELECT p1.oid, p1.pronameFROM pg_proc as p1WHERE proargmodes IS NOT NULL AND proargnames IS NOT NULL AND    array_length(proargmodes,1) <> array_length(proargnames,1);
-SELECT p1.oid, p1.proname, p1.proargtypes, p1.proallargtypes, p1.proargmodesFROM pg_proc as p1WHERE proallargtypes IS NOT NULL AND  ARRAY(SELECT unnest(proargtypes)) <>  ARRAY(SELECT proallargtypes[i]        FROM generate_series(1, array_length(proallargtypes, 1)) g(i)        WHERE proargmodes IS NULL OR proargmodes[i] IN ('i', 'b', 'v'));
 SELECT p1.oid, p1.proname, p2.oid, p2.pronameFROM pg_proc AS p1, pg_proc AS p2WHERE p2.oid = p1.prosupport AND    (p2.prorettype != 'internal'::regtype OR p2.proretset OR p2.pronargs != 1     OR p2.proargtypes[0] != 'internal'::regtype);
 SELECT p1.oid, p1.pronameFROM pg_proc as p1 LEFT JOIN pg_description as d     ON p1.tableoid = d.classoid and p1.oid = d.objoid and d.objsubid = 0WHERE d.classoid IS NULL AND p1.oid <= 9999;
 \a\tSELECT p1.oid::regprocedureFROM pg_proc p1 JOIN pg_namespace pn     ON pronamespace = pn.oidWHERE nspname = 'pg_catalog' AND proleakproofORDER BY 1;

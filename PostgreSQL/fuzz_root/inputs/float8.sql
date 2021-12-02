@@ -124,7 +124,6 @@ SELECT x,       cosd(x),       cosd(x) IN (-1,-0.5,0,0.5,1) AS cosd_exactFROM (V
 SELECT x,       tand(x),       tand(x) IN ('-Infinity'::float8,-1,0,                   1,'Infinity'::float8) AS tand_exact,       cotd(x),       cotd(x) IN ('-Infinity'::float8,-1,0,                   1,'Infinity'::float8) AS cotd_exactFROM (VALUES (0), (45), (90), (135), (180),      (225), (270), (315), (360)) AS t(x);
 SELECT x,       asind(x),       asind(x) IN (-90,-30,0,30,90) AS asind_exact,       acosd(x),       acosd(x) IN (0,60,90,120,180) AS acosd_exactFROM (VALUES (-1), (-0.5), (0), (0.5), (1)) AS t(x);
 SELECT x,       atand(x),       atand(x) IN (-90,-45,0,45,90) AS atand_exactFROM (VALUES ('-Infinity'::float8), (-1), (0), (1),      ('Infinity'::float8)) AS t(x);
-SELECT x, y,       atan2d(y, x),       atan2d(y, x) IN (-90,0,90,180) AS atan2d_exactFROM (SELECT 10*cosd(a), 10*sind(a)      FROM generate_series(0, 360, 90) AS t(a)) AS t(x,y);
 create type xfloat8;
 create function xfloat8in(cstring) returns xfloat8 immutable strict  language internal as 'int8in';
 create function xfloat8out(xfloat8) returns cstring immutable strict  language internal as 'int8out';

@@ -299,7 +299,6 @@ end;
 ;
 CREATE TABLE serializable_update_tab (	id int,	filler  text,	description text);
 CREATE TRIGGER serializable_update_trig BEFORE UPDATE ON serializable_update_tab	FOR EACH ROW EXECUTE PROCEDURE serializable_update_trig();
-INSERT INTO serializable_update_tab SELECT a, repeat('xyzxz', 100), 'new'	FROM generate_series(1, 50) a;
 BEGIN;
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 UPDATE serializable_update_tab SET description = 'no no', id = 1 WHERE id = 1;
