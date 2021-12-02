@@ -2710,24 +2710,24 @@ void warn_about_deprecated_binary(THD *thd)
 %%
 
 /*
-  Indentation of grammar rules:
+Indentation of grammar rules:
 
 rule: <-- starts at col 1
-          rule1a rule1b rule1c <-- starts at col 11
-          { <-- starts at col 11
-            code <-- starts at col 13, indentation is 2 spaces
-          }
-        | rule2a rule2b
-          {
-            code
-          }
-        ; <-- on a line by itself, starts at col 9
+rule1a rule1b rule1c <-- starts at col 11
+{ <-- starts at col 11
+code <-- starts at col 13, indentation is 2 spaces
+}
+| rule2a rule2b
+{
+code
+}
+; <-- on a line by itself, starts at col 9
 
-  Also, please do not use any <TAB>, but spaces.
-  Having a uniform indentation in this file helps
-  code reviews, patches, merges, and make maintenance easier.
-  Tip: grep [[:cntrl:]] sql_yacc.yy
-  Thanks.
+Also, please do not use any <TAB>, but spaces.
+Having a uniform indentation in this file helps
+code reviews, patches, merges, and make maintenance easier.
+Tip: grep [[:cntrl:]] sql_yacc.yy
+Thanks.
 */
 
 start_entry:
@@ -4839,8 +4839,7 @@ source_file_def:
 
 opt_channel:
 
-    /*empty */
-    {
+    /*empty */ {
         res = new IR(kOptChannel, OP3("", "", ""));
         $$ = res;
     }
@@ -5396,8 +5395,8 @@ opt_ev_comment:
 
 ev_sql_stmt:
 
-    ev_sql_stmt_inner {
-        auto tmp1 = $1;
+    {} ev_sql_stmt_inner {
+        auto tmp1 = $2;
         res = new IR(kEvSqlStmt, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -6535,9 +6534,8 @@ sp_proc_stmt_if:
 
 
 sp_proc_stmt_statement:
-    {}
-    simple_statement 
-    {
+
+    {} simple_statement {
         auto tmp1 = $2;
         res = new IR(kSpProcStmtStatement, OP3("", "", ""), tmp1);
         $$ = res;
@@ -6558,8 +6556,8 @@ sp_proc_stmt_return:
 
 
 sp_proc_stmt_unlabeled:
-    {}
-    sp_unlabeled_control {
+
+    {} sp_unlabeled_control {
         auto tmp1 = $2;
         res = new IR(kSpProcStmtUnlabeled, OP3("", "", ""), tmp1);
         $$ = res;
@@ -6870,8 +6868,8 @@ sp_labeled_block:
 
 sp_unlabeled_block:
 
-    sp_block_content {
-        auto tmp1 = $1;
+    {} sp_block_content {
+        auto tmp1 = $2;
         res = new IR(kSpUnlabeledBlock, OP3("", "", ""), tmp1);
         $$ = res;
     }
@@ -9828,7 +9826,7 @@ column_attribute:
         $$ = res;
     }
 
-    | constraint_enforcement  {
+    | constraint_enforcement {
         auto tmp1 = $1;
         res = new IR(kColumnAttribute, OP3("", "", ""), tmp1);
         $$ = res;
@@ -12471,7 +12469,8 @@ start_transaction_option:
 
 
 opt_user_option:
-    {
+
+    {} {
         res = new IR(kOptUserOption, OP3("", "", ""));
         $$ = res;
     }
@@ -12487,7 +12486,7 @@ opt_user_option:
 
 opt_password_option:
 
-    {
+    {} {
         res = new IR(kOptPasswordOption, OP3("", "", ""));
         $$ = res;
     }
@@ -12503,7 +12502,7 @@ opt_password_option:
 
 opt_default_auth_option:
 
-    {
+    {} {
         res = new IR(kOptDefaultAuthOption, OP3("", "", ""));
         $$ = res;
     }
@@ -12518,7 +12517,8 @@ opt_default_auth_option:
 
 
 opt_plugin_dir_option:
-    {
+
+    {} {
         res = new IR(kOptPluginDirOption, OP3("", "", ""));
         $$ = res;
     }
@@ -15619,7 +15619,7 @@ window_func_call:
 
     ROW_NUMBER_SYM '(' ')' windowing_clause {
         auto tmp1 = $4;
-        res = new IR(kWindowFuncCall, OP3("ROW_NUMBER ( )", "", ""), tmp1);
+        res = new IR(kWindowFuncCall, OP3("ROW_NUMBER()", "", ""), tmp1);
         $$ = res;
     }
 
@@ -16528,7 +16528,7 @@ table_reference:
 
     | '{' OJ_SYM esc_table_reference '}' {
         auto tmp1 = $3;
-        res = new IR(kTableReference, OP3("{ OJ", "", "}"), tmp1);
+        res = new IR(kTableReference, OP3("{ OJ ", "", "}"), tmp1);
         $$ = res;
     }
 
@@ -17076,7 +17076,7 @@ jt_column:
 
 jt_column_type:
 
-    {
+    {} {
         res = new IR(kJtColumnType, OP3("", "", ""));
         $$ = res;
     }
@@ -17781,49 +17781,8 @@ olap_opt:
         $$ = res;
     }
 
-    | WITH_ROLLUP_SYM {} /* 'WITH ROLLUP' is needed for backward compatibility, and cause LALR(2) conflicts. This syntax is not standard. {
-        auto tmp1 = $3;
-        auto tmp2 = $6;
-        res = new IR(kOlapOpt_1, OP3("WITH_ROLLUP_SYM", "'WITH ROLLUP'", ""), tmp1, tmp2);
-
-        auto tmp3 = $7;
-        res = new IR(kOlapOpt_2, OP3("", "", ""), res, tmp3);
-
-        auto tmp4 = $8;
-        res = new IR(kOlapOpt_3, OP3("", "", ""), res, tmp4);
-
-        auto tmp5 = $9;
-        res = new IR(kOlapOpt_4, OP3("", "", ""), res, tmp5);
-
-        auto tmp6 = $10;
-        res = new IR(kOlapOpt_5, OP3("", "", ""), res, tmp6);
-
-        auto tmp7 = $11;
-        res = new IR(kOlapOpt_6, OP3("", "", ""), res, tmp7);
-
-        auto tmp8 = $12;
-        res = new IR(kOlapOpt_7, OP3("", "", ""), res, tmp8);
-
-        auto tmp9 = $13;
-        res = new IR(kOlapOpt_8, OP3("", "", ""), res, tmp9);
-
-        auto tmp10 = $14;
-        res = new IR(kOlapOpt_9, OP3("", "", ""), res, tmp10);
-
-        auto tmp11 = $15;
-        res = new IR(kOlapOpt_10, OP3("", "", ""), res, tmp11);
-
-        auto tmp12 = $16;
-        res = new IR(kOlapOpt_11, OP3("", "", ""), res, tmp12);
-
-        auto tmp13 = $17;
-        res = new IR(kOlapOpt_12, OP3("", "", ""), res, tmp13);
-
-        auto tmp14 = $18;
-        res = new IR(kOlapOpt_13, OP3("", "", ""), res, tmp14);
-
-        auto tmp15 = $19;
-        res = new IR(kOlapOpt, OP3("", "", ""), res, tmp15);
+    | WITH_ROLLUP_SYM  {
+        res = new IR(kOlapOpt, OP3("WITH ROLLUP", "", ""));
         $$ = res;
     }
 
@@ -20665,7 +20624,7 @@ use:
 
     USE_SYM ident {
         auto tmp1 = $2;
-        res = new IR(kUse, OP3("USE", "", ""), tmp1);
+        res = new IR(kUseSym, OP3("USE", "", ""), tmp1);
         $$ = res;
     }
 
@@ -27564,11 +27523,6 @@ json_attribute:
     }
 
 ;
-
-
-/**
-@} (end of group Parser)
-*/
 
 /**
   @} (end of group Parser)
