@@ -27,6 +27,12 @@ def _test(data, expect):
         "sp_proc_stmt_statement",
         "standalone_alter_commands",
         "opt_user_option",
+        "opt_window_frame_clause",
+        "opt_set_var_ident_type",
+        "not2",
+        "table_reference",
+        "column_attribute",
+        "window_func_call",
     ],
 )
 def test_statement(statement):

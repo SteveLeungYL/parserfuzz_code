@@ -16,13 +16,25 @@ saved_ir_type = []
 custom_additional_keywords = {
     "/* nothing */",
     "/* Nothing */",
+    "/* Nothing*/",
     "/* empty */",
     "/* Empty */",
     "{}",
+    # "{",
+    # "}",
+    "'!'",
+    "'.'",
     "%prec",
 }
 
-custom_additional_keywords_mapping = {"%prec": ""}
+custom_additional_keywords_mapping = {
+    "%prec": "",
+    # "/* nothing */": "",
+    # "/* Nothing */": "",
+    # "/* Nothing*/": "",
+    # "/* empty */": "",
+    # "/* Empty */": "",
+}
 
 with open("assets/keywords_mapping.json") as f:
     keywords_mapping = json.load(f)
@@ -314,12 +326,13 @@ def find_first_alpha_index(data, start_index):
 
 def remove_original_actions(data):
     left_bracket_stack = []
+    # data = remove_comments_if_necessary(data, True)
 
     clean_data = data
     for idx, ch in enumerate(data):
-        if ch == "{":
+        if ch == "{" and not (data[idx - 1] == "'" and data[idx + 1] == "'"):
             left_bracket_stack.append(idx)
-        elif ch == "}":
+        elif ch == "}" and not (data[idx - 1] == "'" and data[idx + 1] == "'"):
             left_index = left_bracket_stack.pop()
             right_index = idx + 1
             length = right_index - left_index
@@ -354,7 +367,8 @@ def remove_original_actions(data):
                     )
 
     # clean_data = re.sub(r"\{.*?\}", "", data, flags=re.S)
-    return clean_data.strip()
+    clean_data = remove_single_line_comment(clean_data)
+    return clean_data
 
 
 def translate_preprocessing(data):
@@ -398,6 +412,9 @@ def translate_preprocessing(data):
     # with open("draft.txt", "a") as f:
     #     f.write('----------------\n')
     #     f.write(all_new_data)
+
+    """Join comments from multiple lines into one line."""
+    all_new_data = join_comments_into_oneline(all_new_data)
 
     return all_new_data
 
@@ -841,6 +858,27 @@ def get_gram_keywords():
         json.dump(list(total_keywords), f, indent=2, sort_keys=True)
 
 
+def join_comments_into_oneline(text):
+    clean_text = text
+
+    index = 0
+    inside_comment = False
+    while index < len(text) - 1:
+        lch = text[index]
+        rch = text[index + 1]
+        if lch == "/" and rch == "*":
+            inside_comment = True
+        elif lch == "*" and rch == "/":
+            inside_comment = False
+
+        if lch == "\n" and inside_comment:
+            clean_text = clean_text[:index] + " " + clean_text[index + 1 :]
+
+        index += 1
+
+    return clean_text.strip()
+
+
 def remove_comments_if_necessary(text, need_remove):
     if not need_remove:
         return text
@@ -849,6 +887,7 @@ def remove_comments_if_necessary(text, need_remove):
     clean_text = text
 
     index = 0
+    """Remove multiple lines comments."""
     while index < len(text) - 1:
         lch = text[index]
         rch = text[index + 1]
@@ -865,9 +904,21 @@ def remove_comments_if_necessary(text, need_remove):
 
         index += 1
 
-    return clean_text.strip()
+    """Remove single line comment"""
+    clean_text = remove_single_line_comment(clean_text)
+    return clean_text
     # pattern = r"/\*.*?\*/"
     # return re.sub(pattern, "", text, flags=re.S)
+
+
+def remove_single_line_comment(text):
+    clean_text = text
+    while "//" in clean_text:
+        start_index = clean_text.find("//")
+        end_index = clean_text.find("\n", start_index + 1)
+        clean_text = clean_text[:start_index] + "\n" + clean_text[end_index:]
+
+    return clean_text.strip()
 
 
 def select_translate_region(data):
