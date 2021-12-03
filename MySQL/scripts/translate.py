@@ -20,6 +20,8 @@ custom_additional_keywords = {
     "/* empty */",
     "/* Empty */",
     "{}",
+    # "{",
+    # "}",
     "'!'",
     "'.'",
     "%prec",
@@ -27,11 +29,11 @@ custom_additional_keywords = {
 
 custom_additional_keywords_mapping = {
     "%prec": "",
-    "/* nothing */": "",
-    "/* Nothing */": "",
-    "/* Nothing*/": "",
-    "/* empty */": "",
-    "/* Empty */": "",
+    # "/* nothing */": "",
+    # "/* Nothing */": "",
+    # "/* Nothing*/": "",
+    # "/* empty */": "",
+    # "/* Empty */": "",
 }
 
 with open("assets/keywords_mapping.json") as f:
@@ -324,12 +326,13 @@ def find_first_alpha_index(data, start_index):
 
 def remove_original_actions(data):
     left_bracket_stack = []
+    # data = remove_comments_if_necessary(data, True)
 
     clean_data = data
     for idx, ch in enumerate(data):
-        if ch == "{":
+        if ch == "{" and not (data[idx - 1] == "'" and data[idx + 1] == "'"):
             left_bracket_stack.append(idx)
-        elif ch == "}":
+        elif ch == "}" and not (data[idx - 1] == "'" and data[idx + 1] == "'"):
             left_index = left_bracket_stack.pop()
             right_index = idx + 1
             length = right_index - left_index
