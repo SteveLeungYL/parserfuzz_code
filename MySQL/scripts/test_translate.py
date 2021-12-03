@@ -28,6 +28,7 @@ def _test(data, expect):
         "standalone_alter_commands",
         "opt_user_option",
         "opt_window_frame_clause",
+        "opt_set_var_ident_type",
     ],
 )
 def test_statement(statement):
