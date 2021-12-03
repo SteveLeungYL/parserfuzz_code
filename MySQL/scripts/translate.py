@@ -367,7 +367,8 @@ def remove_original_actions(data):
                     )
 
     # clean_data = re.sub(r"\{.*?\}", "", data, flags=re.S)
-    return clean_data.strip()
+    clean_data = remove_single_line_comment(clean_data)
+    return clean_data
 
 
 def translate_preprocessing(data):
@@ -882,9 +883,6 @@ def remove_comments_if_necessary(text, need_remove):
     if not need_remove:
         return text
 
-    """Remove single line comment"""
-    # TODO:
-
     left_comment_mark = []
     clean_text = text
 
@@ -906,9 +904,21 @@ def remove_comments_if_necessary(text, need_remove):
 
         index += 1
 
-    return clean_text.strip()
+    """Remove single line comment"""
+    clean_text = remove_single_line_comment(clean_text)
+    return clean_text
     # pattern = r"/\*.*?\*/"
     # return re.sub(pattern, "", text, flags=re.S)
+
+
+def remove_single_line_comment(text):
+    clean_text = text
+    while "//" in clean_text:
+        start_index = clean_text.find("//")
+        end_index = clean_text.find("\n", start_index + 1)
+        clean_text = clean_text[:start_index] + "\n" + clean_text[end_index:]
+
+    return clean_text.strip()
 
 
 def select_translate_region(data):

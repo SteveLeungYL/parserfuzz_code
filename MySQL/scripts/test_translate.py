@@ -32,6 +32,7 @@ def _test(data, expect):
         "not2",
         "table_reference",
         "column_attribute",
+        "window_func_call",
     ],
 )
 def test_statement(statement):
