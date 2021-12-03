@@ -412,6 +412,9 @@ def translate_preprocessing(data):
     #     f.write('----------------\n')
     #     f.write(all_new_data)
 
+    """Join comments from multiple lines into one line."""
+    all_new_data = join_comments_into_oneline(all_new_data)
+
     return all_new_data
 
 
@@ -854,14 +857,39 @@ def get_gram_keywords():
         json.dump(list(total_keywords), f, indent=2, sort_keys=True)
 
 
+def join_comments_into_oneline(text):
+    clean_text = text
+
+    index = 0
+    inside_comment = False
+    while index < len(text) - 1:
+        lch = text[index]
+        rch = text[index + 1]
+        if lch == "/" and rch == "*":
+            inside_comment = True
+        elif lch == "*" and rch == "/":
+            inside_comment = False
+
+        if lch == "\n" and inside_comment:
+            clean_text = clean_text[:index] + " " + clean_text[index + 1 :]
+
+        index += 1
+
+    return clean_text.strip()
+
+
 def remove_comments_if_necessary(text, need_remove):
     if not need_remove:
         return text
+
+    """Remove single line comment"""
+    # TODO:
 
     left_comment_mark = []
     clean_text = text
 
     index = 0
+    """Remove multiple lines comments."""
     while index < len(text) - 1:
         lch = text[index]
         rch = text[index + 1]

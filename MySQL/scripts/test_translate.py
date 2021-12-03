@@ -31,6 +31,7 @@ def _test(data, expect):
         "opt_set_var_ident_type",
         "not2",
         "table_reference",
+        "column_attribute",
     ],
 )
 def test_statement(statement):
