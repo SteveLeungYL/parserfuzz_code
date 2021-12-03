@@ -37,7 +37,7 @@ CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++
 CFLAGS     += -g -w \
 	      -DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 	      -DBIN_PATH=\"$(BIN_PATH)\"
-CFLAGS     += -I$(MYSQL_HEADER_PATH) -I$(MYSQL_INSTALL_HEADER_PATH) -I../parser/
+CFLAGS     += -I$(MYSQL_HEADER_PATH) -I$(MYSQL_INSTALL_HEADER_PATH) -I../parser/ -I../parser/include/ -I../parser/include/include/
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
