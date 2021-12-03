@@ -27,6 +27,7 @@ def _test(data, expect):
         "sp_proc_stmt_statement",
         "standalone_alter_commands",
         "opt_user_option",
+        "opt_window_frame_clause",
     ],
 )
 def test_statement(statement):

@@ -16,13 +16,21 @@ saved_ir_type = []
 custom_additional_keywords = {
     "/* nothing */",
     "/* Nothing */",
+    "/* Nothing*/",
     "/* empty */",
     "/* Empty */",
     "{}",
     "%prec",
 }
 
-custom_additional_keywords_mapping = {"%prec": ""}
+custom_additional_keywords_mapping = {
+    "%prec": "",
+    "/* nothing */": "",
+    "/* Nothing */": "",
+    "/* Nothing*/": "",
+    "/* empty */": "",
+    "/* Empty */": "",
+}
 
 with open("assets/keywords_mapping.json") as f:
     keywords_mapping = json.load(f)
