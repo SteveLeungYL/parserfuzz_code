@@ -4255,6 +4255,7 @@ V(kSfTail_2) \
 V(kSfTail_3) \
 V(kSfTail_4) \
 V(kSpTail_2) \
+V(kStmt) \
 V(kUnknown) \
 	// V(kProgram) \
 	// V(kStmtlist) \
@@ -4424,10 +4425,6 @@ V(kUnknown) \
 	// V(kTableConstraint) \
 	// V(kOptEnforced) \
 	// V(kUnknown) \
-
-
-#define ALLCLASS(V) \
-
 
 
 #define ALLDATATYPE(V) \

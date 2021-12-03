@@ -215,9 +215,9 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
     if(!file1d.empty()) init_data_library(file1d);
     // if(!f_gen_type.empty()) init_safe_generate_type(f_gen_type);
     
-    float_types_.insert({kFloatLiteral});
-    int_types_.insert(kIntLiteral);
-    string_types_.insert(kStringLiteral);
+    // float_types_.insert({kFloatLiteral});
+    // int_types_.insert(kIntLiteral);
+    // string_types_.insert(kStringLiteral);
     
     relationmap_[kDataColumnName][kDataTableName] = kRelationSubtype;
     relationmap_[kDataPragmaValue][kDataPragmaKey] = kRelationSubtype;
@@ -225,13 +225,13 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
     relationmap_[kDataColumnName][kDataColumnName] = kRelationElement;
     
     split_stmt_types_.insert(kStmt);
-    split_substmt_types_.insert({kStmt, kSelectClause, kSelectStmt});
+    // split_substmt_types_.insert({kStmt, kSelectClause, kSelectStmt});
 
 #define MYSQLFUZZ
 #ifdef MYSQLFUZZ
-    not_mutatable_types_.insert({kProgram, kStmtlist, kStmt, kCreateStmt, kDropStmt, kCreateTableStmt, kCreateIndexStmt, kCreateTriggerStmt, kCreateViewStmt, kDropIndexStmt, kDropTableStmt, kDropTriggerStmt, kDropViewStmt, kSelectStmt, kUpdateStmt, kInsertStmt, kAlterStmt});
+    // not_mutatable_types_.insert({kProgram, kStmtlist, kStmt, kCreateStmt, kDropStmt, kCreateTableStmt, kCreateIndexStmt, kCreateTriggerStmt, kCreateViewStmt, kDropIndexStmt, kDropTableStmt, kDropTriggerStmt, kDropViewStmt, kSelectStmt, kUpdateStmt, kInsertStmt, kAlterStmt});
 #else
-    not_mutatable_types_.insert({kProgram, kStmtlist, kStmt, kCreateStmt, kDropStmt, kCreateTableStmt, kCreateIndexStmt, kCreateViewStmt, kDropIndexStmt, kDropTableStmt, kDropViewStmt, kSelectStmt, kUpdateStmt, kInsertStmt, kAlterStmt, kReindexStmt});
+    // not_mutatable_types_.insert({kProgram, kStmtlist, kStmt, kCreateStmt, kDropStmt, kCreateTableStmt, kCreateIndexStmt, kCreateViewStmt, kDropIndexStmt, kDropTableStmt, kDropViewStmt, kSelectStmt, kUpdateStmt, kInsertStmt, kAlterStmt, kReindexStmt});
 #endif
 
     return;
@@ -446,7 +446,7 @@ IR* Mutator::get_ir_from_library(IRTYPE type){
     
     const int generate_prop = 1;
     const int threshold = 0;
-    static IR* empty_ir = new IR(kStringLiteral, "");
+    static IR* empty_ir = new IR(kLiteral, "");
 #ifdef USEGENERATE
     if(ir_library_[type].empty() == true || (get_rand_int(400) == 0 && type != kUnknown)){
         auto ir = generate_ir_by_type(type);
@@ -495,6 +495,26 @@ void Mutator::debug(IR *root){
         cout << i<< endl;
     }
     
+}
+
+void Mutator::debug(IR* root, unsigned level) {
+
+    for (unsigned i = 0; i < level; i++) {
+        cout << " ";
+    }
+
+    cout << level << ": "
+         << get_string_by_ir_type(root->type_) << ": "
+         << get_string_by_datatype(root->data_type_) << ": "
+         << root -> to_string() << ": "
+         << endl;
+
+    if (root->left_) {
+        debug(root->left_, level + 1);
+    }
+    if (root->right_) {
+        debug(root->right_, level + 1);
+    }
 }
 
 Mutator::~Mutator(){

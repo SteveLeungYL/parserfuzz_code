@@ -6,26 +6,15 @@
  
 static string s_table_name;
 
+string get_string_by_ir_type(IRTYPE type) {
+#define DECLARE_CASE(classname)                 \
+  if (type == classname)     \
+    return string(#classname);
 
+  ALLTYPE(DECLARE_CASE);
+#undef DECLARE_CASE
 
-NODETYPE get_nodetype_by_string(string s){
-    #define DECLARE_CASE(datatypename) \
-    if(s == #datatypename) return k##datatypename;
-
-    ALLCLASS(DECLARE_CASE);
-
-    #undef DECLARE_CASE
-    return kUnknown;
-}
-
-string get_string_by_nodetype(NODETYPE tt){
-    #define DECLARE_CASE(datatypename) \
-    if(tt == k##datatypename) return string(#datatypename);
-
-    ALLCLASS(DECLARE_CASE);
-
-    #undef DECLARE_CASE
-    return string("");
+  return "";
 }
 
 string get_string_by_datatype(DATATYPE tt){
@@ -103,13 +92,13 @@ string IR::to_string(){
 
 string IR::to_string_core(){
     //cout << get_string_by_nodetype(this->type_) << endl;
-    switch(type_){
-	case kIntLiteral: return std::to_string(int_val_);
-	case kFloatLiteral: return std::to_string(float_val_);
-	case kIdentifier: return str_val_;
-	case kStringLiteral: return str_val_;
+//     switch(type_){
+// 	case kIntLiteral: return std::to_string(int_val_);
+// 	case kFloatLiteral: return std::to_string(float_val_);
+// 	case kIdentifier: return str_val_;
+// 	case kStringLiteral: return str_val_;
 
-}
+// }
 
     string res;
     

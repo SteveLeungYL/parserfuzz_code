@@ -93,6 +93,7 @@ public:
     bool remove_one_from_datalibrary(DATATYPE datatype, string& key);
     ~Mutator();
     void debug(IR * root);
+    void debug(IR * root, unsigned level);
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 
 

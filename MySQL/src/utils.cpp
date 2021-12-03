@@ -72,7 +72,7 @@ IR * parser(string sql){
     //     return NULL;
     // }
 
-    IR* p = new IR(kProgram, OP0());
+    IR* p = new IR(kStartEntry, OP0());
     
     return p;
 }

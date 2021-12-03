@@ -267,7 +267,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 }
 
 
-bool exec_query_command_entry(string input, vector<IR*> ir_vec) {
+bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
     THD *thd = new (std::nothrow) THD;
     thd->get_stmt_da()->reset_diagnostics_area();
     thd->get_stmt_da()->reset_statement_cond_count();
