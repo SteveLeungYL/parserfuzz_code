@@ -181,7 +181,7 @@ DATATYPE get_datatype_by_string(string s);
 
 string get_string_by_ir_type(IRTYPE type);
 string get_string_by_datatype(DATATYPE tt);
-IR * deep_copy(const IR * root);
+IR * deep_copy(const IR* const root);
 
 void deep_delete(IR * root);
 

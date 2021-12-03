@@ -46,6 +46,28 @@ void deep_delete(IR * root){
     delete root;
 }
 
+IR* deep_copy(const IR* const root) {
+
+  IR *left = NULL, *right = NULL, *copy_res;
+  IROperator *op = NULL;
+
+  if (root->left_)
+    left = root->left_->deep_copy();
+  if (root->right_)
+    right = root->right_->deep_copy();
+
+  if (root->op_)
+    op = OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_);
+
+  copy_res = new IR(root->type_, op, left, right, root->float_val_,
+                    root->str_val_, root->name_, root->mutated_times_, 0, kFlagUnknown);
+  copy_res->data_type_ = root->data_type_;
+  copy_res->data_flag_ = root->data_flag_;
+
+  return copy_res;
+}
+
+
 IR *IR::deep_copy() {
 
   IR *left = NULL, *right = NULL, *copy_res;

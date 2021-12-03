@@ -30,11 +30,17 @@
   @{
 */
 
-%{
+%code requires {
 
 #include <vector>
 using std::vector;
 #include "../include/ast.h"
+
+#include "./sql_parse_entry.h"
+}
+
+%{
+
 
 /*
 Note: YYTHD is passed as an argument to yyparse(), and subsequently to yylex().
@@ -177,6 +183,7 @@ Note: YYTHD is passed as an argument to yyparse(), and subsequently to yylex().
 #include "./include/violite.h"
 
 
+
 #define yyerror         MYSQLerror
 #define yylex           MYSQLlex
 
@@ -302,11 +309,11 @@ void MYSQLerror(THD *thd, Parse_tree_root **, vector<IR*>& ir_vec, IR* res, cons
   if (strcmp(s, "syntax error") == 0) {
     // thd->syntax_error_at(*location);
   } else if (strcmp(s, "memory exhausted") == 0) {
-    my_error(ER_DA_OOM, MYF(0));
+    /* my_error(ER_DA_OOM, MYF(0)); */
   } else {
     // Find omitted error messages in the generated file (sql_yacc.cc) and fix:
     assert(false);
-    my_error(ER_UNKNOWN_ERROR, MYF(0));
+    /* my_error(ER_UNKNOWN_ERROR, MYF(0)); */
   }
 }
 
@@ -333,16 +340,16 @@ void turn_parser_debug_on()
 }
 #endif
 
-static bool is_native_function(const LEX_STRING &name)
-{
-  if (find_native_function_builder(name) != nullptr)
-    return true;
+/* static bool is_native_function(const LEX_STRING &name) */
+/* { */
+/*   if (find_native_function_builder(name) != nullptr) */
+/*     return true; */
 
-  if (is_lex_native_function(&name))
-    return true;
+/*   if (is_lex_native_function(&name)) */
+/*     return true; */
 
-  return false;
-}
+/*   return false; */
+/* } */
 
 
 /**
@@ -387,22 +394,22 @@ Pos     Instruction
   @param thd thread handler
 */
 
-static void case_stmt_action_case(THD *thd)
-{
-  LEX *lex= thd->lex;
-  sp_head *sp= lex->sphead;
-  sp_pcontext *pctx= lex->get_sp_current_parsing_ctx();
+/* static void case_stmt_action_case(THD *thd) */
+/* { */
+/*   LEX *lex= thd->lex; */
+/*   sp_head *sp= lex->sphead; */
+/*   sp_pcontext *pctx= lex->get_sp_current_parsing_ctx(); */
 
-  sp->m_parser_data.new_cont_backpatch();
+/*   sp->m_parser_data.new_cont_backpatch(); */
 
-  /*
-    BACKPATCH: Creating target label for the jump to
-    "case_stmt_action_end_case"
-    (Instruction 12 in the example)
-  */
+/*   /\* */
+/*     BACKPATCH: Creating target label for the jump to */
+/*     "case_stmt_action_end_case" */
+/*     (Instruction 12 in the example) */
+/*   *\/ */
 
-  pctx->push_label(thd, EMPTY_CSTR, sp->instructions());
-}
+/*   pctx->push_label(thd, EMPTY_CSTR, sp->instructions()); */
+/* } */
 
 /**
   Helper action for a case then statements.
@@ -410,33 +417,33 @@ static void case_stmt_action_case(THD *thd)
   @param lex the parser lex context
 */
 
-static bool case_stmt_action_then(THD *thd, LEX *lex)
-{
-  sp_head *sp= lex->sphead;
-  sp_pcontext *pctx= lex->get_sp_current_parsing_ctx();
+/* static bool case_stmt_action_then(THD *thd, LEX *lex) */
+/* { */
+/*   sp_head *sp= lex->sphead; */
+/*   sp_pcontext *pctx= lex->get_sp_current_parsing_ctx(); */
 
-  sp_instr_jump *i =
-    new (thd->mem_root) sp_instr_jump(sp->instructions(), pctx);
+/*   sp_instr_jump *i = */
+/*     new (thd->mem_root) sp_instr_jump(sp->instructions(), pctx); */
 
-  if (!i || sp->add_instr(thd, i))
-    return true;
+/*   if (!i || sp->add_instr(thd, i)) */
+/*     return true; */
 
-  /*
-    BACKPATCH: Resolving forward jump from
-    "case_stmt_action_when" to "case_stmt_action_then"
-    (jump_if_not from instruction 2 to 5, 5 to 8 ... in the example)
-  */
+/*   /\* */
+/*     BACKPATCH: Resolving forward jump from */
+/*     "case_stmt_action_when" to "case_stmt_action_then" */
+/*     (jump_if_not from instruction 2 to 5, 5 to 8 ... in the example) */
+/*   *\/ */
 
-  sp->m_parser_data.do_backpatch(pctx->pop_label(), sp->instructions());
+/*   sp->m_parser_data.do_backpatch(pctx->pop_label(), sp->instructions()); */
 
-  /*
-    BACKPATCH: Registering forward jump from
-    "case_stmt_action_then" to "case_stmt_action_end_case"
-    (jump from instruction 4 to 12, 7 to 12 ... in the example)
-  */
+/*   /\* */
+/*     BACKPATCH: Registering forward jump from */
+/*     "case_stmt_action_then" to "case_stmt_action_end_case" */
+/*     (jump from instruction 4 to 12, 7 to 12 ... in the example) */
+/*   *\/ */
 
-  return sp->m_parser_data.add_backpatch_entry(i, pctx->last_label());
-}
+/*   return sp->m_parser_data.add_backpatch_entry(i, pctx->last_label()); */
+/* } */
 
 /**
   Helper action for an end case.
@@ -445,23 +452,23 @@ static bool case_stmt_action_then(THD *thd, LEX *lex)
   @param simple true for simple cases, false for searched cases
 */
 
-static void case_stmt_action_end_case(LEX *lex, bool simple)
-{
-  sp_head *sp= lex->sphead;
-  sp_pcontext *pctx= lex->get_sp_current_parsing_ctx();
+/* static void case_stmt_action_end_case(LEX *lex, bool simple) */
+/* { */
+/*   sp_head *sp= lex->sphead; */
+/*   sp_pcontext *pctx= lex->get_sp_current_parsing_ctx(); */
 
-  /*
-    BACKPATCH: Resolving forward jump from
-    "case_stmt_action_then" to "case_stmt_action_end_case"
-    (jump from instruction 4 to 12, 7 to 12 ... in the example)
-  */
-  sp->m_parser_data.do_backpatch(pctx->pop_label(), sp->instructions());
+/*   /\* */
+/*     BACKPATCH: Resolving forward jump from */
+/*     "case_stmt_action_then" to "case_stmt_action_end_case" */
+/*     (jump from instruction 4 to 12, 7 to 12 ... in the example) */
+/*   *\/ */
+/*   sp->m_parser_data.do_backpatch(pctx->pop_label(), sp->instructions()); */
 
-  if (simple)
-    pctx->pop_case_expr_id();
+/*   if (simple) */
+/*     pctx->pop_case_expr_id(); */
 
-  sp->m_parser_data.do_cont_backpatch(sp->instructions());
-}
+/*   sp->m_parser_data.do_cont_backpatch(sp->instructions()); */
+/* } */
 
 
 static void init_index_hints(List<Index_hint> *hints, index_hint_type type,
@@ -484,17 +491,17 @@ bool my_yyoverflow(short **a, YYSTYPE **b, YYLTYPE **c, ulong *yystacksize);
 #include "sql/parse_tree_nodes.h"
 #include "sql/parse_tree_partitions.h"
 
-void warn_about_deprecated_national(THD *thd)
-{
-  if (native_strcasecmp(national_charset_info->csname, "utf8") == 0)
-    push_warning(thd, ER_DEPRECATED_NATIONAL);
-}
+/* void warn_about_deprecated_national(THD *thd) */
+/* { */
+/*   if (native_strcasecmp(national_charset_info->csname, "utf8") == 0) */
+/*     push_warning(thd, ER_DEPRECATED_NATIONAL); */
+/* } */
 
-void warn_about_deprecated_binary(THD *thd)
-{
-  push_deprecated_warn(thd, "BINARY as attribute of a type",
-  "a CHARACTER SET clause with _bin collation");
-}
+/* void warn_about_deprecated_binary(THD *thd) */
+/* { */
+/*   push_deprecated_warn(thd, "BINARY as attribute of a type", */
+/*   "a CHARACTER SET clause with _bin collation"); */
+/* } */
 
 
 %}

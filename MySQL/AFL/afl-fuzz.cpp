@@ -7666,7 +7666,7 @@ static void do_libary_initialize()
     g_mutator.init(string(g_libary_path) + "/" + f);
   }
   g_mutator.init_data_library(GLOBAL_TYPE_PATH);
-  g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
+  // g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
   cout << "init_lib done" << endl;
 }
 
