@@ -20,6 +20,7 @@ custom_additional_keywords = {
     "/* empty */",
     "/* Empty */",
     "{}",
+    "'!'",
     "'.'",
     "%prec",
 }
