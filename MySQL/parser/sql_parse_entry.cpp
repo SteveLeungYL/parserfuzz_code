@@ -87,12 +87,6 @@ void cleanup_after_parse_error(THD* thd) {
   }
 }
 
-
-
-
-
-/* Main parser entry */ 
-
 bool parse_sql_entry(THD *thd, Parser_state *parser_state,
                Object_creation_ctx *creation_ctx, vector<IR*>& ir_vec) {
   DBUG_TRACE;
@@ -170,7 +164,8 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
   bool mysql_parse_status = false;
 
   Parse_tree_root *root = nullptr;
-  if (MYSQLparse(thd, &root, ir_vec))
+  IR* dummy_res;
+  if (MYSQLparse(thd, &root, ir_vec, dummy_res))
   {
       cleanup_after_parse_error(thd);
       mysql_parse_status = true;
@@ -272,7 +267,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 }
 
 
-bool exec_query_command_entry(string input) {
+bool exec_query_command_entry(string input, vector<IR*> ir_vec) {
     THD *thd = new (std::nothrow) THD;
     thd->get_stmt_da()->reset_diagnostics_area();
     thd->get_stmt_da()->reset_statement_cond_count();
@@ -305,7 +300,7 @@ bool exec_query_command_entry(string input) {
         // thd->m_parser_state = parser_state;
 
         bool err;
-        err = parse_sql(thd, &parser_state, nullptr);
+        err = parse_sql_entry(thd, &parser_state, nullptr, ir_vec);
         thd->end_statement();
     }
 

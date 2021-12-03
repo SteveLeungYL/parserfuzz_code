@@ -32,7 +32,9 @@
 #include "sql/derror.h"
 #include "sql/sp_head.h"
 
-extern int MYSQLparse(class THD * thd, class Parse_tree_root * *root, vector<IR*> ir_vec);
+extern int MYSQLparse(class THD * thd, class Parse_tree_root * *root, vector<IR*> ir_vec, IR* res);
 
 bool parse_sql_entry(THD *thd, Parser_state *parser_state,
                Object_creation_ctx *creation_ctx, vector<IR*>& ir_vec);
+
+bool exec_query_command_entry(string input, vector<IR*> ir_vec);
