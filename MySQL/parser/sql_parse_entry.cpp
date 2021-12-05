@@ -1064,7 +1064,7 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
   }
 
   if (lip->lookahead_token >= 0) {
-    
+
     /*
       The next token was already parsed in advance,
       return it.
