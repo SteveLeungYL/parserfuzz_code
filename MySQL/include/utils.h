@@ -5,7 +5,7 @@
 #include <vector>
 #include <iostream>
 #include "../include/ast.h"
-#include "../parser/bison_parser.h"
+// #include "../parser/bison_parser.h"
 using std::vector;
 using std::string;
 

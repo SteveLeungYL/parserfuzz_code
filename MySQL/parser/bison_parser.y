@@ -36,7 +36,8 @@
 using std::vector;
 #include "../include/ast.h"
 
-#include "./sql_parse_entry.h"
+/* #include "./sql_parse_entry.h" */
+#include "./sql_parse_entry_2.h"
 }
 
 %{

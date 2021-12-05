@@ -19,10 +19,6 @@
 #include "sql/sp_head.h"
 
 
-
-
-
-
 /* Helper functions */
 
 static const char *long_str = "2147483647";
@@ -1068,6 +1064,7 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
   }
 
   if (lip->lookahead_token >= 0) {
+    
     /*
       The next token was already parsed in advance,
       return it.
