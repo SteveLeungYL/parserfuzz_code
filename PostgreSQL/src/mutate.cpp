@@ -761,6 +761,10 @@ void Mutator::_extract_struct(IR *root) {
     root->str_val_ = "true";
     return;
   }
+  // else if (root->get_ir_type() == kStringLiteral) {
+  //   root->str_val_ = "x";
+  //   return;
+  // }
 
 
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
@@ -1831,8 +1835,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
 
         /* STRING */
+        /* Because STRING could represent too many types: inet, datetime, or even regular expressions.
+         * Thus, use the original string with 90% of chances, only change it with our string library with 10%.
+         * */
         else {
-          ir_to_fix->str_val_ = get_a_string();
+          if (get_rand_int(10) < 1) {
+            ir_to_fix->str_val_ = get_a_string();
+          }
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
