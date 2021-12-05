@@ -304,7 +304,7 @@ int yylex(void *yylval, void *yythd);
 */
 
 static
-void MYSQLerror(THD *thd, Parse_tree_root **, vector<IR*>& ir_vec, IR* res, const char *s)
+void MYSQLerror(YYLTYPE *location, THD *thd, Parse_tree_root **, vector<IR*>& ir_vec, IR* res, const char *s)
 {
   if (strcmp(s, "syntax error") == 0) {
     // thd->syntax_error_at(*location);
@@ -2762,6 +2762,7 @@ start_entry:
         auto tmp2 = $4;
         res = new IR(kStartEntry, OP3("GRAMMAR_SELECTOR_GCOL", "(", ")"), tmp1, tmp2);
         $$ = res;
+        @1;
     }
 
     | GRAMMAR_SELECTOR_CTE table_subquery END_OF_INPUT {
