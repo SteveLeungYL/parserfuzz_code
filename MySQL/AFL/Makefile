@@ -45,11 +45,14 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
-SRCS = afl-fuzz.cpp
+SRCS = afl-fuzz.cpp test-parser.cpp
 
 all: $(SRCS:%.cpp=%.o)
 
 afl-fuzz.o: afl-fuzz.cpp $(DEPDIR)
+	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient
+
+test-parser.o: test-parser.cpp $(DEPDIR)
 	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient
 
 .NOTPARALLEL: clean

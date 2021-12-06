@@ -8,7 +8,7 @@ COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp # ../parser/flex_lexer.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
-# TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
+TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 
 MYSQL_INCLUDE_PATH = /usr/include/mysql
 MYSQL_LIB_PATH = 
@@ -20,7 +20,7 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl -lmysqlclient -pg
 
 
-all: afl-fuzz #test-parser
+all: afl-fuzz test-parser
 
 parser:
 	@$(MAKE) -C $@
@@ -32,9 +32,9 @@ afl-fuzz: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(AFL_OBJS)  -o $@ $(LDFLAGS)
 	# cp afl-fuzz ./fuzz_root
 
-# test-parser: $(SUB_DIRS)
-# 	$(CC) $(CFLAGS) $(TEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
-# 	cp test-parser ./fuzz_root
+test-parser: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(TEST_OBJS) -I $(PGSQL_INCLUDE_PATH) -L $(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+	#cp test-parser ./fuzz_root
 
 debug: DEBUG = -g
 debug: OPT = -O0

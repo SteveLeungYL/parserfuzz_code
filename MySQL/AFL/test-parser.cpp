@@ -44,7 +44,7 @@ Mutator mutator;
 IR* test_parse(string &query) {
 
   vector<IR*> v_ir;
-  exec_query_comand_entry(query, v_ir);
+  exec_query_command_entry(query, v_ir);
   if (v_ir.size() <= 0) {
     cerr << RED << "parse failed" << DEF << endl;
     return NULL;
@@ -62,59 +62,59 @@ IR* test_parse(string &query) {
   }
   cout << "tostring: >" << tostring << "<" << endl;
 
-  string structure = mutator.extract_struct(root);
-  if (structure.size() <= 0) {
-    cerr << RED << "extract failed" << DEF << endl;
-    root->deep_drop();
-    return NULL;
-  }
-  cout << "structur: >" << structure << "<" << endl;
+  // string structure = mutator.extract_struct(root);
+  // if (structure.size() <= 0) {
+  //   cerr << RED << "extract failed" << DEF << endl;
+  //   root->deep_drop();
+  //   return NULL;
+  // }
+  // cout << "structur: >" << structure << "<" << endl;
 
   IR* cur_root = root->deep_copy();
   root->deep_drop();
   return cur_root;
 }
 
-bool try_validate_query(IR* cur_root) {
-  /*
-  pre_transform, post_transform and validate()
-  */
-  cerr << "\n\n\nRunning try_validate_query: \n\n";
+// bool try_validate_query(IR* cur_root) {
+//   /*
+//   pre_transform, post_transform and validate()
+//   */
+//   cerr << "\n\n\nRunning try_validate_query: \n\n";
 
-  /*
-  pre_transform, post_transform and validate()
-  */
+//   /*
+//   pre_transform, post_transform and validate()
+//   */
 
-  mutator.pre_validate(); // Reset global variables for query sequence.
+//   mutator.pre_validate(); // Reset global variables for query sequence.
 
-  p_oracle->init_ir_wrapper(cur_root);
-  vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+//   p_oracle->init_ir_wrapper(cur_root);
+//   vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
-  for (IR* cur_trans_stmt : all_stmt_vec) {
-    cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt -> to_string() << "\n\n\n";
-    if(!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
-      cerr << "Error: g_mutator.validate returns errors. \n\n\n";
-    } else {
-      cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
-    }
-  }
+//   for (IR* cur_trans_stmt : all_stmt_vec) {
+//     cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt -> to_string() << "\n\n\n";
+//     if(!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
+//       cerr << "Error: g_mutator.validate returns errors. \n\n\n";
+//     } else {
+//       cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
+//     }
+//   }
 
-  // Clean up allocated resource.
-  // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
+//   // Clean up allocated resource.
+//   // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
 
-  string validity = cur_root->to_string();
-  if (validity.size() <= 0) {
-    cerr << RED << "validate failed" << DEF << endl;
-    cur_root->deep_drop();
-    return false;
-  }
-  cout << "validate: >" << validity << "<" << endl;
+//   string validity = cur_root->to_string();
+//   if (validity.size() <= 0) {
+//     cerr << RED << "validate failed" << DEF << endl;
+//     cur_root->deep_drop();
+//     return false;
+//   }
+//   cout << "validate: >" << validity << "<" << endl;
 
-  cur_root->deep_drop();
+//   cur_root->deep_drop();
 
-  return true;
+//   return true;
 
-}
+// }
 
 int main(int argc, char *argv[]) {
 

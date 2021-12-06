@@ -3512,6 +3512,14 @@ void Query_arena::swap_query_arena(const Query_arena &source,
   set_query_arena(source);
 }
 
+void *memdup_root(MEM_ROOT *root, const void *str, size_t len) {
+  char *pos;
+  if ((pos = static_cast<char *>(root->Alloc(len)))) {
+    memcpy(pos, str, len);
+  }
+  return pos;
+}
+
 void Query_arena::free_items() {
   Item *next;
   DBUG_TRACE;
@@ -3743,6 +3751,67 @@ Yacc_state::~Yacc_state() {
     my_free(yacc_yyvs);
     my_free(yacc_yyls);
   }
+}
+
+THD::~THD() {
+  // THD_CHECK_SENTRY(this);
+  // DBUG_TRACE;
+  // DBUG_PRINT("info", ("THD dtor, this %p", this));
+
+  // if (!release_resources_done()) release_resources();
+
+  // clear_next_event_pos();
+
+  /* Ensure that no one is using THD */
+  // mysql_mutex_lock(&LOCK_thd_data);
+  // mysql_mutex_unlock(&LOCK_thd_data);
+  // mysql_mutex_lock(&LOCK_thd_query);
+  // mysql_mutex_unlock(&LOCK_thd_query);
+
+  // assert(!m_attachable_trx);
+
+  // my_free(const_cast<char *>(m_db.str));
+  // m_db = NULL_CSTR;
+  // get_transaction()->free_memory();
+  // mysql_mutex_destroy(&LOCK_query_plan);
+  // mysql_mutex_destroy(&LOCK_thd_data);
+  // mysql_mutex_destroy(&LOCK_thd_query);
+  // mysql_mutex_destroy(&LOCK_thd_sysvar);
+  // mysql_mutex_destroy(&LOCK_thd_protocol);
+  // mysql_mutex_destroy(&LOCK_current_cond);
+  // mysql_mutex_destroy(&LOCK_group_replication_connection_mutex);
+
+  // mysql_cond_destroy(&COND_thr_lock);
+  // mysql_cond_destroy(&COND_group_replication_connection_cond_var);
+// #ifndef NDEBUG
+//   dbug_sentry = THD_SENTRY_GONE;
+// #endif
+
+//   if (variables.gtid_next_list.gtid_set != nullptr) {
+// #ifdef HAVE_GTID_NEXT_LIST
+//     delete variables.gtid_next_list.gtid_set;
+//     variables.gtid_next_list.gtid_set = NULL;
+//     variables.gtid_next_list.is_non_null = false;
+// #else
+//     assert(0);
+// #endif
+//   }
+//   if (rli_slave) rli_slave->cleanup_after_session();
+
+//   /*
+//     As slaves can be added in one mysql command like COM_REGISTER_SLAVE
+//     but then need to be removed on error scenarios, we call this method
+//     here
+//   */
+//   unregister_slave(this, true, true);
+
+//   main_mem_root.Clear();
+
+//   if (m_token_array != nullptr) {
+//     my_free(m_token_array);
+//   }
+
+//   m_thd_life_cycle_stage = enum_thd_life_cycle_stages::DISPOSED;
 }
 
 

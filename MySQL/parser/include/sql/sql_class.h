@@ -233,6 +233,7 @@ typedef struct rpl_event_coordinates {
 
 
 char *strmake_root(MEM_ROOT *root, const char *str, size_t len);
+void *memdup_root(MEM_ROOT *root, const void *str, size_t len);
 
 class Query_arena {
  private:
@@ -3792,7 +3793,7 @@ class THD : public Query_arena {
   */
   // Internal_error_handler *pop_internal_handler();
 
-  Opt_trace_context opt_trace;  ///< optimizer trace of current statement
+  // Opt_trace_context opt_trace;  ///< optimizer trace of current statement
   /**
     Raise an exception condition.
     @param code the MYSQL_ERRNO error code of the error
