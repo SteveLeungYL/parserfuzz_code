@@ -23,6 +23,69 @@
 
 /* Helper functions */
 
+// static CODE_STATE *code_state(void) {
+//   CODE_STATE *cs, **cs_ptr;
+
+//   if (!init_done) {
+//     init_done = true;
+//     native_mutex_init(&THR_LOCK_dbug, nullptr);
+//     native_mutex_init(&THR_LOCK_gcov, nullptr);
+//     native_rw_init(&THR_LOCK_init_settings);
+//     memset(&init_settings, 0, sizeof(init_settings));
+//     init_settings.out_file = stderr;
+//     init_settings.flags = OPEN_APPEND;
+//   }
+
+//   if (!(cs_ptr = my_thread_var_dbug()))
+//     return nullptr; /* Thread not initialised */
+//   if (!(cs = *cs_ptr)) {
+//     cs = (CODE_STATE *)DbugMalloc(sizeof(*cs));
+//     memset(cs, 0, sizeof(*cs));
+//     cs->process = db_process ? db_process : "dbug";
+//     cs->func = "?func";
+//     cs->file = "?file";
+//     cs->stack = &init_settings;
+//     cs->m_read_lock_count = 0;
+//     *cs_ptr = cs;
+//   }
+//   return cs;
+// }
+// struct CODE_STATE {
+//   const char *process; /* Pointer to process name; usually argv[0] */
+//   const char *func;    /* Name of current user function            */
+//   int func_len;        /* How many bytes to print from func        */
+//   const char *file;    /* Name of current user file                */
+//   struct _db_stack_frame_ *framep; /* Pointer to current frame              */
+//   struct settings *stack; /* debugging settings                       */
+//   int lineno;             /* Current debugger output line number      */
+//   uint level;             /* Current function nesting level           */
+
+//   /*
+//    *      The following variables are used to hold the state information
+//    *      between the call to _db_pargs_() and _db_doprnt_(), during
+//    *      expansion of the DBUG_PRINT macro.  This is the only macro
+//    *      that currently uses these variables.
+//    *
+//    *      These variables are currently used only by _db_pargs_() and
+//    *      _db_doprnt_().
+//    */
+
+//   uint u_line;           /* User source code line number */
+//   int locked;            /* If locked with _db_lock_file_ */
+//   const char *u_keyword; /* Keyword for current macro */
+//   uint m_read_lock_count;
+// };
+
+// #define get_code_state_or_return \
+//   if (!((cs = code_state()))) return
+
+// void _db_pargs_(uint _line_, const char *keyword) {
+//   CODE_STATE *cs;
+//   get_code_state_or_return;
+//   cs->u_line = _line_;
+//   cs->u_keyword = keyword;
+// }
+
 static const char *long_str = "2147483647";
 static const uint long_len = 10;
 static const char *signed_long_str = "-2147483648";
@@ -1723,9 +1786,9 @@ const SYMBOL *Lex_hash::get_hash_symbol(const char *s, unsigned int len) const {
   const char *cur_str = s;
 
   if (len == 0) {
-    DBUG_PRINT("warning",
-               ("get_hash_symbol() received a request for a zero-length symbol,"
-                " which is probably a mistake."));
+    // DBUG_PRINT("warning",
+    //            ("get_hash_symbol() received a request for a zero-length symbol,"
+    //             " which is probably a mistake."));
     return nullptr;
   }
 
@@ -1947,13 +2010,13 @@ static int find_keyword(Lex_input_stream *lip, uint len, bool function) {
       return 621;
     if ((symbol->tok == 644) &&
         !(lip->m_thd->variables.sql_mode & MODE_PIPES_AS_CONCAT)) {
-      push_deprecated_warn(lip->m_thd, "|| as a synonym for OR", "OR");
+      // push_deprecated_warn(lip->m_thd, "|| as a synonym for OR", "OR");
       return 642;
     }
 
     lip->yylval->optimizer_hints = nullptr;
     if (symbol->group & SG_HINTABLE_KEYWORDS) {
-      lip->add_digest_token(symbol->tok, lip->yylval);
+      // lip->add_digest_token(symbol->tok, lip->yylval);
       if (consume_optimizer_hints(lip)) return 258;
       lip->skip_digest = true;
     }
@@ -2077,10 +2140,10 @@ static bool consume_comment(Lex_input_stream *lip,
 
     if (remaining_recursions_permitted == 1) {
       if ((c == '/') && (lip->yyPeek() == '*')) {
-        push_warning(
-            lip->m_thd, Sql_condition::SL_WARNING,
-            ER_WARN_DEPRECATED_SYNTAX_NO_REPLACEMENT,
-            ER_THD(lip->m_thd, ER_WARN_DEPRECATED_NESTED_COMMENT_SYNTAX));
+        // push_warning(
+        //     lip->m_thd, Sql_condition::SL_WARNING,
+        //     ER_WARN_DEPRECATED_SYNTAX_NO_REPLACEMENT,
+        //     ER_THD(lip->m_thd, ER_WARN_DEPRECATED_NESTED_COMMENT_SYNTAX));
         lip->yyUnput('(');  // Replace nested "/*..." with "(*..."
         lip->yySkip();      // and skip "("
         lip->yySkip();      /* Eat asterisk */
@@ -2104,6 +2167,50 @@ static bool consume_comment(Lex_input_stream *lip,
   return true;
 }
 
+void Lex_input_stream::body_utf8_append(const char *ptr, const char *end_ptr) {
+  assert(m_cpp_buf <= ptr && ptr <= m_cpp_buf + m_buf_length);
+  assert(m_cpp_buf <= end_ptr && end_ptr <= m_cpp_buf + m_buf_length);
+
+  if (!m_body_utf8) return;
+
+  if (m_cpp_utf8_processed_ptr >= ptr) return;
+
+  size_t bytes_to_copy = ptr - m_cpp_utf8_processed_ptr;
+
+  memcpy(m_body_utf8_ptr, m_cpp_utf8_processed_ptr, bytes_to_copy);
+  m_body_utf8_ptr += bytes_to_copy;
+  *m_body_utf8_ptr = 0;
+
+  m_cpp_utf8_processed_ptr = end_ptr;
+}
+
+void Lex_input_stream::body_utf8_append(const char *ptr) {
+  body_utf8_append(ptr, ptr);
+}
+
+void Lex_input_stream::body_utf8_append_literal(THD *thd, const LEX_STRING *txt,
+                                                const CHARSET_INFO *txt_cs,
+                                                const char *end_ptr) {
+  // if (!m_cpp_utf8_processed_ptr) return;
+
+  // LEX_STRING utf_txt;
+
+  // if (!my_charset_same(txt_cs, &my_charset_utf8_general_ci)) {
+  //   thd->convert_string(&utf_txt, &my_charset_utf8_general_ci, txt->str,
+  //                       txt->length, txt_cs);
+  // } else {
+  //   utf_txt.str = txt->str;
+  //   utf_txt.length = txt->length;
+  // }
+
+  // /* NOTE: utf_txt.length is in bytes, not in symbols. */
+
+  // memcpy(m_body_utf8_ptr, utf_txt.str, utf_txt.length);
+  // m_body_utf8_ptr += utf_txt.length;
+  // *m_body_utf8_ptr = 0;
+
+  // m_cpp_utf8_processed_ptr = end_ptr;
+}
 
 static int lex_one_token(Lexer_yystype *yylval, THD *thd) {
   uchar c = 0;
@@ -2264,29 +2371,31 @@ static int lex_one_token(Lexer_yystype *yylval, THD *thd) {
            producing an error.
         */
 
-        if (yylval->lex_str.str[0] == '_') {
-          auto charset_name = yylval->lex_str.str + 1;
-          const CHARSET_INFO *underscore_cs =
-              get_charset_by_csname(charset_name, MY_CS_PRIMARY, MYF(0));
-          if (underscore_cs) {
-            lip->warn_on_deprecated_charset(underscore_cs, charset_name);
-            if (underscore_cs == &my_charset_utf8mb4_0900_ai_ci) {
-              /*
-                If underscore_cs is utf8mb4, and the collation of underscore_cs
-                is the default collation of utf8mb4, then update underscore_cs
-                with a value of the default_collation_for_utf8mb4 system
-                variable:
-              */
-              underscore_cs = thd->variables.default_collation_for_utf8mb4;
-            }
-            yylval->charset = underscore_cs;
-            lip->m_underscore_cs = underscore_cs;
+        // /* Yu: Ignore charset for now.  */
 
-            lip->body_utf8_append(lip->m_cpp_text_start,
-                                  lip->get_cpp_tok_start() + length);
-            return (852);
-          }
-        }
+        // if (yylval->lex_str.str[0] == '_') {
+        //   auto charset_name = yylval->lex_str.str + 1;
+        //   const CHARSET_INFO *underscore_cs =
+        //       get_charset_by_csname(charset_name, MY_CS_PRIMARY, MYF(0));
+        //   if (underscore_cs) {
+        //     lip->warn_on_deprecated_charset(underscore_cs, charset_name);
+        //     if (underscore_cs == &my_charset_utf8mb4_0900_ai_ci) {
+        //       /*
+        //         If underscore_cs is utf8mb4, and the collation of underscore_cs
+        //         is the default collation of utf8mb4, then update underscore_cs
+        //         with a value of the default_collation_for_utf8mb4 system
+        //         variable:
+        //       */
+        //       underscore_cs = thd->variables.default_collation_for_utf8mb4;
+        //     }
+        //     yylval->charset = underscore_cs;
+        //     lip->m_underscore_cs = underscore_cs;
+
+        //     lip->body_utf8_append(lip->m_cpp_text_start,
+        //                           lip->get_cpp_tok_start() + length);
+        //     return (852);
+        //   }
+        // }
 
         lip->body_utf8_append(lip->m_cpp_text_start);
 
@@ -2614,10 +2723,10 @@ static int lex_one_token(Lexer_yystype *yylval, THD *thd) {
           }
         } else {
           if (lip->in_comment != NO_COMMENT) {
-            push_warning(
-                lip->m_thd, Sql_condition::SL_WARNING,
-                ER_WARN_DEPRECATED_SYNTAX_NO_REPLACEMENT,
-                ER_THD(lip->m_thd, ER_WARN_DEPRECATED_NESTED_COMMENT_SYNTAX));
+            // push_warning(
+            //     lip->m_thd, Sql_condition::SL_WARNING,
+            //     ER_WARN_DEPRECATED_SYNTAX_NO_REPLACEMENT,
+            //     ER_THD(lip->m_thd, ER_WARN_DEPRECATED_NESTED_COMMENT_SYNTAX));
           }
           lip->in_comment = PRESERVE_COMMENT;
           lip->yySkip();  // Accept /
@@ -2795,10 +2904,10 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
   Lex_input_stream *lip = &thd->m_parser_state->m_lip;
   int token;
 
-  if (thd->is_error()) {
-    if (thd->get_parser_da()->has_sql_condition(ER_CAPACITY_EXCEEDED))
-      return 258;
-  }
+  // if (thd->is_error()) {
+  //   if (thd->get_parser_da()->has_sql_condition(ER_CAPACITY_EXCEEDED))
+  //     return 258;
+  // }
 
   if (lip->lookahead_token >= 0) {
 
@@ -2814,7 +2923,7 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
     yylloc->raw.start = lip->get_tok_start();
     yylloc->raw.end = lip->get_ptr();
     lip->lookahead_yylval = nullptr;
-    lip->add_digest_token(token, yylval);
+    // lip->add_digest_token(token, yylval);
     return token;
   }
 
@@ -2836,7 +2945,7 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
         case 734:
           yylloc->cpp.end = lip->get_cpp_ptr();
           yylloc->raw.end = lip->get_ptr();
-          lip->add_digest_token(894, yylval);
+          // lip->add_digest_token(894, yylval);
           return 894;
         default:
           /*
@@ -2847,7 +2956,7 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
           lip->lookahead_token = token;
           yylloc->cpp.end = lip->get_cpp_ptr();
           yylloc->raw.end = lip->get_ptr();
-          lip->add_digest_token(892, yylval);
+          // lip->add_digest_token(892, yylval);
           return 892;
       }
       break;
@@ -2855,16 +2964,16 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd) {
 
   yylloc->cpp.end = lip->get_cpp_ptr();
   yylloc->raw.end = lip->get_ptr();
-  if (!lip->skip_digest) lip->add_digest_token(token, yylval);
+  // if (!lip->skip_digest) lip->add_digest_token(token, yylval);
   lip->skip_digest = false;
   return token;
 }
 
 
 
-const char *ER_THD(const THD *thd, int mysql_errno) {
-  return thd->variables.lc_messages->errmsgs->lookup(mysql_errno);
-}
+// const char *ER_THD(const THD *thd, int mysql_errno) {
+//   return thd->variables.lc_messages->errmsgs->lookup(mysql_errno);
+// }
 
 class Parser_oom_handler : public Internal_error_handler {
  public:
@@ -2880,13 +2989,13 @@ class Parser_oom_handler : public Internal_error_handler {
         return true;
       if (sql_errno == EE_CAPACITY_EXCEEDED || sql_errno == EE_OUTOFMEMORY) {
         m_is_mem_error = true;
-        if (sql_errno == EE_CAPACITY_EXCEEDED)
-          my_error(ER_CAPACITY_EXCEEDED, MYF(0),
-                   static_cast<ulonglong>(thd->variables.parser_max_mem_size),
-                   "parser_max_mem_size",
-                   ER_THD(thd, ER_CAPACITY_EXCEEDED_IN_PARSER));
-        else
-          my_error(ER_OUT_OF_RESOURCES, MYF(ME_FATALERROR));
+        if (sql_errno == EE_CAPACITY_EXCEEDED) {}
+          // my_error(ER_CAPACITY_EXCEEDED, MYF(0),
+          //          static_cast<ulonglong>(thd->variables.parser_max_mem_size),
+          //          "parser_max_mem_size",
+          //          ER_THD(thd, ER_CAPACITY_EXCEEDED_IN_PARSER));
+        else {}
+          // my_error(ER_OUT_OF_RESOURCES, MYF(ME_FATALERROR));
         return true;
       }
     }
@@ -2918,6 +3027,27 @@ void sp_parser_data::finish_parsing_sp_body(THD *thd) {
 
   m_saved_memroot = nullptr;
   m_saved_item_list = nullptr;
+}
+
+void Query_arena::free_items() {
+  Item *next;
+  /* This works because items are allocated with (*THR_MALLOC)->Alloc() */
+  for (; m_item_list; m_item_list = next) {
+    next = m_item_list->next_free;
+    m_item_list->delete_self();
+  }
+  /* Postcondition: free_list is 0 */
+}
+
+void sp_head::destroy(sp_head *sp) {
+  if (!sp) return;
+
+  /* Pull out main_mem_root as free_root will free the sp */
+  MEM_ROOT own_root = std::move(sp->main_mem_root);
+
+  sp->~sp_head();
+
+  own_root.Clear();
 }
 
 /**
@@ -2957,7 +3087,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 
   Object_creation_ctx *backup_ctx = nullptr;
 
-  if (creation_ctx) backup_ctx = creation_ctx->set_n_backup(thd);
+  // if (creation_ctx) backup_ctx = creation_ctx->set_n_backup(thd);
 
   /* Set parser state. */
 
@@ -3016,9 +3146,9 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 
   thd->mem_root->set_max_capacity(thd->variables.parser_max_mem_size);
   thd->mem_root->set_error_for_capacity_exceeded(true);
-  thd->push_internal_handler(&poomh);
+  // thd->push_internal_handler(&poomh);
 
-  thd->push_diagnostics_area(parser_da, false);
+  // thd->push_diagnostics_area(parser_da, false);
 
   bool mysql_parse_status = false;
 
@@ -3029,12 +3159,14 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
       cleanup_after_parse_error(thd);
       mysql_parse_status = true;
   }
-  if (root != nullptr && thd->lex->make_sql_cmd(root)) {
+  if (root != nullptr 
+  // && thd->lex->make_sql_cmd(root)
+  ) {
     mysql_parse_status = true;
   }
   mysql_parse_status = false;
 
-  thd->pop_internal_handler();
+  // thd->pop_internal_handler();
   thd->mem_root->set_max_capacity(0);
   thd->mem_root->set_error_for_capacity_exceeded(false);
   /*
@@ -3060,22 +3192,22 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
       statements, in which case we wish to keep the errors so they can be sent
       to the client.
     */
-    if (thd->lex->sql_command != SQLCOM_SHOW_WARNS &&
-        thd->lex->sql_command != SQLCOM_GET_DIAGNOSTICS)
-      da->reset_condition_info(thd);
+    // if (thd->lex->sql_command != SQLCOM_SHOW_WARNS &&
+    //     thd->lex->sql_command != SQLCOM_GET_DIAGNOSTICS)
+    //   da->reset_condition_info(thd);
 
     /*
       We need to put any errors in the DA as well as the condition list.
     */
-    if (parser_da->is_error() && !da->is_error()) {
-      da->set_error_status(parser_da->mysql_errno(), parser_da->message_text(),
-                           parser_da->returned_sqlstate());
-    }
+    // if (parser_da->is_error() && !da->is_error()) {
+    //   da->set_error_status(parser_da->mysql_errno(), parser_da->message_text(),
+    //                        parser_da->returned_sqlstate());
+    // }
 
-    da->copy_sql_conditions_from_da(thd, parser_da);
+    // da->copy_sql_conditions_from_da(thd, parser_da);
 
-    parser_da->reset_diagnostics_area();
-    parser_da->reset_condition_info(thd);
+    // parser_da->reset_diagnostics_area();
+    // parser_da->reset_condition_info(thd);
 
     /*
       Do not clear the condition list when starting execution as it
@@ -3107,7 +3239,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 
   /* Restore creation context. */
 
-  if (creation_ctx) creation_ctx->restore_env(thd, backup_ctx);
+  // if (creation_ctx) creation_ctx->restore_env(thd, backup_ctx);
 
   /* That's it. */
 
