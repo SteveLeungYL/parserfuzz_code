@@ -168,7 +168,7 @@ Note: YYTHD is passed as an argument to yyparse(), and subsequently to yylex().
 // #include "./include/violite.h"
 
 
-
+#define yyparse         MYSQLparse
 #define yyerror         MYSQLerror
 #define yylex           MYSQLlex
 

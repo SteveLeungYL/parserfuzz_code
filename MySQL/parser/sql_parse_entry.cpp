@@ -3039,16 +3039,16 @@ void Query_arena::free_items() {
   /* Postcondition: free_list is 0 */
 }
 
-void sp_head::destroy(sp_head *sp) {
-  if (!sp) return;
+// void sp_head::destroy(sp_head *sp) {
+//   if (!sp) return;
 
-  /* Pull out main_mem_root as free_root will free the sp */
-  MEM_ROOT own_root = std::move(sp->main_mem_root);
+//   /* Pull out main_mem_root as free_root will free the sp */
+//   MEM_ROOT own_root = std::move(sp->main_mem_root);
 
-  sp->~sp_head();
+//   sp->~sp_head();
 
-  own_root.Clear();
-}
+//   own_root.Clear();
+// }
 
 /**
   Restore session state in case of parse error.
@@ -3063,17 +3063,308 @@ void sp_head::destroy(sp_head *sp) {
 */
 
 void cleanup_after_parse_error(THD* thd) {
-  sp_head *sp = thd->lex->sphead;
+  // sp_head *sp = thd->lex->sphead;
 
-  if (sp) {
-    sp->m_parser_data.finish_parsing_sp_body(thd);
-    //  Do not delete sp_head if is invoked in the context of sp execution.
-    if (thd->sp_runtime_ctx == nullptr) {
-      sp_head::destroy(sp);
-      thd->lex->sphead = nullptr;
-    }
-  }
+  // if (sp) {
+  //   sp->m_parser_data.finish_parsing_sp_body(thd);
+  //   //  Do not delete sp_head if is invoked in the context of sp execution.
+  //   if (thd->sp_runtime_ctx == nullptr) {
+  //     sp_head::destroy(sp);
+  //     thd->lex->sphead = nullptr;
+  //   }
+  // }
 }
+
+// class Query_arena {
+//  private:
+//   /*
+//     List of items created for this query. Every item adds itself to the list
+//     on creation (see Item::Item() for details)
+//   */
+//   Item *m_item_list;
+
+//  public:
+//   MEM_ROOT *mem_root;  // Pointer to current memroot
+//   /// To check whether a reprepare operation is active
+//   bool is_repreparing{false};
+//   /*
+//     The states reflects three different life cycles for three
+//     different types of statements:
+//     Prepared statement: STMT_INITIALIZED -> STMT_PREPARED -> STMT_EXECUTED.
+//     Stored procedure:   STMT_INITIALIZED_FOR_SP -> STMT_EXECUTED.
+//     Other statements:   STMT_REGULAR_EXECUTION never changes.
+//   */
+//   enum enum_state {
+//     STMT_INITIALIZED = 0,
+//     STMT_INITIALIZED_FOR_SP = 1,
+//     STMT_PREPARED = 2,
+//     STMT_REGULAR_EXECUTION = 3,
+//     STMT_EXECUTED = 4,
+//     STMT_ERROR = -1
+//   };
+
+//   /*
+//     State and state changes in SP:
+//     1) When state is STMT_INITIALIZED_FOR_SP, objects in the item tree are
+//        created on the statement memroot. This is enforced through
+//        ps_arena_holder checking the state.
+//     2) After the first execute (call p1()), this state should change to
+//        STMT_EXECUTED. Objects will be created on the execution memroot and will
+//        be destroyed at the end of each execution.
+//     3) In case an ER_NEED_REPREPARE error occurs, state should be changed to
+//        STMT_INITIALIZED_FOR_SP and objects will again be created on the
+//        statement memroot. At the end of this execution, state should change to
+//        STMT_EXECUTED.
+//   */
+//  private:
+//   enum_state state;
+
+//  public:
+//   Query_arena(MEM_ROOT *mem_root_arg, enum enum_state state_arg)
+//       : m_item_list(nullptr), mem_root(mem_root_arg), state(state_arg) {}
+
+//   /*
+//     This constructor is used only when Query_arena is created as
+//     backup storage for another instance of Query_arena.
+//   */
+//   Query_arena()
+//       : m_item_list(nullptr), mem_root(nullptr), state(STMT_INITIALIZED) {}
+
+//   virtual ~Query_arena() = default;
+
+//   Item *item_list() const { return m_item_list; }
+//   void reset_item_list() { m_item_list = nullptr; }
+//   void set_item_list(Item *item) { m_item_list = item; }
+//   void add_item(Item *item);
+//   void free_items();
+//   void set_state(enum_state state_arg) { state = state_arg; }
+//   enum_state get_state() const { return state; }
+//   bool is_stmt_prepare() const { return state == STMT_INITIALIZED; }
+//   bool is_stmt_prepare_or_first_sp_execute() const {
+//     return (int)state < (int)STMT_PREPARED;
+//   }
+//   bool is_stmt_prepare_or_first_stmt_execute() const {
+//     return (int)state <= (int)STMT_PREPARED;
+//   }
+//   /// @returns true if a regular statement, ie not prepared and not stored proc
+//   bool is_regular() const { return state == STMT_REGULAR_EXECUTION; }
+
+//   void *alloc(size_t size) { return mem_root->Alloc(size); }
+//   void *mem_calloc(size_t size) {
+//     void *ptr;
+//     if ((ptr = mem_root->Alloc(size))) memset(ptr, 0, size);
+//     return ptr;
+//   }
+//   template <typename T>
+//   T *alloc_typed() {
+//     void *m = alloc(sizeof(T));
+//     return m == nullptr ? nullptr : new (m) T;
+//   }
+//   template <typename T>
+//   T *memdup_typed(const T *mem) {
+//     return static_cast<T *>(memdup_root(mem_root, mem, sizeof(T)));
+//   }
+//   char *mem_strdup(const char *str) { return strdup_root(mem_root, str); }
+//   char *strmake(const char *str, size_t size) const {
+//     return strmake_root(mem_root, str, size);
+//   }
+//   LEX_CSTRING strmake(LEX_CSTRING str) {
+//     LEX_CSTRING ret;
+//     ret.str = strmake(str.str, str.length);
+//     ret.length = ret.str ? str.length : 0;
+//     return ret;
+//   }
+//   void *memdup(const void *str, size_t size) {
+//     return memdup_root(mem_root, str, size);
+//   }
+
+//   /**
+//     Copies memory-managing members from `set`. No references are kept to it.
+
+//     @param set A Query_arena from which members are copied.
+//   */
+//   void set_query_arena(const Query_arena &set);
+
+//   /**
+//     Copy the current arena to `backup` and set the current
+//     arena to match `source`
+
+//     @param source A Query_arena from which members are copied.
+//     @param backup A Query_arena to which members are first saved.
+//   */
+//   // void swap_query_arena(const Query_arena &source, Query_arena *backup);
+// };
+
+// void Query_arena::add_item(Item *item) {
+//   item->next_free = m_item_list;
+//   m_item_list = item;
+// }
+
+// void Query_arena::free_items() {
+//   Item *next;
+//   DBUG_TRACE;
+//   /* This works because items are allocated with (*THR_MALLOC)->Alloc() */
+//   for (; m_item_list; m_item_list = next) {
+//     next = m_item_list->next_free;
+//     m_item_list->delete_self();
+//   }
+//   /* Postcondition: free_list is 0 */
+// }
+
+// void Query_arena::set_query_arena(const Query_arena &set) {
+//   mem_root = set.mem_root;
+//   set_item_list(set.item_list());
+//   state = set.state;
+// }
+
+THD::THD()
+    : 
+      Query_arena(&main_mem_root, STMT_REGULAR_EXECUTION),
+      query_plan(this),
+      ha_data(PSI_NOT_INSTRUMENTED, ha_data.initial_capacity),
+      audit_class_plugins(PSI_NOT_INSTRUMENTED),
+      main_da(false),
+      m_parser_da(false),
+      m_stmt_da(&main_da),
+      m_query_rewrite_plugin_da(false),
+      m_query_rewrite_plugin_da_ptr(&m_query_rewrite_plugin_da),
+      audit_class_mask(PSI_NOT_INSTRUMENTED),
+      user_var_events(key_memory_user_var_entry)
+      // m_dd_client(new dd::cache::Dictionary_client(this))
+      {
+  // main_lex->reset();
+  // set_psi(nullptr);
+  mdl_context.init(this);
+  // init_sql_alloc(key_memory_thd_main_mem_root, &main_mem_root,
+                //  global_system_variables.query_alloc_block_size,
+                //  global_system_variables.query_prealloc_size);
+  stmt_arena = this;
+  thread_stack = nullptr;
+  m_catalog.str = "std";
+  m_catalog.length = 3;
+  password = 0;
+  query_start_usec_used = false;
+  check_for_truncated_fields = CHECK_FIELD_IGNORE;
+  killed = NOT_KILLED;
+  is_slave_error = thread_specific_used = false;
+  tmp_table = 0;
+  num_truncated_fields = 0L;
+  m_sent_row_count = 0L;
+  current_found_rows = 0;
+  previous_found_rows = 0;
+  is_operating_gtid_table_implicitly = false;
+  is_operating_substatement_implicitly = false;
+  m_row_count_func = -1;
+  statement_id_counter = 0UL;
+  // Must be reset to handle error with THD's created for init of mysqld
+  lex->thd = nullptr;
+  lex->set_current_query_block(nullptr);
+  utime_after_lock = 0L;
+  current_linfo = nullptr;
+  slave_thread = false;
+  memset(&variables, 0, sizeof(variables));
+  // m_thread_id = Global_THD_manager::reserved_thread_id;
+  file_id = 0;
+  query_id = 0;
+  query_name_consts = 0;
+  // db_charset = global_system_variables.collation_database;
+  is_killable = false;
+  binlog_evt_union.do_union = false;
+  enable_slow_log = false;
+  commit_error = CE_NONE;
+  tx_commit_pending = false;
+  durability_property = HA_REGULAR_DURABILITY;
+// #ifndef NDEBUG
+//   dbug_sentry = THD_SENTRY_MAGIC;
+// #endif
+  // mysql_audit_init_thd(this);
+  net.vio = nullptr;
+  system_thread = NON_SYSTEM_THREAD;
+  peer_port = 0;  // For SHOW PROCESSLIST
+  get_transaction()->m_flags.enabled = true;
+  m_resource_group_ctx.m_cur_resource_group = nullptr;
+  m_resource_group_ctx.m_switch_resource_group_str[0] = '\0';
+  m_resource_group_ctx.m_warn = 0;
+  m_safe_to_display.store(false);
+
+  // mysql_mutex_init(key_LOCK_thd_data, &LOCK_thd_data, MY_MUTEX_INIT_FAST);
+  // mysql_mutex_init(key_LOCK_thd_query, &LOCK_thd_query, MY_MUTEX_INIT_FAST);
+  // mysql_mutex_init(key_LOCK_thd_sysvar, &LOCK_thd_sysvar, MY_MUTEX_INIT_FAST);
+  // mysql_mutex_init(key_LOCK_thd_protocol, &LOCK_thd_protocol,
+  //                  MY_MUTEX_INIT_FAST);
+  // mysql_mutex_init(key_LOCK_query_plan, &LOCK_query_plan, MY_MUTEX_INIT_FAST);
+  // mysql_mutex_init(key_LOCK_current_cond, &LOCK_current_cond,
+  //                  MY_MUTEX_INIT_FAST);
+  // mysql_cond_init(key_COND_thr_lock, &COND_thr_lock);
+
+  // /*Initialize connection delegation mutex and cond*/
+  // mysql_mutex_init(key_LOCK_group_replication_connection_mutex,
+  //                  &LOCK_group_replication_connection_mutex,
+  //                  MY_MUTEX_INIT_FAST);
+  // mysql_cond_init(key_COND_group_replication_connection_cond_var,
+  //                 &COND_group_replication_connection_cond_var);
+
+  /* Variables with default values */
+  // set_proc_info("login");
+  where = THD::DEFAULT_WHERE;
+  // server_id = ::server_id;
+  unmasked_server_id = server_id;
+  set_command(COM_CONNECT);
+  *scramble = '\0';
+
+  /* Call to init() below requires fully initialized Open_tables_state. */
+  // reset_open_tables_state();
+
+  // init();
+// #if defined(ENABLED_PROFILING)
+//   profiling->set_thd(this);
+// #endif
+  m_user_connect = nullptr;
+  user_vars.clear();
+
+  sp_proc_cache = nullptr;
+  sp_func_cache = nullptr;
+
+  /* Protocol */
+  // m_protocol = protocol_text.get();  // Default protocol
+  // protocol_text->init(this);
+  // protocol_binary->init(this);
+  // protocol_text->set_client_capabilities(0);  // minimalistic client
+
+  /*
+    Make sure thr_lock_info_init() is called for threads which do not get
+    assigned a proper thread_id value but keep using reserved_thread_id.
+  */
+  thr_lock_info_init(&lock_info, m_thread_id, &COND_thr_lock);
+
+  m_internal_handler = nullptr;
+  m_binlog_invoker = false;
+  // memset(&m_invoker_user, 0, sizeof(m_invoker_user));
+  // memset(&m_invoker_host, 0, sizeof(m_invoker_host));
+
+  // binlog_next_event_pos.file_name = nullptr;
+  // binlog_next_event_pos.pos = 0;
+
+  timer = nullptr;
+  timer_cache = nullptr;
+
+  m_token_array = nullptr;
+//   if (max_digest_length > 0) {
+//     m_token_array = (unsigned char *)my_malloc(PSI_INSTRUMENT_ME,
+//                                                max_digest_length, MYF(MY_WME));
+//   }
+// #ifndef NDEBUG
+//   debug_binlog_xid_last.reset();
+// #endif
+  // set_system_user(false);
+}
+
+
+
+
+
+
+
 
 bool parse_sql_entry(THD *thd, Parser_state *parser_state,
                Object_creation_ctx *creation_ctx, vector<IR*>& ir_vec) {
@@ -3260,7 +3551,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 
 bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
     THD *thd = new (std::nothrow) THD;
-    thd->get_stmt_da()->reset_diagnostics_area();
+    // thd->get_stmt_da()->reset_diagnostics_area();
     thd->get_stmt_da()->reset_statement_cond_count();
 
     // Might need a loop
@@ -3278,8 +3569,8 @@ bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
 
     // we produce digest if it's not explicitly turned off
     // by setting maximum digest length to zero
-    if (get_max_digest_length() != 0)
-        parser_state.m_input.m_compute_digest = true;
+    // if (get_max_digest_length() != 0)
+    //     parser_state.m_input.m_compute_digest = true;
 
     while (!thd->killed && (parser_state.m_lip.found_semicolon != nullptr) &&
            !thd->is_error()) {

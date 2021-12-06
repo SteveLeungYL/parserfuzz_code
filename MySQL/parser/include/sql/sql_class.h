@@ -877,13 +877,13 @@ class THD : public MDL_context_owner,
 
  public:
   LEX *lex;                                        // parse tree descriptor
-  dd::cache::Dictionary_client *dd_client() const  // Get the dictionary client.
-  {
-    return m_dd_client.get();
-  }
+  // dd::cache::Dictionary_client *dd_client() const  // Get the dictionary client.
+  // {
+  //   return m_dd_client.get();
+  // }
 
  private:
-  std::unique_ptr<dd::cache::Dictionary_client> m_dd_client;
+  // std::unique_ptr<dd::cache::Dictionary_client> m_dd_client;
 
   /**
     The query associated with this statement.
@@ -1148,8 +1148,8 @@ class THD : public MDL_context_owner,
   */
   bool m_disable_password_validation;
 
-  std::unique_ptr<Protocol_text> protocol_text;      // Normal protocol
-  std::unique_ptr<Protocol_binary> protocol_binary;  // Binary protocol
+  // std::unique_ptr<Protocol_text> protocol_text;      // Normal protocol
+  // std::unique_ptr<Protocol_binary> protocol_binary;  // Binary protocol
 
   const Protocol *get_protocol() const { return m_protocol; }
 
@@ -2181,9 +2181,9 @@ class THD : public MDL_context_owner,
   void set_status_no_good_index_used();
 
   const CHARSET_INFO *db_charset;
-#if defined(ENABLED_PROFILING)
-  std::unique_ptr<PROFILING> profiling;
-#endif
+// #if defined(ENABLED_PROFILING)
+//   std::unique_ptr<PROFILING> profiling;
+// #endif
 
   /** Current stage progress instrumentation. */
   PSI_stage_progress *m_stage_progress_psi;
@@ -2606,7 +2606,8 @@ class THD : public MDL_context_owner,
   */
   bool m_audited;
 
-  THD(bool enable_plugins = true);
+  // THD(bool enable_plugins = true);
+  THD();
 
   /*
     The THD dtor is effectively split in two:
