@@ -3444,7 +3444,7 @@ class Lex_input_stream {
     }
   }
 
-  const CHARSET_INFO *query_charset;
+  // const CHARSET_INFO *query_charset;
 
  private:
   /** Pointer to the current position in the raw input stream. */

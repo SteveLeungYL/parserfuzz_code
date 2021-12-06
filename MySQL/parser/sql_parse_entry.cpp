@@ -2137,15 +2137,15 @@ int MYSQLlex(YYSTYPE *yacc_yylval, YYLTYPE *yylloc, THD *thd);
 */
 
 static bool consume_optimizer_hints(Lex_input_stream *lip) {
-  const my_lex_states *state_map = lip->query_charset->state_maps->main_map;
+  // const my_lex_states *state_map = lip->query_charset->state_maps->main_map;
   int whitespace = 0;
   uchar c = lip->yyPeek();
   size_t newlines = 0;
 
-  for (; state_map[c] == MY_LEX_SKIP;
-       whitespace++, c = lip->yyPeekn(whitespace)) {
-    if (c == '\n') newlines++;
-  }
+  // for (; state_map[c] == MY_LEX_SKIP;
+  //      whitespace++, c = lip->yyPeekn(whitespace)) {
+  //   if (c == '\n') newlines++;
+  // }
 
   if (lip->yyPeekn(whitespace) == '/' && lip->yyPeekn(whitespace + 1) == '*' &&
       lip->yyPeekn(whitespace + 2) == '+') {
@@ -2187,7 +2187,7 @@ static bool consume_optimizer_hints(Lex_input_stream *lip) {
 static char *get_text(Lex_input_stream *lip, int pre_skip, int post_skip) {
   uchar c, sep;
   uint found_escape = 0;
-  const CHARSET_INFO *cs = lip->m_thd->charset();
+  // const CHARSET_INFO *cs = lip->m_thd->charset();
 
   lip->tok_bitmap = 0;
   sep = lip->yyGetLast();  // String should end with this
@@ -2196,11 +2196,11 @@ static char *get_text(Lex_input_stream *lip, int pre_skip, int post_skip) {
     lip->tok_bitmap |= c;
     {
       int l;
-      if (use_mb(cs) &&
-          (l = my_ismbchar(cs, lip->get_ptr() - 1, lip->get_end_of_query()))) {
-        lip->skip_binary(l - 1);
-        continue;
-      }
+      // if (use_mb(cs) &&
+      //     (l = my_ismbchar(cs, lip->get_ptr() - 1, lip->get_end_of_query()))) {
+      //   lip->skip_binary(l - 1);
+      //   continue;
+      // }
     }
     if (c == '\\' && !(lip->m_thd->variables.sql_mode &
                        MODE_NO_BACKSLASH_ESCAPES)) {  // Escaped character
@@ -2242,11 +2242,11 @@ static char *get_text(Lex_input_stream *lip, int pre_skip, int post_skip) {
 
         for (to = start; str != end; str++) {
           int l;
-          if (use_mb(cs) && (l = my_ismbchar(cs, str, end))) {
-            while (l--) *to++ = *str++;
-            str--;
-            continue;
-          }
+          // if (use_mb(cs) && (l = my_ismbchar(cs, str, end))) {
+          //   while (l--) *to++ = *str++;
+          //   str--;
+          //   continue;
+          // }
           if (!(lip->m_thd->variables.sql_mode & MODE_NO_BACKSLASH_ESCAPES) &&
               *str == '\\' && str + 1 != end) {
             switch (*++str) {
@@ -3326,15 +3326,15 @@ void sp_parser_data::finish_parsing_sp_body(THD *thd) {
   m_saved_item_list = nullptr;
 }
 
-void Query_arena::free_items() {
-  Item *next;
-  /* This works because items are allocated with (*THR_MALLOC)->Alloc() */
-  for (; m_item_list; m_item_list = next) {
-    next = m_item_list->next_free;
-    m_item_list->delete_self();
-  }
-  /* Postcondition: free_list is 0 */
-}
+// void Query_arena::free_items() {
+//   Item *next;
+//   /* This works because items are allocated with (*THR_MALLOC)->Alloc() */
+//   for (; m_item_list; m_item_list = next) {
+//     next = m_item_list->next_free;
+//     m_item_list->delete_self();
+//   }
+//   /* Postcondition: free_list is 0 */
+// }
 
 // void sp_head::destroy(sp_head *sp) {
 //   if (!sp) return;
@@ -3371,6 +3371,15 @@ void cleanup_after_parse_error(THD* thd) {
   //   }
   // }
 }
+
+char *strmake_root(MEM_ROOT *root, const char *str, size_t len) {
+    char *pos;
+    if ((pos = static_cast<char *>(root->Alloc(len + 1)))) {
+      if (len > 0) memcpy(pos, str, len);
+      pos[len] = 0;
+    }
+    return pos;
+  }
 
 // class Query_arena {
 //  private:
@@ -3492,35 +3501,97 @@ void cleanup_after_parse_error(THD* thd) {
 //   // void swap_query_arena(const Query_arena &source, Query_arena *backup);
 // };
 
-// void Query_arena::add_item(Item *item) {
-//   item->next_free = m_item_list;
-//   m_item_list = item;
-// }
+void Query_arena::add_item(Item *item) {
+  item->next_free = m_item_list;
+  m_item_list = item;
+}
 
-// void Query_arena::free_items() {
-//   Item *next;
-//   DBUG_TRACE;
-//   /* This works because items are allocated with (*THR_MALLOC)->Alloc() */
-//   for (; m_item_list; m_item_list = next) {
-//     next = m_item_list->next_free;
-//     m_item_list->delete_self();
-//   }
-//   /* Postcondition: free_list is 0 */
-// }
+void Query_arena::swap_query_arena(const Query_arena &source,
+                                   Query_arena *backup) {
+  backup->set_query_arena(*this);
+  set_query_arena(source);
+}
 
-// void Query_arena::set_query_arena(const Query_arena &set) {
-//   mem_root = set.mem_root;
-//   set_item_list(set.item_list());
-//   state = set.state;
-// }
+void Query_arena::free_items() {
+  Item *next;
+  DBUG_TRACE;
+  /* This works because items are allocated with (*THR_MALLOC)->Alloc() */
+  for (; m_item_list; m_item_list = next) {
+    next = m_item_list->next_free;
+    m_item_list->delete_self();
+  }
+  /* Postcondition: free_list is 0 */
+}
+
+void Query_arena::set_query_arena(const Query_arena &set) {
+  mem_root = set.mem_root;
+  set_item_list(set.item_list());
+  state = set.state;
+}
 
 void THD::set_query(LEX_CSTRING query_arg) {
-  assert(this == current_thd);
+  // assert(this == current_thd);
   m_query_string = query_arg;
 }
 
+bool Lex_input_stream::init(THD *thd, const char *buff, size_t length) {
+  // DBUG_EXECUTE_IF("bug42064_simulate_oom",
+  //                 DBUG_SET("+d,simulate_out_of_memory"););
 
+  // query_charset = thd->charset();
 
+  m_cpp_buf = (char *)thd->alloc(length + 1);
+
+  // DBUG_EXECUTE_IF("bug42064_simulate_oom",
+  //                 DBUG_SET("-d,bug42064_simulate_oom"););
+
+  if (m_cpp_buf == nullptr) return true;
+
+  m_thd = thd;
+  reset(buff, length);
+
+  return false;
+}
+
+void Lex_input_stream::reset(const char *buffer, size_t length) {
+  yylineno = 1;
+  yytoklen = 0;
+  yylval = nullptr;
+  lookahead_token = grammar_selector_token;
+  static Lexer_yystype dummy_yylval;
+  lookahead_yylval = &dummy_yylval;
+  skip_digest = false;
+  /*
+    Lex_input_stream modifies the query string in one special case (sic!).
+    yyUnput() modifises the string when patching version comments.
+    This is done to prevent newer slaves from executing a different
+    statement than older masters.
+
+    For now, cast away const here. This means that e.g. SHOW PROCESSLIST
+    can see partially patched query strings. It would be better if we
+    could replicate the query string as is and have the slave take the
+    master version into account.
+  */
+  m_ptr = const_cast<char *>(buffer);
+  m_tok_start = nullptr;
+  m_tok_end = nullptr;
+  m_end_of_query = buffer + length;
+  m_buf = buffer;
+  m_buf_length = length;
+  m_echo = true;
+  m_cpp_tok_start = nullptr;
+  m_cpp_tok_end = nullptr;
+  m_body_utf8 = nullptr;
+  m_cpp_utf8_processed_ptr = nullptr;
+  next_state = MY_LEX_START;
+  found_semicolon = nullptr;
+  ignore_space = m_thd->variables.sql_mode & MODE_IGNORE_SPACE;
+  stmt_prepare_mode = false;
+  multi_statements = true;
+  in_comment = NO_COMMENT;
+  m_underscore_cs = nullptr;
+  m_cpp_ptr = m_cpp_buf;
+}
 
 
 THD::THD()
@@ -3666,7 +3737,13 @@ THD::THD()
 }
 
 
-
+Yacc_state::~Yacc_state() {
+  if (yacc_yyss) {
+    my_free(yacc_yyss);
+    my_free(yacc_yyvs);
+    my_free(yacc_yyls);
+  }
+}
 
 
 

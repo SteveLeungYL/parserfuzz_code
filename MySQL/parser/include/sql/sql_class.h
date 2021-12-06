@@ -231,6 +231,9 @@ typedef struct rpl_event_coordinates {
 
 #define THD_CHECK_SENTRY(thd) assert(thd->dbug_sentry == THD_SENTRY_MAGIC)
 
+
+char *strmake_root(MEM_ROOT *root, const char *str, size_t len);
+
 class Query_arena {
  private:
   /*
@@ -242,7 +245,7 @@ class Query_arena {
  public:
   MEM_ROOT *mem_root;  // Pointer to current memroot
   /// To check whether a reprepare operation is active
-  bool is_repreparing{false};
+  // bool is_repreparing{false};
   /*
     The states reflects three different life cycles for three
     different types of statements:

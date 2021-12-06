@@ -174,13 +174,13 @@ class String {
   String()
       : m_ptr(nullptr),
         m_length(0),
-        m_charset(&my_charset_bin),
+        m_charset(nullptr),
         m_alloced_length(0),
         m_is_alloced(false) {}
   explicit String(size_t length_arg)
       : m_ptr(nullptr),
         m_length(0),
-        m_charset(&my_charset_bin),
+        m_charset(nullptr),
         m_alloced_length(0),
         m_is_alloced(false) {
     (void)real_alloc(length_arg);
@@ -629,7 +629,7 @@ class StringBuffer : public String {
   char buff[buff_sz];
 
  public:
-  StringBuffer() : String(buff, buff_sz, &my_charset_bin) { length(0); }
+  StringBuffer() : String(buff, buff_sz, nullptr) { length(0); }
   explicit StringBuffer(const CHARSET_INFO *cs) : String(buff, buff_sz, cs) {
     length(0);
   }
