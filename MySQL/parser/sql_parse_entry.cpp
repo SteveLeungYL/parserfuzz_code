@@ -3077,7 +3077,7 @@ void cleanup_after_parse_error(THD* thd) {
 
 bool parse_sql_entry(THD *thd, Parser_state *parser_state,
                Object_creation_ctx *creation_ctx, vector<IR*>& ir_vec) {
-  DBUG_TRACE;
+  // DBUG_TRACE;
   bool ret_value;
   assert(thd->m_parser_state == nullptr);
   // TODO fix to allow parsing gcol exprs after main query.
