@@ -34,7 +34,7 @@
 #else
 
 #include "sql/sql_hints.yy.h"
-#include "sql/sql_yacc.h"
+#include "../../bison_parser.h"
 
 #define SYM_OR_NULL(A) A
 #endif

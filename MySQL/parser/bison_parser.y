@@ -71,101 +71,101 @@ Note: YYTHD is passed as an argument to yyparse(), and subsequently to yylex().
 #include <type_traits>
 #include <utility>
 
-#include "./include/field_types.h"
-#include "./include/ft_global.h"
+// #include "./include/field_types.h"
+// #include "./include/ft_global.h"
 #include "./include/lex_string.h"
-#include "./libbinlogevents/include/binlog_event.h"
-#include "./include/m_ctype.h"
-#include "./include/m_string.h"
-#include "./include/my_alloc.h"
-#include "./include/my_base.h"
-#include "./include/my_check_opt.h"
-#include "./include/my_dbug.h"
-#include "./include/my_inttypes.h"  // TODO: replace with cstdint
-#include "./include/my_sqlcommand.h"
-#include "./include/my_sys.h"
-#include "./include/my_thread_local.h"
-#include "./include/my_time.h"
-#include "./include/myisam.h"
-#include "./include/myisammrg.h"
-#include "./include/mysql/mysql_lex_string.h"
-#include "./include/mysql/plugin.h"
-#include "./include/mysql/udf_registration_types.h"
-#include "./include/mysql_com.h"
-#include "./include/mysql_time.h"
-#include "./include/mysqld_error.h"
-#include "./include/prealloced_array.h"
-#include "./sql/auth/auth_acls.h"
-#include "./sql/auth/auth_common.h"
-#include "./sql/binlog.h"                          // for MAX_LOG_UNIQUE_FN_EXT
-#include "./sql/create_field.h"
-#include "./sql/dd/types/abstract_table.h"         // TT_BASE_TABLE
-#include "./sql/dd/types/column.h"
-#include "./sql/derror.h"
-#include "./sql/event_parse_data.h"
-#include "./sql/field.h"
-#include "./sql/gis/srid.h"                    // gis::srid_t
-#include "./sql/handler.h"
+// #include "./libbinlogevents/include/binlog_event.h"
+// #include "./include/m_ctype.h"
+// #include "./include/m_string.h"
+// #include "./include/my_alloc.h"
+// #include "./include/my_base.h"
+// #include "./include/my_check_opt.h"
+// #include "./include/my_dbug.h"
+// #include "./include/my_inttypes.h"  // TODO: replace with cstdint
+// #include "./include/my_sqlcommand.h"
+// #include "./include/my_sys.h"
+// #include "./include/my_thread_local.h"
+// #include "./include/my_time.h"
+// #include "./include/myisam.h"
+// #include "./include/myisammrg.h"
+// #include "./include/mysql/mysql_lex_string.h"
+// #include "./include/mysql/plugin.h"
+// #include "./include/mysql/udf_registration_types.h"
+// #include "./include/mysql_com.h"
+// #include "./include/mysql_time.h"
+// #include "./include/mysqld_error.h"
+// #include "./include/prealloced_array.h"
+// #include "./sql/auth/auth_acls.h"
+// #include "./sql/auth/auth_common.h"
+// #include "./sql/binlog.h"                          // for MAX_LOG_UNIQUE_FN_EXT
+// #include "./sql/create_field.h"
+// #include "./sql/dd/types/abstract_table.h"         // TT_BASE_TABLE
+// #include "./sql/dd/types/column.h"
+// #include "./sql/derror.h"
+// #include "./sql/event_parse_data.h"
+// #include "./sql/field.h"
+// #include "./sql/gis/srid.h"                    // gis::srid_t
+// #include "./sql/handler.h"
 #include "./sql/lex_symbol.h"
 #include "./sql/lex_token.h"
 #include "./sql/lexer_yystype.h"
-#include "./sql/mdl.h"
-#include "./sql/mem_root_array.h"
-#include "./sql/mysqld.h"
-#include "./sql/options_mysqld.h"
-#include "./sql/parse_location.h"
-#include "./sql/parse_tree_helpers.h"
-#include "./sql/parse_tree_node_base.h"
+// #include "./sql/mdl.h"
+// #include "./sql/mem_root_array.h"
+// #include "./sql/mysqld.h"
+// #include "./sql/options_mysqld.h"
+// #include "./sql/parse_location.h"
+// #include "./sql/parse_tree_helpers.h"
+// #include "./sql/parse_tree_node_base.h"
 #include "./sql/parser_yystype.h"
-#include "./sql/partition_element.h"
-#include "./sql/partition_info.h"
-#include "./sql/protocol.h"
-#include "./sql/query_options.h"
-#include "./sql/resourcegroups/platform/thread_attrs_api.h"
-#include "./sql/resourcegroups/resource_group_basic_types.h"
-#include "./sql/rpl_filter.h"
-#include "./sql/rpl_replica.h"                       // Sql_cmd_change_repl_filter
-#include "./sql/set_var.h"
-#include "./sql/sp.h"
-#include "./sql/sp_head.h"
-#include "./sql/sp_instr.h"
-#include "./sql/sp_pcontext.h"
-#include "./sql/spatial.h"
-#include "./sql/sql_admin.h"                         // Sql_cmd_analyze/Check..._table
-#include "./sql/sql_alter.h"                         // Sql_cmd_alter_table*
-#include "./sql/sql_backup_lock.h"                   // Sql_cmd_lock_instance
-#include "./sql/sql_class.h"      /* Key_part_spec, enum_filetype */
-#include "./sql/sql_cmd_srs.h"
-#include "./sql/sql_connect.h"
-#include "./sql/sql_component.h"
-#include "./sql/sql_error.h"
-#include "./sql/sql_exchange.h"
-#include "./sql/sql_get_diagnostics.h"               // Sql_cmd_get_diagnostics
-#include "./sql/sql_handler.h"                       // Sql_cmd_handler_*
-#include "./sql/sql_import.h"                        // Sql_cmd_import_table
+// #include "./sql/partition_element.h"
+// #include "./sql/partition_info.h"
+// #include "./sql/protocol.h"
+// #include "./sql/query_options.h"
+// #include "./sql/resourcegroups/platform/thread_attrs_api.h"
+// #include "./sql/resourcegroups/resource_group_basic_types.h"
+// #include "./sql/rpl_filter.h"
+// #include "./sql/rpl_replica.h"                       // Sql_cmd_change_repl_filter
+// #include "./sql/set_var.h"
+// #include "./sql/sp.h"
+// #include "./sql/sp_head.h"
+// #include "./sql/sp_instr.h"
+// #include "./sql/sp_pcontext.h"
+// #include "./sql/spatial.h"
+// #include "./sql/sql_admin.h"                         // Sql_cmd_analyze/Check..._table
+// #include "./sql/sql_alter.h"                         // Sql_cmd_alter_table*
+// #include "./sql/sql_backup_lock.h"                   // Sql_cmd_lock_instance
+// #include "./sql/sql_class.h"      /* Key_part_spec, enum_filetype */
+// #include "./sql/sql_cmd_srs.h"
+// #include "./sql/sql_connect.h"
+// #include "./sql/sql_component.h"
+// #include "./sql/sql_error.h"
+// #include "./sql/sql_exchange.h"
+// #include "./sql/sql_get_diagnostics.h"               // Sql_cmd_get_diagnostics
+// #include "./sql/sql_handler.h"                       // Sql_cmd_handler_*
+// #include "./sql/sql_import.h"                        // Sql_cmd_import_table
 #include "./sql/sql_lex.h"
-#include "./sql/sql_list.h"
+// #include "./sql/sql_list.h"
 #include "./sql/sql_parse.h"                        /* comp_*_creator */
-#include "./sql/sql_plugin.h"                      // plugin_is_ready
-#include "./sql/sql_profile.h"
-#include "./sql/sql_select.h"                      // Sql_cmd_select...
-#include "./sql/sql_servers.h"
-#include "./sql/sql_signal.h"
-#include "./sql/sql_table.h"                        /* primary_key_name */
-#include "./sql/sql_tablespace.h"                  // Sql_cmd_alter_tablespace
-#include "./sql/sql_trigger.h"                     // Sql_cmd_create_trigger
-#include "./sql/sql_udf.h"
-#include "./sql/system_variables.h"
-#include "./sql/table.h"
-#include "./sql/table_function.h"
-#include "./sql/thr_malloc.h"
-#include "./sql/trigger_def.h"
-#include "./sql/window_lex.h"
-#include "./sql/xa.h"
+// #include "./sql/sql_plugin.h"                      // plugin_is_ready
+// #include "./sql/sql_profile.h"
+// #include "./sql/sql_select.h"                      // Sql_cmd_select...
+// #include "./sql/sql_servers.h"
+// #include "./sql/sql_signal.h"
+// #include "./sql/sql_table.h"                        /* primary_key_name */
+// #include "./sql/sql_tablespace.h"                  // Sql_cmd_alter_tablespace
+// #include "./sql/sql_trigger.h"                     // Sql_cmd_create_trigger
+// #include "./sql/sql_udf.h"
+// #include "./sql/system_variables.h"
+// #include "./sql/table.h"
+// #include "./sql/table_function.h"
+// #include "./sql/thr_malloc.h"
+// #include "./sql/trigger_def.h"
+// #include "./sql/window_lex.h"
+// #include "./sql/xa.h"
 #include "./sql_chars.h"
 #include "./sql_string.h"
-#include "./include/thr_lock.h"
-#include "./include/violite.h"
+// #include "./include/thr_lock.h"
+// #include "./include/violite.h"
 
 
 
