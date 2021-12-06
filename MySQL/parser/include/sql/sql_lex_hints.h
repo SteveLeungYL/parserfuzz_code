@@ -158,14 +158,14 @@ class Hint_scanner {
 
             LEX_STRING s;
             if (!thd->charset_is_system_charset) {
-              if (thd->convert_string(&s, system_charset_info, yytext, yyleng,
-                                      thd->charset()))
-                return HINT_ERROR;  // OOM etc.
+              // if (thd->convert_string(&s, system_charset_info, yytext, yyleng,
+              //                         thd->charset()))
+              //   return HINT_ERROR;  // OOM etc.
             } else {
-              assert(0 < double_separators && double_separators < yyleng);
-              s.length = yyleng - double_separators;
-              s.str = static_cast<char *>(thd->alloc(s.length));
-              if (s.str == nullptr) return HINT_ERROR;  // OOM
+              // assert(0 < double_separators && double_separators < yyleng);
+              // s.length = yyleng - double_separators;
+              // s.str = static_cast<char *>(thd->alloc(s.length));
+              // if (s.str == nullptr) return HINT_ERROR;  // OOM
             }
             if (double_separators > 0)
               compact<Quote>(&s, yytext, yyleng, double_separators);

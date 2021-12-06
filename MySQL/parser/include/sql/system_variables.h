@@ -175,7 +175,8 @@ enum use_secondary_engine {
   in scripts/mysql_system_tables.sql and scripts/mysql_system_tables_fix.sql
 */
 
-struct System_variables {
+struct 
+System_variables {
   /*
     How dynamically allocated system variables are handled:
 

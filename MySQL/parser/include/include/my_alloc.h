@@ -136,7 +136,7 @@ struct MEM_ROOT {
     length = ALIGN_SIZE(length);
 
     // Skip the straight path if simulating OOM; it should always fail.
-    DBUG_EXECUTE_IF("simulate_out_of_memory", return AllocSlow(length););
+    // DBUG_EXECUTE_IF("simulate_out_of_memory", return AllocSlow(length););
 
     // Fast path, used in the majority of cases. It would be faster here
     // (saving one register due to CSE) to instead test

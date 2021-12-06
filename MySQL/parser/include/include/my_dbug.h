@@ -115,16 +115,18 @@ class AutoDebugTrace {
     // often too long to be interesting.
     const char *end = strchr(function, '(');
 
-    if (end == nullptr) {
-      _db_enter_(function, static_cast<int>(strlen(function)), filename, line,
-                 &m_stack_frame);
-    } else {
-      _db_enter_(function, static_cast<int>(end - function), filename, line,
-                 &m_stack_frame);
-    }
+    // if (end == nullptr) {
+    //   _db_enter_(function, static_cast<int>(strlen(function)), filename, line,
+    //              &m_stack_frame);
+    // } else {
+    //   _db_enter_(function, static_cast<int>(end - function), filename, line,
+    //              &m_stack_frame);
+    // }
   }
 
-  ~AutoDebugTrace() { _db_return_(0, &m_stack_frame); }
+  ~AutoDebugTrace() { 
+    // _db_return_(0, &m_stack_frame); 
+  }
 
  private:
   _db_stack_frame_ m_stack_frame;

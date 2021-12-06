@@ -178,9 +178,10 @@ class Sql_cmd_show_noplan : public Sql_cmd_show {
   Sql_cmd_show_noplan(enum_sql_command sql_command)
       : Sql_cmd_show(sql_command) {}
   bool execute(THD *thd) override {
-    lex = thd->lex;
-    if (check_privileges(thd)) return true;
-    if (execute_inner(thd)) return true;
+    // lex = thd->lex;
+    // if (check_privileges(thd)) return true;
+    // if (execute_inner(thd)) return true;
+    /* Yu: Return false? */
     return false;
   }
 };

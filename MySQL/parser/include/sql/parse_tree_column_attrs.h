@@ -289,7 +289,7 @@ class PT_collate_column_attr : public PT_column_attr_base {
   bool apply_collation(Column_parse_context *pc, const CHARSET_INFO **to,
                        bool *has_explicit_collation) const override {
     if (*has_explicit_collation) {
-      pc->thd->syntax_error_at(m_pos, ER_INVALID_MULTIPLE_CLAUSES, "COLLATE");
+      // pc->thd->syntax_error_at(m_pos, ER_INVALID_MULTIPLE_CLAUSES, "COLLATE");
       return true;
     }
     *has_explicit_collation = true;
@@ -351,7 +351,8 @@ class PT_on_update_column_attr : public PT_column_attr_base {
     }
     if (super::contextualize(pc)) return true;
 
-    item = new (pc->thd->mem_root) Item_func_now_local(precision);
+    /* Yu: Questionable modifications. */
+    // item = new (pc->thd->mem_root) Item_func_now_local(precision);
     return item == nullptr;
   }
 };
@@ -777,8 +778,8 @@ class PT_timestamp_type : public PT_type {
       logging on the session var. Extra copying to Lex is
       done in case prepared stmt.
     */
-    pc->thd->lex->binlog_need_explicit_defaults_ts =
-        pc->thd->binlog_need_explicit_defaults_ts = true;
+    // pc->thd->lex->binlog_need_explicit_defaults_ts =
+    //     pc->thd->binlog_need_explicit_defaults_ts = true;
 
     return false;
   }
@@ -918,8 +919,8 @@ class PT_field_def_base : public Parse_tree_node {
     charset = type_node->get_charset();
     uint_geom_type = type_node->get_uint_geom_type();
     interval_list = type_node->get_interval_list();
-    check_const_spec_list = new (pc->thd->mem_root)
-        Sql_check_constraint_spec_list(pc->thd->mem_root);
+    // check_const_spec_list = new (pc->thd->mem_root)
+    //     Sql_check_constraint_spec_list(pc->thd->mem_root);
     if (check_const_spec_list == nullptr) return true;  // OOM
     return false;
   }

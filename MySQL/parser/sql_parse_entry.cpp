@@ -23,6 +23,225 @@
 
 /* Helper functions */
 
+
+const char *const THD::DEFAULT_WHERE = "field list";
+char MEM_ROOT::s_dummy_target;
+#define MEM_ROOT_SINGLE_CHUNKS 0
+
+static void my_raw_free(void *ptr) {
+// #if defined(MY_MSCRT_DEBUG)
+//   _free_dbg(ptr, _CLIENT_BLOCK);
+// #else
+  free(ptr);
+// #endif
+}
+void my_free(void *ptr) { my_raw_free(ptr); }
+
+static void *my_raw_malloc(size_t size, myf my_flags) {
+  void *point;
+
+  /* Safety */
+  if (!size) size = 1;
+
+#if defined(MY_MSCRT_DEBUG)
+  if (my_flags & MY_ZEROFILL)
+    point = _calloc_dbg(size, 1, _CLIENT_BLOCK, __FILE__, __LINE__);
+  else
+    point = _malloc_dbg(size, _CLIENT_BLOCK, __FILE__, __LINE__);
+#else
+  if (my_flags & MY_ZEROFILL)
+    point = calloc(size, 1);
+  else
+    point = malloc(size);
+#endif
+
+  // DBUG_EXECUTE_IF("simulate_out_of_memory", {
+  //   free(point);
+  //   point = nullptr;
+  // });
+  // DBUG_EXECUTE_IF("simulate_persistent_out_of_memory", {
+  //   free(point);
+  //   point = nullptr;
+  // });
+
+  if (point == nullptr) {
+    // set_my_errno(errno);
+    // if (my_flags & MY_FAE) error_handler_hook = my_message_stderr;
+    if (my_flags & (MY_FAE + MY_WME))
+    //   my_error(EE_OUTOFMEMORY, MYF(ME_ERRORLOG + ME_FATALERROR), size);
+    // DBUG_EXECUTE_IF("simulate_out_of_memory",
+    //                 DBUG_SET("-d,simulate_out_of_memory"););
+    if (my_flags & MY_FAE) exit(1);
+  }
+
+  return (point);
+}
+
+void *my_malloc(PSI_memory_key key [[maybe_unused]], size_t size,
+                myf my_flags) {
+  return my_raw_malloc(size, my_flags);
+}
+
+void *MEM_ROOT::AllocSlow(size_t length) {
+  // DBUG_TRACE;
+  // DBUG_PRINT("enter", ("root: %p", this));
+
+  // We need to allocate a new block to satisfy this allocation;
+  // otherwise, the fast path in Alloc() would not have sent us here.
+  // We plan to allocate a block of <block_size> bytes; see if that
+  // would be enough or not.
+  if (length >= m_block_size || MEM_ROOT_SINGLE_CHUNKS) {
+    // The next block we'd allocate would _not_ be big enough
+    // (or we're in Valgrind/ASAN mode, and want everything in single chunks).
+    // Allocate an entirely new block, not disturbing anything;
+    // since the new block isn't going to be used for the next allocation
+    // anyway, we can just as well keep the previous one.
+    Block *new_block =
+        AllocBlock(/*wanted_length=*/length, /*minimum_length=*/length).first;
+    if (new_block == nullptr) return nullptr;
+
+    if (m_current_block == nullptr) {
+      // This is the only block, so it has to be the current block, too.
+      // However, it will be full, so we won't be allocating from it
+      // unless ClearForReuse() is called.
+      new_block->prev = nullptr;
+      m_current_block = new_block;
+      m_current_free_end = pointer_cast<char *>(new_block) +
+                           ALIGN_SIZE(sizeof(*new_block)) + length;
+      m_current_free_start = m_current_free_end;
+    } else {
+      // Insert the new block in the second-to-last position.
+      new_block->prev = m_current_block->prev;
+      m_current_block->prev = new_block;
+    }
+
+    return pointer_cast<char *>(new_block) + ALIGN_SIZE(sizeof(*new_block));
+  } else {
+    // The normal case: Throw away the current block, allocate a new block,
+    // and use that to satisfy the new allocation.
+    if (ForceNewBlock(/*minimum_length=*/length)) {
+      return nullptr;
+    }
+    char *new_mem = m_current_free_start;
+    m_current_free_start += length;
+    return new_mem;
+  }
+}
+
+std::pair<MEM_ROOT::Block *, size_t> MEM_ROOT::AllocBlock(
+    size_t wanted_length, size_t minimum_length) {
+  // DBUG_TRACE;
+
+  size_t length = wanted_length;
+  if (m_max_capacity != 0) {
+    size_t bytes_left;
+    if (m_allocated_size > m_max_capacity) {
+      bytes_left = 0;
+    } else {
+      bytes_left = m_max_capacity - m_allocated_size;
+    }
+    if (wanted_length > bytes_left) {
+      if (m_error_for_capacity_exceeded) {
+        // my_error(EE_CAPACITY_EXCEEDED, MYF(0),
+        //          static_cast<ulonglong>(m_max_capacity));
+        // NOTE: No early return; we will abort the query at the next safe
+        // point. We also don't go down to minimum_length, as this will give a
+        // new block on every subsequent Alloc() (of which there might be
+        // many, since we don't know when the next safe point will be).
+        return {nullptr, 0};
+      } else if (minimum_length <= bytes_left) {
+        // Make one final chunk with all that we have left.
+        length = bytes_left;
+      } else {
+        // We don't have enough memory left to satisfy minimum_length.
+        return {nullptr, 0};
+      }
+    }
+  }
+
+  Block *new_block = static_cast<Block *>(
+      my_malloc(m_psi_key, length + ALIGN_SIZE(sizeof(Block)),
+                MYF(MY_WME | ME_FATALERROR)));
+  if (new_block == nullptr) {
+    if (m_error_handler) (m_error_handler)();
+    return {nullptr, 0};
+  }
+
+  m_allocated_size += length;
+
+  // Make the default block size 50% larger next time.
+  // This ensures O(1) total mallocs (assuming Clear() is not called).
+  m_block_size += m_block_size / 2;
+  return {new_block, length};
+}
+
+bool MEM_ROOT::ForceNewBlock(size_t minimum_length) {
+  std::pair<Block *, size_t> block_and_length =
+      AllocBlock(/*wanted_length=*/ALIGN_SIZE(m_block_size),
+                 minimum_length);  // Will modify block_size.
+  Block *new_block = block_and_length.first;
+  if (new_block == nullptr) return true;
+
+  new_block->prev = m_current_block;
+  m_current_block = new_block;
+
+  char *new_mem =
+      pointer_cast<char *>(new_block) + ALIGN_SIZE(sizeof(*new_block));
+  m_current_free_start = new_mem;
+  m_current_free_end = new_mem + block_and_length.second;
+  return false;
+}
+
+void MEM_ROOT::Clear() {
+  // DBUG_TRACE;
+  // DBUG_PRINT("enter", ("root: %p", this));
+
+  // Already cleared, or memset() to zero, so just ignore.
+  if (m_current_block == nullptr) return;
+
+  Block *start = m_current_block;
+
+  m_current_block = nullptr;
+  m_block_size = m_orig_block_size;
+  m_current_free_start = &s_dummy_target;
+  m_current_free_end = &s_dummy_target;
+  m_allocated_size = 0;
+
+  FreeBlocks(start);
+}
+
+void MEM_ROOT::ClearForReuse() {
+  DBUG_TRACE;
+
+  if (MEM_ROOT_SINGLE_CHUNKS) {
+    Clear();
+    return;
+  }
+
+  // Already cleared, or memset() to zero, so just ignore.
+  if (m_current_block == nullptr) return;
+
+  // Keep the last block, which is usually the biggest one.
+  m_current_free_start = pointer_cast<char *>(m_current_block) +
+                         ALIGN_SIZE(sizeof(*m_current_block));
+  Block *start = m_current_block->prev;
+  m_current_block->prev = nullptr;
+  m_allocated_size = m_current_free_end - m_current_free_start;
+
+  FreeBlocks(start);
+}
+
+void MEM_ROOT::FreeBlocks(Block *start) {
+  // The MEM_ROOT might be allocated on itself, so make sure we don't
+  // touch it after we've started freeing.
+  for (Block *block = start; block != nullptr;) {
+    Block *prev = block->prev;
+    my_free(block);
+    block = prev;
+  }
+}
+
+
 // static CODE_STATE *code_state(void) {
 //   CODE_STATE *cs, **cs_ptr;
 
@@ -85,6 +304,84 @@
 //   cs->u_line = _line_;
 //   cs->u_keyword = keyword;
 // }
+
+// static MY_CHARSET_HANDLER my_charset_handler = {
+//     nullptr,           /* init */
+//     nullptr,           /* ismbchar      */
+//     my_mbcharlen_8bit, /* mbcharlen     */
+//     my_numchars_8bit,
+//     my_charpos_8bit,
+//     my_well_formed_len_8bit,
+//     my_lengthsp_binary,
+//     my_numcells_8bit,
+//     my_mb_wc_bin,
+//     my_wc_mb_bin,
+//     my_mb_ctype_8bit,
+//     my_case_str_bin,
+//     my_case_str_bin,
+//     my_case_bin,
+//     my_case_bin,
+//     my_snprintf_8bit,
+//     my_long10_to_str_8bit,
+//     my_longlong10_to_str_8bit,
+//     my_fill_8bit,
+//     my_strntol_8bit,
+//     my_strntoul_8bit,
+//     my_strntoll_8bit,
+//     my_strntoull_8bit,
+//     my_strntod_8bit,
+//     my_strtoll10_8bit,
+//     my_strntoull10rnd_8bit,
+//     my_scan_8bit};
+
+//   static MY_COLLATION_HANDLER my_collation_binary_handler = {
+//     nullptr, /* init */
+//     nullptr,
+//     my_strnncoll_binary,
+//     my_strnncollsp_binary,
+//     my_strnxfrm_8bit_bin_no_pad,
+//     my_strnxfrmlen_simple,
+//     my_like_range_simple,
+//     my_wildcmp_bin,
+//     my_strcasecmp_bin,
+//     my_instr_bin,
+//     my_hash_sort_bin,
+//     my_propagate_simple};
+
+// CHARSET_INFO my_charset_bin = {
+//     63,
+//     0,
+//     0,                                              /* number        */
+//     MY_CS_COMPILED | MY_CS_BINSORT | MY_CS_PRIMARY, /* state */
+//     "binary",                                       /* cs name    */
+//     "binary",                                       /* name          */
+//     "Binary pseudo charset",                        /* comment       */
+//     nullptr,                                        /* tailoring     */
+//     nullptr,                                        /* coll_param    */
+//     ctype_bin,                                      /* ctype         */
+//     bin_char_array,                                 /* to_lower      */
+//     bin_char_array,                                 /* to_upper      */
+//     nullptr,                                        /* sort_order    */
+//     nullptr,                                        /* uca           */
+//     nullptr,                                        /* tab_to_uni    */
+//     nullptr,                                        /* tab_from_uni  */
+//     &my_unicase_default,                            /* caseinfo     */
+//     nullptr,                                        /* state_map    */
+//     nullptr,                                        /* ident_map    */
+//     1,                                              /* strxfrm_multiply */
+//     1,                                              /* caseup_multiply  */
+//     1,                                              /* casedn_multiply  */
+//     1,                                              /* mbminlen      */
+//     1,                                              /* mbmaxlen      */
+//     1,                                              /* mbmaxlenlen   */
+//     0,                                              /* min_sort_char */
+//     255,                                            /* max_sort_char */
+//     0,                                              /* pad char      */
+//     false, /* escape_with_backslash_is_dangerous */
+//     1,     /* levels_for_compare */
+//     &my_charset_handler,
+//     &my_collation_binary_handler,
+//     NO_PAD};
 
 static const char *long_str = "2147483647";
 static const uint long_len = 10;
@@ -1929,9 +2226,9 @@ static char *get_text(Lex_input_stream *lip, int pre_skip, int post_skip) {
       end -= post_skip;
       assert(end >= str);
 
-      if (!(start =
-                static_cast<char *>(lip->m_thd->alloc((uint)(end - str) + 1))))
-        return const_cast<char *>("");  // MEM_ROOT has set error flag
+      // if (!(start =
+      //           static_cast<char *>(lip->m_thd->alloc((uint)(end - str) + 1))))
+      //   return const_cast<char *>("");  // MEM_ROOT has set error flag
 
       lip->m_cpp_text_start = lip->get_cpp_tok_start() + pre_skip;
       lip->m_cpp_text_end = lip->get_cpp_ptr() - post_skip;
@@ -3217,75 +3514,84 @@ void cleanup_after_parse_error(THD* thd) {
 //   state = set.state;
 // }
 
+void THD::set_query(LEX_CSTRING query_arg) {
+  assert(this == current_thd);
+  m_query_string = query_arg;
+}
+
+
+
+
+
 THD::THD()
     : 
-      Query_arena(&main_mem_root, STMT_REGULAR_EXECUTION),
-      query_plan(this),
-      ha_data(PSI_NOT_INSTRUMENTED, ha_data.initial_capacity),
-      audit_class_plugins(PSI_NOT_INSTRUMENTED),
-      main_da(false),
-      m_parser_da(false),
-      m_stmt_da(&main_da),
-      m_query_rewrite_plugin_da(false),
-      m_query_rewrite_plugin_da_ptr(&m_query_rewrite_plugin_da),
-      audit_class_mask(PSI_NOT_INSTRUMENTED),
-      user_var_events(key_memory_user_var_entry)
+      Query_arena(&main_mem_root, STMT_REGULAR_EXECUTION)
+      // query_plan(this),
+      // ha_data(PSI_NOT_INSTRUMENTED, ha_data.initial_capacity),
+      // audit_class_plugins(PSI_NOT_INSTRUMENTED),
+      // main_da(false),
+      // m_parser_da(false),
+      // m_stmt_da(&main_da),
+      // m_query_rewrite_plugin_da(false),
+      // m_query_rewrite_plugin_da_ptr(&m_query_rewrite_plugin_da),
+      // audit_class_mask(PSI_NOT_INSTRUMENTED),
+      // user_var_events(key_memory_user_var_entry)
       // m_dd_client(new dd::cache::Dictionary_client(this))
       {
   // main_lex->reset();
   // set_psi(nullptr);
-  mdl_context.init(this);
+  // mdl_context.init(this);
   // init_sql_alloc(key_memory_thd_main_mem_root, &main_mem_root,
                 //  global_system_variables.query_alloc_block_size,
                 //  global_system_variables.query_prealloc_size);
-  stmt_arena = this;
-  thread_stack = nullptr;
-  m_catalog.str = "std";
-  m_catalog.length = 3;
-  password = 0;
-  query_start_usec_used = false;
-  check_for_truncated_fields = CHECK_FIELD_IGNORE;
-  killed = NOT_KILLED;
-  is_slave_error = thread_specific_used = false;
-  tmp_table = 0;
-  num_truncated_fields = 0L;
-  m_sent_row_count = 0L;
-  current_found_rows = 0;
-  previous_found_rows = 0;
-  is_operating_gtid_table_implicitly = false;
-  is_operating_substatement_implicitly = false;
-  m_row_count_func = -1;
-  statement_id_counter = 0UL;
-  // Must be reset to handle error with THD's created for init of mysqld
-  lex->thd = nullptr;
-  lex->set_current_query_block(nullptr);
-  utime_after_lock = 0L;
-  current_linfo = nullptr;
-  slave_thread = false;
-  memset(&variables, 0, sizeof(variables));
-  // m_thread_id = Global_THD_manager::reserved_thread_id;
-  file_id = 0;
-  query_id = 0;
-  query_name_consts = 0;
-  // db_charset = global_system_variables.collation_database;
-  is_killable = false;
-  binlog_evt_union.do_union = false;
-  enable_slow_log = false;
-  commit_error = CE_NONE;
-  tx_commit_pending = false;
-  durability_property = HA_REGULAR_DURABILITY;
-// #ifndef NDEBUG
-//   dbug_sentry = THD_SENTRY_MAGIC;
-// #endif
-  // mysql_audit_init_thd(this);
-  net.vio = nullptr;
-  system_thread = NON_SYSTEM_THREAD;
-  peer_port = 0;  // For SHOW PROCESSLIST
-  get_transaction()->m_flags.enabled = true;
-  m_resource_group_ctx.m_cur_resource_group = nullptr;
-  m_resource_group_ctx.m_switch_resource_group_str[0] = '\0';
-  m_resource_group_ctx.m_warn = 0;
-  m_safe_to_display.store(false);
+//   stmt_arena = this;
+//   thread_stack = nullptr;
+//   m_catalog.str = "std";
+//   m_catalog.length = 3;
+//   password = 0;
+//   query_start_usec_used = false;
+//   check_for_truncated_fields = CHECK_FIELD_IGNORE;
+//   killed = NOT_KILLED;
+//   is_slave_error = thread_specific_used = false;
+//   tmp_table = 0;
+//   num_truncated_fields = 0L;
+//   m_sent_row_count = 0L;
+//   current_found_rows = 0;
+//   previous_found_rows = 0;
+//   is_operating_gtid_table_implicitly = false;
+//   is_operating_substatement_implicitly = false;
+//   m_row_count_func = -1;
+//   statement_id_counter = 0UL;
+//   // Must be reset to handle error with THD's created for init of mysqld
+//   lex->thd = nullptr;
+//   lex->set_current_query_block(nullptr);
+//   utime_after_lock = 0L;
+//   current_linfo = nullptr;
+//   slave_thread = false;
+//   memset(&variables, 0, sizeof(variables));
+//   // m_thread_id = Global_THD_manager::reserved_thread_id;
+//   file_id = 0;
+//   query_id = 0;
+//   query_name_consts = 0;
+//   // db_charset = global_system_variables.collation_database;
+//   is_killable = false;
+//   binlog_evt_union.do_union = false;
+//   enable_slow_log = false;
+//   commit_error = CE_NONE;
+//   tx_commit_pending = false;
+//   durability_property = HA_REGULAR_DURABILITY;
+// // #ifndef NDEBUG
+// //   dbug_sentry = THD_SENTRY_MAGIC;
+// // #endif
+//   // mysql_audit_init_thd(this);
+//   net.vio = nullptr;
+//   system_thread = NON_SYSTEM_THREAD;
+//   peer_port = 0;  // For SHOW PROCESSLIST
+//   get_transaction()->m_flags.enabled = true;
+//   m_resource_group_ctx.m_cur_resource_group = nullptr;
+//   m_resource_group_ctx.m_switch_resource_group_str[0] = '\0';
+//   m_resource_group_ctx.m_warn = 0;
+//   m_safe_to_display.store(false);
 
   // mysql_mutex_init(key_LOCK_thd_data, &LOCK_thd_data, MY_MUTEX_INIT_FAST);
   // mysql_mutex_init(key_LOCK_thd_query, &LOCK_thd_query, MY_MUTEX_INIT_FAST);
@@ -3308,8 +3614,8 @@ THD::THD()
   // set_proc_info("login");
   where = THD::DEFAULT_WHERE;
   // server_id = ::server_id;
-  unmasked_server_id = server_id;
-  set_command(COM_CONNECT);
+  // unmasked_server_id = server_id;
+  // set_command(COM_CONNECT);
   *scramble = '\0';
 
   /* Call to init() below requires fully initialized Open_tables_state. */
@@ -3319,11 +3625,11 @@ THD::THD()
 // #if defined(ENABLED_PROFILING)
 //   profiling->set_thd(this);
 // #endif
-  m_user_connect = nullptr;
-  user_vars.clear();
+  // m_user_connect = nullptr;
+  // user_vars.clear();
 
-  sp_proc_cache = nullptr;
-  sp_func_cache = nullptr;
+  // sp_proc_cache = nullptr;
+  // sp_func_cache = nullptr;
 
   /* Protocol */
   // m_protocol = protocol_text.get();  // Default protocol
@@ -3335,20 +3641,20 @@ THD::THD()
     Make sure thr_lock_info_init() is called for threads which do not get
     assigned a proper thread_id value but keep using reserved_thread_id.
   */
-  thr_lock_info_init(&lock_info, m_thread_id, &COND_thr_lock);
+  // thr_lock_info_init(&lock_info, m_thread_id, &COND_thr_lock);
 
-  m_internal_handler = nullptr;
-  m_binlog_invoker = false;
+  // m_internal_handler = nullptr;
+  // m_binlog_invoker = false;
   // memset(&m_invoker_user, 0, sizeof(m_invoker_user));
   // memset(&m_invoker_host, 0, sizeof(m_invoker_host));
 
   // binlog_next_event_pos.file_name = nullptr;
   // binlog_next_event_pos.pos = 0;
 
-  timer = nullptr;
-  timer_cache = nullptr;
+  // timer = nullptr;
+  // timer_cache = nullptr;
 
-  m_token_array = nullptr;
+  // m_token_array = nullptr;
 //   if (max_digest_length > 0) {
 //     m_token_array = (unsigned char *)my_malloc(PSI_INSTRUMENT_ME,
 //                                                max_digest_length, MYF(MY_WME));
@@ -3402,7 +3708,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
       For these statements,
       see if the digest computation is required.
     */
-    if (thd->m_digest != nullptr) {
+    // if (thd->m_digest != nullptr) {
       /* Start Digest */
       /* Yu: Have to ignore Digest now, because it is too difficult */
       // parser_state->m_digest_psi = MYSQL_DIGEST_START(thd->m_statement_psi);
@@ -3419,7 +3725,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
       //   parser_state->m_lip.m_digest->m_digest_storage.m_charset_number =
       //       thd->charset()->number;
       // }
-    }
+    // }
   }
 
   /* Parse the query. */
@@ -3429,8 +3735,8 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
     whether the current command is a diagnostic statement, in which case
     we'll need to have the previous DA around to answer questions about it.
   */
-  Diagnostics_area *parser_da = thd->get_parser_da();
-  Diagnostics_area *da = thd->get_stmt_da();
+  // Diagnostics_area *parser_da = thd->get_parser_da();
+  // Diagnostics_area *da = thd->get_stmt_da();
 
   Parser_oom_handler poomh;
   // Note that we may be called recursively here, on INFORMATION_SCHEMA queries.
@@ -3476,7 +3782,7 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
     the processing of this command.
   */
 
-  if (parser_da->current_statement_cond_count() != 0) {
+  // if (parser_da->current_statement_cond_count() != 0) {
     /*
       Error/warning during parsing: top DA should contain parse error(s)!  Any
       pre-existing conditions will be replaced. The exception is diagnostics
@@ -3505,10 +3811,10 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
       now contains not the results of the previous executions, but
       a non-zero number of errors/warnings thrown during parsing!
     */
-    thd->lex->keep_diagnostics = DA_KEEP_PARSE_ERROR;
-  }
+    // thd->lex->keep_diagnostics = DA_KEEP_PARSE_ERROR;
+  // }
 
-  thd->pop_diagnostics_area();
+  // thd->pop_diagnostics_area();
 
   /*
     Check that if THD::sql_parser() failed either thd->is_error() is set, or an
@@ -3521,8 +3827,10 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
     handler might be for other errors than parsing one).
   */
 
-  assert(!mysql_parse_status || (mysql_parse_status && thd->is_error()) ||
-         (mysql_parse_status && thd->get_internal_handler()));
+  // assert(!mysql_parse_status || (mysql_parse_status ) ||
+                  //  && thd->is_error()) ||
+    // (mysql_parse_status ));
+                  //  && thd->get_internal_handler()));
 
   /* Reset parser state. */
 
@@ -3534,13 +3842,13 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 
   /* That's it. */
 
-  ret_value = mysql_parse_status || thd->is_fatal_error();
+  ret_value = mysql_parse_status; // || thd->is_fatal_error();
 
   if ((ret_value == 0) && (parser_state->m_digest_psi != nullptr)) {
     /*
       On parsing success, record the digest in the performance schema.
     */
-    assert(thd->m_digest != nullptr);
+    // assert(thd->m_digest != nullptr);
     // MYSQL_DIGEST_END(parser_state->m_digest_psi,
                     //  &thd->m_digest->m_digest_storage);
   }
@@ -3548,11 +3856,10 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
   return ret_value;
 }
 
-
 bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
     THD *thd = new (std::nothrow) THD;
     // thd->get_stmt_da()->reset_diagnostics_area();
-    thd->get_stmt_da()->reset_statement_cond_count();
+    // thd->get_stmt_da()->reset_statement_cond_count();
 
     // Might need a loop
     MYSQL_LEX_CSTRING cmd_mysql_cstring;
@@ -3572,25 +3879,25 @@ bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
     // if (get_max_digest_length() != 0)
     //     parser_state.m_input.m_compute_digest = true;
 
-    while (!thd->killed && (parser_state.m_lip.found_semicolon != nullptr) &&
-           !thd->is_error()) {
+    // while (!thd->killed && (parser_state.m_lip.found_semicolon != nullptr) &&
+    //        !thd->is_error()) {
         /* in the dispatch_sql_command */
-        lex_start(thd);
-        mysql_reset_thd_for_next_command(thd);
-        thd->m_digest = nullptr;
-        thd->m_statement_psi = nullptr;
+        // lex_start(thd);
+        // mysql_reset_thd_for_next_command(thd);
+        // thd->m_digest = nullptr;
+        // thd->m_statement_psi = nullptr;
         // thd->m_parser_state = parser_state;
 
         bool err;
         err = parse_sql_entry(thd, &parser_state, nullptr, ir_vec);
-        thd->end_statement();
-    }
+        // thd->end_statement();
+    // }
 
-    thd->release_resources();
-    thd->set_psi(nullptr);
-    thd->lex->destroy();
-    thd->end_statement();
-    thd->cleanup_after_query();
+    // thd->release_resources();
+    // thd->set_psi(nullptr);
+    // thd->lex->destroy();
+    // thd->end_statement();
+    // thd->cleanup_after_query();
 
     return true;
 }
