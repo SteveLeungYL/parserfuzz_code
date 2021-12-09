@@ -4003,22 +4003,57 @@ bool parse_sql_entry(THD *thd, Parser_state *parser_state,
 }
 
 bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
-    THD *thd = new (std::nothrow) THD;
+    // THD *thd = new (std::nothrow) THD;
+    // m_thd = new THD(false);
+    THD *m_thd = new (std::nothrow) THD;
+    THD *stack_thd = m_thd;
+
+    // m_thd->set_new_thread_id();
+
+    // m_thd->thread_stack = (char *)&stack_thd;
+    // m_thd->store_globals();
+    lex_start(m_thd);
+    // Fake_TABLE::reset_highest_table_id();
+
     // thd->get_stmt_da()->reset_diagnostics_area();
     // thd->get_stmt_da()->reset_statement_cond_count();
 
     // Might need a loop
-    MYSQL_LEX_CSTRING cmd_mysql_cstring;
+    // MYSQL_LEX_CSTRING cmd_mysql_cstring;
 
     // In stack, will be freed after function exits. 
-    cmd_mysql_cstring.str = input.c_str();
-    cmd_mysql_cstring.length = input.size();
-    thd->set_query(cmd_mysql_cstring);
+    // cmd_mysql_cstring.str = input.c_str();
+    // cmd_mysql_cstring.length = input.size();
+    // m_thd->set_query(cmd_mysql_cstring);
 
-    Parser_state parser_state;
-    parser_state.init(thd, thd->query().str, thd->query().length);
+    Parser_state state;
+    size_t length = input.length();
+    char *mutable_query = const_cast<char *>(input.c_str());
+    state.init(m_thd, mutable_query, length);
 
-    parser_state.m_input.m_has_digest = true;
+    /*
+      This tricks the server to parse the query and then stop,
+      without executing.
+    */
+    // m_thd->security_context()->set_password_expired(true);
+
+    lex_start(m_thd);
+
+    // if (m_thd->db().str == nullptr) {
+    //   // The THD DTOR will do my_free() on this.
+    //   char *db = static_cast<char *>(my_malloc(PSI_NOT_INSTRUMENTED, 3, MYF(0)));
+    //   sprintf(db, "db");
+    //   LEX_CSTRING db_lex_cstr = {db, strlen(db)};
+    //   m_thd->reset_db(db_lex_cstr);
+    // }
+
+    lex_start(m_thd);
+    mysql_reset_thd_for_next_command(m_thd);
+    parse_sql(m_thd, &state, nullptr);
+
+    // return m_thd->lex->current_query_block();
+
+    // parser_state.m_input.m_has_digest = true;
 
     // we produce digest if it's not explicitly turned off
     // by setting maximum digest length to zero
@@ -4034,8 +4069,8 @@ bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
         // thd->m_statement_psi = nullptr;
         // thd->m_parser_state = parser_state;
 
-        bool err;
-        err = parse_sql_entry(thd, &parser_state, nullptr, ir_vec);
+        // bool err;
+        // err = parse_sql_entry(thd, &parser_state, nullptr, ir_vec);
         // thd->end_statement();
     // }
 
@@ -4044,6 +4079,13 @@ bool exec_query_command_entry(string input, vector<IR*>& ir_vec) {
     // thd->lex->destroy();
     // thd->end_statement();
     // thd->cleanup_after_query();
+
+    // if (m_thd != nullptr) {
+    //   m_thd->cleanup_after_query();
+    //   delete m_thd;
+    //   m_thd = nullptr;
+    // }
+
 
     return true;
 }
