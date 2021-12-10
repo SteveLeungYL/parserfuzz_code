@@ -1347,7 +1347,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           /* Randomly set an alias name to the defined table.
            * And ignore the mapping for the moment
            * */
-          ir_to_fix->str_val_ = gen_alias_name();
+          string alias_name = gen_alias_name();
+          ir_to_fix->str_val_ = alias_name;
+          v_alias_names_single.push_back(alias_name);
           continue;
           // return false;
         }
@@ -1518,6 +1520,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency: In kUse of kDataColumnName, find newly declared table name: " << closest_table_name << " for column name origin. \n\n\n" << endl;
           }
+        } else if (v_alias_names_single.size() != 0) {
+           ir_to_fix->str_val_ = v_alias_names_single[get_rand_int(v_alias_names_single.size())];
+           if (is_debug_info) {
+             cerr << "Dependency: In kUse of kDataColumnName, use alias name as the column name. Use alias name: " << ir_to_fix->str_val_ << " for column name. \n\n\n" << endl;
+           }
+           // Finished assigning column name. continue;
+           continue;
         } else if (v_table_names.size() != 0) {
           closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
           if (is_debug_info) {
@@ -1527,7 +1536,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         if (closest_table_name == "" || closest_table_name == "x" || closest_table_name == "y") {
           if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kDataColumnName, kDefine or kReplace. \n\n\n";
+            cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
           }
           ir_to_fix->str_val_ = "y";
           return false;
