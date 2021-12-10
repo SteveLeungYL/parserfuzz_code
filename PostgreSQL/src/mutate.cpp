@@ -1710,6 +1710,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     int cur_literal_idx = -1;
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->data_type_ == kDataLiteral) {
+        if (get_rand_int(10) < 9) {
+          continue;
+        }
         cur_literal_idx++;
         COLTYPE column_data_type = COLTYPE::UNKNOWN_T;
         if (v_column_names_single.size() > cur_literal_idx) {
@@ -1848,9 +1851,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
          * Thus, use the original string with 90% of chances, only change it with our string library with 10%.
          * */
         else {
-          if (get_rand_int(10) < 1) {
+          // if (get_rand_int(10) < 1) {
             ir_to_fix->str_val_ = get_a_string();
-          }
+          // }
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
