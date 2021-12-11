@@ -43,6 +43,7 @@ vector<string> Mutator::v_view_names; // All saved view names.
 
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
+vector<string> Mutator::v_sys_column_name;
 
 vector<string> Mutator::v_aggregate_func;
 
@@ -330,6 +331,16 @@ void Mutator::init_library() {
   this->v_aggregate_func.push_back("MAX");
   this->v_aggregate_func.push_back("MIN");
   this->v_aggregate_func.push_back("AVG");
+
+
+  /* Added default column type for Postgres */
+  this->v_sys_column_name.push_back("oid");
+  this->v_sys_column_name.push_back("tableoid");
+  this->v_sys_column_name.push_back("xmin");
+  this->v_sys_column_name.push_back("cmin");
+  this->v_sys_column_name.push_back("xmax");
+  this->v_sys_column_name.push_back("cmax");
+  this->v_sys_column_name.push_back("ctid");
 
 }
 
@@ -1508,6 +1519,22 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
 
       if (ir_to_fix->data_type_ == kDataColumnName && ir_to_fix->data_flag_ == kUse) {
+
+        cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
+        /* If we are seeing system default columns, 75% skip the fixing and reuse the original.  */
+        string ori_str = ir_to_fix->get_str_val();
+        if (
+          find(v_sys_column_name.begin(), v_sys_column_name.end(), ori_str) != v_sys_column_name.end() &&
+          get_rand_int(4) >= 1
+        ) {
+          continue;
+        }
+        /* Or, assign with system column in 5% chances */
+        else if (get_rand_int(20) < 1){
+          ir_to_fix->str_val_ = v_sys_column_name[get_rand_int(v_sys_column_name.size())];
+          continue;
+        }
+
 
         string closest_table_name = "";
         if (v_table_names_single.size() != 0) {

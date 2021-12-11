@@ -63,13 +63,16 @@ IR* test_parse(string &query) {
   }
   cout << "tostring: >" << tostring << "<" << endl;
 
-  string structure = mutator.extract_struct(root);
+  IR* root_ext_struct = root->deep_copy();
+  string structure = mutator.extract_struct(root_ext_struct);
   if (structure.size() <= 0) {
     cerr << RED << "extract failed" << DEF << endl;
     root->deep_drop();
+    root_ext_struct->deep_drop();
     return NULL;
   }
   cout << "structur: >" << structure << "<" << endl;
+  root_ext_struct->deep_drop();
   
   IR* cur_root = root->deep_copy();
   root->deep_drop();
