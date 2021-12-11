@@ -1867,6 +1867,11 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_data_type() == kDataRelOption) {
 
+        /* Fix reloptions, in 50% of chances. */
+        if (get_rand_int(2) < 1) {
+          continue;
+        }
+
         if(is_debug_info) {
           cerr << "Dependency: Fixing kDataRelOption: " << get_string_by_ir_type(ir_to_fix->get_ir_type()) << ", to_string(): " << ir_to_fix->to_string() << " getting rel_option_type: " << ir_to_fix->get_rel_option_type() << "\n\n\n";
         }
