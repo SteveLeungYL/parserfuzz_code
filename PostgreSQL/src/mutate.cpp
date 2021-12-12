@@ -1230,7 +1230,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names, in kDataTableName with kUndefine. \n\n\n";
           }
-          ir_to_fix->str_val_ = 'y';
+          /* Unreconized, keep original */
+          // ir_to_fix->str_val_ = "y";
         }
       }
     }
@@ -1243,8 +1244,10 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names and v_create_table_names_single, in kDataTableName with kUse. \n\n\n";
           }
-          ir_to_fix->str_val_ = "y";
-          return false;
+          /* Unreconized variable, keep original */
+          // ir_to_fix->str_val_ = "y";
+          // return false;
+          continue;
         }
         string used_name = "";
         if (v_table_names.size() != 0) {
@@ -1411,7 +1414,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: For newly defined column name: " << new_name << ", cannot find v_create_table_names_single, is it in a ALTER statement? We find v_table_names_single: " << closest_table_name << "\n\n\n";
           }
         } else if (v_table_names.size() != 0){ 
-          /* This is an ERROR. Cannot find the TABLE name to attach to. Last chance, find any declared table and attached to it. */
+          /* This is an ERROR. Cannot find the TABLE name to attach to. 
+          ** 80% chance, keep original. 
+          ** 20% chance, find any declared table and attached to it. */
+          if (get_rand_int(5) < 4) {
+            /* Keep original */
+            continue;
+          }
           closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
           if (is_debug_info) {
             cerr << "Dependency ERROR: For newly defined column name: " << new_name << ", ERROR finding matched newly created table names. Used previous declared table name: " << closest_table_name << "\n\n\n";
@@ -1426,7 +1435,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           /* Randomly set a name to the defined column.
            * And ignore the mapping for the moment
            * */
-          ir_to_fix->str_val_ = gen_column_name();
+
+          /* Unreconized, keep original */
+          // ir_to_fix->str_val_ = gen_column_name();
           continue;
         }
         if (is_debug_info) {
@@ -1481,7 +1492,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. closest_table_name returns: " << closest_table_name << ". In kDataColumnName, kUndefine. \n\n\n";
           }
-          return false;
+          /* Unreconized, keep original */
+          // return false;
+          continue;
         }
 
         if (is_debug_info) {
@@ -1493,8 +1506,10 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the mapped column_vec for table_name: " << closest_table_name << " \n\n\n";
           }
-          ir_to_fix->str_val_ = "y";
-          return false;
+          /* Not reconized column name. Keep original */
+          // ir_to_fix->str_val_ = "y";
+          // return false;
+          continue;
         }
         string removed_column_name = column_vec[get_rand_int(column_vec.size())];
         column_vec.erase(std::remove(column_vec.begin(), column_vec.end(), removed_column_name), column_vec.end());
@@ -1555,6 +1570,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
            // Finished assigning column name. continue;
            continue;
         } else if (v_table_names.size() != 0) {
+
+          /* This should be an error. 
+          ** 80% chances, keep original. 
+          ** 20%, use predefined table name. 
+          */
+          if (get_rand_int(5) < 4) {
+            continue;
+          } 
+
           closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
           if (is_debug_info) {
             cerr << "Dependency Error: In kUse of kDataColumnName, cannot find v_table_names_single. Thus find from v_table_name instead. Use table name: " << closest_table_name << " for column name origin. \n\n\n" << endl;
@@ -1565,7 +1589,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
           }
-          ir_to_fix->str_val_ = "y";
+          /* Unreconized, keep original */
+          // ir_to_fix->str_val_ = "y";
           return false;
         }
 
@@ -1581,7 +1606,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: In kDataColumnName, kUse, we choose closest_table_name: " << closest_table_name << " and column_name: " << cur_chosen_column << ". \n\n\n";
           }
         } else {
-          ir_to_fix->str_val_ = "y";
+          /* Unreconized, keep original */
+          // ir_to_fix->str_val_ = "y";
           if (is_debug_info) {
             cerr << "Dependency Error: In kDataColumnName, kUse, cannot find mapping from table_name" << closest_table_name << ". \n\n\n";
           }
@@ -1705,8 +1731,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               v_index_name = tmp_v_index_name;
             }
           }
-
-          ir_to_fix->set_str_val(tmp_index_name);
+          if (tmp_index_name != "y") {
+            ir_to_fix->set_str_val(tmp_index_name);
+          }
         }
 
         else if (ir_to_fix->get_data_flag() == kUse) {
@@ -1726,8 +1753,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               tmp_index_name = vector_rand_ele(v_index_name);
             }
           }
-
-          ir_to_fix->set_str_val(tmp_index_name);
+          if (tmp_index_name != "y") {
+            ir_to_fix->set_str_val(tmp_index_name);
+          }
         }
       }
     }
