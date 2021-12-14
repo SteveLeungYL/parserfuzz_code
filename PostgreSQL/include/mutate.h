@@ -209,8 +209,10 @@ public:
   static vector<string> v_table_name_follow_single; // All used table names follow type in one query stmt.
   static vector<string> v_statistics_name; // All statistic names defined in the current SQL.
   static vector<string> v_sequence_name; // All sequence names defined in the current SQL.
-  static vector<string> v_view_names; // All saved view names.
+  static vector<string> v_view_name; // All saved view names.
   static vector<string> v_constraint_name; // All constraint names defined in the current SQL.
+  static vector<string> v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
+  static vector<string> v_foreign_table_name; // All foreign table names defined inthe current SQL.
 
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;

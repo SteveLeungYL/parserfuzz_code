@@ -3348,6 +3348,8 @@ AlterTableStmt:
         res = new IR(kAlterTableStmt, OP3("ALTER FOREIGN TABLE", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_relation_expr_type(kDataForeignTableName, kUse);
     }
 
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr alter_table_cmds {
@@ -3356,6 +3358,8 @@ AlterTableStmt:
         res = new IR(kAlterTableStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_relation_expr_type(kDataForeignTableName, kUse);
     }
 
 ;
@@ -8119,6 +8123,9 @@ CreateForeignTableStmt:
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataForeignTableName, kDefine);
+
     }
 
     | CREATE FOREIGN TABLE IF_P NOT EXISTS qualified_name '(' OptTableElementList ')' OptInherit SERVER name create_generic_options {
@@ -8138,6 +8145,9 @@ CreateForeignTableStmt:
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataForeignTableName, kDefine);
+
     }
 
     | CREATE FOREIGN TABLE qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec SERVER name create_generic_options {
@@ -8160,6 +8170,8 @@ CreateForeignTableStmt:
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataForeignTableName, kDefine);
     }
 
     | CREATE FOREIGN TABLE IF_P NOT EXISTS qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec SERVER name create_generic_options {
@@ -8182,6 +8194,8 @@ CreateForeignTableStmt:
         res = new IR(kCreateForeignTableStmt, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataForeignTableName, kDefine);
     }
 
 ;
@@ -14435,6 +14449,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataForeignTableName, kUndefine);
+        tmp2 -> set_iden_type(kDataForeignTableName, kDefine);
+
     }
 
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr RENAME TO name {
@@ -14445,6 +14463,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataForeignTableName, kUndefine);
+        tmp2 -> set_iden_type(kDataForeignTableName, kDefine);
+
     }
 
     | ALTER TABLE relation_expr RENAME opt_column name TO name {

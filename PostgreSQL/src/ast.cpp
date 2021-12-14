@@ -108,6 +108,8 @@ string get_string_by_data_type(DATATYPE type) {
     return "data_collate";
   case kDataStatisticName:
     return "data_statisticName";
+  case kDataForeignTableName:
+    return "data_foreignTableName";
   default:
     return "data_unknown";
   }

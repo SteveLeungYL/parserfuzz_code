@@ -39,8 +39,10 @@ vector<string> Mutator::v_column_names_single; // All used column names in one q
 vector<string> Mutator::v_table_name_follow_single;  // All used table names follow type in one query stmt.
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the current stmt.
 vector<string> Mutator::v_sequence_name; // All sequence names defined in the current SQL.
-vector<string> Mutator::v_view_names; // All saved view names.
+vector<string> Mutator::v_view_name; // All saved view names.
 vector<string> Mutator::v_constraint_name; // All constraint names defined in the current SQL.
+vector<string> Mutator::v_foreign_table_name; // All foreign table names defined inthe current SQL.
+vector<string> Mutator::v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 vector<string> Mutator::v_sys_column_name;
@@ -1175,7 +1177,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
     kDataColumnNameFollow, kDataStatisticName, kDataSequenceName,
-    kDataViewName
+    kDataViewName, kDataForeignTableName, kDataConstraintName, kDataSequenceName, kDataStatisticName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1199,16 +1201,19 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
     /* Definition of kDataTableName */
     for (IR* ir_to_fix : ir_to_fix_vec){
-      if (ir_to_fix->data_type_ == kDataTableName && (ir_to_fix->data_flag_ == kDefine || ir_to_fix->data_flag_ == kReplace)) {
-        if (ir_to_fix->data_flag_ == kReplace) {
-          is_replace_table = true;
-        }
+      if (
+        (
+          ir_to_fix->data_type_ == kDataTableName ||
+          ir_to_fix->data_type_ == kDataForeignTableName
+        ) &&
+        (ir_to_fix->data_flag_ == kDefine))
+      {
         string new_name = gen_id_name();
         ir_to_fix->str_val_ = new_name;
 
-        /* Do not add the table into the v_table_names right now. It will be added after the fixing is finished. */
-        // v_table_names.push_back(new_name);
-        // v_table_names_single.push_back(new_name);
+        if (ir_to_fix->data_type_ == kDataForeignTableName) {
+          v_create_foreign_table_names_single.push_back(new_name);
+        }
 
         v_create_table_names_single.push_back(new_name);
         if (is_debug_info) {
@@ -1217,7 +1222,18 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: All saved table used names: " << all_used_name << "\n\n\n";
           }
         }
-      } else if (ir_to_fix->data_type_ == kDataTableName && ir_to_fix->data_flag_ == kUndefine) {
+        is_replace_table = true;
+      } 
+    }
+
+    /* Undefine of kDataTableName */
+    for (IR* ir_to_fix : ir_to_fix_vec){
+      if (
+        (
+          ir_to_fix->data_type_ == kDataTableName
+        ) &&
+        ir_to_fix->data_flag_ == kUndefine)
+      {
         if (v_table_names.size() > 0 ) {
           string removed_table_name = v_table_names[get_rand_int(v_table_names.size())];
           v_table_names.erase(std::remove(v_table_names.begin(), v_table_names.end(), removed_table_name), v_table_names.end());
@@ -1226,13 +1242,45 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency: Removed from v_table_names: " << removed_table_name << ", in kDataTableName with kUndefine \n\n\n";
           }
+          if (is_replace_table && v_create_table_names_single.size() != 0) {
+            string new_table_name = v_create_table_names_single.front();
+            m_tables[new_table_name] = m_tables[removed_table_name];
+          }
         } else {
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names, in kDataTableName with kUndefine. \n\n\n";
           }
+        }
+      } else if (
+        (
+          ir_to_fix->data_type_ == kDataForeignTableName
+        ) &&
+        ir_to_fix->data_flag_ == kUndefine)
+      {
+        if (v_foreign_table_name.size() > 0 ) {
+          /* Find table name in the foreign table vector, not normal table vec.  */
+          string removed_table_name = v_foreign_table_name[get_rand_int(v_foreign_table_name.size())];
+          v_foreign_table_name.erase(std::remove(v_foreign_table_name.begin(), v_foreign_table_name.end(), removed_table_name), v_foreign_table_name.end());
+
+          v_table_names.erase(std::remove(v_table_names.begin(), v_table_names.end(), removed_table_name), v_table_names.end());
+          v_table_names_single.erase(std::remove(v_table_names_single.begin(), v_table_names_single.end(), removed_table_name), v_table_names_single.end());
+          ir_to_fix->str_val_ = removed_table_name;
+          if (is_debug_info) {
+            cerr << "Dependency: Removed from v_foreign_table_names: " << removed_table_name << ", in kDataForeignTableName with kUndefine \n\n\n";
+          }
+          if (is_replace_table && v_create_foreign_table_names_single.size() != 0) {
+            string new_table_name = v_create_foreign_table_names_single.front();
+            m_tables[new_table_name] = m_tables[removed_table_name];
+          }
+
+        } else {
+          if (is_debug_info) {
+            cerr << "Dependency Error: Failed to find info in v_foreign_table_names, in kDataForeignTableName with kUndefine. \n\n\n";
+          }
           /* Unreconized, keep original */
           // ir_to_fix->str_val_ = "y";
         }
+
       }
     }
 
@@ -1265,12 +1313,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: All saved table used names: " << all_used_name << "\n\n\n";
           }
         }
-        if (is_replace_table) {
-          v_table_names.erase(std::remove(v_table_names.begin(), v_table_names.end(), used_name), v_table_names.end());
-          if (is_debug_info) {
-            cerr << "Dependency: In the context of replacing table, removing table_name: " << used_name << ". \n\n\n";
-          }
-        }
 
         if (cur_stmt_root->get_ir_type() == kCreateStmt &&
             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kTableLikeClause)) {
@@ -1291,7 +1333,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         ir_to_fix->set_str_val(new_view_name_str);
 
         v_create_table_names_single.push_back(new_view_name_str);
-        v_view_names.push_back(new_view_name_str);
+        v_view_name.push_back(new_view_name_str);
 
         if(is_debug_info) {
           cerr << "Dependency: In kDefine of kDataViewName, generating view name: " << new_view_name_str << "\n\n\n";
@@ -1302,16 +1344,16 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     /* kUndefine of kDataViewName. */
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUndefine) {
-        if (!v_view_names.size()) {
+        if (!v_view_name.size()) {
           if (is_debug_info) {
             cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
           }
           continue;
         }
-        string view_to_rov_str = vector_rand_ele(v_view_names);
+        string view_to_rov_str = vector_rand_ele(v_view_name);
         ir_to_fix->set_str_val(view_to_rov_str);
 
-        remove(v_view_names.begin(), v_view_names.end(), view_to_rov_str);
+        remove(v_view_name.begin(), v_view_name.end(), view_to_rov_str);
         remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
         remove(v_create_table_names_single.begin(), v_create_table_names_single.end(), view_to_rov_str);
 
@@ -1322,13 +1364,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
       /* kUse of kDataViewName */
       if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUse) {
-        if (!v_view_names.size()) {
+        if (!v_view_name.size()) {
           if (is_debug_info) {
             cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
           }
           continue;
         }
-        string view_str = vector_rand_ele(v_view_names);
+        string view_str = vector_rand_ele(v_view_name);
         ir_to_fix->set_str_val(view_str);
         v_table_names_single.push_back(view_str);
 
@@ -2106,6 +2148,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
   /* For the newly declared v_table_names_single, save all these newly declared statement to the global v_table_names. */
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(), v_create_table_names_single.end());
+  v_foreign_table_name.insert(v_foreign_table_name.end(), v_create_foreign_table_names_single.begin(), v_create_foreign_table_names_single.end());
   
   /* Reiterate the substmt.
   ** Added missing dependency information that is missing before. 
@@ -2531,6 +2574,7 @@ void Mutator::reset_data_library_single_stmt() {
   this->m_table2alias_single.clear();
   this->v_column_names_single.clear();
   this->v_table_name_follow_single.clear();
+  this->v_create_foreign_table_names_single.clear();
 }
 
 void Mutator::reset_data_library() {
@@ -2546,6 +2590,11 @@ void Mutator::reset_data_library() {
   v_column_names_single.clear();
   v_table_name_follow_single.clear();
   v_statistics_name.clear();
+  v_create_foreign_table_names_single.clear();
+  v_sequence_name.clear();
+  v_view_name.clear();
+  v_constraint_name.clear();
+  v_foreign_table_name.clear();
 }
 
 static IR *search_mapped_ir(IR *ir, DATATYPE type) {

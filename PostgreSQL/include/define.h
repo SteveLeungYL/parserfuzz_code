@@ -1504,7 +1504,8 @@
   V(DataTableNameFollow)                                                       \
   V(DataColumnNameFollow)                                                      \
   V(DataCollate)                                                               \
-  V(DataStatisticName)
+  V(DataStatisticName)                                                  \
+  V(DataForeignTableName)
 
 
 
