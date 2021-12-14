@@ -2197,6 +2197,18 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
           break;
         }
+        /* Yu: Dirty fix for CREATE TABLE PARTITION OF stmt. */
+        string cur_ir_str = cur_ir->to_string();
+        if (
+          cur_ir_str.find("PARTITION OF") != string::npos &&
+          cur_ir_str.find("CREATE") != string::npos
+        ) {
+          is_in_create_view = true;
+          if (is_debug_info) {
+            cerr << "Dependency: We are in a CREATE TABLE PARTITION OF. Hack, treat it CREATE VIEW.  \n\n\n";
+          }
+          break;
+        }
         /* TODO:: Support for CREATE TABLE AS stmt. */
         cur_ir = cur_ir->parent_;
       }

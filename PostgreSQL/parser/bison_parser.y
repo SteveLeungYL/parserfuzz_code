@@ -3393,6 +3393,9 @@ partition_cmd:
         res = new IR(kPartitionCmd, OP3("ATTACH PARTITION", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
+
     }
 
     | DETACH PARTITION qualified_name opt_concurrently {
@@ -3401,6 +3404,8 @@ partition_cmd:
         res = new IR(kPartitionCmd, OP3("DETACH PARTITION", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
     | DETACH PARTITION qualified_name FINALIZE {
@@ -3408,6 +3413,8 @@ partition_cmd:
         res = new IR(kPartitionCmd, OP3("DETACH PARTITION", "FINALIZE", ""), tmp1);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
@@ -5104,6 +5111,7 @@ CreateStmt:
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
+        tmp3->set_qualified_name_type(kDataTableName, kUse);
 
     }
 
@@ -5139,7 +5147,7 @@ CreateStmt:
         $$ = res;
 
         tmp2->set_qualified_name_type(kDataTableName, kDefine);
-
+        tmp3->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
@@ -6267,6 +6275,8 @@ part_elem:
         res = new IR(kPartElem, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_iden_type(kDataColumnName, kUse);
     }
 
     | func_expr_windowless opt_collate opt_class {
@@ -8172,6 +8182,7 @@ CreateForeignTableStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataForeignTableName, kDefine);
+        tmp2->set_qualified_name_type(kDataTableName, kUse);
     }
 
     | CREATE FOREIGN TABLE IF_P NOT EXISTS qualified_name PARTITION OF qualified_name OptTypedTableElementList PartitionBoundSpec SERVER name create_generic_options {
@@ -8196,6 +8207,7 @@ CreateForeignTableStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataForeignTableName, kDefine);
+        tmp2->set_qualified_name_type(kDataTableName, kUse);
     }
 
 ;
