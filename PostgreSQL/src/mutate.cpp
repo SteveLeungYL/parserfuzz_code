@@ -2013,8 +2013,11 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       /* Fix for kDataSequenceName */
       if (ir_to_fix->get_data_type() == kDataSequenceName) {
         if (ir_to_fix->get_data_flag() == kDefine) {
-          string cur_chosen_name = gen_sequence_name();
-          ir_to_fix->set_str_val(cur_chosen_name);
+          // string cur_chosen_name = gen_sequence_name();
+          // ir_to_fix->set_str_val(cur_chosen_name);
+
+          /* Yu: Do not fix for sequence name for now */
+          string cur_chosen_name = ir_to_fix->get_str_val();
           v_sequence_name.push_back(cur_chosen_name);
         }
 

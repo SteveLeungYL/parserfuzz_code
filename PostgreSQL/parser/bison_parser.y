@@ -14298,6 +14298,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER TABLE", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataTableName, kUndefine);
+        tmp2 -> set_iden_type(kDataTableName, kDefine);
+
     }
 
     | ALTER TABLE IF_P EXISTS relation_expr RENAME TO name {
@@ -14308,6 +14312,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataTableName, kUndefine);
+        tmp2 -> set_iden_type(kDataTableName, kDefine);
+
     }
 
     | ALTER SEQUENCE qualified_name RENAME TO name {
@@ -14318,6 +14326,9 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_qualified_name_type(kDataSequenceName, kUndefine);
+        tmp2 -> set_iden_type(kDataSequenceName, kDefine);
     }
 
     | ALTER SEQUENCE IF_P EXISTS qualified_name RENAME TO name {
@@ -14328,6 +14339,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_qualified_name_type(kDataSequenceName, kUndefine);
+        tmp2 -> set_iden_type(kDataSequenceName, kDefine);
+
     }
 
     | ALTER VIEW qualified_name RENAME TO name {
@@ -14438,6 +14453,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp3 -> set_iden_type(kDataColumnName, kUndefine);
+        tmp4 -> set_iden_type(kDataColumnName, kDefine);
+
     }
 
     | ALTER TABLE IF_P EXISTS relation_expr RENAME opt_column name TO name {
@@ -14456,6 +14475,9 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp3 -> set_iden_type(kDataColumnName, kUndefine);
+        tmp4 -> set_iden_type(kDataColumnName, kDefine);
     }
 
     | ALTER VIEW qualified_name RENAME opt_column name TO name {
@@ -14476,8 +14498,8 @@ RenameStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataViewName, kUse);
-        tmp3->set_iden_type(kDataColumnName, kUse);
-        tmp4->set_iden_type(kDataColumnName, kUse);
+        tmp3->set_iden_type(kDataColumnName, kUndefine);
+        tmp4->set_iden_type(kDataColumnName, kDefine);
     }
 
     | ALTER VIEW IF_P EXISTS qualified_name RENAME opt_column name TO name {
@@ -14498,8 +14520,8 @@ RenameStmt:
         $$ = res;
 
         tmp1->set_qualified_name_type(kDataViewName, kUse);
-        tmp3->set_iden_type(kDataColumnName, kUse);
-        tmp4->set_iden_type(kDataColumnName, kUse);
+        tmp3->set_iden_type(kDataColumnName, kUndefine);
+        tmp4->set_iden_type(kDataColumnName, kDefine);
     }
 
     | ALTER MATERIALIZED VIEW qualified_name RENAME opt_column name TO name {
@@ -14518,6 +14540,11 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataViewName, kUse);
+        tmp3->set_iden_type(kDataColumnName, kUndefine);
+        tmp4->set_iden_type(kDataColumnName, kDefine);
+
     }
 
     | ALTER MATERIALIZED VIEW IF_P EXISTS qualified_name RENAME opt_column name TO name {
@@ -14536,6 +14563,11 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_qualified_name_type(kDataViewName, kUse);
+        tmp3->set_iden_type(kDataColumnName, kUndefine);
+        tmp4->set_iden_type(kDataColumnName, kDefine);
+
     }
 
     | ALTER TABLE relation_expr RENAME CONSTRAINT name TO name {

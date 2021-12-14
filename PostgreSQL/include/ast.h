@@ -289,6 +289,7 @@ public:
   bool set_opt_name_list_type(DATATYPE, DATAFLAG);
   bool set_name_list_type(DATATYPE, DATAFLAG);
   bool set_cluster_index_specification_type(DATATYPE, DATAFLAG);
+  bool set_relation_expr_type(DATATYPE, DATAFLAG);
 
 
 

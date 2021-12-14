@@ -861,3 +861,13 @@ bool IR::set_cluster_index_specification_type(DATATYPE data_type, DATAFLAG data_
   IR* iden = get_left();
   return iden->set_iden_type(data_type, data_flag);
 }
+
+bool IR::set_relation_expr_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(get_ir_type() == kRelationExpr);
+
+  if (!get_left()) return false;
+
+  IR* qualified_name = get_left();
+
+  return qualified_name->set_qualified_name_type(data_type, data_flag);
+}
