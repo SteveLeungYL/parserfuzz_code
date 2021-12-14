@@ -3098,6 +3098,8 @@ AlterTableStmt:
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataTableName, kUse);
     }
 
     | ALTER TABLE IF_P EXISTS relation_expr alter_table_cmds {
@@ -3106,6 +3108,9 @@ AlterTableStmt:
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE IF EXISTS", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataTableName, kUse);
+
     }
 
     | ALTER TABLE relation_expr partition_cmd {
@@ -3114,6 +3119,9 @@ AlterTableStmt:
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataTableName, kUse);
+
     }
 
     | ALTER TABLE IF_P EXISTS relation_expr partition_cmd {
@@ -3122,6 +3130,8 @@ AlterTableStmt:
         res = new IR(kAlterTableStmt, OP3("ALTER TABLE IF EXISTS", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_relation_expr_type(kDataTableName, kUse);
     }
 
     | ALTER TABLE ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
@@ -14583,6 +14593,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_relation_expr_type(kDataTableName, kUse);
+        tmp2->set_iden_type(kDataConstraintName, kUndefine);
+        tmp3->set_iden_type(kDataConstraintName, kDefine);
     }
 
     | ALTER TABLE IF_P EXISTS relation_expr RENAME CONSTRAINT name TO name {
@@ -14598,6 +14612,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1->set_relation_expr_type(kDataTableName, kUse);
+        tmp2->set_iden_type(kDataConstraintName, kUndefine);
+        tmp3->set_iden_type(kDataConstraintName, kDefine);
     }
 
     | ALTER FOREIGN TABLE relation_expr RENAME opt_column name TO name {

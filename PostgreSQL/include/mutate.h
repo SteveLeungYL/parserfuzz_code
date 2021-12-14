@@ -210,6 +210,7 @@ public:
   static vector<string> v_statistics_name; // All statistic names defined in the current SQL.
   static vector<string> v_sequence_name; // All sequence names defined in the current SQL.
   static vector<string> v_view_names; // All saved view names.
+  static vector<string> v_constraint_name; // All constraint names defined in the current SQL.
 
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;

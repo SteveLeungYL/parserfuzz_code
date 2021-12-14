@@ -40,7 +40,7 @@ vector<string> Mutator::v_table_name_follow_single;  // All used table names fol
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the current stmt.
 vector<string> Mutator::v_sequence_name; // All sequence names defined in the current SQL.
 vector<string> Mutator::v_view_names; // All saved view names.
-
+vector<string> Mutator::v_constraint_name; // All constraint names defined in the current SQL.
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 vector<string> Mutator::v_sys_column_name;
@@ -1299,7 +1299,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
-
     /* kUndefine of kDataViewName. */
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUndefine) {
@@ -1318,6 +1317,23 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         if(is_debug_info) {
           cerr << "Dependency: In kUndefine of kDataViewName, removing view name: " << view_to_rov_str << "\n\n\n";
+        }
+      }
+
+      /* kUse of kDataViewName */
+      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUse) {
+        if (!v_view_names.size()) {
+          if (is_debug_info) {
+            cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
+          }
+          continue;
+        }
+        string view_str = vector_rand_ele(v_view_names);
+        ir_to_fix->set_str_val(view_str);
+        v_table_names_single.push_back(view_str);
+
+        if(is_debug_info) {
+          cerr << "Dependency: In kUse of kDataViewName, using view name: " << view_str << "\n\n\n";
         }
       }
     }
@@ -2043,7 +2059,43 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
       }
 
+      /* Fix for kDataConstraintName */
+      if (ir_to_fix->get_data_type() == kDataConstraintName) {
+        if (ir_to_fix->get_data_flag() == kDefine) {
+          // string cur_chosen_name = gen_sequence_name();
+          // ir_to_fix->set_str_val(cur_chosen_name);
+
+          /* Yu: Do not fix for constraint name for now */
+          string cur_chosen_name = ir_to_fix->get_str_val();
+          v_constraint_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUndefine) {
+          if (!v_constraint_name.size()) continue;
+          string cur_chosen_name = vector_rand_ele(v_constraint_name);
+          ir_to_fix->set_str_val(cur_chosen_name);
+
+          /* remove the statistic name from the vector */
+          vector<string> v_tmp;
+          for (string& s : v_constraint_name) {
+            if (s != cur_chosen_name) {
+              v_tmp.push_back(s);
+            }
+          }
+          v_constraint_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == kUse) {
+          if (!v_constraint_name.size()) continue;
+          string cur_chosen_name = vector_rand_ele(v_constraint_name);
+          ir_to_fix->set_str_val(cur_chosen_name);
+        }
+      }
+
     }
+
+
+
 
 
   }  /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
