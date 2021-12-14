@@ -14656,6 +14656,9 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp3->set_iden_type(kDataColumnName, kUndefine);
+        tmp4->set_iden_type(kDataColumnName, kDefine);
     }
 
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr RENAME opt_column name TO name {
@@ -14674,6 +14677,10 @@ RenameStmt:
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp3->set_iden_type(kDataColumnName, kUndefine);
+        tmp4->set_iden_type(kDataColumnName, kDefine);
+
     }
 
     | ALTER RULE name ON qualified_name RENAME TO name {
