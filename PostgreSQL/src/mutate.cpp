@@ -1783,6 +1783,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the closest_table_name from the query. Error cloest_table_name is: " << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
           }
+          if (v_alias_names_single.size() != 0) {
+            ir_to_fix->str_val_ = vector_rand_ele(v_alias_names_single);
+            if (is_debug_info) {
+              cerr << "Dependency: Using alias inside kUse of kColumnName: " << ir_to_fix->str_val_ << ". \n\n\n";
+            }
+            fixed_ir.push_back(ir_to_fix);
+            continue;
+          }
           /* Unreconized, keep original */
           // ir_to_fix->str_val_ = "y";
           // return false;
