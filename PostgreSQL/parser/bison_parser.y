@@ -6725,6 +6725,9 @@ create_mv_target:
         res = new IR(kCreateMvTarget, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_qualified_name_type(kDataViewName, kDefine);
+        tmp2 -> set_opt_columnlist_type(kDataColumnName, kDefine);
     }
 
 ;
