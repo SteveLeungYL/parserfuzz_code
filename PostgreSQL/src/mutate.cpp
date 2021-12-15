@@ -1592,14 +1592,20 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
 
       if (ir_to_fix->data_type_ == kDataColumnName && ir_to_fix->data_flag_ == kUse) {
-
-        cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
+        if (is_debug_info) {
+          cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
+          cerr << "In the kDataColumnName with kUse, found v_alias_names_single.size: " << v_alias_names_single.size() << "\n\n\n";
+        }
         /* If we are seeing system default columns, 75% skip the fixing and reuse the original.  */
         string ori_str = ir_to_fix->get_str_val();
         if (
           find(v_sys_column_name.begin(), v_sys_column_name.end(), ori_str) != v_sys_column_name.end() &&
           get_rand_int(4) >= 1
         ) {
+          continue;
+        } else if (v_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
+          /* We have defined a new alias for column name! use it with 660% percentage. */
+          ir_to_fix->str_val_ = vector_rand_ele(v_alias_names_single);
           continue;
         }
         /* Or, assign with system column in 5% chances */
