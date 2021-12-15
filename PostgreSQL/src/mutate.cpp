@@ -2247,7 +2247,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         if (cur_ir->type_ == kStmt) {
           break;
         }
-        if (cur_ir->type_ == kCreateViewStmt) {
+        if (cur_ir->type_ == kCreateViewStmt || cur_ir->type_ == kViewStmt) {
           is_in_create_view = true;
           if (is_debug_info) {
             cerr << "Dependency: We are in a kCreateViewStmt. \n\n\n";
@@ -2289,6 +2289,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         set<DATATYPE> column_type_set = {kDataColumnName};
         collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
 
+        /* Fix: also, add alias name defined here to the table */
+        vector<IR*> all_mentioned_alias_vec;
+        set<DATATYPE> alias_type_set = {kDataAliasName};
+        collect_ir(cur_stmt_root, alias_type_set, all_mentioned_alias_vec);
+
+        all_mentioned_column_vec.insert(all_mentioned_column_vec.end(), all_mentioned_alias_vec.begin(), all_mentioned_alias_vec.end());
+        all_mentioned_alias_vec.clear();
+
         if (is_debug_info) {
           cerr << "Dependency: When building extra mapping for CREATE VIEW AS, collected kDataColumnName.size: " << all_mentioned_column_vec.size() << ". \n\n\n";
         }
@@ -2305,9 +2313,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               cerr << "Dependency: Adding mappings: For table/view: " << ir_to_fix->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
             }
           }
-          // if (is_debug_info) {
-          //   cerr << "Dependency: Adding mappings: For table/view: " << ir_to_fix->str_val_ << ", map with column: " << cur_men_column_str << ". \n\n\n";
-          // }
         }
 
         /* For CREATE VIEW x AS SELECT * FROM v0; */
