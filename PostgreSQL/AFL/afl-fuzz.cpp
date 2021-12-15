@@ -143,7 +143,7 @@ u64 postgre_execute_error = 0;
 u64 postgre_execute_total = 0;
 
 int map_file_id = 0;
-fstream map_id_out_f("./map_id_triggered.txt", std::ofstream::out | std::ofstream::trunc);
+fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
 
 enum SQLSTATUS
 {
@@ -488,6 +488,7 @@ static string
     program_output_str; /* String: query results output from sqlite   */
 
 int bug_output_id = 0;
+int log_output_id = 0;
 
 static s32 forksrv_pid, /* PID of the fork server           */
     child_pid = -1,     /* PID of the fuzzed program        */
@@ -1268,10 +1269,10 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   if (cur_seed_str == "") {
     return;
   }
-  // fstream map_id_seed_output;
-  // map_id_seed_output.open("./queue_coverage_id/" + to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
-  // map_id_seed_output << cur_seed_str;
-  // map_id_seed_output.close();
+  fstream map_id_seed_output;
+  map_id_seed_output.open("./queue_coverage_id_core/" + to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
+  map_id_seed_output << cur_seed_str;
+  map_id_seed_output.close();
 }
 
 /* Check if the current execution path brings anything new to the table.
@@ -1314,7 +1315,8 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail())) {
+      // if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail())) {
+      if (unlikely(dump_library && !map_id_out_f.fail())) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -1329,16 +1331,19 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
             (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
               ret = 2;
-              if (dump_library && !map_id_out_f.fail()){
+              if (dump_library && !map_id_out_f.fail() && cur_seed_str != ""){
                 vector<u8> byte = get_cur_new_byte(cur, vir);
                 for (const u8& cur_byte: byte){
                   // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
-                  log_map_id(i, cur_byte, "");
+                  log_map_id(i, cur_byte, cur_seed_str);
                 }
               }
             }
-        else
-          ret = 1;
+        else {
+          if (ret != 2) {
+            ret = 1;
+          }
+        }
 
 #else
 
@@ -3428,6 +3433,20 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   /* Some useful debug output. That could show what queries are being tested. */
   // stream_output_res(all_comp_res, cerr);
 
+  /***********************/
+  /* Debug: output logs for all execs */
+  if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+    filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+  }
+  string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+  ofstream log_output_file;
+  log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+  stream_output_res(all_comp_res, log_output_file);
+  log_output_file.close();
+
+  /* Debug end.  */
+  /***********************/
+
   if (all_comp_res.final_res == ORA_COMP_RES::Fail)
   {
     ofstream outputfile;
@@ -4213,7 +4232,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits)))
+    if (!(hnb = has_new_bits(virgin_bits, query_str)))
     {
       if (crash_mode)
         total_crashes++;
@@ -8110,10 +8129,6 @@ int main(int argc, char **argv)
   
   g_mutator.set_dump_library(dump_library);
 
-  if (dump_library) {
-    load_map_id();
-  }
-
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
 
@@ -8213,6 +8228,11 @@ int main(int argc, char **argv)
   do_libary_initialize();
   cerr << "do_library_initialize() takes "
        << (get_cur_time() - start_time) / 1000 << " seconds\n";
+
+  if (dump_library) {
+    load_map_id();
+  }
+
 
   perform_dry_run(use_argv);
 
