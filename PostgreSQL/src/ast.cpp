@@ -110,6 +110,8 @@ string get_string_by_data_type(DATATYPE type) {
     return "data_statisticName";
   case kDataForeignTableName:
     return "data_foreignTableName";
+  case kDataAliasTableName:
+    return "data_aliasTableName";
   default:
     return "data_unknown";
   }

@@ -6725,6 +6725,9 @@ create_mv_target:
         res = new IR(kCreateMvTarget, OP3("", "", ""), res, tmp5);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        tmp1 -> set_qualified_name_type(kDataViewName, kDefine);
+        tmp2 -> set_opt_columnlist_type(kDataColumnName, kDefine);
     }
 
 ;
@@ -19106,6 +19109,13 @@ common_table_expr:
         res = new IR(kCommonTableExpr, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        /* Yu: This seems to only be used in the WITH Clause.
+         * Which means this would always be referred as aliases.
+         * */
+
+        tmp1 -> set_iden_type(kDataAliasTableName, kDefine);
+        tmp2 -> set_opt_name_list_type(kDataAliasName, kDefine);
     }
 
 ;
@@ -20333,7 +20343,8 @@ alias_clause:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataAliasName, kDefine);
+        tmp1->set_iden_type(kDataAliasTableName, kDefine);
+        tmp2->set_name_list_type(kDataAliasName, kDefine);
     }
 
     | AS ColId {
@@ -20356,7 +20367,8 @@ alias_clause:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataAliasName, kDefine);
+        tmp1->set_iden_type(kDataAliasTableName, kDefine);
+        tmp2->set_name_list_type(kDataAliasName, kDefine);
 
     }
 
