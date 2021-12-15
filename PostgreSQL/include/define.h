@@ -1488,6 +1488,7 @@
   V(DataTriggerFunction)                                                       \
   V(DataDomainName)                                                            \
   V(DataAliasName)                                                             \
+  V(DataAliasTableName)                                                        \
   V(DataLiteral)                                                               \
   V(DataIndexName)                                                             \
   V(DataUserName)                                                              \

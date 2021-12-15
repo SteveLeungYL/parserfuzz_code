@@ -19109,6 +19109,13 @@ common_table_expr:
         res = new IR(kCommonTableExpr, OP3("", "", ""), res, tmp6);
         all_gen_ir.push_back(res);
         $$ = res;
+
+        /* Yu: This seems to only be used in the WITH Clause.
+         * Which means this would always be referred as aliases.
+         * */
+
+        tmp1 -> set_iden_type(kDataAliasTableName, kDefine);
+        tmp2 -> set_opt_name_list_type(kDataAliasName, kDefine);
     }
 
 ;

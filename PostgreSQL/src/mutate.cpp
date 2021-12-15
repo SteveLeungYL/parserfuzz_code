@@ -928,10 +928,10 @@ bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
   auto substmts = split_to_substmt(cur_stmt, m_substmt_save, split_substmt_types_);
 
   int substmt_num = substmts.size();
-  if (substmt_num > 5) {
+  if (substmt_num > 10) {
     connect_back(m_substmt_save);
     if (is_debug_info) {
-      // cerr << "Dependency Error: the query is too complicated to fix. Has more than 5 subqueries. \n\n\n";  // Ad-hoc number, just based on intuition. 
+      cerr << "Dependency Error: the query is too complicated to fix. Has more than 5 subqueries. \n\n\n";  // Ad-hoc number, just based on intuition.
     }
     return false;
   }
@@ -1178,7 +1178,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
     kDataColumnNameFollow, kDataStatisticName, kDataSequenceName,
-    kDataViewName, kDataForeignTableName, kDataConstraintName, kDataSequenceName, kDataStatisticName
+    kDataViewName, kDataForeignTableName, kDataConstraintName, kDataSequenceName, kDataStatisticName, kDataAliasTableName
   };
   vector<IR*> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -1410,6 +1410,19 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
+    /* Fix of kAliasTableName.  */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->data_type_ == kDataAliasTableName && ir_to_fix->data_flag_ == kDefine) {
+        string new_alias_table_name_str = gen_alias_name();
+        ir_to_fix->set_str_val(new_alias_table_name_str);
+
+        v_table_names_single.push_back(new_alias_table_name_str);
+
+        if(is_debug_info) {
+          cerr << "Dependency: In kDefine of kDataAliasTableName, generating alias table name: " << new_alias_table_name_str << "\n\n\n";
+        }
+      }
+    }
 
     /* Fix of kAlias name. */
     int alias_idx = 0;
@@ -1685,7 +1698,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
           /* Unreconized, keep original */
           // ir_to_fix->str_val_ = "y";
-          return false;
+          // return false;
+          continue;
         }
 
         vector<string>& cur_mapped_column_name_vec = m_tables[closest_table_name];
