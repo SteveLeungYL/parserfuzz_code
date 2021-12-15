@@ -20343,7 +20343,8 @@ alias_clause:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataAliasName, kDefine);
+        tmp1->set_iden_type(kDataAliasTableName, kDefine);
+        tmp2->set_name_list_type(kDataAliasName, kDefine);
     }
 
     | AS ColId {
@@ -20366,7 +20367,8 @@ alias_clause:
         all_gen_ir.push_back(res);
         $$ = res;
 
-        tmp1->set_iden_type(kDataAliasName, kDefine);
+        tmp1->set_iden_type(kDataAliasTableName, kDefine);
+        tmp2->set_name_list_type(kDataAliasName, kDefine);
 
     }
 
