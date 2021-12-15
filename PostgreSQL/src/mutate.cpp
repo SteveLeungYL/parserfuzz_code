@@ -1986,8 +1986,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_data_type() == kDataRelOption) {
 
-        /* Fix reloptions, in 50% of chances. */
-        if (get_rand_int(2) < 1) {
+        /* Fix reloptions, in 20% of chances. */
+        if (get_rand_int(5) < 4) {
           continue;
         }
 
