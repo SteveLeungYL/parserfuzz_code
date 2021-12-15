@@ -1004,6 +1004,7 @@ bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
 bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
 
     while (sub_ir) {
+        cerr << "DEBUG: is_ir_in: looking at: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n";
         if (sub_ir->get_ir_type() == par_type) {
             return true;
         }

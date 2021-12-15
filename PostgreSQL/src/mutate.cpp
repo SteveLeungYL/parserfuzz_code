@@ -924,7 +924,7 @@ bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
   reset_data_library_single_stmt();
 
   /* m_substmt_save, used for reconstruct the tree. */
-  map<IR **, IR *> m_substmt_save;
+  map<IR *, pair<bool, IR*>> m_substmt_save;
   auto substmts = split_to_substmt(cur_stmt, m_substmt_save, split_substmt_types_);
 
   int substmt_num = substmts.size();
@@ -1053,7 +1053,7 @@ vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, 
 /* 
 ** From the outer most parent-statements to the inner most sub-statements. 
 */
-vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR **, IR *> &m_save,
+vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR *, pair<bool, IR*>> &m_save,
                                     set<IRTYPE> &split_set) {
   vector<IR *> res;
   deque<IR *> bfs = {cur_stmt};
@@ -1077,14 +1077,16 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR **, IR *> &m_save,
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)
     ) {
       res.push_back(node->left_);
-      m_save[&node->left_] = node->left_;
+      pair<bool, IR*> cur_m_save = make_pair<bool, IR*> (true, node->get_left());
+      m_save[node] = cur_m_save;
     }
     if (node->right_ &&
         find(split_set.begin(), split_set.end(), node->right_->type_) != split_set.end() && 
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->right_)
       ) {
       res.push_back(node->right_);
-      m_save[&node->right_] = node->right_;
+      pair<bool, IR*> cur_m_save = make_pair<bool, IR*> (false, node->get_right());
+      m_save[node] = cur_m_save;
     }
   }
 
@@ -1095,9 +1097,13 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR **, IR *> &m_save,
   return res;
 }
 
-bool Mutator::connect_back(map<IR **, IR *> &m_save) {
+bool Mutator::connect_back(map<IR *, pair<bool, IR*>> &m_save) {
   for (auto &iter : m_save) {
-    *(iter.first) = iter.second;
+    if (iter.second.first) { // is_left?
+      iter.first->update_left(iter.second.second);
+    } else {
+      iter.first->update_right(iter.second.second);
+    }
   }
   return true;
 }
@@ -1702,9 +1708,18 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           get_rand_int(4) >= 1
         ) {
           continue;
-        } else if (v_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
-          /* We have defined a new alias for column name! use it with 660% percentage. */
+        } else if (
+          v_alias_names_single.size() > 0 &&
+          get_rand_int(3) < 2 &&
+          // Do not use alias inside kWithClause
+          !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause)
+        ) {
+          /* We have defined a new alias for column name! use it with 66% percentage. */
+          cerr << "DEBUG: is in kWithClause: " <<           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
           ir_to_fix->str_val_ = vector_rand_ele(v_alias_names_single);
+          if (is_debug_info) {
+            cerr << "Dependency: Using alias inside kUse of kColumnName: " << ir_to_fix->str_val_ << ". \n\n\n";
+          }
           continue;
         }
         /* Or, assign with system column in 5% chances */

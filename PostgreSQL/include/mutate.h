@@ -93,9 +93,9 @@ public:
 
   bool fix_one_stmt(IR *cur_stmt, bool is_debug_info = false);
 
-  vector<IR *> split_to_substmt(IR *root, map<IR **, IR *> &m_save,
+  vector<IR *> split_to_substmt(IR *root, map<IR *, pair<bool, IR*>> &m_save,
                              set<IRTYPE> &split_set); 
-  bool connect_back(map<IR **, IR *> &m_save);        
+  bool connect_back(map<IR *, pair<bool, IR*>> &m_save);
 
   void analyze_scope(IR *stmt_root);
   void fix_preprocessing(IR *stmt_root,
