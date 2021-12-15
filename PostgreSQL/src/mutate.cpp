@@ -2203,7 +2203,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
           break;
         }
-        /* Yu: Dirty fix for CREATE TABLE PARTITION OF stmt. */
+        /* Yu: Dirty fix for CREATE TABLE PARTITION OF or CREATE TABLE ... AS SELECT ... stmt. */
         string cur_ir_str = cur_ir->to_string();
         if (
           cur_ir_str.find("PARTITION OF") != string::npos &&
@@ -2215,7 +2215,17 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
           break;
         }
-        /* TODO:: Support for CREATE TABLE AS stmt. */
+        if (
+          cur_ir_str.find("CREATE TABLE") != string::npos &&
+          cur_ir_str.find("AS SELECT") != string::npos
+        ) {
+          is_in_create_view = true;
+          if (is_debug_info) {
+            cerr << "Dependency: We are in a CREATE TABLE AS SELECT. Hack, treat it CREATE VIEW.  \n\n\n";
+          }
+          break;
+        }
+        
         cur_ir = cur_ir->parent_;
       }
       if (is_in_create_view) {
@@ -2284,8 +2294,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         /* The extra mapping only need to be done once. Once reach this point, break the loop. */
         break;
       } // if (is_in_create_view)
-
-      /* TODO:: Support for CREATE TABLE AS stmt. */
 
     } // for (IR* ir_to_fix : ir_to_fix_vec)
   }
