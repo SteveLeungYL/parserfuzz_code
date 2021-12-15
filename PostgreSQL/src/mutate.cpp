@@ -1206,7 +1206,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
   string cur_ir_str = cur_stmt_root->to_string();
 
   bool is_replace_table = false, is_replace_column = false;
-  for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {  // Loop for substmt. 
+  for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {  // Loop for substmt.
+
+    vector<string> v_with_clause_alias_table_name;
 
     /* Definition of kDataTableName */
     for (IR* ir_to_fix : ir_to_fix_vec){
@@ -1461,7 +1463,11 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         ir_to_fix->set_str_val(new_alias_table_name_str);
         fixed_ir.push_back(ir_to_fix);
 
-        v_table_names_single.push_back(new_alias_table_name_str);
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause)) {
+          v_with_clause_alias_table_name.push_back(new_alias_table_name_str);
+        } else {
+          v_table_names_single.push_back(new_alias_table_name_str);
+        }
 
         if(is_debug_info) {
           cerr << "Dependency: In kDefine of kDataAliasTableName, generating alias table name: " << new_alias_table_name_str << "\n\n\n";
@@ -1481,7 +1487,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         string closest_table_name = "";
 
-        if (v_table_names_single.size() != 0) {
+        if (
+          v_with_clause_alias_table_name.size() != 0
+        ) {
+          closest_table_name = vector_rand_ele(v_with_clause_alias_table_name);
+          if (is_debug_info) {
+            cerr << "Dependency: In with clause kAlias Name Defined, find table name: " << closest_table_name << ". \n\n\n" << endl;
+          }
+        }
+        else if (v_table_names_single.size() != 0) {
           if (alias_idx < v_table_names_single.size()) {
             closest_table_name = v_table_names_single[alias_idx];
             alias_idx++;
@@ -1709,13 +1723,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         ) {
           continue;
         } else if (
-          v_alias_names_single.size() > 0 &&
-          get_rand_int(3) < 2 &&
           // Do not use alias inside kWithClause
-          !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause)
+          !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) &&
+          v_alias_names_single.size() > 0 &&
+          get_rand_int(3) < 2
         ) {
           /* We have defined a new alias for column name! use it with 66% percentage. */
-          cerr << "DEBUG: is in kWithClause: " <<           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
+          // cerr << "DEBUG: is in kWithClause: " <<           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
           ir_to_fix->str_val_ = vector_rand_ele(v_alias_names_single);
           if (is_debug_info) {
             cerr << "Dependency: Using alias inside kUse of kColumnName: " << ir_to_fix->str_val_ << ". \n\n\n";
