@@ -213,6 +213,7 @@ public:
   static vector<string> v_constraint_name; // All constraint names defined in the current SQL.
   static vector<string> v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
   static vector<string> v_foreign_table_name; // All foreign table names defined inthe current SQL.
+  static vector<string> v_table_with_partition_name; // All table names that contiains TABLE PARTITIONING.
 
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;

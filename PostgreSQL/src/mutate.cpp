@@ -48,6 +48,7 @@ map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 vector<string> Mutator::v_sys_column_name;
 
 vector<string> Mutator::v_aggregate_func;
+vector<string> Mutator::v_table_with_partition_name;
 
 //#define GRAPHLOG
 
@@ -1195,6 +1196,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
    * of the function.
    * */
   vector<IR*> ir_to_deep_drop;
+  string cur_ir_str = cur_stmt_root->to_string();
 
   bool is_replace_table = false, is_replace_column = false;
   for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {  // Loop for substmt. 
@@ -1223,7 +1225,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
         is_replace_table = true;
-      } 
+      }
     }
 
     /* Undefine of kDataTableName */
@@ -1288,6 +1290,34 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     /* kUse of kDataTableName */
     for (IR* ir_to_fix : ir_to_fix_vec){
       if (ir_to_fix->data_type_ == kDataTableName && (ir_to_fix->data_flag_ == kUse)) {
+
+        /* Check whether we are in the PARTITION OF clause, if yes, use the v_table_with_partition_names */
+        if (
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCreateStmt_30) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCreateStmt_38) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCreateForeignTableStmt_7) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCreateForeignTableStmt_11)
+        ) {
+          if (is_debug_info) {
+            cerr << "Dependency: Detected fixing for kUse kTablename in the PARTITION OF clause. \n\n\n";
+          }
+          if (v_table_with_partition_name.size() > 0) {
+            ir_to_fix->set_str_val(vector_rand_ele(v_table_with_partition_name));
+            if (is_debug_info) {
+              cerr << "Dependency: In kUse of kTableName, use table name with partitioning: " << ir_to_fix->get_str_val() << ". \n\n\n";
+            }
+            continue;
+          } else {
+            if (is_debug_info) {
+              cerr << "Dependency Error: In kUse of kTableName, cannot find table names with partitioning. \n\n\n";
+            }
+            /* In this error case, 20% use original */
+            if(get_rand_int(5) < 1) {
+              continue;
+            }
+          }
+        }
+
         if (v_table_names.size() == 0 && v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names and v_create_table_names_single, in kDataTableName with kUse. \n\n\n";
@@ -2143,12 +2173,33 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     }
 
 
-
-
-
   }  /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
 
 
+  /* Check whether the table is in the context of TABLE PARTITIONING */
+  bool is_table_par = false;
+  // First, check kOptPartitionClause
+  vector<IR*> v_opt_par_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kOptPartitionClause, false);
+  if (v_opt_par_clause.size() > 0) {
+    for (IR* opt_par_clause : v_opt_par_clause) {
+      if (opt_par_clause->get_prefix() == "PARTITION BY") {
+        is_table_par = true;
+        break;
+      }
+    }
+  }
+  v_opt_par_clause.clear();
+
+  // Next, check kPartitionSpec
+  vector<IR*> v_par_spec = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, kPartitionSpec, false);
+  if (v_par_spec.size() > 0) {
+    is_table_par = true;
+  }
+
+  if (is_table_par && v_create_table_names_single.size() > 0) {
+    string new_par_table_name = v_create_table_names_single.front();
+    v_table_with_partition_name.push_back(new_par_table_name);
+  }
 
 
 
@@ -2204,7 +2255,6 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           break;
         }
         /* Yu: Dirty fix for CREATE TABLE PARTITION OF or CREATE TABLE ... AS SELECT ... stmt. */
-        string cur_ir_str = cur_ir->to_string();
         if (
           cur_ir_str.find("PARTITION OF") != string::npos &&
           cur_ir_str.find("CREATE") != string::npos
@@ -2621,6 +2671,7 @@ void Mutator::reset_data_library() {
   v_view_name.clear();
   v_constraint_name.clear();
   v_foreign_table_name.clear();
+  v_table_with_partition_name.clear();
 }
 
 static IR *search_mapped_ir(IR *ir, DATATYPE type) {
