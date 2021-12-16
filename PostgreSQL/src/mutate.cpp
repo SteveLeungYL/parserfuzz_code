@@ -22,6 +22,8 @@
 #include <deque>
 #include <fstream>
 #include <algorithm>
+#include <string>
+#include <iostream>
 #define _NON_REPLACE_
 
 using namespace std;
@@ -50,6 +52,8 @@ vector<string> Mutator::v_sys_catalogs_name;
 
 vector<string> Mutator::v_aggregate_func;
 vector<string> Mutator::v_table_with_partition_name;
+
+vector<string> Mutator::v_saved_reloption_str;
 
 //#define GRAPHLOG
 
@@ -2114,9 +2118,31 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       if (ir_to_fix->data_type_ == kDataLiteral) {
         fixed_ir.push_back(ir_to_fix);
 
-        if (get_rand_int(10) < 9) {
+        string ori_str = ir_to_fix->get_str_val();
+        if (
+          ir_to_fix->get_ir_type() == kStringLiteral &&
+          find(common_string_library_.begin(), common_string_library_.end(), ori_str) == common_string_library_.end() &&
+          get_rand_int(10) < 1
+        ) {
+          /* Update unseen string with just 10% chances. (heuristic) */
+          common_string_library_.push_back(ori_str);
+        }
+
+        /* Mutate the literals in just 1% of chances is enough. 
+        * For 99% of chances, keep original. 
+        */
+        if (get_rand_int(100) < 99) {
           continue;
         }
+
+        if (
+          cur_stmt_root->get_ir_type() == kVariableSetStmt ||
+          cur_stmt_root->get_ir_type() == kVariableResetStmt ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kReloptions)
+        ) {
+          continue;
+        }
+
         cur_literal_idx++;
         COLTYPE column_data_type = COLTYPE::UNKNOWN_T;
         if (v_column_names_single.size() > cur_literal_idx) {
@@ -2140,8 +2166,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
 
-        /* 9/10 chances, choose the original type. */
-        if (get_rand_int(10) < 9) {
+        /* 95% chances, choose the original type. */
+        if (get_rand_int(20) < 19) {
           if (ir_to_fix->get_ir_type() == kIntLiteral) {
             column_data_type = COLTYPE::INT_T;
           }
@@ -2194,8 +2220,25 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* INT */
         if (column_data_type == COLTYPE::INT_T){
-          /* 1/2 chances, use value_library, 1/2, use rand_int up to 2147483648 */
-          if (get_rand_int(100) < 50 && value_library_.size()) {
+          /* If the value is a small number <= 7, preferred to choose a small number with 4/5 chances */
+          string ori_str = ir_to_fix->get_str_val();
+          int ori_int = 0;
+          try {
+            ori_int = std::stoi(ori_str);
+          } catch (...) {
+            ori_int = -1;
+          }
+          if (
+            ori_int >= 0 &&
+            ori_int <= 7 &&
+            get_rand_int(5) < 4
+          ) {
+            ir_to_fix->str_val_ = to_string(get_rand_int(8));
+            continue;
+          }
+
+          /* 4/5 chances, use value_library, 1/2, use rand_int up to 2147483648 */
+          if (get_rand_int(5) < 4 && value_library_.size()) {
             if (value_library_.size() == 0) {
               FATAL("Error: value_library_ is not being init properly. \n");
             }
@@ -2212,7 +2255,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
           ) {
 
-            ir_to_fix->int_val_ = (get_rand_int(1000));
+            ir_to_fix->int_val_ = (get_rand_int(100));
             if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = - ir_to_fix->int_val_;
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
@@ -2251,13 +2294,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
 
         /* STRING */
-        /* Because STRING could represent too many types: inet, datetime, or even regular expressions.
-         * Thus, use the original string with 90% of chances, only change it with our string library with 10%.
-         * */
+        /* STRING could represent too many types: inet, datetime, or even regular expressions.
+         * 
+         */
         else {
-          // if (get_rand_int(10) < 1) {
-            ir_to_fix->str_val_ = get_a_string();
-          // }
+          ir_to_fix->str_val_ = get_a_string();
+          
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
@@ -2277,8 +2319,30 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       if (ir_to_fix->get_data_type() == kDataRelOption) {
         fixed_ir.push_back(ir_to_fix);
 
-        /* Fix reloptions, in 20% of chances. */
-        if (get_rand_int(5) < 4) {
+        /* See if we have seen this reloption before, if not, save it.  */
+        string ori_str = ir_to_fix->to_string();
+        if (
+          std::find(v_saved_reloption_str.begin(), v_saved_reloption_str.end(), ori_str) == v_saved_reloption_str.end()
+        ) {
+          if (is_debug_info) {
+            cerr << "Dependency: Saving unseen reloption string: " << ori_str << ". \n\n\n";
+          }
+          v_saved_reloption_str.push_back(ori_str);
+        }
+
+        /* Use original reloptions, in 98% of chances. */
+        if (get_rand_int(100) < 98) {
+          continue;
+        }
+
+        if (get_rand_int(5) < 4 && v_saved_reloption_str.size() > 0) {
+          /* If 4/5 chances, rerun previously seen reloptions */
+          IR* new_reloption_ir = new IR(kReloptionElem, vector_rand_ele(v_saved_reloption_str));
+          cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+          ir_to_deep_drop.push_back(ir_to_fix);
+          if (is_debug_info) {
+            cerr << "Dependency: In reloption, using previously seen reloption: " << new_reloption_ir->get_str_val() << ". \n\n\n";
+          }
           continue;
         }
 

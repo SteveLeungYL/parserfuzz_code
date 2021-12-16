@@ -220,6 +220,8 @@ public:
   static vector<string> v_sys_column_name;
   static vector<string> v_sys_catalogs_name;
 
+  static vector<string> v_saved_reloption_str;
+
   static vector<string> v_aggregate_func;
 
   // added by vancir
