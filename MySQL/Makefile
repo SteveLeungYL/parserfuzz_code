@@ -33,7 +33,7 @@ afl-fuzz: $(SUB_DIRS)
 
 test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -I $(PGSQL_INCLUDE_PATH) -L $(PGSQL_LIB_PATH) -o $@ $(LDFLAGS) $(PARSER_LINK_FLAGS)
-	#cp test-parser ./fuzz_root
+	cp test-parser ./fuzz_root
 
 debug: DEBUG = -g
 debug: OPT = -O0
