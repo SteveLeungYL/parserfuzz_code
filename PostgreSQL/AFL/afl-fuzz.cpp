@@ -1315,8 +1315,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      // if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail())) {
-      if (unlikely(dump_library && !map_id_out_f.fail())) {
+      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail())) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -1338,7 +1337,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
                   log_map_id(i, cur_byte, cur_seed_str);
                 }
               }
-            }
+        }
         else {
           if (ret != 2) {
             ret = 1;
