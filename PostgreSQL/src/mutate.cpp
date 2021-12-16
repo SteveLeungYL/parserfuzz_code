@@ -2128,18 +2128,22 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           common_string_library_.push_back(ori_str);
         }
 
-        /* Mutate the literals in just 1% of chances is enough. 
+        /* Mutate the literals in just 5% of chances is enough. 
         * For 99% of chances, keep original. 
         */
-        if (get_rand_int(100) < 99) {
+        if (get_rand_int(100) < 95) {
           continue;
         }
 
         if (
           cur_stmt_root->get_ir_type() == kVariableSetStmt ||
           cur_stmt_root->get_ir_type() == kVariableResetStmt ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kGenericSet) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kReloptionElem) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kDefElem) ||
           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kReloptions)
         ) {
+          /* Do not fix literals used to define reloptions or Postgres configurations.  */
           continue;
         }
 
@@ -2330,8 +2334,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           v_saved_reloption_str.push_back(ori_str);
         }
 
-        /* Use original reloptions, in 98% of chances. */
-        if (get_rand_int(100) < 98) {
+        /* Use original reloptions, in 95% of chances. */
+        if (get_rand_int(100) < 95) {
           continue;
         }
 
