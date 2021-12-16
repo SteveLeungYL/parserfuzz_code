@@ -1261,14 +1261,14 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   if (map_id_out_f.fail()){
     return;
   }
+  if (cur_seed_str == "") {
+    return;
+  }
   i = (MAP_SIZE >> 3) - i - 1 ;
   u32 actual_idx = i * 8 + byte;
   
   map_id_out_f << actual_idx << "," << map_file_id <<  endl;
 
-  if (cur_seed_str == "") {
-    return;
-  }
   fstream map_id_seed_output;
   map_id_seed_output.open("./queue_coverage_id_core/" + to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
   map_id_seed_output << cur_seed_str;
@@ -3602,7 +3602,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     if (q->exec_cksum != cksum)
     {
 
-      u8 hnb = has_new_bits(virgin_bits);
+      u8 hnb = has_new_bits(virgin_bits, program_input_str);
       if (hnb > new_bits)
         new_bits = hnb;
 
@@ -4339,7 +4339,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_tmout))
+      if (!has_new_bits(virgin_tmout, query_str))
         return keeping;
     }
 
@@ -4407,7 +4407,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_crash))
+      if (!has_new_bits(virgin_crash, query_str))
         return keeping;
     }
 
