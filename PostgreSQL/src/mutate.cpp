@@ -1456,14 +1456,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
 
-        /* Give 5% chances, use system catalogs tables */
-        if (get_rand_int(20) < 1) {
-          ir_to_fix->str_val_ = vector_rand_ele(v_sys_catalogs_name);
-          if (is_debug_info) {
-            cerr << "Dependency: In the context of kUsed table, we use system_catalog table with table_name: " << ir_to_fix->str_val_ << ". \n\n\n";
-          }
-          continue;
-        }
+        // /* Give 5% chances, use system catalogs tables */
+        // if (get_rand_int(20) < 1) {
+        //   ir_to_fix->str_val_ = vector_rand_ele(v_sys_catalogs_name);
+        //   if (is_debug_info) {
+        //     cerr << "Dependency: In the context of kUsed table, we use system_catalog table with table_name: " << ir_to_fix->str_val_ << ". \n\n\n";
+        //   }
+        //   continue;
+        // }
 
         if (v_table_names.size() == 0 && v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0) {
           if (is_debug_info) {
