@@ -218,6 +218,7 @@ public:
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
   static vector<string> v_sys_column_name;
+  static vector<string> v_sys_catalogs_name;
 
   static vector<string> v_aggregate_func;
 

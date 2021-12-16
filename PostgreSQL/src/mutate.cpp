@@ -46,6 +46,7 @@ vector<string> Mutator::v_create_foreign_table_names_single; // All foreign tabl
 
 map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 vector<string> Mutator::v_sys_column_name;
+vector<string> Mutator::v_sys_catalogs_name;
 
 vector<string> Mutator::v_aggregate_func;
 vector<string> Mutator::v_table_with_partition_name;
@@ -345,13 +346,109 @@ void Mutator::init_library() {
   this->v_sys_column_name.push_back("cmax");
   this->v_sys_column_name.push_back("ctid");
 
+  this->v_sys_catalogs_name.push_back("pg_aggregate");
+  this->v_sys_catalogs_name.push_back("g_am");
+  this->v_sys_catalogs_name.push_back("g_amop");
+  this->v_sys_catalogs_name.push_back("g_amproc");
+  this->v_sys_catalogs_name.push_back("g_attrdef");
+  this->v_sys_catalogs_name.push_back("g_attribute");
+  this->v_sys_catalogs_name.push_back("g_authid");
+  this->v_sys_catalogs_name.push_back("g_auth_members");
+  this->v_sys_catalogs_name.push_back("pg_cast");
+  this->v_sys_catalogs_name.push_back("pg_class");
+  this->v_sys_catalogs_name.push_back("pg_collation");
+  this->v_sys_catalogs_name.push_back("pg_constraint");
+  this->v_sys_catalogs_name.push_back("pg_conversion");
+  this->v_sys_catalogs_name.push_back("pg_database");
+  this->v_sys_catalogs_name.push_back("pg_db_role_setting");
+  this->v_sys_catalogs_name.push_back("pg_default_acl");
+  this->v_sys_catalogs_name.push_back("pg_depend");
+  this->v_sys_catalogs_name.push_back("pg_description");
+  this->v_sys_catalogs_name.push_back("pg_enum");
+  this->v_sys_catalogs_name.push_back("pg_event_trigger");
+  this->v_sys_catalogs_name.push_back("pg_extension");
+  this->v_sys_catalogs_name.push_back("pg_foreign_data_wrapper");
+  this->v_sys_catalogs_name.push_back("pg_foreign_server");
+  this->v_sys_catalogs_name.push_back("pg_foreign_table");
+  this->v_sys_catalogs_name.push_back("pg_index");
+  this->v_sys_catalogs_name.push_back("pg_inherits");
+  this->v_sys_catalogs_name.push_back("pg_init_privs");
+  this->v_sys_catalogs_name.push_back("pg_language");
+  this->v_sys_catalogs_name.push_back("pg_largeobject");
+  this->v_sys_catalogs_name.push_back("pg_largeobject_metadata");
+  this->v_sys_catalogs_name.push_back("pg_namespace");
+  this->v_sys_catalogs_name.push_back("pg_opclass");
+  this->v_sys_catalogs_name.push_back("pg_operator");
+  this->v_sys_catalogs_name.push_back("pg_opfamily");
+  this->v_sys_catalogs_name.push_back("pg_partitioned_table");
+  this->v_sys_catalogs_name.push_back("pg_policy");
+  this->v_sys_catalogs_name.push_back("pg_proc");
+  this->v_sys_catalogs_name.push_back("pg_publication");
+  this->v_sys_catalogs_name.push_back("pg_publication_rel");
+  this->v_sys_catalogs_name.push_back("pg_range");
+  this->v_sys_catalogs_name.push_back("pg_replication_origin");
+  this->v_sys_catalogs_name.push_back("pg_rewrite");
+  this->v_sys_catalogs_name.push_back("pg_seclabel");
+  this->v_sys_catalogs_name.push_back("pg_sequence");
+  this->v_sys_catalogs_name.push_back("pg_shdepend");
+  this->v_sys_catalogs_name.push_back("pg_shdescription");
+  this->v_sys_catalogs_name.push_back("pg_shseclabel");
+  this->v_sys_catalogs_name.push_back("pg_statistic");
+  this->v_sys_catalogs_name.push_back("pg_statistic_ext");
+  this->v_sys_catalogs_name.push_back("pg_statistic_ext_data");
+  this->v_sys_catalogs_name.push_back("pg_subscription");
+  this->v_sys_catalogs_name.push_back("pg_subscription_rel");
+  this->v_sys_catalogs_name.push_back("pg_tablespace");
+  this->v_sys_catalogs_name.push_back("pg_transform");
+  this->v_sys_catalogs_name.push_back("pg_trigger");
+  this->v_sys_catalogs_name.push_back("pg_ts_config");
+  this->v_sys_catalogs_name.push_back("pg_ts_config_map");
+  this->v_sys_catalogs_name.push_back("pg_ts_dict");
+  this->v_sys_catalogs_name.push_back("pg_ts_parser");
+  this->v_sys_catalogs_name.push_back("pg_ts_template");
+  this->v_sys_catalogs_name.push_back("pg_type");
+  this->v_sys_catalogs_name.push_back("pg_user_mapping");
+  this->v_sys_catalogs_name.push_back("System Views");
+  this->v_sys_catalogs_name.push_back("pg_available_extensions");
+  this->v_sys_catalogs_name.push_back("pg_available_extension_versions");
+  this->v_sys_catalogs_name.push_back("pg_backend_memory_contexts");
+  this->v_sys_catalogs_name.push_back("pg_config");
+  this->v_sys_catalogs_name.push_back("pg_cursors");
+  this->v_sys_catalogs_name.push_back("pg_file_settings");
+  this->v_sys_catalogs_name.push_back("pg_group");
+  this->v_sys_catalogs_name.push_back("pg_hba_file_rules");
+  this->v_sys_catalogs_name.push_back("pg_indexes");
+  this->v_sys_catalogs_name.push_back("pg_locks");
+  this->v_sys_catalogs_name.push_back("pg_matviews");
+  this->v_sys_catalogs_name.push_back("pg_policies");
+  this->v_sys_catalogs_name.push_back("pg_prepared_statements");
+  this->v_sys_catalogs_name.push_back("pg_prepared_xacts");
+  this->v_sys_catalogs_name.push_back("pg_publication_tables");
+  this->v_sys_catalogs_name.push_back("pg_replication_origin_status");
+  this->v_sys_catalogs_name.push_back("pg_replication_slots");
+  this->v_sys_catalogs_name.push_back("pg_roles");
+  this->v_sys_catalogs_name.push_back("pg_rules");
+  this->v_sys_catalogs_name.push_back("pg_seclabels");
+  this->v_sys_catalogs_name.push_back("pg_sequences");
+  this->v_sys_catalogs_name.push_back("pg_settings");
+  this->v_sys_catalogs_name.push_back("pg_shadow");
+  this->v_sys_catalogs_name.push_back("pg_shmem_allocations");
+  this->v_sys_catalogs_name.push_back("pg_stats");
+  this->v_sys_catalogs_name.push_back("pg_stats_ext");
+  this->v_sys_catalogs_name.push_back("pg_stats_ext_exprs");
+  this->v_sys_catalogs_name.push_back("pg_tables");
+  this->v_sys_catalogs_name.push_back("pg_timezone_abbrevs");
+  this->v_sys_catalogs_name.push_back("pg_timezone_names");
+  this->v_sys_catalogs_name.push_back("pg_user");
+  this->v_sys_catalogs_name.push_back("pg_user_mappings");
+  this->v_sys_catalogs_name.push_back("pg_views");
 }
 
 
 void Mutator::init(string f_testcase, string f_common_string, string file2d,
                    string file1d, string f_gen_type) {
 
-  // if (!f_testcase.empty())
+  // if (!f_testcase.empty());
   //   init_ir_library(f_testcase);
 
 
@@ -1315,7 +1412,20 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataTableName && (ir_to_fix->data_flag_ == kUse)) {
+      if (ir_to_fix->data_type_ == kDataTableName && ir_to_fix->data_flag_ == kUse) {
+
+        /* If the original SQL is using the system catalogs,
+         * gives just 10% chance to fix it.
+         * */
+
+        string ori_str = ir_to_fix->get_str_val();
+        if (
+          find(v_sys_catalogs_name.begin(), v_sys_catalogs_name.end(), ori_str) != v_sys_catalogs_name.end()
+          &&
+          get_rand_int(10) < 9
+        ) {
+          continue;
+        }
 
         /* Check whether we are in the PARTITION OF clause, if yes, use the v_table_with_partition_names */
         if (
@@ -1346,13 +1456,19 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
 
+        /* Give 5% chances, use system catalogs tables */
+        if (get_rand_int(20) < 1) {
+          ir_to_fix->str_val_ = vector_rand_ele(v_sys_catalogs_name);
+          if (is_debug_info) {
+            cerr << "Dependency: In the context of kUsed table, we use system_catalog table with table_name: " << ir_to_fix->str_val_ << ". \n\n\n";
+          }
+          continue;
+        }
+
         if (v_table_names.size() == 0 && v_table_names_single.size() == 0 && v_create_table_names_single.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names and v_create_table_names_single, in kDataTableName with kUse. \n\n\n";
           }
-          /* Unreconized variable, keep original */
-          // ir_to_fix->str_val_ = "y";
-          // return false;
           fixed_ir.push_back(ir_to_fix);
           continue;
         }
