@@ -3434,14 +3434,16 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
   /***********************/
   /* Debug: output logs for all execs */
-  if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
-    filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+  if (dump_library) {
+    if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+      filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+    }
+    string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+    ofstream log_output_file;
+    log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+    stream_output_res(all_comp_res, log_output_file);
+    log_output_file.close();
   }
-  string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
-  ofstream log_output_file;
-  log_output_file.open(all_sql_out_log_str, std::ofstream::out);
-  stream_output_res(all_comp_res, log_output_file);
-  log_output_file.close();
 
   /* Debug end.  */
   /***********************/
