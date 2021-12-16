@@ -1,9 +1,9 @@
 file(REMOVE_RECURSE
-  "join_syntax-t"
-  "join_syntax-t.pdb"
-  "join_syntax-t.cc.o"
-  "join_syntax-t.cc.i"
-  "join_syntax-t.cc.s"
+  "parser_entry"
+  "parser_entry.pdb"
+  "parser_entry.cc.o"
+  "parser_entry.cc.i"
+  "parser_entry.cc.s"
 )
 
 # Per-language clean rules from dependency scanning.

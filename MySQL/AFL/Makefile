@@ -26,7 +26,9 @@ BIN_PATH    = $(PREFIX)/bin
 HELPER_PATH = $(PREFIX)/lib/afl
 DOC_PATH    = $(PREFIX)/share/doc/afl
 MISC_PATH   = $(PREFIX)/share/afl
-DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp
+DEPEN_PATH  = ../src/*.cpp  #../parser/parser_entry.cc
+
+PARSER_INCLUDE_PATH = -I../parser/
 
 # PROGS intentionally omit afl-as, which gets installed elsewhere.
 
@@ -37,7 +39,7 @@ CFLAGS     ?= -fpermissive --std=c++17 -static-libstdc++
 CFLAGS     += -g -w \
 	      -DAFL_PATH=\"$(HELPER_PATH)\" -DDOC_PATH=\"$(DOC_PATH)\" \
 	      -DBIN_PATH=\"$(BIN_PATH)\"
-CFLAGS     += -I$(MYSQL_HEADER_PATH) -I$(MYSQL_INSTALL_HEADER_PATH) -I../parser/ -I../parser/include/ -I../parser/include/include/
+CFLAGS     += -I$(MYSQL_HEADER_PATH) -I$(MYSQL_INSTALL_HEADER_PATH)
 
 DEPDIR := .deps
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
@@ -45,15 +47,18 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
-SRCS = afl-fuzz.cpp test-parser.cpp
+# SRCS = afl-fuzz.cpp test-parser.cpp
+SRCS = test-parser.cpp
+
+include depend.make
 
 all: $(SRCS:%.cpp=%.o)
 
 afl-fuzz.o: afl-fuzz.cpp $(DEPDIR)
-	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient
+	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient $(PARSER_INCLUDE_PATH) $(PARSER_INCLUDES)
 
 test-parser.o: test-parser.cpp $(DEPDIR)
-	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient
+	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient $(PARSER_INCLUDE_PATH)
 
 .NOTPARALLEL: clean
 

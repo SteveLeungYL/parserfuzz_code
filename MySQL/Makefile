@@ -1,11 +1,9 @@
 SUB_DIRS := src AFL
 
-PARSER_SRCS := $(patsubst %.y,%.cpp,$(wildcard parser/*.y))
-PARSER_SRCS += $(patsubst %.l,%.cpp,$(wildcard parser/*.l))
-PARSER_SRCS += parser/sql_parse_entry.cpp
+PARSER_SRCS := parser/parser_entry.cc.o
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
-DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp # ../parser/flex_lexer.cpp
+DEPEN_PATH  = ../src/*.cpp  ../parser/parser_entry.cc
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
@@ -14,13 +12,14 @@ MYSQL_INCLUDE_PATH = /usr/include/mysql
 MYSQL_LIB_PATH = 
 
 export CC = g++
-export DEBUG = 
+export DEBUG = -g
 export OPT = -O0
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
 LDFLAGS = -ldl -lmysqlclient -pg
 
+include parser/link_depend.make
 
-all: afl-fuzz test-parser
+all: test-parser
 
 parser:
 	@$(MAKE) -C $@
@@ -33,7 +32,7 @@ afl-fuzz: $(SUB_DIRS)
 	# cp afl-fuzz ./fuzz_root
 
 test-parser: $(SUB_DIRS)
-	$(CC) $(CFLAGS) $(TEST_OBJS) -I $(PGSQL_INCLUDE_PATH) -L $(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(TEST_OBJS) -I $(PGSQL_INCLUDE_PATH) -L $(PGSQL_LIB_PATH) -o $@ $(LDFLAGS) $(PARSER_LINK_FLAGS)
 	#cp test-parser ./fuzz_root
 
 debug: DEBUG = -g

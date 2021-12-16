@@ -3,14 +3,14 @@
 #include "../include/define.h"
 #include "../include/mutate.h"
 #include "../include/utils.h"
-#include "../parser/sql_parse_entry.h"
+#include "../parser/parser_entry.h"
 
 #include <fstream>
 #include <iostream>
 #include <ostream>
 #include <string>
 
-extern int yydebug;
+// extern int yydebug;
 
 using namespace std;
 
@@ -40,11 +40,12 @@ Color::Modifier RED(Color::FG_RED);
 Color::Modifier DEF(Color::FG_DEFAULT);
 
 Mutator mutator;
+class IR;
 
 IR* test_parse(string &query) {
 
   vector<IR*> v_ir;
-  exec_query_command_entry(query, v_ir);
+  // exec_query_command_entry(query, v_ir);
   if (v_ir.size() <= 0) {
     cerr << RED << "parse failed" << DEF << endl;
     return NULL;
@@ -124,7 +125,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  yydebug = 1;
+  // yydebug = 1;
 
   mutator.init("");
 
