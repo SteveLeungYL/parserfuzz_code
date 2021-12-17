@@ -1678,7 +1678,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
        * */
       if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kValuesClause)) {
         ir_to_fix->set_type(kDataLiteral, kFlagUnknown);
-        fixed_ir.push_back(ir_to_fix);
+        // fixed_ir.push_back(ir_to_fix);
         continue;
       }
 
@@ -1825,7 +1825,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
        * */
       if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kValuesClause)) {
         ir_to_fix->set_type(kDataLiteral, kFlagUnknown);
-        fixed_ir.push_back(ir_to_fix);
+        // fixed_ir.push_back(ir_to_fix);
         continue;
       }
 
@@ -2118,20 +2118,24 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       if (ir_to_fix->data_type_ == kDataLiteral) {
         fixed_ir.push_back(ir_to_fix);
 
+        if (is_debug_info) {
+          cerr << "Fixing Literals: ori_literals: " << ir_to_fix->get_str_val() << "\n\n\n";
+        }
+
         string ori_str = ir_to_fix->get_str_val();
         if (
           ir_to_fix->get_ir_type() == kStringLiteral &&
           find(common_string_library_.begin(), common_string_library_.end(), ori_str) == common_string_library_.end() &&
-          get_rand_int(10) < 1
+          get_rand_int(10) < 5
         ) {
           /* Update unseen string with just 10% chances. (heuristic) */
           common_string_library_.push_back(ori_str);
         }
 
-        /* Mutate the literals in just 5% of chances is enough. 
+        /* Mutate the literals in just 1% of chances is enough.
         * For 99% of chances, keep original. 
         */
-        if (get_rand_int(100) < 95) {
+        if (get_rand_int(100) < 99) {
           continue;
         }
 
@@ -2224,24 +2228,73 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* INT */
         if (column_data_type == COLTYPE::INT_T){
-          /* If the value is a small number <= 7, preferred to choose a small number with 4/5 chances */
-          string ori_str = ir_to_fix->get_str_val();
-          int ori_int = 0;
-          try {
-            ori_int = std::stoi(ori_str);
-          } catch (...) {
-            ori_int = -1;
-          }
-          if (
-            ori_int >= 0 &&
-            ori_int <= 7 &&
-            get_rand_int(5) < 4
-          ) {
-            ir_to_fix->str_val_ = to_string(get_rand_int(8));
-            continue;
+          /* Preferred to choose a same range number with 4/5 chances */
+          if (get_rand_int(5) < 4) {
+            string ori_str = ir_to_fix->get_str_val();
+            int ori_int = 0;
+            try {
+              ori_int = std::stoi(ori_str);
+            } catch (...) {
+              ori_int = -1;
+            }
+            if (
+              ori_int >= 0 &&
+              ori_int <= 7 &&
+              get_rand_int(5) < 4
+            ) {
+              ir_to_fix->str_val_ = to_string(get_rand_int(8));
+              continue;
+            }
+
+            if (ori_int < -10000) {
+              if (get_rand_int(2) < 1) {
+                int new_int = get_rand_int(INT_MIN, -10000);
+                ir_to_fix->int_val_ = new_int;
+                ir_to_fix->str_val_ = to_string(new_int);
+                continue;
+              } else {
+                int new_int = get_rand_int(-10000, 10000);
+                ir_to_fix->int_val_ = new_int;
+                ir_to_fix->str_val_ = to_string(new_int);
+                continue;
+              }
+            }
+            else if (ori_int < -10) {
+              int new_int = get_rand_int(-10000, -10);
+              ir_to_fix->int_val_ = new_int;
+              ir_to_fix->str_val_ = to_string(new_int);
+              continue;
+            } else if (ori_int < 0) {
+              int new_int = get_rand_int(-10, 0);
+              ir_to_fix->int_val_ = new_int;
+              ir_to_fix->str_val_ = to_string(new_int);
+              continue;
+            } else if (ori_int < 10) {
+              int new_int = get_rand_int(0, 10);
+              ir_to_fix->int_val_ = new_int;
+              ir_to_fix->str_val_ = to_string(new_int);
+              continue;
+            } else if (ori_int < 10000) {
+              int new_int = get_rand_int(0, 10);
+              ir_to_fix->int_val_ = new_int;
+              ir_to_fix->str_val_ = to_string(new_int);
+              continue;
+            } else {
+              if (get_rand_int(2) < 1) {
+                int new_int = get_rand_int(10000, INT_MAX);
+                ir_to_fix->int_val_ = new_int;
+                ir_to_fix->str_val_ = to_string(new_int);
+                continue;
+              } else {
+                int new_int = get_rand_int(-10000, 10000);
+                ir_to_fix->int_val_ = new_int;
+                ir_to_fix->str_val_ = to_string(new_int);
+                continue;
+              }
+            }
           }
 
-          /* 4/5 chances, use value_library, 1/2, use rand_int up to 2147483648 */
+          /* 4/5 chances, use value_library, 1/2, use rand_int up to INT_MAX */
           if (get_rand_int(5) < 4 && value_library_.size()) {
             if (value_library_.size() == 0) {
               FATAL("Error: value_library_ is not being init properly. \n");
@@ -2249,7 +2302,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             ir_to_fix->int_val_ = vector_rand_ele(value_library_);
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           } else {
-            ir_to_fix->int_val_ = get_rand_int(2147483647);
+            ir_to_fix->int_val_ = get_rand_int(INT_MAX);
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
           }
 
@@ -2274,14 +2327,73 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* FLOAT */
         else if (column_data_type == COLTYPE::FLOAT_T) {  // FLOAT
-          ir_to_fix->float_val_ = (double)(get_rand_int(100000000));
-          ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
 
-          // /* Randomly use string format of the float */
-          // if ( get_rand_int(10) < 3 && ir_to_fix->str_val_.find("'") == string::npos) {
-          //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
-          //   ir_to_fix->type_ = kFloatLiteral;
-          // }
+          if (get_rand_int(10) < 9) {
+            /* Give more possibility to mutate on the same flot range */
+            string ori_str = ir_to_fix->get_str_val();
+            double ori_float = 0;
+            try {
+              ori_float = std::stoi(ori_str);
+            } catch (...) {
+              /* Mutate based on random generation */
+              ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
+              ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+              ir_to_fix->type_ = kFloatLiteral;
+              continue;
+            }
+
+            if (ori_float < -10000.0) {
+              if (get_rand_int(2) < 1) {
+                double new_float = get_rand_double(-DBL_MIN, -10000.0);
+                ir_to_fix->float_val_ = new_float;
+                ir_to_fix->str_val_ = to_string(new_float);
+                continue;
+              } else {
+                double new_float = get_rand_double(-10000.0, 10000.0);
+                ir_to_fix->float_val_ = new_float;
+                ir_to_fix->str_val_ = to_string(new_float);
+                continue;
+              }
+            }
+            else if (ori_float < -10.0) {
+              double new_float = get_rand_double(-10000.0, -10.0);
+              ir_to_fix->float_val_ = new_float;
+              ir_to_fix->str_val_ = to_string(new_float);
+              continue;
+            } else if (ori_float < 0.0) {
+              double new_float = get_rand_double(-10.0, 0.0);
+              ir_to_fix->float_val_ = new_float;
+              ir_to_fix->str_val_ = to_string(new_float);
+              continue;
+            } else if (ori_float < 10.0) {
+              double new_float = get_rand_double(0.0, 10.0);
+              ir_to_fix->float_val_ = new_float;
+              ir_to_fix->str_val_ = to_string(new_float);
+              continue;
+            } else if (ori_float < 10000.0) {
+              double new_float = get_rand_double(10.0, 10000.0);
+              ir_to_fix->float_val_ = new_float;
+              ir_to_fix->str_val_ = to_string(new_float);
+              continue;
+            } else {
+              if (get_rand_int(2) < 1) {
+                double new_float = get_rand_double(10000.0, DBL_MAX);
+                ir_to_fix->float_val_ = new_float;
+                ir_to_fix->str_val_ = to_string(new_float);
+                continue;
+              } else {
+                double new_float = get_rand_double(-10000.0, 10000.0);
+                ir_to_fix->float_val_ = new_float;
+                ir_to_fix->str_val_ = to_string(new_float);
+                continue;
+              }
+            }
+          }
+          else {
+            /* Mutate based on random generation */
+            ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
+            ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+          }
 
           ir_to_fix->type_ = kFloatLiteral;
         }
@@ -2334,8 +2446,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           v_saved_reloption_str.push_back(ori_str);
         }
 
-        /* Use original reloptions, in 95% of chances. */
-        if (get_rand_int(100) < 95) {
+        // Use original reloptions, in 99% of chances.
+        if (get_rand_int(100) < 99) {
           continue;
         }
 
