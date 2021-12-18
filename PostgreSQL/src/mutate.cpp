@@ -55,6 +55,10 @@ vector<string> Mutator::v_table_with_partition_name;
 
 vector<string> Mutator::v_saved_reloption_str;
 
+vector<int> Mutator::v_int_literals;
+vector<double> Mutator::v_float_literals;
+vector<string> Mutator::v_string_literals;
+
 //#define GRAPHLOG
 
 IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
@@ -2136,6 +2140,39 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         * For 99% of chances, keep original. 
         */
         if (get_rand_int(100) < 99) {
+
+          /* Save the already seen literals */
+          if (ir_to_fix->get_ir_type() == kIntLiteral) {
+            string ori_str = ir_to_fix->get_str_val();
+            try {
+              int ori_int = std::stoi(ori_str);
+              v_int_literals.push_back(ori_int);
+
+              if (is_debug_info) {
+                cerr << "Dependency: Saved int literals: " << ori_str << "\n\n\n";
+              }
+            } catch (...) {
+              continue;
+            }
+          } else if (ir_to_fix->get_ir_type() == kFloatLiteral) {
+            string ori_str = ir_to_fix->get_str_val();
+            try {
+              double ori_float = std::stod(ori_str);
+              v_float_literals.push_back(ori_float);
+
+              if (is_debug_info) {
+                cerr << "Dependency: Saved float literals: " << ori_str << "\n\n\n";
+              }
+            } catch (...) {
+              continue;
+            }
+          } else if (ir_to_fix->get_ir_type() == kStringLiteral) {
+            v_string_literals.push_back(ir_to_fix->get_str_val());
+            if (is_debug_info) {
+              cerr << "Dependency: Saved string literals: " << ir_to_fix->get_str_val() << "\n\n\n";
+            }
+
+          }
           continue;
         }
 
@@ -2228,6 +2265,35 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* INT */
         if (column_data_type == COLTYPE::INT_T){
+
+          /* 'Size of' values, do not use too big values.  */
+          if (
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
+          ) {
+            ir_to_fix->int_val_ = (get_rand_int(100));
+            if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = - ir_to_fix->int_val_;
+            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+
+            /* Don't save it to v_int_literals, because they are not data literals. */
+            // v_int_literals.push_back(ir_to_fix->int_val_);
+            // if (is_debug_info) {
+            //   cerr << "Dependency: Saved int literals: " << ir_to_fix->int_val_ << "\n\n\n";
+            // }
+
+            continue;
+          }
+
+          /* In 90% chances, use the already seen int literals. */
+          if (v_int_literals.size() > 0 && get_rand_int(10) < 9 ) {
+            ir_to_fix->int_val_ = vector_rand_ele(v_int_literals);
+            ir_to_fix->str_val_ = std::to_string(ir_to_fix->int_val_);
+            if (is_debug_info) {
+              cerr << "Dependency: Fixing int literal with previously seen int literals: " << ir_to_fix->str_val_ << "\n\n\n";
+            }
+            continue;
+          }
+
           /* Preferred to choose a same range number with 4/5 chances */
           if (get_rand_int(5) < 4) {
             string ori_str = ir_to_fix->get_str_val();
@@ -2242,7 +2308,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               ori_int <= 7 &&
               get_rand_int(5) < 4
             ) {
-              ir_to_fix->str_val_ = to_string(get_rand_int(8));
+              int tmp = get_rand_int(8);
+              ir_to_fix->str_val_ = to_string(tmp);
+
+              v_int_literals.push_back(tmp);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved int literals: " << tmp << "\n\n\n";
+              }
+
               continue;
             }
 
@@ -2251,11 +2324,23 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 int new_int = get_rand_int(INT_MIN, -10000);
                 ir_to_fix->int_val_ = new_int;
                 ir_to_fix->str_val_ = to_string(new_int);
+
+                v_int_literals.push_back(new_int);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+                }
+
                 continue;
               } else {
                 int new_int = get_rand_int(-10000, 10000);
                 ir_to_fix->int_val_ = new_int;
                 ir_to_fix->str_val_ = to_string(new_int);
+
+                v_int_literals.push_back(new_int);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+                }
+
                 continue;
               }
             }
@@ -2263,32 +2348,68 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               int new_int = get_rand_int(-10000, -10);
               ir_to_fix->int_val_ = new_int;
               ir_to_fix->str_val_ = to_string(new_int);
+
+              v_int_literals.push_back(new_int);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+              }
+
               continue;
             } else if (ori_int < 0) {
               int new_int = get_rand_int(-10, 0);
               ir_to_fix->int_val_ = new_int;
               ir_to_fix->str_val_ = to_string(new_int);
+
+              v_int_literals.push_back(new_int);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+              }
+
               continue;
             } else if (ori_int < 10) {
               int new_int = get_rand_int(0, 10);
               ir_to_fix->int_val_ = new_int;
               ir_to_fix->str_val_ = to_string(new_int);
+
+              v_int_literals.push_back(new_int);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+              }
+
               continue;
             } else if (ori_int < 10000) {
               int new_int = get_rand_int(0, 10);
               ir_to_fix->int_val_ = new_int;
               ir_to_fix->str_val_ = to_string(new_int);
+
+              v_int_literals.push_back(new_int);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+              }
+
               continue;
             } else {
               if (get_rand_int(2) < 1) {
                 int new_int = get_rand_int(10000, INT_MAX);
                 ir_to_fix->int_val_ = new_int;
                 ir_to_fix->str_val_ = to_string(new_int);
+
+                v_int_literals.push_back(new_int);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+                }
+
                 continue;
               } else {
                 int new_int = get_rand_int(-10000, 10000);
                 ir_to_fix->int_val_ = new_int;
                 ir_to_fix->str_val_ = to_string(new_int);
+
+                v_int_literals.push_back(new_int);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved int literals: " << new_int << "\n\n\n";
+                }
+
                 continue;
               }
             }
@@ -2301,20 +2422,23 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             }
             ir_to_fix->int_val_ = vector_rand_ele(value_library_);
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+
+            v_int_literals.push_back(ir_to_fix->int_val_);
+            if (is_debug_info) {
+              cerr << "Dependency: Saved int literals: " << ir_to_fix->int_val_ << "\n\n\n";
+            }
+
+            continue;
           } else {
             ir_to_fix->int_val_ = get_rand_int(INT_MAX);
             ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
-          }
 
-          /* Size of values, do not use too big values.  */
-          if (
-            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
-            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kCharacterWithLength)
-          ) {
+            v_int_literals.push_back(ir_to_fix->int_val_);
+            if (is_debug_info) {
+              cerr << "Dependency: Saved int literals: " << ir_to_fix->int_val_ << "\n\n\n";
+            }
 
-            ir_to_fix->int_val_ = (get_rand_int(100));
-            if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = - ir_to_fix->int_val_;
-            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+            continue;
           }
 
           /* Randomly use string format of the int */
@@ -2328,7 +2452,20 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         /* FLOAT */
         else if (column_data_type == COLTYPE::FLOAT_T) {  // FLOAT
 
-          if (get_rand_int(10) < 9) {
+          /* In 90% chances, use the already seen float literals. */
+          if (v_float_literals.size() > 0 && get_rand_int(10) < 9 ) {
+            ir_to_fix->float_val_ = vector_rand_ele(v_float_literals);
+            ir_to_fix->str_val_ = std::to_string(ir_to_fix->float_val_);
+            if (is_debug_info) {
+              cerr << "Dependency: Fixing float literal with previously seen float literals: " << ir_to_fix->str_val_ << "\n\n\n";
+            }
+
+            ir_to_fix->type_ = kFloatLiteral;
+            continue;
+          }
+
+
+          if (get_rand_int(100) < 95) {
             /* Give more possibility to mutate on the same flot range */
             string ori_str = ir_to_fix->get_str_val();
             double ori_float = 0;
@@ -2339,6 +2476,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
               ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
               ir_to_fix->type_ = kFloatLiteral;
+
+              v_float_literals.push_back(ir_to_fix->float_val_);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+              }
+
+              ir_to_fix->type_ = kFloatLiteral;
               continue;
             }
 
@@ -2347,11 +2491,25 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 double new_float = get_rand_double(-DBL_MIN, -10000.0);
                 ir_to_fix->float_val_ = new_float;
                 ir_to_fix->str_val_ = to_string(new_float);
+
+                v_float_literals.push_back(ir_to_fix->float_val_);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+                }
+
+                ir_to_fix->type_ = kFloatLiteral;
                 continue;
               } else {
                 double new_float = get_rand_double(-10000.0, 10000.0);
                 ir_to_fix->float_val_ = new_float;
                 ir_to_fix->str_val_ = to_string(new_float);
+
+                v_float_literals.push_back(ir_to_fix->float_val_);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+                }
+
+                ir_to_fix->type_ = kFloatLiteral;
                 continue;
               }
             }
@@ -2359,32 +2517,74 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               double new_float = get_rand_double(-10000.0, -10.0);
               ir_to_fix->float_val_ = new_float;
               ir_to_fix->str_val_ = to_string(new_float);
+
+              v_float_literals.push_back(ir_to_fix->float_val_);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+              }
+
+              ir_to_fix->type_ = kFloatLiteral;
               continue;
             } else if (ori_float < 0.0) {
               double new_float = get_rand_double(-10.0, 0.0);
               ir_to_fix->float_val_ = new_float;
               ir_to_fix->str_val_ = to_string(new_float);
+
+              v_float_literals.push_back(ir_to_fix->float_val_);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+              }
+
+              ir_to_fix->type_ = kFloatLiteral;
               continue;
             } else if (ori_float < 10.0) {
               double new_float = get_rand_double(0.0, 10.0);
               ir_to_fix->float_val_ = new_float;
               ir_to_fix->str_val_ = to_string(new_float);
+
+              v_float_literals.push_back(ir_to_fix->float_val_);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+              }
+
+              ir_to_fix->type_ = kFloatLiteral;
               continue;
             } else if (ori_float < 10000.0) {
               double new_float = get_rand_double(10.0, 10000.0);
               ir_to_fix->float_val_ = new_float;
               ir_to_fix->str_val_ = to_string(new_float);
+
+              v_float_literals.push_back(ir_to_fix->float_val_);
+              if (is_debug_info) {
+                cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+              }
+
+              ir_to_fix->type_ = kFloatLiteral;
               continue;
             } else {
               if (get_rand_int(2) < 1) {
                 double new_float = get_rand_double(10000.0, DBL_MAX);
                 ir_to_fix->float_val_ = new_float;
                 ir_to_fix->str_val_ = to_string(new_float);
+
+                v_float_literals.push_back(ir_to_fix->float_val_);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+                }
+
+                ir_to_fix->type_ = kFloatLiteral;
                 continue;
               } else {
                 double new_float = get_rand_double(-10000.0, 10000.0);
                 ir_to_fix->float_val_ = new_float;
                 ir_to_fix->str_val_ = to_string(new_float);
+
+                v_float_literals.push_back(ir_to_fix->float_val_);
+                if (is_debug_info) {
+                  cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+                }
+
+                ir_to_fix->type_ = kFloatLiteral;
                 continue;
               }
             }
@@ -2393,9 +2593,17 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             /* Mutate based on random generation */
             ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
             ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
+
+            v_float_literals.push_back(ir_to_fix->float_val_);
+            if (is_debug_info) {
+              cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
+            }
+
+            ir_to_fix->type_ = kFloatLiteral;
+            continue;
+
           }
 
-          ir_to_fix->type_ = kFloatLiteral;
         }
 
         /* BOOLEAN */
@@ -2414,8 +2622,20 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
          * 
          */
         else {
+
+          /* In 90% chances, use the already seen string literals. */
+          if (v_string_literals.size() > 0 && get_rand_int(10) < 9 ) {
+            ir_to_fix->str_val_ = vector_rand_ele(v_string_literals);
+            if (is_debug_info) {
+              cerr << "Dependency: Fixing string literal with previously seen string literals: " << ir_to_fix->str_val_ << "\n\n\n";
+            }
+            continue;
+          }
+
+
           ir_to_fix->str_val_ = get_a_string();
-          
+
+          v_string_literals.push_back(ir_to_fix->str_val_);
           if (is_debug_info) {
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
@@ -3127,6 +3347,9 @@ void Mutator::reset_data_library() {
   v_constraint_name.clear();
   v_foreign_table_name.clear();
   v_table_with_partition_name.clear();
+  v_int_literals.clear();
+  v_float_literals.clear();
+  v_string_literals.clear();
 }
 
 static IR *search_mapped_ir(IR *ir, DATATYPE type) {

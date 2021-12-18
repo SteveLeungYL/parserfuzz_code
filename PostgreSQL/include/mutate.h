@@ -215,6 +215,9 @@ public:
   static vector<string> v_foreign_table_name; // All foreign table names defined inthe current SQL.
   static vector<string> v_table_with_partition_name; // All table names that contiains TABLE PARTITIONING.
 
+  static vector<int> v_int_literals;
+  static vector<double> v_float_literals;
+  static vector<string> v_string_literals;
 
   static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
   static vector<string> v_sys_column_name;
