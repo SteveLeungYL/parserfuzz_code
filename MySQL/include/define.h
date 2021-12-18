@@ -2,6 +2,7 @@
 #ifndef __DEFINE_H__
 #define __DEFINE_H__
 
+/* We should try to keep this ALLTYPE the same as the ALLTYPE macro being defined in MySQL/sql/sql_ir_deine.h */
 
 #define ALLTYPE(V) \
 V(kStartEntry) \
@@ -4257,6 +4258,7 @@ V(kSfTail_4) \
 V(kSpTail_2) \
 V(kStmt) \
 V(kUnknown) \
+V(kStmtList) \
 	// V(kProgram) \
 	// V(kStmtlist) \
 	// V(kStmt) \
