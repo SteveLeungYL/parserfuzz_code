@@ -166,6 +166,10 @@ create function first_el_transfn(anyarray, anyelement) returns anyarray as'selec
 create function first_el(anyarray) returns anyelement as'select  1[1]' language sql strict immutable;
 create aggregate first_el_agg_f8(float8) (  SFUNC = array_append,  STYPE = float8[],  FINALFUNC = first_el);
 create aggregate first_el_agg_any(anyelement) (  SFUNC = first_el_transfn,  STYPE = anyarray,  FINALFUNC = first_el);
+select first_el_agg_f8(x::float8) from generate_series(1,10) x;
+select first_el_agg_any(x) from generate_series(1,10) x;
+select first_el_agg_f8(x::float8) over(order by x) from generate_series(1,10) x;
+select first_el_agg_any(x) over(order by x) from generate_series(1,10) x;
 select distinct array_ndims(histogram_bounds) from pg_statswhere histogram_bounds is not null;
 select max(histogram_bounds) from pg_stats where tablename = 'pg_am';
 select array_in('{1,2,3}','int4'::regtype,-1);

@@ -82,6 +82,7 @@ SELECT voidtest3(17);
 CREATE FUNCTION voidtest4(a int) RETURNS VOID LANGUAGE SQL AS INSERT INTO sometable VALUES(a - 1) RETURNING f1 ;
 SELECT voidtest4(39);
 TABLE sometable;
+CREATE FUNCTION voidtest5(a int) RETURNS SETOF VOID LANGUAGE SQL AS SELECT generate_series(1, a)  STABLE;
 SELECT * FROM voidtest5(3);
 DROP SCHEMA temp_func_test CASCADE;
 DROP USER regress_unpriv_user;

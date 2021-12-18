@@ -35,6 +35,7 @@ COPY x from stdin WHERE a = 50004;
 60001	22	32	42	5260002	23	33	43	5360003	24	34	44	5460004	25	35	45	5560005	26	36	46	56\.COPY x from stdin WHERE f > 60003;
 COPY x from stdin WHERE a = max(x.b);
 COPY x from stdin WHERE a IN (SELECT 1 FROM x);
+COPY x from stdin WHERE a IN (generate_series(1,5));
 COPY x from stdin WHERE a = row_number() over(b);
 SELECT * FROM x;
 COPY x TO stdout;

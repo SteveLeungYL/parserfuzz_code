@@ -14,6 +14,8 @@ INSERT INTO POLYGON_TBL(f1) VALUES ('(0,1,2,3');
 INSERT INTO POLYGON_TBL(f1) VALUES ('asdf');
 SELECT '' AS four, * FROM POLYGON_TBL;
 CREATE TABLE quad_poly_tbl (id int, p polygon);
+INSERT INTO quad_poly_tbl	SELECT (x - 1) * 100 + y, polygon(circle(point(x * 10, y * 10), 1 + (x + y) % 10))	FROM generate_series(1, 100) x,		 generate_series(1, 100) y;
+INSERT INTO quad_poly_tbl	SELECT i, polygon '((200, 300),(210, 310),(230, 290))'	FROM generate_series(10001, 11000) AS i;
 INSERT INTO quad_poly_tbl	VALUES		(11001, NULL),		(11002, NULL),		(11003, NULL);
 CREATE INDEX quad_poly_tbl_idx ON quad_poly_tbl USING spgist(p);
 SET enable_seqscan = ON;

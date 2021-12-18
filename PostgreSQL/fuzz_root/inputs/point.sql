@@ -33,6 +33,7 @@ SELECT '' AS thirty, p1.f1 AS point1, p2.f1 AS point2   FROM POINT_TBL p1, POINT
 SELECT '' AS fifteen, p1.f1 AS point1, p2.f1 AS point2, (p1.f1 <-> p2.f1) AS distance   FROM POINT_TBL p1, POINT_TBL p2   WHERE (p1.f1 <-> p2.f1) > 3 and p1.f1 << p2.f1   ORDER BY distance, p1.f1[0], p2.f1[0];
 SELECT '' AS three, p1.f1 AS point1, p2.f1 AS point2, (p1.f1 <-> p2.f1) AS distance   FROM POINT_TBL p1, POINT_TBL p2   WHERE (p1.f1 <-> p2.f1) > 3 and p1.f1 << p2.f1 and p1.f1 >^ p2.f1   ORDER BY distance;
 CREATE TEMP TABLE point_gist_tbl(f1 point);
+INSERT INTO point_gist_tbl SELECT '(0,0)' FROM generate_series(0,1000);
 CREATE INDEX point_gist_tbl_index ON point_gist_tbl USING gist (f1);
 INSERT INTO point_gist_tbl VALUES ('(0.0000009,0.0000009)');
 SET enable_seqscan TO true;

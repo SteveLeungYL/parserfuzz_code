@@ -1,6 +1,7 @@
 SET max_parallel_maintenance_workers = 0;
 SET max_parallel_workers = 0;
 CREATE TEMP TABLE abbrev_abort_uuids (    id serial not null,    abort_increasing uuid,    abort_decreasing uuid,    noabort_increasing uuid,    noabort_decreasing uuid);
+INSERT INTO abbrev_abort_uuids (abort_increasing, abort_decreasing, noabort_increasing, noabort_decreasing)    SELECT        ('00000000-0000-0000-0000-'||to_char(g.i, '000000000000FM'))::uuid abort_increasing,        ('00000000-0000-0000-0000-'||to_char(20000 - g.i, '000000000000FM'))::uuid abort_decreasing,        (to_char(g.i % 10009, '00000000FM')||'-0000-0000-0000-'||to_char(g.i, '000000000000FM'))::uuid noabort_increasing,        (to_char(((20000 - g.i) % 10009), '00000000FM')||'-0000-0000-0000-'||to_char(20000 - g.i, '000000000000FM'))::uuid noabort_decreasing    FROM generate_series(0, 20000, 1) g(i);
 INSERT INTO abbrev_abort_uuids(id) VALUES(0);
 INSERT INTO abbrev_abort_uuids DEFAULT VALUES;
 INSERT INTO abbrev_abort_uuids DEFAULT VALUES;
@@ -92,6 +93,7 @@ SET LOCAL work_mem = '100kB';
 SELECT    (array_agg(id ORDER BY id DESC NULLS FIRST))[0:5],    (array_agg(abort_increasing ORDER BY abort_increasing DESC NULLS LAST))[0:5],    (array_agg(id::text ORDER BY id::text DESC NULLS LAST))[0:5],    percentile_disc(0.99) WITHIN GROUP (ORDER BY id),    percentile_disc(0.01) WITHIN GROUP (ORDER BY id),    percentile_disc(0.8) WITHIN GROUP (ORDER BY abort_increasing),    percentile_disc(0.2) WITHIN GROUP (ORDER BY id::text),    rank('00000000-0000-0000-0000-000000000000', '2', '2') WITHIN GROUP (ORDER BY noabort_increasing, id, id::text)FROM (    SELECT * FROM abbrev_abort_uuids    UNION ALL    SELECT NULL, NULL, NULL, NULL, NULL) s;
 ROLLBACK;
 CREATE TEMP TABLE test_mark_restore(col1 int, col2 int, col12 int);
+INSERT INTO test_mark_restore(col1, col2, col12)   SELECT a.i, b.i, a.i * b.i FROM generate_series(1, 500) a(i), generate_series(1, 5) b(i);
 BEGIN;
 SET LOCAL enable_nestloop = off;
 SET LOCAL enable_hashjoin = off;

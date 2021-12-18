@@ -96,6 +96,7 @@ COPY atest2 FROM stdin;
  bar	true\.SELECT * FROM atest1;
  SET SESSION AUTHORIZATION regress_priv_user1;
  SET SESSION AUTHORIZATION regress_priv_user1;
+CREATE TABLE atest12 as  SELECT x AS a, 10001 - x AS b FROM generate_series(1,10000) x;
 CREATE INDEX ON atest12 (a);
 CREATE INDEX ON atest12 (abs(a));
 ALTER TABLE atest12 SET (autovacuum_enabled = off);

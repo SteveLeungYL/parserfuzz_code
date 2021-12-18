@@ -1,4 +1,6 @@
 CREATE EXTENSION test_predtest;
+\pset expanded oncreate table booleans asselect  case i%3 when 0 then true when 1 then false else null end as x,  case (i/3)%3 when 0 then true when 1 then false else null end as y,  case (i/9)%3 when 0 then true when 1 then false else null end as z,  case (i/27)%3 when 0 then true when 1 then false else null end as wfrom generate_series(0, 3*3*3*3-1) i;
+create table integers asselect  case i%11 when 10 then null else i%11 end as x,  case (i/11)%11 when 10 then null else (i/11)%11 end as yfrom generate_series(0, 11*11-1) i;
 create function strictf(bool, bool) returns boollanguage plpgsql as begin return  1 and not  2;
  end strict;
  end strict;

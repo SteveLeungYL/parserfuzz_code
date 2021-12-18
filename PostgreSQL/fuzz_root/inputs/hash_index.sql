@@ -23,7 +23,9 @@ SELECT h.seqno AS i8096, h.random AS f1234_1234   FROM hash_f8_heap h   WHERE h.
 UPDATE hash_f8_heap   SET seqno = 20000   WHERE hash_f8_heap.random = '488912369'::float8;
 SELECT h.seqno AS f20000   FROM hash_f8_heap h   WHERE h.random = '488912369'::float8;
 CREATE TABLE hash_split_heap (keycol INT);
+INSERT INTO hash_split_heap SELECT 1 FROM generate_series(1, 500) a;
 CREATE INDEX hash_split_index on hash_split_heap USING HASH (keycol);
+INSERT INTO hash_split_heap SELECT 1 FROM generate_series(1, 5000) a;
 BEGIN;
 SET enable_seqscan = OFF;
 SET enable_bitmapscan = OFF;
@@ -34,6 +36,7 @@ MOVE BACKWARD ALL FROM c;
 CLOSE c;
 END;
 DELETE FROM hash_split_heap WHERE keycol = 1;
+INSERT INTO hash_split_heap SELECT a/2 FROM generate_series(1, 25000) a;
 VACUUM hash_split_heap;
 ALTER INDEX hash_split_index SET (fillfactor = 10);
 REINDEX INDEX hash_split_index;

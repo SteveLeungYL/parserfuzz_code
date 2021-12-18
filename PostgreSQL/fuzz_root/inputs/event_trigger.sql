@@ -142,6 +142,7 @@ END;
 ;
 create event trigger no_rewrite_allowed on table_rewrite  execute procedure test_evtrig_no_rewrite();
 create table rewriteme (id serial primary key, foo float, bar timestamptz);
+insert into rewriteme     select x * 1.001 from generate_series(1, 500) as t(x);
 alter table rewriteme alter column foo type numeric;
 alter table rewriteme add column baz int default 0;
 CREATE OR REPLACE FUNCTION test_evtrig_no_rewrite() RETURNS event_triggerLANGUAGE plpgsql AS BEGIN  RAISE NOTICE 'Table ''%'' is being rewritten (reason = %)',               pg_event_trigger_table_rewrite_oid()::regclass,               pg_event_trigger_table_rewrite_reason();
