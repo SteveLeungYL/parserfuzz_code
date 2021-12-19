@@ -2173,6 +2173,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             }
 
           }
+          /* Do not save boolean. Not necessary.  */
           continue;
         }
 
@@ -2223,11 +2224,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             column_data_type = COLTYPE::BOOLEAN_T;
           }
           else if (ir_to_fix->get_ir_type() == kStringLiteral) {
-            if ( !is_str_empty(ir_to_fix->str_val_) && is_digits(ir_to_fix->get_str_val())) {
-              column_data_type = COLTYPE::FLOAT_T;
-            } else {
-              column_data_type = COLTYPE::STRING_T;
-            }
+            column_data_type = COLTYPE::STRING_T;
           }
 
           if (is_debug_info) {
