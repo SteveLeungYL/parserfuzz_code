@@ -1,7 +1,7 @@
 #include "./mysql_oracle.h"
 #include "../AFL/debug.h"
 
-bool SQL_ORACLE::mark_all_valid_node(vector<IR*> ir_vec) {
+bool SQL_ORACLE::mark_all_valid_node(vector<IR *> &v_ir_collector) {
     /* TODO:: Ignore the current function first. Will fix later.  */
     return true;
 }
@@ -338,13 +338,13 @@ bool SQL_ORACLE::is_oracle_select_stmt(string in) {
     if (ret != 0 || ir_set.size()==0) {
         cerr << "Error: ir_set size is 0. \n";
     }
-    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_vec.back());
+    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_set.back());
     if(cur_stmt == NULL) {
         cerr << "Error: Cannot find the stmt inside the ir_vec(). \n";
         return false;
     }
     bool res = is_oracle_select_stmt(cur_stmt);
-    ir_vec.back()->deep_drop();
+    ir_set.back()->deep_drop();
     return res;
 }
 
@@ -354,12 +354,12 @@ bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
     if (ret != 0 || ir_set.size()==0) {
         cerr << "Error: ir_set size is 0. \n";
     }
-    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_vec.back());
+    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_set.back());
     if(cur_stmt == NULL) {
         cerr << "Error: Cannot find the stmt inside the ir_vec(). \n";
         return false;
     }
     bool res = is_oracle_normal_stmt(cur_stmt);
-    ir_vec.back()->deep_drop();
+    ir_set.back()->deep_drop();
     return res;
 }

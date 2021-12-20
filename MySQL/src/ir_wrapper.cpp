@@ -781,6 +781,14 @@ bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
     return is_exist_UNION(cur_stmt);
 }
 
+bool IRWrapper::is_exist_window_func_call (IR* cur_stmt) {
+    vector<IR*> v_window_func_call = get_ir_node_in_stmt_with_type(cur_stmt, kWindowFuncCall, false);
+    if (v_window_func_call.size() > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 vector<IR*> IRWrapper::get_select_items_in_select_stmt(IR* cur_stmt){
 

@@ -1,4 +1,4 @@
-SUB_DIRS := src AFL
+SUB_DIRS := oracle src AFL
 
 PARSER_SRCS := parser/parser_entry.cc.o
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
