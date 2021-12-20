@@ -23,6 +23,29 @@ long gen_long();
 
 int gen_int();
 
+enum ORA_COMP_RES { Pass = 1, Fail = 0, Error = -1, ALL_Error = -1 };
+
+struct COMP_RES {
+  string res_str_0 = "EMPTY", res_str_1 = "EMPTY", res_str_2 = "EMPTY",
+         res_str_3 = "EMPTY";
+  vector<string> v_res_str;
+  int res_int_0 = -1, res_int_1 = -1, res_int_2 = -1, res_int_3 = -1;
+  vector<int> v_res_int;
+
+  ORA_COMP_RES comp_res;
+  vector<int> explain_diff_id; // Is EXPLAIN QUERY PLAN provides different
+                               // execution plans between different validation.
+};
+
+struct ALL_COMP_RES {
+  vector<COMP_RES> v_res;
+  ORA_COMP_RES final_res = ORA_COMP_RES::Fail;
+  string cmd_str;
+  vector<string> v_cmd_str;
+  string res_str;
+  vector<string> v_res_str;
+};
+
 uint64_t fucking_hash ( const void * key, int len );
 vector<string> get_all_files_in_dir(const char * dir_name);
 IR * parser(string sql);
