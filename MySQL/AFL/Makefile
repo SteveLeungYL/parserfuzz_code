@@ -28,7 +28,8 @@ DOC_PATH    = $(PREFIX)/share/doc/afl
 MISC_PATH   = $(PREFIX)/share/afl
 DEPEN_PATH  = ../src/*.cpp  #../parser/parser_entry.cc
 
-PARSER_INCLUDE_PATH = -I../parser/
+PARSER_INCLUDE_PATH = -I../parser/ 
+PARSER_INCLUDE_PATH += -I../parser/mysql-server
 
 # PROGS intentionally omit afl-as, which gets installed elsewhere.
 

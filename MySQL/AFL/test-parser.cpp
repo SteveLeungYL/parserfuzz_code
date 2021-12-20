@@ -1,6 +1,6 @@
 
 #include "../include/ast.h"
-#include "../include/define.h"
+#include "sql/sql_ir_define.h"
 #include "../include/mutate.h"
 #include "../include/utils.h"
 #include "../parser/parser_entry.h"

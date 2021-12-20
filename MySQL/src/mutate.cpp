@@ -1,6 +1,5 @@
 #include "../include/mutate.h"
 #include "../include/ast.h"
-#include "../include/define.h"
 #include "../include/utils.h"
 
 
@@ -224,7 +223,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
     relationmap_[kDataTableName][kDataTableName] = kRelationElement;
     relationmap_[kDataColumnName][kDataColumnName] = kRelationElement;
     
-    split_stmt_types_.insert(kStmt);
+    split_stmt_types_.insert(kSimpleStatement);
     // split_substmt_types_.insert({kStmt, kSelectClause, kSelectStmt});
 
 #define MYSQLFUZZ

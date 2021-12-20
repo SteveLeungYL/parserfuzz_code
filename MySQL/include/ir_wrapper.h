@@ -1,17 +1,20 @@
 #ifndef __IR_WRAPPER_H__
 #define __IR_WRAPPER_H__
 
+#include "utils.h"
+#include "mutate.h"
+#include "ast.h"
+#include "../AFL/debug.h"
+#include "../parser/parser_entry.h"
+#include <string>
+
 enum IRTYPE;
 enum DATATYPE;
 
 class IR;
 class IROperator;
 
-#include "utils.h"
-#include "mutate.h"
-#include "ast.h"
-#include "debug.h"
-#include <string>
+
 
 class IRWrapper {
 public:
@@ -49,10 +52,9 @@ public:
     vector<IR*> get_ir_node_in_stmt_with_type(IR* cur_stmt, IRTYPE ir_type, 
         bool is_subquery = false, bool ignore_is_subquery = false, bool is_ignore_type_suffix = true);
 
-    bool append_stmt_at_idx(string, int idx, Mutator& g_mutator);
-    bool append_stmt_at_end(string, Mutator& g_mutator);
+    bool append_stmt_at_idx(string, int idx);
+    bool append_stmt_at_end(string);
     bool append_stmt_at_idx(IR*, int idx); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. If want to append at the start, use idx=-1; 
-    bool append_stmt_at_end(IR*, Mutator& g_mutator);
     bool append_stmt_at_end(IR*); // Please provide with IR* (kStatement*) type, do not provide IR*(kStatementList*) type. 
 
     bool remove_stmt_at_idx_and_free(unsigned idx);
@@ -80,7 +82,7 @@ public:
     vector<IR*> get_stmtlist_IR_vec();
     vector<IR*> get_stmtlist_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtlist_IR_vec();}
 
-    bool compare_ir_type(IRTYPE,IRTYPE);
+    bool compare_ir_type(IRTYPE left,IRTYPE right, bool ignore_subtype = true);
 
     bool is_in_subquery(IR* cur_stmt, IR* check_node, bool output_debug = false);
     bool is_in_insert_rest(IR* cur_stmt, IR* check_node, bool output_debug=false);
@@ -102,13 +104,11 @@ public:
     bool append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx);
     bool remove_selectclause_clause_at_idx_and_free(IR* cur_stmt, int idx);
     // int get_num_selectclause(IR* cur_stmt) {return this->get_selectclauselist_vec(cur_stmt).size();}
-    bool is_exist_UNION_SELECT(IR* cur_stmt);
-    bool is_exist_INTERSECT_SELECT(IR* cur_stmt);
-    bool is_exist_EXCEPT_SELECT(IR* cur_stmt);
+    bool is_exist_UNION(IR* cur_stmt);
     bool is_exist_set_operator(IR* cur_stmt);
 
-    vector<IR*> get_target_el_in_select_target(IR* cur_stmt);
-    int get_num_target_el_in_select_clause(IR* cur_stmt) { return this->get_target_el_in_select_target(cur_stmt).size(); }
+    vector<IR*> get_select_items_in_select_stmt(IR* cur_stmt);
+    int get_num_select_items_in_select_stmt(IR* cur_stmt) { return this->get_select_items_in_select_stmt(cur_stmt).size(); }
 
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);

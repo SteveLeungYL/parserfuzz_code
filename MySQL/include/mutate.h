@@ -3,7 +3,7 @@
 
 
 #include "ast.h"
-#include "define.h"
+#include "sql/sql_ir_define.h"
 #include "utils.h"
 
 #include <set>

@@ -195,6 +195,25 @@ IR* IRWrapper::get_last_stmt_from_root(IR* cur_root) {
     return get_last_stmt_from_root();
 }
 
+IR* IRWrapper::get_last_stmt_from_root() {
+    if (ir_root == NULL) {
+        return NULL;
+    }
+
+    IR* last_stmtlist = get_last_stmtlist_from_root();
+    if (!last_stmtlist) {
+        return NULL;
+    }
+    IR* last_stmt = get_stmt_ir_from_stmtlist(last_stmtlist);
+    if (!last_stmt) {
+        return NULL;
+    } else {
+        return last_stmt;
+    }
+
+    return NULL;
+}
+
 vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
 
     IR* stmt_IR_p = get_first_stmtlist_from_root();
@@ -210,4 +229,591 @@ vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
     stmt_list_v.clear();
 
     return stmt_list_v;
+}
+
+bool IRWrapper::append_stmt_at_idx(string app_str, int idx){
+    /* idx = -1, append to the beginning of the query
+    ** idx = stmt_num - 1, append to the ending of the query. 
+    */ 
+
+    IR* ori_root = this->ir_root;
+    int stmt_num = get_stmt_num();
+
+    if (idx < -1 && idx >= stmt_num ){
+        std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
+        return false;
+    }
+
+    // Parse and get the new statement. 
+    vector<IR*> ir_vec;
+    IR* app_ir_root = NULL;
+    int ret = run_parser(app_str, ir_vec);
+    if (ret == 0 && ir_vec.size() > 0) {
+        app_ir_root = ir_vec.back();
+    } else {
+        return false;
+    }
+
+    IR* app_stmtlist = get_first_stmtlist_from_root(app_ir_root);
+
+    if (!app_stmtlist) {
+        cerr << "Error: get_first_stmtmulti_from_root returns NULL. \n";
+        return false;
+    }
+
+    IR* app_IR_node = get_stmt_ir_from_stmtlist(app_stmtlist);
+    if (!app_IR_node) {
+        cerr << "Error: get_stmt_ir_from_stmtmulti returns NULL. \n";
+        return false;
+    }
+    app_IR_node = app_IR_node->deep_copy();
+    app_ir_root->deep_drop();
+
+    /* Restore the modified ir_root in the previous function calls.  */ 
+    set_ir_root(ori_root);
+
+    return this->append_stmt_at_idx(app_IR_node, idx);
+
+}
+
+bool IRWrapper::append_stmt_at_end(string app_str) {
+
+    IR* ori_root = this->ir_root;
+
+    // Parse and get the new statement.
+    vector<IR*> ir_vec;
+    IR* app_ir_root = NULL;
+    int ret = run_parser(app_str, ir_vec);
+    if (ret == 0 && ir_vec.size() > 0) {
+        app_ir_root = ir_vec.back();
+    } else {
+        return false;
+    }
+
+    IR* app_stmtlist = get_first_stmtlist_from_root(app_ir_root);
+
+    if (!app_stmtlist) {
+        cerr << "Error: get_first_stmtlist_from_root returns NULL. \n";
+        return false;
+    }
+
+    IR* app_ir_node = get_stmt_ir_from_stmtlist(app_stmtlist);
+    if (!app_ir_node) {
+        cerr << "Error: get_stmt_ir_from_stmtmulti returns NULL. \n";
+        return false;
+    }
+    app_ir_node = app_ir_node->deep_copy();
+    app_ir_root->deep_drop();
+
+    /* Restore the modified ir_root in the previous function calls.  */ 
+    set_ir_root(ori_root);
+
+    return this->append_stmt_at_idx(app_ir_node, get_stmt_num()-1);
+    
+}
+
+bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
+
+    int total_num = this->get_stmt_num();
+    if (total_num < 1)  {
+        cerr << "Error: total_num of stmt < 1. Directly deep_drop(); \n\n\n";
+        app_IR_node->deep_drop();
+        return false;
+    }
+    return this->append_stmt_at_idx(app_IR_node, total_num - 1);
+
+}
+
+bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Specific_Statement*) type, do not provide IR*(StatementList*) type.
+    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+
+    if (stmt_list_v.size() == 0) {
+        cerr << "Error: Getting stmt_list_v.size() == 0; \n";
+        app_IR_node->deep_drop();
+        return false;
+    }
+
+    // cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have stmtmulti: \n";
+
+    // for (IR* stmt_list : stmt_list_v) {
+    //     cerr << "DEBUG: Stmtmulti is: " << stmt_list->to_string() << "\n";
+    // }
+    // cerr << "End stmtlist. \n";
+
+    if (idx < -1 || idx > stmt_list_v.size()){
+        std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
+        std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
+        app_IR_node->deep_drop();
+        return false;
+    }
+
+    if (idx < (stmt_list_v.size() - 1) ) {
+
+        auto new_res = new IR(kStmtList, OPMID(";"), NULL, NULL);
+
+        int next_idx = idx + 1;
+        IR* next_ir_list = stmt_list_v[next_idx];
+
+        if (!ir_root->swap_node(next_ir_list, new_res)) {
+            new_res->deep_drop();
+            std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. idx = "  << idx << "\n";
+            return false;
+        }
+
+        new_res->update_left(app_IR_node);
+        new_res->update_right(next_ir_list);
+
+        return true;
+    } else {
+        /* If idx == stmt_list_v.size() -1. Append new stmt to the end to the query sequence */
+
+        auto new_res = new IR(kStmtList, OPMID(";"), app_IR_node, NULL);
+
+        int last_idx = idx;
+        IR* last_ir_list = stmt_list_v[last_idx];
+
+        last_ir_list->update_right(new_res);
+
+        return true;
+    }
+}
+
+bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
+
+    vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
+
+    if (idx >= stmt_list_v.size() || idx < 0){
+        std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+        return false;
+    }
+
+    if (stmt_list_v.size() <= 1) {
+        // std::cerr << "Error: Cannot remove stmt becuase there is only one stmt left in the query. \n In function IRWrapper::remove_stmt_at_idx_and_free(). \n";
+        return false;
+    }
+
+    IR* rov_stmt = stmt_list_v[idx];
+
+    // cerr << "Removing stmt: " << rov_stmt->to_string() << "\n";
+
+    if ( idx < stmt_list_v.size() - 1 ){
+        IR* parent_node = rov_stmt->get_parent();
+        IR* next_stmt = rov_stmt->get_right();
+        parent_node->swap_node(rov_stmt, next_stmt);
+        rov_stmt->left_ = NULL;
+        rov_stmt->deep_drop();
+
+    } else { // Remove the last statement from the sequence. 
+        IR* parent_node = rov_stmt->get_parent();
+        parent_node->update_right(NULL);
+        rov_stmt->deep_drop();
+    }
+
+    return true;
+}
+
+vector<IR*> IRWrapper::get_stmt_ir_vec() {
+
+    vector<IR*> stmtlist_vec = this->get_stmtlist_IR_vec(), stmt_vec;
+    if (stmtlist_vec.size() == 0) return stmt_vec;
+
+    for (int i = 0; i < stmtlist_vec.size(); i++){
+        if (!stmtlist_vec[i]) {
+            cerr << "Error: Found some stmtlist_vec == NULL. Return empty vector. \n";
+            continue;
+        }
+        // cerr << "Debug: 407: stmtlist_vec type: " << get_string_by_ir_type(stmtlist_vec[i]->get_ir_type()) << "\n";
+
+        IR* stmt_ir = get_stmt_ir_from_stmtlist(stmtlist_vec[i]);
+        if (stmt_ir != NULL) {
+            stmt_vec.push_back(stmt_ir);
+        }
+    }
+    
+    // // DEBUG
+    // for (auto stmt : stmt_vec) {
+    //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
+    // }
+
+    // cerr << "In get_stmt_ir_vec: we have: \n";
+    // for (IR* stmt: stmt_vec) {
+    //     cerr << stmt->to_string() << "\n";
+    // }
+    // cerr << "get_stmt finished. \n";
+
+    return stmt_vec;
+}
+
+bool IRWrapper::remove_stmt_and_free(IR* rov_stmt) {
+    vector<IR*> stmt_vec = this->get_stmt_ir_vec();
+    int stmt_idx = -1;
+    for (int i = 0; i < stmt_vec.size(); i++) {
+        if (stmt_vec[i] == rov_stmt) {stmt_idx = i; break;}
+    }
+    if (stmt_idx == -1) {return false;}
+    else {
+        return this->remove_stmt_at_idx_and_free(stmt_idx);
+    }
+}
+
+bool IRWrapper::append_components_at_ir(IR* parent_node, IR* app_node,
+    bool is_left, bool is_replace) {
+
+    if (is_left) {
+        if (parent_node->left_ != nullptr) {
+            if (!is_replace) {
+                cerr << "Append location has content, use is_replace=true if necessary. Function: IRWrapper::append_components_at_ir. \n";
+                return false;
+            }
+            IR* old_node = parent_node->left_;
+            parent_node->detatch_node(old_node);
+            old_node->deep_drop();
+        }
+        parent_node->update_left(app_node);
+        return true;
+    } else {
+        if (parent_node->right_ != nullptr) {
+            if (!is_replace) {
+                cerr << "Append location has content, use is_replace=true if necessary. Function: IRWrapper::append_components_at_ir. \n";
+                return false;
+            }
+            IR* old_node = parent_node->right_;
+            parent_node->detatch_node(old_node);
+            old_node->deep_drop();
+        }
+        parent_node->update_right(app_node);
+        return true;
+    }
+}
+
+bool IRWrapper::remove_components_at_ir(IR* rov_ir) {
+    if (rov_ir && rov_ir->get_parent()) {
+        IR* parent_node = rov_ir->get_parent();
+        parent_node->detatch_node(rov_ir);
+        rov_ir->deep_drop();
+        return true;
+    }
+    cerr << "Error: rov_ir or rov_ir->parent_ are nullptr. Function IRWrapper::remove_components_at_ir() \n";
+    return false;
+}
+
+vector<IR*> IRWrapper::get_all_ir_node (IR* cur_ir_root) {
+    this->set_ir_root(cur_ir_root);
+    return this->get_all_ir_node();
+}
+
+vector<IR*> IRWrapper::get_all_ir_node() {
+    if (this->ir_root == nullptr) {
+        std::cerr << "Error: IRWrapper::ir_root is nullptr. Forget to initilized? \n";
+    }
+    // Iterate IR binary tree, depth prioritized.
+    bool is_finished_search = false;
+    std::vector<IR*> ir_vec_iter;
+    std::vector<IR*> all_ir_node_vec;
+    IR* cur_IR = this->ir_root;
+    // Begin iterating. 
+    while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (cur_IR->type_ != kStartEntry)
+            {all_ir_node_vec.push_back(cur_IR);} // Ignore kParserTopLevel at the moment, put it at the end of the vector.
+
+        if (cur_IR->left_ != nullptr){
+            cur_IR = cur_IR->left_;
+            continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes. 
+            cur_IR = nullptr;
+            while (cur_IR == nullptr){
+                if (ir_vec_iter.size() == 0){
+                    is_finished_search = true;
+                    break;
+                }
+                cur_IR = ir_vec_iter.back()->right_;
+                ir_vec_iter.pop_back();
+            }
+            continue;
+        }
+    }
+    all_ir_node_vec.push_back(this->ir_root);
+    return all_ir_node_vec;
+}
+
+int IRWrapper::get_stmt_idx(IR* cur_stmt){
+    vector<IR*> all_stmt_vec = this->get_stmt_ir_vec();
+    int output_idx = -1;
+    int count = 0;
+    for (IR* iter_stmt : all_stmt_vec) {
+        if (iter_stmt == cur_stmt) {
+            output_idx = count;
+            break;
+        }
+        count++;
+    }
+    return output_idx;
+}
+
+bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
+    int old_stmt_idx = this->get_stmt_idx(old_stmt);
+    if (old_stmt_idx < 0) {
+        // cerr << "Error: old_stmt_idx < 0. Old_stmt_idx: " << old_stmt_idx << ". In func: IRWrapper::replace_stmt_and_free. \n"; 
+        return false;
+    }
+    if (!this->remove_stmt_at_idx_and_free(old_stmt_idx)){
+        // cerr << "Error: child function remove_stmt_at_idx_and_free returns error. In func: IRWrapper::replace_stmt_and_free. \n"; 
+        return false;
+    }
+    if (!this->append_stmt_at_idx(new_stmt, old_stmt_idx-1)){
+        // cerr << "Error: child function append_stmt_after_idx returns error. In func: IRWrapper::replace_stmt_and_free. \n";
+        return false;
+    }
+    return true;
+}
+
+bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right, bool ignore_subtype) {
+
+    if (!ignore_subtype) {
+        if (left != right) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /* Compare two IRTYPE, and see whether they are in the same type of stmt. */
+    string left_str = get_string_by_ir_type(left);
+    string right_str = get_string_by_ir_type(right);
+
+    /* Cut suffix. */
+    size_t cut_pos = left_str.find("_");
+    if (cut_pos != -1) {
+        left_str = left_str.substr(0, cut_pos);
+    }
+
+    cut_pos = right_str.find("_");
+    if (cut_pos != -1) {
+        right_str = right_str.substr(0, cut_pos);
+    }
+
+    // cerr << "Debug: Comparing " << left_str << " " << right_str << "\n";
+
+    if (left_str == right_str) {return true;}
+    else {return false;}
+}
+
+string IRWrapper::get_parent_type_str(IR* cur_IR, int depth){
+    IR* output_IR = this->get_p_parent_with_a_type(cur_IR, depth);
+    if (output_IR == nullptr) {
+        return "kUnknown";
+    } else {
+        IRTYPE res_ir_type = output_IR->get_ir_type();
+        string res_type_str = get_string_by_ir_type(res_ir_type);
+        size_t suffix_pos = res_type_str.find("_");
+        res_type_str = res_type_str.substr(0, suffix_pos);
+        return res_type_str;
+    }
+}
+
+IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
+    IRTYPE prev_ir_type = cur_IR->get_ir_type();
+    while (cur_IR ->get_parent() != nullptr) {
+        IRTYPE parent_type = cur_IR->get_parent()->get_ir_type();
+        if (
+            // There shouldn't be any exact same ir type nested with each other. 
+            // If there is, they are from different nested structure. 
+            parent_type == prev_ir_type
+            ||
+            (parent_type != kUnknown && !compare_ir_type(parent_type, prev_ir_type))
+        ){
+            prev_ir_type = parent_type;
+            depth--;
+            if (depth <= 0) {
+                return cur_IR->get_parent();
+            }   
+        }
+        cur_IR = cur_IR->get_parent();
+    }
+    return nullptr;
+}
+
+bool IRWrapper::is_exist_group_clause(IR* cur_stmt){
+    vector<IR*> v_group_clause = get_ir_node_in_stmt_with_type(cur_stmt, kOptGroupClause, false);
+    for (IR* group_clause : v_group_clause) {
+        if (! group_clause->is_empty()) {
+            return true;
+        }
+    }
+
+    /* Debug: not sure whether this counts for group clause or not */
+    vector<IR*> v_index_hint_clause = get_ir_node_in_stmt_with_type(cur_stmt, kIndexHintClause, false);
+    for (IR* index_hint_clause : v_index_hint_clause) {
+        if (index_hint_clause->get_prefix() == "FOR GROUP BY") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool IRWrapper::is_exist_having_clause(IR* cur_stmt){
+    vector<IR*> v_having_clause = get_ir_node_in_stmt_with_type(cur_stmt, kOptHavingClause, false);
+    for (IR* having_clause : v_having_clause) {
+        if (! having_clause->is_empty()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool IRWrapper::is_exist_limit_clause(IR* cur_stmt){
+    vector<IR*> v_limit_clause = get_ir_node_in_stmt_with_type(cur_stmt, kLimitClause, false);
+    for (IR* limit_clause : v_limit_clause) {
+        if (! limit_clause->is_empty()) {
+            return true;
+        }
+    }
+
+    v_limit_clause = get_ir_node_in_stmt_with_type(cur_stmt, kOptSimpleLimit, false);
+    for (IR* limit_clause : v_limit_clause) {
+        if (! limit_clause->is_empty()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
+    if (!cur_stmt) {
+        cerr << "Error: Given cur_stmt is NULL. \n";
+        return false;
+    }
+    // Do not ignore suffix.
+    vector<IR*> v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kCreateTableOption, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_prefix() == "UNION") {
+            return true;
+        }
+    }
+
+    // Do not ignore suffix.
+    v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_1, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "UNION") {
+            return true;
+        }
+    }
+
+    // Do not ignore suffix.
+    v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_2, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "UNION") {
+            return true;
+        }
+    }
+
+    // Do not ignore suffix.
+    v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_3, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "UNION") {
+            return true;
+        }
+    }
+
+     // Do not ignore suffix.
+    v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_4, false, false, false);
+    for (IR* cur_simple_select : v_simple_select){
+        if (cur_simple_select->get_middle() == "UNION") {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
+    // return is_exist_UNION_SELECT(cur_stmt) && is_exist_INTERSECT_SELECT(cur_stmt) && is_exist_EXCEPT_SELECT(cur_stmt);
+    return is_exist_UNION(cur_stmt);
+}
+
+
+vector<IR*> IRWrapper::get_select_items_in_select_stmt(IR* cur_stmt){
+
+    vector<IR*> res_vec;
+    if (cur_stmt->get_ir_type() != kSelectStmt) {
+        return res_vec;
+    }
+
+    res_vec = this->get_ir_node_in_stmt_with_type(cur_stmt, kSelectItem, false);
+    return res_vec;
+}
+
+IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR* cur_ir) {
+    while (cur_ir->get_parent() != nullptr) {
+        if (cur_ir->get_ir_type() == kBeginStmt) {
+            return cur_ir->get_ir_type();
+        }
+        if (cur_ir->get_ir_type() == kSimpleStatement) {
+            return cur_ir->left_->get_ir_type();
+        }
+        if (cur_ir->get_ir_type() == kStmtList) {
+            if (cur_ir->get_left()->get_ir_type() == kSimpleStatement) {
+                return cur_ir->get_left()->get_left() -> get_ir_type();
+            }
+        }
+        cur_ir = cur_ir->parent_;
+    }
+    return kUnknown;
+}
+
+
+
+IR* IRWrapper::get_stmt_ir_from_stmtlist(IR* cur_stmtlist){
+    if (cur_stmtlist == NULL) {
+        cerr << "Getting NULL cur_stmtmulti. \n";
+        return NULL;
+    }
+    if (cur_stmtlist->get_ir_type() != kStmtList) {
+        cerr << "Error: In IRWrapper::get_stmt_ir_from_stmtmulti(), not getting type kStmtmulti. \n";
+        return NULL;
+    }
+
+    // cerr << "Stmt is: " << cur_stmtmulti->to_string() << "\n";
+
+
+    if (
+        cur_stmtlist->get_left() &&
+        cur_stmtlist->get_left()->get_ir_type() == kSimpleStatement &&
+        cur_stmtlist->get_left() -> get_left()
+    ) {
+        return cur_stmtlist->get_left()->get_left(); // Return the actual stmt type, not kSimpleStatement. 
+    } else if (
+        cur_stmtlist->get_left()
+    ) {
+        return cur_stmtlist->get_left(); // Return the actual stmt type, not kSimpleStatement. 
+    } else {
+        // cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
+        return NULL;
+    }
+}
+
+bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
+
+    while (sub_ir) {
+        if (sub_ir == par_ir) {
+            return true;
+        }
+        sub_ir = sub_ir->get_parent();
+    }
+    return false;
+}
+
+bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
+
+    while (sub_ir) {
+        if (sub_ir->get_ir_type() == par_type) {
+            return true;
+        }
+        sub_ir = sub_ir->get_parent();
+    }
+    return false;
 }
