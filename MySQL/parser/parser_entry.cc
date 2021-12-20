@@ -33,7 +33,6 @@ using std::string;
 int Fake_TABLE::highest_table_id = 5;
 
 int run_parser(string cmd_str, vector<IR*>& ir_vec) {
-  my_testing::setup_server_for_unit_tests();
 
   printf("Enter parser function.\n");
   Server_initializer initializer;
@@ -48,13 +47,17 @@ int run_parser(string cmd_str, vector<IR*>& ir_vec) {
 
   initializer.TearDown();
   printf("Exit parser function.\n");
-
-  my_testing::teardown_server_for_unit_tests();
   return 0;
 }
 
 void parser_init(const char* program_name) {
   MY_INIT(program_name);
+
+  my_testing::setup_server_for_unit_tests();
+}
+
+void parser_teardown() {
+  my_testing::teardown_server_for_unit_tests();
 }
 
 // int main(int argc, char **argv) {

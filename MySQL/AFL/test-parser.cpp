@@ -4,15 +4,16 @@
 #include "../include/mutate.h"
 #include "../include/utils.h"
 #include "../parser/parser_entry.h"
+#include "../include/ir_wrapper.h"
 
 #include <fstream>
 #include <iostream>
 #include <ostream>
 #include <string>
 
-// extern int yydebug;
-
 using namespace std;
+
+IRWrapper ir_wrapper;
 
 namespace Color {
 enum Code {
@@ -65,18 +66,7 @@ IR* test_parse(string &query) {
     return NULL;
   }
   cout << "tostring: >" << tostring << "<" << endl;
-
-  // string structure = mutator.extract_struct(root);
-  // if (structure.size() <= 0) {
-  //   cerr << RED << "extract failed" << DEF << endl;
-  //   root->deep_drop();
-  //   return NULL;
-  // }
-  // cout << "structur: >" << structure << "<" << endl;
-
-  IR* cur_root = root->deep_copy();
-  root->deep_drop();
-  return cur_root;
+  return root;
 }
 
 // bool try_validate_query(IR* cur_root) {
@@ -139,6 +129,8 @@ int main(int argc, char *argv[]) {
 
   IR* root = NULL;
 
+  vector<IR*> stmt_ir_vec;
+
   while (getline(input_test, line)) {
 
     if (line.find_first_of("--") == 0)
@@ -157,8 +149,21 @@ int main(int argc, char *argv[]) {
       cout << "Parsing failed. Ignored. \n";
       continue;
     }
+
+    IR* cur_stmt = ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy();
+    cerr << cur_stmt->to_string() << "\n\n\n";
+    stmt_ir_vec.push_back(cur_stmt);
+
     cur_root->deep_drop();
   }
+
+  IR* ir_root = ir_wrapper.reconstruct_ir_with_stmt_vec(stmt_ir_vec);
+  mutator.debug(ir_root, 0);
+
+  for (IR* ir : stmt_ir_vec) {
+    ir->deep_drop();
+  }
+
   // if (root) root->deep_drop();
 
   // cout << "\n\n\n At the end of the parsing, we get to_string: \n" << root->to_string() << "\n\n\n";

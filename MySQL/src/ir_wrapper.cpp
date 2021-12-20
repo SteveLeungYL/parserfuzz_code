@@ -1,5 +1,29 @@
 #include "../include/ir_wrapper.h"
 
+IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
+    if (stmt_vec.size() == 0) {
+        return NULL;
+    }
+    if (!stmt_vec[0]) {
+        return NULL;
+    }
+
+    IR* cur_root = new IR(kStartEntry, OP0(), NULL, NULL);
+    IR* first_simple_stmt = new IR(kSimpleStatement, OP0(), stmt_vec[0]->deep_copy());
+    IR* first_stmtlist = new IR(kStmtList, OP3("", ";", ""), first_simple_stmt);
+    cur_root->update_left(first_stmtlist);
+
+    set_ir_root(cur_root);
+
+    for (int i = 1; i < stmt_vec.size(); i++) {
+        if (stmt_vec[i] == NULL) continue;
+        IR* new_stmt = stmt_vec[i]->deep_copy();
+        append_stmt_at_end(new_stmt);
+    }
+
+    return cur_root;
+}
+
 bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt,
     IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery) {
 
@@ -140,15 +164,12 @@ IR* IRWrapper::get_first_stmtlist_from_root() {
         cerr << "Error: In ir_wrapper::get_stmtmulti_IR_vec, receiving empty IR root. \n";
         return NULL;
     }
-    if (ir_root->get_left()->get_ir_type() != kStmtList) {
-        cerr << "Error: In ir_wrapper:get_stmtmulti_IR_vec, cannot find the kStmtmulti " \
-            "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \
-            "PLAssignStmt is not currently supported. \n";
-        return NULL;
+    if (ir_root->get_left()->get_ir_type() == kStmtList) {  // This is the rewritten and reconstruct IR tree.
+        return ir_root->get_left();
     }
 
-    /* If the first kStmtList confirm, it is the first stmtlist we need. Returns directly.  */
-    return ir_root->get_left();
+    /* This is not a reconstructed IR tree. Do not have any kStmtList. */
+    return NULL;
     
 }
 
@@ -158,12 +179,35 @@ IR* IRWrapper::get_first_stmtlist_from_root(IR* cur_root) {
 }
 
 IR* IRWrapper::get_first_stmt_from_root() {
-    IR* first_stmtmulti = this->get_first_stmtlist_from_root();
-    if (first_stmtmulti == NULL) {
+
+    if (ir_root->get_left()->get_ir_type() == kStmtList) {  // This is the rewritten and reconstruct IR tree.
+        IR* first_stmtmulti = this->get_first_stmtlist_from_root();
+        if (first_stmtmulti == NULL) {
+            return NULL;
+        }
+        return this->get_stmt_ir_from_stmtlist(first_stmtmulti);
+    }
+
+    /* Now, we try to return the first stmt from the original parser IR tree returns. */
+    IR* sql_statement = ir_root->get_left();
+    if (sql_statement->get_ir_type() != kSqlStatement) {
         return NULL;
     }
 
-    return this->get_stmt_ir_from_stmtlist(first_stmtmulti);
+    IR* simple_statement_or_begin = sql_statement->get_left();
+    if (!simple_statement_or_begin || simple_statement_or_begin->get_ir_type() != kSimpleStatementOrBegin) {
+        return NULL;
+    }
+
+    if (simple_statement_or_begin->get_left() && simple_statement_or_begin->get_left()->get_ir_type() == kSimpleStatement) {
+        return simple_statement_or_begin->get_left()->get_left();
+    } 
+    else if (simple_statement_or_begin->get_left() && simple_statement_or_begin->get_left()->get_ir_type() == kBeginStmt) {
+        return simple_statement_or_begin->get_left();
+    }
+
+cerr << "5\n\n\n";
+    return NULL;
 }
 
 IR* IRWrapper::get_first_stmt_from_root(IR* cur_root) {
@@ -179,12 +223,12 @@ IR* IRWrapper::get_last_stmtlist_from_root() {
         cerr << "Error: In ir_wrapper::get_stmtmulti_IR_vec, receiving empty IR root. \n";
         return NULL;
     }
-    if (ir_root->get_left()->get_ir_type() != kStmtList) {
-        cerr << "Error: In ir_wrapper:get_stmtmulti_IR_vec, cannot find the kStmtmulti " \
-            "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \
-            "PLAssignStmt is not currently supported. \n";
-        return NULL;
-    }
+    // if (ir_root->get_left()->get_ir_type() != kStmtList) {
+    //     cerr << "Error: In ir_wrapper:get_stmtmulti_IR_vec, cannot find the kStmtmulti " \
+    //         "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \
+    //         "PLAssignStmt is not currently supported. \n";
+    //     return NULL;
+    // }
 
     vector<IR*> v_stmtlist = this->get_stmtlist_IR_vec();
     return v_stmtlist.back();
@@ -225,8 +269,6 @@ vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
         if (stmt_IR_p->get_right() == nullptr) break; // This is the last kstatementlist.
         stmt_IR_p = stmt_IR_p -> get_right(); // Lead to the next kstatementlist.
     }
-
-    stmt_list_v.clear();
 
     return stmt_list_v;
 }
@@ -315,16 +357,17 @@ bool IRWrapper::append_stmt_at_end(string app_str) {
 bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR* (Statement*) type, do not provide IR*(StatementList*) type. 
 
     int total_num = this->get_stmt_num();
-    if (total_num < 1)  {
-        cerr << "Error: total_num of stmt < 1. Directly deep_drop(); \n\n\n";
-        app_IR_node->deep_drop();
-        return false;
-    }
+    // if (total_num < 1)  {
+    //     cerr << "Error: total_num of stmt < 1. Directly deep_drop(); \n\n\n";
+    //     app_IR_node->deep_drop();
+    //     return false;
+    // }
     return this->append_stmt_at_idx(app_IR_node, total_num - 1);
 
 }
 
 bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide with IR* (Specific_Statement*) type, do not provide IR*(StatementList*) type.
+
     vector<IR*> stmt_list_v = this->get_stmtlist_IR_vec();
 
     if (stmt_list_v.size() == 0) {
@@ -343,9 +386,10 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     if (idx < -1 || idx > stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
-        app_IR_node->deep_drop();
         return false;
     }
+
+    app_IR_node = new IR(kSimpleStatement, OP0(), app_IR_node);
 
     if (idx < (stmt_list_v.size() - 1) ) {
 
@@ -356,6 +400,8 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
 
         if (!ir_root->swap_node(next_ir_list, new_res)) {
             new_res->deep_drop();
+            app_IR_node->update_left(NULL);
+            app_IR_node->deep_drop();
             std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. idx = "  << idx << "\n";
             return false;
         }

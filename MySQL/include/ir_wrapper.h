@@ -21,6 +21,9 @@ public:
     void set_ir_root (IR* in) {this->ir_root = in;} 
     IR* get_ir_root () {return this->ir_root;}
 
+    // All deep_copied. 
+    IR* reconstruct_ir_with_stmt_vec(const vector<IR*>&);
+
     IR* get_first_stmtlist_from_root(IR* cur_root);
     IR* get_first_stmtlist_from_root();
     IR* get_first_stmt_from_root(IR* cur_root);
