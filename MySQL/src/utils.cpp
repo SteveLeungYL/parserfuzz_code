@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cstring>
+#include <algorithm>
 
 using namespace std;
 
@@ -160,4 +161,51 @@ vector<string> get_all_files_in_dir( const char * dir_name  )
                    }
                        return file_list;
                        
+}
+
+
+string::const_iterator findStringIter(const std::string &strHaystack,
+                                      const std::string &strNeedle) {
+  auto it =
+      std::search(strHaystack.begin(), strHaystack.end(), strNeedle.begin(),
+                  strNeedle.end(), [](char ch1, char ch2) {
+                    return std::toupper(ch1) == std::toupper(ch2);
+                  });
+  return it;
+}
+
+bool findStringIn(const std::string &strHaystack,
+                  const std::string &strNeedle) {
+  return (findStringIter(strHaystack, strNeedle) != strHaystack.end());
+}
+
+bool is_str_empty(string input_str) {
+  for (int i = 0; i < input_str.size(); i++) {
+    char c = input_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0')
+      return false; // Not empty.
+  }
+  return true; // Empty
+}
+
+// from http://www.cplusplus.com/forum/beginner/114790/
+vector<string> string_splitter(const std::string &s, const char delimiter) {
+
+  size_t start = 0;
+  size_t end = s.find_first_of(delimiter);
+
+  vector<string> output;
+
+  while (end <= string::npos) {
+
+    output.emplace_back(s.substr(start, end - start));
+
+    if (end == string::npos)
+      break;
+
+    start = end + 1;
+    end = s.find_first_of(delimiter, start);
+  }
+
+  return output;
 }

@@ -520,63 +520,6 @@ Mutator::~Mutator(){
     
 }
 
-void Mutator::extract_struct(IR * root){
-    static int counter = 0;
-    auto type = root->type_;
-    if(root->left_){
-        extract_struct(root->left_);
-    }
-    if(root->right_){
-        extract_struct(root->right_);
-    }
-
-    if(root->left_ || root->right_)return;
-    
-    
-    if(root->data_type_ != kDataWhatever){
-        
-        root->str_val_ = "x"; 
-        return ;     
-    }
-    
-    if(string_types_.find(type) != string_types_.end()){
-        root->str_val_ = "'x'";
-    }else if(int_types_.find(type) != int_types_.end()){
-        root->int_val_ = 1;
-    }else if(float_types_.find(type) != float_types_.end()){
-        root->float_val_ = 1.0;
-    }
-}
-
-
-void Mutator::extract_struct2(IR * root){
-    static int counter = 0;
-    auto type = root->type_;
-    if(root->left_){
-        extract_struct2(root->left_);
-    }
-    if(root->right_){
-        extract_struct2(root->right_);
-    }
-
-    if(root->left_ || root->right_)return;
-    
-    
-    if(root->data_type_ != kDataWhatever){
-        
-        root->str_val_ = "x" + to_string(counter++); 
-        return ;     
-    }
-    
-    if(string_types_.find(type) != string_types_.end()){
-        root->str_val_ = "'x'";
-    }else if(int_types_.find(type) != int_types_.end()){
-        root->int_val_ = 1;
-    }else if(float_types_.find(type) != float_types_.end()){
-        root->float_val_ = 1.0;
-    }
-}
-
 void Mutator::reset_data_library(){
     data_library_.clear();
     data_library_2d_.clear();
@@ -630,15 +573,6 @@ bool Mutator::validate(IR * &root){
     }
 
     return true;
-}
-
-
-unsigned int Mutator::calc_node(IR * root){
-    unsigned int res = 0;
-    if(root->left_) res += calc_node(root->left_);
-    if(root->right_) res += calc_node(root->right_);
-
-    return res + 1;
 }
 
 
@@ -1185,3 +1119,121 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
     return 1;
 }
 
+// Return use_temp or not.
+bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
+  /* For 1/2 chance, grab one query from the norec library, and return.
+   * For 1/2 chance, take the template from the p_oracle and return.
+   */
+  bool is_succeed = false;
+
+  while (!is_succeed) { // Potential dead loop. Only escape through return.
+    bool use_temp = false;
+    int query_method = get_rand_int(2);
+    if (all_valid_pstr_vec.size() > 0 && query_method < 1) {
+      /* Pick the query from the lib, pass to the mutator. */
+      ori_norec_select =
+          *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
+
+      if (ori_norec_select == "" ||
+          !p_oracle->is_oracle_select_stmt(ori_norec_select))
+        continue;
+      use_temp = false;
+    } else {
+      /* Pick the query from the template, pass to the mutator. */
+      ori_norec_select = p_oracle->get_template_select_stmts();
+      use_temp = true;
+    }
+
+    trim_string(ori_norec_select);
+    return use_temp;
+  }
+  fprintf(stderr, "*** FATAL ERROR: Unexpected code execution in the "
+                  "Mutator::get_valid_str_from_lib function. \n");
+  fflush(stderr);
+  abort();
+}
+
+
+bool Mutator::check_node_num(IR *root, unsigned int limit) {
+
+  auto v_statements = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
+  bool is_good = true;
+
+  for (auto stmt : v_statements) {
+    // cerr << "For current query stmt: " << root->to_string() << endl;
+    // cerr << calc_node(stmt) << endl;
+    if (calc_node(stmt) > limit) {
+      is_good = false;
+      break;
+    }
+  }
+
+  return is_good;
+}
+
+unsigned int Mutator::calc_node(IR *root) {
+  unsigned int res = 0;
+  if (root->left_)
+    res += calc_node(root->left_);
+  if (root->right_)
+    res += calc_node(root->right_);
+
+  return res + 1;
+}
+
+string Mutator::extract_struct(IR *root) {
+  string res = "";
+  _extract_struct(root);
+  res = root->to_string();
+  trim_string(res);
+  return res;
+}
+
+void Mutator::_extract_struct(IR *root) {
+
+  if (root->get_data_flag() == kNoModi) {return;}
+  if (root->get_data_type() == kDataFunctionName) {return;}
+  if (root->get_data_type() == kDataFixLater) {return;}
+  if (root->get_data_type() == kDataLiteral) {return;}
+
+  auto type = root->type_;
+  if (root->left_) {
+    extract_struct(root->left_);
+  }
+  if (root->right_) {
+    extract_struct(root->right_);
+  }
+
+  if (root->get_ir_type() == kIntType) {
+    root->int_val_ = 0;
+    root->str_val_ = "0";
+    return;
+  } else if (root->get_ir_type() == kRealType) {
+    root->float_val_ = 0.0;
+    root->str_val_ = "0.0";
+    return;
+  }
+  // } else if (root->get_ir_type() == kBol) {
+  //   root->bool_val_ = true;
+  //   root->str_val_ = "true";
+  //   return;
+  // }
+
+
+  if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
+    return;
+
+  if (root->data_type_ != kDataWhatever && root->data_type_ != kDataFunctionName) {
+
+    root->str_val_ = "x";
+    return;
+  }
+
+  if (string_types_.find(type) != string_types_.end()) {
+    root->str_val_ = "'x'";
+  } else if (int_types_.find(type) != int_types_.end()) {
+    root->int_val_ = 1;
+  } else if (float_types_.find(type) != float_types_.end()) {
+    root->float_val_ = 1.0;
+  }
+}

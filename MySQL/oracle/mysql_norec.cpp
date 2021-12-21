@@ -5,7 +5,7 @@
 #include <regex>
 #include <string>
 
-bool SQLNOREC::is_oracle_select_stmt(IR* cur_stmt) {
+bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   if (cur_stmt == NULL) {
     // cerr << "Return false because cur_stmt is NULL; \n";
@@ -55,7 +55,7 @@ bool SQLNOREC::is_oracle_select_stmt(IR* cur_stmt) {
       }
   }
 
-  for (sum_expr_ir : v_matching_sum_expr_ir) {
+  for (IR* sum_expr_ir : v_matching_sum_expr_ir) {
       if (ir_wrapper.is_ir_in(sum_expr_ir, select_item_ir)) {
         is_found_count = true;
         break;
@@ -101,7 +101,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 
   if (v_over_clause.size() > 0) {
     IR* over_clause = v_over_clause.front();
-    IR* new_over_clause = new IR(kOverClause, OP0());
+    IR* new_over_clause = new IR(kWindowingClause, OP0());
     first_stmt->swap_node(over_clause, new_over_clause);
     over_clause->deep_drop();
   }
@@ -149,7 +149,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   vector<IR*> src_order_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOrderClause, false);
   if (src_order_vec.size() > 0 ) {
     IR* src_order_clause = src_order_vec[0]->deep_copy();
-    IR* dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kSortClause, true)[0];
+    IR* dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kOrderClause, true)[0];
     if (!trans_stmt_ir->swap_node(dest_order_clause, src_order_clause)){
       trans_stmt_ir->deep_drop();
       src_order_clause->deep_drop();
@@ -158,13 +158,13 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     }
     dest_order_clause->deep_drop();
   } else {
-    IR* dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kSortClause, true)[0];
-    trans_stmt_ir->detach_node(dest_order_clause);
+    IR* dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kOrderClause, true)[0];
+    trans_stmt_ir->detatch_node(dest_order_clause);
     dest_order_clause->deep_drop();
   }
 
   IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0]->deep_copy();
-  IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kExpr, true)[1];
+  IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kExpr, true)[1];
 
 
   IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false)[0]->deep_copy();

@@ -5,6 +5,8 @@
 #include "ast.h"
 #include "sql/sql_ir_define.h"
 #include "utils.h"
+#include "../oracle/mysql_oracle.h"
+#include "../include/ir_wrapper.h"
 
 #include <set>
 #include <map>
@@ -18,6 +20,8 @@ enum RELATIONTYPE{
     kRelationSubtype,
     kRelationAlias,
 };
+
+class SQL_ORACLE;
 
 class Mutator{
 
@@ -66,8 +70,6 @@ public:
     void reset_data_library(); //DONE
 
     string parse_data(string &) ;//DONE
-    void extract_struct(IR *); //Done
-    void extract_struct2(IR *); //Done
 
     bool fix(IR * root);//done
 
@@ -86,7 +88,6 @@ public:
     bool fill_stmt_graph_one(map<IR*, vector<IR*>> &graph, IR* ir);//done
     bool validate(IR * &root); //done
     
-    unsigned int calc_node(IR * root);
     bool replace_one_value_from_datalibray_2d(DATATYPE p_datatype, DATATYPE c_data_type, string &p_key, string &old_c_value, string &new_c_value);
     bool remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype, DATATYPE c_data_type, string &p_key);
     bool replace_one_from_datalibrary(DATATYPE datatype, string &old_str, string &new_str);
@@ -133,7 +134,35 @@ public:
 
     set<unsigned long> global_hash_;
 
+    map<unsigned long, bool> norec_hash;
+    vector<string *> all_valid_pstr_vec;
+    vector<string *> all_cri_valid_pstr_vec;
+    set<string *> all_query_pstr_set;
+    bool dump_library = false;
+    SQL_ORACLE *p_oracle;
+    map<IRTYPE, set<unsigned long>> ir_libary_2D_hash_;
+    set<unsigned long> stripped_string_hash_;
+
+    /* The interface of saving the required context for the mutator. Giving the
+        IRTYPE, we should be able to extract all the related IR nodes from this
+        library. The string* points to the string of the complete query stmt where
+        the current NODE is from. And the int is the unique ID for the specific
+        node, can be used to identify and extract the specific node from the IR
+        tree when the tree is being reconstructed.
+    */
+    map<IRTYPE, vector<pair<string *, int>>> real_ir_set;
+    map<IRTYPE, vector<pair<string *, int>>> left_lib_set;
+    map<IRTYPE, vector<pair<string *, int>>> right_lib_set;
+
+    bool get_valid_str_from_lib(string &ori_norec_select);
+    bool check_node_num(IR *root, unsigned int limit);
+    unsigned int calc_node(IR *root);
+
+    string extract_struct(IR* root);
+    void _extract_struct(IR* root);
+
 };
+
 
 
 #endif

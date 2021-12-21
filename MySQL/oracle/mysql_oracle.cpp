@@ -116,10 +116,10 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
           // cerr << "chosen mutate_ir_node is NULL\n\n\n";
           continue;
         }
-        if (mutate_ir_node->is_node_struct_fixed) {
-          // cerr << "node strcut is fixed. \n\n\n";
-          continue;
-        }
+        // if (mutate_ir_node->is_node_struct_fixed) {
+        //   // cerr << "node strcut is fixed. \n\n\n";
+        //   continue;
+        // }
         is_mutate_ir_node_chosen = true;
         break;
       } // End while(!is_mutaet_ir_node_chosen)

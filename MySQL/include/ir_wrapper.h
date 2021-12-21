@@ -2,7 +2,6 @@
 #define __IR_WRAPPER_H__
 
 #include "utils.h"
-#include "mutate.h"
 #include "ast.h"
 #include "../AFL/debug.h"
 #include "../parser/parser_entry.h"
@@ -13,8 +12,6 @@ enum DATATYPE;
 
 class IR;
 class IROperator;
-
-
 
 class IRWrapper {
 public:

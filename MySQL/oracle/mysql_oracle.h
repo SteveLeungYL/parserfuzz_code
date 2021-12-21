@@ -87,6 +87,7 @@ public:
   /* Everytime we need to modify the IR tree, we need to call this function first. */
   virtual bool init_ir_wrapper(IR* ir_root) {this->ir_wrapper.set_ir_root(ir_root); return true;}
   virtual bool init_ir_wrapper(vector<IR*> ir_vec) {return this->init_ir_wrapper(ir_vec.back());}
+
   IRWrapper ir_wrapper;
 
   /* Debug */
