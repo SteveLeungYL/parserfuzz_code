@@ -47,10 +47,10 @@ IR* test_parse(string &query) {
 
   vector<IR*> v_ir;
 
-  run_parser(query, v_ir);
+  int ret = run_parser(query, v_ir);
   // exec_query_command_entry(query, v_ir);
 
-  if (v_ir.size() <= 0) {
+  if (v_ir.size() == 0 || ret != 0) {
     cerr << RED << "parse failed" << DEF << endl;
     return NULL;
   }

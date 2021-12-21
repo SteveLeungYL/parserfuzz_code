@@ -34,7 +34,7 @@ int Fake_TABLE::highest_table_id = 5;
 
 int run_parser(string cmd_str, vector<IR*>& ir_vec) {
 
-  printf("Enter parser function.\n");
+  // printf("Enter parser function.\n");
   Server_initializer initializer;
   initializer.SetUp();
 
@@ -43,10 +43,16 @@ int run_parser(string cmd_str, vector<IR*>& ir_vec) {
 
   ir_vec = ::parse(&initializer, cmd_str.c_str(), 0, 0);
 
-  printf("%d \n", ir_vec.size());
+  if (ir_vec.size() == 0) {
+    return 1;
+  }
+
+  if ( ir_vec.back()->get_ir_type() != kStartEntry) {
+    return 1;
+  }
 
   initializer.TearDown();
-  printf("Exit parser function.\n");
+  // printf("Exit parser function.\n");
   return 0;
 }
 
@@ -59,15 +65,3 @@ void parser_init(const char* program_name) {
 void parser_teardown() {
   my_testing::teardown_server_for_unit_tests();
 }
-
-// int main(int argc, char **argv) {
-//   MY_INIT(argv[0]);
-
-//   my_testing::setup_server_for_unit_tests();
-//   int ret = run_parser();
-
-//   my_testing::teardown_server_for_unit_tests();
-
-//   printf("Exit with status: %d.\n", ret);
-//   return ret;
-// }
