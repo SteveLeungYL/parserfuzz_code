@@ -204,7 +204,7 @@ public:
       return false;
 
     dbname = "test" + std::to_string(database_id);
-    if (mysql_real_connect(&m_, host_, "root", "", dbname.c_str(), 0, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&m_, host_, "root", "", dbname.c_str(), bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(&m_), mysql_error(&m_));
       disconnect();
@@ -2626,7 +2626,12 @@ EXP_ST void setup_shm(void)
   if (!dumb_mode)
     setenv(SHM_ENV_VAR, shm_str, 1);
   cerr << "SHM_ENV_VAR: " << shm_str << endl;
-  getchar();
+
+  ofstream shm_env_out;
+  shm_env_out.open("./shm_env.txt", ios::trunc | ios::out);
+  shm_env_out << shm_str;
+  shm_env_out.close();
+
   ck_free(shm_str);
   trace_bits = shmat(shm_id, NULL, 0);
 
