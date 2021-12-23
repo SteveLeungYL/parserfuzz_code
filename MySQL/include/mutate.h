@@ -21,6 +21,12 @@ enum RELATIONTYPE{
     kRelationAlias,
 };
 
+enum STMT_TYPE {
+  NOT_ORACLE = 0,
+  ORACLE_SELECT = 1,
+  ORACLE_NORMAL = 2
+};
+
 class SQL_ORACLE;
 
 class Mutator{
@@ -36,7 +42,7 @@ public:
 
     IR * ir_random_generator(vector<IR *> v_ir_collector);
 
-    vector<IR *> mutate_all(vector<IR*> &v_ir_collector); //done
+    vector<IR *> mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_mutate_failed, u64& total_mutate_num);
     vector<IR*> mutate(IR* input); //done
     IR * strategy_delete(IR * cur); //Done
     IR * strategy_insert(IR * cur); //Done
@@ -57,7 +63,17 @@ public:
     void init_not_mutatable_type(string filename);//DONE
     void init_safe_generate_type(string filename);
     void add_ir_to_library(IR*);//DONE
-    
+
+    void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
+    void set_dump_library(bool to_dump) { this->dump_library = to_dump; }
+
+    void pre_validate();
+
+    vector<IR*> pre_fix_transform(IR*, vector<STMT_TYPE>&);
+    vector<vector<vector<IR*>>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec);
+    vector<vector<IR*>> post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count);
+
+    pair<string, string> ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec);
 
     string get_a_string() ; //DONE
     unsigned long get_a_val() ; //DONE
@@ -138,10 +154,11 @@ public:
     vector<string *> all_valid_pstr_vec;
     vector<string *> all_cri_valid_pstr_vec;
     set<string *> all_query_pstr_set;
-    bool dump_library = false;
-    SQL_ORACLE *p_oracle;
     map<IRTYPE, set<unsigned long>> ir_libary_2D_hash_;
     set<unsigned long> stripped_string_hash_;
+
+    bool dump_library = false;
+    SQL_ORACLE *p_oracle;
 
     /* The interface of saving the required context for the mutator. Giving the
         IRTYPE, we should be able to extract all the related IR nodes from this

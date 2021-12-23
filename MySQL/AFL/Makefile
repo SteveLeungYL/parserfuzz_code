@@ -48,8 +48,8 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.d
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 
-# SRCS = afl-fuzz.cpp test-parser.cpp
-SRCS = test-parser.cpp
+SRCS = afl-fuzz.cpp test-parser.cpp
+# SRCS = test-parser.cpp
 
 include depend.make
 

@@ -19,7 +19,7 @@ void SQL_ORACLE::set_mutator(Mutator *mutator) {
 // TODO:: This function is a bit too long.
 // guarantee to generate syntactic correct query
 IR* SQL_ORACLE::get_random_mutated_select_stmt() {
-  /* Read from the previously seen norec compatible select stmt.
+  /* Read from the previously seen oracle compatible select stmt.
    * For example, for NOREC: SELECT COUNT ( * ) FROM ... WHERE ...;
    * mutate them, and then return the string of the new generated
    * norec compatible SELECT query.

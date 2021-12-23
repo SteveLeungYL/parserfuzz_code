@@ -41,6 +41,10 @@
 #include "debug.h"
 #include "alloc-inl.h"
 #include "hash.h"
+#include "../include/ast.h"
+#include "../include/mutate.h"
+#include "sql/sql_ir_define.h"
+#include "../include/utils.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -71,15 +75,14 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <cassert>
-#include "../include/ast.h"
-#include "../include/mutate.h"
-#include "../include/define.h"
-#include "../include/utils.h"
 #include <deque>
 #include <random>
 #include <regex>
 
-//#include "../../mysql-server/include/mysql.h"
+#include "../oracle/mysql_oracle.h"
+#include "../oracle/mysql_norec.h"
+// #include "../oracle/mysql_tlp.h"
+
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
 #include <mysql/errmsg.h>
@@ -133,6 +136,41 @@ static long correct_num;
 
 static SQLSTATUS execute_result;
 #endif
+
+
+/* Added by SQLRight. */
+EXP_ST u8 dump_library;
+int bind_to_core_id = -1;
+uint bind_to_port = 5432;
+
+u64 total_input_failed = 0;
+u64 total_mutate_all_failed = 0;
+u64 total_mutate_failed = 0;
+u64 total_mutate_num = 0;
+u64 total_append_failed = 0;
+u64 total_execute = 0;
+u64 total_add_to_queue = 0;
+u64 debug_error = 0;
+u64 debug_good = 0;
+u64 num_valid = 0;
+u64 num_parse = 0;
+u64 num_mutate_all = 0;
+u64 num_reparse = 0;
+u64 num_append = 0;
+u64 num_validate = 0;
+
+u64 postgre_execute_ok = 0;
+u64 postgre_execute_error = 0;
+u64 postgre_execute_total = 0;
+
+int map_file_id = 0;
+fstream map_id_out_f;
+
+
+
+Mutator g_mutator;
+SQL_ORACLE *p_oracle;
+
 
 extern int ff_debug;
 
@@ -1172,7 +1210,6 @@ private:
 
 int is_server_up = -1;
 extern int errno;
-Mutator g_mutator;
 int g_query_result = -1;
 int g_child_pid = -1;
 char *g_current_input = NULL;
@@ -6298,6 +6335,48 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le)
   return 0;
 }
 
+void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_num = 10) {
+
+  // cout << "get_oracle_select_stmt" << endl;
+  // exit(0);
+  int trial = 0;
+  int num_norec = 0;
+  int max_trial =
+      valid_max_num * 10; // For each norec select stmt, we have on average 10
+                         // chances to append the stmt and check.
+
+  // cerr << "Entering get_oracle_select_stmt func. \n";
+
+  while (num_norec < valid_max_num)
+  {
+
+    if (trial++ >= max_trial) { // Give on average 3 chances per select stmts.
+      // cerr << "Break due to exceeding max_trial. \n";
+      break;
+    }
+    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
+    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
+    if (new_oracle_select_stmts == NULL) {
+      cerr << "new_norec_stmts is empty. \n";
+      continue;
+    }
+    // ensure_semicolon_at_query_end(new_norec_stmts);
+    v_oracle_select_stmts.push_back(std::move(new_oracle_select_stmts));
+
+    num_norec++;
+    num_valid++;
+  }
+
+  // cerr << "DEBUG: v_oracle_select_stmts.size() is: " << v_oracle_select_stmts.size() << ". \n";
+  // for (IR* v_oracle_select : v_oracle_select_stmts) {
+  //   cerr << "DEBUG: Getting oracle select: " << v_oracle_select->to_string() << "\n";
+  // }
+  // cerr << "\n\n\n";
+  return;
+}
+
+
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -6315,7 +6394,9 @@ static u8 fuzz_one(char **argv)
   u8 a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
 
-  vector<IR *> mutated_tree;
+  vector<IR *> ori_ir_tree;
+  vector<IR*> v_oracle_select_stmts;
+
 
 #ifdef IGNORE_FINDS
 
@@ -6391,77 +6472,218 @@ static u8 fuzz_one(char **argv)
   cur_depth = queue_cur->depth;
 
   memcpy(out_buf, in_buf, len);
-  out_buf[len] = 0;
+  out_buf[len] = '\0';
 
-  vector<IR *> ir_set;
+  stage_name = "mutate";
+  int skip_count = 0;
   string input((const char *)out_buf);
-  IR* root = parser(input);
 
-  if (root == NULL)
+  
+
+  int ret = run_parser(input, ori_ir_tree);
+
+  if (ret != 0 || ori_ir_tree.size() == 0)
   {
     goto abandon_entry;
   }
 
-  orig_perf = perf_score = calculate_score(queue_cur);
+  IR* cur_root = ori_ir_tree.back();
+
+  p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
+  p_oracle->remove_select_stmt_from_ir(cur_root);
+
+  ori_ir_tree.clear();
+  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
+
+  stage_max = ori_ir_tree.size();
+  stage_cur = 0;
+  stage_short = "SQL fuzz";
+  stage_name = "MySQL fuzzing";
+
+  // orig_perf = perf_score = calculate_score(queue_cur);
 
   doing_det = 1;
-
-  stage_short = "SQL fuzz";
-  stage_max = len << 3;
-  stage_name = "niubi fuzzing";
 
   stage_val_type = STAGE_VAL_NONE;
 
   orig_hit_cnt = queued_paths + unique_crashes;
 
   prev_cksum = queue_cur->exec_cksum;
-  int skip_count;
   skip_count = 0;
 
-  /* TODO:: Yu:: DIRTY FIX FOR NOW!!! */
-  ir_set.clear();
-  ir_set.push_back(root);
-  mutated_tree = g_mutator.mutate_all(ir_set);
-  deep_delete(ir_set[ir_set.size() - 1]);
-  ir_set.clear();
+  v_oracle_select_stmts.clear();
+  get_oracle_select_stmts(v_oracle_select_stmts, 10);
 
-  stage_max = mutated_tree.size();
-  stage_cur = 0;
-  for (auto &ir : mutated_tree)
-  {
-    stage_name = "niubi_validate";
-
-    bool tmp_res = g_mutator.validate(ir);
-    if (tmp_res == false)
-    {
-      skip_count++;
-      continue;
-    }
-    show_stats();
-    string ir_str = ir->to_string();
-    g_current_ir = ir; //this is not modified
-
-    char *tmp_str = ir_str.c_str();
-
-    int siz = ir_str.size();
-    stage_name = "niubi_fuzz";
-
-    if (g_previous_input.size() >= 10)
-    {
-      char *aa = g_previous_input.front();
-      g_previous_input.pop_front();
-      free(aa);
-    }
-    g_previous_input.push_back(strdup(tmp_str));
-
-    if (common_fuzz_stuff(argv, tmp_str, siz))
-    {
+  for (IR* ir_to_mutate : ori_ir_tree) {
+    if (stop_soon) {
       goto abandon_entry;
     }
-    stage_cur++;
-    show_stats();
-  }
 
+    /* The mutated IR tree is deep_copied() */
+    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
+
+    for (IR* mutated_ir_root : v_mutated_ir_root) {
+
+      if (!mutated_ir_root) {
+        continue;
+      }
+
+      string ir_str = mutated_ir_root->to_string();
+      stage_name = "query_fix";
+
+      /* Use to_string() here, validate() will be called just once, at the end of
+      * the query mutation. */
+      if (ir_str.size() == 0)
+      {
+        total_mutate_failed++;
+        skip_count++;
+        continue;
+      }
+
+      /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
+      * consider appending anything */
+      vector<IR *> cur_ir_tree;
+      ret = run_parser(ir_str, cur_ir_tree);
+      if (ret != 0 || cur_ir_tree.size() == 0) {
+        total_mutate_failed++;
+        skip_count++;
+        continue;
+      }
+      num_reparse++;
+
+      for (IR* app_IR_node : v_oracle_select_stmts) {
+        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
+        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
+      }
+
+      num_append++;
+
+      /*
+      ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
+      ** fix ir node, fill in concret values,
+      ** and transform from IR to multi-run strings.
+      */
+      vector<string> query_str_vec, query_str_no_marks_vec;
+
+      IR* cur_root = cur_ir_tree.back();
+
+      g_mutator.pre_validate(); // Reset global variables for query sequence.
+
+      // pre_fix_transformation from the oracle.
+      vector<STMT_TYPE> stmt_type_vec;
+      vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
+
+      // /* Debug  */
+      // cerr << "Just gone through pre_fix_transform, we have: \n";
+      // for (IR* cur_trans: all_pre_trans_vec) {
+      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+      // }
+      // cerr << "Pre-fix transform end. \n\n\n";
+
+      // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
+
+      /* Build dependency graph, fix ir node, fill in concret values */
+      for (IR* cur_trans_stmt : all_pre_trans_vec) {
+        if(!g_mutator.validate(cur_trans_stmt)) {
+          // cerr << "Error: g_mutator.validate returns errors. \n";
+          /* Do nothing. */
+        }
+      }
+
+      /* post_fix_transformation from the oracle. All deep_copied. */
+      vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
+
+      for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
+
+        // /* Debug */
+        // cerr << "After post-fix, we have: \n";
+        // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
+        //   for (IR* cur_post: cur_post_trans) {
+        //     cerr << "cur_post: " << cur_post->to_string() << "\n";
+        //   }
+        // }
+        // cerr << "Post-fix Done. \n";
+
+        // Final step, transform IR tree to string. Add marker to important statements.
+        pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+        query_str_vec.push_back(query_str_pair.first);
+        query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
+      }
+
+      // for (auto query_str : query_str_vec) {
+      //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
+      // }
+      // cerr << "End\n\n\n";
+
+      /* Clean up allocated resource.  */
+      for (int i = 0; i < all_pre_trans_vec.size(); i++){
+        all_pre_trans_vec[i]->deep_drop();
+      }
+
+      for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
+        for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
+          for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
+            all_post_trans_vec_all_runs[i][j][k]->deep_drop();
+          }
+        }
+      }
+
+      num_validate++;
+
+      if (cur_ir_tree.size() > 0){
+        cur_ir_tree.back()->deep_drop();
+      }
+
+      /* Finished clean up */
+
+      if (query_str_vec.size() == 0)
+      {
+        total_append_failed++;
+        skip_count++;
+        continue;
+      } else if (query_str_vec[0] == "" ){
+        total_append_failed++;
+        skip_count++;
+        continue;
+      }
+      else
+      {
+        show_stats();
+        // cout << "Valid SQL: " << ir_str << endl;
+        // g_current_ir = ir; //this is not modified
+        stage_name = "fuzz";
+        // cerr << "IR_STR is: " << query_str << endl;
+
+        /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
+        // vector<string> small_query_testcases;
+        // split_queries_into_small_pieces(query_str, small_query_testcases);
+        // if (small_query_testcases.size() == 0) {
+        //   total_append_failed++;
+        //   skip_count++;
+        //   continue;
+        // }
+
+        // if (query_str_vec.size() > 0)
+        //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
+
+        if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
+        {
+          // goto abandon_entry;
+          continue;
+        }
+        total_execute++;
+        stage_cur++;
+        show_stats();
+      }
+    } // v_mutated_ir_root
+
+    for (IR* mutated_ir_root : v_mutated_ir_root) {
+      mutated_ir_root->deep_drop();
+    }
+
+  } // ir_set vector
+
+  stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
   stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
 
@@ -6470,10 +6692,18 @@ static u8 fuzz_one(char **argv)
   ret_val = 0;
 
 abandon_entry:
-  for (auto ir : mutated_tree)
-  {
-    deep_delete(ir);
+  
+  /* Free the original ir tree */
+  if (ori_ir_tree.size() != 0) {
+    ori_ir_tree.back()->deep_drop();
   }
+
+  /* Free the generated oracle SELECT stmt.  */
+  for (IR* app_ir_node : v_oracle_select_stmts) {
+    app_ir_node->deep_drop();
+  }
+  v_oracle_select_stmts.clear();
+
   splicing_with = -1;
 
   /* Update pending_not_fuzzed count if we made it through the calibration
@@ -7701,6 +7931,14 @@ void test_mutate()
 
 #ifndef AFL_LIB
 
+static void load_map_id() {
+  map_id_out_f.open("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
+  if (dump_library) {
+    map_id_out_f << "mapID, map_file_id" << endl;
+  }
+  return;
+}
+
 char *g_server_path;
 char *g_client_path;
 
@@ -7709,6 +7947,8 @@ int main(int argc, char **argv)
 
   //test_mutate();
   // ff_debug = 0;
+
+  p_oracle = nullptr;
 
   is_server_up = -1;
   s32 opt;
@@ -7729,7 +7969,7 @@ int main(int argc, char **argv)
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:l")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:")) > 0)
 
     switch (opt)
     {
@@ -7885,6 +8125,38 @@ int main(int argc, char **argv)
       skip_deterministic = 1;
       use_splicing = 1;
       break;
+    
+    case 'D': /* dump fuzzing logs */
+
+      dump_library = 1;
+      break;
+
+    case 'c': /* bind to specific CPU core num */
+      bind_to_port = atoi(optarg);
+      break;
+    
+    case 'P': /* Accessing MySQL using port num.  */
+      bind_to_port = atoi(optarg);
+      break;
+    
+    case 'O' /* ORACLE */
+    {
+      /* Default NOREC */
+      string arg = string(optarg);
+      if (arg == "NOREC")
+        p_oracle = new SQL_NOREC();
+      // else if (arg == "TLP")
+      //   p_oracle = new SQL_TLP();
+      // else if (arg == "LIKELY")
+      //   p_oracle = new SQL_LIKELY();
+      // else if (arg == "ROWID")
+      //   p_oracle = new SQL_ROWID();
+      // else if (arg == "INDEX")
+      //   p_oracle = new SQL_INDEX();
+      else
+        FATAL("Oracle arguments not supported. ");
+    }
+    break;
 
     case 'B': /* load bitmap */
 
@@ -7946,6 +8218,14 @@ int main(int argc, char **argv)
 
       usage(argv[0]);
     }
+
+  if (p_oracle == NULL) {
+    p_oracle = new SQL_NOREC();
+  }
+  p_oracle->set_mutator(&g_mutator);
+  g_mutator.set_p_oracle(p_oracle);
+
+  g_mutator.set_dump_library(dump_library);
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
@@ -8043,6 +8323,10 @@ int main(int argc, char **argv)
     use_argv = argv + optind;
 
   do_libary_initialize();
+
+  if (dump_library) {
+    load_map_id();
+  }
 
   //char* tmp_argv[] = {g_server_path, NULL};
   //init_forkserver(tmp_argv);

@@ -19,7 +19,7 @@ LDFLAGS = -ldl -lmysqlclient -pg
 
 include parser/link_depend.make
 
-all: test-parser
+all: afl-fuzz test-parser
 
 parser:
 	@$(MAKE) -C $@
@@ -29,7 +29,7 @@ $(SUB_DIRS): parser
 
 afl-fuzz: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(AFL_OBJS)  -o $@ $(LDFLAGS)
-	# cp afl-fuzz ./fuzz_root
+	cp afl-fuzz ./fuzz_root
 
 test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -I $(PGSQL_INCLUDE_PATH) -L $(PGSQL_LIB_PATH) -o $@ $(LDFLAGS) $(PARSER_LINK_FLAGS)

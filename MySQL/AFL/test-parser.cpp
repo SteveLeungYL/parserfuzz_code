@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
   }
 
   IR* ir_root = ir_wrapper.reconstruct_ir_with_stmt_vec(stmt_ir_vec);
-  mutator.debug(ir_root, 0);
+  // mutator.debug(ir_root, 0);
 
   for (IR* ir : stmt_ir_vec) {
     ir->deep_drop();

@@ -41,38 +41,138 @@ IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
 
 }
 
+vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num){
 
-
-vector<IR *> Mutator::mutate_all(vector<IR *> &v_ir_collector){
+    IR *root = ori_ir_root;
     vector<IR *> res;
-    IR * root = v_ir_collector[v_ir_collector.size() - 1];
 
-    mutated_root_ = root;
+    vector<IR *> v_mutated_ir = mutate(ir_to_mutate);
 
-    for(auto ir: v_ir_collector){
-        if(not_mutatable_types_.find(ir->type_) != not_mutatable_types_.end()) continue;
-
-        vector<IR *> v_mutated_ir = mutate(ir);
-
-        for(auto i: v_mutated_ir){
-            IR * new_ir_tree = deep_copy_with_record(root, ir);
-            replace(new_ir_tree, this->record_, i);
-
-            extract_struct(new_ir_tree);
-            string tmp = new_ir_tree->to_string();
-            unsigned tmp_hash = hash(tmp);
-            if(global_hash_.find(tmp_hash) != global_hash_.end()){
-                deep_delete(new_ir_tree);
-                continue;
-            }
-
-            global_hash_.insert(tmp_hash);
-            res.push_back(new_ir_tree);
+    for (IR *new_ir : v_mutated_ir) {
+        total_mutate_num++;
+        if (!root->swap_node(ir_to_mutate, new_ir)) {
+            new_ir->deep_drop();
+            total_mutate_failed++;
+            continue;
         }
+
+        string tmp = root->to_string();
+
+        /* Check whether the mutated IR is the same as before */
+        unsigned tmp_hash = hash(tmp);
+        if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+            root->swap_node(new_ir, ir_to_mutate);
+            new_ir->deep_drop();
+            total_mutate_failed++;
+            continue;
+        }
+        global_hash_.insert(tmp_hash);
+
+        /* Mutate successful. Save the mutation and recover the original ir_tree */
+        res.push_back(root->deep_copy());
+        root->swap_node(new_ir, ir_to_mutate);
+        new_ir->deep_drop();
     }
 
     return res;
 }
+
+
+void Mutator::pre_validate() {
+  // Reset components that is local to the one query sequence. 
+  reset_id_counter();
+  reset_data_library();
+  return;
+}
+
+
+vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec) {
+
+  p_oracle->init_ir_wrapper(root);
+  vector<IR*> all_trans_vec;
+  vector<IR*> all_statements_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+
+  // cerr << "In func: Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_vec), we have all_statements_vec size(): "
+  //     << all_statements_vec.size() << "\n\n\n";
+
+  for (IR* cur_stmt : all_statements_vec) {
+    /* Identify oracle related statements. Ready for transformation. */
+    bool is_oracle_select = false, is_oracle_normal = false;
+    if (p_oracle->is_oracle_normal_stmt(cur_stmt)) {is_oracle_normal = true; stmt_type_vec.push_back(ORACLE_NORMAL);}
+    else if (p_oracle->is_oracle_select_stmt(cur_stmt)) {is_oracle_select = true; stmt_type_vec.push_back(ORACLE_SELECT);}
+    else {stmt_type_vec.push_back(NOT_ORACLE);}
+
+    /* Apply pre_fix_transformation functions. */
+    IR* trans_IR = nullptr;
+    if (is_oracle_normal) {
+      trans_IR = p_oracle->pre_fix_transform_normal_stmt(cur_stmt); // Deep_copied
+    } else if (is_oracle_select) {
+      trans_IR = p_oracle->pre_fix_transform_select_stmt(cur_stmt); // Deep_copied
+    }
+    /* If no pre_fix_transformation is needed, directly use the original cur_root. */
+    if (trans_IR == nullptr ){
+      trans_IR = cur_stmt->deep_copy(); 
+    }
+    all_trans_vec.push_back(trans_IR);
+  }
+
+  return all_trans_vec;
+}
+
+
+vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec) {
+  int total_run_count = p_oracle->get_mul_run_num();
+  vector<vector<vector<IR*>>> all_trans_vec_all_run;
+  for (int run_count = 0; run_count < total_run_count; run_count++){
+    all_trans_vec_all_run.push_back(this->post_fix_transform(all_pre_trans_vec, stmt_type_vec, run_count)); // All deep_copied. 
+  }
+  return all_trans_vec_all_run;
+}
+
+vector<vector<IR*>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec, int run_count) {
+  // Apply post_fix_transform functions. 
+  vector<vector<IR*>> all_post_trans_vec;
+  vector<int> v_stmt_to_rov;
+  for (int i = 0; i < all_pre_trans_vec.size(); i++) { // Loop through across statements. 
+    IR* cur_pre_trans_ir = all_pre_trans_vec[i];
+    vector<IR*> post_trans_stmt_vec;
+    assert(cur_pre_trans_ir != nullptr);
+
+    bool is_oracle_normal = false, is_oracle_select = false;
+    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    else if (stmt_type_vec[i] == ORACLE_NORMAL) {is_oracle_normal = true;}
+
+    if (is_oracle_normal) {
+      post_trans_stmt_vec = p_oracle->post_fix_transform_normal_stmt(cur_pre_trans_ir, run_count); // All deep_copied
+    } else if (is_oracle_select) {
+      post_trans_stmt_vec = p_oracle->post_fix_transform_select_stmt(cur_pre_trans_ir, run_count); // All deep_copied
+    } else {
+      post_trans_stmt_vec.push_back(cur_pre_trans_ir->deep_copy());
+    }
+    
+    if (post_trans_stmt_vec.size() > 0){
+      all_post_trans_vec.push_back(post_trans_stmt_vec);
+    } else {
+      /* Debug */
+      // cerr << "DEBUG: stmt: " << cur_pre_trans_ir->to_string() << " returns empty. \n";
+
+      v_stmt_to_rov.push_back(i);
+    }
+  }
+
+  vector<STMT_TYPE> new_stmt_type_vec;
+  for (int i = 0; i < stmt_type_vec.size(); i++) {
+    if (find(v_stmt_to_rov.begin(), v_stmt_to_rov.end(), i) != v_stmt_to_rov.end()) {
+      continue;
+    }
+    new_stmt_type_vec.push_back(stmt_type_vec[i]);
+  }
+  stmt_type_vec = new_stmt_type_vec;
+
+  return all_post_trans_vec;
+}
+
+
 
 void Mutator::add_ir_to_library(IR * cur){
     extract_struct(cur);
@@ -550,31 +650,60 @@ string Mutator::parse_data(string &input) {
     return res;
 }
 
-
-bool Mutator::validate(IR * &root){
-    reset_data_library();
-    string sql = root->to_string();
-    IR* ast = parser(sql);
-    if(ast == NULL) return false;
-    
-    root->deep_drop();
-    root = NULL;
-
-    // vector<IR*> ir_vector;
-    // ast->translate(ir_vector);
-    // ast->deep_delete();
-
-    // root = ir_vector[ir_vector.size() - 1];
-    root = ast;
-    reset_id_counter();
-
-    if(fix(root) == false){
-        return false;
-    }
-
+bool Mutator::validate(IR* &root) {
     return true;
 }
 
+/* Original validate function.  */
+// bool Mutator::validate(IR * &root){
+//     reset_data_library();
+//     string sql = root->to_string();
+//     IR* ast = parser(sql);
+//     if(ast == NULL) return false;
+    
+//     root->deep_drop();
+//     root = NULL;
+
+//     // vector<IR*> ir_vector;
+//     // ast->translate(ir_vector);
+//     // ast->deep_delete();
+
+//     // root = ir_vector[ir_vector.size() - 1];
+//     root = ast;
+//     reset_id_counter();
+
+//     if(fix(root) == false){
+//         return false;
+//     }
+
+//     return true;
+// }
+
+pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec) {
+  // Final step, IR_to_string function. 
+  string output_str_mark, output_str_no_mark; 
+  for (int i = 0; i < all_post_trans_vec.size(); i++) { // Loop between different statements. 
+    vector<IR*> post_trans_vec = all_post_trans_vec[i];
+    int count = 0;
+    bool is_oracle_select = false;
+    if (stmt_type_vec[i] == ORACLE_SELECT) {is_oracle_select = true;}
+    for (IR* cur_trans_stmt : post_trans_vec) {  // Loop between different transformations. 
+      string tmp = cur_trans_stmt->to_string();
+      if (is_oracle_select) {
+        output_str_mark += "SELECT 'BEGIN VERI " + to_string(count) + "'; \n";
+        output_str_mark  += tmp + "; \n";
+        output_str_mark += "SELECT 'END VERI " + to_string(count) + "'; \n";
+        output_str_no_mark += tmp + "; \n";
+        count++;
+      } else {
+        output_str_mark += tmp + "; \n";
+        output_str_no_mark += tmp + "; \n";
+      }
+    }
+  }
+  pair<string, string> output_str_pair =  make_pair(output_str_mark, output_str_no_mark); 
+  return output_str_pair;
+}
 
 bool Mutator::fix(IR * root){
     map<IR**, IR*> m_save;
@@ -1121,7 +1250,7 @@ int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
 
 // Return use_temp or not.
 bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
-  /* For 1/2 chance, grab one query from the norec library, and return.
+  /* For 1/2 chance, grab one query from the oracle library, and return.
    * For 1/2 chance, take the template from the p_oracle and return.
    */
   bool is_succeed = false;
