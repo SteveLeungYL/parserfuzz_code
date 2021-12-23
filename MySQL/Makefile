@@ -12,8 +12,8 @@ MYSQL_INCLUDE_PATH = /usr/include/mysql
 MYSQL_LIB_PATH = 
 
 export CC = g++
-export DEBUG = -g
-export OPT = -O0
+export DEBUG =
+export OPT = -O3
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
 LDFLAGS = -ldl -lmysqlclient -pg
 
@@ -28,7 +28,7 @@ $(SUB_DIRS): parser
 	@$(MAKE) -C $@
 
 afl-fuzz: $(SUB_DIRS)
-	$(CC) $(CFLAGS) $(AFL_OBJS)  -o $@ $(LDFLAGS)
+	$(CC) $(CFLAGS) $(AFL_OBJS)  -I $(PGSQL_INCLUDE_PATH)  -L $(PGSQL_LIB_PATH)  -o $@ $(LDFLAGS) $(PARSER_LINK_FLAGS)
 	cp afl-fuzz ./fuzz_root
 
 test-parser: $(SUB_DIRS)

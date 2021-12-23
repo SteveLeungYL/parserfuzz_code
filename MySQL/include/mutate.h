@@ -178,6 +178,22 @@ public:
     string extract_struct(IR* root);
     void _extract_struct(IR* root);
 
+    void add_all_to_library(IR *, const vector<int> &);
+    void add_all_to_library(IR *ir) {
+      vector<int> dummy_vec;
+      add_all_to_library(ir, dummy_vec);
+    }
+    void add_all_to_library(string, const vector<int> &);
+    void add_all_to_library(string whole_query_str) {
+      vector<int> dummy_vec;
+      add_all_to_library(whole_query_str, dummy_vec);
+    }
+
+    void add_to_valid_lib(IR *, string &, const bool);
+    void add_to_library(IR *, string &);
+    void add_to_library_core(IR *, string *);
+
+
 };
 
 

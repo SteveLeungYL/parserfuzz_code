@@ -1366,3 +1366,220 @@ void Mutator::_extract_struct(IR *root) {
     root->float_val_ = 1.0;
   }
 }
+
+
+/* add_to_library supports only one stmt at a time,
+ * add_all_to_library is responsible to split the
+ * the current IR tree into single query stmts.
+ * This function is not responsible to free the input IR tree.
+ */
+void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id) {
+  add_all_to_library(ir->to_string(), explain_diff_id);
+}
+
+/*  Save an interesting query stmt into the mutator library.
+ *
+ *   The uniq_id_in_tree_ should be, more idealy, being setup and kept unchanged
+ * once an IR tree has been reconstructed. However, there are some difficulties
+ * there. For example, how to keep the uniqueness and the fix order of the
+ * unique_id_in_tree_ for each node in mutations. Therefore, setting and
+ * checking the uniq_id_in_tree_ variable in every nodes of an IR tree are only
+ * done when necessary by calling this funcion and
+ * get_from_library_with_[_,left,right]_type. We ignore this unique_id_in_tree_
+ * in other operations of the IR nodes. The unique_id_in_tree_ is setup based on
+ * the order of the ir_set vector, returned from Program*->translate(ir_set).
+ *
+ */
+
+void Mutator::add_all_to_library(string whole_query_str,
+                                 const vector<int> &explain_diff_id) {
+
+  /* If the query_str is empty. Ignored and return. */
+  bool is_empty = true;
+  for (int i = 0; i < whole_query_str.size(); i++) {
+    char c = whole_query_str[i];
+    if (!isspace(c) && c != '\n' && c != '\0') {
+      is_empty = false; // Not empty.
+      break;
+    } // Empty
+  }
+
+  if (is_empty)
+    return;
+
+  vector<string> queries_vector = string_splitter(whole_query_str, ';');
+  int i = 0; // For counting oracle valid stmt IDs.
+  for (auto current_query : queries_vector) {
+    trim_string(current_query);
+    if (current_query == "") {
+      continue;
+    }
+    current_query += ";";
+    // check the validity of the IR here
+    // The unique_id_in_tree_ variable are being set inside the parsing func.
+
+    /* Debug */
+    // cerr << "In initial library: getting current_query: " << current_query << "\n";
+
+
+    vector<IR *> ir_set;
+    int ret = run_parser(current_query, ir_set);
+    if (ret != 0 || ir_set.size() == 0)
+      continue;
+
+    IR *root = ir_set.back();
+    vector<IR*> v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
+    if (v_cur_stmt_ir.size() == 0) {
+      root->deep_drop();
+      return;
+    }
+    IR* cur_stmt_ir = v_cur_stmt_ir.front();
+
+    if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
+    // if (p_oracle->is_oracle_valid_stmt(current_query)) {
+      if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
+          explain_diff_id.end()) {
+        add_to_valid_lib(root, current_query, true);
+      } else {
+        add_to_valid_lib(root, current_query, false);
+      }
+      ++i; // For counting oracle valid stmt IDs.
+    } else {
+      add_to_library(root, current_query);
+    }
+
+    root->deep_drop();
+  }
+}
+
+void Mutator::add_to_valid_lib(IR *ir, string &select,
+                               const bool is_explain_diff) {
+
+  unsigned long p_hash = hash(select);
+
+  if (norec_hash.find(p_hash) != norec_hash.end())
+    return;
+
+  norec_hash[p_hash] = true;
+
+  string *new_select = new string(select);
+
+  all_query_pstr_set.insert(new_select);
+  all_valid_pstr_vec.push_back(new_select);
+
+  if (this->dump_library) {
+    std::ofstream f;
+    f.open("./norec-select", std::ofstream::out | std::ofstream::app);
+    f << *new_select << endl;
+    f.close();
+  }
+
+  // cerr << "Saving str: " << *new_select << " to the lib. \n\n\n";
+  add_to_library_core(ir, new_select);
+
+  return;
+}
+
+void Mutator::add_to_library(IR *ir, string &query) {
+
+  if (query == "")
+    return;
+
+  IRTYPE p_type = ir->type_;
+  unsigned long p_hash = hash(query);
+
+  if (ir_libary_2D_hash_[p_type].find(p_hash) !=
+      ir_libary_2D_hash_[p_type].end()) {
+    /* query not interesting enough. Ignore it and clean up. */
+    return;
+  }
+  ir_libary_2D_hash_[p_type].insert(p_hash);
+
+  string *p_query_str = new string(query);
+  all_query_pstr_set.insert(p_query_str);
+  // all_valid_pstr_vec.push_back(p_query_str);
+
+  if (this->dump_library) {
+    std::ofstream f;
+    f.open("./normal-lib", std::ofstream::out | std::ofstream::app);
+    f << *p_query_str << endl;
+    f.close();
+  }
+
+  // cerr << "Saving str: " << *p_query_str << " to the lib. \n\n\n";
+  add_to_library_core(ir, p_query_str);
+
+  // get_memory_usage();  // Debug purpose.
+
+  return;
+}
+
+void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
+  /* Save an interesting query stmt into the mutator library. Helper function
+   * for Mutator::add_to_library();
+   */
+
+  if (*p_query_str == "")
+    return;
+
+  int current_unique_id = ir->uniq_id_in_tree_;
+  bool is_skip_saving_current_node = false; //
+
+  IRTYPE p_type = ir->type_;
+  IRTYPE left_type = kUnknown, right_type = kUnknown;
+  
+  string ir_str = ir->to_string();
+  unsigned long p_hash = hash(ir_str);
+  if (p_type != kStartEntry && ir_libary_2D_hash_[p_type].find(p_hash) !=
+                                ir_libary_2D_hash_[p_type].end()) {
+    /* current node not interesting enough. Ignore it and clean up. */
+    return;
+  }
+  if (p_type != kStartEntry)
+    ir_libary_2D_hash_[p_type].insert(p_hash);
+
+  if (!is_skip_saving_current_node)
+    {
+      real_ir_set[p_type].push_back(
+        std::make_pair(p_query_str, current_unique_id));
+      // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
+      // cerr << "Saving ir_node with type: " << get_string_by_ir_type(p_type) << ", unique_id:" << current_unique_id << "\n\n\n";
+      // }
+    }
+
+  // Update right_lib, left_lib
+  if (ir->right_ != NULL && ir->left_ != NULL && !is_skip_saving_current_node) {
+    left_type = ir->left_->type_;
+    right_type = ir->right_->type_;
+    left_lib_set[left_type].push_back(std::make_pair(
+        p_query_str, current_unique_id)); // Saving the parent node id. When
+                                          // fetching, use current_node->right.
+    // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
+    //   cerr << "Saving left_type_ ir_node with right type: " << get_string_by_ir_type(right_type) << ", unique_id:" << ir->right_->uniq_id_in_tree_ << "\n\n\n";
+    // }
+    right_lib_set[right_type].push_back(std::make_pair(
+        p_query_str, current_unique_id)); // Saving the parent node id. When
+                                          // fetching, use current_node->left.
+    // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
+    //   cerr << "Saving right_type_ ir_node with left type: " << get_string_by_ir_type(left_type) << ", unique_id:" << ir->left_->uniq_id_in_tree_ << "\n\n\n";
+    // }
+  }
+
+  if (this->dump_library) {
+
+    std::ofstream f;
+    f.open("./append-core", std::ofstream::out | std::ofstream::app);
+    f << *p_query_str << " node_id: " << current_unique_id << endl;
+    f.close();
+  }
+
+  if (ir->left_) {
+    add_to_library_core(ir->left_, p_query_str);
+  }
+
+  if (ir->right_) {
+    add_to_library_core(ir->right_, p_query_str);
+  }
+
+  return;
+}

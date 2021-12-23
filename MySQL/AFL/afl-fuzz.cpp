@@ -79,6 +79,9 @@
 #include <random>
 #include <regex>
 
+#include <fstream>
+#include <filesystem>
+
 #include "../oracle/mysql_oracle.h"
 #include "../oracle/mysql_norec.h"
 // #include "../oracle/mysql_tlp.h"
@@ -112,6 +115,8 @@ using namespace std;
 
 int crash_fd = -1;
 int bug_output_id = 0;
+int log_output_id = 0;
+
 
 #define INIT_LIB_PATH "./mysql_initlib"
 #define SAFE_GENERATE_PATH "./safe_generate_type_mysql"
@@ -907,254 +912,308 @@ public:
     return res;
   }
 
-  SQLSTATUS execute(char *cmd)
+  SQLSTATUS execute(const char *cmd, string& res_str)
   {
-    fix_database(); // Fix the connection error1 misleading output.
     auto conn = connect();
 
-    if (!conn)
-    {
-      string previous_inputs = "";
-      for (auto i : g_previous_input)
-        previous_inputs += string(i) + "\n\n";
-      previous_inputs += "-------------\n\n";
-      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());
-    }
+    reset_database();
 
+    if(!conn){
+      string previous_inputs = "";
+      for(auto i: g_previous_input) previous_inputs += string(i) + "\n\n";
+      previous_inputs += "-------------\n\n";
+      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());  
+    }
+    
     int retry_time = 0;
-    while (!conn)
-    {
+    while(!conn){
       //cout << "reconnecting..." << endl;
       sleep(5);
       conn = connect();
-      if (!conn)
+      if(!conn)
         fix_database();
     }
     //cout << "connect succeed!" << endl;
     //cerr << "Trying to execute " << cmd << endl;
+    int server_response = mysql_real_query(&m_, cmd, strlen(cmd));
+    res_str = retrieve_query_results(m_);
 
-    string all_optimization_results_string = "";
-    string random_optimization_results_string = "";
-    string default_optimization_results_string = "";
-    string none_optimization_results_string = "";
-
-    /* All optimization cmd */
-
-    reset_database();
-
-    string optimization_cmd;
-    string cmd_string;
-
-    optimization_cmd = get_optimization_string(false, false, true);
-    int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
     auto correctness = clean_up_connection(m_);
 
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    all_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
+    if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
       disconnect();
       return kServerCrash;
     }
 
     auto res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
+    res = correctness;  
+
     auto check_res = check_server_alive();
-    if (check_res == false)
-    {
+    if(check_res == false){
       disconnect();
       sleep(2); // waiting for server to be up again
       return kServerCrash;
     }
 
-    reset_database();
-
-    /* Random Optimization CMD */
-    optimization_cmd = get_optimization_string(true, false, false);
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
+    if (execute_result == kSyntaxError) {
+      syntax_err_num++;
+    } else if (execute_result == kSemanticError) {
+      semantic_err_num++;
+    } else {
+      correct_num++;
     }
-
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    random_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
-    }
-
-    res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-
-    reset_database();
-
-    /* Default optimization cmd */
-    optimization_cmd = get_optimization_string(false, true, false);
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    default_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
-    }
-
-    res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-    reset_database();
-
-    /* None optimization cmd */
-    optimization_cmd = get_optimization_string(false, false, false); // is_random, is_default, is_all_on.
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    none_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
-    }
-
-    res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-    reset_database();
-
-    if (all_optimization_results_string != random_optimization_results_string || all_optimization_results_string != none_optimization_results_string || all_optimization_results_string != default_optimization_results_string)
-    {
-      cerr << "--------------------------------------------\n";
-      cerr << "Results not matched!!!!!!!!!!\n";
-      cerr << "Query: \n";
-      cerr << cmd << "\n";
-      cerr << "All_optimization_Results_string: \n";
-      cerr << all_optimization_results_string;
-      cerr << "\nRandom_optimization_Results_string: \n";
-      cerr << random_optimization_results_string;
-      cerr << "\nDefault_optimization_Results_string: \n";
-      cerr << default_optimization_results_string;
-      cerr << "\nNone_optimization_Results_string: \n";
-      cerr << none_optimization_results_string << "\n";
-      cerr << "\n\n\n";
-    }
-    else if (all_optimization_results_string != "")
-    {
-      // // // else {
-      cerr << "--------------------------------------------\n";
-      cerr << "Results matched: \n";
-      // cerr << "Query: \n";
-      // cerr << cmd_string << "\n";
-      // cerr << "All_optimization_Results_string: \n";
-      // cerr << all_optimization_results_string;
-      // cerr << "\nRandom_optimization_Results_string: \n";
-      // cerr << random_optimization_results_string;
-      // cerr << "\nDefault_optimization_Results_string: \n";
-      // cerr << default_optimization_results_string;
-      // cerr << "\nNone_optimization_Results_string: \n";
-      // cerr << none_optimization_results_string << "\n";
-      // cerr << "Random Optimization options: \n";
-      // cerr << random_optimization_cmd;
-      // cerr << "\n\n\n";
-    }
-    else
-    {
-      cerr << "--------------------------------------------\n";
-      cerr << "Query not making sense.\n";
-      // cerr << "Query: \n";
-      // cerr << cmd_string << "\n";
-      // cerr << "All_optimization_Results_string: \n";
-      // cerr << all_optimization_results_string;
-      // cerr << "\nRandom_optimization_Results_string: \n";
-      // cerr << random_optimization_results_string;
-      // cerr << "\nDefault_optimization_Results_string: \n";
-      // cerr << default_optimization_results_string;
-      // cerr << "\nNone_optimization_Results_string: \n";
-      // cerr << none_optimization_results_string << "\n";
-      // cerr << "Random Optimization options: \n";
-      // cerr << random_optimization_cmd;
-      // cerr << "\n\n\n";
-    }
-
-    optimization_cmd.clear();
-    // random_optimization_cmd.clear();
-    cmd_string.clear();
-
-    all_optimization_results_string.clear();
-    random_optimization_results_string.clear();
-    default_optimization_results_string.clear();
-    none_optimization_results_string.clear();
 
     counter_++;
     disconnect();
     return res;
+
+/* Another implementation of the NoREC oracle.  */
+//     fix_database(); // Fix the connection error1 misleading output.
+//     auto conn = connect();
+
+//     if (!conn)
+//     {
+//       string previous_inputs = "";
+//       for (auto i : g_previous_input)
+//         previous_inputs += string(i) + "\n\n";
+//       previous_inputs += "-------------\n\n";
+//       write(crash_fd, previous_inputs.c_str(), previous_inputs.size());
+//     }
+
+//     int retry_time = 0;
+//     while (!conn)
+//     {
+//       //cout << "reconnecting..." << endl;
+//       sleep(5);
+//       conn = connect();
+//       if (!conn)
+//         fix_database();
+//     }
+//     //cout << "connect succeed!" << endl;
+//     //cerr << "Trying to execute " << cmd << endl;
+
+//     string all_optimization_results_string = "";
+//     string random_optimization_results_string = "";
+//     string default_optimization_results_string = "";
+//     string none_optimization_results_string = "";
+
+//     /* All optimization cmd */
+
+//     reset_database();
+
+//     string optimization_cmd;
+//     string cmd_string;
+
+//     optimization_cmd = get_optimization_string(false, false, true);
+//     int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
+//     auto correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       cerr << "Optimization command error. \n\n";
+//       disconnect();
+//       return kServerCrash;
+//     }
+//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
+//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
+//     all_optimization_results_string = retrieve_query_results(m_);
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     auto res = kNormal;
+// #ifdef COUNT_ERROR
+//     res = correctness;
+// #endif
+//     auto check_res = check_server_alive();
+//     if (check_res == false)
+//     {
+//       disconnect();
+//       sleep(2); // waiting for server to be up again
+//       return kServerCrash;
+//     }
+
+//     reset_database();
+
+//     /* Random Optimization CMD */
+//     optimization_cmd = get_optimization_string(true, false, false);
+//     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       cerr << "Optimization command error. \n\n";
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
+//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
+//     random_optimization_results_string = retrieve_query_results(m_);
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     res = kNormal;
+// #ifdef COUNT_ERROR
+//     res = correctness;
+// #endif
+//     check_res = check_server_alive();
+//     if (check_res == false)
+//     {
+//       disconnect();
+//       sleep(2); // waiting for server to be up again
+//       return kServerCrash;
+//     }
+
+//     reset_database();
+
+//     /* Default optimization cmd */
+//     optimization_cmd = get_optimization_string(false, true, false);
+//     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       cerr << "Optimization command error. \n\n";
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
+//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
+//     default_optimization_results_string = retrieve_query_results(m_);
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     res = kNormal;
+// #ifdef COUNT_ERROR
+//     res = correctness;
+// #endif
+//     check_res = check_server_alive();
+//     if (check_res == false)
+//     {
+//       disconnect();
+//       sleep(2); // waiting for server to be up again
+//       return kServerCrash;
+//     }
+//     reset_database();
+
+//     /* None optimization cmd */
+//     optimization_cmd = get_optimization_string(false, false, false); // is_random, is_default, is_all_on.
+//     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       cerr << "Optimization command error. \n\n";
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
+//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
+//     none_optimization_results_string = retrieve_query_results(m_);
+//     correctness = clean_up_connection(m_);
+
+//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
+//     {
+//       disconnect();
+//       return kServerCrash;
+//     }
+
+//     res = kNormal;
+// #ifdef COUNT_ERROR
+//     res = correctness;
+// #endif
+//     check_res = check_server_alive();
+//     if (check_res == false)
+//     {
+//       disconnect();
+//       sleep(2); // waiting for server to be up again
+//       return kServerCrash;
+//     }
+//     reset_database();
+
+//     if (all_optimization_results_string != random_optimization_results_string || all_optimization_results_string != none_optimization_results_string || all_optimization_results_string != default_optimization_results_string)
+//     {
+//       cerr << "--------------------------------------------\n";
+//       cerr << "Results not matched!!!!!!!!!!\n";
+//       cerr << "Query: \n";
+//       cerr << cmd << "\n";
+//       cerr << "All_optimization_Results_string: \n";
+//       cerr << all_optimization_results_string;
+//       cerr << "\nRandom_optimization_Results_string: \n";
+//       cerr << random_optimization_results_string;
+//       cerr << "\nDefault_optimization_Results_string: \n";
+//       cerr << default_optimization_results_string;
+//       cerr << "\nNone_optimization_Results_string: \n";
+//       cerr << none_optimization_results_string << "\n";
+//       cerr << "\n\n\n";
+//     }
+//     else if (all_optimization_results_string != "")
+//     {
+//       // // // else {
+//       cerr << "--------------------------------------------\n";
+//       cerr << "Results matched: \n";
+//       // cerr << "Query: \n";
+//       // cerr << cmd_string << "\n";
+//       // cerr << "All_optimization_Results_string: \n";
+//       // cerr << all_optimization_results_string;
+//       // cerr << "\nRandom_optimization_Results_string: \n";
+//       // cerr << random_optimization_results_string;
+//       // cerr << "\nDefault_optimization_Results_string: \n";
+//       // cerr << default_optimization_results_string;
+//       // cerr << "\nNone_optimization_Results_string: \n";
+//       // cerr << none_optimization_results_string << "\n";
+//       // cerr << "Random Optimization options: \n";
+//       // cerr << random_optimization_cmd;
+//       // cerr << "\n\n\n";
+//     }
+//     else
+//     {
+//       cerr << "--------------------------------------------\n";
+//       cerr << "Query not making sense.\n";
+//       // cerr << "Query: \n";
+//       // cerr << cmd_string << "\n";
+//       // cerr << "All_optimization_Results_string: \n";
+//       // cerr << all_optimization_results_string;
+//       // cerr << "\nRandom_optimization_Results_string: \n";
+//       // cerr << random_optimization_results_string;
+//       // cerr << "\nDefault_optimization_Results_string: \n";
+//       // cerr << default_optimization_results_string;
+//       // cerr << "\nNone_optimization_Results_string: \n";
+//       // cerr << none_optimization_results_string << "\n";
+//       // cerr << "Random Optimization options: \n";
+//       // cerr << random_optimization_cmd;
+//       // cerr << "\n\n\n";
+//     }
+
+//     optimization_cmd.clear();
+//     // random_optimization_cmd.clear();
+//     cmd_string.clear();
+
+//     all_optimization_results_string.clear();
+//     random_optimization_results_string.clear();
+//     default_optimization_results_string.clear();
+//     none_optimization_results_string.clear();
+
+//     counter_++;
+//     disconnect();
+//     return res;
   }
 
   bool check_server_alive()
@@ -3546,7 +3605,7 @@ static void reboot_server(u32 prev_timed_out)
    information. The called program will update trace_bits[]. */
 
 int counter;
-static u8 run_target(char **argv, u32 timeout)
+static u8 run_target(char **argv, u32 timeout, const string& cmd_string, string& res_str)
 {
 
   static struct itimerval it;
@@ -3564,7 +3623,7 @@ static u8 run_target(char **argv, u32 timeout)
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 BEGIN:
-  auto result = g_mysqlclient.execute_No_Rec(g_current_input);
+  auto result = g_mysqlclient.execute(cmd_string.c_str(), res_str);
 
 #ifdef COUNT_ERROR
   execute_result = result;
@@ -3654,6 +3713,8 @@ static void write_with_gap(void *mem, u32 len, u32 skip_at, u32 skip_len)
 }
 
 static void show_stats(void);
+u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+                      char **argv, u32 tmout);
 
 /* Calibrate a new test case. This is done when processing the input directory
    to warn about flaky or otherwise problematic test cases early on; and when
@@ -3716,8 +3777,16 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     if (!first_run && !(stage_cur % stats_update_freq))
       show_stats();
 
-    write_to_testcase(use_mem, q->len);
-    fault = run_target(argv, use_tmout);
+    string program_input_str = "";
+    for (int output_index = 0; output_index < q->len; output_index++)
+    {
+      program_input_str += use_mem[output_index];
+    }
+
+    vector<int> dummy_vec;
+    ALL_COMP_RES dummy_all_comp_res;
+    vector<string> program_input_str_vec {program_input_str};
+    fault = execute_cmd_string(program_input_str_vec, dummy_vec, dummy_all_comp_res, argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -4293,13 +4362,22 @@ static void write_crash_readme(void)
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
+static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
+                              const vector<int> &explain_diff_id = {})
 {
 
   u8 *fn = "";
   u8 hnb;
   s32 fd;
   u8 keeping = 0, res;
+
+  if (is_str_empty(query_str))
+    return keeping; // return 0; Empty string. Not added.
+
+  string stripped_query_string = query_str;
+      // p_oracle->remove_oracle_select_stmt_from_str(query_str);
+  if (is_str_empty(stripped_query_string))
+    return keeping;
 
   if (fault == crash_mode)
   {
@@ -4314,6 +4392,23 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
       return 0;
     }
 
+    stage_name = "add_to_library";
+
+    vector<IR*> ir_tree;
+    int ret = run_parser(query_str, ir_tree);
+    if (ret != 0 || ir_tree.size() == 0) {
+      return keeping;
+    }
+
+    IR * tmp_ir = ir_tree.back();
+    g_mutator.extract_struct(tmp_ir);
+    g_mutator.add_all_to_library(
+        tmp_ir->to_string(),
+        explain_diff_id);
+    ir_tree.back()->deep_drop();
+
+    show_stats();
+
 #ifndef SIMPLE_FILES
 
     fn = alloc_printf("%s/queue/id:%06u,%s", out_dir, queued_paths,
@@ -4325,7 +4420,9 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
 
 #endif /* ^!SIMPLE_FILES */
 
-    add_to_queue(fn, len, 0);
+    add_to_queue(fn, stripped_query_string.size(), 0);
+
+    total_add_to_queue++;
 
     if (hnb == 2)
     {
@@ -4338,16 +4435,16 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
+    // res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
 
-    if (res == FAULT_ERROR)
-      FATAL("Unable to execute target application");
+    // if (res == FAULT_ERROR)
+    //   FATAL("Unable to execute target application");
 
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
 
-    ck_write(fd, mem, len, fn);
+    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
     close(fd);
 
     keeping = 1;
@@ -4383,27 +4480,27 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
 
     unique_tmouts++;
 
-    /* Before saving, we make sure that it's a genuine hang by re-running
-         the target with a more generous timeout (unless the default timeout
-         is already generous). */
+    // /* Before saving, we make sure that it's a genuine hang by re-running
+    //      the target with a more generous timeout (unless the default timeout
+    //      is already generous). */
 
-    if (exec_tmout < hang_tmout)
-    {
+    // if (exec_tmout < hang_tmout)
+    // {
 
-      u8 new_fault;
-      write_to_testcase(mem, len);
-      new_fault = run_target(argv, hang_tmout);
+    //   u8 new_fault;
+    //   write_to_testcase(mem, len);
+    //   new_fault = run_target(argv, hang_tmout);
 
-      /* A corner case that one user reported bumping into: increasing the
-           timeout actually uncovers a crash. Make sure we don't discard it if
-           so. */
+    //   /* A corner case that one user reported bumping into: increasing the
+    //        timeout actually uncovers a crash. Make sure we don't discard it if
+    //        so. */
 
-      if (!stop_soon && new_fault == FAULT_CRASH)
-        goto keep_as_crash;
+    //   if (!stop_soon && new_fault == FAULT_CRASH)
+    //     goto keep_as_crash;
 
-      if (stop_soon || new_fault != FAULT_TMOUT)
-        return keeping;
-    }
+    //   if (stop_soon || new_fault != FAULT_TMOUT)
+    //     return keeping;
+    // }
 
 #ifndef SIMPLE_FILES
 
@@ -4484,10 +4581,9 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
   if (fd < 0)
     PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, mem, len, fn);
+  ck_write(fd, query_str.c_str(), query_str.size(), fn);
   close(fd);
 
-  ck_free(fn);
   if (fault == FAULT_CRASH)
   {
     //cout << "NIU BI!" << endl;
@@ -4501,6 +4597,8 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
     //cout << "Previous input might crash the server: " << i << endl;
     //exit(0);
   }
+
+  ck_free(fn);
   return keeping;
 }
 
@@ -5773,172 +5871,599 @@ static u32 next_p2(u32 val)
   return ret;
 }
 
-/* Trim all new test cases to save cycles when doing deterministic checks. The
-   trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
-   file size, to keep the stage short and sweet. */
+// /* Trim all new test cases to save cycles when doing deterministic checks. The
+//    trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
+//    file size, to keep the stage short and sweet. */
 
-static u8 trim_case(char **argv, struct queue_entry *q, u8 *in_buf)
+// static u8 trim_case(char **argv, struct queue_entry *q, u8 *in_buf)
+// {
+
+//   static u8 tmp[64];
+//   static u8 clean_trace[MAP_SIZE];
+
+//   u8 needs_write = 0, fault = 0;
+//   u32 trim_exec = 0;
+//   u32 remove_len;
+//   u32 len_p2;
+
+//   /* Although the trimmer will be less useful when variable behavior is
+//      detected, it will still work to some extent, so we don't check for
+//      this. */
+
+//   if (q->len < 5)
+//     return 0;
+
+//   stage_name = tmp;
+//   bytes_trim_in += q->len;
+
+//   /* Select initial chunk len, starting with large steps. */
+
+//   len_p2 = next_p2(q->len);
+
+//   remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
+
+//   /* Continue until the number of steps gets too high or the stepover
+//      gets too small. */
+
+//   while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES))
+//   {
+
+//     u32 remove_pos = remove_len;
+
+//     sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
+
+//     stage_cur = 0;
+//     stage_max = q->len / remove_len;
+
+//     while (remove_pos < q->len)
+//     {
+
+//       u32 trim_avail = MIN(remove_len, q->len - remove_pos);
+//       u32 cksum;
+
+//       write_with_gap(in_buf, q->len, remove_pos, trim_avail);
+
+//       fault = run_target(argv, exec_tmout);
+//       trim_execs++;
+
+//       if (stop_soon || fault == FAULT_ERROR)
+//         goto abort_trimming;
+
+//       /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
+
+//       cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
+
+//       /* If the deletion had no impact on the trace, make it permanent. This
+//          isn't perfect for variable-path inputs, but we're just making a
+//          best-effort pass, so it's not a big deal if we end up with false
+//          negatives every now and then. */
+
+//       if (cksum == q->exec_cksum)
+//       {
+
+//         u32 move_tail = q->len - remove_pos - trim_avail;
+
+//         q->len -= trim_avail;
+//         len_p2 = next_p2(q->len);
+
+//         memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail,
+//                 move_tail);
+
+//         /* Let's save a clean trace, which will be needed by
+//            update_bitmap_score once we're done with the trimming stuff. */
+
+//         if (!needs_write)
+//         {
+
+//           needs_write = 1;
+//           memcpy(clean_trace, trace_bits, MAP_SIZE);
+//         }
+//       }
+//       else
+//         remove_pos += remove_len;
+
+//       /* Since this can be slow, update the screen every now and then. */
+
+//       if (!(trim_exec++ % stats_update_freq))
+//         show_stats();
+//       stage_cur++;
+//     }
+
+//     remove_len >>= 1;
+//   }
+
+//   /* If we have made changes to in_buf, we also need to update the on-disk
+//      version of the test case. */
+
+//   if (needs_write)
+//   {
+
+//     s32 fd;
+
+//     unlink(q->fname); /* ignore errors */
+
+//     fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
+
+//     if (fd < 0)
+//       PFATAL("Unable to create '%s'", q->fname);
+
+//     ck_write(fd, in_buf, q->len, q->fname);
+//     close(fd);
+
+//     memcpy(trace_bits, clean_trace, MAP_SIZE);
+//     update_bitmap_score(q);
+//   }
+
+// abort_trimming:
+
+//   bytes_trim_out += q->len;
+//   return fault;
+// }
+
+void extract_query_result(const string &res, vector<string> &res_vec_out,
+                          const string &begin_sign, const string &end_sign)
 {
+  res_vec_out.clear();
 
-  static u8 tmp[64];
-  static u8 clean_trace[MAP_SIZE];
-
-  u8 needs_write = 0, fault = 0;
-  u32 trim_exec = 0;
-  u32 remove_len;
-  u32 len_p2;
-
-  /* Although the trimmer will be less useful when variable behavior is
-     detected, it will still work to some extent, so we don't check for
-     this. */
-
-  if (q->len < 5)
-    return 0;
-
-  stage_name = tmp;
-  bytes_trim_in += q->len;
-
-  /* Select initial chunk len, starting with large steps. */
-
-  len_p2 = next_p2(q->len);
-
-  remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
-
-  /* Continue until the number of steps gets too high or the stepover
-     gets too small. */
-
-  while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES))
+  if (is_str_empty(res))
   {
+    return -1;
+  }
 
-    u32 remove_pos = remove_len;
+  size_t begin_idx = res.find(begin_sign, 0);
+  size_t end_idx = res.find(end_sign, 0);
 
-    sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
-
-    stage_cur = 0;
-    stage_max = q->len / remove_len;
-
-    while (remove_pos < q->len)
+  while (begin_idx != string::npos)
+  {
+    if (end_idx != string::npos)
     {
+      string cur_res_str =
+          res.substr(begin_idx + begin_sign.size(),
+                     (end_idx - begin_idx - begin_sign.size()));
+      begin_idx = res.find(begin_sign, begin_idx + begin_sign.size());
+      end_idx = res.find(end_sign, end_idx + end_sign.size());
 
-      u32 trim_avail = MIN(remove_len, q->len - remove_pos);
-      u32 cksum;
-
-      write_with_gap(in_buf, q->len, remove_pos, trim_avail);
-
-      fault = run_target(argv, exec_tmout);
-      trim_execs++;
-
-      if (stop_soon || fault == FAULT_ERROR)
-        goto abort_trimming;
-
-      /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
-
-      cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
-
-      /* If the deletion had no impact on the trace, make it permanent. This
-         isn't perfect for variable-path inputs, but we're just making a
-         best-effort pass, so it's not a big deal if we end up with false
-         negatives every now and then. */
-
-      if (cksum == q->exec_cksum)
+      if (cur_res_str.find("Error") != string::npos)
       {
-
-        u32 move_tail = q->len - remove_pos - trim_avail;
-
-        q->len -= trim_avail;
-        len_p2 = next_p2(q->len);
-
-        memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail,
-                move_tail);
-
-        /* Let's save a clean trace, which will be needed by
-           update_bitmap_score once we're done with the trimming stuff. */
-
-        if (!needs_write)
-        {
-
-          needs_write = 1;
-          memcpy(clean_trace, trace_bits, MAP_SIZE);
-        }
-      }
+        res_vec_out.push_back("Error");
+        continue;
+      } // If "Error" is found, return "Error" as result.
       else
-        remove_pos += remove_len;
-
-      /* Since this can be slow, update the screen every now and then. */
-
-      if (!(trim_exec++ % stats_update_freq))
-        show_stats();
-      stage_cur++;
+      {
+        //cur_res_str = trim(cur_res_str);
+        trim_string(cur_res_str);
+        // cout << "cur_res_str: " << cur_res_str << endl;
+        res_vec_out.push_back(cur_res_str);
+      }
     }
-
-    remove_len >>= 1;
+    else
+    {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore
+             // the current output.
+    }
   }
-
-  /* If we have made changes to in_buf, we also need to update the on-disk
-     version of the test case. */
-
-  if (needs_write)
-  {
-
-    s32 fd;
-
-    unlink(q->fname); /* ignore errors */
-
-    fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
-
-    if (fd < 0)
-      PFATAL("Unable to create '%s'", q->fname);
-
-    ck_write(fd, in_buf, q->len, q->fname);
-    close(fd);
-
-    memcpy(trace_bits, clean_trace, MAP_SIZE);
-    update_bitmap_score(q);
-  }
-
-abort_trimming:
-
-  bytes_trim_out += q->len;
-  return fault;
 }
 
-int num = 0;
-/* Write a modified test case, run program, process results. Handle
-   error conditions, returning 1 if it's time to bail out. This is
-   a helper function for fuzz_one(). */
+void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
+                                     vector<int> &explain_diff_id)
+{
 
-EXP_ST u8 common_fuzz_stuff(char **argv, const u8 *out_buf, u32 len)
+  if (p_oracle->get_mul_run_num() <= 1)
+  {
+    cerr << "Error: calling cross_run compare results function, when "
+            "mul_run_num <= 1. Code logic error. \n";
+    abort();
+  }
+
+  all_comp_res.final_res = ORA_COMP_RES::Pass;
+  explain_diff_id.clear();
+
+  vector<vector<string>> res_vec, exp_vec;
+
+  for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+  {
+    if (idx >= all_comp_res.v_res_str.size())
+    {
+      cerr << "Error: v_res_str overflow in the "
+              "compare_query_results_cross_run func. \n";
+      abort();
+    }
+    const string &res_str = all_comp_res.v_res_str[idx];
+    const string &cmd_str = all_comp_res.v_cmd_str[idx];
+    if (is_str_empty(res_str))
+    {
+      all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+      return;
+    }
+
+    vector<string> cur_res_vec, cur_exp_vec;
+    /* Only takes one type of validation at a time in the query. */
+    extract_query_result(res_str, cur_res_vec, "BEGIN VERI 0", "END VERI 0");
+
+    // cerr << "For results: \n" << res_str << "\n, we get :" << endl;
+    // for (int i = 0; i < cur_res_vec.size(); i++){
+    //   cerr << "cur_res_vec: " << cur_res_vec[i] << endl;
+    // }
+
+    res_vec.push_back(std::move(cur_res_vec));
+    exp_vec.push_back(std::move(cur_exp_vec));
+  }
+
+  /* Compare valid stat by valid stat between different runs. */
+  for (int j = 0; j < res_vec[0].size(); j++)
+  {
+    COMP_RES comp_res;
+    for (int i = 0; i < res_vec.size(); i++)
+    {
+      if (j < res_vec[i].size())
+      {
+        comp_res.v_res_str.push_back(res_vec[i][j]);
+      }
+      else
+      {
+        comp_res.comp_res = ORA_COMP_RES::ALL_Error;
+      }
+      if (j < exp_vec[0].size() && j < exp_vec[i].size() &&
+          exp_vec[0][j] != exp_vec[i][j])
+      {
+        comp_res.explain_diff_id.push_back(j);
+        explain_diff_id.push_back(
+            j); /* Might contains duplicated IDs. But it should be OK. */
+      }
+    }
+    all_comp_res.v_res.push_back(std::move(comp_res));
+  }
+
+  p_oracle->compare_results(all_comp_res);
+  return;
+}
+
+void compare_query_result(ALL_COMP_RES &all_comp_res,
+                          vector<int> &explain_diff_id)
+{
+
+  all_comp_res.final_res = ORA_COMP_RES::Pass;
+  explain_diff_id.clear();
+
+  const string &res_str = all_comp_res.res_str;
+  if (is_str_empty(res_str))
+  {
+    all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+    return;
+  }
+
+  vector<string> res_vec_0, res_vec_1, res_vec_2, res_vec_3, exp_vec_0,
+      exp_vec_1, exp_vec_2, exp_vec_3;
+
+  /* Look throught first validation stmt's res_0 first */
+  extract_query_result(res_str, res_vec_0, "BEGIN VERI 0", "END VERI 0");
+
+  /* Second validation stmt... etc*/
+  extract_query_result(res_str, res_vec_1, "BEGIN VERI 1", "END VERI 1");
+
+  extract_query_result(res_str, res_vec_2, "BEGIN VERI 2", "END VERI 2");
+
+  extract_query_result(res_str, res_vec_3, "BEGIN VERI 3", "END VERI 3");
+
+
+  // cout << "command: " << all_comp_res.cmd_str << endl;
+
+  // for (string tmp_str : res_vec_0) {
+  //   cout << "res_vec_0: " << tmp_str <<  endl;
+  // }
+
+  // for (string tmp_str : res_vec_1) {
+  //   cout << "res_vec_1: " << tmp_str <<  endl;
+  // }
+
+  // cerr << "Size of res_vec_0: " << res_vec_0.size() << "   1: " <<
+  // res_vec_1.size() << endl; 
+
+  for (int idx = 0; idx < max({res_vec_0.size(), res_vec_1.size(),
+                               res_vec_2.size(), res_vec_3.size()});
+       idx++)
+  {
+    COMP_RES comp_res;
+    if (idx < res_vec_0.size())
+    {
+      comp_res.res_str_0 = res_vec_0[idx];
+    }
+    if (idx < res_vec_1.size())
+    {
+      comp_res.res_str_1 = res_vec_1[idx];
+    }
+    if (idx < res_vec_2.size())
+    {
+      comp_res.res_str_2 = res_vec_2[idx];
+    }
+    if (idx < res_vec_3.size())
+    {
+      comp_res.res_str_3 = res_vec_3[idx];
+    }
+    if (idx < exp_vec_0.size())
+    {
+      if ((idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) ||
+          (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) ||
+          (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]))
+      {
+        comp_res.explain_diff_id.push_back(idx);
+        explain_diff_id.push_back(idx);
+      }
+    }
+    all_comp_res.v_res.push_back(std::move(comp_res));
+  }
+
+
+  /* Now we can compare the results and find whether there are inconsistant. */
+  p_oracle->compare_results(all_comp_res);
+  return;
+}
+
+void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out)
+{
+  if (p_oracle->get_mul_run_num() <= 1)
+  {
+    out << "Query: \n";
+    out << all_comp_res.cmd_str << "\n";
+    out << "Result string: \n";
+    out << all_comp_res.res_str << "\n";
+    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+    out << "Detailed result: "
+        << "\n";
+    int iter = 0;
+    for (const COMP_RES &res : all_comp_res.v_res)
+    {
+      out << "\n\nResult NUM: " << iter++ << " \nRESULT FLAGS: " << res.comp_res
+          << "\n";
+      out << "First stmt res is (str): " << res.res_str_0 << "\n"
+          << "First stmt res is (int): " << res.res_int_0 << "\n";
+      out << "Second stmt res is (str): " << res.res_str_1 << "\n"
+          << "Second stmt is (int): " << res.res_int_1 << "\n";
+      out << "Third stmt res is (str): " << res.res_str_2 << "\n"
+          << "Third stmt is (int): " << res.res_int_2 << "\n";
+      out << "Fourth stmt res is (str): " << res.res_str_3 << "\n"
+          << "Fourth stmt is (int): " << res.res_int_3 << "\n";
+    }
+
+    out << "Compare_No_Rec_result_int: \n"
+        << all_comp_res.final_res;
+    out << "\n\n\n\n";
+  }
+  else
+  { // multiple execute SQLite.
+    out << "Multiple execution of SQLite: \n";
+
+    for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++)
+    {
+      out << "Query: " << i << ": \n";
+      out << all_comp_res.v_cmd_str[i] << "\n";
+      out << "Result string: \n";
+      out << all_comp_res.v_res_str[i] << "\n";
+    }
+    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+    out << "Detailed result: "
+        << "\n";
+    int iter = 0;
+    for (const COMP_RES &res : all_comp_res.v_res)
+    {
+      out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res
+          << "\n";
+      for (int j = 0; j < max(res.v_res_str.size(), res.v_res_int.size());
+           j++)
+      {
+        if (j < res.v_res_str.size())
+          out << "Str: " << res.v_res_str[j] << " \n";
+        if (j < res.v_res_int.size())
+          out << "INT: " << res.v_res_int[j] << " \n";
+      }
+      iter++;
+    }
+
+    out << "Compare_No_Rec_result_int: \n"
+        << all_comp_res.final_res;
+    out << "\n\n\n\n";
+  }
+}
+
+
+u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+                      char **argv, u32 tmout = exec_tmout)
 {
 
   u8 fault;
 
-  //cout << num ++ << ":" << out_buf << endl;
-  if (post_handler)
-  {
+  string res_str = "";
 
-    out_buf = post_handler(out_buf, &len);
-    if (!out_buf || !len)
-      return 0;
+  for (const string& cmd_string : cmd_string_vec) {
+    if ((cmd_string.find("RANDOM") != std::string::npos) ||
+        (cmd_string.find("random") != std::string::npos)
+      ){
+      return FAULT_ERROR;
+    }
+
+    vector<string> queries_vector = string_splitter(cmd_string, ';');
+    for (string &query : queries_vector) {
+      // ignore the whole query pairs if !... in the stmt,
+      for (auto iter = query.begin(); iter != query.end(); iter++) {
+        if (*iter == '!')
+          return FAULT_ERROR;
+        else if (*iter != ' ')
+          break;
+      }
+    }
   }
-  write_to_testcase(out_buf, len);
 
-  fault = run_target(argv, exec_tmout);
-
-#ifdef COUNT_ERROR
-  if (execute_result == kSyntaxError)
+  if (p_oracle->get_mul_run_num() <= 1)
   {
-    syntax_err_num++;
+    /* Compare results between different validation stmts in a single run. */
+    // for (string query : queries_vector) {
+    //   cout << query << endl;
+    // }
+    // cmd_string = expand_valid_stmts_str(queries_vector, true);
+    string cmd_string = cmd_string_vec[0];
+
+    trim_string(cmd_string);
+
+    string res_str = "";
+    fault = run_target(argv, tmout, cmd_string, res_str);
+    if (stop_soon)
+      return fault;
+    if (fault == FAULT_TMOUT)
+    {
+      if (subseq_tmouts++ > TMOUT_LIMIT)
+      {
+        cur_skipped_paths++;
+        return fault;
+      }
+    }
+    else
+    {
+      subseq_tmouts = 0;
+    }
+    /* Users can hit us with SIGUSR1 to request the current input
+         to be abandoned. */
+    if (skip_requested)
+    {
+      skip_requested = 0;
+      cur_skipped_paths++;
+      return fault;
+    }
+
+    all_comp_res.cmd_str = std::move(cmd_string);
+    all_comp_res.res_str = std::move(res_str);
+    compare_query_result(all_comp_res, explain_diff_id);
+  } else
+  {
+    /* Compare results of the same validation stmts in different runs. */
+    for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+    {
+      // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
+      string cmd_string = cmd_string_vec[idx];
+
+      //cmd_string = trim(cmd_string);
+      trim_string(cmd_string);
+
+      string res_str = "";
+      fault = run_target(argv, tmout, cmd_string, res_str);
+      if (stop_soon)
+        return fault;
+      if (fault == FAULT_TMOUT)
+      {
+        if (subseq_tmouts++ > TMOUT_LIMIT)
+        {
+          cur_skipped_paths++;
+          return fault;
+        }
+      }
+      else
+      {
+        subseq_tmouts = 0;
+      }
+      /* Users can hit us with SIGUSR1 to request the current input
+           to be abandoned. */
+      if (skip_requested)
+      {
+        skip_requested = 0;
+        cur_skipped_paths++;
+        return fault;
+      }
+
+      all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
+      all_comp_res.v_res_str.push_back(std::move(res_str));
+
+    } // End for run_id loop.
+
+    compare_query_results_cross_run(all_comp_res, explain_diff_id);
   }
-  else if (execute_result == kSemanticError)
+
+  /* Log the debug_error and debug_good. */
+  for (auto &res : all_comp_res.v_res)
   {
-    semantic_err_num++;
+    if (res.comp_res == ORA_COMP_RES::Pass)
+    {
+      debug_good++;
+    }
+    else
+    {
+      debug_error++;
+    }
+  }
+
+  /* Some useful debug output. That could show what queries are being tested. */
+  // stream_output_res(all_comp_res, cerr);
+
+  /***********************/
+  /* Debug: output logs for all execs */
+  if (dump_library) {
+    if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+      filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+    }
+    string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+    ofstream log_output_file;
+    log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+    stream_output_res(all_comp_res, log_output_file);
+    log_output_file.close();
+  }
+
+  /* Debug end.  */
+  /***********************/
+
+  if (all_comp_res.final_res == ORA_COMP_RES::Fail)
+  {
+    ofstream outputfile;
+    bug_output_id++;
+    if ( !filesystem::exists("../Bug_Analysis/")) {
+      filesystem::create_directory("../Bug_Analysis/");
+    }
+    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
+      filesystem::create_directory("../Bug_Analysis/bug_samples");
+    }
+
+    string bug_output_dir =
+        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
+    // cerr << "Bug output dir is: " << bug_output_dir << endl;
+    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+    stream_output_res(all_comp_res, outputfile);
+
+    outputfile.close();
+
+    total_execs++;
+
+  }
+  else if (all_comp_res.final_res == ORA_COMP_RES::Pass)
+  {
+    total_execs++;
   }
   else
   {
-    correct_num++;
+    /* Query being skipped, or all select stmts return error results. */
   }
+  total_execute++;
+  return fault;
+}
+
+
+
+
+/* Write a modified test case, run program, process results. Handle
+   error conditions, returning 1 if it's time to bail out. This is
+   a helper function for fuzz_one(). */
+
+EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<string> &query_str_no_marks_vec) 
+{
+
+  u8 fault;
+
+  vector<int> explain_diff_id;
+  ALL_COMP_RES all_comp_res;
+  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+
+  fault = execute_cmd_string(query_str_vec, explain_diff_id, all_comp_res, argv, exec_tmout);
+
+  if (stop_soon)
+    return 1;
+  
   execute_result == kNormal;
-#endif
 
   if (stop_soon)
     return 1;
@@ -5968,7 +6493,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, const u8 *out_buf, u32 len)
 
   /* This handles FAULT_ERROR for us: */
   //cout << num ++ << ":" << out_buf << endl;
-  int should_keep = save_if_interesting(argv, out_buf, len, fault);
+  int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault);
   queued_discovered += should_keep;
   if (should_keep == 1)
   {
@@ -6487,7 +7012,8 @@ static u8 fuzz_one(char **argv)
     goto abandon_entry;
   }
 
-  IR* cur_root = ori_ir_tree.back();
+  IR* cur_root;
+  cur_root = ori_ir_tree.back();
 
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
@@ -6685,7 +7211,7 @@ static u8 fuzz_one(char **argv)
 
   stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
-  stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
+  stage_cycles[STAGE_FLIP1] += ori_ir_tree.size() - skip_count;
 
   new_hit_cnt = queued_paths + unique_crashes;
 
@@ -6846,15 +7372,15 @@ static void sync_fuzzers(char **argv)
         /* See what happens. We rely on save_if_interesting() to catch major
            errors and save the test case. */
 
-        write_to_testcase(mem, st.st_size);
-
-        fault = run_target(argv, exec_tmout);
+        string cmd_str = (char*) mem;
+        string dummy_res;
+        fault = run_target(argv, exec_tmout, cmd_str, dummy_res);
 
         if (stop_soon)
           return;
 
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, mem, st.st_size, fault);
+        queued_imported += save_if_interesting(argv, cmd_str, fault);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
@@ -7900,34 +8426,34 @@ static void do_libary_initialize()
   cout << "init_lib done" << endl;
 }
 
-void test_mutate()
-{
-  string test = "select a from b where c=0;";
-  vector<IR *> tmp;
-  IR* root = parser(test);
-  cout << "Initing new_code" << endl;
-  g_mutator.init("./init_lib/new_code");
-  cout << "Finish init" << endl;
-  exit(0);
+// void test_mutate()
+// {
+//   string test = "select a from b where c=0;";
+//   vector<IR *> tmp;
+//   IR* root = parser(test);
+//   cout << "Initing new_code" << endl;
+//   g_mutator.init("./init_lib/new_code");
+//   cout << "Finish init" << endl;
+//   exit(0);
 
-  /* TODO:: YU:: DIRTY FIX FOR NOW */
-  tmp.clear();
-  tmp.push_back(root);
-  auto mutated_tree = g_mutator.mutate_all(tmp);
-  deep_delete(tmp[tmp.size() - 1]);
-  tmp.clear();
+//   /* TODO:: YU:: DIRTY FIX FOR NOW */
+//   tmp.clear();
+//   tmp.push_back(root);
+//   auto mutated_tree = g_mutator.mutate_all(tmp);
+//   deep_delete(tmp[tmp.size() - 1]);
+//   tmp.clear();
 
-  for (auto ir : mutated_tree)
-  {
-    bool tmp_res = g_mutator.validate(ir);
-    if (tmp_res == false)
-    {
-      continue;
-    }
-    cout << endl;
-    getchar();
-  }
-}
+//   for (auto ir : mutated_tree)
+//   {
+//     bool tmp_res = g_mutator.validate(ir);
+//     if (tmp_res == false)
+//     {
+//       continue;
+//     }
+//     cout << endl;
+//     getchar();
+//   }
+// }
 
 #ifndef AFL_LIB
 
@@ -8139,7 +8665,7 @@ int main(int argc, char **argv)
       bind_to_port = atoi(optarg);
       break;
     
-    case 'O' /* ORACLE */
+    case 'O': /* ORACLE */
     {
       /* Default NOREC */
       string arg = string(optarg);
