@@ -49,6 +49,11 @@ public:
     IR * strategy_replace(IR * cur);  //done
     bool lucky_enough_to_be_mutated(unsigned int mutated_times); //done
 
+    IR * get_from_libary_with_type(IRTYPE type_);
+    IR * get_from_libary_with_left_type(IRTYPE type_);
+    IR * get_from_libary_with_right_type(IRTYPE type_);
+
+
     bool replace(IR* root, IR* old_ir, IR* new_ir); //done
     IR * locate_parent(IR* root, IR * old_ir) ; //done
 

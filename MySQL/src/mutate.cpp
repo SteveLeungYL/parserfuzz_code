@@ -424,41 +424,74 @@ IR * Mutator::strategy_delete(IR * cur){
 IR * Mutator::strategy_insert(IR * cur){
     assert(cur);
     
-    auto res = deep_copy(cur);
-    auto parent_type = cur->type_;
+    // auto res = deep_copy(cur);
+    // auto parent_type = cur->type_;
 
-    if(res->right_ == NULL && res->left_ != NULL){
-        auto left_type = res->left_->type_;
-        for(int k=0; k<4; k++){
-            auto fetch_ir = get_ir_from_library(parent_type);
-            if(fetch_ir->left_ != NULL && fetch_ir->left_->type_ == left_type && fetch_ir->right_ != NULL){
-                res->right_ = deep_copy(fetch_ir->right_);
-                return res;
-            }
-        }
-    }
-    else if(res->right_ != NULL && res->left_ == NULL){
-        auto right_type = res->left_->type_;
-        for(int k=0; k<4; k++){
-            auto fetch_ir = get_ir_from_library(parent_type);
-            if(fetch_ir->right_ != NULL && fetch_ir->right_->type_ == right_type && fetch_ir->left_ != NULL){
-                res->left_ = deep_copy(fetch_ir->left_);
-                return res;
-            }
-        }
-    }
-    else if(res->left_ == NULL && res->right_ == NULL){
-        for(int k=0; k<4; k++){
-            auto fetch_ir = get_ir_from_library(parent_type);
-            if(fetch_ir->right_ != NULL && fetch_ir->left_ != NULL){
-                res->left_ = deep_copy(fetch_ir->left_);
-                res->right_ = deep_copy(fetch_ir->right_);
-                return res;
-            }
-        }        
-    }
+    // if(res->right_ == NULL && res->left_ != NULL){
+    //     auto left_type = res->left_->type_;
+    //     for(int k=0; k<4; k++){
+    //         auto fetch_ir = get_ir_from_library(parent_type);
+    //         if(fetch_ir->left_ != NULL && fetch_ir->left_->type_ == left_type && fetch_ir->right_ != NULL){
+    //             res->right_ = deep_copy(fetch_ir->right_);
+    //             return res;
+    //         }
+    //     }
+    // }
+    // else if(res->right_ != NULL && res->left_ == NULL){
+    //     auto right_type = res->left_->type_;
+    //     for(int k=0; k<4; k++){
+    //         auto fetch_ir = get_ir_from_library(parent_type);
+    //         if(fetch_ir->right_ != NULL && fetch_ir->right_->type_ == right_type && fetch_ir->left_ != NULL){
+    //             res->left_ = deep_copy(fetch_ir->left_);
+    //             return res;
+    //         }
+    //     }
+    // }
+    // else if(res->left_ == NULL && res->right_ == NULL){
+    //     for(int k=0; k<4; k++){
+    //         auto fetch_ir = get_ir_from_library(parent_type);
+    //         if(fetch_ir->right_ != NULL && fetch_ir->left_ != NULL){
+    //             res->left_ = deep_copy(fetch_ir->left_);
+    //             res->right_ = deep_copy(fetch_ir->right_);
+    //             return res;
+    //         }
+    //     }        
+    // }
 
-    return res;
+    // return res;
+
+    if (cur->type_ == kStmtList) {
+    auto new_right = get_from_libary_with_left_type(cur->type_);
+    if (new_right != NULL) {
+      auto res = cur->deep_copy();
+      auto new_res = new IR(kStmtList, OPMID(";"), res, new_right);
+      return new_res;
+    }
+  }
+
+  else if (cur->right_ == NULL && cur->left_ != NULL) {
+    auto left_type = cur->left_->type_;
+    auto new_right = get_from_libary_with_left_type(left_type);
+    if (new_right != NULL) {
+      auto res = cur->deep_copy();
+      res->update_right(new_right);
+      return res;
+    }
+  }
+
+  else if (cur->right_ != NULL && cur->left_ == NULL) {
+    auto right_type = cur->right_->type_;
+    auto new_left = get_from_libary_with_right_type(right_type);
+    if (new_left != NULL) {
+      auto res = cur->deep_copy();
+      res->update_left(new_left);
+      return res;
+    }
+  }
+
+  return get_from_libary_with_type(cur->type_);
+
+
 }
 
 IR * Mutator::strategy_replace(IR * cur){
@@ -1582,4 +1615,153 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   }
 
   return;
+}
+
+IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
+  /* Given a data type, return a randomly selected prevously seen IR node that
+     matched the given type. If nothing has found, return an empty
+     kStringLiteral.
+  */
+
+  vector<IR *> current_ir_set;
+  IR *current_ir_root;
+  vector<pair<string *, int>> &all_matching_node = real_ir_set[type_];
+  IR *return_matched_ir_node = NULL;
+
+  if (all_matching_node.size() > 0) {
+    /* Pick a random matching node from the library. */
+    int random_idx = get_rand_int(all_matching_node.size());
+    std::pair<string *, int> &selected_matched_node =
+        all_matching_node[random_idx];
+    string *p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    int ret = run_parser(*p_current_query_str, current_ir_set);
+    if (ret != 0 || current_ir_set.size() <= 0)
+      return new IR(kUnknown, "");
+    current_ir_root = current_ir_set.back();
+
+    /* Retrive the required node, deep copy it, clean up the IR tree and return.
+     */
+    IR *matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL) {
+      if (matched_ir_node->type_ != type_) {
+        current_ir_root->deep_drop();
+        return new IR(kUnknown, "");
+      }
+      // return_matched_ir_node = matched_ir_node->deep_copy();
+      return_matched_ir_node = matched_ir_node;
+      current_ir_root->detatch_node(return_matched_ir_node);
+    }
+
+    current_ir_root->deep_drop();
+
+    if (return_matched_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly with_type: with string: " <<
+      // return_matched_ir_node->to_string() << endl;
+      return return_matched_ir_node;
+    }
+  }
+
+  return new IR(kUnknown, "");
+}
+
+IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
+  /* Given a left_ type, return a randomly selected prevously seen right_ node
+     that share the same parent. If nothing has found, return NULL.
+  */
+
+  vector<IR *> current_ir_set;
+  IR *current_ir_root;
+  vector<pair<string *, int>> &all_matching_node = left_lib_set[type_];
+  IR *return_matched_ir_node = NULL;
+
+  if (all_matching_node.size() > 0) {
+    /* Pick a random matching node from the library. */
+    int random_idx = get_rand_int(all_matching_node.size());
+    std::pair<string *, int> &selected_matched_node =
+        all_matching_node[random_idx];
+    string *p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    int ret = run_parser(*p_current_query_str, current_ir_set);
+    if (ret != 0 || current_ir_set.size() <= 0)
+      return NULL;
+    current_ir_root = current_ir_set.back();
+
+    /* Retrive the required node, deep copy it, clean up the IR tree and return.
+     */
+    IR *matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL) {
+      if (matched_ir_node->left_->type_ != type_) {
+        current_ir_root->deep_drop();
+        return NULL;
+      }
+      // return_matched_ir_node = matched_ir_node->right_->deep_copy();;  // Not
+      // returnning the matched_ir_node itself, but its right_ child node!
+      return_matched_ir_node = matched_ir_node->right_;
+      current_ir_root->detatch_node(return_matched_ir_node);
+    }
+
+    current_ir_root->deep_drop();
+
+    if (return_matched_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly left_type: with string: " <<
+      // return_matched_ir_node->to_string() << endl;
+      return return_matched_ir_node;
+    }
+  }
+
+  return NULL;
+}
+
+IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
+  /* Given a right_ type, return a randomly selected prevously seen left_ node
+     that share the same parent. If nothing has found, return NULL.
+  */
+
+  vector<IR *> current_ir_set;
+  IR *current_ir_root;
+  vector<pair<string *, int>> &all_matching_node = right_lib_set[type_];
+  IR *return_matched_ir_node = NULL;
+
+  if (all_matching_node.size() > 0) {
+    /* Pick a random matching node from the library. */
+    std::pair<string *, int> &selected_matched_node =
+        all_matching_node[get_rand_int(all_matching_node.size())];
+    string *p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    int ret = run_parser(*p_current_query_str, current_ir_set);
+    if (ret != 0 || current_ir_set.size() <= 0)
+      return NULL;
+    current_ir_root = current_ir_set.back();
+
+    /* Retrive the required node, deep copy it, clean up the IR tree and return.
+     */
+    IR *matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL) {
+      if (matched_ir_node->right_->type_ != type_) {
+        current_ir_root->deep_drop();
+        return NULL;
+      }
+      // return_matched_ir_node = matched_ir_node->left_->deep_copy();  // Not
+      // returnning the matched_ir_node itself, but its left_ child node!
+      return_matched_ir_node = matched_ir_node->left_;
+      current_ir_root->detatch_node(return_matched_ir_node);
+    }
+
+    current_ir_root->deep_drop();
+
+    if (return_matched_ir_node != NULL) {
+      // cerr << "\n\n\nSuccessfuly right_type: with string: " <<
+      // return_matched_ir_node->to_string() << endl;
+      return return_matched_ir_node;
+    }
+  }
+
+  return NULL;
 }
