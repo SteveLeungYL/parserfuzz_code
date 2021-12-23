@@ -333,6 +333,41 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
     // not_mutatable_types_.insert({kProgram, kStmtlist, kStmt, kCreateStmt, kDropStmt, kCreateTableStmt, kCreateIndexStmt, kCreateViewStmt, kDropIndexStmt, kDropTableStmt, kDropViewStmt, kSelectStmt, kUpdateStmt, kInsertStmt, kAlterStmt, kReindexStmt});
 #endif
 
+    ifstream input_test(f_testcase);
+    string line;
+
+    // init lib from multiple sql
+    while (getline(input_test, line)) {
+
+        // cerr << "Parsing init line: " << line << "\n";
+
+        vector<IR *> v_ir;
+        int ret = run_parser(line, v_ir);
+        if (ret != 0 || v_ir.size() <= 0) {
+            cerr << "failed to parse: " << line << endl;
+            continue;
+        }
+
+        IR *v_ir_root = v_ir.back();
+        string strip_sql = extract_struct(v_ir_root);
+        v_ir.back()->deep_drop();
+        v_ir.clear();
+        
+        ret = run_parser(line, v_ir);
+        if (v_ir.size() <= 0)
+        {
+            cerr << "failed to parse after extract_struct:" << endl
+                 << line << endl
+                 << strip_sql << "\n\n\n";
+            continue;
+        }
+
+        // cerr << "Parsing succeed. \n\n\n";
+
+        add_all_to_library(v_ir.back());
+        v_ir.back()->deep_drop();
+    }
+
     return;
 }
 

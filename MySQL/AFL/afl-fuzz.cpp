@@ -8423,7 +8423,18 @@ static void do_libary_initialize()
   }
   g_mutator.init_data_library(GLOBAL_TYPE_PATH);
   // g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
+
+  char *in_dir_str = (char *)in_dir;
+  file_list = get_all_files_in_dir(in_dir_str);
+  for (auto &f : file_list)
+  {
+    string file_path = string(in_dir_str) + "/" + f;
+    cerr << "init filename: " << file_path << endl;
+    g_mutator.init(file_path);
+  }
+
   cout << "init_lib done" << endl;
+
 }
 
 // void test_mutate()
