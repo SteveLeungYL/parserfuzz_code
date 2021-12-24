@@ -8484,9 +8484,10 @@ static void load_map_id() {
 char *g_server_path;
 char *g_client_path;
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-
+  printf("\n\n\n%s\n\n\n", argv[0]);
+  parser_init("./afl-fuzz");
   //test_mutate();
   // ff_debug = 0;
 

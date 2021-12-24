@@ -111,7 +111,7 @@ IR* test_parse(string &query) {
 // }
 
 int main(int argc, char *argv[]) {
-  parser_init(argv[0]);
+  parser_init("test-parser");
 
   if (argc != 2) {
 

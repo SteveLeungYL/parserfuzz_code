@@ -56,7 +56,7 @@ include depend.make
 all: $(SRCS:%.cpp=%.o)
 
 afl-fuzz.o: afl-fuzz.cpp $(DEPDIR)
-	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient $(PARSER_INCLUDE_PATH) $(PARSER_INCLUDES)
+	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient $(PARSER_INCLUDE_PATH)
 
 test-parser.o: test-parser.cpp $(DEPDIR)
 	$(COMPILE.c) -g $^ $(DEPEN_PATH) $(LDFLAGS)  -lmysqlclient $(PARSER_INCLUDE_PATH)

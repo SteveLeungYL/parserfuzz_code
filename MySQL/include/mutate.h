@@ -95,7 +95,13 @@ public:
     bool fix(IR * root);//done
 
     vector<IR *> split_to_stmt(IR * root, map<IR**, IR*> &m_save, set<IRTYPE> &split_set);//done
-    bool connect_back(map<IR**, IR*> &m_save); //done
+
+
+    // bool connect_back(map<IR**, IR*> &m_save); //done
+    bool connect_back(map<IR *, pair<bool, IR*>> &m_save);
+
+    void fix_preprocessing(IR *stmt_root, vector<IR*> &ordered_all_subquery_ir);
+    bool fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info=false);
 
     bool fix_one(IR * stmt_root, map<int, map<DATATYPE, vector<IR*>>> &scope_library);//done
 
@@ -107,7 +113,11 @@ public:
     bool fill_one(IR* parent); //done
     bool fill_one_pair(IR* parent, IR* child); //done
     bool fill_stmt_graph_one(map<IR*, vector<IR*>> &graph, IR* ir);//done
-    bool validate(IR * &root); //done
+
+    bool validate(IR * root, bool is_debug_info = false);
+    bool fix_one_stmt(IR *cur_stmt, bool is_debug_info = false);
+    vector<IR *> split_to_substmt(IR *cur_stmt, map<IR *, pair<bool, IR*>> &m_save,
+                                    set<IRTYPE> &split_set);
     
     bool replace_one_value_from_datalibray_2d(DATATYPE p_datatype, DATATYPE c_data_type, string &p_key, string &old_c_value, string &new_c_value);
     bool remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype, DATATYPE c_data_type, string &p_key);

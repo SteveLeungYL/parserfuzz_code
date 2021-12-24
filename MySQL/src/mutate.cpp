@@ -581,6 +581,23 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times){
     return false;
 }
 
+static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
+                       vector<IR *> &ir_to_fix) {
+  DATATYPE idtype = root->data_type_;
+
+  if (root->left_) {
+    collect_ir(root->left_, type_to_fix, ir_to_fix);
+  }
+
+  if (type_to_fix.find(idtype) != type_to_fix.end()) {
+    ir_to_fix.push_back(root);
+  }
+
+  if (root->right_) {
+    collect_ir(root->right_, type_to_fix, ir_to_fix);
+  }
+}
+
 pair<string, string> Mutator::get_data_2d_by_type(DATATYPE type1, DATATYPE type2){
     pair<string, string> res("", "");
     auto size = data_library_2d_[type1].size();
@@ -718,7 +735,147 @@ string Mutator::parse_data(string &input) {
     return res;
 }
 
-bool Mutator::validate(IR* &root) {
+bool Mutator::validate(IR* cur_stmt, bool is_debug_info) {
+     bool res = true;
+    if (cur_stmt->type_ == kStartEntry) {
+      vector<IR*> cur_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_stmt);
+      for (IR* cur_stmt_tmp : cur_stmt_vec) {
+        res = this->validate(cur_stmt_tmp, is_debug_info) && res;
+      }
+      return res;
+    }
+
+    if (cur_stmt == NULL)
+      {return false;}
+
+    /* All the fixing steps happens here. */
+    if (is_debug_info) {
+      cerr << "Trying to fix stmt: " << cur_stmt->to_string() << " \n";
+    }
+
+    if (!fix_one_stmt(cur_stmt, is_debug_info)) {  // Pass in kStmt, not kSpecificStatementType. 
+      return false;
+    }
+    if (is_debug_info) {
+      cerr << "After fixing: " << cur_stmt->to_string() << " \n\n\n";
+    }
+    return true;
+}
+
+bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
+  bool res = true;
+
+  /* Reset library that is local to one query set. */
+//   reset_data_library_single_stmt();
+
+  /* m_substmt_save, used for reconstruct the tree. */
+  map<IR *, pair<bool, IR*>> m_substmt_save;
+  auto substmts = split_to_substmt(cur_stmt, m_substmt_save, split_substmt_types_);
+
+  int substmt_num = substmts.size();
+  if (substmt_num > 10) {
+    connect_back(m_substmt_save);
+    if (is_debug_info) {
+      cerr << "Dependency Error: the query is too complicated to fix. Has more than 5 subqueries. \n\n\n";  // Ad-hoc number, just based on intuition.
+    }
+    return false;
+  }
+
+  vector<vector<IR*>> cur_stmt_ir_to_fix;
+
+  for (auto &substmt : substmts) {
+    substmt->parent_ = NULL;
+
+    int tmp_node_num = calc_node(substmt);
+
+    /* No sub-queries, then <= 150, sub-queries <= 120 */
+    // if ((substmt_num == 1 && tmp_node_num > 230) || tmp_node_num > 200) {
+    //   if (is_debug_info) {
+    //     cerr << "\n\n\nDepedency Error: The subquery is too complicated to mutate, sub_query node_num: " << tmp_node_num << " is > 200. \n\n\n";
+    //   }
+    //   continue;
+    // }
+
+    vector<IR*> cur_substmt_ir_to_fix;
+    this->fix_preprocessing(substmt, cur_substmt_ir_to_fix);
+
+    cur_stmt_ir_to_fix.push_back(cur_substmt_ir_to_fix);
+
+  }
+
+  res = connect_back(m_substmt_save) && res;
+
+  res = fix_dependency(cur_stmt, cur_stmt_ir_to_fix, is_debug_info);
+
+  return res;
+}
+
+/* 
+** From the outer most parent-statements to the inner most sub-statements. 
+*/
+vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR *, pair<bool, IR*>> &m_save,
+                                    set<IRTYPE> &split_set) {
+  vector<IR *> res;
+  deque<IR *> bfs = {cur_stmt};
+  
+
+  /* The root cur_stmt should always be saved. */
+  res.push_back(cur_stmt);
+
+  while (!bfs.empty()) {
+    auto node = bfs.front();
+    bfs.pop_front();
+
+    if (node && node->left_)
+      bfs.push_back(node->left_);
+    if (node && node->right_)
+      bfs.push_back(node->right_); 
+
+    /* See if current node type is matching split_set. If yes, disconnect node->left and node->right. */
+    if (node->left_ &&
+        find(split_set.begin(), split_set.end(), node->left_->type_) != split_set.end() && 
+        p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)
+    ) {
+      res.push_back(node->left_);
+      pair<bool, IR*> cur_m_save = make_pair<bool, IR*> (true, node->get_left());
+      m_save[node] = cur_m_save;
+    }
+    if (node->right_ &&
+        find(split_set.begin(), split_set.end(), node->right_->type_) != split_set.end() && 
+        p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->right_)
+      ) {
+      res.push_back(node->right_);
+      pair<bool, IR*> cur_m_save = make_pair<bool, IR*> (false, node->get_right());
+      m_save[node] = cur_m_save;
+    }
+  }
+
+  for (int idx = 1; idx < res.size(); idx++) {
+    cur_stmt->detatch_node(res[idx]);
+  }
+
+  return res;
+}
+
+
+void
+Mutator::fix_preprocessing(IR *stmt_root,
+                     vector<IR*> &ordered_all_subquery_ir) {
+  set<DATATYPE> type_to_fix = {
+    // kDataColumnName, kDataTableName, kDataPragmaKey,
+    // kDataPragmaValue, kDataLiteral, kDataRelOption,
+    // kDataIndexName, kDataAliasName, kDataTableNameFollow,
+    // kDataColumnNameFollow, kDataStatisticName, kDataSequenceName,
+    // kDataViewName, kDataForeignTableName, kDataConstraintName, kDataSequenceName, kDataStatisticName, kDataAliasTableName
+  };
+  vector<IR*> ir_to_fix;
+  collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
+}
+
+
+
+bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info) {
+    // TODO:: Finished fix_dependency working with MySQL parser. 
     return true;
 }
 
@@ -773,47 +930,47 @@ pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_pos
   return output_str_pair;
 }
 
-bool Mutator::fix(IR * root){
-    map<IR**, IR*> m_save;
-    bool res = true;
+// bool Mutator::fix(IR * root){
+//     map<IR**, IR*> m_save;
+//     bool res = true;
 
-    auto stmts = split_to_stmt(root, m_save, split_stmt_types_);
+//     auto stmts = split_to_stmt(root, m_save, split_stmt_types_);
 
-    if(stmts.size() > 8) {connect_back(m_save); return false;}
+//     if(stmts.size() > 8) {connect_back(m_save); return false;}
 
-    clear_scope_library(true);
-    for(auto &stmt: stmts){
-        map<IR**, IR*> m_substmt_save;
-        auto substmts = split_to_stmt(stmt, m_substmt_save, split_substmt_types_);
+//     clear_scope_library(true);
+//     for(auto &stmt: stmts){
+//         map<IR**, IR*> m_substmt_save;
+//         auto substmts = split_to_stmt(stmt, m_substmt_save, split_substmt_types_);
 
-        int stmt_num = substmts.size();
-        if(stmt_num > 4) {
-            connect_back(m_save);
-            connect_back(m_substmt_save);
-            return false;
-        }
-        for(auto &substmt: substmts){
-            clear_scope_library(false);
-            int tmp_node_num = calc_node(substmt);
-            if((stmt_num == 1 && tmp_node_num > 150) || tmp_node_num > 120) {
-                connect_back(m_save);
-                connect_back(m_substmt_save);
-                return false;
-            }
-            res = fix_one(substmt, scope_library_) && res;
+//         int stmt_num = substmts.size();
+//         if(stmt_num > 4) {
+//             connect_back(m_save);
+//             connect_back(m_substmt_save);
+//             return false;
+//         }
+//         for(auto &substmt: substmts){
+//             clear_scope_library(false);
+//             int tmp_node_num = calc_node(substmt);
+//             if((stmt_num == 1 && tmp_node_num > 150) || tmp_node_num > 120) {
+//                 connect_back(m_save);
+//                 connect_back(m_substmt_save);
+//                 return false;
+//             }
+//             res = fix_one(substmt, scope_library_) && res;
 
-            if(res == false){ 
-                connect_back(m_save);
-                connect_back(m_substmt_save);
-                return false;
-            }
-        }
-        res = connect_back(m_substmt_save) && res;
-    }
-    res = connect_back(m_save) && res;
+//             if(res == false){ 
+//                 connect_back(m_save);
+//                 connect_back(m_substmt_save);
+//                 return false;
+//             }
+//         }
+//         res = connect_back(m_substmt_save) && res;
+//     }
+//     res = connect_back(m_save) && res;
 
-    return res;    
-}
+//     return res;    
+// }
 
 vector<IR *> Mutator::split_to_stmt(IR * root, map<IR**, IR*> &m_save, set<IRTYPE> &split_set){
     vector<IR *> res;
@@ -849,11 +1006,15 @@ vector<IR *> Mutator::split_to_stmt(IR * root, map<IR**, IR*> &m_save, set<IRTYP
 }
 
 
-bool Mutator::connect_back(map<IR**, IR*> &m_save){
-    for(auto &iter: m_save){
-        *(iter.first) = iter.second;
+bool Mutator::connect_back(map<IR *, pair<bool, IR*>> &m_save) {
+  for (auto &iter : m_save) {
+    if (iter.second.first) { // is_left?
+      iter.first->update_left(iter.second.second);
+    } else {
+      iter.first->update_right(iter.second.second);
     }
-    return true;
+  }
+  return true;
 }
 
 static set<IR*> visited;
