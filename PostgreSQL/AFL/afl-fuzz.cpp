@@ -4252,7 +4252,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
     if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
-    {
       if (crash_mode)
         total_crashes++;
       return 0;
@@ -8044,7 +8043,7 @@ int main(int argc, char **argv)
         } else {
           FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
         }
-    } break;
+      } break;
 
       default:
         FATAL("Unsupported suffix or bad syntax for -m");
