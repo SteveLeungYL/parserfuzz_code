@@ -16,8 +16,8 @@
 PROGNAME    = afl
 VERSION     = $(shell grep '^\#define VERSION ' config.h | cut -d '"' -f2)
 
-MYSQL_SRC_PATH = /home/luy70/Desktop/SQLRight_DBMS/MySQL/mysql-server-mysql-8.0.27/
-MYSQL_INSTALL_PATH = /home/luy70/Desktop/SQLRight_DBMS/MySQL/mysql-server-mysql-8.0.27/
+MYSQL_SRC_PATH =  ../parser/mysql-server/bld/
+MYSQL_INSTALL_PATH =  ../parser/mysql-server/bld/
 MYSQL_LIB_PATH   = $(MYSQL_INSTALL_PATH)/lib 
 MYSQL_HEADER_PATH = $(MYSQL_SRC_PATH)/include
 MYSQL_INSTALL_HEADER_PATH = $(MYSQL_INSTALL_PATH)/include
