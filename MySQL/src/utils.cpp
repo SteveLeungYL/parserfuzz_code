@@ -1,4 +1,5 @@
 #include "../include/utils.h"
+#include "../include/ir_wrapper.h"
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -7,6 +8,8 @@
 #include <algorithm>
 
 using namespace std;
+
+IRWrapper ir_wrapper_2;
 
 void trim_string(string &res){
     int count = 0;
@@ -208,4 +211,47 @@ vector<string> string_splitter(const std::string &s, const char delimiter) {
   }
 
   return output;
+}
+
+int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
+
+  vector<IR*> ir_vec_single;
+  vector<IR*> v_ir_root;
+  IR* ir_root;
+
+  vector<string> v_cmd_str = string_splitter(cmd_str, ';');
+  for (string cur_cmd_str : v_cmd_str) {
+
+    if(is_str_empty(cur_cmd_str)) continue;
+
+    ir_vec_single.clear();
+    int ret = run_parser(cur_cmd_str, ir_vec_single);
+
+    if (ret != 0 || ir_vec_single.size() == 0) {
+      cerr << "String parsing failed: " << cur_cmd_str << "\n\n\n";
+      for (IR* ir_root : v_ir_root) {
+        ir_root->deep_drop();
+      }
+      return 1;
+    }
+
+    v_ir_root.push_back(ir_vec_single.back());
+  }
+
+  ir_root = ir_wrapper_2.reconstruct_ir_with_stmt_vec(v_ir_root);
+
+  if (!ir_root) {
+    cerr << "IR reconstruct failed in run_parser_multi_stmt. \n\n\n";
+    for (IR* ir_root : v_ir_root) {
+      ir_root->deep_drop();
+    } 
+    return 1;
+  }
+
+  ir_vec_all_stmt = ir_wrapper_2.get_all_ir_node(ir_root);
+  if (ir_vec_all_stmt.size() > 0) {
+    return 0;
+  } else {
+    return 1;
+  }
 }

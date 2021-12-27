@@ -5,7 +5,8 @@
 #include <vector>
 #include <iostream>
 #include "../include/ast.h"
-// #include "../parser/bison_parser.h"
+#include "../parser/parser_entry.h"
+
 using std::vector;
 using std::string;
 
@@ -58,5 +59,6 @@ string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);
 
+int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt);
 
 #endif

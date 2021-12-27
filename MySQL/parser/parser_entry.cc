@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include <gtest/gtest.h>
 
