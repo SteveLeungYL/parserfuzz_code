@@ -8028,23 +8028,6 @@ int main(int argc, char **argv)
         break;
       case 'M':
         break;
-      
-      case 'F': { /* coverage feedback */
-        string arg = string(optarg);
-        if (arg == "drop_all"){
-          cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
-          disable_coverage_feedback = 1;
-        } else if (arg == "random_save") {
-          cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
-          disable_coverage_feedback = 2;
-        } else if (arg == "save_all") {
-          cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
-          disable_coverage_feedback = 3;
-        } else {
-          FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
-        }
-      } break;
-
       default:
         FATAL("Unsupported suffix or bad syntax for -m");
       }
@@ -8057,6 +8040,22 @@ int main(int argc, char **argv)
     }
 
     break;
+
+    case 'F': { /* coverage feedback */
+      string arg = string(optarg);
+      if (arg == "drop_all"){
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 1;
+      } else if (arg == "random_save") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 2;
+      } else if (arg == "save_all") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 3;
+      } else {
+        FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
+      }
+    } break;
 
     case 'd': /* skip deterministic */
 
