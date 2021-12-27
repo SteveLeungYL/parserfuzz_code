@@ -119,6 +119,7 @@ using namespace std;
 #define SAFE_GENERATE_PATH "./safe_generate_type"
 #define GLOBAL_TYPE_PATH "./global_data_lib"
 char *g_library_path;
+
 u64 total_input_failed = 0;
 u64 total_mutate_all_failed = 0;
 u64 total_mutate_failed = 0;
@@ -472,6 +473,12 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     persistent_mode,          /* Running in persistent mode?      */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
+
+EXP_ST u8 disable_coverage_feedback = 0;  
+                              /* 0: not disabled, 
+                               * 1: Drop all queries. 
+                               * 2: Randomly save queries. 
+                               * 3: Save all queries. */
 
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
@@ -4233,7 +4240,18 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits, query_str)))
+    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    **  1/10 of chances to save the interesting seed.
+    **  9/10 of chances to throw away the seed.
+    **/
+    if ( (disable_coverage_feedback == 2) && get_rand_int(10) == 0 ) {
+      // Drop query. 
+      return 0;
+    }
+
+
+    /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
+    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
     {
       if (crash_mode)
         total_crashes++;
@@ -5800,8 +5818,12 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<s
   if (fault == FAULT_ERROR)
     return 0;
   
-  int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault, explain_diff_id);
-  queued_discovered += should_keep;
+  if (disable_coverage_feedback == 1) {  // Disable feedbacks. Drop all queries. 
+    /* Do nothing. */
+  } else {
+    int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault, explain_diff_id);
+    queued_discovered += should_keep;
+  }
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -7880,7 +7902,7 @@ int main(int argc, char **argv)
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:")) > 0)
 
     switch (opt)
     {
@@ -8007,6 +8029,22 @@ int main(int argc, char **argv)
         break;
       case 'M':
         break;
+      
+      case 'F': { /* coverage feedback */
+        string arg = string(optarg);
+        if (arg == "drop_all"){
+          cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
+          disable_coverage_feedback = 1;
+        } else if (arg == "random_save") {
+          cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
+          disable_coverage_feedback = 2;
+        } else if (arg == "save_all") {
+          cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
+          disable_coverage_feedback = 3;
+        } else {
+          FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
+        }
+    } break;
 
       default:
         FATAL("Unsupported suffix or bad syntax for -m");
