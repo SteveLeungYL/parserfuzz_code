@@ -235,7 +235,9 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
       return 1;
     }
 
-    v_ir_root.push_back(ir_vec_single.back());
+    IR* cur_ir_root = ir_vec_single.back();
+    IR* cur_stmt = ir_wrapper_2.get_first_stmt_from_root(cur_ir_root);
+    v_ir_root.push_back(cur_stmt);
   }
 
   ir_root = ir_wrapper_2.reconstruct_ir_with_stmt_vec(v_ir_root);
@@ -250,6 +252,12 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
 
   ir_vec_all_stmt = ir_wrapper_2.get_all_ir_node(ir_root);
   if (ir_vec_all_stmt.size() > 0) {
+
+    /* Set up unique_id */
+    int id = 0;
+    for (IR* cur_ir : ir_vec_all_stmt) {
+      cur_ir->uniq_id_in_tree_ = id++;
+    }
     return 0;
   } else {
     return 1;

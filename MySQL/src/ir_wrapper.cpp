@@ -180,6 +180,7 @@ IR* IRWrapper::get_first_stmtlist_from_root(IR* cur_root) {
 
 IR* IRWrapper::get_first_stmt_from_root() {
 
+    cerr << "In IRWrapper::get_first_stmt_from_root(), get IR type: \n\n\n" << ir_root->get_left()->get_ir_type() << "\n\n\n";
     if (ir_root->get_left()->get_ir_type() == kStmtList) {  // This is the rewritten and reconstruct IR tree.
         IR* first_stmtmulti = this->get_first_stmtlist_from_root();
         if (first_stmtmulti == NULL) {
@@ -206,12 +207,12 @@ IR* IRWrapper::get_first_stmt_from_root() {
         return simple_statement_or_begin->get_left();
     }
 
-cerr << "5\n\n\n";
     return NULL;
 }
 
 IR* IRWrapper::get_first_stmt_from_root(IR* cur_root) {
     this->ir_root = cur_root;
+    // debug(cur_root, 0);
     return get_first_stmt_from_root();
 }
 
@@ -289,7 +290,7 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx){
     // Parse and get the new statement. 
     vector<IR*> ir_vec;
     IR* app_ir_root = NULL;
-    int ret = run_parser(app_str, ir_vec);
+    int ret = run_parser_multi_stmt(app_str, ir_vec);
     if (ret == 0 && ir_vec.size() > 0) {
         app_ir_root = ir_vec.back();
     } else {
@@ -325,7 +326,7 @@ bool IRWrapper::append_stmt_at_end(string app_str) {
     // Parse and get the new statement.
     vector<IR*> ir_vec;
     IR* app_ir_root = NULL;
-    int ret = run_parser(app_str, ir_vec);
+    int ret = run_parser_multi_stmt(app_str, ir_vec);
     if (ret == 0 && ir_vec.size() > 0) {
         app_ir_root = ir_vec.back();
     } else {
@@ -853,6 +854,10 @@ IR* IRWrapper::get_stmt_ir_from_stmtlist(IR* cur_stmtlist){
 bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
 
     while (sub_ir) {
+        cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->uniq_id_in_tree_ << "\n\n\n";
+
+        cerr << "Further outputs. \n\n\n";
+
         if (sub_ir == par_ir) {
             return true;
         }
@@ -864,10 +869,34 @@ bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
 bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
 
     while (sub_ir) {
+        cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->uniq_id_in_tree_ << "\n\n\n";
+
+        cerr << "Further outputs. \n\n\n";
+
         if (sub_ir->get_ir_type() == par_type) {
             return true;
         }
         sub_ir = sub_ir->get_parent();
     }
     return false;
+}
+
+void IRWrapper::debug(IR* root, unsigned level) {
+
+    for (unsigned i = 0; i < level; i++) {
+        cout << " ";
+    }
+
+    cout << level << ": "
+         << get_string_by_ir_type(root->type_) << ": "
+         << get_string_by_datatype(root->data_type_) << ": "
+         << root -> to_string() << ": "
+         << endl;
+
+    if (root->left_) {
+        debug(root->left_, level + 1);
+    }
+    if (root->right_) {
+        debug(root->right_, level + 1);
+    }
 }

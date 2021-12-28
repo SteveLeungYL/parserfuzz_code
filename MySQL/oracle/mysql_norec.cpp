@@ -8,14 +8,16 @@
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   if (cur_stmt == NULL) {
-    // cerr << "Return false because cur_stmt is NULL; \n";
+    cerr << "Return false because cur_stmt is NULL; \n";
     return false;
   }
 
   if (cur_stmt->get_ir_type() != kSelectStmt) {
-    // cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
+    cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
     return false;
   }
+
+  g_mutator->debug(cur_stmt, 0);
 
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
   if (
@@ -29,7 +31,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   // Ignore statements with UNION, EXCEPT and INTERCEPT
   if (ir_wrapper.is_exist_set_operator(cur_stmt)) {
-    // cerr << "Return false because of set operator \n";
+    cerr << "Return false because of set operator \n";
     return false;
   }
 
@@ -47,7 +49,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   vector<IR*> v_matching_sum_expr_ir;
   for (IR* sum_expr_ir : v_sum_expr_ir) {
       if (
-          sum_expr_ir->get_prefix() == "COUNT ()" &&
+          sum_expr_ir->get_prefix() == "COUNT(" &&
           sum_expr_ir->get_middle() == "* )" &&
           sum_expr_ir->get_right()->is_empty()  // opt_windowing_clause should be empty
       ) {
@@ -63,6 +65,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
   if (!is_found_count) {
+      cerr << "Return false because COUNT func is not found. \n\n\n";
       return false;
   }
 
@@ -70,6 +73,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     !ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) ||
     !ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)
   ) {
+      cerr << "Return false because FROM clause or WHERE clause is not found. \n\n\n";
       return false;
   }
 
@@ -131,7 +135,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   // cerr << "\n\n\n\n\n\n\n";
 
   vector<IR*> transformed_temp_vec;
-  int ret = run_parser(this->post_fix_temp, transformed_temp_vec);
+  int ret = run_parser_multi_stmt(this->post_fix_temp, transformed_temp_vec);
 
   if (ret != 0 || transformed_temp_vec.size() == 0) {
       cerr << "Error: parsing the post_fix_temp from SQL_NOREC::post_fix_transform_select_stmt returns empty IR vector. \n";

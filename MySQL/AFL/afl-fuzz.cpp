@@ -4403,7 +4403,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     stage_name = "add_to_library";
 
     vector<IR*> ir_tree;
-    int ret = run_parser(query_str, ir_tree);
+    int ret = run_parser_multi_stmt(query_str, ir_tree);
     if (ret != 0 || ir_tree.size() == 0) {
       return keeping;
     }
@@ -6887,7 +6887,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
       // cerr << "Break due to exceeding max_trial. \n";
       break;
     }
-    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
+    cout << "get_oracle_select_stmt trial times: " << trial << endl;
     IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
       cerr << "new_norec_stmts is empty. \n";
@@ -7081,7 +7081,7 @@ static u8 fuzz_one(char **argv)
       /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
       * consider appending anything */
       vector<IR *> cur_ir_tree;
-      ret = run_parser(ir_str, cur_ir_tree);
+      ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
       if (ret != 0 || cur_ir_tree.size() == 0) {
         total_mutate_failed++;
         skip_count++;
