@@ -258,6 +258,8 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
     for (IR* cur_ir : ir_vec_all_stmt) {
       cur_ir->uniq_id_in_tree_ = id++;
     }
+    /* Double check whether root's parent is NULL.  */
+    ir_vec_all_stmt.back()->parent_ = NULL; 
     return 0;
   } else {
     return 1;
