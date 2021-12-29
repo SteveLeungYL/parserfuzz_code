@@ -5494,6 +5494,16 @@ bool IR::set_user_list_type(DATAFLAG data_flag) {
 }
 
 
+IR* IR::where_clause_get_expr() {
+  assert(this->get_ir_type() == kWhereClause);
+
+  if (get_left()) {
+    return get_left();
+  }
+  return NULL;
+}
+
+
 /*
 ** End SQLRight injected code.
 */

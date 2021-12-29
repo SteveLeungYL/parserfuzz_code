@@ -4592,6 +4592,8 @@ public:
     std::string to_string();
     std::string to_string_core();
 
+    IR* where_clause_get_expr();
+
     bool set_ident_type(DATATYPE, DATAFLAG);
     bool set_opt_ident_type(DATATYPE, DATAFLAG);
     bool set_ident_string_list_type(DATATYPE, DATAFLAG);

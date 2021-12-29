@@ -8,16 +8,16 @@
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   if (cur_stmt == NULL) {
-    cerr << "Return false because cur_stmt is NULL; \n";
+    // cerr << "Return false because cur_stmt is NULL; \n";
     return false;
   }
 
   if (cur_stmt->get_ir_type() != kSelectStmt) {
-    cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
+    // cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
     return false;
   }
 
-  g_mutator->debug(cur_stmt, 0);
+  // g_mutator->debug(cur_stmt, 0);
 
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
   if (
@@ -177,7 +177,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     dest_order_clause->deep_drop();
   }
 
-  IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0]->deep_copy();
+  IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)[0]->where_clause_get_expr()->deep_copy();
   IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, kExpr, true)[1];
 
 
