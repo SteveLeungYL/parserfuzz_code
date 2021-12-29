@@ -25261,7 +25261,7 @@ start_option_value_list:
         auto tmp5 = $7;
         res = new IR(kStartOptionValueList, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
-        $$ = res
+        $$ = res;
 
         tmp1->set_user_type(kUse);
     }
