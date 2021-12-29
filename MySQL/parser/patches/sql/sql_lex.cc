@@ -5471,7 +5471,7 @@ bool IR::set_user_type(DATAFLAG data_flag) {
 }
 
 
-bool IR::set_user_type(DATAFLAG data_flag) {
+bool IR::set_user_list_type(DATAFLAG data_flag) {
   assert(this->get_ir_type() == kUserList);
 
   IR* left = get_left();
