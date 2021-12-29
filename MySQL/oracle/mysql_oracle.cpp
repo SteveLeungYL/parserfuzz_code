@@ -288,11 +288,28 @@ bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
 void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
     ir_wrapper.set_ir_root(ir_root);
     vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
+
+    // cerr << "DEBUG: SQL_ORACLE::remove_oracle_select_stmt_from_ir: getting stmt\n";
+    // for (IR* stmt: stmt_vec) {
+    //   cerr << stmt->to_string() << "\n";
+    //   cerr << get_string_by_ir_type(stmt->type_) << "\n";
+    // }
+    // cerr << "end\n\n";
+
+    cerr << "\n\n\nBefore removing select stmt, we get ir_root: ";
+    g_mutator->debug(ir_root, 0);
+    cerr << "Finished";
+
     for (IR* cur_stmt : stmt_vec) {
         if (cur_stmt->type_ == kSelectStmt) {
-        ir_wrapper.remove_stmt_and_free(cur_stmt);
+          ir_wrapper.remove_stmt_and_free(cur_stmt);
         }
     }
+
+    cerr << "After removing select stmt, we get ir_root: ";
+    g_mutator->debug(ir_root, 0);
+    cerr << "Finished";
+
     return;
 }
 
@@ -301,7 +318,7 @@ void SQL_ORACLE::remove_oracle_select_stmt_from_ir(IR* ir_root) {
     vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
     for (IR* cur_stmt : stmt_vec) {
         if (this->is_oracle_select_stmt(cur_stmt)) {
-        ir_wrapper.remove_stmt_and_free(cur_stmt);
+          ir_wrapper.remove_stmt_and_free(cur_stmt);
         }
     }
     return;

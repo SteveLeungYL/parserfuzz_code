@@ -164,6 +164,8 @@ int main(int argc, char *argv[]) {
     ir->deep_drop();
   }
 
+  cerr << "To_string: " << ir_root->to_string() << "\n\n\n";
+
   // if (root) root->deep_drop();
 
   // cout << "\n\n\n At the end of the parsing, we get to_string: \n" << root->to_string() << "\n\n\n";

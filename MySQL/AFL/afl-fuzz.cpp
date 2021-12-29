@@ -7013,6 +7013,7 @@ static u8 fuzz_one(char **argv)
 
   cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
 
+  ori_ir_tree.clear();
   int ret = run_parser_multi_stmt(input, ori_ir_tree);
 
   if (ret != 0 || ori_ir_tree.size() == 0)
@@ -7023,12 +7024,27 @@ static u8 fuzz_one(char **argv)
   IR* cur_root;
   cur_root = ori_ir_tree.back();
 
+  // cerr << "Getting the original parsing results. \n\n\n";
+  // g_mutator.debug(cur_root, 0);
+  // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
+
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
   ori_ir_tree.clear();
   ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
 
+  cerr << "After removing select stmt. \n\n\n";
+  g_mutator.debug(cur_root, 0);
+  cerr << "\n\n\n";
+  cerr << cur_root->to_string();
+  cerr << "to_string finished. \n\n\n";
+  cerr << "End\n\n\n";
+
+  cerr << "After removing select stmts. \n\n\n";
   cerr << "After initial parsing, the imported input is: \n" << ori_ir_tree.back()->to_string() << "\n\n\n";
 
   stage_max = ori_ir_tree.size();

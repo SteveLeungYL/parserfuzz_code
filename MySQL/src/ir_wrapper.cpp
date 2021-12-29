@@ -180,7 +180,7 @@ IR* IRWrapper::get_first_stmtlist_from_root(IR* cur_root) {
 
 IR* IRWrapper::get_first_stmt_from_root() {
 
-    cerr << "In IRWrapper::get_first_stmt_from_root(), get IR type: \n\n\n" << ir_root->get_left()->get_ir_type() << "\n\n\n";
+    // cerr << "In IRWrapper::get_first_stmt_from_root(), get IR type: \n\n\n" << ir_root->get_left()->get_ir_type() << "\n\n\n";
     if (ir_root->get_left()->get_ir_type() == kStmtList) {  // This is the rewritten and reconstruct IR tree.
         IR* first_stmtmulti = this->get_first_stmtlist_from_root();
         if (first_stmtmulti == NULL) {
@@ -401,7 +401,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
 
         if (!ir_root->swap_node(next_ir_list, new_res)) {
             new_res->deep_drop();
-            app_IR_node->update_left(NULL);
+            app_IR_node->update_right(NULL);
             app_IR_node->deep_drop();
             std::cerr << "Error: Swap node failure? In function: IRWrapper::append_stmt_at_idx. idx = "  << idx << "\n";
             return false;
@@ -441,13 +441,19 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     IR* rov_stmt = stmt_list_v[idx];
 
-    // cerr << "Removing stmt: " << rov_stmt->to_string() << "\n";
+    cerr << "\n\n\nBefore Removing stmt, we get root: \n";
+    debug(ir_root, 0);
+    cerr << ir_root->to_string() << "\n\n\n";
+
+    cerr << "\n\n\nRemoving stmt: \n";
+    debug(rov_stmt, 0);
+    cerr << rov_stmt->to_string() << "\n\n\n";
 
     if ( idx < stmt_list_v.size() - 1 ){
         IR* parent_node = rov_stmt->get_parent();
         IR* next_stmt = rov_stmt->get_right();
         parent_node->swap_node(rov_stmt, next_stmt);
-        rov_stmt->left_ = NULL;
+        rov_stmt->right_ = NULL;
         rov_stmt->deep_drop();
 
     } else { // Remove the last statement from the sequence. 
@@ -455,6 +461,10 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
         parent_node->update_right(NULL);
         rov_stmt->deep_drop();
     }
+
+    cerr << "\n\n\nAfter Removing stmt, we get root: \n";
+    debug(ir_root, 0);
+    cerr << ir_root->to_string() << "\n\n\n";
 
     return true;
 }
@@ -854,9 +864,9 @@ IR* IRWrapper::get_stmt_ir_from_stmtlist(IR* cur_stmtlist){
 bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
 
     while (sub_ir) {
-        cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->uniq_id_in_tree_ << "\n\n\n";
+        // cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->to_string() << "\n\n\n";
 
-        cerr << "Further outputs. \n\n\n";
+        // cerr << "Further outputs. \n\n\n";
 
         if (sub_ir == par_ir) {
             return true;
@@ -869,9 +879,9 @@ bool IRWrapper::is_ir_in(IR* sub_ir, IR* par_ir) {
 bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
 
     while (sub_ir) {
-        cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->uniq_id_in_tree_ << "\n\n\n";
+        // cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->to_string() << "\n\n\n";
 
-        cerr << "Further outputs. \n\n\n";
+        // cerr << "Further outputs. \n\n\n";
 
         if (sub_ir->get_ir_type() == par_type) {
             return true;
@@ -884,10 +894,10 @@ bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
 void IRWrapper::debug(IR* root, unsigned level) {
 
     for (unsigned i = 0; i < level; i++) {
-        cout << " ";
+        cerr << " ";
     }
 
-    cout << level << ": "
+    cerr << level << ": "
          << get_string_by_ir_type(root->type_) << ": "
          << get_string_by_datatype(root->data_type_) << ": "
          << root -> to_string() << ": "

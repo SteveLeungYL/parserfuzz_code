@@ -680,7 +680,7 @@ unsigned long Mutator::hash(IR * root){
 
 void Mutator::debug(IR *root){
     for(auto &i: data_library_[kDataFunctionName]){
-        cout << i<< endl;
+        cerr << i<< endl;
     }
     
 }
@@ -688,10 +688,10 @@ void Mutator::debug(IR *root){
 void Mutator::debug(IR* root, unsigned level) {
 
     for (unsigned i = 0; i < level; i++) {
-        cout << " ";
+        cerr << " ";
     }
 
-    cout << level << ": "
+    cerr << level << ": "
          << get_string_by_ir_type(root->type_) << ": "
          << get_string_by_datatype(root->data_type_) << ": "
          << root->uniq_id_in_tree_ << ": "
@@ -1669,9 +1669,9 @@ void Mutator::add_all_to_library(string whole_query_str,
     }
     IR* cur_stmt_ir = v_cur_stmt_ir.front();
 
-    // cerr << "DEBUG: In Mutator::add_all_to_library(), getting ir_tree(): \n";
-    // debug(cur_stmt_ir, 0);
-    // cerr << "\n\n\n";
+    cerr << "DEBUG: In Mutator::add_all_to_library(), getting ir_tree(): \n";
+    debug(cur_stmt_ir, 0);
+    cerr << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
     // if (p_oracle->is_oracle_valid_stmt(current_query)) {
