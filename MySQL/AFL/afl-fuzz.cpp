@@ -206,7 +206,9 @@ public:
     dbname = "test" + std::to_string(database_id);
     if (mysql_real_connect(&m_, host_, "root", "", dbname.c_str(), bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
     {
-      fprintf(stderr, "Connection error1 \n", mysql_errno(&m_), mysql_error(&m_));
+      fprintf(stderr, "Connection error1 \n");
+      std::cerr << mysql_errno(&m_) << "\n\n";
+      std::cerr << mysql_errno(&m_) << "\n\n";
       disconnect();
       counter_++;
       return false;
@@ -239,7 +241,8 @@ public:
     string cmd = "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id) + ";";
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
     mysql_close(&tmp_m);
-    sleep(2);
+    std::cout << "Fix database successful. \n\n\n";
+    sleep(1);
     return true;
   }
 
@@ -723,7 +726,6 @@ public:
 
   SQLSTATUS execute_No_Rec(char *cmd)
   {
-    fix_database(); // Fix the connection error1 misleading output.
     auto conn = connect();
 
     if (!conn)
@@ -914,6 +916,7 @@ public:
 
   SQLSTATUS execute(const char *cmd, string& res_str)
   {
+    // fix_database();
     auto conn = connect();
 
     reset_database();
@@ -4400,7 +4403,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     stage_name = "add_to_library";
 
     vector<IR*> ir_tree;
-    int ret = run_parser(query_str, ir_tree);
+    int ret = run_parser_multi_stmt(query_str, ir_tree);
     if (ret != 0 || ir_tree.size() == 0) {
       return keeping;
     }
@@ -6395,7 +6398,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+  stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */
@@ -6884,7 +6887,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
       // cerr << "Break due to exceeding max_trial. \n";
       break;
     }
-    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
+    cout << "get_oracle_select_stmt trial times: " << trial << endl;
     IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
       cerr << "new_norec_stmts is empty. \n";
@@ -7008,9 +7011,10 @@ static u8 fuzz_one(char **argv)
   int skip_count = 0;
   string input((const char *)out_buf);
 
-  
+  cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
 
-  int ret = run_parser(input, ori_ir_tree);
+  ori_ir_tree.clear();
+  int ret = run_parser_multi_stmt(input, ori_ir_tree);
 
   if (ret != 0 || ori_ir_tree.size() == 0)
   {
@@ -7020,11 +7024,28 @@ static u8 fuzz_one(char **argv)
   IR* cur_root;
   cur_root = ori_ir_tree.back();
 
+  // cerr << "Getting the original parsing results. \n\n\n";
+  // g_mutator.debug(cur_root, 0);
+  // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
+
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
   ori_ir_tree.clear();
   ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
+
+  cerr << "After removing select stmt. \n\n\n";
+  g_mutator.debug(cur_root, 0);
+  cerr << "\n\n\n";
+  cerr << cur_root->to_string();
+  cerr << "to_string finished. \n\n\n";
+  cerr << "End\n\n\n";
+
+  cerr << "After removing select stmts. \n\n\n";
+  cerr << "After initial parsing, the imported input is: \n" << ori_ir_tree.back()->to_string() << "\n\n\n";
 
   stage_max = ori_ir_tree.size();
   stage_cur = 0;
@@ -7044,6 +7065,8 @@ static u8 fuzz_one(char **argv)
 
   v_oracle_select_stmts.clear();
   get_oracle_select_stmts(v_oracle_select_stmts, 10);
+
+  cerr << "After get_oracle_select_stmts. \n\n\n";
 
   for (IR* ir_to_mutate : ori_ir_tree) {
     if (stop_soon) {
@@ -7074,7 +7097,7 @@ static u8 fuzz_one(char **argv)
       /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
       * consider appending anything */
       vector<IR *> cur_ir_tree;
-      ret = run_parser(ir_str, cur_ir_tree);
+      ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
       if (ret != 0 || cur_ir_tree.size() == 0) {
         total_mutate_failed++;
         skip_count++;
@@ -7104,12 +7127,15 @@ static u8 fuzz_one(char **argv)
       vector<STMT_TYPE> stmt_type_vec;
       vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
 
-      // /* Debug  */
-      // cerr << "Just gone through pre_fix_transform, we have: \n";
-      // for (IR* cur_trans: all_pre_trans_vec) {
-      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
-      // }
-      // cerr << "Pre-fix transform end. \n\n\n";
+      /* Debug  */
+      cerr << "Just gone through pre_fix_transform, we have: \n";
+      for (IR* cur_trans: all_pre_trans_vec) {
+        cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+        if (cur_trans->parent_) {
+          cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+        }
+      }
+      cerr << "Pre-fix transform end. \n\n\n";
 
       // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
 
@@ -7121,19 +7147,29 @@ static u8 fuzz_one(char **argv)
         }
       }
 
+
+      cerr << "Just gone through validate functions, we have: \n";
+      for (IR* cur_trans: all_pre_trans_vec) {
+        cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+        if (cur_trans->parent_) {
+          cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+        }
+      }
+      cerr << "Pre-fix transform end. \n\n\n";
+
       /* post_fix_transformation from the oracle. All deep_copied. */
       vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
 
       for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
 
-        // /* Debug */
-        // cerr << "After post-fix, we have: \n";
-        // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
-        //   for (IR* cur_post: cur_post_trans) {
-        //     cerr << "cur_post: " << cur_post->to_string() << "\n";
-        //   }
-        // }
-        // cerr << "Post-fix Done. \n";
+        /* Debug */
+        cerr << "After post-fix, we have: \n";
+        for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
+          for (IR* cur_post: cur_post_trans) {
+            cerr << "cur_post: " << cur_post->to_string() << "\n";
+          }
+        }
+        cerr << "Post-fix Done. \n";
 
         // Final step, transform IR tree to string. Add marker to important statements.
         pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
@@ -7141,10 +7177,10 @@ static u8 fuzz_one(char **argv)
         query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
       }
 
-      // for (auto query_str : query_str_vec) {
-      //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
-      // }
-      // cerr << "End\n\n\n";
+      for (auto query_str : query_str_vec) {
+        cerr << "Just after validate and fix, Query str: " << query_str << endl;
+      }
+      cerr << "End\n\n\n";
 
       /* Clean up allocated resource.  */
       for (int i = 0; i < all_pre_trans_vec.size(); i++){
@@ -7194,8 +7230,8 @@ static u8 fuzz_one(char **argv)
         //   continue;
         // }
 
-        // if (query_str_vec.size() > 0)
-        //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
+        if (query_str_vec.size() > 0)
+          cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
 
         if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
         {
@@ -8870,6 +8906,8 @@ int main(int argc, char *argv[])
   if (dump_library) {
     load_map_id();
   }
+
+  g_mysqlclient.fix_database(); // Fix the connection error1 misleading output.
 
   //char* tmp_argv[] = {g_server_path, NULL};
   //init_forkserver(tmp_argv);

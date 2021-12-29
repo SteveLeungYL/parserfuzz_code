@@ -115,6 +115,8 @@ public:
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);
 
+    void debug(IR* root, unsigned level);
+
 
 private:
     IR* ir_root = nullptr;

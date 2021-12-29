@@ -342,7 +342,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
         // cerr << "Parsing init line: " << line << "\n";
 
         vector<IR *> v_ir;
-        int ret = run_parser(line, v_ir);
+        int ret = run_parser_multi_stmt(line, v_ir);
         cerr << "Parsing line: " << line << "\n\n";
         if (ret != 0 || v_ir.size() <= 0) {
             cerr << "failed to parse: " << line << endl;
@@ -357,7 +357,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
         v_ir.back()->deep_drop();
         v_ir.clear();
         
-        ret = run_parser(line, v_ir);
+        ret = run_parser_multi_stmt(line, v_ir);
         if (v_ir.size() <= 0)
         {
             cerr << "failed to parse after extract_struct:" << endl
@@ -680,7 +680,7 @@ unsigned long Mutator::hash(IR * root){
 
 void Mutator::debug(IR *root){
     for(auto &i: data_library_[kDataFunctionName]){
-        cout << i<< endl;
+        cerr << i<< endl;
     }
     
 }
@@ -688,12 +688,13 @@ void Mutator::debug(IR *root){
 void Mutator::debug(IR* root, unsigned level) {
 
     for (unsigned i = 0; i < level; i++) {
-        cout << " ";
+        cerr << " ";
     }
 
-    cout << level << ": "
+    cerr << level << ": "
          << get_string_by_ir_type(root->type_) << ": "
          << get_string_by_datatype(root->data_type_) << ": "
+         << root->uniq_id_in_tree_ << ": "
          << root -> to_string() << ": "
          << endl;
 
@@ -1656,7 +1657,7 @@ void Mutator::add_all_to_library(string whole_query_str,
 
 
     vector<IR *> ir_set;
-    int ret = run_parser(current_query, ir_set);
+    int ret = run_parser_multi_stmt(current_query, ir_set);
     if (ret != 0 || ir_set.size() == 0)
       continue;
 
@@ -1667,6 +1668,10 @@ void Mutator::add_all_to_library(string whole_query_str,
       return;
     }
     IR* cur_stmt_ir = v_cur_stmt_ir.front();
+
+    cerr << "DEBUG: In Mutator::add_all_to_library(), getting ir_tree(): \n";
+    debug(cur_stmt_ir, 0);
+    cerr << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
     // if (p_oracle->is_oracle_valid_stmt(current_query)) {
@@ -1837,7 +1842,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     int unique_node_id = selected_matched_node.second;
 
     /* Reconstruct the IR tree. */
-    int ret = run_parser(*p_current_query_str, current_ir_set);
+    int ret = run_parser_multi_stmt(*p_current_query_str, current_ir_set);
     if (ret != 0 || current_ir_set.size() <= 0)
       return new IR(kUnknown, "");
     current_ir_root = current_ir_set.back();
@@ -1886,7 +1891,7 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
     int unique_node_id = selected_matched_node.second;
 
     /* Reconstruct the IR tree. */
-    int ret = run_parser(*p_current_query_str, current_ir_set);
+    int ret = run_parser_multi_stmt(*p_current_query_str, current_ir_set);
     if (ret != 0 || current_ir_set.size() <= 0)
       return NULL;
     current_ir_root = current_ir_set.back();
@@ -1935,7 +1940,7 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
     int unique_node_id = selected_matched_node.second;
 
     /* Reconstruct the IR tree. */
-    int ret = run_parser(*p_current_query_str, current_ir_set);
+    int ret = run_parser_multi_stmt(*p_current_query_str, current_ir_set);
     if (ret != 0 || current_ir_set.size() <= 0)
       return NULL;
     current_ir_root = current_ir_set.back();
