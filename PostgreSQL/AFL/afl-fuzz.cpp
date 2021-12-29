@@ -5819,6 +5819,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<s
   
   if (disable_coverage_feedback == 1) {  // Disable feedbacks. Drop all queries. 
     /* Do nothing. */
+    has_new_bits(virgin_bits, query_str_no_marks_vec[0]);
   } else {
     int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault, explain_diff_id);
     queued_discovered += should_keep;
