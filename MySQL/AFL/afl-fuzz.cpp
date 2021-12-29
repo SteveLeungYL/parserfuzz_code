@@ -250,10 +250,10 @@ public:
     }
     string cmd = "CREATE DATABASE IF NOT EXISTS test1; USE test1; SELECT 'Successful'; ";
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
-    cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
+    // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
     mysql_close(&tmp_m);
-    std::cout << "Fix database successful. \n\n\n";
+    // std::cout << "Fix database successful. \n\n\n";
     sleep(1);
     return true;
   }
@@ -346,6 +346,7 @@ public:
             result_string_stream << row[i];
           }
         }
+        // cerr << "Returned all rows " << "\n\n\n";
       }
       else /* no result set or error */
       {
@@ -370,9 +371,9 @@ public:
       // cerr << "Could not execute statement\n";
     } while (status == 0);
 
-    cerr << "DEBUG: Result string: \n\n\n";
-    cerr << result_string_stream.str();
-    cerr << "\n\n\n";
+    // cerr << "DEBUG: Result string: \n\n\n";
+    // cerr << result_string_stream.str();
+    // cerr << "\n\n\n";
     return result_string_stream.str();
   }
 
@@ -410,11 +411,31 @@ public:
         fix_database();
     }
     //cout << "connect succeed!" << endl;
-    string cmd_str = cmd;
-    int server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
-    res_str = retrieve_query_results(m_);
 
-    auto correctness = clean_up_connection(m_);
+    string cmd_str = cmd;
+    cmd_str += " ; SELECT 'Hahaha'; ";
+    std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
+
+    vector<string> v_cmd_str = string_splitter(cmd_str, ";");
+
+    SQLSTATUS correctness;
+    int server_response;
+
+    res_str = "";
+
+    for (string cur_cmd_str : v_cmd_str) {
+      // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
+      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+      res_str += retrieve_query_results(m_) + "\n";
+      correctness = clean_up_connection(m_);
+
+      if (server_response == CR_SERVER_LOST) {
+        cerr << "Server Lost or Server Crashes! \n\n\n";
+        break;
+      }
+    }
+
+    // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
     if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
       disconnect();
@@ -431,9 +452,9 @@ public:
       return kServerCrash;
     }
 
-    if (execute_result == kSyntaxError) {
+    if (res == kSyntaxError) {
       syntax_err_num++;
-    } else if (execute_result == kSemanticError) {
+    } else if (res == kSemanticError) {
       semantic_err_num++;
     } else {
       correct_num++;
