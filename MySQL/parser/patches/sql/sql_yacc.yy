@@ -12297,6 +12297,8 @@ alter_user_stmt:
         res = new IR(kAlterUserStmt, OP3("", "", "DEFAULT ROLE ALL"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_type(kUse);
     }
 
     | alter_user_command user DEFAULT_SYM ROLE_SYM NONE_SYM {
@@ -12305,6 +12307,8 @@ alter_user_stmt:
         res = new IR(kAlterUserStmt, OP3("", "", "DEFAULT ROLE NONE"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_type(kUse);
     }
 
     | alter_user_command user DEFAULT_SYM ROLE_SYM role_list {
@@ -12317,6 +12321,8 @@ alter_user_stmt:
         res = new IR(kAlterUserStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_type(kUse);
     }
 
     | alter_user_command user opt_user_registration {
@@ -12329,6 +12335,8 @@ alter_user_stmt:
         res = new IR(kAlterUserStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_type(kUse);
     }
 
     | alter_user_command user_func opt_user_registration {
@@ -14471,6 +14479,9 @@ rename_list:
         res = new IR(kRenameList, OP3("", "TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUndefine);
+        tmp2->set_user_type(kDefine);
     }
 
     | rename_list ',' user TO_SYM user {
@@ -14483,6 +14494,9 @@ rename_list:
         res = new IR(kRenameList, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_type(kUndefine);
+        tmp3->set_user_type(kDefine);
     }
 
 ;
@@ -20687,6 +20701,8 @@ drop_user_stmt:
         res = new IR(kDropUserStmt, OP3("DROP USER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_list_type(kUndefine);
     }
 
 ;
@@ -22349,6 +22365,8 @@ show_grants_stmt:
         res = new IR(kShowGrantsStmt, OP3("SHOW GRANTS FOR", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | SHOW GRANTS FOR_SYM user USING user_list {
@@ -22357,6 +22375,9 @@ show_grants_stmt:
         res = new IR(kShowGrantsStmt, OP3("SHOW GRANTS FOR", "USING", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
+        tmp2->set_user_list_type(kUse);
     }
 
 ;
@@ -22532,6 +22553,8 @@ show_create_user_stmt:
         res = new IR(kShowCreateUserStmt, OP3("SHOW CREATE USER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
 ;
@@ -24494,15 +24517,15 @@ role_ident_or_text:
 user_ident_or_text:
 
     ident_or_text {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, to_string($1), kDataUserName, 0, kFlagUnknown);
         res = new IR(kUserIdentOrText, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | ident_or_text '@' ident_or_text {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
-        auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, to_string($1), kDataUserName, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, to_string($3), kDataHostName, 0, kFlagUnknown);
         res = new IR(kUserIdentOrText, OP3("", "@", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -25238,7 +25261,9 @@ start_option_value_list:
         auto tmp5 = $7;
         res = new IR(kStartOptionValueList, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
-        $$ = res;
+        $$ = res
+
+        tmp1->set_user_type(kUse);
     }
 
     | PASSWORD FOR_SYM user TO_SYM RANDOM_SYM opt_replace_password opt_retain_current_password {
@@ -25251,6 +25276,8 @@ start_option_value_list:
         res = new IR(kStartOptionValueList, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
 ;
@@ -26291,6 +26318,8 @@ revoke:
         res = new IR(kRevoke, OP3("REVOKE", "FROM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_list_type(kUse);
     }
 
     | REVOKE role_or_privilege_list ON_SYM opt_acl_type grant_ident FROM user_list {
@@ -26307,6 +26336,8 @@ revoke:
         res = new IR(kRevoke, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_user_list_type(kUse);
     }
 
     | REVOKE ALL opt_privileges {} ON_SYM opt_acl_type grant_ident FROM user_list {
@@ -26323,6 +26354,8 @@ revoke:
         res = new IR(kRevoke, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_user_list_type(kUse);
     }
 
     | REVOKE ALL opt_privileges ',' GRANT OPTION FROM user_list {
@@ -26331,6 +26364,8 @@ revoke:
         res = new IR(kRevoke, OP3("REVOKE ALL", ", GRANT OPTION FROM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_list_type(kUse);
     }
 
     | REVOKE PROXY_SYM ON_SYM user FROM user_list {
@@ -26339,6 +26374,9 @@ revoke:
         res = new IR(kRevoke, OP3("REVOKE PROXY ON", "FROM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
+        tmp2->set_user_list_type(kUse);
     }
 
 ;
@@ -26356,6 +26394,8 @@ grant:
         res = new IR(kGrant, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_user_list_type(kUse);
     }
 
     | GRANT role_or_privilege_list ON_SYM opt_acl_type grant_ident TO_SYM user_list grant_options opt_grant_as {
@@ -26380,6 +26420,8 @@ grant:
         res = new IR(kGrant, OP3("", "", ""), res, tmp6);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_user_list_type(kUse);
     }
 
     | GRANT ALL opt_privileges {} ON_SYM opt_acl_type grant_ident TO_SYM user_list grant_options opt_grant_as {
@@ -26404,6 +26446,8 @@ grant:
         res = new IR(kGrant, OP3("", "", ""), res, tmp6);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_user_list_type(kUse);
     }
 
     | GRANT PROXY_SYM ON_SYM user TO_SYM user_list opt_grant_option {
@@ -26416,6 +26460,9 @@ grant:
         res = new IR(kGrant, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
+        tmp2->set_user_list_type(kUse);
     }
 
 ;
@@ -26941,6 +26988,8 @@ create_user:
         res = new IR(kCreateUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kDefine);
     }
 
     | user identified_with_plugin opt_initial_auth {
@@ -26953,6 +27002,8 @@ create_user:
         res = new IR(kCreateUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kDefine);
     }
 
     | user opt_create_user_with_mfa {
@@ -26961,6 +27012,8 @@ create_user:
         res = new IR(kCreateUser, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kDefine);
     }
 
 ;
@@ -27154,6 +27207,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_with_plugin_by_password REPLACE_SYM TEXT_STRING_password opt_retain_current_password {
@@ -27170,6 +27225,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_by_password opt_retain_current_password {
@@ -27182,6 +27239,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_by_random_password opt_retain_current_password {
@@ -27194,6 +27253,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_by_random_password REPLACE_SYM TEXT_STRING_password opt_retain_current_password {
@@ -27210,6 +27271,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_with_plugin {
@@ -27218,6 +27281,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_with_plugin_as_auth opt_retain_current_password {
@@ -27230,6 +27295,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_with_plugin_by_password opt_retain_current_password {
@@ -27242,6 +27309,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user identified_with_plugin_by_random_password opt_retain_current_password {
@@ -27254,6 +27323,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user opt_discard_old_password {
@@ -27262,6 +27333,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user ADD factor identification {
@@ -27274,6 +27347,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user ADD factor identification ADD factor identification {
@@ -27294,6 +27369,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user MODIFY_SYM factor identification {
@@ -27306,6 +27383,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user MODIFY_SYM factor identification MODIFY_SYM factor identification {
@@ -27326,6 +27405,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user DROP factor {
@@ -27334,6 +27415,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "DROP", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
     | user DROP factor DROP factor {
@@ -27346,6 +27429,8 @@ alter_user:
         res = new IR(kAlterUser, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
 ;
@@ -27561,6 +27646,8 @@ opt_grant_as:
         res = new IR(kOptGrantAs, OP3("AS", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
 ;
@@ -28037,6 +28124,8 @@ definer:
         res = new IR(kDefiner, OP3("DEFINER =", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
 ;
@@ -28636,6 +28725,8 @@ clone_stmt:
         res = new IR(kCloneStmt, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_user_type(kUse);
     }
 
 ;

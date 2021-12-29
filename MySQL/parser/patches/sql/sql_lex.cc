@@ -5441,6 +5441,53 @@ bool IR::set_charset_name_type(DATATYPE data_type, DATAFLAG data_flag) {
 
   return true;
 }
+
+
+bool IR::set_user_ident_or_text_type(DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kUserIdentOrText);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_ident_type(kDataHostName, data_flag);
+    right->set_ident_type(kDataUserName, data_flag);
+  } else {
+    left->set_table_ident_type(kDataUserName, data_flag);
+  }
+
+  return true;
+}
+
+
+bool IR::set_user_type(DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kUser);
+
+  IR* left = get_left();
+  if (get_prefix() != "CURRENT_USER") {
+    left->set_user_ident_or_text_type(data_flag);
+  }
+
+  return true;
+}
+
+
+bool IR::set_user_type(DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kUserList);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_user_list_type(data_flag);
+    right->set_user_type(data_flag);
+  } else {
+    left->set_user_type(data_flag);
+  }
+
+
+  return true;
+}
+
+
 /*
 ** End SQLRight injected code.
 */

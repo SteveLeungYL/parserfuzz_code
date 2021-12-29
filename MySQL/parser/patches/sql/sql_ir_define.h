@@ -4600,7 +4600,9 @@ public:
     bool set_window_name_type(DATATYPE, DATAFLAG);
     bool set_collation_name_type(DATATYPE, DATAFLAG);
     bool set_charset_name_type(DATATYPE, DATAFLAG);
-    bool set_user_type(DATATYPE, DATAFLAG);
+    bool set_user_ident_or_text_type(DATAFLAG);
+    bool set_user_type(DATAFLAG);
+    bool set_user_list_type(DATAFLAG);
 };
 
 /*
