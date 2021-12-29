@@ -4582,10 +4582,10 @@ public:
 
     int uniq_id_in_tree_ = -1;
 
-    IROperator* op_;
-    IR* left_;
-    IR* right_;
-    IR* parent_;
+    IROperator* op_ = NULL;
+    IR* left_ = NULL;
+    IR* right_ = NULL;
+    IR* parent_ = NULL;
     int operand_num_;
     unsigned int mutated_times_ = 0;
 

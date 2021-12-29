@@ -679,10 +679,7 @@ unsigned long Mutator::hash(IR * root){
 
 
 void Mutator::debug(IR *root){
-    for(auto &i: data_library_[kDataFunctionName]){
-        cerr << i<< endl;
-    }
-    
+  this->debug(root, 0);
 }
 
 void Mutator::debug(IR* root, unsigned level) {

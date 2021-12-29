@@ -5149,6 +5149,12 @@ IR *IR::deep_copy() {
   copy_res->data_type_ = this->data_type_;
   copy_res->data_flag_ = this->data_flag_;
 
+  if (this->parent_) {
+    copy_res->parent_ = this->parent_;
+  } else {
+    copy_res->parent_ = NULL;
+  }
+
   return copy_res;
 }
 

@@ -788,7 +788,7 @@ bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
 }
 
 bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
-    // return is_exist_UNION_SELECT(cur_stmt) && is_exist_INTERSECT_SELECT(cur_stmt) && is_exist_EXCEPT_SELECT(cur_stmt);
+    // return is_exist_UNION_SELECT(cur_stmt) || is_exist_INTERSECT_SELECT(cur_stmt) || is_exist_EXCEPT_SELECT(cur_stmt);
     return is_exist_UNION(cur_stmt);
 }
 
