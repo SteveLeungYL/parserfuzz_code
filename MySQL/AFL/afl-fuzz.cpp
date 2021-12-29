@@ -7131,6 +7131,9 @@ static u8 fuzz_one(char **argv)
       cerr << "Just gone through pre_fix_transform, we have: \n";
       for (IR* cur_trans: all_pre_trans_vec) {
         cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+        if (cur_trans->parent_) {
+          cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+        }
       }
       cerr << "Pre-fix transform end. \n\n\n";
 
@@ -7143,6 +7146,16 @@ static u8 fuzz_one(char **argv)
           /* Do nothing. */
         }
       }
+
+
+      cerr << "Just gone through validate functions, we have: \n";
+      for (IR* cur_trans: all_pre_trans_vec) {
+        cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+        if (cur_trans->parent_) {
+          cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+        }
+      }
+      cerr << "Pre-fix transform end. \n\n\n";
 
       /* post_fix_transformation from the oracle. All deep_copied. */
       vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);

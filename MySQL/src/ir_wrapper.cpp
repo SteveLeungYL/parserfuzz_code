@@ -880,7 +880,6 @@ bool IRWrapper::is_ir_in(IR* sub_ir, IRTYPE par_type) {
 
     while (sub_ir) {
         // cerr << "Debug: in is_ir_in function, getting ir type: " << get_string_by_ir_type(sub_ir->get_ir_type()) << "\n to_string(): " << sub_ir->to_string() << "\n\n\n";
-
         // cerr << "Further outputs. \n\n\n";
 
         if (sub_ir->get_ir_type() == par_type) {

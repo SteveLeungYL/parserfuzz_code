@@ -239,9 +239,9 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
 
     IR* cur_ir_root = ir_vec_single.back();
 
-    cerr << "Just run throught the run_parser, getting: \n";
-    cerr << cur_ir_root->to_string();
-    cerr << "\nend for single stmt. \n\n\n";
+    // cerr << "Just run throught the run_parser, getting: \n";
+    // cerr << cur_ir_root->to_string();
+    // cerr << "\nend for single stmt. \n\n\n";
 
     IR* cur_stmt = ir_wrapper_2.get_first_stmt_from_root(cur_ir_root);
     v_ir_root.push_back(cur_stmt);
@@ -249,13 +249,13 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
 
   ir_root = ir_wrapper_2.reconstruct_ir_with_stmt_vec(v_ir_root);
 
-  cerr << "DEBUG: Inside run_parser_multi_stmt, getting: \n";
-  cerr << ir_root->to_string();
-  cerr << get_string_by_ir_type(ir_root->type_);
-  cerr << "\n\n\n";
+  // cerr << "DEBUG: Inside run_parser_multi_stmt, getting: \n";
+  // cerr << ir_root->to_string();
+  // cerr << get_string_by_ir_type(ir_root->type_);
+  // cerr << "\n\n\n";
 
   if (!ir_root) {
-    cerr << "IR reconstruct failed in run_parser_multi_stmt. \n\n\n";
+    // cerr << "IR reconstruct failed in run_parser_multi_stmt. \n\n\n";
     for (IR* ir_root : v_ir_root) {
       ir_root->deep_drop();
     } 
@@ -274,11 +274,11 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
     /* Double check whether root's parent is NULL.  */
     ir_vec_all_stmt.back()->parent_ = NULL; 
 
-    cerr << "Before returnning in the run_parser_multi_stmt, last check on the root\n\n\n";
-    ir_root = ir_vec_all_stmt.back();
-    cerr << ir_root->to_string();
-    cerr << get_string_by_ir_type(ir_root->type_);
-    cerr << "\n\n\n";
+    // cerr << "Before returnning in the run_parser_multi_stmt, last check on the root\n\n\n";
+    // ir_root = ir_vec_all_stmt.back();
+    // cerr << ir_root->to_string();
+    // cerr << get_string_by_ir_type(ir_root->type_);
+    // cerr << "\n\n\n";
     return 0;
   } else {
     return 1;
