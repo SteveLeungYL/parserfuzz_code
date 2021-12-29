@@ -4294,6 +4294,12 @@ V(kUnknown)
     V(DataHostName) \
     V(DataCollate) \
     V(DataCharsetName) \
+    V(DataProcedureName) \
+    V(DataServerName) \
+    V(DataWrapperName) \
+    V(DataSavePoint) \
+    V(DataGroupName) \
+    V(DataLogFileGroupName) \
     V(DataLiteral)
 
 
@@ -4605,6 +4611,9 @@ public:
     bool set_user_ident_or_text_type(DATAFLAG);
     bool set_user_type(DATAFLAG);
     bool set_user_list_type(DATAFLAG);
+    bool set_sp_name_type(DATATYPE, DATAFLAG);
+    bool set_role_type(DATAFLAG);
+    bool set_role_list_type(DATAFLAG);
 };
 
 /*
