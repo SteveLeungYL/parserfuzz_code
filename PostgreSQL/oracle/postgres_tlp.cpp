@@ -17,6 +17,10 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
+  if (!g_mutator->check_node_num(cur_stmt, 300)) {
+    return false;
+  }
+
 
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
   // vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
