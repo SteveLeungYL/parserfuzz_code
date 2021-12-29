@@ -54,6 +54,12 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
     root = ir_tree.back();
 
+    if (g_mutator->check_node_num(root, 300)) {
+      root->deep_drop();
+      root = NULL;
+      continue;
+    }
+
     IR *cur_ir_stmt = ir_wrapper.get_first_stmt_from_root(root);
 
     if (!this->is_oracle_select_stmt(cur_ir_stmt))
