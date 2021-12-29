@@ -54,7 +54,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
     root = ir_tree.back();
 
-    if (g_mutator->check_node_num(root, 300)) {
+    if (!g_mutator->check_node_num(root, 300)) {
       root->deep_drop();
       root = NULL;
       continue;
@@ -70,14 +70,14 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
     // cerr << "DEBUG: In get_random_mutated_select_stmt: getting ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n" << cur_ir_stmt->to_string() << "\n\n\n\n";
 
-    if (!g_mutator->check_node_num(root, 400)) {
-      /* The retrived norec stmt is too complicated to mutate, directly return
-       * the retrived query. */
-      IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();
-      root->deep_drop();
-      // cerr << "Directly return oracle select because it is too complicated. \n";
-      return returned_stmt_ir;
-    }
+    // if (!g_mutator->check_node_num(root, 400)) {
+    //   /* The retrived norec stmt is too complicated to mutate, directly return
+    //    * the retrived query. */
+    //   IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();
+    //   root->deep_drop();
+    //   // cerr << "Directly return oracle select because it is too complicated. \n";
+    //   return returned_stmt_ir;
+    // }
 
     /* If we are using a non template valid stmt from the p_oracle lib:
      *  2/3 of chances to return the stmt immediate without mutation.
