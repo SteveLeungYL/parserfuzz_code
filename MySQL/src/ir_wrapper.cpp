@@ -441,13 +441,13 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
 
     IR* rov_stmt = stmt_list_v[idx];
 
-    cerr << "\n\n\nBefore Removing stmt, we get root: \n";
-    debug(ir_root, 0);
-    cerr << ir_root->to_string() << "\n\n\n";
+    // cerr << "\n\n\nBefore Removing stmt, we get root: \n";
+    // debug(ir_root, 0);
+    // cerr << ir_root->to_string() << "\n\n\n";
 
-    cerr << "\n\n\nRemoving stmt: \n";
-    debug(rov_stmt, 0);
-    cerr << rov_stmt->to_string() << "\n\n\n";
+    // cerr << "\n\n\nRemoving stmt: \n";
+    // debug(rov_stmt, 0);
+    // cerr << rov_stmt->to_string() << "\n\n\n";
 
     if ( idx < stmt_list_v.size() - 1 ){
         IR* parent_node = rov_stmt->get_parent();
@@ -462,9 +462,9 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx){
         rov_stmt->deep_drop();
     }
 
-    cerr << "\n\n\nAfter Removing stmt, we get root: \n";
-    debug(ir_root, 0);
-    cerr << ir_root->to_string() << "\n\n\n";
+    // cerr << "\n\n\nAfter Removing stmt, we get root: \n";
+    // debug(ir_root, 0);
+    // cerr << ir_root->to_string() << "\n\n\n";
 
     return true;
 }

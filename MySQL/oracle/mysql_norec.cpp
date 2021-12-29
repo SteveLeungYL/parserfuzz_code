@@ -92,7 +92,17 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     return trans_IR_vec;
   }
 
+  // cerr << "Debug: in SQL_NOREC::post_fix_transform_select_stmt(), getting: \n";
+  // g_mutator->debug(cur_stmt);
+  // cerr << "Is parent? " << cur_stmt->parent_ << "\n";
+  // cerr << "End \n\n\n";
+
   IR* first_stmt = cur_stmt->deep_copy();
+
+  // cerr << "Debug: in SQL_NOREC::post_fix_transform_select_stmt(), getting: \n";
+  // g_mutator->debug(first_stmt);
+  // cerr << "Is parent? " << first_stmt->parent_ << "\n";
+  // cerr << "End \n\n\n";
 
   /* Remove the kWindowingClause, if exists.
    * These kWindowingClause are parented by kOptWindowingClause, and

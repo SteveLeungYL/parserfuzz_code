@@ -7037,12 +7037,12 @@ static u8 fuzz_one(char **argv)
   ori_ir_tree.clear();
   ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
 
-  cerr << "After removing select stmt. \n\n\n";
-  g_mutator.debug(cur_root, 0);
-  cerr << "\n\n\n";
-  cerr << cur_root->to_string();
-  cerr << "to_string finished. \n\n\n";
-  cerr << "End\n\n\n";
+  // cerr << "After removing select stmt. \n\n\n";
+  // g_mutator.debug(cur_root, 0);
+  // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
 
   cerr << "After removing select stmts. \n\n\n";
   cerr << "After initial parsing, the imported input is: \n" << ori_ir_tree.back()->to_string() << "\n\n\n";

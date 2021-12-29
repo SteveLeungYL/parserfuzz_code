@@ -1666,9 +1666,9 @@ void Mutator::add_all_to_library(string whole_query_str,
     }
     IR* cur_stmt_ir = v_cur_stmt_ir.front();
 
-    cerr << "DEBUG: In Mutator::add_all_to_library(), getting ir_tree(): \n";
-    debug(cur_stmt_ir, 0);
-    cerr << "\n\n\n";
+    // cerr << "DEBUG: In Mutator::add_all_to_library(), getting ir_tree(): \n";
+    // debug(cur_stmt_ir, 0);
+    // cerr << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
     // if (p_oracle->is_oracle_valid_stmt(current_query)) {
