@@ -142,11 +142,11 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
-    // case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
-    //   IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
-    //   trans_IR_vec.push_back(transformed_stmt);
-    // }
-    //   break;
+    case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
+      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+      trans_IR_vec.push_back(transformed_stmt);
+    }
+      break;
     case VALID_STMT_TYPE_TLP::AGGR_MAX: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
       trans_IR_vec.push_back(transformed_stmt);
@@ -426,8 +426,8 @@ void SQL_TLP::compare_results(ALL_COMP_RES &res_out) {
       /* Compare concret values */
       case VALID_STMT_TYPE_TLP::AGGR_AVG:
         [[fallthrough]];
-      case VALID_STMT_TYPE_TLP::AGGR_COUNT:
-        [[fallthrough]];
+      // case VALID_STMT_TYPE_TLP::AGGR_COUNT:
+      //   [[fallthrough]];
       case VALID_STMT_TYPE_TLP::AGGR_MAX:
         [[fallthrough]];
       case VALID_STMT_TYPE_TLP::AGGR_MIN:
@@ -790,7 +790,9 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
   if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM) {
     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_SUM_tmp_str).back();
   // } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT) {
-  //   cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
+  //   // cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
+  //   cur_stmt_inner->deep_drop();
+  //   return NULL;
   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN) {
     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MIN_tmp_str).back();
   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX) {
