@@ -1439,9 +1439,9 @@ void warn_about_deprecated_binary(THD *thd)
         TEXT_STRING_validated
         filter_wild_db_table_string
         lvalue_ident
-        schema ident_or_text
+        schema ident_or_text role_ident_or_text
 
-%type <ir> select_alias opt_ident role_ident_or_text opt_component
+%type <ir> select_alias opt_ident opt_component
         ident_or_empty opt_constraint_name ts_datafile lg_undofile /*lg_redofile*/
         opt_logfile_group_name opt_ts_datafile_name opt_describe_column
         opt_datadir_ssl default_encryption engine_or_all opt_binlog_in
@@ -5244,6 +5244,8 @@ create_role_stmt:
         res = new IR(kCreateRoleStmt, OP3("CREATE ROLE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_role_list_type(kDefine);
     }
 
 ;
@@ -5273,6 +5275,8 @@ create_resource_group_stmt:
         res = new IR(kCreateResourceGroupStmt, OP3("", "", ""), res, tmp6);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataGroupName, kDefine);
     }
 
 ;
@@ -5339,6 +5343,8 @@ create:
         res = new IR(kCreate, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataLogFileGroupName, kDefine);
     }
 
     | CREATE TABLESPACE_SYM ident opt_ts_datafile_name opt_logfile_group_name opt_tablespace_options {
@@ -5383,6 +5389,9 @@ create:
         res = new IR(kCreate, OP3("", "", ")"), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataServerName, kDefine);
+        tmp2->set_ident_type(kDataWrapperName, kUse);
     }
 
 ;
@@ -5587,6 +5596,8 @@ server_option:
         res = new IR(kServerOption, OP3("USER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataUserName, kUse);
     }
 
     | HOST_SYM TEXT_STRING_sys {
@@ -5594,6 +5605,8 @@ server_option:
         res = new IR(kServerOption, OP3("HOST", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataHostName, kUse);
     }
 
     | DATABASE TEXT_STRING_sys {
@@ -5601,6 +5614,8 @@ server_option:
         res = new IR(kServerOption, OP3("DATABASE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataDatabase, kUse);
     }
 
     | OWNER_SYM TEXT_STRING_sys {
@@ -5615,6 +5630,8 @@ server_option:
         res = new IR(kServerOption, OP3("PASSWORD", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataLiteral, kUse);
     }
 
     | SOCKET_SYM TEXT_STRING_sys {
@@ -12038,6 +12055,8 @@ alter_procedure_stmt:
         res = new IR(kAlterProcedureStmt, OP3("ALTER PROCEDURE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataProcedureName, kUse);
     }
 
 ;
@@ -12051,6 +12070,8 @@ alter_function_stmt:
         res = new IR(kAlterFunctionStmt, OP3("ALTER FUNCTION", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataFunctionName, kUse);
     }
 
 ;
@@ -12126,6 +12147,8 @@ alter_logfile_stmt:
         res = new IR(kAlterLogfileStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataLogFileGroupName, kUse);
     }
 
 ;
@@ -12212,6 +12235,8 @@ alter_server_stmt:
         res = new IR(kAlterServerStmt, OP3("ALTER SERVER", "OPTIONS (", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataServerName, kUse);
     }
 
 ;
@@ -12392,6 +12417,8 @@ alter_resource_group_stmt:
         res = new IR(kAlterResourceGroupStmt, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataGroupName, kUse);
     }
 
 ;
@@ -20654,6 +20681,9 @@ drop_function_stmt:
         res = new IR(kDropFunctionStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataDatabase, kUndefine);
+        tmp3->set_ident_type(kDataFunctionName, kUndefine);
     }
 
     | DROP FUNCTION_SYM if_exists ident {
@@ -20662,6 +20692,8 @@ drop_function_stmt:
         res = new IR(kDropFunctionStmt, OP3("DROP FUNCTION", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataFunctionName, kUndefine);
     }
 
 ;
@@ -20675,6 +20707,8 @@ drop_resource_group_stmt:
         res = new IR(kDropResourceGroupStmt, OP3("DROP RESOURCE GROUP", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataGroupName, kUse);
     }
 
 ;
@@ -20688,6 +20722,8 @@ drop_procedure_stmt:
         res = new IR(kDropProcedureStmt, OP3("DROP PROCEDURE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_sp_name_type(kDataProcedureName, kUndefine);
     }
 
 ;
@@ -20748,6 +20784,8 @@ drop_trigger_stmt:
         res = new IR(kDropTriggerStmt, OP3("DROP TRIGGER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+ 
+        tmp2->set_sp_name_type(kDataTriggerName, kUndefine);
     }
 
 ;
@@ -20791,6 +20829,8 @@ drop_logfile_stmt:
         res = new IR(kDropLogfileStmt, OP3("DROP LOGFILE GROUP", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataLogFileGroupName, kUndefine);
     }
 
 ;
@@ -20804,6 +20844,8 @@ drop_server_stmt:
         res = new IR(kDropServerStmt, OP3("DROP SERVER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataServerName, kUndefine);
     }
 
 ;
@@ -20830,6 +20872,8 @@ drop_role_stmt:
         res = new IR(kDropRoleStmt, OP3("DROP ROLE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_role_list_type(kUndefine);
     }
 
 ;
@@ -22457,6 +22501,8 @@ show_create_procedure_stmt:
         res = new IR(kShowCreateProcedureStmt, OP3("SHOW CREATE PROCEDURE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataProcedureName, kUse);
     }
 
 ;
@@ -22481,6 +22527,8 @@ show_create_trigger_stmt:
         res = new IR(kShowCreateTriggerStmt, OP3("SHOW CREATE TRIGGER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataTriggerName, kUse);
     }
 
 ;
@@ -24489,29 +24537,10 @@ ident_or_text:
         ;
 
 role_ident_or_text:
-
-    role_ident {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
-        res = new IR(kRoleIdentOrText, OP3("", "", ""), tmp1);
-        ir_vec.push_back(res); 
-        $$ = res;
-    }
-
-    | TEXT_STRING_sys {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
-        res = new IR(kRoleIdentOrText, OP3("", "", ""), tmp1);
-        ir_vec.push_back(res); 
-        $$ = res;
-    }
-
-    | LEX_HOSTNAME {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
-        res = new IR(kRoleIdentOrText, OP3("", "", ""), tmp1);
-        ir_vec.push_back(res); 
-        $$ = res;
-    }
-
-;
+          role_ident
+        | TEXT_STRING_sys
+        | LEX_HOSTNAME
+        ;
 
 
 user_ident_or_text:
@@ -24556,14 +24585,14 @@ user:
 role:
 
     role_ident_or_text {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kRole, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | role_ident_or_text '@' ident_or_text {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kRole, OP3("", "@", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -25261,7 +25290,7 @@ start_option_value_list:
         auto tmp5 = $7;
         res = new IR(kStartOptionValueList, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
-        $$ = res
+        $$ = res;
 
         tmp1->set_user_type(kUse);
     }
@@ -25290,6 +25319,8 @@ set_role_stmt:
         res = new IR(kSetRoleStmt, OP3("SET ROLE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_role_list_type(kUse);
     }
 
     | SET_SYM ROLE_SYM NONE_SYM {
@@ -25310,6 +25341,9 @@ set_role_stmt:
         res = new IR(kSetRoleStmt, OP3("SET DEFAULT ROLE", "TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_role_list_type(kUse);
+        tmp2->set_role_list_type(kUse);
     }
 
     | SET_SYM DEFAULT_SYM ROLE_SYM NONE_SYM TO_SYM role_list {
@@ -25317,6 +25351,8 @@ set_role_stmt:
         res = new IR(kSetRoleStmt, OP3("SET DEFAULT ROLE NONE TO", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_role_list_type(kUse);
     }
 
     | SET_SYM DEFAULT_SYM ROLE_SYM ALL TO_SYM role_list {
@@ -25324,6 +25360,8 @@ set_role_stmt:
         res = new IR(kSetRoleStmt, OP3("SET DEFAULT ROLE ALL TO", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_role_list_type(kUse);
     }
 
     | SET_SYM ROLE_SYM ALL opt_except_role_list {
@@ -25349,6 +25387,8 @@ opt_except_role_list:
         res = new IR(kOptExceptRoleList, OP3("EXCEPT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_role_list_type(kUse);
     }
 
 ;
@@ -25361,6 +25401,8 @@ set_resource_group_stmt:
         res = new IR(kSetResourceGroupStmt, OP3("SET RESOURCE GROUP", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataGroupName, kUse);
     }
 
     | SET_SYM RESOURCE_SYM GROUP_SYM ident FOR_SYM thread_id_list_options {
@@ -25369,6 +25411,8 @@ set_resource_group_stmt:
         res = new IR(kSetResourceGroupStmt, OP3("SET RESOURCE GROUP", "FOR", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataGroupName, kUse);
     }
 
 ;
@@ -26537,7 +26581,7 @@ role_or_privilege_list:
 role_or_privilege:
 
     role_ident_or_text opt_column_list {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         auto tmp2 = $2;
         res = new IR(kRoleOrPrivilege, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -26545,7 +26589,7 @@ role_or_privilege:
     }
 
     | role_ident_or_text '@' ident_or_text {
-        auto tmp1 = $1;
+        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         res = new IR(kRoleOrPrivilege, OP3("", "@", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
@@ -27786,6 +27830,8 @@ rollback:
         res = new IR(kRollback, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp3->set_ident_type(kDataSavePoint, kUse);
     }
 
 ;
@@ -27798,6 +27844,8 @@ savepoint:
         res = new IR(kSavepoint, OP3("SAVEPOINT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+        
+        tmp1->set_ident_type(kDataSavePoint, kDefine);
     }
 
 ;
@@ -27810,6 +27858,8 @@ release:
         res = new IR(kRelease, OP3("RELEASE SAVEPOINT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+        
+        tmp1->set_ident_type(kDataSavePoint, kUndefine);
     }
 
 ;

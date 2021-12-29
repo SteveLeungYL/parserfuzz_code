@@ -5488,6 +5488,54 @@ bool IR::set_user_list_type(DATAFLAG data_flag) {
 }
 
 
+bool IR::set_sp_name_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kSpName);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_ident_type(kDataDatabase, data_flag);
+    right->set_ident_type(data_type, data_flag);
+  } else {
+    left->set_ident_type(data_type, data_flag);
+  }
+
+
+  return true;
+}
+
+
+bool IR::set_role_type(DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kRole);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_ident_type(kDataHostName, data_flag);
+    right->set_ident_type(kDataRoleName, data_flag);
+  } else {
+    left->set_table_ident_type(kDataRoleName, data_flag);
+  }
+
+  return true;
+}
+
+bool IR::set_role_list_type(DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kRoleList);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_role_list_type(data_flag);
+    right->set_role_type(data_flag);
+  } else {
+    left->set_role_type(data_flag);
+  }
+
+
+  return true;
+}
+
 /*
 ** End SQLRight injected code.
 */
