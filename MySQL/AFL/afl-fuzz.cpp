@@ -413,7 +413,7 @@ public:
     //cout << "connect succeed!" << endl;
 
     string cmd_str = cmd;
-    cmd_str += " ; SELECT 'Hahaha'; ";
+    // cmd_str += " ; SELECT 'Hahaha'; ";
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
