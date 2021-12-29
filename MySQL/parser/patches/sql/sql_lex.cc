@@ -5244,7 +5244,7 @@ IR* IR::get_parent() {
 bool IR::detatch_node(IR *node) { return swap_node(node, NULL); }
 
 bool IR::update_left(IR* new_left) {
-  if (!new_left) return false;
+  // if (!new_left) return false;
 
   this->left_ = new_left;
   if (new_left)
@@ -5254,7 +5254,7 @@ bool IR::update_left(IR* new_left) {
 }
 
 bool IR::update_right(IR* new_right) {
-  if (!new_right) return false;
+  // if (!new_right) return false;
 
   this->right_ = new_right;
   if (new_right)
