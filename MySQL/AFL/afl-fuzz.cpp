@@ -200,26 +200,36 @@ public:
   {
     string dbname;
 
-    if (mysql_init(&m_) == NULL)
-      return false;
+    m_ = mysql_init(m_);
 
-    dbname = "test" + std::to_string(database_id);
-    if (mysql_real_connect(&m_, host_, "root", "", dbname.c_str(), bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (m_ == NULL) {
+      // cerr << "mysql init failed. returned. \n";
+      // mysql_close(&m_);
+      return false;
+    }
+
+    dbname = "test1";
+    if (mysql_real_connect(m_, host_, "root", "", dbname.c_str(), bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
     {
-      fprintf(stderr, "Connection error1 \n");
-      std::cerr << mysql_errno(&m_) << "\n\n";
-      std::cerr << mysql_errno(&m_) << "\n\n";
+      fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
       counter_++;
       return false;
     }
+    
+    // string cmd = "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id) + "; USE test" + std::to_string(database_id) + "; SELECT 'Successful'; ";
+    // mysql_real_query(m_, cmd.c_str(), cmd.size());
+    // cerr << "Fix_database results connect: "  << retrieve_query_results(m_) << "\n\n\n";
 
+    // mysql_close(m_);
+    
     return true;
   }
 
   void disconnect()
   {
-    mysql_close(&m_);
+    mysql_close(m_);
+    m_ = NULL;
   }
 
   bool fix_database()
@@ -232,33 +242,35 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", 0, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
       return false;
     }
-    string cmd = "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id) + ";";
+    string cmd = "CREATE DATABASE IF NOT EXISTS test1; USE test1; SELECT 'Successful'; ";
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+    cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
+
     mysql_close(&tmp_m);
     std::cout << "Fix database successful. \n\n\n";
     sleep(1);
     return true;
   }
 
-  SQLSTATUS clean_up_connection(MYSQL &mm)
+  SQLSTATUS clean_up_connection(MYSQL *mm)
   {
     int res = -1;
     do
     {
-      auto q_result = mysql_store_result(&mm);
+      auto q_result = mysql_store_result(mm);
       if (q_result)
         mysql_free_result(q_result);
-    } while ((res = mysql_next_result(&mm)) == 0);
+    } while ((res = mysql_next_result(mm)) == 0);
 
     if (res != -1)
     {
-      if (mysql_errno(&mm) == 1064)
+      if (mysql_errno(mm) == 1064)
       {
         return kSyntaxError;
       }
@@ -283,53 +295,6 @@ public:
     {
       return "off";
     }
-  }
-
-  string get_optimization_string(bool is_random, bool is_default, bool is_all_on)
-  {
-    string optimization_cmd = "use test" + std::to_string(database_id) + "; \n";
-
-    vector<string> optimizer_name = {"batched_key_access", "block_nested_loop",
-                                     "condition_fanout_filter", "derived_merge", "engine_condition_pushdown",
-                                     "index_condition_pushdown", "use_index_extensions", "index_merge",
-                                     "index_merge_intersection", "index_merge_sort_union", "index_merge_union",
-                                     "use_invisible_indexes", "mrr", "mrr_cost_based",
-                                     "duplicateweedout", "firstmatch", "loosescan", "semijoin", "skip_scan",
-                                     "materialization", "subquery_materialization_cost_based", "apply_index"};
-
-    // optimizer_name.push_back("subquery_to_derived");
-    // optimizer_name.push_back("prefer_ordering_index");
-    // optimizer_name.push_back("hash_join");
-
-    if (is_random)
-    {
-      for (string &inserted_opt : optimizer_name)
-      {
-        optimization_cmd += "SET optimizer_switch='";
-        optimization_cmd += inserted_opt + "=" + get_rand_on_off_string();
-        optimization_cmd += "';\n";
-      }
-    }
-    else if (is_default)
-    {
-      optimization_cmd += "SET optimizer_switch='";
-      optimization_cmd += "default";
-      optimization_cmd += "';\n";
-      optimization_cmd += "SET optimizer_switch='apply_index=on';\n";
-    }
-    else
-    {
-      for (string &inserted_opt : optimizer_name)
-      {
-        optimization_cmd += "SET optimizer_switch='";
-        if (is_all_on)
-          optimization_cmd += inserted_opt + "=on";
-        else
-          optimization_cmd += inserted_opt + "=off";
-        optimization_cmd += "';\n";
-      }
-    }
-    return optimization_cmd;
   }
 
   int retrieve_query_results_count(MYSQL &m_)
@@ -358,7 +323,7 @@ public:
     return result_count;
   }
 
-  string retrieve_query_results(MYSQL &m_)
+  string retrieve_query_results(MYSQL* m_)
   {
     MYSQL_ROW row;
     // string result_string = ""
@@ -368,7 +333,8 @@ public:
     do
     {
       /* did current statement return data? */
-      result = mysql_store_result(&m_);
+      result = mysql_store_result(m_);
+      // cerr << "is result empty? " << result << "\n\n\n";
       if (result)
       {
         /* yes; process rows and free the result set */
@@ -376,6 +342,7 @@ public:
         {
           for (int i = 0; i < mysql_num_fields(result); i++)
           {
+            // cerr << "Getting row: " << row[i] << "\n\n\n";
             result_string_stream << row[i];
           }
         }
@@ -383,18 +350,29 @@ public:
       else /* no result set or error */
       {
         // cerr << "No results get!\n";
-        if (mysql_field_count(&m_) != 0)
+        if (mysql_field_count(m_) == 0)
         {
-          cerr << "Could not retrieve result set\n";
-          break;
+          // printf("%lld rows affected\n", mysql_affected_rows(m_));
+        } else if (mysql_field_count(m_) != 0) {
+          // cerr << "Could not retrieve result set\n";
+          // break;
         }
       }
       /* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
-      if ((status = mysql_next_result(&m_)) > 0)
+      if ((status = mysql_next_result(m_)) > 0) {
+        // cerr << "Could not execute statement. \n\n\n";
+        // break;
+      }
+      if ((status = mysql_next_result(m_)) == -1) {
+        // cerr << "No more results. \n\n\n";
         break;
+      }
       // cerr << "Could not execute statement\n";
     } while (status == 0);
 
+    cerr << "DEBUG: Result string: \n\n\n";
+    cerr << result_string_stream.str();
+    cerr << "\n\n\n";
     return result_string_stream.str();
   }
 
@@ -409,517 +387,12 @@ public:
     return split_string;
   }
 
-  string rewrite_query_by_No_Rec(string query)
-  {
-    // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
-
-    while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
-    { // Delete duplicated whitespace at the beginning.
-      query = query.substr(1, query.size() - 1);
-    }
-
-    size_t select_position = 0;
-    size_t from_position = -1;
-    size_t where_position = -1;
-    size_t group_by_position = -1;
-    size_t order_by_position = -1;
-
-    vector<size_t> op_lp_v;
-    vector<size_t> op_rp_v;
-
-    size_t tmp1 = 0, tmp2 = 0;
-    while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos)
-    {
-      op_lp_v.push_back(tmp1);
-      tmp1++;
-      if (tmp1 == query.size())
-      {
-        break;
-      }
-    }
-    while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos)
-    {
-      op_rp_v.push_back(tmp2);
-      tmp2++;
-      if (tmp2 == query.size())
-      {
-        break;
-      }
-    }
-
-    if (op_lp_v.size() != op_rp_v.size())
-    { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-      op_lp_v.clear();
-      op_rp_v.clear();
-    }
-
-    for (int i = 0; i < op_lp_v.size(); i++)
-    { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-      if (op_lp_v[i] > op_rp_v[i])
-      {
-        op_lp_v.clear();
-        op_rp_v.clear();
-      }
-    }
-
-    tmp1 = -1;
-    tmp2 = -1;
-
-    tmp1 = query.find("SELECT", 0); // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
-    tmp2 = query.find("select", 0);
-    if (tmp1 != string::npos)
-    {
-      select_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 < tmp1)
-    {
-      select_position = tmp2;
-    }
-
-    tmp1 = 0;
-    tmp2 = 0;
-    from_position = -1;
-
-    do
-    {
-      if (tmp1 != string::npos)
-        tmp1 = query.find("FROM", tmp1 + 4);
-      if (tmp2 != string::npos)
-        tmp2 = query.find("from", tmp2 + 4);
-
-      if (tmp1 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          from_position = tmp1;
-          break; // from_position is found. Break the outter do...while loop.
-        }
-      }
-
-      if (tmp2 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          from_position = tmp2;
-          break; // from_position is found. Break the outter do...while loop.
-        }
-      }
-
-    } while (tmp1 != string::npos || tmp2 != string::npos);
-
-    tmp1 = 0;
-    tmp2 = 0;
-    where_position = -1;
-
-    do
-    {
-      if (tmp1 != string::npos)
-        tmp1 = query.find("WHERE", tmp1 + 5);
-      if (tmp2 != string::npos)
-        tmp2 = query.find("where", tmp2 + 5);
-
-      if (tmp1 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          where_position = tmp1;
-          break; // where_position is found. Break the outter do...while loop.
-        }
-      }
-
-      if (tmp2 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          where_position = tmp2;
-          break; // where_position is found. Break the outter do...while loop.
-        }
-      }
-
-    } while (tmp1 != string::npos || tmp2 != string::npos);
-
-    /*** Taking care of GROUP BY stmt.   ***/
-    tmp1 = -1, tmp2 = -1;
-    size_t tmp = 0;
-    while ((tmp = query.find("GROUP BY", tmp + 8)) &&
-          (tmp != string::npos)  )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp1 = tmp;
-      }
-    } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-
-    tmp = -8;
-    while ((tmp = query.find("group by", tmp+8)) &&
-          (tmp != string::npos)   )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp2 = tmp;
-      }
-    } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-    if (tmp1 != string::npos)
-    {
-      group_by_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 > tmp1)
-    {
-      group_by_position = tmp2;
-    }
-
-    /*** Taking care of ORDER BY stmt.   ***/
-    tmp1 = -1, tmp2 = -1;
-    tmp = -8;
-    while ((tmp = query.find("ORDER BY", tmp + 8)) && 
-          (tmp != string::npos) )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp1 = tmp;
-      }
-    } // The last ORDER BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-    tmp = -8;
-    while ((tmp = query.find("order by", tmp+8))  && 
-          (tmp != string::npos)  )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp2 = tmp;
-      }
-    } // The last order by statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-    if (tmp1 != string::npos)
-    {
-      order_by_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 > tmp1)
-    {
-      order_by_position = tmp2;
-    }
-
-    size_t extra_stmt_position = -1;
-    if (group_by_position != string::npos && order_by_position != string::npos)
-      extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position );
-    else if (group_by_position != string::npos)
-      extra_stmt_position = group_by_position;
-    else if (order_by_position != string::npos)
-      extra_stmt_position = order_by_position;
-
-
-    string before_select_stmt;
-    string select_stmt;
-    string from_stmt;
-    string where_stmt;
-    string extra_stmt;
-
-    before_select_stmt = query.substr(0, select_position - 0);
-
-    select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
-
-    if (from_position == -1)
-      from_stmt = "";
-    else
-      from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
-
-    if (where_position == -1)
-      where_stmt = "";
-    else if (extra_stmt_position == -1)
-      where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
-    else
-      where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
-
-    if (extra_stmt_position == -1)
-      extra_stmt = "";
-    else
-      extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
-
-    if (select_stmt.find('*') != string::npos)
-      select_stmt = "";
-
-    string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
-    if (select_stmt != "" && select_stmt != " ")
-    {
-      rewrited_string += "  AND  " + select_stmt;
-    }
-    rewrited_string += " ) != 0) ";
-    if (from_stmt != "")
-    {
-      rewrited_string += " FROM " + from_stmt;
-    }
-
-    if (extra_stmt != "")
-    {
-      rewrited_string += extra_stmt;
-    }
-
-    // The ";" is being taken care of after returnning from the rewrite function
-    return rewrited_string;
-  }
-
-  SQLSTATUS execute_No_Rec(char *cmd)
-  {
-    auto conn = connect();
-
-    if (!conn)
-    {
-      string previous_inputs = "";
-      for (auto i : g_previous_input)
-        previous_inputs += string(i) + "\n\n";
-      previous_inputs += "-------------\n\n";
-      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());
-    }
-
-    int retry_time = 0;
-    while (!conn)
-    {
-      //cout << "reconnecting..." << endl;
-      sleep(5);
-      conn = connect();
-      if (!conn)
-        fix_database();
-    }
-    //cout << "connect succeed!" << endl;
-    //cerr << "Trying to execute " << cmd << endl;
-
-    int optimized_result = 0;
-    int unoptimized_result = 0;
-    string unoptimized_result_string = "";
-
-    bool is_skip_no_rec = true;
-
-    SQLSTATUS res = kNormal;
-
-    /* Unoptimized */
-    reset_database();
-
-    string optimization_cmd = get_optimization_string(false, true, true);
-    int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    auto correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    string optimized_cmd_string = cmd;
-    string unoptimized_cmd_string = "";
-    vector<string> queries_vector = string_splitter(optimized_cmd_string, ";");
-
-    for (string &query : queries_vector)
-    {
-      if (
-          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
-          ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&
-          ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)
-          )
-      {
-        unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
-        is_skip_no_rec = false;
-      }
-      else
-        unoptimized_cmd_string += query + "; \n";
-    }
-
-    if (!is_skip_no_rec)
-    {
-
-      unoptimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + unoptimized_cmd_string;
-      server_response = mysql_real_query(&m_, unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
-      unoptimized_result = atoi(retrieve_query_results(m_).c_str());
-      // for (auto it = unoptimized_result_string.begin(); it != unoptimized_result_string.end(); it++)
-      // {
-      //   if (*it == '1')
-      //     unoptimized_result++;
-      // }
-      correctness = clean_up_connection(m_);
-
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-      {
-        disconnect();
-        return kServerCrash;
-      }
-
-      res = kNormal;
-#ifdef COUNT_ERROR
-      res = correctness;
-#endif
-      auto check_res = check_server_alive();
-      if (check_res == false)
-      {
-        disconnect();
-        sleep(2); // waiting for server to be up again
-        return kServerCrash;
-      }
-
-      reset_database();
-
-      /* Optimized */
-
-      optimization_cmd = get_optimization_string(false, true, true);
-      server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-      correctness = clean_up_connection(m_);
-
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-      {
-        cerr << "Optimization command error. \n\n";
-        disconnect();
-        return kServerCrash;
-      }
-
-      optimized_cmd_string = cmd;
-      optimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimized_cmd_string;
-      server_response = mysql_real_query(&m_, optimized_cmd_string.c_str(), optimized_cmd_string.size());
-      optimized_result = retrieve_query_results_count(m_);
-      correctness = clean_up_connection(m_);
-
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-      {
-        disconnect();
-        return kServerCrash;
-      }
-
-      auto res = kNormal;
-#ifdef COUNT_ERROR
-      res = correctness;
-#endif
-      check_res = check_server_alive();
-      if (check_res == false)
-      {
-        disconnect();
-        sleep(2); // waiting for server to be up again
-        return kServerCrash;
-      }
-
-      reset_database();
-    }
-
-    cerr << "Currently running: (DEBUG): \n";
-    cerr << "Optimized_cmd_string: \n"
-         << optimized_cmd_string << "\n";
-    cerr << "Unoptimized_cmd_string: \n"
-         << unoptimized_cmd_string << "\n";
-
-    if (optimized_result != unoptimized_result && !is_skip_no_rec)
-    {
-      cerr << "\n\n\n-------------------------------------------\n";
-      cerr << "Result unmatched! \n";
-      cerr << "Optimized cmd: \n";
-      cerr << optimized_cmd_string << "\n";
-      cerr << "Optimized results: \n";
-      cerr << optimized_result << "\n";
-      cerr << "Unoptimized cmd: \n";
-      cerr << unoptimized_cmd_string << "\n";
-      cerr << "Unoptimized results: \n";
-      cerr << unoptimized_result << "\n\n\n\n";
-
-      ofstream outputfile;
-      // string bug_output_dir = (char*)out_dir;
-      string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
-      cerr << "Bug output dir is: " << bug_output_dir << endl;
-      outputfile.open(bug_output_dir);
-      outputfile << "Optimized cmd: \n";
-      outputfile << optimized_cmd_string << "\n";
-      outputfile << "Unoptimized cmd: \n";
-      outputfile << unoptimized_cmd_string << "\n";
-
-      outputfile.close();
-      bug_output_id++;
-    }
-    else if (!is_skip_no_rec)
-    {
-      cerr << "P";
-    }
-    else
-    {
-      cerr << "C";
-    }
-
-    unoptimized_result_string.clear();
-    optimized_cmd_string.clear();
-    unoptimized_cmd_string.clear();
-    queries_vector.clear();
-
-    counter_++;
-    disconnect();
-    return res;
-  }
-
   SQLSTATUS execute(const char *cmd, string& res_str)
   {
     // fix_database();
-    auto conn = connect();
-
     reset_database();
+
+    auto conn = connect();
 
     if(!conn){
       string previous_inputs = "";
@@ -937,8 +410,8 @@ public:
         fix_database();
     }
     //cout << "connect succeed!" << endl;
-    //cerr << "Trying to execute " << cmd << endl;
-    int server_response = mysql_real_query(&m_, cmd, strlen(cmd));
+    string cmd_str = cmd;
+    int server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
     res_str = retrieve_query_results(m_);
 
     auto correctness = clean_up_connection(m_);
@@ -970,253 +443,6 @@ public:
     disconnect();
     return res;
 
-/* Another implementation of the NoREC oracle.  */
-//     fix_database(); // Fix the connection error1 misleading output.
-//     auto conn = connect();
-
-//     if (!conn)
-//     {
-//       string previous_inputs = "";
-//       for (auto i : g_previous_input)
-//         previous_inputs += string(i) + "\n\n";
-//       previous_inputs += "-------------\n\n";
-//       write(crash_fd, previous_inputs.c_str(), previous_inputs.size());
-//     }
-
-//     int retry_time = 0;
-//     while (!conn)
-//     {
-//       //cout << "reconnecting..." << endl;
-//       sleep(5);
-//       conn = connect();
-//       if (!conn)
-//         fix_database();
-//     }
-//     //cout << "connect succeed!" << endl;
-//     //cerr << "Trying to execute " << cmd << endl;
-
-//     string all_optimization_results_string = "";
-//     string random_optimization_results_string = "";
-//     string default_optimization_results_string = "";
-//     string none_optimization_results_string = "";
-
-//     /* All optimization cmd */
-
-//     reset_database();
-
-//     string optimization_cmd;
-//     string cmd_string;
-
-//     optimization_cmd = get_optimization_string(false, false, true);
-//     int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-//     auto correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       cerr << "Optimization command error. \n\n";
-//       disconnect();
-//       return kServerCrash;
-//     }
-//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-//     all_optimization_results_string = retrieve_query_results(m_);
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     auto res = kNormal;
-// #ifdef COUNT_ERROR
-//     res = correctness;
-// #endif
-//     auto check_res = check_server_alive();
-//     if (check_res == false)
-//     {
-//       disconnect();
-//       sleep(2); // waiting for server to be up again
-//       return kServerCrash;
-//     }
-
-//     reset_database();
-
-//     /* Random Optimization CMD */
-//     optimization_cmd = get_optimization_string(true, false, false);
-//     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       cerr << "Optimization command error. \n\n";
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-//     random_optimization_results_string = retrieve_query_results(m_);
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     res = kNormal;
-// #ifdef COUNT_ERROR
-//     res = correctness;
-// #endif
-//     check_res = check_server_alive();
-//     if (check_res == false)
-//     {
-//       disconnect();
-//       sleep(2); // waiting for server to be up again
-//       return kServerCrash;
-//     }
-
-//     reset_database();
-
-//     /* Default optimization cmd */
-//     optimization_cmd = get_optimization_string(false, true, false);
-//     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       cerr << "Optimization command error. \n\n";
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-//     default_optimization_results_string = retrieve_query_results(m_);
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     res = kNormal;
-// #ifdef COUNT_ERROR
-//     res = correctness;
-// #endif
-//     check_res = check_server_alive();
-//     if (check_res == false)
-//     {
-//       disconnect();
-//       sleep(2); // waiting for server to be up again
-//       return kServerCrash;
-//     }
-//     reset_database();
-
-//     /* None optimization cmd */
-//     optimization_cmd = get_optimization_string(false, false, false); // is_random, is_default, is_all_on.
-//     server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       cerr << "Optimization command error. \n\n";
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-//     server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-//     none_optimization_results_string = retrieve_query_results(m_);
-//     correctness = clean_up_connection(m_);
-
-//     if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-//     {
-//       disconnect();
-//       return kServerCrash;
-//     }
-
-//     res = kNormal;
-// #ifdef COUNT_ERROR
-//     res = correctness;
-// #endif
-//     check_res = check_server_alive();
-//     if (check_res == false)
-//     {
-//       disconnect();
-//       sleep(2); // waiting for server to be up again
-//       return kServerCrash;
-//     }
-//     reset_database();
-
-//     if (all_optimization_results_string != random_optimization_results_string || all_optimization_results_string != none_optimization_results_string || all_optimization_results_string != default_optimization_results_string)
-//     {
-//       cerr << "--------------------------------------------\n";
-//       cerr << "Results not matched!!!!!!!!!!\n";
-//       cerr << "Query: \n";
-//       cerr << cmd << "\n";
-//       cerr << "All_optimization_Results_string: \n";
-//       cerr << all_optimization_results_string;
-//       cerr << "\nRandom_optimization_Results_string: \n";
-//       cerr << random_optimization_results_string;
-//       cerr << "\nDefault_optimization_Results_string: \n";
-//       cerr << default_optimization_results_string;
-//       cerr << "\nNone_optimization_Results_string: \n";
-//       cerr << none_optimization_results_string << "\n";
-//       cerr << "\n\n\n";
-//     }
-//     else if (all_optimization_results_string != "")
-//     {
-//       // // // else {
-//       cerr << "--------------------------------------------\n";
-//       cerr << "Results matched: \n";
-//       // cerr << "Query: \n";
-//       // cerr << cmd_string << "\n";
-//       // cerr << "All_optimization_Results_string: \n";
-//       // cerr << all_optimization_results_string;
-//       // cerr << "\nRandom_optimization_Results_string: \n";
-//       // cerr << random_optimization_results_string;
-//       // cerr << "\nDefault_optimization_Results_string: \n";
-//       // cerr << default_optimization_results_string;
-//       // cerr << "\nNone_optimization_Results_string: \n";
-//       // cerr << none_optimization_results_string << "\n";
-//       // cerr << "Random Optimization options: \n";
-//       // cerr << random_optimization_cmd;
-//       // cerr << "\n\n\n";
-//     }
-//     else
-//     {
-//       cerr << "--------------------------------------------\n";
-//       cerr << "Query not making sense.\n";
-//       // cerr << "Query: \n";
-//       // cerr << cmd_string << "\n";
-//       // cerr << "All_optimization_Results_string: \n";
-//       // cerr << all_optimization_results_string;
-//       // cerr << "\nRandom_optimization_Results_string: \n";
-//       // cerr << random_optimization_results_string;
-//       // cerr << "\nDefault_optimization_Results_string: \n";
-//       // cerr << default_optimization_results_string;
-//       // cerr << "\nNone_optimization_Results_string: \n";
-//       // cerr << none_optimization_results_string << "\n";
-//       // cerr << "Random Optimization options: \n";
-//       // cerr << random_optimization_cmd;
-//       // cerr << "\n\n\n";
-//     }
-
-//     optimization_cmd.clear();
-//     // random_optimization_cmd.clear();
-//     cmd_string.clear();
-
-//     all_optimization_results_string.clear();
-//     random_optimization_results_string.clear();
-//     default_optimization_results_string.clear();
-//     none_optimization_results_string.clear();
-
-//     counter_++;
-//     disconnect();
-//     return res;
   }
 
   bool check_server_alive()
@@ -1228,7 +454,7 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", 0, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error2 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -1240,15 +466,27 @@ public:
 
   int reset_database()
   {
-    int server_response;
+    MYSQL tmp_m;
 
-    string reset_query = "DROP DATABASE IF EXISTS test" + std::to_string(database_id) + ";";
-    reset_query += "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id + 1) + ";";
+    database_id += 1;
+    if (mysql_init(&tmp_m) == NULL)
+    {
+      mysql_close(&tmp_m);
+      return 0;
+    }
+    if (mysql_real_connect(&tmp_m, host_, "root", "", "test1", bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    {
+      fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
+      mysql_close(&tmp_m);
+      return 0;
+    }
+    string cmd = "DROP DATABASE IF EXISTS test1; CREATE DATABASE IF NOT EXISTS test1; USE test1; SELECT 'Successful'; ";
+    mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+    // cerr << "Reset database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
-    auto tmp_res = mysql_real_query(&m_, reset_query.c_str(), reset_query.size());
-    database_id++;
-
-    return server_response;
+    mysql_close(&tmp_m);
+    // std::cout << "Reset database successful. \n\n\n";
+    return 1;
   }
 
   char *get_next_database_name()
@@ -1261,7 +499,7 @@ public:
 
 private:
   unsigned int database_id = 1;
-  MYSQL m_;
+  MYSQL* m_;
   char *host_;
   //string db_name_;
   char *user_name_;
@@ -8907,6 +8145,7 @@ int main(int argc, char *argv[])
     load_map_id();
   }
 
+  g_mysqlclient.fix_database(); // Fix the connection error1 misleading output.
   g_mysqlclient.fix_database(); // Fix the connection error1 misleading output.
 
   //char* tmp_argv[] = {g_server_path, NULL};
