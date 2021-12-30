@@ -279,6 +279,11 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
     // cerr << ir_root->to_string();
     // cerr << get_string_by_ir_type(ir_root->type_);
     // cerr << "\n\n\n";
+
+    for (IR* ir_root : v_ir_root) {
+      ir_root->deep_drop();
+    } 
+
     return 0;
   } else {
     return 1;
