@@ -21,6 +21,14 @@ enum RELATIONTYPE{
     kRelationAlias,
 };
 
+enum COLTYPE {
+  UNKNOWN_T,
+  INT_T,
+  FLOAT_T,
+  BOOLEAN_T,
+  STRING_T
+};
+
 enum STMT_TYPE {
   NOT_ORACLE = 0,
   ORACLE_SELECT = 1,
@@ -208,7 +216,38 @@ public:
     void add_to_library(IR *, string &);
     void add_to_library_core(IR *, string *);
 
+    /* Info used by validate function. */
 
+    set<IR *> Mutator::visited;                                  // Already validated/fixed node. Avoid multiple fixing.
+    map<string, vector<string>> Mutator::m_tables;               // Table name to column name mapping.
+    map<string, vector<string>> Mutator::m_table2index;          // Table name to index mapping.
+    vector<string> Mutator::v_table_names;                       // All saved table names
+    vector<string> Mutator::v_table_names_single;                // All used table names in one query statement.
+    vector<string> Mutator::v_create_table_names_single;         // All table names just created in the current stmt.
+    vector<string> Mutator::v_alias_names_single;                // All alias name local to one query statement.
+    map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping.
+    map<string, COLTYPE> Mutator::m_column2datatype;             // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_.
+    vector<string> Mutator::v_column_names_single;               // All used column names in one query statement. Used to confirm literal type.
+    vector<string> Mutator::v_table_name_follow_single;          // All used table names follow type in one query stmt.
+    vector<string> Mutator::v_statistics_name;                   // All statistic names defined in the current stmt.
+    vector<string> Mutator::v_sequence_name;                     // All sequence names defined in the current SQL.
+    vector<string> Mutator::v_view_name;                         // All saved view names.
+    vector<string> Mutator::v_constraint_name;                   // All constraint names defined in the current SQL.
+    vector<string> Mutator::v_foreign_table_name;                // All foreign table names defined inthe current SQL.
+    vector<string> Mutator::v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
+
+    // map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
+    vector<string> Mutator::v_sys_column_name;
+    vector<string> Mutator::v_sys_catalogs_name;
+
+    vector<string> Mutator::v_aggregate_func;
+    vector<string> Mutator::v_table_with_partition_name;
+
+    vector<string> Mutator::v_saved_reloption_str;
+
+    vector<int> Mutator::v_int_literals;
+    vector<double> Mutator::v_float_literals;
+    vector<string> Mutator::v_string_literals;
 };
 
 

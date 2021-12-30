@@ -5552,6 +5552,21 @@ IR* IR::where_clause_get_expr() {
   return NULL;
 }
 
+std::string IR::get_str_val() {
+  return this->str_val_;
+}
+
+void IR::set_str_val(std::string in) {
+  this->str_val_ = in;
+  return;
+}
+
+bool set_type(DATATYPE, DATAFLAG) {
+  this->set_data_type(data_type);
+  this->set_data_flag(data_flag);
+  return true;
+}
+
 /*
 ** End SQLRight injected code.
 */

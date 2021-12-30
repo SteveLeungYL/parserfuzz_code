@@ -17,9 +17,13 @@ static inline void reset_id_counter(){
     g_id_counter = 0;
 }
 
-static string gen_id_name(){
-    return "v" + to_string(g_id_counter++);
-}
+static string gen_id_name() { return "v" + to_string(g_id_counter++); }
+static string gen_view_name() {return "view" + to_string(g_id_counter++);}
+static string gen_column_name() {return "c" + to_string(g_id_counter++); }
+static string gen_index_name() {return "i" + to_string(g_id_counter++); }
+static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
+static string gen_statistic_name() {return "stat" + to_string(g_id_counter++);}
+static string gen_sequence_name() {return "seq" + to_string(g_id_counter++);}
 
 enum UnionType{
     kUnionUnknown = 0,
