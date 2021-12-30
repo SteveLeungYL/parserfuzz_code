@@ -2947,7 +2947,7 @@ BEGIN:
 
   std::chrono::duration<double> exec_used_time = exec_end - exec_start;
 
-  cout << "For execuing entry: " << current_entry << ", used time: " << exec_used_time.count() << ". \n\n\n";
+  // cerr << "For execuing entry: " << current_entry << ", used time: " << exec_used_time.count() << ". \n\n\n";
 
 
   // cerr << "After running in run_target(), getting result.status" << result.status << "\n";
@@ -6202,7 +6202,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
     // cout << "get_oracle_select_stmt trial times: " << trial << endl;
     IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
-      cerr << "new_norec_stmts is empty. \n";
+      // cerr << "new_norec_stmts is empty. \n";
       continue;
     }
     // ensure_semicolon_at_query_end(new_norec_stmts);
@@ -6584,7 +6584,7 @@ static u8 fuzz_one(char **argv)
     auto single_mutation_end_time = std::chrono::system_clock::now();
     std::chrono::duration<double> single_mutation_used_time = single_mutation_end_time - single_mutation_start_time;
 
-    cout << "\n\nFor single mutation of seed: " << queue_cur->fname << ", used time: " << single_mutation_used_time.count() << ". \n\n\n";
+    // cerr << "\n\nFor single mutation of seed: " << queue_cur->fname << ", used time: " << single_mutation_used_time.count() << ". \n\n\n";
 
     for (IR* mutated_ir_root : v_mutated_ir_root) {
       mutated_ir_root->deep_drop();
@@ -6639,7 +6639,7 @@ abandon_entry:
   auto fuzz_one_end_time = std::chrono::system_clock::now();
   std::chrono::duration<double> fuzz_one_used_time = fuzz_one_end_time - fuzz_one_start_time;
 
-  cout << "\n\nFor total fuzz_one of seed: " << queue_cur->fname << ", used time: " << fuzz_one_used_time.count() << ". \n\n\n";
+  // cerr << "\n\nFor total fuzz_one of seed: " << queue_cur->fname << ", used time: " << fuzz_one_used_time.count() << ". \n\n\n";
 
   return ret_val;
 }
