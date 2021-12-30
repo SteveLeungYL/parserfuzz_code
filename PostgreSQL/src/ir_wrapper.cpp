@@ -433,7 +433,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     app_IR_node = new IR(kStmt, OP0(), app_IR_node);
 
     if (idx <= stmt_list_v.size()) {
-        IR* insert_pos_ir = stmt_list_v[idx-1];
+        IR* insert_pos_ir = stmt_list_v[idx];
 
         auto new_res = new IR(kStmtmulti, OPMID(";"), NULL, app_IR_node);
 
@@ -648,7 +648,7 @@ bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
         // cerr << "Error: child function remove_stmt_at_idx_and_free returns error. In func: IRWrapper::replace_stmt_and_free. \n"; 
         return false;
     }
-    if (!this->append_stmt_at_idx(new_stmt, old_stmt_idx)){
+    if (!this->append_stmt_at_idx(new_stmt, old_stmt_idx-1)){
         // cerr << "Error: child function append_stmt_after_idx returns error. In func: IRWrapper::replace_stmt_and_free. \n";
         return false;
     }
