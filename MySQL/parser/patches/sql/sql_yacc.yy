@@ -28765,6 +28765,8 @@ trigger_follows_precedes_clause:
         res = new IR(kTriggerFollowsPrecedesClause, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataTriggerName, kUse);
     }
 
 ;
@@ -28794,6 +28796,9 @@ trigger_tail:
         res = new IR(kTriggerTail, OP3("", "", ""), res, tmp6);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataTriggerName, kDefine);
+        tmp4->set_table_ident_type(kDataTriggerName, kUse);
     }
 
 ;
