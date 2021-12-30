@@ -898,7 +898,7 @@ void IRWrapper::debug(IR* root, unsigned level) {
 
     cerr << level << ": "
          << get_string_by_ir_type(root->type_) << ": "
-         << get_string_by_datatype(root->data_type_) << ": "
+         << get_string_by_data_type(root->data_type_) << ": "
          << root -> to_string() << ": "
          << endl;
 

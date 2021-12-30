@@ -720,7 +720,8 @@ void Mutator::debug(IR* root, unsigned level) {
 
     cerr << level << ": "
          << get_string_by_ir_type(root->type_) << ": "
-         << get_string_by_datatype(root->data_type_) << ": "
+         << get_string_by_data_type(root->data_type_) << ": "
+         << get_string_by_data_flag(root->data_flag_) << ": " 
          << root->uniq_id_in_tree_ << ": "
          << root -> to_string() << ": "
          << endl;

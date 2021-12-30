@@ -16,7 +16,7 @@ string get_string_by_ir_type(IRTYPE type) {
   return "";
 }
 
-string get_string_by_datatype(DATATYPE tt){
+string get_string_by_data_type(DATATYPE tt){
     #define DECLARE_CASE(datatypename) \
     if(tt == k##datatypename) return string(#datatypename);
 
@@ -24,6 +24,32 @@ string get_string_by_datatype(DATATYPE tt){
 
     #undef DECLARE_CASE
     return string("");
+}
+
+string get_string_by_data_flag(DATAFLAG flag_type_) {
+
+  switch (flag_type_) {
+  case kUse:
+    return "kUse";
+  case kMapToClosestOne:
+    return "kMapToClosestOne";
+  case kNoSplit:
+    return "kNoSplit";
+  case kGlobal:
+    return "kGlobal";
+  case kReplace:
+    return "kReplace";
+  case kUndefine:
+    return "kUndefine";
+  case kAlias:
+    return "kAlias";
+  case kMapToAll:
+    return "kMapToAll";
+  case kDefine:
+    return "kDefine";
+  default:
+    return "kUnknown";
+  }
 }
 
 DATATYPE get_datatype_by_string(string s){
