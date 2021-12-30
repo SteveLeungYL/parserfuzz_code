@@ -6239,6 +6239,8 @@ sp_fdparam:
         res = new IR(kSpFdparam, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataFunctionParams, kDefine);
     }
 
 ;
@@ -6300,6 +6302,8 @@ sp_pdparam:
         res = new IR(kSpPdparam, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataProcedureParams, kDefine);
     }
 
 ;
@@ -20831,7 +20835,7 @@ into_destination:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_ident_type(kDataFileSystem, kUse);
+        tmp1->set_ident_type(kDataFileSystem, kUse);
     }
 
     | select_var_list {
@@ -22107,7 +22111,7 @@ truncate_stmt:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_table_ident_type(kUse);
+        tmp2->set_table_ident_type(kDataTableName, kUse);
     }
 
 ;
@@ -22785,6 +22789,8 @@ show_create_function_stmt:
         res = new IR(kShowCreateFunctionStmt, OP3("SHOW CREATE FUNCTION", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataFunctionName, kUse);
     }
 
 ;
@@ -22847,6 +22853,8 @@ show_function_code_stmt:
         res = new IR(kShowFunctionCodeStmt, OP3("SHOW FUNCTION CODE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataFunctionName, kUse);
     }
 
 ;
@@ -23109,7 +23117,7 @@ describe_stmt:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_table_ident_type(kUse);
+        tmp2->set_table_ident_type(kDataTableName, kUse);
     }
 
 ;
@@ -28811,6 +28819,8 @@ udf_tail:
         res = new IR(kUdfTail, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataFunctionName, kDefine);
     }
 
     | FUNCTION_SYM ident RETURNS_SYM udf_type SONAME_SYM TEXT_STRING_sys {
@@ -28825,6 +28835,8 @@ udf_tail:
         res = new IR(kUdfTail, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataFunctionName, kDefine);
     }
 
 ;
@@ -28854,6 +28866,8 @@ sf_tail:
         res = new IR(kSfTail, OP3("", "", ""), res, tmp6);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_sp_name_type(kDataFunctionName, kDefine);
     }
 
 ;

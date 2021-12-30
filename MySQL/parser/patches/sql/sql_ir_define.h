@@ -4276,6 +4276,7 @@ V(kUnknown)
 	V(DataColumnName) \
 	V(DataViewName) \
 	V(DataFunctionName) \
+	V(DataFunctionParams) \
 	V(DataPragmaKey) \
 	V(DataPragmaValue) \
 	V(DataTableSpaceName) \
@@ -4297,6 +4298,7 @@ V(kUnknown)
     V(DataCollate) \
     V(DataCharsetName) \
     V(DataProcedureName) \
+    V(DataProcedureParams) \
     V(DataServerName) \
     V(DataWrapperName) \
     V(DataSavePoint) \
@@ -4634,7 +4636,7 @@ public:
     bool set_role_list_type(DATAFLAG);
     bool set_TEXT_STRING_sys_list_type(DATATYPE, DATAFLAG);
     bool set_simple_ident_list_type(DATATYPE, DATAFLAG);
-    bool set_view_tail_type(DATATYPE, DATAFLAG);
+    bool set_view_tail_type(DATAFLAG);
 };
 
 /*
