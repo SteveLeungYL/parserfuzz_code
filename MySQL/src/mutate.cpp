@@ -799,7 +799,7 @@ string Mutator::parse_data(string &input) {
 
 bool Mutator::validate(IR* cur_stmt, bool is_debug_info) {
 
-    reset_data_library();
+    reset_data_library_single_stmt();
 
     bool res = true;
     if (cur_stmt->type_ == kStartEntry) {
@@ -1075,13 +1075,13 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
          * */
 
         string ori_str = ir_to_fix->get_str_val();
-        if (
-          find(v_sys_catalogs_name.begin(), v_sys_catalogs_name.end(), ori_str) != v_sys_catalogs_name.end()
-          &&
-          get_rand_int(10) < 9
-        ) {
-          continue;
-        }
+        // if (
+        //   find(v_sys_catalogs_name.begin(), v_sys_catalogs_name.end(), ori_str) != v_sys_catalogs_name.end()
+        //   &&
+        //   get_rand_int(10) < 9
+        // ) {
+        //   continue;
+        // }
 
         /* MySQL doesn't seem to have PARTITION OF clause. Ignore for now. */
         // /* Check whether we are in the PARTITION OF clause, if yes, use the v_table_with_partition_names */
