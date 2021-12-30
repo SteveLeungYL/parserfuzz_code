@@ -4308,6 +4308,8 @@ V(kUnknown)
     V(DataTableNameFollow) \
     V(DataColumnNameFollow) \
     V(DataConstraintName) \
+    V(DataExecuteVarName) \
+    V(DataStmtName) \
     V(DataLiteral)
 
 

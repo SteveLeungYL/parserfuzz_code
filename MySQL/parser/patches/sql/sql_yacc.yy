@@ -3795,6 +3795,8 @@ deallocate:
         res = new IR(kDeallocate, OP3("", "PREPARE", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataStmtName, kUndefine);
     }
 
 ;
@@ -3826,6 +3828,8 @@ prepare:
         res = new IR(kPrepare, OP3("PREPARE", "FROM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataStmtName, kDefine);
     }
 
 ;
@@ -3847,6 +3851,8 @@ prepare_src:
         res = new IR(kPrepareSrc, OP3("@", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataVarName, kUse);
     }
 
 ;
@@ -3861,6 +3867,8 @@ execute:
         res = new IR(kExecute, OP3("EXECUTE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataStmtName, kUse);
     }
 
 ;
@@ -3912,6 +3920,8 @@ execute_var_ident:
         res = new IR(kExecuteVarIdent, OP3("@", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataVarName, kUse);
     }
 
 ;
