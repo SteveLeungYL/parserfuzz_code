@@ -116,15 +116,17 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   while (new_stmt_ir == NULL) {
     new_stmt_ir = get_from_libary_with_type(kStmt);
     if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+      // cerr << "kStmt is empty;\n\n\n";
       cur_root->deep_drop();
       goto STMTLIST_INSERT;
     }
     if (new_stmt_ir->left_->type_ == kSelectStmt) {
+      // cerr << "Getting Select Stmt;\n\n\n";
       new_stmt_ir->deep_drop();
       new_stmt_ir = NULL;
     }
     trial++;
-    if (trial > 10) {
+    if (trial > 100) {
       cur_root->deep_drop();
       goto STMTLIST_INSERT;
     }
@@ -138,6 +140,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
   // cerr << "Replacing rep_old_ir: " << rep_old_ir->to_string() << " to: " << new_stmt_ir->to_string() << ". \n\n\n";
 
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
   if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
     new_stmt_ir->deep_drop();
     cur_root->deep_drop();
@@ -157,10 +160,12 @@ STMTLIST_INSERT:
   while (new_stmt_ir == NULL) {
     new_stmt_ir = get_from_libary_with_type(kStmt);
     if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+      // cerr << "kStmt is empty;\n\n\n";
       cur_root->deep_drop();
       return res_vec;
     }
     if (new_stmt_ir->left_->type_ == kSelectStmt) {
+      // cerr << "Getting Select Stmt;\n\n\n";
       new_stmt_ir->deep_drop();
       new_stmt_ir = NULL;
     }
@@ -172,6 +177,7 @@ STMTLIST_INSERT:
 
   // cerr << "Inserting stmt: " << new_stmt_ir->to_string() << "\n\n\n";
 
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
   if(!p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, insert_pos)) {
     new_stmt_ir->deep_drop();
     cur_root->deep_drop();
@@ -193,15 +199,15 @@ vector<IR *> Mutator::mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_m
 
   // debug(ori_ir_root, 0);
 
-  cerr << "Inside mutate_all; \n\n\n";
+  // cerr << "Inside mutate_all; \n\n\n";
 
   if (ir_to_mutate->get_ir_type() == kParseToplevel) return res;
   
   /* For mutating kStmtList only */
   if (ir_to_mutate->get_ir_type() == kStmtmulti) {
-    cerr << "Inside kStmtList; \n\n\n";
+    // cerr << "Inside kStmtList; \n\n\n";
     v_mutated_ir = mutate_stmtlist(root);
-    cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
+    // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
     for (IR* mutated_ir : v_mutated_ir) {
 
         string tmp = mutated_ir->to_string();
@@ -213,7 +219,7 @@ vector<IR *> Mutator::mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_m
           //      << "In func: Mutator::mutate_all(); \n";
           continue;
         }
-        cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
+        // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
         global_hash_.insert(tmp_hash);
         res.push_back(mutated_ir);
     }
@@ -221,7 +227,7 @@ vector<IR *> Mutator::mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_m
     return res;
   }
 
-  cerr << "Inside rest; \n\n\n";
+  // cerr << "Inside rest; \n\n\n";
   // else, for mutating single IR node. 
 
   v_mutated_ir = mutate(ir_to_mutate);
@@ -418,7 +424,7 @@ void Mutator::init_library() {
     split_stmt_types_.insert(kStmt);
     split_substmt_types_.insert({kSelectNoParens});
 
-    not_mutatable_types_.insert({kProgram, kStmtlist, kStmt, kCreateStmt,
+    not_mutatable_types_.insert({kParseToplevel, kStmtlist, kStmt, kCreateStmt,
                                  kDropStmt, kCreateTableStmt, kCreateIndexStmt,
                                  kCreateViewStmt, kDropIndexStmt, kDropTableStmt,
                                  kDropViewStmt, kSelectStmt, kUpdateStmt,
@@ -1129,7 +1135,7 @@ string Mutator::validate(string query, bool is_debug_info) {
     return "";
 
   IR *root = ir_set.back();
-  if (root->type_ != kProgram) {
+  if (root->type_ != kParseToplevel) {
     root->deep_drop();
     return "";
   }
@@ -3786,7 +3792,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
     f.close();
   }
 
-  // cerr << "Saving str: " << *new_select << " to the lib. \n\n\n";
+  // cerr << "Saving select str: " << *new_select << " to the lib. \n\n\n";
   add_to_library_core(ir, new_select);
 
   return;
@@ -3842,21 +3848,20 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   
   string ir_str = ir->to_string();
   unsigned long p_hash = hash(ir_str);
-  if (p_type != kProgram && ir_libary_2D_hash_[p_type].find(p_hash) !=
+  if (p_type != kParseToplevel && ir_libary_2D_hash_[p_type].find(p_hash) !=
                                 ir_libary_2D_hash_[p_type].end()) {
     /* current node not interesting enough. Ignore it and clean up. */
+    // cerr << "current node not interesting enough. Ignore it and clean up.\n\n\n";
     return;
   }
-  if (p_type != kProgram)
+  if (p_type != kParseToplevel)
     ir_libary_2D_hash_[p_type].insert(p_hash);
 
   if (!is_skip_saving_current_node)
     {
       real_ir_set[p_type].push_back(
         std::make_pair(p_query_str, current_unique_id));
-      // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
-      // cerr << "Saving ir_node with type: " << get_string_by_ir_type(p_type) << ", unique_id:" << current_unique_id << "\n\n\n";
-      // }
+      // cerr << "Saving str: " << *p_query_str << "with type: " << get_string_by_ir_type(p_type) << " \n\n\n";
     }
 
   // Update right_lib, left_lib
