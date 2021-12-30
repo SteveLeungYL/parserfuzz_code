@@ -4329,7 +4329,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
 
-    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(),
+    ck_write(fd, query_str.c_str(), query_str.size(),
               fn);
     close(fd);
 
