@@ -4301,7 +4301,10 @@ V(kUnknown)
     V(DataGroupName) \
     V(DataLogFileGroupName) \
     V(DataLiteral) \
-    V(DataAliasTableName)
+    V(DataAliasTableName) \
+    V(DataTableNameFollow) \
+    V(DataColumnNameFollow) \
+    V(DataConstraintName) \
 
 
 

@@ -96,7 +96,8 @@ public:
     string get_data_by_type(DATATYPE) ;
     pair<string, string> get_data_2d_by_type(DATATYPE, DATATYPE); //DONE
 
-    void reset_data_library(); //DONE
+    void reset_data_library();
+    void reset_data_library_single_stmt();
 
     string parse_data(string &) ;//DONE
 
@@ -218,36 +219,36 @@ public:
 
     /* Info used by validate function. */
 
-    set<IR *> Mutator::visited;                                  // Already validated/fixed node. Avoid multiple fixing.
-    map<string, vector<string>> Mutator::m_tables;               // Table name to column name mapping.
-    map<string, vector<string>> Mutator::m_table2index;          // Table name to index mapping.
-    vector<string> Mutator::v_table_names;                       // All saved table names
-    vector<string> Mutator::v_table_names_single;                // All used table names in one query statement.
-    vector<string> Mutator::v_create_table_names_single;         // All table names just created in the current stmt.
-    vector<string> Mutator::v_alias_names_single;                // All alias name local to one query statement.
-    map<string, vector<string>> Mutator::m_table2alias_single;   // Table name to alias mapping.
-    map<string, COLTYPE> Mutator::m_column2datatype;             // Column name mapping to column type. 0 means unknown, 1 means numerical, 2 means character_type_, 3 means boolean_type_.
-    vector<string> Mutator::v_column_names_single;               // All used column names in one query statement. Used to confirm literal type.
-    vector<string> Mutator::v_table_name_follow_single;          // All used table names follow type in one query stmt.
-    vector<string> Mutator::v_statistics_name;                   // All statistic names defined in the current stmt.
-    vector<string> Mutator::v_sequence_name;                     // All sequence names defined in the current SQL.
-    vector<string> Mutator::v_view_name;                         // All saved view names.
-    vector<string> Mutator::v_constraint_name;                   // All constraint names defined in the current SQL.
-    vector<string> Mutator::v_foreign_table_name;                // All foreign table names defined inthe current SQL.
-    vector<string> Mutator::v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
+    static set<IR *> visited;                                  // Already validated/fixed node. Avoid multiple fixing.
+    static map<string, vector<string>> m_tables;               // Table name to column name mapping.
+    static map<string, vector<string>> m_table2index;          // Table name to index mapping.
+    static vector<string> v_table_names;                       // All saved table names
+    static vector<string> v_table_names_single;                // All used table names in one query statement.
+    static vector<string> v_create_table_names_single;         // All table names just created in the current stmt.
+    static vector<string> v_alias_names_single;                // All alias name local to one query statement.
+    static map<string, vector<string>> m_table2alias_single;   // Table name to alias mapping.
+    static map<string, COLTYPE> m_column2datatype;             // Column name mapping to column type. 0 means unknown, 1 means static numerical, 2 means character_type_, 3 means boolean_type_.
+    static vector<string> v_column_names_single;               // All used column names in one query statement. Used to confirm static literal type.
+    static vector<string> v_table_name_follow_single;          // All used table names follow type in one query stmt.
+    static vector<string> v_statistics_name;                   // All statistic names defined in the current stmt.
+    static vector<string> v_sequence_name;                     // All sequence names defined in the current SQL.
+    static vector<string> v_view_name;                         // All saved view names.
+    static vector<string> v_constraint_name;                   // All constraint names defined in the current SQL.
+    static vector<string> v_foreign_table_name;                // All foreign table names defined inthe current SQL.
+    static vector<string> v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
 
-    // map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
-    vector<string> Mutator::v_sys_column_name;
-    vector<string> Mutator::v_sys_catalogs_name;
+    // map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
+    static vector<string> v_sys_column_name;
+    static vector<string> v_sys_catalogs_name;
 
-    vector<string> Mutator::v_aggregate_func;
-    vector<string> Mutator::v_table_with_partition_name;
+    static vector<string> v_aggregate_func;
+    static vector<string> v_table_with_partition_name;
 
-    vector<string> Mutator::v_saved_reloption_str;
+    static vector<string> v_saved_reloption_str;
 
-    vector<int> Mutator::v_int_literals;
-    vector<double> Mutator::v_float_literals;
-    vector<string> Mutator::v_string_literals;
+    static vector<int> v_int_literals;
+    static vector<double> v_float_literals;
+    static vector<string> v_string_literals;
 };
 
 
