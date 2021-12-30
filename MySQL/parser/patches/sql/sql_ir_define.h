@@ -4314,6 +4314,10 @@ V(kUnknown)
     V(DataStmtName) \
     V(DataPluginName) \
     V(DataComponentName) \
+    V(DataEngineName) \
+    V(DataParserName) \
+    V(DataForeignKey) \
+    V(DataPartitionName) \
     V(DataLiteral)
 
 
@@ -4623,6 +4627,8 @@ public:
     bool set_ident_type(DATATYPE, DATAFLAG);
     bool set_opt_ident_type(DATATYPE, DATAFLAG);
     bool set_ident_string_list_type(DATATYPE, DATAFLAG);
+    bool set_name_list_type(DATATYPE, DATAFLAG);
+    bool set_opt_name_list_type(DATATYPE, DATAFLAG);
     bool set_table_ident_type(DATATYPE, DATAFLAG);
     bool set_table_list_type(DATATYPE, DATAFLAG);
     bool set_window_name_type(DATATYPE, DATAFLAG);
@@ -4637,6 +4643,7 @@ public:
     bool set_TEXT_STRING_sys_list_type(DATATYPE, DATAFLAG);
     bool set_simple_ident_list_type(DATATYPE, DATAFLAG);
     bool set_view_tail_type(DATAFLAG);
+    bool set_simple_ident_nospvar_type(DATATYPE, DATAFLAG);
 };
 
 /*

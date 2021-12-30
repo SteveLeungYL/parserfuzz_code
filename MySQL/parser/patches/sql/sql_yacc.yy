@@ -8567,6 +8567,8 @@ part_type_def:
         res = new IR(kPartTypeDef, OP3("", "", ")"), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp3->set_opt_name_list(kDataColumnName, kUse);
     }
 
     | opt_linear HASH_SYM '(' bit_expr ')' {
@@ -8589,6 +8591,8 @@ part_type_def:
         res = new IR(kPartTypeDef, OP3("RANGE COLUMNS (", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_name_list_type(kDataColumnName, kUse);
     }
 
     | LIST_SYM '(' bit_expr ')' {
@@ -8603,6 +8607,8 @@ part_type_def:
         res = new IR(kPartTypeDef, OP3("LIST COLUMNS (", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_name_list_type(kDataColumnNane, kUse);
     }
 
 ;
@@ -8695,6 +8701,8 @@ opt_sub_part:
         res = new IR(kOptSubPart, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp3->set_name_list_type(kDataColumnName, kUse);
     }
 
 ;
@@ -8815,6 +8823,8 @@ part_definition:
         res = new IR(kPartDefinition, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataPartitionName, kDefine);
     }
 
 ;
@@ -9317,6 +9327,8 @@ create_table_option:
         res = new IR(kCreateTableOption, OP3("ENGINE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataEngineName, kUse);
     }
 
     | SECONDARY_ENGINE_SYM opt_equal NULL_SYM {
@@ -9333,6 +9345,8 @@ create_table_option:
         res = new IR(kCreateTableOption, OP3("SECONDARY_ENGINE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataEngineName, kUse);
     }
 
     | MAX_ROWS opt_equal ulonglong_num {
@@ -9529,6 +9543,8 @@ create_table_option:
         res = new IR(kCreateTableOption, OP3("TABLESPACE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataTableSapceName, kUse);
     }
 
     | STORAGE_SYM DISK_SYM {
@@ -9816,6 +9832,8 @@ column_def:
         res = new IR(kColumnDef, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kDefine);
     }
 
 ;
@@ -9871,6 +9889,8 @@ table_constraint_def:
         res = new IR(kTableConstraintDef, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_opt_ident_type(kDataIndexName, kDefine);
     }
 
     | SPATIAL_SYM opt_key_or_index opt_ident '(' key_list_with_expression ')' opt_spatial_index_options {
@@ -9887,6 +9907,8 @@ table_constraint_def:
         res = new IR(kTableConstraintDef, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp3->set_ident_type(kDataIndexName, kUse);
     }
 
     | opt_constraint_name constraint_key_type opt_index_name_and_type '(' key_list_with_expression ')' opt_index_options {
@@ -9923,6 +9945,8 @@ table_constraint_def:
         res = new IR(kTableConstraintDef, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_opt_ident_type(kDataIndexName, kDefine);
     }
 
     | opt_constraint_name check_constraint opt_constraint_enforcement {
@@ -9965,6 +9989,8 @@ opt_constraint_name:
         res = new IR(kOptConstraintName, OP3("CONSTRAINT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_opt_ident_type(kDataConstraintName, kDefine);
     }
 
 ;
@@ -11456,6 +11482,8 @@ reference_list:
         res = new IR(kReferenceList, OP3("", ",", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUse);
     }
 
     | ident {
@@ -11464,6 +11492,8 @@ reference_list:
         res = new IR(kReferenceList, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kUse);
     }
 
 ;
@@ -11720,6 +11750,8 @@ fulltext_index_option:
         res = new IR(kFulltextIndexOption, OP3("WITH PARSER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataParserName, kUse);
     }
 
 ;
@@ -11904,7 +11936,7 @@ opt_index_name_and_type:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_opt_ident_type(kDataIndexName, kUse);
+        tmp1->set_opt_ident_type(kDataIndexName, kDefine);
     }
 
     | opt_ident USING index_type {
@@ -11914,7 +11946,7 @@ opt_index_name_and_type:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_opt_ident_type(kDataIndexName, kUse);
+        tmp1->set_opt_ident_type(kDataIndexName, kDefine);
     }
 
     | ident TYPE_SYM index_type {
@@ -11925,7 +11957,7 @@ opt_index_name_and_type:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_ident_type(kDataIndexName, kUse);
+        tmp1->set_ident_type(kDataIndexName, kDefine);
     }
 
 ;
@@ -12037,6 +12069,8 @@ key_part:
         res = new IR(kKeyPart, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kDefine);
     }
 
     | ident '(' NUM ')' opt_ordering_direction {
@@ -12051,6 +12085,8 @@ key_part:
         res = new IR(kKeyPart, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kDefine);
     }
 
 ;
@@ -13073,6 +13109,8 @@ standalone_alter_commands:
         res = new IR(kStandaloneAlterCommands, OP3("DROP PARTITION", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_string_list_type(kDataPartitionName, kUndefine);
     }
 
     | REBUILD_SYM PARTITION_SYM opt_no_write_to_binlog all_or_alt_part_name_list {
@@ -13151,6 +13189,8 @@ standalone_alter_commands:
         res = new IR(kStandaloneAlterCommands, OP3("", "", ")"), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_string_list_type(kDataPartitionName, kUse);
     }
 
     | EXCHANGE_SYM PARTITION_SYM ident WITH TABLE_SYM table_ident opt_with_validation {
@@ -13165,6 +13205,7 @@ standalone_alter_commands:
         ir_vec.push_back(res); 
         $$ = res;
 
+        tmp1->set_ident_type(kDataPartitionName, kUse);
         tmp2->set_table_ident_type(kDataTableName, kUse);
     }
 
@@ -13245,6 +13286,8 @@ all_or_alt_part_name_list:
         res = new IR(kAllOrAltPartNameList, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_string_list_type(kDataPartitionName, kUse);
     }
 
 ;
@@ -13338,6 +13381,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kDefine);
     }
 
     | ADD opt_column '(' table_element_list ')' {
@@ -13375,6 +13420,9 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUndefine);
+        tmp3->set_ident_type(kDataColumnName, kDefine);
     }
 
     | MODIFY_SYM opt_column ident field_def opt_place {
@@ -13392,6 +13440,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUse);
     }
 
     | DROP opt_column ident opt_restrict {
@@ -13405,6 +13455,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUndefine);
     }
 
     | DROP FOREIGN KEY_SYM ident {
@@ -13413,6 +13465,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("DROP FOREIGN KEY", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataForeignKey, kUndefine);
     }
 
     | DROP PRIMARY_SYM KEY_SYM {
@@ -13429,12 +13483,7 @@ alter_list_item:
         ir_vec.push_back(res); 
         $$ = res;
 
-        if (tmp1->get_prefix() == "INDEX") {
-            tmp2->set_ident_type(kDataIndexName, kUndefine);
-        } else if (tmp1->get_prefix() == "KEY") {
-            // Pass
-        }
-
+        tmp2->set_ident_type(kDataIndexName, kUndefine);
     }
 
     | DROP CHECK_SYM ident {
@@ -13443,6 +13492,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("DROP CHECK", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataConstraintName, kUndefine);
     }
 
     | DROP CONSTRAINT ident {
@@ -13451,6 +13502,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("DROP CONSTRAINT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataConstraintName, kUndefine);
     }
 
     | DISABLE_SYM KEYS {
@@ -13476,6 +13529,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUse);
     }
 
     | ALTER opt_column ident SET_SYM DEFAULT_SYM '(' expr ')' {
@@ -13489,6 +13544,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ")"), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUse);
     }
 
     | ALTER opt_column ident DROP DEFAULT_SYM {
@@ -13498,6 +13555,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("ALTER", "", "DROP DEFAULT"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUse);
     }
 
     | ALTER opt_column ident SET_SYM visibility {
@@ -13511,6 +13570,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataColumnName, kUse);
     }
 
     | ALTER INDEX_SYM ident visibility {
@@ -13520,6 +13581,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("ALTER INDEX", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kUse);
     }
 
     | ALTER CHECK_SYM ident constraint_enforcement {
@@ -13529,6 +13592,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("ALTER CHECK", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataConstraintName, kUse);
     }
 
     | ALTER CONSTRAINT ident constraint_enforcement {
@@ -13538,6 +13603,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("ALTER CONSTRAINT", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataConstraintName, kUse);
     }
 
     | RENAME opt_to table_ident {
@@ -13563,12 +13630,8 @@ alter_list_item:
         ir_vec.push_back(res); 
         $$ = res;
 
-        if (tmp1->get_prefix() == "INDEX") {
-            tmp2->set_ident_type(kDataIndexName, kUndefine);
-            tmp3->set_ident_type(kDataIndexName, kDefine);
-        } else if (tmp1->get_prefix() == "KEY") {
-            // Pass
-        }
+        tmp2->set_ident_type(kDataIndexName, kUndefine);
+        tmp3->set_ident_type(kDataIndexName, kDefine);
     }
 
     | RENAME COLUMN_SYM ident TO_SYM ident {
@@ -13579,6 +13642,9 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("RENAME COLUMN", "TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kUndefine);
+        tmp2->set_ident_type(kDataColumnName, kDefine);
     }
 
     | CONVERT_SYM TO_SYM character_set charset_name opt_collate {
@@ -13591,6 +13657,8 @@ alter_list_item:
         res = new IR(kAlterListItem, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_charset_name_type(kDataCharsetName, kUse);
     }
 
     | CONVERT_SYM TO_SYM character_set DEFAULT_SYM opt_collate {
@@ -13819,6 +13887,8 @@ opt_place:
         res = new IR(kOptPlace, OP3("AFTER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kUse);
     }
 
     | FIRST_SYM {
@@ -17471,7 +17541,8 @@ function_call_generic:
         ir_vec.push_back(res); 
         $$ = res;
 
-        // TODO: tell the difference between the first and second ident.
+        tmp1->set_ident_type(kDataDatabase, kUse);
+        tmp2->set_ident_type(kDataFunctionName, kUse);
     }
 
 ;
@@ -20325,6 +20396,8 @@ alter_order_item:
         res = new IR(kAlterOrderItem, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_simple_ident_nospvar(kDataColumnName, kUse);
     }
 
 ;
@@ -24514,8 +24587,8 @@ table_wild:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_ident_type(kDataTableName, kUse);
-        // TODO: unsure the second ident.
+        tmp1->set_ident_type(kDataDatabase, kUse);
+        tmp2->set_ident_type(kDataTableName, kUse);
     }
 
 ;
