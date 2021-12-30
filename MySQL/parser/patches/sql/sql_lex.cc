@@ -5558,6 +5558,41 @@ bool IR::set_TEXT_STRING_sys_list_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
+bool IR::set_simple_ident_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kSimpleIdentList);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_simple_ident_list_type(data_type, data_flag);
+    right->set_ident_type(data_type, data_flag);
+  } else {
+    left->set_ident_type(data_type, data_flag);
+  }
+
+  return true;
+}
+
+bool IR::set_view_tail_type(DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kViewTail);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (left && left->get_left() && left->get_left()->get_right()) {
+    IR* table_ident = left->get_left()->get_right();
+    IR* opt_derived_column_list = left->get_right();
+
+    table_ident->set_table_ident_type(kDataViewName, data_flag);
+
+    IR* simple_ident_list = opt_derived_column_list->get_left();
+    if (simple_ident_list) {
+      simple_ident_list->set_simple_ident_list_type(kDataColumnName, data_flag);
+    }
+  }
+
+  return true;
+}
+
 
 IR* IR::where_clause_get_expr() {
   assert(this->get_ir_type() == kWhereClause);

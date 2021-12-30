@@ -12233,6 +12233,8 @@ alter_view_stmt:
         res = new IR(kAlterViewStmt, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp3->set_view_tail_type(kUse);
     }
 
     | ALTER definer_opt {} view_tail {
@@ -12241,6 +12243,8 @@ alter_view_stmt:
         res = new IR(kAlterViewStmt, OP3("ALTER", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_view_tail_type(kUse);
     }
 
 ;
@@ -23656,6 +23660,8 @@ use:
         res = new IR(kUseSym, OP3("USE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataDatabase, kUse);
     }
 
 ;
@@ -28412,6 +28418,8 @@ view_or_trigger_or_sp_or_event:
         res = new IR(kViewOrTriggerOrSpOrEvent, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_view_tail_type(kDefine);
     }
 
 ;
@@ -28424,6 +28432,8 @@ definer_tail:
         res = new IR(kDefinerTail, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_view_tail_type(kDefine);
     }
 
     | trigger_tail {
@@ -28464,6 +28474,8 @@ no_definer_tail:
         res = new IR(kNoDefinerTail, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_view_tail_type(kDefine);
     }
 
     | trigger_tail {
@@ -29407,3 +29419,5 @@ json_attribute:
 
 
 /**
+  @} (end of group Parser)
+*/

@@ -4633,6 +4633,8 @@ public:
     bool set_role_type(DATAFLAG);
     bool set_role_list_type(DATAFLAG);
     bool set_TEXT_STRING_sys_list_type(DATATYPE, DATAFLAG);
+    bool set_simple_ident_list_type(DATATYPE, DATAFLAG);
+    bool set_view_tail_type(DATATYPE, DATAFLAG);
 };
 
 /*
