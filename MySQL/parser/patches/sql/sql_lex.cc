@@ -5631,6 +5631,17 @@ bool IR::set_simple_ident_nospvar_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
+bool IR::set_using_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kUsingList);
+
+  IR* left = get_left();
+  if (left) {
+    left->set_ident_string_list_type(data_type, data_flag);
+  }
+
+  return true;
+}
+
 IR* IR::where_clause_get_expr() {
   assert(this->get_ir_type() == kWhereClause);
 

@@ -4644,6 +4644,7 @@ public:
     bool set_simple_ident_list_type(DATATYPE, DATAFLAG);
     bool set_view_tail_type(DATAFLAG);
     bool set_simple_ident_nospvar_type(DATATYPE, DATAFLAG);
+    bool set_using_list_type(DATATYPE, DATAFLAG);
 };
 
 /*

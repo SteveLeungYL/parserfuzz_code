@@ -8568,7 +8568,7 @@ part_type_def:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp3->set_opt_name_list(kDataColumnName, kUse);
+        tmp3->set_opt_name_list_type(kDataColumnName, kUse);
     }
 
     | opt_linear HASH_SYM '(' bit_expr ')' {
@@ -8608,7 +8608,7 @@ part_type_def:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_name_list_type(kDataColumnNane, kUse);
+        tmp1->set_name_list_type(kDataColumnName, kUse);
     }
 
 ;
@@ -9544,7 +9544,7 @@ create_table_option:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_ident_type(kDataTableSapceName, kUse);
+        tmp2->set_ident_type(kDataTableSpaceName, kUse);
     }
 
     | STORAGE_SYM DISK_SYM {
@@ -19064,6 +19064,8 @@ joined_table:
         res = new IR(kJoinedTable, OP3("", "", ")"), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_using_list_type(kDataColumnName, kUse);
     }
 
     | table_reference outer_join_type table_reference ON_SYM expr {
@@ -19096,6 +19098,8 @@ joined_table:
         res = new IR(kJoinedTable, OP3("", "", ")"), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_using_list_type(kDataColumnName, kUse);
     }
 
     | table_reference inner_join_type table_reference %prec CONDITIONLESS_JOIN {
@@ -19262,6 +19266,8 @@ use_partition:
         res = new IR(kUsePartition, OP3("PARTITION (", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_using_list_type(kDataPartitionName, kUse);
     }
 
 ;
@@ -20397,7 +20403,7 @@ alter_order_item:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_simple_ident_nospvar(kDataColumnName, kUse);
+        tmp1->set_simple_ident_nospvar_type(kDataColumnName, kUse);
     }
 
 ;
