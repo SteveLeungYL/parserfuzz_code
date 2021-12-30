@@ -4266,6 +4266,8 @@ V(kFloatLiteral) \
 V(kHexLiteral) \
 V(kDecimalLiteral) \
 V(kBinLiteral) \
+V(kBase64Literal) \
+V(kStringLiteral) \
 V(kUnknown)
 
 #define ALLDATATYPE(V) \
@@ -4300,6 +4302,8 @@ V(kUnknown)
     V(DataSavePoint) \
     V(DataGroupName) \
     V(DataLogFileGroupName) \
+    V(DataFileSystem) \
+    V(DataSystemVarName) \
     V(DataLiteral)
 
 

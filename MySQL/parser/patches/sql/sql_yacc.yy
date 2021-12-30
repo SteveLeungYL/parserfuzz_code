@@ -5038,7 +5038,7 @@ assign_gtids_to_anonymous_transactions_def:
     }
 
     | TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kAssignGtidsToAnonymousTransactionsDef, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -6444,7 +6444,7 @@ sqlstate:
 
     SQLSTATE_SYM opt_value TEXT_STRING_literal {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kStringLiteral, to_string($3), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kSqlstate, OP3("SQLSTATE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12445,14 +12445,14 @@ opt_user_attribute:
     }
 
     | ATTRIBUTE_SYM TEXT_STRING_literal {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kOptUserAttribute, OP3("ATTRIBUTE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | COMMENT_SYM TEXT_STRING_literal {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kOptUserAttribute, OP3("COMMENT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -14329,7 +14329,7 @@ opt_histogram:
 binlog_base64_event:
 
     BINLOG_SYM TEXT_STRING_sys {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kBase64Literal, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kBinlogBase64Event, OP3("BINLOG", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -16392,7 +16392,7 @@ simple_expr:
         res = new IR(kSimpleExpr_4, OP3("CAST (", "AT TIME ZONE", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
 
-        auto tmp3 = new IR(kIdentifier, to_string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kStringLiteral, to_string($8), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kSimpleExpr_5, OP3("", "", "AS DATETIME"), res, tmp3);
         ir_vec.push_back(res); 
 
@@ -16458,7 +16458,7 @@ simple_expr:
 
     | simple_ident JSON_SEPARATOR_SYM TEXT_STRING_literal {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kStringLiteral, to_string($3), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kSimpleExpr, OP3("", "JSON_SEPARATOR_SYM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -16466,7 +16466,7 @@ simple_expr:
 
     | simple_ident JSON_UNQUOTED_SEPARATOR_SYM TEXT_STRING_literal {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kStringLiteral, to_string($3), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kSimpleExpr, OP3("", "JSON_UNQUOTED_SEPARATOR_SYM", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -20568,6 +20568,8 @@ into_destination:
         res = new IR(kIntoDestination, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataFileSystem, kUse);
     }
 
     | DUMPFILE TEXT_STRING_filesystem {
@@ -20575,6 +20577,8 @@ into_destination:
         res = new IR(kIntoDestination, OP3("DUMPFILE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataFileSystem, kUse);
     }
 
     | select_var_list {
@@ -22805,7 +22809,7 @@ opt_wild_or_where:
     }
 
     | LIKE TEXT_STRING_literal {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kOptWildOrWhere, OP3("LIKE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -22835,7 +22839,7 @@ describe_stmt:
         ir_vec.push_back(res); 
         $$ = res;
 
-        // tmp2->set_table_ident_type(kUse);
+        tmp2->set_table_ident_type(kUse);
     }
 
 ;
@@ -22979,6 +22983,8 @@ opt_describe_column:
         res = new IR(kOptDescribeColumn, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataColumnName, kUse);
     }
 
 ;
@@ -23218,6 +23224,8 @@ opt_if_exists_ident:
         res = new IR(kOptIfExistsIdent, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataSystemVarName, kUse);
     }
 
 ;
@@ -23441,6 +23449,7 @@ load_stmt:
         ir_vec.push_back(res); 
         $$ = res;
 
+        tmp4->set_ident_type(kDataFileSystem, kUse);
         tmp6->set_table_ident_type(kDataTableName, kUse);
     }
 
@@ -23844,7 +23853,7 @@ load_data_set_elem:
 text_literal:
 
     TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTextLiteral, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -23858,7 +23867,7 @@ text_literal:
     }
 
     | UNDERSCORE_CHARSET TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTextLiteral, OP3("UNDERSCORE_CHARSET", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -23866,7 +23875,7 @@ text_literal:
 
     | text_literal TEXT_STRING_literal {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, to_string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp2 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTextLiteral, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -23878,7 +23887,7 @@ text_literal:
 text_string:
 
     TEXT_STRING_literal {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTextString, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -24113,21 +24122,21 @@ int64_literal:
 temporal_literal:
 
     DATE_SYM TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTemporalLiteral, OP3("DATE", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | TIME_SYM TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTemporalLiteral, OP3("TIME", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | TIMESTAMP_SYM TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kTemporalLiteral, OP3("TIMESTAMP", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -26856,21 +26865,21 @@ require_list:
 require_list_element:
 
     SUBJECT_SYM TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kRequireListElement, OP3("SUBJECT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | ISSUER_SYM TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kRequireListElement, OP3("ISSUER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | CIPHER_SYM TEXT_STRING {
-        auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         res = new IR(kRequireListElement, OP3("CIPHER", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
@@ -28759,6 +28768,8 @@ clone_stmt:
         res = new IR(kCloneStmt, OP3("CLONE LOCAL DATA DIRECTORY", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataFileSystem, kUse);
     }
 
     | CLONE_SYM INSTANCE_SYM FROM user ':' ulong_num IDENTIFIED_SYM BY TEXT_STRING_sys opt_datadir_ssl {
@@ -28777,6 +28788,7 @@ clone_stmt:
         $$ = res;
 
         tmp1->set_user_type(kUse);
+        tmp3->set_ident_type(kDataFileSystem, kUse);
     }
 
 ;
@@ -28801,6 +28813,8 @@ opt_datadir_ssl:
         res = new IR(kOptDatadirSsl, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp2->set_ident_type(kDataFileSystem, kUse);
     }
         ;
 
