@@ -4304,6 +4304,10 @@ V(kUnknown)
     V(DataLogFileGroupName) \
     V(DataFileSystem) \
     V(DataSystemVarName) \
+    V(DataAliasTableName) \
+    V(DataTableNameFollow) \
+    V(DataColumnNameFollow) \
+    V(DataConstraintName) \
     V(DataLiteral)
 
 
@@ -4580,6 +4584,9 @@ public:
 	DATAFLAG get_data_flag();
     void set_data_flag(DATAFLAG);
 
+    std::string get_str_val();
+    void set_str_val(std::string);
+
     int scope_;
     DATAFLAG data_flag_;
     DATATYPE data_type_;
@@ -4601,6 +4608,11 @@ public:
 
     std::string to_string();
     std::string to_string_core();
+
+    IR* where_clause_get_expr();
+
+    /* Do not use this func unless necessary (don't know the IR type. ) */
+    bool set_type(DATATYPE, DATAFLAG);
 
     bool set_ident_type(DATATYPE, DATAFLAG);
     bool set_opt_ident_type(DATATYPE, DATAFLAG);

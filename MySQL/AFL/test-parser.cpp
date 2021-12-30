@@ -69,46 +69,46 @@ IR* test_parse(string &query) {
   return root;
 }
 
-// bool try_validate_query(IR* cur_root) {
-//   /*
-//   pre_transform, post_transform and validate()
-//   */
-//   cerr << "\n\n\nRunning try_validate_query: \n\n";
+bool try_validate_query(IR* cur_root) {
+  /*
+  pre_transform, post_transform and validate()
+  */
+  cerr << "\n\n\nRunning try_validate_query: \n\n";
 
-//   /*
-//   pre_transform, post_transform and validate()
-//   */
+  /*
+  pre_transform, post_transform and validate()
+  */
 
-//   mutator.pre_validate(); // Reset global variables for query sequence.
+  mutator.pre_validate(); // Reset global variables for query sequence.
 
-//   p_oracle->init_ir_wrapper(cur_root);
-//   vector<IR*> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  ir_wrapper.set_ir_root(cur_root);
+  vector<IR*> all_stmt_vec = ir_wrapper.get_stmt_ir_vec();
 
-//   for (IR* cur_trans_stmt : all_stmt_vec) {
-//     cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt -> to_string() << "\n\n\n";
-//     if(!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
-//       cerr << "Error: g_mutator.validate returns errors. \n\n\n";
-//     } else {
-//       cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
-//     }
-//   }
+  for (IR* cur_trans_stmt : all_stmt_vec) {
+    cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt -> to_string() << "\n\n\n";
+    if(!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
+      cerr << "Error: g_mutator.validate returns errors. \n\n\n";
+    } else {
+      cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
+    }
+  }
 
-//   // Clean up allocated resource.
-//   // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
+  // Clean up allocated resource.
+  // post_trans_vec are being appended to the IR tree. Free up cur_root should take care of them.
 
-//   string validity = cur_root->to_string();
-//   if (validity.size() <= 0) {
-//     cerr << RED << "validate failed" << DEF << endl;
-//     cur_root->deep_drop();
-//     return false;
-//   }
-//   cout << "validate: >" << validity << "<" << endl;
+  string validity = cur_root->to_string();
+  if (validity.size() <= 0) {
+    cerr << RED << "validate failed" << DEF << endl;
+    cur_root->deep_drop();
+    return false;
+  }
+  cout << "validate: >" << validity << "<" << endl;
 
-//   cur_root->deep_drop();
+  cur_root->deep_drop();
 
-//   return true;
+  return true;
 
-// }
+}
 
 int main(int argc, char *argv[]) {
   parser_init("test-parser");
@@ -166,14 +166,12 @@ int main(int argc, char *argv[]) {
 
   cerr << "To_string: " << ir_root->to_string() << "\n\n\n";
 
-  // if (root) root->deep_drop();
-
-  // cout << "\n\n\n At the end of the parsing, we get to_string: \n" << root->to_string() << "\n\n\n";
+  cout << "\n\n\n At the end of the parsing, we get to_string: \n" << ir_root->to_string() << "\n\n\n";
 
   // mutator.init_library();
 
   // Ignore validation right now. Will fix later.
-  // try_validate_query(root);
+  try_validate_query(ir_root);
 
   return 0;
 }

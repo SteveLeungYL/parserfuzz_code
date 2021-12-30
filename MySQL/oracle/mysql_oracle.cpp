@@ -43,7 +43,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     int ret = run_parser_multi_stmt(ori_valid_select, ir_tree);
 
     if (ret != 0 || ir_tree.size() == 0) {
-      cerr << "Error: string: " << ori_valid_select << "parsing failed in Func: SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
+      // cerr << "Error: string: " << ori_valid_select << "parsing failed in Func: SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
       continue;
     }
 
@@ -51,22 +51,22 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
     IR *cur_ir_stmt = ir_wrapper.get_first_stmt_from_root(root);
 
-    g_mutator->debug(root, 0);
+    // g_mutator->debug(root, 0);
 
     if (!this->is_oracle_select_stmt(cur_ir_stmt))
       {
-        cerr << "Error: cur_ir_stmt is not oracle statement. cur_ir_stmt->to_stirng(): "<<  cur_ir_stmt->to_string() << "  In func: SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
+        // cerr << "Error: cur_ir_stmt is not oracle statement. cur_ir_stmt->to_stirng(): "<<  cur_ir_stmt->to_string() << "  In func: SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
         continue;
       }
 
-    cerr << "DEBUG: In get_random_mutated_select_stmt: getting ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n" << cur_ir_stmt->to_string() << "\n\n\n\n";
+    // cerr << "DEBUG: In get_random_mutated_select_stmt: getting ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n" << cur_ir_stmt->to_string() << "\n\n\n\n";
 
     if (!g_mutator->check_node_num(root, 400)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
        * the retrived query. */
       IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();
       root->deep_drop();
-      cerr << "Directly return oracle select because it is too complicated. \n";
+      // cerr << "Directly return oracle select because it is too complicated. \n";
       return returned_stmt_ir;
     }
 
@@ -78,7 +78,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     if (!use_temp && get_rand_int(3) < 2) {
       IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();
       root->deep_drop();
-      cerr << "Successfully return original select: " << returned_stmt_ir << "\n\n\n";
+      // cerr << "Successfully return original select: " << returned_stmt_ir << "\n\n\n";
       return returned_stmt_ir;
     }
 
@@ -88,7 +88,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
      * mutation efficiency. */
     mark_all_valid_node(ir_tree);
 
-    cout << "root: " << root->to_string()  << endl;
+    // cout << "root: " << root->to_string()  << endl;
 
     string ori_valid_select_struct = g_mutator->extract_struct(root);
     string new_valid_select_struct = "";
@@ -115,11 +115,11 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         choose_node_trial++;
         mutate_ir_node = ir_tree[get_rand_int(ir_tree.size() - 1)]; // Do not choose the program_root to mutate. Program root is ir_tree.back();
         if (mutate_ir_node == NULL) {
-          cerr << "chosen mutate_ir_node is NULL\n\n\n";
+          // cerr << "chosen mutate_ir_node is NULL\n\n\n";
           continue;
         }
         if (mutate_ir_node->is_node_struct_fixed) {
-          cerr << "node strcut is fixed. \n\n\n";
+          // cerr << "node strcut is fixed. \n\n\n";
           continue;
         }
         is_mutate_ir_node_chosen = true;
@@ -160,17 +160,17 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
       }
 
       if (new_mutated_ir_node==NULL) {
-        cerr << "new_mutated_ir_node is NULL\n\n\n";
+        // cerr << "new_mutated_ir_node is NULL\n\n\n";
         continue;
       }
 
       if (!root->swap_node(mutate_ir_node, new_mutated_ir_node)) {
         new_mutated_ir_node->deep_drop();
-        cerr << "swap node to new_mutated_ir_node failure. \n";
+        // cerr << "swap node to new_mutated_ir_node failure. \n";
         continue;
       }
-      cout << "mutated query: " <<  root->to_string() << "\n";
-      cout << "################################" << endl;
+      // cout << "mutated query: " <<  root->to_string() << "\n";
+      // cout << "################################" << endl;
 
       new_valid_select_str = root->to_string();
 
@@ -179,11 +179,11 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
       }
 
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
-      cout << "mutated query to_string(): "<<  new_valid_select_str << "\n\n\n\n";
-      cout << "ori query: " << root->to_string() << endl;
+      // cout << "mutated query to_string(): "<<  new_valid_select_str << "\n\n\n\n";
+      // cout << "ori query: " << root->to_string() << endl;
       new_mutated_ir_node->deep_drop();
       if (new_valid_select_str == ori_valid_select) {
-        cerr << "Mutated string is the same as before. \n";
+        // cerr << "Mutated string is the same as before. \n";
         continue;
       }
 
@@ -193,7 +193,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
 
       if (ret != 0 || new_ir_verified.size() == 0) {
-        cerr << "new_ir_verified cannot pass the parser: ";
+        // cerr << "new_ir_verified cannot pass the parser: ";
         continue;
       }
 
@@ -229,13 +229,13 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
         IR* returned_stmt_ir = new_ir_verified_stmt->deep_copy();
         new_ir_verified.back()->deep_drop();
-        cerr << "ori_valid_select is: " << ori_valid_select << "\n";
-        cerr << "Successfully return: " << returned_stmt_ir->to_string() << "\n\n\n";
+        // cerr << "ori_valid_select is: " << ori_valid_select << "\n";
+        // cerr << "Successfully return: " << returned_stmt_ir->to_string() << "\n\n\n";
         num_oracle_select_succeed++;
         return returned_stmt_ir;
       }
       else {
-        cerr << "Mutated query is the same as before. Or mutation doesn't change the query. \n\n\n";
+        // cerr << "Mutated query is the same as before. Or mutation doesn't change the query. \n\n\n";
         new_ir_verified.back()->deep_drop();
       }
 
@@ -247,7 +247,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
      * Grab another norec select stmt from the lib or from the template, try
      * again.
      */
-    cerr << "Mutation Failed. Failed to return Oracle SELECT in 100 trials. \n";
+    // cerr << "Mutation Failed. Failed to return Oracle SELECT in 100 trials. \n";
     root->deep_drop();
     root = NULL;
   }
@@ -296,9 +296,9 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
     // }
     // cerr << "end\n\n";
 
-    cerr << "\n\n\nBefore removing select stmt, we get ir_root: ";
-    g_mutator->debug(ir_root, 0);
-    cerr << "Finished";
+    // cerr << "\n\n\nBefore removing select stmt, we get ir_root: ";
+    // g_mutator->debug(ir_root, 0);
+    // cerr << "Finished";
 
     for (IR* cur_stmt : stmt_vec) {
         if (cur_stmt->type_ == kSelectStmt) {
@@ -306,9 +306,9 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
         }
     }
 
-    cerr << "After removing select stmt, we get ir_root: ";
-    g_mutator->debug(ir_root, 0);
-    cerr << "Finished";
+    // cerr << "After removing select stmt, we get ir_root: ";
+    // g_mutator->debug(ir_root, 0);
+    // cerr << "Finished";
 
     return;
 }

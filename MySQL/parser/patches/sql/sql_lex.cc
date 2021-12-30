@@ -5542,6 +5542,31 @@ bool IR::set_role_list_type(DATAFLAG data_flag) {
   return true;
 }
 
+
+IR* IR::where_clause_get_expr() {
+  assert(this->get_ir_type() == kWhereClause);
+
+  if (get_left()) {
+    return get_left();
+  }
+  return NULL;
+}
+
+std::string IR::get_str_val() {
+  return this->str_val_;
+}
+
+void IR::set_str_val(std::string in) {
+  this->str_val_ = in;
+  return;
+}
+
+bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
+  this->set_data_type(data_type);
+  this->set_data_flag(data_flag);
+  return true;
+}
+
 /*
 ** End SQLRight injected code.
 */
