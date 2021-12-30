@@ -4193,6 +4193,7 @@ filter_table_ident:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kFilterTableIdent, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -5429,6 +5430,7 @@ create:
         auto tmp1 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($7), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kCreate_11, OP3("CREATE SERVER", "FOREIGN DATA WRAPPER", "OPTIONS ("), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -6005,6 +6007,7 @@ sp_name:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kSpName, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -10647,6 +10650,7 @@ precision:
         auto tmp1 = new IR(kIntLiteral, to_string($2), kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIntLiteral, to_string($4), kDataLiteral, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kPrecision, OP3("(", ",", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -12035,6 +12039,7 @@ key_part:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIntLiteral, to_string($3), kDataLiteral, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kKeyPart, OP3("", "(", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -12330,6 +12335,7 @@ alter_tablespace_stmt:
         auto tmp1 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($6), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kAlterTablespaceStmt, OP3("ALTER TABLESPACE", "RENAME TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -13561,6 +13567,7 @@ alter_list_item:
         auto tmp1 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($5), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kAlterListItem, OP3("RENAME COLUMN", "TO", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -17447,6 +17454,7 @@ function_call_generic:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kFunctionCallGeneric_1, OP3("", ".", "("), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -24487,6 +24495,7 @@ table_wild:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kTableWild, OP3("", ".", ". *"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -24571,6 +24580,7 @@ simple_ident_q:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kSimpleIdentQ, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -24583,6 +24593,7 @@ simple_ident_q:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kSimpleIdentQ_1, OP3("", ".", "."), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -24614,6 +24625,7 @@ table_ident:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kTableIdent, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -24637,6 +24649,7 @@ table_ident_opt_wild:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kTableIdentOptWild_1, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -24862,6 +24875,7 @@ user_ident_or_text:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataUserName, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataHostName, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kUserIdentOrText, OP3("", "@", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -24903,6 +24917,7 @@ role:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kRole, OP3("", "@", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -26092,6 +26107,7 @@ internal_variable_name:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kInternalVariableName, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -26484,6 +26500,7 @@ alter_instance_action:
         auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kAlterInstanceAction, OP3("ENABLE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -26493,6 +26510,7 @@ alter_instance_action:
         auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kAlterInstanceAction, OP3("DISABLE", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -26552,6 +26570,7 @@ handler_stmt:
         auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($4), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kHandlerStmt_3, OP3("HANDLER", "READ", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -26573,6 +26592,7 @@ handler_stmt:
         auto tmp1 = new IR(kIdentifier, to_string($2), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($4), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kHandlerStmt_6, OP3("HANDLER", "READ", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
 
@@ -26919,6 +26939,7 @@ role_or_privilege:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kRoleOrPrivilege, OP3("", "@", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -27244,6 +27265,7 @@ grant_ident:
         auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kGrantIdent, OP3("", ".", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -27514,6 +27536,7 @@ identified_with_plugin_as_auth:
         auto tmp1 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($5), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kIdentifiedWithPluginAsAuth, OP3("IDENTIFIED WITH", "AS", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -27528,6 +27551,7 @@ identified_with_plugin_by_password:
         auto tmp1 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($5), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kIdentifiedWithPluginByPassword, OP3("IDENTIFIED WITH", "BY", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -29035,6 +29059,7 @@ install:
         auto tmp1 = new IR(kIdentifier, to_string($3), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIdentifier, to_string($5), kDataFixLater, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kInstall, OP3("INSTALL PLUGIN", "SONAME", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -29276,6 +29301,7 @@ vcpu_num_or_range:
         auto tmp1 = new IR(kIntLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         auto tmp2 = new IR(kIntLiteral, to_string($3), kDataLiteral, 0, kFlagUnknown);
+        ir_vec.push_back(tmp2);
         res = new IR(kVcpuNumOrRange, OP3("", "-", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
@@ -29381,4 +29407,3 @@ json_attribute:
 
 
 /**
-  @} (end of group Parser)
