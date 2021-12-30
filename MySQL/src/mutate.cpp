@@ -1531,11 +1531,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
           continue;
         }
+        // TODO:: Check whether there are system column in MySQL. 
         /* Or, assign with system column in 5% chances */
-        else if (get_rand_int(20) < 1){
-          ir_to_fix->str_val_ = v_sys_column_name[get_rand_int(v_sys_column_name.size())];
-          continue;
-        }
+        // else if (get_rand_int(20) < 1){
+        //   ir_to_fix->str_val_ = v_sys_column_name[get_rand_int(v_sys_column_name.size())];
+        //   continue;
+        // }
 
 
         string closest_table_name = "";
