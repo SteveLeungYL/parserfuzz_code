@@ -142,11 +142,11 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
-    case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
-      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
-      trans_IR_vec.push_back(transformed_stmt);
-    }
-      break;
+//    case VALID_STMT_TYPE_TLP::AGGR_COUNT: {
+//      IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+//      trans_IR_vec.push_back(transformed_stmt);
+//    }
+//      break;
     case VALID_STMT_TYPE_TLP::AGGR_MAX: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
       trans_IR_vec.push_back(transformed_stmt);
