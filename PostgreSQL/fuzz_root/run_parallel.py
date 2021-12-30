@@ -45,7 +45,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     # Set up the postgre data folder first. 
     cur_postgre_data_dir_str = os.path.join(postgres_root_dir, "data_all/data_" + str(cur_inst_id-starting_core_id))
 
-    if os.path.is_dir(cur_postgre_data_dir_str):
+    if os.path.isdir(cur_postgre_data_dir_str):
         shutil.rmtree(cur_postgre_data_dir_str)
 
     shutil.copytree(postgres_src_data_dir, cur_postgre_data_dir_str)
