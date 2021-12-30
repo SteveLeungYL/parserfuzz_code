@@ -5542,6 +5542,22 @@ bool IR::set_role_list_type(DATAFLAG data_flag) {
   return true;
 }
 
+bool IR::set_TEXT_STRING_sys_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kTEXTSTRINGSysList);
+
+  IR* left = get_left();
+  IR* right = get_right();
+  if (right) {
+    left->set_TEXT_STRING_sys_list_type(data_type, data_flag);
+    right->set_ident_type(data_type, data_flag);
+  } else {
+    left->set_ident_type(data_type, data_flag);
+  }
+
+
+  return true;
+}
+
 
 IR* IR::where_clause_get_expr() {
   assert(this->get_ir_type() == kWhereClause);

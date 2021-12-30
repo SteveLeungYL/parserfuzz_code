@@ -4308,8 +4308,10 @@ V(kUnknown)
     V(DataTableNameFollow) \
     V(DataColumnNameFollow) \
     V(DataConstraintName) \
-    V(DataExecuteVarName) \
+    V(DataVarName) \
     V(DataStmtName) \
+    V(DataPluginName) \
+    V(DataComponentName) \
     V(DataLiteral)
 
 
@@ -4630,6 +4632,7 @@ public:
     bool set_sp_name_type(DATATYPE, DATAFLAG);
     bool set_role_type(DATAFLAG);
     bool set_role_list_type(DATAFLAG);
+    bool set_TEXT_STRING_sys_list_type(DATATYPE, DATAFLAG);
 };
 
 /*

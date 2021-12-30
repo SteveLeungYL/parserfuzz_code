@@ -29038,6 +29038,8 @@ install:
         res = new IR(kInstall, OP3("INSTALL PLUGIN", "SONAME", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataPluginName, kDefine);
     }
 
     | INSTALL_SYM COMPONENT_SYM TEXT_STRING_sys_list {
@@ -29045,6 +29047,8 @@ install:
         res = new IR(kInstall, OP3("INSTALL COMPONENT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_TEXT_STRING_sys_list_type(kDataComponentName, kDefine);
     }
 
 ;
@@ -29058,6 +29062,8 @@ uninstall:
         res = new IR(kUninstall, OP3("UNINSTALL PLUGIN", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_ident_type(kDataPluginName, kUndefine);
     }
 
     | UNINSTALL_SYM COMPONENT_SYM TEXT_STRING_sys_list {
@@ -29065,6 +29071,8 @@ uninstall:
         res = new IR(kUninstall, OP3("UNINSTALL COMPONENT", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_TEXT_STRING_sys_list_type(kDataComponentName, kUndefine);
     }
 
 ;
