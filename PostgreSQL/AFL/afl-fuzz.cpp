@@ -4229,26 +4229,13 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
   if (is_str_empty(query_str))
     return keeping; // return 0; Empty string. Not added.
 
-  string stripped_query_string = query_str;
-      // p_oracle->remove_oracle_select_stmt_from_str(query_str);
-  if (is_str_empty(stripped_query_string))
-    return keeping;
-
   if (fault == crash_mode)
   {
 
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
-    **  1/10 of chances to save the interesting seed.
-    **  9/10 of chances to throw away the seed.
-    **/
-    if ( (disable_coverage_feedback == 2) && get_rand_int(10) == 0 ) {
-      // Drop query. 
-      return 0;
-    }
-
+    /* Always check has_new_bits first. */
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
     if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
@@ -4256,6 +4243,22 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
         total_crashes++;
       return 0;
     }
+
+    if (disable_coverage_feedback == 1)
+    { // Disable feedbacks. Drop all queries.
+      return keeping;
+    }
+
+    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    **  1/10 of chances to save the interesting seed.
+    **  9/10 of chances to throw away the seed.
+    **/
+    if ( (disable_coverage_feedback == 2) && get_rand_int(10) < 9 ) {
+      // Drop query. 
+      return keeping;
+    }
+
+    /* If disable_coverage_feedback == 3, always go through save_if_interesting. */
 
     char *tmp_name = stage_name;
     //[modify] add
@@ -4281,7 +4284,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     stage_name = tmp_name;
     //[modify] end
 
-    if (g_mutator.is_stripped_str_in_lib(stripped_query_string))
+    if (g_mutator.is_stripped_str_in_lib(query_str))
       return keeping;
 
 #ifndef SIMPLE_FILES
@@ -4301,7 +4304,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
        before adding them to the query.
     */
 
-    add_to_queue(fn, stripped_query_string.size(), 0);
+    add_to_queue(fn, query_str.size(), 0);
 
     total_add_to_queue++;
 
@@ -5816,14 +5819,9 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<s
   */
   if (fault == FAULT_ERROR)
     return 0;
-  
-  if (disable_coverage_feedback == 1) {  // Disable feedbacks. Drop all queries. 
-    /* Do nothing. */
-    has_new_bits(virgin_bits, query_str_no_marks_vec[0]);
-  } else {
-    int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault, explain_diff_id);
-    queued_discovered += should_keep;
-  }
+
+  int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault, explain_diff_id);
+  queued_discovered += should_keep;
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();

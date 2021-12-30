@@ -3828,15 +3828,6 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
-    **  1/10 of chances to save the interesting seed.
-    **  9/10 of chances to throw away the seed.
-    **/
-    if ( (disable_coverage_feedback == 2) && get_rand_int(10) == 0 ) {
-      // Drop query. 
-      return 0;
-    }
-        
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
     if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
       if (crash_mode)
@@ -3845,6 +3836,22 @@ static u8 save_if_interesting(char **argv, string &query_str, const ALL_COMP_RES
       // Drop query. 
       return 0;
     }
+
+    if (disable_coverage_feedback == 1)
+    { // Disable feedbacks. Drop all queries.
+      return keeping;
+    }
+
+    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    **  1/10 of chances to save the interesting seed.
+    **  9/10 of chances to throw away the seed.
+    **/
+    if ( (disable_coverage_feedback == 2) && get_rand_int(10) < 9 ) {
+      // Drop query. 
+      return keeping;
+    }
+
+    /* If disable_coverage_feedback == 3, always go through save_if_interesting. */
 
     char *tmp_name = stage_name;
     //[modify] add
@@ -5464,19 +5471,15 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str, vector<strin
     return 0;
   }
 
-  if (disable_coverage_feedback == 1) {  // Disable feedbacks. Drop all queries. 
-    /* Do nothing. */
-  } else {
-    queued_discovered +=
-      save_if_interesting(argv, query_str_no_marks[0], all_comp_res, fault, explain_diff_id);
-  }
+  queued_discovered +=
+    save_if_interesting(argv, query_str_no_marks[0], all_comp_res, fault, explain_diff_id);
 
   /* Queue size could be overwhelmed if we disable feedbacks with randomly saved queries or completely save all queries. 
   ** In these cases, we clean the queue if q_len exceed 10000. 
   */
-  if (disable_coverage_feedback > 1 && q_len >= 1000) {
-    // destroy_half_queue();
-  }
+  // if (disable_coverage_feedback > 1 && q_len >= 1000) {
+  //   // destroy_half_queue();
+  // }
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
