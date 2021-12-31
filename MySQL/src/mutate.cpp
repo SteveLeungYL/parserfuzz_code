@@ -78,6 +78,9 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     vector<IR *> v_mutated_ir = mutate(ir_to_mutate);
 
     for (IR *new_ir : v_mutated_ir) {
+
+        if (!new_ir) continue;
+
         total_mutate_num++;
         if (!root->swap_node(ir_to_mutate, new_ir)) {
             new_ir->deep_drop();
@@ -735,7 +738,15 @@ void Mutator::debug(IR* root, unsigned level) {
 }
 
 Mutator::~Mutator(){
-    
+  for (auto iter = ir_library_.begin(); iter != ir_library_.end(); iter++){
+    for (IR* cur_ir : iter->second) {
+      cur_ir->deep_drop();
+    }
+  }
+
+  for (auto iter : all_query_pstr_set) {
+    delete iter;
+  }
 }
 
 void Mutator::reset_data_library(){
@@ -3608,10 +3619,10 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
       if (matched_ir_node->type_ != type_) {
+        // cerr << "DEBUG: Type not matched\n\n\n";
         current_ir_root->deep_drop();
         return new IR(kUnknown, "");
       }
-      // return_matched_ir_node = matched_ir_node->deep_copy();
       return_matched_ir_node = matched_ir_node;
       current_ir_root->detatch_node(return_matched_ir_node);
     }
@@ -3619,8 +3630,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     current_ir_root->deep_drop();
 
     if (return_matched_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly with_type: with string: " <<
-      // return_matched_ir_node->to_string() << endl;
+      // cerr << "\n\n\nSuccessfuly with_type: with string: " << return_matched_ir_node->to_string() << endl;
       return return_matched_ir_node;
     }
   }
