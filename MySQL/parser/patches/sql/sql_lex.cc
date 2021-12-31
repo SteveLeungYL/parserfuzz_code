@@ -5270,19 +5270,25 @@ bool IR::update_right(IR* new_right) {
 }
 
 bool IR::swap_node(IR *old_node, IR *new_node) {
-  if (old_node == NULL)
+  if (old_node == NULL) {
+    // printf("swap_node failed because old_node == NULL \n\n\n");
     return false;
+  }
 
   IR *parent = this->locate_parent(old_node);
 
-  if (parent == NULL)
+  if (parent == NULL) {
+    // printf("swap_node failed because locate_parent failed. \n\n\n");
     return false;
+  }
   else if (parent->left_ == old_node)
     parent->update_left(new_node);
   else if (parent->right_ == old_node)
     parent->update_right(new_node);
-  else
+  else {
+    // printf("swap_node failed because parent is not connected to new_node. \n\n\n");
     return false;
+  }
 
   old_node->parent_ = NULL;
 

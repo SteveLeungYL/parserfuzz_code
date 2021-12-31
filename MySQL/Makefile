@@ -51,6 +51,6 @@ asan:
 clean:
 	@make clean -C parser
 	@make clean -C src
-	# @make clean -C oracle
+	@make clean -C oracle
 	@make clean -C AFL
 	rm -rf afl-fuzz

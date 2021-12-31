@@ -6147,7 +6147,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
       // cerr << "Break due to exceeding max_trial. \n";
       break;
     }
-    cout << "get_oracle_select_stmt trial times: " << trial << endl;
+    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
     IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
       cerr << "new_norec_stmts is empty. \n";
@@ -7663,12 +7663,12 @@ static char **get_qemu_argv(u8 *own_loc, char **argv, int argc)
   else
     ck_free(own_copy);
 
-  if (!access(BIN_PATH "/afl-qemu-trace", X_OK))
-  {
+  // if (!access(BIN_PATH "/afl-qemu-trace", X_OK))
+  // {
 
-    target_path = new_argv[0] = ck_strdup(BIN_PATH "/afl-qemu-trace");
-    return new_argv;
-  }
+  //   target_path = new_argv[0] = ck_strdup(BIN_PATH "/afl-qemu-trace");
+  //   return new_argv;
+  // }
 
   SAYF("\n" cLRD "[-] " cRST
        "Oops, unable to find the 'afl-qemu-trace' binary. The binary must be built\n"
@@ -7803,7 +7803,7 @@ int main(int argc, char *argv[])
   memset_fucking_array();
   SAYF(cCYA "SQLFuzzer " cBRI VERSION cRST " by hackers\n"); //string_lib he common_string_lib YOUSHENME QUBIE
 
-  doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
+  // doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
 
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());

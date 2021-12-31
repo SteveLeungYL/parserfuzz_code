@@ -31,7 +31,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   // Ignore statements with UNION, EXCEPT and INTERCEPT
   if (ir_wrapper.is_exist_set_operator(cur_stmt)) {
-    cerr << "Return false because of set operator \n";
+    // cerr << "Return false because of set operator \n";
     return false;
   }
 
@@ -65,7 +65,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
   if (!is_found_count) {
-      cerr << "Return false because COUNT func is not found. \n\n\n";
+      // cerr << "Return false because COUNT func is not found. \n\n\n";
       return false;
   }
 
@@ -73,7 +73,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     !ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) ||
     !ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false)
   ) {
-      cerr << "Return false because FROM clause or WHERE clause is not found. \n\n\n";
+      // cerr << "Return false because FROM clause or WHERE clause is not found. \n\n\n";
       return false;
   }
 
