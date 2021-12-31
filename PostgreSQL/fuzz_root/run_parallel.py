@@ -5,13 +5,13 @@ import shutil
 import subprocess
 import atexit
 
-postgres_root_dir = "/data/yu/Squirrel_DBMS_Fuzzing/postgres_source/postgresql-14.0/"
-postgres_src_data_dir = os.path.join(postgres_root_dir, "data_all/ori_data")
+postgres_root_dir = "/home/luy70/Desktop/SQLRight_DBMS/postgres/postgres_bld/272d82ec6febb97ab25fd7c67e9c84f4660b16ac_NOR_EARLY"
+postgres_src_data_dir = os.path.join(postgres_root_dir, "data_all/data")
 current_workdir = os.getcwd()
 
-starting_core_id = 10
-parallel_num = 5
-port_starting_num = 5490
+starting_core_id = 5
+parallel_num = 3
+port_starting_num = 5433
 
 all_fuzzing_p_list = []
 all_postgres_p_list = []
@@ -44,11 +44,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     # Set up the postgre data folder first. 
     cur_postgre_data_dir_str = os.path.join(postgres_root_dir, "data_all/data_" + str(cur_inst_id-starting_core_id))
-
-    if os.path.isdir(cur_postgre_data_dir_str):
-        shutil.rmtree(cur_postgre_data_dir_str)
-
-    shutil.copytree(postgres_src_data_dir, cur_postgre_data_dir_str)
+    if not os.path.isdir(cur_postgre_data_dir_str):
+        shutil.copytree(postgres_src_data_dir, cur_postgre_data_dir_str)
 
     # Set up SQLRight output folder
     cur_output_dir_str = "./outputs_" + str(cur_inst_id - starting_core_id)
@@ -74,8 +71,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         [fuzzing_command],
                         cwd=os.getcwd(),
                         shell=True,
-                        stderr=cur_output_file,
-                        stdout=cur_output_file,
+                        stderr=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
                         stdin=subprocess.DEVNULL
                         )
     all_fuzzing_p_list.append(p)
@@ -111,5 +108,28 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 print("Finished launching the fuzzing. Now monitor the postgres process. ")
 
 while True:
+    for idx in range(len(all_postgres_p_list)):
+        cur_postgre_p = all_postgres_p_list[idx]
+        cur_postgre_pid = cur_postgre_p.pid
+        if not check_pid(cur_postgre_pid):
+
+            # PostgreS process crashed. Restart Postgres. 
+            all_postgres_p_list.remove(cur_postgre_p)
+            cur_shm_str = shm_env_list[idx]
+            cur_postgre_data_dir_str = os.path.join(postgres_root_dir, "data_all/data_" + str(idx))
+
+            postgre_command = "__AFL_SHM_ID=" + cur_shm_str +  " ./bin/postgres -D " + cur_postgre_data_dir_str + " & "
+            print("PostgreS PID: " + str(cur_postgre_pid) + " crashed. ")
+            print("Restarting postgres command: " + fuzzing_command, end="\n\n")
+            p = subprocess.Popen(
+                                [postgre_command],
+                                cwd=postgres_root_dir,
+                                shell=False,
+                                stderr=subprocess.DEVNULL,
+                                stdout=subprocess.DEVNULL,
+                                stdin=subprocess.DEVNULL,
+                                )
+            all_postgres_p_list.insert(idx, p)
+    
     # Check postgres every 10 seconds. 
     time.sleep(10)
