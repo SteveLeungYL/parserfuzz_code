@@ -359,6 +359,7 @@ public:
           // break;
         }
       }
+      mysql_free_result(result);
       /* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
       if ((status = mysql_next_result(m_)) > 0) {
         // cerr << "Could not execute statement. \n\n\n";
