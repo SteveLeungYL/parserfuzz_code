@@ -6269,6 +6269,8 @@ static u8 fuzz_one(char **argv)
 
   vector<IR *> ori_ir_tree;
   vector<IR*> v_oracle_select_stmts;
+  vector<IR*> v_ir_stmts;
+  v_ir_stmts.clear();
   char *tmp_name = stage_name;
   // string query_str;
   int skip_count;
@@ -6378,6 +6380,30 @@ static u8 fuzz_one(char **argv)
 
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
+
+
+  /* Append Create stmts to the queue, if no create table stmts is found. */
+  v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+  int create_num, drop_num;
+  bool is_missing_create;
+  create_num = 0;
+  drop_num = 0;
+
+  for (IR* ir_stmts : v_ir_stmts) {
+    switch (ir_stmts->get_ir_type()) {
+      case kCreateStmt:
+        create_num++;
+      case kDropStmt:
+        drop_num++;
+    }
+  }
+
+  if (drop_num >= create_num) {
+    // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
+    g_mutator.add_missing_create_table_stmt(cur_root);
+    // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
+  }
+  v_ir_stmts.clear(); // No need to free. 
 
   /* Because we deleted some stmts, we need to re-gather all the existing node in the vector */
   ori_ir_tree.clear();

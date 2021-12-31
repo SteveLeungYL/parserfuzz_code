@@ -160,6 +160,9 @@ public:
   IR *get_from_libary_with_left_type(IRTYPE);
   IR *get_from_libary_with_right_type(IRTYPE);
 
+  IR* get_ir_with_type(const IRTYPE type_);
+  bool add_missing_create_table_stmt(IR*);
+
   IR *record_ = NULL;
   IR *mutated_root_ = NULL;
   map<IRTYPE, vector<IR *>> ir_library_;
