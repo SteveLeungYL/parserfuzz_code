@@ -56,31 +56,6 @@ int gen_int(){
 
 typedef unsigned long uint64_t;
 
-IR * parser(string sql){
-
-    // yyscan_t scanner;
-    // YY_BUFFER_STATE state;
-    // Program * p = new Program();
-
-    // if (ff_lex_init(&scanner)) {
-    //     return NULL;
-    // }
-    // state = ff__scan_string(sql.c_str(), scanner);
-
-    // int ret = ff_parse(p, scanner);
-
-    // ff__delete_buffer(state, scanner);
-    // ff_lex_destroy(scanner);
-    // if(ret != 0){
-    //     p->deep_delete();
-    //     return NULL;
-    // }
-
-    IR* p = new IR(kStartEntry, OP0());
-    
-    return p;
-}
-
 uint64_t fucking_hash ( const void * key, int len )
 {
 	const uint64_t m = 0xc6a4a7935bd1e995;

@@ -302,15 +302,7 @@ void Mutator::init_ir_library(string filename){
     cout << "[*] init ir_library: " << filename << endl;
     while(getline(input_file, line)){
         if(line.empty()) continue;
-        auto p = parser(line);
-        if(p == NULL) continue;
-        
-        vector<IR *> v_ir;
-        // auto res = p->translate(v_ir);
-        // p->deep_delete();
-        // p = NULL;
-
-        add_ir_to_library(p);
+        add_all_to_library(line);
     }
     return;
 }
@@ -3225,7 +3217,15 @@ IR * Mutator::find_closest_node(IR * stmt_root, IR * node, DATATYPE type){
 
 int Mutator::try_fix(char* buf, int len, char* &new_buf, int &new_len){
     string sql(buf);
-    IR* ir_root = parser(sql);
+
+    vector<IR*> ir_vec;
+    int ret = run_parser_multi_stmt(sql, ir_vec);
+
+    if (ret!= 0 || ir_vec.size() ==0) {
+      return 0;
+    }
+
+    IR* ir_root = ir_vec.back();
 
     new_buf = buf;
     new_len = len;

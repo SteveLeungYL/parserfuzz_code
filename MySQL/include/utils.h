@@ -49,7 +49,6 @@ struct ALL_COMP_RES {
 
 uint64_t fucking_hash ( const void * key, int len );
 vector<string> get_all_files_in_dir(const char * dir_name);
-IR * parser(string sql);
 
 
 std::vector<string> string_splitter(const string &input_string,
