@@ -1277,7 +1277,9 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   map_id_out_f << actual_idx << "," << map_file_id <<  endl;
 
   fstream map_id_seed_output;
-  map_id_seed_output.open("./queue_coverage_id_core/" + to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
+  if (queue_cur) {
+    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
+  }
   map_id_seed_output << cur_seed_str;
   map_id_seed_output.close();
 }
