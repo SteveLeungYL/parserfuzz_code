@@ -11140,7 +11140,9 @@ opt_provider:
         auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
-        $$ = new IR(kOptProvider, OP3("FOR", "", ""), tmp1);
+        res = new IR(kOptProvider, OP3("FOR", "", ""), tmp1);
+        all_gen_ir.push_back(res);
+        $$ = res;
     }
 
     | /* EMPTY */ {
