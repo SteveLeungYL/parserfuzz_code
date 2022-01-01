@@ -2275,9 +2275,17 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
         /* Mutate the literals in just 1% of chances is enough.
         * For 99% of chances, keep original. 
+        * Only for non_select stmts. 
+        * For select stmts, 1/5 keep original. 
         */
-        if (get_rand_int(100) < 99) {
+        bool is_keep_ori = false;
+        if (cur_stmt_root->get_ir_type() != kSelectStmt && get_rand_int(100) < 99) {
+          is_keep_ori = true;
+        } else if (cur_stmt_root->get_ir_type() == kSelectStmt && get_rand_int(60) < 10) {
+          is_keep_ori = true;
+        }
 
+        if (is_keep_ori) {
           /* Save the already seen literals */
           if (ir_to_fix->get_ir_type() == kIntLiteral) {
             string ori_str = ir_to_fix->get_str_val();
@@ -2349,8 +2357,17 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           }
         }
 
-        /* 95% chances, choose the original type. */
-        if (get_rand_int(20) < 19) {
+        /* For non-select, 95% chances, choose the original type. 
+         * For select, 1/3 chances, keep original type.  
+        */
+        is_keep_ori = false;
+        if (cur_stmt_root->get_ir_type() != kSelectStmt && get_rand_int(20) < 19) {
+          is_keep_ori = true;
+        } else if (cur_stmt_root->get_ir_type() == kSelectStmt && get_rand_int(50) < 10) {
+          is_keep_ori = true;
+        }
+
+        if (is_keep_ori) {
           if (ir_to_fix->get_ir_type() == kIntLiteral) {
             column_data_type = COLTYPE::INT_T;
           }
