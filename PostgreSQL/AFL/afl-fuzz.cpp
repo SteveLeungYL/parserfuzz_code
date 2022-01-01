@@ -6393,8 +6393,10 @@ static u8 fuzz_one(char **argv)
     switch (ir_stmts->get_ir_type()) {
       case kCreateStmt:
         create_num++;
+        break;
       case kDropStmt:
         drop_num++;
+        break;
     }
   }
 
