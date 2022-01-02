@@ -3480,12 +3480,12 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_query_pstr_set.insert(new_select);
   all_valid_pstr_vec.push_back(new_select);
 
-  if (this->dump_library) {
-    std::ofstream f;
-    f.open("./norec-select", std::ofstream::out | std::ofstream::app);
-    f << *new_select << endl;
-    f.close();
-  }
+  // if (this->dump_library) {
+  //   std::ofstream f;
+  //   f.open("./norec-select", std::ofstream::out | std::ofstream::app);
+  //   f << *new_select << endl;
+  //   f.close();
+  // }
 
   // cerr << "Saving str: " << *new_select << " to the lib. \n\n\n";
   add_to_library_core(ir, new_select);
@@ -3512,12 +3512,12 @@ void Mutator::add_to_library(IR *ir, string &query) {
   all_query_pstr_set.insert(p_query_str);
   // all_valid_pstr_vec.push_back(p_query_str);
 
-  if (this->dump_library) {
-    std::ofstream f;
-    f.open("./normal-lib", std::ofstream::out | std::ofstream::app);
-    f << *p_query_str << endl;
-    f.close();
-  }
+  // if (this->dump_library) {
+  //   std::ofstream f;
+  //   f.open("./normal-lib", std::ofstream::out | std::ofstream::app);
+  //   f << *p_query_str << endl;
+  //   f.close();
+  // }
 
   // cerr << "Saving str: " << *p_query_str << " to the lib. \n\n\n";
   add_to_library_core(ir, p_query_str);
@@ -3578,13 +3578,13 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     // }
   }
 
-  if (this->dump_library) {
+  // if (this->dump_library) {
 
-    std::ofstream f;
-    f.open("./append-core", std::ofstream::out | std::ofstream::app);
-    f << *p_query_str << " node_id: " << current_unique_id << endl;
-    f.close();
-  }
+  //   std::ofstream f;
+  //   f.open("./append-core", std::ofstream::out | std::ofstream::app);
+  //   f << *p_query_str << " node_id: " << current_unique_id << endl;
+  //   f.close();
+  // }
 
   if (ir->left_) {
     add_to_library_core(ir->left_, p_query_str);

@@ -577,6 +577,12 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
 
+EXP_ST u8 disable_coverage_feedback = 0;  
+                              /* 0: not disabled, 
+                               * 1: Drop all queries. 
+                               * 2: Randomly save queries. 
+                               * 3: Save all queries. */
+
 static s32 out_fd,       /* Persistent fd for out_file       */
     dev_urandom_fd = -1, /* Persistent fd for /dev/urandom   */
     dev_null_fd = -1,    /* Persistent fd for /dev/null      */
@@ -1376,6 +1382,34 @@ EXP_ST void read_bitmap(u8 *fname)
   close(fd);
 }
 
+vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+  vector<u8> new_byte_v;
+  for (u8 i = 0; i < 8; i++){
+    if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+  }
+  return new_byte_v;
+}
+
+void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
+  if (map_id_out_f.fail()){
+    return;
+  }
+  if (cur_seed_str == "") {
+    return;
+  }
+  i = (MAP_SIZE >> 3) - i - 1 ;
+  u32 actual_idx = i * 8 + byte;
+  
+  map_id_out_f << actual_idx << "," << map_file_id <<  endl;
+
+  fstream map_id_seed_output;
+  if (queue_cur) {
+    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
+  }
+  map_id_seed_output << cur_seed_str;
+  map_id_seed_output.close();
+}
+
 /* Check if the current execution path brings anything new to the table.
    Update virgin bits to reflect the finds. Returns 1 if the only change is
    the hit-count for a particular tuple; 2 if there are new tuples seen. 
@@ -1384,8 +1418,11 @@ EXP_ST void read_bitmap(u8 *fname)
    This function is called after every exec() on a fairly large buffer, so
    it needs to be fast. We do this in 32-bit and 64-bit flavors. */
 
-static inline u8 has_new_bits(u8 *virgin_map)
-{
+static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
+
+  if (dump_library) {
+    map_file_id++;
+  }
 
 #ifdef __x86_64__
 
@@ -1405,18 +1442,15 @@ static inline u8 has_new_bits(u8 *virgin_map)
 
   u8 ret = 0;
 
-  while (i--)
-  {
+  while (i--) {
 
     /* Optimize for (*current & *virgin) == 0 - i.e., no bits in current bitmap
        that have not been already cleared from the virgin map - since this will
        almost always be the case. */
 
-    if (unlikely(*current) && unlikely(*current & *virgin))
-    {
+    if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2))
-      {
+      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail())) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -1429,10 +1463,21 @@ static inline u8 has_new_bits(u8 *virgin_map)
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
-            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff))
-          ret = 2;
-        else
-          ret = 1;
+            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
+              ret = 2;
+              if (dump_library && !map_id_out_f.fail() && cur_seed_str != ""){
+                vector<u8> byte = get_cur_new_byte(cur, vir);
+                for (const u8& cur_byte: byte){
+                  // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+                  log_map_id(i, cur_byte, cur_seed_str);
+                }
+              }
+        }
+        else {
+          if (ret != 2) {
+            ret = 1;
+          }
+        }
 
 #else
 
@@ -3645,23 +3690,36 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
   if (is_str_empty(query_str))
     return keeping; // return 0; Empty string. Not added.
 
-  string stripped_query_string = query_str;
-      // p_oracle->remove_oracle_select_stmt_from_str(query_str);
-  if (is_str_empty(stripped_query_string))
-    return keeping;
-
   if (fault == crash_mode)
   {
 
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits)))
-    {
+    /* Always check has_new_bits first. */
+
+    /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
+    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       return 0;
     }
+
+    if (disable_coverage_feedback == 1)
+    { // Disable feedbacks. Drop all queries.
+      return keeping;
+    }
+
+    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    **  1/10 of chances to save the interesting seed.
+    **  9/10 of chances to throw away the seed.
+    **/
+    if ( (disable_coverage_feedback == 2) && get_rand_int(10) < 9 ) {
+      // Drop query. 
+      return keeping;
+    }
+
+    /* If disable_coverage_feedback == 3, always go through save_if_interesting. */
 
     stage_name = "add_to_library";
 
@@ -3691,7 +3749,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
 #endif /* ^!SIMPLE_FILES */
 
-    add_to_queue(fn, stripped_query_string.size(), 0);
+    add_to_queue(fn, query_str.size(), 0);
 
     total_add_to_queue++;
 
@@ -3715,7 +3773,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
 
-    ck_write(fd, stripped_query_string.c_str(), stripped_query_string.size(), fn);
+    ck_write(fd, query_str.c_str(), query_str.size(), fn);
     close(fd);
 
     keeping = 1;
@@ -7811,7 +7869,7 @@ int main(int argc, char *argv[])
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:F:")) > 0)
 
     switch (opt)
     {
@@ -7829,6 +7887,22 @@ int main(int argc, char *argv[])
         in_place_resume = 1;
 
       break;
+
+    case 'F': { /* coverage feedback */
+      string arg = string(optarg);
+      if (arg == "drop_all"){
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 1;
+      } else if (arg == "random_save") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 2;
+      } else if (arg == "save_all") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 3;
+      } else {
+        FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
+      }
+    } break;
 
     case 's': /* server's path */
       if (g_server_path)
