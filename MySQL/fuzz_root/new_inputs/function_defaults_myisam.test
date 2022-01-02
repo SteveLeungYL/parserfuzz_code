@@ -1,0 +1,10 @@
+  set default_storage_engine=myisam;
+source 'include/function_defaults.inc';
+  set default_storage_engine=myisam;
+source 'include/function_defaults.inc';
+  set default_storage_engine=myisam;
+source 'include/function_defaults.inc';
+  set default_storage_engine=myisam;
+source 'include/function_defaults.inc';
+  set default_storage_engine=myisam;
+source 'include/function_defaults.inc';

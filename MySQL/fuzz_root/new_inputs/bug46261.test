@@ -1,0 +1,5 @@
+      enable_query_log;
+eval INSTALL PLUGIN example SONAME '$EXAMPLE_PLUGIN';
+SELECT PLUGIN_STATUS FROM INFORMATION_SCHEMA.plugins  WHERE plugin_name='example';
+eval INSTALL PLUGIN example SONAME '$EXAMPLE_PLUGIN';
+UNINSTALL PLUGIN example;

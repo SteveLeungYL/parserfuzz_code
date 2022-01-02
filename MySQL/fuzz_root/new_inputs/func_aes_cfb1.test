@@ -1,0 +1,3 @@
+SET SESSION block_encryption_mode='aes-128-cfb1';
+source include/func_aes_block.inc;
+SET SESSION block_encryption_mode=default;

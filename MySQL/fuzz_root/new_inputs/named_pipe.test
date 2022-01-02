@@ -1,0 +1,4 @@
+  skip Need windows;
+connect(pipe_con,localhost,root,,,,,PIPE);
+connection default;
+disconnect pipe_con;

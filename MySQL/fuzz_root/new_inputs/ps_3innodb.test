@@ -1,0 +1,12 @@
+use test;
+drop table t1, t9;
+use test;
+drop table t1, t9;
+use test;
+drop table t1, t9;
+use test;
+drop table t1, t9;
+use test;
+drop table t1, t9;
+use test;
+drop table t1, t9;

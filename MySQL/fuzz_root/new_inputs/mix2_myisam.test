@@ -1,0 +1,3 @@
+     let $have_debug = `select convert (@@version using latin1) like '%debug%'`;
+   if ( $have_debug )   {      skip Test requires: 'not_sparc_debug';
+   }

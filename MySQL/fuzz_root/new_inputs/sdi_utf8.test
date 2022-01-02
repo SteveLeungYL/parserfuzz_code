@@ -1,0 +1,10 @@
+  CREATE TABLE tæøå(i INT);
+DROP TABLE tæøå;
+  CREATE TABLE tæøå(i INT);
+DROP TABLE tæøå;
+  CREATE TABLE tæøå(i INT);
+DROP TABLE tæøå;
+  CREATE TABLE tæøå(i INT);
+DROP TABLE tæøå;
+  CREATE TABLE tæøå(i INT);
+DROP TABLE tæøå;
