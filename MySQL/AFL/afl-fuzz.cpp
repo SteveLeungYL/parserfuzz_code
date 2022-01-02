@@ -5824,10 +5824,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<s
   //cout << num ++ << ":" << out_buf << endl;
   int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault);
   queued_discovered += should_keep;
-  if (should_keep == 1)
-  {
-    g_mutator.add_ir_to_library(g_current_ir);
-  }
+
   //cout << "OK" << endl;
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -6332,7 +6329,7 @@ static u8 fuzz_one(char **argv)
   int skip_count = 0;
   string input((const char *)out_buf);
 
-  cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
+  // cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
 
   ori_ir_tree.clear();
   int ret = run_parser_multi_stmt(input, ori_ir_tree);
