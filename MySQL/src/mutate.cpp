@@ -3606,6 +3606,9 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     string *p_current_query_str = selected_matched_node.first;
     int unique_node_id = selected_matched_node.second;
 
+    // cerr << "DEBUG:: In IR *Mutator::get_from_libary_with_type, with type_: " << get_string_by_ir_type(type_)
+          // << ", pick string: " << *p_current_query_str << "\n\n\n";
+
     /* Reconstruct the IR tree. */
     int ret = run_parser_multi_stmt(*p_current_query_str, current_ir_set);
     if (ret != 0 || current_ir_set.size() <= 0)
@@ -3626,7 +3629,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
       // cerr << "current_ir_root is: " << get_string_by_ir_type(current_ir_root->get_ir_type()) << "\n";
       // cerr << "return_matched_ir_node type is: " << get_string_by_ir_type(return_matched_ir_node->get_ir_type()) << "\n";
     } else {
-      cerr << "matched_ir_node is NULL. \n\n\n";
+      // cerr << "matched_ir_node is NULL. \n\n\n";
     }
 
     current_ir_root->deep_drop();
@@ -3737,4 +3740,126 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
   }
 
   return NULL;
+}
+
+
+IR* Mutator::get_ir_with_type(const IRTYPE type_) {
+  IR* new_ir = get_from_libary_with_type(type_);
+  if (new_ir == NULL) {
+    return NULL;
+  } else if (new_ir->get_ir_type() != type_) {
+    // cerr << "get_from_libary_with_type(type_) type doesn't matched! Return type: " << get_string_by_ir_type(new_ir->get_ir_type()) << ", requested type: " << get_string_by_ir_type(type_) << ". \n\n\n";
+    new_ir->deep_drop();
+    return NULL;
+  }
+
+  return new_ir;
+
+}
+
+
+bool Mutator::add_missing_create_table_stmt(IR* ir_root) {
+  /* Only accept ir_root as inputs. */
+  if (ir_root->get_ir_type() != kStartEntry) {
+    return false;
+  }
+
+  // Get Create Stmt. For the beginning. 
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  IR* new_stmt_ir = this->get_ir_with_type(kCreateTableStmt);
+  if (new_stmt_ir == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+    return false;
+  } else if (new_stmt_ir->get_left() == NULL) {
+    new_stmt_ir->deep_drop();
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+    return false;
+  }
+
+  // Get INSERT stmt
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  IR* new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
+  if (new_stmt_ir_2 == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+    new_stmt_ir->deep_drop();
+    return false;
+  } else if (new_stmt_ir_2->get_left() == NULL) {
+    new_stmt_ir->deep_drop();
+    new_stmt_ir_2->deep_drop();
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+    return false;
+  }
+
+  // Get CREATE INDEX stmt
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  IR* new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
+  if (new_stmt_ir_3 == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+    new_stmt_ir->deep_drop();
+    new_stmt_ir_2->deep_drop();
+    return false;
+  } else if (new_stmt_ir_3->get_left() == NULL) {
+    new_stmt_ir->deep_drop();
+    new_stmt_ir_2->deep_drop();
+    new_stmt_ir_3->deep_drop();
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+    return false;
+  }
+
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, 0);
+  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 1);
+  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 2);
+
+
+
+  // Get Create Stmt, for the end. 
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  new_stmt_ir = this->get_ir_with_type(kCreateTableStmt);
+  if (new_stmt_ir == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+    return false;
+  } else if (new_stmt_ir->get_left() == NULL) {
+    new_stmt_ir->deep_drop();
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+    return false;
+  }
+
+  // Get INSERT stmt
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
+  if (new_stmt_ir_2 == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+    new_stmt_ir->deep_drop();
+    return false;
+  } else if (new_stmt_ir_2->get_left() == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+    new_stmt_ir->deep_drop();
+    new_stmt_ir_2->deep_drop();
+    return false;
+  }
+
+  // Get CREATE INDEX stmt
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
+  if (new_stmt_ir_3 == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+    new_stmt_ir->deep_drop();
+    new_stmt_ir_2->deep_drop();
+    return false;
+  } else if (new_stmt_ir_3->get_left() == NULL) {
+    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+    new_stmt_ir->deep_drop();
+    new_stmt_ir_2->deep_drop();
+    new_stmt_ir_3->deep_drop();
+    return false;
+  }
+
+  p_oracle->ir_wrapper.set_ir_root(ir_root);
+  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir);
+  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_2);
+  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_3);
+
+  return true;
+
 }

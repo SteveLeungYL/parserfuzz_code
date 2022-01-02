@@ -123,6 +123,8 @@ int log_output_id = 0;
 #define GLOBAL_TYPE_PATH "./global_data_lib_mysql"
 #define COUNT_ERROR
 
+
+
 enum SQLSTATUS
 {
   kConnectFailed,
@@ -164,9 +166,9 @@ u64 num_reparse = 0;
 u64 num_append = 0;
 u64 num_validate = 0;
 
-u64 postgre_execute_ok = 0;
-u64 postgre_execute_error = 0;
-u64 postgre_execute_total = 0;
+u64 mysql_execute_ok = 0;
+u64 mysql_execute_error = 0;
+u64 mysql_execute_total = 0;
 
 int map_file_id = 0;
 fstream map_id_out_f;
@@ -6261,6 +6263,9 @@ static u8 fuzz_one(char **argv)
 
   vector<IR *> ori_ir_tree;
   vector<IR*> v_oracle_select_stmts;
+  vector<IR*> v_ir_stmts;
+
+  string input;
 
 
 #ifdef IGNORE_FINDS
@@ -6340,10 +6345,16 @@ static u8 fuzz_one(char **argv)
   out_buf[len] = '\0';
 
   stage_name = "mutate";
+
   int skip_count = 0;
-  string input((const char *)out_buf);
+  input = ((const char *)out_buf);
+
+  /* Now we modify the input queries, append multiple norec compatible select
+   * stmt to the end of the queries to achieve better testing efficiency.  */
 
   // cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
+
+  num_parse++;
 
   ori_ir_tree.clear();
   int ret = run_parser_multi_stmt(input, ori_ir_tree);
@@ -6367,7 +6378,34 @@ static u8 fuzz_one(char **argv)
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
   ori_ir_tree.clear();
-  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root);
+  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root); 
+
+
+  /* Append Create stmts to the queue, if no create table stmts is found. */
+  v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+  int create_num, drop_num;
+  bool is_missing_create;
+  create_num = 0;
+  drop_num = 0;
+
+  for (IR* ir_stmts : v_ir_stmts) {
+    switch (ir_stmts->get_ir_type()) {
+      case kCreateTableStmt:
+        create_num++;
+        break;
+      case kDropTableStmt:
+        drop_num++;
+        break;
+    }
+  }
+
+  if (drop_num >= create_num) {
+    // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
+    g_mutator.add_missing_create_table_stmt(cur_root);
+    // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
+  }
+  v_ir_stmts.clear(); // No need to free. 
+
 
   // cerr << "After removing select stmt. \n\n\n";
   // g_mutator.debug(cur_root, 0);

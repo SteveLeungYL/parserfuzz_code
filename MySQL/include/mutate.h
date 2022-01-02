@@ -217,6 +217,9 @@ public:
     void add_to_library(IR *, string &);
     void add_to_library_core(IR *, string *);
 
+    bool add_missing_create_table_stmt(IR* ir_root);
+    IR* get_ir_with_type(const IRTYPE type_);
+
     /* Info used by validate function. */
 
     static set<IR *> visited;                                  // Already validated/fixed node. Avoid multiple fixing.
