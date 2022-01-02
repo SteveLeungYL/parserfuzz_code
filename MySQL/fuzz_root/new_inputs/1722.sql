@@ -1,0 +1,18 @@
+CALL mtr.add_suppression("World-writable config file .* is ignored");
+CALL mtr.add_suppression("World-writable config file .* has been removed.");
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;

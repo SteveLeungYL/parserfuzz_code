@@ -1,5 +1,0 @@
-  SELECT @@global.debug, @@global.bind_address;
-  SELECT @@global.debug, @@global.bind_address;
-  SELECT @@global.debug, @@global.bind_address;
-  SELECT @@global.debug, @@global.bind_address;
-  SELECT @@global.debug, @@global.bind_address;

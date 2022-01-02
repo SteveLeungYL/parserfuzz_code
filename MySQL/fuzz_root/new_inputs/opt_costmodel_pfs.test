@@ -1,5 +1,0 @@
-SELECT * FROM performance_schema.setup_instrumentsWHERE NAME LIKE 'Wait/Synch/Mutex/sql/Cost_constant_cache%';
-SELECT * FROM performance_schema.setup_instrumentsWHERE NAME LIKE 'Wait/Synch/Mutex/sql/Cost_constant_cache%';
-SELECT * FROM performance_schema.setup_instrumentsWHERE NAME LIKE 'Wait/Synch/Mutex/sql/Cost_constant_cache%';
-SELECT * FROM performance_schema.setup_instrumentsWHERE NAME LIKE 'Wait/Synch/Mutex/sql/Cost_constant_cache%';
-SELECT * FROM performance_schema.setup_instrumentsWHERE NAME LIKE 'Wait/Synch/Mutex/sql/Cost_constant_cache%';

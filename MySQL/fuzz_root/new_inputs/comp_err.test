@@ -1,5 +1,0 @@
-    eval SELECT "$MY_PERROR" INTO @perror;
-    eval SELECT "$MY_PERROR" INTO @perror;
-    eval SELECT "$MY_PERROR" INTO @perror;
-    eval SELECT "$MY_PERROR" INTO @perror;
-    eval SELECT "$MY_PERROR" INTO @perror;

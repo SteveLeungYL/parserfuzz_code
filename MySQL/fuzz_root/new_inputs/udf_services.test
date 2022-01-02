@@ -1,6 +1,0 @@
-eval INSTALL PLUGIN test_udf_services SONAME '$TESTUDFSERVICES';
-eval CREATE FUNCTION test_udf_services_udf RETURNS INT  SONAME "$TESTUDFSERVICES";
-UNINSTALL PLUGIN test_udf_services;
-eval INSTALL PLUGIN test_udf_services SONAME '$TESTUDFSERVICES';
-DROP FUNCTION test_udf_services_udf;
-UNINSTALL PLUGIN test_udf_services;

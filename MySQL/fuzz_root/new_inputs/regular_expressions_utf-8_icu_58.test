@@ -1,7 +1,0 @@
-source ../mysql-test/include/icu_utils.inc;
-source ../mysql-test/include/cleanup_icu_utils.inc;
-  skip Not run for ICU versions below $required_icu_version;
-SET NAMES utf8;
-SELECT regexp_like( 'abc\n123\n456\nxyz\n', '(?m)^\\d+\\R\\d+$' );
-SELECT regexp_like( 'a\nb', '(*CR)a.b' );
-SELECT regexp_like( 'a\nb', 'a\\vb' );

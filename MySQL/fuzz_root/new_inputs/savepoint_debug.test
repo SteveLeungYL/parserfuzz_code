@@ -1,5 +1,0 @@
-  START TRANSACTION;
-SAVEPOINT save_1;
-SET DEBUG="+d,fail_ha_release_savepoint";
-SAVEPOINT save_1;
-SET DEBUG="-d,fail_ha_release_savepoint";

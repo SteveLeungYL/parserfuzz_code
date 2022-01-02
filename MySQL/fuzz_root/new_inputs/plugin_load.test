@@ -1,2 +1,0 @@
-      enable_query_log;
-SELECT @@global.example_enum_var = 'e2';

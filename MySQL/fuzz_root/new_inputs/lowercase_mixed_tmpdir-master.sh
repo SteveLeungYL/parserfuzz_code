@@ -1,1 +1,0 @@
-d="$MYSQLTEST_VARDIR/tmp/MixedCase"test -d "$d" || mkdir "$d"rm -f "$d"/*
