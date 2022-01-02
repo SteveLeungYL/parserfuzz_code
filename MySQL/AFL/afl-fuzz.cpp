@@ -171,7 +171,7 @@ u64 postgre_execute_total = 0;
 int map_file_id = 0;
 fstream map_id_out_f;
 
-
+string socket_path = "";
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
@@ -209,7 +209,8 @@ public:
     }
 
     dbname = "test1";
-    if (mysql_real_connect(m_, host_, "root", "", dbname.c_str(), bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
@@ -242,7 +243,9 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+
+    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -476,7 +479,7 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error2 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -496,7 +499,7 @@ public:
       mysql_close(&tmp_m);
       return 0;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "test1", bind_to_port, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test1", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -537,7 +540,7 @@ int g_child_pid = -1;
 char *g_current_input = NULL;
 char *g_libary_path;
 IR *g_current_ir = NULL;
-MysqlClient g_mysqlclient((char *)"localhost", (char *)"root", NULL);
+MysqlClient g_mysqlclient((char *)"127.0.0.1", (char *)"root", NULL);
 
 //MysqlClient g_psql_client;
 
@@ -7808,7 +7811,7 @@ int main(int argc, char *argv[])
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:")) > 0)
 
     switch (opt)
     {
@@ -7908,6 +7911,13 @@ int main(int argc, char *argv[])
 
       break;
     }
+
+    case 'K':
+      {
+        string arg = string(optarg);
+        socket_path = arg;
+      }
+      break;
 
     case 'm':
     { /* mem limit */
@@ -8065,6 +8075,10 @@ int main(int argc, char *argv[])
   g_mutator.set_p_oracle(p_oracle);
 
   g_mutator.set_dump_library(dump_library);
+
+  if (socket_path == "") {
+    socket_path = "/tmp/mysql.sock";
+  }
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
