@@ -6374,13 +6374,6 @@ static u8 fuzz_one(char **argv)
   // cerr << "to_string finished. \n\n\n";
   // cerr << "End\n\n\n";
 
-  p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
-  p_oracle->remove_select_stmt_from_ir(cur_root);
-
-  ori_ir_tree.clear();
-  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root); 
-
-
   /* Append Create stmts to the queue, if no create table stmts is found. */
   v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
   int create_num, drop_num;
@@ -6406,16 +6399,20 @@ static u8 fuzz_one(char **argv)
   }
   v_ir_stmts.clear(); // No need to free. 
 
+  // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
+  p_oracle->remove_select_stmt_from_ir(cur_root);
 
-  // cerr << "After removing select stmt. \n\n\n";
+
+  // cerr << "After removing select stmt and added create. \n\n\n";
   // g_mutator.debug(cur_root, 0);
   // cerr << "\n\n\n";
   // cerr << cur_root->to_string();
   // cerr << "to_string finished. \n\n\n";
   // cerr << "End\n\n\n";
 
-  // cerr << "After removing select stmts. \n\n\n";
-  // cerr << "After initial parsing, the imported input is: \n" << ori_ir_tree.back()->to_string() << "\n\n\n";
+
+  ori_ir_tree.clear();
+  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root); 
 
   stage_max = ori_ir_tree.size();
   stage_cur = 0;
