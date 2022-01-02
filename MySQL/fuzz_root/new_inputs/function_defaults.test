@@ -1,0 +1,2 @@
+set default_storage_engine=innodb;
+source 'include/function_defaults.inc';
