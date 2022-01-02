@@ -166,7 +166,11 @@ int main(int argc, char *argv[]) {
 
   cerr << "To_string: " << ir_root->to_string() << "\n\n\n";
 
-  cout << "\n\n\n At the end of the parsing, we get to_string: \n" << ir_root->to_string() << "\n\n\n";
+  cerr << "\n\n\n At the end of the parsing, we get to_string: \n" << ir_root->to_string() << "\n\n\n";
+
+  mutator.debug(ir_root);
+
+  cerr << "\n\n\n";
 
   // mutator.init_library();
 

@@ -3449,7 +3449,6 @@ void Mutator::add_all_to_library(string whole_query_str,
     // cerr << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
-    // if (p_oracle->is_oracle_valid_stmt(current_query)) {
       if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
         add_to_valid_lib(root, current_query, true);
@@ -3487,7 +3486,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   //   f.close();
   // }
 
-  // cerr << "Saving str: " << *new_select << " to the lib. \n\n\n";
+  // cerr << "Saving valid str: " << *new_select << " to the lib. \n\n\n";
   add_to_library_core(ir, new_select);
 
   return;
@@ -3502,7 +3501,7 @@ void Mutator::add_to_library(IR *ir, string &query) {
   unsigned long p_hash = hash(query);
 
   if (ir_libary_2D_hash_[p_type].find(p_hash) !=
-      ir_libary_2D_hash_[p_type].end()) {
+      ir_libary_2D_hash_[p_type].end() && p_type == kStartEntry) {
     /* query not interesting enough. Ignore it and clean up. */
     return;
   }
@@ -3555,9 +3554,6 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     {
       real_ir_set[p_type].push_back(
         std::make_pair(p_query_str, current_unique_id));
-      // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
-      // cerr << "Saving ir_node with type: " << get_string_by_ir_type(p_type) << ", unique_id:" << current_unique_id << "\n\n\n";
-      // }
     }
 
   // Update right_lib, left_lib
@@ -3567,15 +3563,9 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     left_lib_set[left_type].push_back(std::make_pair(
         p_query_str, current_unique_id)); // Saving the parent node id. When
                                           // fetching, use current_node->right.
-    // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
-    //   cerr << "Saving left_type_ ir_node with right type: " << get_string_by_ir_type(right_type) << ", unique_id:" << ir->right_->uniq_id_in_tree_ << "\n\n\n";
-    // }
     right_lib_set[right_type].push_back(std::make_pair(
         p_query_str, current_unique_id)); // Saving the parent node id. When
                                           // fetching, use current_node->left.
-    // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
-    //   cerr << "Saving right_type_ ir_node with left type: " << get_string_by_ir_type(left_type) << ", unique_id:" << ir->left_->uniq_id_in_tree_ << "\n\n\n";
-    // }
   }
 
   // if (this->dump_library) {

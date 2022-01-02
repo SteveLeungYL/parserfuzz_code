@@ -3258,7 +3258,21 @@ static void perform_dry_run(char **argv)
 
     close(fd);
 
-    res = calibrate_case(argv, q, use_mem, 0, 1);
+    string query_str = (char *)use_mem;
+
+    vector<IR *> ir_tree;
+    int ret = run_parser_multi_stmt(query_str, ir_tree);
+    if (ret != 0 || ir_tree.size() == 0)
+    {
+      cerr << "Query seed: '" << query_str << " is not passing the parser!"
+           << endl;
+    }
+    else
+    {
+      ir_tree.back()->deep_drop();
+      res = calibrate_case(argv, q, use_mem, 0, 1);
+    }
+
     ck_free(use_mem);
 
     if (stop_soon)
@@ -8246,13 +8260,15 @@ int main(int argc, char *argv[])
   else
     use_argv = argv + optind;
 
+  u64 start_time = get_cur_time();
   do_libary_initialize();
+  cerr << "do_library_initialize() takes "
+       << (get_cur_time() - start_time) / 1000 << " seconds\n";
 
   if (dump_library) {
     load_map_id();
   }
 
-  g_mysqlclient.fix_database(); // Fix the connection error1 misleading output.
   g_mysqlclient.fix_database(); // Fix the connection error1 misleading output.
 
   //char* tmp_argv[] = {g_server_path, NULL};
