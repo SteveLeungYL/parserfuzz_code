@@ -108,7 +108,6 @@ insert into t1 values (0x0061);
 set @@character_set_results=NULL;
 select * from t1;
 drop table t1;
-CREATE TABLE t1 (s1 char(10) character set utf8 collate utf8_maxuserid_ci);
 INSERT INTO t1 VALUES ('a'),('b');
 SELECT * FROM t1 WHERE s1='a' ORDER BY BINARY s1;
 DROP TABLE t1;

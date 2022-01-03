@@ -368,8 +368,6 @@ CREATE TABLE t1 (a varchar(1024), b varchar(1024) DEFAULT (is_used_lock(a)));
 CREATE TABLE t1 (a int DEFAULT (last_insert_id()));
 CREATE TABLE t1 (a int DEFAULT (row_count()));
 CREATE TABLE t1 (a int, b int DEFAULT (sleep(a)));
-CREATE TABLE t1 (a varchar(32) DEFAULT (current_user()));
-CREATE TABLE t1 (a varchar(32) DEFAULT (session_user()));
 CREATE TABLE t1 (a varchar(1024), b varchar(1024) DEFAULT (version()));
 CREATE TABLE t1 (id char(40) DEFAULT (uuid()) DEFAULT 4);
 CREATE TABLE t1 (id char(40) DEFAULT 4 DEFAULT (uuid()));

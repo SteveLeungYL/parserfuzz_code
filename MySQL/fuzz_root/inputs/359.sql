@@ -6,8 +6,6 @@ select * from t1;
 alter table t1 order by bandid,payoutid;
 select * from t1;
 drop table t1;
-CREATE TABLE t1 ( id int(11) unsigned NOT NULL default '0', category_id tinyint(4) unsigned NOT NULL default '0', type_id tinyint(4) unsigned NOT NULL default '0', body text NOT NULL, user_id int(11) unsigned NOT NULL default '0', status enum('new','old') NOT NULL default 'new', PRIMARY KEY (id) ) ENGINE=MyISAM;
-ALTER TABLE t1 ORDER BY t1.id, t1.status, t1.type_id, t1.user_id, t1.body;
 DROP TABLE t1;
 CREATE TABLE t1 (AnamneseId int(10) unsigned NOT NULL auto_increment,B BLOB,PRIMARY KEY (AnamneseId)) engine=myisam;
 insert into t1 values (null,"hello");

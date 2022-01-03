@@ -140,7 +140,6 @@ prepare stmt4 from ' show variables like ''sql_mode'' ';
 execute stmt4;
 prepare stmt4 from ' show engine myisam logs ';
 execute stmt4;
-prepare stmt4 from ' show grants for user ';
 prepare stmt4 from ' show create table t2 ';
 prepare stmt4 from ' show master status ';
 prepare stmt4 from ' show master logs ';

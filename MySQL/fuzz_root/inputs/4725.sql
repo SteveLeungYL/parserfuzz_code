@@ -343,7 +343,6 @@ drop procedure if exists wg2;
 create procedure wg2() begin declare v int default 1; declare tdec decimal(5) default 0; while v <= 9 do set tdec =tdec * 10; select v, tdec; set v = v + 1; end while; end;
 call wg2();
 drop procedure wg2;
-select cast(@non_existing_user_var/2 as DECIMAL);
 create table t (d decimal(0,10));
 CREATE TABLE t1 ( my_float   FLOAT, my_double  DOUBLE, my_varchar VARCHAR(50), my_decimal DECIMAL(65,30) );
 SHOW CREATE TABLE t1;

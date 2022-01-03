@@ -204,6 +204,5 @@ select * from t1;
 show session status;
 show session status;
 drop table t1;
-drop user mysqltest@localhost;
 SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 SET GLOBAL innodb_lock_wait_timeout= @old_lock_wait_timeout;

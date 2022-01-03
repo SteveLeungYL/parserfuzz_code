@@ -81,7 +81,6 @@ GRANT CREATE ON db1.* TO u2@localhost;
 DROP USER u1@localhost, u2@localhost;
 DROP ROLE r1;
 DROP DATABASE db1;
-SELECT user,host FROM mysql.user;
 CREATE USER u1@localhost IDENTIFIED BY 'foo';
 CREATE USER u2@localhost IDENTIFIED BY 'foo';
 CREATE ROLE r1, r2;

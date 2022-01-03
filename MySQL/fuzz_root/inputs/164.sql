@@ -72,7 +72,6 @@ RESET PERSIST;
 SELECT * FROM performance_schema.persisted_variables;
 INSTALL COMPONENT 'file://component_validate_password';
 SET @@persist.validate_password.length=10;
-SET @@persist.validate_password.check_user_name=OFF;
 SELECT COUNT(*) FROM performance_schema.persisted_variables;
 UNINSTALL COMPONENT 'file://component_validate_password';
 INSTALL COMPONENT 'file://component_validate_password';

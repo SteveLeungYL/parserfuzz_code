@@ -202,4 +202,3 @@ select * from t1;
 show session status;
 show session status;
 drop table t1;
-drop user mysqltest@localhost;

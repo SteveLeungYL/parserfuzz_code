@@ -1,5 +1,4 @@
 CREATE USER 'kristofer' IDENTIFIED BY 'secret';
-SELECT user FROM mysql.user ORDER BY user;
 DROP USER 'kristofer';
 CREATE USER 'kristofer'@'localhost' IDENTIFIED BY 'secret2';
 SHOW GRANTS FOR 'kristofer'@'localhost';

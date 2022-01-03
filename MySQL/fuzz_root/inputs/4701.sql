@@ -23,7 +23,6 @@ INSERT INTO t1 VALUES ( "2000-1-5" );
 SELECT * FROM t1 WHERE datum BETWEEN cast("2000-1-2" as date) AND cast("2000-1-4" as date);
 SELECT * FROM t1 WHERE datum BETWEEN cast("2000-1-2" as date) AND datum - INTERVAL 100 DAY;
 DROP TABLE t1;
-CREATE TABLE t1 ( user_id char(10), summa int(11), rdate date );
 INSERT INTO t1 VALUES ('aaa',100,'1998-01-01');
 INSERT INTO t1 VALUES ('aaa',200,'1998-01-03');
 INSERT INTO t1 VALUES ('bbb',50,'1998-01-02');

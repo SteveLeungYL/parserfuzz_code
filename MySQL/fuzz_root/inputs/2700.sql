@@ -239,7 +239,6 @@ select * from (t3 join (t4 natural join t5) on (b < z)) natural join (t1 natural
 select * from (t1 natural join t2) natural join (t3 join (t4 natural join t5) on (b < z));
 select t1.b from v1a;
 select * from v1a join v1b on t1.b = t2.b;
-ANALYZE TABLE mysql.user;
 drop table t1;
 drop table t2;
 drop table t3;

@@ -1,6 +1,5 @@
 CREATE USER 'kristofer';
 ALTER USER 'kristofer' IDENTIFIED BY 'secret';
-SELECT user, plugin FROM mysql.user ORDER BY user;
 SELECT USER(),CURRENT_USER();
 DROP USER 'kristofer';
 CREATE USER 'kristofer'@'localhost' IDENTIFIED WITH 'sha256_password' BY '123';

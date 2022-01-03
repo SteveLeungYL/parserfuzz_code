@@ -263,7 +263,6 @@ CREATE USER 'u1'@'' IDENTIFIED BY '123';
 GRANT SELECT ON *.* TO 'u1'@'';
 CREATE USER 'r1'@'' IDENTIFIED BY '123';
 CREATE USER 'r2'@'' IDENTIFIED BY '123';
-GRANT ROLE_ADMIN ON *.* TO current_user();
 GRANT 'r1'@'' TO 'u1'@'';
 GRANT 'r2'@'' TO 'u1'@'';
 SET DEFAULT ROLE 'r1'@'', 'r2'@'' TO 'u1'@'';

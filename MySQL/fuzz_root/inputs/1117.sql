@@ -455,10 +455,8 @@ insert into t1 values('abcde_');
 select c1 as c1u from t1 where c1 like 'ab\_def';
 select c1 as c2h from t1 where c1 like 'ab#_def' escape '#';
 drop table t1;
-CREATE TABLE t1 ( user varchar(255) NOT NULL default '' ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 INSERT INTO t1 VALUES ('one'),('two');
 SELECT CHARSET('a');
-SELECT user, CONCAT('<', user, '>') AS c FROM t1;
 DROP TABLE t1;
 create table t1 (f1 varchar(1) not null) default charset utf8mb4 engine InnoDB;
 insert into t1 values (''), ('');
@@ -499,7 +497,6 @@ create table t1 (x enum('A', 'B') default 0) character set utf8mb4 engine InnoDB
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
 SET NAMES UTF8;
 INSERT INTO t1 VALUES  (1,'blah','464','aaa','fkc1c9ilc20x0hgae7lx6j09','ERR','ERR Имри.Афимим.Аеимимримдмримрмрирор имримримримр имридм ирбднримрфмририримрфмфмим.Ад.Д имдимримрад.Адимримримрмдиримримримр м.Дадимфшьмримд им.Адимимрн имадми','ИМРИ.АФИМИМ.АЕИМИМРИМДМРИМРМРИРОР',3,'2005-06-01 17:30:43','1234567890'), (2,'blah','464','aaa','haxpl2ilc20x00bj4tt2m5ti','11','11 g','G',3,'2005-06-02 22:43:10','1234567890');
-CREATE TABLE t2 ( `msisdn` varchar(15) NOT NULL default '', `operator_id` int(11) NOT NULL default '0', `created` datetime NOT NULL default '0000-00-00 00:00:00', UNIQUE KEY `PK_user` (`msisdn`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 INSERT INTO t2 VALUES ('1234567890',2,'2005-05-24 13:53:25');
 SELECT content, t2.msisdn FROM t1, t2 WHERE t1.msisdn = '1234567890';
 DROP TABLE t1,t2;

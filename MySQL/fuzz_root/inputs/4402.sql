@@ -219,15 +219,7 @@ explain format=tree SELECT * FROM t1 WHERE NOT EXISTS ( SELECT * FROM t4 LEFT JO
 SELECT * FROM t1 WHERE NOT EXISTS ( SELECT * FROM t4 LEFT JOIN t3 ON t4.f4 = t3.f3 WHERE 'abc' IN ( SELECT t2.f2 FROM t2 WHERE t3.f3 = 1 HAVING t2.f2 = 'xyz'      ) );
 DROP TABLE t1, t2, t3, t4;
 CREATE TABLE table_city (id int NOT NULL PRIMARY KEY);
-CREATE TABLE table_user (id int NOT NULL PRIMARY KEY);
-CREATE TABLE table_city_user (city int NOT NULL, user int NOT NULL, KEY city (city));
 INSERT INTO table_city (id) VALUES (1),(2),(3),(4),(5),(6);
-INSERT INTO table_user (id) VALUES (1),(2),(3),(4),(5),(6),(7),(8);
-INSERT INTO table_city_user (city, user) VALUES (1,1),(1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),(1,8),(2,1),(2,2),(2,3),(2,4), (2,5),(3,2),(3,5),(4,5),(4,2),(4,3),(4,8),(4,1);
-ANALYZE TABLE table_city, table_user, table_city_user;
-EXPLAIN FORMAT=tree SELECT id, ( SELECT GROUP_CONCAT(id) FROM ( SELECT table_user.id FROM table_user WHERE id IN ( SELECT user FROM table_city_user WHERE table_city_user.city = table_city.id ) GROUP BY table_user.id ) AS d ) AS users FROM table_city;
-SELECT id, ( SELECT GROUP_CONCAT(id) FROM ( SELECT table_user.id FROM table_user WHERE id IN ( SELECT user FROM table_city_user WHERE table_city_user.city = table_city.id ) GROUP BY table_user.id ) AS d ) AS users FROM table_city;
-DROP TABLE table_city, table_user, table_city_user;
 CREATE TABLE b (c INTEGER, KEY idx_b (c));
 CREATE TABLE c (c INTEGER, KEY idx_c (c));
 CREATE TABLE d (c INTEGER, KEY idx_d (c));

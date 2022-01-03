@@ -1,17 +1,5 @@
-create user test_nopw;
 grant select on test.* to test_nopw;
-create user test_newpw identified by "newpw";
 grant select on test.* to test_newpw;
-select user(), current_user(), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-select concat('<', user(), '>'), concat('<', current_user(), '>'), database();
-drop user test_nopw;
-drop user test_newpw;
 SELECT @@session.sql_big_selects;
 SELECT @@global.max_join_size;
 SELECT @@session.sql_big_selects;

@@ -96,6 +96,5 @@ EXPLAIN SELECT * FROM t2 where bin_to_uuid(col1)='12345679-1234-5678-1234-567812
 SELECT * FROM t2 where bin_to_uuid(col1)='12345679-1234-5678-1234-567812345678';
 DROP TABLE t1;
 DROP TABLE t2;
-CREATE TABLE t as SELECT replace(uuid(), '-', '=') as v from mysql.user;
 SELECT COUNT(DISTINCT v) FROM t;
 DROP TABLE t;

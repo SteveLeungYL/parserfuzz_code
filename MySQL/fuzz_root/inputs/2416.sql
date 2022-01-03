@@ -1364,8 +1364,6 @@ PREPARE stmt FROM "SELECT COLLATION(space(2))";
 EXECUTE stmt;
 SET NAMES latin2;
 EXECUTE stmt;
-SET @user_at_host = 'root@mytinyhost-PC.local';
-SELECT LOWER(SUBSTRING_INDEX(@user_at_host, '@', -1));
 CREATE TABLE t (i INT NOT NULL, c CHAR(255) NOT NULL);
 INSERT INTO t VALUES (0,'.www.mysql.com'),(1,'.wwwmysqlcom');
 SELECT i, SUBSTRING_INDEX(c, '.', -2) FROM t WHERE i = 1;

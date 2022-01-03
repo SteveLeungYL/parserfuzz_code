@@ -737,7 +737,6 @@ CREATE TABLE t4 ( col_int INT DEFAULT NULL, pk INT NOT NULL, col_int_key INT DEF
 INSERT INTO t4 VALUES (0, 15, 6), (9, 16, 6);
 SELECT alias2.col_datetime_key FROM t1 AS alias1 LEFT JOIN t3 AS alias2 LEFT JOIN t2 AS alias3 LEFT JOIN t4 AS alias4 ON alias3.pk = alias4.col_int_key ON alias2.pk = alias3.col_int ON alias1.col_int = alias4.col_int ;
 DROP TABLE t1, t2, t3, t4;
-CREATE TABLE ta ( a1 varchar(1024) NOT NULL, a2 int NOT NULL, KEY user_id(a2) );
 INSERT INTO ta (a1, a2) VALUES ('row1', 4), ('row2', 4);
 CREATE TABLE tb ( b1 int NOT NULL, b2 varchar(1024) NOT NULL, b3 int NOT NULL, PRIMARY KEY (b1) );
 INSERT INTO tb (b1, b2, b3) VALUES (1, 'text1', 0), (2, 'text2', 0), (3, 'text3', 1), (4, 'text4', 1);

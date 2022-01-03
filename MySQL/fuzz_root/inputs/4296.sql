@@ -199,7 +199,6 @@ create function bug8409() returns int begin flush tables with read lock; return 
 create function bug8409() returns int begin flush tables; return 1; end;
 create function bug8409() returns int begin flush logs; return 1; end;
 create function bug8409() returns int begin flush status; return 1; end;
-create function bug8409() returns int begin flush user_resources; return 1; end;
 create procedure bug9529_901234567890123456789012345678901234567890123456789012345() begin end;
 create procedure bug17015_0123456789012345678901234567890123456789012345678901234() begin end;
 show procedure status like 'bug17015%';
@@ -308,18 +307,12 @@ CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN create database mysqlt
 CREATE FUNCTION bug_13627_f() returns int BEGIN create database mysqltest; return 1; END ;
 CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN drop database mysqltest; END ;
 CREATE FUNCTION bug_13627_f() returns int BEGIN drop database mysqltest; return 1; END ;
-CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN create user 'mysqltest_1'; END ;
-CREATE FUNCTION bug_13627_f() returns int BEGIN create user 'mysqltest_1'; return 1; END ;
 CREATE TRIGGER bug21975 BEFORE INSERT ON t1 FOR EACH ROW BEGIN grant select on t1 to 'mysqltest_1'; END ;
 CREATE FUNCTION bug21975() returns int BEGIN grant select on t1 to 'mysqltest_1'; return 1; END ;
 CREATE TRIGGER bug21975 BEFORE INSERT ON t1 FOR EACH ROW BEGIN revoke select on t1 from 'mysqltest_1'; END ;
 CREATE FUNCTION bug21975() returns int BEGIN revoke select on t1 from 'mysqltest_1'; return 1; END ;
 CREATE TRIGGER bug21975 BEFORE INSERT ON t1 FOR EACH ROW BEGIN revoke all privileges on *.* from 'mysqltest_1'; END ;
 CREATE FUNCTION bug21975() returns int BEGIN revoke all privileges on *.* from 'mysqltest_1'; return 1; END ;
-CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN drop user 'mysqltest_1'; END ;
-CREATE FUNCTION bug_13627_f() returns int BEGIN drop user 'mysqltest_1'; return 1; END ;
-CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN rename user 'mysqltest_2' to 'mysqltest_1'; END ;
-CREATE FUNCTION bug_13627_f() returns int BEGIN rename user 'mysqltest_2' to 'mysqltest_1'; return 1; END ;
 CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN create view v1 as select 1; END ;
 CREATE FUNCTION bug_13627_f() returns int BEGIN create view v1 as select 1; return 1; END ;
 CREATE TRIGGER tr1 BEFORE INSERT ON t1 FOR EACH ROW BEGIN alter view v1 as select 1; END ;

@@ -1,6 +1,4 @@
 CREATE TABLE t1 (a INT);
-CREATE USER 'testuser1'@'localhost';
-GRANT all ON *.* TO 'testuser1'@'localhost';
 SET lock_wait_timeout= 1;
 SET autocommit= 0;
 LOCK INSTANCE FOR BACKUP;
@@ -84,5 +82,4 @@ show session status;
 show session status;
 show session status;
 CREATE TABLE t2 (c1 int);
-DROP USER 'testuser1'@'localhost';
 DROP TABLE t1, t2;

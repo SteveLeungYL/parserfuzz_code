@@ -142,7 +142,6 @@ drop table t1,t2;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
 INSERT INTO t1 VALUES (128,0,33,33,8,':D','',996121863,1,0,2,996122850,2,0,0);
 INSERT INTO t2 VALUES (33,6,'Kevin','0','kevin@stileproject.com',1,'',0,'http://www.stileproject.com','','','','',1,1,0,'Administrator',0,996120694,1,-1,1030996168,1031027028,1030599436,36,'-6',0,'','','',1,0,1,0,0,15,'0000-00-00',-1,1,'64.0.0.0',0,1,-1,0,0,4,19,1);
-SELECT DISTINCT t1.*, t2.* FROM t1 LEFT JOIN t2 ON (t2.userid = t1.touserid);
 DROP TABLE t1,t2;
 SET sql_mode = default;
 CREATE TABLE t1 (a int primary key, b int, c int);

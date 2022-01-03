@@ -24,7 +24,6 @@ drop table t1;
 CREATE TABLE t1 (program enum('signup','unique','sliding') not null,  type enum('basic','sliding','signup'),  sites set('mt'),  PRIMARY KEY (program));
 ALTER TABLE t1 modify program enum('signup','unique','sliding');
 drop table t1;
-CREATE TABLE t1 ( name varchar(50) DEFAULT '' NOT NULL, author varchar(50) DEFAULT '' NOT NULL, category decimal(10,0) DEFAULT '0' NOT NULL, email varchar(50), password varchar(50), proxy varchar(50), bitmap varchar(20), msg varchar(255), urlscol varchar(127), urlhttp varchar(127), timeout decimal(10,0), nbcnx decimal(10,0), creation decimal(10,0), livinguntil decimal(10,0), lang decimal(10,0), type decimal(10,0), subcat decimal(10,0), subtype decimal(10,0), reg char(1), scs varchar(255), capacity decimal(10,0), userISP varchar(50), CCident varchar(50) DEFAULT '' NOT NULL, PRIMARY KEY (name,author,category) );
 INSERT INTO t1 VALUES ('patnom','patauteur',0,'p.favre@cryo-networks.fr',NULL,NULL,'#p2sndnq6ae5g1u6t','essai salut','scol://195.242.78.119:patauteur.patnom',NULL,NULL,NULL,950036174,-882087474,NULL,3,0,3,'1','Pub/patnom/futur_divers.scs',NULL,'pat','CC1');
 INSERT INTO t1 VALUES ('LeNomDeMonSite','Marc',0,'m.barilley@cryo-networks.fr',NULL,NULL,NULL,NULL,'scol://195.242.78.119:Marc.LeNomDeMonSite',NULL,NULL,NULL,950560434,-881563214,NULL,3,0,3,'1','Pub/LeNomDeMonSite/domus_hibere.scs',NULL,'Marq','CC1');
 select * from t1 where name='patnom' and author='patauteur' and category=0;

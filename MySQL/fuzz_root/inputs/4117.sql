@@ -128,7 +128,6 @@ SELECT * from t1;
 DROP TABLE test.t1;
 DROP ROLE r1;
 DROP USER u1;
-UPDATE mysql.user SET `password_last_changed` = '2022-01-02 22:36:19' WHERE `Host` = 'localhost' AND `User` = 'mysql.sys';;
 UPDATE mysql.tables_priv SET `Timestamp` = '2022-01-02 22:36:19' WHERE `Host` = 'localhost' AND `Db` = 'sys' AND `User` = 'mysql.sys' AND `Table_name` = 'sys_config';;
 show session status;
 show session status;

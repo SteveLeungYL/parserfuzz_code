@@ -7,7 +7,6 @@ SELECT COUNT(*) FROM t1;
 SHOW CREATE TABLE t1;
 DROP TABLE t1;
 call mtr.add_suppression("\\[ERROR\\] .*MY-\\d+.* Table `test`.`t1` .* Partition.* InnoDB internal");
-CREATE TABLE t1 (id INT NOT NULL PRIMARY KEY, user_num CHAR(10) ) ENGINE = InnoDB KEY_BLOCK_SIZE=4 PARTITION BY HASH(id) PARTITIONS 1;
 SHOW CREATE TABLE t1;
 SET GLOBAL innodb_file_per_table = OFF;
 LOCK TABLE t1 WRITE;

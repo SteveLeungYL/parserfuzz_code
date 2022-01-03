@@ -1,11 +1,5 @@
 SET lock_wait_timeout= 1;
 SET autocommit= 0;
-CREATE USER 'user1'@'localhost';
-CREATE USER 'user2'@'localhost';
-CREATE USER 'user3'@'localhost';
-GRANT all ON *.* TO 'user1'@'localhost';
-GRANT all ON *.* TO 'user2'@'localhost';
-GRANT all ON *.* TO 'user3'@'localhost';
 SET lock_wait_timeout= 1;
 SET autocommit= 0;
 LOCK INSTANCE FOR BACKUP;
@@ -40,6 +34,3 @@ DROP TABLE IF EXISTS testtable_11;
 DROP TABLE IF EXISTS testtable_12;
 DROP TABLE IF EXISTS testtable_21;
 DROP TABLE IF EXISTS testtable_31;
-DROP USER 'user1'@'localhost';
-DROP USER 'user2'@'localhost';
-DROP USER 'user3'@'localhost';

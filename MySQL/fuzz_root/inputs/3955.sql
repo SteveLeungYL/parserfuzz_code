@@ -52,7 +52,6 @@ select query_id, sum(duration) from information_schema.profiling group by query_
 select query_id, count(*) from information_schema.profiling group by query_id;
 select sum(duration) from information_schema.profiling;
 select query_id, count(*), sum(duration) from information_schema.profiling group by query_id;
-select CPU_user, CPU_system, Context_voluntary, Context_involuntary, Block_ops_in, Block_ops_out, Messages_sent, Messages_received, Page_faults_major, Page_faults_minor, Swaps, Source_function, Source_file, Source_line from information_schema.profiling;
 drop table if exists t1, t2, t3;
 create table t1 (id int );
 create table t2 (id int not null);

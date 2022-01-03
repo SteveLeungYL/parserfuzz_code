@@ -308,7 +308,6 @@ DROP TABLE test.t;
 do is_ipv4_mapped(bin(maketime(11111,exp(repeat('1',32)),'')));
 do ifnull((bin_to_uuid(uuid_to_bin(date_format('7088-02-14'    ,0xabbd95)))),(maketime('4678-07-20 03:51:44.174847',1,'b')));
 do ucase(insert(maketime(9.565398e+307 ,'', st_longfromgeohash(('4358-04-12 03:45:08.727399'))), 0xdc0823,6756,release_all_locks()));
-do soundex(maketime(cast((2530967061762658367) as decimal), exp(repeat('1',32)),((period_add(579349005,27636))xor (sha(current_user)))));
 do st_mlinefromtext( maketime( now(), instr(1,pow(15270551309908264860,100)), 31 ) );
 CREATE TABLE t1 ( col_datetime_1_not_null datetime NOT NULL, col_datetime_2_not_null datetime NOT NULL ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 SET sql_mode=NO_ENGINE_SUBSTITUTION;

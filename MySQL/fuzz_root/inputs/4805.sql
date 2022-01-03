@@ -1,5 +1,4 @@
 CREATE USER no_pwd_history@localhost PASSWORD HISTORY 0 PASSWORD REUSE INTERVAL 0 DAY;
-SELECT Password_reuse_history, Password_reuse_time FROM mysql.user WHERE Host='localhost' AND User='no_pwd_history';
 SELECT COUNT(*) FROM mysql.password_history WHERE User='no_pwd_history' AND Host='localhost';
 SET PASSWORD FOR no_pwd_history@localhost = 'changeme';
 SELECT COUNT(*) FROM mysql.password_history WHERE User='no_pwd_history' AND Host='localhost';
@@ -21,12 +20,10 @@ SELECT COUNT(*) FROM mysql.password_history WHERE User='no_pwd_history' AND Host
 SET PASSWORD FOR no_pwd_history@localhost = 'tracked';
 SELECT COUNT(*) FROM mysql.password_history WHERE User='no_pwd_history' AND Host='localhost';
 SHOW CREATE USER no_pwd_history@localhost;
-SELECT Password_reuse_history, Password_reuse_time FROM mysql.user WHERE User='no_pwd_history' AND Host='localhost';
 SET GLOBAL password_reuse_interval= DEFAULT;
 DROP USER no_pwd_history@localhost;
 CREATE USER default_def@localhost IDENTIFIED BY 'haha';
 SHOW CREATE USER default_def@localhost;
-SELECT Password_reuse_history, Password_reuse_time FROM mysql.user WHERE User='default_def' AND Host='localhost';
 SELECT COUNT(*) FROM mysql.password_history WHERE User='default_def' AND Host='localhost';
 SET GLOBAL password_history=1;
 ALTER USER default_def@localhost IDENTIFIED BY 'haha';
@@ -44,7 +41,6 @@ SET GLOBAL password_history=default;
 SET GLOBAL password_history=1;
 CREATE USER method_alter@localhost IDENTIFIED BY 'haha';
 SELECT COUNT(*) FROM mysql.password_history WHERE User='method_alter' AND Host='localhost';
-SELECT COUNT(*) FROM mysql.password_history, mysql.user WHERE mysql.user.User='method_alter' AND mysql.user.host='localhost' AND mysql.user.User=mysql.password_history.user AND mysql.user.host=mysql.password_history.host;
 ALTER USER method_alter@localhost IDENTIFIED WITH 'sha256_password';
 SELECT COUNT(*) FROM mysql.password_history WHERE User='method_alter' AND Host='localhost';
 DROP USER method_alter@localhost;

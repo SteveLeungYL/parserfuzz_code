@@ -106,5 +106,3 @@ drop function version_tokens_delete;
 drop function version_tokens_lock_shared;
 drop function version_tokens_lock_exclusive;
 drop function version_tokens_unlock;
-drop user vbhagi@localhost;
-drop user u1@localhost;

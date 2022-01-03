@@ -192,7 +192,6 @@ CREATE TABLE t1 (a INT);
 LOCK TABLES t1 LOW_PRIORITY WRITE;
 UNLOCK TABLES;
 DROP TABLE t1;
-call mtr.add_suppression("Can't open and lock privilege tables: Table 'user' was not locked with LOCK TABLES");
 DROP TABLE IF EXISTS t1;
 CREATE TABLE t1 (c1 INT);
 LOCK TABLES t1 READ;

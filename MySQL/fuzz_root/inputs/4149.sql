@@ -158,7 +158,6 @@ create table t2 (c varchar(200), d int unsigned not null primary key auto_increm
 insert into t1 (a) values('abc');
 insert into t2 (c) values('abc');
 select * from t1,t2 where (a,b) = (c,d);
-select host,user from mysql.user where (host,user) = ('localhost','test');
 drop table t1,t2;
 CREATE TABLE t1 (a TIME NOT NULL, b TINYINT);
 INSERT IGNORE INTO t1 VALUES (0, 0),(0, 0);

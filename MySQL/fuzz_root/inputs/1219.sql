@@ -43,7 +43,6 @@ DROP TABLE t1;
 SET @old_innodb_thread_concurrency := @@innodb_thread_concurrency;
 SET @old_innodb_thread_sleep_delay := @@innodb_thread_sleep_delay;
 SET GLOBAL innodb_thread_concurrency = 2;
-CREATE TABLE t1 (user_num BIGINT, hours SMALLINT, KEY user_num (user_num)) ENGINE = InnoDB    PARTITION BY RANGE COLUMNS (hours) (PARTITION hour_003 VALUES LESS THAN (3), PARTITION hour_004 VALUES LESS THAN (4), PARTITION hour_005 VALUES LESS THAN (5), PARTITION hour_last VALUES LESS THAN (MAXVALUE));
 INSERT INTO t1 VALUES (1, 1), (2, 2), (3, 3), (4, 4), (5, 5);
 BEGIN;
 SELECT COUNT(*) FROM t1;

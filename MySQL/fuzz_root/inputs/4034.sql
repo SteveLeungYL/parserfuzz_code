@@ -1,17 +1,7 @@
 SET PERSIST_ONLY autocommit=0;
 SET @@persist_only.max_execution_time=60000;
-SET PERSIST_ONLY max_user_connections=10, PERSIST_ONLY max_allowed_packet=8388608;
-SET @@persist_only.max_user_connections=10, PERSIST_ONLY max_allowed_packet=8388608;
-SET @@persist_only.max_user_connections=10, @@persist_only.max_allowed_packet=8388608;
-SET PERSIST_ONLY max_user_connections=10, @@persist_only.max_allowed_packet=8388608;
-SET PERSIST_ONLY autocommit=0, GLOBAL max_user_connections=10;
-SET @@persist_only.autocommit=0, @@global.max_user_connections=10;
-SET GLOBAL autocommit=0, PERSIST_ONLY max_user_connections=10;
-SET @@global.autocommit=0, @@persist_only.max_user_connections=10;
 SET PERSIST_ONLY autocommit=0, SESSION auto_increment_offset=10;
 SET @@persist_only.autocommit=0, @@session.auto_increment_offset=10;
-SET SESSION auto_increment_offset=20, PERSIST_ONLY max_user_connections=10;
-SET @@session.auto_increment_offset=20, @@persist_only.max_user_connections=10;
 SET PERSIST_ONLY autocommit=0, auto_increment_offset=10;
 SET autocommit=0, PERSIST_ONLY auto_increment_offset=10;
 SET PERSIST_ONLY autocommit=0, SESSION auto_increment_offset=10, GLOBAL max_error_count= 128;
