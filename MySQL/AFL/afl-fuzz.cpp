@@ -7841,6 +7841,8 @@ static void do_libary_initialize()
     g_mutator.init(file_path);
   }
 
+  g_mutator.init_library();
+
   cout << "init_lib done" << endl;
 
 }

@@ -456,36 +456,76 @@ void Mutator::init_ir_library(string filename){
 //     }
 // }
 
+void Mutator::init_library() {
+
+  // init value_library_
+  init_value_library();
+
+
+  if (not_mutatable_types_.size() == 0) {
+    float_types_.insert({kFloatLiteral});
+    int_types_.insert(kIntLiteral);
+    string_types_.insert(kStringLiteral);
+
+    relationmap_[kDataColumnName][kDataTableName] = kRelationSubtype;
+    relationmap_[kDataPragmaValue][kDataPragmaKey] = kRelationSubtype;
+    relationmap_[kDataTableName][kDataTableName] = kRelationElement;
+    relationmap_[kDataColumnName][kDataColumnName] = kRelationElement;
+
+    split_stmt_types_.insert(kSimpleStatement);
+    split_substmt_types_.insert({kSubquery});
+
+  }
+
+
+  // Initialize the common_string_library();
+  common_string_library_.push_back("HELLO");
+  common_string_library_.push_back("WORLD");
+  common_string_library_.push_back("test");
+  common_string_library_.push_back("files");
+  common_string_library_.push_back("music");
+  common_string_library_.push_back("score");
+  common_string_library_.push_back("green");
+  common_string_library_.push_back("red");
+  common_string_library_.push_back("right");
+  common_string_library_.push_back("left");
+  common_string_library_.push_back("plot");
+  common_string_library_.push_back("cov");
+  common_string_library_.push_back("bug");
+  common_string_library_.push_back("sample");
+
+}
+
 
 void Mutator::init(string f_testcase, string f_common_string, string file2d, string file1d, string f_gen_type){
     
     
     
-    if(!f_testcase.empty()) init_ir_library(f_testcase);
+    // if(!f_testcase.empty()) init_ir_library(f_testcase);
     
 
     //init value_library_
-    init_value_library();
+    // init_value_library();
 
     //init common_string_library 
-    if(!f_common_string.empty()) init_common_string(f_common_string);
+    // if(!f_common_string.empty()) init_common_string(f_common_string);
 
     //init data_library_2d
-    if(!file2d.empty()) init_data_library_2d(file2d);
+    // if(!file2d.empty()) init_data_library_2d(file2d);
 
-    if(!file1d.empty()) init_data_library(file1d);
+    // if(!file1d.empty()) init_data_library(file1d);
     // if(!f_gen_type.empty()) init_safe_generate_type(f_gen_type);
     
     // float_types_.insert({kFloatLiteral});
     // int_types_.insert(kIntLiteral);
     // string_types_.insert(kStringLiteral);
     
-    relationmap_[kDataColumnName][kDataTableName] = kRelationSubtype;
-    relationmap_[kDataPragmaValue][kDataPragmaKey] = kRelationSubtype;
-    relationmap_[kDataTableName][kDataTableName] = kRelationElement;
-    relationmap_[kDataColumnName][kDataColumnName] = kRelationElement;
+    // relationmap_[kDataColumnName][kDataTableName] = kRelationSubtype;
+    // relationmap_[kDataPragmaValue][kDataPragmaKey] = kRelationSubtype;
+    // relationmap_[kDataTableName][kDataTableName] = kRelationElement;
+    // relationmap_[kDataColumnName][kDataColumnName] = kRelationElement;
     
-    split_stmt_types_.insert(kSimpleStatement);
+    // split_stmt_types_.insert(kSimpleStatement);
     // split_substmt_types_.insert({kStmt, kSelectClause, kSelectStmt});
 
 #define MYSQLFUZZ

@@ -53,7 +53,7 @@ public:
     vector<IR *> mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_mutate_failed, u64& total_mutate_num);
     vector<IR*> mutate(IR* input);
     vector<IR *> mutate_stmtlist(IR *root);
-    
+
     IR * strategy_delete(IR * cur); //Done
     IR * strategy_insert(IR * cur); //Done
     IR * strategy_replace(IR * cur);  //done
@@ -69,6 +69,7 @@ public:
 
 
     void init(string f_testcase = "", string f_common_string = "", string file2d = "", string file1d = "", string f_gen_type = "");//DONE
+    void init_library();
 
     void init_ir_library(string filename);//DONE
     void init_value_library();//DONE
