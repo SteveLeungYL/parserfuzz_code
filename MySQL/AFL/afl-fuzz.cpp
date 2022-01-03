@@ -427,7 +427,7 @@ public:
   }
 
   static void timeout_query(unsigned long process_id, unsigned long cur_timeout_id) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    std::this_thread::sleep_for(std::chrono::milliseconds(exec_tmout));
 
     timeout_mutex.lock();
 
@@ -446,7 +446,7 @@ public:
       terminate_query(process_id);
     }
 
-    cerr << "\n\n\nQuery terminated!!!!\n\n\n";
+    // cerr << "\n\n\nQuery terminated!!!!\n\n\n";
   }
 
   SQLSTATUS execute(const char *cmd, string& res_str)
@@ -3337,8 +3337,8 @@ static void perform_dry_run(char **argv)
     int ret = run_parser_multi_stmt(query_str, ir_tree);
     if (ret != 0 || ir_tree.size() == 0)
     {
-      cerr << "Query seed: " << query_str << " is not passing the parser!"
-           << endl;
+      // cerr << "Query seed: " << query_str << " is not passing the parser!"
+      //      << endl;
     }
     else
     {
