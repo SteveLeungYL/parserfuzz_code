@@ -214,6 +214,16 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
 
     IR* cur_ir_root = ir_vec_single.back();
 
+    if (!(cur_ir_root->get_left())) {
+      cur_ir_root->deep_drop();
+      continue;
+    }
+
+    if (!(cur_ir_root->get_left()->get_left())) {
+      cur_ir_root->deep_drop();
+      continue;
+    }
+
     // cerr << "Just run throught the run_parser, getting: \n";
     // cerr << cur_ir_root->to_string();
     // cerr << "\nend for single stmt. \n\n\n";
