@@ -185,6 +185,9 @@ std::mutex timeout_mutex;
 bool is_timeout = false;
 unsigned long timeout_id = 0;
 
+EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
+static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
+
 
 extern int ff_debug;
 
@@ -615,9 +618,6 @@ IR *g_current_ir = NULL;
 MysqlClient g_mysqlclient((char *)"127.0.0.1", (char *)"root", NULL);
 
 //MysqlClient g_psql_client;
-
-EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
-static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
 
 EXP_ST u64 mem_limit = MEM_LIMIT; /* Memory cap for child (MB)        */
 
