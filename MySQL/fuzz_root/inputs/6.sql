@@ -120,3 +120,6 @@ INSTALL COMPONENT "file://component_example_component1";
 UNINSTALL COMPONENT "file://component_example_component1";
 DROP USER mysqltest_u1@localhost;
 SET @@session.insert_id=42949672950;
+INSTALL COMPONENT "file://component_example_component2","file://component_example_component3";
+SET @@session.insert_id=0;
+ALTER TABLE mysql.component AUTO_INCREMENT=1;

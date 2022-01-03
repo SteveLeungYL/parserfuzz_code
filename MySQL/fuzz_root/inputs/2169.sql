@@ -120,3 +120,4 @@ alter event event_35981 on schedule every 1 hour starts '1999-01-01 00:00:00'   
 alter event event_35981 on schedule every 1 hour starts '1999-01-01 00:00:00'   ends '1999-01-02 00:00:00' on completion not preserve;
 alter event event_35981 on schedule every 1 hour starts '1999-01-01 00:00:00'   ends '1999-01-02 00:00:00' on completion preserve;
 drop event event_35981;
+drop database events_test;

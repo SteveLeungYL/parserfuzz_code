@@ -120,3 +120,7 @@ rollback work;
 select * from t1;
 delete from t1;
 commit work;
+show session status;
+drop user mysqltest_user1@localhost;
+drop database mysqltest_db2;
+drop database events_test;

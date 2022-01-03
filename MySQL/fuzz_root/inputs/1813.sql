@@ -120,3 +120,5 @@ CREATE TABLE t2 ( pk INT NOT NULL, col_int_nokey INT, col_varchar_key VARCHAR(1)
 INSERT INTO t2 VALUES (1,7,'x');
 SELECT COUNT( DISTINCT table1.col_varchar_key ) FROM t2 AS table1 JOIN (SELECT * FROM t1) AS table2 ON ( table2.pk = table1.col_int_nokey ) WHERE table1.pk = 1;
 SELECT COUNT( DISTINCT table1.col_varchar_key ) FROM t2 AS table1 JOIN t1 AS table2 ON ( table2.pk = table1.col_int_nokey ) WHERE table1.pk = 1;
+SELECT COUNT( table1.col_varchar_key ) FROM t2 AS table1 JOIN (SELECT * FROM t1) AS table2 ON ( table2.pk = table1.col_int_nokey ) WHERE table1.pk = 1;
+DROP TABLE t1,t2;

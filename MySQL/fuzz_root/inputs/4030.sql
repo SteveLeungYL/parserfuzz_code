@@ -120,3 +120,6 @@ INSERT INTO temp2 VALUES (3),(4);
 UPDATE temp1,temp2 SET temp1.a = 5, temp2.a = 10;
 SELECT * FROM temp1, temp2;
 DROP TABLE temp1, temp2;
+SET GLOBAL READ_ONLY = OFF;
+DROP USER bug33669@localhost;
+DROP DATABASE db1;

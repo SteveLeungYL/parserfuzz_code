@@ -120,3 +120,9 @@ CREATE TABLE testdb.t_varbinary_linear_alg2 ( prefix_col VARBINARY (100), other_
 CREATE TABLE testdb.t_char_nonlinear_alg2 ( prefix_col CHAR (100), other_col VARCHAR (5), PRIMARY KEY (prefix_col(10), other_col) ) PARTITION BY KEY ALGORITHM=2 () PARTITIONS 3;
 CREATE TABLE testdb.t_varchar_nonlinear_alg2 ( prefix_col VARCHAR (100), other_col VARCHAR (5), PRIMARY KEY (prefix_col(10), other_col) ) PARTITION BY KEY ALGORITHM=2 () PARTITIONS 3;
 CREATE TABLE testdb.t_binary_nonlinear_alg2 ( prefix_col BINARY (100), other_col VARCHAR (5), PRIMARY KEY (prefix_col(10), other_col) ) PARTITION BY KEY ALGORITHM=2 () PARTITIONS 3;
+CREATE TABLE testdb.t_varbinary_nonlinear_alg2 ( prefix_col VARBINARY (100), other_col VARCHAR (5), PRIMARY KEY (prefix_col(10), other_col) ) PARTITION BY KEY ALGORITHM=2 () PARTITIONS 3;
+DROP SCHEMA testdb;
+SELECT * FROM INFORMATION_SCHEMA.TABLESPACES;
+SELECT * FROM INFORMATION_SCHEMA.tablespaces;
+SELECT * FROM INFORMATION_SCHEMA.TABLES JOIN INFORMATION_SCHEMA.TABLESPACES;
+SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME IN (SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLESPACES);

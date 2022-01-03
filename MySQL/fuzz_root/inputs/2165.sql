@@ -120,3 +120,8 @@ DROP EVENT event_test;
 SET @orig_character_set_client = @@character_set_client;
 SET character_set_client = utf8;
 CREATE EVENT t�est ON SCHEDULE AT NOW() ON COMPLETION NOT PRESERVE DO SELECT 1;
+CREATE EVENT event ON SCHEDULE EVERY 1 SECOND COMMENT 'test�' DO SELECT 1;
+CREATE EVENT event ON SCHEDULE EVERY 1 SECOND COMMENT 'test' DO SELECT 1;
+ALTER EVENT event COMMENT 'test�';
+SET character_set_client = @orig_character_set_client;
+DROP DATABASE events_test;

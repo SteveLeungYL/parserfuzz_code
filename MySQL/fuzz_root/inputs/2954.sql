@@ -118,5 +118,6 @@ show session status;
 show session status;
 show session status;
 show session status;
-DROP USER 'user_sha_pass_wp'@'%';
 TRUNCATE TABLE mysql.user;
+INSERT INTO mysql.user SELECT * FROM tmp_user;
+FLUSH PRIVILEGES;
