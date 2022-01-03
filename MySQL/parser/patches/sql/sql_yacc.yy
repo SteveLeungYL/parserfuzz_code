@@ -24375,29 +24375,27 @@ literal:
     }
 
     | FALSE_SYM {
-        res = new IR(kLiteral, OP3("FALSE", "", ""));
+        std::string str = "FALSE";
+        res = new IR(kBoolLiteral, str, kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | TRUE_SYM {
-        res = new IR(kLiteral, OP3("TRUE", "", ""));
+        std::string str = "TRUE";
+        res = new IR(kBoolLiteral, str, kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | HEX_NUM {
-        auto tmp1 = new IR(kHexLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
-        ir_vec.push_back(tmp1);
-        res = new IR(kLiteral, OP3("", "", ""), tmp1);
+        res = new IR(kHexLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(res); 
         $$ = res;
     }
 
     | BIN_NUM {
-        auto tmp1 = new IR(kBinLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
-        ir_vec.push_back(tmp1);
-        res = new IR(kLiteral, OP3("", "", ""), tmp1);
+        res = new IR(kBinLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
         ir_vec.push_back(res); 
         $$ = res;
     }
