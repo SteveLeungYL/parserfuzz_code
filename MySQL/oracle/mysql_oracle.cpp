@@ -313,6 +313,19 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
     return;
 }
 
+void SQL_ORACLE::remove_explain_stmt_from_ir(IR* ir_root) {
+    ir_wrapper.set_ir_root(ir_root);
+    vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
+
+    for (IR* cur_stmt : stmt_vec) {
+        if (cur_stmt->type_ == kExplainStmt) {
+          ir_wrapper.remove_stmt_and_free(cur_stmt);
+        }
+    }
+
+    return;
+}
+
 void SQL_ORACLE::remove_oracle_select_stmt_from_ir(IR* ir_root) {
     ir_wrapper.set_ir_root(ir_root);
     vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
@@ -324,11 +337,26 @@ void SQL_ORACLE::remove_oracle_select_stmt_from_ir(IR* ir_root) {
     return;
 }
 
+string SQL_ORACLE::remove_explain_stmt_from_str(string in) {
+    vector<IR*> ir_set;
+    int ret = run_parser_multi_stmt(in, ir_set);
+    if (ret != 0 || ir_set.size()==0) {
+        cerr << "Error: ir_set size is 0. \n";
+        return "";
+    }
+    IR* ir_root = ir_set.back();
+    remove_explain_stmt_from_ir(ir_root);
+    string res_str = ir_root->to_string();
+    ir_root->deep_drop();
+    return res_str;
+}
+
 string SQL_ORACLE::remove_select_stmt_from_str(string in) {
     vector<IR*> ir_set;
     int ret = run_parser_multi_stmt(in, ir_set);
     if (ret != 0 || ir_set.size()==0) {
         cerr << "Error: ir_set size is 0. \n";
+        return "";
     }
     IR* ir_root = ir_set.back();
     remove_select_stmt_from_ir(ir_root);
@@ -342,6 +370,7 @@ string SQL_ORACLE::remove_oracle_select_stmt_from_str(string in) {
     int ret = run_parser_multi_stmt(in, ir_set);
     if (ret != 0 || ir_set.size()==0) {
         cerr << "Error: ir_set size is 0. \n";
+        return "";
     }
     IR* ir_root = ir_set.back();
     remove_oracle_select_stmt_from_ir(ir_root);

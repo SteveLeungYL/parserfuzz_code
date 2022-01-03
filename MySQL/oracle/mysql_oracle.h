@@ -39,8 +39,12 @@ public:
 
   virtual void remove_select_stmt_from_ir(IR* ir_root);
   virtual void remove_oracle_select_stmt_from_ir(IR* ir_root);
+  virtual void remove_explain_stmt_from_ir(IR* ir_root);
+  
+  string remove_explain_stmt_from_str(string in);
   string remove_select_stmt_from_str(string in);
   string remove_oracle_select_stmt_from_str(string in);
+  
 
   /* Compare the results from validation statements ori, rewrite_1 and
      rewrite_2.

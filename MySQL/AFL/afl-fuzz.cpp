@@ -6401,6 +6401,7 @@ static u8 fuzz_one(char **argv)
 
   // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
+  p_oracle->remove_explain_stmt_from_ir(cur_root);
 
 
   // cerr << "After removing select stmt and added create. \n\n\n";
