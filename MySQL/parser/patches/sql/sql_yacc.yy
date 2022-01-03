@@ -26140,7 +26140,7 @@ option_value_no_option_type:
     | '@' '@' opt_set_var_ident_type internal_variable_name equal set_expr_or_default {
         auto tmp1 = $3;
         auto tmp2 = $4;
-        res = new IR(kOptionValueNoOptionType_3, OP3("@ @", "", ""), tmp1, tmp2);
+        res = new IR(kOptionValueNoOptionType_3, OP3("@@", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
 
         auto tmp3 = $5;
