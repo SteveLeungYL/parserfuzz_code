@@ -80,3 +80,4 @@ CREATE USER ''@'';
 GRANT EXECUTE ON PROCEDURE sys.table_exists TO ''@'';
 GRANT SELECT ON db1.* TO ''@'';
 SHOW GRANTS FOR ''@'';
+DROP USER ''@'';

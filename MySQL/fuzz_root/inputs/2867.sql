@@ -80,3 +80,8 @@ select * from (select a as d, 2*a as two from t) dt;
 select d from (select a as d, 2*a as two from t) dt;
 select d as e from (select a as d, 2*a as two from t) dt;
 select * from v;
+select d, two from v;
+select d as e, two as f from v;
+set optimizer_switch=default;
+drop view v;
+drop table t;

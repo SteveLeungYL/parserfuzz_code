@@ -80,3 +80,7 @@ SELECT hex(a) from t1 WHERE a=unhex('1F9480179366F2BF567E1C4B964C1EF02908');
 DROP TABLE t1;
 CREATE TABLE t1 ( id numeric(20) NOT NULL, lang varchar(8) NOT NULL, msg varchar(32) NOT NULL, PRIMARY KEY (id,lang) );
 INSERT INTO t1 VALUES (33, 'en', 'zzzzzzz');
+INSERT INTO t1 VALUES (31, 'en', 'xxxxxxx');
+INSERT INTO t1 VALUES (32, 'en', 'yyyyyyy');
+SELECT * FROM t1 WHERE id=32;
+DROP TABLE t1;

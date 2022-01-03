@@ -1,7 +1,7 @@
 import os
 import shutil
 
-input_folder = "./inputs/"
+input_folder = "./inputs_FULL/"
 
 new_input_folder = "./new_inputs"
 
@@ -24,7 +24,7 @@ for i_file in os.listdir(input_folder):
             continue
         all_lines += cur_line
 
-        if line_num > 80:
+        if line_num > 120:
             break
         
         line_num += 1
