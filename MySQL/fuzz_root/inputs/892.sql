@@ -80,5 +80,3 @@ SELECT * FROM t3;
 ALTER DATABASE mysqltest CHARACTER SET latin1;
 UNLOCK TABLES;
 DROP TABLES t1, t2, t3, t4;
-DROP DATABASE mysqltest;
-show session status;

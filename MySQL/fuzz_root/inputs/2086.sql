@@ -1,11 +1,9 @@
 drop table if exists t1,t2,t3,t4,t5,t6;
 drop database if exists mysqltest;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
-CREATE TABLE t1 (a varchar(30) binary NOT NULL DEFAULT ' ', b varchar(1) binary NOT NULL DEFAULT ' ', c varchar(4) binary NOT NULL DEFAULT '0000', d tinyblob NULL, e tinyblob NULL, f tinyblob NULL, g tinyblob NULL, h tinyblob NULL, i tinyblob NULL, j tinyblob NULL, k tinyblob NULL, l tinyblob NULL, m tinyblob NULL, n tinyblob NULL, o tinyblob NULL, p tinyblob NULL, q varchar(30) binary NOT NULL DEFAULT ' ', r varchar(30) binary NOT NULL DEFAULT ' ', s tinyblob NULL, t varchar(4) binary NOT NULL DEFAULT ' ', u varchar(1) binary NOT NULL DEFAULT ' ', v varchar(30) binary NOT NULL DEFAULT ' ', w varchar(30) binary NOT NULL DEFAULT ' ', x tinyblob NULL, y varchar(5) binary NOT NULL DEFAULT ' ', z varchar(20) binary NOT NULL DEFAULT ' ', a1 varchar(30) binary NOT NULL DEFAULT ' ', b1 tinyblob NULL) ENGINE=InnoDB DEFAULT CHARACTER SET = latin1 COLLATE latin1_bin;
 INSERT into t1 (b) values ('1');
 SHOW WARNINGS;
 SELECT * from t1;
-CREATE TABLE t2 (a varchar(30) binary NOT NULL DEFAULT ' ', b varchar(1) binary NOT NULL DEFAULT ' ', c varchar(4) binary NOT NULL DEFAULT '0000', d tinyblob NULL, e tinyblob NULL, f tinyblob NULL, g tinyblob NULL, h tinyblob NULL, i tinyblob NULL, j tinyblob NULL, k tinyblob NULL, l tinyblob NULL, m tinyblob NULL, n tinyblob NULL, o tinyblob NULL, p tinyblob NULL, q varchar(30) binary NOT NULL DEFAULT ' ', r varchar(30) binary NOT NULL DEFAULT ' ', s tinyblob NULL, t varchar(4) binary NOT NULL DEFAULT ' ', u varchar(1) binary NOT NULL DEFAULT ' ', v varchar(30) binary NOT NULL DEFAULT ' ', w varchar(30) binary NOT NULL DEFAULT ' ', x tinyblob NULL, y varchar(5) binary NOT NULL DEFAULT ' ', z varchar(20) binary NOT NULL DEFAULT ' ', a1 varchar(30) binary NOT NULL DEFAULT ' ', b1 tinyblob NULL) DEFAULT CHARACTER SET = latin1 COLLATE latin1_bin;
 SHOW CREATE TABLE t2;
 INSERT into t2 (b) values ('1');
 SHOW WARNINGS;

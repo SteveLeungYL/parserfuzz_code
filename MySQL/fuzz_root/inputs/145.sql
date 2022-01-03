@@ -80,7 +80,3 @@ show session status;
 show session status;
 show session status;
 show session status;
-show session status;
-show session status;
-show session status;
-show session status;

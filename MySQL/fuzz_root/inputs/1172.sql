@@ -80,6 +80,3 @@ select ( select variable_value from performance_schema.global_status where varia
 select (select variable_value from performance_schema.global_status where variable_name ='Sort_rows') - @Sort_rows;
 select (select variable_value from performance_schema.global_status where variable_name ='Sort_scan') - @Sort_scan;
 set @@optimizer_switch=@optimizer_switch_saved;
-DROP TABLE IF EXISTS tab1;
-SET @@session.sort_buffer_size=DEFAULT;
-SET @@GLOBAL.sort_buffer_size=DEFAULT;

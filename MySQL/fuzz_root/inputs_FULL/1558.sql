@@ -1,0 +1,6 @@
+call mtr.add_suppression("Failed to set up SSL because of the following SSL library error");
+ALTER INSTANCE RELOAD TLS;
+SET @orig_ssl_ca= @@global.ssl_ca;
+SET GLOBAL ssl_ca = 'gizmo';
+ALTER INSTANCE RELOAD TLS NO ROLLBACK ON ERROR;
+SET GLOBAL ssl_ca = @orig_ssl_ca;

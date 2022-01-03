@@ -80,5 +80,3 @@ SELECT @@sql_mode INTO @old_sql_mode;
 SET sql_mode = 'pad_char_to_full_length';
 CREATE FUNCTION f() RETURNS INT RETURN 1;
 SHOW FUNCTION STATUS;
-DROP FUNCTION IF EXISTS f;
-SET sql_mode = @old_sql_mode;

@@ -80,4 +80,3 @@ CREATE TABLE child (fk1 INT, b INT, CONSTRAINT c FOREIGN KEY (fk1) REFERENCES pa
 CREATE TABLE myisam_table (fk INT) ENGINE=MyISAM;
 ALTER TABLE myisam_table DROP FOREIGN KEY no_such_fk;
 ALTER TABLE myisam_table DROP FOREIGN KEY c;
-DROP TABLES myisam_table, child, parent;

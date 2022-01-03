@@ -80,5 +80,3 @@ SELECT DISTINCT HEX(WEIGHT_STRING(ch)) FROM t1;
 DROP TABLE t1;
 SET NAMES DEFAULT;
 DO ltrim(weight_string(1));
-DO rtrim(weight_string(1));
-SET NAMES latin1;

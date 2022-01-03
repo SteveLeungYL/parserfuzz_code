@@ -13,7 +13,6 @@ ALTER TABLE t1 AVG_ROW_LENGTH=0 CHECKSUM=0 COMMENT="" MIN_ROWS=0 MAX_ROWS=0 PACK
 show create table t1;
 drop table t1;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
-create table t1 ( type_bool bool not null default 0, type_tiny tinyint not null auto_increment primary key, type_short smallint(3), type_mediumint mediumint, type_bigint bigint, type_decimal decimal(5,2), type_numeric numeric(5,2), empty_char char(0), type_char char(2), type_varchar varchar(10), type_timestamp timestamp not null default current_timestamp on update current_timestamp, type_date date not null default '0000-00-00', type_time time not null default '00:00:00', type_datetime datetime not null default '0000-00-00 00:00:00', type_year year, type_enum enum ('red', 'green', 'blue'), type_set enum ('red', 'green', 'blue'), type_tinyblob tinyblob, type_blob blob, type_medium_blob mediumblob, type_long_blob longblob, index(type_short) ) AVG_ROW_LENGTH=10 CHECKSUM=1 COMMENT="test" ENGINE=MYISAM MIN_ROWS=10 MAX_ROWS=100 PACK_KEYS=1 DELAY_KEY_WRITE=1 ROW_FORMAT=fixed CHARSET=latin1;
 show create table t1;
 insert into t1 (type_timestamp) values ("2003-02-07 10:00:01");
 select * from t1;

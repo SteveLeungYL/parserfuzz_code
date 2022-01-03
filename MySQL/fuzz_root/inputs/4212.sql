@@ -80,5 +80,3 @@ DELETE FROM t2;
 SET sql_log_bin= 0;
 DELETE FROM t2;
 SET sql_log_bin= default;
-DROP TABLE t1, t2;
-SET SESSION sql_safe_updates=default;

@@ -5,7 +5,7 @@ RESET MASTER;
 SET NAMES gb18030;
 CREATE TABLE t1 ( f1 BLOB ) DEFAULT CHARSET=gb18030;
 CREATE PROCEDURE p1(IN val BLOB) BEGIN SET @tval = val; SET @sql_cmd = CONCAT_WS(' ', 'INSERT INTO t1(f1) VALUES(?)'); PREPARE stmt FROM @sql_cmd; EXECUTE stmt USING @tval; DEALLOCATE PREPARE stmt; END;
-SET @`tcontent`:='²âÊÔbinlog¸´ÖÆ£¬²âÊÔËÄ×Ö½Ú±àÂë:9ï19ï29ï3,º¸‚36ÝÕâF';
+SET @`tcontent`:='ï¿½ï¿½ï¿½ï¿½binlogï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö½Ú±ï¿½ï¿½ï¿½:ï¿½9ï¿½1ï¿½9ï¿½2ï¿½9ï¿½3,ï¿½ï¿½ï¿½3ï¿½6ï¿½ï¿½ï¿½F';
 CALL p1(@`tcontent`);
 FLUSH LOGS;
 DROP PROCEDURE p1;
