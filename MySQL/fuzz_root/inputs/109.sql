@@ -1,0 +1,18 @@
+show session status;
+show session status;
+SHOW DATABASES;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
+show session status;
