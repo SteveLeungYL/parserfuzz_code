@@ -220,7 +220,7 @@ public:
       return false;
     }
 
-    dbname = "test1";
+    dbname = "test_sqlright1";
     // cerr << "Using socket: " << socket_path << "\n\n\n";
     if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
@@ -263,7 +263,7 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    string cmd = "CREATE DATABASE IF NOT EXISTS test1; USE test1; SELECT 'Successful'; ";
+    string cmd = "CREATE DATABASE IF NOT EXISTS test_sqlright1; USE test_sqlright1; SELECT 'Successful'; ";
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
     // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
@@ -573,13 +573,13 @@ public:
       mysql_close(&tmp_m);
       return 0;
     }
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test1", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_sqlright1", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
       return 0;
     }
-    string cmd = "DROP DATABASE IF EXISTS test1; CREATE DATABASE IF NOT EXISTS test1; USE test1; SET GLOBAL MAX_EXECUTION_TIME= 500; SELECT 'Successful'; ";
+    string cmd = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; USE test_sqlright1; SET GLOBAL MAX_EXECUTION_TIME= 500; SELECT 'Successful'; ";
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
     // cerr << "Reset database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
@@ -4263,19 +4263,20 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps); */
 
-#ifdef COUNT_ERROR
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %llu, %llu, %llu, %llu\n",
+          /* Format */
+          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu"
+          "\n", 
+          /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, total_execs, syntax_err_num, semantic_err_num, correct_num);
-#else
-  fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %llu\n",
-          get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
-          pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, total_execs);
-#endif
+          unique_hangs, max_depth, eps, total_execs, 
+          total_input_failed, p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid, total_add_to_queue,
+          total_mutate_all_failed, total_mutate_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
+          debug_error, (debug_good * 100.0 / (debug_error + debug_good)), mysql_execute_ok, mysql_execute_error, mysql_execute_total,
+          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate
+          ); /* ignore errors */
 
   fflush(plot_file);
 }
@@ -7367,21 +7368,15 @@ EXP_ST void setup_dirs_fds(void)
   if (!plot_file)
     PFATAL("fdopen() failed");
 
-    /*
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec\n");
-  */
     /* ignore errors */
-#ifdef COUNT_ERROR
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec, total_execs, syntax_error, semantic_error, correct\n");
-#else
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec, total_execs\n");
-#endif
+  fprintf(plot_file, "unix_time,cycles_done,cur_path,paths_total,"
+                     "pending_total,pending_favs,map_size,unique_crashes,"
+                     "unique_hangs,max_depth,execs_per_sec,total_execs,"
+                     "total_input_failed,total_random_VALID,total_add_to_queue,total_mutate_all_failed,"
+                     "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
+                     "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
+                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
+                     );
 }
 
 /* Setup the output file for fuzzed data, if not using -f. */

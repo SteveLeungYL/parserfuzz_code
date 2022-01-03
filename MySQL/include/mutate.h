@@ -64,6 +64,8 @@ public:
     IR * get_from_libary_with_right_type(IRTYPE type_);
 
 
+    int get_cri_valid_collection_size();
+
     bool replace(IR* root, IR* old_ir, IR* new_ir); //done
     IR * locate_parent(IR* root, IR * old_ir) ; //done
 

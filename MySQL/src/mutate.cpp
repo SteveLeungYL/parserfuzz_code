@@ -290,6 +290,10 @@ vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_v
 }
 
 
+int Mutator::get_cri_valid_collection_size() {
+  return all_cri_valid_pstr_vec.size();
+}
+
 vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec) {
   int total_run_count = p_oracle->get_mul_run_num();
   vector<vector<vector<IR*>>> all_trans_vec_all_run;
