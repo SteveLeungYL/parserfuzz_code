@@ -780,6 +780,8 @@ struct queue_entry
   u8 *trace_mini; /* Trace bytes, if kept             */
   u32 tc_ref;     /* Trace bytes ref count            */
 
+  u8 is_timeout = false; /* Is timeout test cases. */
+
   struct queue_entry *next, /* Next element, if any             */
       *next_100;            /* 100 elements ahead               */
 };
@@ -3395,7 +3397,8 @@ static void perform_dry_run(char **argv)
                  exec_tmout);
 
             // FATAL("Test case '%s' results in a timeout", fn);
-            cerr << "Test case '" << fn << "' results in a timeout.\n\n\n";
+            // cerr << "Test case '" << fn << "' results in a timeout.\n\n\n";
+            q->is_timeout = true;
             break;
           }
           else
@@ -3412,6 +3415,7 @@ static void perform_dry_run(char **argv)
 
             WARNF("Test case results in a timeout (skipping)");
             q->cal_failed = CAL_CHANCES;
+            q->is_timeout = true;
             cal_failures++;
             break;
           }
@@ -6345,6 +6349,13 @@ static u8 fuzz_one(char **argv)
   vector<IR*> v_ir_stmts;
 
   string input;
+
+  /* If this is a timeout query, skip it immediately. */
+  if (queue_cur->is_timeout) {
+    SAYF("\n" cLRD "[-] " cRST
+                 "DEBUG: Skip test case due to its seeds' timeout .\n\n\n");
+    return 1;
+  }
 
 
 #ifdef IGNORE_FINDS
