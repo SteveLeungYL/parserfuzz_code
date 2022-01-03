@@ -14580,7 +14580,7 @@ opt_histogram:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_ident_string_list_type(kDataColumnName, kUse);
+        tmp1->set_ident_string_list_type(kDataColumnName, kUse);
     }
 
     | DROP HISTOGRAM_SYM ON_SYM ident_string_list {
