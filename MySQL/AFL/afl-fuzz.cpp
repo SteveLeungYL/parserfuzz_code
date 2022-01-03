@@ -79,6 +79,9 @@
 #include <random>
 #include <regex>
 
+#include <mutex>
+#include <chrono>
+#include <thread>
 #include <fstream>
 #include <filesystem>
 
@@ -177,6 +180,10 @@ string socket_path = "";
 
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
+
+std::mutex timeout_mutex;
+bool is_timeout = false;
+unsigned long timeout_id = 0;
 
 
 extern int ff_debug;
@@ -394,6 +401,54 @@ public:
     return split_string;
   }
 
+  static bool terminate_query(unsigned long process_id) {
+    MYSQL tmp_m;
+    if (mysql_init(&tmp_m) == NULL)
+    {
+      mysql_close(&tmp_m);
+      return false;
+    }
+
+    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    {
+      fprintf(stderr, "Connection error5 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
+      mysql_close(&tmp_m);
+      return false;
+    }
+    string cmd = "KILL " + to_string(process_id) + "; ";
+    mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+    // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
+
+    mysql_close(&tmp_m);
+    std::cout << "Timeout!!! Kill query successful. \n\n\n";
+    // sleep(1);
+    return true;
+  }
+
+  static void timeout_query(unsigned long process_id, unsigned long cur_timeout_id) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+    timeout_mutex.lock();
+
+    // The previous execution has already finished. No timeout. 
+    if (timeout_id != cur_timeout_id) {
+      timeout_mutex.unlock();
+      return;
+    }
+
+    // The prvious execution timeout. Kill it!
+    is_timeout = true;
+
+    timeout_mutex.unlock();
+
+    if (is_timeout) {
+      terminate_query(process_id);
+    }
+
+    cerr << "\n\n\nQuery terminated!!!!\n\n\n";
+  }
+
   SQLSTATUS execute(const char *cmd, string& res_str)
   {
     // fix_database();
@@ -429,6 +484,12 @@ public:
 
     res_str = "";
 
+    timeout_mutex.lock();
+    is_timeout = false;
+    timeout_mutex.unlock();
+
+    std::thread(timeout_query, m_->thread_id, timeout_id).detach();
+
     for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
       server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
@@ -457,6 +518,14 @@ public:
       sleep(2); // waiting for server to be up again
       return kServerCrash;
     }
+
+    timeout_mutex.lock();
+    timeout_id++;
+    if (is_timeout) {
+      res = kTimeout;
+    }
+    is_timeout = false;
+    timeout_mutex.unlock();
 
     if (res == kSyntaxError) {
       syntax_err_num++;
@@ -507,7 +576,7 @@ public:
       mysql_close(&tmp_m);
       return 0;
     }
-    string cmd = "DROP DATABASE IF EXISTS test1; CREATE DATABASE IF NOT EXISTS test1; USE test1; SELECT 'Successful'; ";
+    string cmd = "DROP DATABASE IF EXISTS test1; CREATE DATABASE IF NOT EXISTS test1; USE test1; SET GLOBAL MAX_EXECUTION_TIME= 500; SELECT 'Successful'; ";
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
     // cerr << "Reset database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
@@ -533,6 +602,7 @@ private:
   char *passwd_;
   bool is_first_time;
   unsigned counter_; //odd for "test", even for "test2"
+
 };
 
 int is_server_up = -1;
@@ -3281,162 +3351,170 @@ static void perform_dry_run(char **argv)
     if (stop_soon)
       return;
 
-    // if (res == crash_mode || res == FAULT_NOBITS)
-    //   SAYF(cGRA "    len = %u, map size = %u, exec speed = %llu us\n" cRST,
-    //        q->len, q->bitmap_size, q->exec_us);
+    if (res == crash_mode || res == FAULT_NOBITS)
+      SAYF(cGRA "    len = %u, map size = %u, exec speed = %llu us\n" cRST,
+           q->len, q->bitmap_size, q->exec_us);
 
-    //     switch (res)
-    //     {
+        switch (res)
+        {
 
-    //     case FAULT_NONE:
+        case FAULT_NONE:
 
-    //       if (q == queue)
-    //         check_map_coverage();
+          if (q == queue)
+            check_map_coverage();
 
-    //       if (crash_mode)
-    //         FATAL("Test case '%s' does *NOT* crash", fn);
+          if (crash_mode)
+            FATAL("Test case '%s' does *NOT* crash", fn);
 
-    //       break;
+          break;
 
-    //     case FAULT_TMOUT:
+        case FAULT_TMOUT:
 
-    //       if (timeout_given)
-    //       {
+          if (timeout_given)
+          {
 
-    //         /* The -t nn+ syntax in the command line sets timeout_given to '2' and
-    //              instructs afl-fuzz to tolerate but skip queue entries that time
-    //              out. */
+            /* The -t nn+ syntax in the command line sets timeout_given to '2' and
+                 instructs afl-fuzz to tolerate but skip queue entries that time
+                 out. */
 
-    //         if (timeout_given > 1)
-    //         {
-    //           WARNF("Test case results in a timeout (skipping)");
-    //           q->cal_failed = CAL_CHANCES;
-    //           cal_failures++;
-    //           break;
-    //         }
+            if (timeout_given > 1)
+            {
+              WARNF("Test case results in a timeout (skipping)");
+              q->cal_failed = CAL_CHANCES;
+              cal_failures++;
+              break;
+            }
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "The program took more than %u ms to process one of the initial test cases.\n"
-    //              "    Usually, the right thing to do is to relax the -t option - or to delete it\n"
-    //              "    altogether and allow the fuzzer to auto-calibrate. That said, if you know\n"
-    //              "    what you are doing and want to simply skip the unruly test cases, append\n"
-    //              "    '+' at the end of the value passed to -t ('-t %u+').\n",
-    //              exec_tmout,
-    //              exec_tmout);
+            SAYF("\n" cLRD "[-] " cRST
+                 "The program took more than %u ms to process one of the initial test cases.\n"
+                 "    Usually, the right thing to do is to relax the -t option - or to delete it\n"
+                 "    altogether and allow the fuzzer to auto-calibrate. That said, if you know\n"
+                 "    what you are doing and want to simply skip the unruly test cases, append\n"
+                 "    '+' at the end of the value passed to -t ('-t %u+').\n",
+                 exec_tmout,
+                 exec_tmout);
 
-    //         FATAL("Test case '%s' results in a timeout", fn);
-    //       }
-    //       else
-    //       {
+            // FATAL("Test case '%s' results in a timeout", fn);
+            cerr << "Test case '" << fn << "' results in a timeout.\n\n\n";
+            break;
+          }
+          else
+          {
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "The program took more than %u ms to process one of the initial test cases.\n"
-    //              "    This is bad news; raising the limit with the -t option is possible, but\n"
-    //              "    will probably make the fuzzing process extremely slow.\n\n"
+            SAYF("\n" cLRD "[-] " cRST
+                 "The program took more than %u ms to process one of the initial test cases.\n"
+                 "    This is bad news; raising the limit with the -t option is possible, but\n"
+                 "    will probably make the fuzzing process extremely slow.\n\n"
 
-    //              "    If this test case is just a fluke, the other option is to just avoid it\n"
-    //              "    altogether, and find one that is less of a CPU hog.\n",
-    //              exec_tmout);
+                 "    If this test case is just a fluke, the other option is to just avoid it\n"
+                 "    altogether, and find one that is less of a CPU hog.\n",
+                 exec_tmout);
 
-    //         FATAL("Test case '%s' results in a timeout", fn);
-    //       }
+            WARNF("Test case results in a timeout (skipping)");
+            q->cal_failed = CAL_CHANCES;
+            cal_failures++;
+            break;
+          }
 
-    //     case FAULT_CRASH:
+        case FAULT_CRASH:
 
-    //       if (crash_mode)
-    //         break;
+          if (crash_mode)
+            break;
 
-    //       if (skip_crashes)
-    //       {
-    //         WARNF("Test case results in a crash (skipping)");
-    //         q->cal_failed = CAL_CHANCES;
-    //         cal_failures++;
-    //         break;
-    //       }
+          if (skip_crashes)
+          {
+            WARNF("Test case results in a crash (skipping)");
+            q->cal_failed = CAL_CHANCES;
+            cal_failures++;
+            break;
+          }
 
-    //       if (mem_limit)
-    //       {
+          if (mem_limit)
+          {
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "Oops, the program crashed with one of the test cases provided. There are\n"
-    //              "    several possible explanations:\n\n"
+            SAYF("\n" cLRD "[-] " cRST
+                 "Oops, the program crashed with one of the test cases provided. There are\n"
+                 "    several possible explanations:\n\n"
 
-    //              "    - The test case causes known crashes under normal working conditions. If\n"
-    //              "      so, please remove it. The fuzzer should be seeded with interesting\n"
-    //              "      inputs - but not ones that cause an outright crash.\n\n"
+                 "    - The test case causes known crashes under normal working conditions. If\n"
+                 "      so, please remove it. The fuzzer should be seeded with interesting\n"
+                 "      inputs - but not ones that cause an outright crash.\n\n"
 
-    //              "    - The current memory limit (%s) is too low for this program, causing\n"
-    //              "      it to die due to OOM when parsing valid files. To fix this, try\n"
-    //              "      bumping it up with the -m setting in the command line. If in doubt,\n"
-    //              "      try something along the lines of:\n\n"
+                 "    - The current memory limit (%s) is too low for this program, causing\n"
+                 "      it to die due to OOM when parsing valid files. To fix this, try\n"
+                 "      bumping it up with the -m setting in the command line. If in doubt,\n"
+                 "      try something along the lines of:\n\n"
 
-    // #ifdef RLIMIT_AS
-    //              "      ( ulimit -Sv $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
-    // #else
-    //              "      ( ulimit -Sd $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
-    // #endif /* ^RLIMIT_AS */
+    #ifdef RLIMIT_AS
+                 "      ( ulimit -Sv $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
+    #else
+                 "      ( ulimit -Sd $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
+    #endif /* ^RLIMIT_AS */
 
-    //              "      Tip: you can use http://jwilk.net/software/recidivm to quickly\n"
-    //              "      estimate the required amount of virtual memory for the binary. Also,\n"
-    //              "      if you are using ASAN, see %s/notes_for_asan.txt.\n\n"
+                 "      Tip: you can use http://jwilk.net/software/recidivm to quickly\n"
+                 "      estimate the required amount of virtual memory for the binary. Also,\n"
+                 "      if you are using ASAN, see %s/notes_for_asan.txt.\n\n"
 
-    // #ifdef __APPLE__
+    #ifdef __APPLE__
 
-    //              "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
-    //              "      break afl-fuzz performance optimizations when running platform-specific\n"
-    //              "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
+                 "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
+                 "      break afl-fuzz performance optimizations when running platform-specific\n"
+                 "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
 
-    // #endif /* __APPLE__ */
+    #endif /* __APPLE__ */
 
-    //              "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
-    //              "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
-    //              DMS(mem_limit << 20), mem_limit - 1, doc_path);
-    //       }
-    //       else
-    //       {
+                 "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
+                 "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
+                 DMS(mem_limit << 20), mem_limit - 1, doc_path);
+          }
+          else
+          {
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "Oops, the program crashed with one of the test cases provided. There are\n"
-    //              "    several possible explanations:\n\n"
+            SAYF("\n" cLRD "[-] " cRST
+                 "Oops, the program crashed with one of the test cases provided. There are\n"
+                 "    several possible explanations:\n\n"
 
-    //              "    - The test case causes known crashes under normal working conditions. If\n"
-    //              "      so, please remove it. The fuzzer should be seeded with interesting\n"
-    //              "      inputs - but not ones that cause an outright crash.\n\n"
+                 "    - The test case causes known crashes under normal working conditions. If\n"
+                 "      so, please remove it. The fuzzer should be seeded with interesting\n"
+                 "      inputs - but not ones that cause an outright crash.\n\n"
 
-    // #ifdef __APPLE__
+    #ifdef __APPLE__
 
-    //              "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
-    //              "      break afl-fuzz performance optimizations when running platform-specific\n"
-    //              "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
+                 "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
+                 "      break afl-fuzz performance optimizations when running platform-specific\n"
+                 "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
 
-    // #endif /* __APPLE__ */
+    #endif /* __APPLE__ */
 
-    //              "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
-    //              "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
-    //       }
+                 "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
+                 "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
+          }
 
-    //       FATAL("Test case '%s' results in a crash", fn);
+          // FATAL("Test case '%s' results in a crash", fn);
+          break;
 
-    //     case FAULT_ERROR:
+        case FAULT_ERROR:
 
-    //       FATAL("Unable to execute target application ('%s')", argv[0]);
+          // FATAL("Unable to execute target application ('%s')", argv[0]);
+          break;
 
-    //     case FAULT_NOINST:
+        case FAULT_NOINST:
 
-    //       FATAL("No instrumentation detected");
+          // FATAL("No instrumentation detected");
+          break;
 
-    //     case FAULT_NOBITS:
+        case FAULT_NOBITS:
 
-    //       useless_at_start++;
+          useless_at_start++;
 
-    //       if (!in_bitmap && !shuffle_queue)
-    //         WARNF("No new instrumentation output, test case may be useless.");
+          if (!in_bitmap && !shuffle_queue)
+            WARNF("No new instrumentation output, test case may be useless.");
 
-    //       break;
-    //     }
+          break;
+        }
 
-    // if (q->var_behavior)
-    //   WARNF("Instrumentation output varies across runs.");
+    if (q->var_behavior)
+      WARNF("Instrumentation output varies across runs.");
 
     q = q->next;
   }
