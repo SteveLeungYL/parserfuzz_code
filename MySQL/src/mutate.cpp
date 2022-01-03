@@ -70,24 +70,153 @@ IR * Mutator::deep_copy_with_record(const IR * root, const IR * record){
 
 }
 
+
+vector<IR *> Mutator::mutate_stmtlist(IR *root) {
+  IR* cur_root = nullptr;
+  vector<IR *> res_vec;
+
+  if (root == nullptr) {return res_vec;}
+
+  // For strategy_delete
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  int rov_idx = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
+  // cerr << "Remove stmt at idx: " << rov_idx << "\n\n\n";
+  p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
+  res_vec.push_back(cur_root);
+
+  // // For strategy_replace
+  // cur_root = root->deep_copy();
+  // p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  // vector<IR*> ori_stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec();
+  // IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
+
+  // IR * new_stmt_ir = NULL;
+  // /* Get new insert statement. However, do not insert kSelectStatement */
+  // int trial = 0;
+  // while (new_stmt_ir == NULL) {
+  //   new_stmt_ir = get_from_libary_with_type(kStmt);
+  //   if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+  //     // cerr << "kStmt is empty;\n\n\n";
+  //     cur_root->deep_drop();
+  //     goto STMTLIST_INSERT;
+  //   }
+  //   if (new_stmt_ir->left_->type_ == kSelectStmt) {
+  //     // cerr << "Getting Select Stmt;\n\n\n";
+  //     new_stmt_ir->deep_drop();
+  //     new_stmt_ir = NULL;
+  //   }
+  //   trial++;
+  //   if (trial > 100) {
+  //     cur_root->deep_drop();
+  //     goto STMTLIST_INSERT;
+  //   }
+  //   continue;
+  // }
+
+  // IR* new_stmt_ir_tmp;
+  // new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
+  // new_stmt_ir->deep_drop();
+  // new_stmt_ir = new_stmt_ir_tmp;
+
+  // // cerr << "Replacing rep_old_ir: " << rep_old_ir->to_string() << " to: " << new_stmt_ir->to_string() << ". \n\n\n";
+
+  // p_oracle->ir_wrapper.set_ir_root(cur_root);
+  // if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
+  //   new_stmt_ir->deep_drop();
+  //   cur_root->deep_drop();
+  //   return res_vec;
+  // }
+  // res_vec.push_back(cur_root);
+
+  // For strategy_insert
+// STMTLIST_INSERT:
+  cur_root = root->deep_copy();
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+
+  int insert_pos = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
+
+  /* Get new insert statement. However, do not insert kSelectStatement */
+  IR* new_stmt_ir = NULL;
+  while (new_stmt_ir == NULL) {
+    new_stmt_ir = get_from_libary_with_type(kSimpleStatement);
+    if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
+      // cerr << "kSimpleStatement is empty;\n\n\n";
+      cur_root->deep_drop();
+      return res_vec;
+    }
+    if (new_stmt_ir->left_->type_ == kSelectStmt) {
+      // cerr << "Getting Select Stmt;\n\n\n";
+      new_stmt_ir->deep_drop();
+      new_stmt_ir = NULL;
+    }
+    continue;
+  }
+  IR* new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
+  new_stmt_ir->deep_drop();
+  new_stmt_ir = new_stmt_ir_tmp;
+
+  // cerr << "Inserting stmt: " << new_stmt_ir->to_string() << "\n\n\n";
+
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+  if(!p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, insert_pos)) {
+    new_stmt_ir->deep_drop();
+    cur_root->deep_drop();
+    return res_vec;
+  }
+  res_vec.push_back(cur_root);
+
+  return res_vec;
+
+}
+
+
+
+
 vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num){
 
     IR *root = ori_ir_root;
     vector<IR *> res;
+    vector<IR* > v_mutated_ir; 
 
     if (ir_to_mutate->get_ir_type() == kStartEntry) {
       /* Do not mutate on kStartEntry. */
       return res;
     }
 
-    vector<IR *> v_mutated_ir = mutate(ir_to_mutate);
+    /* For mutating kStmtList only */
+    if (ir_to_mutate->get_ir_type() == kStmtList) {
+      // cerr << "Inside kStmtList; \n\n\n";
+      v_mutated_ir = mutate_stmtlist(root);
+      // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
+      for (IR* mutated_ir : v_mutated_ir) {
+
+          string tmp = mutated_ir->to_string();
+
+          unsigned tmp_hash = hash(tmp);
+          if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+            mutated_ir->deep_drop();
+            // cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
+            continue;
+          }
+          // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
+          global_hash_.insert(tmp_hash);
+          res.push_back(mutated_ir);
+      }
+
+      return res;
+    }
+
+    // cerr << "Inside rest; \n\n\n";
+    // else, for mutating single IR node. 
+
+    v_mutated_ir = mutate(ir_to_mutate);
 
     for (IR *new_ir : v_mutated_ir) {
 
         if (!new_ir) continue;
-        // if (new_ir->get_ir_type() == kStartEntry) {
-        //   new_ir->deep_drop();
-        // }
 
         total_mutate_num++;
         if (!root->swap_node(ir_to_mutate, new_ir)) {
