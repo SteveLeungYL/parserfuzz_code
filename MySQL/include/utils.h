@@ -4,15 +4,91 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <random>
 #include "../include/ast.h"
 #include "../parser/parser_entry.h"
 
 using std::vector;
 using std::string;
 
-#define get_rand_int(range) rand()%(range)
+// #define get_rand_int(range) rand()%(range)
 #define vector_rand_ele_safe(a) (a.size()!=0?a[get_rand_int(a.size())]:gen_id_name())
 #define vector_rand_ele(a) (a[get_rand_int(a.size())])
+
+static std::random_device rd; // random device engine, usually based on
+                              // /dev/random on UNIX-like systems
+// initialize Mersennes' twister using rd to generate the seed
+static std::mt19937 rng{rd()};
+
+inline int get_rand_int(int range) {
+  if (range != 0) {
+    std::uniform_int_distribution<int> uid(0, range - 1);
+    return uid(rng);
+  } else
+    return 0;
+}
+inline int get_rand_int(int start, int end) {
+  int range = end - start;
+  if (range > 0) {
+    std::uniform_int_distribution<int> uid(0, range - 1);
+    int res = uid(rng);
+    res += start;
+    return res;
+  } else {
+    return 0;
+  }
+}
+
+inline long long get_rand_long_long(long long range) {
+
+  if (range > 0) {
+    std::uniform_int_distribution<long long> uid(0, range-1);
+    return uid(rng);
+  } else {
+    return 0;
+  }
+}
+
+inline long long get_rand_long_long(long long start, long long end) {
+  long long range = end - start;
+  if (range > 0) {
+    std::uniform_int_distribution<long long> uid(0, range - 1);
+    long long res = uid(rng);
+    res += start;
+    return res;
+  } else {
+    return 0;
+  }
+}
+
+
+inline float get_rand_float(float min, float max) {
+  if ((max - min) < 0) {
+    return 0.0;
+  } else if ((max-min) == 0) {
+    return min;
+  }
+  int rand_int = get_rand_int(RAND_MAX);
+  return ((max - min) * ((float)rand_int / RAND_MAX)) + min;
+}
+inline float get_rand_float(float max) {
+  return get_rand_float(0, max);
+}
+
+inline double get_rand_double(double min, double max) {
+  if ((max - min) < 0) {
+    return 0.0;
+  } else if ((max-min) == 0) {
+    return min;
+  }
+  int rand_int = get_rand_int(RAND_MAX);
+  return ((max - min) * ((double)rand_int / RAND_MAX)) + min;
+}
+inline double get_rand_double(double max) {
+  return get_rand_double(0, max);
+}
+
+
 
 void trim_string(string &);
 
@@ -59,5 +135,10 @@ string::const_iterator findStringIter(const std::string &strHaystack,
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);
 
 int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt);
+
+inline bool is_digits(string str) {
+  if (str == "NaN") return true;
+  return str.find_first_not_of("0123456789. ") == std::string::npos;
+}
 
 #endif
