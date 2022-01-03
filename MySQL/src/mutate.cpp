@@ -545,7 +545,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d, str
 
         vector<IR *> v_ir;
         int ret = run_parser_multi_stmt(line, v_ir);
-        cerr << "Parsing line: " << line << "\n\n";
+        // cerr << "Parsing line: " << line << "\n\n";
         if (ret != 0 || v_ir.size() <= 0) {
             cerr << "failed to parse: " << line << endl;
             for (IR* ir : v_ir) {
