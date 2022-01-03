@@ -3260,13 +3260,14 @@ static void perform_dry_run(char **argv)
 
     close(fd);
 
-    string query_str = (char *)use_mem;
+    string query_str;
+    query_str.assign((char *)use_mem, q->len);
 
     vector<IR *> ir_tree;
     int ret = run_parser_multi_stmt(query_str, ir_tree);
     if (ret != 0 || ir_tree.size() == 0)
     {
-      cerr << "Query seed: '" << query_str << " is not passing the parser!"
+      cerr << "Query seed: " << query_str << " is not passing the parser!"
            << endl;
     }
     else
