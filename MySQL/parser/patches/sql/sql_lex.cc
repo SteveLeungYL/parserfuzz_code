@@ -5419,8 +5419,10 @@ bool IR::set_table_ident_type(DATATYPE data_type, DATAFLAG data_flag) {
   if (right) {
     left->set_ident_type(kDataDatabase, data_flag);
     right->set_ident_type(data_type, data_flag);
-  } else {
+  } else if (left) {
     left->set_ident_type(data_type, data_flag);
+  } else {
+    return false;
   }
 
   return true;
@@ -5491,7 +5493,7 @@ bool IR::set_user_ident_or_text_type(DATAFLAG data_flag) {
     left->set_ident_type(kDataHostName, data_flag);
     right->set_ident_type(kDataUserName, data_flag);
   } else {
-    left->set_table_ident_type(kDataUserName, data_flag);
+    left->set_ident_type(kDataUserName, data_flag);
   }
 
   return true;
