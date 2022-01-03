@@ -6348,7 +6348,7 @@ static u8 fuzz_one(char **argv)
   stage_name = "mutate";
 
   int skip_count = 0;
-  input = ((const char *)out_buf);
+  input.assign((const char *)out_buf, len);
 
   /* Now we modify the input queries, append multiple norec compatible select
    * stmt to the end of the queries to achieve better testing efficiency.  */
