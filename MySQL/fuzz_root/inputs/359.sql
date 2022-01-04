@@ -35,7 +35,6 @@ drop table t1;
 CREATE TABLE t1 ( Host varchar(16) binary NOT NULL default '', User varchar(16) binary NOT NULL default '', PRIMARY KEY  (Host,User) ) ENGINE=MyISAM;
 ALTER TABLE t1 DISABLE KEYS;
 LOCK TABLES t1 WRITE;
-INSERT INTO t1 VALUES ('localhost','root'),('localhost',''),('games','monty');
 SHOW INDEX FROM t1;
 ALTER TABLE t1 ENABLE KEYS;
 UNLOCK TABLES;
@@ -45,7 +44,6 @@ CREATE TABLE t1 ( Host varchar(16) binary NOT NULL default '', User varchar(16) 
 ALTER TABLE t1 DISABLE KEYS;
 SHOW INDEX FROM t1;
 LOCK TABLES t1 WRITE;
-INSERT INTO t1 VALUES ('localhost','root'),('localhost','');
 SHOW INDEX FROM t1;
 ALTER TABLE t1 ENABLE KEYS;
 SHOW INDEX FROM t1;

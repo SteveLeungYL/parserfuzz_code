@@ -46,12 +46,8 @@ CREATE USER qa_test_6_user IDENTIFIED WITH qa_auth_interface AS 'qa_test_6_dest'
 CREATE USER qa_test_6_dest IDENTIFIED BY 'dest_passwd';
 GRANT ALL PRIVILEGES ON test_user_db.* TO qa_test_6_dest;
 GRANT PROXY ON qa_test_6_dest TO qa_test_6_user;
-CREATE USER root IDENTIFIED WITH qa_auth_interface AS 'qa_test_6_dest';
-GRANT PROXY ON qa_test_6_dest TO root;
-REVOKE PROXY ON qa_test_6_dest FROM root;
 DROP USER qa_test_6_user;
 DROP USER qa_test_6_dest;
-DROP USER 'root'@'%';
 CREATE USER qa_test_11_user IDENTIFIED WITH qa_auth_interface AS 'qa_test_11_dest';
 CREATE USER qa_test_11_dest IDENTIFIED BY 'dest_passwd';
 GRANT ALL PRIVILEGES ON test_user_db.* TO qa_test_11_dest;

@@ -118,5 +118,3 @@ CREATE TABLE grants ( USER char(32), HOST char(60), PRIV char(32), WITH_GRANT_OP
 insert into grants values ('mysql.session','localhost','PERSIST_RO_VARIABLES_ADMIN','N');
 insert into grants values ('mysql.session','localhost','SESSION_VARIABLES_ADMIN','N');
 insert into grants values ('mysql.session','localhost','SYSTEM_VARIABLES_ADMIN','N');
-insert into grants values ('root','localhost','AXA_RECOVER_ADMIN','Y');
-insert into grants values ('root','localhost','BXA_RECOVER_ADMIN','Y');

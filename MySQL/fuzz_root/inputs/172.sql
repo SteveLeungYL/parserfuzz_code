@@ -7,7 +7,6 @@ SET @@global.validate_password_number_count=0;
 SET @@global.validate_password_special_char_count=0;
 SET @@global.validate_password_length=0;
 SET @@global.validate_password_check_user_name= ON;
-SELECT VALIDATE_PASSWORD_STRENGTH('root') = 0;
 SELECT VALIDATE_PASSWORD_STRENGTH('toor') = 0;
 SELECT VALIDATE_PASSWORD_STRENGTH('Root') <> 0;
 SELECT VALIDATE_PASSWORD_STRENGTH('Toor') <> 0;
