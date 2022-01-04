@@ -115,8 +115,6 @@ INSTALL COMPONENT "http://dynamic_loader_test_lib1";
 INSTALL COMPONENT "file://dynamic_loader_test_lib2", "http://dynamic_loader_test_lib3";
 UNINSTALL COMPONENT "file://dynamic_loader_test_lib1", "http://dynamic_loader_test_lib3";
 UNINSTALL COMPONENT "http://dynamic_loader_test_lib2";
-CREATE USER mysqltest_u1@localhost;
 INSTALL COMPONENT "file://component_example_component1";
 UNINSTALL COMPONENT "file://component_example_component1";
-DROP USER mysqltest_u1@localhost;
 SET @@session.insert_id=42949672950;

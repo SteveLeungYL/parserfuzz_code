@@ -108,7 +108,6 @@ select 1 as `a'b`, 2 as `a"b`;
 select 'aaa\\','aa''a',"aa""a";
 SET @utf8_message = CONVERT('Here comes a message' using utf8);
 select @utf8_message as "" union select repeat(CONVERT('-' using utf8),char_length(@utf8_message));
-SET @utf8_message = CONVERT('root@localhost' using utf8);
 select @utf8_message as "" union select repeat(CONVERT('-' using utf8),char_length(@utf8_message));
 SET @utf8_message = CONVERT('"Here comes a very very long message that     - is longer then 80 characters    and     - consists of several lines"' using utf8);
 select @utf8_message as "" union select repeat(CONVERT('-' using utf8),80);

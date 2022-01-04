@@ -1,4 +1,3 @@
-CREATE USER wl12475@localhost;
 SELECT @@global.protocol_compression_algorithms;
 SET @@global.protocol_compression_algorithms=default;
 select * from performance_schema.session_status where variable_name like 'COMPRESSION%' order by 1;
@@ -46,5 +45,4 @@ show session status;
 show session status;
 show session status;
 SELECT @@global.protocol_compression_algorithms;
-DROP USER wl12475@localhost;
 DROP DATABASE wl12475;

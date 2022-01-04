@@ -101,8 +101,6 @@ show session status;
 show session status;
 show session status;
 SELECT 1;
-CREATE USER u1@localhost;
-GRANT SHUTDOWN ON *.* TO u1@localhost;
 RESTART;
 show session status;
 show session status;

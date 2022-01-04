@@ -1,10 +1,6 @@
 set @start_read_only= @@global.read_only;
 set @start_autocommit= @@global.autocommit;
 set @@global.autocommit= 0;
-CREATE USER test@localhost;
-grant CREATE, SELECT, UPDATE on *.* to test@localhost;
-CREATE USER test2@localhost;
-grant CREATE, SELECT, UPDATE on *.* to test2@localhost;
 CREATE TABLE t1 ( a INT, b INT) ENGINE=InnoDB;
 INSERT INTO t1 VALUES (1, 1);
 INSERT INTO t1 VALUES (2, 2);
@@ -56,7 +52,5 @@ COMMIT;
 COMMIT;
 DROP VIEW v1;
 DROP TABLE t1, t2;
-DROP USER test@localhost;
-DROP USER test2@localhost;
 set @@global.read_only= @start_read_only;
 set @@global.autocommit= @start_autocommit;

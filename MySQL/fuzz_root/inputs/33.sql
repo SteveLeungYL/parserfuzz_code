@@ -1,8 +1,6 @@
 set @start_read_only= @@global.read_only;
 DROP TABLE IF EXISTS t1,t2,t3;
 set @orig_sql_mode= @@sql_mode;
-create user test@localhost;
-grant CREATE, SELECT, DROP on *.* to test@localhost;
 set global read_only=0;
 create table t1 (a int);
 insert into t1 values(1);
@@ -72,7 +70,6 @@ drop temporary table ttt;
 drop temporary table if exists ttt;
 set global read_only=0;
 drop table t1,t2;
-drop user test@localhost;
 set global read_only= 1;
 drop database if exists mysqltest_db1;
 drop database if exists mysqltest_db2;

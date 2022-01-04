@@ -99,6 +99,5 @@ EXPLAIN DELETE FROM v1 WHERE a = 10;
 DELETE FROM v1 WHERE a = 10;
 EXPLAIN DELETE FROM v1 USING v1, t2 WHERE v1.a = t2.a;
 DELETE FROM v1 USING v1, t2 WHERE v1.a = t2.a;
-DROP USER 'privtest'@localhost;
 USE test;
 DROP DATABASE privtest_db;

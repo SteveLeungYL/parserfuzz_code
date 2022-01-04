@@ -1,10 +1,6 @@
 set @start_read_only= @@global.read_only;
 set @start_autocommit= @@global.autocommit;
 set @@global.autocommit= 0;
-CREATE USER test@localhost;
-grant CREATE, SELECT, UPDATE on *.* to test@localhost;
-CREATE USER test2@localhost;
-grant CREATE, SELECT, UPDATE on *.* to test2@localhost;
 CREATE TABLE t1 ( a char(2) NOT NULL, b char(2) NOT NULL, c int(10) unsigned NOT NULL, d varchar(255) DEFAULT NULL, e varchar(1000) DEFAULT NULL, PRIMARY KEY (a, b, c), KEY (a), KEY (a, b) ) charset latin1 PARTITION BY KEY (a) PARTITIONS 20;
 INSERT INTO t1 (a, b, c, d, e) VALUES ('07', '03', 343, '1', '07_03_343'), ('01', '04', 343, '2', '01_04_343'), ('01', '06', 343, '3', '01_06_343'), ('01', '07', 343, '4', '01_07_343'), ('01', '08', 343, '5', '01_08_343'), ('01', '09', 343, '6', '01_09_343'), ('03', '03', 343, '7', '03_03_343'), ('03', '06', 343, '8', '03_06_343'), ('03', '07', 343, '9', '03_07_343'), ('04', '03', 343, '10', '04_03_343'), ('04', '06', 343, '11', '04_06_343'), ('05', '03', 343, '12', '05_03_343'), ('11', '03', 343, '13', '11_03_343'), ('11', '04', 343, '14', '11_04_343') ;
 CREATE TABLE t2 (a int, name VARCHAR(50), purchased DATE) PARTITION BY RANGE (a) (PARTITION p0 VALUES LESS THAN (3), PARTITION p1 VALUES LESS THAN (7), PARTITION p2 VALUES LESS THAN (9), PARTITION p3 VALUES LESS THAN (11));
@@ -91,7 +87,5 @@ SELECT * FROM t1, t2 FOR SHARE OF t1 NOWAIT FOR SHARE OF t2 NOWAIT;
 COMMIT;
 COMMIT;
 DROP TABLE t1, t2, t3;
-DROP USER test@localhost;
-DROP USER test2@localhost;
 set @@global.read_only= @start_read_only;
 set @@global.autocommit= @start_autocommit;

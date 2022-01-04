@@ -1,6 +1,5 @@
 SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 SELECT @@global.transaction_isolation;
-CREATE USER mysqltest@localhost;
 drop table if exists t1;
 SET SESSION DEFAULT_STORAGE_ENGINE = InnoDB;
 create table t1(eta int(11) not null, tipo int(11), c varchar(255));
