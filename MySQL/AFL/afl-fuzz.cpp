@@ -346,10 +346,6 @@ public:
     int status = 0;
     MYSQL_RES *result;
 
-    if (mysql_errno(m_)) {
-      cerr << "Outputing MySQL error message: \nQuery: " << cur_cmd_str << "\nRes: " << mysql_error(m_) << "\n\n\n";
-    }
-
     do
     {
       /* did current statement return data? */
@@ -391,6 +387,13 @@ public:
       }
       // cerr << "Could not execute statement\n";
     } while (status == 0);
+
+    cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
+    if (mysql_errno(m_)) {
+      cerr << "Error message: " << mysql_error(m_) << "\n";
+    }
+    cerr << "\n\n";
+
 
     // cerr << "DEBUG: Result string: \n\n\n";
     // cerr << result_string_stream.str();
