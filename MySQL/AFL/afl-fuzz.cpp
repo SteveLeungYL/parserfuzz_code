@@ -169,6 +169,8 @@ u64 num_reparse = 0;
 u64 num_append = 0;
 u64 num_validate = 0;
 
+u64 timeout_seed_num = 0;
+
 u64 mysql_execute_ok = 0;
 u64 mysql_execute_error = 0;
 u64 mysql_execute_total = 0;
@@ -222,7 +224,7 @@ public:
 
     dbname = "test_sqlright1";
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
@@ -257,7 +259,7 @@ public:
     }
 
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -265,7 +267,7 @@ public:
     }
     // database_id++;
 
-    vector<string> v_cmd = {"RESET PERSIST;", "RESET MASTER;", "DROP DATABASE IF NOT EXISTS test_sqlright1;", "CREATE DATABASE IF NOT EXISTS test_sqlright1;", "USE test_sqlright1;", "SELECT 'Successful'; "};
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
       // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
@@ -429,15 +431,15 @@ public:
     }
 
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error5 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
       return false;
     }
-    string cmd = "KILL " + to_string(process_id) + "; ";
+    string cmd = "KILL " + to_string(process_id);
     mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
-    // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
+    // cerr << "Terminate_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
     mysql_close(&tmp_m);
     std::cout << "Timeout!!! Kill query successful. \n\n\n";
@@ -597,7 +599,7 @@ public:
       return 0;
     }
 
-    vector<string> v_cmd = {"RESET PERSIST;", "RESET MASTER;", "DROP DATABASE IF NOT EXISTS test_sqlright1;", "CREATE DATABASE IF NOT EXISTS test_sqlright1;", "USE test_sqlright1;", "SELECT 'Successful'; "};
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
@@ -3422,6 +3424,7 @@ static void perform_dry_run(char **argv)
             // FATAL("Test case '%s' results in a timeout", fn);
             // cerr << "Test case '" << fn << "' results in a timeout.\n\n\n";
             q->is_timeout = true;
+            timeout_seed_num++;
             break;
           }
           else
@@ -3440,6 +3443,7 @@ static void perform_dry_run(char **argv)
             q->cal_failed = CAL_CHANCES;
             q->is_timeout = true;
             cal_failures++;
+            timeout_seed_num++;
             break;
           }
 
@@ -3924,6 +3928,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 #else
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
+
+      show_stats();
 
       if (!has_new_bits(virgin_tmout))
         return keeping;
@@ -5760,7 +5766,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
     string res_str = "";
     fault = run_target(argv, tmout, cmd_string, res_str);
-    cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n"; 
+    // cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n"; 
     if (stop_soon)
       return fault;
     if (fault == FAULT_TMOUT)
@@ -6510,10 +6516,16 @@ static u8 fuzz_one(char **argv)
     }
   }
 
+  // if (create_num == 0) {
+  //   // cur_root->deep_drop();
+  //   goto abandon_entry;
+  // }
+
   if (drop_num >= create_num) {
     // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
     g_mutator.add_missing_create_table_stmt(cur_root);
     // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
+    // goto abandon_entry;
   }
   v_ir_stmts.clear(); // No need to free. 
 
@@ -8427,6 +8439,8 @@ int main(int argc, char *argv[])
   //init_forkserver(tmp_argv);
   // to do
   perform_dry_run(use_argv);
+
+  cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
 
   cull_queue();
 
