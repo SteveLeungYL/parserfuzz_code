@@ -338,13 +338,18 @@ public:
     return result_count;
   }
 
-  string retrieve_query_results(MYSQL* m_)
+  string retrieve_query_results(MYSQL* m_, string cur_cmd_str)
   {
     MYSQL_ROW row;
     // string result_string = ""
     stringstream result_string_stream;
     int status = 0;
     MYSQL_RES *result;
+
+    if (mysql_errno(m_)) {
+      cerr << "Outputing MySQL error message: \nQuery: " << cur_cmd_str << "\nRes: " << mysql_error(m_) << "\n\n\n";
+    }
+
     do
     {
       /* did current statement return data? */
@@ -496,7 +501,7 @@ public:
     for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
       server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-      res_str += retrieve_query_results(m_) + "\n";
+      res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
       if (server_response == CR_SERVER_LOST) {
