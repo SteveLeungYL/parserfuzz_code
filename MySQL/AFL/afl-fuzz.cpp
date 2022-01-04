@@ -263,13 +263,19 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    string cmd = "CREATE DATABASE IF NOT EXISTS test_sqlright1; USE test_sqlright1; SELECT 'Successful'; ";
-    mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
-    // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
+    // database_id++;
+
+    vector<string> v_cmd = {"RESET PERSIST;", "RESET MASTER;", "DROP DATABASE IF NOT EXISTS test_sqlright1;", "CREATE DATABASE IF NOT EXISTS test_sqlright1;", "USE test_sqlright1;", "SELECT 'Successful'; "};
+    for (string cmd : v_cmd) {
+      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
+      clean_up_connection(&tmp_m);
+    }
 
     mysql_close(&tmp_m);
     // std::cout << "Fix database successful. \n\n\n";
-    sleep(1);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    // sleep(1);
     return true;
   }
 
@@ -388,15 +394,15 @@ public:
       // cerr << "Could not execute statement\n";
     } while (status == 0);
 
-    cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
-    if (mysql_errno(m_)) {
-      cerr << "Error message: " << mysql_error(m_) << "\n";
-    }
-    cerr << "\n\n";
+    // cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
+    // if (mysql_errno(m_)) {
+    //   cerr << "Error message: " << mysql_error(m_) << "\n";
+    // }
+    // cerr << "\n\n";
 
     string ret_str;
     if (mysql_errno(m_)) {
-      ret_str = string(mysql_error(m_)) + result_string_stream.str();
+      ret_str = string(mysql_error(m_)) + "  " + result_string_stream.str();
     } else {
       ret_str = result_string_stream.str();
     }
@@ -465,7 +471,6 @@ public:
   SQLSTATUS execute(const char *cmd, string& res_str)
   {
     // fix_database();
-    reset_database();
 
     auto conn = connect();
 
@@ -485,6 +490,8 @@ public:
         fix_database();
     }
     //cout << "connect succeed!" << endl;
+
+    reset_database();
 
     string cmd_str = cmd;
     // cmd_str += " ; SELECT 'Hahaha'; ";
@@ -589,9 +596,13 @@ public:
       mysql_close(&tmp_m);
       return 0;
     }
-    string cmd = "DROP DATABASE IF EXISTS test_sqlright1; CREATE DATABASE IF NOT EXISTS test_sqlright1; USE test_sqlright1; SET GLOBAL MAX_EXECUTION_TIME= 500; SELECT 'Successful'; ";
-    mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
-    // cerr << "Reset database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
+
+    vector<string> v_cmd = {"RESET PERSIST;", "RESET MASTER;", "DROP DATABASE IF NOT EXISTS test_sqlright1;", "CREATE DATABASE IF NOT EXISTS test_sqlright1;", "USE test_sqlright1;", "SELECT 'Successful'; "};
+    for (string cmd : v_cmd) {
+      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
+      clean_up_connection(&tmp_m);
+    }
 
     mysql_close(&tmp_m);
     // std::cout << "Reset database successful. \n\n\n";
@@ -1507,6 +1518,8 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
   if (dump_library) {
     map_file_id++;
   }
+
+  cerr << "Inside has_new_bits()\n\n\n";
 
 #ifdef __x86_64__
 
@@ -5747,6 +5760,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
     string res_str = "";
     fault = run_target(argv, tmout, cmd_string, res_str);
+    cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n"; 
     if (stop_soon)
       return fault;
     if (fault == FAULT_TMOUT)
@@ -5786,6 +5800,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
       string res_str = "";
       fault = run_target(argv, tmout, cmd_string, res_str);
+      cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n";
       if (stop_soon)
         return fault;
       if (fault == FAULT_TMOUT)
