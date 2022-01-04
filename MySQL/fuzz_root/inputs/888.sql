@@ -16,7 +16,6 @@ insert into t9 set c1= 9, c2= 9, c3= 9, c4= 9, c5= 9, c6= 9, c7= 9, c8= 9, c9= 9
 commit ;
 use test;
 select current_user();
-show grants for current_user();
 prepare s_t9 from 'select c1 as my_col                                   from t9 where c1= 1' ;
 execute s_t9 ;
 select a as my_col from t1;
