@@ -1,5 +1,3 @@
-create table mysql.db_copy as select * from mysql.db;
-delete from mysql.db where host='%';
 flush privileges;
 set @orig_sql_mode_session= @@SESSION.sql_mode;
 set @orig_sql_mode_global= @@GLOBAL.sql_mode;
@@ -9,8 +7,6 @@ use test;
 create user user1@localhost;
 create user ''@'%';
 create user user1;
-delete from mysql.db;
-insert into mysql.db select * from mysql.db_copy;
 flush privileges;
 drop table if exists t1;
 drop database if exists db1_secret;
@@ -95,11 +91,6 @@ select routine_type, routine_schema, routine_name from information_schema.routin
 drop database db1_secret;
 drop database db2;
 select routine_type, routine_schema, routine_name from information_schema.routines where routine_schema like 'db%';
-delete from mysql.user where user='user1' or user='user2';
-delete from mysql.user where user='' and host='%';
-delete from mysql.procs_priv where user='user1' or user='user2';
-delete from mysql.procs_priv where user='' and host='%';
-delete from mysql.db where user='user1' or user='user2';
 flush privileges;
 create user usera@localhost;
 create user userb@localhost;

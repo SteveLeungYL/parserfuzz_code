@@ -20,7 +20,6 @@ SHOW GRANTS;
 SHOW GRANTS FOR u1@localhost USING r1;
 RENAME USER r1 TO r2;
 RENAME USER u1@localhost TO u2@localhost, u3@localhost TO u1@localhost;
-SELECT * FROM mysql.default_roles ORDER BY default_role_user;
 SELECT CURRENT_ROLE();
 SET ROLE NONE;
 SELECT * FROM db1.t1;

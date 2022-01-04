@@ -87,8 +87,6 @@ set global event_scheduler= off;
 drop table events_smode_test;
 set sql_mode=@old_sql_mode;
 set global event_scheduler=off;
-delete from mysql.user where User like 'mysqltest_%';
-delete from mysql.db where User like 'mysqltest_%';
 flush privileges;
 drop database if exists mysqltest_db1;
 create user mysqltest_user1@localhost;

@@ -1,10 +1,6 @@
 set @orig_sql_mode= @@sql_mode;
 drop table if exists t1;
 create table t1 (i int);
-delete from mysql.user where user like 'mysqltest\_%';
-delete from mysql.db where user like 'mysqltest\_%';
-delete from mysql.tables_priv where user like 'mysqltest\_%';
-delete from mysql.columns_priv where user like 'mysqltest\_%';
 flush privileges;
 create user mysqltest_1@localhost with max_queries_per_hour 2;
 flush user_resources;

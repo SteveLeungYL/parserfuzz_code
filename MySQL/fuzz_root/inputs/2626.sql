@@ -33,7 +33,6 @@ show tables like 't%';
 analyze table t2, t3, t5;
 show table status;
 show full columns from t3 like "a%";
-show full columns from mysql.db like "Insert%";
 show full columns from v1;
 select * from information_schema.COLUMNS where table_name="t1" and column_name= "a" order by table_name;
 show columns from mysqltest.t1 where field like "%a%";
@@ -102,10 +101,6 @@ select * from information_schema.USER_PRIVILEGES where grantee like '%mysqltest_
 select * from information_schema.SCHEMA_PRIVILEGES where grantee like '%mysqltest_1%';
 select * from information_schema.TABLE_PRIVILEGES where grantee like '%mysqltest_1%';
 select * from information_schema.COLUMN_PRIVILEGES where grantee like '%mysqltest_1%';
-delete from mysql.user where user like 'mysqltest%';
-delete from mysql.db where user like 'mysqltest%';
-delete from mysql.tables_priv where user like 'mysqltest%';
-delete from mysql.columns_priv where user like 'mysqltest%';
 flush privileges;
 drop table t1;
 create table t1 (a int not null, primary key(a));
@@ -118,5 +113,4 @@ select * from information_schema.key_column_usage where TABLE_SCHEMA= "test" ord
 select table_name from information_schema.TABLES where table_schema like "test%" order by table_name;
 select table_name,column_name from information_schema.COLUMNS where table_schema like "test%" order by table_name, column_name;
 SELECT ROUTINE_NAME FROM information_schema.ROUTINES WHERE ROUTINE_SCHEMA != 'sys' ORDER BY ROUTINE_NAME;
-delete from mysql.user where user='mysqltest_1';
 drop table t1;

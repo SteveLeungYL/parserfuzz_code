@@ -1,7 +1,3 @@
-CALL mtr.add_suppression("ACL table mysql.role_edges missing. Some operations may fail.");
-CALL mtr.add_suppression("ACL table mysql.default_roles missing. Some operations may fail.");
-DROP TABLE mysql.role_edges;
-DROP TABLE mysql.default_roles;
 show session status;
 show session status;
 show session status;
@@ -115,8 +111,6 @@ show session status;
 show session status;
 show session status;
 show session status;
-SHOW CREATE TABLE mysql.role_edges;
-SHOW CREATE TABLE mysql.default_roles;
 CREATE USER u1;
 CREATE ROLE r1;
 GRANT SELECT ON *.* TO r1;
