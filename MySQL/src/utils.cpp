@@ -206,10 +206,12 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
 
     if (ret != 0 || ir_vec_single.size() == 0) {
       // cerr << "String parsing failed: " << cur_cmd_str << "\n\n\n";
-      for (IR* ir_root : v_ir_root) {
-        ir_root->deep_drop();
-      }
-      return 1;
+      // for (IR* ir_root : v_ir_root) {
+      //   ir_root->deep_drop();
+      // }
+      // v_ir_root.clear();
+      // return 1;
+      continue;
     }
 
     IR* cur_ir_root = ir_vec_single.back();

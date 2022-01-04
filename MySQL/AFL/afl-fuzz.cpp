@@ -3996,8 +3996,10 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     break;
 
-  case FAULT_ERROR:
-    FATAL("Unable to execute target application");
+  case FAULT_ERROR: {
+    // FATAL("Unable to execute target application");
+    cerr << "In save if interesting. Encounter FAULT_ERROR. \n\n\n";
+  }
 
   default:
     return keeping;
@@ -7377,6 +7379,8 @@ EXP_ST void setup_dirs_fds(void)
                      "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
                      "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
                      );
+
+  fflush(plot_file);
 }
 
 /* Setup the output file for fuzzed data, if not using -f. */
