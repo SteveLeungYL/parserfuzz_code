@@ -209,7 +209,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
       return res;
     }
 
-    cerr << "Inside rest; \n\n\n";
+    // cerr << "Inside rest; \n\n\n";
     // else, for mutating single IR node. 
 
     v_mutated_ir = mutate(ir_to_mutate);
@@ -1545,6 +1545,16 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       if (cur_stmt_root->get_ir_type() == kInsertStmt && p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kInsertValues)) {
         ir_to_fix->set_type(kDataLiteral, kFlagUnknown);
         // fixed_ir.push_back(ir_to_fix);
+        continue;
+      }
+
+      // Fix a bug in the parser, that treated columns in CREATE INDEX stmts as kDefine. They should be kUse. 
+      if (
+        cur_stmt_root->get_ir_type() == kCreateIndexStmt &&
+        ir_to_fix->data_flag_ == kDefine &&
+        ir_to_fix->data_type_ == kDataColumnName
+      ) {
+        ir_to_fix->set_type(kDataColumnName, kUse);
         continue;
       }
 
