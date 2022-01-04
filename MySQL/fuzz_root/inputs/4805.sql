@@ -1,4 +1,3 @@
-SET PASSWORD='pwd1'; SET PASSWORD='pwd2';;
 SET GLOBAL password_history= 1;
 SET GLOBAL password_history= default;
 SET GLOBAL password_reuse_interval= 100;

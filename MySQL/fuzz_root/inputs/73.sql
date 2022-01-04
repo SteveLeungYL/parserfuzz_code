@@ -8,7 +8,6 @@ CREATE USER plug IDENTIFIED WITH 'test_plugin_server' AS 'plug_dest';
 CREATE USER plug_dest IDENTIFIED BY 'plug_dest_passwd';
 GRANT PROXY ON plug_dest TO plug;
 select USER(),CURRENT_USER();
-SET PASSWORD = 'plug_dest';
 select USER(),CURRENT_USER();
 select USER(),CURRENT_USER();
 CREATE USER `Ÿ` IDENTIFIED WITH 'test_plugin_server' AS 'plug_dest';
