@@ -1,7 +1,6 @@
 SET @previous_binlog_format__htnt542nh=@@GLOBAL.binlog_format;
 SET @@GLOBAL.binlog_format=STATEMENT;
 SET binlog_format=STATEMENT;
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 set sql_mode=no_engine_substitution;
 set default_storage_engine = InnoDB;
 set autocommit=1;

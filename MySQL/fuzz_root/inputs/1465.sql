@@ -1,5 +1,3 @@
-CALL mtr.add_suppression("You need to use --log-bin to make --binlog-format work");
-CALL mtr.add_suppression('You need to use --log-bin to make --binlog-format work.');
 SET binlog_format= 'ROW';
 CREATE TABLE t1 (c1 INT) ENGINE=InnoDB;
 INSERT INTO t1 VALUES (1), (2), (3);

@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("file *  was not purged because it is the active log file.");
 purge master logs before (select adddate(current_timestamp(), interval -4 day));
 purge master logs before adddate(current_timestamp(), interval -4 day);
 create table t1(a int,b int,key(a),key(b));

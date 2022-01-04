@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("==[0-9]*== Warning: set address range perms: large range");
 drop table if exists t1;
 create table t1 (id int not null, str char(10), unique(str)) charset utf8mb4;
 explain select * from t1;

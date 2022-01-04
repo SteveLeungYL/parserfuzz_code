@@ -1,5 +1,3 @@
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 CREATE USER testuser@'127.0.0.1' identified by '1234';
 GRANT ALL ON test.* TO testuser@'127.0.0.1';
 SHOW GRANTS FOR testuser@'127.0.0.1';

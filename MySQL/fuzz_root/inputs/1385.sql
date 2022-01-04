@@ -1,5 +1,3 @@
-call mtr.add_suppression(".*Password salt for user.*");
-call mtr.add_suppression("Found invalid password for user:*");
 CREATE USER 'kristofer' IDENTIFIED WITH 'sha256_password';
 ALTER USER 'kristofer' IDENTIFIED BY 'secret';
 SELECT USER(),CURRENT_USER();

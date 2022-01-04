@@ -1,8 +1,3 @@
-CALL mtr.add_suppression("\\[ERROR\\].* Operating system error number");
-CALL mtr.add_suppression("\\[ERROR\\].* The error means mysqld does not have the access");
-CALL mtr.add_suppression("\\[ERROR\\].* Cannot create a tablespace for table .* because the directory is not a valid location. The DATA DIRECTORY location must be in a known directory");
-CALL mtr.add_suppression("\\[ERROR\\].* Error number 30 means 'Read-only file system'");
-CALL mtr.add_suppression("\\[ERROR\\].* 'mkdir' returned OS error 130");
 CREATE TABLE `example` ( `ID_EXAMPLE` int unsigned NOT NULL AUTO_INCREMENT, `DESCRIPTION` varchar(30) NOT NULL, `LEVEL` smallint unsigned DEFAULT NULL, PRIMARY KEY (`ID_EXAMPLE`) ) PARTITION BY HASH(ID_EXAMPLE)( PARTITION p0 DATA DIRECTORY = '/not/existent/p0Data', PARTITION p1 DATA DIRECTORY = '/not/existent/p1Data', PARTITION p2 DATA DIRECTORY = '/not/existent/p2Data', PARTITION p3 DATA DIRECTORY = '/not/existent/p3Data' );
 SHOW WARNINGS;
 CREATE DATABASE MC5NOGLQ9OFY7YM76Z1T758ZTPTJ6IPLVSLDHMSEXT63MLVHCPEW4DNU2OPQDRRE;

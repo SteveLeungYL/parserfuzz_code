@@ -1,6 +1,3 @@
-CALL mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT.");
-CALL mtr.add_suppression("REVOKE/GRANT failed while storing table level "                          "and column level grants in the privilege "                          "tables. An incident event has been written to "                          "the binary log which will stop the slaves.");
-CALL mtr.add_suppression("REVOKE/GRANT failed while granting/revoking "                          "privileges in databases. An incident event "                          "has been written to the binary log which "                          "will stop the slaves.");
 drop table if exists t1,t2,t3;
 drop database if exists mysqltest;
 drop view if exists v1;

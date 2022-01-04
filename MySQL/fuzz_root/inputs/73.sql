@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("Plugin test_plugin_server reported: 'Wrong password supplied for plug_dest'");
 SELECT PLUGIN_STATUS, PLUGIN_TYPE, PLUGIN_DESCRIPTION FROM INFORMATION_SCHEMA.PLUGINS WHERE PLUGIN_NAME='test_plugin_server';
 SET @old_log_output=          @@global.log_output;
 SET @old_general_log=         @@global.general_log;

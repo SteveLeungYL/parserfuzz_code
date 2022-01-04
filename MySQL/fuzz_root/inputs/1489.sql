@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("You need to use --log-bin to make --binlog-format work");
 USE test;
 SET GTID_NEXT= 'ANONYMOUS';
 CREATE TABLE t1 (c1 INT);

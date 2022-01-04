@@ -3,7 +3,6 @@ SET @@global.transaction_read_only = ON;
 SELECT @@transaction_read_only;
 SET SESSION TRANSACTION READ WRITE;
 SELECT @@transaction_read_only;
-show session status;
 SELECT @@transaction_read_only;
 SET SESSION TRANSACTION READ WRITE;
 SET TRANSACTION READ ONLY;

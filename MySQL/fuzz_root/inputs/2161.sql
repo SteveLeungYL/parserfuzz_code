@@ -96,7 +96,6 @@ SELECT MAX(key1) FROM t1 WHERE f() < 1 INTO OUTFILE '/data/yu/Squirrel_DBMS_Fuzz
 INSERT INTO t2 SELECT MAX(key1) FROM t1 WHERE f() < 1;
 SELECT MAX(key1) INTO @dummy FROM t1 WHERE f() < 1;
 CREATE TABLE t3 (i INT) AS SELECT MAX(key1) FROM t1 WHERE f() < 1;
-show session status;
 DROP TABLE t1,t2;
 DROP FUNCTION f;
 do count(rand(st_latfromgeohash(st_geohash(point(5920138304254667057,24370),41))));

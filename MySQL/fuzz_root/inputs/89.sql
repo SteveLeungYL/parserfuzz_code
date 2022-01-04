@@ -1,5 +1,3 @@
-CALL mtr.add_suppression("Plugin test_plugin_server reported: 'Wrong password supplied for plug_dest'");
-CALL mtr.add_suppression("The plugin 'new_plugin_server' used to authenticate user 'new_user'@'%' is not loaded. Nobody can currently login using this account.");
 CREATE DATABASE test_user_db;
 CREATE USER plug_user IDENTIFIED WITH test_plugin_server AS 'plug_dest';
 CREATE USER plug_dest IDENTIFIED BY 'plug_dest_passwd';

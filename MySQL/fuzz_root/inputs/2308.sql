@@ -23,7 +23,6 @@ select length(uncompress(a)) from t1;
 drop table t1;
 set @@global.max_allowed_packet=1048576*100;
 select compress(repeat('aaaaaaaaaa', IF('', 10, 10000000))) is null;
-show session status;
 set @@global.max_allowed_packet=default;
 create table t1(a blob);
 insert into t1 values(NULL), (compress('a'));

@@ -1,5 +1,3 @@
-call mtr.add_suppression("You need to use --log-bin to make --log-replica-updates work.");
-call mtr.add_suppression("You need to use --log-bin to make --binlog-format work.");
 CREATE FUNCTION GTID_IS_EQUAL(gtid_set_1 LONGTEXT, gtid_set_2 LONGTEXT) RETURNS INT RETURN GTID_SUBSET(gtid_set_1, gtid_set_2) AND GTID_SUBSET(gtid_set_2, gtid_set_1);
 CREATE FUNCTION GTID_IS_DISJOINT(gtid_set_1 LONGTEXT, gtid_set_2 LONGTEXT) RETURNS INT RETURN GTID_SUBSET(gtid_set_1, GTID_SUBTRACT(gtid_set_1, gtid_set_2));
 CREATE FUNCTION GTID_IS_DISJOINT_UNION(gtid_set_1 LONGTEXT, gtid_set_2 LONGTEXT, sum LONGTEXT) RETURNS INT RETURN GTID_IS_EQUAL(GTID_SUBTRACT(sum, gtid_set_1), gtid_set_2) AND GTID_IS_EQUAL(GTID_SUBTRACT(sum, gtid_set_2), gtid_set_1);
@@ -16,8 +14,6 @@ CREATE FUNCTION GTID_NEXT_GENERATED_MULTIPLE(gtid_set LONGTEXT, uuid TEXT, count
 CREATE FUNCTION GTID_COMPARE(old LONGTEXT, diff LONGTEXT, new LONGTEXT) RETURNS LONGTEXT RETURN IF(SUBSTR(diff, 1, 1) != '~', GTID_IS_DISJOINT_UNION(old, GTID_NEXT_GENERATED_SET(old, diff), new), GTID_IS_DISJOINT_UNION(new, GTID_NEXT_GENERATED_SET(old, SUBSTR(diff, 2)), old));
 CREATE FUNCTION GTID_EXECUTED_FROM_TABLE() RETURNS LONGTEXT BEGIN DECLARE old_group_concat_max_len INT DEFAULT @@SESSION.GROUP_CONCAT_MAX_LEN; DECLARE tmp LONGTEXT; SET @@SESSION.GROUP_CONCAT_MAX_LEN = 100000; SELECT GROUP_CONCAT(CONCAT(source_uuid, ':', interval_start, '-', interval_end) SEPARATOR ',') FROM mysql.gtid_executed INTO tmp; SET @@SESSION.GROUP_CONCAT_MAX_LEN = old_group_concat_max_len; RETURN GTID_NORMALIZE(tmp); END;
 CREATE VIEW v_processlist  as SELECT * FROM performance_schema.threads where type = 'FOREGROUND';
-call mtr.add_suppression("Found 10 prepared XA transactions");
-call mtr.add_suppression("Found 1 prepared XA transactions");
 CREATE TABLE t (a INT) ENGINE=innodb;
 SET @@sql_log_bin = OFF;
 CREATE TEMPORARY TABLE tmp1 (a int) ENGINE=innodb;

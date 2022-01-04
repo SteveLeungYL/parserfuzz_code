@@ -15,9 +15,6 @@ BINLOG ' 3u9kSBMBAAAANgAAAJYBAAAAABAAAAAAAAAABHRlc3QAC2NoYXI2M191dGY4AAMD/gMC/r0
 SELECT * FROM char63_utf8;
 BINLOG ' iONkSBMBAAAANwAAAJkBAAAAABAAAAAAAAAABHRlc3QADGNoYXIxMjhfdXRmOAADA/4DAv6AAA== iONkSBcBAAAAKwAAAMQBAAAQABAAAAAAAAEAA//4AQAAAAMAMTIzAQAAAA== ';
 drop table t1, char63_utf8, char128_utf8;
-call mtr.add_suppression("Slave SQL.*master suffers from this bug: http:..bugs.mysql.com.bug.php.id=37426.* Error_code: MY-013127");
-call mtr.add_suppression("Slave SQL.*Table definition on master and slave does not match: Column 1 size mismatch.* Error_code: 1535");
-call mtr.add_suppression("Slave SQL.*Column 1 of table .test.char128_utf8. cannot be converted.* Error_code: MY-013146");
 BINLOG '';
 BINLOG '123';
 BINLOG '-2079193929';

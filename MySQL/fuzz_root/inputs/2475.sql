@@ -1,4 +1,3 @@
-call mtr.add_suppression("An empty or illegal privilege identifier was ignored when global privileges were read from disk.");
 CREATE USER 'u1'@'localhost' IDENTIFIED BY '123';
 FLUSH PRIVILEGES;
 FLUSH PRIVILEGES;

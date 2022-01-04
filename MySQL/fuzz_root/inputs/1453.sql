@@ -7,5 +7,4 @@ select load_file("/proc/modules");
 SET GLOBAL max_allowed_packet = @old_max_allowed_packet;
 SET GLOBAL net_buffer_length = @old_net_buffer_length;
 select load_file("/proc/self/fd/0");
-show session status;
 select load_file("/proc/uptime");

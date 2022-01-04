@@ -3,7 +3,6 @@ GRANT ALL ON test.* TO mysqltest_1@'127.0.0.1/255.255.255.255';
 SHOW GRANTS FOR mysqltest_1@'127.0.0.1/255.255.255.255';
 REVOKE ALL ON test.* FROM mysqltest_1@'127.0.0.1/255.255.255.255';
 DROP USER mysqltest_1@'127.0.0.1/255.255.255.255';
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 SELECT USER();
 SHOW PROCESSLIST;
 SHOW VARIABLES LIKE 'skip_name_resolve';

@@ -4,6 +4,5 @@ create procedure p1() begin declare counter integer default 0; declare continue 
 call p1();   # run this in two connections!;
 call p1();
 reap;
-show session status;
 drop procedure p1;
 drop table t1;

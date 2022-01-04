@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 SET @global_saved_tmp =  @@global.offline_mode;
 CREATE DATABASE wl3836;
 USE wl3836;

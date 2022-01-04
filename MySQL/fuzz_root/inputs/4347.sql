@@ -1,4 +1,3 @@
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 drop table if exists t1, t2, t3;
 drop procedure if exists bug8850;
 create table t1 (a int) engine=innodb;

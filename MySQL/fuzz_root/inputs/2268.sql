@@ -1,4 +1,3 @@
-call mtr.add_suppression(" In RENAME TABLE table `test`.`parent` is referenced in foreign key constraints which are not compatible with the new table definition.");
 SET @saved_binlog_format= @@SESSION.binlog_format;
 drop table if exists t_34455;
 create table t_34455 ( a int not null, foreign key (a) references t3 (a) match full match partial);

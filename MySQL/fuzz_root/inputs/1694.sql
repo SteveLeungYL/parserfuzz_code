@@ -15,6 +15,4 @@ REPLACE INTO t2 VALUES (-91);
 SELECT d FROM t2,t1 WHERE d=(SELECT MAX(a) FROM t1 WHERE t1.a > t2.d) LOCK IN SHARE MODE;
 SELECT d FROM t2,t1 WHERE d=(SELECT MAX(a) FROM t1 WHERE t1.a > t2.d) LOCK IN SHARE MODE;
 REAP;
-show session status;
-show session status;
 DROP TABLE t1,t2;

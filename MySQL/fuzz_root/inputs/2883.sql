@@ -8,5 +8,4 @@ SET @@global.general_log = 0;
 SET @@global.general_log = @old_general_log;
 SELECT LENGTH(data) FROM t1;
 DROP TABLE t1;
-show session status;
 SET @@global.max_allowed_packet = @old_max_allowed_packet;

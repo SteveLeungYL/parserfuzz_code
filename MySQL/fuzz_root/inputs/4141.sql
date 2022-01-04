@@ -7,4 +7,3 @@ DROP TEMPORARY TABLE tt;
 DROP TABLES t0, t1;
 SELECT * FROM t0;
 reap;
-show session status;

@@ -1,4 +1,3 @@
-call mtr.add_suppression("Dictionary file not specified");
 CREATE USER 'base_user'@'localhost' IDENTIFIED BY 'pass', 'user1'@'localhost' IDENTIFIED BY 'pass';
 GRANT ALL ON mysql.* TO 'user1'@'localhost';
 INSTALL PLUGIN validate_password SONAME 'validate_password.so';
@@ -91,7 +90,6 @@ CREATE USER 'user2'@'localhost' IDENTIFIED BY 'PA00wrd!#';
 ALTER USER 'user2'@'localhost' IDENTIFIED BY 'password';
 ALTER USER 'user2'@'localhost' IDENTIFIED BY 'PA00wrd!#';
 DROP USER 'user2'@'localhost';
-show session status;
 DROP USER 'base_user'@'localhost';
 DROP USER 'user1'@'localhost';
 DROP USER 'user'@'localhost';

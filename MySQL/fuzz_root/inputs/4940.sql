@@ -37,7 +37,6 @@ xa commit 'testb',0x2030405060,11;
 xa rollback 'testb',0x2030405060,11;
 xa start 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz';
 select * from t1;
-show session status;
 xa recover;
 xa rollback 'testb',0x2030405060,11;
 drop table t1;

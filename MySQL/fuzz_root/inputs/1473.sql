@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("You need to use --log-bin to make --binlog-format work");
 SET autocommit=1;
 SELECT @@session.session_track_system_variables INTO @old_track_list;
 SET @track_list= CONCAT(@old_track_list, ",transaction_isolation,                                            transaction_read_only");

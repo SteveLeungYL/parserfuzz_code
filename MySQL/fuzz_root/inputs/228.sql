@@ -1,5 +1,3 @@
-call mtr.add_suppression("\\[Warning\\] \\[[^]]*\\] \\[[^]]*\\] You need to use --log-bin to make --binlog-format work.");
-call mtr.add_suppression("\\[Warning\\] \\[[^]]*\\] \\[[^]]*\\] You need to use --log-bin to make --binlog-expire-logs-seconds work.");
 select @@GLOBAL.relay_log_info_repository into @save_relay_log_info_repository;
 select @@GLOBAL.expire_logs_days into @save_expire_logs_days;
 set @@GLOBAL.relay_log_info_repository = 'FILE';

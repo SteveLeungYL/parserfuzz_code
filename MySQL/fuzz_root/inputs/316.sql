@@ -1,5 +1,3 @@
-call mtr.add_suppression("Got an error from thread_id=.*ha_myisam.cc:");
-call mtr.add_suppression(" '\..test.t1'");
 set @start_table_open_cache=@@global.table_open_cache;
 set @start_table_definition_cache=@@global.table_definition_cache;
 set global table_open_cache=256;

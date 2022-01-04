@@ -4,7 +4,6 @@ create table t2(b int)engine=innodb;
 call p1();   # run this in two connections!;
 call p1();
 reap;
-show session status;
 drop procedure p1;
 drop table t1,t2;
 set sql_mode=default;

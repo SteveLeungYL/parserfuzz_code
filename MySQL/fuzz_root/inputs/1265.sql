@@ -19,4 +19,3 @@ FLUSH STATUS;
 SHOW STATUS LIKE 'Locked_connects';
 SHOW STATUS LIKE 'Locked_connects';
 FLUSH STATUS;
-call mtr.add_suppression("Column count of mysql.* is wrong. "                          "Expected .*, found .*. "                          "The table is probably corrupted");

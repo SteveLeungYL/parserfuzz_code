@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 reset master;
 set timestamp=1000000000;
 drop table if exists t1,t2,t3,t4,t5,t03,t04;

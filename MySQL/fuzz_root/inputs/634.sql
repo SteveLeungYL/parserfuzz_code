@@ -108,5 +108,4 @@ SELECT i FROM s1.t1 ORDER BY i;
 FLUSH TABLES WITH READ LOCK;
 UNLOCK TABLES;
 DROP TABLE s1.t1;
-CALL mtr.add_suppression("Problem while dropping database. Can't remove database directory .* Please remove it manually.");
 DROP SCHEMA s1;

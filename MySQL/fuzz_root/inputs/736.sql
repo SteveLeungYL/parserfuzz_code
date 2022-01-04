@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("Enabling keys got errno");
 drop table if exists t1,t2;
 SET SQL_WARNINGS=1;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';

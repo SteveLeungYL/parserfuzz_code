@@ -95,7 +95,6 @@ SELECT @@global.session_track_schema;
 SELECT @@session.session_track_schema;
 SET @@session.session_track_schema=@@global.session_track_schema;
 SELECT @@session.session_track_schema;
-call mtr.add_suppression("Dictionary file not specified");
 SELECT @@global.session_track_system_variables;
 SELECT @@session.session_track_system_variables;
 SET @@session.session_track_system_variables='validate_password_policy,autocommit';

@@ -60,5 +60,4 @@ UPDATE t1 SET val = val + 1;
 SET SESSION innodb_lock_wait_timeout = 2;
 UPDATE t1 SET val = val + 1;
 INSERT INTO t2 (id) VALUES (1);
-show session status;
 DROP TABLE t3, t2, t1;

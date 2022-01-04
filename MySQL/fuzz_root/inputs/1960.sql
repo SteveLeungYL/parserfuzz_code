@@ -1,4 +1,3 @@
-call mtr.add_suppression("Plugin \'InnoDB\'");
 DROP TABLE IF EXISTS t1;
 set names utf8;
 set collation_connection=utf8_unicode_ci;

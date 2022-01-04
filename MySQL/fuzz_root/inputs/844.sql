@@ -5,7 +5,6 @@ SELECT engine_name, device_type, cost_name, cost_value FROM mysql.engine_cost WH
 CREATE TABLE t1 ( i1 INTEGER, c1 CHAR(200), INDEX idx (i1) ) ENGINE=MyISAM;
 INSERT INTO t1 VALUES (1, "Ullensvang"), (2, "Odda"), (3, "Jondal");
 EXPLAIN FORMAT=JSON SELECT i1 FROM t1 WHERE i1 > 1;
-show session status;
 DROP TABLE t1;
 UPDATE mysql.engine_cost SET cost_value=DEFAULT;
 FLUSH OPTIMIZER_COSTS;

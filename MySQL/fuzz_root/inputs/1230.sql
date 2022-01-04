@@ -1,4 +1,3 @@
-call mtr.add_suppression('Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT.');
 SET @old_log_output=@@global.log_output;
 SET GLOBAL log_output="FILE,TABLE";
 drop table if exists t1,t2,t3,t4;

@@ -1,4 +1,3 @@
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 SET @OLD_CONCURRENT_INSERT = @@GLOBAL.CONCURRENT_INSERT;
 SET @@GLOBAL.CONCURRENT_INSERT = 0;
 DROP TABLE IF EXISTS t1, `"t"1`, t1aa, t2, t2aa, t3;

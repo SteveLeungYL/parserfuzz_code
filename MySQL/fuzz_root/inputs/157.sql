@@ -1,7 +1,3 @@
-CALL mtr.add_suppression("Column count of");
-CALL mtr.add_suppression("Incorrect definition of table");
-CALL mtr.add_suppression("Cannot load from");
-CALL mtr.add_suppression("Storage engine 'MyISAM' does not");
 CREATE TABLE system_tables (ID INT PRIMARY KEY AUTO_INCREMENT, table_name VARCHAR(100));
 INSERT INTO system_tables(table_name) SELECT concat(table_schema, ".", table_name) FROM INFORMATION_SCHEMA.tables WHERE table_schema = 'mysql' AND table_name NOT IN('general_log', 'slow_log', 'ndb_binlog_index') ORDER BY table_name;
 CALL test_system_table_alter_engine();

@@ -59,7 +59,6 @@ SELECT service_get_write_locks('holder_name_space', 'first', 'l2_1', 'l3_1', 0);
 SELECT service_get_write_locks('holder_name_space', 'l1_2', 'middle', 'l3_2', 0);
 SELECT service_get_write_locks('holder_name_space', 'l1_3', 'l2_3', 'last', 0);
 SELECT object_schema, object_name, lock_type, lock_status FROM performance_schema.metadata_locks WHERE OBJECT_TYPE = 'LOCKING SERVICE';
-show session status;
 SELECT service_release_locks("holder_name_space");
 SELECT service_get_write_locks(RPAD('holder_name_space_', 64, 'a'), 'l1', 'l2', 'l3', 0) AS col1;
 SELECT service_release_locks(RPAD('holder_name_space_', 64, 'a')) AS col1;

@@ -1,4 +1,3 @@
-CALL mtr.add_suppression("You need to use --log-bin to make --binlog-format work");
 RESET MASTER;
 SET GLOBAL GTID_MODE=OFF_PERMISSIVE;
 CREATE TABLE t1(c1 INT PRIMARY KEY) ENGINE=MyISAM;

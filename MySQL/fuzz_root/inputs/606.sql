@@ -1,5 +1,3 @@
-call mtr.add_suppression("Got an error from thread_id=.*ha_myisam.cc:");
-call mtr.add_suppression("MySQL thread id .*, query id .* localhost.*mysqltest_u1 Checking table");
 drop database if exists mysqltest_db1;
 create database mysqltest_db1;
 create table mysqltest_db1.t1 (a int, key(a)) engine=myisam;
@@ -12,5 +10,4 @@ repair table mysqltest_db1.t1, mysqltest_db1.t2;
 check table mysqltest_db1.t1, mysqltest_db1.t2;
 check table mysqltest_db1.t1;
 repair table mysqltest_db1.t1;
-show session status;
 drop database mysqltest_db1;

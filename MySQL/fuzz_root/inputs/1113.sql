@@ -1,7 +1,6 @@
 SET @previous_binlog_format__htnt542nh=@@GLOBAL.binlog_format;
 SET @@GLOBAL.binlog_format=STATEMENT;
 SET binlog_format=STATEMENT;
-CALL mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 DROP TABLE if exists t1,t2,t3,t4,t5,t6;
 SET default_storage_engine=ARCHIVE;
 CREATE TABLE t1 ( Period smallint(4) unsigned zerofill DEFAULT '0000' NOT NULL, Varor_period smallint(4) unsigned DEFAULT '0' NOT NULL ) ENGINE=archive;

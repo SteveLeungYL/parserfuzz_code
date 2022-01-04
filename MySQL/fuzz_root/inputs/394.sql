@@ -1,7 +1,6 @@
 SET @previous_binlog_format__htnt542nh=@@GLOBAL.binlog_format;
 SET @@GLOBAL.binlog_format=STATEMENT;
 SET binlog_format=STATEMENT;
-CALL mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 CREATE TABLE t1 ( a int );
 INSERT INTO t1 VALUES (1),(2),(1);
 CREATE TABLE t2 ( PRIMARY KEY (a) ) ENGINE=MYISAM SELECT a FROM t1;

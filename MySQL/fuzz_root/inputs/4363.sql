@@ -1,5 +1,3 @@
-call mtr.add_suppression("Failed to set up SSL because of the following SSL library error");
-call mtr.add_suppression("Failed to initialize TLS for channel: mysql_main");
 SELECT LENGTH(VARIABLE_VALUE) > 0 FROM performance_schema.session_status WHERE VARIABLE_NAME='Ssl_cipher';
 ALTER INSTANCE RELOAD TLS;
 SELECT LENGTH(VARIABLE_VALUE) > 0 FROM performance_schema.session_status WHERE VARIABLE_NAME='Ssl_cipher';

@@ -1,7 +1,6 @@
 SET @previous_binlog_format__htnt542nh=@@GLOBAL.binlog_format;
 SET @@GLOBAL.binlog_format=STATEMENT;
 SET binlog_format=STATEMENT;
-CALL mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
 select @@session.transaction_isolation;
 drop table if exists t0, t1, t2, t3, t4, t5;
 drop view if exists v1, v2;
