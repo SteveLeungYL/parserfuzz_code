@@ -60,7 +60,6 @@ select * from mysql.general_log;
 drop table bug16905;
 truncate table mysql.slow_log;
 set session long_query_time=1;
-select sleep(2);
 select * from mysql.slow_log;
 set @@session.long_query_time = @saved_long_query_time;
 flush tables with read lock;

@@ -84,7 +84,6 @@ create table t1 (c1 int);
 select 1;
 SELECT version_tokens_set("a=aa;b=bb;c=cc");
 set @@version_tokens_session= "a=aa";
-SELECT sleep(6); # sleep for 6 seconds in background.;
 SELECT version_tokens_lock_exclusive("b",20);
 SELECT version_tokens_lock_exclusive("a",20);
 SELECT version_tokens_unlock();

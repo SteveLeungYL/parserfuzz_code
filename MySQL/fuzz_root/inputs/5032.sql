@@ -1,7 +1,6 @@
 SET @save_sqlf=@@global.slow_query_log_file;
 SET GLOBAL slow_query_log_file= '/data/yu/Squirrel_DBMS_Fuzzing/MySQL_source/mysql-server-inst/bld/mysql-test/var/tmp/my_slow.log';
 SET timestamp=10;
-SELECT unix_timestamp(), sleep(2);
 SET @@global.slow_query_log_file=@save_sqlf;
 SET @old_slow_query_log_file= @@global.slow_query_log_file;
 SET @old_log_output         = @@global.log_output;
