@@ -1,15 +1,9 @@
 call mtr.add_suppression("An empty or illegal privilege identifier was ignored when global privileges were read from disk.");
 CREATE USER 'u1'@'localhost' IDENTIFIED BY '123';
 FLUSH PRIVILEGES;
-SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
-FLUSH PRIVILEGES;
-SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
 FLUSH PRIVILEGES;
 FLUSH PRIVILEGES;
-SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
-SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
-SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u2%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
-SELECT * FROM information_schema.user_privileges WHERE GRANTEE LIKE '%u1%' ORDER BY GRANTEE, PRIVILEGE_TYPE, IS_GRANTABLE;
+FLUSH PRIVILEGES;
 CREATE TABLE t1 (c1 int);
 DROP TABLE t1;
 FLUSH PRIVILEGES;

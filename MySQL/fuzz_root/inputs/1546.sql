@@ -10,7 +10,6 @@ SELECT USER();
 SELECT USER();
 SHOW STATUS LIKE 'locked_connects';
 FLUSH STATUS;
-SELECT * FROM INFORMATION_SCHEMA.user_privileges WHERE GRANTEE LIKE '%user%' AND GRANTEE NOT IN ("'mysql.session'@'localhost'");
 SELECT USER();
 SELECT USER();
 SET PASSWORD = 'def';
