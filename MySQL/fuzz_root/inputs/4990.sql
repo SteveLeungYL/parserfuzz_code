@@ -8,3 +8,4 @@ COMMIT;
 SET @@session.sql_mode = '';
 LOAD DATA INFILE '/data/yu/Squirrel_DBMS_Fuzzing/MySQL_source/mysql-server-inst/bld/mysql-test/var/log/mysqld.2.err.warnings' INTO TABLE mtr.error_log CHARACTER SET latin1 FIELDS TERMINATED BY 'xykls37' ESCAPED BY ''   IGNORE 1 LINES (line) ;
 SET @@session.sql_mode = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+CALL mtr.check_warnings(@result);

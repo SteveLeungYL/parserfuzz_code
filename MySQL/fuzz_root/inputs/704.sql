@@ -1,4 +1,5 @@
 USE test;
+CREATE TABLE bug49823 (event_time TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6), user_host MEDIUMTEXT NOT NULL, thread_id BIGINT(21) UNSIGNED NOT NULL, server_id INTEGER UNSIGNED NULL, command_type VARCHAR(64) NOT NULL, argument MEDIUMBLOB NOT NULL) engine=MYISAM CHARACTER SET utf8 comment="General log";
 SET GLOBAL general_log = OFF;
 USE mysql;
 FLUSH TABLES;
@@ -114,4 +115,5 @@ show session status;
 show session status;
 show session status;
 show session status;
+UPDATE mysql.user SET `password_last_changed` = '2022-01-02 22:36:19' WHERE `Host` = 'localhost' AND `User` = 'mysql.sys';;
 UPDATE mysql.tables_priv SET `Timestamp` = '2022-01-02 22:36:19' WHERE `Host` = 'localhost' AND `Db` = 'sys' AND `User` = 'mysql.sys' AND `Table_name` = 'sys_config';;

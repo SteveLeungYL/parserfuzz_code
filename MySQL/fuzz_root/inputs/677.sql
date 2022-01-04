@@ -120,7 +120,3 @@ drop table t1;
 create table t1 (k int, index (k)) charset utf8mb4 engine=heap;
 show create table t1;
 alter table t1 drop key k, add index using btree (k), algorithm=inplace;
-show create table t1;
-alter table t1 drop key k, add index using btree (k), algorithm=copy;
-show create table t1;
-drop table t1;

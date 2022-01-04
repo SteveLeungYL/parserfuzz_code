@@ -18,3 +18,6 @@ drop view v1;
 DROP DATABASE IF EXISTS b12688860_db;
 CREATE DATABASE b12688860_db;
 DROP DATABASE b12688860_db;
+CREATE USER 'user_with_length_32_abcdefghijkl'@'localhost';
+GRANT ALL ON *.* TO 'user_with_length_32_abcdefghijkl'@'localhost';
+DROP USER 'user_with_length_32_abcdefghijkl'@'localhost';

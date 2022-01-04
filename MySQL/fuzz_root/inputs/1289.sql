@@ -9,8 +9,11 @@ SET GLOBAL slow_query_log_file= '/data/yu/Squirrel_DBMS_Fuzzing/MySQL_source/mys
 SET GLOBAL log_output =       'FILE,TABLE';
 SET GLOBAL slow_query_log=    'ON';
 SET SESSION long_query_time=  0;
+CREATE USER test_user2 IDENTIFIED BY 'azundris2';
 SET SESSION long_query_time = 0;
+ALTER USER test_user2 IDENTIFIED BY 'azundris2' REPLACE 'azundris2';
 SET PASSWORD='azundris2' REPLACE 'azundris2';
+SET PASSWORD FOR test_user2='azundris2' REPLACE 'azundris2';
 SET GLOBAL master_info_repository = 'TABLE';
 SET GLOBAL relay_log_info_repository = 'TABLE';
 CHANGE REPLICATION SOURCE TO SOURCE_PASSWORD='azundris3', SOURCE_BIND = 'eth4n', SOURCE_TLS_CIPHERSUITES = ''   FOR CHANNEL 'chan_jackie';
@@ -18,8 +21,12 @@ CHANGE REPLICATION SOURCE TO SOURCE_PASSWORD='azundris3', SOURCE_CONNECT_RETRY =
 RESET SLAVE ALL;
 SET GLOBAL master_info_repository = DEFAULT;
 SET GLOBAL relay_log_info_repository = DEFAULT;
+CREATE USER 'test_user4'@'localhost';
+SET PASSWORD FOR 'test_user4'@'localhost' = 'azundris4';
 SET SESSION long_query_time=  @old_long_query_time;
 SET GLOBAL slow_query_log='OFF';
+DROP USER 'test_user4'@'localhost';
+DROP USER test_user2;
 CREATE TABLE test_log (sql_text TEXT);
 LOAD DATA LOCAL INFILE '/data/yu/Squirrel_DBMS_Fuzzing/MySQL_source/mysql-server-inst/bld/mysql-test/var/log/rewrite_slow.log'      INTO TABLE test_log FIELDS TERMINATED BY '\n' LINES TERMINATED BY '\n';
 SELECT sql_text FROM test_log WHERE sql_text LIKE CONCAT('%azun','dris%');

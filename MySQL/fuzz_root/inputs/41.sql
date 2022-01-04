@@ -6,6 +6,7 @@ SELECT "logging to syseventlog";
 SET @start_value= @@global.syseventlog.facility;
 SET @@global.syseventlog.facility= DEFAULT;
 SELECT @@global.syseventlog.facility, @start_value;
+SET @@global.syseventlog.facility="user";
 SELECT @@global.syseventlog.facility;
 SET @@global.syseventlog.facility= "daemon";
 SELECT @@global.syseventlog.facility;

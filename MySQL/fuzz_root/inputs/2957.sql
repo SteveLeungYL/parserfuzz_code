@@ -1,3 +1,4 @@
+DELETE FROM mysql.user WHERE user='mysql.infoschema';
 COMMIT;
 show session status;
 show session status;
@@ -109,4 +110,6 @@ show session status;
 show session status;
 show session status;
 show session status;
+UPDATE mysql.user SET password_last_changed= '2022-01-02 22:36:19' WHERE USER= 'mysql.infoschema';
+UPDATE mysql.user SET `password_last_changed` = '2022-01-02 22:36:19' WHERE `Host` = 'localhost' AND `User` = 'mysql.sys';;
 UPDATE mysql.tables_priv SET `Timestamp` = '2022-01-02 22:36:19' WHERE `Host` = 'localhost' AND `Db` = 'sys' AND `User` = 'mysql.sys' AND `Table_name` = 'sys_config';;

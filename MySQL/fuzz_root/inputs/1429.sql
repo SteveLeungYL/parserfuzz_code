@@ -1,5 +1,6 @@
 SELECT * FROM performance_schema.global_variables WHERE variable_name LIKE '%offline_mode%';
 SET @global_saved_tmp =  @@global.offline_mode;
+CREATE USER 'user1'@'localhost';
 SELECT COUNT(USER) FROM INFORMATION_SCHEMA.PROCESSLIST;
 SHOW STATUS LIKE 'threads_connected';
 SELECT COUNT(USER) FROM INFORMATION_SCHEMA.PROCESSLIST;
@@ -10,4 +11,5 @@ SHOW STATUS LIKE 'threads_connected';
 SELECT * FROM performance_schema.global_variables WHERE variable_name LIKE '%offline_mode%';
 SELECT COUNT(USER) FROM INFORMATION_SCHEMA.PROCESSLIST;
 SHOW STATUS LIKE 'threads_connected';
+DROP USER 'user1'@'localhost';
 SET @@global.offline_mode = @global_saved_tmp;

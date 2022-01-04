@@ -33,3 +33,6 @@ CREATE TABLE ```t2` (a int, b int);
 show tables;
 DROP TABLE ```t1`, ```t2`;
 SET GLOBAL sql_mode = @OLD_SQL_MODE;
+CREATE USER 'user_with_length_32_abcdefghijkl'@'localhost';
+GRANT ALL ON *.* TO 'user_with_length_32_abcdefghijkl'@'localhost';
+DROP USER 'user_with_length_32_abcdefghijkl'@'localhost';
