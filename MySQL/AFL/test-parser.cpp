@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
 
   cerr << "\n\n\n";
 
-  // mutator.init_library();
+  mutator.init_library();
 
   // Ignore validation right now. Will fix later.
   try_validate_query(ir_root);
