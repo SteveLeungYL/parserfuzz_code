@@ -32,12 +32,11 @@ using std::string;
 
 // We choose non-zero to avoid it working by coincidence.
 int Fake_TABLE::highest_table_id = 5;
+Server_initializer initializer;
 
 int run_parser(string cmd_str, vector<IR*>& ir_vec) {
 
   // printf("Enter parser function.\n");
-  Server_initializer initializer;
-  initializer.SetUp();
 
   const LEX_CSTRING db_name = {"db", 4};
   initializer.thd()->set_db(db_name);
@@ -52,7 +51,6 @@ int run_parser(string cmd_str, vector<IR*>& ir_vec) {
     return 1;
   }
 
-  initializer.TearDown();
   // printf("Exit parser function.\n");
   return 0;
 }
@@ -61,8 +59,10 @@ void parser_init(const char* program_name) {
   MY_INIT(program_name);
 
   my_testing::setup_server_for_unit_tests();
+  initializer.SetUp();
 }
 
 void parser_teardown() {
   my_testing::teardown_server_for_unit_tests();
+  initializer.TearDown();
 }

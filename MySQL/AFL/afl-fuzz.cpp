@@ -6603,6 +6603,10 @@ static u8 fuzz_one(char **argv)
     /* The mutated IR tree is deep_copied() */
     vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
 
+    auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
+    cerr << "Single mutate_all function call time, used time: " << single_mutation_function_used_time.count() << "\n\n\n";
+
     num_mutate_all++;
 
     for (IR* mutated_ir_root : v_mutated_ir_root) {
@@ -6625,6 +6629,9 @@ static u8 fuzz_one(char **argv)
 
       /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
       * consider appending anything */
+
+      auto single_reparse_start_time = std::chrono::system_clock::now();
+
       vector<IR *> cur_ir_tree;
       ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
       if (ret != 0 || cur_ir_tree.size() == 0) {
@@ -6634,16 +6641,28 @@ static u8 fuzz_one(char **argv)
       }
       num_reparse++;
 
+      auto single_reparse_end_time = std::chrono::system_clock::now();
+      std::chrono::duration<double> single_reparse_used_time = single_reparse_end_time  - single_reparse_start_time ;
+      cerr << "Single reparse function call time, used time: " << single_reparse_used_time.count() << "\n\n\n";
+
       // cerr << "After mutate and reparse, we get ori_str: \n" << ori_input_str << "\nmutated_str: " << cur_ir_tree.back()->to_string() << "\n\n\n";
 
-      // cerr << "IR size: " << cur_ir_tree.size() << "\n\n\n";
+      cerr << "IR size: " << cur_ir_tree.size() << "\n\n\n";
+
+      auto single_append_stmt_start_time = std::chrono::system_clock::now();
 
       for (IR* app_IR_node : v_oracle_select_stmts) {
         p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
         p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
       }
 
+      auto single_append_stmt_end_time = std::chrono::system_clock::now();
+      std::chrono::duration<double> single_append_stmt_used_time = single_append_stmt_end_time  - single_append_stmt_start_time ;
+      cerr << "Single append stmt function call time, used time: " << single_append_stmt_used_time.count() << "\n\n\n";
+
       num_append++;
+
+      auto single_validate_func_start_time = std::chrono::system_clock::now();
 
       /*
       ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
@@ -6656,9 +6675,14 @@ static u8 fuzz_one(char **argv)
 
       g_mutator.pre_validate(); // Reset global variables for query sequence.
 
+      auto single_validate_func_start_time_2 = std::chrono::system_clock::now();
       // pre_fix_transformation from the oracle.
       vector<STMT_TYPE> stmt_type_vec;
       vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
+
+      auto single_validate_func_end_time_2 = std::chrono::system_clock::now();
+      std::chrono::duration<double> single_validate_func_used_time_2 = single_validate_func_end_time_2  - single_validate_func_start_time_2 ;
+      cerr << "Single validate function pre_fix_transform function call time, used time: " << single_validate_func_used_time_2.count() << "\n\n\n";
 
       /* Debug  */
       // cerr << "Just gone through pre_fix_transform, we have: \n";
@@ -6672,6 +6696,7 @@ static u8 fuzz_one(char **argv)
 
       // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
 
+      auto single_validate_func_start_time_3 = std::chrono::system_clock::now();
       /* Build dependency graph, fix ir node, fill in concret values */
       for (IR* cur_trans_stmt : all_pre_trans_vec) {
         if(!g_mutator.validate(cur_trans_stmt)) {
@@ -6679,6 +6704,9 @@ static u8 fuzz_one(char **argv)
           /* Do nothing. */
         }
       }
+      auto single_validate_func_end_time_3 = std::chrono::system_clock::now();
+      std::chrono::duration<double> single_validate_func_used_time_3 = single_validate_func_end_time_3  - single_validate_func_start_time_3 ;
+      cerr << "Single validate function 3 main function call time, used time: " << single_validate_func_used_time_3.count() << "\n\n\n";
 
 
       // cerr << "Just gone through validate functions, we have: \n";
@@ -6690,8 +6718,13 @@ static u8 fuzz_one(char **argv)
       // }
       // cerr << "Pre-fix transform end. \n\n\n";
 
+      auto single_validate_func_start_time_4 = std::chrono::system_clock::now();
       /* post_fix_transformation from the oracle. All deep_copied. */
       vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
+
+      auto single_validate_func_end_time_4 = std::chrono::system_clock::now();
+      std::chrono::duration<double> single_validate_func_used_time_4 = single_validate_func_end_time_4  - single_validate_func_start_time_4 ;
+      cerr << "Single validate function postfix_transform call time, used time: " << single_validate_func_used_time_4.count() << "\n\n\n";
 
       for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
 
@@ -6733,6 +6766,10 @@ static u8 fuzz_one(char **argv)
       if (cur_ir_tree.size() > 0){
         cur_ir_tree.back()->deep_drop();
       }
+
+      auto single_validate_func_end_time = std::chrono::system_clock::now();
+      std::chrono::duration<double> single_validate_func_used_time = single_validate_func_end_time  - single_validate_func_start_time ;
+      cerr << "Single validate function call time, used time: " << single_validate_func_used_time.count() << "\n\n\n";
 
       /* Finished clean up */
 

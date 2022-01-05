@@ -1,11 +1,14 @@
 #include "mysql_norec.h"
 #include "../include/mutate.h"
 #include <iostream>
+#include <chrono>
 
 #include <regex>
 #include <string>
 
 bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
+
+  auto single_is_oracle_select_func_start_time = std::chrono::system_clock::now();
 
   if (cur_stmt == NULL) {
     // cerr << "Return false because cur_stmt is NULL; \n";
@@ -43,6 +46,8 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   IR* select_item_ir = v_select_item_ir.front();
 
+  auto single_is_ir_in_start_time = std::chrono::system_clock::now();
+
   /* Next, check whether there are COUNT(*) func */
   bool is_found_count = false;
   vector<IR*> v_sum_expr_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSumExpr, false);
@@ -64,6 +69,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
       }
   }
 
+
   if (!is_found_count) {
       // cerr << "Return false because COUNT func is not found. \n\n\n";
       return false;
@@ -76,6 +82,14 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
       // cerr << "Return false because FROM clause or WHERE clause is not found. \n\n\n";
       return false;
   }
+
+  auto single_ir_in_end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> single_ir_in_used_time = single_ir_in_end_time  - single_is_ir_in_start_time;
+  cerr << " single_ir_in_used_time used time: " << single_ir_in_used_time.count() << "\n\n\n";
+
+  auto single_is_oracle_end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> is_oracle_used_time = single_is_oracle_end_time  - single_is_oracle_select_func_start_time;
+  cerr << " Is_oracle_select stmt used time: " << is_oracle_used_time.count() << "\n\n\n";
 
   /* All checks passed. This is an NOREC compatible SELECT stmt. */
   return true;

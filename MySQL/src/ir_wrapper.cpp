@@ -1,4 +1,5 @@
 #include "../include/ir_wrapper.h"
+#include <chrono>
 
 IR* IRWrapper::reconstruct_ir_with_stmt_vec(const vector<IR*>& stmt_vec) {
     if (stmt_vec.size() == 0) {
@@ -38,6 +39,9 @@ bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR* cur_stmt,
 
 vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
     IRTYPE ir_type, bool is_subquery, bool ignore_is_subquery, bool ignore_type_suffix) {
+
+    auto get_ir_node_in_stmt_start_time = std::chrono::system_clock::now();
+
 
     // Iterate IR binary tree, left depth prioritized.
     bool is_finished_search = false;
@@ -88,8 +92,18 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
             continue;
         }
         // cerr << "We have ir_vec_matching_type_depth.size()" << ir_vec_matching_type_depth.size() << "\n\n\n";
+        
+        auto get_ir_node_in_stmt_end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> get_ir_node_in_stmt_used_time = get_ir_node_in_stmt_end_time  - get_ir_node_in_stmt_start_time;
+        cerr << " get_ir_node_in_stmt time: " << get_ir_node_in_stmt_used_time.count() << "\n\n\n";
+
         return ir_vec_matching_type_depth;
     } else {
+
+        auto get_ir_node_in_stmt_end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> get_ir_node_in_stmt_used_time = get_ir_node_in_stmt_end_time  - get_ir_node_in_stmt_start_time;
+        cerr << " get_ir_node_in_stmt time: " << get_ir_node_in_stmt_used_time.count() << "\n\n\n";
+
         return ir_vec_matching_type;
     }
 }

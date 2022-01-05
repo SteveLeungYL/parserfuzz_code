@@ -189,9 +189,9 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
     /* For mutating kStmtList only */
     if (ir_to_mutate->get_ir_type() == kStmtList) {
-      cerr << "Inside kStmtList; \n\n\n";
+      // cerr << "Inside kStmtList; \n\n\n";
       v_mutated_ir = mutate_stmtlist(root);
-      cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
+      // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
       for (IR* mutated_ir : v_mutated_ir) {
 
           string tmp = mutated_ir->to_string();
@@ -199,10 +199,10 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           unsigned tmp_hash = hash(tmp);
           if (global_hash_.find(tmp_hash) != global_hash_.end()) {
             mutated_ir->deep_drop();
-            cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
+            // cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
             continue;
           }
-          cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
+          // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
           global_hash_.insert(tmp_hash);
           res.push_back(mutated_ir);
       }
@@ -299,7 +299,7 @@ vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_v
 
 
 int Mutator::get_cri_valid_collection_size() {
-  return all_cri_valid_pstr_vec.size();
+  return all_valid_pstr_vec.size();
 }
 
 vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec) {
