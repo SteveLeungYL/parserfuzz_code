@@ -9,7 +9,6 @@ load data from master;
 SHOW INNODB STATUS;
 create table t1 (t6 timestamp) type=myisam;
 show table types;
-show mutex status;
 set sql_mode=pipes_as_concat;
 select 2 || 3;
 select 2 or 3;
