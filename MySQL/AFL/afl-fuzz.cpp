@@ -396,11 +396,11 @@ public:
       // cerr << "Could not execute statement\n";
     } while (status == 0);
 
-    // cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
-    // if (mysql_errno(m_)) {
-    //   cerr << "Error message: " << mysql_error(m_) << "\n";
-    // }
-    // cerr << "\n\n";
+    cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
+    if (mysql_errno(m_)) {
+      cerr << "Error message: " << mysql_error(m_) << "\n";
+    }
+    cerr << "\n\n";
 
     string ret_str;
     if (mysql_errno(m_)) {
@@ -499,6 +499,9 @@ public:
     // cmd_str += " ; SELECT 'Hahaha'; ";
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
+    /* For debug purpose */
+    cmd_str = "SELECT 'CHECK_MATE';" + cmd_str;
+
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
 
     SQLSTATUS correctness;
@@ -525,6 +528,12 @@ public:
     }
 
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
+
+    /* For debug purpose */
+    if (res_str.find("CHECK_MATE") == string::npos) {
+      cerr << "RESULT NOT RETURN CORRECTLY!\n\n\ncmd_str: " << cmd_str << "\n\n\nRes: " << res_str << "\n\n\n";
+      FATAL("RESULT NOT RETURN CORRECTLY!");
+    }
 
     if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
       disconnect();
@@ -6511,6 +6520,13 @@ static u8 fuzz_one(char **argv)
         create_num++;
         break;
       case kDropTableStmt:
+        {
+          if (get_rand_int(2) < 1) {
+            /* 50% chance, remove drop stmt.  */
+            p_oracle->ir_wrapper.set_ir_root(cur_root);
+            p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
+          }
+        }
         drop_num++;
         break;
     }

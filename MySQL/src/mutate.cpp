@@ -1161,6 +1161,26 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
+      // cerr << "DEPENDENCY: In kDataDatabase kUndefine. Get ir_to_fix: " << ir_to_fix->to_string() << get_string_by_ir_type(ir_to_fix->get_ir_type()) << get_string_by_data_flag(ir_to_fix->get_data_flag()) << "\n\n\n";
+
+      // Do not fix kDataDatabase in the drop stmt. Avoid our own database. 
+      if (
+        (ir_to_fix->get_data_type() == kDataDatabase || ir_to_fix->get_data_type() == kDataDatabaseFollow) &&
+        // cur_stmt_root->get_ir_type() == kDropDatabaseStmt
+        ir_to_fix->get_data_flag() == kUndefine
+        ) {
+        if (is_debug_info) {
+          cerr << "DEPENDENCY: In kDataDatabase kUndefine. Get ir_to_fix: " << ir_to_fix->to_string() << "\n\n\n";
+        }
+        if (ir_to_fix->get_str_val() == "test_sqlright1" || ir_to_fix->get_str_val() == "fuck") {
+          ir_to_fix->set_str_val("whatever");
+          fixed_ir.push_back(ir_to_fix);
+          continue;
+        }
+        fixed_ir.push_back(ir_to_fix);
+        continue;
+      }
+
       if (
         (ir_to_fix->data_type_ == kDataDatabaseFollow) &&
         (ir_to_fix->data_flag_ == kUse)
