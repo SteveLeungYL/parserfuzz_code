@@ -22023,6 +22023,8 @@ update_elem:
         res = new IR(kUpdateElem, OP3("", "", ""), res, tmp3);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1->set_simple_ident_nospvar_type(kDataColumnName, kUse);
     }
 
 ;
