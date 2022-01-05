@@ -40,7 +40,6 @@ GRANT `engineering`@`US` TO `engineering`@`INDIA`;
 CREATE ROLE `wp_administrators`;
 CREATE USER `joe`@`localhost`;
 GRANT SELECT ON test.* TO wp_administrators;
-GRANT engineering ON *.*, SUPER ON *.* TO joan, sally;
 GRANT SUPER, engineering ON *.* TO joan, sally;
 GRANT engineering,SELECT ON *.* TO joan;
 REVOKE engineering ON *.* FROM joan, sally;

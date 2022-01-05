@@ -32,7 +32,6 @@ explain select a,b from t1 union select 1 limit 0;
 select a,b from t1 into outfile 'skr' union select a,b from t2;
 select a,b from t1 order by a union select a,b from t2;
 insert into t3 select a from t1 order by a union select a from t2;
-INSERT INTO t3 SELECT a FROM t1 LIMIT 1 UNION SELECT a FROM t2;
 create table t3 select a,b from t1 union select a from t2;
 select a,b from t1 union select a from t2;
 select * from t1 union select a from t2;

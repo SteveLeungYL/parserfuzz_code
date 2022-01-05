@@ -1,7 +1,6 @@
 SELECT @@global.log_error_services;
 SELECT "*** SWITCHING ERROR LOG TO SYSLOG/EVENTLOG ***";
 INSTALL COMPONENT "file://component_log_sink_syseventlog";
-SET @@global.log_error_services="log_filter_internal; log_sink_internal; log_sink_syseventlog";
 SELECT "logging to syseventlog";
 SET @start_value= @@global.syseventlog.facility;
 SET @@global.syseventlog.facility= DEFAULT;

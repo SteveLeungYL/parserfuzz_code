@@ -64,7 +64,6 @@ LOCK TABLE t1 write;
 CREATE TABLE t2 AS SELECT * FROM t1;;
 SELECT table_name, table_type, auto_increment, table_comment FROM information_schema.tables WHERE table_schema='test' and table_name='t2';
 UNLOCK TABLES;
-reap;
 DROP TABLE t1, t2;
 CREATE TABLE t1 (c1 INT(11) DEFAULT NULL, c2 INT(11) DEFAULT NULL);
 INSERT INTO t1 VALUES(5, 5);

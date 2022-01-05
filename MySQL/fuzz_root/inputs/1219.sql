@@ -50,7 +50,6 @@ SELECT COUNT(*) FROM t1;
 ALTER TABLE t1 REORGANIZE PARTITION hour_003, hour_004 INTO (PARTITION oldest VALUES LESS THAN (4));
 SELECT COUNT(*) FROM t1;
 COMMIT;
-reap;
 SET GLOBAL innodb_thread_concurrency = @old_innodb_thread_concurrency;
 SET GLOBAL innodb_thread_sleep_delay = @old_innodb_thread_sleep_delay;
 DROP TABLE t1;

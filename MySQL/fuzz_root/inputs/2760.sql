@@ -9,7 +9,6 @@ insert into events values(1);
 select events.binlog from events;
 drop table events;
 create procedure p1() begin declare n int default 2; authors: while n > 0 do set n = n -1; end while authors; end;
-create procedure p2() begin declare n int default 2; contributors: while n > 0 do set n = n -1; end while contributors; end;
 drop procedure p1;
 drop procedure p2;
 create table t1 (connection int, b int);

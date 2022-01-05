@@ -10,7 +10,6 @@ select * from t1;
 drop table t1;
 create table t1 (id int not null auto_increment primary key, username varchar(32) not null, unique (username));
 insert into t1 values (0,"mysql");
-insert into t1 values (0,"mysql ab");
 insert into t1 values (0,"mysql a");
 insert into t1 values (0,"r1manic");
 insert into t1 values (0,"r1man");

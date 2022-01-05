@@ -37,7 +37,6 @@ SELECT product, country_id , year, SUM(profit) FROM t1 GROUP BY product, country
 SELECT CONCAT(':',product,':'), SUM(profit), AVG(profit) FROM t1 GROUP BY product WITH ROLLUP;
 SELECT product, country_id , year, SUM(profit) FROM t1 GROUP BY product, country_id, year WITH CUBE;
 EXPLAIN SELECT product, country_id , year, SUM(profit) FROM t1 GROUP BY product, country_id, year WITH CUBE;
-SELECT product, country_id , year, SUM(profit) FROM t1 GROUP BY product, country_id, year WITH CUBE UNION ALL SELECT product, country_id , year, SUM(profit) FROM t1 GROUP BY product, country_id, year WITH ROLLUP;
 drop table t1,t2;
 CREATE TABLE t1 (i int);
 INSERT INTO t1 VALUES(100);

@@ -43,7 +43,6 @@ XA RECOVER;
 XA COMMIT 'test';
 SELECT object_type, object_schema, object_name, lock_type, lock_duration, lock_status FROM performance_schema.metadata_locks WHERE object_schema = 'test';
 XA RECOVER;
-reap;
 CREATE TABLE t1 (a INT);
 XA START 'test';
 INSERT INTO t1 VALUES (10);

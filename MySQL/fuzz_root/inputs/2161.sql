@@ -39,7 +39,6 @@ create table t2 (a int);
 drop function if exists f1;
 drop function if exists f2;
 create function f1() returns int begin insert into t1 (a) values (1); insert into t1 (a) values (1); return 1; end;
-create function f2() returns int begin insert into t2 (a) values (1); return 2; end;
 flush status;
 select f1(), f2();
 show status like 'Com_insert';

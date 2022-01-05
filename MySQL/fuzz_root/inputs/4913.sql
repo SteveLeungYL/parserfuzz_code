@@ -75,7 +75,6 @@ with qn as (select "with" as a) select a from test.qn;
 with qn as (select "with" as a) select qn.a from test.qn;
 with qn as (select "with" as a) select test.qn.a from test.qn;
 WITH qn AS (SELECT b as a FROM t1 UNION SELECT b+5 FROM t1), qn2 AS (SELECT a FROM qn WHERE a IS NULL or a>0) SELECT qn.a FROM qn UNION SELECT qn2.a FROM qn2 WHERE qn2.a>3;
-with qn as (select "with" as a) with qn2 as (select "with" as a) select a from test.qn;
 with qn as (select "with" as a), with qn2 as (select "with" as a) select a from test.qn;
 explain with qn as (select a from t1 order by 1) select a from qn;
 explain with qn as (select a from t1 order by 1) select qn.a from qn, t1 as t2;

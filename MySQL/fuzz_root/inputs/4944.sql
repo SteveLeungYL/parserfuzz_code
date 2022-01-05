@@ -7,4 +7,3 @@ XA END 'xa1','';
 XA PREPARE 'xa1','';
 DROP TABLE t1;;
 XA COMMIT 'xa1';
-reap;

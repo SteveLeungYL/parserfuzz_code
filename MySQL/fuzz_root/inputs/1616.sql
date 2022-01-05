@@ -29,7 +29,6 @@ analyze table t1;
 show index from t1;
 drop table t1;
 create table t1(a int);
-analyze table t1 extended;
 optimize table t1 extended;
 drop table t1;
 CREATE PROCEDURE p() ANALYZE TABLE v UPDATE HISTOGRAM ON w;

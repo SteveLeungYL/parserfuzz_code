@@ -39,7 +39,6 @@ set global read_only=1;
 select @@global.read_only;
 unlock tables ;
 select @@global.read_only;
-reap;
 set global read_only=0;
 lock table t1 read;
 lock table t2 read;

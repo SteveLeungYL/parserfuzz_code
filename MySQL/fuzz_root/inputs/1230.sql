@@ -102,7 +102,6 @@ analyze table t1;
 prepare stmt1 from ' show table status from test like ''t1%'' ';
 execute stmt1;
 show table status from test like 't1%' ;
-deallocate prepare stmt1 ;
 drop table t1;
 create table t1(a varchar(2), b varchar(3));
 prepare stmt1 from "select a, b from t1 where (not (a='aa' and b < 'zzz'))";

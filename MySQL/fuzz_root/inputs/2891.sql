@@ -2,7 +2,6 @@ drop table if exists t1;
 create table t1(a int);
 insert into t1 values(1);
 select "Test delimiter : from command line" as "_";
-select "Test delimiter :; from command line" as "_";
 select "Test 'go' command(vertical output) \G" as "_";
 select "Test  'go' command \g" as "_";
 drop table t1;

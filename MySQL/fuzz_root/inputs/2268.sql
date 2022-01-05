@@ -1,14 +1,8 @@
 SET @saved_binlog_format= @@SESSION.binlog_format;
 drop table if exists t_34455;
-create table t_34455 ( a int not null, foreign key (a) references t3 (a) match full match partial);
 create table t_34455 ( a int not null, foreign key (a) references t3 (a) on delete set default match full);
-create table t_34455 ( a int not null, foreign key (a) references t3 (a) on update set default match full);
 create table t_34455 ( a int not null, foreign key (a) references t3 (a) on delete set default on delete set default);
-create table t_34455 ( a int not null, foreign key (a) references t3 (a) on update set default on update set default);
 create table t_34455 (a int not null);
-alter table t_34455 add foreign key (a) references t3 (a) match full match partial);
-alter table t_34455 add foreign key (a) references t3 (a) on delete set default match full);
-alter table t_34455 add foreign key (a) references t3 (a) on update set default match full);
 alter table t_34455 add foreign key (a) references t3 (a) on delete set default on delete set default);
 alter table t_34455 add foreign key (a) references t3 (a) on update set default on update set default);
 drop table t_34455;

@@ -96,7 +96,6 @@ CREATE TABLE t1(a INT, b INT DEFAULT 0);
 INSERT INTO t1(a) VALUES (1), (2);
 CREATE TABLE t2 SELECT * FROM t1;
 ANALYZE TABLE t1, t2;
-EXPLAIN SELECT (SELECT dt.a FROM   (SELECT 1 AS a, t2.a AS b FROM t2 HAVING t1.a) dt     # <----- outer reference inside derived table. WHERE dt.b=t1.a) AS subq    # <----- normal outer reference FROM t1;
 DROP TABLE t1, t2;
 CREATE TABLE t_a (a INT, b INT);
 INSERT INTO t_a VALUES (4, 40), (1, 10), (2, 20), (2, 20), (3, 30);

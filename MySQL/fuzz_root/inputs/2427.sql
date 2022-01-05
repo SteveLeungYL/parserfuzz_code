@@ -37,5 +37,4 @@ select * from t1 where a=user();
 insert into t1 values ('a');
 select left(concat(a,version()),1) from t1;
 drop table t1;
-prepare s from "DO SHA1(DATABASE());";
 execute s;

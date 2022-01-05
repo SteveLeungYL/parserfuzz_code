@@ -88,7 +88,6 @@ SELECT convert(@str collate latin1_swedish_ci using utf8);
 SET NAMES latin1;
 DROP TABLE IF EXISTS `abc�def`;
 CREATE TABLE `abc�def` (i int);
-INSERT INTO `abc�def` VALUES (1);
 INSERT INTO abc�def VALUES (2);
 SELECT * FROM `abc�def`;
 SELECT * FROM abc�def;

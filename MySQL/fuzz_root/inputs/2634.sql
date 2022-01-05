@@ -67,10 +67,7 @@ CREATE PROCEDURE test_proc (OUT p_p1 datetime,OUT p_p2 time,OUT p_p3 timestamp) 
 CREATE PROCEDURE test_proc0 (OUT p_p1 datetime(0),OUT p_p2 time(0),OUT p_p3 timestamp(0)) BEGIN SELECT 1 ; END; ;
 CREATE PROCEDURE test_proc1 (OUT p_p1 datetime(1),OUT p_p2 time(1),OUT p_p3 timestamp(1)) BEGIN SELECT 1 ; END; ;
 CREATE PROCEDURE test_proc2 (OUT p_p1 datetime(2),OUT p_p2 time(2),OUT p_p3 timestamp(2)) BEGIN SELECT 1 ; END; ;
-CREATE PROCEDURE test_proc3 (OUT p_p1 datetime(3),OUT p_p2 time(3),OUT p_p3 timestamp(3)) BEGIN SELECT 1 ; END; ;
-CREATE PROCEDURE test_proc4 (OUT p_p1 datetime(4),OUT p_p2 time(4),OUT p_p3 timestamp(4)) BEGIN SELECT 1 ; END; ;
 CREATE PROCEDURE test_proc5 (OUT p_p1 datetime(5),OUT p_p2 time(5),OUT p_p3 timestamp(5)) BEGIN SELECT 1 ; END; ;
-CREATE PROCEDURE test_proc6 (OUT p_p1 datetime(6),OUT p_p2 time(6),OUT p_p3 timestamp(6)) BEGIN SELECT 1 ; END; ;
 CREATE FUNCTION test_func (f_p1 DATETIME, f_p2 TIMESTAMP) RETURNS TIME RETURN NULL;
 CREATE FUNCTION test_func0 (f_p1 DATETIME(0), f_p2 TIMESTAMP(0)) RETURNS TIME(0) RETURN NULL;
 CREATE FUNCTION test_func1 (f_p1 DATETIME(1), f_p2 TIMESTAMP(1)) RETURNS TIME(1) RETURN NULL;

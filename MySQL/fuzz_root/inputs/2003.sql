@@ -39,7 +39,6 @@ INSERT INTO t1 VALUES ('a'),('a\0'),('a\t'),('a ');
 SELECT hex(a),STRCMP(a,'a'), STRCMP(a,'a ') FROM t1;
 DROP TABLE t1;
 select insert('txs',2,1,'hi'),insert('is ',4,0,'a'),insert('txxxxt',2,4,'es');
-select insert("aa",100,1,"b"),insert("aa",1,3,"b");
 select char_length(left(@a:='тест',5)), length(@a), @a;
 create table t1 ENGINE heap select date_format("2004-01-19 10:10:10", "%Y-%m-%d");
 show create table t1;

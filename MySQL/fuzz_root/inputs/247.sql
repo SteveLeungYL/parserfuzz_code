@@ -32,7 +32,6 @@ select * from t5 order by c1;
 drop table t5;
 drop procedure if exists p1;
 flush logs;
-create procedure p1() begin select 1; end; ;
 flush logs;
 call p1();
 drop procedure p1;

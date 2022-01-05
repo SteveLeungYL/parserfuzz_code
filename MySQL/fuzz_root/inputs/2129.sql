@@ -7,4 +7,3 @@ SELECT GET_LOCK("dangling", 0);
 SELECT GET_LOCK('dangling', 3600);;
 SELECT GET_LOCK('dangling', 3600);;
 SELECT RELEASE_LOCK('dangling');
-reap;

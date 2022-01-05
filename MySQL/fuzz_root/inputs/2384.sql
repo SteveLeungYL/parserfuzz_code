@@ -53,7 +53,6 @@ drop function if exists func_26093_a;
 drop function if exists func_26093_b;
 create table table_26093(a int);
 insert into table_26093 values (1), (2), (3), (4), (5), (6), (7), (8), (9), (10);
-create function func_26093_a(x int) returns int begin set @invoked := @invoked + 1; return x; end;
 create function func_26093_b(x int, y int) returns int begin set @invoked := @invoked + 1; return x; end;
 select avg(a) from table_26093;
 select benchmark(100, (select avg(a) from table_26093));

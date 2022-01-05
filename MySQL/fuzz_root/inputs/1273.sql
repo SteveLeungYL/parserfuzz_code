@@ -30,7 +30,6 @@ insert into t1 select * from t1;
 create table t2(fl text);
 LOAD XML LOCAL INFILE "/data/yu/Squirrel_DBMS_Fuzzing/MySQL_source/mysql-server-inst/bld/mysql-test/var/tmp/loadxml-dump.xml"  INTO TABLE t2 ROWS IDENTIFIED BY '<person>';;
 kill 23;
-reap;
 drop table t1;
 drop table t2;
 create table t1 ( id int(11) not null, text text, primary key (id) ) default charset=latin1;

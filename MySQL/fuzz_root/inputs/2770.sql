@@ -28,7 +28,6 @@ INSERT INTO t1(d, id, sex) VALUES (1.0, 1, 'M'), (2.0, 2, 'F'), (3.0, 3, 'F'), (
 SELECT id, sex, LEAD(id, -1) RESPECT NULLS OVER () FROM t1;
 SELECT id, sex, LEAD(id, 1.2) RESPECT NULLS OVER () FROM t1;
 SELECT id, sex, LEAD(id, 'a') RESPECT NULLS OVER () FROM t1;
-SELECT id, sex, LEAD(id, NULL) RESPECT NULLS OVER () FROM t1;
 PREPARE p FROM "SELECT id, sex, LEAD(id, ?) OVER () FROM t1";
 SET @p1= 3;
 EXECUTE p USING @p1;

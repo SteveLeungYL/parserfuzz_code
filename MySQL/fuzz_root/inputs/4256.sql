@@ -9,11 +9,9 @@ create table po_order_line ( po_id integer, /* FK to po_order.po_id */ line_no i
 create procedure check_pk_inventory(in id integer) begin declare x integer; declare msg varchar(128); select count(item_id) from in_inventory where in_inventory.item_id = id into x; if (x != 1) then set msg= concat('Failed integrity constraint, table in_inventory, PK:', id); SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg, MYSQL_ERRNO = 10000; end if; end ;
 create procedure check_pk_order(in id integer) begin declare x integer; declare msg varchar(128); select count(po_id) from po_order where po_order.po_id = id into x; if (x != 1) then set msg= concat('Failed integrity constraint, table po_order, PK:', id); SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg, MYSQL_ERRNO = 10000; end if; end ;
 create trigger po_order_bi before insert on po_order for each row begin call check_pk_person(NEW.cust_type, NEW.cust_id); end ;
-create trigger po_order_bu before update on po_order for each row begin call check_pk_person(NEW.cust_type, NEW.cust_id); end ;
 create trigger po_order_line_bi before insert on po_order_line for each row begin call check_pk_order(NEW.po_id); call check_pk_inventory(NEW.item_id); end ;
 create trigger po_order_line_bu before update on po_order_line for each row begin call check_pk_order(NEW.po_id); call check_pk_inventory(NEW.item_id); end ;
 create procedure po_create_order( in p_cust_type char, in p_cust_id integer, out id integer) begin insert into po_order set cust_type = p_cust_type, cust_id = p_cust_id; set id = last_insert_id(); end ;
-create procedure po_add_order_line( in po integer, in line integer, in item integer, in q integer) begin insert into po_order_line set po_id = po, line_no = line, item_id = item, qty = q; end ;
 insert into ab_physical_person values ( 1, "John", "A", "Doe"), ( 2, "Marry", "B", "Smith") ;
 insert into ab_moral_person values ( 3, "ACME real estate, INC"), ( 4, "Local school") ;
 insert into in_inventory values ( 100, "Table, dinner", 5), ( 101, "Chair", 20), ( 200, "Table, coffee", 3), ( 300, "School table", 25), ( 301, "School chairs", 50) ;

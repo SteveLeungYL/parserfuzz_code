@@ -25,7 +25,6 @@ FLUSH TABLES WITH READ LOCK;
 RENAME TABLE t1 TO t2, t3 to t4;
 show tables;
 UNLOCK TABLES;
-reap;
 select * from t2, t4;
 show tables;
 drop table t2, t4;

@@ -27,9 +27,7 @@ create event e_55 on schedule every 10 minute ends 99990101000000 do drop table 
 create event e_55 on schedule at 10000101000000 do drop table t;
 create event e_55 on schedule at 20000101000000 do drop table t;
 show events;
-create event e_55 on schedule at 20380101000000 starts 10000101000000 do drop table t;
 create event e_55 on schedule at 20380101000000 ends 10000101000000 do drop table t;
-create event e_55 on schedule at 20380101000000 starts 10000101000000 ends 10000101000000 do drop table t;
 create event e_55 on schedule every 10 hour starts 10000101000000 do drop table t;
 set global event_scheduler=off;
 set global event_scheduler= on;

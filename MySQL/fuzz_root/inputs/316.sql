@@ -36,5 +36,4 @@ select * from t1;
 ALTER TABLE t2 ADD val INT;
 ROLLBACK;
 SET autocommit = 1;
-REAP;
 drop table t1, t2;
