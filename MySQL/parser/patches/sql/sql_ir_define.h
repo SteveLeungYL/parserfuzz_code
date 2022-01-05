@@ -4319,6 +4319,7 @@ V(kUnknown)
     V(DataParserName) \
     V(DataForeignKey) \
     V(DataPartitionName) \
+    V(DataDatabaseFollow) \
     V(DataLiteral)
 
 

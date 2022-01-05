@@ -33,6 +33,7 @@ vector<string> Mutator::v_view_name; // All saved view names.
 vector<string> Mutator::v_constraint_name; // All constraint names defined in the current SQL.
 vector<string> Mutator::v_foreign_table_name; // All foreign table names defined inthe current SQL.
 vector<string> Mutator::v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
+vector<string> Mutator::v_database_name_follow_single; // All used database name follow in the query. Either test_sqlright1 or mysql.
 
 vector<string> Mutator::v_sys_column_name;
 vector<string> Mutator::v_sys_catalogs_name;
@@ -951,6 +952,7 @@ void Mutator::reset_data_library(){
     v_int_literals.clear();
     v_float_literals.clear();
     v_string_literals.clear();
+    v_database_name_follow_single.clear();
 }
 
 void Mutator::reset_data_library_single_stmt() {
@@ -961,6 +963,7 @@ void Mutator::reset_data_library_single_stmt() {
   this->v_column_names_single.clear();
   this->v_table_name_follow_single.clear();
   this->v_create_foreign_table_names_single.clear();
+  this->v_database_name_follow_single.clear();
 }
 
 
@@ -1122,7 +1125,8 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataPragmaValue, kDataLiteral, 
     kDataIndexName, kDataAliasName, 
     kDataSequenceName,
-    kDataViewName, kDataSequenceName
+    kDataViewName, kDataSequenceName,
+    kDataDatabase, kDataDatabaseFollow, kDataTableNameFollow
     // kDataRelOption, kDataTableNameFollow, kDataColumnNameFollow, kDataStatisticName, kDataForeignTableName, kDataConstraintName,
     // kDataStatisticName, kDataAliasTableName,
   };
@@ -1150,6 +1154,63 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
   bool is_replace_table = false, is_replace_column = false;
   for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {  // Loop for substmt.
+
+    /* kUse of kDatabaseName. We don't care about kDefine and kUndefine of kDatabase */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) != fixed_ir.end()) {
+        continue;
+      }
+
+      if (
+        (ir_to_fix->data_type_ == kDataDatabaseFollow) &&
+        (ir_to_fix->data_flag_ == kUse)
+      ) {
+        if (ir_to_fix->get_str_val() == "mysql") {
+          if (get_rand_int(20) < 19) {
+            // In 9.5/10 chances, keep the original mysql.* sql. 
+            v_database_name_follow_single.push_back(ir_to_fix->get_str_val());
+            fixed_ir.push_back(ir_to_fix);
+            continue;
+          }
+        }
+        // not 'msyql', set it to default 'test_sqlright1'
+        ir_to_fix->set_str_val("test_sqlright1");
+        v_database_name_follow_single.push_back(ir_to_fix->get_str_val());
+        fixed_ir.push_back(ir_to_fix);
+        continue;
+      }
+
+      // For kUse of kDataDatabase. 
+      if (
+        (ir_to_fix->data_type_ == kDataDatabase) &&
+        (ir_to_fix->data_flag_ == kUse)
+      ) {
+        // set it to default 'test_sqlright1'
+        ir_to_fix->set_str_val("test_sqlright1");
+        fixed_ir.push_back(ir_to_fix);
+        continue;
+      }
+
+      if (
+        (ir_to_fix->data_type_ == kDataDatabase || ir_to_fix->data_type_ == kDataDatabaseFollow) &&
+        (ir_to_fix->data_flag_ == kDefine)
+      ) {
+        ir_to_fix->set_str_val("test_sqlright1");
+        v_database_name_follow_single.push_back(ir_to_fix->get_str_val());
+        fixed_ir.push_back(ir_to_fix);
+        continue;
+      }
+
+      if (
+        (ir_to_fix->data_type_ == kDataDatabase || ir_to_fix->data_type_ == kDataDatabaseFollow) &&
+        (ir_to_fix->data_flag_ == kUndefine)
+      ) {
+        ir_to_fix->set_str_val("test_sqlright1");
+        v_database_name_follow_single.push_back(ir_to_fix->get_str_val());
+        fixed_ir.push_back(ir_to_fix);
+        continue;
+      }
+    }
 
     vector<string> v_with_clause_alias_table_name;
 
@@ -1250,6 +1311,42 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       //   }
 
       // }
+    }
+
+    /* kUse of kDataTableNameFollow */ 
+    for (IR* ir_to_fix : ir_to_fix_vec){
+      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) != fixed_ir.end()) {
+        continue;
+      }
+      
+      int follow_id = 0;
+      if (ir_to_fix->data_type_ == kDataTableNameFollow && ir_to_fix->data_flag_ == kUse) {
+        if (v_database_name_follow_single.size() > follow_id) {
+
+          if (v_database_name_follow_single[follow_id] == "mysql") {
+            if (is_debug_info) {
+              cerr << "Dependency: Using mysql default table. Do not change. \n\n\n";
+            }
+            // Keep original
+            fixed_ir.push_back(ir_to_fix);
+            continue;
+          } 
+
+          // Not "mysql" database. Treat it as normal table. 
+          else {
+            ir_to_fix->data_type_ = kDataTableName;
+            continue;
+          }
+
+        } else {
+          if (is_debug_info) {
+            cerr << "ERROR: Cannot find the kDatabaseNameFollow, treat it as normal kTableName. \n\n\n";
+          }
+          ir_to_fix->data_type_ = kDataTableName;
+          continue;
+        }
+      }
+
     }
 
 

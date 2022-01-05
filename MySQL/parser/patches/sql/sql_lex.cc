@@ -5417,8 +5417,17 @@ bool IR::set_table_ident_type(DATATYPE data_type, DATAFLAG data_flag) {
   IR* left = get_left();
   IR* right = get_right();
   if (right) {
-    left->set_ident_type(kDataDatabase, data_flag);
-    right->set_ident_type(data_type, data_flag);
+
+    if ( data_flag == kUse ) {
+      // If it is kUse, then the table name should be treated as kDataTableNameFollow. 
+      left->set_ident_type(kDataDatabaseFollow, data_flag);
+      right->set_ident_type(kDataTableNameFollow, data_flag);
+    } else {
+      // If it is NOT kUse, keep its original type.
+      left->set_ident_type(kDataDatabase, data_flag);
+      right->set_ident_type(data_type, data_flag);
+    }
+
   } else if (left) {
     left->set_ident_type(data_type, data_flag);
   } else {
