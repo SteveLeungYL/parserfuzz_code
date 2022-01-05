@@ -160,6 +160,11 @@ int main(int argc, char *argv[]) {
   IR* ir_root = ir_wrapper.reconstruct_ir_with_stmt_vec(stmt_ir_vec);
   // mutator.debug(ir_root, 0);
 
+  if (!ir_root) {
+    cerr << "Reconstructed ir_root is NULL!!!. Return NULL";
+    return;
+  }
+
   for (IR* ir : stmt_ir_vec) {
     ir->deep_drop();
   }
