@@ -1,6 +1,0 @@
-call mtr.add_suppression("Unsafe statement written to the binary log using statement format since BINLOG_FORMAT = STATEMENT");
-CREATE USER IF NOT EXISTS 'root'@'127.0.0.1';
-CREATE USER IF NOT EXISTS 'root'@'::1';
-GRANT ALL ON *.* TO 'root'@'127.0.0.1', 'root'@'::1' WITH GRANT OPTION;
-DROP USER 'root'@'::1';
-DROP USER 'root'@'127.0.0.1';

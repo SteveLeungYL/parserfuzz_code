@@ -224,7 +224,7 @@ public:
 
     dbname = "test_sqlright1";
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
+    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
@@ -396,11 +396,11 @@ public:
       // cerr << "Could not execute statement\n";
     } while (status == 0);
 
-    cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
-    if (mysql_errno(m_)) {
-      cerr << "Error message: " << mysql_error(m_) << "\n";
-    }
-    cerr << "\n\n";
+    // cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
+    // if (mysql_errno(m_)) {
+    //   cerr << "Error message: " << mysql_error(m_) << "\n";
+    // }
+    // cerr << "\n\n";
 
     string ret_str;
     if (mysql_errno(m_)) {
@@ -486,7 +486,7 @@ public:
     int retry_time = 0;
     while(!conn){
       //cout << "reconnecting..." << endl;
-      sleep(5);
+      std::this_thread::sleep_for(std::chrono::milliseconds(30));
       conn = connect();
       if(!conn)
         fix_database();
@@ -515,17 +515,17 @@ public:
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
 
-    for (string cur_cmd_str : v_cmd_str) {
+    // for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
-      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-      res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+      server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
+      res_str += retrieve_query_results(m_, cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
       if (server_response == CR_SERVER_LOST) {
         cerr << "Server Lost or Server Crashes! \n\n\n";
-        break;
+        // break;
       }
-    }
+    // }
 
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
@@ -608,7 +608,7 @@ public:
       return 0;
     }
 
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
@@ -3047,7 +3047,12 @@ static u8 run_target(char **argv, u32 timeout, const string& cmd_string, string&
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 BEGIN:
+  auto single_execution_start_time = std::chrono::system_clock::now();
   auto result = g_mysqlclient.execute(cmd_string.c_str(), res_str);
+  // DEBUG
+  auto single_execution_end_time = std::chrono::system_clock::now();
+  std::chrono::duration<double> single_executon_used_time = single_execution_end_time - single_execution_start_time;
+  cerr << "\n\nFor single execution of inputs, used time: " << single_executon_used_time.count() << ". \n\n\n";
 
 #ifdef COUNT_ERROR
   execute_result = result;
@@ -6393,6 +6398,9 @@ static u8 fuzz_one(char **argv)
 
   string input;
 
+  // DEBUG
+  string ori_input_str;
+
   /* If this is a timeout query, skip it immediately. */
   if (queue_cur->is_timeout) {
     SAYF("\n" cLRD "[-] " cRST
@@ -6500,6 +6508,9 @@ static u8 fuzz_one(char **argv)
   IR* cur_root;
   cur_root = ori_ir_tree.back();
 
+  // DEBUG: 
+  // ori_input_str = cur_root->to_string();
+
   // cerr << "Getting the original parsing results. \n\n\n";
   // g_mutator.debug(cur_root, 0);
   // cerr << "\n\n\n";
@@ -6587,8 +6598,12 @@ static u8 fuzz_one(char **argv)
       goto abandon_entry;
     }
 
+    auto single_mutation_start_time = std::chrono::system_clock::now();
+
     /* The mutated IR tree is deep_copied() */
     vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
+
+    num_mutate_all++;
 
     for (IR* mutated_ir_root : v_mutated_ir_root) {
 
@@ -6618,6 +6633,10 @@ static u8 fuzz_one(char **argv)
         continue;
       }
       num_reparse++;
+
+      // cerr << "After mutate and reparse, we get ori_str: \n" << ori_input_str << "\nmutated_str: " << cur_ir_tree.back()->to_string() << "\n\n\n";
+
+      // cerr << "IR size: " << cur_ir_tree.size() << "\n\n\n";
 
       for (IR* app_IR_node : v_oracle_select_stmts) {
         p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
@@ -6761,6 +6780,11 @@ static u8 fuzz_one(char **argv)
     for (IR* mutated_ir_root : v_mutated_ir_root) {
       mutated_ir_root->deep_drop();
     }
+
+    // DEBUG
+    auto single_mutation_end_time = std::chrono::system_clock::now();
+    std::chrono::duration<double> single_mutation_used_time = single_mutation_end_time - single_mutation_start_time;
+    cerr << "\n\nFor single mutation of seed: " << queue_cur->fname << ", used time: " << single_mutation_used_time.count() << ". \n\n\n";
 
   } // ir_set vector
 
