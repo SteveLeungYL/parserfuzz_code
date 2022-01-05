@@ -24564,6 +24564,8 @@ insert_ident:
         res = new IR(kInsertIdent, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp1 -> set_simple_ident_nospvar_type(kDataColumnName, kUse);
     }
 
     | table_wild {
