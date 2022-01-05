@@ -1804,7 +1804,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
 
 
-      if (ir_to_fix->data_type_ == kDataColumnName && ir_to_fix->data_flag_ == kUse) {
+      if (ir_to_fix->data_type_ == kDataColumnName && 
+        (
+          ir_to_fix->data_flag_ == kUse ||
+          ir_to_fix->data_flag_ == kUseDefine
+        )
+      ) {
         if (is_debug_info) {
           cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
           cerr << "In the kDataColumnName with kUse, found v_alias_names_single.size: " << v_alias_names_single.size() << "\n\n\n";
@@ -1820,6 +1825,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           // Do not use alias inside kWithClause
           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) &&
           v_alias_names_single.size() > 0 &&
+          ir_to_fix->data_flag_ != kUseDefine  && // Do not use alias in kUseDefine!!!
           get_rand_int(3) < 2
         ) {
           /* We have defined a new alias for column name! use it with 66% percentage. */
@@ -1837,19 +1843,36 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         //   continue;
         // }
 
-
         string closest_table_name = "";
-        if (v_table_names_single.size() != 0) {
+
+        // If it is kUseDefine, only look at the table that is just created. 
+        if (ir_to_fix->data_flag_ == kUseDefine) {
+          if (v_create_table_names_single.size() != 0) {
+            closest_table_name = v_create_table_names_single[0];
+            if (is_debug_info) {
+              cerr << "Dependency: In kUseDefine of kDataColumnName, find newly declared table name: " << closest_table_name << " for column name   origin. \n\n\n" << endl;
+            }
+          } else {
+            if (is_debug_info) {
+              cerr << "Error: In kUseDefine of kDataColumnName, cannot find newly declared table name for column name origin. Ignored. \n\n\n" << endl;
+            }
+            fixed_ir.push_back(ir_to_fix);
+            continue;  // Keep original. 
+          }
+        }
+
+
+        if (v_table_names_single.size() != 0 && ir_to_fix->data_flag_ == kUse) {
           closest_table_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
           if (is_debug_info) {
             cerr << "Dependency: In kUse of kDataColumnName, find table name: " << closest_table_name << " for column name origin. \n\n\n" << endl;
           }
-        } else if (v_create_table_names_single.size() != 0) {
+        } else if (v_create_table_names_single.size() != 0  && ir_to_fix->data_flag_ == kUse) {
           closest_table_name = v_create_table_names_single[0];
           if (is_debug_info) {
             cerr << "Dependency: In kUse of kDataColumnName, find newly declared table name: " << closest_table_name << " for column name origin. \n\n\n" << endl;
           }
-        } else if (v_alias_names_single.size() != 0) {
+        } else if (v_alias_names_single.size() != 0  && ir_to_fix->data_flag_ == kUse) {
            ir_to_fix->str_val_ = v_alias_names_single[get_rand_int(v_alias_names_single.size())];
            if (is_debug_info) {
              cerr << "Dependency: In kUse of kDataColumnName, use alias name as the column name. Use alias name: " << ir_to_fix->str_val_ << " for column name. \n\n\n" << endl;
@@ -1857,7 +1880,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
            // Finished assigning column name. continue;
            fixed_ir.push_back(ir_to_fix);
            continue;
-        } else if (v_table_names.size() != 0) {
+        } else if (v_table_names.size() != 0  && ir_to_fix->data_flag_ == kUse) {
 
           /* This should be an error. 
           ** 80% chances, keep original. 

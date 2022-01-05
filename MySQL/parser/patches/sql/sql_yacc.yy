@@ -9873,6 +9873,8 @@ table_constraint_def:
         res = new IR(kTableConstraintDef, OP3("", "", ""), res, tmp4);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp3->set_key_list_with_expression_type(kDataColumnName, kUseDefine);
     }
 
     | FULLTEXT_SYM opt_key_or_index opt_ident '(' key_list_with_expression ')' opt_fulltext_index_options {
@@ -9929,6 +9931,8 @@ table_constraint_def:
         res = new IR(kTableConstraintDef, OP3("", "", ""), res, tmp5);
         ir_vec.push_back(res); 
         $$ = res;
+
+        tmp4->set_key_list_with_expression_type(kDataColumnName, kUseDefine);
     }
 
     | opt_constraint_name FOREIGN KEY_SYM opt_ident '(' key_list ')' references {
