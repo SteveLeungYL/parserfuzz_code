@@ -4319,6 +4319,7 @@ V(kUnknown)
     V(DataParserName) \
     V(DataForeignKey) \
     V(DataPartitionName) \
+    V(DataDatabaseFollow) \
     V(DataLiteral)
 
 
@@ -4464,6 +4465,7 @@ enum DATAFLAG {
   kMapToAll,
   kDefine,
   kNoModi,
+  kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc. 
   kFlagUnknown
 };
 
@@ -4646,6 +4648,10 @@ public:
     bool set_view_tail_type(DATAFLAG);
     bool set_simple_ident_nospvar_type(DATATYPE, DATAFLAG);
     bool set_using_list_type(DATATYPE, DATAFLAG);
+    bool set_key_part_type(DATATYPE, DATAFLAG);
+    bool set_key_part_with_expression_type(DATATYPE, DATAFLAG);
+    bool set_key_list_with_expression_type(DATATYPE, DATAFLAG);
+
 };
 
 /*

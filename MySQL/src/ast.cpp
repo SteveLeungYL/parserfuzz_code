@@ -47,6 +47,8 @@ string get_string_by_data_flag(DATAFLAG flag_type_) {
     return "kMapToAll";
   case kDefine:
     return "kDefine";
+  case kUseDefine:
+    return "kUseDefine";
   default:
     return "kUnknown";
   }

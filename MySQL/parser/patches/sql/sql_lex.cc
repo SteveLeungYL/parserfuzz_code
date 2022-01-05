@@ -5417,8 +5417,17 @@ bool IR::set_table_ident_type(DATATYPE data_type, DATAFLAG data_flag) {
   IR* left = get_left();
   IR* right = get_right();
   if (right) {
-    left->set_ident_type(kDataDatabase, data_flag);
-    right->set_ident_type(data_type, data_flag);
+
+    if ( data_flag == kUse ) {
+      // If it is kUse, then the table name should be treated as kDataTableNameFollow. 
+      left->set_ident_type(kDataDatabaseFollow, data_flag);
+      right->set_ident_type(kDataTableNameFollow, data_flag);
+    } else {
+      // If it is NOT kUse, keep its original type.
+      left->set_ident_type(kDataDatabase, data_flag);
+      right->set_ident_type(data_type, data_flag);
+    }
+
   } else if (left) {
     left->set_ident_type(data_type, data_flag);
   } else {
@@ -5649,6 +5658,58 @@ bool IR::set_using_list_type(DATATYPE data_type, DATAFLAG data_flag) {
 
   return true;
 }
+
+
+bool IR::set_key_list_with_expression_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kKeyListWithExpression);
+
+  if (get_right()) { // Has nested kKeyListWithExpression
+    if (get_left()) { // Left is the kKeyListWithExpression. Nested
+      this->get_left()->set_key_list_with_expression_type(data_type, data_flag);
+    }
+    if (get_right()) {  // Left is the kKeyPartWithExpression.
+      this->get_right()->set_key_part_with_expression_type(data_type, data_flag);
+    }
+  } else {
+    if (get_left()) { // Left is the kKeyPartWithExpression. 
+      this->get_left()->set_key_part_with_expression_type(data_type, data_flag);
+    }
+  }
+
+  return true;
+}
+
+bool IR::set_key_part_with_expression_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kKeyPartWithExpression);
+
+  if (get_left() && get_left()->get_ir_type() == kKeyPart) {
+    get_left()->set_key_part_type(data_type, data_flag);
+  }
+
+  // Only fixing kKeyPart. kExpr is out of our control. 
+
+  return true;
+}
+
+bool IR::set_key_part_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kKeyPart);
+
+  // Only fixing the iden in this stmt. 
+  // The first case.
+  if (get_left() && get_left()->get_ir_type() == kIdentifier) {
+    get_left()->set_ident_type(data_type, data_flag);
+  }
+
+  // The second case.
+  if (get_left() && get_left()->get_left() && get_left()->get_left()->get_ir_type() == kIdentifier) {
+    get_left()->get_left()->set_ident_type(data_type, data_flag);
+  }
+
+  return true;
+
+}
+
+
 
 IR* IR::where_clause_get_expr() {
   assert(this->get_ir_type() == kWhereClause);

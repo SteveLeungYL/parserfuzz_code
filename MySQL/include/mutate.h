@@ -245,6 +245,8 @@ public:
     static vector<string> v_foreign_table_name;                // All foreign table names defined inthe current SQL.
     static vector<string> v_create_foreign_table_names_single; // All foreign table names created in the current SQL.
 
+    static vector<string> v_database_name_follow_single;       // All used database name follow in the query. Either test_sqlright1 or mysql. 
+
     // map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
     static vector<string> v_sys_column_name;
     static vector<string> v_sys_catalogs_name;
