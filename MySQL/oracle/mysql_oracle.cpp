@@ -61,7 +61,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
 
     // cerr << "DEBUG: In get_random_mutated_select_stmt: getting ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n" << cur_ir_stmt->to_string() << "\n\n\n\n";
 
-    if (!g_mutator->check_node_num(root, 400)) {
+    if (!g_mutator->check_node_num(root, 300)) {
       /* The retrived norec stmt is too complicated to mutate, directly return
        * the retrived query. */
       IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();

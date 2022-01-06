@@ -55,6 +55,8 @@ IR* test_parse(string &query) {
     return NULL;
   }
 
+  cerr << "Current stmt ir size is: " << v_ir.size() << "\n\n\n";
+
   IR *root = v_ir.back();
 
   mutator.debug(root, 0);

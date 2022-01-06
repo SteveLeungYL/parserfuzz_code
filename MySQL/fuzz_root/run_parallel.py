@@ -43,8 +43,9 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     # Set up the mysql data folder first. 
     cur_mysql_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_" + str(cur_inst_id))
-    if not os.path.isdir(cur_mysql_data_dir_str):
-        shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
+    if os.path.isdir(cur_mysql_data_dir_str):
+        shutil.rmtree(cur_mysql_data_dir_str)
+    shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
 
     # Set up SQLRight output folder
     cur_output_dir_str = "./outputs_" + str(cur_inst_id - starting_core_id)
@@ -59,7 +60,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     socket_path = "/tmp/mysql_" + str(cur_inst_id) + ".sock "
 
     # Start running the SQLRight fuzzer. 
-    fuzzing_command = "AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 ./afl-fuzz -t 2000 -m 2000 " \
+    fuzzing_command = "AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES=1 ./afl-fuzz -t 100 -m 4000 " \
                         + " -P " + str(cur_port_num) \
                         + " -K " + socket_path \
                         + " -i ./inputs " \

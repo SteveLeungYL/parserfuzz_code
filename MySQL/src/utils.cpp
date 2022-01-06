@@ -226,6 +226,12 @@ int run_parser_multi_stmt(string cmd_str, vector<IR*>& ir_vec_all_stmt) {
       continue;
     }
 
+    if (ir_vec_single.size() > 300) {
+      // Do not save too complicated statements. 
+      cur_ir_root->deep_drop();
+      continue;
+    }
+
     // cerr << "Just run throught the run_parser, getting: \n";
     // cerr << cur_ir_root->to_string();
     // cerr << "\nend for single stmt. \n\n\n";
