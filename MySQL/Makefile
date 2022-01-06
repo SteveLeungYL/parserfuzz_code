@@ -15,7 +15,7 @@ export CC = g++
 export DEBUG =
 export OPT = -O3
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
-LDFLAGS = -ldl -lmysqlclient -pg
+LDFLAGS = -ldl -lmysqlclient
 
 include parser/link_depend.make
 
