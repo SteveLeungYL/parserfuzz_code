@@ -48,7 +48,7 @@ int run_parser(string cmd_str, vector<IR*>& ir_vec) {
     return 1;
   }
 
-  my_testing::teardown_server_simple();
+  // my_testing::teardown_server_simple();
 
   // printf("Exit parser function.\n");
   return 0;
