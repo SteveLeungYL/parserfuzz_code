@@ -532,7 +532,7 @@ public:
     /* For debug purpose */
     if (res_str.find("CHECK_MATE") == string::npos) {
       cerr << "RESULT NOT RETURN CORRECTLY!\n\n\ncmd_str: " << cmd_str << "\n\n\nRes: " << res_str << "\n\n\n";
-      FATAL("RESULT NOT RETURN CORRECTLY!");
+      // FATAL("RESULT NOT RETURN CORRECTLY!");
     }
 
     if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
@@ -608,7 +608,7 @@ public:
       return 0;
     }
 
-    vector<string> v_cmd = {"DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
