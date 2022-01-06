@@ -24785,9 +24785,12 @@ IDENT_sys:
             }
             else
             {
-              if (thd->convert_string(&$$, system_charset_info,
-                                  $1.str, $1.length, thd->charset()))
-                MYSQL_YYABORT;
+            //   if (thd->convert_string(&$$, system_charset_info,
+            //                       $1.str, $1.length, thd->charset()))
+
+            /* Yu: Has leaks. Do not make it too complicated, just returns.  */
+                $$= $1;
+                // MYSQL_YYABORT;
             }
           }
         ;
@@ -24829,9 +24832,12 @@ TEXT_STRING_sys:
               $$= $1;
             else
             {
-              if (thd->convert_string(&$$, system_charset_info,
-                                  $1.str, $1.length, thd->charset()))
-                MYSQL_YYABORT;
+            //   if (thd->convert_string(&$$, system_charset_info,
+            //                       $1.str, $1.length, thd->charset()))
+
+            /* Yu: Has leaks. Do not make it too complicated, just returns.  */
+                $$= $1;
+                // MYSQL_YYABORT;
             }
           }
         ;
@@ -24845,9 +24851,12 @@ TEXT_STRING_literal:
               $$= $1;
             else
             {
-              if (thd->convert_string(&$$, thd->variables.collation_connection,
-                                  $1.str, $1.length, thd->charset()))
-                MYSQL_YYABORT;
+            //   if (thd->convert_string(&$$, thd->variables.collation_connection,
+            //                       $1.str, $1.length, thd->charset()))
+
+            /* Yu: Has leaks. Do not make it too complicated, just returns.  */
+                $$= $1;
+                // MYSQL_YYABORT;
             }
           }
         ;
@@ -24862,10 +24871,13 @@ TEXT_STRING_filesystem:
               $$= $1;
             else
             {
-              if (thd->convert_string(&$$,
-                                      thd->variables.character_set_filesystem,
-                                      $1.str, $1.length, thd->charset()))
-                MYSQL_YYABORT;
+            //   if (thd->convert_string(&$$,
+            //                           thd->variables.character_set_filesystem,
+            //                           $1.str, $1.length, thd->charset()))
+
+            /* Yu: Has leaks. Do not make it too complicated, just returns.  */
+                $$= $1;
+                // MYSQL_YYABORT;
             }
           }
         ;
@@ -24894,9 +24906,14 @@ TEXT_STRING_validated:
               $$= $1;
             else
             {
-              if (thd->convert_string(&$$, system_charset_info,
-                                  $1.str, $1.length, thd->charset(), true))
-                MYSQL_YYABORT;
+            //   if (thd->convert_string(&$$, system_charset_info,
+            //                       $1.str, $1.length, thd->charset(), true)) {
+            //     MYSQL_YYABORT;
+            //                       }
+            
+            /* Yu: Has leaks. Do not make it too complicated. Just return is fine. */
+                $$= $1;
+            //   MYSQL_YYABORT;
             }
           }
         ;
