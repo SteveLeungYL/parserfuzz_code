@@ -224,7 +224,7 @@ public:
 
     dbname = "test_sqlright1";
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
@@ -515,17 +515,18 @@ public:
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
 
-    // for (string cur_cmd_str : v_cmd_str) {
+    for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
-      server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
-      res_str += retrieve_query_results(m_, cmd_str) + "\n";
+      // server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
+      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+      res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
       correctness = clean_up_connection(m_);
 
       if (server_response == CR_SERVER_LOST) {
         cerr << "Server Lost or Server Crashes! \n\n\n";
-        // break;
+        break;
       }
-    // }
+    }
 
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
@@ -601,7 +602,7 @@ public:
       mysql_close(&tmp_m);
       return 0;
     }
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_sqlright1", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_sqlright1", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
