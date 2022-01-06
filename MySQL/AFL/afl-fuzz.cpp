@@ -1002,7 +1002,7 @@ static void shuffle_ptrs(void **ptrs, u32 cnt)
 /* Build a list of processes bound to specific cores. Returns -1 if nothing
    can be found. Assumes an upper bound of 4k CPUs. */
 
-static void bind_to_free_cpu(void)
+static void bind_to_free_cpu(int bind_to_core_id = -1)
 {
 
   DIR *d;
@@ -1106,7 +1106,15 @@ static void bind_to_free_cpu(void)
     FATAL("No more free CPU cores");
   }
 
-  OKF("Found a free CPU core, binding to #%u.", i);
+  if (bind_to_core_id < cpu_core_count && bind_to_core_id >= 0)
+  {
+    i = u32(bind_to_core_id);
+    OKF("By command flags, binding to #%u.", i);
+  }
+  else
+  {
+    OKF("Found a free CPU core, binding to #%u.", i);
+  }
 
   cpu_aff = i;
 
@@ -8307,7 +8315,7 @@ int main(int argc, char *argv[])
       break;
 
     case 'c': /* bind to specific CPU core num */
-      bind_to_port = atoi(optarg);
+      bind_to_core_id = atoi(optarg);
       break;
     
     case 'P': /* Accessing MySQL using port num.  */
@@ -8464,7 +8472,7 @@ int main(int argc, char *argv[])
 
   get_core_count();
 #ifdef HAVE_AFFINITY
-  bind_to_free_cpu();
+  bind_to_free_cpu(bind_to_core_id);
 #endif /* HAVE_AFFINITY */
 
   check_crash_handling();
