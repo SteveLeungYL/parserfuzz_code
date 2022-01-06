@@ -17780,7 +17780,7 @@ sum_expr:
     | MIN_SYM '(' in_sum_expr ')' opt_windowing_clause {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kSumExpr, OP3("", "", ""), tmp1, tmp2);
+        res = new IR(kSumExpr, OP3("MIN(", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
     }
