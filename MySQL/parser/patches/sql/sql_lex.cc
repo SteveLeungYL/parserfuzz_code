@@ -515,14 +515,15 @@ bool lex_start(THD *thd) {
   // Initialize the cost model to be used for this query
   thd->init_cost_model();
 
-  const bool status = lex->new_top_level_query();
-  assert(lex->current_query_block() == nullptr);
-  lex->m_current_query_block = lex->query_block;
+  // const bool status = lex->new_top_level_query();
+  // assert(lex->current_query_block() == nullptr);
+  // lex->m_current_query_block = lex->query_block;
 
-  lex->m_IS_table_stats.invalidate_cache();
-  lex->m_IS_tablespace_stats.invalidate_cache();
+  // lex->m_IS_table_stats.invalidate_cache();
+  // lex->m_IS_tablespace_stats.invalidate_cache();
 
-  return status;
+  // return status;
+  return true;
 }
 
 /**
