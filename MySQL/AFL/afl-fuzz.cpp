@@ -87,7 +87,7 @@
 
 #include "../oracle/mysql_oracle.h"
 #include "../oracle/mysql_norec.h"
-// #include "../oracle/mysql_tlp.h"
+#include "../oracle/mysql_tlp.h"
 
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
@@ -1567,7 +1567,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
 
     if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2) || unlikely(dump_library && !map_id_out_f.fail())) {
+      if (likely(ret < 2) || (dump_library && !map_id_out_f.fail())) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -8329,8 +8329,8 @@ int main(int argc, char *argv[])
       string arg = string(optarg);
       if (arg == "NOREC")
         p_oracle = new SQL_NOREC();
-      // else if (arg == "TLP")
-      //   p_oracle = new SQL_TLP();
+      else if (arg == "TLP")
+        p_oracle = new SQL_TLP();
       // else if (arg == "LIKELY")
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")

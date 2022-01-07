@@ -729,136 +729,184 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
 
 IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
 
-// TODO::: TLP:: LAST FUNCTION WIP
-return NULL;
+  cur_stmt = cur_stmt->deep_copy();
 
-//   cur_stmt = cur_stmt->deep_copy();
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSumExpr, false);
+  if (v_aggr_func_ir.size() == 0) {
+    cur_stmt->deep_drop();
+    // cerr << "Error: In SQL_TLP::transform_aggr, cannot find kFuncName. \n";
+    return NULL;
+  }
 
-//   vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSumExpr, false);
-//   if (v_aggr_func_ir.size() == 0) {
-//     cur_stmt->deep_drop();
-//     // cerr << "Error: In SQL_TLP::transform_aggr, cannot find kFuncName. \n";
-//     return NULL;
-//   }
+  IR* aggr_func_ir = v_aggr_func_ir.front();
 
-//   IR* aggr_func_ir = v_aggr_func_ir.front();
+  if (aggr_func_ir->get_left() == NULL) {
+    cerr << "ERROR: In transform_aggr, the kFuncName IR doesn't have the left sub-node. \n";
+    cur_stmt->deep_drop();
+    return NULL;
+  }
 
-//   if (aggr_func_ir->get_left() == NULL) {
-//     cerr << "ERROR: In transform_aggr, the kFuncName IR doesn't have the left sub-node. \n";
-//     cur_stmt->deep_drop();
-//     return NULL;
-//   }
+  if (
+    // tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX ||
+    tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN
+  ) {
 
-//   if (
-//     // tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
-//     tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM ||
-//     tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX ||
-//     tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN
-//   ) {
+    /* First of all, check whether there is existing alias name in the stmt */
+    vector<IR*> v_select_alias = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSelectAlias, false);
+    if (v_select_alias.size() > 0) {
+      IR* select_alias_ir = v_select_alias.front();
+      if (!select_alias_ir->is_empty()) {
+        /* Found the originally existed matching alias. Change it to aggr*/
+        IR* iden = select_alias_ir->get_left();
+        iden -> set_str_val(string("aggr"));
+      }
 
-//     /* First of all, check whether there is existing alias name in the stmt */
-//     vector<IR*> v_targetel = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetEl, false);
-//     if (v_targetel.size() > 0) {
-//       IR* targetel = v_targetel.front();
-//       if (!strcmp(targetel->get_middle(), "AS")) {
-//         /* Found the originally existed matching alias. Change it to aggr*/
-//         IR* iden = targetel->get_right();
-//         iden -> set_str_val(string("aggr"));
-//       }
-//       else {
-//         /* We cannot find the existing alias, create our own */
-//         IR *alias_id = new IR(kIdentifier, string("aggr"), kDataAliasName, 0, kDefine);
-//         IR* res = new IR(kTargetEl, OP3("AS", "", ""), alias_id);
-//         res = new IR(kTargetEl, OP0(), NULL, res);
+      // We found v_select_alis, but it is empty. Fill in our own. 
+      else {
+        IR* new_alias_iden = new IR(kIdentifier, string("AS aggr")); // This is postfix, do not need to worry about validate fixing. 
+        select_alias_ir->update_left(new_alias_iden);
+      }
+    } 
+    else {
+      // If we cannot find select_alias. Create our own and insert. 
+      IR* new_alias_iden = new IR(kIdentifier, string("AS aggr"));
 
-//         /* Swap and reattach the original targetel */
-//         cur_stmt->swap_node(targetel, res);
-//         res->update_left(targetel);
+      vector<IR*> v_select_item = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSelectItem, false);
+      if (v_select_item.size() != 1) {
+        new_alias_iden->deep_drop();
+        cur_stmt->deep_drop();
+        return NULL;
+      }
+      IR* cur_select_item = v_select_item.front();
+      if (!cur_select_item->get_right()) {
+        new_alias_iden->deep_drop();
+        cur_stmt->deep_drop();
+        return NULL;
+      }
+      cur_select_item->update_right(new_alias_iden);
 
-//         /* Finished modification to the alias, if it is not AVG. */
-//       }
-//     }
-//   } else {
-//     /* Fix for VALID_STMT_TYPE_TLP::AGGR_AVG */
-//     /* First of all, check whether there is existing alias name in the stmt */
-//     vector<IR*> v_targetel = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetEl, false);
-//     if (v_targetel.size() > 0) {
-//       IR* targetel = v_targetel.front();
-//       vector<IR*> v_func_name_ir = ir_wrapper.get_ir_node_in_stmt_with_type(targetel, kFuncName, false);
-//       if (v_func_name_ir.size() == 0 ){
-//         cerr << "Error: Cannot find kFuncName inside kTargetEl. TLP oracle logic error. \n";
-//         cur_stmt->deep_drop();
-//         return NULL;
-//       }
-//       IR* func_name_ir = v_func_name_ir.front();
+    }
 
-//       IR* res_0 = NULL;
-//       IR* res_1 = NULL;
-//       if (targetel->target_el_is_exist_alias()) {
-//         /* Found the originally existed matching alias. Change it to aggr*/
-//         targetel->target_el_set_alias(string("c"));
-//         func_name_ir->func_name_set_str("COUNT");
-//         res_1 = targetel->deep_copy();
+// If it is a aggregate SUM/MIN/MAX function select, we finished adding alias in the logic above. 
 
+  } else {
+    /* Fix for VALID_STMT_TYPE_TLP::AGGR_AVG */
+    /* First of all, check whether there is existing alias name in the stmt */
+    // Change the original SELECT AVG(c1) ... to SELECT SUM(c1), COUNT(c1) ...
+    vector<IR*> v_select_item = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSelectItem, false);
+    if (v_select_item.size() != 1) {
+      cur_stmt->deep_drop();
+      return NULL;
+    }
 
-//         targetel->target_el_set_alias(string("s"));
-//         func_name_ir->func_name_set_str("SUM");
-//         res_0 = targetel->deep_copy();
+    IR* select_item_ir = v_select_item.front();
+    vector<IR*> v_func_name_ir = ir_wrapper.get_ir_node_in_stmt_with_type(select_item_ir, kSumExpr, false);
+    if (v_func_name_ir.size() == 0 ){
+      cerr << "Error: Cannot find kFuncName inside kTargetEl. TLP oracle logic error. \n";
+      cur_stmt->deep_drop();
+      return NULL;
+    }
+    IR* func_name_ir = v_func_name_ir.front();
 
-//         IR* target_list_ir = new IR(kTargetList, OP3("", ",", ""), res_0, res_1);
-//         cur_stmt->swap_node(targetel, target_list_ir);
-//         targetel->deep_drop();
+    IR *alias_id_0 = new IR(kIdentifier, string("AS s"), kDataAliasName, 0, kDefine);
+    IR *alias_id_1 = new IR(kIdentifier, string("AS c"), kDataAliasName, 0, kDefine);\
 
-//       } else {
-//         /* Cannot find existing alias, create our own */
-//         func_name_ir->func_name_set_str("SUM");
+    IR* new_func_name_ir_0 = func_name_ir->deep_copy();
+    IR* new_func_name_ir_1 = func_name_ir->deep_copy();
+    if (new_func_name_ir_0->get_str_val() == "AVG(") {
+      new_func_name_ir_0->set_str_val("SUM(");
+      new_func_name_ir_1->set_str_val("COUNT(");
+    } else if (new_func_name_ir_0->get_str_val() == "AVG( DISTINCT") {
+      new_func_name_ir_0->set_str_val("SUM(DISTINCT");
+      new_func_name_ir_1->set_str_val("COUNT(DISTINCT");
+    } else {
+      cur_stmt->deep_drop();
+      return NULL;
+    }
 
-//         IR *alias_id_0 = new IR(kIdentifier, string("s"), kDataAliasName, 0, kDefine);
-//         res_0 = new IR(kTargetEl, OP3("AS", "", ""), alias_id_0);
-//         res_0 = new IR(kTargetEl, OP0(), targetel->deep_copy(), res_0);
+    IR* new_select_item_0 = new IR(kSelectItem, OP0(), new_func_name_ir_0, alias_id_0);
+    IR* new_select_item_1 = new IR(kSelectItem, OP0(), new_func_name_ir_1, alias_id_1);
 
+    IR* new_select_item_list = new IR(kSelectItemList, OP3("", ",", ""), new_select_item_0, new_select_item_1);
 
-//         func_name_ir->func_name_set_str("COUNT");
-//         IR *alias_id_1 = new IR(kIdentifier, string("c"), kDataAliasName, 0, kDefine);
-//         res_1 = new IR(kTargetEl, OP3("AS", "", ""), alias_id_1);
-//         res_1 = new IR(kTargetEl, OP0(), targetel->deep_copy(), res_1);
+    cur_stmt->swap_node(select_item_ir, new_select_item_list);
 
+    /* Fix for aggregate function AVG completed. */
+  }
 
-//         IR* target_list_ir = new IR(kTargetList, OP3("", ",", ""), res_0, res_1);
-//         cur_stmt->swap_node(targetel, target_list_ir);
-//         targetel->deep_drop();
+  IR* cur_stmt_inner = transform_non_aggr(cur_stmt, is_UNION_ALL, tlp_type);
+  /* Finished generating inner stmt. Deep drop. */
+  cur_stmt->deep_drop();
 
-//       }
-//     }
+   /* Fill in SELECT AGGR(aggr) from (inner stmt) */
+  IR* cur_stmt_outer;
+  int ret = 0;
+  vector<IR*> v_outer_stmt_ir_vec;
+  if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM) {
+    ret = run_parser_multi_stmt(this->trans_outer_SUM_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_DISTINCT_SUM) {
+    ret = run_parser_multi_stmt(this->trans_outer_SUM_DISTINCT_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN) {
+    ret = run_parser_multi_stmt(this->trans_outer_MIN_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_DISTINCT_MIN) {
+    ret = run_parser_multi_stmt(this->trans_outer_MIN_DISTINCT_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX) {
+    ret = run_parser_multi_stmt(this->trans_outer_MAX_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_DISTINCT_MAX) {
+    ret = run_parser_multi_stmt(this->trans_outer_MAX_DISTINCT_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_AVG) {
+    ret = run_parser_multi_stmt(this->trans_outer_AVG_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_DISTINCT_AVG) {
+    ret = run_parser_multi_stmt(this->trans_outer_AVG_DISTINCT_tmp_str, v_outer_stmt_ir_vec);
+    if (ret != 0 || v_outer_stmt_ir_vec.size() == 0) {
+      cur_stmt_inner->deep_drop();
+      return NULL;
+    }
+    cur_stmt_outer = v_outer_stmt_ir_vec.back();
+  }
 
-//     /* Fix for aggregate function AVG completed. */
-//   }
+  IR* ori_outer_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_outer, kQueryExpression, true).front();
 
-//   IR* cur_stmt_inner = transform_non_aggr(cur_stmt, is_UNION_ALL, tlp_type);
-//   /* Finished generating inner stmt. Deep drop. */
-//   cur_stmt->deep_drop();
+  cur_stmt_outer->swap_node(ori_outer_expr, cur_stmt_inner);
+  ori_outer_expr->deep_drop();
 
-//    /* Fill in SELECT AGGR(aggr) from (inner stmt) */
-//   IR* cur_stmt_outer;
-//   if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_SUM) {
-//     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_SUM_tmp_str).back();
-//   // } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT) {
-//   //   // cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_COUNT_tmp_str).back();
-//   //   cur_stmt_inner->deep_drop();
-//   //   return NULL;
-//   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MIN) {
-//     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MIN_tmp_str).back();
-//   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_MAX) {
-//     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_MAX_tmp_str).back();
-//   } else if (tlp_type == VALID_STMT_TYPE_TLP::AGGR_AVG) {
-//     cur_stmt_outer = g_mutator->parse_query_str_get_ir_set(this->trans_outer_AVG_tmp_str).back();
-//   }
-
-//   IR* ori_outer_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_outer, kSelectNoParens, true).front();
-
-//   cur_stmt_outer->swap_node(ori_outer_expr, cur_stmt_inner);
-//   ori_outer_expr->deep_drop();
-
-//   return cur_stmt_outer;
+  return cur_stmt_outer;
 
 }
