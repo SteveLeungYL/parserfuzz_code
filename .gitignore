@@ -30,6 +30,7 @@ flex_lexer.h
 
 .deps
 *.o
+*.gch
 
 .gdb_history
 peda-session-*

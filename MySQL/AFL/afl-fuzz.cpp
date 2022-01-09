@@ -41,6 +41,10 @@
 #include "debug.h"
 #include "alloc-inl.h"
 #include "hash.h"
+#include "../include/ast.h"
+#include "../include/mutate.h"
+#include "sql/sql_ir_define.h"
+#include "../include/utils.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -71,15 +75,20 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <cassert>
-#include "../include/ast.h"
-#include "../include/mutate.h"
-#include "../include/define.h"
-#include "../include/utils.h"
 #include <deque>
 #include <random>
 #include <regex>
 
-//#include "../../mysql-server/include/mysql.h"
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <fstream>
+#include <filesystem>
+
+#include "../oracle/mysql_oracle.h"
+#include "../oracle/mysql_norec.h"
+#include "../oracle/mysql_tlp.h"
+
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
 #include <mysql/errmsg.h>
@@ -109,11 +118,15 @@ using namespace std;
 
 int crash_fd = -1;
 int bug_output_id = 0;
+int log_output_id = 0;
+
 
 #define INIT_LIB_PATH "./mysql_initlib"
 #define SAFE_GENERATE_PATH "./safe_generate_type_mysql"
 #define GLOBAL_TYPE_PATH "./global_data_lib_mysql"
 #define COUNT_ERROR
+
+
 
 enum SQLSTATUS
 {
@@ -133,6 +146,50 @@ static long correct_num;
 
 static SQLSTATUS execute_result;
 #endif
+
+
+/* Added by SQLRight. */
+EXP_ST u8 dump_library;
+int bind_to_core_id = -1;
+uint bind_to_port = 5432;
+
+u64 total_input_failed = 0;
+u64 total_mutate_all_failed = 0;
+u64 total_mutate_failed = 0;
+u64 total_mutate_num = 0;
+u64 total_append_failed = 0;
+u64 total_execute = 0;
+u64 total_add_to_queue = 0;
+u64 debug_error = 0;
+u64 debug_good = 0;
+u64 num_valid = 0;
+u64 num_parse = 0;
+u64 num_mutate_all = 0;
+u64 num_reparse = 0;
+u64 num_append = 0;
+u64 num_validate = 0;
+
+u64 timeout_seed_num = 0;
+
+u64 mysql_execute_ok = 0;
+u64 mysql_execute_error = 0;
+u64 mysql_execute_total = 0;
+
+int map_file_id = 0;
+fstream map_id_out_f;
+
+string socket_path = "";
+
+Mutator g_mutator;
+SQL_ORACLE *p_oracle;
+
+std::mutex timeout_mutex;
+bool is_timeout = false;
+unsigned long timeout_id = 0;
+
+EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
+static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
+
 
 extern int ff_debug;
 
@@ -157,24 +214,37 @@ public:
   {
     string dbname;
 
-    if (mysql_init(&m_) == NULL)
-      return false;
+    m_ = mysql_init(m_);
 
-    dbname = "test" + std::to_string(database_id);
-    if (mysql_real_connect(&m_, host_, "root", "", dbname.c_str(), 0, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (m_ == NULL) {
+      // cerr << "mysql init failed. returned. \n";
+      // mysql_close(&m_);
+      return false;
+    }
+
+    dbname = "test_sqlright1";
+    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
     {
-      fprintf(stderr, "Connection error1 \n", mysql_errno(&m_), mysql_error(&m_));
+      fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
       counter_++;
       return false;
     }
+    
+    // string cmd = "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id) + "; USE test" + std::to_string(database_id) + "; SELECT 'Successful'; ";
+    // mysql_real_query(m_, cmd.c_str(), cmd.size());
+    // cerr << "Fix_database results connect: "  << retrieve_query_results(m_) << "\n\n\n";
 
+    // mysql_close(m_);
+    
     return true;
   }
 
   void disconnect()
   {
-    mysql_close(&m_);
+    mysql_close(m_);
+    m_ = NULL;
   }
 
   bool fix_database()
@@ -187,32 +257,43 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", 0, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+
+    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
       return false;
     }
-    string cmd = "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id) + ";";
-    mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+    // database_id++;
+
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    for (string cmd : v_cmd) {
+      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
+      clean_up_connection(&tmp_m);
+    }
+
     mysql_close(&tmp_m);
-    sleep(2);
+    // std::cout << "Fix database successful. \n\n\n";
+    // std::this_thread::sleep_for(std::chrono::milliseconds(300));
+    // sleep(1);
     return true;
   }
 
-  SQLSTATUS clean_up_connection(MYSQL &mm)
+  SQLSTATUS clean_up_connection(MYSQL *mm)
   {
     int res = -1;
     do
     {
-      auto q_result = mysql_store_result(&mm);
+      auto q_result = mysql_store_result(mm);
       if (q_result)
         mysql_free_result(q_result);
-    } while ((res = mysql_next_result(&mm)) == 0);
+    } while ((res = mysql_next_result(mm)) == 0);
 
     if (res != -1)
     {
-      if (mysql_errno(&mm) == 1064)
+      if (mysql_errno(mm) == 1064)
       {
         return kSyntaxError;
       }
@@ -237,53 +318,6 @@ public:
     {
       return "off";
     }
-  }
-
-  string get_optimization_string(bool is_random, bool is_default, bool is_all_on)
-  {
-    string optimization_cmd = "use test" + std::to_string(database_id) + "; \n";
-
-    vector<string> optimizer_name = {"batched_key_access", "block_nested_loop",
-                                     "condition_fanout_filter", "derived_merge", "engine_condition_pushdown",
-                                     "index_condition_pushdown", "use_index_extensions", "index_merge",
-                                     "index_merge_intersection", "index_merge_sort_union", "index_merge_union",
-                                     "use_invisible_indexes", "mrr", "mrr_cost_based",
-                                     "duplicateweedout", "firstmatch", "loosescan", "semijoin", "skip_scan",
-                                     "materialization", "subquery_materialization_cost_based", "apply_index"};
-
-    // optimizer_name.push_back("subquery_to_derived");
-    // optimizer_name.push_back("prefer_ordering_index");
-    // optimizer_name.push_back("hash_join");
-
-    if (is_random)
-    {
-      for (string &inserted_opt : optimizer_name)
-      {
-        optimization_cmd += "SET optimizer_switch='";
-        optimization_cmd += inserted_opt + "=" + get_rand_on_off_string();
-        optimization_cmd += "';\n";
-      }
-    }
-    else if (is_default)
-    {
-      optimization_cmd += "SET optimizer_switch='";
-      optimization_cmd += "default";
-      optimization_cmd += "';\n";
-      optimization_cmd += "SET optimizer_switch='apply_index=on';\n";
-    }
-    else
-    {
-      for (string &inserted_opt : optimizer_name)
-      {
-        optimization_cmd += "SET optimizer_switch='";
-        if (is_all_on)
-          optimization_cmd += inserted_opt + "=on";
-        else
-          optimization_cmd += inserted_opt + "=off";
-        optimization_cmd += "';\n";
-      }
-    }
-    return optimization_cmd;
   }
 
   int retrieve_query_results_count(MYSQL &m_)
@@ -312,17 +346,19 @@ public:
     return result_count;
   }
 
-  string retrieve_query_results(MYSQL &m_)
+  string retrieve_query_results(MYSQL* m_, string cur_cmd_str)
   {
     MYSQL_ROW row;
     // string result_string = ""
     stringstream result_string_stream;
     int status = 0;
     MYSQL_RES *result;
+
     do
     {
       /* did current statement return data? */
-      result = mysql_store_result(&m_);
+      result = mysql_store_result(m_);
+      // cerr << "is result empty? " << result << "\n\n\n";
       if (result)
       {
         /* yes; process rows and free the result set */
@@ -330,26 +366,49 @@ public:
         {
           for (int i = 0; i < mysql_num_fields(result); i++)
           {
+            // cerr << "Getting row: " << row[i] << "\n\n\n";
             result_string_stream << row[i];
           }
         }
+        // cerr << "Returned all rows " << "\n\n\n";
       }
       else /* no result set or error */
       {
         // cerr << "No results get!\n";
-        if (mysql_field_count(&m_) != 0)
+        if (mysql_field_count(m_) == 0)
         {
-          cerr << "Could not retrieve result set\n";
-          break;
+          // printf("%lld rows affected\n", mysql_affected_rows(m_));
+        } else if (mysql_field_count(m_) != 0) {
+          // cerr << "Could not retrieve result set\n";
+          // break;
         }
       }
+      mysql_free_result(result);
       /* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
-      if ((status = mysql_next_result(&m_)) > 0)
+      if ((status = mysql_next_result(m_)) > 0) {
+        // cerr << "Could not execute statement. \n\n\n";
+        // break;
+      }
+      if ((status = mysql_next_result(m_)) == -1) {
+        // cerr << "No more results. \n\n\n";
         break;
+      }
       // cerr << "Could not execute statement\n";
     } while (status == 0);
 
-    return result_string_stream.str();
+    // cerr << "Outputing MySQL message: \nQuery: " << cur_cmd_str << "\nRes: " << result_string_stream.str() << "\n";
+    // if (mysql_errno(m_)) {
+    //   cerr << "Error message: " << mysql_error(m_) << "\n";
+    // }
+    // cerr << "\n\n";
+
+    string ret_str;
+    if (mysql_errno(m_)) {
+      ret_str = string(mysql_error(m_)) + "  " + result_string_stream.str();
+    } else {
+      ret_str = result_string_stream.str();
+    }
+    return ret_str;
   }
 
   vector<string> string_splitter(string input_string, string delimiter_re = "\n")
@@ -363,760 +422,155 @@ public:
     return split_string;
   }
 
-  string rewrite_query_by_No_Rec(string query)
-  {
-    // vector<string> stmt_vector = string_splitter(query, "where|WHERE|SELECT|select|FROM|from");
-
-    while (query[0] == ' ' || query[0] == '\n' || query[0] == '\t')
-    { // Delete duplicated whitespace at the beginning.
-      query = query.substr(1, query.size() - 1);
+  static bool terminate_query(unsigned long process_id) {
+    MYSQL tmp_m;
+    if (mysql_init(&tmp_m) == NULL)
+    {
+      mysql_close(&tmp_m);
+      return false;
     }
 
-    size_t select_position = 0;
-    size_t from_position = -1;
-    size_t where_position = -1;
-    size_t group_by_position = -1;
-    size_t order_by_position = -1;
-
-    vector<size_t> op_lp_v;
-    vector<size_t> op_rp_v;
-
-    size_t tmp1 = 0, tmp2 = 0;
-    while ((tmp1 = query.find("(", tmp1)) && tmp1 != string::npos)
+    // cerr << "Using socket: " << socket_path << "\n\n\n";
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
-      op_lp_v.push_back(tmp1);
-      tmp1++;
-      if (tmp1 == query.size())
-      {
-        break;
-      }
+      fprintf(stderr, "Connection error5 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
+      mysql_close(&tmp_m);
+      return false;
     }
-    while ((tmp2 = query.find(")", tmp2)) && tmp2 != string::npos)
-    {
-      op_rp_v.push_back(tmp2);
-      tmp2++;
-      if (tmp2 == query.size())
-      {
-        break;
-      }
-    }
+    string cmd = "KILL " + to_string(process_id);
+    mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+    // cerr << "Terminate_database results: "  << retrieve_query_results(&tmp_m) << "\n\n\n";
 
-    if (op_lp_v.size() != op_rp_v.size())
-    { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-      op_lp_v.clear();
-      op_rp_v.clear();
-    }
-
-    for (int i = 0; i < op_lp_v.size(); i++)
-    { // The symbol of '(' and ')' is not matched. Ignore all the '()' symbol.
-      if (op_lp_v[i] > op_rp_v[i])
-      {
-        op_lp_v.clear();
-        op_rp_v.clear();
-      }
-    }
-
-    tmp1 = -1;
-    tmp2 = -1;
-
-    tmp1 = query.find("SELECT", 0); // The first SELECT statement will always be the correct outter most SELECT statement. Pick its pos.
-    tmp2 = query.find("select", 0);
-    if (tmp1 != string::npos)
-    {
-      select_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 < tmp1)
-    {
-      select_position = tmp2;
-    }
-
-    tmp1 = 0;
-    tmp2 = 0;
-    from_position = -1;
-
-    do
-    {
-      if (tmp1 != string::npos)
-        tmp1 = query.find("FROM", tmp1 + 4);
-      if (tmp2 != string::npos)
-        tmp2 = query.find("from", tmp2 + 4);
-
-      if (tmp1 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          from_position = tmp1;
-          break; // from_position is found. Break the outter do...while loop.
-        }
-      }
-
-      if (tmp2 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          from_position = tmp2;
-          break; // from_position is found. Break the outter do...while loop.
-        }
-      }
-
-    } while (tmp1 != string::npos || tmp2 != string::npos);
-
-    tmp1 = 0;
-    tmp2 = 0;
-    where_position = -1;
-
-    do
-    {
-      if (tmp1 != string::npos)
-        tmp1 = query.find("WHERE", tmp1 + 5);
-      if (tmp2 != string::npos)
-        tmp2 = query.find("where", tmp2 + 5);
-
-      if (tmp1 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp1 > op_lp_v[i] && tmp1 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          where_position = tmp1;
-          break; // where_position is found. Break the outter do...while loop.
-        }
-      }
-
-      if (tmp2 != string::npos)
-      {
-        bool is_ignore = false;
-        for (int i = 0; i < op_lp_v.size(); i++)
-        {
-          if (tmp2 > op_lp_v[i] && tmp2 < op_rp_v[i])
-          {
-            is_ignore = true;
-            break;
-          }
-        }
-        if (!is_ignore)
-        {
-          where_position = tmp2;
-          break; // where_position is found. Break the outter do...while loop.
-        }
-      }
-
-    } while (tmp1 != string::npos || tmp2 != string::npos);
-
-    /*** Taking care of GROUP BY stmt.   ***/
-    tmp1 = -1, tmp2 = -1;
-    size_t tmp = 0;
-    while ((tmp = query.find("GROUP BY", tmp + 8)) &&
-          (tmp != string::npos)  )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp1 = tmp;
-      }
-    } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-
-    tmp = -8;
-    while ((tmp = query.find("group by", tmp+8)) &&
-          (tmp != string::npos)   )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp2 = tmp;
-      }
-    } // The last GROUP BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-    if (tmp1 != string::npos)
-    {
-      group_by_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 > tmp1)
-    {
-      group_by_position = tmp2;
-    }
-
-    /*** Taking care of ORDER BY stmt.   ***/
-    tmp1 = -1, tmp2 = -1;
-    tmp = -8;
-    while ((tmp = query.find("ORDER BY", tmp + 8)) && 
-          (tmp != string::npos) )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp1 = tmp;
-      }
-    } // The last ORDER BY statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-    tmp = -8;
-    while ((tmp = query.find("order by", tmp+8))  && 
-          (tmp != string::npos)  )
-    {
-      bool is_ignore = false;
-      for (int i = 0; i < op_lp_v.size(); i++)
-      {
-        if (tmp > op_lp_v[i] && tmp < op_rp_v[i])
-        {
-          is_ignore = true;
-          break;
-        }
-      }
-      if (!is_ignore){
-        tmp2 = tmp;
-      }
-    } // The last order by statement outside the bracket will always be the correct outter most GROUP BY statement. Pick its pos.
-    if (tmp1 != string::npos)
-    {
-      order_by_position = tmp1;
-    }
-    if (tmp2 != string::npos && tmp2 > tmp1)
-    {
-      order_by_position = tmp2;
-    }
-
-    size_t extra_stmt_position = -1;
-    if (group_by_position != string::npos && order_by_position != string::npos)
-      extra_stmt_position = ((group_by_position < order_by_position) ? group_by_position : order_by_position );
-    else if (group_by_position != string::npos)
-      extra_stmt_position = group_by_position;
-    else if (order_by_position != string::npos)
-      extra_stmt_position = order_by_position;
-
-
-    string before_select_stmt;
-    string select_stmt;
-    string from_stmt;
-    string where_stmt;
-    string extra_stmt;
-
-    before_select_stmt = query.substr(0, select_position - 0);
-
-    select_stmt = query.substr(select_position + 6, from_position - select_position - 6);
-
-    if (from_position == -1)
-      from_stmt = "";
-    else
-      from_stmt = query.substr(from_position + 4, where_position - from_position - 4);
-
-    if (where_position == -1)
-      where_stmt = "";
-    else if (extra_stmt_position == -1)
-      where_stmt = query.substr(where_position + 5, query.size() - where_position - 5);
-    else
-      where_stmt = query.substr(where_position + 5, extra_stmt_position - where_position - 5);
-
-    if (extra_stmt_position == -1)
-      extra_stmt = "";
-    else
-      extra_stmt = query.substr(extra_stmt_position, query.size() - extra_stmt_position);
-
-    if (select_stmt.find('*') != string::npos)
-      select_stmt = "";
-
-    string rewrited_string = before_select_stmt + " SELECT SUM((" + where_stmt;
-    if (select_stmt != "" && select_stmt != " ")
-    {
-      rewrited_string += "  AND  " + select_stmt;
-    }
-    rewrited_string += " ) != 0) ";
-    if (from_stmt != "")
-    {
-      rewrited_string += " FROM " + from_stmt;
-    }
-
-    if (extra_stmt != "")
-    {
-      rewrited_string += extra_stmt;
-    }
-
-    // The ";" is being taken care of after returnning from the rewrite function
-    return rewrited_string;
+    mysql_close(&tmp_m);
+    std::cout << "Timeout!!! Kill query successful. \n\n\n";
+    // sleep(1);
+    return true;
   }
 
-  SQLSTATUS execute_No_Rec(char *cmd)
-  {
-    fix_database(); // Fix the connection error1 misleading output.
-    auto conn = connect();
+  static void timeout_query(unsigned long process_id, unsigned long cur_timeout_id) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(exec_tmout));
 
-    if (!conn)
-    {
-      string previous_inputs = "";
-      for (auto i : g_previous_input)
-        previous_inputs += string(i) + "\n\n";
-      previous_inputs += "-------------\n\n";
-      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());
+    timeout_mutex.lock();
+
+    // The previous execution has already finished. No timeout. 
+    if (timeout_id != cur_timeout_id) {
+      timeout_mutex.unlock();
+      return;
     }
 
+    // The prvious execution timeout. Kill it!
+    is_timeout = true;
+
+    timeout_mutex.unlock();
+
+    if (is_timeout) {
+      terminate_query(process_id);
+    }
+
+    // cerr << "\n\n\nQuery terminated!!!!\n\n\n";
+  }
+
+  SQLSTATUS execute(const char *cmd, string& res_str)
+  {
+    // fix_database();
+
+    auto conn = connect();
+
+    if(!conn){
+      string previous_inputs = "";
+      for(auto i: g_previous_input) previous_inputs += string(i) + "\n\n";
+      previous_inputs += "-------------\n\n";
+      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());  
+    }
+    
     int retry_time = 0;
-    while (!conn)
-    {
+    while(!conn){
       //cout << "reconnecting..." << endl;
-      sleep(5);
+      std::this_thread::sleep_for(std::chrono::milliseconds(30));
       conn = connect();
-      if (!conn)
+      if(!conn)
         fix_database();
     }
     //cout << "connect succeed!" << endl;
-    //cerr << "Trying to execute " << cmd << endl;
-
-    int optimized_result = 0;
-    int unoptimized_result = 0;
-    string unoptimized_result_string = "";
-
-    bool is_skip_no_rec = true;
-
-    SQLSTATUS res = kNormal;
-
-    /* Unoptimized */
-    reset_database();
-
-    string optimization_cmd = get_optimization_string(false, true, true);
-    int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    auto correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    string optimized_cmd_string = cmd;
-    string unoptimized_cmd_string = "";
-    vector<string> queries_vector = string_splitter(optimized_cmd_string, ";");
-
-    for (string &query : queries_vector)
-    {
-      if (
-          ((query.find("WHERE")) != std::string::npos || (query.find("where")) != std::string::npos) &&
-          ((query.find("SELECT")) != std::string::npos || (query.find("select")) != std::string::npos) &&
-          ((query.find("UPDATE")) == std::string::npos && (query.find("update")) == std::string::npos)
-          )
-      {
-        unoptimized_cmd_string += rewrite_query_by_No_Rec(query) + "; \n";
-        is_skip_no_rec = false;
-      }
-      else
-        unoptimized_cmd_string += query + "; \n";
-    }
-
-    if (!is_skip_no_rec)
-    {
-
-      unoptimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + unoptimized_cmd_string;
-      server_response = mysql_real_query(&m_, unoptimized_cmd_string.c_str(), unoptimized_cmd_string.size());
-      unoptimized_result = atoi(retrieve_query_results(m_).c_str());
-      // for (auto it = unoptimized_result_string.begin(); it != unoptimized_result_string.end(); it++)
-      // {
-      //   if (*it == '1')
-      //     unoptimized_result++;
-      // }
-      correctness = clean_up_connection(m_);
-
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-      {
-        disconnect();
-        return kServerCrash;
-      }
-
-      res = kNormal;
-#ifdef COUNT_ERROR
-      res = correctness;
-#endif
-      auto check_res = check_server_alive();
-      if (check_res == false)
-      {
-        disconnect();
-        sleep(2); // waiting for server to be up again
-        return kServerCrash;
-      }
-
-      reset_database();
-
-      /* Optimized */
-
-      optimization_cmd = get_optimization_string(false, true, true);
-      server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-      correctness = clean_up_connection(m_);
-
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-      {
-        cerr << "Optimization command error. \n\n";
-        disconnect();
-        return kServerCrash;
-      }
-
-      optimized_cmd_string = cmd;
-      optimized_cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimized_cmd_string;
-      server_response = mysql_real_query(&m_, optimized_cmd_string.c_str(), optimized_cmd_string.size());
-      optimized_result = retrieve_query_results_count(m_);
-      correctness = clean_up_connection(m_);
-
-      if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-      {
-        disconnect();
-        return kServerCrash;
-      }
-
-      auto res = kNormal;
-#ifdef COUNT_ERROR
-      res = correctness;
-#endif
-      check_res = check_server_alive();
-      if (check_res == false)
-      {
-        disconnect();
-        sleep(2); // waiting for server to be up again
-        return kServerCrash;
-      }
-
-      reset_database();
-    }
-
-    cerr << "Currently running: (DEBUG): \n";
-    cerr << "Optimized_cmd_string: \n"
-         << optimized_cmd_string << "\n";
-    cerr << "Unoptimized_cmd_string: \n"
-         << unoptimized_cmd_string << "\n";
-
-    if (optimized_result != unoptimized_result && !is_skip_no_rec)
-    {
-      cerr << "\n\n\n-------------------------------------------\n";
-      cerr << "Result unmatched! \n";
-      cerr << "Optimized cmd: \n";
-      cerr << optimized_cmd_string << "\n";
-      cerr << "Optimized results: \n";
-      cerr << optimized_result << "\n";
-      cerr << "Unoptimized cmd: \n";
-      cerr << unoptimized_cmd_string << "\n";
-      cerr << "Unoptimized results: \n";
-      cerr << unoptimized_result << "\n\n\n\n";
-
-      ofstream outputfile;
-      // string bug_output_dir = (char*)out_dir;
-      string bug_output_dir = "../bug_analysis/bug_samples/" + to_string(bug_output_id) + ".txt";
-      cerr << "Bug output dir is: " << bug_output_dir << endl;
-      outputfile.open(bug_output_dir);
-      outputfile << "Optimized cmd: \n";
-      outputfile << optimized_cmd_string << "\n";
-      outputfile << "Unoptimized cmd: \n";
-      outputfile << unoptimized_cmd_string << "\n";
-
-      outputfile.close();
-      bug_output_id++;
-    }
-    else if (!is_skip_no_rec)
-    {
-      cerr << "P";
-    }
-    else
-    {
-      cerr << "C";
-    }
-
-    unoptimized_result_string.clear();
-    optimized_cmd_string.clear();
-    unoptimized_cmd_string.clear();
-    queries_vector.clear();
-
-    counter_++;
-    disconnect();
-    return res;
-  }
-
-  SQLSTATUS execute(char *cmd)
-  {
-    fix_database(); // Fix the connection error1 misleading output.
-    auto conn = connect();
-
-    if (!conn)
-    {
-      string previous_inputs = "";
-      for (auto i : g_previous_input)
-        previous_inputs += string(i) + "\n\n";
-      previous_inputs += "-------------\n\n";
-      write(crash_fd, previous_inputs.c_str(), previous_inputs.size());
-    }
-
-    int retry_time = 0;
-    while (!conn)
-    {
-      //cout << "reconnecting..." << endl;
-      sleep(5);
-      conn = connect();
-      if (!conn)
-        fix_database();
-    }
-    //cout << "connect succeed!" << endl;
-    //cerr << "Trying to execute " << cmd << endl;
-
-    string all_optimization_results_string = "";
-    string random_optimization_results_string = "";
-    string default_optimization_results_string = "";
-    string none_optimization_results_string = "";
-
-    /* All optimization cmd */
 
     reset_database();
 
-    string optimization_cmd;
-    string cmd_string;
+    string cmd_str = cmd;
+    // cmd_str += " ; SELECT 'Hahaha'; ";
+    std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
-    optimization_cmd = get_optimization_string(false, false, true);
-    int server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    auto correctness = clean_up_connection(m_);
+    /* For debug purpose */
+    cmd_str = "SELECT 'CHECK_MATE';" + cmd_str;
 
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
+    vector<string> v_cmd_str = string_splitter(cmd_str, ";");
+
+    SQLSTATUS correctness;
+    int server_response;
+
+    res_str = "";
+
+    timeout_mutex.lock();
+    is_timeout = false;
+    timeout_mutex.unlock();
+
+    std::thread(timeout_query, m_->thread_id, timeout_id).detach();
+
+    for (string cur_cmd_str : v_cmd_str) {
+      // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
+      // server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
+      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+      res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+      correctness = clean_up_connection(m_);
+
+      if (server_response == CR_SERVER_LOST) {
+        cerr << "Server Lost or Server Crashes! \n\n\n";
+        break;
+      }
     }
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    all_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
 
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
+    // cerr << "Getting results: \n" << res_str << "\n\n\n";
+
+    /* For debug purpose */
+    if (res_str.find("CHECK_MATE") == string::npos) {
+      cerr << "RESULT NOT RETURN CORRECTLY!\n\n\ncmd_str: " << cmd_str << "\n\n\nRes: " << res_str << "\n\n\n";
+      // FATAL("RESULT NOT RETURN CORRECTLY!");
+    }
+
+    if(server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR){
       disconnect();
       return kServerCrash;
     }
 
     auto res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
+    res = correctness;  
+
     auto check_res = check_server_alive();
-    if (check_res == false)
-    {
+    if(check_res == false){
       disconnect();
       sleep(2); // waiting for server to be up again
       return kServerCrash;
     }
 
-    reset_database();
-
-    /* Random Optimization CMD */
-    optimization_cmd = get_optimization_string(true, false, false);
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
+    timeout_mutex.lock();
+    timeout_id++;
+    if (is_timeout) {
+      res = kTimeout;
     }
+    is_timeout = false;
+    timeout_mutex.unlock();
 
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    random_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
+    if (res == kSyntaxError) {
+      syntax_err_num++;
+    } else if (res == kSemanticError) {
+      semantic_err_num++;
+    } else {
+      correct_num++;
     }
-
-    res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-
-    reset_database();
-
-    /* Default optimization cmd */
-    optimization_cmd = get_optimization_string(false, true, false);
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    default_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
-    }
-
-    res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-    reset_database();
-
-    /* None optimization cmd */
-    optimization_cmd = get_optimization_string(false, false, false); // is_random, is_default, is_all_on.
-    server_response = mysql_real_query(&m_, optimization_cmd.c_str(), optimization_cmd.size());
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      cerr << "Optimization command error. \n\n";
-      disconnect();
-      return kServerCrash;
-    }
-
-    cmd_string = "use test" + std::to_string(database_id) + "; \n" + optimization_cmd + cmd;
-    server_response = mysql_real_query(&m_, cmd_string.c_str(), cmd_string.size());
-    none_optimization_results_string = retrieve_query_results(m_);
-    correctness = clean_up_connection(m_);
-
-    if (server_response == CR_SERVER_LOST || server_response == CR_SERVER_GONE_ERROR)
-    {
-      disconnect();
-      return kServerCrash;
-    }
-
-    res = kNormal;
-#ifdef COUNT_ERROR
-    res = correctness;
-#endif
-    check_res = check_server_alive();
-    if (check_res == false)
-    {
-      disconnect();
-      sleep(2); // waiting for server to be up again
-      return kServerCrash;
-    }
-    reset_database();
-
-    if (all_optimization_results_string != random_optimization_results_string || all_optimization_results_string != none_optimization_results_string || all_optimization_results_string != default_optimization_results_string)
-    {
-      cerr << "--------------------------------------------\n";
-      cerr << "Results not matched!!!!!!!!!!\n";
-      cerr << "Query: \n";
-      cerr << cmd << "\n";
-      cerr << "All_optimization_Results_string: \n";
-      cerr << all_optimization_results_string;
-      cerr << "\nRandom_optimization_Results_string: \n";
-      cerr << random_optimization_results_string;
-      cerr << "\nDefault_optimization_Results_string: \n";
-      cerr << default_optimization_results_string;
-      cerr << "\nNone_optimization_Results_string: \n";
-      cerr << none_optimization_results_string << "\n";
-      cerr << "\n\n\n";
-    }
-    else if (all_optimization_results_string != "")
-    {
-      // // // else {
-      cerr << "--------------------------------------------\n";
-      cerr << "Results matched: \n";
-      // cerr << "Query: \n";
-      // cerr << cmd_string << "\n";
-      // cerr << "All_optimization_Results_string: \n";
-      // cerr << all_optimization_results_string;
-      // cerr << "\nRandom_optimization_Results_string: \n";
-      // cerr << random_optimization_results_string;
-      // cerr << "\nDefault_optimization_Results_string: \n";
-      // cerr << default_optimization_results_string;
-      // cerr << "\nNone_optimization_Results_string: \n";
-      // cerr << none_optimization_results_string << "\n";
-      // cerr << "Random Optimization options: \n";
-      // cerr << random_optimization_cmd;
-      // cerr << "\n\n\n";
-    }
-    else
-    {
-      cerr << "--------------------------------------------\n";
-      cerr << "Query not making sense.\n";
-      // cerr << "Query: \n";
-      // cerr << cmd_string << "\n";
-      // cerr << "All_optimization_Results_string: \n";
-      // cerr << all_optimization_results_string;
-      // cerr << "\nRandom_optimization_Results_string: \n";
-      // cerr << random_optimization_results_string;
-      // cerr << "\nDefault_optimization_Results_string: \n";
-      // cerr << default_optimization_results_string;
-      // cerr << "\nNone_optimization_Results_string: \n";
-      // cerr << none_optimization_results_string << "\n";
-      // cerr << "Random Optimization options: \n";
-      // cerr << random_optimization_cmd;
-      // cerr << "\n\n\n";
-    }
-
-    optimization_cmd.clear();
-    // random_optimization_cmd.clear();
-    cmd_string.clear();
-
-    all_optimization_results_string.clear();
-    random_optimization_results_string.clear();
-    default_optimization_results_string.clear();
-    none_optimization_results_string.clear();
 
     counter_++;
     disconnect();
     return res;
+
   }
 
   bool check_server_alive()
@@ -1128,7 +582,7 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, host_, "root", "", "fuck", 0, NULL, CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "fuck", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error2 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -1140,15 +594,31 @@ public:
 
   int reset_database()
   {
-    int server_response;
+    MYSQL tmp_m;
 
-    string reset_query = "DROP DATABASE IF EXISTS test" + std::to_string(database_id) + ";";
-    reset_query += "CREATE DATABASE IF NOT EXISTS test" + std::to_string(database_id + 1) + ";";
+    database_id += 1;
+    if (mysql_init(&tmp_m) == NULL)
+    {
+      mysql_close(&tmp_m);
+      return 0;
+    }
+    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_sqlright1", bind_to_port, socket_path.c_str(), 0) == NULL)
+    {
+      fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
+      mysql_close(&tmp_m);
+      return 0;
+    }
 
-    auto tmp_res = mysql_real_query(&m_, reset_query.c_str(), reset_query.size());
-    database_id++;
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    for (string cmd : v_cmd) {
+      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
+      clean_up_connection(&tmp_m);
+    }
 
-    return server_response;
+    mysql_close(&tmp_m);
+    // std::cout << "Reset database successful. \n\n\n";
+    return 1;
   }
 
   char *get_next_database_name()
@@ -1161,29 +631,26 @@ public:
 
 private:
   unsigned int database_id = 1;
-  MYSQL m_;
+  MYSQL* m_;
   char *host_;
   //string db_name_;
   char *user_name_;
   char *passwd_;
   bool is_first_time;
   unsigned counter_; //odd for "test", even for "test2"
+
 };
 
 int is_server_up = -1;
 extern int errno;
-Mutator g_mutator;
 int g_query_result = -1;
 int g_child_pid = -1;
 char *g_current_input = NULL;
 char *g_libary_path;
 IR *g_current_ir = NULL;
-MysqlClient g_mysqlclient((char *)"localhost", (char *)"root", NULL);
+MysqlClient g_mysqlclient((char *)"127.0.0.1", (char *)"root", NULL);
 
 //MysqlClient g_psql_client;
-
-EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
-static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
 
 EXP_ST u64 mem_limit = MEM_LIMIT; /* Memory cap for child (MB)        */
 
@@ -1214,6 +681,12 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     persistent_mode,          /* Running in persistent mode?      */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
+
+EXP_ST u8 disable_coverage_feedback = 0;  
+                              /* 0: not disabled, 
+                               * 1: Drop all queries. 
+                               * 2: Randomly save queries. 
+                               * 3: Save all queries. */
 
 static s32 out_fd,       /* Persistent fd for out_file       */
     dev_urandom_fd = -1, /* Persistent fd for /dev/urandom   */
@@ -1339,6 +812,8 @@ struct queue_entry
 
   u8 *trace_mini; /* Trace bytes, if kept             */
   u32 tc_ref;     /* Trace bytes ref count            */
+
+  u8 is_timeout = false; /* Is timeout test cases. */
 
   struct queue_entry *next, /* Next element, if any             */
       *next_100;            /* 100 elements ahead               */
@@ -1528,7 +1003,7 @@ static void shuffle_ptrs(void **ptrs, u32 cnt)
 /* Build a list of processes bound to specific cores. Returns -1 if nothing
    can be found. Assumes an upper bound of 4k CPUs. */
 
-static void bind_to_free_cpu(void)
+static void bind_to_free_cpu(int bind_to_core_id = -1)
 {
 
   DIR *d;
@@ -1632,7 +1107,15 @@ static void bind_to_free_cpu(void)
     FATAL("No more free CPU cores");
   }
 
-  OKF("Found a free CPU core, binding to #%u.", i);
+  if (bind_to_core_id < cpu_core_count && bind_to_core_id >= 0)
+  {
+    i = u32(bind_to_core_id);
+    OKF("By command flags, binding to #%u.", i);
+  }
+  else
+  {
+    OKF("Found a free CPU core, binding to #%u.", i);
+  }
 
   cpu_aff = i;
 
@@ -2014,6 +1497,34 @@ EXP_ST void read_bitmap(u8 *fname)
   close(fd);
 }
 
+vector<u8> get_cur_new_byte(u8 *cur, u8 *vir){
+  vector<u8> new_byte_v;
+  for (u8 i = 0; i < 8; i++){
+    if (cur[i] && vir[i] == 0xff) new_byte_v.push_back(i);
+  }
+  return new_byte_v;
+}
+
+void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
+  if (map_id_out_f.fail()){
+    return;
+  }
+  if (cur_seed_str == "") {
+    return;
+  }
+  i = (MAP_SIZE >> 3) - i - 1 ;
+  u32 actual_idx = i * 8 + byte;
+  
+  map_id_out_f << actual_idx << "," << map_file_id <<  endl;
+
+  fstream map_id_seed_output;
+  if (queue_cur) {
+    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
+  }
+  map_id_seed_output << cur_seed_str;
+  map_id_seed_output.close();
+}
+
 /* Check if the current execution path brings anything new to the table.
    Update virgin bits to reflect the finds. Returns 1 if the only change is
    the hit-count for a particular tuple; 2 if there are new tuples seen. 
@@ -2022,8 +1533,13 @@ EXP_ST void read_bitmap(u8 *fname)
    This function is called after every exec() on a fairly large buffer, so
    it needs to be fast. We do this in 32-bit and 64-bit flavors. */
 
-static inline u8 has_new_bits(u8 *virgin_map)
-{
+static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
+
+  if (dump_library) {
+    map_file_id++;
+  }
+
+  // cerr << "Inside has_new_bits()\n\n\n";
 
 #ifdef __x86_64__
 
@@ -2043,18 +1559,15 @@ static inline u8 has_new_bits(u8 *virgin_map)
 
   u8 ret = 0;
 
-  while (i--)
-  {
+  while (i--) {
 
     /* Optimize for (*current & *virgin) == 0 - i.e., no bits in current bitmap
        that have not been already cleared from the virgin map - since this will
        almost always be the case. */
 
-    if (unlikely(*current) && unlikely(*current & *virgin))
-    {
+    if (unlikely(*current) && unlikely(*current & *virgin)) {
 
-      if (likely(ret < 2))
-      {
+      if (likely(ret < 2) || (dump_library && !map_id_out_f.fail())) {
 
         u8 *cur = (u8 *)current;
         u8 *vir = (u8 *)virgin;
@@ -2067,10 +1580,21 @@ static inline u8 has_new_bits(u8 *virgin_map)
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
             (cur[4] && vir[4] == 0xff) || (cur[5] && vir[5] == 0xff) ||
-            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff))
-          ret = 2;
-        else
-          ret = 1;
+            (cur[6] && vir[6] == 0xff) || (cur[7] && vir[7] == 0xff)) {
+              ret = 2;
+              if (dump_library && !map_id_out_f.fail() && cur_seed_str != ""){
+                vector<u8> byte = get_cur_new_byte(cur, vir);
+                for (const u8& cur_byte: byte){
+                  // vector<u8> cur_bit = get_cur_new_bit(cur[cur_byte]);
+                  log_map_id(i, cur_byte, cur_seed_str);
+                }
+              }
+        }
+        else {
+          if (ret != 2) {
+            ret = 1;
+          }
+        }
 
 #else
 
@@ -2530,7 +2054,12 @@ EXP_ST void setup_shm(void)
   if (!dumb_mode)
     setenv(SHM_ENV_VAR, shm_str, 1);
   cerr << "SHM_ENV_VAR: " << shm_str << endl;
-  getchar();
+
+  ofstream shm_env_out;
+  shm_env_out.open("./shm_env.txt", ios::trunc | ios::out);
+  shm_env_out << shm_str;
+  shm_env_out.close();
+
   ck_free(shm_str);
   trace_bits = shmat(shm_id, NULL, 0);
 
@@ -3509,7 +3038,7 @@ static void reboot_server(u32 prev_timed_out)
    information. The called program will update trace_bits[]. */
 
 int counter;
-static u8 run_target(char **argv, u32 timeout)
+static u8 run_target(char **argv, u32 timeout, const string& cmd_string, string& res_str)
 {
 
   static struct itimerval it;
@@ -3527,7 +3056,12 @@ static u8 run_target(char **argv, u32 timeout)
   memset(trace_bits, 0, MAP_SIZE);
   MEM_BARRIER();
 BEGIN:
-  auto result = g_mysqlclient.execute_No_Rec(g_current_input);
+  // auto single_execution_start_time = std::chrono::system_clock::now();
+  auto result = g_mysqlclient.execute(cmd_string.c_str(), res_str);
+  // DEBUG
+  // auto single_execution_end_time = std::chrono::system_clock::now();
+  // std::chrono::duration<double> single_executon_used_time = single_execution_end_time - single_execution_start_time;
+  // cerr << "\n\nFor single execution of inputs, used time: " << single_executon_used_time.count() << ". \n\n\n";
 
 #ifdef COUNT_ERROR
   execute_result = result;
@@ -3617,6 +3151,8 @@ static void write_with_gap(void *mem, u32 len, u32 skip_at, u32 skip_len)
 }
 
 static void show_stats(void);
+u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+                      char **argv, u32 tmout);
 
 /* Calibrate a new test case. This is done when processing the input directory
    to warn about flaky or otherwise problematic test cases early on; and when
@@ -3679,8 +3215,16 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     if (!first_run && !(stage_cur % stats_update_freq))
       show_stats();
 
-    write_to_testcase(use_mem, q->len);
-    fault = run_target(argv, use_tmout);
+    string program_input_str = "";
+    for (int output_index = 0; output_index < q->len; output_index++)
+    {
+      program_input_str += use_mem[output_index];
+    }
+
+    vector<int> dummy_vec;
+    ALL_COMP_RES dummy_all_comp_res;
+    vector<string> program_input_str_vec {program_input_str};
+    fault = execute_cmd_string(program_input_str_vec, dummy_vec, dummy_all_comp_res, argv, use_tmout);
 
     /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
        we want to bail out quickly. */
@@ -3836,168 +3380,195 @@ static void perform_dry_run(char **argv)
 
     close(fd);
 
-    res = calibrate_case(argv, q, use_mem, 0, 1);
+    string query_str;
+    query_str.assign((char *)use_mem, q->len);
+
+    vector<IR *> ir_tree;
+    int ret = run_parser_multi_stmt(query_str, ir_tree);
+    if (ret != 0 || ir_tree.size() == 0)
+    {
+      // cerr << "Query seed: " << query_str << " is not passing the parser!"
+      //      << endl;
+    }
+    else
+    {
+      ir_tree.back()->deep_drop();
+      res = calibrate_case(argv, q, use_mem, 0, 1);
+    }
+
     ck_free(use_mem);
 
     if (stop_soon)
       return;
 
-    // if (res == crash_mode || res == FAULT_NOBITS)
-    //   SAYF(cGRA "    len = %u, map size = %u, exec speed = %llu us\n" cRST,
-    //        q->len, q->bitmap_size, q->exec_us);
+    if (res == crash_mode || res == FAULT_NOBITS)
+      SAYF(cGRA "    len = %u, map size = %u, exec speed = %llu us\n" cRST,
+           q->len, q->bitmap_size, q->exec_us);
 
-    //     switch (res)
-    //     {
+        switch (res)
+        {
 
-    //     case FAULT_NONE:
+        case FAULT_NONE:
 
-    //       if (q == queue)
-    //         check_map_coverage();
+          if (q == queue)
+            check_map_coverage();
 
-    //       if (crash_mode)
-    //         FATAL("Test case '%s' does *NOT* crash", fn);
+          if (crash_mode)
+            FATAL("Test case '%s' does *NOT* crash", fn);
 
-    //       break;
+          break;
 
-    //     case FAULT_TMOUT:
+        case FAULT_TMOUT:
 
-    //       if (timeout_given)
-    //       {
+          if (timeout_given)
+          {
 
-    //         /* The -t nn+ syntax in the command line sets timeout_given to '2' and
-    //              instructs afl-fuzz to tolerate but skip queue entries that time
-    //              out. */
+            /* The -t nn+ syntax in the command line sets timeout_given to '2' and
+                 instructs afl-fuzz to tolerate but skip queue entries that time
+                 out. */
 
-    //         if (timeout_given > 1)
-    //         {
-    //           WARNF("Test case results in a timeout (skipping)");
-    //           q->cal_failed = CAL_CHANCES;
-    //           cal_failures++;
-    //           break;
-    //         }
+            if (timeout_given > 1)
+            {
+              WARNF("Test case results in a timeout (skipping)");
+              q->cal_failed = CAL_CHANCES;
+              cal_failures++;
+              break;
+            }
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "The program took more than %u ms to process one of the initial test cases.\n"
-    //              "    Usually, the right thing to do is to relax the -t option - or to delete it\n"
-    //              "    altogether and allow the fuzzer to auto-calibrate. That said, if you know\n"
-    //              "    what you are doing and want to simply skip the unruly test cases, append\n"
-    //              "    '+' at the end of the value passed to -t ('-t %u+').\n",
-    //              exec_tmout,
-    //              exec_tmout);
+            SAYF("\n" cLRD "[-] " cRST
+                 "The program took more than %u ms to process one of the initial test cases.\n"
+                 "    Usually, the right thing to do is to relax the -t option - or to delete it\n"
+                 "    altogether and allow the fuzzer to auto-calibrate. That said, if you know\n"
+                 "    what you are doing and want to simply skip the unruly test cases, append\n"
+                 "    '+' at the end of the value passed to -t ('-t %u+').\n",
+                 exec_tmout,
+                 exec_tmout);
 
-    //         FATAL("Test case '%s' results in a timeout", fn);
-    //       }
-    //       else
-    //       {
+            // FATAL("Test case '%s' results in a timeout", fn);
+            // cerr << "Test case '" << fn << "' results in a timeout.\n\n\n";
+            q->is_timeout = true;
+            timeout_seed_num++;
+            break;
+          }
+          else
+          {
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "The program took more than %u ms to process one of the initial test cases.\n"
-    //              "    This is bad news; raising the limit with the -t option is possible, but\n"
-    //              "    will probably make the fuzzing process extremely slow.\n\n"
+            SAYF("\n" cLRD "[-] " cRST
+                 "The program took more than %u ms to process one of the initial test cases.\n"
+                 "    This is bad news; raising the limit with the -t option is possible, but\n"
+                 "    will probably make the fuzzing process extremely slow.\n\n"
 
-    //              "    If this test case is just a fluke, the other option is to just avoid it\n"
-    //              "    altogether, and find one that is less of a CPU hog.\n",
-    //              exec_tmout);
+                 "    If this test case is just a fluke, the other option is to just avoid it\n"
+                 "    altogether, and find one that is less of a CPU hog.\n",
+                 exec_tmout);
 
-    //         FATAL("Test case '%s' results in a timeout", fn);
-    //       }
+            WARNF("Test case results in a timeout (skipping)");
+            q->cal_failed = CAL_CHANCES;
+            q->is_timeout = true;
+            cal_failures++;
+            timeout_seed_num++;
+            break;
+          }
 
-    //     case FAULT_CRASH:
+        case FAULT_CRASH:
 
-    //       if (crash_mode)
-    //         break;
+          if (crash_mode)
+            break;
 
-    //       if (skip_crashes)
-    //       {
-    //         WARNF("Test case results in a crash (skipping)");
-    //         q->cal_failed = CAL_CHANCES;
-    //         cal_failures++;
-    //         break;
-    //       }
+          if (skip_crashes)
+          {
+            WARNF("Test case results in a crash (skipping)");
+            q->cal_failed = CAL_CHANCES;
+            cal_failures++;
+            break;
+          }
 
-    //       if (mem_limit)
-    //       {
+          if (mem_limit)
+          {
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "Oops, the program crashed with one of the test cases provided. There are\n"
-    //              "    several possible explanations:\n\n"
+            SAYF("\n" cLRD "[-] " cRST
+                 "Oops, the program crashed with one of the test cases provided. There are\n"
+                 "    several possible explanations:\n\n"
 
-    //              "    - The test case causes known crashes under normal working conditions. If\n"
-    //              "      so, please remove it. The fuzzer should be seeded with interesting\n"
-    //              "      inputs - but not ones that cause an outright crash.\n\n"
+                 "    - The test case causes known crashes under normal working conditions. If\n"
+                 "      so, please remove it. The fuzzer should be seeded with interesting\n"
+                 "      inputs - but not ones that cause an outright crash.\n\n"
 
-    //              "    - The current memory limit (%s) is too low for this program, causing\n"
-    //              "      it to die due to OOM when parsing valid files. To fix this, try\n"
-    //              "      bumping it up with the -m setting in the command line. If in doubt,\n"
-    //              "      try something along the lines of:\n\n"
+                 "    - The current memory limit (%s) is too low for this program, causing\n"
+                 "      it to die due to OOM when parsing valid files. To fix this, try\n"
+                 "      bumping it up with the -m setting in the command line. If in doubt,\n"
+                 "      try something along the lines of:\n\n"
 
-    // #ifdef RLIMIT_AS
-    //              "      ( ulimit -Sv $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
-    // #else
-    //              "      ( ulimit -Sd $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
-    // #endif /* ^RLIMIT_AS */
+    #ifdef RLIMIT_AS
+                 "      ( ulimit -Sv $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
+    #else
+                 "      ( ulimit -Sd $[%llu << 10]; /path/to/binary [...] <testcase )\n\n"
+    #endif /* ^RLIMIT_AS */
 
-    //              "      Tip: you can use http://jwilk.net/software/recidivm to quickly\n"
-    //              "      estimate the required amount of virtual memory for the binary. Also,\n"
-    //              "      if you are using ASAN, see %s/notes_for_asan.txt.\n\n"
+                 "      Tip: you can use http://jwilk.net/software/recidivm to quickly\n"
+                 "      estimate the required amount of virtual memory for the binary. Also,\n"
+                 "      if you are using ASAN, see %s/notes_for_asan.txt.\n\n"
 
-    // #ifdef __APPLE__
+    #ifdef __APPLE__
 
-    //              "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
-    //              "      break afl-fuzz performance optimizations when running platform-specific\n"
-    //              "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
+                 "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
+                 "      break afl-fuzz performance optimizations when running platform-specific\n"
+                 "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
 
-    // #endif /* __APPLE__ */
+    #endif /* __APPLE__ */
 
-    //              "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
-    //              "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
-    //              DMS(mem_limit << 20), mem_limit - 1, doc_path);
-    //       }
-    //       else
-    //       {
+                 "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
+                 "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
+                 DMS(mem_limit << 20), mem_limit - 1, doc_path);
+          }
+          else
+          {
 
-    //         SAYF("\n" cLRD "[-] " cRST
-    //              "Oops, the program crashed with one of the test cases provided. There are\n"
-    //              "    several possible explanations:\n\n"
+            SAYF("\n" cLRD "[-] " cRST
+                 "Oops, the program crashed with one of the test cases provided. There are\n"
+                 "    several possible explanations:\n\n"
 
-    //              "    - The test case causes known crashes under normal working conditions. If\n"
-    //              "      so, please remove it. The fuzzer should be seeded with interesting\n"
-    //              "      inputs - but not ones that cause an outright crash.\n\n"
+                 "    - The test case causes known crashes under normal working conditions. If\n"
+                 "      so, please remove it. The fuzzer should be seeded with interesting\n"
+                 "      inputs - but not ones that cause an outright crash.\n\n"
 
-    // #ifdef __APPLE__
+    #ifdef __APPLE__
 
-    //              "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
-    //              "      break afl-fuzz performance optimizations when running platform-specific\n"
-    //              "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
+                 "    - On MacOS X, the semantics of fork() syscalls are non-standard and may\n"
+                 "      break afl-fuzz performance optimizations when running platform-specific\n"
+                 "      binaries. To fix this, set AFL_NO_FORKSRV=1 in the environment.\n\n"
 
-    // #endif /* __APPLE__ */
+    #endif /* __APPLE__ */
 
-    //              "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
-    //              "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
-    //       }
+                 "    - Least likely, there is a horrible bug in the fuzzer. If other options\n"
+                 "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n");
+          }
 
-    //       FATAL("Test case '%s' results in a crash", fn);
+          // FATAL("Test case '%s' results in a crash", fn);
+          break;
 
-    //     case FAULT_ERROR:
+        case FAULT_ERROR:
 
-    //       FATAL("Unable to execute target application ('%s')", argv[0]);
+          // FATAL("Unable to execute target application ('%s')", argv[0]);
+          break;
 
-    //     case FAULT_NOINST:
+        case FAULT_NOINST:
 
-    //       FATAL("No instrumentation detected");
+          // FATAL("No instrumentation detected");
+          break;
 
-    //     case FAULT_NOBITS:
+        case FAULT_NOBITS:
 
-    //       useless_at_start++;
+          useless_at_start++;
 
-    //       if (!in_bitmap && !shuffle_queue)
-    //         WARNF("No new instrumentation output, test case may be useless.");
+          if (!in_bitmap && !shuffle_queue)
+            WARNF("No new instrumentation output, test case may be useless.");
 
-    //       break;
-    //     }
+          break;
+        }
 
-    // if (q->var_behavior)
-    //   WARNF("Instrumentation output varies across runs.");
+    if (q->var_behavior)
+      WARNF("Instrumentation output varies across runs.");
 
     q = q->next;
   }
@@ -4256,7 +3827,8 @@ static void write_crash_readme(void)
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
+static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
+                              const vector<int> &explain_diff_id = {})
 {
 
   u8 *fn = "";
@@ -4264,18 +3836,56 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
   s32 fd;
   u8 keeping = 0, res;
 
+  if (is_str_empty(query_str))
+    return keeping; // return 0; Empty string. Not added.
+  
+  show_stats();
+
   if (fault == crash_mode)
   {
 
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits)))
-    {
+    /* Always check has_new_bits first. */
+
+    /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
+    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       return 0;
     }
+
+    if (disable_coverage_feedback == 1)
+    { // Disable feedbacks. Drop all queries.
+      return keeping;
+    }
+
+    /* For evaluation experiments, if we need to disable coverage feedback and randomly drop queries:
+    **  1/10 of chances to save the interesting seed.
+    **  9/10 of chances to throw away the seed.
+    **/
+    if ( (disable_coverage_feedback == 2) && get_rand_int(10) < 9 ) {
+      // Drop query. 
+      return keeping;
+    }
+
+    /* If disable_coverage_feedback == 3, always go through save_if_interesting. */
+
+    stage_name = "add_to_library";
+
+    vector<IR*> ir_tree;
+    int ret = run_parser_multi_stmt(query_str, ir_tree);
+    if (ret != 0 || ir_tree.size() == 0) {
+      return keeping;
+    }
+
+    // IR * tmp_ir = ir_tree.back();
+    // g_mutator.extract_struct(tmp_ir);
+    // g_mutator.add_all_to_library(
+    //     tmp_ir->to_string(),
+    //     explain_diff_id);
+    ir_tree.back()->deep_drop();
 
 #ifndef SIMPLE_FILES
 
@@ -4288,7 +3898,9 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
 
 #endif /* ^!SIMPLE_FILES */
 
-    add_to_queue(fn, len, 0);
+    add_to_queue(fn, query_str.size(), 0);
+
+    total_add_to_queue++;
 
     if (hnb == 2)
     {
@@ -4301,16 +3913,16 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
     /* Try to calibrate inline; this also calls update_bitmap_score() when
        successful. */
 
-    res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
+    // res = calibrate_case(argv, queue_top, mem, queue_cycle - 1, 0);
 
-    if (res == FAULT_ERROR)
-      FATAL("Unable to execute target application");
+    // if (res == FAULT_ERROR)
+    //   FATAL("Unable to execute target application");
 
     fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
     if (fd < 0)
       PFATAL("Unable to create '%s'", fn);
 
-    ck_write(fd, mem, len, fn);
+    ck_write(fd, query_str.c_str(), query_str.size(), fn);
     close(fd);
 
     keeping = 1;
@@ -4340,33 +3952,35 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
+      show_stats();
+
       if (!has_new_bits(virgin_tmout))
         return keeping;
     }
 
     unique_tmouts++;
 
-    /* Before saving, we make sure that it's a genuine hang by re-running
-         the target with a more generous timeout (unless the default timeout
-         is already generous). */
+    // /* Before saving, we make sure that it's a genuine hang by re-running
+    //      the target with a more generous timeout (unless the default timeout
+    //      is already generous). */
 
-    if (exec_tmout < hang_tmout)
-    {
+    // if (exec_tmout < hang_tmout)
+    // {
 
-      u8 new_fault;
-      write_to_testcase(mem, len);
-      new_fault = run_target(argv, hang_tmout);
+    //   u8 new_fault;
+    //   write_to_testcase(mem, len);
+    //   new_fault = run_target(argv, hang_tmout);
 
-      /* A corner case that one user reported bumping into: increasing the
-           timeout actually uncovers a crash. Make sure we don't discard it if
-           so. */
+    //   /* A corner case that one user reported bumping into: increasing the
+    //        timeout actually uncovers a crash. Make sure we don't discard it if
+    //        so. */
 
-      if (!stop_soon && new_fault == FAULT_CRASH)
-        goto keep_as_crash;
+    //   if (!stop_soon && new_fault == FAULT_CRASH)
+    //     goto keep_as_crash;
 
-      if (stop_soon || new_fault != FAULT_TMOUT)
-        return keeping;
-    }
+    //   if (stop_soon || new_fault != FAULT_TMOUT)
+    //     return keeping;
+    // }
 
 #ifndef SIMPLE_FILES
 
@@ -4434,8 +4048,10 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
 
     break;
 
-  case FAULT_ERROR:
-    FATAL("Unable to execute target application");
+  case FAULT_ERROR: {
+    // FATAL("Unable to execute target application");
+    cerr << "In save if interesting. Encounter FAULT_ERROR. \n\n\n";
+  }
 
   default:
     return keeping;
@@ -4447,10 +4063,9 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
   fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0600);
   if (fd < 0)
     PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, mem, len, fn);
+  ck_write(fd, query_str.c_str(), query_str.size(), fn);
   close(fd);
 
-  ck_free(fn);
   if (fault == FAULT_CRASH)
   {
     //cout << "NIU BI!" << endl;
@@ -4464,6 +4079,8 @@ static u8 save_if_interesting(char **argv, void *mem, u32 len, u8 fault)
     //cout << "Previous input might crash the server: " << i << endl;
     //exit(0);
   }
+
+  ck_free(fn);
   return keeping;
 }
 
@@ -4669,23 +4286,23 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps)
 static void maybe_update_plot_file(double bitmap_cvg, double eps)
 {
 
-  static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
-  static u64 prev_qc, prev_uc, prev_uh;
+  // static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
+  // static u64 prev_qc, prev_uc, prev_uh;
 
-  if (prev_qp == queued_paths && prev_pf == pending_favored &&
-      prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
-      prev_qc == queue_cycle && prev_uc == unique_crashes &&
-      prev_uh == unique_hangs && prev_md == max_depth)
-    return;
+  // if (prev_qp == queued_paths && prev_pf == pending_favored &&
+  //     prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
+  //     prev_qc == queue_cycle && prev_uc == unique_crashes &&
+  //     prev_uh == unique_hangs && prev_md == max_depth)
+  //   return;
 
-  prev_qp = queued_paths;
-  prev_pf = pending_favored;
-  prev_pnf = pending_not_fuzzed;
-  prev_ce = current_entry;
-  prev_qc = queue_cycle;
-  prev_uc = unique_crashes;
-  prev_uh = unique_hangs;
-  prev_md = max_depth;
+  // prev_qp = queued_paths;
+  // prev_pf = pending_favored;
+  // prev_pnf = pending_not_fuzzed;
+  // prev_ce = current_entry;
+  // prev_qc = queue_cycle;
+  // prev_uc = unique_crashes;
+  // prev_uh = unique_hangs;
+  // prev_md = max_depth;
 
   /* Fields in the file:
 
@@ -4700,19 +4317,20 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps); */
 
-#ifdef COUNT_ERROR
   fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %llu, %llu, %llu, %llu\n",
+          /* Format */
+          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu"
+          "\n", 
+          /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, total_execs, syntax_err_num, semantic_err_num, correct_num);
-#else
-  fprintf(plot_file,
-          "%llu, %llu, %u, %u, %u, %u, %0.02f%%, %llu, %llu, %u, %0.02f, %llu\n",
-          get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
-          pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, total_execs);
-#endif
+          unique_hangs, max_depth, eps, total_execs, 
+          total_input_failed, p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid, total_add_to_queue,
+          total_mutate_all_failed, total_mutate_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
+          debug_error, (debug_good * 100.0 / (debug_error + debug_good)), mysql_execute_ok, mysql_execute_error, mysql_execute_total,
+          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate
+          ); /* ignore errors */
 
   fflush(plot_file);
 }
@@ -5197,11 +4815,10 @@ static void show_stats(void)
     write_bitmap();
   }
 
-  /* Every now and then, write plot data. */
 
+  /* Every now and then, write plot data. */
   if (cur_ms - last_plot_ms > PLOT_UPDATE_SEC * 1000)
   {
-
     last_plot_ms = cur_ms;
     maybe_update_plot_file(t_byte_ratio, avg_exec);
   }
@@ -5736,172 +5353,601 @@ static u32 next_p2(u32 val)
   return ret;
 }
 
-/* Trim all new test cases to save cycles when doing deterministic checks. The
-   trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
-   file size, to keep the stage short and sweet. */
+// /* Trim all new test cases to save cycles when doing deterministic checks. The
+//    trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
+//    file size, to keep the stage short and sweet. */
 
-static u8 trim_case(char **argv, struct queue_entry *q, u8 *in_buf)
+// static u8 trim_case(char **argv, struct queue_entry *q, u8 *in_buf)
+// {
+
+//   static u8 tmp[64];
+//   static u8 clean_trace[MAP_SIZE];
+
+//   u8 needs_write = 0, fault = 0;
+//   u32 trim_exec = 0;
+//   u32 remove_len;
+//   u32 len_p2;
+
+//   /* Although the trimmer will be less useful when variable behavior is
+//      detected, it will still work to some extent, so we don't check for
+//      this. */
+
+//   if (q->len < 5)
+//     return 0;
+
+//   stage_name = tmp;
+//   bytes_trim_in += q->len;
+
+//   /* Select initial chunk len, starting with large steps. */
+
+//   len_p2 = next_p2(q->len);
+
+//   remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
+
+//   /* Continue until the number of steps gets too high or the stepover
+//      gets too small. */
+
+//   while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES))
+//   {
+
+//     u32 remove_pos = remove_len;
+
+//     sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
+
+//     stage_cur = 0;
+//     stage_max = q->len / remove_len;
+
+//     while (remove_pos < q->len)
+//     {
+
+//       u32 trim_avail = MIN(remove_len, q->len - remove_pos);
+//       u32 cksum;
+
+//       write_with_gap(in_buf, q->len, remove_pos, trim_avail);
+
+//       fault = run_target(argv, exec_tmout);
+//       trim_execs++;
+
+//       if (stop_soon || fault == FAULT_ERROR)
+//         goto abort_trimming;
+
+//       /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
+
+//       cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
+
+//       /* If the deletion had no impact on the trace, make it permanent. This
+//          isn't perfect for variable-path inputs, but we're just making a
+//          best-effort pass, so it's not a big deal if we end up with false
+//          negatives every now and then. */
+
+//       if (cksum == q->exec_cksum)
+//       {
+
+//         u32 move_tail = q->len - remove_pos - trim_avail;
+
+//         q->len -= trim_avail;
+//         len_p2 = next_p2(q->len);
+
+//         memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail,
+//                 move_tail);
+
+//         /* Let's save a clean trace, which will be needed by
+//            update_bitmap_score once we're done with the trimming stuff. */
+
+//         if (!needs_write)
+//         {
+
+//           needs_write = 1;
+//           memcpy(clean_trace, trace_bits, MAP_SIZE);
+//         }
+//       }
+//       else
+//         remove_pos += remove_len;
+
+//       /* Since this can be slow, update the screen every now and then. */
+
+//       if (!(trim_exec++ % stats_update_freq))
+//         show_stats();
+//       stage_cur++;
+//     }
+
+//     remove_len >>= 1;
+//   }
+
+//   /* If we have made changes to in_buf, we also need to update the on-disk
+//      version of the test case. */
+
+//   if (needs_write)
+//   {
+
+//     s32 fd;
+
+//     unlink(q->fname); /* ignore errors */
+
+//     fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
+
+//     if (fd < 0)
+//       PFATAL("Unable to create '%s'", q->fname);
+
+//     ck_write(fd, in_buf, q->len, q->fname);
+//     close(fd);
+
+//     memcpy(trace_bits, clean_trace, MAP_SIZE);
+//     update_bitmap_score(q);
+//   }
+
+// abort_trimming:
+
+//   bytes_trim_out += q->len;
+//   return fault;
+// }
+
+void extract_query_result(const string &res, vector<string> &res_vec_out,
+                          const string &begin_sign, const string &end_sign)
 {
+  res_vec_out.clear();
 
-  static u8 tmp[64];
-  static u8 clean_trace[MAP_SIZE];
-
-  u8 needs_write = 0, fault = 0;
-  u32 trim_exec = 0;
-  u32 remove_len;
-  u32 len_p2;
-
-  /* Although the trimmer will be less useful when variable behavior is
-     detected, it will still work to some extent, so we don't check for
-     this. */
-
-  if (q->len < 5)
-    return 0;
-
-  stage_name = tmp;
-  bytes_trim_in += q->len;
-
-  /* Select initial chunk len, starting with large steps. */
-
-  len_p2 = next_p2(q->len);
-
-  remove_len = MAX(len_p2 / TRIM_START_STEPS, TRIM_MIN_BYTES);
-
-  /* Continue until the number of steps gets too high or the stepover
-     gets too small. */
-
-  while (remove_len >= MAX(len_p2 / TRIM_END_STEPS, TRIM_MIN_BYTES))
+  if (is_str_empty(res))
   {
+    return -1;
+  }
 
-    u32 remove_pos = remove_len;
+  size_t begin_idx = res.find(begin_sign, 0);
+  size_t end_idx = res.find(end_sign, 0);
 
-    sprintf(tmp, "trim %s/%s", DI(remove_len), DI(remove_len));
-
-    stage_cur = 0;
-    stage_max = q->len / remove_len;
-
-    while (remove_pos < q->len)
+  while (begin_idx != string::npos)
+  {
+    if (end_idx != string::npos)
     {
+      string cur_res_str =
+          res.substr(begin_idx + begin_sign.size(),
+                     (end_idx - begin_idx - begin_sign.size()));
+      begin_idx = res.find(begin_sign, begin_idx + begin_sign.size());
+      end_idx = res.find(end_sign, end_idx + end_sign.size());
 
-      u32 trim_avail = MIN(remove_len, q->len - remove_pos);
-      u32 cksum;
-
-      write_with_gap(in_buf, q->len, remove_pos, trim_avail);
-
-      fault = run_target(argv, exec_tmout);
-      trim_execs++;
-
-      if (stop_soon || fault == FAULT_ERROR)
-        goto abort_trimming;
-
-      /* Note that we don't keep track of crashes or hangs here; maybe TODO? */
-
-      cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
-
-      /* If the deletion had no impact on the trace, make it permanent. This
-         isn't perfect for variable-path inputs, but we're just making a
-         best-effort pass, so it's not a big deal if we end up with false
-         negatives every now and then. */
-
-      if (cksum == q->exec_cksum)
+      if (cur_res_str.find("Error") != string::npos)
       {
-
-        u32 move_tail = q->len - remove_pos - trim_avail;
-
-        q->len -= trim_avail;
-        len_p2 = next_p2(q->len);
-
-        memmove(in_buf + remove_pos, in_buf + remove_pos + trim_avail,
-                move_tail);
-
-        /* Let's save a clean trace, which will be needed by
-           update_bitmap_score once we're done with the trimming stuff. */
-
-        if (!needs_write)
-        {
-
-          needs_write = 1;
-          memcpy(clean_trace, trace_bits, MAP_SIZE);
-        }
-      }
+        res_vec_out.push_back("Error");
+        continue;
+      } // If "Error" is found, return "Error" as result.
       else
-        remove_pos += remove_len;
-
-      /* Since this can be slow, update the screen every now and then. */
-
-      if (!(trim_exec++ % stats_update_freq))
-        show_stats();
-      stage_cur++;
+      {
+        //cur_res_str = trim(cur_res_str);
+        trim_string(cur_res_str);
+        // cout << "cur_res_str: " << cur_res_str << endl;
+        res_vec_out.push_back(cur_res_str);
+      }
     }
-
-    remove_len >>= 1;
+    else
+    {
+      break; // For the current begin_idx, we cannot find the end_idx. Ignore
+             // the current output.
+    }
   }
-
-  /* If we have made changes to in_buf, we also need to update the on-disk
-     version of the test case. */
-
-  if (needs_write)
-  {
-
-    s32 fd;
-
-    unlink(q->fname); /* ignore errors */
-
-    fd = open(q->fname, O_WRONLY | O_CREAT | O_EXCL, 0600);
-
-    if (fd < 0)
-      PFATAL("Unable to create '%s'", q->fname);
-
-    ck_write(fd, in_buf, q->len, q->fname);
-    close(fd);
-
-    memcpy(trace_bits, clean_trace, MAP_SIZE);
-    update_bitmap_score(q);
-  }
-
-abort_trimming:
-
-  bytes_trim_out += q->len;
-  return fault;
 }
 
-int num = 0;
-/* Write a modified test case, run program, process results. Handle
-   error conditions, returning 1 if it's time to bail out. This is
-   a helper function for fuzz_one(). */
+void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
+                                     vector<int> &explain_diff_id)
+{
 
-EXP_ST u8 common_fuzz_stuff(char **argv, const u8 *out_buf, u32 len)
+  if (p_oracle->get_mul_run_num() <= 1)
+  {
+    cerr << "Error: calling cross_run compare results function, when "
+            "mul_run_num <= 1. Code logic error. \n";
+    abort();
+  }
+
+  all_comp_res.final_res = ORA_COMP_RES::Pass;
+  explain_diff_id.clear();
+
+  vector<vector<string>> res_vec, exp_vec;
+
+  for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+  {
+    if (idx >= all_comp_res.v_res_str.size())
+    {
+      cerr << "Error: v_res_str overflow in the "
+              "compare_query_results_cross_run func. \n";
+      abort();
+    }
+    const string &res_str = all_comp_res.v_res_str[idx];
+    const string &cmd_str = all_comp_res.v_cmd_str[idx];
+    if (is_str_empty(res_str))
+    {
+      all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+      return;
+    }
+
+    vector<string> cur_res_vec, cur_exp_vec;
+    /* Only takes one type of validation at a time in the query. */
+    extract_query_result(res_str, cur_res_vec, "BEGIN VERI 0", "END VERI 0");
+
+    // cerr << "For results: \n" << res_str << "\n, we get :" << endl;
+    // for (int i = 0; i < cur_res_vec.size(); i++){
+    //   cerr << "cur_res_vec: " << cur_res_vec[i] << endl;
+    // }
+
+    res_vec.push_back(std::move(cur_res_vec));
+    exp_vec.push_back(std::move(cur_exp_vec));
+  }
+
+  /* Compare valid stat by valid stat between different runs. */
+  for (int j = 0; j < res_vec[0].size(); j++)
+  {
+    COMP_RES comp_res;
+    for (int i = 0; i < res_vec.size(); i++)
+    {
+      if (j < res_vec[i].size())
+      {
+        comp_res.v_res_str.push_back(res_vec[i][j]);
+      }
+      else
+      {
+        comp_res.comp_res = ORA_COMP_RES::ALL_Error;
+      }
+      if (j < exp_vec[0].size() && j < exp_vec[i].size() &&
+          exp_vec[0][j] != exp_vec[i][j])
+      {
+        comp_res.explain_diff_id.push_back(j);
+        explain_diff_id.push_back(
+            j); /* Might contains duplicated IDs. But it should be OK. */
+      }
+    }
+    all_comp_res.v_res.push_back(std::move(comp_res));
+  }
+
+  p_oracle->compare_results(all_comp_res);
+  return;
+}
+
+void compare_query_result(ALL_COMP_RES &all_comp_res,
+                          vector<int> &explain_diff_id)
+{
+
+  all_comp_res.final_res = ORA_COMP_RES::Pass;
+  explain_diff_id.clear();
+
+  const string &res_str = all_comp_res.res_str;
+  if (is_str_empty(res_str))
+  {
+    all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+    return;
+  }
+
+  vector<string> res_vec_0, res_vec_1, res_vec_2, res_vec_3, exp_vec_0,
+      exp_vec_1, exp_vec_2, exp_vec_3;
+
+  /* Look throught first validation stmt's res_0 first */
+  extract_query_result(res_str, res_vec_0, "BEGIN VERI 0", "END VERI 0");
+
+  /* Second validation stmt... etc*/
+  extract_query_result(res_str, res_vec_1, "BEGIN VERI 1", "END VERI 1");
+
+  extract_query_result(res_str, res_vec_2, "BEGIN VERI 2", "END VERI 2");
+
+  extract_query_result(res_str, res_vec_3, "BEGIN VERI 3", "END VERI 3");
+
+
+  // cout << "command: " << all_comp_res.cmd_str << endl;
+
+  // for (string tmp_str : res_vec_0) {
+  //   cout << "res_vec_0: " << tmp_str <<  endl;
+  // }
+
+  // for (string tmp_str : res_vec_1) {
+  //   cout << "res_vec_1: " << tmp_str <<  endl;
+  // }
+
+  // cerr << "Size of res_vec_0: " << res_vec_0.size() << "   1: " <<
+  // res_vec_1.size() << endl; 
+
+  for (int idx = 0; idx < max({res_vec_0.size(), res_vec_1.size(),
+                               res_vec_2.size(), res_vec_3.size()});
+       idx++)
+  {
+    COMP_RES comp_res;
+    if (idx < res_vec_0.size())
+    {
+      comp_res.res_str_0 = res_vec_0[idx];
+    }
+    if (idx < res_vec_1.size())
+    {
+      comp_res.res_str_1 = res_vec_1[idx];
+    }
+    if (idx < res_vec_2.size())
+    {
+      comp_res.res_str_2 = res_vec_2[idx];
+    }
+    if (idx < res_vec_3.size())
+    {
+      comp_res.res_str_3 = res_vec_3[idx];
+    }
+    if (idx < exp_vec_0.size())
+    {
+      if ((idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) ||
+          (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) ||
+          (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx]))
+      {
+        comp_res.explain_diff_id.push_back(idx);
+        explain_diff_id.push_back(idx);
+      }
+    }
+    all_comp_res.v_res.push_back(std::move(comp_res));
+  }
+
+
+  /* Now we can compare the results and find whether there are inconsistant. */
+  p_oracle->compare_results(all_comp_res);
+  return;
+}
+
+void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out)
+{
+  if (p_oracle->get_mul_run_num() <= 1)
+  {
+    out << "Query: \n";
+    out << all_comp_res.cmd_str << "\n";
+    out << "Result string: \n";
+    out << all_comp_res.res_str << "\n";
+    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+    out << "Detailed result: "
+        << "\n";
+    int iter = 0;
+    for (const COMP_RES &res : all_comp_res.v_res)
+    {
+      out << "\n\nResult NUM: " << iter++ << " \nRESULT FLAGS: " << res.comp_res
+          << "\n";
+      out << "First stmt res is (str): " << res.res_str_0 << "\n"
+          << "First stmt res is (int): " << res.res_int_0 << "\n";
+      out << "Second stmt res is (str): " << res.res_str_1 << "\n"
+          << "Second stmt is (int): " << res.res_int_1 << "\n";
+      out << "Third stmt res is (str): " << res.res_str_2 << "\n"
+          << "Third stmt is (int): " << res.res_int_2 << "\n";
+      out << "Fourth stmt res is (str): " << res.res_str_3 << "\n"
+          << "Fourth stmt is (int): " << res.res_int_3 << "\n";
+    }
+
+    out << "Compare_No_Rec_result_int: \n"
+        << all_comp_res.final_res;
+    out << "\n\n\n\n";
+  }
+  else
+  { // multiple execute SQLite.
+    out << "Multiple execution of SQLite: \n";
+
+    for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++)
+    {
+      out << "Query: " << i << ": \n";
+      out << all_comp_res.v_cmd_str[i] << "\n";
+      out << "Result string: \n";
+      out << all_comp_res.v_res_str[i] << "\n";
+    }
+    out << "\nFinal_res: " << all_comp_res.final_res << "\n";
+    out << "Detailed result: "
+        << "\n";
+    int iter = 0;
+    for (const COMP_RES &res : all_comp_res.v_res)
+    {
+      out << "\n\nResult NUM: " << iter << " \nRESULT FLAGS: " << res.comp_res
+          << "\n";
+      for (int j = 0; j < max(res.v_res_str.size(), res.v_res_int.size());
+           j++)
+      {
+        if (j < res.v_res_str.size())
+          out << "Str: " << res.v_res_str[j] << " \n";
+        if (j < res.v_res_int.size())
+          out << "INT: " << res.v_res_int[j] << " \n";
+      }
+      iter++;
+    }
+
+    out << "Compare_No_Rec_result_int: \n"
+        << all_comp_res.final_res;
+    out << "\n\n\n\n";
+  }
+}
+
+
+u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_id, ALL_COMP_RES& all_comp_res,
+                      char **argv, u32 tmout = exec_tmout)
 {
 
   u8 fault;
 
-  //cout << num ++ << ":" << out_buf << endl;
-  if (post_handler)
-  {
+  string res_str = "";
 
-    out_buf = post_handler(out_buf, &len);
-    if (!out_buf || !len)
-      return 0;
+  for (const string& cmd_string : cmd_string_vec) {
+    if ((cmd_string.find("RANDOM") != std::string::npos) ||
+        (cmd_string.find("random") != std::string::npos)
+      ){
+      return FAULT_ERROR;
+    }
+
+    vector<string> queries_vector = string_splitter(cmd_string, ';');
+    for (string &query : queries_vector) {
+      // ignore the whole query pairs if !... in the stmt,
+      for (auto iter = query.begin(); iter != query.end(); iter++) {
+        if (*iter == '!')
+          return FAULT_ERROR;
+        else if (*iter != ' ')
+          break;
+      }
+    }
   }
-  write_to_testcase(out_buf, len);
 
-  fault = run_target(argv, exec_tmout);
-
-#ifdef COUNT_ERROR
-  if (execute_result == kSyntaxError)
+  if (p_oracle->get_mul_run_num() <= 1)
   {
-    syntax_err_num++;
+    /* Compare results between different validation stmts in a single run. */
+    // for (string query : queries_vector) {
+    //   cout << query << endl;
+    // }
+    // cmd_string = expand_valid_stmts_str(queries_vector, true);
+    string cmd_string = cmd_string_vec[0];
+
+    trim_string(cmd_string);
+
+    string res_str = "";
+    fault = run_target(argv, tmout, cmd_string, res_str);
+    // cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n"; 
+    if (stop_soon)
+      return fault;
+    if (fault == FAULT_TMOUT)
+    {
+      if (subseq_tmouts++ > TMOUT_LIMIT)
+      {
+        cur_skipped_paths++;
+        return fault;
+      }
+    }
+    else
+    {
+      subseq_tmouts = 0;
+    }
+    /* Users can hit us with SIGUSR1 to request the current input
+         to be abandoned. */
+    if (skip_requested)
+    {
+      skip_requested = 0;
+      cur_skipped_paths++;
+      return fault;
+    }
+
+    all_comp_res.cmd_str = std::move(cmd_string);
+    all_comp_res.res_str = std::move(res_str);
+    compare_query_result(all_comp_res, explain_diff_id);
+  } else
+  {
+    /* Compare results of the same validation stmts in different runs. */
+    for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+    {
+      // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
+      string cmd_string = cmd_string_vec[idx];
+
+      //cmd_string = trim(cmd_string);
+      trim_string(cmd_string);
+
+      string res_str = "";
+      fault = run_target(argv, tmout, cmd_string, res_str);
+      cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n";
+      if (stop_soon)
+        return fault;
+      if (fault == FAULT_TMOUT)
+      {
+        if (subseq_tmouts++ > TMOUT_LIMIT)
+        {
+          cur_skipped_paths++;
+          return fault;
+        }
+      }
+      else
+      {
+        subseq_tmouts = 0;
+      }
+      /* Users can hit us with SIGUSR1 to request the current input
+           to be abandoned. */
+      if (skip_requested)
+      {
+        skip_requested = 0;
+        cur_skipped_paths++;
+        return fault;
+      }
+
+      all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
+      all_comp_res.v_res_str.push_back(std::move(res_str));
+
+    } // End for run_id loop.
+
+    compare_query_results_cross_run(all_comp_res, explain_diff_id);
   }
-  else if (execute_result == kSemanticError)
+
+  /* Log the debug_error and debug_good. */
+  for (auto &res : all_comp_res.v_res)
   {
-    semantic_err_num++;
+    if (res.comp_res == ORA_COMP_RES::Pass)
+    {
+      debug_good++;
+    }
+    else
+    {
+      debug_error++;
+    }
+  }
+
+  /* Some useful debug output. That could show what queries are being tested. */
+  // stream_output_res(all_comp_res, cerr);
+
+  /***********************/
+  /* Debug: output logs for all execs */
+  if (dump_library) {
+    if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+      filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+    }
+    string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+    ofstream log_output_file;
+    log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+    stream_output_res(all_comp_res, log_output_file);
+    log_output_file.close();
+  }
+
+  /* Debug end.  */
+  /***********************/
+
+  if (all_comp_res.final_res == ORA_COMP_RES::Fail)
+  {
+    ofstream outputfile;
+    bug_output_id++;
+    if ( !filesystem::exists("../Bug_Analysis/")) {
+      filesystem::create_directory("../Bug_Analysis/");
+    }
+    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
+      filesystem::create_directory("../Bug_Analysis/bug_samples");
+    }
+
+    string bug_output_dir =
+        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
+    // cerr << "Bug output dir is: " << bug_output_dir << endl;
+    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+    stream_output_res(all_comp_res, outputfile);
+
+    outputfile.close();
+
+    total_execs++;
+
+  }
+  else if (all_comp_res.final_res == ORA_COMP_RES::Pass)
+  {
+    total_execs++;
   }
   else
   {
-    correct_num++;
+    /* Query being skipped, or all select stmts return error results. */
   }
+  total_execute++;
+  return fault;
+}
+
+
+
+
+/* Write a modified test case, run program, process results. Handle
+   error conditions, returning 1 if it's time to bail out. This is
+   a helper function for fuzz_one(). */
+
+EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec, vector<string> &query_str_no_marks_vec) 
+{
+
+  u8 fault;
+
+  vector<int> explain_diff_id;
+  ALL_COMP_RES all_comp_res;
+  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
+
+  fault = execute_cmd_string(query_str_vec, explain_diff_id, all_comp_res, argv, exec_tmout);
+
+  if (stop_soon)
+    return 1;
+  
   execute_result == kNormal;
-#endif
 
   if (stop_soon)
     return 1;
@@ -5931,12 +5977,9 @@ EXP_ST u8 common_fuzz_stuff(char **argv, const u8 *out_buf, u32 len)
 
   /* This handles FAULT_ERROR for us: */
   //cout << num ++ << ":" << out_buf << endl;
-  int should_keep = save_if_interesting(argv, out_buf, len, fault);
+  int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault);
   queued_discovered += should_keep;
-  if (should_keep == 1)
-  {
-    g_mutator.add_ir_to_library(g_current_ir);
-  }
+
   //cout << "OK" << endl;
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
     show_stats();
@@ -6298,6 +6341,48 @@ static u8 could_be_interest(u32 old_val, u32 new_val, u8 blen, u8 check_le)
   return 0;
 }
 
+void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_num = 10) {
+
+  // cout << "get_oracle_select_stmt" << endl;
+  // exit(0);
+  int trial = 0;
+  int num_norec = 0;
+  int max_trial =
+      valid_max_num * 10; // For each norec select stmt, we have on average 10
+                         // chances to append the stmt and check.
+
+  // cerr << "Entering get_oracle_select_stmt func. \n";
+
+  while (num_norec < valid_max_num)
+  {
+
+    if (trial++ >= max_trial) { // Give on average 3 chances per select stmts.
+      // cerr << "Break due to exceeding max_trial. \n";
+      break;
+    }
+    // cout << "get_oracle_select_stmt trial times: " << trial << endl;
+    IR* new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
+    if (new_oracle_select_stmts == NULL) {
+      cerr << "new_norec_stmts is empty. \n";
+      continue;
+    }
+    // ensure_semicolon_at_query_end(new_norec_stmts);
+    v_oracle_select_stmts.push_back(std::move(new_oracle_select_stmts));
+
+    num_norec++;
+    num_valid++;
+  }
+
+  // cerr << "DEBUG: v_oracle_select_stmts.size() is: " << v_oracle_select_stmts.size() << ". \n";
+  // for (IR* v_oracle_select : v_oracle_select_stmts) {
+  //   cerr << "DEBUG: Getting oracle select: " << v_oracle_select->to_string() << "\n";
+  // }
+  // cerr << "\n\n\n";
+  return;
+}
+
+
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -6315,7 +6400,22 @@ static u8 fuzz_one(char **argv)
   u8 a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
 
-  vector<IR *> mutated_tree;
+  vector<IR *> ori_ir_tree;
+  vector<IR*> v_oracle_select_stmts;
+  vector<IR*> v_ir_stmts;
+
+  string input;
+
+  // DEBUG
+  string ori_input_str;
+
+  /* If this is a timeout query, skip it immediately. */
+  if (queue_cur->is_timeout) {
+    SAYF("\n" cLRD "[-] " cRST
+                 "DEBUG: Skip test case due to its seeds' timeout .\n\n\n");
+    return 1;
+  }
+
 
 #ifdef IGNORE_FINDS
 
@@ -6391,95 +6491,369 @@ static u8 fuzz_one(char **argv)
   cur_depth = queue_cur->depth;
 
   memcpy(out_buf, in_buf, len);
-  out_buf[len] = 0;
+  out_buf[len] = '\0';
 
-  vector<IR *> ir_set;
-  string input((const char *)out_buf);
-  Program *program = parser(input);
+  stage_name = "mutate";
 
-  if (program == NULL)
+  int skip_count = 0;
+  input.assign((const char *)out_buf, len);
+
+  /* Now we modify the input queries, append multiple norec compatible select
+   * stmt to the end of the queries to achieve better testing efficiency.  */
+
+  // cerr << "Before initial parsing, the imported input is: \n" << input << "\n\n\n";
+
+  num_parse++;
+
+  ori_ir_tree.clear();
+  int ret = run_parser_multi_stmt(input, ori_ir_tree);
+
+  if (ret != 0 || ori_ir_tree.size() == 0)
   {
     goto abandon_entry;
   }
 
-  try
-  {
-    program->translate(ir_set);
+  IR* cur_root;
+  cur_root = ori_ir_tree.back();
+
+  // DEBUG: 
+  // ori_input_str = cur_root->to_string();
+
+  // cerr << "Getting the original parsing results. \n\n\n";
+  // g_mutator.debug(cur_root, 0);
+  // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
+
+  /* Append Create stmts to the queue, if no create table stmts is found. */
+  v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+  int create_num, drop_num;
+  bool is_missing_create;
+  create_num = 0;
+  drop_num = 0;
+
+  for (IR* ir_stmts : v_ir_stmts) {
+    switch (ir_stmts->get_ir_type()) {
+      case kCreateTableStmt:
+        create_num++;
+        break;
+      case kDropTableStmt:
+        {
+          if (get_rand_int(2) < 1) {
+            /* 50% chance, remove drop stmt.  */
+            p_oracle->ir_wrapper.set_ir_root(cur_root);
+            p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
+          }
+        }
+        drop_num++;
+        break;
+    }
   }
-  catch (...)
-  {
-    program->deep_delete();
-    goto abandon_entry;
+
+  // if (create_num == 0) {
+  //   // cur_root->deep_drop();
+  //   goto abandon_entry;
+  // }
+
+  if (drop_num >= create_num) {
+    // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
+    g_mutator.add_missing_create_table_stmt(cur_root);
+    // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
+    // goto abandon_entry;
   }
-  program->deep_delete();
-  orig_perf = perf_score = calculate_score(queue_cur);
+  v_ir_stmts.clear(); // No need to free. 
+
+  // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
+  p_oracle->remove_select_stmt_from_ir(cur_root);
+  p_oracle->remove_explain_stmt_from_ir(cur_root);
+
+
+  // cerr << "After removing select stmt and added create. \n\n\n";
+  // g_mutator.debug(cur_root, 0);
+  // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
+
+
+  ori_ir_tree.clear();
+  ori_ir_tree = p_oracle->ir_wrapper.get_all_ir_node(cur_root); 
+
+  stage_max = ori_ir_tree.size();
+  stage_cur = 0;
+  stage_short = "SQL fuzz";
+  stage_name = "MySQL fuzzing";
+
+  // orig_perf = perf_score = calculate_score(queue_cur);
 
   doing_det = 1;
-
-  stage_short = "SQL fuzz";
-  stage_max = len << 3;
-  stage_name = "niubi fuzzing";
 
   stage_val_type = STAGE_VAL_NONE;
 
   orig_hit_cnt = queued_paths + unique_crashes;
 
   prev_cksum = queue_cur->exec_cksum;
-  int skip_count;
   skip_count = 0;
-  mutated_tree = g_mutator.mutate_all(ir_set);
-  deep_delete(ir_set[ir_set.size() - 1]);
-  ir_set.clear();
 
-  stage_max = mutated_tree.size();
-  stage_cur = 0;
-  for (auto &ir : mutated_tree)
-  {
-    stage_name = "niubi_validate";
+  v_oracle_select_stmts.clear();
+  get_oracle_select_stmts(v_oracle_select_stmts, 10);
 
-    bool tmp_res = g_mutator.validate(ir);
-    if (tmp_res == false)
-    {
-      skip_count++;
-      continue;
-    }
-    show_stats();
-    string ir_str = ir->to_string();
-    g_current_ir = ir; //this is not modified
+  // cerr << "After get_oracle_select_stmts. \n\n\n";
 
-    char *tmp_str = ir_str.c_str();
-
-    int siz = ir_str.size();
-    stage_name = "niubi_fuzz";
-
-    if (g_previous_input.size() >= 10)
-    {
-      char *aa = g_previous_input.front();
-      g_previous_input.pop_front();
-      free(aa);
-    }
-    g_previous_input.push_back(strdup(tmp_str));
-
-    if (common_fuzz_stuff(argv, tmp_str, siz))
-    {
+  for (IR* ir_to_mutate : ori_ir_tree) {
+    if (stop_soon) {
       goto abandon_entry;
     }
-    stage_cur++;
-    show_stats();
-  }
 
+    // auto single_mutation_start_time = std::chrono::system_clock::now();
+
+    /* The mutated IR tree is deep_copied() */
+    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
+
+    // auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
+    // std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
+    // cerr << "Single mutate_all function call time, used time: " << single_mutation_function_used_time.count() << "\n\n\n";
+
+    num_mutate_all++;
+
+    for (IR* mutated_ir_root : v_mutated_ir_root) {
+
+      if (!mutated_ir_root) {
+        continue;
+      }
+
+      string ir_str = mutated_ir_root->to_string();
+      stage_name = "query_fix";
+
+      /* Use to_string() here, validate() will be called just once, at the end of
+      * the query mutation. */
+      if (ir_str.size() == 0)
+      {
+        total_mutate_failed++;
+        skip_count++;
+        continue;
+      }
+
+      /* Check whether the mutated normal (non-select) query makes sense, if not, do not even
+      * consider appending anything */
+
+      // auto single_reparse_start_time = std::chrono::system_clock::now();
+
+      vector<IR *> cur_ir_tree;
+      ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
+      if (ret != 0 || cur_ir_tree.size() == 0) {
+        total_mutate_failed++;
+        skip_count++;
+        continue;
+      }
+      num_reparse++;
+
+      // auto single_reparse_end_time = std::chrono::system_clock::now();
+      // std::chrono::duration<double> single_reparse_used_time = single_reparse_end_time  - single_reparse_start_time ;
+      // cerr << "Single reparse function call time, used time: " << single_reparse_used_time.count() << "\n\n\n";
+
+      // cerr << "After mutate and reparse, we get ori_str: \n" << ori_input_str << "\nmutated_str: " << cur_ir_tree.back()->to_string() << "\n\n\n";
+
+      // cerr << "IR size: " << cur_ir_tree.size() << "\n\n\n";
+
+      // auto single_append_stmt_start_time = std::chrono::system_clock::now();
+
+      for (IR* app_IR_node : v_oracle_select_stmts) {
+        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
+        p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
+      }
+
+      // auto single_append_stmt_end_time = std::chrono::system_clock::now();
+      // std::chrono::duration<double> single_append_stmt_used_time = single_append_stmt_end_time  - single_append_stmt_start_time ;
+      // cerr << "Single append stmt function call time, used time: " << single_append_stmt_used_time.count() << "\n\n\n";
+
+      num_append++;
+
+      // auto single_validate_func_start_time = std::chrono::system_clock::now();
+
+      /*
+      ** Pre_Post_fix_transformation from the oracle across runs, build dependency graph,
+      ** fix ir node, fill in concret values,
+      ** and transform from IR to multi-run strings.
+      */
+      vector<string> query_str_vec, query_str_no_marks_vec;
+
+      IR* cur_root = cur_ir_tree.back();
+
+      g_mutator.pre_validate(); // Reset global variables for query sequence.
+
+      // auto single_validate_func_start_time_2 = std::chrono::system_clock::now();
+      // pre_fix_transformation from the oracle.
+      vector<STMT_TYPE> stmt_type_vec;
+      vector<IR*> all_pre_trans_vec = g_mutator.pre_fix_transform(cur_root, stmt_type_vec); // All deep_copied.
+
+      // auto single_validate_func_end_time_2 = std::chrono::system_clock::now();
+      // std::chrono::duration<double> single_validate_func_used_time_2 = single_validate_func_end_time_2  - single_validate_func_start_time_2 ;
+      // cerr << "Single validate function pre_fix_transform function call time, used time: " << single_validate_func_used_time_2.count() << "\n\n\n";
+
+      /* Debug  */
+      // cerr << "Just gone through pre_fix_transform, we have: \n";
+      // for (IR* cur_trans: all_pre_trans_vec) {
+      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+      //   if (cur_trans->parent_) {
+      //     cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+      //   }
+      // }
+      // cerr << "Pre-fix transform end. \n\n\n";
+
+      // cerr << "Gone through g_mutator.pre_fix_transform(), the all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
+
+      // auto single_validate_func_start_time_3 = std::chrono::system_clock::now();
+      /* Build dependency graph, fix ir node, fill in concret values */
+      for (IR* cur_trans_stmt : all_pre_trans_vec) {
+        if(!g_mutator.validate(cur_trans_stmt)) {
+          // cerr << "Error: g_mutator.validate returns errors. \n";
+          /* Do nothing. */
+        }
+      }
+      // auto single_validate_func_end_time_3 = std::chrono::system_clock::now();
+      // std::chrono::duration<double> single_validate_func_used_time_3 = single_validate_func_end_time_3  - single_validate_func_start_time_3 ;
+      // cerr << "Single validate function 3 main function call time, used time: " << single_validate_func_used_time_3.count() << "\n\n\n";
+
+
+      // cerr << "Just gone through validate functions, we have: \n";
+      // for (IR* cur_trans: all_pre_trans_vec) {
+      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
+      //   if (cur_trans->parent_) {
+      //     cerr << "cur_trans->parent_: " << get_string_by_ir_type(cur_trans->parent_->type_) << "\n";
+      //   }
+      // }
+      // cerr << "Pre-fix transform end. \n\n\n";
+
+      // auto single_validate_func_start_time_4 = std::chrono::system_clock::now();
+      /* post_fix_transformation from the oracle. All deep_copied. */
+      vector<vector<vector<IR*>>> all_post_trans_vec_all_runs = g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
+
+      // auto single_validate_func_end_time_4 = std::chrono::system_clock::now();
+      // std::chrono::duration<double> single_validate_func_used_time_4 = single_validate_func_end_time_4  - single_validate_func_start_time_4 ;
+      // cerr << "Single validate function postfix_transform call time, used time: " << single_validate_func_used_time_4.count() << "\n\n\n";
+
+      for (vector<vector<IR*>>& all_post_trans_vec : all_post_trans_vec_all_runs) {
+
+        /* Debug */
+        // cerr << "After post-fix, we have: \n";
+        // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
+        //   for (IR* cur_post: cur_post_trans) {
+        //     cerr << "cur_post: " << cur_post->to_string() << "\n";
+        //   }
+        // }
+        // cerr << "Post-fix Done. \n";
+
+        // Final step, transform IR tree to string. Add marker to important statements.
+        pair<string, string> query_str_pair = g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+        query_str_vec.push_back(query_str_pair.first);
+        query_str_no_marks_vec.push_back(query_str_pair.second); // Without adding the pre_post_transformed statements.
+      }
+
+      // for (auto query_str : query_str_vec) {
+      //   cerr << "Just after validate and fix, Query str: " << query_str << endl;
+      // }
+      // cerr << "End\n\n\n";
+
+      /* Clean up allocated resource.  */
+      for (int i = 0; i < all_pre_trans_vec.size(); i++){
+        all_pre_trans_vec[i]->deep_drop();
+      }
+
+      for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++){
+        for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++){
+          for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++){
+            all_post_trans_vec_all_runs[i][j][k]->deep_drop();
+          }
+        }
+      }
+
+      num_validate++;
+
+      if (cur_ir_tree.size() > 0){
+        cur_ir_tree.back()->deep_drop();
+      }
+
+      // auto single_validate_func_end_time = std::chrono::system_clock::now();
+      // std::chrono::duration<double> single_validate_func_used_time = single_validate_func_end_time  - single_validate_func_start_time ;
+      // cerr << "Single validate function call time, used time: " << single_validate_func_used_time.count() << "\n\n\n";
+
+      /* Finished clean up */
+
+      if (query_str_vec.size() == 0)
+      {
+        total_append_failed++;
+        skip_count++;
+        continue;
+      } else if (query_str_vec[0] == "" ){
+        total_append_failed++;
+        skip_count++;
+        continue;
+      }
+      else
+      {
+        show_stats();
+        // cout << "Valid SQL: " << ir_str << endl;
+        // g_current_ir = ir; //this is not modified
+        stage_name = "fuzz";
+        // cerr << "IR_STR is: " << query_str << endl;
+
+        /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
+        // vector<string> small_query_testcases;
+        // split_queries_into_small_pieces(query_str, small_query_testcases);
+        // if (small_query_testcases.size() == 0) {
+        //   total_append_failed++;
+        //   skip_count++;
+        //   continue;
+        // }
+
+        // if (query_str_vec.size() > 0)
+        //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
+
+        if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
+        {
+          // goto abandon_entry;
+          continue;
+        }
+        total_execute++;
+        stage_cur++;
+        show_stats();
+      }
+    } // v_mutated_ir_root
+
+    for (IR* mutated_ir_root : v_mutated_ir_root) {
+      mutated_ir_root->deep_drop();
+    }
+
+    // DEBUG
+    // auto single_mutation_end_time = std::chrono::system_clock::now();
+    // std::chrono::duration<double> single_mutation_used_time = single_mutation_end_time - single_mutation_start_time;
+    // cerr << "\n\nFor single mutation of seed: " << queue_cur->fname << ", used time: " << single_mutation_used_time.count() << ". \n\n\n";
+
+  } // ir_set vector
+
+  stage_cur = stage_max = 0;
   stage_finds[STAGE_FLIP1] += new_hit_cnt - orig_hit_cnt;
-  stage_cycles[STAGE_FLIP1] += mutated_tree.size() - skip_count;
+  stage_cycles[STAGE_FLIP1] += ori_ir_tree.size() - skip_count;
 
   new_hit_cnt = queued_paths + unique_crashes;
 
   ret_val = 0;
 
 abandon_entry:
-  for (auto ir : mutated_tree)
-  {
-    deep_delete(ir);
+  
+  /* Free the original ir tree */
+  if (ori_ir_tree.size() != 0) {
+    ori_ir_tree.back()->deep_drop();
   }
+
+  /* Free the generated oracle SELECT stmt.  */
+  for (IR* app_ir_node : v_oracle_select_stmts) {
+    app_ir_node->deep_drop();
+  }
+  v_oracle_select_stmts.clear();
+
   splicing_with = -1;
 
   /* Update pending_not_fuzzed count if we made it through the calibration
@@ -6622,15 +6996,15 @@ static void sync_fuzzers(char **argv)
         /* See what happens. We rely on save_if_interesting() to catch major
            errors and save the test case. */
 
-        write_to_testcase(mem, st.st_size);
-
-        fault = run_target(argv, exec_tmout);
+        string cmd_str = (char*) mem;
+        string dummy_res;
+        fault = run_target(argv, exec_tmout, cmd_str, dummy_res);
 
         if (stop_soon)
           return;
 
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, mem, st.st_size, fault);
+        queued_imported += save_if_interesting(argv, cmd_str, fault);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
@@ -7118,21 +7492,17 @@ EXP_ST void setup_dirs_fds(void)
   if (!plot_file)
     PFATAL("fdopen() failed");
 
-    /*
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec\n");
-  */
     /* ignore errors */
-#ifdef COUNT_ERROR
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec, total_execs, syntax_error, semantic_error, correct\n");
-#else
-  fprintf(plot_file, "# unix_time, cycles_done, cur_path, paths_total, "
-                     "pending_total, pending_favs, map_size, unique_crashes, "
-                     "unique_hangs, max_depth, execs_per_sec, total_execs\n");
-#endif
+  fprintf(plot_file, "unix_time,cycles_done,cur_path,paths_total,"
+                     "pending_total,pending_favs,map_size,unique_crashes,"
+                     "unique_hangs,max_depth,execs_per_sec,total_execs,"
+                     "total_input_failed,total_random_VALID,total_add_to_queue,total_mutate_all_failed,"
+                     "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
+                     "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
+                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
+                     );
+
+  fflush(plot_file);
 }
 
 /* Setup the output file for fuzzed data, if not using -f. */
@@ -7612,12 +7982,12 @@ static char **get_qemu_argv(u8 *own_loc, char **argv, int argc)
   else
     ck_free(own_copy);
 
-  if (!access(BIN_PATH "/afl-qemu-trace", X_OK))
-  {
+  // if (!access(BIN_PATH "/afl-qemu-trace", X_OK))
+  // {
 
-    target_path = new_argv[0] = ck_strdup(BIN_PATH "/afl-qemu-trace");
-    return new_argv;
-  }
+  //   target_path = new_argv[0] = ck_strdup(BIN_PATH "/afl-qemu-trace");
+  //   return new_argv;
+  // }
 
   SAYF("\n" cLRD "[-] " cRST
        "Oops, unable to find the 'afl-qemu-trace' binary. The binary must be built\n"
@@ -7672,47 +8042,73 @@ static void do_libary_initialize()
     g_mutator.init(string(g_libary_path) + "/" + f);
   }
   g_mutator.init_data_library(GLOBAL_TYPE_PATH);
-  g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
-  cout << "init_lib done" << endl;
-}
+  // g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
 
-void test_mutate()
-{
-  string test = "select a from b where c=0;";
-  vector<IR *> tmp;
-  auto ast = parser(test);
-  auto ir1 = ast->translate(tmp);
-  cout << "Initing new_code" << endl;
-  g_mutator.init("./init_lib/new_code");
-  cout << "Finish init" << endl;
-  exit(0);
-
-  auto mutated_tree = g_mutator.mutate_all(tmp);
-  deep_delete(tmp[tmp.size() - 1]);
-  tmp.clear();
-
-  for (auto ir : mutated_tree)
+  char *in_dir_str = (char *)in_dir;
+  file_list = get_all_files_in_dir(in_dir_str);
+  for (auto &f : file_list)
   {
-    bool tmp_res = g_mutator.validate(ir);
-    if (tmp_res == false)
-    {
-      continue;
-    }
-    cout << endl;
-    getchar();
+    string file_path = string(in_dir_str) + "/" + f;
+    cerr << "init filename: " << file_path << endl;
+    g_mutator.init(file_path);
   }
+
+  g_mutator.init_library();
+
+  cout << "init_lib done" << endl;
+
 }
+
+// void test_mutate()
+// {
+//   string test = "select a from b where c=0;";
+//   vector<IR *> tmp;
+//   IR* root = parser(test);
+//   cout << "Initing new_code" << endl;
+//   g_mutator.init("./init_lib/new_code");
+//   cout << "Finish init" << endl;
+//   exit(0);
+
+//   /* TODO:: YU:: DIRTY FIX FOR NOW */
+//   tmp.clear();
+//   tmp.push_back(root);
+//   auto mutated_tree = g_mutator.mutate_all(tmp);
+//   deep_delete(tmp[tmp.size() - 1]);
+//   tmp.clear();
+
+//   for (auto ir : mutated_tree)
+//   {
+//     bool tmp_res = g_mutator.validate(ir);
+//     if (tmp_res == false)
+//     {
+//       continue;
+//     }
+//     cout << endl;
+//     getchar();
+//   }
+// }
 
 #ifndef AFL_LIB
+
+static void load_map_id() {
+  map_id_out_f.open("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
+  if (dump_library) {
+    map_id_out_f << "mapID, map_file_id" << endl;
+  }
+  return;
+}
 
 char *g_server_path;
 char *g_client_path;
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-
+  printf("\n\n\n%s\n\n\n", argv[0]);
+  parser_init("./afl-fuzz");
   //test_mutate();
-  ff_debug = 0;
+  // ff_debug = 0;
+
+  p_oracle = nullptr;
 
   is_server_up = -1;
   s32 opt;
@@ -7728,12 +8124,12 @@ int main(int argc, char **argv)
   memset_fucking_array();
   SAYF(cCYA "SQLFuzzer " cBRI VERSION cRST " by hackers\n"); //string_lib he common_string_lib YOUSHENME QUBIE
 
-  doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
+  // doc_path = access(DOC_PATH, F_OK) ? "docs" : DOC_PATH;
 
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:l")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Q:s:c:lDc:O:P:K:F:")) > 0)
 
     switch (opt)
     {
@@ -7751,6 +8147,22 @@ int main(int argc, char **argv)
         in_place_resume = 1;
 
       break;
+
+    case 'F': { /* coverage feedback */
+      string arg = string(optarg);
+      if (arg == "drop_all"){
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Drop all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 1;
+      } else if (arg == "random_save") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Randomly saved mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 2;
+      } else if (arg == "save_all") {
+        cout << "\033[1;31m Warning: Ignoring feedbacks. Save all mutated queries. \033[0m \n\n\n";
+        disable_coverage_feedback = 3;
+      } else {
+        FATAL("Error: Ignoring feedbacks parameters not recognized. \n");
+      }
+    } break;
 
     case 's': /* server's path */
       if (g_server_path)
@@ -7834,6 +8246,13 @@ int main(int argc, char **argv)
       break;
     }
 
+    case 'K':
+      {
+        string arg = string(optarg);
+        socket_path = arg;
+      }
+      break;
+
     case 'm':
     { /* mem limit */
 
@@ -7889,6 +8308,38 @@ int main(int argc, char **argv)
       skip_deterministic = 1;
       use_splicing = 1;
       break;
+    
+    case 'D': /* dump fuzzing logs */
+
+      dump_library = 1;
+      break;
+
+    case 'c': /* bind to specific CPU core num */
+      bind_to_core_id = atoi(optarg);
+      break;
+    
+    case 'P': /* Accessing MySQL using port num.  */
+      bind_to_port = atoi(optarg);
+      break;
+    
+    case 'O': /* ORACLE */
+    {
+      /* Default NOREC */
+      string arg = string(optarg);
+      if (arg == "NOREC")
+        p_oracle = new SQL_NOREC();
+      else if (arg == "TLP")
+        p_oracle = new SQL_TLP();
+      // else if (arg == "LIKELY")
+      //   p_oracle = new SQL_LIKELY();
+      // else if (arg == "ROWID")
+      //   p_oracle = new SQL_ROWID();
+      // else if (arg == "INDEX")
+      //   p_oracle = new SQL_INDEX();
+      else
+        FATAL("Oracle arguments not supported. ");
+    }
+    break;
 
     case 'B': /* load bitmap */
 
@@ -7951,6 +8402,18 @@ int main(int argc, char **argv)
       usage(argv[0]);
     }
 
+  if (p_oracle == NULL) {
+    p_oracle = new SQL_NOREC();
+  }
+  p_oracle->set_mutator(&g_mutator);
+  g_mutator.set_p_oracle(p_oracle);
+
+  g_mutator.set_dump_library(dump_library);
+
+  if (socket_path == "") {
+    socket_path = "/tmp/mysql.sock";
+  }
+
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);
 
@@ -8009,7 +8472,7 @@ int main(int argc, char **argv)
 
   get_core_count();
 #ifdef HAVE_AFFINITY
-  bind_to_free_cpu();
+  bind_to_free_cpu(bind_to_core_id);
 #endif /* HAVE_AFFINITY */
 
   check_crash_handling();
@@ -8046,12 +8509,23 @@ int main(int argc, char **argv)
   else
     use_argv = argv + optind;
 
+  u64 start_time = get_cur_time();
   do_libary_initialize();
+  cerr << "do_library_initialize() takes "
+       << (get_cur_time() - start_time) / 1000 << " seconds\n";
+
+  if (dump_library) {
+    load_map_id();
+  }
+
+  g_mysqlclient.fix_database(); // Fix the connection error1 misleading output.
 
   //char* tmp_argv[] = {g_server_path, NULL};
   //init_forkserver(tmp_argv);
   // to do
   perform_dry_run(use_argv);
+
+  cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
 
   cull_queue();
 
