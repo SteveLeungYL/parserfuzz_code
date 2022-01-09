@@ -48,6 +48,12 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   // auto single_is_ir_in_start_time = std::chrono::system_clock::now();
 
+  // Avoid calculations inside select item, such as SELECT count(*) + 100 FROM... 
+  vector<IR*> v_bit_expr = ir_wrapper.get_ir_node_in_stmt_with_type(select_item_ir, kBitExpr, false);
+  if (v_bit_expr.size() != 1) {
+    return false;
+  }
+
   /* Next, check whether there are COUNT(*) func */
   bool is_found_count = false;
   vector<IR*> v_sum_expr_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kSumExpr, false);
