@@ -12,8 +12,8 @@ mysql_src_data_dir = os.path.join(mysql_root_dir, "data_all/ori_data")
 current_workdir = os.getcwd()
 
 starting_core_id = 0
-parallel_num = 5
-port_starting_num = 8100
+parallel_num = 1
+port_starting_num = 9000
 
 all_fuzzing_p_list = dict()
 all_mysql_p_list = dict()
@@ -86,11 +86,12 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "-c", str(cur_inst_id),
         "aaa" , "&"
         ]
-    print("Running fuzzing command: " + " ".join(fuzzing_command))
+    fuzzing_command = " ".join(fuzzing_command)
+    print("Running fuzzing command: " + fuzzing_command)
     p = subprocess.Popen(
                         fuzzing_command,
                         cwd=os.getcwd(),
-                        shell=False,
+                        shell=True,
                         stderr=cur_output_file,
                         stdout=cur_output_file,
                         stdin=subprocess.DEVNULL,
@@ -127,21 +128,25 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     mysql_modi_env = dict()
     mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
 
-    print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + " ".join(mysql_command))
-    
+    mysql_command = " ".join(mysql_command)
 
+    print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + mysql_command)
+    
     p = subprocess.Popen(
                         mysql_command,
                         cwd=mysql_root_dir,
-                        shell=False,
+                        shell=True,
                         stderr=subprocess.DEVNULL,
                         stdout=subprocess.DEVNULL,
                         stdin=subprocess.DEVNULL,
                         env = mysql_modi_env
                         )
-    all_mysql_p_list[p.pid] = [cur_inst_id, cur_shm_str]
+    cur_proc_l = psutil.Process(p.pid).children()
+    if len(cur_proc_l) == 1:
+        cur_pid = cur_proc_l[0].pid
+        all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
+        print("Pid: %d\n\n\n" %(cur_pid))
     os.chdir(ori_workdir)
-    print("Pid: %d\n\n\n" %(p.pid))
 
 print("Finished launching the fuzzing. Now monitor the mysql process. ")
 
@@ -208,24 +213,33 @@ while True:
         mysql_modi_env = dict()
         mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
 
-        print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + " ".join(mysql_command), end="\n\n\n\n\n\n")
+        mysql_command = " ".join(mysql_command)
+
+        print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + mysql_command, end="\n\n\n\n\n\n")
 
 
         p = subprocess.Popen(
                             mysql_command,
                             cwd=mysql_root_dir,
-                            shell=False,
+                            shell=True,
                             stderr=subprocess.DEVNULL,
                             stdout=subprocess.DEVNULL,
                             stdin=subprocess.DEVNULL,
                             env = mysql_modi_env
                             )
 
+        print("Finished running popen. \n\n\n")
+
         # Pop the old pid, save the new one. Then change dir to the original dir. 
         all_mysql_p_list.pop(cur_pid)
-        all_mysql_p_list[p.pid] = [cur_inst_id, cur_shm_str]
-        os.chdir(ori_workdir)
+        
+        cur_proc_l = psutil.Process(p.pid).children()
+        if len(cur_proc_l) == 1:
+            cur_pid = cur_proc_l[0].pid
+            all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
+            print("Pid: %d\n\n\n" %(cur_pid))
 
+        os.chdir(ori_workdir)
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
         break
 
