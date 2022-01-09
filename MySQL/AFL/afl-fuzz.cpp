@@ -3838,6 +3838,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
   if (is_str_empty(query_str))
     return keeping; // return 0; Empty string. Not added.
+  
+  show_stats();
 
   if (fault == crash_mode)
   {
@@ -3884,8 +3886,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     //     tmp_ir->to_string(),
     //     explain_diff_id);
     ir_tree.back()->deep_drop();
-
-    show_stats();
 
 #ifndef SIMPLE_FILES
 
@@ -4286,23 +4286,23 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps)
 static void maybe_update_plot_file(double bitmap_cvg, double eps)
 {
 
-  static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
-  static u64 prev_qc, prev_uc, prev_uh;
+  // static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
+  // static u64 prev_qc, prev_uc, prev_uh;
 
-  if (prev_qp == queued_paths && prev_pf == pending_favored &&
-      prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
-      prev_qc == queue_cycle && prev_uc == unique_crashes &&
-      prev_uh == unique_hangs && prev_md == max_depth)
-    return;
+  // if (prev_qp == queued_paths && prev_pf == pending_favored &&
+  //     prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
+  //     prev_qc == queue_cycle && prev_uc == unique_crashes &&
+  //     prev_uh == unique_hangs && prev_md == max_depth)
+  //   return;
 
-  prev_qp = queued_paths;
-  prev_pf = pending_favored;
-  prev_pnf = pending_not_fuzzed;
-  prev_ce = current_entry;
-  prev_qc = queue_cycle;
-  prev_uc = unique_crashes;
-  prev_uh = unique_hangs;
-  prev_md = max_depth;
+  // prev_qp = queued_paths;
+  // prev_pf = pending_favored;
+  // prev_pnf = pending_not_fuzzed;
+  // prev_ce = current_entry;
+  // prev_qc = queue_cycle;
+  // prev_uc = unique_crashes;
+  // prev_uh = unique_hangs;
+  // prev_md = max_depth;
 
   /* Fields in the file:
 
@@ -4815,11 +4815,10 @@ static void show_stats(void)
     write_bitmap();
   }
 
-  /* Every now and then, write plot data. */
 
+  /* Every now and then, write plot data. */
   if (cur_ms - last_plot_ms > PLOT_UPDATE_SEC * 1000)
   {
-
     last_plot_ms = cur_ms;
     maybe_update_plot_file(t_byte_ratio, avg_exec);
   }
