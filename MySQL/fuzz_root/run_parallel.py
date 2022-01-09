@@ -43,7 +43,7 @@ if os.path.isfile(os.path.join(os.getcwd(), "shm_env.txt")):
     os.remove(os.path.join(os.getcwd(), "shm_env.txt"))
 
 for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
-    print("Setting up core_id: " + str(cur_inst_id))
+    print("#############\nSetting up core_id: " + str(cur_inst_id))
 
     # Set up the mysql data folder first. 
     cur_mysql_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_" + str(cur_inst_id))
@@ -97,8 +97,13 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         stdin=subprocess.DEVNULL,
                         env=modi_env
                         )
-    all_fuzzing_p_list[p.pid] = cur_inst_id
-    print("Pid: %d\n\n\n" %(p.pid))
+    cur_proc_l = psutil.Process(p.pid).children()
+    if len(cur_proc_l) == 1:
+        cur_pid = cur_proc_l[0].pid
+        all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
+        print("Pid: %d\n\n\n" %(cur_pid))
+    else:
+        print("Running with %d failed. \n\n\n" % (cur_inst_id))
 
     # Read the current generated shm_mem_id
     while not (os.path.isfile(os.path.join(os.getcwd(), "shm_env.txt"))):
