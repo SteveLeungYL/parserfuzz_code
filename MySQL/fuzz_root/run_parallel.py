@@ -12,7 +12,7 @@ mysql_src_data_dir = os.path.join(mysql_root_dir, "data_all/ori_data")
 current_workdir = os.getcwd()
 
 starting_core_id = 0
-parallel_num = 1
+parallel_num = 0
 port_starting_num = 9000
 
 all_fuzzing_p_list = dict()
@@ -123,7 +123,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "--basedir=" + mysql_root_dir,
         "--datadir=" + cur_mysql_data_dir_str,
         "--port=" + str(cur_port_num),
-        "--socket=" + socket_path
+        "--socket=" + socket_path,
+        "&"
     ]
     mysql_modi_env = dict()
     mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
@@ -146,6 +147,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         cur_pid = cur_proc_l[0].pid
         all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
         print("Pid: %d\n\n\n" %(cur_pid))
+    else:
+        print("Running with %d failed. \n\n\n" % (cur_inst_id))
     os.chdir(ori_workdir)
 
 print("Finished launching the fuzzing. Now monitor the mysql process. ")
@@ -208,7 +211,8 @@ while True:
             "--basedir=" + mysql_root_dir,
             "--datadir=" + cur_mysql_data_dir_str,
             "--port=" + str(cur_port_num),
-            "--socket=" + socket_path
+            "--socket=" + socket_path,
+            "&"
             ]
         mysql_modi_env = dict()
         mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
@@ -238,6 +242,8 @@ while True:
             cur_pid = cur_proc_l[0].pid
             all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
             print("Pid: %d\n\n\n" %(cur_pid))
+        else:
+            print("Running with %d failed. \n\n\n" % (cur_inst_id))
 
         os.chdir(ori_workdir)
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
