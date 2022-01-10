@@ -198,13 +198,25 @@ while True:
             if not os.path.isdir(cur_mysql_bk_data_dir_str):
                 break
         
-        # Save the bk folder. 
-        shutil.copytree(cur_mysql_data_dir_str, cur_mysql_bk_data_dir_str)
+        try:
+            # Save the bk folder. 
+            shutil.copytree(cur_mysql_data_dir_str, cur_mysql_bk_data_dir_str)
+        except shutil.Error as err:
+            print("Copy backup data folder failed! Giving up on pid: %d. " % (cur_pid))
+            all_mysql_p_list.pop(cur_pid)
+            break
 
-        ### DELETE THE ORIGINAL data folder, then reinvoke mysql!
-        if os.path.isdir(cur_mysql_data_dir_str):
-            shutil.rmtree(cur_mysql_data_dir_str)
-        shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
+
+        try:
+            ### DELETE THE ORIGINAL data folder, then reinvoke mysql!
+            if os.path.isdir(cur_mysql_data_dir_str):
+                shutil.rmtree(cur_mysql_data_dir_str)
+            shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
+        except shutil.Error as err:
+            print("Copy new data folder failed! Giving up on pid: %d. " % (cur_pid))
+            all_mysql_p_list.pop(cur_pid)
+            break
+
 
         # Reinvoke mysql
         # Prepare for env shared by the fuzzer and mysql. 
@@ -242,7 +254,7 @@ while True:
                             env = mysql_modi_env
                             )
 
-        print("Finished running popen. \n\n\n")
+        print("Finished running popen. \n")
         time.sleep(1)
 
         # Pop the old pid, save the new one. Then change dir to the original dir. 
@@ -257,9 +269,9 @@ while True:
             first_line_in_out = first_line_in_out.split("as process")[1]
             cur_pid = int(first_line_in_out)
             all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
-            print("Pid: %d\n\n\n" %(cur_pid))
+            print("Restarted MYSQL with Pid: %d\n\n\n" %(cur_pid))
         else:
-            print("Failed to open mysql in id: %d" % cur_inst_id)
+            print("Failed to open mysql in id: %d\n\n\n" % cur_inst_id)
 
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
         break
