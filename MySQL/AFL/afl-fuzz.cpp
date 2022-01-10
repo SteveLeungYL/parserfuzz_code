@@ -268,19 +268,20 @@ public:
       return false;
     }
     // database_id++;
+    bool is_error = false;
 
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
-      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
+        is_error = true;
+      }
       // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       clean_up_connection(&tmp_m);
     }
 
     mysql_close(&tmp_m);
-    // std::cout << "Fix database successful. \n\n\n";
-    // std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    // sleep(1);
-    return true;
+
+    return !is_error;
   }
 
   SQLSTATUS clean_up_connection(MYSQL *mm)
@@ -495,7 +496,11 @@ public:
     }
     //cout << "connect succeed!" << endl;
 
-    reset_database();
+    res_str = "";
+
+    if( !reset_database() ) { // Return true for no error, false for errors. 
+      res_str += "Reset database ERROR!!!\n\n\n";
+    }
 
     string cmd_str = cmd;
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
@@ -507,8 +512,6 @@ public:
 
     SQLSTATUS correctness;
     int server_response;
-
-    res_str = "";
 
     timeout_mutex.lock();
     is_timeout = false;
@@ -610,16 +613,18 @@ public:
       return 0;
     }
 
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    bool is_error = false;
+    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
-      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
+        is_error = true;
+      }
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       clean_up_connection(&tmp_m);
     }
 
     mysql_close(&tmp_m);
-    // std::cout << "Reset database successful. \n\n\n";
-    return 1;
+    return !is_error;
   }
 
   char *get_next_database_name()
@@ -5784,7 +5789,9 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     // }
     // cmd_string = expand_valid_stmts_str(queries_vector, true);
     string cmd_string = cmd_string_vec[0];
-    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_string;
+    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; " + cmd_string;
+
+    // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
 
     trim_string(cmd_string);
 
@@ -5876,7 +5883,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+  stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */
