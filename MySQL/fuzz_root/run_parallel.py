@@ -12,7 +12,7 @@ mysql_src_data_dir = os.path.join(mysql_root_dir, "data_all/ori_data")
 current_workdir = os.getcwd()
 
 starting_core_id = 0
-parallel_num = 0
+parallel_num = 3
 port_starting_num = 9000
 
 all_fuzzing_p_list = dict()
@@ -92,18 +92,18 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         fuzzing_command,
                         cwd=os.getcwd(),
                         shell=True,
-                        stderr=cur_output_file,
-                        stdout=cur_output_file,
+                        stderr=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
                         stdin=subprocess.DEVNULL,
                         env=modi_env
                         )
-    cur_proc_l = psutil.Process(p.pid).children()
-    if len(cur_proc_l) == 1:
-        cur_pid = cur_proc_l[0].pid
-        all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
-        print("Pid: %d\n\n\n" %(cur_pid))
-    else:
-        print("Running with %d failed. \n\n\n" % (cur_inst_id))
+    # cur_proc_l = psutil.Process(p.pid).children()
+    # if len(cur_proc_l) == 1:
+    #     cur_pid = cur_proc_l[0].pid
+    #     all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
+    #     print("Pid: %d\n\n\n" %(cur_pid))
+    # else:
+    #     print("Running with %d failed. \n\n\n" % (cur_inst_id))
 
     # Read the current generated shm_mem_id
     while not (os.path.isfile(os.path.join(os.getcwd(), "shm_env.txt"))):
@@ -142,19 +142,24 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         mysql_command,
                         cwd=mysql_root_dir,
                         shell=True,
-                        stderr=subprocess.DEVNULL,
-                        stdout=subprocess.DEVNULL,
+                        stderr=cur_output_file,
+                        stdout=cur_output_file,
                         stdin=subprocess.DEVNULL,
                         env = mysql_modi_env
                         )
-    cur_proc_l = psutil.Process(p.pid).children()
-    if len(cur_proc_l) == 1:
-        cur_pid = cur_proc_l[0].pid
+    time.sleep(1)
+    os.chdir(ori_workdir)
+    cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
+    cur_output_file_r = open(cur_output_file_r, "r")
+    first_line_in_out = cur_output_file_r.readline()
+    if first_line_in_out:
+        first_line_in_out = first_line_in_out.replace("\n", "")
+        first_line_in_out = first_line_in_out.split("as process")[1]
+        cur_pid = int(first_line_in_out)
         all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
         print("Pid: %d\n\n\n" %(cur_pid))
     else:
-        print("Running with %d failed. \n\n\n" % (cur_inst_id))
-    os.chdir(ori_workdir)
+        print("Failed to open mysql in id: %d" % cur_inst_id)
 
 print("Finished launching the fuzzing. Now monitor the mysql process. ")
 
@@ -231,26 +236,31 @@ while True:
                             mysql_command,
                             cwd=mysql_root_dir,
                             shell=True,
-                            stderr=subprocess.DEVNULL,
-                            stdout=subprocess.DEVNULL,
+                            stderr=cur_output_file,
+                            stdout=cur_output_file,
                             stdin=subprocess.DEVNULL,
                             env = mysql_modi_env
                             )
 
         print("Finished running popen. \n\n\n")
+        time.sleep(1)
 
         # Pop the old pid, save the new one. Then change dir to the original dir. 
         all_mysql_p_list.pop(cur_pid)
         
-        cur_proc_l = psutil.Process(p.pid).children()
-        if len(cur_proc_l) == 1:
-            cur_pid = cur_proc_l[0].pid
+        os.chdir(ori_workdir)
+        cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
+        cur_output_file_r = open(cur_output_file_r, "r")
+        first_line_in_out = cur_output_file_r.readline()
+        if first_line_in_out:
+            first_line_in_out = first_line_in_out.replace("\n", "")
+            first_line_in_out = first_line_in_out.split("as process")[1]
+            cur_pid = int(first_line_in_out)
             all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
             print("Pid: %d\n\n\n" %(cur_pid))
         else:
-            print("Running with %d failed. \n\n\n" % (cur_inst_id))
+            print("Failed to open mysql in id: %d" % cur_inst_id)
 
-        os.chdir(ori_workdir)
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
         break
 
