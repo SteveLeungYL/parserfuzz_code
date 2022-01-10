@@ -175,6 +175,8 @@ u64 mysql_execute_ok = 0;
 u64 mysql_execute_error = 0;
 u64 mysql_execute_total = 0;
 
+u64 test_id = 0;
+
 int map_file_id = 0;
 fstream map_id_out_f;
 
@@ -496,11 +498,10 @@ public:
     reset_database();
 
     string cmd_str = cmd;
-    // cmd_str += " ; SELECT 'Hahaha'; ";
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
     /* For debug purpose */
-    cmd_str = "SELECT 'CHECK_MATE';" + cmd_str;
+    // cmd_str = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_str;
 
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
 
@@ -531,7 +532,7 @@ public:
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
     /* For debug purpose */
-    if (res_str.find("CHECK_MATE") == string::npos) {
+    if (res_str.find("Test_ID") == string::npos) {
       cerr << "RESULT NOT RETURN CORRECTLY!\n\n\ncmd_str: " << cmd_str << "\n\n\nRes: " << res_str << "\n\n\n";
       // FATAL("RESULT NOT RETURN CORRECTLY!");
     }
@@ -5783,6 +5784,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     // }
     // cmd_string = expand_valid_stmts_str(queries_vector, true);
     string cmd_string = cmd_string_vec[0];
+    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_string;
 
     trim_string(cmd_string);
 
@@ -5823,8 +5825,8 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
       string cmd_string = cmd_string_vec[idx];
 
-      //cmd_string = trim(cmd_string);
       trim_string(cmd_string);
+      cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_string;
 
       string res_str = "";
       fault = run_target(argv, tmout, cmd_string, res_str);
