@@ -28,7 +28,7 @@ private:
   string temp_valid_stmts = "SELECT COUNT( * ) FROM x WHERE x=0;";
 
   string oracle_type = "NOREC";
-  string post_fix_temp = "SELECT COALESCE( SUM(countt), 0) FROM ( SELECT ALL( true ) as countt FROM v2 ORDER BY ( v1 ) ) as ress;" ;
+  string post_fix_temp = "SELECT COALESCE(SUM(CAST((c0)!=0 AS UNSIGNED)), 0) FROM v0 ORDER BY c0;" ;
 };
 
 #endif // MYSQL_NOREC_H_
