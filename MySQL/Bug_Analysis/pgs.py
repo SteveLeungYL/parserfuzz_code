@@ -168,28 +168,21 @@ def execute_queries(queries: str, install_directory: Path):
     if not prepare_success:
         return None, constants.RESULT.SEG_FAULT
 
-    single_postgres = "./bin/postgres --single -D data x"
-
-    clean_schema_query = (
-        "SET client_min_messages TO WARNING; "
-        "DROP SCHEMA public CASCADE; "
-        "CREATE SCHEMA public;"
+    clean_database_query = (
+        "RESET PERSIST", 
+        "RESET MASTER", 
+        "DROP DATABASE IF NOT EXISTS test_sqlright1",
+        "CREATE DATABASE IF NOT EXISTS test_sqlright1", 
+        "USE test_sqlright1", 
     )
-    logger.debug(clean_schema_query)
+    logger.debug(clean_database_query)
     logger.debug(queries)
-    safe_queries = clean_schema_query + "\n" + queries
+    safe_queries = clean_database_query + "\n" + queries
 
+    mysql_client = "./bin/mysql -u root --socket=/tmp/mysql_0.sock"
     output, status, error_msg = utils.execute_command(
-        single_postgres, input_contents=safe_queries, cwd=install_directory
+        mysql_client, input_contents=safe_queries, cwd=install_directory
     )
-    if "pre-existing shared memory block" in error_msg:
-        logger.warning(
-            "Retry execute queries because of pre-existing shared memory block."
-        )
-        force_copy_data_backup(install_directory)
-        output, status, error_msg = utils.execute_command(
-            single_postgres, input_contents=safe_queries, cwd=install_directory
-        )
 
     logger.debug(f"Query:\n\n{queries}")
     logger.debug(f"Result: \n\n{output}\n")
@@ -203,10 +196,10 @@ def execute_queries(queries: str, install_directory: Path):
         # 1 is the default return code if we terminate the Postgre.
         return None, constants.RESULT.SEG_FAULT
 
-    return parse_postgresql_result(output)
+    return parse_mysql_result(output)
 
 
-def parse_postgresql_result(postgres_output: str):
+def parse_mysql_result(postgres_output: str):
     def is_output_missing():
         return any(
             [
