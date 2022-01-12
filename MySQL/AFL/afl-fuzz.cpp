@@ -175,6 +175,8 @@ u64 mysql_execute_ok = 0;
 u64 mysql_execute_error = 0;
 u64 mysql_execute_total = 0;
 
+int is_has_new_bits = false;
+
 u64 test_id = 0;
 
 int map_file_id = 0;
@@ -192,6 +194,10 @@ unsigned long timeout_id = 0;
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
 
+EXP_ST u8 virgin_bits[MAP_SIZE], /* Regions yet untouched by fuzzing */
+    virgin_tmout[MAP_SIZE],      /* Bits we haven't seen in tmouts   */
+    virgin_crash[MAP_SIZE];      /* Bits we haven't seen in crashes  */
+
 
 extern int ff_debug;
 
@@ -207,6 +213,8 @@ EXP_ST u8 *in_dir, /* Input directory with test cases  */
     *orig_cmdline; /* Original command line            */
 
 deque<char *> g_previous_input;
+
+static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "");
 class MysqlClient
 {
 public:
@@ -270,7 +278,7 @@ public:
     // database_id++;
     bool is_error = false;
 
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"BEGIN", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "COMMIT","SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
@@ -510,6 +518,8 @@ public:
 
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
 
+    // v_cmd_str = {"BEGIN; ", "create table v0(v1 text)", "COMMIT;"};
+
     SQLSTATUS correctness;
     int server_response;
 
@@ -518,6 +528,8 @@ public:
     timeout_mutex.unlock();
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
+
+    has_new_bits(virgin_bits);
 
     for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
@@ -531,6 +543,11 @@ public:
         break;
       }
     }
+
+    is_has_new_bits = has_new_bits(virgin_bits, cmd_str);
+    // if (is_has_new_bits){
+    //   cerr << "\n\n\n\n\n\n\n\nHas new bits!!!!!\n\n\n\n\n\n\n";
+    // }
 
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
@@ -614,7 +631,7 @@ public:
     }
 
     bool is_error = false;
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
@@ -705,10 +722,6 @@ static s32 forksrv_pid, /* PID of the fork server           */
     out_dir_fd = -1;    /* FD of the lock file              */
 
 EXP_ST u8 *trace_bits; /* SHM with instrumentation bitmap  */
-
-EXP_ST u8 virgin_bits[MAP_SIZE], /* Regions yet untouched by fuzzing */
-    virgin_tmout[MAP_SIZE],      /* Bits we haven't seen in tmouts   */
-    virgin_crash[MAP_SIZE];      /* Bits we haven't seen in crashes  */
 
 static u8 var_bytes[MAP_SIZE]; /* Bytes that appear to be variable */
 
@@ -3856,7 +3869,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Always check has_new_bits first. */
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
+    has_new_bits(virgin_bits);
+    if ( !(hnb = is_has_new_bits) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       return 0;
@@ -5883,7 +5897,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  stream_output_res(all_comp_res, cerr);
+  // stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */
@@ -6514,6 +6528,10 @@ static u8 fuzz_one(char **argv)
 
   num_parse++;
 
+  // vector<string> tmp_vec = {input};
+  // common_fuzz_stuff(argv, tmp_vec, tmp_vec);
+  // return 0;
+
   ori_ir_tree.clear();
   int ret = run_parser_multi_stmt(input, ori_ir_tree);
 
@@ -6625,6 +6643,10 @@ static u8 fuzz_one(char **argv)
     // cerr << "Single mutate_all function call time, used time: " << single_mutation_function_used_time.count() << "\n\n\n";
 
     num_mutate_all++;
+
+    if (v_mutated_ir_root.size() == 0) {
+      total_mutate_all_failed++;
+    }
 
     for (IR* mutated_ir_root : v_mutated_ir_root) {
 
@@ -8533,6 +8555,10 @@ int main(int argc, char *argv[])
   //init_forkserver(tmp_argv);
   // to do
   perform_dry_run(use_argv);
+
+  // show_stats();
+
+  // exit(0);
 
   cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
 

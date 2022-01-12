@@ -182,6 +182,10 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     vector<IR *> res;
     vector<IR* > v_mutated_ir; 
 
+    if (get_rand_int(10) < 1) {
+      return res;
+    }
+
     if (ir_to_mutate->get_ir_type() == kStartEntry) {
       /* Do not mutate on kStartEntry. */
       return res;
@@ -217,12 +221,17 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
     for (IR *new_ir : v_mutated_ir) {
 
-        if (!new_ir) continue;
+        if (!new_ir) {
+          total_mutate_failed++;
+          continue;
+        }
 
         total_mutate_num++;
         if (!root->swap_node(ir_to_mutate, new_ir)) {
             new_ir->deep_drop();
             total_mutate_failed++;
+            // cerr << "ir_to_mutate: " << ir_to_mutate->to_string() << ", new_ir" << new_ir << "\n\n\n";
+            // FATAL("SWAP NODE to mutate ir tree failure in mutate_all. \n\n\n");
             continue;
         }
 
@@ -247,7 +256,9 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
         /* Mutate successful. Save the mutation and recover the original ir_tree */
         res.push_back(root->deep_copy());
-        root->swap_node(new_ir, ir_to_mutate);
+        if (!root->swap_node(new_ir, ir_to_mutate)) {
+          // FATAL("SWAP NODE back to the original ir tree failure in mutate_all. \n\n\n");
+        }
         new_ir->deep_drop();
     }
 
