@@ -182,7 +182,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     vector<IR *> res;
     vector<IR* > v_mutated_ir; 
 
-    if (get_rand_int(10) < 1) {
+    if (get_rand_int(10) < 9) {
       return res;
     }
 
