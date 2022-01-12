@@ -1932,10 +1932,11 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             }
           } else {
             if (is_debug_info) {
-              cerr << "Error: In kUseDefine of kDataColumnName, cannot find newly declared table name for column name origin. Ignored. \n\n\n" << endl;
+              cerr << "Error: In kUseDefine of kDataColumnName, cannot find newly declared table name for column name origin. Fix it as normal kUse. \n\n\n" << endl;
             }
-            fixed_ir.push_back(ir_to_fix);
-            continue;  // Keep original. 
+            ir_to_fix->data_flag_ = kUse;
+            // fixed_ir.push_back(ir_to_fix);
+            // continue;  // Keep original. 
           }
         }
 
