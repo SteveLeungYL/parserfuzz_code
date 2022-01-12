@@ -1169,9 +1169,9 @@ bool Mutator::correct_insert_stmt(IR* ir_root) {
 
       vector<IR*> v_value_list = p_oracle->ir_wrapper.get_kvalueslist_in_stmt(cur_stmt);
 
-      cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
-      cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
-      cerr << "v_values_num: " << values_num << "\n\n\n";
+      // cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
+      // cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
+      // cerr << "v_values_num: " << values_num << "\n\n\n";
 
       if (values_num > cur_used_column_size) {
         for (int i = 0; i < (values_num - cur_used_column_size); i++) {

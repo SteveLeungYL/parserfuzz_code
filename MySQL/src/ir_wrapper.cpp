@@ -986,7 +986,7 @@ bool IRWrapper::add_kvalues_to_insert_stmt(IR* cur_stmt) {
     vector<IR*> v_values = get_kvalues_in_kvaluelist(cur_stmt);
 
     if (v_values.size() == 0 ) {
-        cerr << "v_values is 0;\n\n\n";
+        // cerr << "v_values is 0;\n\n\n";
         return false;
     }
 
@@ -994,7 +994,7 @@ bool IRWrapper::add_kvalues_to_insert_stmt(IR* cur_stmt) {
     IR* last_values_content = last_values->get_left();
     IR* last_values_content_copy = last_values_content->deep_copy();
 
-    cerr << "last_values_content_copy is: " << last_values_content_copy->to_string() << "\n\n\n";
+    // cerr << "last_values_content_copy is: " << last_values_content_copy->to_string() << "\n\n\n";
 
     IR* new_values = new IR(kValues, OP0(), last_values_content_copy);
 
