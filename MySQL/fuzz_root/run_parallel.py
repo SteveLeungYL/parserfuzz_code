@@ -129,6 +129,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "--datadir=" + cur_mysql_data_dir_str,
         "--port=" + str(cur_port_num),
         "--socket=" + socket_path,
+        "--performance_schema=OFF", 
         "&"
     ]
     mysql_modi_env = dict()
@@ -234,6 +235,7 @@ while True:
             "--datadir=" + cur_mysql_data_dir_str,
             "--port=" + str(cur_port_num),
             "--socket=" + socket_path,
+            "--performance_schema=OFF", 
             "&"
             ]
         mysql_modi_env = dict()
