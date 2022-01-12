@@ -5,5 +5,4 @@ set sql_mode="";
 SET @p1 = 3;
 PREPARE p FROM "SELECT f1 FROM (SELECT f1 FROM t1) as dt WHERE f1 > ?";
 EXECUTE p USING @p1;
-DROP PREPARE p;
 CALL p();

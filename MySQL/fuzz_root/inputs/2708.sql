@@ -1,5 +1,4 @@
 set optimizer_switch='batched_key_access=on,block_nested_loop=off,mrr_cost_based=off';
-DROP TABLE IF EXISTS t1,t2,t3,t4,t5,t6,t7,t8,t9,t10,t11;
 set names utf8;
 CREATE DATABASE world;
 use world;

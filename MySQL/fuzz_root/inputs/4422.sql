@@ -1,7 +1,6 @@
 set optimizer_switch='semijoin=off';
 set @old_opt_switch=@@optimizer_switch;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
-drop table if exists t1, t2, t3, t1i, t2i, t3i;
 create table t1 (a1 char(8), a2 char(8)) charset utf8mb4;
 insert into t1 values ('1 - 00', '2 - 00');
 ANALYZE TABLE t1, t2, t3;

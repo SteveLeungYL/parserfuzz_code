@@ -1,5 +1,4 @@
 set optimizer_switch='batched_key_access=on,mrr_cost_based=off';
-drop table if exists t0,t1,t2,t3,t4,t5;
 CREATE TABLE t1 ( grp int(11) default NULL, a bigint(20) unsigned default NULL, c char(10) NOT NULL default '' ) ENGINE=MyISAM;
 INSERT INTO t1 VALUES (1,1,'a'),(2,2,'b'),(2,3,'c'),(3,4,'E'),(3,5,'C'),(3,6,'D'),(NULL,NULL,'');
 create table t2 (id int, a bigint unsigned not null, c char(10), d int, primary key (a));

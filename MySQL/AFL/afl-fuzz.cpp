@@ -6554,42 +6554,42 @@ static u8 fuzz_one(char **argv)
   // cerr << "End\n\n\n";
 
   /* Append Create stmts to the queue, if no create table stmts is found. */
-  v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
-  int create_num, drop_num;
-  bool is_missing_create;
-  create_num = 0;
-  drop_num = 0;
+  // v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+  // int create_num, drop_num;
+  // bool is_missing_create;
+  // create_num = 0;
+  // drop_num = 0;
 
-  for (IR* ir_stmts : v_ir_stmts) {
-    switch (ir_stmts->get_ir_type()) {
-      case kCreateTableStmt:
-        create_num++;
-        break;
-      case kDropTableStmt:
-        {
-          if (get_rand_int(2) < 1) {
-            /* 50% chance, remove drop stmt.  */
-            p_oracle->ir_wrapper.set_ir_root(cur_root);
-            p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
-          }
-        }
-        drop_num++;
-        break;
-    }
-  }
+  // for (IR* ir_stmts : v_ir_stmts) {
+  //   switch (ir_stmts->get_ir_type()) {
+  //     case kCreateTableStmt:
+  //       create_num++;
+  //       break;
+  //     case kDropTableStmt:
+  //       {
+  //         if (get_rand_int(2) < 1) {
+  //           /* 50% chance, remove drop stmt.  */
+  //           p_oracle->ir_wrapper.set_ir_root(cur_root);
+  //           p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
+  //         }
+  //       }
+  //       drop_num++;
+  //       break;
+  //   }
+  // }
 
   // if (create_num == 0) {
   //   // cur_root->deep_drop();
   //   goto abandon_entry;
   // }
 
-  if (drop_num >= create_num && get_rand_int(2) < 1) {
-    // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
-    g_mutator.add_missing_create_table_stmt(cur_root);
-    // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
-    // goto abandon_entry;
-  }
-  v_ir_stmts.clear(); // No need to free. 
+  // if (drop_num >= create_num && get_rand_int(2) < 1) {
+  //   // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
+  //   g_mutator.add_missing_create_table_stmt(cur_root);
+  //   // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
+  //   // goto abandon_entry;
+  // }
+  // v_ir_stmts.clear(); // No need to free. 
 
   // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);

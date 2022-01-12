@@ -3,4 +3,3 @@ INSERT INTO t1 VALUES (1, 1, 'a', 'h', 'i', '', ''), (2, 3, 'a', 'h', 'i', '', '
 ANALYZE TABLE t1;
 SET optimizer_switch='index_merge_intersection=off';
 ALTER TABLE t1 ADD KEY idx(f3, f4);
-DROP TABLE t1;
