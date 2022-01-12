@@ -5,6 +5,8 @@
 #include "../include/utils.h"
 #include "../parser/parser_entry.h"
 #include "../include/ir_wrapper.h"
+#include "../oracle/mysql_oracle.h"
+#include "../oracle/mysql_norec.h"
 
 #include <fstream>
 #include <iostream>
@@ -170,6 +172,10 @@ int main(int argc, char *argv[]) {
   for (IR* ir : stmt_ir_vec) {
     ir->deep_drop();
   }
+
+  mutator.p_oracle = new SQL_NOREC();
+  mutator.p_oracle->ir_wrapper = ir_wrapper;
+  mutator.correct_insert_stmt(ir_root);
 
   cerr << "To_string: " << ir_root->to_string() << "\n\n\n";
 

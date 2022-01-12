@@ -142,6 +142,7 @@ public:
     void debug(IR * root, unsigned level);
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 
+    bool correct_insert_stmt(IR* ir_root);
 
     void add_ir_to_library_no_deepcopy(IR*);//DONE
 

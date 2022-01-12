@@ -1145,7 +1145,54 @@ Mutator::fix_preprocessing(IR *stmt_root,
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
 
+bool Mutator::correct_insert_stmt(IR* ir_root) {
+  vector<int> table_column_num;
 
+  vector<IR*> stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec(ir_root);
+
+  for (IR* cur_stmt : stmt_list) {
+    if (cur_stmt->get_ir_type() == kCreateTableStmt) {
+      int column_size = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTableElement, false).size();
+      table_column_num.push_back(column_size);
+    }
+
+    if (cur_stmt->get_ir_type() == kInsertStmt) {
+      if (table_column_num.size() == 0) {continue;}
+      int cur_used_column_size = vector_rand_ele(table_column_num);
+
+      int field_num = p_oracle->ir_wrapper.get_num_fields_in_stmt(cur_stmt);
+      int values_num = p_oracle->ir_wrapper.get_num_kvalues_in_stmt(cur_stmt);
+
+      if (field_num != values_num && field_num != 0) {
+        return false;
+      }
+
+      vector<IR*> v_value_list = p_oracle->ir_wrapper.get_kvalueslist_in_stmt(cur_stmt);
+
+      cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
+      cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
+      cerr << "v_values_num: " << values_num << "\n\n\n";
+
+      if (values_num > cur_used_column_size) {
+        for (int i = 0; i < (values_num - cur_used_column_size); i++) {
+          p_oracle->ir_wrapper.drop_fields_to_insert_stmt(cur_stmt);
+          for (IR* value_list : v_value_list) {
+            p_oracle->ir_wrapper.drop_kvalues_to_insert_stmt(value_list);
+          }
+        }
+      } else if (values_num < cur_used_column_size) {
+        for (int i = 0; i < (cur_used_column_size - values_num); i++) {
+          p_oracle->ir_wrapper.add_fields_to_insert_stmt(cur_stmt);
+          for (IR* value_list : v_value_list) {
+            p_oracle->ir_wrapper.add_kvalues_to_insert_stmt(value_list);
+          }
+        }
+      }
+    }
+  }  // stmt_list
+
+  return true;
+}
 
 bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info) {
     // TODO:: Finished fix_dependency working with MySQL parser. 
@@ -4131,89 +4178,89 @@ bool Mutator::add_missing_create_table_stmt(IR* ir_root) {
     return false;
   }
 
-  // Get INSERT stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR* new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
-  if (new_stmt_ir_2 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    return false;
-  } else if (new_stmt_ir_2->get_left() == NULL) {
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    return false;
-  }
+  // // Get INSERT stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // IR* new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
+  // if (new_stmt_ir_2 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_2->get_left() == NULL) {
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   return false;
+  // }
 
-  // Get CREATE INDEX stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR* new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
-  if (new_stmt_ir_3 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    return false;
-  } else if (new_stmt_ir_3->get_left() == NULL) {
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    new_stmt_ir_3->deep_drop();
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    return false;
-  }
+  // // Get CREATE INDEX stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // IR* new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
+  // if (new_stmt_ir_3 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_3->get_left() == NULL) {
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   new_stmt_ir_3->deep_drop();
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   return false;
+  // }
 
   p_oracle->ir_wrapper.set_ir_root(ir_root);
   p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, 0);
-  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 1);
-  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 2);
+  // p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 1);
+  // p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 2);
 
 
 
-  // Get Create Stmt, for the end. 
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir = this->get_ir_with_type(kCreateTableStmt);
-  if (new_stmt_ir == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
-    return false;
-  } else if (new_stmt_ir->get_left() == NULL) {
-    new_stmt_ir->deep_drop();
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
-    return false;
-  }
+  // // Get Create Stmt, for the end. 
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // new_stmt_ir = this->get_ir_with_type(kCreateTableStmt);
+  // if (new_stmt_ir == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+  //   return false;
+  // } else if (new_stmt_ir->get_left() == NULL) {
+  //   new_stmt_ir->deep_drop();
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+  //   return false;
+  // }
 
-  // Get INSERT stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
-  if (new_stmt_ir_2 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    return false;
-  } else if (new_stmt_ir_2->get_left() == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    return false;
-  }
+  // // Get INSERT stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
+  // if (new_stmt_ir_2 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_2->get_left() == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   return false;
+  // }
 
-  // Get CREATE INDEX stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
-  if (new_stmt_ir_3 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    return false;
-  } else if (new_stmt_ir_3->get_left() == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    new_stmt_ir_3->deep_drop();
-    return false;
-  }
+  // // Get CREATE INDEX stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
+  // if (new_stmt_ir_3 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_3->get_left() == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   new_stmt_ir_3->deep_drop();
+  //   return false;
+  // }
 
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir);
-  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_2);
-  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_3);
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir);
+  // p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_2);
+  // p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_3);
 
   return true;
 

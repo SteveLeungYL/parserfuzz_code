@@ -6583,7 +6583,7 @@ static u8 fuzz_one(char **argv)
   //   goto abandon_entry;
   // }
 
-  if (drop_num >= create_num) {
+  if (drop_num >= create_num && get_rand_int(2) < 1) {
     // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
     g_mutator.add_missing_create_table_stmt(cur_root);
     // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
@@ -6594,6 +6594,8 @@ static u8 fuzz_one(char **argv)
   // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
   p_oracle->remove_explain_stmt_from_ir(cur_root);
+
+  g_mutator.correct_insert_stmt(cur_root);
 
 
   // cerr << "After removing select stmt and added create. \n\n\n";

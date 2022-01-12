@@ -115,6 +115,19 @@ public:
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);
 
+
+    bool add_fields_to_insert_stmt(IR* cur_stmt);
+    bool drop_fields_to_insert_stmt(IR* cur_stmt);
+    vector<IR*> get_fields_in_stmt(IR* cur_stmt);
+    int get_num_fields_in_stmt(IR* cur_stmt);
+
+    bool add_kvalues_to_insert_stmt(IR* cur_stmt);
+    bool drop_kvalues_to_insert_stmt(IR* cur_stmt);
+    vector<vector<IR*>> get_kvalues_in_stmt(IR* cur_stmt);
+    vector<IR*> get_kvalueslist_in_stmt(IR* cur_stmt);
+    vector<IR*> get_kvalues_in_kvaluelist(IR* cur_stmt);
+    int get_num_kvalues_in_stmt(IR* cur_stmt);
+
     void debug(IR* root, unsigned level);
 
 
