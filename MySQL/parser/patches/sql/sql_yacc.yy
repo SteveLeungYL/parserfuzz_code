@@ -11453,7 +11453,7 @@ references:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_table_ident_type(kDataTableName, kUse);
+        tmp1->set_table_ident_type(kDataTableName, kUse);
     }
 
 ;
