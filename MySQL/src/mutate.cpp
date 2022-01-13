@@ -78,15 +78,6 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
   if (root == nullptr) {return res_vec;}
 
-  // For strategy_delete
-  cur_root = root->deep_copy();
-  p_oracle->ir_wrapper.set_ir_root(cur_root);
-
-  int rov_idx = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
-  // cerr << "Remove stmt at idx: " << rov_idx << "\n\n\n";
-  p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
-  res_vec.push_back(cur_root);
-
   // // For strategy_replace
   // cur_root = root->deep_copy();
   // p_oracle->ir_wrapper.set_ir_root(cur_root);
@@ -159,7 +150,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
 
-  // cerr << "Inserting stmt: " << new_stmt_ir->to_string() << "\n\n\n";
+  // cerr << "Inserting stmt: " << get_string_by_ir_type(new_stmt_ir->get_ir_type()) << ": " << new_stmt_ir->to_string() << "\n\n\n";
 
   p_oracle->ir_wrapper.set_ir_root(cur_root);
   if(!p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, insert_pos)) {
@@ -168,6 +159,19 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
     return res_vec;
   }
   res_vec.push_back(cur_root);
+
+  // For strategy_delete
+  p_oracle->ir_wrapper.set_ir_root(root);
+  int stmt_num = p_oracle->ir_wrapper.get_stmt_num();
+
+  // Only apply remove stmt if the stmt_num is big enough (> 20)
+  if (stmt_num > 20) {
+    cur_root = root->deep_copy();
+    p_oracle->ir_wrapper.set_ir_root(cur_root);
+    int rov_idx = get_rand_int(stmt_num);
+    p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
+    res_vec.push_back(cur_root);
+  }
 
   return res_vec;
 
@@ -228,6 +232,13 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
     // cerr << "Inside rest; \n\n\n";
     // else, for mutating single IR node. 
+
+    if (
+      ir_to_mutate->get_ir_type() == kStmtList ||
+      ir_to_mutate->get_ir_type() == kSimpleStatement
+    ) {
+      return res;
+    }
 
     v_mutated_ir = mutate(ir_to_mutate);
 
