@@ -183,6 +183,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     vector<IR* > v_mutated_ir; 
 
     if (get_rand_int(10) < 9) {
+      // Not lucky enough to be mutated. Skip. 
       return res;
     }
 
@@ -192,7 +193,8 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     }
 
     /* For mutating kStmtList only */
-    if (ir_to_mutate->get_ir_type() == kStmtList) {
+    // if (ir_to_mutate->get_ir_type() == kStmtList) {
+    if (get_rand_int(10) < 1) {
       // cerr << "Inside kStmtList; \n\n\n";
       v_mutated_ir = mutate_stmtlist(root);
       // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
@@ -211,7 +213,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           res.push_back(mutated_ir);
       }
 
-      return res;
+      // return res;
     }
 
     // cerr << "Inside rest; \n\n\n";
