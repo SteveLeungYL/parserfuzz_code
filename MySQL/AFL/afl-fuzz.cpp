@@ -157,6 +157,8 @@ u64 total_input_failed = 0;
 u64 total_mutate_all_failed = 0;
 u64 total_mutate_failed = 0;
 u64 total_mutate_num = 0;
+u64 total_mutatestmt_failed = 0;
+u64 total_mutatestmt_num = 0;
 u64 total_append_failed = 0;
 u64 total_execute = 0;
 u64 total_add_to_queue = 0;
@@ -529,7 +531,7 @@ public:
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
 
-    has_new_bits(virgin_bits);
+    has_new_bits(virgin_bits, "123");
 
     for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
@@ -1534,7 +1536,11 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   i = (MAP_SIZE >> 3) - i - 1 ;
   u32 actual_idx = i * 8 + byte;
   
-  map_id_out_f << actual_idx << "," << map_file_id <<  endl;
+  if (queue_cur) {
+    map_id_out_f << actual_idx << "," << map_file_id << "," << to_string(queue_cur->depth) << endl;
+  } else {
+    map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
+  }
 
   fstream map_id_seed_output;
   if (queue_cur) {
@@ -3262,7 +3268,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     if (q->exec_cksum != cksum)
     {
 
-      u8 hnb = has_new_bits(virgin_bits);
+      u8 hnb = has_new_bits(virgin_bits, "123");
       if (hnb > new_bits)
         new_bits = hnb;
 
@@ -3869,7 +3875,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Always check has_new_bits first. */
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    has_new_bits(virgin_bits);
+    has_new_bits(virgin_bits, "123");
     if ( !(hnb = is_has_new_bits) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
@@ -3974,7 +3980,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
       show_stats();
 
-      if (!has_new_bits(virgin_tmout))
+      if (!has_new_bits(virgin_tmout, "123"))
         return keeping;
     }
 
@@ -4042,7 +4048,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_crash))
+      if (!has_new_bits(virgin_crash, "123"))
         return keeping;
     }
 
@@ -4347,9 +4353,10 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, total_execs, 
           total_input_failed, p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid, total_add_to_queue,
-          total_mutate_all_failed, total_mutate_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
+          total_mutate_all_failed, total_mutate_failed, total_mutatestmt_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
           debug_error, (debug_good * 100.0 / (debug_error + debug_good)), mysql_execute_ok, mysql_execute_error, mysql_execute_total,
-          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate
+          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, total_mutate_num, total_mutatestmt_num, 
+          num_reparse, num_append, num_validate
           ); /* ignore errors */
 
   fflush(plot_file);
@@ -5901,16 +5908,16 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
   /***********************/
   /* Debug: output logs for all execs */
-  if (dump_library) {
-    if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
-      filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
-    }
-    string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
-    ofstream log_output_file;
-    log_output_file.open(all_sql_out_log_str, std::ofstream::out);
-    stream_output_res(all_comp_res, log_output_file);
-    log_output_file.close();
-  }
+  // if (dump_library) {
+  //   if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+  //     filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+  //   }
+  //   string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+  //   ofstream log_output_file;
+  //   log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+  //   stream_output_res(all_comp_res, log_output_file);
+  //   log_output_file.close();
+  // }
 
   /* Debug end.  */
   /***********************/
@@ -6638,17 +6645,13 @@ static u8 fuzz_one(char **argv)
     // auto single_mutation_start_time = std::chrono::system_clock::now();
 
     /* The mutated IR tree is deep_copied() */
-    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
+    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
 
     // auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
     // std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
     // cerr << "Single mutate_all function call time, used time: " << single_mutation_function_used_time.count() << "\n\n\n";
 
     num_mutate_all++;
-
-    if (v_mutated_ir_root.size() == 0) {
-      total_mutate_all_failed++;
-    }
 
     for (IR* mutated_ir_root : v_mutated_ir_root) {
 
@@ -7530,9 +7533,9 @@ EXP_ST void setup_dirs_fds(void)
                      "pending_total,pending_favs,map_size,unique_crashes,"
                      "unique_hangs,max_depth,execs_per_sec,total_execs,"
                      "total_input_failed,total_random_VALID,total_add_to_queue,total_mutate_all_failed,"
-                     "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
+                     "total_mutate_failed_num,total_mutatestmt_failed_num,total_append_failed,total_cri_valid_stmts,"
                      "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
-                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
+                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_mutate,num_mutatestmt,num_reparse,num_append,num_validate\n"
                      );
 
   fflush(plot_file);
@@ -8126,7 +8129,7 @@ static void do_libary_initialize()
 static void load_map_id() {
   map_id_out_f.open("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
   if (dump_library) {
-    map_id_out_f << "mapID, map_file_id" << endl;
+    map_id_out_f << "mapID,map_file_id,depth" << endl;
   }
   return;
 }
