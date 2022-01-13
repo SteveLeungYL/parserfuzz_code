@@ -325,8 +325,12 @@ vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_v
 }
 
 
-int Mutator::get_cri_valid_collection_size() {
+int Mutator::get_valid_collection_size() {
   return all_valid_pstr_vec.size();
+}
+
+int Mutator::get_collection_size() {
+  return all_query_pstr_set.size();
 }
 
 vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec) {
