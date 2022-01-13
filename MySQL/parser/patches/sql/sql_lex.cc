@@ -5132,6 +5132,8 @@ IR* deep_copy(const IR* const root) {
   copy_res->data_type_ = root->data_type_;
   copy_res->data_flag_ = root->data_flag_;
 
+  copy_res->is_node_struct_fixed = root->is_node_struct_fixed;
+
   return copy_res;
 }
 
@@ -5159,6 +5161,8 @@ IR *IR::deep_copy() {
   } else {
     copy_res->parent_ = NULL;
   }
+
+  copy_res->is_node_struct_fixed = this->is_node_struct_fixed;
 
   return copy_res;
 }

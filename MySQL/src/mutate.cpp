@@ -169,6 +169,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
     cur_root = root->deep_copy();
     p_oracle->ir_wrapper.set_ir_root(cur_root);
     int rov_idx = get_rand_int(stmt_num);
+    // cerr << "In mutatestmtlist, removing stmt at idx: " << rov_idx << "\n";
     p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
     res_vec.push_back(cur_root);
   }
@@ -188,6 +189,10 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
     if (get_rand_int(10) < 9) {
       // Not lucky enough to be mutated. Skip. 
+      return res;
+    }
+
+    if (ir_to_mutate->is_node_struct_fixed) {
       return res;
     }
 

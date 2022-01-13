@@ -6616,7 +6616,7 @@ static u8 fuzz_one(char **argv)
   // // g_mutator.debug(cur_root, 0);
   // // cerr << "\n\n\n";
   // cerr << cur_root->to_string();
-  // cerr << "to_string finished. \n\n\n";
+  // cerr << "\nto_string finished. \n\n\n";
   // cerr << "End\n\n\n";
 
 
@@ -6682,6 +6682,8 @@ static u8 fuzz_one(char **argv)
       * consider appending anything */
 
       // auto single_reparse_start_time = std::chrono::system_clock::now();
+
+      // cerr << "Before reparsing, the mutated ir_str is: " << ir_str << "\n\n\n";
 
       vector<IR *> cur_ir_tree;
       ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
