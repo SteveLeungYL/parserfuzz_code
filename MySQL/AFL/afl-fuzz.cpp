@@ -6598,6 +6598,13 @@ static u8 fuzz_one(char **argv)
   // }
   // v_ir_stmts.clear(); // No need to free. 
 
+  // cerr << "Before removing select stmt and added create. \n\n\n";
+  // // g_mutator.debug(cur_root, 0);
+  // // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
+
   // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
   p_oracle->remove_explain_stmt_from_ir(cur_root);
@@ -6606,8 +6613,8 @@ static u8 fuzz_one(char **argv)
 
 
   // cerr << "After removing select stmt and added create. \n\n\n";
-  // g_mutator.debug(cur_root, 0);
-  // cerr << "\n\n\n";
+  // // g_mutator.debug(cur_root, 0);
+  // // cerr << "\n\n\n";
   // cerr << cur_root->to_string();
   // cerr << "to_string finished. \n\n\n";
   // cerr << "End\n\n\n";

@@ -106,7 +106,13 @@ bool try_validate_query(IR* cur_root) {
     cur_root->deep_drop();
     return false;
   }
-  cout << "validate: >" << validity << "<" << endl;
+
+  vector<string> valid_split = string_splitter(validity, ';');
+  cout << "validate: >\n";
+  for (string str : valid_split) {
+    cout << str << ";\n";
+  }
+  cout << "<\n\n\n";
 
   cur_root->deep_drop();
 
