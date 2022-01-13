@@ -188,21 +188,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     vector<IR* > v_mutated_ir; 
 
     if (get_rand_int(10) < 9) {
-      // Not lucky enough to be mutated. Skip. 
-      return res;
-    }
-
-    if (ir_to_mutate->is_node_struct_fixed) {
-      return res;
-    }
-
-    if (ir_to_mutate->get_ir_type() == kStartEntry) {
-      /* Do not mutate on kStartEntry. */
-      return res;
-    }
-
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_mutate, kSet)) {
-      /* Do not mutate on SET statement.  */
+      // Not lucky enough to be mutated. Skip. Only mutate with 10% chance.  
       return res;
     }
 
@@ -237,6 +223,20 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
     // cerr << "Inside rest; \n\n\n";
     // else, for mutating single IR node. 
+
+    if (ir_to_mutate->is_node_struct_fixed) {
+      return res;
+    }
+
+    if (ir_to_mutate->get_ir_type() == kStartEntry) {
+      /* Do not mutate on kStartEntry. */
+      return res;
+    }
+
+    if (p_oracle->ir_wrapper.is_ir_in(ir_to_mutate, kSet)) {
+      /* Do not mutate on SET statement.  */
+      return res;
+    }
 
     if (
       ir_to_mutate->get_ir_type() == kStmtList ||
