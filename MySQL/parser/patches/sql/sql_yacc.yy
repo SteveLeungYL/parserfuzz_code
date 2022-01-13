@@ -3838,7 +3838,7 @@ prepare:
 prepare_src:
 
     TEXT_STRING_sys {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kPrepareSrcStr, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         res = new IR(kPrepareSrc, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
@@ -10269,7 +10269,7 @@ type:
     | YEAR_SYM opt_field_length field_options {
         auto tmp1 = $2;
         auto tmp2 = $3;
-        res = new IR(kType, OP3("SQL_TSI_YEAR", "", ""), tmp1, tmp2);
+        res = new IR(kType, OP3("YEAR", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
     }
@@ -11453,7 +11453,7 @@ references:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp2->set_table_ident_type(kDataTableName, kUse);
+        tmp1->set_table_ident_type(kDataTableName, kUse);
     }
 
 ;
@@ -17006,7 +17006,7 @@ function_call_keyword:
 
     | YEAR_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallKeyword, OP3("SQL_TSI_YEAR(", ")", ""), tmp1);
+        res = new IR(kFunctionCallKeyword, OP3("YEAR(", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
@@ -17393,7 +17393,7 @@ function_call_conflict:
 
     | WEEK_SYM '(' expr ')' {
         auto tmp1 = $3;
-        res = new IR(kFunctionCallConflict, OP3("SQL_TSI_WEEK(", ")", ""), tmp1);
+        res = new IR(kFunctionCallConflict, OP3("WEEK(", ")", ""), tmp1);
         ir_vec.push_back(res); 
         $$ = res;
     }
@@ -17401,7 +17401,7 @@ function_call_conflict:
     | WEEK_SYM '(' expr ',' expr ')' {
         auto tmp1 = $3;
         auto tmp2 = $5;
-        res = new IR(kFunctionCallConflict, OP3("SQL_TSI_WEEK(", ",", ")"), tmp1, tmp2);
+        res = new IR(kFunctionCallConflict, OP3("WEEK(", ",", ")"), tmp1, tmp2);
         ir_vec.push_back(res); 
         $$ = res;
     }
@@ -18685,7 +18685,7 @@ cast_type:
     }
 
     | YEAR_SYM {
-        res = new IR(kCastType, OP3("SQL_TSI_YEAR", "", ""));
+        res = new IR(kCastType, OP3("YEAR", "", ""));
         ir_vec.push_back(res); 
         $$ = res;
     }
@@ -19982,7 +19982,7 @@ interval_time_stamp:
     }
 
     | WEEK_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_WEEK", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("WEEK", "", ""));
         ir_vec.push_back(res); 
         $$ = res;
     }
@@ -20024,7 +20024,7 @@ interval_time_stamp:
     }
 
     | YEAR_SYM {
-        res = new IR(kIntervalTimeStamp, OP3("SQL_TSI_YEAR", "", ""));
+        res = new IR(kIntervalTimeStamp, OP3("YEAR", "", ""));
         ir_vec.push_back(res); 
         $$ = res;
     }

@@ -4,5 +4,4 @@ INSERT INTO t1 VALUES (1.0, 1, 'M'), (2.0, 2, 'F'), (3.0, 3, 'F'), (4.0, 4, 'F')
 PREPARE p FROM "SELECT id, sex, NTH_VALUE(id, ?) OVER () FROM t1";
 SET @p1= 3;
 EXECUTE p USING @p1;
-DROP PREPARE p;
 SET SESSION SQL_MODE='';

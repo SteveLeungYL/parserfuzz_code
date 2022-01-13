@@ -50,7 +50,8 @@ public:
 
     IR * ir_random_generator(vector<IR *> v_ir_collector);
 
-    vector<IR *> mutate_all(IR* ori_ir_root, IR* ir_to_mutate, u64& total_mutate_failed, u64& total_mutate_num);
+    vector<IR *> mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num, u64 &total_mutatestmt_failed, u64& total_mutatestmt_num, u64& total_mutate_all_failed);
+    
     vector<IR*> mutate(IR* input);
     vector<IR *> mutate_stmtlist(IR *root);
 
@@ -64,7 +65,8 @@ public:
     IR * get_from_libary_with_right_type(IRTYPE type_);
 
 
-    int get_cri_valid_collection_size();
+    int get_valid_collection_size();
+    int get_collection_size();
 
     bool replace(IR* root, IR* old_ir, IR* new_ir); //done
     IR * locate_parent(IR* root, IR * old_ir) ; //done
@@ -142,6 +144,7 @@ public:
     void debug(IR * root, unsigned level);
     int try_fix(char* buf, int len, char* &new_buf, int &new_len);
 
+    bool correct_insert_stmt(IR* ir_root);
 
     void add_ir_to_library_no_deepcopy(IR*);//DONE
 

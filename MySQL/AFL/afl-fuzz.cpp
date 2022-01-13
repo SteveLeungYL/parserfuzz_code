@@ -157,6 +157,8 @@ u64 total_input_failed = 0;
 u64 total_mutate_all_failed = 0;
 u64 total_mutate_failed = 0;
 u64 total_mutate_num = 0;
+u64 total_mutatestmt_failed = 0;
+u64 total_mutatestmt_num = 0;
 u64 total_append_failed = 0;
 u64 total_execute = 0;
 u64 total_add_to_queue = 0;
@@ -175,6 +177,10 @@ u64 mysql_execute_ok = 0;
 u64 mysql_execute_error = 0;
 u64 mysql_execute_total = 0;
 
+int is_has_new_bits = false;
+
+u64 test_id = 0;
+
 int map_file_id = 0;
 fstream map_id_out_f;
 
@@ -189,6 +195,10 @@ unsigned long timeout_id = 0;
 
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
+
+EXP_ST u8 virgin_bits[MAP_SIZE], /* Regions yet untouched by fuzzing */
+    virgin_tmout[MAP_SIZE],      /* Bits we haven't seen in tmouts   */
+    virgin_crash[MAP_SIZE];      /* Bits we haven't seen in crashes  */
 
 
 extern int ff_debug;
@@ -205,6 +215,8 @@ EXP_ST u8 *in_dir, /* Input directory with test cases  */
     *orig_cmdline; /* Original command line            */
 
 deque<char *> g_previous_input;
+
+static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "");
 class MysqlClient
 {
 public:
@@ -266,19 +278,20 @@ public:
       return false;
     }
     // database_id++;
+    bool is_error = false;
 
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"BEGIN", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "COMMIT","SELECT 'Successful'"};
     for (string cmd : v_cmd) {
-      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
+        is_error = true;
+      }
       // cerr << "Fix_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       clean_up_connection(&tmp_m);
     }
 
     mysql_close(&tmp_m);
-    // std::cout << "Fix database successful. \n\n\n";
-    // std::this_thread::sleep_for(std::chrono::milliseconds(300));
-    // sleep(1);
-    return true;
+
+    return !is_error;
   }
 
   SQLSTATUS clean_up_connection(MYSQL *mm)
@@ -493,27 +506,32 @@ public:
     }
     //cout << "connect succeed!" << endl;
 
-    reset_database();
+    res_str = "";
+
+    if( !reset_database() ) { // Return true for no error, false for errors. 
+      res_str += "Reset database ERROR!!!\n\n\n";
+    }
 
     string cmd_str = cmd;
-    // cmd_str += " ; SELECT 'Hahaha'; ";
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
     /* For debug purpose */
-    cmd_str = "SELECT 'CHECK_MATE';" + cmd_str;
+    // cmd_str = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_str;
 
     vector<string> v_cmd_str = string_splitter(cmd_str, ";");
 
+    // v_cmd_str = {"BEGIN; ", "create table v0(v1 text)", "COMMIT;"};
+
     SQLSTATUS correctness;
     int server_response;
-
-    res_str = "";
 
     timeout_mutex.lock();
     is_timeout = false;
     timeout_mutex.unlock();
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
+
+    has_new_bits(virgin_bits, "123");
 
     for (string cur_cmd_str : v_cmd_str) {
       // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
@@ -528,10 +546,15 @@ public:
       }
     }
 
+    is_has_new_bits = has_new_bits(virgin_bits, cmd_str);
+    // if (is_has_new_bits){
+    //   cerr << "\n\n\n\n\n\n\n\nHas new bits!!!!!\n\n\n\n\n\n\n";
+    // }
+
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
     /* For debug purpose */
-    if (res_str.find("CHECK_MATE") == string::npos) {
+    if (res_str.find("Test_ID") == string::npos) {
       cerr << "RESULT NOT RETURN CORRECTLY!\n\n\ncmd_str: " << cmd_str << "\n\n\nRes: " << res_str << "\n\n\n";
       // FATAL("RESULT NOT RETURN CORRECTLY!");
     }
@@ -609,16 +632,18 @@ public:
       return 0;
     }
 
-    vector<string> v_cmd = {"RESET PERSIST", "RESET MASTER", "DROP DATABASE IF NOT EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    bool is_error = false;
+    vector<string> v_cmd = {"DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
-      mysql_real_query(&tmp_m, cmd.c_str(), cmd.size());
+      if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
+        is_error = true;
+      }
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
       clean_up_connection(&tmp_m);
     }
 
     mysql_close(&tmp_m);
-    // std::cout << "Reset database successful. \n\n\n";
-    return 1;
+    return !is_error;
   }
 
   char *get_next_database_name()
@@ -699,10 +724,6 @@ static s32 forksrv_pid, /* PID of the fork server           */
     out_dir_fd = -1;    /* FD of the lock file              */
 
 EXP_ST u8 *trace_bits; /* SHM with instrumentation bitmap  */
-
-EXP_ST u8 virgin_bits[MAP_SIZE], /* Regions yet untouched by fuzzing */
-    virgin_tmout[MAP_SIZE],      /* Bits we haven't seen in tmouts   */
-    virgin_crash[MAP_SIZE];      /* Bits we haven't seen in crashes  */
 
 static u8 var_bytes[MAP_SIZE]; /* Bytes that appear to be variable */
 
@@ -1515,7 +1536,11 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   i = (MAP_SIZE >> 3) - i - 1 ;
   u32 actual_idx = i * 8 + byte;
   
-  map_id_out_f << actual_idx << "," << map_file_id <<  endl;
+  if (queue_cur) {
+    map_id_out_f << actual_idx << "," << map_file_id << "," << to_string(queue_cur->depth) << endl;
+  } else {
+    map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
+  }
 
   fstream map_id_seed_output;
   if (queue_cur) {
@@ -3243,7 +3268,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     if (q->exec_cksum != cksum)
     {
 
-      u8 hnb = has_new_bits(virgin_bits);
+      u8 hnb = has_new_bits(virgin_bits, "123");
       if (hnb > new_bits)
         new_bits = hnb;
 
@@ -3850,7 +3875,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Always check has_new_bits first. */
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
+    has_new_bits(virgin_bits, "123");
+    if ( !(hnb = is_has_new_bits) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       return 0;
@@ -3954,7 +3980,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
       show_stats();
 
-      if (!has_new_bits(virgin_tmout))
+      if (!has_new_bits(virgin_tmout, "123"))
         return keeping;
     }
 
@@ -4022,7 +4048,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_crash))
+      if (!has_new_bits(virgin_crash, "123"))
         return keeping;
     }
 
@@ -4319,17 +4345,18 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
 
   fprintf(plot_file,
           /* Format */
-          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu"
+          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu"
           "\n", 
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
           pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
           unique_hangs, max_depth, eps, total_execs, 
           total_input_failed, p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid, total_add_to_queue,
-          total_mutate_all_failed, total_mutate_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
-          debug_error, (debug_good * 100.0 / (debug_error + debug_good)), mysql_execute_ok, mysql_execute_error, mysql_execute_total,
-          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate
+          total_mutate_all_failed, total_mutate_failed, total_mutatestmt_failed, total_append_failed,  g_mutator.get_valid_collection_size(), g_mutator.get_collection_size(),
+          debug_good, (debug_good * 100.0 / (debug_error + debug_good)), mysql_execute_ok, mysql_execute_error, mysql_execute_total,
+          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, total_mutate_num, total_mutatestmt_num, 
+          num_reparse, num_append, num_validate
           ); /* ignore errors */
 
   fflush(plot_file);
@@ -5783,6 +5810,9 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     // }
     // cmd_string = expand_valid_stmts_str(queries_vector, true);
     string cmd_string = cmd_string_vec[0];
+    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; " + cmd_string;
+
+    // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
 
     trim_string(cmd_string);
 
@@ -5823,8 +5853,8 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
       string cmd_string = cmd_string_vec[idx];
 
-      //cmd_string = trim(cmd_string);
       trim_string(cmd_string);
+      cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_string;
 
       string res_str = "";
       fault = run_target(argv, tmout, cmd_string, res_str);
@@ -5878,16 +5908,16 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
   /***********************/
   /* Debug: output logs for all execs */
-  if (dump_library) {
-    if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
-      filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
-    }
-    string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
-    ofstream log_output_file;
-    log_output_file.open(all_sql_out_log_str, std::ofstream::out);
-    stream_output_res(all_comp_res, log_output_file);
-    log_output_file.close();
-  }
+  // if (dump_library) {
+  //   if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+  //     filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+  //   }
+  //   string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+  //   ofstream log_output_file;
+  //   log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+  //   stream_output_res(all_comp_res, log_output_file);
+  //   log_output_file.close();
+  // }
 
   /* Debug end.  */
   /***********************/
@@ -6505,6 +6535,10 @@ static u8 fuzz_one(char **argv)
 
   num_parse++;
 
+  // vector<string> tmp_vec = {input};
+  // common_fuzz_stuff(argv, tmp_vec, tmp_vec);
+  // return 0;
+
   ori_ir_tree.clear();
   int ret = run_parser_multi_stmt(input, ori_ir_tree);
 
@@ -6527,53 +6561,62 @@ static u8 fuzz_one(char **argv)
   // cerr << "End\n\n\n";
 
   /* Append Create stmts to the queue, if no create table stmts is found. */
-  v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
-  int create_num, drop_num;
-  bool is_missing_create;
-  create_num = 0;
-  drop_num = 0;
+  // v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
+  // int create_num, drop_num;
+  // bool is_missing_create;
+  // create_num = 0;
+  // drop_num = 0;
 
-  for (IR* ir_stmts : v_ir_stmts) {
-    switch (ir_stmts->get_ir_type()) {
-      case kCreateTableStmt:
-        create_num++;
-        break;
-      case kDropTableStmt:
-        {
-          if (get_rand_int(2) < 1) {
-            /* 50% chance, remove drop stmt.  */
-            p_oracle->ir_wrapper.set_ir_root(cur_root);
-            p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
-          }
-        }
-        drop_num++;
-        break;
-    }
-  }
+  // for (IR* ir_stmts : v_ir_stmts) {
+  //   switch (ir_stmts->get_ir_type()) {
+  //     case kCreateTableStmt:
+  //       create_num++;
+  //       break;
+  //     case kDropTableStmt:
+  //       {
+  //         if (get_rand_int(2) < 1) {
+  //           /* 50% chance, remove drop stmt.  */
+  //           p_oracle->ir_wrapper.set_ir_root(cur_root);
+  //           p_oracle->ir_wrapper.remove_stmt_and_free(ir_stmts);
+  //         }
+  //       }
+  //       drop_num++;
+  //       break;
+  //   }
+  // }
 
   // if (create_num == 0) {
   //   // cur_root->deep_drop();
   //   goto abandon_entry;
   // }
 
-  if (drop_num >= create_num) {
-    // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
-    g_mutator.add_missing_create_table_stmt(cur_root);
-    // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
-    // goto abandon_entry;
-  }
-  v_ir_stmts.clear(); // No need to free. 
+  // if (drop_num >= create_num && get_rand_int(2) < 1) {
+  //   // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
+  //   g_mutator.add_missing_create_table_stmt(cur_root);
+  //   // cerr << "Added missing create table, becomes: " << cur_root->to_string() << "\n\n\n";
+  //   // goto abandon_entry;
+  // }
+  // v_ir_stmts.clear(); // No need to free. 
+
+  // cerr << "Before removing select stmt and added create. \n\n\n";
+  // // g_mutator.debug(cur_root, 0);
+  // // cerr << "\n\n\n";
+  // cerr << cur_root->to_string();
+  // cerr << "to_string finished. \n\n\n";
+  // cerr << "End\n\n\n";
 
   // p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
   p_oracle->remove_explain_stmt_from_ir(cur_root);
 
+  g_mutator.correct_insert_stmt(cur_root);
+
 
   // cerr << "After removing select stmt and added create. \n\n\n";
-  // g_mutator.debug(cur_root, 0);
-  // cerr << "\n\n\n";
+  // // g_mutator.debug(cur_root, 0);
+  // // cerr << "\n\n\n";
   // cerr << cur_root->to_string();
-  // cerr << "to_string finished. \n\n\n";
+  // cerr << "\nto_string finished. \n\n\n";
   // cerr << "End\n\n\n";
 
 
@@ -6609,7 +6652,7 @@ static u8 fuzz_one(char **argv)
     // auto single_mutation_start_time = std::chrono::system_clock::now();
 
     /* The mutated IR tree is deep_copied() */
-    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num);
+    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
 
     // auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
     // std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
@@ -6639,6 +6682,8 @@ static u8 fuzz_one(char **argv)
       * consider appending anything */
 
       // auto single_reparse_start_time = std::chrono::system_clock::now();
+
+      // cerr << "Before reparsing, the mutated ir_str is: " << ir_str << "\n\n\n";
 
       vector<IR *> cur_ir_tree;
       ret = run_parser_multi_stmt(ir_str, cur_ir_tree);
@@ -7497,9 +7542,9 @@ EXP_ST void setup_dirs_fds(void)
                      "pending_total,pending_favs,map_size,unique_crashes,"
                      "unique_hangs,max_depth,execs_per_sec,total_execs,"
                      "total_input_failed,total_random_VALID,total_add_to_queue,total_mutate_all_failed,"
-                     "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
-                     "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
-                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
+                     "total_mutate_failed_num,total_mutatestmt_failed_num,total_append_failed,total_saved_valid_stmts,"
+                     "total_saved_stmts,total_good_stmt,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
+                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_mutate,num_mutatestmt,num_reparse,num_append,num_validate\n"
                      );
 
   fflush(plot_file);
@@ -8093,7 +8138,7 @@ static void do_libary_initialize()
 static void load_map_id() {
   map_id_out_f.open("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
   if (dump_library) {
-    map_id_out_f << "mapID, map_file_id" << endl;
+    map_id_out_f << "mapID,map_file_id,depth" << endl;
   }
   return;
 }
@@ -8524,6 +8569,10 @@ int main(int argc, char *argv[])
   //init_forkserver(tmp_argv);
   // to do
   perform_dry_run(use_argv);
+
+  // show_stats();
+
+  // exit(0);
 
   cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
 

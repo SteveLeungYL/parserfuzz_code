@@ -1,4 +1,3 @@
-DROP TABLE IF EXISTS t1;
 create table t1 (g point);
 insert into t1 values  (ST_GeomFromText('POINT(2 2)')), (ST_GeomFromText('POINT(2 4)')), (ST_GeomFromText('POINT(2 6)')), (ST_GeomFromText('POINT(2 8)')), (ST_GeomFromText('POINT(4 2)')), (ST_GeomFromText('POINT(4 4)')), (ST_GeomFromText('POINT(4 6)')), (ST_GeomFromText('POINT(4 8)')), (ST_GeomFromText('POINT(6 2)')), (ST_GeomFromText('POINT(6 4)')), (ST_GeomFromText('POINT(6 6)')), (ST_GeomFromText('POINT(6 8)')), (ST_GeomFromText('POINT(8 2)')), (ST_GeomFromText('POINT(8 4)')), (ST_GeomFromText('POINT(8 6)')), (ST_GeomFromText('POINT(8 8)'));
 set @geom=ST_GeomFromText('LINESTRING(2 1, 4 2, 2 3, 2 5)');

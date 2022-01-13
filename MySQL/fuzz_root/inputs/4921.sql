@@ -4,7 +4,6 @@ flush status;
 with recursive qn as (select * from qn2), qn2 as (select * from qn) select * from qn;
 create table t1(b int);
 insert into t1 values(10),(20),(10);
-drop table t1;
 WITH RECURSIVE qn AS (select 1 union all select distinct 3 from qn) select * from qn;
 show create table u;
 set @c=0, @d=0;

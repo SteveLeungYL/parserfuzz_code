@@ -1,5 +1,4 @@
 set optimizer_switch='semijoin=off';
-drop table if exists t1,t2,t3;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
 CREATE TABLE t1 ( id int(6) DEFAULT '0' NOT NULL, idservice int(5), clee char(20) NOT NULL, flag char(1), KEY id (id), PRIMARY KEY (clee) );
 INSERT INTO t1 VALUES (2,4,'6067169d','Y');

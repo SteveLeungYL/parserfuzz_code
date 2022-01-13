@@ -54,3 +54,4 @@ clean:
 	@make clean -C oracle
 	@make clean -C AFL
 	rm -rf afl-fuzz
+	rm -rf ./include/*.gch ./include/.deps

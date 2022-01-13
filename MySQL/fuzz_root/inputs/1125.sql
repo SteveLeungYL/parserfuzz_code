@@ -1,4 +1,3 @@
-drop table if exists t1,t2,t3;
 SET sql_mode = 'NO_ENGINE_SUBSTITUTION';
 CREATE TABLE t1 ( spID int(10) unsigned, userID int(10) unsigned, score smallint(5) unsigned, lsg char(40), date date );
 INSERT INTO t1 VALUES (1,1,1,'','0000-00-00');

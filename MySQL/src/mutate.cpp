@@ -78,15 +78,6 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
   if (root == nullptr) {return res_vec;}
 
-  // For strategy_delete
-  cur_root = root->deep_copy();
-  p_oracle->ir_wrapper.set_ir_root(cur_root);
-
-  int rov_idx = get_rand_int(p_oracle->ir_wrapper.get_stmt_num());
-  // cerr << "Remove stmt at idx: " << rov_idx << "\n\n\n";
-  p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
-  res_vec.push_back(cur_root);
-
   // // For strategy_replace
   // cur_root = root->deep_copy();
   // p_oracle->ir_wrapper.set_ir_root(cur_root);
@@ -159,7 +150,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   new_stmt_ir->deep_drop();
   new_stmt_ir = new_stmt_ir_tmp;
 
-  // cerr << "Inserting stmt: " << new_stmt_ir->to_string() << "\n\n\n";
+  // cerr << "Inserting stmt: " << get_string_by_ir_type(new_stmt_ir->get_ir_type()) << ": " << new_stmt_ir->to_string() << "\n\n\n";
 
   p_oracle->ir_wrapper.set_ir_root(cur_root);
   if(!p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, insert_pos)) {
@@ -169,6 +160,20 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   }
   res_vec.push_back(cur_root);
 
+  // For strategy_delete
+  p_oracle->ir_wrapper.set_ir_root(root);
+  int stmt_num = p_oracle->ir_wrapper.get_stmt_num();
+
+  // Only apply remove stmt if the stmt_num is big enough (> 20)
+  if (stmt_num > 20) {
+    cur_root = root->deep_copy();
+    p_oracle->ir_wrapper.set_ir_root(cur_root);
+    int rov_idx = get_rand_int(stmt_num);
+    // cerr << "In mutatestmtlist, removing stmt at idx: " << rov_idx << "\n";
+    p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
+    res_vec.push_back(cur_root);
+  }
+
   return res_vec;
 
 }
@@ -176,23 +181,27 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
 
 
-vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num){
+vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num, u64 &total_mutatestmt_failed, u64& total_mutatestmt_num, u64& total_mutate_all_failed){
 
     IR *root = ori_ir_root;
     vector<IR *> res;
     vector<IR* > v_mutated_ir; 
 
-    if (ir_to_mutate->get_ir_type() == kStartEntry) {
-      /* Do not mutate on kStartEntry. */
+    if (get_rand_int(10) < 9) {
+      // Not lucky enough to be mutated. Skip. Only mutate with 10% chance.  
       return res;
     }
 
     /* For mutating kStmtList only */
-    if (ir_to_mutate->get_ir_type() == kStmtList) {
+    // if (ir_to_mutate->get_ir_type() == kStmtList) {
+    if (get_rand_int(10) < 1) {
       // cerr << "Inside kStmtList; \n\n\n";
       v_mutated_ir = mutate_stmtlist(root);
       // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
       for (IR* mutated_ir : v_mutated_ir) {
+
+          total_mutate_num++;
+          total_mutatestmt_num++;
 
           string tmp = mutated_ir->to_string();
 
@@ -200,6 +209,8 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           if (global_hash_.find(tmp_hash) != global_hash_.end()) {
             mutated_ir->deep_drop();
             // cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
+            total_mutate_failed++;
+            total_mutatestmt_failed++;
             continue;
           }
           // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
@@ -207,22 +218,54 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           res.push_back(mutated_ir);
       }
 
-      return res;
+      // return res;
     }
 
     // cerr << "Inside rest; \n\n\n";
     // else, for mutating single IR node. 
 
+    if (ir_to_mutate->is_node_struct_fixed) {
+      return res;
+    }
+
+    if (ir_to_mutate->get_ir_type() == kStartEntry) {
+      /* Do not mutate on kStartEntry. */
+      return res;
+    }
+
+    if (p_oracle->ir_wrapper.is_ir_in(ir_to_mutate, kSet)) {
+      /* Do not mutate on SET statement.  */
+      return res;
+    }
+
+    if (
+      ir_to_mutate->get_ir_type() == kStmtList ||
+      ir_to_mutate->get_ir_type() == kSimpleStatement
+    ) {
+      return res;
+    }
+    if (
+      ir_to_mutate->get_parent() &&
+      ir_to_mutate->get_parent()->get_ir_type() == kSimpleStatement
+    ) {
+      return res;
+    }
+
     v_mutated_ir = mutate(ir_to_mutate);
 
     for (IR *new_ir : v_mutated_ir) {
 
-        if (!new_ir) continue;
+        if (!new_ir) {
+          total_mutate_failed++;
+          continue;
+        }
 
         total_mutate_num++;
         if (!root->swap_node(ir_to_mutate, new_ir)) {
             new_ir->deep_drop();
             total_mutate_failed++;
+            // cerr << "ir_to_mutate: " << ir_to_mutate->to_string() << ", new_ir" << new_ir << "\n\n\n";
+            // FATAL("SWAP NODE to mutate ir tree failure in mutate_all. \n\n\n");
             continue;
         }
 
@@ -247,8 +290,14 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
 
         /* Mutate successful. Save the mutation and recover the original ir_tree */
         res.push_back(root->deep_copy());
-        root->swap_node(new_ir, ir_to_mutate);
+        if (!root->swap_node(new_ir, ir_to_mutate)) {
+          // FATAL("SWAP NODE back to the original ir tree failure in mutate_all. \n\n\n");
+        }
         new_ir->deep_drop();
+    }
+
+    if (res.size() == 0) {
+      total_mutate_all_failed++;
     }
 
     return res;
@@ -298,8 +347,12 @@ vector<IR*> Mutator::pre_fix_transform(IR * root, vector<STMT_TYPE>& stmt_type_v
 }
 
 
-int Mutator::get_cri_valid_collection_size() {
+int Mutator::get_valid_collection_size() {
   return all_valid_pstr_vec.size();
+}
+
+int Mutator::get_collection_size() {
+  return all_query_pstr_set.size();
 }
 
 vector<vector<vector<IR*>>> Mutator::post_fix_transform(vector<IR*>& all_pre_trans_vec, vector<STMT_TYPE>& stmt_type_vec) {
@@ -1134,7 +1187,54 @@ Mutator::fix_preprocessing(IR *stmt_root,
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
 
+bool Mutator::correct_insert_stmt(IR* ir_root) {
+  vector<int> table_column_num;
 
+  vector<IR*> stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec(ir_root);
+
+  for (IR* cur_stmt : stmt_list) {
+    if (cur_stmt->get_ir_type() == kCreateTableStmt) {
+      int column_size = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTableElement, false).size();
+      table_column_num.push_back(column_size);
+    }
+
+    if (cur_stmt->get_ir_type() == kInsertStmt) {
+      if (table_column_num.size() == 0) {continue;}
+      int cur_used_column_size = vector_rand_ele(table_column_num);
+
+      int field_num = p_oracle->ir_wrapper.get_num_fields_in_stmt(cur_stmt);
+      int values_num = p_oracle->ir_wrapper.get_num_kvalues_in_stmt(cur_stmt);
+
+      if (field_num != values_num && field_num != 0) {
+        return false;
+      }
+
+      vector<IR*> v_value_list = p_oracle->ir_wrapper.get_kvalueslist_in_stmt(cur_stmt);
+
+      // cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
+      // cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
+      // cerr << "v_values_num: " << values_num << "\n\n\n";
+
+      if (values_num > cur_used_column_size) {
+        for (int i = 0; i < (values_num - cur_used_column_size); i++) {
+          p_oracle->ir_wrapper.drop_fields_to_insert_stmt(cur_stmt);
+          for (IR* value_list : v_value_list) {
+            p_oracle->ir_wrapper.drop_kvalues_to_insert_stmt(value_list);
+          }
+        }
+      } else if (values_num < cur_used_column_size) {
+        for (int i = 0; i < (cur_used_column_size - values_num); i++) {
+          p_oracle->ir_wrapper.add_fields_to_insert_stmt(cur_stmt);
+          for (IR* value_list : v_value_list) {
+            p_oracle->ir_wrapper.add_kvalues_to_insert_stmt(value_list);
+          }
+        }
+      }
+    }
+  }  // stmt_list
+
+  return true;
+}
 
 bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_stmt_ir_to_fix_vec, bool is_debug_info) {
     // TODO:: Finished fix_dependency working with MySQL parser. 
@@ -1830,6 +1930,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           ir_to_fix->data_flag_ == kUseDefine
         )
       ) {
+
+        if (cur_stmt_root->get_ir_type() == kSet) {
+          fixed_ir.push_back(ir_to_fix);
+          if (is_debug_info) {
+            cerr << "Do not fix kDataColumnName in the kSet stmt. Skip kUse of kDataColumnName " << ir_to_fix->to_string() << "\n\n\n";
+          }
+          continue;
+        }
+
         if (is_debug_info) {
           cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
           cerr << "In the kDataColumnName with kUse, found v_alias_names_single.size: " << v_alias_names_single.size() << "\n\n\n";
@@ -1874,10 +1983,11 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             }
           } else {
             if (is_debug_info) {
-              cerr << "Error: In kUseDefine of kDataColumnName, cannot find newly declared table name for column name origin. Ignored. \n\n\n" << endl;
+              cerr << "Error: In kUseDefine of kDataColumnName, cannot find newly declared table name for column name origin. Fix it as normal kUse. \n\n\n" << endl;
             }
-            fixed_ir.push_back(ir_to_fix);
-            continue;  // Keep original. 
+            ir_to_fix->data_flag_ = kUse;
+            // fixed_ir.push_back(ir_to_fix);
+            // continue;  // Keep original. 
           }
         }
 
@@ -4120,89 +4230,89 @@ bool Mutator::add_missing_create_table_stmt(IR* ir_root) {
     return false;
   }
 
-  // Get INSERT stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR* new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
-  if (new_stmt_ir_2 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    return false;
-  } else if (new_stmt_ir_2->get_left() == NULL) {
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    return false;
-  }
+  // // Get INSERT stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // IR* new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
+  // if (new_stmt_ir_2 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_2->get_left() == NULL) {
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   return false;
+  // }
 
-  // Get CREATE INDEX stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  IR* new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
-  if (new_stmt_ir_3 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    return false;
-  } else if (new_stmt_ir_3->get_left() == NULL) {
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    new_stmt_ir_3->deep_drop();
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    return false;
-  }
+  // // Get CREATE INDEX stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // IR* new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
+  // if (new_stmt_ir_3 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_3->get_left() == NULL) {
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   new_stmt_ir_3->deep_drop();
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   return false;
+  // }
 
   p_oracle->ir_wrapper.set_ir_root(ir_root);
   p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, 0);
-  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 1);
-  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 2);
+  // p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 1);
+  // p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 2);
 
 
 
-  // Get Create Stmt, for the end. 
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir = this->get_ir_with_type(kCreateTableStmt);
-  if (new_stmt_ir == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
-    return false;
-  } else if (new_stmt_ir->get_left() == NULL) {
-    new_stmt_ir->deep_drop();
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
-    return false;
-  }
+  // // Get Create Stmt, for the end. 
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // new_stmt_ir = this->get_ir_with_type(kCreateTableStmt);
+  // if (new_stmt_ir == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+  //   return false;
+  // } else if (new_stmt_ir->get_left() == NULL) {
+  //   new_stmt_ir->deep_drop();
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kCreateStmt is NULL. \n\n\n";
+  //   return false;
+  // }
 
-  // Get INSERT stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
-  if (new_stmt_ir_2 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    return false;
-  } else if (new_stmt_ir_2->get_left() == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    return false;
-  }
+  // // Get INSERT stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // new_stmt_ir_2 = this->get_ir_with_type(kInsertStmt);
+  // if (new_stmt_ir_2 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_2->get_left() == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kInsertStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   return false;
+  // }
 
-  // Get CREATE INDEX stmt
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
-  if (new_stmt_ir_3 == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    return false;
-  } else if (new_stmt_ir_3->get_left() == NULL) {
-    // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
-    new_stmt_ir->deep_drop();
-    new_stmt_ir_2->deep_drop();
-    new_stmt_ir_3->deep_drop();
-    return false;
-  }
+  // // Get CREATE INDEX stmt
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // new_stmt_ir_3 = this->get_ir_with_type(kCreateIndexStmt);
+  // if (new_stmt_ir_3 == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   return false;
+  // } else if (new_stmt_ir_3->get_left() == NULL) {
+  //   // cerr << "Debug: add_missing_create_table_stmt: Return false because kIndexStmt is NULL. \n\n\n";
+  //   new_stmt_ir->deep_drop();
+  //   new_stmt_ir_2->deep_drop();
+  //   new_stmt_ir_3->deep_drop();
+  //   return false;
+  // }
 
-  p_oracle->ir_wrapper.set_ir_root(ir_root);
-  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir);
-  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_2);
-  p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_3);
+  // p_oracle->ir_wrapper.set_ir_root(ir_root);
+  // p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir);
+  // p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_2);
+  // p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_3);
 
   return true;
 

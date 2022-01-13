@@ -2,6 +2,5 @@ CREATE TABLE t1( pk INTEGER PRIMARY KEY, uk INTEGER UNIQUE, ukn INTEGER UNIQUE N
 INSERT INTO t1 VALUES (0, NULL, 0, NULL, NULL), (1, 10, 20, 30, 40), (2, 20, 40, 60, 80);
 ANALYZE TABLE t1, t2;
 set optimizer_switch="firstmatch=on,materialization=off";
-DROP TABLE t1,t2;
 ALTER TABLE t1 MODIFY a INT NOT NULL;
 SET OPTIMIZER_SWITCH="semijoin=off";

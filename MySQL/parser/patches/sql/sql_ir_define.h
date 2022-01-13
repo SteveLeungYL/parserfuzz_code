@@ -4269,6 +4269,7 @@ V(kBinLiteral) \
 V(kBase64Literal) \
 V(kStringLiteral) \
 V(kBoolLiteral) \
+V(kPrepareSrcStr) \
 V(kUnknown)
 
 #define ALLDATATYPE(V) \
