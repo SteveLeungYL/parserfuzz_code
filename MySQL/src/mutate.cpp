@@ -239,6 +239,12 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     ) {
       return res;
     }
+    if (
+      ir_to_mutate->get_parent() &&
+      ir_to_mutate->get_parent()->get_ir_type() == kSimpleStatement
+    ) {
+      return res;
+    }
 
     v_mutated_ir = mutate(ir_to_mutate);
 
