@@ -23,7 +23,7 @@ def json_load(json_file):
 
 
 def execute_command(
-    command_line: str, cwd=None, timeout=300, input_contents="", failed_message=""
+    command_line: str, cwd=None, timeout=300, input_contents="", failed_message="", output_file=None
 ):
     """Run a command, returning its output."""
     cwd = cwd or Path.cwd()
@@ -33,15 +33,27 @@ def execute_command(
     error_msg = ""
 
     logger.debug(f"Start to execute shell command: {command_line}")
-    process_handle = subprocess.Popen(
-        shell_command,
-        shell=True,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=cwd,
-        errors="replace",
-    )
+    if output_file:
+        with open(output_file, "w+") as output_pipe:
+            process_handle = subprocess.Popen(
+                shell_command,
+                shell=True,
+                stdin=subprocess.PIPE,
+                stdout=output_pipe,
+                stderr=output_pipe,
+                cwd=cwd,
+                errors="replace",
+            )
+    else:
+        process_handle = subprocess.Popen(
+            shell_command,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=cwd,
+            errors="replace",
+        )
 
     try:
         # FIXME: input_contents should be bytes

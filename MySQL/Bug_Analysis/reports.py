@@ -7,8 +7,8 @@ from loguru import logger
 
 
 def read_queries_from_files():
-    postgres_samples = constants.BISECTING_BUG_SAMPLES
-    sample_files = [sample for sample in postgres_samples.glob("*")]
+    mysql_samples = constants.BISECTING_BUG_SAMPLES
+    sample_files = [sample for sample in mysql_samples.glob("*")]
     sample_files = list(filter(lambda x: x.is_file(), sample_files))
     sample_files.sort(key=os.path.getctime)
 
