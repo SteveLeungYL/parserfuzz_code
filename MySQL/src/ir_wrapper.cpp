@@ -641,7 +641,7 @@ bool IRWrapper::replace_stmt_and_free(IR* old_stmt, IR* new_stmt) {
 
 bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right, bool ignore_subtype) {
 
-    if (!ignore_subtype) {
+    if (ignore_subtype) {
         if (left != right) {
             return false;
         } else {
