@@ -5097,7 +5097,11 @@ void trim_string(std::string &res) {
 
       prev_is_space = false;
 
-    } else {
+    } else if (c == '@') {
+      // Skip following spaces. 
+      res[effect_idx++] = c;
+    }
+    else {
 
       prev_is_space = false;
       res[effect_idx++] = c;
@@ -5194,31 +5198,34 @@ std::string IR::to_string_core(){
 
     std::string res;
 
-    if (str_val_ != "") {
-      res += str_val_;
-      return res;
-    }
-
-    if( op_!= NULL ){
-        //if(op_->prefix_ == NULL)
-            ///cout << "FUCK NULL prefix" << endl;
-         //cout << "OP_Prex: " << op_->prefix_ << endl;
+    if( op_!= NULL && op_->prefix_ != "" ){
         res += op_->prefix_ + " ";
     }
-     //cout << "OP_1_" << op_ << endl;
-    if(left_ != NULL)
-        //res += left_->to_string() + " ";
-        res += left_->to_string_core() + " ";
-    // cout << "OP_2_" << op_ << endl;
-    if( op_!= NULL)
-        res += op_->middle_ + " ";
-     //cout << "OP_3_" << op_ << endl;
-    if(right_ != NULL)
-        //res += right_->to_string() + " ";
-        res += right_->to_string_core() + " ";
-     //cout << "OP_4_" << op_ << endl;
-    if(op_!= NULL)
-        res += op_->suffix_;
+
+    if(left_ != NULL) {
+      res += left_->to_string_core() + " ";
+    }
+
+
+    if( op_!= NULL && op_->middle_ != "") {
+      res += op_->middle_ + " ";
+    }
+    if (get_ir_type() == kStringLiteral) {
+      res += " '" + str_val_ + "' ";
+    }
+    else if (str_val_ != "") {
+      res += " " + str_val_ + " ";
+    }
+
+
+    if(right_ != NULL) {
+      res += right_->to_string_core() + " ";
+    }
+
+    
+    if(op_!= NULL && op_->suffix_ != "") {
+      res += op_->suffix_ + " ";
+    }
 
     return res;
 }

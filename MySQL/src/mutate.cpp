@@ -176,7 +176,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
 
 
-vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num){
+vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num, u64 &total_mutatestmt_failed, u64& total_mutatestmt_num, u64& total_mutate_all_failed){
 
     IR *root = ori_ir_root;
     vector<IR *> res;
@@ -192,6 +192,11 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
       return res;
     }
 
+    if (p_oracle->ir_wrapper.is_ir_in(ir_to_mutate, kSet)) {
+      /* Do not mutate on SET statement.  */
+      return res;
+    }
+
     /* For mutating kStmtList only */
     // if (ir_to_mutate->get_ir_type() == kStmtList) {
     if (get_rand_int(10) < 1) {
@@ -200,12 +205,17 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
       // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
       for (IR* mutated_ir : v_mutated_ir) {
 
+          total_mutate_num++;
+          total_mutatestmt_num++;
+
           string tmp = mutated_ir->to_string();
 
           unsigned tmp_hash = hash(tmp);
           if (global_hash_.find(tmp_hash) != global_hash_.end()) {
             mutated_ir->deep_drop();
             // cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
+            total_mutate_failed++;
+            total_mutatestmt_failed++;
             continue;
           }
           // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
@@ -262,6 +272,10 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           // FATAL("SWAP NODE back to the original ir tree failure in mutate_all. \n\n\n");
         }
         new_ir->deep_drop();
+    }
+
+    if (res.size() == 0) {
+      total_mutate_all_failed++;
     }
 
     return res;
@@ -1890,6 +1904,15 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           ir_to_fix->data_flag_ == kUseDefine
         )
       ) {
+
+        if (cur_stmt_root->get_ir_type() == kSet) {
+          fixed_ir.push_back(ir_to_fix);
+          if (is_debug_info) {
+            cerr << "Do not fix kDataColumnName in the kSet stmt. Skip kUse of kDataColumnName " << ir_to_fix->to_string() << "\n\n\n";
+          }
+          continue;
+        }
+
         if (is_debug_info) {
           cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
           cerr << "In the kDataColumnName with kUse, found v_alias_names_single.size: " << v_alias_names_single.size() << "\n\n\n";
