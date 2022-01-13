@@ -5210,7 +5210,10 @@ std::string IR::to_string_core(){
     if( op_!= NULL && op_->middle_ != "") {
       res += op_->middle_ + " ";
     }
-    if (get_ir_type() == kStringLiteral) {
+    if (
+      get_ir_type() == kStringLiteral ||
+      get_ir_type() == kPrepareSrcStr
+    ) {
       res += " '" + str_val_ + "' ";
     }
     else if (str_val_ != "") {

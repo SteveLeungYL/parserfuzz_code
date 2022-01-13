@@ -3838,7 +3838,7 @@ prepare:
 prepare_src:
 
     TEXT_STRING_sys {
-        auto tmp1 = new IR(kIdentifier, to_string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kPrepareSrcStr, to_string($1), kDataFixLater, 0, kFlagUnknown);
         ir_vec.push_back(tmp1);
         res = new IR(kPrepareSrc, OP3("", "", ""), tmp1);
         ir_vec.push_back(res); 
