@@ -2,7 +2,7 @@ from typing import List, Tuple
 
 import constants
 import norec
-import pgs
+import mysql
 import reports
 import utils
 import vcs
@@ -14,14 +14,16 @@ all_previous_compile_failure = []
 
 
 def check_query_execute_correctness(queries_l: List[str], hexsha: str):
-    install_directory = pgs.setup_mysql_commit(hexsha)
+    install_directory = mysql.setup_mysql_commit(hexsha)
     if utils.is_failed_commit(hexsha) or not install_directory:
         utils.dump_failed_commit(hexsha)
         return constants.FAILED_COMPILE_COMMITS, [], []
+    
+    mysql.start_mysqld_server(install_directory)
 
     all_res_str_l: List[str] = []
     for queries in queries_l:
-        all_res_str, result = pgs.execute_queries(queries, install_directory)
+        all_res_str, result = mysql.execute_queries(queries, install_directory)
         all_res_str_l.append(all_res_str)
 
     if result == constants.RESULT.SEG_FAULT:

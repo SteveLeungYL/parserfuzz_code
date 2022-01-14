@@ -41,7 +41,7 @@ def setup_env():
             constants.MYSQL_SOURCE_BACKUP, constants.MYSQL_CHECKOUT_ROOT
         )
 
-    pgs.clone_postgresql_source()
+    pgs.clone_mysql_source()
 
 
 @click.command()
