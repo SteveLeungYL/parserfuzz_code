@@ -196,7 +196,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, IR* cur_muta
 
     /* For mutating kStmtList only */
     // if (ir_to_mutate->get_ir_type() == kStmtList) {
-    if (get_rand_int(10) < 1) {
+    // if (get_rand_int(10) < 1) {
       // cerr << "Inside kStmtList; \n\n\n";
       if (cur_mutating_stmt) cur_mutating_stmt->is_mutating = false;
 
@@ -207,26 +207,26 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, IR* cur_muta
           total_mutate_num++;
           total_mutatestmt_num++;
 
-          IR* root_extract = root->deep_copy();
-          string tmp = extract_struct(root_extract);
-          root_extract->deep_drop();
+          // IR* root_extract = root->deep_copy();
+          // string tmp = extract_struct(root_extract);
+          // root_extract->deep_drop();
 
-          unsigned tmp_hash = hash(tmp);
-          if (global_hash_.find(tmp_hash) != global_hash_.end()) {
-            mutated_ir->deep_drop();
-            // cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
-            total_mutate_failed++;
-            total_mutatestmt_failed++;
-            continue;
-          }
-          // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
-          global_hash_.insert(tmp_hash);
+          // unsigned tmp_hash = hash(tmp);
+          // if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+          //   mutated_ir->deep_drop();
+          //   // cerr << "Abort old_ir because tmp_hash being saved before. " << "In func: Mutator::mutate_all(); \n";
+          //   total_mutate_failed++;
+          //   total_mutatestmt_failed++;
+          //   continue;
+          // }
+          // // cerr << "Currently mutating (stmtlist). After mutation, the generated str is: " << mutated_ir->to_string() << "\n\n\n";
+          // global_hash_.insert(tmp_hash);
           res.push_back(mutated_ir);
       }
 
       if (cur_mutating_stmt) cur_mutating_stmt->is_mutating = true;
       // return res;
-    }
+    // } // for mutatestmt. 
 
     // cerr << "Inside rest; \n\n\n";
     // else, for mutating single IR node. 
@@ -278,20 +278,20 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, IR* cur_muta
 
         // cerr << "Mutating on node: " << ir_to_mutate->to_string() << ", with new node: " << new_ir->to_string()  << ", type: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << "\n\n\n";
 
-        IR* root_extract = root->deep_copy();
-        string tmp = extract_struct(root_extract);
-        root_extract->deep_drop();
+        // IR* root_extract = root->deep_copy();
+        // string tmp = extract_struct(root_extract);
+        // root_extract->deep_drop();
 
-        /* Check whether the mutated IR is the same as before */
-        unsigned tmp_hash = hash(tmp);
-        if (global_hash_.find(tmp_hash) != global_hash_.end()) {
-            // cerr << "Mutate failed, extract struct same: " << tmp << "\n\n\n";
-            root->swap_node(new_ir, ir_to_mutate);
-            new_ir->deep_drop();
-            total_mutate_failed++;
-            continue;
-        }
-        global_hash_.insert(tmp_hash);
+        // /* Check whether the mutated IR is the same as before */
+        // unsigned tmp_hash = hash(tmp);
+        // if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+        //     // cerr << "Mutate failed, extract struct same: " << tmp << "\n\n\n";
+        //     root->swap_node(new_ir, ir_to_mutate);
+        //     new_ir->deep_drop();
+        //     total_mutate_failed++;
+        //     continue;
+        // }
+        // global_hash_.insert(tmp_hash);
 
         // cerr << "Mutating successfully, extract struct is: " << tmp << "\n\n\n";
 
