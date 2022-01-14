@@ -200,6 +200,12 @@ EXP_ST u8 virgin_bits[MAP_SIZE], /* Regions yet untouched by fuzzing */
     virgin_tmout[MAP_SIZE],      /* Bits we haven't seen in tmouts   */
     virgin_crash[MAP_SIZE];      /* Bits we haven't seen in crashes  */
 
+EXP_ST u8 disable_coverage_feedback = 0;  
+                              /* 0: not disabled, 
+                               * 1: Drop all queries. 
+                               * 2: Randomly save queries. 
+                               * 3: Save all queries. */
+
 
 extern int ff_debug;
 
@@ -732,12 +738,6 @@ EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     persistent_mode,          /* Running in persistent mode?      */
     deferred_mode,            /* Deferred forkserver mode?        */
     fast_cal;                 /* Try to calibrate faster?         */
-
-EXP_ST u8 disable_coverage_feedback = 0;  
-                              /* 0: not disabled, 
-                               * 1: Drop all queries. 
-                               * 2: Randomly save queries. 
-                               * 3: Save all queries. */
 
 static s32 out_fd,       /* Persistent fd for out_file       */
     dev_urandom_fd = -1, /* Persistent fd for /dev/urandom   */
