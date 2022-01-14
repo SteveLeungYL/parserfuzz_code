@@ -569,43 +569,35 @@ bool IRWrapper::remove_components_at_ir(IR* rov_ir) {
 }
 
 vector<IR*> IRWrapper::get_all_ir_node (IR* cur_ir_root) {
-    this->set_ir_root(cur_ir_root);
-    return this->get_all_ir_node();
+    // this->set_ir_root(cur_ir_root);
+    vector<IR*> res;
+    this->get_all_ir_node(cur_ir_root, res);
+    return res;
 }
 
-vector<IR*> IRWrapper::get_all_ir_node() {
-    if (this->ir_root == nullptr) {
-        std::cerr << "Error: IRWrapper::ir_root is nullptr. Forget to initilized? \n";
-    }
-    // Iterate IR binary tree, depth prioritized.
-    bool is_finished_search = false;
-    std::vector<IR*> ir_vec_iter;
-    std::vector<IR*> all_ir_node_vec;
-    IR* cur_IR = this->ir_root;
-    // Begin iterating. 
-    while (!is_finished_search) {
-        ir_vec_iter.push_back(cur_IR);
-        if (cur_IR->type_ != kStartEntry)
-            {all_ir_node_vec.push_back(cur_IR);} // Ignore kParserTopLevel at the moment, put it at the end of the vector.
+void IRWrapper::get_all_ir_node(IR* cur_ir, vector<IR*>& res) {
 
-        if (cur_IR->left_ != nullptr){
-            cur_IR = cur_IR->left_;
-            continue;
-        } else { // Reaching the most depth. Consulting ir_vec_iter for right_ nodes. 
-            cur_IR = nullptr;
-            while (cur_IR == nullptr){
-                if (ir_vec_iter.size() == 0){
-                    is_finished_search = true;
-                    break;
-                }
-                cur_IR = ir_vec_iter.back()->right_;
-                ir_vec_iter.pop_back();
-            }
-            continue;
-        }
+    if (cur_ir == NULL) {
+        return;
     }
-    all_ir_node_vec.push_back(this->ir_root);
-    return all_ir_node_vec;
+
+    if (cur_ir->get_left()) {
+        this->get_all_ir_node(cur_ir->get_left(), res);
+    }
+
+    if (cur_ir->get_ir_type() != kStartEntry) {
+        res.push_back(cur_ir);
+    }
+
+    if (cur_ir->get_right()) {
+        this->get_all_ir_node(cur_ir->get_right(), res);
+    }
+
+    if (cur_ir->get_ir_type() == kStartEntry) {
+        res.push_back(cur_ir);
+    }
+
+    return;
 }
 
 int IRWrapper::get_stmt_idx(IR* cur_stmt){
