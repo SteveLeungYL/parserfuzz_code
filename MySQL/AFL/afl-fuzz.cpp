@@ -6897,10 +6897,17 @@ static u8 fuzz_one(char **argv)
       else
       {
         show_stats();
-        // cout << "Valid SQL: " << ir_str << endl;
-        // g_current_ir = ir; //this is not modified
         stage_name = "fuzz";
-        // cerr << "IR_STR is: " << query_str << endl;
+
+        cur_ir_tree.clear();
+        ret = run_parser_multi_stmt(query_str_vec[0], cur_ir_tree);
+        if (ret != 0 || cur_ir_tree.size() == 0) {
+          total_mutate_failed++;
+          skip_count++;
+          continue;
+        }
+        cur_ir_tree.back() -> deep_drop();
+        cur_ir_tree.clear();
 
         /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
         // vector<string> small_query_testcases;
