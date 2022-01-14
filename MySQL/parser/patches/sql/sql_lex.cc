@@ -5708,6 +5708,19 @@ bool IR::set_key_part_with_expression_type(DATATYPE data_type, DATAFLAG data_fla
   return true;
 }
 
+bool IR::set_key_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+  assert(this->get_ir_type() == kKeyList);
+
+  if (get_right()) {
+    get_right()->set_key_part_type(data_type, data_flag);
+    get_left()->set_key_list_type(data_type, data_flag);
+  } else {
+    get_left()->set_key_part_type(data_type, data_flag);
+  }
+
+  return true;
+}
+
 bool IR::set_key_part_type(DATATYPE data_type, DATAFLAG data_flag) {
   assert(this->get_ir_type() == kKeyPart);
 

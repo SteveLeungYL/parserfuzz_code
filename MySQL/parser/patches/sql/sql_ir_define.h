@@ -4653,6 +4653,7 @@ public:
     bool set_key_part_type(DATATYPE, DATAFLAG);
     bool set_key_part_with_expression_type(DATATYPE, DATAFLAG);
     bool set_key_list_with_expression_type(DATATYPE, DATAFLAG);
+    bool set_key_list_type(DATATYPE, DATAFLAG);
 
 };
 
