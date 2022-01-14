@@ -1571,6 +1571,9 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   }
 
   if (queue_cur && cur_seed_str != "123") {
+    if ( !filesystem::exists("./queue_coverage_id_core/")) {
+      filesystem::create_directory("./queue_coverage_id_core/");
+    }
     fstream map_id_seed_output;
     map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
     map_id_seed_output << cur_seed_str;
