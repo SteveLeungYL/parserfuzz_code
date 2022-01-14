@@ -939,6 +939,9 @@ bool IRWrapper::add_fields_to_insert_stmt(IR* cur_stmt) {
 
     IR* last_field = v_fields.back();
     IR* last_field_content = last_field->get_left();
+    if (!last_field_content) {
+        return false;
+    }
     IR* last_field_content_copy = last_field_content->deep_copy();
 
     IR* new_field = new IR(kFields, OP0(), last_field_content_copy);
@@ -965,6 +968,10 @@ bool IRWrapper::drop_fields_to_insert_stmt(IR* cur_stmt) {
 
     IR* last_field = v_fields.back();
     IR* parent_node = last_field->get_parent();
+
+    if (!parent_node) {
+        return false;
+    }
 
     parent_node->detatch_node(last_field);
 
@@ -993,6 +1000,9 @@ bool IRWrapper::add_kvalues_to_insert_stmt(IR* cur_stmt) {
 
     IR* last_values = v_values.back();
     IR* last_values_content = last_values->get_left();
+    if (!last_values_content) {
+        return false;
+    }
     IR* last_values_content_copy = last_values_content->deep_copy();
 
     // cerr << "last_values_content_copy is: " << last_values_content_copy->to_string() << "\n\n\n";
@@ -1021,6 +1031,10 @@ bool IRWrapper::drop_kvalues_to_insert_stmt(IR* cur_stmt) {
 
     IR* last_values = v_values.back();
     IR* parent_node = last_values->get_parent();
+
+    if (!parent_node) {
+        return false;
+    }
 
     parent_node->detatch_node(last_values);
 
