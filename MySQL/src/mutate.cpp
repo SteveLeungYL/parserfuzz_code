@@ -309,6 +309,11 @@ void Mutator::pre_validate() {
   reset_id_counter();
   reset_data_library();
   reset_data_library_single_stmt();
+
+  /* Experimental: This is the default first statement. CREATE TABLE v1099(c1100 INT); */
+  v_table_names.push_back("v1099");
+  m_tables["v1099"].push_back("c1100");
+
   return;
 }
 

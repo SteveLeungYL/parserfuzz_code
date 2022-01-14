@@ -1537,7 +1537,7 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   u32 actual_idx = i * 8 + byte;
   
   if (cur_seed_str == "123") {
-    map_id_out_f << actual_idx << "," << map_file_id << ",-1" <<  endl;
+    map_id_out_f << actual_idx << ",-1,-1" <<  endl;
   } else if (queue_cur) {
     map_id_out_f << actual_idx << "," << map_file_id << "," << to_string(queue_cur->depth) << endl;
   } else {
@@ -5812,7 +5812,9 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     // }
     // cmd_string = expand_valid_stmts_str(queries_vector, true);
     string cmd_string = cmd_string_vec[0];
-    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; " + cmd_string;
+
+    /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
+    cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; CREATE TABLE v1099(c1100 INT); " + cmd_string;
 
     // cerr << "\n\n\ncmd_string is: " << cmd_string << "\n\n\n";
 
@@ -5856,7 +5858,9 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       string cmd_string = cmd_string_vec[idx];
 
       trim_string(cmd_string);
-      cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "';" + cmd_string;
+
+      /* Experimental: Always insert a simple CREATE TABLE statement. Do not mutate it.  */
+      cmd_string = "SELECT 'Test_ID " + to_string(test_id++) + "'; CREATE TABLE v1099(c1100 INT); " + cmd_string;
 
       string res_str = "";
       fault = run_target(argv, tmout, cmd_string, res_str);
