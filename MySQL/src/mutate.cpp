@@ -205,7 +205,9 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           total_mutate_num++;
           total_mutatestmt_num++;
 
-          string tmp = mutated_ir->to_string();
+          IR* root_extract = root->deep_copy();
+          string tmp = extract_struct(root_extract);
+          root_extract->deep_drop();
 
           unsigned tmp_hash = hash(tmp);
           if (global_hash_.find(tmp_hash) != global_hash_.end()) {
@@ -3802,7 +3804,6 @@ void Mutator::_extract_struct(IR *root) {
   if (root->get_data_flag() == kNoModi) {return;}
   if (root->get_data_type() == kDataFunctionName) {return;}
   if (root->get_data_type() == kDataFixLater) {return;}
-  if (root->get_data_type() == kDataLiteral) {return;}
 
   auto type = root->type_;
   if (root->left_) {
@@ -3812,7 +3813,11 @@ void Mutator::_extract_struct(IR *root) {
     extract_struct(root->right_);
   }
 
-  if (root->get_ir_type() == kIntType) {
+  if (root->is_empty()) {
+    return;
+  }
+
+  if (root->get_ir_type() == kIntType || root->get_ir_type() == kIntLiteral ) {
     root->int_val_ = 0;
     root->str_val_ = "0";
     return;
@@ -3820,6 +3825,8 @@ void Mutator::_extract_struct(IR *root) {
     root->float_val_ = 0.0;
     root->str_val_ = "0.0";
     return;
+  } else if (root->get_ir_type() == kStringLiteral) {
+    root->str_val_ = "x";
   }
   // } else if (root->get_ir_type() == kBol) {
   //   root->bool_val_ = true;
@@ -3831,14 +3838,14 @@ void Mutator::_extract_struct(IR *root) {
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
     return;
 
-  if (root->data_type_ != kDataWhatever && root->data_type_ != kDataFunctionName) {
+  if (root->data_type_ != kDataFunctionName) {
 
     root->str_val_ = "x";
     return;
   }
 
   if (string_types_.find(type) != string_types_.end()) {
-    root->str_val_ = "'x'";
+    root->str_val_ = "x";
   } else if (int_types_.find(type) != int_types_.end()) {
     root->int_val_ = 1;
   } else if (float_types_.find(type) != float_types_.end()) {
