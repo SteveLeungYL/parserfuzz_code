@@ -9951,7 +9951,7 @@ table_constraint_def:
         $$ = res;
 
         tmp2->set_opt_ident_type(kDataIndexName, kDefine);
-        tmp3->set_key_list_type(kDataColumn, kUseDefine);
+        tmp3->set_key_list_type(kDataColumnName, kUseDefine);
     }
 
     | opt_constraint_name check_constraint opt_constraint_enforcement {
