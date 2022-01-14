@@ -1536,18 +1536,20 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   i = (MAP_SIZE >> 3) - i - 1 ;
   u32 actual_idx = i * 8 + byte;
   
-  if (queue_cur) {
+  if (cur_seed_str == "123") {
+    map_id_out_f << actual_idx << "," << map_file_id << ",-1" <<  endl;
+  } else if (queue_cur) {
     map_id_out_f << actual_idx << "," << map_file_id << "," << to_string(queue_cur->depth) << endl;
   } else {
     map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
   }
 
-  fstream map_id_seed_output;
-  if (queue_cur) {
-    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
+  if (queue_cur && cur_seed_str != "123") {
+    fstream map_id_seed_output;
+    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
+    map_id_seed_output << cur_seed_str;
+    map_id_seed_output.close();
   }
-  map_id_seed_output << cur_seed_str;
-  map_id_seed_output.close();
 }
 
 /* Check if the current execution path brings anything new to the table.
@@ -3980,7 +3982,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
       show_stats();
 
-      if (!has_new_bits(virgin_tmout, "123"))
+      if (!has_new_bits(virgin_tmout))
         return keeping;
     }
 
@@ -4048,7 +4050,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_crash, "123"))
+      if (!has_new_bits(virgin_crash))
         return keeping;
     }
 
