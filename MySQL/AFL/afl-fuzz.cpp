@@ -547,7 +547,7 @@ public:
         res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
         correctness = clean_up_connection(m_);
 
-        if (server_response != 0) {
+        if (server_response != 0  &&  !disable_coverage_feedback ) {
           // cerr << "Mutated query has errors. Skiped. \n\n\n";
           is_mutate_error = true;
         }
