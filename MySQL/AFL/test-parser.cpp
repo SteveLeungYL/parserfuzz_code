@@ -95,6 +95,7 @@ bool try_validate_query(IR* cur_root) {
     } else {
       cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
     }
+    mutator.correct_insert_stmt(cur_trans_stmt);
   }
 
   // Clean up allocated resource.
@@ -136,8 +137,6 @@ int main(int argc, char *argv[]) {
   string input(argv[1]);
   ifstream input_test(input);
   string line;
-
-  IR* root = NULL;
 
   vector<IR*> stmt_ir_vec;
 
@@ -181,13 +180,16 @@ int main(int argc, char *argv[]) {
 
   mutator.p_oracle = new SQL_NOREC();
   mutator.p_oracle->ir_wrapper = ir_wrapper;
-  mutator.correct_insert_stmt(ir_root);
 
   cerr << "To_string: " << ir_root->to_string() << "\n\n\n";
 
-  cerr << "\n\n\n At the end of the parsing, we get to_string: \n" << ir_root->to_string() << "\n\n\n";
+  IR* root_extract = ir_root->deep_copy();
+  string tmp = mutator.extract_struct(root_extract);
+  root_extract->deep_drop();
 
-  mutator.debug(ir_root);
+  cerr << "Extract struct: " << tmp << "\n\n\n";
+
+  // mutator.debug(ir_root);
 
   cerr << "\n\n\n";
 

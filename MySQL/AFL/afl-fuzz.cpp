@@ -6651,8 +6651,6 @@ static u8 fuzz_one(char **argv)
   p_oracle->remove_select_stmt_from_ir(cur_root);
   p_oracle->remove_explain_stmt_from_ir(cur_root);
 
-  g_mutator.correct_insert_stmt(cur_root);
-
 
   // cerr << "After removing select stmt and added create. \n\n\n";
   // // g_mutator.debug(cur_root, 0);
@@ -6707,7 +6705,7 @@ static u8 fuzz_one(char **argv)
     // auto single_mutation_start_time = std::chrono::system_clock::now();
 
     /* The mutated IR tree is deep_copied() */
-    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
+    vector<IR*> v_mutated_ir_root = g_mutator.mutate_all(ori_ir_tree.back(), ir_to_mutate, cur_mutating_stmt, total_mutate_failed, total_mutate_num, total_mutatestmt_failed, total_mutatestmt_num, total_mutate_all_failed);
 
     // auto single_mutate_all_call_end_time = std::chrono::system_clock::now();
     // std::chrono::duration<double> single_mutation_function_used_time = single_mutate_all_call_end_time - single_mutation_start_time;
@@ -6810,9 +6808,9 @@ static u8 fuzz_one(char **argv)
       // auto single_validate_func_start_time_3 = std::chrono::system_clock::now();
       /* Build dependency graph, fix ir node, fill in concret values */
       for (IR* cur_trans_stmt : all_pre_trans_vec) {
-        if(!g_mutator.validate(cur_trans_stmt)) {
-          // cerr << "Error: g_mutator.validate returns errors. \n";
-          /* Do nothing. */
+        g_mutator.validate(cur_trans_stmt);
+        if (get_rand_int(2) < 1) {
+          g_mutator.correct_insert_stmt(cur_trans_stmt);
         }
       }
       // auto single_validate_func_end_time_3 = std::chrono::system_clock::now();

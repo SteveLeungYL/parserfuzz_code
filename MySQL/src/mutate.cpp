@@ -183,7 +183,7 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
 
 
 
-vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_mutate_failed, u64 &total_mutate_num, u64 &total_mutatestmt_failed, u64& total_mutatestmt_num, u64& total_mutate_all_failed){
+vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, IR* cur_mutating_stmt, u64 &total_mutate_failed, u64 &total_mutate_num, u64 &total_mutatestmt_failed, u64& total_mutatestmt_num, u64& total_mutate_all_failed){
 
     IR *root = ori_ir_root;
     vector<IR *> res;
@@ -198,6 +198,8 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
     // if (ir_to_mutate->get_ir_type() == kStmtList) {
     if (get_rand_int(10) < 1) {
       // cerr << "Inside kStmtList; \n\n\n";
+      if (cur_mutating_stmt) cur_mutating_stmt->is_mutating = false;
+
       v_mutated_ir = mutate_stmtlist(root);
       // cerr << "Mutating stmt_list, getting size: " << v_mutated_ir.size() << "\n\n\n";
       for (IR* mutated_ir : v_mutated_ir) {
@@ -222,6 +224,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, u64 &total_m
           res.push_back(mutated_ir);
       }
 
+      if (cur_mutating_stmt) cur_mutating_stmt->is_mutating = true;
       // return res;
     }
 
@@ -1196,51 +1199,57 @@ Mutator::fix_preprocessing(IR *stmt_root,
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
 
-bool Mutator::correct_insert_stmt(IR* ir_root) {
+bool Mutator::correct_insert_stmt(IR* cur_stmt) {
   vector<int> table_column_num;
 
-  vector<IR*> stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec(ir_root);
+  if (cur_stmt->get_ir_type() == kInsertStmt) {
 
-  for (IR* cur_stmt : stmt_list) {
-    if (cur_stmt->get_ir_type() == kCreateTableStmt) {
-      int column_size = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTableElement, false).size();
-      table_column_num.push_back(column_size);
+    vector<IR*> v_table_name_ir = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kIdentifier, false);
+    if (v_table_name_ir.size() == 0) {
+      return false;
     }
-
-    if (cur_stmt->get_ir_type() == kInsertStmt) {
-      if (table_column_num.size() == 0) {continue;}
-      int cur_used_column_size = vector_rand_ele(table_column_num);
-
-      int field_num = p_oracle->ir_wrapper.get_num_fields_in_stmt(cur_stmt);
-      int values_num = p_oracle->ir_wrapper.get_num_kvalues_in_stmt(cur_stmt);
-
-      if (field_num != values_num && field_num != 0) {
-        return false;
-      }
-
-      vector<IR*> v_value_list = p_oracle->ir_wrapper.get_kvalueslist_in_stmt(cur_stmt);
-
-      // cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
-      // cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
-      // cerr << "v_values_num: " << values_num << "\n\n\n";
-
-      if (values_num > cur_used_column_size) {
-        for (int i = 0; i < (values_num - cur_used_column_size); i++) {
-          p_oracle->ir_wrapper.drop_fields_to_insert_stmt(cur_stmt);
-          for (IR* value_list : v_value_list) {
-            p_oracle->ir_wrapper.drop_kvalues_to_insert_stmt(value_list);
-          }
-        }
-      } else if (values_num < cur_used_column_size) {
-        for (int i = 0; i < (cur_used_column_size - values_num); i++) {
-          p_oracle->ir_wrapper.add_fields_to_insert_stmt(cur_stmt);
-          for (IR* value_list : v_value_list) {
-            p_oracle->ir_wrapper.add_kvalues_to_insert_stmt(value_list);
-          }
-        }
+    string table_name_str = "";
+    for (IR* table_name_ir : v_table_name_ir) {
+      if (table_name_ir->get_data_type() == kDataTableName && table_name_ir->get_data_flag() == kUse) {
+        table_name_str = table_name_ir->str_val_;
+        break;
       }
     }
-  }  // stmt_list
+    if (table_name_str == "") {
+      return false;
+    }
+
+    int cur_used_column_size = m_tables[table_name_str].size();
+
+    int field_num = p_oracle->ir_wrapper.get_num_fields_in_stmt(cur_stmt);
+    int values_num = p_oracle->ir_wrapper.get_num_kvalues_in_stmt(cur_stmt);
+
+    if (field_num != values_num && field_num != 0) {
+      return false;
+    }
+
+    vector<IR*> v_value_list = p_oracle->ir_wrapper.get_kvalueslist_in_stmt(cur_stmt);
+
+    // cerr << "v_value_list size() " << v_value_list.size() << "\n\n\n";
+    // cerr << "cur_used_column_size: " << cur_used_column_size << "\n\n\n";
+    // cerr << "v_values_num: " << values_num << "\n\n\n";
+
+    if (values_num > cur_used_column_size) {
+      for (int i = 0; i < (values_num - cur_used_column_size); i++) {
+        p_oracle->ir_wrapper.drop_fields_to_insert_stmt(cur_stmt);
+        for (IR* value_list : v_value_list) {
+          p_oracle->ir_wrapper.drop_kvalues_to_insert_stmt(value_list);
+        }
+      }
+    } else if (values_num < cur_used_column_size) {
+      for (int i = 0; i < (cur_used_column_size - values_num); i++) {
+        p_oracle->ir_wrapper.add_fields_to_insert_stmt(cur_stmt);
+        for (IR* value_list : v_value_list) {
+          p_oracle->ir_wrapper.add_kvalues_to_insert_stmt(value_list);
+        }
+      }
+    }
+  }
 
   return true;
 }
