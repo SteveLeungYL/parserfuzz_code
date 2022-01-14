@@ -24685,8 +24685,8 @@ simple_ident_q:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_ident_type(kDataTableName, kUse);
-        tmp2->set_ident_type(kDataColumnName, kUse);
+        tmp1->set_ident_type(kDataTableNameFollow, kUse);
+        tmp2->set_ident_type(kDataColumnNameFollow, kUse);
     }
 
     | ident '.' ident '.' ident {
@@ -24703,9 +24703,9 @@ simple_ident_q:
         ir_vec.push_back(res); 
         $$ = res;
 
-        tmp1->set_ident_type(kDataDatabase, kUse);
-        tmp2->set_ident_type(kDataTableName, kUse);
-        tmp3->set_ident_type(kDataColumnName, kUse);
+        tmp1->set_ident_type(kDataDatabaseFollow, kUse);
+        tmp2->set_ident_type(kDataTableNameFollow, kUse);
+        tmp3->set_ident_type(kDataColumnNameFollow, kUse);
     }
 
 ;

@@ -1191,7 +1191,8 @@ Mutator::fix_preprocessing(IR *stmt_root,
     kDataIndexName, kDataAliasName, 
     kDataSequenceName,
     kDataViewName, kDataSequenceName,
-    kDataDatabase, kDataDatabaseFollow, kDataTableNameFollow
+    kDataDatabase, kDataDatabaseFollow, kDataTableNameFollow,
+    kDataColumnNameFollow
     // kDataRelOption, kDataTableNameFollow, kDataColumnNameFollow, kDataStatisticName, kDataForeignTableName, kDataConstraintName,
     // kDataStatisticName, kDataAliasTableName,
   };
@@ -1472,7 +1473,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
           // Not "mysql" database. Treat it as normal table. 
           else {
-            ir_to_fix->data_type_ = kDataTableName;
+            // ir_to_fix->data_type_ = kDataTableName;
             continue;
           }
 
@@ -1480,7 +1481,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           if (is_debug_info) {
             cerr << "ERROR: Cannot find the kDatabaseNameFollow, treat it as normal kTableName. \n\n\n";
           }
-          ir_to_fix->data_type_ = kDataTableName;
+          // ir_to_fix->data_type_ = kDataTableName;
           continue;
         }
       }
@@ -2132,7 +2133,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     }
 
     /* Fix for kDataColumnNameFollow.  */
-    int table_follow_idx = 0;
+    int table_follow_idx = -1;
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) != fixed_ir.end()) {
         continue;
@@ -2140,7 +2141,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
       if (ir_to_fix->get_data_type() == kDataColumnNameFollow) {
         /* This type is used in kDataTableNameFollow . kDataColumnNameFollow. */
-
+        table_follow_idx++;
         if (table_follow_idx < v_table_name_follow_single.size()) {
           string cur_chosen_table_name = v_table_name_follow_single[table_follow_idx];
           vector<string>& v_cur_mapped_column = m_tables[cur_chosen_table_name];
