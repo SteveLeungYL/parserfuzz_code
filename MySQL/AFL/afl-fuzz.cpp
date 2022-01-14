@@ -533,17 +533,39 @@ public:
 
     has_new_bits(virgin_bits, "123");
 
+    bool is_mutate_error = false;
+
     for (string cur_cmd_str : v_cmd_str) {
-      // cerr << "Testing with cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
-      // server_response = mysql_real_query(m_, cmd_str.c_str(), cmd_str.length());
-      server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-      res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
-      correctness = clean_up_connection(m_);
+
+      if (cur_cmd_str.find("#MutationMark ") != string::npos) {
+        // We are executing the mutating query
+        cur_cmd_str.replace(0, 15, "");
+
+        // cerr << "Testing with MUTATED cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
+
+        server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+        correctness = clean_up_connection(m_);
+
+        if (server_response != 0) {
+          // cerr << "Mutated query has errors. Skiped. \n\n\n";
+          is_mutate_error = true;
+        }
+      } else {
+
+        // cerr << "Testing with normal cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
+
+        server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
+        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+        correctness = clean_up_connection(m_);
+
+      }
 
       if (server_response == CR_SERVER_LOST) {
         cerr << "Server Lost or Server Crashes! \n\n\n";
         break;
       }
+
     }
 
     is_has_new_bits = has_new_bits(virgin_bits, cmd_str);
@@ -565,7 +587,7 @@ public:
     }
 
     auto res = kNormal;
-    res = correctness;  
+    // res = correctness;  
 
     auto check_res = check_server_alive();
     if(check_res == false){
@@ -582,12 +604,16 @@ public:
     is_timeout = false;
     timeout_mutex.unlock();
 
-    if (res == kSyntaxError) {
-      syntax_err_num++;
-    } else if (res == kSemanticError) {
-      semantic_err_num++;
-    } else {
-      correct_num++;
+    // if (res == kSyntaxError) {
+    //   syntax_err_num++;
+    // } else if (res == kSemanticError) {
+    //   semantic_err_num++;
+    // } else {
+    //   correct_num++;
+    // }
+
+    if (is_mutate_error) {
+      res = kSyntaxError;
     }
 
     counter_++;
@@ -3108,6 +3134,12 @@ BEGIN:
     sleep(1);
     goto BEGIN;
   }
+
+  else if (result == kSyntaxError) {
+    /* Dirty fix, treat it as TIMEOUT now. */
+    status = FAULT_TMOUT;
+  }
+
   else
   {
     status = FAULT_NONE;
@@ -3966,67 +3998,71 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
          hang-specific bitmap as a signal of uniqueness. In "dumb" mode, we
          just keep everything. */
 
-    total_tmouts++;
+    cerr << "Timeout skipped. \n\n\n";
 
-    if (unique_hangs >= KEEP_UNIQUE_HANG)
-      return keeping;
+    return keeping;
 
-    if (!dumb_mode)
-    {
+//     total_tmouts++;
 
-#ifdef __x86_64__
-      simplify_trace((u64 *)trace_bits);
-#else
-      simplify_trace((u32 *)trace_bits);
-#endif /* ^__x86_64__ */
+//     if (unique_hangs >= KEEP_UNIQUE_HANG)
+//       return keeping;
 
-      show_stats();
+//     if (!dumb_mode)
+//     {
 
-      if (!has_new_bits(virgin_tmout))
-        return keeping;
-    }
+// #ifdef __x86_64__
+//       simplify_trace((u64 *)trace_bits);
+// #else
+//       simplify_trace((u32 *)trace_bits);
+// #endif /* ^__x86_64__ */
 
-    unique_tmouts++;
+//       show_stats();
 
-    // /* Before saving, we make sure that it's a genuine hang by re-running
-    //      the target with a more generous timeout (unless the default timeout
-    //      is already generous). */
+//       if (!has_new_bits(virgin_tmout))
+//         return keeping;
+//     }
 
-    // if (exec_tmout < hang_tmout)
-    // {
+//     unique_tmouts++;
 
-    //   u8 new_fault;
-    //   write_to_testcase(mem, len);
-    //   new_fault = run_target(argv, hang_tmout);
+//     // /* Before saving, we make sure that it's a genuine hang by re-running
+//     //      the target with a more generous timeout (unless the default timeout
+//     //      is already generous). */
 
-    //   /* A corner case that one user reported bumping into: increasing the
-    //        timeout actually uncovers a crash. Make sure we don't discard it if
-    //        so. */
+//     // if (exec_tmout < hang_tmout)
+//     // {
 
-    //   if (!stop_soon && new_fault == FAULT_CRASH)
-    //     goto keep_as_crash;
+//     //   u8 new_fault;
+//     //   write_to_testcase(mem, len);
+//     //   new_fault = run_target(argv, hang_tmout);
 
-    //   if (stop_soon || new_fault != FAULT_TMOUT)
-    //     return keeping;
-    // }
+//     //   /* A corner case that one user reported bumping into: increasing the
+//     //        timeout actually uncovers a crash. Make sure we don't discard it if
+//     //        so. */
 
-#ifndef SIMPLE_FILES
+//     //   if (!stop_soon && new_fault == FAULT_CRASH)
+//     //     goto keep_as_crash;
 
-    fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir,
-                      unique_hangs, describe_op(0));
+//     //   if (stop_soon || new_fault != FAULT_TMOUT)
+//     //     return keeping;
+//     // }
 
-#else
+// #ifndef SIMPLE_FILES
 
-    fn = alloc_printf("%s/hangs/id_%06llu", out_dir,
-                      unique_hangs);
+//     fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir,
+//                       unique_hangs, describe_op(0));
 
-#endif /* ^!SIMPLE_FILES */
+// #else
 
-    unique_hangs++;
+//     fn = alloc_printf("%s/hangs/id_%06llu", out_dir,
+//                       unique_hangs);
 
-    last_hang_time = get_cur_time();
+// #endif /* ^!SIMPLE_FILES */
 
-    break;
+//     unique_hangs++;
+
+//     last_hang_time = get_cur_time();
+
+//     break;
 
   case FAULT_CRASH:
 
@@ -6655,6 +6691,19 @@ static u8 fuzz_one(char **argv)
       goto abandon_entry;
     }
 
+    /* Log which statement are we mutating on.  */
+    IR* cur_mutating_stmt = p_oracle->ir_wrapper.get_cur_stmt_ir_from_sub_ir(ir_to_mutate);  // Should not be NULL!
+    if (cur_mutating_stmt) {
+      // cerr << "Mutating on: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << ":" << ir_to_mutate->to_string() << " stmt: " << get_string_by_ir_type(cur_mutating_stmt->get_ir_type()) << ": " << cur_mutating_stmt->to_string() << "\n\n\n";
+
+      cur_mutating_stmt->is_mutating = true;
+    } else {
+      // cerr << "Mutating on: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << ":" << ir_to_mutate->to_string() << "\n";
+      // cerr << "Cur_mutating_stmt getting NULL?\n\n\n";
+
+      cur_mutating_stmt = NULL;
+    }
+
     // auto single_mutation_start_time = std::chrono::system_clock::now();
 
     /* The mutated IR tree is deep_copied() */
@@ -6698,6 +6747,11 @@ static u8 fuzz_one(char **argv)
         skip_count++;
         continue;
       }
+
+      cur_ir_tree.back() -> deep_drop();
+      cur_ir_tree.clear();
+      IR* cur_root = mutated_ir_root;
+
       num_reparse++;
 
       // auto single_reparse_end_time = std::chrono::system_clock::now();
@@ -6711,7 +6765,7 @@ static u8 fuzz_one(char **argv)
       // auto single_append_stmt_start_time = std::chrono::system_clock::now();
 
       for (IR* app_IR_node : v_oracle_select_stmts) {
-        p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
+        p_oracle->ir_wrapper.set_ir_root(cur_root);
         p_oracle->ir_wrapper.append_stmt_at_end(app_IR_node->deep_copy()); // Append the already generated and cached SELECT stmts.
       }
 
@@ -6729,8 +6783,6 @@ static u8 fuzz_one(char **argv)
       ** and transform from IR to multi-run strings.
       */
       vector<string> query_str_vec, query_str_no_marks_vec;
-
-      IR* cur_root = cur_ir_tree.back();
 
       g_mutator.pre_validate(); // Reset global variables for query sequence.
 
@@ -6822,9 +6874,9 @@ static u8 fuzz_one(char **argv)
 
       num_validate++;
 
-      if (cur_ir_tree.size() > 0){
-        cur_ir_tree.back()->deep_drop();
-      }
+      // if (cur_ir_tree.size() > 0){
+      //   cur_ir_tree.back()->deep_drop();
+      // }
 
       // auto single_validate_func_end_time = std::chrono::system_clock::now();
       // std::chrono::duration<double> single_validate_func_used_time = single_validate_func_end_time  - single_validate_func_start_time ;
@@ -6875,6 +6927,10 @@ static u8 fuzz_one(char **argv)
 
     for (IR* mutated_ir_root : v_mutated_ir_root) {
       mutated_ir_root->deep_drop();
+    }
+
+    if (cur_mutating_stmt) {
+      cur_mutating_stmt->is_mutating = false;
     }
 
     // DEBUG

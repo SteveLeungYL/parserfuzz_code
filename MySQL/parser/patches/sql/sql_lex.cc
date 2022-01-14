@@ -5133,6 +5133,7 @@ IR* deep_copy(const IR* const root) {
   copy_res->data_flag_ = root->data_flag_;
 
   copy_res->is_node_struct_fixed = root->is_node_struct_fixed;
+  copy_res->is_mutating = root->is_mutating;
 
   return copy_res;
 }
@@ -5163,6 +5164,7 @@ IR *IR::deep_copy() {
   }
 
   copy_res->is_node_struct_fixed = this->is_node_struct_fixed;
+  copy_res->is_mutating = this->is_mutating;
 
   return copy_res;
 }

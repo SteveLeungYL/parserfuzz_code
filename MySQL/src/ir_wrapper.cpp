@@ -819,21 +819,30 @@ vector<IR*> IRWrapper::get_select_items_in_select_stmt(IR* cur_stmt){
 }
 
 IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR* cur_ir) {
+    IR* stmt_ir = get_cur_stmt_ir_from_sub_ir(cur_ir);
+    if (!stmt_ir) {
+        return kUnknown;
+    } else {
+        return stmt_ir->get_ir_type();
+    }
+}
+
+IR* IRWrapper::get_cur_stmt_ir_from_sub_ir(IR* cur_ir) {
     while (cur_ir->get_parent() != nullptr) {
         if (cur_ir->get_ir_type() == kBeginStmt) {
-            return cur_ir->get_ir_type();
+            return cur_ir;
         }
         if (cur_ir->get_ir_type() == kSimpleStatement) {
-            return cur_ir->left_->get_ir_type();
+            return cur_ir->get_left();
         }
         if (cur_ir->get_ir_type() == kStmtList) {
             if (cur_ir->get_left()->get_ir_type() == kSimpleStatement) {
-                return cur_ir->get_left()->get_left() -> get_ir_type();
+                return cur_ir->get_left()->get_left();
             }
         }
         cur_ir = cur_ir->parent_;
     }
-    return kUnknown;
+    return NULL;
 }
 
 

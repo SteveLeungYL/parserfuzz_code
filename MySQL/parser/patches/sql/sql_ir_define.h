@@ -4569,6 +4569,7 @@ public:
     };
 
     bool is_node_struct_fixed = false; // Do not mutate this IR if this set to be true.
+    bool is_mutating = false;
 
     IR* deep_copy();
     void drop();

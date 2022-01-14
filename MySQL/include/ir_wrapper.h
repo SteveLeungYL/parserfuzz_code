@@ -36,9 +36,10 @@ public:
 
 
     vector<IR*> get_all_ir_node (IR* cur_ir_root);
-    vector<IR*> get_all_ir_node ();
+    void get_all_ir_node(IR* cur_ir, vector<IR*>& res);
 
     IRTYPE get_cur_stmt_type_from_sub_ir(IR* cur_ir);
+    IR* get_cur_stmt_ir_from_sub_ir(IR* cur_ir);
 
     bool is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery, 
         int stmt_idx);
