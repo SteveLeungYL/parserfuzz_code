@@ -288,7 +288,7 @@ public:
     // database_id++;
     bool is_error = false;
 
-    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "RESET PERSIST", "RESET MASTER", "ALTER USER 'root'@'localhost' WITH MAX_USER_CONNECTIONS 0;", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
@@ -667,7 +667,7 @@ public:
     }
 
     bool is_error = false;
-    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "RESET PERSIST", "RESET MASTER", "ALTER USER 'root'@'localhost' WITH MAX_USER_CONNECTIONS 0;", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
