@@ -297,7 +297,7 @@ while True:
     for prev_shutdown_time_idx in range(len(all_prev_shutdown_time)):
         prev_shutdown_time = all_prev_shutdown_time[prev_shutdown_time_idx]
 
-        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 30: # 10 mins, restart mysql
+        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 600: # 10 mins, restart mysql
             
             print("Begin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
             # Politely, restart MySQL. 
