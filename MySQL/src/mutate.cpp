@@ -3829,14 +3829,16 @@ void Mutator::_extract_struct(IR *root) {
   }
 
   if (root->get_ir_type() == kIntType || root->get_ir_type() == kIntLiteral ) {
-    root->int_val_ = 0;
-    root->str_val_ = "0";
-    return;
-  } else if (root->get_ir_type() == kRealType) {
+    if ( root->str_val_ != "") {
+      root->int_val_ = 0;
+      root->str_val_ = "0";
+      return;
+    }
+  } else if (root->get_ir_type() == kRealType && root->str_val_ != "") {
     root->float_val_ = 0.0;
     root->str_val_ = "0.0";
     return;
-  } else if (root->get_ir_type() == kStringLiteral) {
+  } else if (root->get_ir_type() == kStringLiteral && root->str_val_ != "") {
     root->str_val_ = "x";
   }
   // } else if (root->get_ir_type() == kBol) {
@@ -3849,19 +3851,19 @@ void Mutator::_extract_struct(IR *root) {
   if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
     return;
 
-  if (root->data_type_ != kDataFunctionName) {
+  if (root->data_type_ != kDataFunctionName && root->str_val_ != "") {
 
     root->str_val_ = "x";
     return;
   }
 
-  if (string_types_.find(type) != string_types_.end()) {
-    root->str_val_ = "x";
-  } else if (int_types_.find(type) != int_types_.end()) {
-    root->int_val_ = 1;
-  } else if (float_types_.find(type) != float_types_.end()) {
-    root->float_val_ = 1.0;
-  }
+  // if (string_types_.find(type) != string_types_.end()) {
+  //   root->str_val_ = "x";
+  // } else if (int_types_.find(type) != int_types_.end()) {
+  //   root->int_val_ = 1;
+  // } else if (float_types_.find(type) != float_types_.end()) {
+  //   root->float_val_ = 1.0;
+  // }
 }
 
 
