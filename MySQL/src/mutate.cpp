@@ -278,20 +278,21 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate, IR* cur_muta
 
         // cerr << "Mutating on node: " << ir_to_mutate->to_string() << ", with new node: " << new_ir->to_string()  << ", type: " << get_string_by_ir_type(ir_to_mutate->get_ir_type()) << "\n\n\n";
 
-        // IR* root_extract = root->deep_copy();
-        // string tmp = extract_struct(root_extract);
-        // root_extract->deep_drop();
+        IR* cur_mutated_stmt = p_oracle->ir_wrapper.get_cur_stmt_ir_from_sub_ir(new_ir)->deep_copy();
 
-        // /* Check whether the mutated IR is the same as before */
-        // unsigned tmp_hash = hash(tmp);
-        // if (global_hash_.find(tmp_hash) != global_hash_.end()) {
-        //     // cerr << "Mutate failed, extract struct same: " << tmp << "\n\n\n";
-        //     root->swap_node(new_ir, ir_to_mutate);
-        //     new_ir->deep_drop();
-        //     total_mutate_failed++;
-        //     continue;
-        // }
-        // global_hash_.insert(tmp_hash);
+        string tmp = extract_struct(cur_mutated_stmt);
+        cur_mutated_stmt->deep_drop();
+
+        /* Check whether the mutated IR is the same as before */
+        unsigned tmp_hash = hash(tmp);
+        if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+            // cerr << "Mutate failed, extract struct same: " << tmp << "\n\n\n";
+            root->swap_node(new_ir, ir_to_mutate);
+            new_ir->deep_drop();
+            total_mutate_failed++;
+            continue;
+        }
+        global_hash_.insert(tmp_hash);
 
         // cerr << "Mutating successfully, extract struct is: " << tmp << "\n\n\n";
 
