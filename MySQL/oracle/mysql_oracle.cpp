@@ -37,7 +37,8 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     string ori_valid_select = "";
     use_temp = g_mutator->get_valid_str_from_lib(ori_valid_select);
 
-    // cerr << "Inside the loop \n\n\n";
+    // cerr << "******************************************";
+    // cerr << "Inside the get_random_mutated_select_stmt loop \n\n\n";
 
     ir_tree.clear();
     int ret = run_parser_multi_stmt(ori_valid_select, ir_tree);
@@ -78,7 +79,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
     if (!use_temp && get_rand_int(3) < 2) {
       IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();
       root->deep_drop();
-      // cerr << "Successfully return original select: " << returned_stmt_ir << "\n\n\n";
+      // cerr << "Successfully return original select: " << returned_stmt_ir->to_string() << "\n\n\n";
       return returned_stmt_ir;
     }
 
@@ -132,7 +133,7 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
       // cout << "\n################################" << endl;
       // cout << "before_strategy: " << root->to_string() << endl;
       /* Pick random mutation methods. */
-      // cerr << "The chosen IR node type_: " << mutate_ir_node->type_ << "  string: " << mutate_ir_node->to_string() << "\n\n\n";
+      // cerr << "The chosen IR node type_: " << get_string_by_ir_type( mutate_ir_node->type_ ) << "  string: " << mutate_ir_node->to_string() << "\n\n\n";
 
       /* Randomly chose a way to mutate the choosen node.  */
       switch (get_rand_int(3)) {
@@ -170,7 +171,6 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         continue;
       }
       // cout << "mutated query: " <<  root->to_string() << "\n";
-      // cout << "################################" << endl;
 
       new_valid_select_str = root->to_string();
 
