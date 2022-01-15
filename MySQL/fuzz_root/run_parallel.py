@@ -1,4 +1,5 @@
 import re
+from socket import socket
 import time
 import os
 import shutil
@@ -6,8 +7,9 @@ import subprocess
 import atexit
 import signal
 import psutil
+import MySQLdb
 
-mysql_root_dir = "/home/sly/Desktop/SQLRight/mysql_source/mysql-server-mysql-8.0.27/bld"
+mysql_root_dir = "/home/sly/Desktop/SQLRight/mysql_source/mysql-server-block-inst/mysql-server-mysql-8.0.27/bld_black_list"
 mysql_src_data_dir = os.path.join(mysql_root_dir, "data_all/ori_data")
 current_workdir = os.getcwd()
 
@@ -58,6 +60,9 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     cur_output_file = os.path.join(cur_output_dir_str, "output.txt")
     cur_output_file = open(cur_output_file, "w")
+
+    cur_output_file_2 = os.path.join(cur_output_dir_str, "output_AFL.txt")
+    cur_output_file_2 = open(cur_output_file_2, "w")
     
     # Prepare for env shared by the fuzzer and mysql. 
     cur_port_num = port_starting_num + cur_inst_id - starting_core_id
@@ -92,8 +97,8 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         fuzzing_command,
                         cwd=os.getcwd(),
                         shell=True,
-                        stderr=subprocess.DEVNULL,
-                        stdout=subprocess.DEVNULL,
+                        stderr=cur_output_file_2,
+                        stdout=cur_output_file_2,
                         stdin=subprocess.DEVNULL,
                         env=modi_env
                         )
@@ -164,11 +169,14 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
 print("Finished launching the fuzzing. Now monitor the mysql process. ")
 
+# An prarallel_num length list. 
+all_prev_shutdown_time = [time.localtime()] * parallel_num
+
+is_Test = True
 
 while True:
 
-    ### TODO: Make it larger. 
-    time.sleep(10)
+    time.sleep(2)
 
     for cur_pid, (cur_inst_id, cur_shm_str) in all_mysql_p_list.items():
 
@@ -199,19 +207,20 @@ while True:
             if not os.path.isdir(cur_mysql_bk_data_dir_str):
                 break
         
-        try:
-            # Save the bk folder. 
-            shutil.copytree(cur_mysql_data_dir_str, cur_mysql_bk_data_dir_str)
-        except shutil.Error as err:
-            print("Copy backup data folder failed! Giving up on pid: %d. " % (cur_pid))
-            all_mysql_p_list.pop(cur_pid)
-            break
+        # try:
+        #     # Save the bk folder. 
+        #     shutil.copytree(cur_mysql_data_dir_str, cur_mysql_bk_data_dir_str)
+        # except shutil.Error as err:
+        #     print("Copy backup data folder failed! %d " % (cur_pid))
+        #     # all_mysql_p_list.pop(cur_pid)
+        #     # break
 
 
         try:
             ### DELETE THE ORIGINAL data folder, then reinvoke mysql!
             if os.path.isdir(cur_mysql_data_dir_str):
                 shutil.rmtree(cur_mysql_data_dir_str)
+            print("Recovering new data dir: %s to %s"  % (mysql_src_data_dir, cur_mysql_data_dir_str))
             shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
         except shutil.Error as err:
             print("Copy new data folder failed! Giving up on pid: %d. " % (cur_pid))
@@ -221,6 +230,12 @@ while True:
 
         # Reinvoke mysql
         # Prepare for env shared by the fuzzer and mysql. 
+
+        cur_output_file = os.path.join(cur_output_dir_str, "output.txt")
+        if os.path.isfile(cur_output_file):
+            os.remove(cur_output_file)
+        cur_output_file = open(cur_output_file, "w")
+
         mysql_bin_dir = os.path.join(mysql_root_dir, "bin/mysqld")
         cur_port_num = port_starting_num + cur_inst_id - starting_core_id
         socket_path = "/tmp/mysql_" + str(cur_inst_id) + ".sock"
@@ -278,4 +293,42 @@ while True:
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
         break
 
+    # SHUTDOWN MYSQL, periodically. 
+    for prev_shutdown_time_idx in range(len(all_prev_shutdown_time)):
+        prev_shutdown_time = all_prev_shutdown_time[prev_shutdown_time_idx]
+
+        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 30: # 10 mins, restart mysql
+            
+            print("Begin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
+            # Politely, restart MySQL. 
+            cur_port_num = port_starting_num + prev_shutdown_time_idx - starting_core_id
+            socket_path = "/tmp/mysql_" + str(prev_shutdown_time_idx) + ".sock"
+
+
+            db = MySQLdb.connect(host="localhost",    # your host, usually localhost
+                     user="root",         # your username
+                     passwd="",  # your password
+                     port=cur_port_num,
+                     unix_socket=socket_path,
+                     db="fuck")        # name of the data base
+            
+            cur = db.cursor()
+
+            cur.execute("SHUTDOWN;")
+
+            db.close()
+
+            time.sleep(2)
+
+            # Update shutdown time. 
+            all_prev_shutdown_time[prev_shutdown_time_idx] = time.localtime()
+
+            print("MYSQL shutdown completed. ID: %d\n\n\n" % (prev_shutdown_time_idx))
+
+            # 2 more seconds would be waited until the new MYSQL is being started. Thus, there would be more than 2 seconds between every MYSQL process restart. 
+            # The actual restart of mysql is being handle by the same MYSQL crash handler. (Above)
+            break
+
+
+            
 
