@@ -171,6 +171,8 @@ u64 num_reparse = 0;
 u64 num_append = 0;
 u64 num_validate = 0;
 
+u64 max_mutation_count = 100;
+
 u64 timeout_seed_num = 0;
 
 u64 mysql_execute_ok = 0;
@@ -6687,10 +6689,12 @@ static u8 fuzz_one(char **argv)
 
   // cerr << "After get_oracle_select_stmts. \n\n\n";
 
-  for (IR* ir_to_mutate : ori_ir_tree) {
+  for (int cur_mutation_count = 0; cur_mutation_count < max_mutation_count; cur_mutation_count++) {
     if (stop_soon) {
       goto abandon_entry;
     }
+
+    IR* ir_to_mutate = vector_rand_ele(ori_ir_tree);
 
     /* Log which statement are we mutating on.  */
     IR* cur_mutating_stmt = p_oracle->ir_wrapper.get_cur_stmt_ir_from_sub_ir(ir_to_mutate);  // Should not be NULL!
