@@ -3945,11 +3945,11 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       return keeping;
     }
 
-    // IR * tmp_ir = ir_tree.back();
-    // g_mutator.extract_struct(tmp_ir);
-    // g_mutator.add_all_to_library(
-    //     tmp_ir->to_string(),
-    //     explain_diff_id);
+    IR * tmp_ir = ir_tree.back();
+    g_mutator.extract_struct(tmp_ir);
+    g_mutator.add_all_to_library(
+        tmp_ir->to_string(),
+        explain_diff_id);
     ir_tree.back()->deep_drop();
 
 #ifndef SIMPLE_FILES
