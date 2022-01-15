@@ -747,10 +747,10 @@ bool IRWrapper::is_exist_limit_clause(IR* cur_stmt){
 
 bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
     if (!cur_stmt) {
-        cerr << "Error: Given cur_stmt is NULL. \n";
+        // cerr << "Error: Given cur_stmt is NULL. \n";
         return false;
     }
-    // Do not ignore suffix.
+
     vector<IR*> v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kCreateTableOption, false, false, false);
     for (IR* cur_simple_select : v_simple_select){
         if (cur_simple_select->get_prefix() == "UNION") {
@@ -758,7 +758,6 @@ bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
         }
     }
 
-    // Do not ignore suffix.
     v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_1, false, false, false);
     for (IR* cur_simple_select : v_simple_select){
         if (cur_simple_select->get_middle() == "UNION") {
@@ -766,7 +765,6 @@ bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
         }
     }
 
-    // Do not ignore suffix.
     v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_2, false, false, false);
     for (IR* cur_simple_select : v_simple_select){
         if (cur_simple_select->get_middle() == "UNION") {
@@ -774,7 +772,6 @@ bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
         }
     }
 
-    // Do not ignore suffix.
     v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_3, false, false, false);
     for (IR* cur_simple_select : v_simple_select){
         if (cur_simple_select->get_middle() == "UNION") {
@@ -782,7 +779,6 @@ bool IRWrapper::is_exist_UNION(IR* cur_stmt) {
         }
     }
 
-     // Do not ignore suffix.
     v_simple_select = get_ir_node_in_stmt_with_type(cur_stmt, kQueryExpressionBody_4, false, false, false);
     for (IR* cur_simple_select : v_simple_select){
         if (cur_simple_select->get_middle() == "UNION") {
@@ -801,6 +797,17 @@ bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
 bool IRWrapper::is_exist_window_func_call (IR* cur_stmt) {
     vector<IR*> v_window_func_call = get_ir_node_in_stmt_with_type(cur_stmt, kWindowFuncCall, false);
     if (v_window_func_call.size() > 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool IRWrapper::is_exist_func_call_generic(IR* cur_stmt) {
+    if (!cur_stmt) { return false; }
+
+    vector<IR*> v_func_call_generic = get_ir_node_in_stmt_with_type(cur_stmt, kFunctionCallGeneric, false);
+    if (v_func_call_generic.size() > 0) {
         return true;
     } else {
         return false;

@@ -61,6 +61,10 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
+  if (ir_wrapper.is_exist_func_call_generic(cur_stmt)) {
+    return false;
+  }
+
   if (
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kSelectStmt, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) &&

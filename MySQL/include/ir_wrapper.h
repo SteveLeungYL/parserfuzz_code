@@ -110,6 +110,8 @@ public:
 
     bool is_exist_window_func_call(IR* cur_stmt);
 
+    bool is_exist_func_call_generic(IR* cur_stmt);
+
     vector<IR*> get_select_items_in_select_stmt(IR* cur_stmt);
     int get_num_select_items_in_select_stmt(IR* cur_stmt) { return this->get_select_items_in_select_stmt(cur_stmt).size(); }
 
