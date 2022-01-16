@@ -22,13 +22,8 @@ all_mysql_p_list = dict()
 shm_env_list = []
 
 def exit_handler(signal, frame):
-    for fuzzing_instance, _ in all_fuzzing_p_list.items():
-        print("kill -9 %d" % (fuzzing_instance))
-        os.kill(fuzzing_instance, 9)
-    for mysql_instance, _ in all_mysql_p_list.items():
-        print("kill -9 %d" % (mysql_instance))
-        os.kill(mysql_instance, 9)
-    exit()
+    print("########################\n\n\n\n\nRecevied terminate signal. Ignored!!!!!!! \n\n\n\n\n")
+    pass
 
 def check_pid_exist(pid: int):
     try:
@@ -40,6 +35,8 @@ def check_pid_exist(pid: int):
 
 signal.signal(signal.SIGTERM, exit_handler)
 signal.signal(signal.SIGINT, exit_handler)
+signal.signal(signal.SIGQUIT, exit_handler)
+signal.signal(signal.SIGHUP, exit_handler)
 
 if os.path.isfile(os.path.join(os.getcwd(), "shm_env.txt")):
     os.remove(os.path.join(os.getcwd(), "shm_env.txt"))
