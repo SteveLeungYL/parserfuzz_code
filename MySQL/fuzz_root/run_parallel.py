@@ -154,17 +154,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
                         env = mysql_modi_env
                         )
     time.sleep(1)
-    cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
-    cur_output_file_r = open(cur_output_file_r, "r")
-    first_line_in_out = cur_output_file_r.readline()
-    if first_line_in_out:
-        first_line_in_out = first_line_in_out.replace("\n", "")
-        first_line_in_out = first_line_in_out.split("as process")[1]
-        cur_pid = int(first_line_in_out)
-        all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
-        print("Pid: %d\n\n\n" %(cur_pid))
-    else:
-        print("Failed to open mysql in id: %d" % cur_inst_id)
+    all_mysql_p_list[cur_inst_id] = cur_shm_str
 
 print("Finished launching the fuzzing. Now monitor the mysql process. ")
 
@@ -177,17 +167,30 @@ while True:
 
     time.sleep(2)
 
-    for cur_pid, (cur_inst_id, cur_shm_str) in all_mysql_p_list.items():
+    for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
-        if check_pid_exist(cur_pid):
-            # pid still exists. 
-            proc = psutil.Process(cur_pid)
-            if proc.status() != psutil.STATUS_ZOMBIE and proc.status() != psutil.STATUS_DEAD:
-                # print("Pid: %d still exists. And it is not a zombile process. " % cur_pid)
-                continue
+        cur_shm_str = all_mysql_p_list[cur_inst_id]
+
+        cur_port_num = port_starting_num + cur_inst_id - starting_core_id
+        socket_path = "/tmp/mysql_" + str(cur_inst_id) + ".sock"
+
+        is_server_down = False
+        try:
+            db = MySQLdb.connect(host="localhost",    # your host, usually localhost
+                     user="root",         # your username
+                     passwd="",  # your password
+                     port=cur_port_num,
+                     unix_socket=socket_path,
+                     db="fuck")        # name of the data base
+            db.close()
+        except MySQLdb._exceptions.OperationalError:
+            is_server_down = True
+        
+        if not is_server_down:
+            continue
 
         ### CANNOT FIND THE MYSQL SERVER. CRASHED? 
-        print("*****************\nMySQL Server with PID %d gone. Save the data folder and resume now. \n" %(cur_pid))
+        print("*****************\nMySQL Server with ID %d gone. Save the data folder and resume now. \n" %(cur_inst_id))
 
         # continue
 
@@ -240,8 +243,6 @@ while True:
             os.remove(cur_output_file)
 
         mysql_bin_dir = os.path.join(mysql_root_dir, "bin/mysqld")
-        cur_port_num = port_starting_num + cur_inst_id - starting_core_id
-        socket_path = "/tmp/mysql_" + str(cur_inst_id) + ".sock"
         
         # Start the MYSQL instance
         ori_workdir = os.getcwd()
@@ -283,24 +284,13 @@ while True:
         
         cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
 
-        if not os.path.isfile(cur_output_dir_str):
+        if not os.path.isfile(cur_output_file_r):
             # Failed to boot mysql. Try again later. 
+            print("Waiting for the mysql to reboot. Current output dir is: " + cur_output_file_r + "\n")
             continue
 
-        # Pop the old pid, save the new one. Then change dir to the original dir. 
-        all_mysql_p_list.pop(cur_pid)
             
-
-        cur_output_file_r = open(cur_output_file_r, "r")
-        first_line_in_out = cur_output_file_r.readline()
-        if first_line_in_out:
-            first_line_in_out = first_line_in_out.replace("\n", "")
-            first_line_in_out = first_line_in_out.split("as process")[1]
-            cur_pid = int(first_line_in_out)
-            all_mysql_p_list[cur_pid] = [cur_inst_id, cur_shm_str]
-            print("Restarted MYSQL with Pid: %d\n\n\n" %(cur_pid))
-        else:
-            print("Failed to open mysql in id: %d\n\n\n" % cur_inst_id)
+        all_mysql_p_list[cur_inst_id] = cur_shm_str
 
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
         break
