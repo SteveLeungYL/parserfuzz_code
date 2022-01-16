@@ -301,7 +301,7 @@ while True:
     for prev_shutdown_time_idx in range(len(all_prev_shutdown_time)):
         prev_shutdown_time = all_prev_shutdown_time[prev_shutdown_time_idx]
 
-        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 10: # 30 sec, restart mysql
+        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 60: # 60 sec, restart mysql
 
             print("******************\nBegin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
             # Politely, restart MySQL. 
@@ -334,7 +334,7 @@ while True:
 
             # 2 more seconds would be waited until the new MYSQL is being started. Thus, there would be more than 2 seconds between every MYSQL process restart. 
             # The actual restart of mysql is being handle by the same MYSQL crash handler. (Above)
-            break
+            continue
 
 
             
