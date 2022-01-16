@@ -189,6 +189,11 @@ while True:
         if not is_server_down:
             continue
 
+        # for proc in psutil.process_iter():
+        #     # check whether the process name matches
+        #     cur_proc_name = proc.name()
+        #     print(cur_proc_name)
+
         ### CANNOT FIND THE MYSQL SERVER. CRASHED? 
         print("*****************\nMySQL Server with ID %d gone. Save the data folder and resume now. \n" %(cur_inst_id))
 
@@ -225,10 +230,10 @@ while True:
             # print("Recovering new data dir: %s to %s"  % (mysql_src_data_dir, cur_mysql_data_dir_str))
             shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
         except shutil.Error as err:
-            print("Copy new data folder failed! Try again later. pid: %d. " % (cur_pid))
+            print("Copy new data folder failed! Try again later. ID: %d. " % (cur_inst_id))
             break
         except OSError as err:
-            print("Copy new data folder failed! Try again later. pid: %d. " % (cur_pid))
+            print("Copy new data folder failed! Try again later. ID: %d. " % (cur_inst_id))
             break
 
 
@@ -288,9 +293,6 @@ while True:
             # Failed to boot mysql. Try again later. 
             print("Waiting for the mysql to reboot. Current output dir is: " + cur_output_file_r + "\n")
             continue
-
-            
-        all_mysql_p_list[cur_inst_id] = cur_shm_str
 
         # Break the loop. Do not continue in this round. In case of race condition for all_mysql_p_list
         break
