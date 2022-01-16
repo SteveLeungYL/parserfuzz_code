@@ -59,7 +59,6 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         os.mkdir(cur_output_dir_str)
 
     cur_output_file = os.path.join(cur_output_dir_str, "output.txt")
-    cur_output_file = open(cur_output_file, "w")
 
     cur_output_file_2 = os.path.join(cur_output_dir_str, "output_AFL.txt")
     cur_output_file_2 = open(cur_output_file_2, "w")
@@ -120,22 +119,24 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     os.remove(os.path.join(os.getcwd(), "shm_env.txt"))
 
-    # Start the MySQL instance
-    ori_workdir = os.getcwd()
-    os.chdir(mysql_root_dir)
-
     mysql_bin_dir = os.path.join(mysql_root_dir, "bin/mysqld")
 
     # mysql_command = "__AFL_SHM_ID=" + cur_shm_str + " " + mysql_bin_dir + " --basedir=" + mysql_root_dir + " --datadir=" + cur_mysql_data_dir_str + " --port=" + str(cur_port_num) + " --socket=" + socket_path + " & "
 
     mysql_command = [
+        "screen",
+        "-dmS",
+        "test" + str(cur_inst_id),
+        "bash", "-c", 
+        "'",    # left quote
         mysql_bin_dir,
         "--basedir=" + mysql_root_dir,
         "--datadir=" + cur_mysql_data_dir_str,
         "--port=" + str(cur_port_num),
         "--socket=" + socket_path,
-        "--performance_schema=OFF", 
-        "&"
+        "--performance_schema=OFF",
+        "&>", cur_output_file,
+        "'"  # right quote
     ]
     mysql_modi_env = dict()
     mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
@@ -146,15 +147,13 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     
     p = subprocess.Popen(
                         mysql_command,
-                        cwd=mysql_root_dir,
                         shell=True,
-                        stderr=cur_output_file,
-                        stdout=cur_output_file,
+                        stderr=subprocess.DEVNULL,
+                        stdout=subprocess.DEVNULL,
                         stdin=subprocess.DEVNULL,
                         env = mysql_modi_env
                         )
     time.sleep(1)
-    os.chdir(ori_workdir)
     cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
     cur_output_file_r = open(cur_output_file_r, "r")
     first_line_in_out = cur_output_file_r.readline()
@@ -220,7 +219,7 @@ while True:
             ### DELETE THE ORIGINAL data folder, then reinvoke mysql!
             if os.path.isdir(cur_mysql_data_dir_str):
                 shutil.rmtree(cur_mysql_data_dir_str)
-            print("Recovering new data dir: %s to %s"  % (mysql_src_data_dir, cur_mysql_data_dir_str))
+            # print("Recovering new data dir: %s to %s"  % (mysql_src_data_dir, cur_mysql_data_dir_str))
             shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
         except shutil.Error as err:
             print("Copy new data folder failed! Giving up on pid: %d. " % (cur_pid))
@@ -231,10 +230,12 @@ while True:
         # Reinvoke mysql
         # Prepare for env shared by the fuzzer and mysql. 
 
+        # Set up SQLRight output folder
+        cur_output_dir_str = "./outputs_" + str(cur_inst_id - starting_core_id)
+
         cur_output_file = os.path.join(cur_output_dir_str, "output.txt")
         if os.path.isfile(cur_output_file):
             os.remove(cur_output_file)
-        cur_output_file = open(cur_output_file, "w")
 
         mysql_bin_dir = os.path.join(mysql_root_dir, "bin/mysqld")
         cur_port_num = port_starting_num + cur_inst_id - starting_core_id
@@ -242,43 +243,52 @@ while True:
         
         # Start the MYSQL instance
         ori_workdir = os.getcwd()
-        os.chdir(mysql_root_dir)
 
         mysql_command = [
+            "screen",
+            "-dmS",
+            "test" + str(cur_inst_id),
+            "bash", "-c", 
+            "'",    # left quote
             mysql_bin_dir,
             "--basedir=" + mysql_root_dir,
             "--datadir=" + cur_mysql_data_dir_str,
             "--port=" + str(cur_port_num),
             "--socket=" + socket_path,
-            "--performance_schema=OFF", 
-            "&"
-            ]
+            "--performance_schema=OFF",
+            "&>", cur_output_file,
+            "'"  # right quote
+        ]
         mysql_modi_env = dict()
         mysql_modi_env["__AFL_SHM_ID"] = cur_shm_str
 
         mysql_command = " ".join(mysql_command)
 
-        print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + mysql_command, end="\n\n\n\n\n\n")
+        print("Running mysql command: __AFL_SHM_ID=" + cur_shm_str + " " + mysql_command, end="\n")
 
 
         p = subprocess.Popen(
                             mysql_command,
-                            cwd=mysql_root_dir,
                             shell=True,
-                            stderr=cur_output_file,
-                            stdout=cur_output_file,
+                            stderr=subprocess.DEVNULL,
+                            stdout=subprocess.DEVNULL,
                             stdin=subprocess.DEVNULL,
                             env = mysql_modi_env
                             )
 
         print("Finished running popen. \n")
         time.sleep(1)
+        
+        cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
+
+        if not os.path.isfile(cur_output_dir_str):
+            # Failed to boot mysql. Try again later. 
+            continue
 
         # Pop the old pid, save the new one. Then change dir to the original dir. 
         all_mysql_p_list.pop(cur_pid)
-        
-        os.chdir(ori_workdir)
-        cur_output_file_r = os.path.join(cur_output_dir_str, "output.txt")
+            
+
         cur_output_file_r = open(cur_output_file_r, "r")
         first_line_in_out = cur_output_file_r.readline()
         if first_line_in_out:
@@ -297,9 +307,9 @@ while True:
     for prev_shutdown_time_idx in range(len(all_prev_shutdown_time)):
         prev_shutdown_time = all_prev_shutdown_time[prev_shutdown_time_idx]
 
-        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 600: # 10 mins, restart mysql
+        if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 10: # 30 sec, restart mysql
             
-            print("Begin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
+            print("******************\nBegin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
             # Politely, restart MySQL. 
             cur_port_num = port_starting_num + prev_shutdown_time_idx - starting_core_id
             socket_path = "/tmp/mysql_" + str(prev_shutdown_time_idx) + ".sock"
