@@ -310,19 +310,22 @@ while True:
         prev_shutdown_time = all_prev_shutdown_time[prev_shutdown_time_idx]
 
         if (time.mktime(time.localtime())  -  time.mktime(prev_shutdown_time))  > 10: # 30 sec, restart mysql
-            
+
             print("******************\nBegin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
             # Politely, restart MySQL. 
             cur_port_num = port_starting_num + prev_shutdown_time_idx - starting_core_id
             socket_path = "/tmp/mysql_" + str(prev_shutdown_time_idx) + ".sock"
 
-
-            db = MySQLdb.connect(host="localhost",    # your host, usually localhost
+            try:
+                db = MySQLdb.connect(host="localhost",    # your host, usually localhost
                      user="root",         # your username
                      passwd="",  # your password
                      port=cur_port_num,
                      unix_socket=socket_path,
                      db="fuck")        # name of the data base
+            except MySQLdb._exceptions.OperationalError:
+                print("MYSQL server down, not recovered yet. \n\n\n")
+                continue
             
             cur = db.cursor()
 
