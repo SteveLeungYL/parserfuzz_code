@@ -194,17 +194,17 @@ while True:
         ### RECOVERY!!!
         ''' First, save the data folder. '''
         cur_mysql_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_" + str(cur_inst_id))
-        cur_mysql_bk_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_bk/")
+        # cur_mysql_bk_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_bk/")
         
-        # check whether the saving folder exists. 
-        if not os.path.isdir(cur_mysql_bk_data_dir_str):
-            os.mkdir(cur_mysql_bk_data_dir_str)
+        # # check whether the saving folder exists. 
+        # if not os.path.isdir(cur_mysql_bk_data_dir_str):
+        #     os.mkdir(cur_mysql_bk_data_dir_str)
         
-        # Find the suitable name for backup folder
-        for bk_id in range(1000):
-            cur_mysql_bk_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_bk/data_" + str(cur_inst_id) + "_" + str(bk_id))
-            if not os.path.isdir(cur_mysql_bk_data_dir_str):
-                break
+        # # Find the suitable name for backup folder
+        # for bk_id in range(1000):
+        #     cur_mysql_bk_data_dir_str = os.path.join(mysql_root_dir, "data_all/data_bk/data_" + str(cur_inst_id) + "_" + str(bk_id))
+        #     if not os.path.isdir(cur_mysql_bk_data_dir_str):
+        #         break
         
         # try:
         #     # Save the bk folder. 
@@ -222,8 +222,10 @@ while True:
             # print("Recovering new data dir: %s to %s"  % (mysql_src_data_dir, cur_mysql_data_dir_str))
             shutil.copytree(mysql_src_data_dir, cur_mysql_data_dir_str)
         except shutil.Error as err:
-            print("Copy new data folder failed! Giving up on pid: %d. " % (cur_pid))
-            all_mysql_p_list.pop(cur_pid)
+            print("Copy new data folder failed! Try again later. pid: %d. " % (cur_pid))
+            break
+        except OSError as err:
+            print("Copy new data folder failed! Try again later. pid: %d. " % (cur_pid))
             break
 
 
