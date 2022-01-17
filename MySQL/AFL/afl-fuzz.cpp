@@ -557,7 +557,7 @@ public:
 
         if (server_response != 0  &&  !disable_coverage_feedback ) {
           // cerr << "Mutated query has errors. Skiped. \n\n\n";
-          is_mutate_error = true;
+          // is_mutate_error = true;
         }
       } else {
 
