@@ -179,8 +179,6 @@ u64 mysql_execute_ok = 0;
 u64 mysql_execute_error = 0;
 u64 mysql_execute_total = 0;
 
-int is_has_new_bits = false;
-
 u64 test_id = 0;
 
 int map_file_id = 0;
@@ -543,6 +541,8 @@ public:
 
     bool is_mutate_error = false;
 
+    bool is_oracle_select = false;
+
     for (string cur_cmd_str : v_cmd_str) {
 
       if (cur_cmd_str.find("#MutationMark ") != string::npos) {
@@ -555,9 +555,12 @@ public:
         res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
         correctness = clean_up_connection(m_);
 
-        if (server_response != 0  &&  !disable_coverage_feedback ) {
-          // cerr << "Mutated query has errors. Skiped. \n\n\n";
-          // is_mutate_error = true;
+        if ( is_oracle_select ) {
+          if (server_response == 0 ) {
+            debug_good++;
+          } else {
+            debug_error++;
+          }
         }
       } else {
 
@@ -567,6 +570,20 @@ public:
         res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
         correctness = clean_up_connection(m_);
 
+        if ( is_oracle_select ) {
+          if (server_response == 0 ) {
+            debug_good++;
+          } else {
+            debug_error++;
+          }
+        }
+
+      }
+
+      if (cur_cmd_str.find("BEGIN VERI 0") != string::npos || cur_cmd_str.find("BEGIN VERI 1") != string::npos ) {
+        is_oracle_select = true;
+      } else {
+        is_oracle_select = false;
       }
 
       if (server_response == CR_SERVER_LOST) {
@@ -575,11 +592,6 @@ public:
       }
 
     }
-
-    is_has_new_bits = has_new_bits(virgin_bits, cmd_str);
-    // if (is_has_new_bits){
-    //   cerr << "\n\n\n\n\n\n\n\nHas new bits!!!!!\n\n\n\n\n\n\n";
-    // }
 
     // cerr << "Getting results: \n" << res_str << "\n\n\n";
 
@@ -673,6 +685,7 @@ public:
         is_error = true;
       }
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
+      retrieve_query_results(m_, "");
       clean_up_connection(&tmp_m);
     }
 
@@ -1564,9 +1577,10 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   i = (MAP_SIZE >> 3) - i - 1 ;
   u32 actual_idx = i * 8 + byte;
   
-  if (cur_seed_str == "123") {
-    map_id_out_f << actual_idx << ",-1,-1" <<  endl;
-  } else if (queue_cur) {
+  // if (cur_seed_str == "123") {
+  //   map_id_out_f << actual_idx << ",-1,-1" <<  endl;
+  // } else 
+  if (queue_cur) {
     map_id_out_f << actual_idx << "," << map_file_id << "," << to_string(queue_cur->depth) << endl;
   } else {
     map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
@@ -3306,8 +3320,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
 
     if (q->exec_cksum != cksum)
     {
-
-      u8 hnb = has_new_bits(virgin_bits, "123");
+      u8 hnb = has_new_bits(virgin_bits);
       if (hnb > new_bits)
         new_bits = hnb;
 
@@ -3914,8 +3927,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     /* Always check has_new_bits first. */
 
     /* If no_new_bits, dropped. However, if disable_coverage_feedback is specified, ignore has_new_bits. */
-    has_new_bits(virgin_bits, "123");
-    if ( !(hnb = is_has_new_bits) && !disable_coverage_feedback) {  
+    if ( !(hnb = has_new_bits(virgin_bits, query_str)) && !disable_coverage_feedback) {  
       if (crash_mode)
         total_crashes++;
       return 0;
@@ -5937,18 +5949,18 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     compare_query_results_cross_run(all_comp_res, explain_diff_id);
   }
 
-  /* Log the debug_error and debug_good. */
-  for (auto &res : all_comp_res.v_res)
-  {
-    if (res.comp_res == ORA_COMP_RES::Pass)
-    {
-      debug_good++;
-    }
-    else
-    {
-      debug_error++;
-    }
-  }
+  // /* Log the debug_error and debug_good. */
+  // for (auto &res : all_comp_res.v_res)
+  // {
+  //   if (res.comp_res == ORA_COMP_RES::Pass)
+  //   {
+  //     debug_good++;
+  //   }
+  //   else
+  //   {
+  //     debug_error++;
+  //   }
+  // }
 
   /* Some useful debug output. That could show what queries are being tested. */
   // stream_output_res(all_comp_res, cerr);
