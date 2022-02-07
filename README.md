@@ -1,24 +1,25 @@
-# Squirrel
+# SQLRight
 
-<a href="https://arxiv.org/pdf/2006.02398.pdf"><img src="https://huhong789.github.io/images/squirrel.png" align="right" width="250"></a>
+<!-- <a href="https://arxiv.org/pdf/2006.02398.pdf"><img src="https://huhong789.github.io/images/squirrel.png" align="right" width="250"></a> -->
 
-`Squirrel` is a fuzzer that aims at finding memory corruption issues in database managment systems (DBMSs). It is built on [AFL](https://github.com/google/AFL). More details can be found in our [CCS 2020 paper](http://arxiv.org/abs/2006.02398). And the bugs found by `Squirrel` can be found in [here](https://github.com/s3team/Squirrel/wiki/Bug-List).
+`SQLRight` is a fuzzer that aims at finding logical bugs in database managment systems (DBMSs). It is built on [AFL](https://github.com/google/AFL). 
+<!-- More details can be found in our [CCS 2020 paper](http://arxiv.org/abs/2006.02398). And the bugs found by `Squirrel` can be found in [here](https://github.com/s3team/Squirrel/wiki/Bug-List). -->
 
 Currently supported DBMSs:
 1. SQLite
 2. PostgreSQL
 3. MySQL
-4. MariaDB
 
 ## Build Instruction
 
-Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
+Currently we test `SQLRight` on `Ubuntu 20.04 LTS`.
 
 1. `Prerequisites`:
     ```
     sudo apt-get -y update && apt-get -y upgrade
     sudo apt-get -y install gdb bison flex git make cmake build-essential gcc-multilib g++-multilib xinetd libreadline-dev zlib1g-dev
-    sudo apt-get -y install clang libssl-dev libncurses5-dev nlohmann-json3-dev
+    sudo apt-get -y install clang libssl-dev libncurses5-dev nlohmann-json3-dev libxml2-dev libxslt-dev libssl-dev libxml2-utils xsltproc
+    sudo apt-get -y install libreadline-dev
     
     # Compile AFL, which is used for instrumenting the DBMSs
     cd ~
@@ -30,7 +31,7 @@ Currently we test `Squirrel` on `Ubuntu 16` and `Ubuntu 18`.
     make
     ```
 
-2. `DBMS-specific requirements:` Headers and libary of `MySQL`, `PostgreSQL` and `MariaDB` if you want to test them. The most direct way is to compile the DBMSs.
+2. `DBMS-specific requirements:` Headers and libary of `MySQL` and `PostgreSQL` if you want to test them. The most direct way is to compile the DBMSs.
 
 3. `Compile Squirrel:`
     

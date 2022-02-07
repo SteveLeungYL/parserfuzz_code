@@ -28,9 +28,9 @@ RUN useradd -ms /bin/bash mysql
 
 # build normal AFL
 WORKDIR /home/mysql
-RUN git clone https://github.com/google/AFL.git
+RUN git clone git@github.com:SteveLeungYL/AFL.git
 WORKDIR /home/mysql/AFL 
-RUN sed -i  's/#define MAP_SIZE_POW2       16/#define MAP_SIZE_POW2       18/' config.h
+RUN git checkout block_cov
 RUN make
 WORKDIR /home/mysql/AFL/llvm_mode
 ENV LLVM_CONFIG=llvm-config-6.0
@@ -41,26 +41,22 @@ USER mysql
 WORKDIR /home/mysql/
 RUN git clone https://github.com/mysql/mysql-server.git
 WORKDIR /home/mysql/mysql-server
-RUN git checkout 0430413c40eeee779dc65301df1bc4959286b583
+# MySQL version 8.0.27
+RUN git checkout 3290a66c89eb1625a7058e0ef732432b6952b435 
 RUN mkdir bld
 WORKDIR /home/mysql/mysql-server/bld
 ENV CC=/home/mysql/AFL/afl-clang-fast
 ENV CXX=/home/mysql/AFL/afl-clang-fast++
-RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_DEBUG=1 -DCPACK_MONOLITHIC_INSTALL=1
+RUN cmake .. -DDOWNLOAD_BOOST=1 -DWITH_BOOST=../boost -DWITH_DEBUG=1
 RUN make -j15
-USER root
-RUN make install
 
 # set up MySQL
 USER root
-WORKDIR /usr/local/mysql
-RUN mkdir mysql-files
-RUN chown mysql:mysql mysql-files 
-RUN chmod 750 mysql-files
-RUN rm -rf data
 RUN mkdir data
-RUN bin/mysqld --initialize-insecure --user=mysql
-RUN bin/mysql_ssl_rsa_setup
+RUN bin/mysqld --initialize-insecure --user=mysql --datadir=data
+RUN bin/mysql_ssl_rsa_setup --datadir=data
+RUN mkdir data_all
+RUN mv data data_all/ori_data
 
 # set up fuzzing
 USER root
@@ -73,7 +69,10 @@ COPY input/ /home/mysql/fuzzing/fuzz_root/crashes/
 COPY init_lib/ /home/mysql/fuzzing/fuzz_root/mysql_initlib/
 COPY global_data_lib_mysql /home/mysql/fuzzing/fuzz_root/
 COPY safe_generate_type_mysql /home/mysql/fuzzing/fuzz_root/
-COPY run.py /home/mysql/fuzzing/fuzz_root/run.py
+COPY run_parallel.py /home/mysql/fuzzing/fuzz_root/run_parallel.py
+COPY afl_config.py /home/mysql/fuzzing/fuzz_root/afl_config.py 
+COPY mysql_rebooter.py /home/mysql/fuzzing/fuzz_root/mysql_rebooter.py
+
 USER mysql
 ENV LC_ALL="en_US.UTF-8"
 WORKDIR /home/mysql/fuzzing/fuzz_root
