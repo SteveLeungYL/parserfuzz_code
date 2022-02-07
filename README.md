@@ -33,12 +33,12 @@ Currently we test `SQLRight` on `Ubuntu 20.04 LTS`.
 
 2. `DBMS-specific requirements:` Headers and libary of `MySQL` and `PostgreSQL` if you want to test them. The most direct way is to compile the DBMSs.
 
-3. `Compile Squirrel:`
+3. `Compile SQLRight:`
     
     ```
     git clone 
-    cd Squirrel/DBNAME/AFL
-    make afl-fuzz # You need to set the path in the Makefile
+    cd sqlright-code/DBNAME/AFL
+    make # You need to set the path in the Makefile
     ```
     
 4. `Instrument DBMS:`
@@ -52,7 +52,7 @@ Currently we test `SQLRight` on `Ubuntu 20.04 LTS`.
     make
    
     # MySQL/PostgreSQL/MariaDB
-    cd Squirrel/DBNAME/docker/
+    cd sqlright-code/DBNAME/docker/
     sudo docker build -t IMAGE_ID . 
    ```
 
@@ -60,7 +60,7 @@ Currently we test `SQLRight` on `Ubuntu 20.04 LTS`.
 
 ```
 # SQLite:
-cd Squirrel/SQLite
+cd sqlright-code/SQLite
 mkdir -p Bug_Analysis/bug_samples
 # Edit the `./Bug_Analysis/bi_config/bisecting_sqlite_config.py`
 # then replace the following variables with your local path.
@@ -75,6 +75,9 @@ python3 ./Bug_Analysis [ORACLE]
 ./afl-fuzz -i inputs -o output -- /path/to/sqlite3
 
 # Postgres
+docker run -it IMAGE_ID bash
+cd /home/postgres/fuzzing/
+python3 run_parallel.py
 
 # MySQL
 docker run -it IMAGE_ID bash
