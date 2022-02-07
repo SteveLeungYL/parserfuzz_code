@@ -53,7 +53,6 @@ Currently we test `SQLRight` on `Ubuntu 20.04 LTS`.
    
     # MySQL/PostgreSQL/MariaDB
     cd Squirrel/DBNAME/docker/
-    cp ../AFL/afl-fuzz .
     sudo docker build -t IMAGE_ID . 
    ```
 
@@ -61,7 +60,6 @@ Currently we test `SQLRight` on `Ubuntu 20.04 LTS`.
 
 ```
 # SQLite:
-git checkout bisecting_sqlite
 cd Squirrel/SQLite
 mkdir -p Bug_Analysis/bug_samples
 # Edit the `./Bug_Analysis/bi_config/bisecting_sqlite_config.py`
@@ -74,18 +72,25 @@ pip3 install -r requirements.txt
 python3 ./Bug_Analysis [ORACLE]
 
 # Run a single AFL instance. 
-./afl-fuzz -i input -o output -- /path/to/sqlite3 --bail
+./afl-fuzz -i inputs -o output -- /path/to/sqlite3
 
-# MySQL, PostgreSQL, MySQL, MariaDB
+# Postgres
+
+# MySQL
 docker run -it IMAGE_ID bash
-python run.py # wait for a few minutes
-tmux a -t fuzzing
+cd /home/mysql/fuzzing/fuzz_root
+tmux new -s fuzz
+tmux rename-window sqlright
+tmux new-window -n mysql-rebooter
+tmux select-window -t sqlright
+python3 run_parallel.py # Wait for a few seconds. 
+# Use Ctrl-b + n to switch to the mysql-rebooter window. 
+watch -d -n 20 python3 mysql_rebooter.py
+# Use Ctrl-b + d to detach from tmux session. 
 ```
 
-Since the `input` has been well-tested. It is more likely to find new bugs if you use your own seeds.
 
-
-## Publications
+<!-- ## Publications
 
 ```
 SQUIRREL: Testing Database Management Systems with Language Validity and Coverage Feedback
@@ -98,4 +103,4 @@ SQUIRREL: Testing Database Management Systems with Language Validity and Coverag
   year         = 2020,
   address      = {Orlando, USA},
 }
-```
+``` -->

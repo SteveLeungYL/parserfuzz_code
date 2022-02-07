@@ -17,11 +17,14 @@ RUN apt -y install libreadline-dev
 RUN apt -y install libssl-dev
 RUN apt -y install make
 RUN apt -y install pkg-config
-RUN apt -y install python-pip
+RUN apt -y install python3
+RUN apt -y install python3-pip
 RUN apt -y install tmux
 RUN apt -y install vim
 RUN apt -y install xinetd
 RUN apt -y install zlib1g-dev 
+RUN apt -y install screen
+RUN apt -y install watch
 RUN pip install libtmux
 
 RUN useradd -ms /bin/bash mysql
