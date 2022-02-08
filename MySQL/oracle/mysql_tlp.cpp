@@ -651,6 +651,17 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
     cerr << "Error: Failed to detect the kSelectStmt node from the mutated oracle select stmt. Return failure. \n\n\n";
     return NULL;
   }
+
+  /* Remove the WINDOWING function from each statement. */
+  vector<IR*> v_opt_windowing_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptWindowingClause, false);
+  for (IR* opt_windowing_clause : v_opt_windowing_clause) {
+    if (opt_windowing_clause -> get_left() != NULL) {
+      IR* windowing_clause = opt_windowing_clause->get_left();
+      opt_windowing_clause->update_left(NULL);
+      windowing_clause->deep_drop();
+    }
+  }
+
   /* If the logic has no error, should always pick the first one. Deep copid on every used. */
   IR* src_simple_select_ = src_simple_select_vec_[0];
   /* Now we have the simple_select. :-) */
