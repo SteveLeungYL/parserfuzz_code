@@ -1008,22 +1008,29 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   if (map_id_out_f.fail()){
     return;
   }
-  i = (MAP_SIZE >> 3) - i - 1 ;
-  u32 actual_idx = i * 8 + byte;
-  if (share_map_id.count(actual_idx)){
-    for (string &debug_info : share_map_id[actual_idx]) {
-      map_id_out_f << actual_idx << "," << debug_info << "," << map_file_id << endl;
-    }
-  } else {
-    map_id_out_f << actual_idx << "," << "-1,-1,-1,-1,0," << map_file_id <<  endl;
-  }
   if (cur_seed_str == "") {
     return;
   }
-  fstream map_id_seed_output;
-  map_id_seed_output.open("./queue_coverage_id/" + to_string(map_file_id) + ".txt", std::fstream::out | std::fstream::trunc);
-  map_id_seed_output << cur_seed_str;
-  map_id_seed_output.close();
+  i = (MAP_SIZE >> 3) - i - 1 ;
+  u32 actual_idx = i * 8 + byte;
+  
+  if (queue_cur) {
+    map_id_out_f << actual_idx << ",-1,-1" <<  endl;
+  } else {
+    map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
+  }
+  map_id_out_f.flush();
+
+  if (queue_cur && cur_seed_str != "123") {
+    if ( !filesystem::exists("./queue_coverage_id_core/")) {
+      filesystem::create_directory("./queue_coverage_id_core/");
+    }
+    fstream map_id_seed_output;
+    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
+    map_id_seed_output << cur_seed_str;
+    map_id_seed_output.close();
+  }
+
 }
 
 /* Check if the current execution path brings anything new to the table.
@@ -7371,35 +7378,11 @@ static void do_libary_initialize() {
 }
 
 static void load_map_id() {
-
   if (dump_library) {
-
-    /* Debug: Load the map_id to the program */
-    fstream map_f("./mapID.csv", fstream::in);
-
-    if (map_f.fail())
-      FATAL("mapID.csv doesn't exist in the current workdir");
-
-    map_id_out_f << "mapID,src,src_line,dest,dest_line,EH,map_file_id" << endl;
-
-    string line;
-    getline(map_f, line); // Ignore the first line. It is the header of the csv file. 
-    while (getline(map_f, line)) {
-      vector<string> line_vec = string_splitter(line, ',');
-      int map_id = stoi(line_vec[0]);
-      string map_info = line_vec[1] + "," + line_vec[2] + "," + line_vec[3] + "," + line_vec[4] + "," + line_vec[5];
-      if (share_map_id.count(map_id) != 0){
-        share_map_id[map_id].push_back(map_info);
-      } else {
-        vector<string> tmp{map_info};
-        share_map_id[map_id] = tmp;
-      }
-      line_vec.clear();
-    }
-    map_f.close();
-    line.clear();
+    map_id_out_f << "mapID,map_file_id,depth" << endl;
   }
-
+  map_id_out_f.flush();
+  return;
 }
 
 int main(int argc, char **argv) {
