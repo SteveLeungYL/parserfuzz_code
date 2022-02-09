@@ -377,19 +377,30 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_IR) {
     }
   }
 
-  /* Limit only ONE parameter in the aggregate function. */
   vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_IR);
-  if (v_result_column_list.size() != 0) {
-    vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(v_result_column_list[0], kFunctionName, false);
-    if (v_aggr_func_ir.size() != 0) {
-      IR* func_aggr_ir = v_aggr_func_ir[0] -> parent_ ->right_; // func_name -> unknown -> kfuncargs
-      if (func_aggr_ir -> type_ == kFunctionArgs && func_aggr_ir -> right_ != NULL && func_aggr_ir ->right_ -> type_ == kExprList) {
-        /* If the stmt has multiple expr_list inside the func_args, ignore current stmt. */
-        if (func_aggr_ir->right_->right_ != NULL) {// Another kExprList.
-          return false;
-        }
+  /* Limit only one result_column in the SELECT clause */
+  if (v_result_column_list.size() != 1) {
+    return false;
+  }
+
+  IR* result_column_list = v_result_column_list[0];
+
+  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(result_column_list, kFunctionName, false);
+
+  if (v_aggr_func_ir.size() > 0) {
+    /* Limit only ONE parameter in the aggregate function. */
+    IR* func_aggr_ir = v_aggr_func_ir[0] -> parent_ ->right_; // func_name -> unknown -> kfuncargs
+    if (func_aggr_ir -> type_ == kFunctionArgs && func_aggr_ir -> right_ != NULL && func_aggr_ir ->right_ -> type_ == kExprList) {
+      /* If the stmt has multiple expr_list inside the func_args, ignore current stmt. */
+      if (func_aggr_ir->right_->right_ != NULL) {// Another kExprList.
+        return false;
       }
     }
+  }
+
+  /* If the result_column_list contains binary_op, skip and ignored. */
+  if (ir_wrapper.get_ir_node_in_stmt_with_type(result_column_list, kBinaryOp, false).size() > 0 ) {
+    return false;
   }
 
   if (
