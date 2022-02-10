@@ -2229,19 +2229,19 @@ EXP_ST void init_forkserver(char **argv) {
 
     /* Set sane defaults for ASAN if nothing else specified. */
 
-    // setenv("ASAN_OPTIONS", "abort_on_error=1:"
-    //                        "detect_leaks=0:"
-    //                        "symbolize=0:"
-    //                        "allocator_may_return_null=1", 0);
+    setenv("ASAN_OPTIONS", "abort_on_error=1:"
+                           "detect_leaks=0:"
+                           "symbolize=0:"
+                           "allocator_may_return_null=1", 0);
 
     // /* MSAN is tricky, because it doesn't support abort_on_error=1 at this
     //    point. So, we do this in a very hacky way. */
 
-    // setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-    //                        "symbolize=0:"
-    //                        "abort_on_error=1:"
-    //                        "allocator_may_return_null=1:"
-    //                        "msan_track_origins=0", 0);
+    setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+                           "symbolize=0:"
+                           "abort_on_error=1:"
+                           "allocator_may_return_null=1:"
+                           "msan_track_origins=0", 0);
 
     execv(target_path, argv); // Used for start up sqlite3 ???
 
@@ -2549,14 +2549,14 @@ static u8 run_target(char **argv, u32 timeout) {
 
       /* Set sane defaults for ASAN if nothing else specified. */
 
-      // setenv("ASAN_OPTIONS", "abort_on_error=1:"
-      //                        "detect_leaks=0:"
-      //                        "symbolize=0:"
-      //                        "allocator_may_return_null=1", 0);
+      setenv("ASAN_OPTIONS", "abort_on_error=1:"
+                             "detect_leaks=0:"
+                             "symbolize=0:"
+                             "allocator_may_return_null=1", 0);
 
-      // setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-      //                        "symbolize=0:"
-      //                        "msan_track_origins=0", 0);
+      setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+                             "symbolize=0:"
+                             "msan_track_origins=0", 0);
 
       execv(target_path, argv);
 
@@ -2662,10 +2662,10 @@ static u8 run_target(char **argv, u32 timeout) {
   // /* A somewhat nasty hack for MSAN, which doesn't support abort_on_error and
   //    must use a special exit code. */
 
-  // if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
-  //   kill_signal = 0;
-  //   return FAULT_CRASH;
-  // }
+  if (uses_asan && WEXITSTATUS(status) == MSAN_ERROR) {
+    kill_signal = 0;
+    return FAULT_CRASH;
+  }
 
   if ((dumb_mode == 1 || no_forkserver) && tb4 == EXEC_FAIL_SIG)
     return FAULT_ERROR;
