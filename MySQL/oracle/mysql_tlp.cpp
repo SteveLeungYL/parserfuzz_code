@@ -311,6 +311,12 @@ bool SQL_TLP::compare_uniq(COMP_RES &res) {
     return true;
   }
 
+  // Ignore outputs that returns no rows. Could due to MySQL errors. 
+  if (is_str_empty(res_a) || is_str_empty(res_b) ) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
   res_a_int = 0;
   res_b_int = 0;
 
@@ -389,6 +395,12 @@ bool SQL_TLP::compare_aggr(COMP_RES &res) {
   if ( findStringIn(res_a, "ERROR") ||
        findStringIn(res_b, "ERROR")
       ) {
+    res.comp_res = ORA_COMP_RES::Error;
+    return true;
+  }
+
+  // Ignore outputs that returns no rows. Could due to MySQL errors. 
+  if (is_str_empty(res_a) || is_str_empty(res_b) ) {
     res.comp_res = ORA_COMP_RES::Error;
     return true;
   }
