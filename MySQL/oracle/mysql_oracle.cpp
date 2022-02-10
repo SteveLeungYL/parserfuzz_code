@@ -223,7 +223,8 @@ IR* SQL_ORACLE::get_random_mutated_select_stmt() {
         findStringIn(new_valid_select_struct, "CURRENT_TIMESTAMP") ||
         findStringIn(new_valid_select_struct, "CURTIME") ||
         findStringIn(new_valid_select_struct, "NOW") ||
-        findStringIn(new_valid_select_struct, "UNIX_TIMESTAMP")
+        findStringIn(new_valid_select_struct, "UNIX_TIMESTAMP") ||
+        findStringIn(new_valid_select_struct, "RAND") 
       ) {
         new_ir_verified.back()->deep_drop();
         continue;
