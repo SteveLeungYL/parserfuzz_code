@@ -537,7 +537,7 @@ public:
 
     std::thread(timeout_query, m_->thread_id, timeout_id).detach();
 
-    has_new_bits(virgin_bits, "123");
+    // has_new_bits(virgin_bits, "123");
 
     bool is_mutate_error = false;
 
@@ -1586,12 +1586,12 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
     map_id_out_f << actual_idx << "," << map_file_id << ",0" << endl;
   }
 
-  if (queue_cur && cur_seed_str != "123") {
+  if (cur_seed_str != "123") {
     if ( !filesystem::exists("./queue_coverage_id_core/")) {
       filesystem::create_directory("./queue_coverage_id_core/");
     }
     fstream map_id_seed_output;
-    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(queue_cur->depth) + "_" +to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
+    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
     map_id_seed_output << cur_seed_str;
     map_id_seed_output.close();
   }
@@ -1686,8 +1686,9 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
     virgin++;
   }
 
-  if (ret && virgin_map == virgin_bits)
+  if (ret && virgin_map == virgin_bits) {
     bitmap_changed = 1;
+  }
 
   return ret;
 }
@@ -3320,7 +3321,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
 
     if (q->exec_cksum != cksum)
     {
-      u8 hnb = has_new_bits(virgin_bits);
+      u8 hnb = has_new_bits(virgin_bits, program_input_str);
       if (hnb > new_bits)
         new_bits = hnb;
 
@@ -3464,8 +3465,9 @@ static void perform_dry_run(char **argv)
     int ret = run_parser_multi_stmt(query_str, ir_tree);
     if (ret != 0 || ir_tree.size() == 0)
     {
-      // cerr << "Query seed: " << query_str << " is not passing the parser!"
-      //      << endl;
+      cerr << "For original seed query_str: \n" << query_str << ", parse failed!\n\n\n";
+      q = q->next;
+      continue;
     }
     else
     {
@@ -3639,7 +3641,7 @@ static void perform_dry_run(char **argv)
           useless_at_start++;
 
           if (!in_bitmap && !shuffle_queue)
-            WARNF("No new instrumentation output, test case may be useless.");
+            WARNF("No new instrumentation output, test case may be useless.\n\n\n");
 
           break;
         }
@@ -8656,9 +8658,9 @@ int main(int argc, char *argv[])
   // to do
   perform_dry_run(use_argv);
 
-  // show_stats();
+  show_stats();
 
-  // exit(0);
+  exit(0);
 
   cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
 
