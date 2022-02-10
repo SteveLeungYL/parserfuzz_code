@@ -179,6 +179,8 @@ u64 mysql_execute_ok = 0;
 u64 mysql_execute_error = 0;
 u64 mysql_execute_total = 0;
 
+EXP_ST u8 *trace_bits; /* SHM with instrumentation bitmap  */
+
 u64 test_id = 0;
 
 int map_file_id = 0;
@@ -518,6 +520,8 @@ public:
       res_str += "Reset database ERROR!!!\n\n\n";
     }
 
+    memset(trace_bits, 0, MAP_SIZE);
+
     string cmd_str = cmd;
     std::replace(cmd_str.begin(), cmd_str.end(), '\n', ' ');
 
@@ -763,8 +767,6 @@ static s32 out_fd,       /* Persistent fd for out_file       */
 static s32 forksrv_pid, /* PID of the fork server           */
     child_pid = -1,     /* PID of the fuzzed program        */
     out_dir_fd = -1;    /* FD of the lock file              */
-
-EXP_ST u8 *trace_bits; /* SHM with instrumentation bitmap  */
 
 static u8 var_bytes[MAP_SIZE]; /* Bytes that appear to be variable */
 
@@ -8660,7 +8662,7 @@ int main(int argc, char *argv[])
   // to do
   perform_dry_run(use_argv);
 
-  exit(0);
+  // exit(0);
 
   cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
 
