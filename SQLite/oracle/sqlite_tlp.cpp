@@ -54,8 +54,8 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
   int &res_a_int = res.res_int_0;
   int &res_b_int = res.res_int_1;
 
-  if (res_a.find("Error") != string::npos ||
-      res_b.find("Error") != string::npos) {
+  if (findStringIn(res_a, "error") ||
+      findStringIn(res_b, "error") ) {
     res.comp_res = ORA_COMP_RES::Error;
     return true;
   }
@@ -121,8 +121,8 @@ bool SQL_TLP::compare_uniq(COMP_RES &res) {
   int &res_a_int = res.res_int_0;
   int &res_b_int = res.res_int_1;
 
-  if (res_a.find("Error") != string::npos ||
-      res_b.find("Error") != string::npos) {
+  if (findStringIn(res_a, "error") ||
+      findStringIn(res_b, "error") ) {
     res.comp_res = ORA_COMP_RES::Error;
     return true;
   }
@@ -202,8 +202,8 @@ bool SQL_TLP::compare_aggr(COMP_RES &res) {
   int &res_a_int = res.res_int_0;
   int &res_b_int = res.res_int_1;
 
-  if (res_a.find("Error") != string::npos ||
-      res_b.find("Error") != string::npos) {
+  if (findStringIn(res_a, "error") ||
+      findStringIn(res_b, "error") ) {
     res.comp_res = ORA_COMP_RES::Error;
     return true;
   }
