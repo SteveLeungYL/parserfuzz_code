@@ -15,6 +15,8 @@ current_workdir = os.getcwd()
 starting_core_id = 0
 parallel_num = 5
 
+timeout_ms = 2000
+
 for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     print("###############\nSetting up core_id: " + str(cur_inst_id))
 
@@ -35,6 +37,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
         "-o", cur_output_dir_str,
         "-c", str(cur_inst_id),
         "-O", str(oracle_str),
+        "-t", str(timeout_ms),
         " -- ", sqlite_bin,
         "&"
     ]
