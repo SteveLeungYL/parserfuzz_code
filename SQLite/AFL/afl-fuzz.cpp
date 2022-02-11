@@ -7752,8 +7752,11 @@ int main(int argc, char **argv) {
   if (extras_dir)
     load_extras(extras_dir);
 
-  if (!timeout_given)
-    find_timeout();
+  if (!timeout_given) {
+    // find_timeout();
+    /* If timeout is not given for SQLite3, set the timeout to 2000ms. */
+    exec_tmout = 2000;
+  }
 
   detect_file_args(argv + optind + 1);
 
