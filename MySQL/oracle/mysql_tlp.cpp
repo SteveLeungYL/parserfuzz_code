@@ -100,23 +100,17 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
   vector<IR*> trans_IR_vec;
   cur_stmt->parent_ = NULL;
 
-  // Doesn't seem necessary. 
-  /* Directly cut all the extra targetEl inside the select target.
-   * Directly delete them on the source cur_stmt tree.
-   * */
-
-//   IR* target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kTargetList, false).front();
-//   while ( target_list_ir->get_ir_type() == kTargetList && target_list_ir->get_right()) {
-//     /* Clean all the extra select target clauses, only leave the first one untouched.
-//      * If this is the first kTargetList, the right sub-node should be empty.
-//      * */
-//     target_list_ir->replace_op(OP0());
-//     IR* extra_targetel_ir = target_list_ir->get_right();
-//     target_list_ir->update_right(NULL);
-//     extra_targetel_ir->deep_drop();
-//     target_list_ir = target_list_ir->get_left();
-//   }
-
+  /* If the original statement contains WINDOWING clause, remove it. 
+  ** Windowing clause would cause FPs in the TLP oracle. 
+  */
+  vector<IR*> v_opt_windowing_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kOptWindowingClause, false);
+  for (IR* opt_windowing_clause : v_opt_windowing_clause) {
+    if (opt_windowing_clause -> get_left() != NULL) {
+      IR* windowing_clause = opt_windowing_clause->get_left();
+      opt_windowing_clause->update_left(NULL);
+      windowing_clause->deep_drop();
+    }
+  }
 
   /* Let's take care of the first stmt. Remove (the last?) its kWhereClause */
   IR* first_stmt = cur_stmt->deep_copy();
