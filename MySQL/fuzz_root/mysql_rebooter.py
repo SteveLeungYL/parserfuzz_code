@@ -48,7 +48,7 @@ all_prev_shut_time_file.close()
 
 
 # SHUTDOWN MYSQL, periodically. 
-for prev_shutdown_time_idx in range(len(all_prev_shutdown_time)):
+for prev_shutdown_time_idx, _ in all_prev_shutdown_time.items():
     prev_shutdown_time = all_prev_shutdown_time[prev_shutdown_time_idx]
     if (time.mktime(time.localtime())  -  prev_shutdown_time)  > MYSQL_REBOOT_TIME_GAP: # 60 sec, restart mysql
         print("******************\nBegin scheduled MYSQL restart. ID: %d\n" % (prev_shutdown_time_idx))
