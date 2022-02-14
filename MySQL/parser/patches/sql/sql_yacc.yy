@@ -20089,7 +20089,7 @@ opt_table_alias:
 
     | opt_as ident {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, to_string($2), kDataAliasName, 0, kDefine);
+        auto tmp2 = new IR(kIdentifier, to_string($2), kDataAliasTableName, 0, kDefine);
         ir_vec.push_back(tmp2);
         res = new IR(kOptTableAlias, OP3("", "", ""), tmp1, tmp2);
         ir_vec.push_back(res); 
