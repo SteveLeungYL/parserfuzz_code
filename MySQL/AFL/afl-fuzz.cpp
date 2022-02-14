@@ -84,6 +84,7 @@
 #include <thread>
 #include <fstream>
 #include <filesystem>
+#include <sstream>
 
 #include "../oracle/mysql_oracle.h"
 #include "../oracle/mysql_norec.h"
@@ -548,6 +549,18 @@ public:
     bool is_oracle_select = false;
 
     for (string cur_cmd_str : v_cmd_str) {
+
+      // /* DEBUG: Remove all statements related to global optimization settings. */
+      // if (
+      //   findStringIn(cur_cmd_str, "SET") ||
+      //   findStringIn(cur_cmd_str, "@") ||
+      //   findStringIn(cur_cmd_str, "PREPARE") ||
+      //   findStringIn(cur_cmd_str, "DEALLOCATE") ||
+      //   findStringIn(cur_cmd_str, "GRANT") 
+      // ) {
+      //   /* Skip the current statement.  */
+      //   continue;
+      // }
 
       if (cur_cmd_str.find("#MutationMark ") != string::npos) {
         // We are executing the mutating query
@@ -1594,7 +1607,10 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
       filesystem::create_directory("./queue_coverage_id_core/");
     }
     fstream map_id_seed_output;
-    map_id_seed_output.open("./queue_coverage_id_core/" + to_string(map_file_id) + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
+    std::ostringstream ss;
+    ss << std::setw(5) << std::setfill('0') << map_file_id;
+    string map_file_id_str = ss.str();
+    map_id_seed_output.open("./queue_coverage_id_core/" + map_file_id_str + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
     map_id_seed_output << cur_seed_str;
     map_id_seed_output.flush();
     map_id_seed_output.close();
@@ -5881,6 +5897,19 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
     string res_str = "";
     fault = run_target(argv, tmout, cmd_string, res_str);
+
+    if (dump_library) {
+      if ( !filesystem::exists("./core_" + std::to_string(bind_to_core_id) + "_log/")){
+        filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) + "_log/");
+      }
+      string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) + "_log/log_" + to_string(log_output_id++) + "_src_" + to_string(current_entry) + ".txt";
+      ofstream log_output_file;
+      log_output_file.open(all_sql_out_log_str, std::ofstream::out);
+      log_output_file << cmd_string;
+      log_output_file.close();
+  }
+
+
     // cerr << "Getting fault: " << static_cast<int16_t>(fault) << "from run_target(); \n\n\n"; 
     if (stop_soon)
       return fault;
@@ -8662,9 +8691,10 @@ int main(int argc, char *argv[])
   // to do
   perform_dry_run(use_argv);
 
-  // exit(0);
-
   cerr << "\nTimeout seed number: " << timeout_seed_num << "/" << queued_paths << "\n\n\n";
+  cerr << "\nUseless at start: " << useless_at_start << "/" << queued_paths << "\n\n\n";
+
+  // exit(0);
 
   cull_queue();
 
