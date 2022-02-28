@@ -368,12 +368,12 @@ public:
     return result_count;
   }
 
-  string retrieve_query_results(MYSQL* m_, string cur_cmd_str)
+  string retrieve_query_results(MYSQL* m_, string cur_cmd_str, int server_response = 0)
   {
     MYSQL_ROW row;
     // string result_string = ""
     stringstream result_string_stream;
-    int status = 0;
+    int status = server_response;
     MYSQL_RES *result;
 
     do
@@ -550,17 +550,17 @@ public:
 
     for (string cur_cmd_str : v_cmd_str) {
 
-      // /* DEBUG: Remove all statements related to global optimization settings. */
-      // if (
-      //   findStringIn(cur_cmd_str, "SET") ||
-      //   findStringIn(cur_cmd_str, "@") ||
-      //   findStringIn(cur_cmd_str, "PREPARE") ||
-      //   findStringIn(cur_cmd_str, "DEALLOCATE") ||
-      //   findStringIn(cur_cmd_str, "GRANT") 
-      // ) {
-      //   /* Skip the current statement.  */
-      //   continue;
-      // }
+      /* DEBUG: Remove all statements related to global optimization settings. */
+      if (
+        findStringIn(cur_cmd_str, "SET") ||
+        findStringIn(cur_cmd_str, "@") ||
+        findStringIn(cur_cmd_str, "PREPARE") ||
+        findStringIn(cur_cmd_str, "DEALLOCATE") ||
+        findStringIn(cur_cmd_str, "GRANT") 
+      ) {
+        /* Skip the current statement.  */
+        continue;
+      }
 
       if (cur_cmd_str.find("#MutationMark ") != string::npos) {
         // We are executing the mutating query
@@ -569,7 +569,7 @@ public:
         // cerr << "Testing with MUTATED cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
 
         server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+        res_str += retrieve_query_results(m_, cur_cmd_str, server_response) + "\n";
         correctness = clean_up_connection(m_);
 
         if ( is_oracle_select ) {
@@ -584,7 +584,7 @@ public:
         // cerr << "Testing with normal cur_cmd_str: \n " << cur_cmd_str << "\n\n\n";
 
         server_response = mysql_real_query(m_, cur_cmd_str.c_str(), cur_cmd_str.length());
-        res_str += retrieve_query_results(m_, cur_cmd_str) + "\n";
+        res_str += retrieve_query_results(m_, cur_cmd_str, server_response) + "\n";
         correctness = clean_up_connection(m_);
 
         if ( is_oracle_select ) {
@@ -702,7 +702,7 @@ public:
         is_error = true;
       }
       // cerr << "reset_database results: "  << retrieve_query_results(&tmp_m, cmd) << "\n\n\n";
-      retrieve_query_results(m_, "");
+      retrieve_query_results(m_, "", is_error);
       clean_up_connection(&tmp_m);
     }
 
@@ -1603,14 +1603,14 @@ void log_map_id(u32 i, u8 byte, const string& cur_seed_str){
   map_id_out_f.flush();
 
   if (cur_seed_str != "123") {
-    if ( !filesystem::exists("./queue_coverage_id_core/")) {
-      filesystem::create_directory("./queue_coverage_id_core/");
+    if ( !filesystem::exists("./queue_coverage_id_core_" + to_string(bind_to_core_id)) ) {
+      filesystem::create_directory( "./queue_coverage_id_core_" + to_string(bind_to_core_id) );
     }
     fstream map_id_seed_output;
     std::ostringstream ss;
     ss << std::setw(5) << std::setfill('0') << map_file_id;
     string map_file_id_str = ss.str();
-    map_id_seed_output.open("./queue_coverage_id_core/" + map_file_id_str + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
+    map_id_seed_output.open( "./queue_coverage_id_core_" + to_string(bind_to_core_id) + "/" + map_file_id_str + "_" + to_string(current_entry) + ".txt", std::fstream::out | std::fstream::trunc);
     map_id_seed_output << cur_seed_str;
     map_id_seed_output.flush();
     map_id_seed_output.close();
@@ -3981,9 +3981,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     IR * tmp_ir = ir_tree.back();
     g_mutator.extract_struct(tmp_ir);
-    g_mutator.add_all_to_library(
-        tmp_ir->to_string(),
-        explain_diff_id);
+    // g_mutator.add_all_to_library(
+    //     tmp_ir->to_string(),
+    //     explain_diff_id);
     ir_tree.back()->deep_drop();
 
 #ifndef SIMPLE_FILES
