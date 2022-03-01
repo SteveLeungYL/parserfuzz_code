@@ -425,9 +425,20 @@ public:
     // cerr << "\n\n";
 
     string ret_str;
-    if (mysql_errno(m_)) {
-      ret_str = string(mysql_error(m_)) + "  " + result_string_stream.str();
+    /* If any errors are detected, abandon the results. 
+     * If error occurs, mysql_errno() or mysql_real_query return non-zero.  
+     */
+    if (mysql_errno(m_) || (server_response)) {
+	    string err_msg = string(mysql_error(m_));
+
+	    if (err_msg != "") {
+        ret_str = string(mysql_error(m_)) + "  " + result_string_stream.str();
+	    } else {
+		    ret_str = "Error" + to_string(server_response);
+	    }
+
     } else {
+      // No errors. 
       ret_str = result_string_stream.str();
     }
     return ret_str;
@@ -5998,7 +6009,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   // }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+  stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */
