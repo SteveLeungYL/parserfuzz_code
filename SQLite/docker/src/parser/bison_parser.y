@@ -2557,6 +2557,14 @@ join_op:
     |   NATURAL LEFT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL LEFT OUTER JOIN"; }
     |   NATURAL INNER      JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL INNER JOIN"; }
     |   NATURAL CROSS      JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL CROSS JOIN"; }
+    |           RIGHT      JOIN { $$ = new JoinOp(); $$->str_val_ = "RIGHT JOIN"; }
+    |          RIGHT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "RIGHT OUTER JOIN"; }
+    |   NATURAL RIGHT      JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL RIGHT JOIN"; }
+    |  NATURAL RIGHT OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL RIGHT OUTER JOIN"; }
+    |           FULL       JOIN { $$ = new JoinOp(); $$->str_val_ = "FULL JOIN"; }
+    |           FULL OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "FULL OUTER JOIN"; }
+    |   NATURAL FULL       JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL FULL JOIN"; }
+    |   NATURAL FULL OUTER JOIN { $$ = new JoinOp(); $$->str_val_ = "NATURAL FULL OUTER JOIN"; }
     ;
 
 join_constraint:
