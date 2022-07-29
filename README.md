@@ -223,6 +223,8 @@ And then run the following bug bisecting command.
 bash run_mysql_bisecting.sh SQLRight --oracle NOREC
 ```
 
+**WARNING** Due to the long compilation time for the `MySQL` DBMS, we are using pre-compiled and cached `MySQL` binaries to bisect the detect logical bugs. As time passes, the cached `MySQL` binaries can become out-of-date and the bisecting can thus become inaccurate. We recommend the developer to add in new `MySQL` versions, or re-compile the MySQL cached binaries in the future `MySQL` runs, in order to keep the bisecting results more accurate. The `MySQL` cached binaries zip files can be located in directory `<sqlright_root>/MySQL/bisecting/bisecting/mysql_binary_zip`. 
+
 The bisecting script doesn't require `--start-core` and `--num-concurrent` flags. And it will auto exit upon finished. The unique bug reports will be generated in `<sqlright_root>/MySQL/Results/sqlright_mysql_NOREC_bugs/bug_samples/unique_bug_output`.
 
 ---------------------------------------
@@ -305,6 +307,8 @@ And then run the following bug bisecting command.
 # Run bug bisecting
 bash run_mysql_bisecting.sh SQLRight --oracle TLP
 ```
+
+**WARNING** Due to the long compilation time for the `MySQL` DBMS, we are using pre-compiled and cached `MySQL` binaries to bisect the detect logical bugs. As time passes, the cached `MySQL` binaries can become out-of-date and the bisecting can thus become inaccurate. We recommend the developer to add in new `MySQL` versions, or re-compile the MySQL cached binaries in the future `MySQL` runs, in order to keep the bisecting results more accurate. The `MySQL` cached binaries zip files can be located in directory `<sqlright_root>/MySQL/bisecting/bisecting/mysql_binary_zip`. 
 
 The unique bug reports will be generated in `<sqlright_root>/MySQL/Results/sqlright_mysql_TLP_bugs/bug_samples/unique_bug_output`.
 
