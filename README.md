@@ -32,7 +32,7 @@ Currently supported DBMS:
     + [2.6 MySQL TLP](#26-mysql-tlp)
   * [3. SQLRight development](#3-sqlright-development)
     + [3.1 SQLRight code structure](#31-sqlright-code-structure)
-    + [3.2 SQLRight new oracle development](#32--sqlright--new-oracle-development)
+    + [3.2 SQLRight new oracle development](#32-sqlright-new-oracle-development)
       - [3.2.1 Create oracle class files](#321-create-oracle-class-files)
       - [3.2.2 Implement the required class functions](#322-implement-the-required-class-functions)
       - [3.2.3 Expose the newly implemented oracle](#323-expose-the-newly-implemented-oracle)
