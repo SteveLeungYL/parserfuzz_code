@@ -17,7 +17,7 @@ COMPILE_THREAD_COUNT = 1
 COMMIT_SEARCH_RANGE = 1
 
 BEGIN_COMMIT_ID = ""  # INCLUDED!!!   Earlier commit.
-END_COMMIT_ID = "384f5c26f48b92e8bfcb168381d4a8caf3ea59e7"  # INCLUDED!!!   Latest commit or the bug triggering commit.
+END_COMMIT_ID = ""  # INCLUDED!!!   Latest commit or the bug triggering commit.
 
 KNOWN_BUGGY_COMMIT = [
             "8981b904b545ad056ad2f6eb0ebef6a6b9606b5b",
