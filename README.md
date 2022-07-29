@@ -12,6 +12,34 @@ Currently supported DBMS:
 3. MySQL
 
 <br/><br/>
+## Table of Contents
+
+- [SQLRight: a general platform to test DBMS logical bugs](#sqlright--a-general-platform-to-test-dbms-logical-bugs)
+  * [Getting Started](#getting-started)
+    + [Operating System configuration and Source Code setup](#operating-system-configuration-and-source-code-setup)
+    + [Host system in VM](#host-system-in-vm)
+    + [Troubleshooting](#troubleshooting)
+  * [1.  Build the Docker Images](#1--build-the-docker-images)
+    + [1.1  Build the Docker Image for SQLite3 fuzzing](#11--build-the-docker-image-for-sqlite3-fuzzing)
+    + [1.2  Build the Docker Image for PostgreSQL fuzzing](#12--build-the-docker-image-for-postgresql-fuzzing)
+    + [1.3  Build the Docker Images for MySQL evaluations](#13--build-the-docker-images-for-mysql-evaluations)
+  * [2. Run SQLRight fuzzing](#2-run-sqlright-fuzzing)
+    + [2.1 SQLite NoREC oracle](#21-sqlite-norec-oracle)
+    + [2.2 PostgreSQL NoREC](#22-postgresql-norec)
+    + [2.3 MySQL NoREC](#23-mysql-norec)
+    + [2.4 SQLite TLP](#24-sqlite-tlp)
+    + [2.5 PostgreSQL TLP](#25-postgresql-tlp)
+    + [2.6 MySQL TLP](#26-mysql-tlp)
+  * [3. SQLRight development](#3-sqlright-development)
+    + [3.1 `SQLRight` code structure](#31--sqlright--code-structure)
+    + [3.2 `SQLRight` new oracle development](#32--sqlright--new-oracle-development)
+      - [3.2.1 Step 1: create oracle class files](#321-step-1--create-oracle-class-files)
+      - [3.2.2 Step 2: implement the required class functions](#322-step-2--implement-the-required-class-functions)
+      - [3.2.3 Step 3: expose the newly implemented oracle](#323-step-3--expose-the-newly-implemented-oracle)
+      - [3.2.4 Step 4: (optional) also implement the oracle in the bisecting code.](#324-step-4---optional--also-implement-the-oracle-in-the-bisecting-code)
+      - [3.2.5 Step 5: Run the newly implemented oracle](#325-step-5--run-the-newly-implemented-oracle)
+
+<br/><br/>
 ## Getting Started
 
 ### Operating System configuration and Source Code setup
@@ -352,7 +380,7 @@ The `LIKELY` oracle adds additional `LIKELY` or `UNLIKELY` optimization hints, t
 
 --------------------------------------------------------------------------
 
-#### New Oracle Development Step 1: create oracle class files
+#### 3.2.1 Step 1: create oracle class files
 
 Create the `sqlite_likely.h` and `sqlite_likely.cpp` files in the `<sqlright_root>/SQLite/docker/src/oracle` folder. 
 
@@ -360,7 +388,7 @@ Include the `sqlite_oracle.h` header file, and declare the new `SQLITE_LIKELY` c
 
 --------------------------------------------------------------------------
 
-#### New Oracle Development Step 2: implement the required class functions
+#### 3.2.2 Step 2: implement the required class functions
 
 A more detailed per class function explanations are included in the `sqlite_oracle.h` source code comments. Here, we only mentioned the APIs we used to implement  the `LIKELY` oracle. 
 
@@ -376,7 +404,7 @@ Some additional tools can be used to design a new oracle: The `test-parser` prog
 
 --------------------------------------------------------------------------
 
-#### New Oracle Development Step 3: expose the newly implemented oracle
+#### 3.2.3 Step 3: expose the newly implemented oracle
 
 Include the newly created `sqlite_<new-oracle>.h` header file to the `AFL/afl-fuzz.cpp` source. 
 
@@ -405,7 +433,7 @@ The implementation of `LIKELY` oracle is finished in `SQLRight` source code.
 
 --------------------------------------------------------------------------
 
-#### New Oracle Development Step 4: (optional) also implement the oracle in the bisecting code. 
+#### 3.2.4 Step 4: (optional) also implement the oracle in the bisecting code. 
 
 The `bisecting` code are located in the following locations:
 
@@ -444,7 +472,7 @@ And at last, import the newly defined oracle python file to the `__main__.py` fi
 
 --------------------------------------------------------------------------
 
-#### New Oracle Development Step 5: Run the newly implemented oracle
+#### 3.2.5 Step 5: Run the newly implemented oracle
 
 Because we have modified the `SQLRight` and bisecting source code, we need to rebuild the docker testing environment to reflect on the changes. We need to repeat the steps on `Section 1: Build the Docker Images`. 
 
