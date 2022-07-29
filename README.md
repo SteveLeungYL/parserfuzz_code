@@ -1,6 +1,6 @@
 # sqlright: a general platform to test DBMS logical bugs
 
-<a href="Paper/paper_no_names.pdf"><img src="Paper/paper_no_names.png" align="right" width="250"></a>
+<a href="Paper/paper.pdf"><img src="Paper/paper.png" align="right" width="250"></a>
 
 Version: 1.0\
 Update: Jul 28, 2022\
