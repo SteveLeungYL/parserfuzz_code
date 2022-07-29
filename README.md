@@ -32,7 +32,7 @@ Currently supported DBMS:
     + [2.6 MySQL TLP](#26-mysql-tlp)
   * [3. SQLRight development](#3-sqlright-development)
     + [3.1 SQLRight code structure](#31-sqlright-code-structure)
-    + [3.2 `SQLRight` new oracle development](#32--sqlright--new-oracle-development)
+    + [3.2 SQLRight new oracle development](#32--sqlright--new-oracle-development)
       - [3.2.1 Create oracle class files](#321-create-oracle-class-files)
       - [3.2.2 Implement the required class functions](#322-implement-the-required-class-functions)
       - [3.2.3 Expose the newly implemented oracle](#323-expose-the-newly-implemented-oracle)
@@ -370,7 +370,7 @@ The `SQLRight` code for all three DBMSs share a similar code structure.
     - `mutator.cpp`: The fuzzing mutation logic for `SQLRight`.
     - `utils.cpp`: Some more general helper functions, such as string handling functions etc. 
 
-### 3.2 `SQLRight` new oracle development
+### 3.2 SQLRight new oracle development
 
 To develop a new DBMS oracle for `SQLRight`, all we need to do is to implement a new C++ inherited class, and place it in the `oracle` folder. The base oracle class is implemented in the `<dbms_name>_oracle.h` and `<dbms_name_oracle.cpp>` source files. We can inherit the pre-defined base class APIs to implement our new oracles. 
 
