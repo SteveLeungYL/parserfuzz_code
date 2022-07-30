@@ -11,11 +11,16 @@ Currently supported DBMS:
 2. PostgreSQL
 3. MySQL
 
+<br/><br/>
+## SQLRight Overview
+
 `SQLRight` combines the coverage-based guidance, validity-oriented mutations and oracles to detect logical bugs for DBMS systems. `SQLRight` first mutates existing queries cooperatively. It inserts a set of oracle-required statements, and applies our validity-oriented mutations to improve the validity rate. Then, it sends the query to the oracle to create functionally equivalent query counterparts. `SQLRight` feeds all generated queries to the DBMS, and collects the execution results and the coverage information. After that, `SQLRight` invokes the oracle to compare the results of different queries to identify logical bugs. At last, it inserts the coverage-improving queries into the queue for future mutations.
 
 The overview of `SQLRight` is illustrated by the diagram below.
 
-<a href="doc/sqlright-overview.pdf"><img src="doc/sqlright-overview.pdf"></a>
+<p align="center">
+<img src="doc/sqlright-overview.jpg" width="90%" alt="The overview of SQLRight" border="1">
+</p>
 
 <br/><br/>
 ## Getting Started
