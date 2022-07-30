@@ -27,3 +27,27 @@ The overview of `SQLRight` is illustrated by the diagram below.
 
 The Installation and Run instructions can be found in [link](doc/install_n_run_steps.md)
 
+<br/><br/>
+## Authors
+
+- Yu Liang yuliang@psu.edu
+- Song Liu svl6237@psu.edu
+- Hong Hu honghu@psu.edu
+
+<br/><br/>
+## Publications
+
+```bib
+Detecting Logical Bugs of DBMS with Coverage-based Guidance
+
+@inproceedings {281422,
+title = {Detecting Logical Bugs of {DBMS} with Coverage-based Guidance},
+booktitle = {31st USENIX Security Symposium (USENIX Security 22)},
+year = {2022},
+address = {Boston, MA},
+url = {https://www.usenix.org/conference/usenixsecurity22/presentation/liang},
+publisher = {USENIX Association},
+month = aug,
+}
+```
+
