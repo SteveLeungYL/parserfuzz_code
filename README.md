@@ -11,33 +11,11 @@ Currently supported DBMS:
 2. PostgreSQL
 3. MySQL
 
-<br/><br/>
-## Table of Contents
+`SQLRight` combines the coverage-based guidance, validity-oriented mutations and oracles to detect logical bugs for DBMS systems. `SQLRight` first mutates existing queries cooperatively. It inserts a set of oracle-required statements, and applies our validity-oriented mutations to improve the validity rate. Then, it sends the query to the oracle to create functionally equivalent query counterparts. `SQLRight` feeds all generated queries to the DBMS, and collects the execution results and the coverage information. After that, `SQLRight` invokes the oracle to compare the results of different queries to identify logical bugs. At last, it inserts the coverage-improving queries into the queue for future mutations.
 
-- [SQLRight: a general platform to test DBMS logical bugs](#sqlright--a-general-platform-to-test-dbms-logical-bugs)
-  * [Getting Started](#getting-started)
-    + [Operating System configuration and Source Code setup](#operating-system-configuration-and-source-code-setup)
-    + [Host system in VM](#host-system-in-vm)
-    + [Troubleshooting](#troubleshooting)
-  * [1.  Build the Docker Images](#1--build-the-docker-images)
-    + [1.1  Build the Docker Image for SQLite3 fuzzing](#11--build-the-docker-image-for-sqlite3-fuzzing)
-    + [1.2  Build the Docker Image for PostgreSQL fuzzing](#12--build-the-docker-image-for-postgresql-fuzzing)
-    + [1.3  Build the Docker Images for MySQL evaluations](#13--build-the-docker-images-for-mysql-evaluations)
-  * [2. Run SQLRight fuzzing](#2-run-sqlright-fuzzing)
-    + [2.1 SQLite NoREC oracle](#21-sqlite-norec-oracle)
-    + [2.2 PostgreSQL NoREC](#22-postgresql-norec)
-    + [2.3 MySQL NoREC](#23-mysql-norec)
-    + [2.4 SQLite TLP](#24-sqlite-tlp)
-    + [2.5 PostgreSQL TLP](#25-postgresql-tlp)
-    + [2.6 MySQL TLP](#26-mysql-tlp)
-  * [3. SQLRight development](#3-sqlright-development)
-    + [3.1 SQLRight code structure](#31-sqlright-code-structure)
-    + [3.2 SQLRight new oracle development](#32-sqlright-new-oracle-development)
-      - [3.2.1 Create oracle class files](#321-create-oracle-class-files)
-      - [3.2.2 Implement the required class functions](#322-implement-the-required-class-functions)
-      - [3.2.3 Expose the newly implemented oracle](#323-expose-the-newly-implemented-oracle)
-      - [3.2.4 Implement the oracle in the bisecting code](#324-implement-the-oracle-in-the-bisecting-code)
-      - [3.2.5 Run the newly implemented oracle](#325-run-the-newly-implemented-oracle)
+The overview of `SQLRight` is illustrated by the diagram below.
+
+<a href="doc/sqlright-overview.pdf"><img src="doc/sqlright-overview.pdf"></a>
 
 <br/><br/>
 ## Getting Started
