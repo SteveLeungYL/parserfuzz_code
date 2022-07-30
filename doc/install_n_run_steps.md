@@ -77,7 +77,36 @@ sudo docker system prune --all
 <br/><br/>
 ## 1.  Build the Docker Images
 
-### 1.1  Build the Docker Image for SQLite3 fuzzing
+There are two ways to build the `Docker` Images for `SQLRight` fuzzing. The first way is to download the pre-built `Docker` images from `Docker Hub`. The detailed instructions are illustrated in `Section 1.1`. The second way is to build the `Docker` image from source `Dockerfile`. The steps are showed in `Section 1.2`.
+
+### 1.1 Download pre-built `SQLRight` `Docker` images from `Docker Hub`
+
+Here is the commands to download `SQLRight` images:
+
+```bash
+# For SQLite3 fuzzing and bisecting
+sudo docker pull steveleungsly/sqlright_sqlite:version1.0
+
+# For PostgreSQL fuzzing
+sudo docker pull steveleungsly/sqlright_postgres:version1.0
+
+# For MySQL fuzzing
+sudo docker pull steveleungsly/sqlright_mysql:version1.0
+
+# For MySQL bisecting
+sudo docker pull steveleungsly/sqlright_mysql_bisecting:version1.0
+```
+
+### 1.2 Build `SQLRight` from `Dockerfile`
+
+--------------------------------------------------------------------------
+#### 1.2.1  Build the Docker Image for SQLite3 fuzzing
+
+(Optional) If you want to run `SQLite` bug bisecting, please download all the contents from [Google Drive Shared Link](https://drive.google.com/drive/folders/1zDvLf93MJbtGXByzDXZ-CbfNPAd3wUGJ?usp=sharing), and place the downloaded contents to the following `SQLRight` repo location. 
+
+```bash
+<sqlright_root>/SQLite/docker/sqlite_bisecting_binary_zip
+```
 
 Execute the following command before running any SQLite3 related fuzzing. 
 
@@ -90,7 +119,7 @@ bash setup_sqlite.sh
 After the command finished, a Docker Image named `sqlright_sqlite` is created. 
 
 --------------------------------------------------------------------------
-### 1.2  Build the Docker Image for PostgreSQL fuzzing
+#### 1.2.2  Build the Docker Image for PostgreSQL fuzzing
 
 Execute the following command before running any PostgreSQL related fuzzing. 
 
@@ -103,7 +132,7 @@ bash setup_postgres.sh
 After the command finished, a Docker Image named `sqlright_postgres` is created. 
 
 --------------------------------------------------------------------------
-### 1.3  Build the Docker Images for MySQL evaluations
+#### 1.2.3  Build the Docker Images for MySQL evaluations
 
 Execute the following command before running any MySQL related fuzzing. 
 
@@ -114,10 +143,11 @@ We expect some **Warnings** returned from the MySQL compilation process. These *
 ```bash
 cd <sqlright_root>/MySQL/scripts/
 bash setup_mysql.sh
-bash setup_mysql_bisecting.sh
 ```
 
-After the command finished, two Docker Images named `sqlright_mysql` and `sqlright_mysql_bisecting` are created. 
+After the command finished, the Docker image named `sqlright_mysql` is created. 
+
+**Warning** Due to the large binary size from the pre-compiled versions of `MySQL`, we do not include the steps to build the `sqlright_mysql_bisecting` docker image. To run bisecting for the detected bugs from the `MySQL` DBMS, please pull the `sqlright_mysql_bisecting` image from the `Docker Hub`. More detailed instructions are shown in `Section 1.1`. 
 
 <br/><br/>
 ## 2. Run SQLRight fuzzing
@@ -211,6 +241,8 @@ bash run_mysql_bisecting.sh SQLRight --oracle NOREC
 
 **WARNING** Due to the long compilation time for the `MySQL` DBMS, we are using pre-compiled and cached `MySQL` binaries to bisect the detect logical bugs. As time passes, the cached `MySQL` binaries can become out-of-date and the bisecting can thus become inaccurate. We recommend the developer to add in new `MySQL` versions, or re-compile the MySQL cached binaries in the future `MySQL` runs, in order to keep the bisecting results more accurate. The `MySQL` cached binaries zip files can be located in directory `<sqlright_root>/MySQL/bisecting/bisecting/mysql_binary_zip`. 
 
+**WARNING** Bisecting requires `sqlright_mysql_bisecting` docker image pulled from the `Docker Hub`. Please pull the Docker image using the instructions provided in `Section 1.1`. 
+
 The bisecting script doesn't require `--start-core` and `--num-concurrent` flags. And it will auto exit upon finished. The unique bug reports will be generated in `<sqlright_root>/MySQL/Results/sqlright_mysql_NOREC_bugs/bug_samples/unique_bug_output`.
 
 ---------------------------------------
@@ -295,6 +327,8 @@ bash run_mysql_bisecting.sh SQLRight --oracle TLP
 ```
 
 **WARNING** Due to the long compilation time for the `MySQL` DBMS, we are using pre-compiled and cached `MySQL` binaries to bisect the detect logical bugs. As time passes, the cached `MySQL` binaries can become out-of-date and the bisecting can thus become inaccurate. We recommend the developer to add in new `MySQL` versions, or re-compile the MySQL cached binaries in the future `MySQL` runs, in order to keep the bisecting results more accurate. The `MySQL` cached binaries zip files can be located in directory `<sqlright_root>/MySQL/bisecting/bisecting/mysql_binary_zip`. 
+
+**WARNING** Bisecting requires `sqlright_mysql_bisecting` docker image pulled from the `Docker Hub`. Please pull the Docker image using the instructions provided in `Section 1.1`. 
 
 The unique bug reports will be generated in `<sqlright_root>/MySQL/Results/sqlright_mysql_TLP_bugs/bug_samples/unique_bug_output`.
 
