@@ -25,7 +25,7 @@ The overview of `SQLRight` is illustrated by the diagram below.
 <br/><br/>
 ## Installation & Run
 
-The Installation and Run instructions can be found in [link](doc/install_n_run_steps.md)
+The Installation and Run instructions can be found in this [link](doc/install_n_run_steps.md).
 
 <br/><br/>
 ## Authors
