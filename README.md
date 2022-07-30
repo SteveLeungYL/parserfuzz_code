@@ -40,7 +40,7 @@ The Installation and Run instructions can be found in this [link](doc/install_n_
 ```bib
 Detecting Logical Bugs of DBMS with Coverage-based Guidance
 
-@inproceedings {281422,
+@inproceedings {yu:sqlright,
 title = {Detecting Logical Bugs of {DBMS} with Coverage-based Guidance},
 booktitle = {31st USENIX Security Symposium (USENIX Security 22)},
 year = {2022},
