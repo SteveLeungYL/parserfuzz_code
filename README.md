@@ -18,7 +18,9 @@ Currently supported DBMS:
 
 The overview of `SQLRight` is illustrated by the diagram below.
 
-<a href="doc/sqlright-overview.pdf"><img src="doc/sqlright-overview.jpg"></a>
+<p align="center">
+<img src="doc/sqlright-overview.jpg" width="90%" alt="The overview of SQLRight" border="1">
+</p>
 
 <br/><br/>
 ## Getting Started
