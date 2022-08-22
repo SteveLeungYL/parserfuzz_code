@@ -6177,8 +6177,8 @@ static u8 fuzz_one(char **argv) {
     } else {
         // dirty fix for now.
         query_str_vec.pop_back();
-      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str_vec[0]);
       query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" + query_str_vec[0]);
+      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str_vec[0]);
 
       show_stats();
       stage_name = "fuzz";
