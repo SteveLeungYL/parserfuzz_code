@@ -2798,12 +2798,8 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
 
   vector<vector<string>> res_vec, exp_vec;
 
-  for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++) {
-    if (idx >= all_comp_res.v_res_str.size()) {
-      cerr << "Error: v_res_str overflow in the "
-              "compare_query_results_cross_run func. \n";
-      abort();
-    }
+  for (int idx = 0; idx < all_comp_res.v_res_str.size(); idx++) {
+
     const string &res_str = all_comp_res.v_res_str[idx];
     const string &cmd_str = all_comp_res.v_cmd_str[idx];
 
@@ -2818,8 +2814,8 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
     //   cerr << "cur_res_vec: " << cur_res_vec[i] << endl;
     // }
 
-    res_vec.push_back(std::move(cur_res_vec));
-    exp_vec.push_back(std::move(cur_exp_vec));
+    res_vec.push_back(cur_res_vec);
+    exp_vec.push_back(cur_exp_vec);
   }
 
   /* Compare valid stat by valid stat between different runs. */
@@ -3070,8 +3066,8 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       }
       res_str = read_sqlite_output_and_reset_output_file();
 
-      all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
-      all_comp_res.v_res_str.push_back(std::move(res_str));
+      all_comp_res.v_cmd_str.push_back(cmd_string);
+      all_comp_res.v_res_str.push_back(res_str);
 
     } // End for run_id loop.
 
@@ -6173,11 +6169,15 @@ static u8 fuzz_one(char **argv) {
       goto abandon_entry;
     }
 
-    if (query_str_vec[0] == "" || query_str_vec.size() == 0) {
+    if (query_str_vec.size() == 0 || query_str_vec[0] == "") {
       total_append_failed++;
       skip_count++;
       continue;
     } else {
+
+      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str_vec[0]);
+      query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" + query_str_vec[0]);
+
       show_stats();
       stage_name = "fuzz";
       // cerr << "IR_STR is: " << query_str << endl;
