@@ -53,33 +53,51 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
   bool is_all_err = true;
 
   for (COMP_RES &res : res_out.v_res) {
-    if (res.v_res_str.size() < 2) {
+    if (res.v_res_str.size() < 3) {
       res.comp_res = ORA_COMP_RES::Error;
       res.res_int_0 = -1;
       res.res_int_1 = -1;
+      res.res_int_2 = -1;
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
       continue;
     }
     if (findStringIn(res.v_res_str[0], "Error") ||
+        findStringIn(res.v_res_str[2], "Error") ||
         findStringIn(res.v_res_str[1], "Error")) {
       res.comp_res = ORA_COMP_RES::Error;
       res.res_int_0 = -1;
       res.res_int_1 = -1;
+      res.res_int_2 = -1;
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
       continue;
     }
 
     vector<string> v_res_a = string_splitter(res.v_res_str[0], '\n');
     vector<string> v_res_b = string_splitter(res.v_res_str[1], '\n');
+    vector<string> v_res_c = string_splitter(res.v_res_str[2], '\n');
 
       if (v_res_a.size() > 50 || v_res_b.size() > 50) {
         res.comp_res = ORA_COMP_RES::Error;
+          res.v_res_int.push_back(-1);
+          res.v_res_int.push_back(-1);
+          res.v_res_int.push_back(-1);
         continue;
       }
 
       res.res_int_0 = v_res_a.size();
       res.res_int_1 = v_res_b.size();
+      res.res_int_2 = v_res_c.size();
+
+      res.v_res_int.push_back(res.res_int_0);
+      res.v_res_int.push_back(res.res_int_1);
+      res.v_res_int.push_back(res.res_int_2);
 
     is_all_err = false;
-    if (res.res_int_0 != res.res_int_1) { // Found mismatched.
+    if (res.res_int_0 != res.res_int_1 || res.res_int_1 != res.res_int_2) { // Found mismatched.
       res.comp_res = ORA_COMP_RES::Fail;
       res_out.final_res = ORA_COMP_RES::Fail;
     } else {

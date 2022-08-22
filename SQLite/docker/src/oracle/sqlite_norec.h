@@ -15,6 +15,8 @@ public:
   bool mark_all_valid_node(vector<IR *> &v_ir_collector) override;
   void compare_results(ALL_COMP_RES &res_out) override;
 
+    unsigned get_mul_run_num() override { return 2; }
+
   bool is_oracle_select_stmt(IR* cur_IR) override;
   virtual vector<IR*> post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id) override;
 
