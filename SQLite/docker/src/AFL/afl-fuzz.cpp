@@ -2992,6 +2992,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     if ((cmd_string.find("RANDOM") != std::string::npos) ||
         (cmd_string.find("random") != std::string::npos) ||
         (cmd_string.find("JULIANDAY") != std::string::npos) ||
+        (cmd_string.find("vdbe_") != std::string::npos) ||
         (cmd_string.find("julianday") != std::string::npos)) {
       return FAULT_ERROR;
     }
