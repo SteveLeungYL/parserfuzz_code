@@ -22,24 +22,27 @@ class Bisect:
 
         all_res_str_l = []
         for queries in queries_l:
-            all_res_str, res = Executor.execute_queries(
+            res_str, res = Executor.execute_queries(
                 queries=queries, sqlite_install_dir=INSTALL_DEST_DIR, oracle=oracle
             )
-            all_res_str_l.append(all_res_str)
+            all_res_str_l.append(res_str)
 
-        if res == RESULT.SEG_FAULT:
-            log_out_line("Commit Segmentation fault. \n")
-            return RESULT.SEG_FAULT, None, None
+            if res == RESULT.SEG_FAULT:
+                log_out_line("Commit Segmentation fault. \n")
+                return RESULT.SEG_FAULT, None, None
 
         if len(all_res_str_l) == 0 or res == RESULT.ALL_ERROR:
             log_out_line("Result all Errors. \n")
             return RESULT.ALL_ERROR, None, None
 
-        final_flag, all_res_flags = oracle.comp_query_res(queries_l, all_res_str_l)
+        if len(all_res_str_l) != 3:
+            log_out_line("all_res_int_l does not have length 3. \n")
+            return RESULT.ALL_ERROR, None, None
 
-        #log_out_line("All_res_str_l: " + str(all_res_str_l) + "\n")
-        #log_out_line("Result with final_flag: " + str(final_flag))
-        return final_flag, all_res_flags, all_res_str_l
+        if len(all_res_str_l[0].splitlines()) == len(all_res_str_l[1].splitlines()) and len(all_res_str_l[1].splitlines()) == len(all_res_str_l[2].splitlines()):
+            return RESULT.PASS, [RESULT.PASS], all_res_str_l
+        else:
+            return RESULT.FAIL, [RESULT.FAIL], all_res_str_l
 
     @classmethod
     def setup_previous_compile_fail(cls):
@@ -327,7 +330,7 @@ class Bisect:
     def run_bisecting(cls, queries_l, oracle, vercon, current_file, iter_idx:int, is_non_deter: bool):
         log_out_line(
             "\n\n\nBegin bisecting query with SELECT idx %d: \n\n%s \n\n\n"
-            % (iter_idx, queries_l[0])
+            % (iter_idx, "\n\n".join(queries_l))
         )
         current_bisecting_result = cls.bi_secting_commits(
             queries_l=queries_l, oracle=oracle, vercon=vercon

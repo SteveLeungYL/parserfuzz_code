@@ -45,7 +45,7 @@ def main():
     elif oracle_str == "TLP":
         oracle = Oracle_TLP
     else:
-        oracle = Oracle_NoREC
+        oracle = Oracle_NOREC
 
 
     sys.stdout.flush()
