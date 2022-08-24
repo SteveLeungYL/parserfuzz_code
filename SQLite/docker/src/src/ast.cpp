@@ -3649,7 +3649,7 @@ IR *UpsertItem::translate(vector<IR *> &v_ir_collector) {
   auto tmp1 = SAFETRANSLATE(assign_list_);
   auto tmp2 = SAFETRANSLATE(opt_where_);
 
-  res = new IR(kUnknown, OP2("ON CONFLICT", "UPDATE SET"), tmp0, tmp1);
+  res = new IR(kUnknown, OP2("ON CONFLICT", "DO UPDATE SET"), tmp0, tmp1);
   PUSH(res);
   res = new IR(kUpsertItem, OP0(), res, tmp2);
 
