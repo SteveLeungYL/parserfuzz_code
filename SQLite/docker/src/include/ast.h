@@ -1130,6 +1130,7 @@ public:
   ForeignKeyClause *foreign_key_clause_;
   Identifier *identifier_;
   OptStoredVirtual *opt_stored_virtual_;
+  OptConstraintName * opt_constraint_name_;
 };
 
 class TableConstraintList : public Node {

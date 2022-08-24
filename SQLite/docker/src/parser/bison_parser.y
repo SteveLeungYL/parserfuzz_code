@@ -1419,28 +1419,32 @@ foreign_key_clause:
     ;
 
 column_constraint:
-        PRIMARY KEY opt_order_type opt_conflict_clause opt_autoinc {
+        opt_constraint_name PRIMARY KEY opt_order_type opt_conflict_clause opt_autoinc {
           $$ = new ColumnConstraint();
           $$->sub_type_ = CASE0;
-          $$->opt_order_type_ = $3;
-          $$->opt_conflict_clause_ = $4;
-          $$->opt_autoinc_ = $5;
+          $$->opt_constraint_name_ = $1;
+          $$->opt_order_type_ = $4;
+          $$->opt_conflict_clause_ = $5;
+          $$->opt_autoinc_ = $6;
         }
-    |   opt_not NULL opt_conflict_clause {
+    |   opt_constraint_name opt_not NULL opt_conflict_clause {
           $$ = new ColumnConstraint();
           $$->sub_type_ = CASE1;
-          $$->opt_not_ = $1;
-          $$->opt_conflict_clause_ = $3;
+          $$->opt_constraint_name_ = $1;
+          $$->opt_not_ = $2;
+          $$->opt_conflict_clause_ = $4;
         }
-    |   UNIQUE opt_conflict_clause {
+    |   opt_constraint_name UNIQUE opt_conflict_clause {
           $$ = new ColumnConstraint();
           $$->sub_type_ = CASE2;
-          $$->opt_conflict_clause_ = $2;
+          $$->opt_constraint_name_ = $1;
+          $$->opt_conflict_clause_ = $3;
         }
-    |   CHECK '(' new_expr ')' {
+    |   opt_constraint_name CHECK '(' new_expr ')' {
           $$ = new ColumnConstraint();
           $$->sub_type_ = CASE3;
-          $$->expr_ = $3;
+          $$->opt_constraint_name_ = $1;
+          $$->expr_ = $4;
         }
     |   DEFAULT '(' new_expr ')' {
           $$ = new ColumnConstraint();
@@ -1462,10 +1466,11 @@ column_constraint:
           $$->sub_type_ = CASE7;
           $$->collate_ = $1;
         }
-    |   foreign_key_clause {
+    |   opt_constraint_name foreign_key_clause {
           $$ = new ColumnConstraint();
           $$->sub_type_ = CASE8;
-          $$->foreign_key_clause_ = $1;
+          $$->opt_constraint_name_ = $1;
+          $$->foreign_key_clause_ = $2;
         }
     |   GENERATED ALWAYS AS '(' new_expr ')' opt_stored_virtual {
           $$ = new ColumnConstraint();

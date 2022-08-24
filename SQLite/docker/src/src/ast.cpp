@@ -2755,6 +2755,7 @@ void ColumnConstraint::deep_delete() {
   SAFEDELETE(foreign_key_clause_);
   SAFEDELETE(identifier_);
   SAFEDELETE(opt_stored_virtual_);
+  SAFEDELETE(opt_constraint_name_);
   delete this;
 }
 
