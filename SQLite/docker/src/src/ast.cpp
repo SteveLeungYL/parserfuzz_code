@@ -1061,7 +1061,8 @@ IR *OptFromClause::translate(vector<IR *> &v_ir_collector) {
   SWITCHSTART
   CASESTART(0)
   res = SAFETRANSLATE(from_clause_);
-  res = new IR(kOptFromClause, OP0(), res);
+  auto tmp0 = SAFETRANSLATE(opt_column_alias_);
+  res = new IR(kOptFromClause, OP0(), res, tmp0);
   CASEEND
   CASESTART(1)
   res = new IR(kOptFromClause, "");
@@ -2237,6 +2238,7 @@ void SelectList::deep_delete() {
 
 void OptFromClause::deep_delete() {
   SAFEDELETE(from_clause_);
+  SAFEDELETE(opt_column_alias_);
   delete this;
 }
 

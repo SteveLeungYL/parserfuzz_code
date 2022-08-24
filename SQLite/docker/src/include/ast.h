@@ -623,6 +623,7 @@ public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);
   FromClause *from_clause_;
+  OptColumnAlias *opt_column_alias_;
 };
 
 class OptWhere : public Opt {
