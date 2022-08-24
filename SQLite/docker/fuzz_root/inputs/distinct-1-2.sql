@@ -5,4 +5,4 @@ INSERT INTO t1 VALUES('a', 'b', 'c');
 INSERT INTO t1 VALUES('A', 'B', 'C');
 INSERT INTO t1 VALUES('a', 'b', 'c');
 INSERT INTO t1 VALUES('A', 'B', 'C');
-SELECT DISTINCT o.a FROM t1 AS i) FROM t1 AS o ORDER BY rowid;
+SELECT DISTINCT o.a FROM t1 AS i ORDER BY rowid;
