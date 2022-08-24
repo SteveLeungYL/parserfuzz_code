@@ -877,12 +877,12 @@ upsert_item:
           $$->sub_type_ = CASE0;
           $$->opt_conflict_target_ = $3;
         }
-    |   ON CONFLICT opt_conflict_target UPDATE SET assign_list opt_where {
+    |   ON CONFLICT opt_conflict_target DO UPDATE SET assign_list opt_where {
           $$ = new UpsertItem();
           $$->sub_type_ = CASE1;
           $$->opt_conflict_target_ = $3;
-          $$->assign_list_ = $6;
-          $$->opt_where_ = $7;
+          $$->assign_list_ = $7;
+          $$->opt_where_ = $8;
         }
     ;
 
