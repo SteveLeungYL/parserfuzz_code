@@ -1169,7 +1169,7 @@ IR *OptOrder::translate(vector<IR *> &v_ir_collector) {
   SWITCHSTART
   CASESTART(0)
   res = SAFETRANSLATE(order_list_);
-  res = new IR(kOptOrder, OP1("ORDER BY 1"));
+  res = new IR(kOptOrder, OP1("ORDER BY"), res);
   CASEEND
   CASESTART(1)
   res = new IR(kOptOrder, OP1("ORDER BY 1"));

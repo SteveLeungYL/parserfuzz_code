@@ -2758,7 +2758,7 @@ void Mutator::_extract_struct(IR *root, string &res) {
   auto type_ = root->type_;
   auto str_val_ = root->str_val_;
 
-  if (root->id_type_ == id_pragma_name || root->id_type_ == id_pragma_value) {
+  if (root->id_type_ == id_pragma_name || root->id_type_ == id_pragma_value || root->id_type_ == id_collation_name) {
       res += str_val_;
       return;
   }
