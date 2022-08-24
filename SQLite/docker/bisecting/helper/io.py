@@ -276,7 +276,7 @@ class IO:
 
         log_out_line("same_idx: %s" % (str(same_idx)))
 
-        log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l)))
+        log_out_line("res: %s" % (" ".join(bisecting_result.last_buggy_res_str_l)))
 
         pretty_query = []
         for cur_query in bisecting_result.query:
@@ -425,18 +425,14 @@ class IO:
                 for i, cur_run_res in enumerate(
                     current_bisecting_result.last_buggy_res_str_l
                 ):
-                    for j, cur_res in enumerate(cur_run_res):
-                        bug_output_file.write("Last Buggy Result Num: %d \n" % j)
-                        for k, cur_r in enumerate(cur_res):
-                            bug_output_file.write("RES %d: \n%s\n" % (k, cur_r))
+                    bug_output_file.write("Last Buggy Result Num: %d \n" % i)
+                    bug_output_file.write("RES %d: \n%s\n" % (i, cur_run_res))
             else:
-                for j in range(len(current_bisecting_result.last_buggy_res_str_l[0])):
-                    bug_output_file.write("Last Buggy Result Num: %d \n" % j)
-                    for i in range(len(current_bisecting_result.last_buggy_res_str_l)):
-                        bug_output_file.write(
-                            "\nBuggy Run ID: %d, Results: \n%s\n"
-                            % (i, current_bisecting_result.last_buggy_res_str_l[i][j])
-                        )
+                for i, cur_run_res in enumerate(
+                    current_bisecting_result.last_buggy_res_str_l
+                ):
+                    bug_output_file.write("Last Buggy Result Num: %d \n" % i)
+                    bug_output_file.write("RES %d: \n%s\n" % (i, cur_run_res))
 
         else:
             bug_output_file.write(

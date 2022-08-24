@@ -39,9 +39,13 @@ class Bisect:
             log_out_line("all_res_int_l does not have length 3. \n")
             return RESULT.ALL_ERROR, None, None
 
+        log_out_line("Comparing string 1: \n%s\nstring 2:\n%s\nstring 3:\n%s\n" % (all_res_str_l[0], all_res_str_l[1], all_res_str_l[2]))
+
         if len(all_res_str_l[0].splitlines()) == len(all_res_str_l[1].splitlines()) and len(all_res_str_l[1].splitlines()) == len(all_res_str_l[2].splitlines()):
+            log_out_line("Results Passed. ")
             return RESULT.PASS, [RESULT.PASS], all_res_str_l
         else:
+            log_out_line("Results Failed. ")
             return RESULT.FAIL, [RESULT.FAIL], all_res_str_l
 
     @classmethod
@@ -169,9 +173,7 @@ class Bisect:
             current_bisecting_result.is_bisecting_error = True
             current_bisecting_result.bisecting_error_reason = Error_reason
             current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
-            current_bisecting_result.last_buggy_res_flags_l = (
-                last_buggy_all_result_flags
-            )
+            current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
             current_bisecting_result.final_res_flag = rn_correctness
 
             return current_bisecting_result
@@ -187,9 +189,7 @@ class Bisect:
             current_bisecting_result.is_bisecting_error = True
             current_bisecting_result.bisecting_error_reason = Error_reason
             current_bisecting_result.last_buggy_res_str_l = last_buggy_res_l
-            current_bisecting_result.last_buggy_res_flags_l = (
-                last_buggy_all_result_flags
-            )
+            current_bisecting_result.last_buggy_res_flags_l = last_buggy_all_result_flags
             current_bisecting_result.final_res_flag = rn_correctness
 
             return current_bisecting_result
@@ -328,10 +328,7 @@ class Bisect:
 
     @classmethod
     def run_bisecting(cls, queries_l, oracle, vercon, current_file, iter_idx:int, is_non_deter: bool):
-        log_out_line(
-            "\n\n\nBegin bisecting query with SELECT idx %d: \n\n%s \n\n\n"
-            % (iter_idx, "\n\n".join(queries_l))
-        )
+
         current_bisecting_result = cls.bi_secting_commits(
             queries_l=queries_l, oracle=oracle, vercon=vercon
         )
