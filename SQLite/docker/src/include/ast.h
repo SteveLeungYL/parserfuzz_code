@@ -372,6 +372,7 @@ public:
   ColumnDefList *column_def_list_;
   OptWithoutRowID *opt_without_rowid_;
   TableConstraintList *table_constraint_list_;
+  OptStrict *opt_strict_;
 };
 
 class InsertStatement : public PreparableStatement {
@@ -1096,6 +1097,13 @@ public:
 };
 
 class OptWithoutRowID : public Node {
+public:
+  virtual void deep_delete();
+  virtual IR *translate(vector<IR *> &v_ir_collector);
+  const char *str_val_;
+};
+
+class OptStrict: public Node {
 public:
   virtual void deep_delete();
   virtual IR *translate(vector<IR *> &v_ir_collector);

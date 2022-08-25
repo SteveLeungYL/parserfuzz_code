@@ -641,7 +641,9 @@ IR *CreateTableStatement::translate(vector<IR *> &v_ir_collector) {
   res = new IR(kUnknown, OP3("", "(", ")"), res, tmp3);
   PUSH(res);
   auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
-  res = new IR(kCreateTableStatement, OP0(), res, tmp4);
+  res = new IR(kUnknown, OP0(), res, tmp4);
+  auto tmp5 = SAFETRANSLATE(opt_strict_);
+  res = new IR(kCreateTableStatement, OP0(), res, tmp5);
   CASEEND
   CASESTART(2)
   auto tmp3 = SAFETRANSLATE(column_def_list_);
@@ -651,7 +653,9 @@ IR *CreateTableStatement::translate(vector<IR *> &v_ir_collector) {
   res = new IR(kUnknown, OP3("", "(", ")"), res, tmp);
   PUSH(res);
   auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
-  res = new IR(kCreateTableStatement, OP0(), res, tmp5);
+  res = new IR(kUnknown, OP0(), res, tmp5);
+  auto tmp6 = SAFETRANSLATE(opt_strict_);
+  res = new IR(kCreateTableStatement, OP0(), res, tmp6);
   CASEEND
   SWITCHEND
   TRANSLATEEND
@@ -665,6 +669,7 @@ void CreateTableStatement::deep_delete() {
   SAFEDELETE(column_def_list_);
   SAFEDELETE(opt_without_rowid_);
   SAFEDELETE(table_constraint_list_);
+  SAFEDELETE(opt_strict_);
   delete this;
 }
 
@@ -1215,6 +1220,14 @@ void OptWithoutRowID::deep_delete() { delete this; }
 IR *OptWithoutRowID::translate(vector<IR *> &v_ir_collector) {
   TRANSLATESTART
   res = new IR(kOptWithoutRowID, OP1(str_val_));
+  TRANSLATEEND
+}
+
+void OptStrict::deep_delete() { delete this; }
+
+IR *OptStrict::translate(vector<IR *> &v_ir_collector) {
+  TRANSLATESTART
+  res = new IR(kOptStrict, OP1(str_val_));
   TRANSLATEEND
 }
 

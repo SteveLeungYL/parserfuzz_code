@@ -129,6 +129,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
     DropTriggerStatement* drop_trigger_statement_t;
     OptIfExists* opt_if_exists_t;
     OptWithoutRowID* opt_without_rowid_t;
+    OptStrict* opt_strict_t;
     DeleteStatement* delete_statement_t;
     InsertStatement* insert_statement_t;
     OptColumnListParen * opt_column_list_paren_t;
@@ -313,7 +314,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /* SQL Keywords */
 %token DEALLOCATE PARAMETERS INTERSECT TEMPORARY TIMESTAMP
 %token CURRENT_TIME CURRENT_DATE CURRENT_TIMESTAMP
-%token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN
+%token DISTINCT RESTRICT TRUNCATE ANALYZE BETWEEN STRICT
 %token CASCADE COLUMNS CONTROL DEFAULT EXECUTE EXPLAIN
 %token INTEGER NATURAL PREPARE PRIMARY SCHEMAS
 %token SPATIAL VIRTUAL DESCRIBE BEFORE COLUMN CREATE DELETE DIRECT STORED
@@ -436,6 +437,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %type <common_table_expr_list_t> common_table_expr_list
 %type <opt_semicolon_t>	opt_semicolon
 %type <opt_without_rowid_t> opt_without_rowid
+%type <opt_strict_t> opt_strict
 
 %type <join_op_t> join_op
 %type <join_constraint_t> join_constraint
@@ -1085,7 +1087,7 @@ create_table_statement:
           $$->table_name_ = $5;
           $$->select_statement_ = $7;
         }
-    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ')' opt_without_rowid {
+    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ')' opt_without_rowid opt_strict {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE1;
           $$->opt_tmp_ = NULL; $2->deep_delete(); // we do not want TEMP
@@ -1094,8 +1096,9 @@ create_table_statement:
           $$->table_name_ = $5;
           $$->column_def_list_ = $7;
           $$->opt_without_rowid_ = $9;
+          $$->opt_strict_ = $10;
         }
-    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ',' table_constraint_list ')' opt_without_rowid {
+    |   CREATE opt_tmp TABLE opt_if_not_exists table_name '(' column_def_list ',' table_constraint_list ')' opt_without_rowid opt_strict {
           $$ = new CreateTableStatement();
           $$->sub_type_ = CASE2;
           $$->opt_tmp_ = NULL; $2->deep_delete(); // we do not want TEMP
@@ -1105,6 +1108,7 @@ create_table_statement:
           $$->column_def_list_ = $7;
           $$->table_constraint_list_ = $9;
           $$->opt_without_rowid_ = $11;
+          $$->opt_strict_ = $12;
         }
     ;
 
@@ -1205,6 +1209,11 @@ create_statement:
 opt_without_rowid:
         WITHOUT ROWID {$$ = new OptWithoutRowID(); $$->str_val_ = "WITHOUT ROWID";}
     |   /* empty */  {{$$ = new OptWithoutRowID(); $$->str_val_ = "";}}
+
+opt_strict:
+        STRICT  {$$ = new OptStrict(); $$->str_val_ = "STRICT"; }
+    |   ',' STRICT  {$$ = new OptStrict(); $$->str_val_ = ", STRICT"; }
+    |   /* empty */  {$$ = new OptStrict(); $$->str_val_ = ""; }
 
 opt_unique:
         UNIQUE {$$ = new OptUnique(); $$->str_val_ = "UNIQUE";}
