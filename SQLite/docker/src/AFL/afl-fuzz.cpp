@@ -3040,7 +3040,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     compare_query_result(all_comp_res, explain_diff_id);
   } else {
     /* Compare results of the same validation stmts in different runs. */
-    cout << "Getting multi_loop size: " << cmd_string_vec.size() << endl;
+    //cout << "Getting multi_loop size: " << cmd_string_vec.size() << endl;
     for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
       string cmd_string = cmd_string_vec[idx];
 

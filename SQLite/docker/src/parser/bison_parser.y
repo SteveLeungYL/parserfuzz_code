@@ -305,7 +305,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 /*********************************
  ** Token Definition
  *********************************/
-%token <sval> STRING IDENTIFIER BLOBSTRING HEXVAL EXPVAL;
+%token <sval> STRINGVAL IDENTIFIER BLOBSTRING HEXVAL EXPVAL;
 %token <fval> FLOATVAL
 %token <ival> INTVAL
 //%token <identifier_t> IDENTIFIER
@@ -1924,7 +1924,7 @@ returning_column:
 
 
 opt_from_clause:
-        from_clause  { $$ = new OptFromClause(); $$->sub_type_ = CASE0; $$->from_clause_ = $1;}
+        from_clause opt_column_alias  { $$ = new OptFromClause(); $$->sub_type_ = CASE0; $$->from_clause_ = $1; $$->opt_column_alias_ = $2;}
     |   /* empty */  { $$ = new OptFromClause(); $$->sub_type_ = CASE1;}
     ;
 
@@ -2206,21 +2206,21 @@ in_target:
 
 raise_function:
         RAISE '(' IGNORE ')' { $$ = new RaiseFunction(); $$->sub_type_ = CASE0; }
-    |   RAISE '(' ROLLBACK ',' STRING ')' {
+    |   RAISE '(' ROLLBACK ',' STRINGVAL ')' {
           $$ = new RaiseFunction();
           $$->sub_type_ = CASE1;
           $$->to_raise_ = "RAISE ( ROLLBACK, ";
           $$->error_msg_ = new Identifier($5);
           free($5);
         }
-    |   RAISE '(' ABORT ',' STRING ')' {
+    |   RAISE '(' ABORT ',' STRINGVAL ')' {
           $$ = new RaiseFunction();
           $$->sub_type_ = CASE1;
           $$->to_raise_ = "RAISE ( ABORT, ";
           $$->error_msg_ = new Identifier($5);
           free($5);
         }
-    |   RAISE '(' FAIL ',' STRING ')' {
+    |   RAISE '(' FAIL ',' STRINGVAL ')' {
           $$->sub_type_ = CASE1;
           $$->to_raise_ = "RAISE ( FAIL, ";
           $$->error_msg_ = new Identifier($5);
@@ -2312,7 +2312,7 @@ literal:
     ;
 
 string_literal:
-        STRING { $$ = new StringLiteral(); $$->str_val_ = $1; free($1);}
+        STRINGVAL { $$ = new StringLiteral(); $$->str_val_ = $1; free($1);}
     ;
 
 signed_number:
