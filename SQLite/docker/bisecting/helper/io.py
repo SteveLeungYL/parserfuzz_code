@@ -183,12 +183,10 @@ class IO:
             current_stmt = current_stmt.replace("\n", "")
             if current_stmt == "" or current_stmt == " ":
                 continue
-            queries_pairs.append(current_stmt)
-            if len(queries_pairs) == oracle.veri_vari_num:
-                queries_out.append(queries_pairs)
-                queries_pairs = []
+            # if len(queries_pairs) == oracle.veri_vari_num:
+            queries_out.append(current_stmt)
 
-        log_out_line("Veri_stmts are: %s\n" % (str(queries_out)))
+        log_out_line("Veri_stmts are: %s\n" % (" ".join(queries_out)))
         return queries_out
 
     @classmethod
@@ -248,10 +246,9 @@ class IO:
         for idx in range(len(veri_stmts)):
             if idx in same_idx:
                 continue
-            effect_idx += 1
             new_tail += 'SELECT --------- ' + str(effect_idx) + "  "
-            for cur_veri_stmt in veri_stmts[idx]:
-                new_tail += cur_veri_stmt + "    "
+            new_tail += veri_stmts[idx]
+            effect_idx += 1
             new_tail += "\n"
 
         return header + new_tail
