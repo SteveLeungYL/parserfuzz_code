@@ -642,6 +642,7 @@ IR *CreateTableStatement::translate(vector<IR *> &v_ir_collector) {
   PUSH(res);
   auto tmp4 = SAFETRANSLATE(opt_without_rowid_);
   res = new IR(kUnknown, OP0(), res, tmp4);
+  PUSH(res);
   auto tmp5 = SAFETRANSLATE(opt_strict_);
   res = new IR(kCreateTableStatement, OP0(), res, tmp5);
   CASEEND
@@ -654,6 +655,7 @@ IR *CreateTableStatement::translate(vector<IR *> &v_ir_collector) {
   PUSH(res);
   auto tmp5 = SAFETRANSLATE(opt_without_rowid_);
   res = new IR(kUnknown, OP0(), res, tmp5);
+  PUSH(res);
   auto tmp6 = SAFETRANSLATE(opt_strict_);
   res = new IR(kCreateTableStatement, OP0(), res, tmp6);
   CASEEND
