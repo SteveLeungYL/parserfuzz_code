@@ -324,7 +324,7 @@ int yyerror(YYLTYPE* llocp, Program * result, yyscan_t scanner, const char *msg)
 %token OUTER RIGHT TABLE UNION USING WHERE CALL CASE DATE DATETIME
 %token CHAR CHARACTER NCHAR VARYING NATIVE VARCHAR NVARCHAR
 %token DESC DROP ELSE FILE FROM FULL HASH HINT INTO JOIN
-%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT STRINGTOKEN THEN TIME BLOB CLOB
+%token LEFT LIKE LOAD LONG NULL PLAN SHOW TEXT ANY STRINGTOKEN THEN TIME BLOB CLOB
 %token VIEW WHEN WITH ADD ALL AND ASC CSV END FOR INT KEY REAL BOOL BOOLEAN
 %token TINYINT SMALLINT MEDIUMINT BIGINT UNSIGNED BIG INT2 INT8
 %token NOT OFF SET TOP AS BY IF IN IS OF ON OR TO
@@ -1484,6 +1484,10 @@ column_constraint:
           $$->expr_ = $3;
           $$->opt_stored_virtual_ = $5;
         }
+    |   GENERATED ALWAYS {
+          $$ = new ColumnConstraint();
+          $$->sub_type_ = CASE11;
+    }
     ;
 
 opt_stored_virtual:
@@ -1568,6 +1572,7 @@ column_type:
     |   DATE { $$ = new ColumnType(); $$->str_val_ = string("DATE"); }
     |   DATETIME { $$ = new ColumnType(); $$->str_val_ = string("DATETIME"); }
     |   STRINGTOKEN  {$$ = new ColumnType(); $$->str_val_ = string("STRING"); }
+    |   ANY  {$$ = new ColumnType(); $$->str_val_ = string("ANY"); }
     |   /* empty*/ { $$ = new ColumnType(); $$->str_val_ = string(""); }
     ;
 

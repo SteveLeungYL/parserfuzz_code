@@ -2741,6 +2741,9 @@ IR *ColumnConstraint::translate(vector<IR *> &v_ir_collector) {
   res = SAFETRANSLATE(expr_);
   res = new IR(kColumnConstraint, OP2("AS(", ")"), res);
   CASEEND
+  CASESTART(11)
+  res = new IR(kColumnConstraint, OP1("GENERATED ALWAYS"));
+  CASEEND
   SWITCHEND
   TRANSLATEEND
 }
