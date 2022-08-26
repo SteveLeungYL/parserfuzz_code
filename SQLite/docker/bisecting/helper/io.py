@@ -186,9 +186,9 @@ class IO:
         res_out_all_queries = tmp_res_out_all_queries
 
         print("Debug: printing all the read queries: \n")
-        for select_idx, cur_select_query in iter(res_out_all_queries):
+        for select_idx, cur_select_query in enumerate(res_out_all_queries):
             print("Select %d: " % (select_idx))
-            for idx, cur_query in iter(cur_select_query):
+            for idx, cur_query in enumerate(cur_select_query):
                 print("Run idx: %d " % (idx))
                 print(cur_query)
                 print("\n\n\n")
