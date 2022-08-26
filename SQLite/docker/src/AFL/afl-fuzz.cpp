@@ -89,6 +89,7 @@
 #include "../oracle/sqlite_oracle.h"
 #include "../oracle/sqlite_rowid.h"
 #include "../oracle/sqlite_tlp.h"
+#include "../oracle/sqlite_opt.h"
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <sys/sysctl.h>
@@ -2787,11 +2788,11 @@ void extract_query_result(const string &res, vector<string> &res_vec_out,
 void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
                                      vector<int> &explain_diff_id) {
 
-  //if (p_oracle->get_mul_run_num() <= 1) {
-    //cerr << "Error: calling cross_run compare results function, when "
-            //"mul_run_num <= 1. Code logic error. \n";
-    //abort();
-  //}
+  if (p_oracle->get_mul_run_num() <= 1) {
+    cerr << "Error: calling cross_run compare results function, when "
+            "mul_run_num <= 1. Code logic error. \n";
+    abort();
+  }
 
   all_comp_res.final_res = ORA_COMP_RES::Pass;
   explain_diff_id.clear();
@@ -2942,7 +2943,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
           << "Fourth stmt is (int): " << res.res_int_3 << "\n";
     }
 
-    out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res;
+    out << "Compare_result_int: \n" << all_comp_res.final_res;
     out << "\n\n\n\n";
 
   } else { // multiple execute SQLite.
@@ -2971,7 +2972,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
       iter++;
     }
 
-    out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res;
+    out << "Compare_result_int: \n" << all_comp_res.final_res;
     out << "\n\n\n\n";
   }
 }
@@ -6176,10 +6177,12 @@ static u8 fuzz_one(char **argv) {
       skip_count++;
       continue;
     } else {
-        // dirty fix for now.
-        query_str_vec.pop_back();
-      query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" + query_str_vec[0]);
-      query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str_vec[0]);
+        if (p_oracle->get_oracle_type() == "OPT") {
+            // dirty fix for now.
+          query_str_vec.pop_back();
+          query_str_vec.push_back(".testctrl optimization 0xffffffff; \n" + query_str_vec[0]);
+          query_str_vec.push_back(".testctrl optimization 0x00000000; \n" + query_str_vec[0]);
+        }
 
       show_stats();
       stage_name = "fuzz";
@@ -7674,6 +7677,8 @@ int main(int argc, char **argv) {
         p_oracle = new SQL_ROWID();
       else if (arg == "INDEX")
         p_oracle = new SQL_INDEX();
+      else if (arg == "OPT")
+        p_oracle = new SQL_OPT();
       else
         FATAL("Oracle arguments not supported. ");
     } break;
@@ -7685,7 +7690,7 @@ int main(int argc, char **argv) {
 
   /* Finish setup g_mutator and p_oracle; */
   if (p_oracle == nullptr)
-    p_oracle = new SQL_NOREC();
+    p_oracle = new SQL_OPT();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   g_mutator.set_dump_library(dump_library);
