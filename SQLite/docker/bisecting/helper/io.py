@@ -150,17 +150,17 @@ class IO:
             these mismatches could due to different reasons, 
         """
         res_out_all_queries = [] # Top layer is multi-run queries. 
-        cur_run_query_l = []
 
         # Loop through different run-through. 
         for cur_query in all_queries_str_l:
+            cur_run_query_l = []
 
             cur_query_l = cur_query.split("SELECT 'BEGIN VERI 0';")
             database_mangagement_queries = cur_query_l[0]
 
             # Loop through all SELECTs in one runs. 
             for i in range(1, len(cur_query_l)):
-                if i not in buggy_idx:
+                if i-1 not in buggy_idx:
                     # No need to save not-buggy SELECT. 
                     continue
                 output_queries_out = database_mangagement_queries + "SELECT 'BEGIN VERI 0';"
