@@ -42,10 +42,10 @@ class Oracle_OPT:
             print("all_res_int_l does not have length 3. \n")
             return RESULT.ALL_ERROR, None
 
-        print("Comparing string 1: \n%s\nstring 2:\n%s\nstring 3:\n%s\n" % (all_res_str_l[-3], all_res_str_l[-2], all_res_str_l[-1]))
+        # print("Comparing string 1: \n%s\nstring 2:\n%s\nstring 3:\n%s\n" % (all_res_str_l[-3], all_res_str_l[-2], all_res_str_l[-1]))
 
         first_res = all_res_str_l[0]
-        for other_res in range(1, len(all_res_str_l)):
+        for other_res in all_res_str_l:
             if first_res != other_res:
                 return RESULT.FAIL, [RESULT.FAIL]
         return RESULT.PASS, [RESULT.PASS]

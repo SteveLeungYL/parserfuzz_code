@@ -295,7 +295,7 @@ class IO:
 
         log_out_line("res_flags: %s" % (str(bisecting_result.last_buggy_res_flags_l)))
 
-        log_out_line("res: %s" % (" ".join(bisecting_result.last_buggy_res_str_l)))
+        log_out_line("res: %s" % (str(bisecting_result.last_buggy_res_str_l)))
 
         pretty_query = []
         for cur_query in bisecting_result.query:
