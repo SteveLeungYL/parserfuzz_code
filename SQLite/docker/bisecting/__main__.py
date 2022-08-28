@@ -107,6 +107,7 @@ def main():
 
         if is_skip:
             print("Early drop the file %s, because it contains non-deter behaviors. " % (current_file_d))
+            continue
 
         for cur_select_queries in all_new_queries:
             is_dup_commit = False
