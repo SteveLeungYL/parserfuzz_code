@@ -57,7 +57,7 @@ class IO:
             current_file_d = iter_file_d
             idx += 1
 
-            if current_file_d == "":
+            if current_file_d == "" or current_file_d[:4] != "bug:":
                 continue
 
             log_out_line("Found bug sample: {}".format(current_file_d))
@@ -86,6 +86,9 @@ class IO:
         else:
             cls.all_files_in_dir = []
             cls.is_checked = True
+
+        if len(all_queries) == 0:
+            return None, "Done"
 
         #log_out_line(
         #    "Finished reading current query files from the bug_samples folder. "
