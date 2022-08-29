@@ -71,7 +71,8 @@ RUN cp -r sqlite sqlite_ori
 
 ## Build instrumented SQLite3
 WORKDIR /home/sqlite/sqlite
-RUN git checkout version-3.34.0
+#RUN git checkout version-3.34.0
+RUN git checkout master
 ENV CXX=/home/sqlite/AFL/afl-clang-fast++
 ENV CC=/home/sqlite/AFL/afl-clang-fast
 RUN ./configure --enable-debug --enable-fts5
@@ -111,6 +112,16 @@ RUN chown -R sqlite:sqlite /home/sqlite/fuzzing/
 USER sqlite
 WORKDIR /home/sqlite/fuzzing
 RUN mkdir -p Bug_Analysis
+
+# Setup the SQLite bisecting cached binaries. 
+USER root
+COPY sqlite_bisecting_binary /home/sqlite/sqlite_bisecting_binary
+RUN chown -R sqlite:sqlite /home/sqlite/sqlite_bisecting_binary
+
+# Setup the SQLite bisecting environment
+USER root
+COPY bisecting /home/sqlite/bisecting
+RUN chown -R sqlite:sqlite /home/sqlite/bisecting
 
 # At last, setup the Docker helper scripts
 USER root
