@@ -10,7 +10,7 @@ SCRIPT_EXEC=$(cat << EOF
 
 cd /home/sqlite/sqlite_bisecting_binary
 
-git pull origin master
+git pull origin master &> /dev/null
 
 cd /home/sqlite/
 

@@ -11,7 +11,7 @@ mkdir -p /home/sqlite/fuzzing/Bug_Analysis/bug_samples
 
 cd /home/sqlite/sqlite
 
-git pull origin master
+git pull origin master &> /dev/null
 
 cd /home/sqlite/fuzzing/fuzz_root
 
