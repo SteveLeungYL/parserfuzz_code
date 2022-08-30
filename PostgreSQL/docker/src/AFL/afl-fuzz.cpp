@@ -88,6 +88,7 @@
 #include "../oracle/postgres_norec.h"
 #include "../oracle/postgres_oracle.h"
 #include "../oracle/postgres_tlp.h"
+#include "../oracle/postgres_opt.h"
 
 #include "libpq-fe.h"
 using namespace std;
@@ -142,6 +143,51 @@ int bind_to_core_id = -1;
 u64 postgre_execute_ok = 0;
 u64 postgre_execute_error = 0;
 u64 postgre_execute_total = 0;
+
+
+string all_opt_str = "set enable_async_append TO ON; \n"
+                     "set enable_bitmapscan TO ON; \n"
+                     "set enable_gathermerge TO ON; \n"
+                     "set enable_hashagg TO ON; \n"
+                     "set enable_hashjoin TO ON; \n"
+                     "set enable_incremental_sort TO ON; \n"
+                     "set enable_indexscan TO ON; \n"
+                     "set enable_indexonlyscan TO ON; \n"
+                     "set enable_material TO ON; \n"
+                     "set enable_memoize TO ON; \n" 
+                     "set enable_mergejoin TO ON; \n"
+                     "set enable_nestloop TO ON; \n" 
+                     "set enable_parallel_append TO ON; \n"
+                     "set enable_parallel_hash TO ON; \n" 
+                     "set enable_partition_pruning TO ON; \n"
+                     "set enable_partitionwise_join TO ON; \n"
+                     "set enable_partitionwise_aggregate TO ON; \n"
+                     "set enable_seqscan TO ON; \n"
+                     "set enable_sort TO ON; \n"
+                     "set geqo TO ON; \n"
+                     "set enable_tidscan TO ON;";
+
+string no_opt_str = "set enable_async_append TO OFF; \n"
+                    "set enable_bitmapscan TO OFF; \n"
+                    "set enable_gathermerge TO OFF; \n"
+                    "set enable_hashagg TO OFF; \n"
+                    "set enable_hashjoin TO OFF; \n"
+                    "set enable_incremental_sort TO OFF; \n"
+                    "set enable_indexscan TO OFF; \n"
+                    "set enable_indexonlyscan TO OFF; \n"
+                    "set enable_material TO OFF; \n"
+                    "set enable_memoize TO OFF; \n" 
+                    "set enable_mergejoin TO OFF; \n"
+                    "set enable_nestloop TO OFF; \n" 
+                    "set enable_parallel_append TO OFF; \n"
+                    "set enable_parallel_hash TO OFF; \n" 
+                    "set enable_partition_pruning TO OFF; \n"
+                    "set enable_partitionwise_join TO OFF; \n"
+                    "set enable_partitionwise_aggregate TO OFF; \n"
+                    "set enable_seqscan TO OFF; \n"
+                    "set enable_sort TO OFF; \n"
+                    "set geqo TO OFF; \n"
+                    "set enable_tidscan TO OFF;";
 
 int map_file_id = 0;
 fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
@@ -2950,8 +2996,6 @@ BEGIN:
   std::chrono::duration<double> exec_used_time = exec_end - exec_start;
 
   // cerr << "For execuing entry: " << current_entry << ", used time: " << exec_used_time.count() << ". \n\n\n";
-
-
   // cerr << "After running in run_target(), getting result.status" << result.status << "\n";
 
   if (result.status == kServerCrash)
@@ -3107,16 +3151,12 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
 
   vector<vector<string>> res_vec, exp_vec;
 
-  for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+  for (int idx = 0; idx < all_comp_res.v_res_str.size(); idx++)
   {
-    if (idx >= all_comp_res.v_res_str.size())
-    {
-      cerr << "Error: v_res_str overflow in the "
-              "compare_query_results_cross_run func. \n";
-      abort();
-    }
+
     const string &res_str = all_comp_res.v_res_str[idx];
     const string &cmd_str = all_comp_res.v_cmd_str[idx];
+
     if (is_str_empty(res_str))
     {
       all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
@@ -3379,10 +3419,11 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     all_comp_res.cmd_str = std::move(cmd_string);
     all_comp_res.res_str = std::move(res_str);
     compare_query_result(all_comp_res, explain_diff_id);
-  } else
+  } 
+    else
   {
     /* Compare results of the same validation stmts in different runs. */
-    for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+    for (int idx = 0; idx < cmd_string_vec.size(); idx++) 
     {
       // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
       string cmd_string = cmd_string_vec[idx];
@@ -3439,7 +3480,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   }
 
   /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
+   //stream_output_res(all_comp_res, cerr);
 
   /***********************/
   /* Debug: output logs for all execs */
@@ -6597,6 +6638,20 @@ static u8 fuzz_one(char **argv)
 
         // if (query_str_vec.size() > 0)
         //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
+        //
+        if (p_oracle->get_oracle_type() == "OPT") {
+            string ori_stmt = query_str_vec[0];
+            string no_opt_stmt = no_opt_str + ori_stmt;
+            string all_opt_stmt = all_opt_str + ori_stmt;
+            query_str_vec.push_back(no_opt_stmt);
+            query_str_vec.push_back(all_opt_stmt);
+
+            ori_stmt = query_str_no_marks_vec[0];
+            no_opt_stmt = no_opt_str + ori_stmt ;
+            all_opt_stmt = all_opt_str + ori_stmt;
+            query_str_no_marks_vec.push_back(no_opt_stmt);
+            query_str_no_marks_vec.push_back(all_opt_stmt);
+        }
 
         if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
         {
@@ -8171,6 +8226,8 @@ int main(int argc, char **argv)
         p_oracle = new SQL_NOREC();
       else if (arg == "TLP")
         p_oracle = new SQL_TLP();
+      else if (arg == "OPT")
+        p_oracle = new SQL_OPT();
       // else if (arg == "LIKELY")
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
@@ -8189,7 +8246,7 @@ int main(int argc, char **argv)
 
   /* Finish setup g_mutator and p_oracle; */
   if (p_oracle == nullptr)
-    p_oracle = new SQL_NOREC();
+    p_oracle = new SQL_OPT();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
   
