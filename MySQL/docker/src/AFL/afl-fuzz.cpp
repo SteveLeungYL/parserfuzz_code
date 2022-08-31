@@ -88,6 +88,7 @@
 #include "../oracle/mysql_oracle.h"
 #include "../oracle/mysql_norec.h"
 #include "../oracle/mysql_tlp.h"
+#include "../oracle/mysql_opt.h"
 
 #include <mysql/mysql.h>
 #include <mysql/mysqld_error.h>
