@@ -6473,7 +6473,7 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
 
 inline void append_opt_stmts(vector<string>& query_str_vec, vector<string>& query_str_no_marks_vec) {
 
-    if (query_str_vec.size() < 1 || query_str_no_marks_vec < 1) {
+    if (query_str_vec.size() < 1 || query_str_no_marks_vec.size() < 1) {
         return;
     }
 
