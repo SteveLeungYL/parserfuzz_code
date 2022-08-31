@@ -5625,14 +5625,9 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
 
   vector<vector<string>> res_vec, exp_vec;
 
-  for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+  for (int idx = 0; idx < all_comp_res.v_res_str.size(); idx++)
   {
-    if (idx >= all_comp_res.v_res_str.size())
-    {
-      cerr << "Error: v_res_str overflow in the "
-              "compare_query_results_cross_run func. \n";
-      abort();
-    }
+
     const string &res_str = all_comp_res.v_res_str[idx];
     const string &cmd_str = all_comp_res.v_cmd_str[idx];
     if (is_str_empty(res_str))
@@ -5790,13 +5785,13 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out)
           << "Fourth stmt is (int): " << res.res_int_3 << "\n";
     }
 
-    out << "Compare_No_Rec_result_int: \n"
+    out << "Compare_result_int: \n"
         << all_comp_res.final_res;
     out << "\n\n\n\n";
   }
   else
-  { // multiple execute SQLite.
-    out << "Multiple execution of SQLite: \n";
+  { // multiple execute MySQL.
+    out << "Multiple execution of MySQL: \n";
 
     for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++)
     {
@@ -5824,7 +5819,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out)
       iter++;
     }
 
-    out << "Compare_No_Rec_result_int: \n"
+    out << "Compare_result_int: \n"
         << all_comp_res.final_res;
     out << "\n\n\n\n";
   }
@@ -5910,7 +5905,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   } else
   {
     /* Compare results of the same validation stmts in different runs. */
-    for (int idx = 0; idx < p_oracle->get_mul_run_num(); idx++)
+    for (int idx = 0; idx < cmd_string_vec.size(); idx++)
     {
       // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
       string cmd_string = cmd_string_vec[idx];
@@ -6475,6 +6470,32 @@ void get_oracle_select_stmts(vector<IR*> &v_oracle_select_stmts, int valid_max_n
   return;
 }
 
+inline void append_opt_stmts(vector<string>& query_str_vec, vector<string>& query_str_no_marks_vec) {
+
+    if (query_str_vec.size() < 1 || query_str_no_marks_vec < 1) {
+        return;
+    }
+
+    std::array<string, 7> opt_str = {
+        "SET SESSION optimizer_switch=default", 
+        "SET SESSION optimizer_switch='index_merge=off,index_merge_union=off,index_merge_sort_union=off,engine_condition_pushdown=off,index_condition_pushdown=off';", 
+        "SET SESSION optimizer_switch='mrr=off,mrr_cost_based=off,block_nested_loop=off';", 
+        "SET SESSION optimizer_switch='batched_key_access=off,materialization=off,semijoin=off,loosescan=off,firstmatch=off,duplicateweedout=off';", 
+        "SET SESSION optimizer_switch= 'subquery_materialization_cost_based=off,use_index_extensions=off,condition_fanout_filter=off,derived_merge=off,use_invisible_indexes=off,skip_scan=off,hash_join=off,subquery_to_derived=off';", 
+        "SET SESSION optimizer_switch= 'prefer_ordering_index=off,hypergraph_optimizer=off,derived_condition_pushdown=off';",
+        "SET SESSION optimizer_switch= 'index_merge_intersection=off'; "
+    };
+
+    const string ori_query_str = query_str_vec[0];
+    const string ori_query_no_str = query_str_no_marks_vec[0];
+    for (const auto& cur_opt : opt_str) {
+        query_str_vec.push_back(cur_opt + ori_query_str);
+        query_str_no_marks_vec.push_back(cur_opt + ori_query_no_str);
+    }
+    
+    return;
+}
+
 
 
 /* Take the current entry from the queue, fuzz it for a while. This
@@ -6942,8 +6963,13 @@ static u8 fuzz_one(char **argv)
         // if (query_str_vec.size() > 0)
         //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
 
+        if (p_oracle->get_oracle_type() == "OPT") {
+            append_opt_stmts(query_str_vec, query_str_no_marks_vec);
+        }
+
         if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
         {
+            
           // goto abandon_entry;
           continue;
         }
@@ -8470,6 +8496,8 @@ int main(int argc, char *argv[])
         p_oracle = new SQL_NOREC();
       else if (arg == "TLP")
         p_oracle = new SQL_TLP();
+      else if (arg == "OPT")
+        p_oracle = new SQL_OPT();
       // else if (arg == "LIKELY")
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
@@ -8543,7 +8571,7 @@ int main(int argc, char *argv[])
     }
 
   if (p_oracle == NULL) {
-    p_oracle = new SQL_NOREC();
+    p_oracle = new SQL_OPT();
   }
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
