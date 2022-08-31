@@ -75,11 +75,11 @@ FROM sqlright_mysql_tools AS sqlright_mysql_source_build
 # build MySQL instrumented by afl-clang-fast
 USER mysql
 WORKDIR /home/mysql/
-RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.27.zip
-RUN unzip mysql-8.0.27.zip
-RUN mv mysql-server-mysql-8.0.27 mysql-server
+RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.30.zip
+RUN unzip mysql-8.0.30.zip
+RUN mv mysql-server-mysql-8.0.30 mysql-server
 WORKDIR /home/mysql/mysql-server
-# MySQL version 8.0.27
+# MySQL version 8.0.30
 # RUN git checkout 3290a66c89eb1625a7058e0ef732432b6952b435 
 RUN mkdir bld
 WORKDIR /home/mysql/mysql-server/bld
