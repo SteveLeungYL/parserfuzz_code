@@ -13,6 +13,7 @@ import (
 	"go/token"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"sort"
 
@@ -341,8 +342,12 @@ func annotate(name string) {
 		}
 	}
 
+	// Add the global coverage required package
+	fmt.Fprintf(fd, "import github.com/cockroachdb/cockroach/pkg/global_cov\n")
+
 	fmt.Fprintf(fd, "//line %s:1\n", name)
-	fmt.Fprintf(fd, "import")
+
+	// Actual instrumentation code
 	fd.Write(newContent)
 
 	// After printing the source tree, add some declarations for the counters etc.
@@ -387,7 +392,23 @@ func (f *File) newCounter(start, end token.Pos, numStmt int) string {
 func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, extendToClosingBrace bool) {
 	// Special case: make sure we add a counter to an empty block. Can't do this below
 	// or we will add a counter to an empty statement list after, say, a return statement.
+	getRndOffset := func() uint32 {
+		randInt := rand.Intn(1 << 18)
+		return uint32(randInt)
+	}
+
+	getCovStmt := func() string {
+		randOff := getRndOffset()
+		retStmt := fmt.Sprintf("global_cov.GCov.LogGlobalCov(%d);", randOff)
+		return retStmt
+	}
+
 	if len(list) == 0 {
+		// Global branch coverage based instrumentation.
+		log.Printf("Inserting coverage statement. ")
+		newCovStmt := getCovStmt()
+		f.edit.Insert(f.offset(insertPos), newCovStmt)
+
 		f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
 		return
 	}
@@ -438,6 +459,11 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 			end = blockEnd
 		}
 		if pos != end { // Can have no source to cover if e.g. blocks abut.
+			// Global branch coverage based instrumentation.
+			log.Printf("Inserting coverage statement. ")
+			newCovStmt := getCovStmt()
+			f.edit.Insert(f.offset(insertPos), newCovStmt)
+
 			f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
 		}
 		list = list[last:]
