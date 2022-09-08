@@ -6,6 +6,9 @@ from loguru import logger
 db_dir = "./cockroach"
 opts = []
 
+logger.remove()
+logger.add(sys.stdout, level="INFO")
+
 try:
     opts, args = getopt.getopt(sys.argv[1:], "i:", ["db-dir="])
 except getopt.GetoptError:
@@ -38,8 +41,11 @@ for subdir, _, files in os.walk("./"):
         tmp_contents = ""
         with open(cur_file_dir, "r") as fd:
             is_imported = False
+            is_package = False
             for cur_line in fd.readlines():
-                if not is_imported and "import" in cur_line:
+                if not is_package and "package " in cur_line:
+                    is_package = True
+                elif not is_imported and is_package and "import" in cur_line:
                     is_imported = True
                     tmp_contents += "import \"github.com/globalcov\"\n"
                     logger.debug("Importing file: %s %s" % (subdir, cur_file))
