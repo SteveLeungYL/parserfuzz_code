@@ -16,6 +16,7 @@ import (
 	"math/rand"
 	"os"
 	"sort"
+	"strings"
 
 	"cmd/internal/edit"
 	"cmd/internal/objabi"
@@ -343,7 +344,19 @@ func annotate(name string) {
 	}
 
 	// Add the global coverage required package
-	fmt.Fprintf(fd, "import github.com/cockroachdb/cockroach/pkg/global_cov\n")
+	tmpNewContentStr := ""
+	newContentStr := string(newContent)
+	isGlobalCovImported := false
+	for _, curStr := range strings.Split(newContentStr, "\n") {
+		if !isGlobalCovImported && strings.Contains(curStr, "import") {
+			tmpNewContentStr += "import \"github.com/cockroachdb/cockroach/pkg/global_cov\" \n"
+			isGlobalCovImported = true
+		}
+		tmpNewContentStr += curStr + "\n"
+	}
+	newContent = []byte(tmpNewContentStr)
+
+	//fmt.Fprintf(fd, "import github.com/cockroachdb/cockroach/pkg/global_cov\n")
 
 	fmt.Fprintf(fd, "//line %s:1\n", name)
 
@@ -405,7 +418,7 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 
 	if len(list) == 0 {
 		// Global branch coverage based instrumentation.
-		log.Printf("Inserting coverage statement. ")
+		//log.Printf("Inserting coverage statement. ")
 		newCovStmt := getCovStmt()
 		f.edit.Insert(f.offset(insertPos), newCovStmt)
 
@@ -754,3 +767,4 @@ func dedup(p1, p2 token.Position) (r1, r2 token.Position) {
 
 	return key.p1, key.p2
 }
+

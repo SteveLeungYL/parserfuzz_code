@@ -37,3 +37,4 @@ func (g *GlobalCovInfo) getXorOffset(curLoc uint32) uint32 {
 	g.prevLoc = curLoc >> 1
 	return res
 }
+
