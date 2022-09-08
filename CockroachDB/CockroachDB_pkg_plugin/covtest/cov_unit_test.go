@@ -76,6 +76,7 @@ import (
 //}
 
 func TestCov(t *testing.T) {
+    //globalcov.LogGlobalCov(100)
 
 	params, _ := tests.CreateTestServerParams()
 	s, sqlDB, _ := serverutils.StartServer(t, params)
@@ -142,4 +143,3 @@ func TestCov(t *testing.T) {
 	}
 
 }
-
