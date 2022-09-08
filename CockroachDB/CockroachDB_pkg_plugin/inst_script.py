@@ -32,28 +32,36 @@ os.chdir(db_dir)
 for subdir, _, files in os.walk("./"):
     for cur_file in files:
         # only instrument .go files.
-        if cur_file[-3:] != ".go":
+        if cur_file[-3:] != ".go" or "doc.go" in cur_file:
             logger.debug("Ignore file: %s %s" % (subdir, cur_file))
             continue
 
         cur_file_dir = os.path.join("./", subdir, cur_file)
 
         tmp_contents = ""
+        is_func_existed = False
         with open(cur_file_dir, "r") as fd:
             is_imported = False
             is_package = False
             for cur_line in fd.readlines():
-                if not is_package and "package " in cur_line:
+                if not is_package and cur_line[:8] == "package ":
                     is_package = True
-                elif not is_imported and is_package and "import" in cur_line:
+                elif not is_imported and is_package and cur_line[:6] == "import":
                     is_imported = True
                     tmp_contents += "import \"github.com/globalcov\"\n"
                     logger.debug("Importing file: %s %s" % (subdir, cur_file))
 
+                # Check whether there are func in the file. If not, do not append
+                # the import
+                if cur_line[:5] == "func ":
+                    is_func_existed = True
+
                 tmp_contents += cur_line
 
-        logger.debug("Getting instrumented file: \n%s\n" % (tmp_contents))
-
-        with open(cur_file_dir, "w") as fd:
-            fd.write(tmp_contents)
+        if is_func_existed:
+            # logger.debug("Getting instrumented file: \n%s\n" % (tmp_contents))
+            with open(cur_file_dir, "w") as fd:
+                fd.write(tmp_contents)
+        else:
+            logger.debug("Importing file: %s %s because there are no functions inside. " % (subdir, cur_file))
 
