@@ -51,6 +51,11 @@ USER cockroach
 
 RUN pip3 install libtmux
 
+USER root
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
+RUN apt update
+RUN apt -y install nodejs
+
 WORKDIR /home/cockroach
 
 USER cockroach
@@ -76,76 +81,75 @@ RUN echo 'export GOPATH="/home/cockroach/go_projects"' >> ~/.bashrc
 ENV GOPATH="/home/cockroach/go_projects"
 
 # Compile CockroachDB
-USER root
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
-RUN apt update
-RUN apt -y install nodejs
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
 RUN git checkout v21.2.15
 # The first build is possible to be failed by vendor mismatched. Ignored. 
 # The first build will automatically call go mod vendor. 
 RUN make build; exit 0
-# Actual build. 
+# Actual build. After the build, the cockroach binary should be in 
+# /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/cockroach
 RUN make build
 
+# Move the CockroachDB Package Plugin into the Docker Image. 
+USER root
+COPY CockroachDB_pkg_plugin /home/cockroach/CockroachDB_pkg_plugin
+RUN chown -R cockroach:cockroach /home/cockroach/CockroachDB_pkg_plugin
 
-## Build AFL. 
-#RUN git clone https://github.com/google/AFL.git
-#
-#WORKDIR /home/postgres/AFL
-#RUN sed -i  's/#define MAP_SIZE_POW2       16/#define MAP_SIZE_POW2       18/' config.h
-#RUN make
-#WORKDIR /home/postgres/AFL/llvm_mode
-## ENV LLVM_CONFIG=llvm-config-6.0
-#RUN make
-#
-## Build Postgres REL_14_0
-#
-#WORKDIR /home/postgres
-#RUN git clone https://github.com/postgres/postgres.git
-#RUN cp -r /home/postgres/postgres/ /home/postgres/postgres_ori/
-#
-#WORKDIR /home/postgres/postgres/ 
-#RUN git checkout REL_14_0
-#RUN mkdir /home/postgres/postgres/bld
-#
-#USER postgres
-#WORKDIR /home/postgres/postgres/bld
-#ENV CXX=/home/postgres/AFL/afl-clang-fast++
-#ENV CC=/home/postgres/AFL/afl-clang-fast
-#RUN ../configure --enable-debug --prefix=$(pwd) --exec-prefix=$(pwd) --enable-cassert && make -j$(nproc) && make install
-#
-#WORKDIR /home/postgres/postgres_ori/
-#RUN git checkout REL_14_0
-#RUN mkdir -p /home/postgres/postgres_ori/bld
-#
-#WORKDIR /home/postgres/postgres_ori/bld
-#ENV CXX=g++-9
-#ENV CC=gcc-9
-#RUN ../configure --enable-debug --prefix=$(pwd) --exec-prefix=$(pwd) && make -j$(nproc) && make install
-#
-## Setup Postgres. 
-## RUN ./bin/initdb -D ./data
-## RUN ./bin/pg_ctl -D ./data start 
-## RUN ./bin/createdb x
-## RUN ./bin/pg_ctl -D ./data stop
-## RUN mkdir -p data_all
-## RUN mv data data_all/ori_data 
-#
-#
-#ENV CXX=g++-9
-#ENV CC=gcc-9
-#
-## Install SQLRight Postgres
-#USER root
-#COPY src /home/postgres/src
-#RUN chown -R postgres:postgres /home/postgres/src
-#
-## Compile SQLRight postgres.
-#USER postgres
-#WORKDIR /home/postgres/src
-#RUN make -j$(nproc)
+USER cockroach
+WORKDIR /home/cockroach
+# Import the covtest unit test entry
+RUN cp -r ./CockroachDB_pkg_plugin/covtest /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/
+# Instrument the CockroachDB source code. 
+RUN cp ./CockroachDB_pkg_plugin/inst_script.py /home/cockroach/go_projects/src/github.com/cockroachdb/
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/
+RUN pip3 install loguru
+RUN python3 inst_script.py
+
+# Introduce the globalcov module. 
+# TODO: Fix it later. Dirty place the globalcov module into the vendor folder. 
+USER cockroach
+# Modify the go.mod
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
+RUN cp -r ~/CockroachDB_pkg_plugin/globalcov  /home/cockroach/go_projects/src/github.com/globalcov
+RUN sed -i -e '4s/^/replace github.com\/globalcov => ..\/..\/globalcov\n/' ./go.mod
+RUN sed -i -e '8s/^/github.com\/globalcov v0.0.0-00010101000000-000000000000\n/' ./go.mod
+RUN go mod vendor; exit 0;
+
+# Copy the globalcov folder to the vendor folder
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/vendor
+RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
+# Some package will search for the github folder (rather than the github.com)
+# to look for the globalcov dependency. Dirty fix for now. 
+# TODO: Fix it later.
+RUN mkdir -p github
+RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
+
+
+# Instrument the Go library
+# Copy the go_modified folder to the Docker image. 
+USER root
+COPY go_modified /home/cockroach/go_modified
+RUN chown -R cockroach:cockroach /home/cockroach/go_modified
+
+USER cockroach
+## Copy the go library to the GOPATH. 
+RUN cp -r ~/go ~/go_projects/src/go
+RUN cp ~/go_modified/cover.go ~/go_projects/src/go/src/cmd/cover
+WORKDIR /home/cockroach/go_projects/src/go/src/
+RUN bash ./buildall.bash -e linux/amd64
+
+# Replace the original Go library with the instrumented new one. 
+USER root
+RUN mv /usr/local/go /usr/local/go_1_16_15_ori
+RUN cp -r /home/cockroach/go_projects/src/go /usr/local/go
+
+# Compile the instrumented covtest unit test binary
+USER cockroach
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
+RUN go test -c -cover -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=v21.2.15-dirty" -X "github.com/cockroachdb/cockroach/pkg/build.rev=2326e63d4a9ad62b19056f90f938a00482cbf56a" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "."  -timeout 45m -covermode=set -coverpkg=./... ./pkg/covtest
+
+
 #
 ### Finished setup of the SQLRight Validity Configurations.
 #
