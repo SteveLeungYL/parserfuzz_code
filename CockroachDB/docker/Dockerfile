@@ -6,8 +6,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN chmod 777 /tmp
 
-RUN apt -y update
 RUN apt -y upgrade
+RUN apt -y update
 RUN apt -y install bison 
 RUN apt -y install flex 
 RUN apt -y install git 
@@ -35,6 +35,10 @@ RUN apt -y install screen
 RUN apt -y install watch
 RUN apt -y install unzip
 RUN apt -y install wget
+RUN apt -y install curl
+RUN apt -y install autoconf
+RUN apt -y install yarn
+RUN apt -y install npm
 
 RUN apt -y install llvm
 RUN apt -y install clang
@@ -49,6 +53,9 @@ RUN pip3 install libtmux
 
 WORKDIR /home/cockroach
 
+USER cockroach
+RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
+
 # Download the original Go library. Set it up. 
 RUN wget https://go.dev/dl/go1.16.15.linux-amd64.tar.gz
 RUN tar -xf go1.16.15.linux-amd64.tar.gz
@@ -56,13 +63,26 @@ USER root
 RUN cp -r go /usr/local/
 USER cockroach
 RUN echo 'export PATH="/usr/local/go/bin:$PATH"' >> ~/.bashrc
+RUN echo 'export PATH="/home/cockroach/.yarn/bin:$PATH"' >> ~/.bashrc
+ENV PATH="/usr/local/go/bin:$PATH"
+ENV PATH="/home/cockroach/.yarn/bin:$PATH"
 
 # No need for AFL. CockroachDB is a Golang program. Construct the GOPATH folder.
 USER cockroach
-RUN mkdir -p ~/go_projects/src/github.com/cockroachdb
-RUN cd ~/go_projects/src/github.com/cockroachdb
+RUN mkdir -p /home/cockroach/go_projects/src/github.com/cockroachdb
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb
 RUN git clone https://github.com/cockroachdb/cockroach.git
-RUN cd cockroach
+RUN echo 'export GOPATH="/home/cockroach/go_projects"' >> ~/.bashrc
+ENV GOPATH="/home/cockroach/go_projects"
+
+# Compile CockroachDB
+USER root
+USER cockroach
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
+RUN git checkout v21.2.15
+# The first build is possible to be failed by vendor mismatched. Ignored. 
+RUN make build; exit 0
+RUN make build
 
 
 ## Build AFL. 
