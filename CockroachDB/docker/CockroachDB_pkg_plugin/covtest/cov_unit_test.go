@@ -2,7 +2,6 @@ package cov_test
 
 import (
 	"context"
-	"fmt"
 	"github.com/cockroachdb/cockroach/pkg/sql/tests"
 	"github.com/cockroachdb/cockroach/pkg/testutils/serverutils"
 	"github.com/cockroachdb/cockroach/pkg/testutils/sqlutils"
@@ -10,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+    "fmt"
 )
 
 //func Fuzz(data []byte) int {
@@ -100,7 +100,7 @@ func TestCov(t *testing.T) {
 		t.Fatal("input_query.sql not existed. ")
 	}
 
-	out_file, out_err := os.Create("./res_out.txt")
+	out_file, out_err := os.Create("./query_res_out.txt")
 	if out_err != nil {
 		panic(out_err)
 	}
@@ -134,7 +134,6 @@ func TestCov(t *testing.T) {
 			} else {
 				r := sqlutils.MatrixToStr(tmpR)
 				log.Printf("Debug: Getting results %s", r)
-
 				out_file.WriteString(fmt.Sprintf("%s", r))
 			}
 		}
@@ -142,4 +141,6 @@ func TestCov(t *testing.T) {
 		log.Printf("Debug: Current query execution End. ")
 	}
 
+    // Plot the coverage output. 
+    globalcov.SaveGlobalCov()
 }

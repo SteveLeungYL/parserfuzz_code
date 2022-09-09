@@ -2,7 +2,10 @@ package globalcov
 
 import (
 	"bytes"
+    "os"
 	"encoding/binary"
+    //"fmt"
+    "log"
 )
 
 var GCov GlobalCovInfo
@@ -20,8 +23,16 @@ func LogGlobalCov(curLoc uint32) {
 		GCov.buf.Grow(1 << 19)
 	}
 
-	offset := 2 * getXorOffset(curLoc)
-    //log.Printf("Logging for offset: input: %d, offset: %d", curLoc, offset)
+    //logPrevLoc := GCov.prevLoc
+	offset := getXorOffset(curLoc)
+
+    ////Debugging purpose
+    //if offset < 66000 && offset > 65000 {
+        //log.Printf("\n\n\nDEBUG: Triggered offset: %d, curLoc: %d, prevLoc: %d\n\n\n", offset, curLoc, logPrevLoc)
+    //}
+
+    offset = 2 * offset
+
 	count := binary.BigEndian.Uint16(GCov.buf.Bytes()[offset : offset+2])
 	count += 1
 	binary.BigEndian.PutUint16(GCov.buf.Bytes()[offset:offset+2], count)
@@ -35,4 +46,17 @@ func getXorOffset(curLoc uint32) uint32 {
 	// Save the right-shifted curLoc
 	GCov.prevLoc = curLoc >> 1
 	return res
+}
+
+func SaveGlobalCov() {
+    // Plot the coverage output. 
+    log.Printf("Inside SaveGlobalCov function. ")
+	covFile, covOutErr := os.Create("./cov_out.bin")
+	if covOutErr != nil {
+		panic(covOutErr)
+	}
+    defer covFile.Close()
+    //log.Printf(fmt.Sprintf("The first few bytes are: %08b,%08b,%08b,%08b", GCov.buf.Bytes()[0], GCov.buf.Bytes()[1], GCov.buf.Bytes()[2], GCov.buf.Bytes()[3]))
+    binary.Write(covFile, binary.LittleEndian, GCov.buf.Bytes())
+    //covFile.Write(GCov.buf.Bytes())
 }
