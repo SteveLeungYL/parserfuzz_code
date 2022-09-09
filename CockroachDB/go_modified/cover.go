@@ -342,28 +342,28 @@ func annotate(name string) {
 		}
 	}
 
-    // Check the instrumented content, if the instrumented content does not
-    // contains the LogGlobalCov function, remove the globalcov import
-    tmpNewContentStr := ""
-    newContentStr := string(newContent)
+    //// Check the instrumented content, if the instrumented content does not
+    //// contains the LogGlobalCov function, remove the globalcov import
+    //tmpNewContentStr := ""
+    //newContentStr := string(newContent)
 
-    isInstrFound := false
-    for _, curStr := range strings.Split(newContentStr, "\n") {
-        if strings.Contains(curStr, "LogGlobalCov") {
-            isInstrFound = true
-        }
-    }
+    //isInstrFound := false
+    //for _, curStr := range strings.Split(newContentStr, "\n") {
+        //if strings.Contains(curStr, "LogGlobalCov") {
+            //isInstrFound = true
+        //}
+    //}
 
-    // If instrumentation is not found, remove the globalcov import
-    if !isInstrFound {
-        for _, curStr := range strings.Split(newContentStr, "\n") {
-            if !strings.Contains(curStr, "github.com/globalcov") {
-                tmpNewContentStr += curStr + "\n"
-            }
-        }
-        // Overwrite the return newContent
-        newContent = []byte(tmpNewContentStr)
-    }
+    //// If instrumentation is not found, remove the globalcov import
+    //if !isInstrFound {
+        //for _, curStr := range strings.Split(newContentStr, "\n") {
+            //if !strings.Contains(curStr, "github.com/globalcov") {
+                //tmpNewContentStr += curStr + "\n"
+            //}
+        //}
+        //// Overwrite the return newContent
+        //newContent = []byte(tmpNewContentStr)
+    //}
 
 	fmt.Fprintf(fd, "//line %s:1\n", name)
 
