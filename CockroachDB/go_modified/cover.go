@@ -16,7 +16,6 @@ import (
 	"math/rand"
 	"os"
 	"sort"
-	"strings"
 
 	"cmd/internal/edit"
 	"cmd/internal/objabi"
@@ -343,20 +342,28 @@ func annotate(name string) {
 		}
 	}
 
-	// Add the global coverage required package
-	tmpNewContentStr := ""
-	newContentStr := string(newContent)
-	isGlobalCovImported := false
-	for _, curStr := range strings.Split(newContentStr, "\n") {
-		if !isGlobalCovImported && strings.Contains(curStr, "import") {
-			tmpNewContentStr += "import \"github.com/cockroachdb/cockroach/pkg/global_cov\" \n"
-			isGlobalCovImported = true
-		}
-		tmpNewContentStr += curStr + "\n"
-	}
-	newContent = []byte(tmpNewContentStr)
+    // Check the instrumented content, if the instrumented content does not
+    // contains the LogGlobalCov function, remove the globalcov import
+    tmpNewContentStr := ""
+    newContentStr := string(newContent)
 
-	//fmt.Fprintf(fd, "import github.com/cockroachdb/cockroach/pkg/global_cov\n")
+    isInstrFound := false
+    for _, curStr := range strings.Split(newContentStr, "\n") {
+        if strings.Contains(curStr, "LogGlobalCov") {
+            isInstrFound = true
+        }
+    }
+
+    // If instrumentation is not found, remove the globalcov import
+    if !isInstrFound {
+        for _, curStr := range strings.Split(newContentStr, "\n") {
+            if !strings.Contains(curStr, "github.com/globalcov") {
+                tmpNewContentStr += curStr + "\n"
+            }
+        }
+        // Overwrite the return newContent
+        newContent = []byte(tmpNewContentStr)
+    }
 
 	fmt.Fprintf(fd, "//line %s:1\n", name)
 
@@ -412,17 +419,17 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 
 	getCovStmt := func() string {
 		randOff := getRndOffset()
-		retStmt := fmt.Sprintf("global_cov.GCov.LogGlobalCov(%d);", randOff)
+		retStmt := fmt.Sprintf("globalcov.LogGlobalCov(%d);", randOff)
 		return retStmt
 	}
 
 	if len(list) == 0 {
 		// Global branch coverage based instrumentation.
-		//log.Printf("Inserting coverage statement. ")
+		log.Printf("Inserting coverage statement. ")
 		newCovStmt := getCovStmt()
 		f.edit.Insert(f.offset(insertPos), newCovStmt)
 
-		f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
+        f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
 		return
 	}
 	// Make a copy of the list, as we may mutate it and should leave the
@@ -477,7 +484,7 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 			newCovStmt := getCovStmt()
 			f.edit.Insert(f.offset(insertPos), newCovStmt)
 
-			f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
+            f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
 		}
 		list = list[last:]
 		if len(list) == 0 {
@@ -767,4 +774,3 @@ func dedup(p1, p2 token.Position) (r1, r2 token.Position) {
 
 	return key.p1, key.p2
 }
-

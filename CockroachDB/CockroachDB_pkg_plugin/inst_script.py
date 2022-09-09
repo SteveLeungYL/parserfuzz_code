@@ -39,14 +39,18 @@ for subdir, _, files in os.walk("./"):
         cur_file_dir = os.path.join("./", subdir, cur_file)
 
         tmp_contents = ""
-        is_func_existed = False
+        # TODO: Fix later
+        # is_func_existed = False
+        is_func_existed = True
+
         with open(cur_file_dir, "r") as fd:
             is_imported = False
             is_package = False
             for cur_line in fd.readlines():
                 if not is_package and cur_line[:8] == "package ":
                     is_package = True
-                elif not is_imported and is_package and cur_line[:6] == "import":
+                # Insert the import statement immediately after the package statement
+                elif not is_imported and is_package:
                     is_imported = True
                     tmp_contents += "import \"github.com/globalcov\"\n"
                     logger.debug("Importing file: %s %s" % (subdir, cur_file))
