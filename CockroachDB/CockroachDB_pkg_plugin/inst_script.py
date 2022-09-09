@@ -52,7 +52,7 @@ for subdir, _, files in os.walk("./"):
                 # Insert the import statement immediately after the package statement
                 elif not is_imported and is_package:
                     is_imported = True
-                    tmp_contents += "import \"github.com/globalcov\"\n"
+                    tmp_contents += "import _ \"github.com/globalcov\"\n"
                     logger.debug("Importing file: %s %s" % (subdir, cur_file))
 
                 # Check whether there are func in the file. If not, do not append
