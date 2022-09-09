@@ -77,11 +77,16 @@ ENV GOPATH="/home/cockroach/go_projects"
 
 # Compile CockroachDB
 USER root
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
+RUN apt update
+RUN apt -y install nodejs
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
 RUN git checkout v21.2.15
 # The first build is possible to be failed by vendor mismatched. Ignored. 
+# The first build will automatically call go mod vendor. 
 RUN make build; exit 0
+# Actual build. 
 RUN make build
 
 
