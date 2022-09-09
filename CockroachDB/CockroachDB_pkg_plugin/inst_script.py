@@ -44,15 +44,14 @@ for subdir, _, files in os.walk("./"):
         is_func_existed = True
 
         with open(cur_file_dir, "r") as fd:
-            is_imported = False
             is_package = False
             for cur_line in fd.readlines():
+                tmp_contents += cur_line
+
+                # Add the import line immediately after the package line. 
                 if not is_package and cur_line[:8] == "package ":
                     is_package = True
-                # Insert the import statement immediately after the package statement
-                elif not is_imported and is_package:
-                    is_imported = True
-                    tmp_contents += "import _ \"github.com/globalcov\"\n"
+                    tmp_contents += "\nimport \"github.com/globalcov\"\n"
                     logger.debug("Importing file: %s %s" % (subdir, cur_file))
 
                 # Check whether there are func in the file. If not, do not append
@@ -60,7 +59,8 @@ for subdir, _, files in os.walk("./"):
                 if cur_line[:5] == "func ":
                     is_func_existed = True
 
-                tmp_contents += cur_line
+
+        tmp_contents += "var _ = globalcov.LogGlobalCov"
 
         if is_func_existed:
             # logger.debug("Getting instrumented file: \n%s\n" % (tmp_contents))

@@ -22,7 +22,7 @@ func LogGlobalCov(curLoc uint32) {
 	}
 
 	offset := 2 * getXorOffset(curLoc)
-	log.Printf("Logging for offset: %d", offset)
+    log.Printf("Logging for offset: input: %d, offset: %d", curLoc, offset)
 	count := binary.BigEndian.Uint16(GCov.buf.Bytes()[offset : offset+2])
 	count += 1
 	binary.BigEndian.PutUint16(GCov.buf.Bytes()[offset:offset+2], count)

@@ -425,7 +425,7 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 
 	if len(list) == 0 {
 		// Global branch coverage based instrumentation.
-		log.Printf("Inserting coverage statement. ")
+		//log.Printf("Inserting coverage statement. ")
 		newCovStmt := getCovStmt()
 		f.edit.Insert(f.offset(insertPos), newCovStmt)
 
@@ -480,7 +480,7 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 		}
 		if pos != end { // Can have no source to cover if e.g. blocks abut.
 			// Global branch coverage based instrumentation.
-			log.Printf("Inserting coverage statement. ")
+			//log.Printf("Inserting coverage statement. ")
 			newCovStmt := getCovStmt()
 			f.edit.Insert(f.offset(insertPos), newCovStmt)
 
