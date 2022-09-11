@@ -1,5 +1,5 @@
-#ifndef __POSTGRE_ORACLE_H__
-#define __POSTGRE_ORACLE_H__
+#ifndef __COCKROACH_ORACLE_H__
+#define __COCKROACH_ORACLE_H__
 
 #include "../include/ast.h"
 #include "../include/define.h"

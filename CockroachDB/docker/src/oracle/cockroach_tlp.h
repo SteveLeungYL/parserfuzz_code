@@ -1,9 +1,9 @@
-#ifndef __POSTGRE_TLP_H__
-#define __POSTGRE_TLP_H__
+#ifndef __COCKROACH_TLP_H__
+#define __COCKROACH_TLP_H__
 
 #include "../include/ast.h"
 #include "../include/define.h"
-#include "./postgres_oracle.h"
+#include "./cockroach_oracle.h"
 
 #include <string>
 #include <vector>
@@ -41,7 +41,7 @@ public:
 private:
 
 //   string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
-// Postgres need to generate 
+// Cockroach need to generate 
   vector<string> temp_valid_stmts = {
     "SELECT * FROM x WHERE x=0;",
     "SELECT x FROM x WHERE x=0 GROUP BY x;",

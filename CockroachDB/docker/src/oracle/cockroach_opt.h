@@ -1,9 +1,9 @@
-#ifndef __POSTGRE_OPT_H__
-#define __POSTGRE_OPT_H__
+#ifndef __COCKROACH_OPT_H__
+#define __COCKROACH_OPT_H__
 
 #include "../include/ast.h"
 #include "../include/define.h"
-#include "./postgres_oracle.h"
+#include "./cockroach_oracle.h"
 
 #include <string>
 #include <vector>

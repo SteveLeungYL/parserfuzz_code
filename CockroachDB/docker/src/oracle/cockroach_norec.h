@@ -1,9 +1,9 @@
-#ifndef __POSTGRE_NOREC_H__
-#define __POSTGRE_NOREC_H__
+#ifndef __COCKROACH_NOREC_H__
+#define __COCKROACH_NOREC_H__
 
 #include "../include/ast.h"
 #include "../include/define.h"
-#include "./postgres_oracle.h"
+#include "./cockroach_oracle.h"
 
 #include <string>
 #include <vector>
@@ -25,7 +25,7 @@ public:
 
 private:
 
-// Postgres need to generate
+// Cockroach need to generate
   string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x=0;";
 
   string oracle_type = "NOREC";
