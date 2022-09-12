@@ -6429,14 +6429,16 @@ static u8 fuzz_one(char **argv)
             string ori_stmt = query_str_vec[0];
             string no_opt_stmt = no_opt_str + ori_stmt;
             string all_opt_stmt = all_opt_str + ori_stmt;
-            query_str_vec.push_back(no_opt_stmt);
-            query_str_vec.push_back(all_opt_stmt);
+            query_str_vec[1] = no_opt_stmt;
+            query_str_vec[2] = all_opt_stmt;
 
             ori_stmt = query_str_no_marks_vec[0];
             no_opt_stmt = no_opt_str + ori_stmt ;
             all_opt_stmt = all_opt_str + ori_stmt;
             query_str_no_marks_vec.push_back(no_opt_stmt);
             query_str_no_marks_vec.push_back(all_opt_stmt);
+            query_str_no_marks_vec[1] = no_opt_stmt;
+            query_str_no_marks_vec[2] = all_opt_stmt;
         }
 
         if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec));
