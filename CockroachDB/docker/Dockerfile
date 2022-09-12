@@ -149,34 +149,42 @@ USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 RUN go test -c -cover -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=v21.2.15-dirty" -X "github.com/cockroachdb/cockroach/pkg/build.rev=2326e63d4a9ad62b19056f90f938a00482cbf56a" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "."  -timeout 45m -covermode=set -coverpkg=./... ./pkg/covtest
 
+# Compile the SQLRight main code. 
+USER root
+WORKDIR /home/cockroach/
+COPY src /home/cockroach/src
+RUN chown -R cockroach:cockroach /home/cockroach/src
+
+USER cockroach
+WORKDIR /home/cockroach/src
+RUN make
 
 #
 ### Finished setup of the SQLRight Validity Configurations.
 #
 ## Setup the fuzzing context.
-#RUN mkdir /home/postgres/fuzzing/
-#RUN mkdir /home/postgres/fuzzing/fuzz_root
-#RUN mkdir /home/postgres/fuzzing/fuzz_root/outputs
-## COPY afl-fuzz /home/postgres/fuzzing/afl-fuzz
-#COPY fuzz_root/postgres_initlib /home/postgres/fuzzing/fuzz_root/postgres_initlib/
-#COPY fuzz_root/safe_generate_type /home/postgres/fuzzing/fuzz_root/
-#COPY fuzz_root/global_data_lib /home/postgres/fuzzing/fuzz_root/
-#COPY fuzz_root/inputs /home/postgres/fuzzing/fuzz_root/inputs
-#COPY fuzz_root/run_parallel.py /home/postgres/fuzzing/fuzz_root/
-#RUN mkdir /home/postgres/fuzzing/Bug_Analysis
-#RUN mkdir /home/postgres/fuzzing/Bug_Analysis/bug_samples
-#
-#
-#USER root
-#RUN chown -R postgres:postgres /home/postgres/fuzzing/
+USER root
+RUN mkdir /home/cockroach/fuzzing/
+RUN mkdir /home/cockroach/fuzzing/fuzz_root
+RUN mkdir /home/cockroach/fuzzing/fuzz_root/outputs
+
+COPY fuzz_root/cockroach_initlib /home/cockroach/fuzzing/fuzz_root/cockroach_initlib/
+COPY fuzz_root/safe_generate_type /home/cockroach/fuzzing/fuzz_root/
+COPY fuzz_root/global_data_lib /home/cockroach/fuzzing/fuzz_root/
+COPY fuzz_root/inputs /home/cockroach/fuzzing/fuzz_root/inputs
+COPY fuzz_root/run_parallel.py /home/cockroach/fuzzing/fuzz_root/
+RUN mkdir /home/cockroach/fuzzing/Bug_Analysis
+RUN mkdir /home/cockroach/fuzzing/Bug_Analysis/bug_samples
+
+USER root
+RUN chown -R cockroach:cockroach /home/cockroach/fuzzing/
 #
 ## At last, setup the Docker run script
-#USER root
-#COPY scripts /home/postgres/scripts
-#RUN chown -R postgres:postgres /home/postgres/scripts
-#
-##ENTRYPOINT ../afl-fuzz -t 2000 -m 2000 -i ./crashes -o ../output /usr/local/pgsql/bin/postgres --single -D /usr/local/pgsql/data main 
-#
-#USER root
-#WORKDIR /home/postgres/fuzzing/
+USER root
+COPY scripts /home/cockroach/scripts
+RUN chown -R cockroach:cockroach /home/cockroach/scripts
+
+# Final entry
+USER root
+WORKDIR /home/cockroach/fuzzing/
 
