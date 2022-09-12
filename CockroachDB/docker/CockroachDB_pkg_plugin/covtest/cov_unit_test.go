@@ -113,7 +113,7 @@ func TestCov(t *testing.T) {
 	for idx, testingQuery := range testingQueryArray {
 
 		log.Printf("\n\nDebug: Running on statement %d: %s", idx, testingQuery)
-		out_file.WriteString(fmt.Sprintf("Res IDX: %d\n", idx))
+		//out_file.WriteString(fmt.Sprintf("Res IDX: %d\n", idx))
 
 		// Higher lever query running: resRows := sqlRun.Query(t, testingQuery)
 
