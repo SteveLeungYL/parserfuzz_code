@@ -85,10 +85,10 @@
 #include <fstream>
 #include <filesystem>
 
-#include "../oracle/postgres_norec.h"
-#include "../oracle/postgres_oracle.h"
-#include "../oracle/postgres_tlp.h"
-#include "../oracle/postgres_opt.h"
+//#include "../oracle/cockroach_norec.h"
+//#include "../oracle/cockroach_oracle.h"
+//#include "../oracle/cockroach_tlp.h"
+#include "../oracle/cockroach_opt.h"
 
 #include "libpq-fe.h"
 using namespace std;
@@ -116,7 +116,7 @@ using namespace std;
 /* Lots of globals, but mostly for the status UI and other things where it
    really makes no sense to haul them around as function parameters. */
 
-#define INIT_LIB_PATH "./postgres_initlib"
+#define INIT_LIB_PATH "./cockroach_initlib"
 #define SAFE_GENERATE_PATH "./safe_generate_type"
 #define GLOBAL_TYPE_PATH "./global_data_lib"
 char *g_library_path;
@@ -140,9 +140,9 @@ u64 num_validate = 0;
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
 
-u64 postgre_execute_ok = 0;
-u64 postgre_execute_error = 0;
-u64 postgre_execute_total = 0;
+u64 cockroach_execute_ok = 0;
+u64 cockroach_execute_error = 0;
+u64 cockroach_execute_total = 0;
 
 
 string all_opt_str = "set enable_async_append TO ON; \n"
@@ -192,273 +192,6 @@ string no_opt_str = "set enable_async_append TO OFF; \n"
 int map_file_id = 0;
 fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
 
-enum SQLSTATUS
-{
-  kConnectFailed,
-  kExecuteError,
-  kServerCrash,
-  kNormal,
-  kTimeout,
-  kSyntaxError,
-  kSemanticError
-};
-
-static void exit_nicely(PGconn *conn) {
-  PQfinish(conn);
-  exit(1);
-}
-
-static void setting_failed(PGconn *conn) {
-  cerr << "Unable to enter single row mode: " << PQerrorMessage(conn) << endl;
-  exit_nicely(conn);
-}
-
-struct POSTGRES_OUTPUT {
-  string outputs = "";
-  SQLSTATUS status;
-};
-
-
-class PostgresClient
-{
-public:
-  PostgresClient() : counter_(0) {}
-
-  PGconn *connect()
-  {
-    string conninfo = "postgresql://localhost?port=" + to_string(bind_to_port) + "&dbname=x";
-    // const char conninfo[] = "postgresql://localhost?port=5432&dbname=x"; 
-    return PQconnectdb(conninfo.c_str());
-  }
-
-  void disconnect(PGconn *conn)
-  {
-    PQfinish(conn);
-    counter_++;
-  }
-
-  POSTGRES_OUTPUT execute(string cmd)
-  {
-    PGresult *res;
-    POSTGRES_OUTPUT result;
-    std::ostringstream outputStream;
-    result.outputs = "";
-    int first = 1;
-    int nFields;
-    int i, j;
-    int execute_ok = 0;
-
-    conn = connect();
-
-    // if (PQstatus(conn) != CONNECTION_OK) {
-    //   // disconnect(conn);
-    //   conn = connect();
-      if (PQstatus(conn) != CONNECTION_OK) {
-        disconnect(conn);
-        result.status = kConnectFailed;
-        return result;
-      }
-    // }
-
-    reset_database(conn);
-
-    postgre_execute_total += 1;
-
-    vector<string> cmd_vec = string_splitter(cmd, ';');
-    vector<string> timeout_cmd_vec = {"set statement_timeout to 200; "};
-    timeout_cmd_vec.insert(timeout_cmd_vec.end(), cmd_vec.begin(), cmd_vec.end());
-    cmd_vec = timeout_cmd_vec;
-
-    time_t begin_timer;
-    time_t process_timer;
-    bool is_timeout = false;
-    time(&begin_timer);
-    // Loop through the cmd_vec. 
-    for (string& cur_cmd : cmd_vec) {
-      cur_cmd += "; ";
-      /* Send our statements off to the server. */
-      if (!PQsendQuery(conn, cur_cmd.c_str())) {
-        cerr << "Sending statements to server failed: " << PQerrorMessage(conn) << endl;
-        // exit_nicely(conn);
-      }
-
-      if (check_status(conn) == false) {
-        cerr << "In func execute(), we get kServerCrash. \n";
-        result.status = kServerCrash;
-        return result;
-      }
-
-      /* We want results row-by-row. */
-      if (!PQsetSingleRowMode(conn)) {
-        setting_failed(conn);
-      }
-
-      /* Loop through the results of our statements. */
-      while ( !is_timeout  &&  (res = PQgetResult(conn)) && res != NULL ) {
-        switch (PQresultStatus(res)) {
-          case PGRES_COMMAND_OK: {
-            /* a query command that doesn't return
-              * anything was executed properly by the
-              * backend */
-             break;
-          }
-          case PGRES_TUPLES_OK:  {/* No more rows from current query. */
-            /* We want the next statement's results row-by-row also. */
-            if (!PQsetSingleRowMode(conn)) {
-                PQclear(res);
-                setting_failed(conn);
-              }
-            first = 1;
-            break;
-          }
-          case PGRES_SINGLE_TUPLE: {
-            if (first) {
-              /* Produce a "nice" header" */
-              // cout << "-----------------------------"
-              //         "-----------------------------"
-              //         << endl
-              //         << "Results of statement number:" << endl;
-              /* print out the attribute names */
-              nFields = PQnfields(res);
-              // for (i = 0; i < nFields; i++) {
-              //   cout << "PQfname: " << PQfname(res, i) << endl;
-              //   outputStream << PQfname(res, i) << " ";
-              // }
-              // outputStream << endl;
-              first = 0;
-            }
-            /* print out the row */
-            for (j = 0; j < nFields; j++) {
-              // cout << "PQgetvalue: " << PQgetvalue(res, 0, j) << endl;
-              // outputStream << PQgetvalue(res, 0, j) << " ";
-              const char* res_char = PQgetvalue(res, 0, j);
-              if (res_char != NULL && !PQgetisnull(res, 0, j)) {
-                result.outputs += string(res_char) + " "; 
-              }
-              time(&process_timer);
-              double run_seconds = difftime(process_timer, begin_timer);
-              // cerr << "Getting timeout run_seconds: " << run_seconds << "\n\n\n";
-              if (run_seconds > 2.0) {
-                result.outputs = "Error: Execution is Timeout. ";
-                PGcancel* cancel_conn = PQgetCancel(conn);
-                char errbuf[512];
-                PQcancel(cancel_conn, errbuf, 512);
-                PQfreeCancel(cancel_conn);
-                is_timeout = true;
-                break;
-              }
-            }
-            result.outputs += "\n";
-            // outputStream << endl;
-            // cerr << "result.outputs is: " << result.outputs << "\n\n\n";
-            // result.outputs = outputStream.str();
-            // execute_ok += 1;
-            break;
-          }
-          case PGRES_FATAL_ERROR: {
-            // disconnect(conn);
-            result.status = kExecuteError;
-
-            postgre_execute_error += 1;
-            // cerr << "In func execute(), we get PGRES_FATAL_ERROR(). \n";
-            string error_msg = PQerrorMessage(conn);
-            // cerr << "Query execution error: " << error_msg << endl;
-            result.outputs += error_msg + "\n";
-            // return result;
-          }
-          default: {
-            /* Always call PQgetResult until it returns null, even on
-            * error. */
-            // cerr << "Query execution failed: " << PQerrorMessage(conn) << endl;
-            // cerr << "PQresultStatus: " << PQresultStatus(res) << endl;
-            // postgre_execute_error += 1;
-          }
-        } // switch
-        PQclear(res);
-      }  // while ( (res = PQgetResult(conn))  && !is_timeout)
-      if (is_timeout) {  // Timeout, ignore the following SQL commands. 
-        break;
-      }
-    } // for (string& cur_cmd : cmd_vec)
-
-    // cout << "###################" << endl;
-    // vector<string> cmd_strs = string_splitter(cmd, ';');
-    // for (string cmd_str : cmd_strs) {
-    //   cmd_str = trim(cmd_str);
-    //   cout << "cmd: " << cmd_str << endl;
-    // }
-    // cout << "###################" << endl;
-
-
-    postgre_execute_ok += 1;
-
-    // cout << " postgre_execute_ok: " << postgre_execute_ok
-    //   <<  " postgre_execute_error: " << postgre_execute_error 
-    //   << " postgre_execute_total: " << postgre_execute_total << endl;
-
-    // cout << "query: " << cmd << endl;
-    // cout << "result: " << result.outputs << endl; 
-    // getchar();
-
-    disconnect(conn);
-    result.status = kNormal;
-
-    // getchar();
-    return result;
-  }
-
-  void reset_database(PGconn *conn)
-  {
-    PGresult *res = PQexec(conn, "SET client_min_messages TO WARNING;DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-    PQclear(res);
-  }
-
-  void drop_database(PGconn *conn)
-  {
-    if (counter_ % 2 == 0){
-      PGresult *res = PQexec(conn, "DROP DATABASE IF EXISTS test;");
-      PQclear(res);
-    }
-    else {
-      PGresult *res = PQexec(conn, "DROP DATABASE IF EXISTS test2;");
-      PQclear(res);
-    }
-  }
-
-  void create_database(PGconn *conn)
-  {
-    if (counter_ % 2 == 0) {
-      PGresult *res = PQexec(conn, "CREATE DATABASE test;");
-      PQclear(res);
-    }
-    else {
-      PGresult *res = PQexec(conn, "CREATE DATABASE test2;");
-      PQclear(res);
-    }
-  }
-
-  bool check_status(PGconn *conn)
-  {
-    auto res = PQstatus(conn);
-    if (res == CONNECTION_OK)
-      return true;
-
-    return false;
-  }
-
-  char *get_next_database_name()
-  {
-    if (counter_ % 2 == 0)
-      return "test2";
-
-    return "test";
-  }
-
-private:
-  unsigned counter_; //odd for "test", even for "test2"
-  PGconn *conn;
-};
-
 extern int errno;
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
@@ -467,13 +200,11 @@ map<DATATYPE, DATATYPE> relationmap;
 map<DATATYPE, DATATYPE> crossmap;
 
 char *g_current_input = NULL;
-string g_postgre_output = "";
+string g_cockroach_output = "";
 
 IR *g_current_ir = NULL;
 
 u32 g_execute_error = 0;
-
-PostgresClient g_psql_client;
 
 EXP_ST u8 *in_dir, /* Input directory with test cases  */
     *out_file,     /* File to fuzz, if any             */
@@ -1776,13 +1507,6 @@ static void update_bitmap_score(struct queue_entry *q)
 //   cout << expect << endl;
 // }
 
-void debug_postgre_output() {
-  auto result = g_psql_client.execute("select 'asd';SELECT 'BEGIN VERI 0';");
-  cout << "123123" << endl;
-  cout << result.outputs << endl;
-  cout << "123123123" << endl;
-}
-
 void debug_parse_query_str_get_ir_set() {
   string query = "SELECT ALL ( * ) FROM x WHERE x;";
   vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query);
@@ -1870,7 +1594,7 @@ static void do_libary_initialize()
 
 
 void debug_get_random_mutated_valid_stmt() {
-  p_oracle = new SQL_NOREC();
+  p_oracle = new SQL_OPT();
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
 
@@ -1882,11 +1606,11 @@ void debug_get_random_mutated_valid_stmt() {
 
 
 void debug_main_entry() {
-  // debug_postgre_output();
+  // debug_cockroach_output();
   // debug_oracle_rewrite();
   // debug_parse_query_str_get_ir_set();
   // debug_get_random_mutated_valid_stmt();
-  // debug_postgre_oracle_compare_results();
+  // debug_cockroach_oracle_compare_results();
   exit(0);
 }
 
@@ -2963,10 +2687,24 @@ EXP_ST void init_forkserver(char **argv)
   FATAL("Fork server handshake failed");
 }
 
+
+/* Write modified data to file for testing. If out_file is set, the old file
+   is unlinked and a new one is created. Otherwise, out_fd is rewound and
+   truncated. */
+
+ static void write_to_testcase(string& input)
+ {
+     ofstream query_input;
+     query_input.open("./input_query.sql", ofstream::out);
+     query_input << input;
+     query_input.close();
+     return;
+ }
+
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
-static u8 run_target(char **argv, u32 timeout, string cmd_str)
+static u8 run_target(u32 timeout, string cmd_str)
 {
 
   static struct itimerval it;
@@ -2986,69 +2724,115 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str)
   MEM_BARRIER();
 BEGIN:
 
+  /*
+   * TODO: Use forkserver instead of call the binary each single time. 
+   * */
+  write_to_testcase(cmd_str);
+
+  // Call the CockroachDB covtest.test binary. 
+  // Assume the CockroachDB binary is located in the current working dir. 
+  // Fork, and then exec. 
+  
+  // Setup timeout.
   auto exec_start = std::chrono::system_clock::now();
+  
+  child_pid = fork();
 
-  auto result = g_psql_client.execute(cmd_str);
-  g_postgre_output = result.outputs;
-
-  auto exec_end = std::chrono::system_clock::now();
-
-  std::chrono::duration<double> exec_used_time = exec_end - exec_start;
-
-  // cerr << "For execuing entry: " << current_entry << ", used time: " << exec_used_time.count() << ". \n\n\n";
-  // cerr << "After running in run_target(), getting result.status" << result.status << "\n";
-
-  if (result.status == kServerCrash)
-  { 
-    cerr << "In func: run_target(), we get FAULT_CRASH from execute(). \n";
-    status = FAULT_CRASH;
+  if (child_pid == -1) {
+      cerr << "Error: Run fork error. Return pid = -1;";
+      exit(1);
   }
-  else if (result.status == kTimeout)
-  {
-    cerr << "In func: run_target(), we get FAULT_TMOUT from execute(). \n";
-    status = FAULT_TMOUT;
+  else if (child_pid == 0) {
+      // Inside the child process. 
+      
+      // Close the stdin, stdout and stderr.
+      dup2(dev_null_fd, 0);
+      dup2(dev_null_fd, 1);
+      dup2(dev_null_fd, 2);
+
+      char * argv_list[] = {"./covtest.test", NULL};
+      execv("./covtest.test", argv_list);
+      cerr << "Fatal Error: Should not reach this point. \n\n\n";
+      exit(1);
   }
-  else if (result.status == kConnectFailed)
-  {
-    cerr << "In func: run_target(), we get Connection Failed error from execute(). \n";
-    // cout << "Connection Failed!" << endl;
-    sleep(1);
-    goto BEGIN;
+
+  /* Inside the parent process.
+  // Wait for the child process. 
+  // Check the execution status.  
+  // Let the signal handler handle the timeout situation.
+  */
+
+  // Setup the timeout struct.
+  it.it_value.tv_sec = (timeout / 1000);
+  it.it_value.tv_usec = (timeout % 1000) * 1000;
+
+  setitimer(ITIMER_REAL, &it, NULL);
+
+  if (waitpid(child_pid, &status, 0) <= 0) {PFATAL("Error: waitpid() failed");}
+
+  if (!WIFEXITED(child_pid)) child_pid = 0;
+
+  getitimer(ITIMER_REAL, &it);
+  exec_ms = (u64) timeout - (it.it_value.tv_sec * 1000 +
+                             it.it_value.tv_usec / 1000);
+
+  // Cancel the SIGALRM timer.
+  it.it_value.tv_sec = 0;
+  it.it_value.tv_usec = 0;
+
+  setitimer(ITIMER_REAL, &it, NULL);
+
+  total_execs++;
+
+  if (filesystem::exists("./cov_out.bin")) {
+      ifstream fin("./cov_out.bin", ios::in | ios::binary);
+      fin.read(trace_bits, MAP_SIZE);
+      fin.close();
+      // Remove the file. Ignore the returned value. 
+      remove("./cov_out.bin");
   }
-  // else
-  // {
-  //   if (result.status == kExecuteError)
-  //   {
-  //     g_execute_error = 1;
-  //   }
-  //   status = FAULT_NONE;
-  //   cerr << "In func: run_target(), we get kExecuteError from execute(). \n";
-  // }
 
-  // total_execs++;
+  classify_counts((u64*)trace_bits);
 
-  MEM_BARRIER();
+  // Log the query execution results. 
+  g_cockroach_output = "";
+  if (filesystem::exists("query_res_out.txt")) {
+      ifstream res_in("query_res_out.txt", ios::in);
+      if (res_in) {
+        // get length of file:
+        res_in.seekg (0, res_in.end);
+        int length = res_in.tellg();
+        res_in.seekg (0, res_in.beg);
+        
+        char tmp_res[length];
+        res_in.read(tmp_res, length);
+        g_cockroach_output = string(tmp_res);
+      }
+      res_in.close();
+  }
 
-  tb4 = *(u32 *)trace_bits;
+  prev_timed_out = child_timed_out;
 
-#ifdef __x86_64__
-  classify_counts((u64 *)trace_bits);
-#else
-  classify_counts((u32 *)trace_bits);
-#endif /* ^__x86_64__ */
+  /* If crashed, report outcome to caller. */
+  if (WIFSIGNALED(status) && !stop_soon) {
 
-  return status;
+    kill_signal = WTERMSIG(status);
+
+    if (child_timed_out && kill_signal == SIGKILL) return FAULT_TMOUT;
+
+    return FAULT_CRASH;
+
+  }
+
+  /* It makes sense to account for the slowest units only if the testcase was run
+  under the user defined timeout. */
+  if (!(timeout > exec_tmout) && (slowest_exec_ms < exec_ms)) {
+    slowest_exec_ms = exec_ms;
+  }
+
+  return FAULT_NONE;
 }
 
-/* Write modified data to file for testing. If out_file is set, the old file
-   is unlinked and a new one is created. Otherwise, out_fd is rewound and
-   truncated. */
-
-// static void write_to_testcase(const char *mem, u32 len)
-// {
-//   g_current_input = mem;
-//   return;
-// }
 
 inline void print_norec_exec_debug_info()
 { 
@@ -3073,9 +2857,9 @@ inline void print_norec_exec_debug_info()
        << "\33[2K total bad queries:       " << debug_error << " / "
        << debug_error + debug_good << " ("
        << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
-       << "\33[2K postgre_execute_ok:      " << postgre_execute_ok << "\n"
-       << "\33[2K postgre_execute_error:   " << postgre_execute_error << "\n"
-       << "\33[2K postgre_execute_total:   " << postgre_execute_total << "\n"
+       << "\33[2K cockroach_execute_ok:      " << cockroach_execute_ok << "\n"
+       << "\33[2K cockroach_execute_error:   " << cockroach_execute_error << "\n"
+       << "\33[2K cockroach_execute_total:   " << cockroach_execute_total << "\n"
        << "\33[2K total_mutate_failed:     " << std::to_string(float(total_mutate_failed) / float(total_mutate_num) * 100.0) << ": " << total_mutate_failed << " / "
        <<  total_mutate_num << "\n"
        << "\33[2K num_valid:               " << num_valid << "\n"
@@ -3392,7 +3176,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     //cmd_string = trim(cmd_string);
 
     // write_to_testcase(cmd_string.c_str(), cmd_string.size());
-    fault = run_target(argv, tmout, cmd_string);
+    fault = run_target(tmout, cmd_string);
     if (stop_soon)
       return fault;
     if (fault == FAULT_TMOUT)
@@ -3415,7 +3199,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       cur_skipped_paths++;
       return fault;
     }
-    res_str = g_postgre_output;
+    res_str = g_cockroach_output;
     all_comp_res.cmd_str = std::move(cmd_string);
     all_comp_res.res_str = std::move(res_str);
     compare_query_result(all_comp_res, explain_diff_id);
@@ -3433,7 +3217,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
       /* The trace_bits[] are effectively volatile after calling run_target */
       // write_to_testcase(cmd_string.c_str(), cmd_string.size());
-      fault = run_target(argv, tmout, cmd_string);
+      fault = run_target(tmout, cmd_string);
       if (stop_soon)
         return fault;
       if (fault == FAULT_TMOUT)
@@ -3456,7 +3240,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
         cur_skipped_paths++;
         return fault;
       }
-      res_str = g_postgre_output;
+      res_str = g_cockroach_output;
 
       all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
       all_comp_res.v_res_str.push_back(std::move(res_str));
@@ -4756,7 +4540,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           unique_hangs, max_depth, eps, total_execs, 
           total_input_failed, p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid, total_add_to_queue,
           total_mutate_all_failed, total_mutate_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
-          debug_error, (debug_good * 100.0 / (debug_error + debug_good)), postgre_execute_ok, postgre_execute_error, postgre_execute_total,
+          debug_error, (debug_good * 100.0 / (debug_error + debug_good)), cockroach_execute_ok, cockroach_execute_error, cockroach_execute_total,
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate
           ); /* ignore errors */
   fflush(plot_file);
@@ -6846,7 +6630,7 @@ static void sync_fuzzers(char **argv)
         // write_to_testcase(mem, st.st_size);
         string cmd_str = (char*)mem;
 
-        fault = run_target(argv, exec_tmout, cmd_str);
+        fault = run_target(exec_tmout, cmd_str);
 
         if (stop_soon)
           return;
@@ -7363,7 +7147,7 @@ EXP_ST void setup_dirs_fds(void)
                      "unique_hangs,max_depth,execs_per_sec,total_execs,"
                      "total_input_failed,total_random_VALID,total_add_to_queue,total_mutate_all_failed,"
                      "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
-                     "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
+                     "total_valid_stmts,total_good_queries,cockroach_execute_ok,cockroach_execute_error,cockroach_execute_total,"
                      "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
                      );
 
@@ -7899,8 +7683,8 @@ static void save_cmdline(u32 argc, char **argv)
 }
 
 
-void debug_postgre_oracle_compare_results() {
-  p_oracle = new SQL_NOREC();
+void debug_cockroach_oracle_compare_results() {
+  p_oracle = new SQL_OPT();
   string cmd_string = "CREATE TABLE v0 ( v1 INTEGER );"
                       "CREATE VIEW v2 AS SELECT * FROM v0;"
                       "INSERT INTO v0 (v1) VALUES (8);"
@@ -7915,11 +7699,9 @@ void debug_postgre_oracle_compare_results() {
                       "SELECT 'END VERI 1';";
   trim_string(cmd_string);
 
-  // write_to_testcase(cmd_string.c_str(), cmd_string.size());
-  auto result = g_psql_client.execute(cmd_string);
-  g_postgre_output = result.outputs;
+  run_target(exec_tmout, cmd_string);
 
-  string res_str = g_postgre_output;
+  string res_str = g_cockroach_output;
   ALL_COMP_RES all_comp_res;
   all_comp_res.cmd_str = std::move(cmd_string);
   all_comp_res.res_str = std::move(res_str);
@@ -7961,7 +7743,7 @@ static void load_map_id() {
 int main(int argc, char **argv)
 {
   // debug_main_entry();
-  // debug_postgre_oracle_compare_results();
+  // debug_cockroach_oracle_compare_results();
   // exit(0);
 
   p_oracle = nullptr;
@@ -8158,7 +7940,7 @@ int main(int argc, char **argv)
       bind_to_core_id = atoi(optarg);
       break;
 
-    case 'P': /* Accessing PostgreS using port num.  */
+    case 'P': /* Accessing cockroach using port num.  */
       bind_to_port = atoi(optarg);
       break;
 
@@ -8222,18 +8004,20 @@ int main(int argc, char **argv)
     {
       /* Default NOREC */
       string arg = string(optarg);
-      if (arg == "NOREC")
-        p_oracle = new SQL_NOREC();
-      else if (arg == "TLP")
-        p_oracle = new SQL_TLP();
-      else if (arg == "OPT")
-        p_oracle = new SQL_OPT();
+      //if (arg == "NOREC")
+        //p_oracle = new SQL_NOREC();
+      //else if (arg == "TLP")
+        //p_oracle = new SQL_TLP();
+      //else if (arg == "OPT")
+        //p_oracle = new SQL_OPT();
       // else if (arg == "LIKELY")
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
       //   p_oracle = new SQL_ROWID();
       // else if (arg == "INDEX")
       //   p_oracle = new SQL_INDEX();
+      if (arg == "OPT")
+          p_oracle = new SQL_OPT();
       else
         FATAL("Oracle arguments not supported. ");
     }

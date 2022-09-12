@@ -5,8 +5,7 @@
 
 #include "../include/relopt_generator.h"
 
-#include "../oracle/postgres_norec.h"
-#include "../oracle/postgres_oracle.h"
+#include "../oracle/cockroach_oracle.h"
 
 #include "../AFL/debug.h"
 

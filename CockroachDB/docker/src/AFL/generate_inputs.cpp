@@ -4,9 +4,9 @@
 #include "../include/utils.h"
 #include "../include/ir_wrapper.h"
 
-#include "../oracle/postgres_oracle.h"
-#include "../oracle/postgres_norec.h"
-#include "../oracle/postgres_tlp.h"
+#include "../oracle/cockroach_oracle.h"
+#include "../oracle/cockroach_norec.h"
+#include "../oracle/cockroach_tlp.h"
 
 
 #include <fstream>

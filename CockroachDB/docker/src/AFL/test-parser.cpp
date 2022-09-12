@@ -2,9 +2,8 @@
 #include "../include/define.h"
 #include "../include/mutate.h"
 #include "../include/utils.h"
-#include "../oracle/postgres_oracle.h"
-#include "../oracle/postgres_norec.h"
-#include "../oracle/postgres_tlp.h"
+#include "../oracle/cockroach_oracle.h"
+#include "../oracle/cockroach_opt.h"
 
 #include <fstream>
 #include <iostream>
@@ -136,7 +135,7 @@ int main(int argc, char *argv[]) {
   ifstream input_test(input);
   string line;
 
-  p_oracle = new SQL_NOREC();
+  p_oracle = new SQL_OPT();
 
   mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&mutator);
