@@ -278,7 +278,7 @@ static s32 forksrv_pid, /* PID of the fork server           */
     child_pid = -1,     /* PID of the fuzzed program        */
     out_dir_fd = -1;    /* FD of the lock file              */
 
-EXP_ST u8 *trace_bits; /* SHM with instrumentation bitmap  */
+EXP_ST u8 trace_bits[MAP_SIZE]; /* SHM with instrumentation bitmap  */
 
 EXP_ST u8 virgin_bits[MAP_SIZE], /* Regions yet untouched by fuzzing */
     virgin_tmout[MAP_SIZE],      /* Bits we haven't seen in tmouts   */
@@ -1689,40 +1689,42 @@ EXP_ST void setup_shm(void)
   memset(virgin_tmout, 255, MAP_SIZE);
   memset(virgin_crash, 255, MAP_SIZE);
 
-  shm_id = shmget(IPC_PRIVATE, MAP_SIZE, IPC_CREAT | IPC_EXCL | 0640);
+  memset(trace_bits, 0, MAP_SIZE);
 
-  if (shm_id < 0)
-    PFATAL("shmget() failed");
+  //shm_id = shmget(IPC_PRIVATE, MAP_SIZE, IPC_CREAT | IPC_EXCL | 0640);
 
-  atexit(remove_shm);
+  //if (shm_id < 0)
+    //PFATAL("shmget() failed");
 
-  shm_str = alloc_printf("%d", shm_id);
+  //atexit(remove_shm);
+
+  //shm_str = alloc_printf("%d", shm_id);
 
   /* If somebody is asking us to fuzz instrumented binaries in dumb mode,
      we don't want them to detect instrumentation, since we won't be sending
      fork server commands. This should be replaced with better auto-detection
      later on, perhaps? */
 
-  if (!dumb_mode)
-    setenv(SHM_ENV_VAR, shm_str, 1);
-  cerr << "SHM_ENV_VAR: " << shm_str << endl;
+  //if (!dumb_mode)
+    //setenv(SHM_ENV_VAR, shm_str, 1);
+  //cerr << "SHM_ENV_VAR: " << shm_str << endl;
 
-  ofstream shm_env_out;
-  shm_env_out.open("./shm_env.txt", ios::trunc | ios::out);
-  shm_env_out << shm_str;
-  shm_env_out.close();
+  //ofstream shm_env_out;
+  //shm_env_out.open("./shm_env.txt", ios::trunc | ios::out);
+  //shm_env_out << shm_str;
+  //shm_env_out.close();
 
   // debug_main_entry();
 
   // getchar();
-  ck_free(shm_str);
+  //ck_free(shm_str);
 
   // debug_main_entry();
 
-  trace_bits = shmat(shm_id, NULL, 0);
+  //trace_bits = shmat(shm_id, NULL, 0);
 
-  if (!trace_bits)
-    PFATAL("shmat() failed");
+  //if (!trace_bits)
+    //PFATAL("shmat() failed");
 }
 
 /* Load postprocessor, if available. */
