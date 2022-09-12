@@ -176,6 +176,9 @@ COPY fuzz_root/run_parallel.py /home/cockroach/fuzzing/fuzz_root/
 RUN mkdir /home/cockroach/fuzzing/Bug_Analysis
 RUN mkdir /home/cockroach/fuzzing/Bug_Analysis/bug_samples
 
+RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/covtest.test /home/cockroach/fuzzing/fuzz_root/
+RUN cp /home/cockroach/src/afl-fuzz  /home/cockroach/fuzzing/fuzz_root/
+
 USER root
 RUN chown -R cockroach:cockroach /home/cockroach/fuzzing/
 #
@@ -186,5 +189,5 @@ RUN chown -R cockroach:cockroach /home/cockroach/scripts
 
 # Final entry
 USER root
-WORKDIR /home/cockroach/fuzzing/
+WORKDIR /home/cockroach/fuzzing/fuzz_root
 
