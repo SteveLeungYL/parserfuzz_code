@@ -34,6 +34,13 @@ func LogGlobalCov(curLoc uint32) {
     }
 }
 
+func ResetGlobalCov() {
+    // Set all buffer to 0. 
+    for offset := 0; offset < (1 << 18); offset++ {
+        GCov.buf[offset] = 0
+    }
+}
+
 func getXorOffset(curLoc uint32) uint32 {
 	// Get the offset result
 	res := GCov.prevLoc ^ curLoc
