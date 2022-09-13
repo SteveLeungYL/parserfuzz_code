@@ -331,6 +331,8 @@ EXP_ST u64 total_crashes, /* Total number of crashes          */
 
 static u32 subseq_tmouts; /* Number of timeouts in a row      */
 
+static bool is_timeout;   /* Log whether the current process is timeout  */
+
 static u8 *stage_name = "init", /* Name of the current fuzz stage   */
     *stage_short,               /* Short stage name                 */
     *syncing_party;             /* Currently syncing with...        */
@@ -2363,7 +2365,7 @@ static void destroy_extras(void)
    cloning a stopped child. So, we just execute once, and then send commands
    through a pipe. The other part of this logic is in afl-as.h. */
 
-EXP_ST void init_forkserver(char **argv)
+EXP_ST void init_forkserver()
 {
 
   static struct itimerval it;
@@ -2428,25 +2430,16 @@ EXP_ST void init_forkserver(char **argv)
 
     setsid();
 
+    // Close the stdin, stdout and stderr.
+    dup2(dev_null_fd, 0);
     dup2(dev_null_fd, 1);
     dup2(dev_null_fd, 2);
 
-    if (out_file)
-    {
-
-      dup2(dev_null_fd, 0);
-    }
-    else
-    {
-
-      dup2(out_fd, 0);
-      close(out_fd);
-    }
-
     /* Set up control and status pipes, close the unneeded original fds. */
-
+    // FORKSRV_FD == 198
     if (dup2(ctl_pipe[0], FORKSRV_FD) < 0)
       PFATAL("dup2() failed");
+    // FD == 199
     if (dup2(st_pipe[1], FORKSRV_FD + 1) < 0)
       PFATAL("dup2() failed");
 
@@ -2468,24 +2461,24 @@ EXP_ST void init_forkserver(char **argv)
 
     /* Set sane defaults for ASAN if nothing else specified. */
 
-    // setenv("ASAN_OPTIONS", "abort_on_error=1:"
-    //                        "detect_leaks=0:"
-    //                        "symbolize=0:"
-    //                        "allocator_may_return_null=1", 0);
+     setenv("ASAN_OPTIONS", "abort_on_error=1:"
+                            "detect_leaks=0:"
+                            "symbolize=0:"
+                            "allocator_may_return_null=1", 0);
 
-    // /* MSAN is tricky, because it doesn't support abort_on_error=1 at this
-    //    point. So, we do this in a very hacky way. */
+     /* MSAN is tricky, because it doesn't support abort_on_error=1 at this
+        point. So, we do this in a very hacky way. */
 
-    // setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
-    //                        "symbolize=0:"
-    //                        "abort_on_error=1:"
-    //                        "allocator_may_return_null=1:"
-    //                        "msan_track_origins=0", 0);
+     setenv("MSAN_OPTIONS", "exit_code=" STRINGIFY(MSAN_ERROR) ":"
+                            "symbolize=0:"
+                            "abort_on_error=1:"
+                            "allocator_may_return_null=1:"
+                            "msan_track_origins=0", 0);
 
-    // execv(tmp_target_path, tmp_argv); //改参数把，别改这里了,我再去看看那个启动参数
 
-    /* Use a distinctive bitmap signature to tell the parent about execv()
-       falling through. */
+    char * argv_list[] = {"./covtest.test", NULL};
+    execv("./covtest.test", argv_list);
+    cerr << "Fatal Error: Should not reach this point. \n\n\n";
 
     *(u32 *)trace_bits = EXEC_FAIL_SIG;
     exit(0);
@@ -2712,6 +2705,7 @@ static u8 run_target(u32 timeout, string cmd_str)
   static struct itimerval it;
   static u32 prev_timed_out = 0;
   static u64 exec_ms = 0;
+  is_timeout = false;
 
   int status = 0;
   u32 tb4;
@@ -2731,31 +2725,15 @@ BEGIN:
    * */
   write_to_testcase(cmd_str);
 
-  // Call the CockroachDB covtest.test binary. 
-  // Assume the CockroachDB binary is located in the current working dir. 
-  // Fork, and then exec. 
-  
-  // Setup timeout.
-  auto exec_start = std::chrono::system_clock::now();
-  
-  child_pid = fork();
-
-  if (child_pid == -1) {
-      cerr << "Error: Run fork error. Return pid = -1;";
-      exit(1);
-  }
-  else if (child_pid == 0) {
-      // Inside the child process. 
-      
-      // Close the stdin, stdout and stderr.
-      dup2(dev_null_fd, 0);
-      dup2(dev_null_fd, 1);
-      dup2(dev_null_fd, 2);
-
-      char * argv_list[] = {"./covtest.test", NULL};
-      execv("./covtest.test", argv_list);
-      cerr << "Fatal Error: Should not reach this point. \n\n\n";
-      exit(1);
+  // Send the signal to notify the CockroachDB to start executions. 
+  while ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
+      if (stop_soon) return 0;
+          //RPFATAL(res, "Unable to request new process from fork server (OOM?)");
+      cerr <<  "Unable to request new process from fork server (OOM?)";
+      kill(forksrv_pid, SIGKILL);
+      fsrv_ctl_fd.close();
+      fsrv_st_fd.close();
+      init_forkserver();
   }
 
   /* Inside the parent process.
@@ -2770,9 +2748,25 @@ BEGIN:
 
   setitimer(ITIMER_REAL, &it, NULL);
 
-  if (waitpid(child_pid, &status, 0) <= 0) {PFATAL("Error: waitpid() failed");}
+  if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
+      cerr << "The CockroachDB process is not responding? \n\n\n";
+      kill(forksrv_pid, SIGKILL);
+      fsrv_ctl_fd.close();
+      fsrv_st_fd.close();
+      init_forkserver();
+      if (is_timeout) {
+          return FAULT_TMOUT;
+      } else {
+          return FAULT_CRASH;
+      }
+  } 
 
-  if (!WIFEXITED(child_pid)) child_pid = 0;
+  if (status > 0) {
+      // Reach 1000 time execution, relaunch CockroachDB. 
+      fsrv_ctl_fd.close();
+      fsrv_st_fd.close();
+      init_forkserver();
+  }
 
   getitimer(ITIMER_REAL, &it);
   exec_ms = (u64) timeout - (it.it_value.tv_sec * 1000 +
@@ -2811,6 +2805,8 @@ BEGIN:
         g_cockroach_output = string(tmp_res);
       }
       res_in.close();
+      // Remove the file. Ignore the returned value.
+      remove("./query_res_out.txt");
   }
 
   prev_timed_out = child_timed_out;
@@ -3395,7 +3391,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
      count its spin-up time toward binary calibration. */
 
   if (dumb_mode != 1 && !no_forkserver && !forksrv_pid) {
-    //init_forkserver(argv);
+    init_forkserver();
   }
 
   if (q->exec_cksum)
@@ -6408,23 +6404,8 @@ static u8 fuzz_one(char **argv)
       else
       {
         show_stats();
-        // cout << "Valid SQL: " << ir_str << endl;
-        // g_current_ir = ir; //this is not modified
         stage_name = "fuzz";
-        // cerr << "IR_STR is: " << query_str << endl;
 
-        /* Split the large query_str into smaller query testcases. Every test case has only one oracle select statement.  */
-        // vector<string> small_query_testcases;
-        // split_queries_into_small_pieces(query_str, small_query_testcases);
-        // if (small_query_testcases.size() == 0) {
-        //   total_append_failed++;
-        //   skip_count++;
-        //   continue;
-        // }
-
-        // if (query_str_vec.size() > 0)
-        //   cerr << "Before common_fuzz_stuff, we have query_str: \n" << query_str_vec[0] << "\n";
-        //
         if (p_oracle->get_oracle_type() == "OPT") {
             string ori_stmt = query_str_vec[0];
             string no_opt_stmt = no_opt_str + ori_stmt;
@@ -6703,6 +6684,10 @@ static void handle_timeout(int sig)
 
     child_timed_out = 1;
     kill(forksrv_pid, SIGKILL);
+    //fsrv_ctl_fd.close();
+    //fsrv_st_fd.close();
+
+    //init_forkserver();
   }
 }
 

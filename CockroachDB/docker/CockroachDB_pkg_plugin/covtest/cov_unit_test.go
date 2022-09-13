@@ -71,19 +71,17 @@ func TestCov(t *testing.T) {
 
     // Control Read Pipe. 
     controlPipe := os.NewFile(FORKSRV_FD, "pipe")
-    tmpCtrlRead := []byte{0}
+    tmpCtrlRead := []byte{0, 0, 0, 0}
     // Status Write Pipe. 
     statusPipe := os.NewFile(FORKSRV_FD+1, "pipe")
 
     // Forkserver, stop the process right before the query processing. 
-    //_, err := controlPipe.
+    // Notify the fuzzer that the server is ready. 
+    _, err := statusPipe.Write([]byte{0, 0, 0, 0})
 
     log.Printf("Debug: Inside the coverage unit test. \n")
 
     for per_cycle := 0; per_cycle < 1000; per_cycle++ {
-
-        // Notify the fuzzer that the execution has succeed. 
-        _, err := statusPipe.WriteString(fmt.Sprintf("%d"), 0)
 
         // Wait for the input signal. 
         controlPipe.Read(tmpCtrlRead)
@@ -113,10 +111,15 @@ func TestCov(t *testing.T) {
 
         // Plot the coverage output. 
         globalcov.SaveGlobalCov()
+
+        if per_cycle != 999 {
+            // Notify the fuzzer that the execution has succeed. 
+            _, err := statusPipe.Write([]byte{0, 0, 0, 0})
+        }
     }
 
-    // Notify the fuzzer that the execution has succeed. 
-    _, err := statusPipe.WriteString(fmt.Sprintf("%d"), 1)
+    // Notify the fuzzer that the execution has succeed, and the CockroachDB needs rerun. 
+    _, err := statusPipe.Write([]byte{1, 0, 0, 0})
 
     statusPipe.close()
 
