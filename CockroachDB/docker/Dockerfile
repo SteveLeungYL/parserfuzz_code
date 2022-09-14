@@ -50,6 +50,7 @@ RUN useradd -ms /bin/bash cockroach
 USER cockroach
 
 RUN pip3 install libtmux
+RUN pip3 install loguru
 
 USER root
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash
@@ -103,7 +104,6 @@ RUN cp -r ./CockroachDB_pkg_plugin/covtest /home/cockroach/go_projects/src/githu
 # Instrument the CockroachDB source code. 
 RUN cp ./CockroachDB_pkg_plugin/inst_script.py /home/cockroach/go_projects/src/github.com/cockroachdb/
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/
-RUN pip3 install loguru
 RUN python3 inst_script.py
 
 # Introduce the globalcov module. 
