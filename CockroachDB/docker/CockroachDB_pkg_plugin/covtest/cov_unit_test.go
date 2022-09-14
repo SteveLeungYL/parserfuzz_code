@@ -12,7 +12,7 @@ import (
     "fmt"
 )
 
-var FORKSRV_FD = 198
+var FORKSRV_FD uintptr = 198
 
 var cleanupQuery = `
 DROP SCHEDULES WITH x AS (SHOW SCHEDULES) SELECT id FROM x WHERE label = 'schedule_database';
@@ -20,7 +20,7 @@ DROP DATABASE WITH x AS (SHOW DATABASES) SELECT id FROM x WHERE database_name !=
 `
 
 // Execute the query string, return the results as string.
-func executeQuery(sqlStr string, sqlRun *SQLRunner) string {
+func executeQuery(sqlStr string, sqlRun * sqlutils.SQLRunner) string {
 
     // Separate the input queries. If single query fails,
     // the query sequence execution can still continue.
@@ -77,7 +77,7 @@ func TestCov(t *testing.T) {
 
     // Forkserver, stop the process right before the query processing. 
     // Notify the fuzzer that the server is ready. 
-    _, err := statusPipe.Write([]byte{0, 0, 0, 0})
+    statusPipe.Write([]byte{0, 0, 0, 0})
 
     log.Printf("Debug: Inside the coverage unit test. \n")
 
@@ -95,33 +95,33 @@ func TestCov(t *testing.T) {
             t.Fatal("input_query.sql not existed. ")
         }
 
-        outFile, out_err := os.Create("./query_res_out.txt")
-        if out_err != nil {
-            panic(out_err)
+        outFile, outErr := os.Create("./query_res_out.txt")
+        if outErr != nil {
+            panic(outErr)
         }
 
         // Clean up the coverage log. 
         globalcov.ResetGlobalCov()
 
         // Execute the query
-        queryRes := execute(string(inRaw), sqlRun)
+        queryRes := executeQuery(string(inRaw), sqlRun)
         outFile.WriteString(queryRes)
 
-        outFile.close()
+        outFile.Close()
 
         // Plot the coverage output. 
         globalcov.SaveGlobalCov()
 
         if per_cycle != 999 {
             // Notify the fuzzer that the execution has succeed. 
-            _, err := statusPipe.Write([]byte{0, 0, 0, 0})
+            statusPipe.Write([]byte{0, 0, 0, 0})
         }
     }
 
     // Notify the fuzzer that the execution has succeed, and the CockroachDB needs rerun. 
-    _, err := statusPipe.Write([]byte{1, 0, 0, 0})
+    statusPipe.Write([]byte{1, 0, 0, 0})
 
-    statusPipe.close()
+    statusPipe.Close()
 
 
 }

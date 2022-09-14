@@ -2365,7 +2365,7 @@ static void destroy_extras(void)
    cloning a stopped child. So, we just execute once, and then send commands
    through a pipe. The other part of this logic is in afl-as.h. */
 
-EXP_ST void init_forkserver()
+EXP_ST void init_forkserver(char **argv)
 {
 
   static struct itimerval it;
@@ -2699,13 +2699,14 @@ EXP_ST void init_forkserver()
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
-static u8 run_target(u32 timeout, string cmd_str)
+static u8 run_target(char** argv, u32 timeout, string cmd_str)
 {
 
   static struct itimerval it;
   static u32 prev_timed_out = 0;
   static u64 exec_ms = 0;
   is_timeout = false;
+  s32 res;
 
   int status = 0;
   u32 tb4;
@@ -2731,9 +2732,9 @@ BEGIN:
           //RPFATAL(res, "Unable to request new process from fork server (OOM?)");
       cerr <<  "Unable to request new process from fork server (OOM?)";
       kill(forksrv_pid, SIGKILL);
-      fsrv_ctl_fd.close();
-      fsrv_st_fd.close();
-      init_forkserver();
+      close(fsrv_ctl_fd);
+      close(fsrv_st_fd);
+      init_forkserver(argv);
   }
 
   /* Inside the parent process.
@@ -2751,9 +2752,9 @@ BEGIN:
   if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
       cerr << "The CockroachDB process is not responding? \n\n\n";
       kill(forksrv_pid, SIGKILL);
-      fsrv_ctl_fd.close();
-      fsrv_st_fd.close();
-      init_forkserver();
+      close(fsrv_ctl_fd);
+      close(fsrv_st_fd);
+      init_forkserver(argv);
       if (is_timeout) {
           return FAULT_TMOUT;
       } else {
@@ -2763,9 +2764,9 @@ BEGIN:
 
   if (status > 0) {
       // Reach 1000 time execution, relaunch CockroachDB. 
-      fsrv_ctl_fd.close();
-      fsrv_st_fd.close();
-      init_forkserver();
+      close(fsrv_ctl_fd);
+      close(fsrv_st_fd);
+      init_forkserver(argv);
   }
 
   getitimer(ITIMER_REAL, &it);
@@ -3174,7 +3175,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     //cmd_string = trim(cmd_string);
 
     // write_to_testcase(cmd_string.c_str(), cmd_string.size());
-    fault = run_target(tmout, cmd_string);
+    fault = run_target(argv, tmout, cmd_string);
     if (stop_soon)
       return fault;
     if (fault == FAULT_TMOUT)
@@ -3215,7 +3216,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
 
       /* The trace_bits[] are effectively volatile after calling run_target */
       // write_to_testcase(cmd_string.c_str(), cmd_string.size());
-      fault = run_target(tmout, cmd_string);
+      fault = run_target(argv, tmout, cmd_string);
       if (stop_soon)
         return fault;
       if (fault == FAULT_TMOUT)
@@ -3391,7 +3392,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
      count its spin-up time toward binary calibration. */
 
   if (dumb_mode != 1 && !no_forkserver && !forksrv_pid) {
-    init_forkserver();
+    init_forkserver(argv);
   }
 
   if (q->exec_cksum)
@@ -6615,7 +6616,7 @@ static void sync_fuzzers(char **argv)
         // write_to_testcase(mem, st.st_size);
         string cmd_str = (char*)mem;
 
-        fault = run_target(exec_tmout, cmd_str);
+        fault = run_target(argv, exec_tmout, cmd_str);
 
         if (stop_soon)
           return;
@@ -6687,7 +6688,7 @@ static void handle_timeout(int sig)
     //fsrv_ctl_fd.close();
     //fsrv_st_fd.close();
 
-    //init_forkserver();
+    //init_forkserver(argv);
   }
 }
 
@@ -7672,7 +7673,7 @@ static void save_cmdline(u32 argc, char **argv)
 }
 
 
-void debug_cockroach_oracle_compare_results() {
+void debug_cockroach_oracle_compare_results(char **argv) {
   p_oracle = new SQL_OPT();
   string cmd_string = "CREATE TABLE v0 ( v1 INTEGER );"
                       "CREATE VIEW v2 AS SELECT * FROM v0;"
@@ -7688,7 +7689,7 @@ void debug_cockroach_oracle_compare_results() {
                       "SELECT 'END VERI 1';";
   trim_string(cmd_string);
 
-  run_target(exec_tmout, cmd_string);
+  run_target(argv, exec_tmout, cmd_string);
 
   string res_str = g_cockroach_output;
   ALL_COMP_RES all_comp_res;
@@ -7732,7 +7733,7 @@ static void load_map_id() {
 int main(int argc, char **argv)
 {
   // debug_main_entry();
-  // debug_cockroach_oracle_compare_results();
+   debug_cockroach_oracle_compare_results(argv);
   // exit(0);
 
   p_oracle = nullptr;
