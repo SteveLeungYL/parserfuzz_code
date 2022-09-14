@@ -2780,7 +2780,7 @@ BEGIN:
 
   setitimer(ITIMER_REAL, &it, NULL);
 
-  total_execs++;
+  //total_execs++;
 
   if (filesystem::exists("./cov_out.bin")) {
       ifstream fin("./cov_out.bin", ios::in | ios::binary);
