@@ -2729,13 +2729,13 @@ BEGIN:
 
   // Send the signal to notify the CockroachDB to start executions. 
   while ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
-      if (stop_soon) return 0;
-          //RPFATAL(res, "Unable to request new process from fork server (OOM?)");
-      cerr <<  "Unable to request new process from fork server (OOM?)";
-      kill(forksrv_pid, SIGKILL);
-      close(fsrv_ctl_fd);
-      close(fsrv_st_fd);
-      init_forkserver(argv);
+      if (stop_soon) 
+          RPFATAL(res, "Unable to request new process from fork server (OOM?)");
+      //cerr <<  "Unable to request new process from fork server (OOM?)";
+      //kill(forksrv_pid, SIGKILL);
+      //close(fsrv_ctl_fd);
+      //close(fsrv_st_fd);
+      //init_forkserver(argv);
   }
 
   /* Inside the parent process.
@@ -2751,8 +2751,8 @@ BEGIN:
   setitimer(ITIMER_REAL, &it, NULL);
 
   if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
-      cerr << "The CockroachDB process is not responding? \n\n\n";
-      kill(forksrv_pid, SIGKILL);
+      cerr << "The CockroachDB process is not responding? Could be timeout killed or crashed. \n\n\n";
+      //kill(forksrv_pid, SIGKILL);
       close(fsrv_ctl_fd);
       close(fsrv_st_fd);
       init_forkserver(argv);
@@ -2814,15 +2814,15 @@ BEGIN:
   prev_timed_out = child_timed_out;
 
   /* If crashed, report outcome to caller. */
-  if (WIFSIGNALED(status) && !stop_soon) {
+  //if (WIFSIGNALED(status) && !stop_soon) {
 
-    kill_signal = WTERMSIG(status);
+    //kill_signal = WTERMSIG(status);
 
-    if (child_timed_out && kill_signal == SIGKILL) return FAULT_TMOUT;
+    //if (child_timed_out && kill_signal == SIGKILL) return FAULT_TMOUT;
 
-    return FAULT_CRASH;
+    //return FAULT_CRASH;
 
-  }
+  //}
 
   /* It makes sense to account for the slowest units only if the testcase was run
   under the user defined timeout. */
@@ -6674,6 +6674,7 @@ static void handle_skipreq(int sig) { skip_requested = 1; }
 
 static void handle_timeout(int sig)
 {
+  is_timeout = true;
 
   if (child_pid > 0)
   {

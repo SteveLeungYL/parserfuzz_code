@@ -129,8 +129,8 @@ func TestCov(t *testing.T) {
 
     // Notify the fuzzer that the execution has succeed, and the CockroachDB needs rerun. 
     statusPipe.Write([]byte{1, 0, 0, 0})
-    statusPipe.Close()
-    controlPipe.Close()
+    //statusPipe.Close()
+    //controlPipe.Close()
 
 
 }
