@@ -27,12 +27,9 @@ func executeQuery(sqlStr string, sqlRun * sqlutils.SQLRunner) string {
     testingQueryArray := strings.Split(string(sqlStr), "\n")
     resStr := ""
 
-    for idx, testingQuery := range testingQueryArray {
+    for _, testingQuery := range testingQueryArray {
 
-        log.Printf("\n\nDebug: Running on statement %d: %s", idx, testingQuery)
-        //out_file.WriteString(fmt.Sprintf("Res IDX: %d\n", idx))
-
-        // Higher lever query running: resRows := sqlRun.Query(t, testingQuery)
+        // Higher level query running command. Will throw error if failed: resRows := sqlRun.Query(t, testingQuery)
 
         // QueryContext is the most fundamental function to execute one query
         // and returns results. If error happens, this function would only
@@ -79,12 +76,17 @@ func TestCov(t *testing.T) {
     // Notify the fuzzer that the server is ready. 
     statusPipe.Write([]byte{0, 0, 0, 0})
 
-    log.Printf("Debug: Inside the coverage unit test. \n")
+    //log.Printf("Debug: Inside the coverage unit test. \n")
 
     for per_cycle := 0; per_cycle < 1000; per_cycle++ {
 
         // Wait for the input signal. 
-        controlPipe.Read(tmpCtrlRead)
+        //log.Printf("Reading from the controlPipe. \n")
+        _, err := controlPipe.Read(tmpCtrlRead)
+        if err != nil {
+            //log.Printf("controlPipe reading failed. %s\n", err.Error())
+            t.Fatal("controlPipe reading failed.\n")
+        }
 
         // Reset the database. 
         executeQuery(cleanupQuery, sqlRun)
@@ -112,16 +114,23 @@ func TestCov(t *testing.T) {
         // Plot the coverage output. 
         globalcov.SaveGlobalCov()
 
+        //log.Printf("Writing to the statusPipe. \n")
         if per_cycle != 999 {
             // Notify the fuzzer that the execution has succeed. 
-            statusPipe.Write([]byte{0, 0, 0, 0})
+            _, err := statusPipe.Write([]byte{0, 0, 0, 0})
+            if err != nil {
+                //log.Printf("StatusPipe reading failed. %s\n", err.Error())
+                t.Fatalf("StatusPipe writing failed. Error: %s", err.Error())
+            }
+        } else {
+            break
         }
     }
 
     // Notify the fuzzer that the execution has succeed, and the CockroachDB needs rerun. 
     statusPipe.Write([]byte{1, 0, 0, 0})
-
     statusPipe.Close()
+    controlPipe.Close()
 
 
 }

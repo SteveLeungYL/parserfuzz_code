@@ -2416,6 +2416,7 @@ EXP_ST void init_forkserver(char **argv)
       setrlimit(RLIMIT_DATA, &r); /* Ignore errors */
 
 #endif /* ^RLIMIT_AS */
+
     }
 
     /* Dumping cores is slow and can lead to anomalies if SIGKILL is delivered
@@ -7732,9 +7733,6 @@ static void load_map_id() {
 #ifndef AFL_LIB
 int main(int argc, char **argv)
 {
-  // debug_main_entry();
-   debug_cockroach_oracle_compare_results(argv);
-  // exit(0);
 
   p_oracle = nullptr;
 
@@ -8047,7 +8045,6 @@ int main(int argc, char **argv)
       FATAL("-Q and -n are mutually exclusive");
   }
 
-  no_forkserver = 1;
   if (getenv("AFL_NO_CPU_RED"))
     no_cpu_meter_red = 1;
   if (getenv("AFL_NO_ARITH"))
@@ -8129,7 +8126,6 @@ int main(int argc, char **argv)
   if (dump_library) {
     load_map_id();
   }
-
 
   perform_dry_run(use_argv);
 
