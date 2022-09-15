@@ -5,7 +5,8 @@ import (
 	"github.com/cockroachdb/cockroach/pkg/sql/tests"
 	"github.com/cockroachdb/cockroach/pkg/testutils/serverutils"
 	"github.com/cockroachdb/cockroach/pkg/testutils/sqlutils"
-	//"log"
+    //"log"
+    "time"
 	"os"
 	"strings"
 	"testing"
@@ -16,7 +17,8 @@ var FORKSRV_FD uintptr = 198
 
 var cleanupQuery = `
 DROP SCHEDULES WITH x AS (SHOW SCHEDULES) SELECT id FROM x WHERE label = 'schedule_database';
-DROP DATABASE WITH x AS (SHOW DATABASES) SELECT id FROM x WHERE database_name != 'system';
+DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
+CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
 `
 
 // Execute the query string, return the results as string.
@@ -75,10 +77,13 @@ func TestCov(t *testing.T) {
     // Forkserver, stop the process right before the query processing. 
     // Notify the fuzzer that the server is ready. 
     statusPipe.Write([]byte{0, 0, 0, 0})
+    statusPipe.Sync()
 
     //log.Printf("Debug: Inside the coverage unit test. \n")
 
     for per_cycle := 0; per_cycle < 1000; per_cycle++ {
+
+        //start := time.Now()
 
         // Wait for the input signal. 
         //log.Printf("Reading from the controlPipe. \n")
@@ -88,9 +93,16 @@ func TestCov(t *testing.T) {
             t.Fatal("controlPipe reading failed.\n")
         }
 
+        //duration := time.Since(start)
+        //log.Printf("When reading from the read pipe, takes time: %s", duration)
+
+        //start = time.Now()
         // Reset the database. 
         executeQuery(cleanupQuery, sqlRun)
+        //duration = time.Since(start)
+        //log.Printf("When executing the reset query, takes time: %s", duration)
 
+        //start = time.Now()
         // Read query from local file.
         inRaw, err := os.ReadFile("./input_query.sql")
         if err != nil {
@@ -102,26 +114,43 @@ func TestCov(t *testing.T) {
             panic(outErr)
         }
 
+        //duration = time.Since(start)
+        //log.Printf("When reading query from local FS, takes time: %s", duration)
+
+
+        //start = time.Now()
         // Clean up the coverage log. 
         globalcov.ResetGlobalCov()
+        //duration = time.Since(start)
+        //log.Printf("When cleaning up the coverage log, takes time: %s", duration)
 
+        //start = time.Now()
         // Execute the query
         queryRes := executeQuery(string(inRaw), sqlRun)
-        outFile.WriteString(queryRes)
+        //outFile.WriteString(queryRes)
 
         outFile.Close()
+        //duration = time.Since(start)
+        //log.Printf("When executing the test query, takes time: %s", duration)
 
+        //start = time.Now()
         // Plot the coverage output. 
         globalcov.SaveGlobalCov()
+        //duration = time.Since(start)
+        //log.Printf("When plotting the coverage output, takes time: %s", duration)
 
         //log.Printf("Writing to the statusPipe. \n")
         if per_cycle != 999 {
+            //start = time.Now()
             // Notify the fuzzer that the execution has succeed. 
             _, err := statusPipe.Write([]byte{0, 0, 0, 0})
+            statusPipe.Sync()
             if err != nil {
                 //log.Printf("StatusPipe reading failed. %s\n", err.Error())
                 t.Fatalf("StatusPipe writing failed. Error: %s", err.Error())
             }
+            //duration = time.Since(start)
+            //log.Printf("When notifying the fuzzer using StatusPipe, takes time: %s", duration)
         } else {
             break
         }
@@ -129,6 +158,7 @@ func TestCov(t *testing.T) {
 
     // Notify the fuzzer that the execution has succeed, and the CockroachDB needs rerun. 
     statusPipe.Write([]byte{1, 0, 0, 0})
+    statusPipe.Sync()
     //statusPipe.Close()
     //controlPipe.Close()
 
