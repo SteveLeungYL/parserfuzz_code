@@ -16,7 +16,6 @@ import (
 var FORKSRV_FD uintptr = 198
 
 var cleanupQuery = `
-DROP SCHEDULES WITH x AS (SHOW SCHEDULES) SELECT id FROM x WHERE label = 'schedule_database';
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
 CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
 `
