@@ -6,7 +6,7 @@ import (
 	"github.com/cockroachdb/cockroach/pkg/testutils/serverutils"
 	"github.com/cockroachdb/cockroach/pkg/testutils/sqlutils"
     //"log"
-    "time"
+    //"time"
 	"os"
 	"strings"
 	"testing"

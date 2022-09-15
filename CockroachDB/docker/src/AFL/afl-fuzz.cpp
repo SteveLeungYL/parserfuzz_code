@@ -3311,6 +3311,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   else
   {
     /* Query being skipped, or all select stmts return error results. */
+    total_execs++;
   }
   total_execute++;
   return fault;
