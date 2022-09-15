@@ -145,49 +145,9 @@ u64 cockroach_execute_error = 0;
 u64 cockroach_execute_total = 0;
 
 
-string all_opt_str = "set enable_async_append TO ON; \n"
-                     "set enable_bitmapscan TO ON; \n"
-                     "set enable_gathermerge TO ON; \n"
-                     "set enable_hashagg TO ON; \n"
-                     "set enable_hashjoin TO ON; \n"
-                     "set enable_incremental_sort TO ON; \n"
-                     "set enable_indexscan TO ON; \n"
-                     "set enable_indexonlyscan TO ON; \n"
-                     "set enable_material TO ON; \n"
-                     "set enable_memoize TO ON; \n" 
-                     "set enable_mergejoin TO ON; \n"
-                     "set enable_nestloop TO ON; \n" 
-                     "set enable_parallel_append TO ON; \n"
-                     "set enable_parallel_hash TO ON; \n" 
-                     "set enable_partition_pruning TO ON; \n"
-                     "set enable_partitionwise_join TO ON; \n"
-                     "set enable_partitionwise_aggregate TO ON; \n"
-                     "set enable_seqscan TO ON; \n"
-                     "set enable_sort TO ON; \n"
-                     "set geqo TO ON; \n"
-                     "set enable_tidscan TO ON;";
+string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0";
 
-string no_opt_str = "set enable_async_append TO OFF; \n"
-                    "set enable_bitmapscan TO OFF; \n"
-                    "set enable_gathermerge TO OFF; \n"
-                    "set enable_hashagg TO OFF; \n"
-                    "set enable_hashjoin TO OFF; \n"
-                    "set enable_incremental_sort TO OFF; \n"
-                    "set enable_indexscan TO OFF; \n"
-                    "set enable_indexonlyscan TO OFF; \n"
-                    "set enable_material TO OFF; \n"
-                    "set enable_memoize TO OFF; \n" 
-                    "set enable_mergejoin TO OFF; \n"
-                    "set enable_nestloop TO OFF; \n" 
-                    "set enable_parallel_append TO OFF; \n"
-                    "set enable_parallel_hash TO OFF; \n" 
-                    "set enable_partition_pruning TO OFF; \n"
-                    "set enable_partitionwise_join TO OFF; \n"
-                    "set enable_partitionwise_aggregate TO OFF; \n"
-                    "set enable_seqscan TO OFF; \n"
-                    "set enable_sort TO OFF; \n"
-                    "set geqo TO OFF; \n"
-                    "set enable_tidscan TO OFF;";
+string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0";
 
 int map_file_id = 0;
 fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
