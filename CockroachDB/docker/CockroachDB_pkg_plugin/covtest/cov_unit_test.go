@@ -126,7 +126,7 @@ func TestCov(t *testing.T) {
         //start = time.Now()
         // Execute the query
         queryRes := executeQuery(string(inRaw), sqlRun)
-        //outFile.WriteString(queryRes)
+        outFile.WriteString(queryRes)
 
         outFile.Close()
         //duration = time.Since(start)
