@@ -1,0 +1,13 @@
+CREATE TABLE  t1 (k INT PRIMARY KEY, v INT);
+INSERT INTO t1 VALUES (0, 4), (2, 1), (5, 4), (3, 4), (-1, -1);
+CREATE TABLE t2 (x INT PRIMARY KEY, y INT);
+INSERT INTO t2 VALUES (1, 3), (4, 6), (0, 5), (3, 2);
+CREATE TABLE a (k INT, v INT);
+INSERT INTO a VALUES (0, 1), (1, 2), (2, 0);
+SELECT * FROM t1 INNER HASH JOIN t2 ON t1.k = t2.x ORDER BY 1;
+SELECT * FROM a AS a2 JOIN a AS a1 ON a1.k = a2.v ORDER BY 1;
+SELECT * FROM t1 JOIN t2 ON t1.v = t2.x ORDER BY 1;
+SELECT * FROM t1 RIGHT JOIN t2 ON t1.v = t2.x;
+SELECT * FROM t1 FULL JOIN t2 ON t1.v = t2.x;
+SELECT b.a, b.c, c.a FROM b JOIN c ON b.b = c.a AND b.c = c.b ORDER BY 2;
+

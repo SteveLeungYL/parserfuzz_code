@@ -1,0 +1,10 @@
+CREATE TABLE xor_bytes (a bytes, b int, c int);
+CREATE TABLE ab ( a INT PRIMARY KEY, b INT, FAMILY (a), FAMILY (b) );
+CREATE TABLE xy(x STRING, y STRING);
+INSERT INTO ab(a,b) VALUES (1,2), (3,4);
+INSERT INTO ab(a,b) VALUES (1,2), (3,4);
+INSERT INTO xy(x, y) VALUES ('a', 'b'), ('c', 'd')
+INSERT INTO xy(x, y) VALUES ('a', 'b'), ('c', 'd');
+INSERT INTO xor_bytes VALUES (b'\x01\x01', 1, 3), (b'\x02\x01', 1, 1), (b'\x04\x01', 2, -5), (b'\x08\x01', 2, -1), (b'\x10\x01', 2, 0);
+SELECT to_hex(xor_agg(a)), xor_agg(c) FROM xor_bytes;
+SELECT to_hex(xor_agg(a)), b, xor_agg(c) FROM xor_bytes GROUP BY b ORDER BY b;
