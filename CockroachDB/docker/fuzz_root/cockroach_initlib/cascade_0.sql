@@ -1,0 +1,12 @@
+CREATE TABLE parent (p INT PRIMARY KEY);
+CREATE TABLE child ( c INT PRIMARY KEY, p INT NOT NULL REFERENCES parent(p) ON DELETE CASCADE);
+CREATE TABLE grandchild ( g INT PRIMARY KEY, c INT REFERENCES child(c) );
+INSERT INTO parent VALUES (1), (2);
+INSERT INTO parent VALUES (1), (2);
+INSERT INTO child VALUES (1, 1), (2, 2), (10, 1), (20, 2);
+INSERT INTO child VALUES (10, 1), (11, 1), (20, 2), (21, 2);
+INSERT INTO grandchild VALUES (100, 10), (101, 10), (110, 11);
+DELETE FROM parent WHERE p = 2;
+DELETE FROM grandchild WHERE c = 11;
+DELETE FROM parent WHERE p >= 2;
+SELECT * FROM child;
