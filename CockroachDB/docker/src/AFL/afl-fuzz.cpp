@@ -145,9 +145,9 @@ u64 cockroach_execute_error = 0;
 u64 cockroach_execute_total = 0;
 
 
-string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0";
+string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0;\n";
 
-string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0";
+string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0;\n";
 
 int map_file_id = 0;
 fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);
