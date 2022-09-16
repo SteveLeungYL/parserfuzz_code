@@ -18,6 +18,7 @@ var FORKSRV_FD uintptr = 198
 var cleanupQuery = `
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
 CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
+SET DATABASE = sqlrightTestDB;
 `
 
 // Execute the query string, return the results as string.
