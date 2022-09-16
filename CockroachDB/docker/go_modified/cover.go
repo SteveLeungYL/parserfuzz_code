@@ -429,7 +429,7 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 		newCovStmt := getCovStmt()
 		f.edit.Insert(f.offset(insertPos), newCovStmt)
 
-        f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
+        //f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
 		return
 	}
 	// Make a copy of the list, as we may mutate it and should leave the
@@ -484,7 +484,7 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 			newCovStmt := getCovStmt()
 			f.edit.Insert(f.offset(insertPos), newCovStmt)
 
-            f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
+            //f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
 		}
 		list = list[last:]
 		if len(list) == 0 {
