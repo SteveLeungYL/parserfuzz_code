@@ -1,4 +1,4 @@
-package cov_test
+package covtest
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"github.com/cockroachdb/cockroach/pkg/security/username"
 	"github.com/cockroachdb/cockroach/pkg/server"
 	"github.com/cockroachdb/cockroach/pkg/sql"
 	"github.com/cockroachdb/cockroach/pkg/sql/sessiondata"
@@ -73,11 +72,13 @@ func TestCov(t *testing.T) {
 
 	ctx := context.Background()
 
-	mon := sql.MakeInternalExecutorMemMonitor(sql.MemoryMetrics{}, s.ClusterSettings())
-	mon.StartNoReserved(ctx, s.(*server.TestServer).Server.PGServer().SQLServer.GetBytesMonitor())
-	ie := sql.MakeInternalExecutor(
-		s.(*server.TestServer).Server.PGServer().SQLServer, sql.MemoryMetrics{}, mon,
+    ie := sql.MakeInternalExecutor(
+		ctx,
+		s.(*server.TestServer).Server.PGServer().SQLServer,
+		sql.MemoryMetrics{},
+		s.ExecutorConfig().(sql.ExecutorConfig).Settings,
 	)
+    defer ie.Close(context.Background())
 
 	sqlRun := sqlutils.MakeSQLRunner(sqlDB)
 
@@ -120,7 +121,7 @@ func TestCov(t *testing.T) {
 			&sessiondata.SessionData{
 				SessionData: sessiondatapb.SessionData{
 					Database:  "sqlrightTestDB",
-					UserProto: username.RootUserName().EncodeProto(),
+					UserProto: "root",
 				},
 				LocalOnlySessionData: sessiondatapb.LocalOnlySessionData{
 					DisallowFullTableScans: false,

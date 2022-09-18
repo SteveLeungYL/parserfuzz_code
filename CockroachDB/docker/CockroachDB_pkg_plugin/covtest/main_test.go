@@ -1,4 +1,4 @@
-package cov_test
+package covtest
 
 import (
 	"log"
