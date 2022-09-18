@@ -45,7 +45,15 @@ for subdir, _, files in os.walk("./"):
 
         with open(cur_file_dir, "r") as fd:
             is_package = False
-            for cur_line in fd.readlines():
+            is_already_imported = False
+
+            all_lines = fd.readlines()
+            for cur_line in all_lines:
+                if "github.com/globalcov" in cur_line:
+                    is_already_imported = True
+                    break
+
+            for cur_line in all_lines:
                 tmp_contents += cur_line
 
                 # Add the import line immediately after the package line. 
@@ -60,9 +68,9 @@ for subdir, _, files in os.walk("./"):
                     is_func_existed = True
 
 
-        tmp_contents += "var _ = globalcov.LogGlobalCov"
+        tmp_contents += "var ( _ = globalcov.LogGlobalCov );"
 
-        if is_func_existed:
+        if is_func_existed and not is_already_imported:
             # logger.debug("Getting instrumented file: \n%s\n" % (tmp_contents))
             with open(cur_file_dir, "w") as fd:
                 fd.write(tmp_contents)

@@ -72,13 +72,11 @@ func TestCov(t *testing.T) {
 
 	ctx := context.Background()
 
-    ie := sql.MakeInternalExecutor(
-		ctx,
-		s.(*server.TestServer).Server.PGServer().SQLServer,
-		sql.MemoryMetrics{},
-		s.ExecutorConfig().(sql.ExecutorConfig).Settings,
+	mon := sql.MakeInternalExecutorMemMonitor(sql.MemoryMetrics{}, s.ClusterSettings())
+	mon.StartNoReserved(ctx, s.(*server.TestServer).Server.PGServer().SQLServer.GetBytesMonitor())
+	ie := sql.MakeInternalExecutor(
+		s.(*server.TestServer).Server.PGServer().SQLServer, sql.MemoryMetrics{}, mon,
 	)
-    defer ie.Close(context.Background())
 
 	sqlRun := sqlutils.MakeSQLRunner(sqlDB)
 

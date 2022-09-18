@@ -63,8 +63,8 @@ USER cockroach
 RUN curl --compressed -o- -L https://yarnpkg.com/install.sh | bash
 
 # Download the original Go library. Set it up. 
-RUN wget https://go.dev/dl/go1.16.15.linux-amd64.tar.gz
-RUN tar -xf go1.16.15.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.19.linux-amd64.tar.gz
+RUN tar -xf go1.19.linux-amd64.tar.gz
 USER root
 RUN cp -r go /usr/local/
 USER cockroach
@@ -84,7 +84,7 @@ ENV GOPATH="/home/cockroach/go_projects"
 # Compile CockroachDB
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
-RUN git checkout v21.2.15
+#RUN git checkout v21.2.15
 # The first build is possible to be failed by vendor mismatched. Ignored. 
 # The first build will automatically call go mod vendor. 
 RUN make build; exit 0
@@ -118,6 +118,7 @@ RUN go mod vendor; exit 0;
 
 # Copy the globalcov folder to the vendor folder
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/vendor
+RUN mkdir -p github.com
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
 # Some package will search for the github folder (rather than the github.com)
 # to look for the globalcov dependency. Dirty fix for now. 

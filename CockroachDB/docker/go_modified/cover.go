@@ -13,9 +13,9 @@ import (
 	"go/token"
 	"io"
 	"log"
-	"math/rand"
 	"os"
 	"sort"
+    "math/rand"
 
 	"cmd/internal/edit"
 	"cmd/internal/objabi"
@@ -41,8 +41,8 @@ Finally, to generate modified source code with coverage annotations
 `
 
 func usage() {
-	fmt.Fprintln(os.Stderr, usageMessage)
-	fmt.Fprintln(os.Stderr, "Flags:")
+	fmt.Fprint(os.Stderr, usageMessage)
+	fmt.Fprintln(os.Stderr, "\nFlags:")
 	flag.PrintDefaults()
 	fmt.Fprintln(os.Stderr, "\n  Only one of -html, -func, or -mode may be set.")
 	os.Exit(2)
@@ -342,32 +342,7 @@ func annotate(name string) {
 		}
 	}
 
-    //// Check the instrumented content, if the instrumented content does not
-    //// contains the LogGlobalCov function, remove the globalcov import
-    //tmpNewContentStr := ""
-    //newContentStr := string(newContent)
-
-    //isInstrFound := false
-    //for _, curStr := range strings.Split(newContentStr, "\n") {
-        //if strings.Contains(curStr, "LogGlobalCov") {
-            //isInstrFound = true
-        //}
-    //}
-
-    //// If instrumentation is not found, remove the globalcov import
-    //if !isInstrFound {
-        //for _, curStr := range strings.Split(newContentStr, "\n") {
-            //if !strings.Contains(curStr, "github.com/globalcov") {
-                //tmpNewContentStr += curStr + "\n"
-            //}
-        //}
-        //// Overwrite the return newContent
-        //newContent = []byte(tmpNewContentStr)
-    //}
-
 	fmt.Fprintf(fd, "//line %s:1\n", name)
-
-	// Actual instrumentation code
 	fd.Write(newContent)
 
 	// After printing the source tree, add some declarations for the counters etc.
@@ -403,7 +378,7 @@ func (f *File) newCounter(start, end token.Pos, numStmt int) string {
 //	S1
 //	if cond {
 //		S2
-// 	}
+//	}
 //	S3
 //
 // counters will be added before S1 and before S3. The block containing S2
@@ -412,24 +387,22 @@ func (f *File) newCounter(start, end token.Pos, numStmt int) string {
 func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, extendToClosingBrace bool) {
 	// Special case: make sure we add a counter to an empty block. Can't do this below
 	// or we will add a counter to an empty statement list after, say, a return statement.
-	getRndOffset := func() uint32 {
-		randInt := rand.Intn(1 << 18)
-		return uint32(randInt)
-	}
+    getRndOffset := func() uint32 {
+       randInt := rand.Intn(1 << 18)
+       return uint32(randInt)
+    }
+  
+    getCovStmt := func() string {
+        randOff := getRndOffset()
+        retStmt := fmt.Sprintf("globalcov.LogGlobalCov(%d);", randOff)
+        return retStmt
+    }
 
-	getCovStmt := func() string {
-		randOff := getRndOffset()
-		retStmt := fmt.Sprintf("globalcov.LogGlobalCov(%d);", randOff)
-		return retStmt
-	}
 
 	if len(list) == 0 {
-		// Global branch coverage based instrumentation.
-		//log.Printf("Inserting coverage statement. ")
-		newCovStmt := getCovStmt()
-		f.edit.Insert(f.offset(insertPos), newCovStmt)
-
-        //f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
+        newCovStmt := getCovStmt()
+        f.edit.Insert(f.offset(insertPos), newCovStmt)
+		//f.edit.Insert(f.offset(insertPos), f.newCounter(insertPos, blockEnd, 0)+";")
 		return
 	}
 	// Make a copy of the list, as we may mutate it and should leave the
@@ -479,12 +452,9 @@ func (f *File) addCounters(pos, insertPos, blockEnd token.Pos, list []ast.Stmt, 
 			end = blockEnd
 		}
 		if pos != end { // Can have no source to cover if e.g. blocks abut.
-			// Global branch coverage based instrumentation.
-			//log.Printf("Inserting coverage statement. ")
-			newCovStmt := getCovStmt()
-			f.edit.Insert(f.offset(insertPos), newCovStmt)
-
-            //f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
+            newCovStmt := getCovStmt()
+            f.edit.Insert(f.offset(insertPos), newCovStmt)
+			//f.edit.Insert(f.offset(insertPos), f.newCounter(pos, end, last)+";")
 		}
 		list = list[last:]
 		if len(list) == 0 {
@@ -774,3 +744,4 @@ func dedup(p1, p2 token.Position) (r1, r2 token.Position) {
 
 	return key.p1, key.p2
 }
+
