@@ -146,18 +146,18 @@ u64 cockroach_execute_total = 0;
 
 
 // The testing_optimizer_disable_rule_probability is not exposed to the user. 
-//string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0;\n";
+string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0;\n";
 
-string all_opt_str = "SET CLUSTER SETTING sql.stats.automatic_collection.enabled = true;\n"
-                     "SET CLUSTER SETTING sql.stats.histogram_collection.enabled = true;\n"
-                     "SET CLUSTER SETTING sql.query_cache.enabled = true;\n"
-                     "SET reorder_joins_limit = 8;\n";
+//string all_opt_str = "SET CLUSTER SETTING sql.stats.automatic_collection.enabled = true;\n"
+                     //"SET CLUSTER SETTING sql.stats.histogram_collection.enabled = true;\n"
+                     //"SET CLUSTER SETTING sql.query_cache.enabled = true;\n"
+                     //"SET reorder_joins_limit = 8;\n";
 
-//string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0;\n";
-string no_opt_str =  "SET CLUSTER SETTING sql.stats.automatic_collection.enabled = false; DELETE FROM system.table_statistics WHERE true;\n"
-                     "SET CLUSTER SETTING sql.stats.histogram_collection.enabled = false;\n"
-                     "SET CLUSTER SETTING sql.query_cache.enabled = false;\n"
-                     "SET reorder_joins_limit = 0;\n";
+string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0;\n";
+//string no_opt_str =  "SET CLUSTER SETTING sql.stats.automatic_collection.enabled = false; DELETE FROM system.table_statistics WHERE true;\n"
+                     //"SET CLUSTER SETTING sql.stats.histogram_collection.enabled = false;\n"
+                     //"SET CLUSTER SETTING sql.query_cache.enabled = false;\n"
+                     //"SET reorder_joins_limit = 0;\n";
 
 int map_file_id = 0;
 fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) + ".txt", std::ofstream::out | std::ofstream::trunc);

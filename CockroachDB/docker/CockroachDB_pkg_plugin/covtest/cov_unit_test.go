@@ -2,9 +2,11 @@ package cov_test
 
 import (
 	"context"
+	"github.com/cockroachdb/cockroach/pkg/sql"
 	"github.com/cockroachdb/cockroach/pkg/sql/tests"
 	"github.com/cockroachdb/cockroach/pkg/testutils/serverutils"
 	"github.com/cockroachdb/cockroach/pkg/testutils/sqlutils"
+    "github.com/cockroachdb/cockroach/pkg/sql/sessiondatapb"
     //"log"
     //"time"
 	"os"
@@ -66,6 +68,14 @@ func TestCov(t *testing.T) {
     s, sqlDB, _ := serverutils.StartServer(t, params)
     defer s.Stopper().Stop(context.Background())
 
+    
+    mon := sql.MakeInternalExecutorMemMonitor(sql.MemoryMetrics{}, s.ClusterSettings())
+	mon.StartNoReserved(ctx, s.(*server.TestServer).Server.PGServer().SQLServer.GetBytesMonitor())
+	ie := sql.MakeInternalExecutor(
+		s.(*server.TestServer).Server.PGServer().SQLServer, sql.MemoryMetrics{}, mon,
+	)
+
+
     sqlRun := sqlutils.MakeSQLRunner(sqlDB)
 
     // Control Read Pipe. 
@@ -101,6 +111,21 @@ func TestCov(t *testing.T) {
         executeQuery(cleanupQuery, sqlRun)
         //duration = time.Since(start)
         //log.Printf("When executing the reset query, takes time: %s", duration)
+
+
+        // Setup optimizer flag.
+        ie.SetSessionData(
+            &sessiondata.SessionData{
+                SessionData: sessiondatapb.SessionData{
+                    Database:  "sqlrightTestDB",
+                    UserProto: username.RootUserName().EncodeProto(),
+                },
+                LocalOnlySessionData: sessiondatapb.LocalOnlySessionData{
+                    DisallowFullTableScans: false,
+                },
+                SequenceState: &sessiondata.SequenceState{},
+        })
+
 
         //start = time.Now()
         // Read query from local file.
