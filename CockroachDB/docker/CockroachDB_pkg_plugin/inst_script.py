@@ -28,6 +28,8 @@ if not os.path.isdir(db_dir):
 
 os.chdir(db_dir)
 
+global_idx = 0
+
 # Iterate all files in the CockroachDB source folder. 
 for subdir, _, files in os.walk("./"):
     for cur_file in files:
@@ -68,7 +70,8 @@ for subdir, _, files in os.walk("./"):
                     is_func_existed = True
 
 
-        tmp_contents += "var ( _ = globalcov.LogGlobalCov );"
+        tmp_contents += "\nvar ( dumplog_%d = globalcov.LogGlobalCov );" % (global_idx)
+        global_idx+=1
 
         if is_func_existed and not is_already_imported:
             # logger.debug("Getting instrumented file: \n%s\n" % (tmp_contents))
@@ -76,4 +79,3 @@ for subdir, _, files in os.walk("./"):
                 fd.write(tmp_contents)
         else:
             logger.debug("Importing file: %s %s because there are no functions inside. " % (subdir, cur_file))
-
