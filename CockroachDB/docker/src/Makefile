@@ -18,7 +18,7 @@ export CC = g++
 export DEBUG =
 export OPT = -O3
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
-LDFLAGS = -ldl -lpq -pg
+LDFLAGS = -ldl
 
 
 all: afl-fuzz test-parser generate_inputs
