@@ -3256,15 +3256,15 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
   {
     ofstream outputfile;
     bug_output_id++;
-    if ( !filesystem::exists("../Bug_Analysis/")) {
-      filesystem::create_directory("../Bug_Analysis/");
+    if ( !filesystem::exists("../../../Bug_Analysis/")) {
+      filesystem::create_directory("../../../Bug_Analysis/");
     }
-    if ( !filesystem::exists("../Bug_Analysis/bug_samples")) {
-      filesystem::create_directory("../Bug_Analysis/bug_samples");
+    if ( !filesystem::exists("../../../Bug_Analysis/bug_samples")) {
+      filesystem::create_directory("../../../Bug_Analysis/bug_samples");
     }
 
     string bug_output_dir =
-        "../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
+        "../../../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) + ":src:" + to_string(current_entry) + ":core:" + std::to_string(bind_to_core_id) + ".txt";
     // cerr << "Bug output dir is: " << bug_output_dir << endl;
     outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
     stream_output_res(all_comp_res, outputfile);
