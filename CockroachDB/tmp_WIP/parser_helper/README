@@ -1,0 +1,13 @@
+Command to generate the share library file:
+
+```bash
+go build -o test.so -buildmode=c-shared ./main.go
+```
+
+Failed on one Ubuntu machine. Error:
+
+```
+relocation R_X86_64_PC32 against symbol `stderr@@GLIBC_2.2.5' can not be used when making a shared object; recompile with -fPIC
+```
+
+Only succeed on Mac. 
