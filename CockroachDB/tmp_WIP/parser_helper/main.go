@@ -1,25 +1,22 @@
 package main
+
 import "C"
 import (
-    "github.com/cockroachdb/cockroach/pkg/sql/parser"
-    "os"
-    _ "github.com/cockroachdb/cockroach/pkg/sql/sem/builtins"
+	"github.com/cockroachdb/cockroach/pkg/sql/parser"
+	_ "github.com/cockroachdb/cockroach/pkg/sql/sem/builtins"
 )
 
 //export ParseHelper
-func ParseHelper(inData string) {
-    _, err := parser.Parse(string(inData))
-    if err != nil {
-        return
-    }
-    return
+func ParseHelper(inData string) string {
+	_, err := parser.Parse(string(inData))
+
+	// The return res is an array of Statement structure.
+	// Should convert to json string before passing back to C++ code.
+
+	if err != nil {
+		return ""
+	}
+	return "Succeed"
 }
 
-func main() {
-    data, inputErr := os.ReadFile("./input_query.sql")
-    if inputErr != nil {
-        return
-    }
-    ParseHelper(string(data))
-    return
-}
+func main() {}
