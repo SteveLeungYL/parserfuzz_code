@@ -1,3 +1,4 @@
+#include "../parser/parser.h""
 #include "../include/mutate.h"
 #include "../include/ast.h"
 #include "../include/define.h"
@@ -9,7 +10,6 @@
 
 #include "../AFL/debug.h"
 
-#include "../parser/parser_for_sqlright.h"
 #include <sys/resource.h>
 #include <sys/time.h>
 
@@ -380,7 +380,7 @@ void Mutator::init_ir_library(string filename) {
     if (line.empty())
       continue;
 
-    IR* res = raw_parser(line.c_str(), RAW_PARSE_DEFAULT); // RAW_PARSE_DEFAULT = 0
+    IR* res = raw_parser(line); // RAW_PARSE_DEFAULT = 0
     if (res == NULL) {
       continue;
     }
@@ -3558,7 +3558,7 @@ int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
   new_buf = buf;
   new_len = len;
 
-  IR* ir_root = raw_parser(sql.c_str(), RAW_PARSE_DEFAULT);
+  IR* ir_root = raw_parser(sql);
 
   if (ir_root == NULL)
     return 0;
@@ -3626,7 +3626,7 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
   IR* root_ir = NULL;
 
   try {
-    root_ir = raw_parser(query_str.c_str(), RAW_PARSE_DEFAULT);
+    root_ir = raw_parser(query_str);
     if (root_ir == NULL) {
       return ir_set;
     }
