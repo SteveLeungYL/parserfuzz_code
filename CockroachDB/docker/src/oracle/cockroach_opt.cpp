@@ -12,7 +12,7 @@ bool SQL_OPT::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
-  if (cur_stmt->get_ir_type() != kSelectStmt) {
+  if (cur_stmt->get_ir_type() != TypeSelect) {
     // cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
     return false;
   }

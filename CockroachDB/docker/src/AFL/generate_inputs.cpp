@@ -64,25 +64,26 @@ void init_stmts(string f_testcase) {
         string* saved_str = new string(strip_sql);
 
         switch (cur_stmt->get_ir_type()) {
-            case kCreateStmt: {
+            // TODO:: FIXME:: Might not be accurate
+            case TypeCreateTable: {
                 // cout << "For str: " << strip_sql << ", kCreateStmt. \n";
                 v_create_stmt.push_back(saved_str);
                 v_other_stmt.push_back(saved_str);
             }
                 break;
-            case kInsertStmt: {
+            case TypeInsert: {
                 // cout << "For str: " << strip_sql << ", kInsertStmt. \n";
                 v_insert_stmt.push_back(saved_str);
                 v_other_stmt.push_back(saved_str);
             }
                 break;
-            case kVariableSetStmt: {
+            case TypeSetVar: {
                 // cout << "For str: " << strip_sql << ", kSetStmt. \n";
                 v_set_stmt.push_back(saved_str);
                 v_other_stmt.push_back(saved_str);
             }
                 break;
-            case kSelectStmt: {
+            case TypeSelect: {
             }
                 break;
             default: {

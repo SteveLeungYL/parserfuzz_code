@@ -8,7 +8,7 @@ bool SQL_ORACLE::mark_node_valid(IR *root) {
   /* the following types do not added to the norec_select_stmt list. They should
    * be able to mutate as usual. */
   if (// root->type_ == kNewExpr || root->type_ == kTableOrSubquery ||
-      root->type_ == kOptGroupClause || root->type_ == kWindowClause)
+      root->type_ == TypeGroupBy || root->type_ == TypeWindow)
     return false;
   root->is_node_struct_fixed = true;
   if (root->left_ != nullptr)
@@ -278,7 +278,7 @@ int SQL_ORACLE::count_oracle_normal_stmts(IR* ir_root) {
 }
 
 bool SQL_ORACLE::is_oracle_select_stmt(IR* cur_IR){
-  if (cur_IR != NULL && cur_IR->type_ == kSelectStmt) {
+  if (cur_IR != NULL && cur_IR->type_ == TypeSelect) {
     /* For dummy function, treat all SELECT stmt as oracle function.  */
     return true;
   }
@@ -289,7 +289,7 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR* ir_root) {
   ir_wrapper.set_ir_root(ir_root);
   vector<IR*> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
   for (IR* cur_stmt : stmt_vec) {
-    if (cur_stmt->type_ == kSelectStmt) {
+    if (cur_stmt->type_ == TypeSelect) {
       ir_wrapper.remove_stmt_and_free(cur_stmt);
     }
   }
