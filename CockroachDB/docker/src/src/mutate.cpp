@@ -1,4 +1,4 @@
-#include "../parser/parser.h""
+#include "../parser/parser.h"
 #include "../include/mutate.h"
 #include "../include/ast.h"
 #include "../include/define.h"
@@ -3552,34 +3552,34 @@ IR *Mutator::find_closest_node(IR *stmt_root, IR *node, DATATYPE type) {
   return NULL;
 }
 
-int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
-  string sql(buf);
+//int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
+  //string sql(buf);
 
-  new_buf = buf;
-  new_len = len;
+  //new_buf = buf;
+  //new_len = len;
 
-  IR* ir_root = raw_parser(sql);
+  //IR* ir_root = raw_parser(sql);
 
-  if (ir_root == NULL)
-    return 0;
-  validate(ir_root);
-  string fixed = ir_root->to_string();
-  if (fixed == "") {
-    return 0;
-  }
-  deep_delete(ir_root);
-  if (fixed.empty())
-    return 0;
+  //if (ir_root == NULL)
+    //return 0;
+  //validate(ir_root);
+  //string fixed = ir_root->to_string();
+  //if (fixed == "") {
+    //return 0;
+  //}
+  //deep_delete(ir_root);
+  //if (fixed.empty())
+    //return 0;
 
-  char *sfixed = (char *)malloc(fixed.size() + 1);
-  memcpy(sfixed, fixed.c_str(), fixed.size());
-  sfixed[fixed.size()] = 0;
+  //char *sfixed = (char *)malloc(fixed.size() + 1);
+  //memcpy(sfixed, fixed.c_str(), fixed.size());
+  //sfixed[fixed.size()] = 0;
 
-  new_buf = sfixed;
-  new_len = fixed.size();
+  //new_buf = sfixed;
+  //new_len = fixed.size();
 
-  return 1;
-}
+  //return 1;
+//}
 
 // added by vancir.
 

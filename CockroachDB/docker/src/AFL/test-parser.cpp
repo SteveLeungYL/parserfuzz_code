@@ -10,8 +10,6 @@
 #include <ostream>
 #include <string>
 
-extern int base_yydebug;
-
 using namespace std;
 
 namespace Color {
@@ -126,8 +124,6 @@ int main(int argc, char *argv[]) {
     cout << "./test-parser sql-query-file" << endl;
     return -1;
   }
-
-  base_yydebug = 1;
 
   mutator.init("");
 

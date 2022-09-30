@@ -127,7 +127,7 @@ public:
   ~Mutator();
   void debug(IR *root);
   void debug(IR *root, unsigned level);
-  int try_fix(char *buf, int len, char *&new_buf, int &new_len);
+  //int try_fix(char *buf, int len, char *&new_buf, int &new_len);
 
   void add_ir_to_library_no_deepcopy(IR *); 
 
