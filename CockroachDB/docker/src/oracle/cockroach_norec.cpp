@@ -67,12 +67,12 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     target_list_ir = target_list_ir->get_left();
   }
 
-  // cerr << "num_target_el: " << ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) << "\n";
+  // cerr << "num_target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) << "\n";
 
   if (
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false) &&
-    ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) == 1
+    ir_wrapper.get_num_select_exprs(cur_stmt) == 1
   ) {
 
     /* Make sure from clause and where clause are not empty.  */
@@ -159,7 +159,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
   // cerr << "return false because not found from and where clause. \n";
-  // cerr << "target_el: " << ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) << "\n";
+  // cerr << "target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) << "\n";
   return false;
 
 }

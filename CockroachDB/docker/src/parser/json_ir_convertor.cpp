@@ -19,7 +19,9 @@ DATAFLAG get_data_flag_by_idx(int idx) {
     return static_cast<DATAFLAG>(idx);
 }
 
-IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
+inline IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
+
+    // Recursive function.
 
     IRTYPE type = TypeUnknown;
     DATATYPE datatype = DataNone;
@@ -97,12 +99,47 @@ IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
     return curRootIR;
 }
 
+inline IR* construct_stmt_ir(IR* curNode) {
+    IROperator* tmp_op = new IROperator("", "", "");
+    return new IR(TypeStmt, tmp_op, curNode, NULL);
+}
+
+IR* construct_stmtlist_ir(vector<IR*> v_stmtlist) {
+    IR* rootIR;
+
+    int idx = 0;
+    for (IR* curStmt : v_stmtlist) {
+        if (idx == 0) {
+            IR *lNode = construct_stmt_ir(curStmt);
+            IR *rNode = NULL;
+            string infix = "";
+
+            // Left is TypeStmt. Right is NULL
+            IROperator* tmp_opt = new IROperator("", infix, "");
+            rootIR = new IR(TypeStmtList, tmp_opt, lNode, rNode);
+        } else {
+            // idx >= 1
+            IR* rNode = construct_stmt_ir(curStmt);
+            IROperator* tmp_opt = new IROperator("", ", ", "");
+
+            // Left is previous stmts. Right is TypeStmt.
+            rootIR = new IR(TypeStmtList, tmp_opt, rootIR, rNode);
+        }
+        ++idx;
+    }
+
+    IROperator* tmp_opt = new IROperator("", "", "");
+    rootIR = new IR(TypeRoot, tmp_opt, rootIR, NULL);
+
+    return rootIR;
+}
+
 IR* convert_json_to_IR(string all_json_str) {
 
-    
     vector<string> json_str_lines = string_splitter(all_json_str, '\n');
 
     IR* retRootIR;
+    vector<IR*> v_stmt_ir;
 
     for (const string& json_str : json_str_lines) {
         if (json_str.size() == 0 || json_str[0] != '{') {
@@ -110,11 +147,14 @@ IR* convert_json_to_IR(string all_json_str) {
         }
         try {
             auto json_obj = json::parse(json_str);
-            retRootIR = convert_json_to_IR_helper(json_obj, 0);
+            IR* tmp_stmt_IR = convert_json_to_IR_helper(json_obj, 0);
+            v_stmt_ir.push_back(tmp_stmt_IR);
         }  catch (json::parse_error& ex) {
             return NULL;
         }
     }
+
+    retRootIR = construct_stmtlist_ir(v_stmt_ir);
 
     return retRootIR;
 }

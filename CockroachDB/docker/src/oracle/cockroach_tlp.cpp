@@ -56,7 +56,7 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kSelectStmt, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kFromClause, false) &&
     ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false) &&
-    ir_wrapper.get_num_target_el_in_select_clause(cur_stmt) == 1
+    ir_wrapper.get_num_select_exprs(cur_stmt) == 1
   ) {
 
     /* Make sure from clause and where clause are not empty.  */

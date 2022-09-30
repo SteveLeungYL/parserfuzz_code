@@ -4,7 +4,10 @@
 
 #define ALLTYPE(V)                                                             \
   /* New one here!!! */         \
-    V(TypeUnknown) \
+    V(TypeUnknown)                                                             \
+    V(TypeRoot) \
+    V(TypeStmtList) \
+    V(TypeStmt) \
     V(TypeIdentifier) \
     V(TypeAlterChangeFeed) \
     V(TypeAlterChangefeedCmds) \
@@ -450,8 +453,8 @@
     V(TypeDCollatedString) \
     V(TypeDiscard) \
     V(TypeUnlisten) \
-    V(TypeTableRef) \
-
+    V(TypeTableRef)  \
+    V(TypeHaving) \
 
 #define ALLDATATYPE(V)                                                         \
     V(DataNone) \

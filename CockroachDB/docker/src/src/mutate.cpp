@@ -102,52 +102,6 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   p_oracle->ir_wrapper.remove_stmt_at_idx_and_free(rov_idx);
   res_vec.push_back(cur_root);
 
-  // // For strategy_replace
-  // cur_root = root->deep_copy();
-  // p_oracle->ir_wrapper.set_ir_root(cur_root);
-
-  // vector<IR*> ori_stmt_list = p_oracle->ir_wrapper.get_stmt_ir_vec();
-  // IR* rep_old_ir = ori_stmt_list[get_rand_int(ori_stmt_list.size())];
-
-  // IR * new_stmt_ir = NULL;
-  // /* Get new insert statement. However, do not insert kSelectStatement */
-  // int trial = 0;
-  // while (new_stmt_ir == NULL) {
-  //   new_stmt_ir = get_from_libary_with_type(kStmt);
-  //   if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
-  //     // cerr << "kStmt is empty;\n\n\n";
-  //     cur_root->deep_drop();
-  //     goto STMTLIST_INSERT;
-  //   }
-  //   if (new_stmt_ir->left_->type_ == kSelectStmt) {
-  //     // cerr << "Getting Select Stmt;\n\n\n";
-  //     new_stmt_ir->deep_drop();
-  //     new_stmt_ir = NULL;
-  //   }
-  //   trial++;
-  //   if (trial > 100) {
-  //     cur_root->deep_drop();
-  //     goto STMTLIST_INSERT;
-  //   }
-  //   continue;
-  // }
-
-  // IR* new_stmt_ir_tmp;
-  // new_stmt_ir_tmp = new_stmt_ir->left_->deep_copy();  // kStatement -> specific_stmt_type
-  // new_stmt_ir->deep_drop();
-  // new_stmt_ir = new_stmt_ir_tmp;
-
-  // // cerr << "Replacing rep_old_ir: " << rep_old_ir->to_string() << " to: " << new_stmt_ir->to_string() << ". \n\n\n";
-
-  // p_oracle->ir_wrapper.set_ir_root(cur_root);
-  // if(!p_oracle->ir_wrapper.replace_stmt_and_free(rep_old_ir, new_stmt_ir)){
-  //   new_stmt_ir->deep_drop();
-  //   cur_root->deep_drop();
-  //   return res_vec;
-  // }
-  // res_vec.push_back(cur_root);
-
-  // For strategy_insert
 // STMTLIST_INSERT:
   cur_root = root->deep_copy();
   p_oracle->ir_wrapper.set_ir_root(cur_root);
@@ -157,14 +111,13 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   /* Get new insert statement. However, do not insert kSelectStatement */
   IR* new_stmt_ir = NULL;
   while (new_stmt_ir == NULL) {
-    new_stmt_ir = get_from_libary_with_type(kStmt);
+    new_stmt_ir = get_from_libary_with_type(TypeStmt);
     if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
       // cerr << "kStmt is empty;\n\n\n";
       cur_root->deep_drop();
       return res_vec;
     }
-    if (new_stmt_ir->left_->type_ == kSelectStmt) {
-      // cerr << "Getting Select Stmt;\n\n\n";
+    if (new_stmt_ir->get_left()->get_ir_type() == TypeSelect) {
       new_stmt_ir->deep_drop();
       new_stmt_ir = NULL;
     }

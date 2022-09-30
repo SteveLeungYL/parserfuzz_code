@@ -209,11 +209,9 @@ public:
   void update_left(IR *);
   void update_right(IR *);
 
-  void print_ir();
-
-  const char* get_prefix();
-  const char* get_middle();
-  const char* get_suffix();
+  string get_prefix();
+  string get_middle();
+  string get_suffix();
   string get_str_val();
 
   IR* get_left();
@@ -237,39 +235,6 @@ public:
 
   // Return is_succeed.
   bool set_type(DATATYPE, DATAFLAG); // Set type regardless of its node type.
-  bool set_iden_type(DATATYPE, DATAFLAG);
-  bool set_qualified_name_type(DATATYPE, DATAFLAG);
-  bool set_qualified_name_list_type(DATATYPE, DATAFLAG);
-  bool set_reloption_elem_type(DATATYPE, DATAFLAG);
-  bool set_any_name_type(DATATYPE, DATAFLAG);
-  bool set_any_name_list_type(DATATYPE, DATAFLAG);
-
-  bool set_generic_set_type(DATATYPE, DATAFLAG);
-
-  bool set_opt_columnlist_type(DATATYPE, DATAFLAG);
-  bool set_columnlist_type(DATATYPE, DATAFLAG);
-  bool set_insert_columnlist_type(DATATYPE, DATAFLAG);
-  bool set_rolelist_type(DATATYPE, DATAFLAG);
-  bool set_opt_name_list_type(DATATYPE, DATAFLAG);
-  bool set_name_list_type(DATATYPE, DATAFLAG);
-  bool set_cluster_index_specification_type(DATATYPE, DATAFLAG);
-  bool set_relation_expr_type(DATATYPE, DATAFLAG);
-
-
-
-  bool set_opt_reloptions_option_type(RelOptionType);
-  bool set_reloptions_option_type(RelOptionType);
-  bool set_reloption_list_option_type(RelOptionType);
-  bool set_reloption_elem_option_type(RelOptionType);
-  bool set_rel_option_type(RelOptionType);
-
-  bool add_drop_is_add();
-  int get_object_type_any_name();
-  int get_object_type();
-  int get_reindex_target_type();
-
-  bool target_el_is_exist_alias();
-  bool target_el_set_alias(string);
   bool func_name_set_str(string);
 
   bool replace_op(IROperator*);
@@ -281,8 +246,6 @@ public:
 };
 
 DATATYPE get_datatype_by_string(string s);
-
-IRTYPE get_nodetype_by_string(string s);
 
 IR *deep_copy(const IR *root);
 

@@ -12,18 +12,18 @@ public:
     void set_ir_root (IR* in) {this->ir_root = in;} 
     IR* get_ir_root () {return this->ir_root;}
 
-    IR* get_first_stmtmulti_from_root(IR* cur_root);
-    IR* get_first_stmtmulti_from_root();
+    IR* get_first_stmtlist_from_root(IR* cur_root);
+    IR* get_first_stmtlist_from_root();
     IR* get_first_stmt_from_root(IR* cur_root);
     IR* get_first_stmt_from_root();
 
 
-    IR* get_last_stmtmulti_from_root(IR* cur_root);
-    IR* get_last_stmtmulti_from_root();
+    IR* get_last_stmtlist_from_root(IR* cur_root);
+    IR* get_last_stmtlist_from_root();
     IR* get_last_stmt_from_root(IR* cur_root);
     IR* get_last_stmt_from_root();
 
-    IR* get_stmt_ir_from_stmtmulti(IR* cur_stmtmulti);
+    IR* get_stmt_ir_from_stmtlist(IR* cur_stmtlist);
 
 
     vector<IR*> get_all_ir_node (IR* cur_ir_root);
@@ -74,8 +74,8 @@ public:
     vector<IR*> get_stmt_ir_vec();
     vector<IR*> get_stmt_ir_vec(IR* root) {this->set_ir_root(root); return this->get_stmt_ir_vec();}
 
-    vector<IR*> get_stmtmulti_IR_vec();
-    vector<IR*> get_stmtmulti_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtmulti_IR_vec();}
+    vector<IR*> get_stmtlist_IR_vec();
+    vector<IR*> get_stmtmulti_IR_vec(IR* root) {this->set_ir_root(root); return this->get_stmtlist_IR_vec();}
 
     bool compare_ir_type(IRTYPE,IRTYPE);
 
@@ -104,8 +104,8 @@ public:
     bool is_exist_EXCEPT_SELECT(IR* cur_stmt);
     bool is_exist_set_operator(IR* cur_stmt);
 
-    vector<IR*> get_target_el_in_select_target(IR* cur_stmt);
-    int get_num_target_el_in_select_clause(IR* cur_stmt) { return this->get_target_el_in_select_target(cur_stmt).size(); }
+    vector<IR*> get_select_exprs(IR* cur_stmt);
+    int get_num_select_exprs(IR* cur_stmt) { return this->get_select_exprs(cur_stmt).size(); }
 
     bool is_ir_in(IR*, IR*);
     bool is_ir_in(IR*, IRTYPE);
