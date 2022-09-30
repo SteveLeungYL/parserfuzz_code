@@ -60,14 +60,14 @@ string get_string_by_data_flag(DATAFLAG flag_type_);
 
 class IROperator {
 public:
-  IROperator(const char *prefix = "",
-             const char *middle = "",
-             const char *suffix = "")
+  IROperator(string prefix = "",
+             string middle = "",
+             string suffix = "")
       : prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
-  const char *prefix_;
-  const char *middle_;
-  const char *suffix_;
+  string prefix_;
+  string middle_;
+  string suffix_;
 };
 
 class IR {

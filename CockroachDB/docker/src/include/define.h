@@ -488,16 +488,15 @@
     V(DataStatementPreparedName) \
     V(DataCursorName) \
     V(DataZoneName) \
-    V(DataChannelName) \
+    V(DataChannelName)
 
 #define ALLCONTEXTFLAGS(V) \
     V(ContextUnknown) \
     V(ContextDefine)  \
     V(ContextUse)     \
-    V(ContextUndefine)
-
-
-#define SAFETRANSLATE(a) (assert(a != NULL), a->translate(v_ir_collector))
+    V(ContextUndefine)     \
+    V(ContextReplaceDefine) \
+    V(ContextReplaceUndefine)
 
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \
