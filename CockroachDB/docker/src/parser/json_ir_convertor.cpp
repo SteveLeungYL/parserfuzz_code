@@ -6,6 +6,14 @@
 using json = nlohmann::json;
 using std::cout, std::cerr, std::endl;
 
+IRTYPE get_ir_type_by_idx(int idx) {
+    return static_cast<IRTYPE>(idx);
+}
+
+DATATYPE get_data_type_by_idx(int idx) {
+    return static_cast<DATATYPE>(idx);
+}
+
 IR* covert_json_to_IR(string all_json_str) {
 
     
@@ -26,6 +34,6 @@ IR* covert_json_to_IR(string all_json_str) {
         }
     }
 
-    auto tmpIR = new IR(kConstInterval, "whatever");
+    auto tmpIR = new IR(TypeUnknown, "whatever");
     return tmpIR;
 }
