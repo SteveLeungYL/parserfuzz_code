@@ -297,30 +297,6 @@ void Mutator::init_common_string(string filename) {
   }
 }
 
-void Mutator::init_data_library_2d(string filename) {
-  ifstream input_file(filename);
-  string s;
-
-  cout << "[*] init data_library_2d: " << filename << endl;
-  while (getline(input_file, s)) {
-    vector<string> v_strbuf;
-    auto prev_pos = -1;
-    for (int i = 0; i < 3; i++) {
-      auto pos = s.find(" ", prev_pos + 1);
-      v_strbuf.push_back(s.substr(prev_pos + 1, pos - prev_pos - 1));
-      prev_pos = pos;
-    }
-    v_strbuf.push_back(s.substr(prev_pos + 1, s.size() - prev_pos - 1));
-
-    auto data_type1 = get_datatype_by_string(v_strbuf[0]);
-    auto data_type2 = get_datatype_by_string(v_strbuf[2]);
-    g_data_library_2d_[data_type1][v_strbuf[1]][data_type2].push_back(
-        v_strbuf[3]);
-  }
-
-  return;
-}
-
 void Mutator::init_data_library(string filename) {
   ifstream input_file(filename);
   string s;

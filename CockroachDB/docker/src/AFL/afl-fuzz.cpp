@@ -1330,7 +1330,7 @@ EXP_ST void init_count_class16(void)
           (count_class_lookup8[b1] << 8) | count_class_lookup8[b2];
 }
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__)
 
 static inline void classify_counts(u64 *mem)
 {

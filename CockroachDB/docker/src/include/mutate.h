@@ -68,8 +68,7 @@ public:
   inline void init_value_library();                     
   void init_common_string(string filename);      
   void init_data_library(string filename);       
-  void init_data_library_2d(string filename);    
-  void init_not_mutatable_type(string filename); 
+  void init_not_mutatable_type(string filename);
   // void init_safe_generate_type(string filename);
   void add_ir_to_library(IR *); 
 
