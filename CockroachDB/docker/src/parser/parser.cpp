@@ -12,9 +12,6 @@ using std::string;
 IR* raw_parser(const string input_str)
 {
 
-    // Test String
-    string test_str = "CREATE TABLE v0 (v1 INT);";
-
     // Convert the test string to GoString format.
     GoString query_input = {input_str.c_str(), long(input_str.size())};
 
@@ -30,6 +27,8 @@ IR* raw_parser(const string input_str)
         res_json_str += gores.r0[i];
     }
     free(gores.r0);
+
+    std::cout << "Getting json string: \n" << res_json_str << "\n\n";
 
     IR* ir_root = covert_json_to_IR(res_json_str);
 
