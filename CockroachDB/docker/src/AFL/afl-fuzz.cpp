@@ -1047,7 +1047,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
     map_file_id++;
   }
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
   u64 *current = (u64 *)trace_bits;
   u64 *virgin = (u64 *)virgin_map;
@@ -1081,7 +1081,7 @@ static inline u8 has_new_bits(u8 *virgin_map, const string cur_seed_str = "") {
         /* Looks like we have not found any new bytes yet; see if any non-zero
            bytes in current[] are pristine in virgin[]. */
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
         if ((cur[0] && vir[0] == 0xff) || (cur[1] && vir[1] == 0xff) ||
             (cur[2] && vir[2] == 0xff) || (cur[3] && vir[3] == 0xff) ||
@@ -1231,7 +1231,7 @@ static u32 count_non_255_bytes(u8 *mem)
 
 static u8 simplify_lookup[256] = {0};
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 
 static void simplify_trace(u64 *mem)
 {
@@ -1330,8 +1330,7 @@ EXP_ST void init_count_class16(void)
           (count_class_lookup8[b1] << 8) | count_class_lookup8[b2];
 }
 
-#if defined(__x86_64__) || defined(__arm64__)
-
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
 static inline void classify_counts(u64 *mem)
 {
 
@@ -4152,7 +4151,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     if (!dumb_mode)
     {
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
       simplify_trace((u64 *)trace_bits);
 #else
       simplify_trace((u32 *)trace_bits);
@@ -4220,7 +4219,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     if (!dumb_mode)
     {
 
-#ifdef __x86_64__
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
       simplify_trace((u64 *)trace_bits);
 #else
       simplify_trace((u32 *)trace_bits);
@@ -6187,10 +6186,10 @@ static u8 fuzz_one(char **argv)
 
   for (IR* ir_stmts : v_ir_stmts) {
     switch (ir_stmts->get_ir_type()) {
-      case kCreateStmt:
+      case TypeCreateTable:
         create_num++;
         break;
-      case kDropStmt:
+      case TypeDropTable:
         drop_num++;
         break;
     }

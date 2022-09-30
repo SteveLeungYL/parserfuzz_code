@@ -44,6 +44,16 @@ ALLCONTEXTFLAGS(DECLARE_CASE); \
 
 }
 
+DATATYPE get_datatype_by_string(string s) {
+#define DECLARE_CASE(datatypename)                                             \
+  if (s == #datatypename)                                                      \
+    return datatypename;
+    ALLDATATYPE(DECLARE_CASE);
+
+#undef DECLARE_CASE
+    return DataNone;
+}
+
 string get_string_by_option_type(RelOptionType type) {
     switch (type) {
         case Unknown:
