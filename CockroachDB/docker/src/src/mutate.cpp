@@ -881,9 +881,7 @@ unsigned long Mutator::hash(IR *root) {
 }
 
 void Mutator::debug(IR *root) {
-  for (auto &i : data_library_[DataFunctionName]) {
-    cout << i << endl;
-  }
+    this->debug(root, 0);
 }
 
 void Mutator::debug(IR *root, unsigned level) {
@@ -915,8 +913,6 @@ Mutator::~Mutator() {
   for (auto iter : all_query_pstr_set) {
     delete iter;
   }
-
-
 
 }
 

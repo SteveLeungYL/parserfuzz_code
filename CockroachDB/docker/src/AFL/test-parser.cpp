@@ -172,6 +172,9 @@ int main(int argc, char *argv[]) {
 
   // cout << "\n\n\n At the end of the parsing, we get to_string: \n" << root->to_string() << "\n\n\n";
 
+  cout << "\n\n\nDebugging of the final root: \n";
+  mutator.debug(root);
+
   mutator.init_library();
 
   // Ignore validation right now. Will fix later. 

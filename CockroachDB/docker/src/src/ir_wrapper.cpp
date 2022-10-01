@@ -421,12 +421,12 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
         return false;
     }
 
-    app_IR_node = new IR(TypeStmt, OP0(), app_IR_node);
+    app_IR_node = new IR(TypeStmt, OPEND(";"), app_IR_node);
 
     if (idx < stmt_list_v.size()) {
         IR* insert_pos_ir = stmt_list_v[idx];
 
-        auto new_res = new IR(TypeStmtList, OPMID(";"), NULL, app_IR_node);
+        auto new_res = new IR(TypeStmtList, OPMID(" "), NULL, app_IR_node);
 
         if (!ir_root->swap_node(insert_pos_ir, new_res)){ // swap_node only rewrite the parent of insert_pos_ir, it will not affect     insert_pos_ir. 
             new_res->deep_drop();
@@ -446,7 +446,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
             return false;
         }
 
-        auto new_res = new IR(TypeStmtList, OPMID(";"), app_IR_node, NULL);
+        auto new_res = new IR(TypeStmtList, OPMID(""), app_IR_node, NULL);
         insert_pos_ir->update_right(insert_pos_ir->get_left());
         insert_pos_ir->update_left(new_res);
 
