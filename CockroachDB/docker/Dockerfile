@@ -78,7 +78,7 @@ USER cockroach
 RUN mkdir -p /home/cockroach/go_projects/src/github.com/cockroachdb
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb
 RUN git clone https://github.com/cockroachdb/cockroach.git
-RUN cp -r cockroach cockroach_parser
+RUN cp -r cockroach cockroach_ori
 RUN echo 'export GOPATH="/home/cockroach/go_projects"' >> ~/.bashrc
 ENV GOPATH="/home/cockroach/go_projects"
 
@@ -89,14 +89,22 @@ RUN chown -R cockroach:cockroach /home/cockroach/CockroachDB_pkg_plugin
 
 # Compile the CockroachDB with SQLRight instrumented parser. 
 USER cockroach
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach_parser
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
 RUN git checkout 566348f48c7064014438e1d2c7f46624b4e2c4f1 # The version we build our parser on. 
-# The first build is possible to be failed by vendor mismatched. Ignored. 
-# The first build will automatically call go mod vendor. 
-RUN make build; exit 0
-# Actual build. After the build, the cockroach binary should be in 
-# /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/cockroach
-RUN make build
+
+# Copy parser instrumentation code. 
+USER cockroach
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/sem
+RUN rm -rf ./tree 
+RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/tree ./tree
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser
+RUN cp -r  /home/cockroach/CockroachDB_pkg_plugin/parser_helper ./parser_helper
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/parser_helper
+
+# Compile the Cockroach befroe generating the parser shared library. 
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
+# WIll fail because of the instrumentation.
+RUN make; exit 0
 
 # Fix a proj problem that could crash our build process. 
 USER cockroach
@@ -105,14 +113,14 @@ WORKDIR /home/cockroach/go_projects/native/x86_64-linux-gnu/proj/
 RUN cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 RUN make clean && make -j $(nproc)
 
-# Copy parser instrumentation code. 
-USER cockroach
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach_parser/pkg/sql/sem
-RUN rm -rf ./tree && cp -r  /home/cockroach/CockroachDB_pkg_plugin/tree ./tree
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach_parser/pkg/sql/parser
-RUN cp -r  /home/cockroach/CockroachDB_pkg_plugin/parser_helper ./parser_helper
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach_parser/pkg/sql/parser/parser_helper
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/parser_helper
 RUN bash ./build.sh
+RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
+
+
+# The compilation of the parser shared library is complete. Remove the built CockroachDB. 
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb
+RUN rm -rf cockroach && cp -r cockroach_ori cockroach
 
 # Compile the latest version of CockroachDB, prep for coverage instrumentation.
 USER cockroach
@@ -189,7 +197,7 @@ RUN chown -R cockroach:cockroach /home/cockroach/src
 USER cockroach
 WORKDIR /home/cockroach/src
 # Copy the built parser .so
-RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach_parser/pkg/sql/parser/parser_helper/parser_helper.* ./parser/
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.* ./parser/
 RUN make
 
 #
