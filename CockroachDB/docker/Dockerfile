@@ -98,6 +98,13 @@ RUN make build; exit 0
 # /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/cockroach
 RUN make build
 
+# Fix a proj problem that could crash our build process. 
+USER cockroach
+WORKDIR /home/cockroach/go_projects/native/x86_64-linux-gnu/proj/
+# Enable -fPIC
+RUN cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+RUN make clean && make -j $(nproc)
+
 # Copy parser instrumentation code. 
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach_parser/pkg/sql/sem
@@ -147,7 +154,6 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
 # TODO: Fix it later.
 RUN mkdir -p github
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
-
 
 # Instrument the Go library
 # Copy the go_modified folder to the Docker image. 
