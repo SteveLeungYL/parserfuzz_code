@@ -895,7 +895,6 @@ void Mutator::debug(IR *root, unsigned level) {
        << get_string_by_ir_type(root->type_) << ": "
        << get_string_by_data_type(root->data_type_) << ": "
        << get_string_by_data_flag(root->data_flag_) << ": "
-       << get_string_by_option_type(root->option_type_) << ": "
        << root->uniq_id_in_tree_ << ": "
        << root -> to_string() 
        << endl;

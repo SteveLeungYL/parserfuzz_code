@@ -100,7 +100,7 @@ inline IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
 }
 
 inline IR* construct_stmt_ir(IR* curNode) {
-    IROperator* tmp_op = new IROperator("", "", "");
+    IROperator* tmp_op = new IROperator("", "", "; ");
     return new IR(TypeStmt, tmp_op, curNode, NULL);
 }
 
@@ -120,7 +120,7 @@ IR* construct_stmtlist_ir(vector<IR*> v_stmtlist) {
         } else {
             // idx >= 1
             IR* rNode = construct_stmt_ir(curStmt);
-            IROperator* tmp_opt = new IROperator("", ", ", "");
+            IROperator* tmp_opt = new IROperator("", "", "");
 
             // Left is previous stmts. Right is TypeStmt.
             rootIR = new IR(TypeStmtList, tmp_opt, rootIR, rNode);

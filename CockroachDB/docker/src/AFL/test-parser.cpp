@@ -163,8 +163,8 @@ int main(int argc, char *argv[]) {
       IR* cur_stmt = p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root);
       p_oracle->ir_wrapper.set_ir_root(root);
       p_oracle->ir_wrapper.append_stmt_at_end(cur_stmt->deep_copy());
-      // cout << "Appended stmts. \n\n\n";
-      // cout << "Cur to_string is: " << root->to_string() << "\n\n\n";
+//       cout << "Appended stmts: \n\n\n";
+//       cout << "Cur to_string is: " << root->to_string() << "\n\n\n";
       cur_root->deep_drop();
     }
   }

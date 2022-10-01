@@ -14,9 +14,9 @@ static string s_table_name;
 string get_string_by_ir_type(IRTYPE type) {
 
 #define DECLARE_CASE(classname) \
-    ALLTYPE(DECLARE_CASE); \
   if (type == classname)     \
     return #classname;
+    ALLTYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
     return "";
@@ -25,20 +25,19 @@ string get_string_by_ir_type(IRTYPE type) {
 string get_string_by_data_type(DATATYPE type) {
 
 #define DECLARE_CASE(classname) \
-ALLDATATYPE(DECLARE_CASE); \
   if (type == classname)     \
     return #classname;
+ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
     return "";
 }
 
 string get_string_by_data_flag(DATAFLAG flag_type_) {
-
 #define DECLARE_CASE(classname) \
-ALLCONTEXTFLAGS(DECLARE_CASE); \
-  if (type == classname)     \
+  if (flag_type_ == classname)     \
     return #classname;
+ALLCONTEXTFLAGS(DECLARE_CASE);
 #undef DECLARE_CASE
     return "";
 
@@ -49,7 +48,6 @@ DATATYPE get_datatype_by_string(string s) {
   if (s == #datatypename)                                                      \
     return datatypename;
     ALLDATATYPE(DECLARE_CASE);
-
 #undef DECLARE_CASE
     return DataNone;
 }

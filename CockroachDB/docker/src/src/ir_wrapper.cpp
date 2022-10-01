@@ -394,7 +394,7 @@ bool IRWrapper::append_stmt_at_end(IR* app_IR_node) { // Please provide with IR*
         app_IR_node->deep_drop();
         return false;
     }
-    return this->append_stmt_at_idx(app_IR_node, total_num);
+    return this->append_stmt_at_idx(app_IR_node, total_num-1);
 
 }
 
@@ -414,7 +414,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
     // }
     // cerr << "End stmtlist. \n";
 
-    if (idx < 0 || idx > stmt_list_v.size()){
+    if (idx < 0 || idx >= stmt_list_v.size()){
         std::cerr << "Error: Input index exceed total statement number. \n In function IRWrapper::append_stmt_at_idx(). \n";
         std::cerr << "Error: Input index " << to_string(idx) << "; stmt_list_v size(): " << stmt_list_v.size() << ".\n";
         app_IR_node->deep_drop();
@@ -423,7 +423,7 @@ bool IRWrapper::append_stmt_at_idx(IR* app_IR_node, int idx) { // Please provide
 
     app_IR_node = new IR(TypeStmt, OP0(), app_IR_node);
 
-    if (idx <= stmt_list_v.size()) {
+    if (idx < stmt_list_v.size()) {
         IR* insert_pos_ir = stmt_list_v[idx];
 
         auto new_res = new IR(TypeStmtList, OPMID(";"), NULL, app_IR_node);
