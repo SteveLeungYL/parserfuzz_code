@@ -9,6 +9,7 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -136,6 +137,8 @@ int main(int argc, char *argv[]) {
   mutator.set_p_oracle(p_oracle);
   p_oracle->set_mutator(&mutator);
 
+  vector<pair<string, string>> mismatch_query_pairs;
+
   IR* root = NULL;
 
   while (getline(input_test, line)) {
@@ -156,6 +159,11 @@ int main(int argc, char *argv[]) {
       cout << "Parsing failed. Ignored. \n";
       continue;
     }
+
+    if (cur_root->to_string() != line) {
+        mismatch_query_pairs.push_back(pair<string, string>{line, cur_root->to_string()});
+    }
+
     if (root == NULL) {
       root = cur_root;
       // cout << "Save to root. \n\n\n";
@@ -179,6 +187,14 @@ int main(int argc, char *argv[]) {
 
   // Ignore validation right now. Will fix later. 
   try_validate_query(root);
+
+  if (mismatch_query_pairs.size() == 0) {
+      cerr << "\n\n\nNo mismatched. \n\n\n";
+  }
+  for (const pair<string, string>& cur_mis: mismatch_query_pairs) {
+      cerr << "\n\n\nFound string mismatched: \n" << cur_mis.first << "\n" << cur_mis.second << "\n";
+  }
+
 
   return 0;
 }
