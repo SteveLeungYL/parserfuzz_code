@@ -19,6 +19,7 @@ IR* raw_parser(const string input_str)
     ParseHelper_return gores = ParseHelper(query_input);
     if (gores.r0 == NULL) {
       cout <<  "Parse Helper return NULL. Parsing failed. \n";
+      return NULL;
     }
 
     // Extract the parsed JSON string. Free the char array memory. 
@@ -28,9 +29,10 @@ IR* raw_parser(const string input_str)
     }
     free(gores.r0);
 
-    std::cout << "Getting json string: \n" << res_json_str << "\n\n";
-
+    //std::cout << "Getting json string: \n" << res_json_str << "\n\n";
     IR* ir_root = convert_json_to_IR(res_json_str);
+
+
 
 	return ir_root;
 }

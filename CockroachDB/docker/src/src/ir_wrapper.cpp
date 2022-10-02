@@ -269,6 +269,10 @@ IR* IRWrapper::get_last_stmtlist_from_root() {
         cerr << "Error: In ir_wrapper::get_stmtlist_IR_vec, receiving empty IR root. \n";
         return NULL;
     }
+    if (ir_root -> get_left() == NULL) {
+        cerr << "Error: In ir_wrapper::get_stmtlist_IR_vec, receiving empty IR->get_left() from root. \n";
+        return NULL;
+    }
     if (ir_root->get_left()->get_ir_type() != TypeStmtList) {
         cerr << "Error: In ir_wrapper:get_stmtlist_IR_vec, cannot find the kStmtmulti " \
             "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \

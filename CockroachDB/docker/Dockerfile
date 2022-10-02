@@ -228,6 +228,12 @@ USER root
 COPY scripts /home/cockroach/scripts
 RUN chown -R cockroach:cockroach /home/cockroach/scripts
 
+# Copy the parser shared library to the current dir. 
+USER cockroach
+WORKDIR /home/cockroach/fuzzing/fuzz_root
+RUN mkdir -p parser
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.so ./parser/parser_helper.so
+
 # Final entry
 USER root
 WORKDIR /home/cockroach/fuzzing/fuzz_root

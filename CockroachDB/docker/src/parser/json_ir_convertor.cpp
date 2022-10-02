@@ -128,6 +128,10 @@ IR* construct_stmtlist_ir(vector<IR*> v_stmtlist) {
         ++idx;
     }
 
+    if (rootIR == NULL) {
+        return NULL;
+    }
+
     IROperator* tmp_opt = new IROperator("", "", "");
     rootIR = new IR(TypeRoot, tmp_opt, rootIR, NULL);
 

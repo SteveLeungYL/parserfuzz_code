@@ -5725,7 +5725,12 @@ func (node *KVOptions) LogCurrentNodeAsRoleOptions(depth int) *SQLRightIR {
 	for _, option := range *node {
 
 		prefix := strings.ToUpper(string(option.Key)) + " "
-		valueNode := option.Value.LogCurrentNode(depth + 1)
+        
+		// Password is a special case.
+		var valueNode *SQLRightIR
+		if option.Value != nil {
+			valueNode = option.Value.LogCurrentNode(depth + 1)
+		}
 
 		optionNode := &SQLRightIR{
 			IRType:   TypeKVOption,

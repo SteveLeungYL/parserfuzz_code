@@ -5,7 +5,7 @@ import getopt
 import sys
 import shutil
 
-current_workdir = os.getcwd()
+fuzz_root_dir = os.getcwd()
 
 starting_core_id = 0
 parallel_num = 5
@@ -66,6 +66,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     shutil.copyfile("./safe_generate_type", os.path.join(cur_workdir, "./safe_generate_type"))
     shutil.copytree("./inputs", os.path.join(cur_workdir, "inputs"))
     shutil.copytree("./cockroach_initlib", os.path.join(cur_workdir, "./cockroach_initlib"))
+    shutil.copytree("./parser", os.path.join(cur_workdir, "./parser"))
 
     cur_output_file = os.path.join(cur_workdir, "output.txt")
     cur_output_file = open(cur_output_file, "w")
@@ -89,6 +90,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     modi_env = dict()
     modi_env["AFL_I_DONT_CARE_ABOUT_MISSING_CRASHES"] = "1"
     modi_env["AFL_SKIP_CPUFREQ"] = "1"
+    modi_env["LD_LIBRARY_PATH"] = fuzz_root_dir
 
     print("Running fuzzing command: " + fuzzing_command)
 
