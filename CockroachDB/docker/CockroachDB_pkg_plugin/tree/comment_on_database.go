@@ -62,7 +62,10 @@ func (node *CommentOnDatabase) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	commentStr := *(node.Comment)
+    commentStr := ""
+    if node.Comment != nil {
+        commentStr = *(node.Comment)
+    }
 	commentNode := &SQLRightIR{
 		IRType:   TypeStringLiteral,
 		DataType: DataNone,

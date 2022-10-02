@@ -1982,16 +1982,19 @@ func (node *ColumnTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		Str:         nameStr,
 	}
 
-	typeStr := node.columnTypeString()
-	RNode := &SQLRightIR{
-		IRType:      TypeIdentifier,
-		DataType:    DataTypeName,
-		ContextFlag: ContextUnknown,
-		Prefix:      "",
-		Infix:       "",
-		Suffix:      "",
-		Depth:       depth,
-		Str:         typeStr,
+    var RNode *SQLRightIR
+	if node.Type != nil {
+		typeStr := node.columnTypeString()
+		RNode = &SQLRightIR{
+			IRType:      TypeIdentifier,
+			DataType:    DataTypeName,
+			ContextFlag: ContextUnknown,
+			Prefix:      "",
+			Infix:       "",
+			Suffix:      "",
+			Depth:       depth,
+			Str:         typeStr,
+		}
 	}
 
 	rootIR := &SQLRightIR{

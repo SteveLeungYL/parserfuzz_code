@@ -18,7 +18,7 @@ IR* raw_parser(const string input_str)
     // Actual Parsing. 
     ParseHelper_return gores = ParseHelper(query_input);
     if (gores.r0 == NULL) {
-      cout <<  "Parse Helper return NULL. Parsing failed. \n";
+      //cout <<  "Parse Helper return NULL. Parsing failed. \n";
       return NULL;
     }
 
