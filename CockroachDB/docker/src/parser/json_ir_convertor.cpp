@@ -86,11 +86,21 @@ inline IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
     } else if (type == TypeStringLiteral) {
         curRootIR = new IR(type, str);
     } else if (type == TypeIntegerLiteral) {
-        if (u_val != 0) {
+        if (f_val != 0.0) {
+            curRootIR = new IR(type, f_val);
+        } else if (u_val != 0) {
             curRootIR = new IR(type, u_val);
         } else {
             curRootIR = new IR(type, i_val);
         }
+    } else if (type == TypeFloatLiteral) {
+     if (f_val != 0.0) {
+             curRootIR = new IR(type, f_val);
+         } else if (u_val != 0) {
+             curRootIR = new IR(type, u_val);
+         } else {
+             curRootIR = new IR(type, i_val);
+         }
     } else {
         IROperator* ir_opt = new IROperator(prefix, infix, suffix);
         curRootIR = new IR(type, ir_opt, LNode, RNode);

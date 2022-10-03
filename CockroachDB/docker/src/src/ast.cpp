@@ -150,22 +150,22 @@ void IR::to_string_core(string &res) {
 
     if (op_) {
         res += op_->prefix_;
-        res += " ";
+        //res += " ";
     }
 
     if (left_) {
         left_->to_string_core(res);
-        res += " ";
+        //res += " ";
     }
 
     if (op_) {
         res += op_->middle_;
-        res += +" ";
+        //res += +" ";
     }
 
     if (right_) {
         right_->to_string_core(res);
-        res += " ";
+        //res += " ";
     }
 
     if (op_)

@@ -41,6 +41,25 @@ Color::Modifier DEF(Color::FG_DEFAULT);
 Mutator mutator;
 SQL_ORACLE* p_oracle;
 
+inline void remove_str_bracket_space(string& parsed_str){
+    string tmp_parsed_str;
+    for (int idx = 0; idx < parsed_str.size() -1 ; idx ++ ) {
+        if (parsed_str[idx] == '(' && parsed_str[idx + 1] == ' ') {
+            tmp_parsed_str += "(";
+            idx++;
+            continue;
+        } else if (parsed_str[idx] == ' ' && parsed_str[idx + 1] == ')') {
+            tmp_parsed_str += ")";
+            idx++;
+            continue;
+        } else {
+            tmp_parsed_str += parsed_str[idx];
+        }
+    }
+    tmp_parsed_str += parsed_str[parsed_str.size() - 1];
+    parsed_str = tmp_parsed_str;
+}
+
 IR* test_parse(string &query) {
 
   vector<IR *> v_ir = mutator.parse_query_str_get_ir_set(query);
@@ -160,8 +179,14 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    if (cur_root->to_string() != line) {
-        mismatch_query_pairs.push_back(pair<string, string>{line, cur_root->to_string()});
+    string parsed_str = cur_root->to_string();
+    trim_string(parsed_str);
+
+    remove_str_bracket_space(line);
+    remove_str_bracket_space(parsed_str);
+
+    if (parsed_str != line) {
+        mismatch_query_pairs.push_back(pair<string, string>{line, parsed_str});
     }
 
     if (root == NULL) {
@@ -192,7 +217,7 @@ int main(int argc, char *argv[]) {
       cerr << "\n\n\nNo mismatched. \n\n\n";
   }
   for (const pair<string, string>& cur_mis: mismatch_query_pairs) {
-      cerr << "\n\n\nFound string mismatched: \n" << cur_mis.first << "\n" << cur_mis.second << "\n";
+      cerr << "\n\n\nFound string mismatched: \n" << cur_mis.first << "\n" << cur_mis.second << "\nEnd mismatched\n\n\n";
   }
 
 
