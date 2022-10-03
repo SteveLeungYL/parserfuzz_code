@@ -204,20 +204,33 @@ func (node *NumVal) LogCurrentNode(depth int) *SQLRightIR {
 	}
 	valueStr += s
 
-	intValue, _ := strconv.ParseInt(valueStr, 10, 64)
+	intValue, intErr := strconv.ParseInt(valueStr, 10, 64)
 
-	rootIR := &SQLRightIR{
-		IRType:   TypeIntegerLiteral,
-		DataType: DataNone,
-		Prefix:   "",
-		Infix:    "",
-		Suffix:   "",
-		Depth:    depth,
-		Str:      valueStr,
-		IValue:   intValue,
+	floatValue, floatErr := strconv.ParseFloat(valueStr, 64)
+
+	if intErr != nil && floatErr == nil {
+		rootIR := &SQLRightIR{
+			IRType:   TypeFloatLiteral,
+			DataType: DataNone,
+			Prefix:   "",
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+			FValue:   floatValue,
+		}
+		return rootIR
+	} else {
+		rootIR := &SQLRightIR{
+			IRType:   TypeIntegerLiteral,
+			DataType: DataNone,
+			Prefix:   "",
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+			IValue:   intValue,
+		}
+		return rootIR
 	}
-
-	return rootIR
 }
 
 // canBeInt64 checks if it's possible for the value to become an int64:

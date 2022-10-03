@@ -1460,7 +1460,7 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 	if len(node.Exprs) == 1 {
 		// Ensure the pretty-printed 1-value tuple is not ambiguous with
 		// the equivalent value enclosed in grouping parentheses.
-		infix = ", "
+		infix = ","
 	}
 
 	infix += ")"

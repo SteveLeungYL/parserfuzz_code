@@ -80,7 +80,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	infix = "SET "
+	infix = " SET "
 
 	exprsNode := node.Exprs.LogCurrentNode(depth + 1)
 
@@ -90,7 +90,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 		LNode:    rootIR,
 		RNode:    exprsNode,
 		Prefix:   "",
-		Infix:    "",
+		Infix:    infix,
 		Suffix:   "",
 		Depth:    depth,
 	}

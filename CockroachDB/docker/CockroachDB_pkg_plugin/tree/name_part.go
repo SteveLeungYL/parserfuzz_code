@@ -145,7 +145,9 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 				Str:         n.String(),
 			}
 			var RNode *SQLRightIR
+			infix := ""
 			if len(*node) >= 2 {
+				infix = ", "
 				tmpRNode := &SQLRightIR{
 					IRType:      TypeIdentifier,
 					DataType:    dataType,
@@ -164,7 +166,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    " ",
+				Infix:    infix,
 				Suffix:   "",
 				Depth:    depth,
 			}
@@ -193,7 +195,7 @@ func (node *NameList) LogCurrentNodeWithType(depth int, dataType SQLRightDataTyp
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    " ",
+				Infix:    ", ",
 				Suffix:   "",
 				Depth:    depth,
 			}
