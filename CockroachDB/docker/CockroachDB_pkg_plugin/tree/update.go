@@ -96,7 +96,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	if len(node.From) > 0 {
-		infix = "FROM "
+		infix = " FROM "
 		fromNode := node.From.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
@@ -105,7 +105,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 			LNode:    rootIR,
 			RNode:    fromNode,
 			Prefix:   "",
-			Infix:    "",
+			Infix:    infix,
 			Suffix:   "",
 			Depth:    depth,
 		}
@@ -121,7 +121,7 @@ func (node *Update) LogCurrentNode(depth int) *SQLRightIR {
 			LNode:    rootIR,
 			RNode:    whereNode,
 			Prefix:   "",
-			Infix:    "",
+			Infix:    infix,
 			Suffix:   "",
 			Depth:    depth,
 		}
