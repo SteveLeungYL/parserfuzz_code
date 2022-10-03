@@ -625,7 +625,7 @@ func (node *ComparisonExpr) LogCurrentNode(depth int) *SQLRightIR {
 		IRType:   TypeComparisonExpr,
 		DataType: DataNone,
 		LNode:    returnedNode,
-		Prefix:   opStr,
+		Prefix:   "",
 		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,

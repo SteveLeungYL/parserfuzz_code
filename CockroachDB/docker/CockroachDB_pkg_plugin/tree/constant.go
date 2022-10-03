@@ -537,15 +537,16 @@ func (expr *StrVal) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *StrVal) LogCurrentNode(depth int) *SQLRightIR {
 
-	prefix := "RETURNING NOTHING"
+	strVal := node.s
 
 	rootIR := &SQLRightIR{
-		IRType:   TypeReturningNothing,
+		IRType:   TypeStringLiteral,
 		DataType: DataNone,
-		Prefix:   prefix,
+		Prefix:   "",
 		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,
+		Str:      strVal,
 	}
 
 	return rootIR

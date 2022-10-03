@@ -118,13 +118,12 @@ func (node *AlterTableCmds) LogCurrentNode(depth int) *SQLRightIR {
 			// i >= 2. Begins from the third element.
 			// Left node is the previous cmds.
 			// Right node is the new cmd.
-			LNode := tmpIR
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
 				DataType: DataNone,
-				LNode:    LNode,
+				LNode:    tmpIR,
 				RNode:    RNode,
 				Prefix:   "",
 				Infix:    ", ",
@@ -435,11 +434,10 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 			Depth:       depth + 1,
 		}
 
-		LNode := rootIR
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,
 			DataType: DataNone,
-			LNode:    LNode,
+			LNode:    rootIR,
 			RNode:    collationNode,
 			Prefix:   "",
 			Infix:    " COLLATE ",
@@ -449,12 +447,11 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	if node.Using != nil {
-		LNode := rootIR
 		usingExpr := node.Using.LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
 			IRType:   TypeUsingCluster,
 			DataType: DataNone,
-			LNode:    LNode,
+			LNode:    rootIR,
 			RNode:    usingExpr,
 			Prefix:   "",
 			Infix:    " USING ",
@@ -521,13 +518,12 @@ func (node *AlterTableAlterPrimaryKey) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	if node.StorageParams != nil {
-		LNode = rootIR
 		RNode = node.StorageParams.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,
 			DataType: DataNone,
-			LNode:    LNode,
+			LNode:    rootIR,
 			RNode:    RNode,
 			Prefix:   "",
 			Infix:    " WITH (",
@@ -1487,13 +1483,12 @@ func (node *AlterTableLocality) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	LNode = rootIR
 	RNode := node.Locality.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
 		IRType:   TypeAlterTableLocality,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootIR,
 		RNode:    RNode,
 		Prefix:   "",
 		Infix:    " SET ",
@@ -1598,7 +1593,6 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 		Str:      tmpNameStr,
 	}
 
-	LNode = rootIR
 	RNode = &SQLRightIR{
 		IRType:      TypeIdentifier,
 		DataType:    DataSchemaName,
@@ -1613,7 +1607,7 @@ func (node *AlterTableSetSchema) LogCurrentNode(depth int) *SQLRightIR {
 	rootIR = &SQLRightIR{
 		IRType:   TypeAlterTableSetSchema,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootIR,
 		RNode:    RNode,
 		Prefix:   "",
 		Infix:    " SET SCHEMA ",
@@ -1730,13 +1724,12 @@ func (node *AlterTableOwner) LogCurrentNode(depth int) *SQLRightIR {
 		Str:      tmpNameStr,
 	}
 
-	LNode = rootIR
 	tmpRNode := node.Owner.LogCurrentNode(depth+1, ContextUse)
 
 	rootIR = &SQLRightIR{
 		IRType:   TypeAlterTableOwner,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootIR,
 		RNode:    tmpRNode, // Owner node.
 		Prefix:   "",
 		Infix:    " OWNER TO ",

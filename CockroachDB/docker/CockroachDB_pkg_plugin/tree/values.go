@@ -76,7 +76,7 @@ func (node *ValuesClause) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *ValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 
-	prefix := "VALUES "
+	prefix := "VALUES ("
 
 	var rootIR *SQLRightIR
 	for i, n := range node.Rows {
@@ -88,7 +88,7 @@ func (node *ValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 			infix := ""
 			if len(node.Rows) >= 2 {
 				RNode = node.Rows[1].LogCurrentNode(depth + 1)
-				infix = ", "
+				infix = "), ("
 			}
 			rootIR = &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -116,13 +116,14 @@ func (node *ValuesClause) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    " ",
+				Infix:    "), (",
 				Suffix:   "",
 				Depth:    depth,
 			}
 		}
 	}
 
+	rootIR.Suffix += ")"
 	rootIR.IRType = TypeValuesClause
 
 	return rootIR

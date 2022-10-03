@@ -42,13 +42,12 @@ func (node *AlterDatabaseOwner) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:  depth,
 		Str:    string(node.Name),
 	}
-	LNode := tmpNode
 
 	RNode := node.Owner.LogCurrentNode(depth+1, ContextUse)
 	rootIR := &SQLRightIR{
 		IRType:   TypeAlterDatabaseOwner,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    tmpNode,
 		RNode:    RNode,
 		Prefix:   "ALTER DATABASE ",
 		Infix:    " OWNER TO ",
@@ -121,8 +120,6 @@ func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	LNode = rootIR
-
 	tmpNode = &SQLRightIR{
 		IRType:      TypeIdentifier,
 		DataType:    DataRegionName,
@@ -138,7 +135,7 @@ func (node *AlterDatabaseAddRegion) LogCurrentNode(depth int) *SQLRightIR {
 	rootIR = &SQLRightIR{
 		IRType:   TypeAlterDatabaseAddRegion,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootIR,
 		RNode:    RNode,
 		Prefix:   "",
 		Infix:    "",
@@ -208,8 +205,6 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 		Suffix:   "",
 		Depth:    depth,
 	}
-
-	LNode = rootIR
 
 	tmpNode = &SQLRightIR{
 		IRType:      TypeIdentifier,
@@ -451,7 +446,6 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	LNode = rootIR
 	for i, n := range node.Regions {
 
 		tmpNode = &SQLRightIR{
@@ -473,15 +467,13 @@ func (node *AlterDatabaseAddSuperRegion) LogCurrentNode(depth int) *SQLRightIR {
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,
 			DataType: DataNone,
-			LNode:    LNode,
+			LNode:    rootIR,
 			RNode:    RNode,
 			Prefix:   "",
 			Infix:    infix,
 			Suffix:   "",
 			Depth:    depth,
 		}
-		LNode = rootIR
-
 	}
 
 	rootIR.IRType = TypeAlterDatabaseAddSuperRegion
@@ -610,7 +602,6 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 		Depth:    depth,
 	}
 
-	LNode = rootIR
 	for i, n := range node.Regions {
 
 		tmpNode = &SQLRightIR{
@@ -632,14 +623,13 @@ func (node *AlterDatabaseAlterSuperRegion) LogCurrentNode(depth int) *SQLRightIR
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,
 			DataType: DataNone,
-			LNode:    LNode,
+			LNode:    rootIR,
 			RNode:    RNode,
 			Prefix:   "",
 			Infix:    infix,
 			Suffix:   "",
 			Depth:    depth,
 		}
-		LNode = rootIR
 
 	}
 
@@ -854,14 +844,12 @@ func (node *AlterDatabaseSetZoneConfigExtension) LogCurrentNode(depth int) *SQLR
 		Depth:    depth,
 	}
 
-	LNode = rootIR
-
 	RNode = node.ZoneConfigSettings.LogCurrentNode(depth + 1)
 
 	rootIR = &SQLRightIR{
 		IRType:   TypeAlterDatabaseSetZoneConfigExtension,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootIR,
 		RNode:    RNode,
 		Prefix:   "",
 		Infix:    " CONFIGURE ZONE ",

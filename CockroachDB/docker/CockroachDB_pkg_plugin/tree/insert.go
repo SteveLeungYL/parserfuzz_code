@@ -154,9 +154,10 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.OnConflict != nil && !node.OnConflict.IsUpsertAlias() {
 		infix = " ON CONFLICT"
+		var constraintName *SQLRightIR
 		if node.OnConflict.Constraint != "" {
 			infix += " ON CONSTRAINT "
-			constraintName := &SQLRightIR{
+			constraintName = &SQLRightIR{
 				IRType:      TypeIdentifier,
 				DataType:    DataConstraintName,
 				ContextFlag: ContextUse,
@@ -166,16 +167,16 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 				Depth:       depth,
 				Str:         node.OnConflict.Constraint.String(),
 			}
-			rootIR = &SQLRightIR{
-				IRType:   TypeUnknown,
-				DataType: DataNone,
-				LNode:    rootIR,
-				RNode:    constraintName,
-				Prefix:   "",
-				Infix:    infix,
-				Suffix:   "",
-				Depth:    depth,
-			}
+		}
+		rootIR = &SQLRightIR{
+			IRType:   TypeUnknown,
+			DataType: DataNone,
+			LNode:    rootIR,
+			RNode:    constraintName,
+			Prefix:   "",
+			Infix:    infix,
+			Suffix:   "",
+			Depth:    depth,
 		}
 		if len(node.OnConflict.Columns) > 0 {
 			infix = " ("

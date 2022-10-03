@@ -865,11 +865,20 @@ func (d *DInt) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *DInt) LogCurrentNode(depth int) *SQLRightIR {
 
+	prefix := ""
+	infix := ""
+
+	needParens := *node < 0
+	if needParens {
+		prefix = "("
+		infix = ")"
+	}
+
 	rootIR := &SQLRightIR{
 		IRType:   TypeIntegerLiteral,
 		DataType: DataNone,
-		Prefix:   "",
-		Infix:    "",
+		Prefix:   prefix,
+		Infix:    infix,
 		Suffix:   "",
 		Depth:    depth,
 		Str:      strconv.FormatInt(int64(*node), 10),

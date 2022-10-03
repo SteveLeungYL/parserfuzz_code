@@ -111,13 +111,12 @@ func (node *AlterBackupScheduleCmds) LogCurrentNode(depth int) *SQLRightIR {
 			// i >= 2. Begins from the third element.
 			// Left node is the previous cmds.
 			// Right node is the new cmd.
-			LNode := tmpIR
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
 				DataType: DataNone,
-				LNode:    LNode,
+				LNode:    tmpIR,
 				RNode:    RNode,
 				Prefix:   "",
 				Infix:    ", ",

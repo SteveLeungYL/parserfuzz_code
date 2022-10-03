@@ -136,8 +136,6 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	LNode = rootNode
-
 	var RNode *SQLRightIR
 	if node.IsGrant {
 		RNode = node.Grant.LogCurrentNode(depth + 1)
@@ -148,7 +146,7 @@ func (node *AlterDefaultPrivileges) LogCurrentNode(depth int) *SQLRightIR {
 	rootNode = &SQLRightIR{
 		IRType:   TypeAlterDefaultPrivileges,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootNode,
 		RNode:    RNode,
 		Prefix:   "",
 		Infix:    "",

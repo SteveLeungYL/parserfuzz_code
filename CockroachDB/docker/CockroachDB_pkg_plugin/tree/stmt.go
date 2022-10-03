@@ -544,6 +544,7 @@ const (
 	TypeUnlisten
 	TypeTableRef
 	TypeHaving
+	TypeConstraintCluster
 )
 
 const (
