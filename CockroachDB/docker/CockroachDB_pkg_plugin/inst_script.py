@@ -2,6 +2,7 @@ import os
 import sys
 import getopt
 from loguru import logger
+import subprocess
 
 db_dir = "./cockroach"
 opts = []
@@ -41,41 +42,24 @@ for subdir, _, files in os.walk("./"):
         cur_file_dir = os.path.join("./", subdir, cur_file)
 
         tmp_contents = ""
-        # TODO: Fix later
-        # is_func_existed = False
-        is_func_existed = True
+
+        is_instr = False
 
         with open(cur_file_dir, "r") as fd:
-            is_package = False
-            is_already_imported = False
 
-            all_lines = fd.readlines()
-            for cur_line in all_lines:
-                if "github.com/globalcov" in cur_line:
-                    is_already_imported = True
-                    break
+            whole_file_str = fd.read()
 
-            for cur_line in all_lines:
-                tmp_contents += cur_line
+            if "github.com/globalcov" in whole_file_str:
+                is_instr = True
 
-                # Add the import line immediately after the package line. 
-                if not is_package and cur_line[:8] == "package ":
-                    is_package = True
-                    tmp_contents += "\nimport \"github.com/globalcov\"\n"
-                    logger.debug("Importing file: %s %s" % (subdir, cur_file))
+        if not is_instr:
+            
+            instr_command_str = "./goInstr --file=%s --idx=%d" % (cur_file_dir, global_idx)
+            global_idx += 1
 
-                # Check whether there are func in the file. If not, do not append
-                # the import
-                if cur_line[:5] == "func ":
-                    is_func_existed = True
+            logger.debug("Running with command: %s\n" % (instr_command_str))
 
+            process = subprocess.Popen(instr_command_str, shell=True)
+            process.wait()
 
-        tmp_contents += "\nvar ( dumplog_%d = globalcov.LogGlobalCov );" % (global_idx)
-        global_idx+=1
-
-        if is_func_existed and not is_already_imported:
-            # logger.debug("Getting instrumented file: \n%s\n" % (tmp_contents))
-            with open(cur_file_dir, "w") as fd:
-                fd.write(tmp_contents)
-        else:
-            logger.debug("Importing file: %s %s because there are no functions inside. " % (subdir, cur_file))
+            logger.debug("Finished running goInstr on file: %s" % (cur_file_dir))
