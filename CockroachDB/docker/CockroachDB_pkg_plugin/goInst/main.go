@@ -7,6 +7,7 @@ package main
 import (
 	"bytes"
 	"cmd/edit"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -66,9 +67,17 @@ func main() {
 		})
 	*/
 
-	// File name
-	name := "testGoInst.go"
-	logIdx := 0
+	// Get file name and log idx from the argument list.
+	fileNamePtr := flag.String("file", "", "Provide the file path of the target instrumented go file.")
+	instrIdx := flag.Int("idx", 0, "Provide the instrument index. ")
+
+	flag.Parse()
+
+	if *fileNamePtr == "" {
+		panic("Error. Go file name not provided. ")
+	}
+	name := *fileNamePtr
+	logIdx := *instrIdx
 
 	fset := token.NewFileSet()
 	content, err := os.ReadFile(name)
