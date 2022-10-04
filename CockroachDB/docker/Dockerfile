@@ -149,10 +149,11 @@ RUN cp -r ./internal/edit ./edit
 
 # Instrument the CockroachDB source code. 
 USER cockroach
+WORKDIR /home/cockroach/
 RUN cp ./CockroachDB_pkg_plugin/inst_script.py /home/cockroach/go_projects/src/github.com/cockroachdb/
 WORKDIR /home/cockroach/CockroachDB_pkg_plugin/goInst/
 RUN go build
-RUN cp ./goInst /home/cockroach/go_projects/src/github.com/cockroachdb/
+RUN cp ./goInstr /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/
 RUN python3 inst_script.py
 
@@ -176,17 +177,17 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
 RUN mkdir -p github
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
 
-USER cockroach
-## Copy the go library to the GOPATH. 
-RUN cp -r ~/go ~/go_projects/src/go
-RUN cp ~/go_modified/cover.go ~/go_projects/src/go/src/cmd/cover
-WORKDIR /home/cockroach/go_projects/src/go/src/
-RUN bash ./buildall.bash -e linux/amd64
+#USER cockroach
+### Copy the go library to the GOPATH. 
+#RUN cp -r ~/go ~/go_projects/src/go
+#RUN cp ~/go_modified/cover.go ~/go_projects/src/go/src/cmd/cover
+#WORKDIR /home/cockroach/go_projects/src/go/src/
+#RUN bash ./buildall.bash -e linux/amd64
 
-# Replace the original Go library with the instrumented new one. 
-USER root
-RUN mv /usr/local/go /usr/local/go_1_16_15_ori
-RUN cp -r /home/cockroach/go_projects/src/go /usr/local/go
+## Replace the original Go library with the instrumented new one. 
+#USER root
+#RUN mv /usr/local/go /usr/local/go_1_16_15_ori
+#RUN cp -r /home/cockroach/go_projects/src/go /usr/local/go
 
 # Compile the instrumented covtest unit test binary
 USER cockroach
