@@ -37,7 +37,7 @@ func (r *ReturningExprs) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *ReturningExprs) LogCurrentNode(depth int) *SQLRightIR {
 
-	prefix := "RETURNING "
+	prefix := " RETURNING "
 
 	selectStmt := (*SelectExprs)(node).LogCurrentNode(depth + 1)
 

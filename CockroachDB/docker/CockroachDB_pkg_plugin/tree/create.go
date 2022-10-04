@@ -2040,7 +2040,7 @@ func (node *ColumnTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,
 			DataType: DataNone,
-			LNode:    LNode,
+			LNode:    rootIR,
 			RNode:    RNode,
 			Prefix:   "",
 			Infix:    "",
@@ -4007,9 +4007,22 @@ func (node *ShardedIndexDef) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := ""
 	if _, ok := node.ShardBuckets.(DefaultVal); ok {
 		prefix = " USING HASH"
+
+		rootIR := &SQLRightIR{
+			IRType:   TypeShardedIndexDef,
+			DataType: DataNone,
+			//LNode:    pLNode,
+			//RNode:    RNode,
+			Prefix: prefix,
+			Infix:  "",
+			Suffix: "",
+			Depth:  depth,
+		}
+
+		return rootIR
 	}
 
-	prefix += " USING HASH WITH BUCKET_COUNT = "
+	prefix = " USING HASH WITH BUCKET_COUNT = "
 	pLNode := node.ShardBuckets.LogCurrentNode(depth + 1)
 
 	rootIR := &SQLRightIR{
@@ -4442,14 +4455,11 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
+	var irList []*SQLRightIR
 	tmpIR := &SQLRightIR{}
-	for i, n := range *node {
+	for _, n := range *node {
 
 		prefix := ""
-		if i == 0 {
-			prefix = ", "
-		}
-		// Take care of the first two nodes.
 		LNode := &SQLRightIR{
 			IRType:      TypeIdentifier,
 			DataType:    DataNone, //TODO: FIXME: Unknown datatype here.
@@ -4473,10 +4483,54 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 			Suffix:   "",
 			Depth:    depth,
 		}
+
+		irList = append(irList, tmpIR)
+	}
+
+	var rootIR *SQLRightIR
+	for idx, curTmpIR := range irList {
+
+		if idx == 0 {
+			// Take care of the first two nodes.
+			LNode := curTmpIR
+			var RNode *SQLRightIR
+			if len(*node) >= 2 {
+				RNode = irList[1]
+			}
+			rootIR = &SQLRightIR{
+				IRType:   TypeUnknown,
+				DataType: DataNone,
+				LNode:    LNode,
+				RNode:    RNode,
+				Prefix:   "",
+				Infix:    " ",
+				Suffix:   "",
+				Depth:    depth,
+			}
+		} else if idx == 1 {
+			// The first two element would be saved in the same IR node.
+			continue
+		} else {
+			// i >= 2. Begins from the third element.
+			// Left node is the previous cmds.
+			// Right node is the new cmd.
+			RNode := curTmpIR
+
+			rootIR = &SQLRightIR{
+				IRType:   TypeUnknown,
+				DataType: DataNone,
+				LNode:    rootIR,
+				RNode:    RNode,
+				Prefix:   "",
+				Infix:    " ",
+				Suffix:   "",
+				Depth:    depth,
+			}
+		}
 	}
 
 	// Only flag the root node for the type.
-	tmpIR.IRType = TypeStorageParams
+	rootIR.IRType = TypeStorageParams
 	return tmpIR
 }
 

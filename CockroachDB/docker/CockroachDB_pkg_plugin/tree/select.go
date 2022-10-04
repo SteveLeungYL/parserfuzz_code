@@ -1841,6 +1841,15 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 
 	} else {
 		// General syntax: "<a> <join_type> [<join_hint>] JOIN <b> <condition>"
+		rootIR = &SQLRightIR{
+			IRType:   TypeUnknown,
+			DataType: DataNone,
+			LNode:    joinLeftNode,
+			Prefix:   "",
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
 		if node.JoinType != "" {
 
 			joinTypeNode := &SQLRightIR{
@@ -1854,7 +1863,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 			rootIR = &SQLRightIR{
 				IRType:   TypeUnknown,
 				DataType: DataNone,
-				LNode:    joinLeftNode,
+				LNode:    rootIR,
 				RNode:    joinTypeNode,
 				Prefix:   "",
 				Infix:    " ",
@@ -1884,7 +1893,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 			}
 		}
 
-		infix = "JOIN "
+		infix = " JOIN "
 		joinRightNode := node.Right.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
@@ -2401,6 +2410,52 @@ func (node *Order) LogCurrentNode(depth int) *SQLRightIR {
 				Suffix:   "",
 				Depth:    depth,
 			}
+		}
+	}
+
+	if node.Direction != DefaultDirection {
+		infix := " "
+		directionNode := &SQLRightIR{
+			IRType:   TypeDirection,
+			DataType: DataNone,
+			Prefix:   node.Direction.String(),
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+
+		rootIR = &SQLRightIR{
+			IRType:   TypeUnknown,
+			DataType: DataNone,
+			LNode:    rootIR,
+			RNode:    directionNode,
+			Prefix:   "",
+			Infix:    infix,
+			Suffix:   "",
+			Depth:    depth,
+		}
+	}
+	if node.NullsOrder != DefaultNullsOrder {
+
+		infix := " "
+		nullOrderNode := &SQLRightIR{
+			IRType:   TypeNullsOrder,
+			DataType: DataNone,
+			Prefix:   node.NullsOrder.String(),
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+
+		rootIR = &SQLRightIR{
+			IRType:   TypeUnknown,
+			DataType: DataNone,
+			LNode:    rootIR,
+			RNode:    nullOrderNode,
+			Prefix:   "",
+			Infix:    infix,
+			Suffix:   "",
+			Depth:    depth,
 		}
 	}
 
