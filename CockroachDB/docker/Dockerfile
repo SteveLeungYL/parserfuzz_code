@@ -118,6 +118,8 @@ RUN bash ./build.sh
 RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 
 
+# -----------------------------------------------
+
 # The compilation of the parser shared library is complete. Remove the built CockroachDB. 
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb
 RUN rm -rf cockroach && cp -r cockroach_ori cockroach
@@ -134,12 +136,23 @@ RUN make build; exit 0
 RUN make build
 
 
+# Import the covtest unit test entry
 USER cockroach
 WORKDIR /home/cockroach
-# Import the covtest unit test entry
 RUN cp -r ./CockroachDB_pkg_plugin/covtest /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/
+
+# Modify the go library, so that the CockroachDB instrumentation code would work.
+# Checked working for GO 19.0 version.
+USER root
+WORKDIR /usr/local/go/src/cmd
+RUN cp -r ./internal/edit ./edit
+
 # Instrument the CockroachDB source code. 
+USER cockroach
 RUN cp ./CockroachDB_pkg_plugin/inst_script.py /home/cockroach/go_projects/src/github.com/cockroachdb/
+WORKDIR /home/cockroach/CockroachDB_pkg_plugin/goInst/
+RUN go build
+RUN cp ./goInst /home/cockroach/go_projects/src/github.com/cockroachdb/
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/
 RUN python3 inst_script.py
 
@@ -163,12 +176,6 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
 RUN mkdir -p github
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
 
-# Instrument the Go library
-# Copy the go_modified folder to the Docker image. 
-USER root
-COPY go_modified /home/cockroach/go_modified
-RUN chown -R cockroach:cockroach /home/cockroach/go_modified
-
 USER cockroach
 ## Copy the go library to the GOPATH. 
 RUN cp -r ~/go ~/go_projects/src/go
@@ -185,7 +192,7 @@ RUN cp -r /home/cockroach/go_projects/src/go /usr/local/go
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # The build.rev is a randomly set commit hash. 
-RUN go test  -c  -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "."  -timeout 99999m ./pkg/covtest
+RUN go test  -c -cover -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "." -covermode=count  -timeout 99999m ./pkg/covtest
 
 
 # Compile the SQLRight main code. 
