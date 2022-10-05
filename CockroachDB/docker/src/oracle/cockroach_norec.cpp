@@ -232,6 +232,17 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   }
   dest_from_expr->deep_drop();
 
+  // At last, after the main structure of trans_stmt_ir is finished, also check for
+  //    the WITH clause from the original statement. Copy the WITH clause to the
+  //    modified trans_stmt_ir.
+
+  vector<IR*> v_with_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWith, false);
+
+  if (v_with_clause.size() > 0) {
+      IR* with_clause = v_with_clause.front()->deep_copy();
+      trans_stmt_ir = new IR(TypeStmt, OP0(), with_clause, trans_stmt_ir);
+  }
+
   trans_IR_vec.push_back(trans_stmt_ir);
 
   return trans_IR_vec;
