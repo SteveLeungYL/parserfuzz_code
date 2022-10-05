@@ -111,7 +111,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Columns != nil {
 		infix = "("
 		suffix := ")"
-		columnNode := node.Columns.LogCurrentNode(depth + 1)
+		columnNode := node.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,

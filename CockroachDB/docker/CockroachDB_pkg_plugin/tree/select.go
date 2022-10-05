@@ -2247,7 +2247,7 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    ", ORDER BY",
+				Infix:    ", ORDER BY ",
 				Suffix:   "",
 				Depth:    depth,
 			}

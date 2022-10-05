@@ -336,50 +336,58 @@ func (u *UnresolvedName) Format(ctx *FmtCtx) {
 
 // SQLRight Code Injection.
 func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
-	stopAt := 1
-	if node.Star {
-		stopAt = 2
-	}
 
 	var nodeList []*SQLRightIR
-	var infixList []string
 
-	for i := node.NumParts; i >= stopAt; i-- {
+	// The name list is in the reverse order.
+	// At most 4: column, table, schema, catalog/db.
+	for i := 0; i < node.NumParts; i++ {
 		// The first part to print is the last item in u.Parts.  It is also
 		// a potentially restricted name to disambiguate from keywords in
 		// the grammar, so print it out as a "Name". Every part after that is
 		// necessarily an unrestricted name.
-		if i == node.NumParts {
+		if i == 0 {
+			idenStr := node.Parts[i]
+			if node.Star {
+				idenStr = "*"
+			}
 			curNode := &SQLRightIR{
 				IRType:      TypeIdentifier,
-				DataType:    DataUnknownType,
-				ContextFlag: ContextUnknown,
+				DataType:    DataColumnName,
+				ContextFlag: ContextUse,
 				Prefix:      "",
 				Infix:       "",
 				Suffix:      "",
 				Depth:       depth,
-				Str:         node.Parts[i-1],
+				Str:         idenStr,
 			}
 			nodeList = append(nodeList, curNode)
 		} else {
+			dataType := DataUnknownType
+			if i == 1 {
+				dataType = DataTableName
+			} else if i == 2 {
+				dataType = DataSchemaName
+			} else if i == 3 {
+				dataType = DataDatabaseName
+			}
 			curNode := &SQLRightIR{
 				IRType:      TypeIdentifier,
-				DataType:    DataUnknownType,
-				ContextFlag: ContextUnknown,
+				DataType:    dataType,
+				ContextFlag: ContextUse,
 				Prefix:      "",
 				Infix:       "",
 				Suffix:      "",
 				Depth:       depth,
-				Str:         node.Parts[i-1],
+				Str:         node.Parts[i],
 			}
 			nodeList = append(nodeList, curNode)
 		}
-		// Save every infix.
-		if i > 1 {
-			infixList = append(infixList, ".")
-		} else {
-			infixList = append(infixList, "")
-		}
+	}
+
+	// Reverse the nodeList:
+	for i, j := 0, len(nodeList)-1; i < j; i, j = i+1, j-1 {
+		nodeList[i], nodeList[j] = nodeList[j], nodeList[i]
 	}
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
@@ -393,14 +401,9 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 			var RNode *SQLRightIR
 			infix := ""
 			suffix := ""
-			if len(infixList) > 0 {
-				infix = infixList[0]
-				if len(infixList) > 1 {
-					suffix = infixList[1]
-				}
-			}
 
 			if len(nodeList) >= 2 {
+				infix = "."
 				RNode = (nodeList[1])
 			}
 			tmpIR = &SQLRightIR{
@@ -423,27 +426,19 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 			LNode := tmpIR
 			RNode := n
 
-			infix := ""
-			if i < len(infixList) {
-				infix = infixList[i]
-			}
-
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    infix,
+				Infix:    ".",
 				Suffix:   "",
 				Depth:    depth,
 			}
 		}
 	}
 
-	if node.Star {
-		tmpIR.Suffix = "*"
-	}
 	// Only flag the root node for the type.
 	tmpIR.IRType = TypeUnresolvedName
 	return tmpIR
