@@ -86,7 +86,7 @@ public:
     ** Iterately find the parent type. Skip kUnknown and keep iterating until not kUnknown is found. Return the parent IRTYPE. 
     ** If parent_ is NULL. Return kUnknown instead. 
     */
-    string get_parent_type_str(IR* cur_IR, int depth=0);
+    IRTYPE get_parent_type(IR* cur_IR, int depth=0);
     IR* get_p_parent_with_a_type(IR* cur_IR, int depth=0);
 
     /**/

@@ -224,11 +224,15 @@ IR* IRWrapper::get_first_stmtlist_from_root() {
     /* First of all, given the root, we need to get to kStmtmulti. */
 
     if (ir_root == NULL ) {
-        cerr << "Error: In ir_wrapper::get_stmtlist_IR_vec, receiving empty IR root. \n";
+        cerr << "Error: In ir_wrapper::get_first_stmtlist_IR_vec, receiving empty IR root. \n";
+        return NULL;
+    }
+    if (ir_root -> get_left() == NULL) {
+        cerr << "Error: In ir_wrapper::get_first_stmtlist_IR_vec, receiving empty IR root -> get_left(). \n";
         return NULL;
     }
     if (ir_root->get_left()->get_ir_type() != TypeStmtList) {
-        cerr << "Error: In ir_wrapper:get_stmtlist_IR_vec, cannot find the kStmtmulti " \
+        cerr << "Error: In ir_wrapper:get_first_stmtlist_IR_vec, cannot find the kStmtmulti " \
             "structure from the current IR tree. Empty stmt? Or PLAssignStmt? " \
             "PLAssignStmt is not currently supported. \n";
         return NULL;
@@ -309,6 +313,11 @@ vector<IR*> IRWrapper::get_stmtlist_IR_vec(){
     IR* stmt_IR_p = get_last_stmtlist_from_root();
 
     vector<IR*> stmt_list_v;
+
+    if (stmt_IR_p == NULL) {
+        stmt_list_v.clear();
+        return stmt_list_v;
+    }
 
     while (stmt_IR_p && stmt_IR_p -> get_ir_type() == TypeStmtList){ // Iterate from the first kstatementlist to the last.
         stmt_list_v.push_back(stmt_IR_p);
@@ -671,16 +680,13 @@ bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right) {
     else {return false;}
 }
 
-string IRWrapper::get_parent_type_str(IR* cur_IR, int depth){
+IRTYPE IRWrapper::get_parent_type(IR* cur_IR, int depth){
     IR* output_IR = this->get_p_parent_with_a_type(cur_IR, depth);
     if (output_IR == nullptr) {
-        return "kUnknown";
+        return TypeUnknown;
     } else {
         IRTYPE res_ir_type = output_IR->get_ir_type();
-        string res_type_str = get_string_by_ir_type(res_ir_type);
-        size_t suffix_pos = res_type_str.find("_");
-        res_type_str = res_type_str.substr(0, suffix_pos);
-        return res_type_str;
+        return res_ir_type;
     }
 }
 
@@ -691,7 +697,7 @@ IR* IRWrapper::get_p_parent_with_a_type(IR* cur_IR, int depth) {
         if (
             parent_type == prev_ir_type
             ||
-            (parent_type != TypeUnknown && !compare_ir_type(parent_type, prev_ir_type))
+            (parent_type != TypeUnknown)
         ){
             prev_ir_type = parent_type;
             depth--;
