@@ -7963,20 +7963,20 @@ int main(int argc, char **argv)
     {
       /* Default NOREC */
       string arg = string(optarg);
-      //if (arg == "NOREC")
-        //p_oracle = new SQL_NOREC();
-      //else if (arg == "TLP")
-        //p_oracle = new SQL_TLP();
-      //else if (arg == "OPT")
-        //p_oracle = new SQL_OPT();
+      if (arg == "NOREC")
+        p_oracle = new SQL_NOREC();
+      else if (arg == "TLP")
+        p_oracle = new SQL_TLP();
+      else if (arg == "OPT")
+        p_oracle = new SQL_OPT();
       // else if (arg == "LIKELY")
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
       //   p_oracle = new SQL_ROWID();
       // else if (arg == "INDEX")
       //   p_oracle = new SQL_INDEX();
-      if (arg == "OPT")
-          p_oracle = new SQL_OPT();
+      //if (arg == "OPT")
+          //p_oracle = new SQL_OPT();
       else
         FATAL("Oracle arguments not supported. ");
     }
