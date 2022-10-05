@@ -130,7 +130,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
         if (func_app_ir == NULL) {
             continue;
         }
-        if (func_app_ir.to_string() == "*") {
+        if (func_app_ir->to_string() == "*") {
             return true;
         }
       }
