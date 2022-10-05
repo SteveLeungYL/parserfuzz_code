@@ -90,25 +90,6 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     }
 
 
-    /* Here, we need to ensure the SELECT COUNT(*) structure is enforced.  */
-    /* This is the IR tree structure that we need to enforce:
-     *
-     *   12: kSimpleSelect_1: data_whatever: kUnknown: 11: SELECT count ( * )
-     *    13: kOptAllClause: data_whatever: kUnknown: 12:
-     *    13: kOptTargetList: data_whatever: kUnknown: 13: count ( * )
-     *     14: kTargetList: data_whatever: kUnknown: 14: count ( * )
-     *      15: kTargetEl: data_whatever: kUnknown: 15: count ( * )
-     *       16: kAExpr: data_whatever: kUnknown: 16: count ( * )
-     *        17: kCExpr: data_whatever: kUnknown: 17: count ( * )
-     *         18: kFuncExpr: data_whatever: kUnknown: 18: count ( * )
-     *          19: kFuncExpr_2: data_whatever: kUnknown: 19: count ( * )
-     *           20: kFuncExpr_1: data_whatever: kUnknown: 20: count ( * )
-     *            21: kFuncApplication: data_whatever: kUnknown: 21: count ( * )
-     *             22: kFuncName: data_whatever: kUnknown: 22: count
-     *              23: kIdentifier: data_functionName: kUnknown: 23: count
-     * */
-
-
 
     vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeIdentifier, false);
 
@@ -120,9 +101,10 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
       if (
         ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 1) == TypeSelectExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExprs  &&
-        ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectClause
+        ir_wrapper.get_parent_type(count_func_ir, 1) == TypeFuncExpr &&
+        ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExpr &&
+        ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectExprs  &&
+        ir_wrapper.get_parent_type(count_func_ir, 4) == TypeSelectClause
       ) {
         /* The Func expression structure is enforced. Next ensure the func is COUNT */
         IR* func_app_ir = count_func_ir->get_parent()->get_parent()->get_right();
@@ -228,7 +210,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
   }
 
   IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0]->get_left()->deep_copy();
-  IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeWhere, true)[0];
+  IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeDBool, true)[0];
 
   IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false)[0]->deep_copy();
   IR* dest_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeFrom, true)[0];

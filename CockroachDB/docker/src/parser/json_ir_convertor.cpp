@@ -83,8 +83,10 @@ inline IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
 
     if (type == TypeIdentifier) {
         curRootIR = new IR(type, str, datatype, -1, dataflag);
+         curRootIR->op_ = new IROperator("", "", "");
     } else if (type == TypeStringLiteral) {
         curRootIR = new IR(type, str);
+         curRootIR->op_ = new IROperator("", "", "");
     } else if (type == TypeIntegerLiteral) {
         if (f_val != 0.0) {
             curRootIR = new IR(type, f_val);
@@ -93,6 +95,7 @@ inline IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
         } else {
             curRootIR = new IR(type, i_val);
         }
+     curRootIR->op_ = new IROperator("", "", "");
     } else if (type == TypeFloatLiteral) {
      if (f_val != 0.0) {
              curRootIR = new IR(type, f_val);
@@ -101,6 +104,7 @@ inline IR* convert_json_to_IR_helper(json curJsonNode, int depth) {
          } else {
              curRootIR = new IR(type, i_val);
          }
+     curRootIR->op_ = new IROperator("", "", "");
     } else {
         IROperator* ir_opt = new IROperator(prefix, infix, suffix);
         curRootIR = new IR(type, ir_opt, LNode, RNode);

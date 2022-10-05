@@ -85,9 +85,9 @@
 #include <fstream>
 #include <filesystem>
 
-//#include "../oracle/cockroach_norec.h"
-//#include "../oracle/cockroach_oracle.h"
-//#include "../oracle/cockroach_tlp.h"
+#include "../oracle/cockroach_norec.h"
+#include "../oracle/cockroach_oracle.h"
+#include "../oracle/cockroach_tlp.h"
 #include "../oracle/cockroach_opt.h"
 
 #include "libpq-fe.h"
