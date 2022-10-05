@@ -56,16 +56,17 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
   IR* target_list_ir = v_target_list_ir.front();
 
-  while ( target_list_ir->get_ir_type() == TypeSelectExprs && target_list_ir->get_right()) {
-    /* Clean all the extra select target clauses, only leave the first one untouched.
-     * If this is the first kTargetList, the right sub-node should be empty.
-     * */
-    target_list_ir->replace_op(OP0());
-    IR* extra_targetel_ir = target_list_ir->get_right();
-    target_list_ir->update_right(NULL);
-    extra_targetel_ir->deep_drop();
-    target_list_ir = target_list_ir->get_left();
-  }
+  //TODO:: FIXME:: This logic is not correct.
+//  while ( target_list_ir->get_ir_type() == TypeSelectExprs && target_list_ir->get_right()) {
+//    /* Clean all the extra select target clauses, only leave the first one untouched.
+//     * If this is the first kTargetList, the right sub-node should be empty.
+//     * */
+//    target_list_ir->replace_op(OP0());
+//    IR* extra_targetel_ir = target_list_ir->get_right();
+//    target_list_ir->update_right(NULL);
+//    extra_targetel_ir->deep_drop();
+//    target_list_ir = target_list_ir->get_left();
+//  }
 
   // cerr << "num_target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) << "\n";
 
@@ -209,7 +210,7 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     dest_order_clause->deep_drop();
   }
 
-  IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0]->get_left()->deep_copy();
+  IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0]->get_right()->deep_copy();
   IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeDBool, true)[0];
 
   IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false)[0]->deep_copy();
