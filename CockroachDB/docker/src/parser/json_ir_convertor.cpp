@@ -119,7 +119,7 @@ inline IR* construct_stmt_ir(IR* curNode) {
 }
 
 IR* construct_stmtlist_ir(vector<IR*> v_stmtlist) {
-    IR* rootIR;
+    IR* rootIR = NULL;
 
     int idx = 0;
     for (IR* curStmt : v_stmtlist) {

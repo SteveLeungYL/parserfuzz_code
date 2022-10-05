@@ -2773,7 +2773,7 @@ BEGIN:
         
         char tmp_res[length];
         res_in.read(tmp_res, length);
-        g_cockroach_output = string(tmp_res);
+        g_cockroach_output = string(tmp_res, length);
       }
       res_in.close();
       // Remove the file. Ignore the returned value.
