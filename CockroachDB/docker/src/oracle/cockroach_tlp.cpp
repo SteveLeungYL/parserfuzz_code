@@ -23,21 +23,21 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
 
 
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
-  // vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kGroupClause, false);
-  // for (IR* group_clause : v_group_clause) {
-  //   if (!group_clause->is_empty()){
-  //     // cerr << "Return false because of GROUP clause \n";
-  //     return false;
-  //   }
-  // }
+   vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
+   for (IR* group_clause : v_group_clause) {
+     if (!group_clause->is_empty()){
+       // cerr << "Return false because of GROUP clause \n";
+       return false;
+     }
+   }
 
-  // vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kHavingClause, false);
-  // for (IR* having_clause : v_having_clause) {
-  //   if (!having_clause->is_empty()){
-  //     // cerr << "Return false because of having clause \n";
-  //     return false;
-  //   }
-  // }
+   vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeHaving, false);
+   for (IR* having_clause : v_having_clause) {
+     if (!having_clause->is_empty()){
+       // cerr << "Return false because of having clause \n";
+       return false;
+     }
+   }
 
   vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeLimitCluster, false);
   for (IR* limit_clause : v_limit_clause) {
@@ -491,96 +491,82 @@ void SQL_TLP::get_v_valid_type(const string &cmd_str,
 VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   VALID_STMT_TYPE_TLP default_type_ = VALID_STMT_TYPE_TLP::NORMAL;
 
-  //TODO:: FIXME
-//  /* Distince first situation: in distinct_clause.  */
-//  vector<IR*> v_distinct_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kDistinctClause, false);
-//  if (v_distinct_clause.size() > 0) {
-//      default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
-//  }
-//  v_distinct_clause.clear();
-
-  /* Distinct second situation: in set_quantifier.  */
-  vector<IR*> v_set_quantifier = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSetVar, false);
-  for (IR* set_quantifier : v_set_quantifier) {
-    if (!set_quantifier->is_empty() && set_quantifier->get_prefix() ==  "DISTINCT") {
+  /* Distinct  */
+  vector<IR*> v_opt_distinct = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeOptDistinct, false);
+  for (IR* opt_distinct : v_opt_distinct) {
+    if (opt_distinct->get_left() != NULL || opt_distinct->get_prefix() ==  "DISTINCT") {
       default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
     }
   }
 
   /* Has GROUP BY clause.  */
   vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
-  for (IR* group_clause : v_group_clause) {
-    if (
-            (group_clause->op_ != NULL) &&
-         (group_clause->get_prefix() ==  "GROUP BY")
-    ) {
+  if (v_group_clause.size() > 0) {
       default_type_ = VALID_STMT_TYPE_TLP::GROUP_BY;
-    }
   }
 
   /* Ignore having. Treat it as normal, or other type if other elements are evolved. */
 
   /* TODO:: Here we want to restrict the SELECT target to have only one targetel. Fix it later.  */
-  // vector<IR*> v_result_column_list = ir_wrapper.get_result_column_list_in_select_clause(cur_stmt);
-  // if (v_result_column_list.size() == 0) {
-  //   return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
-  // }
+   vector<IR*> v_result_column_list = ir_wrapper.get_select_exprs(cur_stmt);
+   if (v_result_column_list.size() == 0) {
+     return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+   }
 
   // TODO: FIXME: Not working yet.
-//  vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFuncName, false);
-//
-//  /* TODO:: Ignore cases like SELECT COUNT() FROM v0; */
-//
-//  for (IR* count_func_ir : count_func_vec){
-//
-//    if (
-//      ir_wrapper.get_parent_type_str(count_func_ir, 1) == "kFuncApplication" &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 2) == "kFuncExpr"  &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 3) == "kCExpr"  &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 4) == "kAExpr" &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 5) == "kTargetEl" &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 6) == "kTargetList" &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 7) == "kOptTargetList" &&
-//      ir_wrapper.get_parent_type_str(count_func_ir, 8) == "kSimpleSelect"
-//    ) {
-//      IR* iden_ir = count_func_ir->get_left();
-//      if (!iden_ir) continue;
-//      string func_name_str = iden_ir->get_str_val();
-//
-//      if (findStringIn(func_name_str, "count")) {
-//
-//        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
-//          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
-//        }
-//        return VALID_STMT_TYPE_TLP::AGGR_COUNT;
-//
-//      } else if (findStringIn(func_name_str, "sum")) {
-//
-//        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
-//          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
-//        }
-//        return VALID_STMT_TYPE_TLP::AGGR_SUM;
-//
-//      } else if (findStringIn(func_name_str, "min")) {
-//
-//        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
-//          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
-//        }
-//        return VALID_STMT_TYPE_TLP::AGGR_MIN;
-//
-//      } else if (findStringIn(func_name_str, "max")) {
-//        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
-//          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
-//        }
-//        return VALID_STMT_TYPE_TLP::AGGR_MAX;
-//      } else if (findStringIn(func_name_str, "avg")) {
-//        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
-//          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
-//        }
-//        return VALID_STMT_TYPE_TLP::AGGR_AVG;
-//      }
-//    }
-//  }
+  vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeIdentifier, false);
+
+  /* TODO:: Ignore cases like SELECT COUNT() FROM v0; */
+
+  for (IR* count_func_ir : count_func_vec){
+
+    if (count_func_ir->data_type_ == DataFunctionName) {
+          continue;
+    }
+
+    if (
+        ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
+        ir_wrapper.get_parent_type(count_func_ir, 1) == TypeSelectExpr &&
+        ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExprs  &&
+        ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectClause
+    ) {
+
+      string func_name_str = count_func_ir->get_str_val();
+
+      if (findStringIn(func_name_str, "count")) {
+
+        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+        }
+        return VALID_STMT_TYPE_TLP::AGGR_COUNT;
+
+      } else if (findStringIn(func_name_str, "sum")) {
+
+        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+        }
+        return VALID_STMT_TYPE_TLP::AGGR_SUM;
+
+      } else if (findStringIn(func_name_str, "min")) {
+
+        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+        }
+        return VALID_STMT_TYPE_TLP::AGGR_MIN;
+
+      } else if (findStringIn(func_name_str, "max")) {
+        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+        }
+        return VALID_STMT_TYPE_TLP::AGGR_MAX;
+      } else if (findStringIn(func_name_str, "avg")) {
+        if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
+          return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
+        }
+        return VALID_STMT_TYPE_TLP::AGGR_AVG;
+      }
+    }
+  }
 
   return default_type_;
 
@@ -611,13 +597,13 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
     return NULL;
   }
   IR* where_first_stmt_ = v_where_first_stmt[0];
-  if (where_first_stmt_->is_empty()) {
+  if (where_first_stmt_->get_right() == NULL) {
     first_part_TLP->deep_drop();
     expr_ir_->deep_drop();
     cerr << "Error: The retrived where_first_stmt_ doesn't have the left_ child node. \n\n\n";
     return NULL;
   }
-  IR* where_first_expr_ = where_first_stmt_->get_left();
+  IR* where_first_expr_ = where_first_stmt_->get_right();
 
   /* Swap the original where expr to the newly created expr_ir_ node, and attach the expr
    * we need into it.
@@ -681,25 +667,22 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
 */
 
 IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP tlp_type) {
-    return NULL;
 
-    // TODO:: FIXME:: Not working yet.
+    // TODO:: FIXME:: not working yet. 
+return NULL;
+
+//    // TODO:: FIXME:: Not working yet.
 //  cur_stmt = cur_stmt->deep_copy();
 //
-//  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kFuncName, false);
+//  vector<IR*> v_aggr_func_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeIdentifier, false);
 //  if (v_aggr_func_ir.size() == 0) {
 //    cur_stmt->deep_drop();
 //    // cerr << "Error: In SQL_TLP::transform_aggr, cannot find kFuncName. \n";
 //    return NULL;
 //  }
 //
+//  // TODO:: FIXME:: Could be in-accurate.
 //  IR* aggr_func_ir = v_aggr_func_ir.front();
-//
-//  if (aggr_func_ir->get_left() == NULL) {
-//    cerr << "ERROR: In transform_aggr, the kFuncName IR doesn't have the left sub-node. \n";
-//    cur_stmt->deep_drop();
-//    return NULL;
-//  }
 //
 //  if (
 //    // tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||

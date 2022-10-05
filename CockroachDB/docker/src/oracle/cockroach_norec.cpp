@@ -112,58 +112,33 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
 
     vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeIdentifier, false);
 
-    // TODO:: FIXME:: The COUNT checking is not working yet.
-//    for (IR* count_func_ir : count_func_vec){
-//
-//      // cerr << "Debug: norec get parent 1: " << ir_wrapper.get_parent_type_str(count_func_ir, 1) << "\n";
-//      // cerr << "Debug: norec get parent 2: " << ir_wrapper.get_parent_type_str(count_func_ir, 2) << "\n";
-//      // cerr << "Debug: norec get parent 3: " << ir_wrapper.get_parent_type_str(count_func_ir, 3) << "\n";
-//      // cerr << "Debug: norec get parent 4: " << ir_wrapper.get_parent_type_str(count_func_ir, 4) << "\n";
-//      // cerr << "Debug: norec get parent 5: " << ir_wrapper.get_parent_type_str(count_func_ir, 5) << "\n";
-//      // cerr << "Debug: norec get parent 6: " << ir_wrapper.get_parent_type_str(count_func_ir, 6) << "\n";
-//      // cerr << "Debug: norec get parent 7: " << ir_wrapper.get_parent_type_str(count_func_ir, 7) << "\n";
-//      // cerr << "Debug: norec get parent 8: " << ir_wrapper.get_parent_type_str(count_func_ir, 8) << "\n";
-//
-//      if (
-//        ir_wrapper.get_parent_type_str(count_func_ir, 1) == "kFuncApplication" &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 2) == "kFuncExpr"  &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 3) == "kCExpr"  &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 4) == "kAExpr" &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 5) == "kTargetEl" &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 6) == "kTargetList" &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 7) == "kOptTargetList" &&
-//        ir_wrapper.get_parent_type_str(count_func_ir, 8) == "kSimpleSelect"
-//      ) {
-//        /* The Func expression structure is enforced. Next ensure the func is COUNT */
-//        IR* func_app_ir = count_func_ir->get_parent();
-//        // Enforce '*'
-//        if (!strcmp(func_app_ir->get_middle(), "( * )")) {
-//          IR* iden_ir = count_func_ir->get_left();
-//          // Enforce count.
-//          if (iden_ir &&
-//              (
-//                iden_ir->get_str_val() == "count" ||
-//                iden_ir->get_str_val() == "COUNT"
-//              )
-//          ) {
-//            // cerr << "For is_oracle stmt: " << cur_stmt->to_string() << "\n";
-//            // cerr << "is_oracle DEBUG: for where_clause, getting to_string(): " << where_clause->to_string() << "\n";
-//            // cerr << "size: " << ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false).size() << "\n\n\n";
-//            // g_mutator->debug(cur_stmt, 0);
-//            // cerr << "\n\n\n";
-//            return true;
-//          }
-//        }
-//      }
-//    }
-//    // cerr << "Return false because of not found count (*) \n";
-//    // cerr << "stmt is: " << cur_stmt->to_string() << "\n\n\n";
-//    return false;
-  }
-//  // cerr << "return false because not found from and where clause. \n";
-//  // cerr << "target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) << "\n";
+    for (IR* count_func_ir : count_func_vec){
 
-  return true;
+      if (count_func_ir->data_type_ != DataFunctionName) {
+          continue;
+      }
+
+      if (
+        ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
+        ir_wrapper.get_parent_type(count_func_ir, 1) == TypeSelectExpr &&
+        ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExprs  &&
+        ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectClause
+      ) {
+        /* The Func expression structure is enforced. Next ensure the func is COUNT */
+        IR* func_app_ir = count_func_ir->get_parent()->get_parent()->get_right();
+        // Enforce '*'
+        if (func_app_ir == NULL) {
+            continue;
+        }
+        if (func_app_ir.to_string() == "*") {
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  return false;
 
 }
 
