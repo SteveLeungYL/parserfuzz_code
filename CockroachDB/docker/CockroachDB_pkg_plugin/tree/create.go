@@ -963,7 +963,7 @@ func (node *CreateIndex) LogCurrentNode(depth int) *SQLRightIR {
 
 	// opt storing
 	if len(node.Storing) > 0 {
-		pStoringNode := node.Storing.LogCurrentNode(depth + 1)
+		pStoringNode := node.Storing.LogCurrentNodeWithType(depth+1, DataColumnName)
 		optStoringNode := &SQLRightIR{
 			IRType:   TypeOptStoring,
 			DataType: DataNone,
@@ -2912,7 +2912,7 @@ func (node *IndexTableDef) LogCurrentNode(depth int) *SQLRightIR {
 
 	// opt storing
 	if node.Storing != nil {
-		pStoringNode := node.Storing.LogCurrentNode(depth + 1)
+		pStoringNode := node.Storing.LogCurrentNodeWithType(depth+1, DataColumnName)
 		optStoringNode := &SQLRightIR{
 			IRType:   TypeOptStoring,
 			DataType: DataNone,
@@ -3324,7 +3324,7 @@ func (node *UniqueConstraintTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
-	pRNode := node.Columns.LogCurrentNode(depth+1, ContextDefine)
+	pRNode := node.Columns.LogCurrentNode(depth+1, ContextUse)
 	rootIR = &SQLRightIR{
 		IRType:   TypeUnknown,
 		DataType: DataNone,
@@ -3352,7 +3352,7 @@ func (node *UniqueConstraintTableDef) LogCurrentNode(depth int) *SQLRightIR {
 
 	// opt storing
 	if node.Storing != nil {
-		pStoringNode := node.Storing.LogCurrentNode(depth + 1)
+		pStoringNode := node.Storing.LogCurrentNodeWithType(depth+1, DataColumnName)
 		optStoringNode := &SQLRightIR{
 			IRType:   TypeOptStoring,
 			DataType: DataNone,

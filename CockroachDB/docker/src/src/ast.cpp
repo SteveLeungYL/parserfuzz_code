@@ -8,6 +8,7 @@
 #include <sstream>
 #include <vector>
 #include <string.h>
+#include <algorithm>
 
 static string s_table_name;
 
@@ -128,6 +129,9 @@ void IR::to_string_core(string &res) {
 //    return;
         case TypeIdentifier:
             if (str_val_ != "") {
+                if (data_type_ == DataFunctionName) {
+                    std::transform(str_val_.begin(), str_val_.end(), str_val_.begin(), ::toupper);
+                }
                 res += str_val_;
             }
             return;
