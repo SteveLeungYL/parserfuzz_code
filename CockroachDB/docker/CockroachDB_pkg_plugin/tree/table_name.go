@@ -165,6 +165,11 @@ func (ts *TableNames) Format(ctx *FmtCtx) {
 
 // SQLRight Code Injection.
 func (node *TableNames) LogCurrentNode(depth int) *SQLRightIR {
+	return node.LogCurrentNodeWithType(depth, DataTableName, ContextUse)
+}
+
+// SQLRight Code Injection.
+func (node *TableNames) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
@@ -173,12 +178,12 @@ func (node *TableNames) LogCurrentNode(depth int) *SQLRightIR {
 
 		if i == 0 {
 			// Take care of the first two nodes.
-			LNode := n.LogCurrentNode(depth + 1)
+			LNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			var RNode *SQLRightIR
 			infix := ""
 			if len(*node) >= 2 {
 				infix = ", "
-				RNode = (*node)[1].LogCurrentNode(depth + 1)
+				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			}
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -198,7 +203,7 @@ func (node *TableNames) LogCurrentNode(depth int) *SQLRightIR {
 			// Left node is the previous cmds.
 			// Right node is the new cmd.
 			LNode := tmpIR
-			RNode := n.LogCurrentNode(depth + 1)
+			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -267,6 +272,11 @@ func (n *TableIndexName) Format(ctx *FmtCtx) {
 
 // SQLRight Code Injection.
 func (node *TableIndexName) LogCurrentNode(depth int) *SQLRightIR {
+	return node.LogCurrentNodeWithType(depth, DataIndexName, ContextUse)
+}
+
+// SQLRight Code Injection.
+func (node *TableIndexName) LogCurrentNodeWithType(depth int, datatype SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	if node.Index == "" {
 		tableNode := &SQLRightIR{
@@ -308,8 +318,8 @@ func (node *TableIndexName) LogCurrentNode(depth int) *SQLRightIR {
 
 		indexNode := &SQLRightIR{
 			IRType:      TypeIdentifier,
-			DataType:    DataIndexName,
-			ContextFlag: ContextUse,
+			DataType:    datatype,
+			ContextFlag: contextFlag,
 			Prefix:      "",
 			Infix:       "",
 			Suffix:      "",
@@ -342,8 +352,8 @@ func (node *TableIndexName) LogCurrentNode(depth int) *SQLRightIR {
 
 	indexNode := &SQLRightIR{
 		IRType:      TypeIdentifier,
-		DataType:    DataIndexName,
-		ContextFlag: ContextUse,
+		DataType:    datatype,
+		ContextFlag: contextFlag,
 		Prefix:      "",
 		Infix:       "",
 		Suffix:      "",
@@ -381,7 +391,7 @@ func (n *TableIndexNames) Format(ctx *FmtCtx) {
 }
 
 // SQLRight Code Injection.
-func (node *TableIndexNames) LogCurrentNode(depth int) *SQLRightIR {
+func (node *TableIndexNames) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
@@ -390,12 +400,12 @@ func (node *TableIndexNames) LogCurrentNode(depth int) *SQLRightIR {
 
 		if i == 0 {
 			// Take care of the first two nodes.
-			LNode := n.LogCurrentNode(depth + 1)
+			LNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			var RNode *SQLRightIR
 			infix := " "
 			if len(*node) >= 2 {
 				infix = ", "
-				RNode = (*node)[1].LogCurrentNode(depth + 1)
+				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			}
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -415,7 +425,7 @@ func (node *TableIndexNames) LogCurrentNode(depth int) *SQLRightIR {
 			// Left node is the previous cmds.
 			// Right node is the new cmd.
 			LNode := tmpIR
-			RNode := n.LogCurrentNode(depth + 1)
+			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,

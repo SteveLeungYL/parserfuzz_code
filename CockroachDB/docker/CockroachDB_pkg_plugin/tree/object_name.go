@@ -85,8 +85,12 @@ func (tp *ObjectNamePrefix) Format(ctx *FmtCtx) {
 	}
 }
 
-// SQLRight Code Injection.
 func (node *ObjectNamePrefix) LogCurrentNode(depth int) *SQLRightIR {
+	return node.LogCurrentNodeWithType(depth, DataSchemaName, ContextUse)
+}
+
+// SQLRight Code Injection.
+func (node *ObjectNamePrefix) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
 		IRType:      TypeIdentifier,
@@ -102,8 +106,8 @@ func (node *ObjectNamePrefix) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode = &SQLRightIR{
 		IRType:      TypeIdentifier,
-		DataType:    DataSchemaName,
-		ContextFlag: ContextUse,
+		DataType:    dataType,
+		ContextFlag: contextFlag,
 		Prefix:      "",
 		Infix:       "",
 		Suffix:      "",
@@ -151,8 +155,12 @@ func (tp ObjectNamePrefixList) Format(ctx *FmtCtx) {
 	}
 }
 
-// SQLRight Code Injection.
 func (node *ObjectNamePrefixList) LogCurrentNode(depth int) *SQLRightIR {
+	return node.LogCurrentNodeWithType(depth, DataSchemaName, ContextUse)
+}
+
+// SQLRight Code Injection.
+func (node *ObjectNamePrefixList) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
@@ -161,11 +169,11 @@ func (node *ObjectNamePrefixList) LogCurrentNode(depth int) *SQLRightIR {
 
 		if i == 0 {
 			// Take care of the first two nodes.
-			LNode := n.LogCurrentNode(depth + 1)
+			LNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			var RNode *SQLRightIR
 			infix := ""
 			if len(*node) >= 2 {
-				RNode = (*node)[1].LogCurrentNode(depth + 1)
+				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 				infix = ", "
 			}
 			tmpIR = &SQLRightIR{
@@ -186,7 +194,7 @@ func (node *ObjectNamePrefixList) LogCurrentNode(depth int) *SQLRightIR {
 			// Left node is the previous cmds.
 			// Right node is the new cmd.
 			LNode := tmpIR
-			RNode := n.LogCurrentNode(depth + 1)
+			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,

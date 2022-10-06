@@ -196,7 +196,7 @@ func (node *DropIndex) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-	indexList := node.IndexList.LogCurrentNode(depth + 1)
+	indexList := node.IndexList.LogCurrentNodeWithType(depth+1, DataIndexName, ContextUndefine)
 	rootIR = &SQLRightIR{
 		IRType:   TypeUnknown,
 		DataType: DataNone,
@@ -276,7 +276,7 @@ func (node *DropTable) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:  depth,
 	}
 
-	nameNode := node.Names.LogCurrentNode(depth + 1)
+	nameNode := node.Names.LogCurrentNodeWithType(depth+1, DataTableName, ContextUndefine)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -368,7 +368,7 @@ func (node *DropView) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:  depth,
 	}
 
-	nameNode := node.Names.LogCurrentNode(depth + 1)
+	nameNode := node.Names.LogCurrentNodeWithType(depth+1, DataViewName, ContextUndefine)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -449,7 +449,7 @@ func (node *DropSequence) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:  depth,
 	}
 
-	nameNode := node.Names.LogCurrentNode(depth + 1)
+	nameNode := node.Names.LogCurrentNodeWithType(depth+1, DataSequenceName, ContextUndefine)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -740,7 +740,7 @@ func (node *DropSchema) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:  depth,
 	}
 
-	nameNode := node.Names.LogCurrentNode(depth + 1)
+	nameNode := node.Names.LogCurrentNodeWithType(depth+1, DataSchemaName, ContextUndefine)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -800,6 +800,9 @@ func (node *DropExternalConnection) Format(ctx *FmtCtx) {
 
 // SQLRight Code Injection.
 func (node *DropExternalConnection) LogCurrentNode(depth int) *SQLRightIR {
+
+	// TODO: FIXME: Does not handle the the connection label correctly.
+	// Should marked as ContextUndefine.
 
 	prefix := "DROP EXTERNAL CONNECTION"
 
