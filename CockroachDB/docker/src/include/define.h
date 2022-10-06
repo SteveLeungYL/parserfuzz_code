@@ -487,12 +487,14 @@
     V(DataSettingName) \
     V(DataSavePointName) \
     V(DataPrivilege) \
-    V(DataAliasName) \
     V(DataWindowName) \
     V(DataStatementPreparedName) \
     V(DataCursorName) \
     V(DataZoneName) \
-    V(DataChannelName)
+    V(DataChannelName)                                                         \
+	V(DataTableAliasName)         \
+    V(DataColumnAliasName)        \
+
 
 #define ALLCONTEXTFLAGS(V) \
     V(ContextUnknown) \

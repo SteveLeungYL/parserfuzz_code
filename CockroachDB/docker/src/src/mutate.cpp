@@ -1358,7 +1358,7 @@ Mutator::fix_preprocessing(IR *stmt_root,
                      vector<IR*> &ordered_all_subquery_ir) {
   set<DATATYPE> type_to_fix = {
     DataColumnName, DataTableName,
-    DataIndexName, DataAliasName,
+    DataIndexName, DataTableAliasName, DataColumnAliasName,
     DataSequenceName,
     DataViewName, DataConstraintName, DataSequenceName
   };
@@ -1651,39 +1651,38 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
     }
 
-    /* Fix of kAliasTableName.  */
-    for (IR* ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) != fixed_ir.end()) {
-        continue;
-      }
+//    /* Fix of kAliasTableName.  */
+//    for (IR* ir_to_fix : ir_to_fix_vec) {
+//      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) != fixed_ir.end()) {
+//        continue;
+//      }
+//
+//      if (ir_to_fix->data_type_ == DataTableAliasName && ir_to_fix->data_flag_ == ContextDefine) {
+//        string new_alias_table_name_str = gen_alias_name();
+//        ir_to_fix->set_str_val(new_alias_table_name_str);
+//        fixed_ir.push_back(ir_to_fix);
+//
+//        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith)) {
+//          v_with_clause_alias_table_name.push_back(new_alias_table_name_str);
+//        } else {
+//          v_table_names_single.push_back(new_alias_table_name_str);
+//        }
+//
+//        if(is_debug_info) {
+//          cerr << "Dependency: In kDefine of kDataAliasTableName, generating alias table name: " << new_alias_table_name_str << "\n\n\n";
+//        }
+//      }
+//    }
 
-      // TODO: FIXME: the original is table alias, not DataAliasName.
-      if (ir_to_fix->data_type_ == DataAliasName && ir_to_fix->data_flag_ == ContextDefine) {
-        string new_alias_table_name_str = gen_alias_name();
-        ir_to_fix->set_str_val(new_alias_table_name_str);
-        fixed_ir.push_back(ir_to_fix);
-
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith)) {
-          v_with_clause_alias_table_name.push_back(new_alias_table_name_str);
-        } else {
-          v_table_names_single.push_back(new_alias_table_name_str);
-        }
-
-        if(is_debug_info) {
-          cerr << "Dependency: In kDefine of kDataAliasTableName, generating alias table name: " << new_alias_table_name_str << "\n\n\n";
-        }
-      }
-    }
-
-    /* Fix of kAlias name. */
+    /* Fix of DataTableAlias name. */
     int alias_idx = 0;
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) != fixed_ir.end()) {
         continue;
       }
 
-      /* Assume all kAlias are alias to Table name.  */
-      if (ir_to_fix->data_type_ == DataAliasName) {
+      /* All DataTableAlias are alias to Table name.  */
+      if (ir_to_fix->data_type_ == DataTableAliasName) {
 
         string closest_table_name = "";
 
@@ -1741,11 +1740,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         fixed_ir.push_back(ir_to_fix);
 
         if (is_debug_info) {
-          cerr << "Dependency: In kAlias defined, generates: " << alias_name << " mapping to: " << closest_table_name << ". \n\n\n" << endl;
+          cerr << "Dependency: In TypeTableAliasName defined, generates: " << alias_name << " mapping to: " << closest_table_name << ". \n\n\n" << endl;
         }
       }
     }
 
+    // TODO:: FIXME:: We choose to ignore the DataColumnAliasName now. Will fix later.
 
     /* kDefine and kReplace of kDataColumnName */
     for (IR* ir_to_fix : ir_to_fix_vec){
@@ -3046,9 +3046,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         set<DATATYPE> column_type_set = {DataColumnName};
         collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
 
-        /* Fix: also, add alias name defined here to the table */
+        /* Fix: also, add column alias name defined here to the table */
         vector<IR*> all_mentioned_alias_vec;
-        set<DATATYPE> alias_type_set = {DataAliasName};
+        set<DATATYPE> alias_type_set = {DataColumnAliasName};
         collect_ir(cur_stmt_root, alias_type_set, all_mentioned_alias_vec);
 
         all_mentioned_column_vec.insert(all_mentioned_column_vec.end(), all_mentioned_alias_vec.begin(), all_mentioned_alias_vec.end());

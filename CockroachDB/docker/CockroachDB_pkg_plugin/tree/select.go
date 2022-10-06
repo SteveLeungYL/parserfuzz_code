@@ -515,7 +515,7 @@ func (node *SelectExpr) LogCurrentNode(depth int) *SQLRightIR {
 		asStr := node.As.String()
 		tmpAsNode := &SQLRightIR{
 			IRType:      TypeIdentifier,
-			DataType:    DataAliasName,
+			DataType:    DataColumnAliasName,
 			ContextFlag: ContextDefine,
 			Prefix:      "",
 			Infix:       "",
@@ -563,10 +563,16 @@ func (f *AliasClause) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *AliasClause) LogCurrentNode(depth int) *SQLRightIR {
 
+	dataType := DataColumnAliasName
+
+	if len(node.Cols) > 0 {
+		dataType = DataTableAliasName
+	}
+
 	aliasStr := node.Alias.String()
 	tmpAliasNode := &SQLRightIR{
 		IRType:      TypeIdentifier,
-		DataType:    DataAliasName,
+		DataType:    dataType,
 		ContextFlag: ContextDefine,
 		Prefix:      "",
 		Infix:       "",
@@ -582,7 +588,7 @@ func (node *AliasClause) LogCurrentNode(depth int) *SQLRightIR {
 	if len(node.Cols) != 0 {
 		infix = " ("
 		suffix = ")"
-		tmpColNode := node.Cols.LogCurrentNode(depth + 1)
+		tmpColNode := node.Cols.LogCurrentNodeWithType(depth+1, DataColumnAliasName, ContextDefine)
 		colNode = tmpColNode
 	}
 
@@ -616,13 +622,17 @@ func (c *ColumnDef) Format(ctx *FmtCtx) {
 	}
 }
 
-// SQLRight Code Injection.
 func (node *ColumnDef) LogCurrentNode(depth int) *SQLRightIR {
+	return node.LogCurrentNodeWithType(depth, DataColumnName, ContextDefine)
+}
+
+// SQLRight Code Injection.
+func (node *ColumnDef) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	tmpNameNode := &SQLRightIR{
 		IRType:      TypeIdentifier,
-		DataType:    DataColumnName,
-		ContextFlag: ContextDefine,
+		DataType:    dataType,
+		ContextFlag: contextFlag,
 		Prefix:      "",
 		Infix:       "",
 		Suffix:      "",
@@ -678,6 +688,11 @@ func (c *ColumnDefList) Format(ctx *FmtCtx) {
 
 // SQLRight Code Injection.
 func (node *ColumnDefList) LogCurrentNode(depth int) *SQLRightIR {
+	return node.LogCurrentNodeWithType(depth, DataColumnName, ContextDefine)
+}
+
+// SQLRight Code Injection.
+func (node *ColumnDefList) LogCurrentNodeWithType(depth int, dataType SQLRightDataType, contextFlag SQLRightContextFlag) *SQLRightIR {
 
 	// TODO: FIXME. The depth is not handling correctly. All struct for this type are in the same depth.
 
@@ -686,12 +701,12 @@ func (node *ColumnDefList) LogCurrentNode(depth int) *SQLRightIR {
 
 		if i == 0 {
 			// Take care of the first two nodes.
-			LNode := n.LogCurrentNode(depth + 1)
+			LNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			var RNode *SQLRightIR
 			infix := ""
 			if len(*node) >= 2 {
 				infix = ", "
-				RNode = (*node)[1].LogCurrentNode(depth + 1)
+				RNode = (*node)[1].LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 			}
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -711,7 +726,7 @@ func (node *ColumnDefList) LogCurrentNode(depth int) *SQLRightIR {
 			// Left node is the previous cmds.
 			// Right node is the new cmd.
 			LNode := tmpIR
-			RNode := n.LogCurrentNode(depth + 1)
+			RNode := n.LogCurrentNodeWithType(depth+1, dataType, contextFlag)
 
 			tmpIR = &SQLRightIR{
 				IRType:   TypeUnknown,

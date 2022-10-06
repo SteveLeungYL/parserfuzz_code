@@ -1483,7 +1483,7 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 			nameStr := (*Name)(&node.Labels[i]).String()
 			nameNode := &SQLRightIR{
 				IRType:      TypeIdentifier,
-				DataType:    DataAliasName,
+				DataType:    DataColumnAliasName, // This is to create an alias for the Tuple type. Similar to how the column is used.
 				ContextFlag: ContextDefine,
 				Prefix:      "",
 				Infix:       "",

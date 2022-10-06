@@ -577,12 +577,13 @@ const (
 	DataSettingName
 	DataSavePointName
 	DataPrivilege
-	DataAliasName
 	DataWindowName
 	DataStatementPreparedName
 	DataCursorName
 	DataZoneName
 	DataChannelName
+	DataTableAliasName
+	DataColumnAliasName
 )
 
 const (

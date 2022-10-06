@@ -753,7 +753,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
       }
       else {
         /* We cannot find the existing alias, create our own */
-        IR *alias_id = new IR(TypeIdentifier, string("aggr"), DataAliasName, 0, ContextDefine);
+        IR *alias_id = new IR(TypeIdentifier, string("aggr"), DataColumnAliasName, 0, ContextDefine);
         IR* res = new IR(TypeUnknown, OP3(" AS ", "", ""), alias_id);
         res = new IR(TypeSelectExpr, OP0(), NULL, res);
 
@@ -798,13 +798,13 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
         /* Cannot find existing alias, create our own */
         func_name_ir->func_name_set_str("SUM");
 
-        IR *alias_id_0 = new IR(TypeIdentifier, string("s"), DataAliasName, 0, ContextDefine);
+        IR *alias_id_0 = new IR(TypeIdentifier, string("s"), DataColumnAliasName, 0, ContextDefine);
         res_0 = new IR(TypeSelectExpr, OP3(" AS ", "", ""), alias_id_0);
         res_0 = new IR(TypeSelectExpr, OP0(), targetel->deep_copy(), res_0);
 
 
         func_name_ir->func_name_set_str("COUNT");
-        IR *alias_id_1 = new IR(TypeIdentifier, string("c"), DataAliasName, 0, ContextDefine);
+        IR *alias_id_1 = new IR(TypeIdentifier, string("c"), DataColumnAliasName, 0, ContextDefine);
         res_1 = new IR(TypeUnknown, OP3(" AS ", "", ""), alias_id_1);
         res_1 = new IR(TypeSelectExpr, OP0(), targetel->deep_copy(), res_1);
 
