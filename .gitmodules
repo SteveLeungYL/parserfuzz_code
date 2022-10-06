@@ -1,3 +1,0 @@
-[submodule "CockroachDB/CockroachDB_SQLRight"]
-	path = CockroachDB/CockroachDB_SQLRight
-	url = git@github.com:SteveLeungYL/CockroachDB_SQLRight.git
