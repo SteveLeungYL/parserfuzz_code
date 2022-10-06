@@ -21,7 +21,6 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
-
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
    vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
    for (IR* group_clause : v_group_clause) {
@@ -37,6 +36,12 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
        // cerr << "Return false because of having clause \n";
        return false;
      }
+   }
+
+   vector<IR*> v_select_exprs = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExprs, false);
+   if (v_select_exprs.size() > 1) {
+       // cerr << "Return false because of multiple select clause \n";
+       return false;
    }
 
   vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeLimitCluster, false);
@@ -97,7 +102,12 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
    * Directly delete them on the source cur_stmt tree.
    * */
 
-  IR* target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeExprs, false).front();
+  vector<IR*> v_target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeExprs, false);
+  if (v_target_list_ir.size() == 0) {
+    trans_IR_vec.clear();
+    return trans_IR_vec;
+  }
+  IR* target_list_ir = v_target_list_ir.front();
   while ( target_list_ir->get_ir_type() == TypeExprs && target_list_ir->get_right()) {
     /* Clean all the extra select target clauses, only leave the first one untouched.
      * If this is the first kTargetList, the right sub-node should be empty.
@@ -136,6 +146,20 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     return trans_IR_vec;
   }
 
+  /* If WITH clause existed in the SELECT query, remove it and reattach it in the end. */
+  vector<IR*> v_with_clause = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, TypeWith, false);
+  IR* saved_with_clause = NULL;
+  if (v_with_clause.size() != 0) {
+      IR* ori_with_clause = v_with_clause.front();
+      IR* ori_with_clause_parent = ori_with_clause->get_parent();
+      if (ori_with_clause_parent != NULL) {
+          ori_with_clause_parent->swap_node(ori_with_clause, NULL);
+          ori_with_clause->parent_ = NULL;
+          saved_with_clause = ori_with_clause->deep_copy();
+          ori_with_clause->deep_drop();
+      }
+  }
+
   switch (cur_stmt_TLP_type) {
     case VALID_STMT_TYPE_TLP::AGGR_AVG: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
@@ -149,42 +173,66 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
 //      break;
     case VALID_STMT_TYPE_TLP::AGGR_MAX: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     case VALID_STMT_TYPE_TLP::AGGR_MIN: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     case VALID_STMT_TYPE_TLP::AGGR_SUM: {
       IR* transformed_stmt = transform_aggr(cur_stmt, true, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     case VALID_STMT_TYPE_TLP::DISTINCT: {
       IR* transformed_stmt = transform_non_aggr(cur_stmt, false, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     case VALID_STMT_TYPE_TLP::HAVING: {
       IR* transformed_stmt = transform_non_aggr(cur_stmt, true, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     case VALID_STMT_TYPE_TLP::GROUP_BY: {
       IR* transformed_stmt = transform_non_aggr(cur_stmt, false, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     case VALID_STMT_TYPE_TLP::NORMAL: {
       IR* transformed_stmt = transform_non_aggr(cur_stmt, true, cur_stmt_TLP_type);
+    if (saved_with_clause != NULL && transformed_stmt != NULL) {
+        transformed_stmt = new IR(TypeStmt, OP0(), saved_with_clause, transformed_stmt);
+    }
       trans_IR_vec.push_back(transformed_stmt);
     }
       break;
     default:
       first_stmt->deep_drop();
-      trans_IR_vec.clear();
+      if (saved_with_clause != NULL) {
+          saved_with_clause->deep_drop();
+      }
+        trans_IR_vec.clear();
       return trans_IR_vec;
   }
   if (trans_IR_vec[1] != NULL) {
@@ -194,6 +242,9 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     // cerr << "Debug: for cur_stmt: " << cur_stmt->to_string() << ". Failed to transform. \n\n\n";
     first_stmt->deep_drop();
     trans_IR_vec.clear();
+      if (saved_with_clause != NULL) {
+          saved_with_clause->deep_drop();
+      }
     return trans_IR_vec;
   }
 
@@ -520,52 +571,52 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
 
   for (IR* count_func_ir : count_func_vec){
 
-    if (count_func_ir->data_type_ == DataFunctionName) {
+    if (count_func_ir->data_type_ != DataFunctionName) {
           continue;
     }
 
-    if (
-        ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 1) == TypeSelectExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExprs  &&
-        ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectClause
-    ) {
+    //if (
+        //ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
+        //ir_wrapper.get_parent_type(count_func_ir, 1) == TypeSelectExpr &&
+        //ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExprs  &&
+        //ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectClause
+    //) {
 
       string func_name_str = count_func_ir->get_str_val();
 
-      if (findStringIn(func_name_str, "count")) {
+      if (findStringIn(func_name_str, "count") || findStringIn(func_name_str, "COUNT")) {
 
         if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
           return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
         }
         return VALID_STMT_TYPE_TLP::AGGR_COUNT;
 
-      } else if (findStringIn(func_name_str, "sum")) {
+      } else if (findStringIn(func_name_str, "sum") || findStringIn(func_name_str, "SUM")) {
 
         if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
           return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
         }
         return VALID_STMT_TYPE_TLP::AGGR_SUM;
 
-      } else if (findStringIn(func_name_str, "min")) {
+      } else if (findStringIn(func_name_str, "min") || findStringIn(func_name_str, "MIN")) {
 
         if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
           return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
         }
         return VALID_STMT_TYPE_TLP::AGGR_MIN;
 
-      } else if (findStringIn(func_name_str, "max")) {
+      } else if (findStringIn(func_name_str, "max") || findStringIn(func_name_str, "MAX")) {
         if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
           return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
         }
         return VALID_STMT_TYPE_TLP::AGGR_MAX;
-      } else if (findStringIn(func_name_str, "avg")) {
+      } else if (findStringIn(func_name_str, "avg") || findStringIn(func_name_str, "AVG")) {
         if (default_type_ == VALID_STMT_TYPE_TLP::GROUP_BY) {
           return VALID_STMT_TYPE_TLP::TLP_UNKNOWN;
         }
         return VALID_STMT_TYPE_TLP::AGGR_AVG;
       }
-    }
+    //}
   }
 
   return default_type_;
@@ -585,7 +636,7 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
   /* Now we have the simple_select. :-) */
 
   /* modify the first part of TLP. Put the Whereclause into a brackets. */
-  IR* operand_ir_ = new IR(TypeUnknown, OP3("(", ")", ""));
+  IR* operand_ir_ = new IR(TypeUnknown, OP3(" ( ", " ) ", ""));
   IR* expr_ir_ = new IR(TypeExprs, OP3("", "", ""), operand_ir_);
 
   IR* first_part_TLP = src_simple_select_->deep_copy();
@@ -622,7 +673,7 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
   IR* second_part_TLP = src_simple_select_->deep_copy();
   /* vector size has been double checked before */
   IR* where_second_stmt_ = ir_wrapper.get_ir_node_in_stmt_with_type(second_part_TLP, TypeWhere, false)[0];
-  IR* where_second_expr_ = where_second_stmt_->left_;
+  IR* where_second_expr_ = where_second_stmt_->get_right();
 
   second_part_TLP->swap_node(where_second_expr_, expr_);
   operand_0->update_left(where_second_expr_);
@@ -632,14 +683,14 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
 
   /* Modify the third part of TLP. Put the WhereClause into ((kWhereClause) IS NULL) */
   operand_0 = new IR(TypeUnknown, OP3("(", ")", "")); // For brackets
-  unary_expr_ = new IR(TypeUnknown, OP3("", "IS NULL", ""), operand_0); // (kWhereClause) IS NULL
+  unary_expr_ = new IR(TypeUnknown, OP3("", " IS NULL ", ""), operand_0); // (kWhereClause) IS NULL
   operand_1 = new IR(TypeUnknown, OP3("(", ")", ""), unary_expr_); // For the second brackets. ((kWhereClause) IS NULL)
   expr_ = new IR(TypeUnknown, OP0(), operand_1);
 
   IR* third_part_TLP = src_simple_select_->deep_copy();
   /* vector size has been double checked before */
-  IR* where_third_stmt_ = ir_wrapper.get_ir_node_in_stmt_with_type(third_part_TLP, TypeUnknown, false)[0];
-  IR* where_third_expr_ = where_third_stmt_->left_;
+  IR* where_third_stmt_ = ir_wrapper.get_ir_node_in_stmt_with_type(third_part_TLP, TypeWhere, false)[0];
+  IR* where_third_expr_ = where_third_stmt_->get_right();
 
   third_part_TLP->swap_node(where_third_expr_, expr_);
   operand_0->update_left(where_third_expr_);
@@ -647,12 +698,12 @@ IR* SQL_TLP::transform_non_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE
   /* Finished the third part TLP.  */
   cur_stmt = first_part_TLP;
   if (is_UNION_ALL) {
-    IR* set_operator = new IR(TypeUnionClause, OP3("", "UNION ALL", ""), second_part_TLP, third_part_TLP);
-    set_operator = new IR(TypeUnionClause, OP3("", "UNION ALL", ""), first_part_TLP, set_operator);
+    IR* set_operator = new IR(TypeUnionClause, OP3("", " UNION ALL ", ""), second_part_TLP, third_part_TLP);
+    set_operator = new IR(TypeUnionClause, OP3("", " UNION ALL ", ""), first_part_TLP, set_operator);
     cur_stmt = set_operator;
   } else {
-    IR* set_operator = new IR(TypeUnionClause, OP3("", "UNION", ""), second_part_TLP, third_part_TLP);
-    set_operator = new IR(TypeUnionClause, OP3("", "UNION", ""), first_part_TLP, set_operator);
+    IR* set_operator = new IR(TypeUnionClause, OP3("", " UNION ", ""), second_part_TLP, third_part_TLP);
+    set_operator = new IR(TypeUnionClause, OP3("", " UNION ", ""), first_part_TLP, set_operator);
     cur_stmt = set_operator;
   }
 
@@ -692,7 +743,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
     vector<IR*> v_targetel = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExpr, false);
     if (v_targetel.size() > 0) {
       IR* targetel = v_targetel.front();
-      if (targetel->get_middle() == "AS") {
+      if (targetel->get_middle() == " AS ") {
         /* Found the originally existed matching alias. Change it to aggr*/
         IR* iden = targetel->get_right();
         iden -> set_str_val(string("aggr"));
@@ -700,7 +751,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
       else {
         /* We cannot find the existing alias, create our own */
         IR *alias_id = new IR(TypeIdentifier, string("aggr"), DataAliasName, 0, ContextDefine);
-        IR* res = new IR(TypeUnknown, OP3("AS", "", ""), alias_id);
+        IR* res = new IR(TypeUnknown, OP3(" AS ", "", ""), alias_id);
         res = new IR(TypeSelectExpr, OP0(), NULL, res);
 
         /* Swap and reattach the original targetel */
@@ -745,13 +796,13 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
         func_name_ir->func_name_set_str("SUM");
 
         IR *alias_id_0 = new IR(TypeIdentifier, string("s"), DataAliasName, 0, ContextDefine);
-        res_0 = new IR(TypeSelectExpr, OP3("AS", "", ""), alias_id_0);
+        res_0 = new IR(TypeSelectExpr, OP3(" AS ", "", ""), alias_id_0);
         res_0 = new IR(TypeSelectExpr, OP0(), targetel->deep_copy(), res_0);
 
 
         func_name_ir->func_name_set_str("COUNT");
         IR *alias_id_1 = new IR(TypeIdentifier, string("c"), DataAliasName, 0, ContextDefine);
-        res_1 = new IR(TypeUnknown, OP3("AS", "", ""), alias_id_1);
+        res_1 = new IR(TypeUnknown, OP3(" AS ", "", ""), alias_id_1);
         res_1 = new IR(TypeSelectExpr, OP0(), targetel->deep_copy(), res_1);
 
 
