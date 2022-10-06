@@ -21,6 +21,13 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
+    /* Remove cases that missing TypeSelectExpr */
+   vector<IR*> v_select_exprs = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExpr, false);
+   if (v_select_exprs.size() == 0) {
+           //cerr << "Return false because there is no TypeSelectExpr \n\n\n";
+       return false;
+   }
+
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
    vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
    for (IR* group_clause : v_group_clause) {
@@ -36,12 +43,6 @@ bool SQL_TLP::is_oracle_select_stmt(IR* cur_stmt) {
        // cerr << "Return false because of having clause \n";
        return false;
      }
-   }
-
-   vector<IR*> v_select_exprs = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExprs, false);
-   if (v_select_exprs.size() > 1) {
-       // cerr << "Return false because of multiple select clause \n";
-       return false;
    }
 
   vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeLimitCluster, false);
@@ -102,13 +103,13 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
    * Directly delete them on the source cur_stmt tree.
    * */
 
-  vector<IR*> v_target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeExprs, false);
+  vector<IR*> v_target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExprs, false);
   if (v_target_list_ir.size() == 0) {
     trans_IR_vec.clear();
     return trans_IR_vec;
   }
   IR* target_list_ir = v_target_list_ir.front();
-  while ( target_list_ir->get_ir_type() == TypeExprs && target_list_ir->get_right()) {
+  if ( target_list_ir->get_ir_type() == TypeExprs && target_list_ir->get_right()) {
     /* Clean all the extra select target clauses, only leave the first one untouched.
      * If this is the first kTargetList, the right sub-node should be empty.
      * */
@@ -116,7 +117,6 @@ vector<IR*> SQL_TLP::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi
     IR* extra_targetel_ir = target_list_ir->get_right();
     target_list_ir->update_right(NULL);
     extra_targetel_ir->deep_drop();
-    target_list_ir = target_list_ir->get_left();
   }
 
 

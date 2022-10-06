@@ -40,17 +40,16 @@ public:
 
 private:
 
-//   string temp_valid_stmts = "SELECT COUNT ( * ) FROM x WHERE x;";
 // Cockroach need to generate 
   vector<string> temp_valid_stmts = {
     "SELECT * FROM x WHERE x=0;",
-    "SELECT x FROM x WHERE x=0 GROUP BY x;",
-    "SELECT x FROM x WHERE x=0 HAVING x;", // TODO:: Implement HAVING.
-    "SELECT DISTINCT x FROM x=0 WHERE x;",
-    "SELECT MIN(x) FROM x=0 WHERE x;",
-    "SELECT MAX(x) FROM x=0 WHERE x;",
-    "SELECT SUM(x) FROM x=0 WHERE x;",
-    "SELECT AVG(x) FROM x=0 WHERE x;"
+    "SELECT x FROM x WHERE x GROUP BY x;",
+    "SELECT x FROM x WHERE x HAVING x = 0;",
+    "SELECT DISTINCT x FROM x WHERE x = 0;",
+    "SELECT MIN(x) FROM x WHERE x = 0;",
+    "SELECT MAX(x) FROM x WHERE x = 0;",
+    "SELECT SUM(x) FROM x WHERE x = 0;",
+    "SELECT AVG(x) FROM x WHERE x = 0;"
   };
 
   string oracle_type = "TLP";
