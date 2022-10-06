@@ -545,7 +545,10 @@ VALID_STMT_TYPE_TLP SQL_TLP::get_stmt_TLP_type (IR* cur_stmt) {
   /* Distinct  */
   vector<IR*> v_opt_distinct = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeOptDistinct, false);
   for (IR* opt_distinct : v_opt_distinct) {
-    if (opt_distinct->get_left() != NULL || opt_distinct->get_prefix() ==  "DISTINCT") {
+    if (opt_distinct->get_left() != NULL && !opt_distinct->get_left()->is_empty()) {
+      default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
+    }
+    if (opt_distinct->get_prefix() ==  "DISTINCT") {
       default_type_ = VALID_STMT_TYPE_TLP::DISTINCT;
     }
   }
@@ -743,7 +746,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
     vector<IR*> v_targetel = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExpr, false);
     if (v_targetel.size() > 0) {
       IR* targetel = v_targetel.front();
-      if (targetel->get_middle() == " AS ") {
+      if (targetel->get_middle() == " AS " && targetel->get_right() != NULL) {
         /* Found the originally existed matching alias. Change it to aggr*/
         IR* iden = targetel->get_right();
         iden -> set_str_val(string("aggr"));
@@ -777,7 +780,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
 
       IR* res_0 = NULL;
       IR* res_1 = NULL;
-      if (targetel->get_right() != NULL) {
+      if (targetel->get_right() != NULL && targetel->get_middle() == " AS ") {
         /* Found the originally existed matching alias. Change it to aggr*/
         targetel->get_right()->set_str_val(string("c"));
         func_name_ir->set_str_val("COUNT");
