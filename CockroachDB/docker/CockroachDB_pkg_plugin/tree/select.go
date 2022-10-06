@@ -1614,13 +1614,10 @@ func (node *AliasedTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 		oridinalityNode := &SQLRightIR{
 			IRType:   TypeUnknown,
 			DataType: DataNone,
-			//LNode:    LNode,
-			//RNode:    RNode,
-			Prefix: "",
-			Infix:  "",
-			Suffix: "",
-			Depth:  depth,
-			Str:    " WITH ORDINALITY",
+			Prefix:   " WITH ORDINALITY",
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
 		}
 
 		rootIR = &SQLRightIR{
