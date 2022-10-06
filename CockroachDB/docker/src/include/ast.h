@@ -12,27 +12,21 @@ using namespace std;
 
 enum IRTYPE {
 #define DECLARE_TYPE(v) v,
-    ALLTYPE(DECLARE_TYPE)
+  ALLTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
-enum COLTYPE {
-UNKNOWN_T,
-INT_T,
-FLOAT_T,
-BOOLEAN_T,
-STRING_T
-};
+enum COLTYPE { UNKNOWN_T, INT_T, FLOAT_T, BOOLEAN_T, STRING_T };
 
 enum DATATYPE {
 #define DECLARE_TYPE(v) v,
-   ALLDATATYPE(DECLARE_TYPE)
+  ALLDATATYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
 enum DATAFLAG {
 #define DECLARE_TYPE(v) v,
-    ALLCONTEXTFLAGS(DECLARE_TYPE)
+  ALLCONTEXTFLAGS(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
@@ -45,13 +39,12 @@ static inline void reset_id_counter() { g_id_counter = 0; }
 static inline void clear_id() { g_id_counter = 0; }
 
 static string gen_id_name() { return "v" + to_string(g_id_counter++); }
-static string gen_column_name() {return "c" + to_string(g_id_counter++); }
-static string gen_index_name() {return "i" + to_string(g_id_counter++); }
+static string gen_column_name() { return "c" + to_string(g_id_counter++); }
+static string gen_index_name() { return "i" + to_string(g_id_counter++); }
 static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
-static string gen_statistic_name() {return "s" + to_string(g_id_counter++);}
-static string gen_sequence_name() {return "seq" + to_string(g_id_counter++);}
-static string gen_view_name() {return "view" + to_string(g_id_counter++);}
-
+static string gen_statistic_name() { return "s" + to_string(g_id_counter++); }
+static string gen_sequence_name() { return "seq" + to_string(g_id_counter++); }
+static string gen_view_name() { return "view" + to_string(g_id_counter++); }
 
 string get_string_by_ir_type(IRTYPE type);
 string get_string_by_data_type(DATATYPE type);
@@ -60,9 +53,7 @@ string get_string_by_data_flag(DATAFLAG flag_type_);
 
 class IROperator {
 public:
-  IROperator(string prefix = "",
-             string middle = "",
-             string suffix = "")
+  IROperator(string prefix = "", string middle = "", string suffix = "")
       : prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
   string prefix_;
@@ -82,43 +73,43 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, string str_val, DATATYPE data_type = DataNone,
-     int scope = -1, DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, string str_val, DATATYPE data_type = DataNone, int scope = -1,
+     DATAFLAG flag = ContextUnknown)
       : type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
         data_flag_(flag) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone,
-     int scope = -1, DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone, int scope = -1,
+     DATAFLAG flag = ContextUnknown)
       : type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        scope_(scope), data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
+        data_flag_(flag) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, unsigned long long_val, DATATYPE data_type = DataNone,
      int scope = -1, DATAFLAG flag = ContextUnknown)
       : type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        scope_(scope), data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
+        data_flag_(flag) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone,
-     int scope = -1, DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone, int scope = -1,
+     DATAFLAG flag = ContextUnknown)
       : type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        scope_(scope), data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
+        data_flag_(flag) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone,
-     int scope = -1, DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone, int scope = -1,
+     DATAFLAG flag = ContextUnknown)
       : type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        scope_(scope), data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
+        data_flag_(flag) {
     GEN_NAME();
   }
 
@@ -127,8 +118,8 @@ public:
      DATAFLAG flag = ContextUnknown)
       : type_(type), op_(op), left_(left), right_(right),
         operand_num_((!!right) + (!!left)), name_(name), str_val_(str_val),
-        float_val_(f_val), mutated_times_(mutated_times),
-        data_type_(DataNone), scope_(scope), data_flag_(flag) {
+        float_val_(f_val), mutated_times_(mutated_times), data_type_(DataNone),
+        scope_(scope), data_flag_(flag) {
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -182,12 +173,13 @@ public:
   IR *left_;
   IR *right_;
   IR *parent_;
-  bool is_node_struct_fixed = false; // Do not mutate this IR if this set to be true.
+  bool is_node_struct_fixed =
+      false; // Do not mutate this IR if this set to be true.
   int operand_num_;
   unsigned int mutated_times_ = 0;
 
   string to_string();
-  void to_string_core(string&);
+  void to_string_core(string &);
 
   // delete this IR and necessary clean up
   void drop();
@@ -214,14 +206,13 @@ public:
   string get_suffix();
   string get_str_val();
 
-  IR* get_left();
-  IR* get_right();
+  IR *get_left();
+  IR *get_right();
 
   IRTYPE get_ir_type();
   DATATYPE get_data_type();
   DATAFLAG get_data_flag();
   RelOptionType get_rel_option_type();
-
 
   bool is_empty();
 
@@ -237,12 +228,12 @@ public:
   bool set_type(DATATYPE, DATAFLAG); // Set type regardless of its node type.
   bool func_name_set_str(string);
 
-  bool replace_op(IROperator*);
+  bool replace_op(IROperator *);
 
-  /* From the kTypename ir, return the int representing the Postgres column type.
-  */
+  /* From the kTypename ir, return the int representing the Postgres column
+   * type.
+   */
   COLTYPE typename_ir_get_type();
-
 };
 
 DATATYPE get_datatype_by_string(string s);

@@ -5,7 +5,7 @@
 #include <regex>
 #include <string>
 
-bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
+bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
 
   if (cur_stmt == NULL) {
     // cerr << "Return false because cur_stmt is NULL; \n";
@@ -13,31 +13,34 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
   if (cur_stmt->get_ir_type() != TypeSelect) {
-    // cerr << "Return false because this is not a SELECT stmt: " << get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
+    // cerr << "Return false because this is not a SELECT stmt: " <<
+    // get_string_by_ir_type(cur_stmt->get_ir_type()) <<  " \n";
     return false;
   }
 
   /* Remove cases that contains kGroupClause, kHavingClause and kLimitClause */
-  vector<IR*> v_group_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
-  for (IR* group_clause : v_group_clause) {
-    if (!group_clause->is_empty()){
+  vector<IR *> v_group_clause =
+      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeGroupBy, false);
+  for (IR *group_clause : v_group_clause) {
+    if (!group_clause->is_empty()) {
       // cerr << "Return false because of GROUP clause \n";
       return false;
     }
   }
 
-
-  vector<IR*> v_having_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeHaving, false);
-  for (IR* having_clause : v_having_clause) {
-    if (!having_clause->is_empty()){
+  vector<IR *> v_having_clause =
+      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeHaving, false);
+  for (IR *having_clause : v_having_clause) {
+    if (!having_clause->is_empty()) {
       // cerr << "Return false because of having clause \n";
       return false;
     }
   }
 
-  vector<IR*> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeLimitCluster, false);
-  for (IR* limit_clause : v_limit_clause) {
-    if (!limit_clause->is_empty()){
+  vector<IR *> v_limit_clause = ir_wrapper.get_ir_node_in_stmt_with_type(
+      cur_stmt, TypeLimitCluster, false);
+  for (IR *limit_clause : v_limit_clause) {
+    if (!limit_clause->is_empty()) {
       // cerr << "Return false because of LIMIT clause \n";
       return false;
     }
@@ -49,72 +52,77 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
     return false;
   }
 
+  vector<IR *> v_target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(
+      cur_stmt, TypeSelectExprs, false);
 
-  vector<IR*> v_target_list_ir = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExprs, false);
+  if (v_target_list_ir.size() == 0)
+    return false;
 
-  if (v_target_list_ir.size() == 0) return false;
+  IR *target_list_ir = v_target_list_ir.front();
 
-  IR* target_list_ir = v_target_list_ir.front();
+  // TODO:: FIXME:: This logic is not correct.
+  //  while ( target_list_ir->get_ir_type() == TypeSelectExprs &&
+  //  target_list_ir->get_right()) {
+  //    /* Clean all the extra select target clauses, only leave the first one
+  //    untouched.
+  //     * If this is the first kTargetList, the right sub-node should be empty.
+  //     * */
+  //    target_list_ir->replace_op(OP0());
+  //    IR* extra_targetel_ir = target_list_ir->get_right();
+  //    target_list_ir->update_right(NULL);
+  //    extra_targetel_ir->deep_drop();
+  //    target_list_ir = target_list_ir->get_left();
+  //  }
 
-  //TODO:: FIXME:: This logic is not correct.
-//  while ( target_list_ir->get_ir_type() == TypeSelectExprs && target_list_ir->get_right()) {
-//    /* Clean all the extra select target clauses, only leave the first one untouched.
-//     * If this is the first kTargetList, the right sub-node should be empty.
-//     * */
-//    target_list_ir->replace_op(OP0());
-//    IR* extra_targetel_ir = target_list_ir->get_right();
-//    target_list_ir->update_right(NULL);
-//    extra_targetel_ir->deep_drop();
-//    target_list_ir = target_list_ir->get_left();
-//  }
+  // cerr << "num_target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) <<
+  // "\n";
 
-  // cerr << "num_target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) << "\n";
-
-  if (
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false) &&
-    ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false) &&
-    ir_wrapper.get_num_select_exprs(cur_stmt) == 1
-  ) {
+  if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, TypeFrom,
+                                                    false) &&
+      ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, TypeWhere,
+                                                    false) &&
+      ir_wrapper.get_num_select_exprs(cur_stmt) == 1) {
 
     /* Make sure from clause and where clause are not empty.  */
-    IR* from_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false)[0];
+    IR *from_clause =
+        ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false)[0];
     // The first one should be the parent one.
     if (from_clause->is_empty()) {
       // cerr << "Return false because FROM clause is empty \n";
       return false;
     }
-    IR* where_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0];
+    IR *where_clause =
+        ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0];
     // The first one should be the parent one.
     if (where_clause->is_empty()) {
       // cerr << "Return false because WHERE clause is empty \n";
       return false;
     }
 
+    vector<IR *> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(
+        cur_stmt, TypeIdentifier, false);
 
-
-    vector<IR*> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeIdentifier, false);
-
-    for (IR* count_func_ir : count_func_vec){
+    for (IR *count_func_ir : count_func_vec) {
 
       if (count_func_ir->data_type_ != DataFunctionName) {
-          continue;
+        continue;
       }
 
-      if (
-        ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 1) == TypeFuncExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExpr &&
-        ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectExprs  &&
-        ir_wrapper.get_parent_type(count_func_ir, 4) == TypeSelectClause
-      ) {
-        /* The Func expression structure is enforced. Next ensure the func is COUNT */
-        IR* func_app_ir = count_func_ir->get_parent()->get_parent()->get_right();
+      if (ir_wrapper.get_parent_type(count_func_ir, 0) == TypeFuncExpr &&
+          ir_wrapper.get_parent_type(count_func_ir, 1) == TypeFuncExpr &&
+          ir_wrapper.get_parent_type(count_func_ir, 2) == TypeSelectExpr &&
+          ir_wrapper.get_parent_type(count_func_ir, 3) == TypeSelectExprs &&
+          ir_wrapper.get_parent_type(count_func_ir, 4) == TypeSelectClause) {
+        /* The Func expression structure is enforced. Next ensure the func is
+         * COUNT */
+        IR *func_app_ir =
+            count_func_ir->get_parent()->get_parent()->get_right();
         // Enforce '*'
         if (func_app_ir == NULL) {
-            continue;
+          continue;
         }
         if (func_app_ir->to_string() == "*") {
-            return true;
+          return true;
         }
       }
     }
@@ -122,7 +130,6 @@ bool SQL_NOREC::is_oracle_select_stmt(IR* cur_stmt) {
   }
 
   return false;
-
 }
 
 bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector) {
@@ -130,8 +137,9 @@ bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector) {
   return true;
 }
 
-vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned multi_run_id){
-  vector<IR*> trans_IR_vec;
+vector<IR *> SQL_NOREC::post_fix_transform_select_stmt(IR *cur_stmt,
+                                                       unsigned multi_run_id) {
+  vector<IR *> trans_IR_vec;
 
   cur_stmt->parent_ = NULL;
 
@@ -140,39 +148,44 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
     return trans_IR_vec;
   }
 
-  IR* first_stmt = cur_stmt->deep_copy();
+  IR *first_stmt = cur_stmt->deep_copy();
 
-//  /* Remove the kOverClause, if exists.
-//   * Doesn't need to worry about double free, because all overclause that we remove
-//   * are not in subqueries.
-//   * */
-//  vector<IR* > v_over_clause = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, TypeWindow, false);
-//
-//  if (v_over_clause.size() > 0) {
-//    IR* over_clause = v_over_clause.front();
-//    IR* new_over_clause = new IR(TypeWindow, OP0());
-//    first_stmt->swap_node(over_clause, new_over_clause);
-//    over_clause->deep_drop();
-//  }
+  //  /* Remove the kOverClause, if exists.
+  //   * Doesn't need to worry about double free, because all overclause that we
+  //   remove
+  //   * are not in subqueries.
+  //   * */
+  //  vector<IR* > v_over_clause =
+  //  ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, TypeWindow, false);
+  //
+  //  if (v_over_clause.size() > 0) {
+  //    IR* over_clause = v_over_clause.front();
+  //    IR* new_over_clause = new IR(TypeWindow, OP0());
+  //    first_stmt->swap_node(over_clause, new_over_clause);
+  //    over_clause->deep_drop();
+  //  }
 
   /* Remove the kWindowClause, if exists.
-   * Doesn't need to worry about double free, because all windowclause that we remove
-   * are not in subqueries.
+   * Doesn't need to worry about double free, because all windowclause that we
+   * remove are not in subqueries.
    * */
-  vector<IR* > v_window_clause = ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, TypeWindow, false);
+  vector<IR *> v_window_clause =
+      ir_wrapper.get_ir_node_in_stmt_with_type(first_stmt, TypeWindow, false);
   if (v_window_clause.size() > 0) {
-    IR* window_clause = v_window_clause.front();
-    IR* new_window_clause = new IR(TypeWindow, OP0());
+    IR *window_clause = v_window_clause.front();
+    IR *new_window_clause = new IR(TypeWindow, OP0());
     first_stmt->swap_node(window_clause, new_window_clause);
     window_clause->deep_drop();
   }
 
-
   trans_IR_vec.push_back(first_stmt); // Save the original version.
 
-  // cerr << "DEBUG: Getting post_fix cur_stmt: " << cur_stmt->to_string() << " \n\n\n";
+  // cerr << "DEBUG: Getting post_fix cur_stmt: " << cur_stmt->to_string() << "
+  // \n\n\n";
 
-  // cerr << "DEBUG: Getting where_clause " <<  ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause, false).size() << "\n\n\n";
+  // cerr << "DEBUG: Getting where_clause " <<
+  // ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, kWhereClause,
+  // false).size() << "\n\n\n";
 
   /* Take care of WHERE and FROM clauses. */
   // cerr << "Printing post_fix tree: ";
@@ -181,72 +194,94 @@ vector<IR*> SQL_NOREC::post_fix_transform_select_stmt(IR* cur_stmt, unsigned mul
 
   is_oracle_select_stmt(cur_stmt);
 
-  vector<IR*> transformed_temp_vec = g_mutator->parse_query_str_get_ir_set(this->post_fix_temp);
+  vector<IR *> transformed_temp_vec =
+      g_mutator->parse_query_str_get_ir_set(this->post_fix_temp);
   if (transformed_temp_vec.size() == 0) {
-    cerr << "Error: parsing the post_fix_temp from SQL_NOREC::post_fix_transform_select_stmt returns empty IR vector. \n";
-    vector<IR*> tmp; return tmp;
+    cerr << "Error: parsing the post_fix_temp from "
+            "SQL_NOREC::post_fix_transform_select_stmt returns empty IR "
+            "vector. \n";
+    vector<IR *> tmp;
+    return tmp;
   }
 
-  IR* transformed_temp_ir = transformed_temp_vec.back();
-  IR* trans_stmt_ir = ir_wrapper.get_first_stmt_from_root(transformed_temp_ir)->deep_copy();
+  IR *transformed_temp_ir = transformed_temp_vec.back();
+  IR *trans_stmt_ir =
+      ir_wrapper.get_first_stmt_from_root(transformed_temp_ir)->deep_copy();
   trans_stmt_ir->parent_ = NULL;
   transformed_temp_ir->deep_drop();
 
   /* Move the original ORDER BY function to the dest IR stmt. */
-  vector<IR*> src_order_vec = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeOrderBy, false);
+  vector<IR *> src_order_vec =
+      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeOrderBy, false);
   if (src_order_vec.size() > 0) {
-    IR* src_order_clause = src_order_vec[0]->deep_copy();
-    IR* dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeOrderBy, true)[0];
-    if (!trans_stmt_ir->swap_node(dest_order_clause, src_order_clause)){
+    IR *src_order_clause = src_order_vec[0]->deep_copy();
+    IR *dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(
+        trans_stmt_ir, TypeOrderBy, true)[0];
+    if (!trans_stmt_ir->swap_node(dest_order_clause, src_order_clause)) {
       trans_stmt_ir->deep_drop();
       src_order_clause->deep_drop();
-      cerr << "Error: swap_node failed for sort_clause. In function SQL_NOREC::post_fix_transform_select_stmt. \n";
-      vector<IR*> tmp; return tmp;
+      cerr << "Error: swap_node failed for sort_clause. In function "
+              "SQL_NOREC::post_fix_transform_select_stmt. \n";
+      vector<IR *> tmp;
+      return tmp;
     }
     dest_order_clause->deep_drop();
   } else {
-    IR* dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeOrderBy, true)[0];
+    IR *dest_order_clause = ir_wrapper.get_ir_node_in_stmt_with_type(
+        trans_stmt_ir, TypeOrderBy, true)[0];
     trans_stmt_ir->detach_node(dest_order_clause);
     dest_order_clause->deep_drop();
   }
 
-  IR* src_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0]->get_right()->deep_copy();
-  IR* dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeDBool, true)[0];
+  IR *src_where_expr =
+      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0]
+          ->get_right()
+          ->deep_copy();
+  IR *dest_where_expr = ir_wrapper.get_ir_node_in_stmt_with_type(
+      trans_stmt_ir, TypeDBool, true)[0];
 
-  IR* src_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false)[0]->deep_copy();
-  IR* dest_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(trans_stmt_ir, TypeFrom, true)[0];
+  IR *src_from_expr =
+      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeFrom, false)[0]
+          ->deep_copy();
+  IR *dest_from_expr = ir_wrapper.get_ir_node_in_stmt_with_type(
+      trans_stmt_ir, TypeFrom, true)[0];
 
-  if (!trans_stmt_ir->swap_node(dest_where_expr, src_where_expr)){
+  if (!trans_stmt_ir->swap_node(dest_where_expr, src_where_expr)) {
     trans_stmt_ir->deep_drop();
     src_where_expr->deep_drop();
     src_from_expr->deep_drop();
-    cerr << "Error: swap_node failed for where_clause. In function SQL_NOREC::post_fix_transform_select_stmt. \n";
-    vector<IR*> tmp; return tmp;
+    cerr << "Error: swap_node failed for where_clause. In function "
+            "SQL_NOREC::post_fix_transform_select_stmt. \n";
+    vector<IR *> tmp;
+    return tmp;
   }
   dest_where_expr->deep_drop();
   if (!trans_stmt_ir->swap_node(dest_from_expr, src_from_expr)) {
     trans_stmt_ir->deep_drop();
     src_from_expr->deep_drop();
-    cerr << "Error: swap_node failed for from_clause. In function SQL_NOREC::post_fix_transform_select_stmt. \n";
-    vector<IR*> tmp; return tmp;  
+    cerr << "Error: swap_node failed for from_clause. In function "
+            "SQL_NOREC::post_fix_transform_select_stmt. \n";
+    vector<IR *> tmp;
+    return tmp;
   }
   dest_from_expr->deep_drop();
 
-  // At last, after the main structure of trans_stmt_ir is finished, also check for
+  // At last, after the main structure of trans_stmt_ir is finished, also check
+  // for
   //    the WITH clause from the original statement. Copy the WITH clause to the
   //    modified trans_stmt_ir.
 
-  vector<IR*> v_with_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWith, false);
+  vector<IR *> v_with_clause =
+      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWith, false);
 
   if (v_with_clause.size() > 0) {
-      IR* with_clause = v_with_clause.front()->deep_copy();
-      trans_stmt_ir = new IR(TypeStmt, OP0(), with_clause, trans_stmt_ir);
+    IR *with_clause = v_with_clause.front()->deep_copy();
+    trans_stmt_ir = new IR(TypeStmt, OP0(), with_clause, trans_stmt_ir);
   }
 
   trans_IR_vec.push_back(trans_stmt_ir);
 
   return trans_IR_vec;
-
 }
 
 void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {

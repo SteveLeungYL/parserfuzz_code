@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include <vector>
 
-
 using namespace std;
 
 #define vector_rand_ele_safe(a)                                                \
@@ -52,7 +51,7 @@ inline int get_rand_int(int start, int end) {
 inline long long get_rand_long_long(long long range) {
 
   if (range > 0) {
-    std::uniform_int_distribution<long long> uid(0, range-1);
+    std::uniform_int_distribution<long long> uid(0, range - 1);
     return uid(rng);
   } else {
     return 0;
@@ -71,34 +70,27 @@ inline long long get_rand_long_long(long long start, long long end) {
   }
 }
 
-
 inline float get_rand_float(float min, float max) {
   if ((max - min) < 0) {
     return 0.0;
-  } else if ((max-min) == 0) {
+  } else if ((max - min) == 0) {
     return min;
   }
   int rand_int = get_rand_int(RAND_MAX);
   return ((max - min) * ((float)rand_int / RAND_MAX)) + min;
 }
-inline float get_rand_float(float max) {
-  return get_rand_float(0, max);
-}
+inline float get_rand_float(float max) { return get_rand_float(0, max); }
 
 inline double get_rand_double(double min, double max) {
   if ((max - min) < 0) {
     return 0.0;
-  } else if ((max-min) == 0) {
+  } else if ((max - min) == 0) {
     return min;
   }
   int rand_int = get_rand_int(RAND_MAX);
   return ((max - min) * ((double)rand_int / RAND_MAX)) + min;
 }
-inline double get_rand_double(double max) {
-  return get_rand_double(0, max);
-}
-
-
+inline double get_rand_double(double max) { return get_rand_double(0, max); }
 
 uint64_t fuzzing_hash(const void *key, int len);
 void trim_string(string &);
@@ -107,7 +99,7 @@ vector<string> get_all_files_in_dir(const char *dir_name);
 string magic_string_generator(string &s);
 void ensure_semicolon_at_query_end(string &);
 std::vector<string> string_splitter(const string &input_string,
-                                     const char delimiter_re);
+                                    const char delimiter_re);
 bool is_str_empty(string input_str);
 
 string::const_iterator findStringIter(const std::string &strHaystack,
@@ -146,7 +138,8 @@ long gen_long();
 int gen_int();
 
 inline bool is_digits(string str) {
-  if (str == "NaN") return true;
+  if (str == "NaN")
+    return true;
   return str.find_first_not_of("0123456789. ") == std::string::npos;
 }
 

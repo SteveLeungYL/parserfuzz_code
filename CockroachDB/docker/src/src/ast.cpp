@@ -1,406 +1,379 @@
 #include "../include/ast.h"
 #include "../include/define.h"
 #include "../include/utils.h"
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <vector>
 #include <string.h>
-#include <algorithm>
+#include <vector>
 
 static string s_table_name;
 
 string get_string_by_ir_type(IRTYPE type) {
 
-#define DECLARE_CASE(classname) \
-  if (type == classname)     \
+#define DECLARE_CASE(classname)                                                \
+  if (type == classname)                                                       \
     return #classname;
-    ALLTYPE(DECLARE_CASE);
+  ALLTYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
-    return "";
+  return "";
 }
 
 string get_string_by_data_type(DATATYPE type) {
 
-#define DECLARE_CASE(classname) \
-  if (type == classname)     \
+#define DECLARE_CASE(classname)                                                \
+  if (type == classname)                                                       \
     return #classname;
-ALLDATATYPE(DECLARE_CASE);
+  ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
-    return "";
+  return "";
 }
 
 string get_string_by_data_flag(DATAFLAG flag_type_) {
-#define DECLARE_CASE(classname) \
-  if (flag_type_ == classname)     \
+#define DECLARE_CASE(classname)                                                \
+  if (flag_type_ == classname)                                                 \
     return #classname;
-ALLCONTEXTFLAGS(DECLARE_CASE);
+  ALLCONTEXTFLAGS(DECLARE_CASE);
 #undef DECLARE_CASE
-    return "";
-
+  return "";
 }
 
 DATATYPE get_datatype_by_string(string s) {
 #define DECLARE_CASE(datatypename)                                             \
   if (s == #datatypename)                                                      \
     return datatypename;
-    ALLDATATYPE(DECLARE_CASE);
+  ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
-    return DataNone;
+  return DataNone;
 }
 
 string get_string_by_option_type(RelOptionType type) {
-    switch (type) {
-        case Unknown:
-            return "option_unknown";
-        case StorageParameters:
-            return "option_storageParameters";
-        case SetConfigurationOptions:
-            return "option_setConfigurationOptions";
-    }
+  switch (type) {
+  case Unknown:
     return "option_unknown";
+  case StorageParameters:
+    return "option_storageParameters";
+  case SetConfigurationOptions:
+    return "option_setConfigurationOptions";
+  }
+  return "option_unknown";
 }
 
 void deep_delete(IR *root) {
-    if (root->left_)
-        deep_delete(root->left_);
-    if (root->right_)
-        deep_delete(root->right_);
+  if (root->left_)
+    deep_delete(root->left_);
+  if (root->right_)
+    deep_delete(root->right_);
 
-    if (root->op_)
-        delete root->op_;
+  if (root->op_)
+    delete root->op_;
 
-    delete root;
+  delete root;
 }
 
 IR *deep_copy(const IR *root) {
-    IR *left = NULL, *right = NULL, *copy_res;
+  IR *left = NULL, *right = NULL, *copy_res;
 
-    if (root->left_)
-        left = deep_copy(root->left_);
-    if (root->right_)
-        right = deep_copy(root->right_);
+  if (root->left_)
+    left = deep_copy(root->left_);
+  if (root->right_)
+    right = deep_copy(root->right_);
 
-    copy_res = new IR(root, left, right);
+  copy_res = new IR(root, left, right);
 
-
-    return copy_res;
+  return copy_res;
 }
 
 string IR::to_string() {
-    string res = "";
-    to_string_core(res);
-    trim_string(res);
-    return res;
+  string res = "";
+  to_string_core(res);
+  trim_string(res);
+  return res;
 }
 
 /* Very frequently called. Must be very fast. */
 void IR::to_string_core(string &res) {
 
-    switch (type_) {
-        case TypeIntegerLiteral:
-            if (str_val_ != "") {
-                res += str_val_;
-            } else {
-                res += std::to_string(int_val_);
-            }
-            return;
-        case TypeFloatLiteral:
-            if (str_val_ != "") {
-                res += str_val_;
-            } else {
-                std::stringstream stream;
-                stream << std::fixed << std::setprecision(2) << float_val_;
-                res += stream.str();
-            }
-            return;
-//  case kBoolLiteral:
-//    if (str_val_ != "") {
-//      res += str_val_;
-//    }  else {
-//      if (bool_val_) {
-//        res += " TRUE ";
-//      } else {
-//        res += " FALSE ";
-//      }
-//    }
-//    return;
-        case TypeIdentifier:
-            if (str_val_ != "") {
-                if (data_type_ == DataFunctionName) {
-                    std::transform(str_val_.begin(), str_val_.end(), str_val_.begin(), ::toupper);
-                }
-                res += str_val_;
-            }
-            return;
-        case TypeStringLiteral:
-            res += "'" + str_val_ + "'";
-            return;
-    }
-
-
-    // if (type_ == kFuncArgs && str_val_ != "") {
-    //   res += str_val_;
-    //   return;
-    // }
-
-    /* If we have str_val setup, directly return the str_val_; */
+  switch (type_) {
+  case TypeIntegerLiteral:
     if (str_val_ != "") {
-        res += str_val_;
-        return;
+      res += str_val_;
+    } else {
+      res += std::to_string(int_val_);
     }
-
-    if (op_) {
-        res += op_->prefix_;
-        //res += " ";
-    }
-
-    if (left_) {
-        left_->to_string_core(res);
-        //res += " ";
-    }
-
-    if (op_) {
-        res += op_->middle_;
-        //res += +" ";
-    }
-
-    if (right_) {
-        right_->to_string_core(res);
-        //res += " ";
-    }
-
-    if (op_)
-        res += op_->suffix_;
-
     return;
+  case TypeFloatLiteral:
+    if (str_val_ != "") {
+      res += str_val_;
+    } else {
+      std::stringstream stream;
+      stream << std::fixed << std::setprecision(2) << float_val_;
+      res += stream.str();
+    }
+    return;
+    //  case kBoolLiteral:
+    //    if (str_val_ != "") {
+    //      res += str_val_;
+    //    }  else {
+    //      if (bool_val_) {
+    //        res += " TRUE ";
+    //      } else {
+    //        res += " FALSE ";
+    //      }
+    //    }
+    //    return;
+  case TypeIdentifier:
+    if (str_val_ != "") {
+      if (data_type_ == DataFunctionName) {
+        std::transform(str_val_.begin(), str_val_.end(), str_val_.begin(),
+                       ::toupper);
+      }
+      res += str_val_;
+    }
+    return;
+  case TypeStringLiteral:
+    res += "'" + str_val_ + "'";
+    return;
+  }
+
+  // if (type_ == kFuncArgs && str_val_ != "") {
+  //   res += str_val_;
+  //   return;
+  // }
+
+  /* If we have str_val setup, directly return the str_val_; */
+  if (str_val_ != "") {
+    res += str_val_;
+    return;
+  }
+
+  if (op_) {
+    res += op_->prefix_;
+    // res += " ";
+  }
+
+  if (left_) {
+    left_->to_string_core(res);
+    // res += " ";
+  }
+
+  if (op_) {
+    res += op_->middle_;
+    // res += +" ";
+  }
+
+  if (right_) {
+    right_->to_string_core(res);
+    // res += " ";
+  }
+
+  if (op_)
+    res += op_->suffix_;
+
+  return;
 }
 
 bool IR::detach_node(IR *node) { return swap_node(node, NULL); }
 
 bool IR::swap_node(IR *old_node, IR *new_node) {
-    if (old_node == NULL)
-        return false;
+  if (old_node == NULL)
+    return false;
 
-    IR *parent = this->locate_parent(old_node);
+  IR *parent = this->locate_parent(old_node);
 
-    if (parent == NULL)
-        return false;
-    else if (parent->left_ == old_node)
-        parent->update_left(new_node);
-    else if (parent->right_ == old_node)
-        parent->update_right(new_node);
-    else
-        return false;
+  if (parent == NULL)
+    return false;
+  else if (parent->left_ == old_node)
+    parent->update_left(new_node);
+  else if (parent->right_ == old_node)
+    parent->update_right(new_node);
+  else
+    return false;
 
-    old_node->parent_ = NULL;
+  old_node->parent_ = NULL;
 
-    return true;
+  return true;
 }
 
 IR *IR::locate_parent(IR *child) {
 
-    for (IR *p = child; p; p = p->parent_)
-        if (p->parent_ == this)
-            return child->parent_;
+  for (IR *p = child; p; p = p->parent_)
+    if (p->parent_ == this)
+      return child->parent_;
 
-    return NULL;
+  return NULL;
 }
 
 IR *IR::get_root() {
 
-    IR *node = this;
+  IR *node = this;
 
-    while (node->parent_ != NULL)
-        node = node->parent_;
+  while (node->parent_ != NULL)
+    node = node->parent_;
 
-    return node;
+  return node;
 }
 
 IR *IR::get_parent() { return this->parent_; }
 
 void IR::update_left(IR *new_left) {
 
-    // we do not update the parent_ of the old left_
-    // we do not update the child of the old parent_ of new_left
+  // we do not update the parent_ of the old left_
+  // we do not update the child of the old parent_ of new_left
 
-    this->left_ = new_left;
-    if (new_left)
-        new_left->parent_ = this;
+  this->left_ = new_left;
+  if (new_left)
+    new_left->parent_ = this;
 }
 
 void IR::update_right(IR *new_right) {
 
-    // we do not update the parent_ of the old right_
-    // we do not update the child of the old parent_ of new_right
+  // we do not update the parent_ of the old right_
+  // we do not update the child of the old parent_ of new_right
 
-    this->right_ = new_right;
-    if (new_right)
-        new_right->parent_ = this;
+  this->right_ = new_right;
+  if (new_right)
+    new_right->parent_ = this;
 }
 
 void IR::drop() {
 
-    if (this->op_)
-        delete this->op_;
-    delete this;
+  if (this->op_)
+    delete this->op_;
+  delete this;
 }
 
 void IR::deep_drop() {
 
-    if (this->left_)
-        this->left_->deep_drop();
+  if (this->left_)
+    this->left_->deep_drop();
 
-    if (this->right_)
-        this->right_->deep_drop();
+  if (this->right_)
+    this->right_->deep_drop();
 
-    this->drop();
+  this->drop();
 }
 
 IR *IR::deep_copy() {
 
-    IR *left = NULL, *right = NULL, *copy_res;
-    IROperator *op = NULL;
+  IR *left = NULL, *right = NULL, *copy_res;
+  IROperator *op = NULL;
 
-    if (this->left_)
-        left = this->left_->deep_copy();
-    if (this->right_)
-        right = this->right_->deep_copy();
+  if (this->left_)
+    left = this->left_->deep_copy();
+  if (this->right_)
+    right = this->right_->deep_copy();
 
-    if (this->op_)
-        op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
+  if (this->op_)
+    op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
-    copy_res = new IR(this->type_, op, left, right, this->float_val_,
-                      this->str_val_, this->name_, this->mutated_times_);
-    copy_res->data_type_ = this->data_type_;
-    copy_res->data_flag_ = this->data_flag_;
-    copy_res->option_type_ = this->option_type_;
+  copy_res = new IR(this->type_, op, left, right, this->float_val_,
+                    this->str_val_, this->name_, this->mutated_times_);
+  copy_res->data_type_ = this->data_type_;
+  copy_res->data_flag_ = this->data_flag_;
+  copy_res->option_type_ = this->option_type_;
 
-    return copy_res;
+  return copy_res;
 }
 
 string IR::get_prefix() {
-    if (op_) {
-        return op_->prefix_;
-    }
-    return "";
+  if (op_) {
+    return op_->prefix_;
+  }
+  return "";
 }
 
 string IR::get_middle() {
-    if (op_) {
-        return op_->middle_;
-    }
-    return "";
+  if (op_) {
+    return op_->middle_;
+  }
+  return "";
 }
 
 string IR::get_suffix() {
-    if (op_) {
-        return op_->suffix_;
-    }
-    return "";
+  if (op_) {
+    return op_->suffix_;
+  }
+  return "";
 }
 
-string IR::get_str_val() {
-    return str_val_;
-}
+string IR::get_str_val() { return str_val_; }
 
 bool IR::is_empty() {
-    if (op_) {
-        if (op_->prefix_ != "" || op_->middle_ != "" || op_->suffix_ != "") {
-            return false;
-        }
+  if (op_) {
+    if (op_->prefix_ != "" || op_->middle_ != "" || op_->suffix_ != "") {
+      return false;
     }
-    if (str_val_ != "") {
-        return false;
-    }
-    if (left_ || right_) {
-        return false;
-    }
-    return true;
+  }
+  if (str_val_ != "") {
+    return false;
+  }
+  if (left_ || right_) {
+    return false;
+  }
+  return true;
 }
 
-void IR::set_str_val(string in) {
-    str_val_ = in;
-}
+void IR::set_str_val(string in) { str_val_ = in; }
 
-IRTYPE IR::get_ir_type() {
-    return type_;
-}
+IRTYPE IR::get_ir_type() { return type_; }
 
-DATATYPE IR::get_data_type() {
-    return data_type_;
-}
+DATATYPE IR::get_data_type() { return data_type_; }
 
-DATAFLAG IR::get_data_flag() {
-    return data_flag_;
-}
+DATAFLAG IR::get_data_flag() { return data_flag_; }
 
-IR *IR::get_left() {
-    return left_;
-}
+IR *IR::get_left() { return left_; }
 
-IR *IR::get_right() {
-    return right_;
-}
+IR *IR::get_right() { return right_; }
 
-void IR::set_ir_type(IRTYPE type) {
-    this->type_ = type;
-}
+void IR::set_ir_type(IRTYPE type) { this->type_ = type; }
 
-void IR::set_data_type(DATATYPE data_type) {
-    this->data_type_ = data_type;
-}
+void IR::set_data_type(DATATYPE data_type) { this->data_type_ = data_type; }
 
-void IR::set_data_flag(DATAFLAG data_flag) {
-    this->data_flag_ = data_flag;
-}
+void IR::set_data_flag(DATAFLAG data_flag) { this->data_flag_ = data_flag; }
 bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
 
-    /* Set type regardless of the node type. Do not use this unless necessary. */
-    this->set_data_type(data_type);
-    this->set_data_flag(data_flag);
+  /* Set type regardless of the node type. Do not use this unless necessary. */
+  this->set_data_type(data_type);
+  this->set_data_flag(data_flag);
 
-    return true;
+  return true;
 }
 
-
 bool IR::func_name_set_str(string in) {
-    assert(get_ir_type() == TypeIdentifier && get_data_type() == DataFunctionName);
-    set_str_val(in);
-    return true;
+  assert(get_ir_type() == TypeIdentifier &&
+         get_data_type() == DataFunctionName);
+  set_str_val(in);
+  return true;
 }
 
 bool IR::replace_op(IROperator *op_in) {
-    if (this->op_) {
-        delete this->op_;
-    }
+  if (this->op_) {
+    delete this->op_;
+  }
 
-    this->op_ = op_in;
+  this->op_ = op_in;
 
-    return true;
-
+  return true;
 }
 
 COLTYPE IR::typename_ir_get_type() {
-    assert(get_ir_type() == TypeIdentifier);
+  assert(get_ir_type() == TypeIdentifier);
 
-    if (str_val_ == "INT") {
-        return COLTYPE::INT_T;
-    } else if (str_val_ == "BOOL") {
-        return COLTYPE::BOOLEAN_T;
-    } else if (
-            str_val_ == "REAL" ||
-            str_val_ == "DOUBLE" ||
-            str_val_ == "DEC" ||
-            str_val_ == "FLOAT"
-            ) {
-        return COLTYPE::FLOAT_T;
-    } else {
-        return COLTYPE::STRING_T;
-    }
+  if (str_val_ == "INT") {
+    return COLTYPE::INT_T;
+  } else if (str_val_ == "BOOL") {
+    return COLTYPE::BOOLEAN_T;
+  } else if (str_val_ == "REAL" || str_val_ == "DOUBLE" || str_val_ == "DEC" ||
+             str_val_ == "FLOAT") {
+    return COLTYPE::FLOAT_T;
+  } else {
+    return COLTYPE::STRING_T;
+  }
 
 } /* Finished for Numeric type */
