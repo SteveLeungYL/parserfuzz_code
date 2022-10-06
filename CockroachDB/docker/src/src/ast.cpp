@@ -113,7 +113,9 @@ void IR::to_string_core(string &res) {
             if (str_val_ != "") {
                 res += str_val_;
             } else {
-                res += std::to_string(float_val_);
+                std::stringstream stream;
+                stream << std::fixed << std::setprecision(2) << float_val_;
+                res += stream.str();
             }
             return;
 //  case kBoolLiteral:
