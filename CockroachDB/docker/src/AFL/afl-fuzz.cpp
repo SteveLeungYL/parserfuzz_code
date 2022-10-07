@@ -5832,12 +5832,12 @@ static u8 fuzz_one(char **argv) {
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
   /* Append random statements required by the oracle. */
-  p_oracle->ir_wrapper.set_ir_root(cur_root);
   for (int app_idx = 0; app_idx < p_oracle->get_random_append_stmts_num();
        app_idx++) {
     // Randomly append oracle statements to the query sequence.
     // Append to random query location.
     IR *app_stmt = p_oracle->get_random_append_stmts(g_mutator);
+    p_oracle->ir_wrapper.set_ir_root(cur_root);
     p_oracle->ir_wrapper.append_stmt_at_idx(
         app_stmt, get_rand_int(p_oracle->ir_wrapper.get_stmt_num()));
   }

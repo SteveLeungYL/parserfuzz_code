@@ -232,82 +232,61 @@ bool SQL_INDEX::compare_aggr(COMP_RES &res) {
 
 void SQL_INDEX::compare_results(ALL_COMP_RES &res_out) {
 
-  if ((res_out.v_cmd_str.size() < 1) || (res_out.v_res_str.size() < 1)) {
-    cerr << "Error: Getting empty v_cmd_str or v_res_str from the res_out. "
-            "Actual size for v_res_str is: "
-         << to_string(res_out.v_res_str.size())
-         << ". Possibly processing only the seed files. \n";
-    res_out.final_res = ALL_Error;
-    return;
-  }
+    res_out.final_res = ORA_COMP_RES::Pass;
+    bool is_all_err = true;
 
-  res_out.final_res = ORA_COMP_RES::Pass;
-  bool is_all_err = true;
-
-  vector<VALID_STMT_TYPE_INDEX> v_valid_type;
-  get_v_valid_type(res_out.v_cmd_str[0], v_valid_type);
-
-  if (v_valid_type.size() != res_out.v_res.size()) {
-    cerr << "Error: In oracle TLP, v_valid_type.size() is not equals to "
-            "res_out.v_res.size(). Returns ALL_ERRORS. \n\n\n";
     for (COMP_RES &res : res_out.v_res) {
-      res.comp_res = ORA_COMP_RES::Error;
-      res.res_int_0 = -1;
-      res.res_int_1 = -1;
+        if (res.v_res_str.size() < 2) {
+            // Error handling.
+            res.comp_res = ORA_COMP_RES::Error;
+            res.res_int_0 = -1;
+            res.res_int_1 = -1;
+            res.v_res_int.push_back(-1);
+            res.v_res_int.push_back(-1);
+            continue;
+        }
+        if (findStringIn(res.v_res_str[0], "Error") ||
+            findStringIn(res.v_res_str[0], "pq: ") ||
+            findStringIn(res.v_res_str[1], "Error") ||
+            findStringIn(res.v_res_str[1], "pq: ")
+            ) {
+            res.comp_res = ORA_COMP_RES::Error;
+            res.res_int_0 = -1;
+            res.res_int_1 = -1;
+            res.v_res_int.push_back(-1);
+            res.v_res_int.push_back(-1);
+            continue;
+        }
+
+        vector<string> v_res_a = string_splitter(res.v_res_str[0], '\n');
+        vector<string> v_res_b = string_splitter(res.v_res_str[1], '\n');
+
+        if (v_res_a.size() > 50 || v_res_b.size() > 50) {
+            res.comp_res = ORA_COMP_RES::Error;
+            res.v_res_int.push_back(-1);
+            res.v_res_int.push_back(-1);
+            continue;
+        }
+
+        res.res_int_0 = v_res_a.size();
+        res.res_int_1 = v_res_b.size();
+
+        res.v_res_int.push_back(res.res_int_0);
+        res.v_res_int.push_back(res.res_int_1);
+
+        is_all_err = false;
+        if (res.res_int_0 != res.res_int_1) { // Found mismatched.
+            res.comp_res = ORA_COMP_RES::Fail;
+            res_out.final_res = ORA_COMP_RES::Fail;
+        } else {
+            res.comp_res = ORA_COMP_RES::Pass;
+        }
     }
-    res_out.final_res = ORA_COMP_RES::ALL_Error;
+
+    if (is_all_err && res_out.final_res != ORA_COMP_RES::Fail)
+        res_out.final_res = ORA_COMP_RES::ALL_Error;
+
     return;
-  }
-
-  int i = 0;
-  for (COMP_RES &res : res_out.v_res) {
-    if (i >= v_valid_type.size()) {
-      res.comp_res = ORA_COMP_RES::Error;
-      break; // break the loop
-    }
-    switch (v_valid_type[i++]) {
-    case VALID_STMT_TYPE_INDEX::NORMAL:
-      /* Handle normal valid stmt: SELECT * FROM ...; */
-      if (!compare_norm(res)) {
-        is_all_err = false;
-      }
-      break; // Break the switch
-
-      /* Compare unique results */
-    case VALID_STMT_TYPE_INDEX::DISTINCT:
-      [[fallthrough]];
-    case VALID_STMT_TYPE_INDEX::GROUP_BY:
-      compare_uniq(res);
-      break;
-
-      /* Compare concret values */
-    case VALID_STMT_TYPE_INDEX::AGGR_AVG:
-      [[fallthrough]];
-      // case VALID_STMT_TYPE_INDEX::AGGR_COUNT:
-      //   [[fallthrough]];
-    case VALID_STMT_TYPE_INDEX::AGGR_MAX:
-      [[fallthrough]];
-    case VALID_STMT_TYPE_INDEX::AGGR_MIN:
-      [[fallthrough]];
-    case VALID_STMT_TYPE_INDEX::AGGR_SUM:
-      if (!compare_aggr(res)) {
-        is_all_err = false;
-      }
-      break; // Break the switch
-
-    default:
-      res.comp_res = ORA_COMP_RES::Error;
-      break;
-    } // Switch stmt.
-    if (res.comp_res == ORA_COMP_RES::Fail) {
-      res_out.final_res = ORA_COMP_RES::Fail;
-    }
-  } // Result outer loop.
-
-  if (is_all_err && res_out.final_res != ORA_COMP_RES::Fail)
-    res_out.final_res = ORA_COMP_RES::ALL_Error;
-
-  return;
 }
 
 void SQL_INDEX::get_v_valid_type(const string &cmd_str,
