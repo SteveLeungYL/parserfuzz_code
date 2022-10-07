@@ -5837,9 +5837,9 @@ static u8 fuzz_one(char **argv) {
        app_idx++) {
     // Randomly append oracle statements to the query sequence.
     // Append to random query location.
+    IR *app_stmt = p_oracle->get_random_append_stmts(g_mutator);
     p_oracle->ir_wrapper.append_stmt_at_idx(
-        p_oracle->get_random_append_stmts(g_mutator),
-        get_rand_int(p_oracle->ir_wrapper.get_stmt_num()));
+        app_stmt, get_rand_int(p_oracle->ir_wrapper.get_stmt_num()));
   }
 
   /* Append Create stmts to the queue, if no create table stmts is found. */
