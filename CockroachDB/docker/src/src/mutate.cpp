@@ -1354,13 +1354,12 @@ bool Mutator::connect_back(map<IR *, pair<bool, IR *>> &m_save) {
 
 pair<string, string>
 Mutator::ir_to_string(IR *root, vector<vector<IR *>> all_post_trans_vec,
-                      const vector<vector<STMT_TYPE>> &all_stmt_type_vec) {
+                      const vector<STMT_TYPE> &stmt_type_vec) {
   // Final step, IR_to_string function.
   string output_str_mark, output_str_no_mark;
   for (int i = 0; i < all_post_trans_vec.size();
        i++) { // Loop between different statements.
     vector<IR *> post_trans_vec = all_post_trans_vec[i];
-    vector<STMT_TYPE> stmt_type_vec = all_stmt_type_vec[i];
     int count = 0;
     bool is_oracle_select = false;
     if (stmt_type_vec[i] == ORACLE_SELECT) {

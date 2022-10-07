@@ -114,7 +114,7 @@ public:
 
   pair<string, string>
   ir_to_string(IR *root, vector<vector<IR *>> all_post_trans_vec,
-               const vector<vector<STMT_TYPE>> &all_stmt_type_vec);
+               const vector<STMT_TYPE> &all_stmt_type_vec);
 
   unsigned int calc_node(IR *root);
   bool replace_one_value_from_datalibray_2d(DATATYPE p_datatype,

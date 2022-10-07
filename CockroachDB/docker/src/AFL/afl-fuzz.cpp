@@ -5994,22 +5994,14 @@ static u8 fuzz_one(char **argv) {
           g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec,
                                        post_fix_stmt_type_vec);
 
-      for (vector<vector<IR *>> &all_post_trans_vec :
-           all_post_trans_vec_all_runs) {
-
-        // /* Debug */
-        // cerr << "After post-fix, we have: \n";
-        // for (vector<IR*>& cur_post_trans : all_post_trans_vec) {
-        //   for (IR* cur_post: cur_post_trans) {
-        //     cerr << "cur_post: " << cur_post->to_string() << "\n";
-        //   }
-        // }
-        // cerr << "Post-fix Done. \n";
+      for (auto post_trans_idx = 0; post_trans_idx < all_post_trans_vec_all_runs.size(); post_trans_idx++) {
+           auto& all_post_trans_vec = all_post_trans_vec_all_runs[post_trans_idx];
+           auto cur_post_fix_stmt_type_vec = post_fix_stmt_type_vec[post_trans_idx];
 
         // Final step, transform IR tree to string. Add marker to important
         // statements.
         pair<string, string> query_str_pair = g_mutator.ir_to_string(
-            cur_root, all_post_trans_vec, post_fix_stmt_type_vec);
+            cur_root, all_post_trans_vec, cur_post_fix_stmt_type_vec);
         query_str_vec.push_back(query_str_pair.first);
         query_str_no_marks_vec.push_back(
             query_str_pair
