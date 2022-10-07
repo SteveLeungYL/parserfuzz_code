@@ -769,19 +769,7 @@ IR *SQL_TLP::transform_non_aggr(IR *cur_stmt, bool is_UNION_ALL,
 IR *SQL_TLP::transform_aggr(IR *cur_stmt, bool is_UNION_ALL,
                             VALID_STMT_TYPE_TLP tlp_type) {
 
-  // TODO:: FIXME:: Not working yet.
   cur_stmt = cur_stmt->deep_copy();
-
-  vector<IR *> v_aggr_func_ir =
-      ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeIdentifier, false);
-  if (v_aggr_func_ir.size() == 0) {
-    cur_stmt->deep_drop();
-    cerr << "Error: In SQL_TLP::transform_aggr, cannot find kFuncName. \n";
-    return NULL;
-  }
-
-  // TODO:: FIXME:: Could be in-accurate.
-  IR *aggr_func_ir = v_aggr_func_ir.front();
 
   if (
       // tlp_type == VALID_STMT_TYPE_TLP::AGGR_COUNT ||
@@ -811,6 +799,11 @@ IR *SQL_TLP::transform_aggr(IR *cur_stmt, bool is_UNION_ALL,
 
         /* Finished modification to the alias, if it is not AVG. */
       }
+    } else {
+        cerr << "Error: Cannot find FuncName identifiers inside kTargetEl. TLP "
+                "oracle logic error. \n";
+        cur_stmt->deep_drop();
+        return NULL;
     }
   } else {
     /* Fix for VALID_STMT_TYPE_TLP::AGGR_AVG */
@@ -827,7 +820,19 @@ IR *SQL_TLP::transform_aggr(IR *cur_stmt, bool is_UNION_ALL,
         cur_stmt->deep_drop();
         return NULL;
       }
-      IR *func_name_ir = v_func_name_ir.front();
+      IR *func_name_ir = NULL;
+      for (auto &cur_iden : v_func_name_ir) {
+          if (cur_iden->get_data_type() == DataFunctionName) {
+             func_name_ir = v_func_name_ir.front();
+             break;
+          }
+      }
+      if (func_name_ir == NULL) {
+        cerr << "Error: Cannot find FuncName identifiers inside kTargetEl. TLP "
+                "oracle logic error. \n";
+        cur_stmt->deep_drop();
+        return NULL;
+      }
 
       IR *res_0 = NULL;
       IR *res_1 = NULL;
