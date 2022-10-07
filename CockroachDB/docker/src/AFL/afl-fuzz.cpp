@@ -2232,6 +2232,7 @@ EXP_ST void init_forkserver(char **argv) {
     PFATAL("fork() failed");
 
   if (!forksrv_pid) {
+      // Child process.
 
     struct rlimit r;
 
@@ -2348,8 +2349,8 @@ EXP_ST void init_forkserver(char **argv) {
   setitimer(ITIMER_REAL, &it, NULL);
 
   rlen = read(fsrv_st_fd, &status, 4);
-  child_pid = status;
-  assert(child_pid != -1);
+//  child_pid = status;
+//  assert(child_pid != -1);
 
   it.it_value.tv_sec = 0;
   it.it_value.tv_usec = 0;
@@ -6288,8 +6289,8 @@ static void handle_stop_sig(int sig) {
 
   stop_soon = 1;
 
-  if (child_pid > 0)
-    kill(child_pid, SIGKILL);
+//  if (child_pid > 0)
+//    kill(child_pid, SIGKILL);
   if (forksrv_pid > 0)
     kill(forksrv_pid, SIGKILL);
 }
@@ -6303,11 +6304,15 @@ static void handle_skipreq(int sig) { skip_requested = 1; }
 static void handle_timeout(int sig) {
   is_timeout = true;
 
-  if (child_pid > 0) {
+  /* The CockroachDB works similar to persistent mode.
+   * There is no child_pid provided.
+   * */
 
-    child_timed_out = 1;
-    kill(child_pid, SIGKILL);
-  } else if (child_pid == -1 && forksrv_pid > 0) {
+//  if (child_pid > 0) {
+//
+//    child_timed_out = 1;
+//    kill(child_pid, SIGKILL);
+//  } else if (child_pid == -1 && forksrv_pid > 0) {
 
     child_timed_out = 1;
     kill(forksrv_pid, SIGKILL);
@@ -6315,7 +6320,7 @@ static void handle_timeout(int sig) {
     // fsrv_st_fd.close();
 
     // init_forkserver(argv);
-  }
+//  }
 }
 
 /* Do a PATH search and find target binary to see that it exists and
@@ -7764,8 +7769,8 @@ int main(int argc, char **argv) {
   /* If we stopped programmatically, we kill the forkserver and the current
      runner. If we stopped manually, this is done by the signal handler. */
   if (stop_soon == 2) {
-    if (child_pid > 0)
-      kill(child_pid, SIGKILL);
+//    if (child_pid > 0)
+//      kill(child_pid, SIGKILL);
     if (forksrv_pid > 0)
       kill(forksrv_pid, SIGKILL);
   }
