@@ -291,7 +291,9 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
 
   for (COMP_RES &res : res_out.v_res) {
     if (findStringIn(res.res_str_0, "Error") ||
-        findStringIn(res.res_str_1, "Error")) {
+        findStringIn(res.res_str_0, "pq: ") ||
+        findStringIn(res.res_str_1, "Error") ||
+        findStringIn(res.res_str_1, "pq: ")) {
       res.comp_res = ORA_COMP_RES::Error;
       res.res_int_0 = -1;
       res.res_int_1 = -1;

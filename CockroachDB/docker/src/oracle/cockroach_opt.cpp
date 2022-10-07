@@ -56,8 +56,11 @@ void SQL_OPT::compare_results(ALL_COMP_RES &res_out) {
       continue;
     }
     if (findStringIn(res.v_res_str[0], "Error") ||
+        findStringIn(res.v_res_str[0], "pq: ") ||
+        findStringIn(res.v_res_str[1], "Error") ||
+        findStringIn(res.v_res_str[1], "pq: ") ||
         findStringIn(res.v_res_str[2], "Error") ||
-        findStringIn(res.v_res_str[1], "Error")) {
+        findStringIn(res.v_res_str[2], "pq: ")) {
       res.comp_res = ORA_COMP_RES::Error;
       res.res_int_0 = -1;
       res.res_int_1 = -1;
