@@ -83,6 +83,7 @@
 #include <filesystem>
 #include <fstream>
 
+#include "../oracle/cockroach_index.h"
 #include "../oracle/cockroach_norec.h"
 #include "../oracle/cockroach_opt.h"
 #include "../oracle/cockroach_oracle.h"
@@ -147,15 +148,15 @@ string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0;\n";
 
 // string all_opt_str = "SET CLUSTER SETTING
 // sql.stats.automatic_collection.enabled = true;\n" "SET CLUSTER SETTING
-//sql.stats.histogram_collection.enabled = true;\n" "SET CLUSTER SETTING
-//sql.query_cache.enabled = true;\n" "SET reorder_joins_limit = 8;\n";
+// sql.stats.histogram_collection.enabled = true;\n" "SET CLUSTER SETTING
+// sql.query_cache.enabled = true;\n" "SET reorder_joins_limit = 8;\n";
 
 string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0;\n";
 // string no_opt_str =  "SET CLUSTER SETTING
 // sql.stats.automatic_collection.enabled = false; DELETE FROM
 // system.table_statistics WHERE true;\n" "SET CLUSTER SETTING
-//sql.stats.histogram_collection.enabled = false;\n" "SET CLUSTER SETTING
-//sql.query_cache.enabled = false;\n" "SET reorder_joins_limit = 0;\n";
+// sql.stats.histogram_collection.enabled = false;\n" "SET CLUSTER SETTING
+// sql.query_cache.enabled = false;\n" "SET reorder_joins_limit = 0;\n";
 
 int map_file_id = 0;
 fstream map_id_out_f("./map_id_triggered_" + std::to_string(bind_to_core_id) +
@@ -2232,7 +2233,7 @@ EXP_ST void init_forkserver(char **argv) {
     PFATAL("fork() failed");
 
   if (!forksrv_pid) {
-      // Child process.
+    // Child process.
 
     struct rlimit r;
 
@@ -2349,8 +2350,8 @@ EXP_ST void init_forkserver(char **argv) {
   setitimer(ITIMER_REAL, &it, NULL);
 
   rlen = read(fsrv_st_fd, &status, 4);
-//  child_pid = status;
-//  assert(child_pid != -1);
+  //  child_pid = status;
+  //  assert(child_pid != -1);
 
   it.it_value.tv_sec = 0;
   it.it_value.tv_usec = 0;
@@ -3811,10 +3812,10 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     }
 
     /* For evaluation experiments, if we need to disable coverage feedback and
-    *randomly drop queries:
-    **  1/10 of chances to save the interesting seed.
-    **  9/10 of chances to throw away the seed.
-    **/
+     *randomly drop queries:
+     **  1/10 of chances to save the interesting seed.
+     **  9/10 of chances to throw away the seed.
+     **/
     if ((disable_coverage_feedback == 2) && get_rand_int(10) < 9) {
       // Drop query.
       return keeping;
@@ -5830,6 +5831,17 @@ static u8 fuzz_one(char **argv) {
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
 
+  /* Append random statements required by the oracle. */
+  p_oracle->ir_wrapper.set_ir_root(cur_root);
+  for (int app_idx = 0; app_idx < p_oracle->get_random_append_stmts_num();
+       app_idx++) {
+    // Randomly append oracle statements to the query sequence.
+    // Append to random query location.
+    p_oracle->ir_wrapper.append_stmt_at_idx(
+        p_oracle->get_random_append_stmts(g_mutator),
+        get_rand_int(p_oracle->ir_wrapper.get_stmt_num()));
+  }
+
   /* Append Create stmts to the queue, if no create table stmts is found. */
   v_ir_stmts = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_root);
   int create_num, drop_num;
@@ -6289,8 +6301,8 @@ static void handle_stop_sig(int sig) {
 
   stop_soon = 1;
 
-//  if (child_pid > 0)
-//    kill(child_pid, SIGKILL);
+  //  if (child_pid > 0)
+  //    kill(child_pid, SIGKILL);
   if (forksrv_pid > 0)
     kill(forksrv_pid, SIGKILL);
 }
@@ -6308,19 +6320,19 @@ static void handle_timeout(int sig) {
    * There is no child_pid provided.
    * */
 
-//  if (child_pid > 0) {
-//
-//    child_timed_out = 1;
-//    kill(child_pid, SIGKILL);
-//  } else if (child_pid == -1 && forksrv_pid > 0) {
+  //  if (child_pid > 0) {
+  //
+  //    child_timed_out = 1;
+  //    kill(child_pid, SIGKILL);
+  //  } else if (child_pid == -1 && forksrv_pid > 0) {
 
-    child_timed_out = 1;
-    kill(forksrv_pid, SIGKILL);
-    // fsrv_ctl_fd.close();
-    // fsrv_st_fd.close();
+  child_timed_out = 1;
+  kill(forksrv_pid, SIGKILL);
+  // fsrv_ctl_fd.close();
+  // fsrv_st_fd.close();
 
-    // init_forkserver(argv);
-//  }
+  // init_forkserver(argv);
+  //  }
 }
 
 /* Do a PATH search and find target binary to see that it exists and
@@ -7557,8 +7569,8 @@ int main(int argc, char **argv) {
       //   p_oracle = new SQL_LIKELY();
       // else if (arg == "ROWID")
       //   p_oracle = new SQL_ROWID();
-      // else if (arg == "INDEX")
-      //   p_oracle = new SQL_INDEX();
+      else if (arg == "INDEX")
+        p_oracle = new SQL_INDEX();
       // if (arg == "OPT")
       // p_oracle = new SQL_OPT();
       else
@@ -7769,8 +7781,8 @@ int main(int argc, char **argv) {
   /* If we stopped programmatically, we kill the forkserver and the current
      runner. If we stopped manually, this is done by the signal handler. */
   if (stop_soon == 2) {
-//    if (child_pid > 0)
-//      kill(child_pid, SIGKILL);
+    //    if (child_pid > 0)
+    //      kill(child_pid, SIGKILL);
     if (forksrv_pid > 0)
       kill(forksrv_pid, SIGKILL);
   }

@@ -41,14 +41,15 @@ public:
 
 private:
   // Cockroach need to generate
-  vector<string> temp_valid_stmts = {"SELECT * FROM x WHERE x=0;",
-                                     "SELECT x FROM x WHERE x GROUP BY x;",
-                                     "SELECT x FROM x WHERE x HAVING x = 0;",
-                                     "SELECT DISTINCT x FROM x WHERE x = 0;",
-                                     "SELECT MIN(x) FROM x WHERE x = 0;",
-                                     "SELECT MAX(x) FROM x WHERE x = 0;",
-                                     "SELECT SUM(x) FROM x WHERE x = 0;",
-                                     "SELECT AVG(x) FROM x WHERE x = 0;"};
+  const vector<string> temp_valid_stmts = {
+      "SELECT * FROM x WHERE x=0;",
+      "SELECT x FROM x WHERE x GROUP BY x;",
+      "SELECT x FROM x WHERE x HAVING x = 0;",
+      "SELECT DISTINCT x FROM x WHERE x = 0;",
+      "SELECT MIN(x) FROM x WHERE x = 0;",
+      "SELECT MAX(x) FROM x WHERE x = 0;",
+      "SELECT SUM(x) FROM x WHERE x = 0;",
+      "SELECT AVG(x) FROM x WHERE x = 0;"};
 
   string oracle_type = "TLP";
 
@@ -67,16 +68,6 @@ private:
                          results from the first stmt need to be unique. */
   bool compare_aggr(
       COMP_RES &res); /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; */
-
-  /* If string contains 'GROUP BY' statement,
-   * then set final result to ALL_Error and skip it.
-   */
-  bool is_str_contains_group(const string &input_str);
-
-  /* If string contains aggregate function,
-   * then set final result to ALL_Error and skip it.
-   */
-  bool is_str_contains_aggregate(const string &input_str);
 
   string trans_outer_MIN_tmp_str = "SELECT MIN(aggr) FROM (SELECT *) AS subb;";
   string trans_outer_MAX_tmp_str = "SELECT MAX(aggr) FROM (SELECT *) AS subb;";

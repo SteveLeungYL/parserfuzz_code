@@ -432,6 +432,12 @@ bool IRWrapper::append_stmt_at_idx(
     IR *app_IR_node,
     int idx) { // Please provide with IR* (Specific_Statement*) type, do not
                // provide IR*(StatementList*) type.
+
+  if (app_IR_node == NULL) {
+    cerr << "Error: Getting app_IR_node == NULL in the append_stmt_at_idx. \n";
+    return false;
+  }
+
   vector<IR *> stmt_list_v = this->get_stmtlist_IR_vec();
 
   if (stmt_list_v.size() == 0) {
@@ -439,14 +445,6 @@ bool IRWrapper::append_stmt_at_idx(
     app_IR_node->deep_drop();
     return false;
   }
-
-  // cerr << "Debug: Given root: " << ir_root->to_string() << ". \nWe have
-  // stmtmulti: \n";
-
-  // for (IR* stmt_list : stmt_list_v) {
-  //     cerr << "DEBUG: Stmtmulti is: " << stmt_list->to_string() << "\n";
-  // }
-  // cerr << "End stmtlist. \n";
 
   if (idx < 0 || idx >= stmt_list_v.size()) {
     std::cerr << "Error: Input index exceed total statement number. \n In "

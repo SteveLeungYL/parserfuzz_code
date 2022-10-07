@@ -134,7 +134,7 @@ public:
 
   // added by vancir
   bool get_valid_str_from_lib(string &);
-  vector<IR *> parse_query_str_get_ir_set(string &query_str);
+  vector<IR *> parse_query_str_get_ir_set(string &query_str) const;
   bool check_node_num(IR *root, unsigned int limit);
   vector<IR *> extract_statement(IR *root);
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }

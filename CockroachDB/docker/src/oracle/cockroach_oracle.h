@@ -31,7 +31,11 @@ public:
    * statements into the query set, and rewrite using
    * rewrite_valid_stmt_from_ori_2() later.
    */
-  virtual string get_random_append_stmts() { return ""; }
+  virtual int get_random_append_stmts_num() { return 0; }
+  virtual IR *get_random_append_stmts(Mutator &g_mutate) {
+    assert(!this->get_random_append_stmts_num());
+    return NULL;
+  }
 
   /* Mark all the IR node in the IR tree, that is related to teh validation
    * statement, that you do not want to mutate. */
@@ -90,7 +94,7 @@ public:
   } // non-select stmt pre_fix transformation.
   virtual vector<IR *> post_fix_transform_normal_stmt(IR *cur_stmt,
                                                       unsigned multi_run_id) {
-    vector<IR *> tmp;
+    vector<IR *> tmp{cur_stmt->deep_copy()};
     return tmp;
   } // non-select
   virtual vector<IR *> post_fix_transform_normal_stmt(IR *cur_stmt) {

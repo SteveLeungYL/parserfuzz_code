@@ -3677,7 +3677,7 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
   abort();
 }
 
-vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) {
+vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) const {
   vector<IR *> ir_set;
 
   ensure_semicolon_at_query_end(query_str);
