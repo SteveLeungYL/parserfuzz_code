@@ -39,14 +39,14 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
       suffix = string(it.value());
       continue;
     } else if (it.key() == "LNode") {
-      if (it.value() == NULL) {
+      if (it.value().empty()) {
         LNode = NULL;
       } else {
         LNode = convert_json_to_IR_helper(it.value(), depth + 1);
       }
       continue;
     } else if (it.key() == "RNode") {
-      if (it.value() == NULL) {
+      if (it.value().empty()) {
         RNode = NULL;
       } else {
         RNode = convert_json_to_IR_helper(it.value(), depth + 1);
@@ -60,16 +60,22 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
       continue;
     } else if (it.key() == "ContextFlag") {
       dataflag = get_data_flag_by_idx(it.value());
+      continue;
     } else if (it.key() == "Str") {
       str = it.value();
+      continue;
     } else if (it.key() == "IValue") {
       i_val = it.value();
+      continue;
     } else if (it.key() == "UValue") {
       u_val = it.value();
+      continue;
     } else if (it.key() == "FValue") {
       f_val = it.value();
+      continue;
     } else {
       // pass and ignored.
+      continue;
     }
   }
 
