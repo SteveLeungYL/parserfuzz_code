@@ -16,6 +16,8 @@ if [ "$1" == "SQLRight" ]; then
             resoutdir="$resoutdir""_NOREC"
         elif [ "$var" == "TLP" ]; then
             resoutdir="$resoutdir""_TLP"
+        elif [ "$var" == "INDEX" ]; then
+            resoutdir="$resoutdir""_INDEX"
         elif [ "$var" == "OPT" ]; then
             resoutdir="$resoutdir""_OPT"
         fi
