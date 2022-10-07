@@ -823,7 +823,7 @@ IR *SQL_TLP::transform_aggr(IR *cur_stmt, bool is_UNION_ALL,
       IR *func_name_ir = NULL;
       for (auto &cur_iden : v_func_name_ir) {
           if (cur_iden->get_data_type() == DataFunctionName) {
-             func_name_ir = v_func_name_ir.front();
+             func_name_ir = cur_iden;
              break;
           }
       }
