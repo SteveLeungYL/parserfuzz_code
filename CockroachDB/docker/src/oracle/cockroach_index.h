@@ -41,7 +41,7 @@ public:
 
   string get_oracle_type() override { return this->oracle_type; }
 
-  int get_random_append_stmts_num() override { return 1; }
+  int get_random_append_stmts_num() override { return 5; }
   IR *get_random_append_stmts(Mutator &) override;
 
 private:

@@ -74,7 +74,7 @@ public:
   virtual IR *pre_fix_transform_select_stmt(IR *cur_stmt) { return nullptr; }
   virtual vector<IR *> post_fix_transform_select_stmt(IR *cur_stmt,
                                                       unsigned multi_run_id) {
-    vector<IR *> tmp;
+    vector<IR *> tmp {cur_stmt->deep_copy()};
     return tmp;
   }
   virtual vector<IR *> post_fix_transform_select_stmt(IR *cur_stmt) {
