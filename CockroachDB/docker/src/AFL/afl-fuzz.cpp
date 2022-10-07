@@ -5988,9 +5988,11 @@ static u8 fuzz_one(char **argv) {
         }
       }
 
+      vector<vector<STMT_TYPE>> post_fix_stmt_type_vec;
       /* post_fix_transformation from the oracle. All deep_copied. */
       vector<vector<vector<IR *>>> all_post_trans_vec_all_runs =
-          g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec);
+          g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec,
+                                       post_fix_stmt_type_vec);
 
       for (vector<vector<IR *>> &all_post_trans_vec :
            all_post_trans_vec_all_runs) {
@@ -6006,8 +6008,8 @@ static u8 fuzz_one(char **argv) {
 
         // Final step, transform IR tree to string. Add marker to important
         // statements.
-        pair<string, string> query_str_pair =
-            g_mutator.ir_to_string(cur_root, all_post_trans_vec, stmt_type_vec);
+        pair<string, string> query_str_pair = g_mutator.ir_to_string(
+            cur_root, all_post_trans_vec, post_fix_stmt_type_vec);
         query_str_vec.push_back(query_str_pair.first);
         query_str_no_marks_vec.push_back(
             query_str_pair
@@ -6069,12 +6071,7 @@ static u8 fuzz_one(char **argv) {
           query_str_no_marks_vec[2] = all_opt_stmt;
         }
 
-        if (common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec))
-          ;
-        {
-          // goto abandon_entry;
-          continue;
-        }
+        common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec);
         total_execute++;
         stage_cur++;
         show_stats();

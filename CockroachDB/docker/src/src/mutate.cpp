@@ -1223,21 +1223,26 @@ vector<IR *> Mutator::pre_fix_transform(IR *root,
   return all_trans_vec;
 }
 
-vector<vector<vector<IR *>>>
-Mutator::post_fix_transform(vector<IR *> &all_pre_trans_vec,
-                            vector<STMT_TYPE> &stmt_type_vec) {
+vector<vector<vector<IR *>>> Mutator::post_fix_transform(
+    vector<IR *> &all_pre_trans_vec, vector<STMT_TYPE> &stmt_type_vec,
+    vector<vector<STMT_TYPE>> &post_fix_stmt_type_vec_vec) {
   int total_run_count = p_oracle->get_mul_run_num();
   vector<vector<vector<IR *>>> all_trans_vec_all_run;
+  vector<STMT_TYPE> tmp_post_fix_stmt_type;
   for (int run_count = 0; run_count < total_run_count; run_count++) {
+    tmp_post_fix_stmt_type.clear();
     all_trans_vec_all_run.push_back(this->post_fix_transform(
-        all_pre_trans_vec, stmt_type_vec, run_count)); // All deep_copied.
+        all_pre_trans_vec, stmt_type_vec, tmp_post_fix_stmt_type,
+        run_count)); // All deep_copied.
+
+    post_fix_stmt_type_vec_vec.push_back(tmp_post_fix_stmt_type);
   }
   return all_trans_vec_all_run;
 }
 
-vector<vector<IR *>>
-Mutator::post_fix_transform(vector<IR *> &all_pre_trans_vec,
-                            vector<STMT_TYPE> &stmt_type_vec, int run_count) {
+vector<vector<IR *>> Mutator::post_fix_transform(
+    vector<IR *> &all_pre_trans_vec, vector<STMT_TYPE> &stmt_type_vec,
+    vector<STMT_TYPE> &post_fix_stmt_type_vec, int run_count) {
   // Apply post_fix_transform functions.
   vector<vector<IR *>> all_post_trans_vec;
   vector<int> v_stmt_to_rov;
@@ -1275,15 +1280,13 @@ Mutator::post_fix_transform(vector<IR *> &all_pre_trans_vec,
     }
   }
 
-  vector<STMT_TYPE> new_stmt_type_vec;
   for (int i = 0; i < stmt_type_vec.size(); i++) {
     if (find(v_stmt_to_rov.begin(), v_stmt_to_rov.end(), i) !=
         v_stmt_to_rov.end()) {
       continue;
     }
-    new_stmt_type_vec.push_back(stmt_type_vec[i]);
+    post_fix_stmt_type_vec.push_back(stmt_type_vec[i]);
   }
-  stmt_type_vec = new_stmt_type_vec;
 
   return all_post_trans_vec;
 }
@@ -1351,12 +1354,13 @@ bool Mutator::connect_back(map<IR *, pair<bool, IR *>> &m_save) {
 
 pair<string, string>
 Mutator::ir_to_string(IR *root, vector<vector<IR *>> all_post_trans_vec,
-                      const vector<STMT_TYPE> &stmt_type_vec) {
+                      const vector<vector<STMT_TYPE>> &all_stmt_type_vec) {
   // Final step, IR_to_string function.
   string output_str_mark, output_str_no_mark;
   for (int i = 0; i < all_post_trans_vec.size();
        i++) { // Loop between different statements.
     vector<IR *> post_trans_vec = all_post_trans_vec[i];
+    vector<STMT_TYPE> stmt_type_vec = all_stmt_type_vec[i];
     int count = 0;
     bool is_oracle_select = false;
     if (stmt_type_vec[i] == ORACLE_SELECT) {

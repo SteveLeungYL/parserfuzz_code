@@ -87,10 +87,11 @@ public:
   vector<IR *> pre_fix_transform(IR *, vector<STMT_TYPE> &);
   vector<vector<vector<IR *>>>
   post_fix_transform(vector<IR *> &all_pre_trans_vec,
-                     vector<STMT_TYPE> &stmt_type_vec);
+                     vector<STMT_TYPE> &stmt_type_vec,
+                     vector<vector<STMT_TYPE>> &stmt_type_vec_vec);
   vector<vector<IR *>> post_fix_transform(vector<IR *> &all_pre_trans_vec,
                                           vector<STMT_TYPE> &stmt_type_vec,
-                                          int run_count);
+                                          vector<STMT_TYPE> &, int run_count);
 
   bool fix_one_stmt(IR *cur_stmt, bool is_debug_info = false);
 
@@ -111,9 +112,9 @@ public:
   bool validate(IR *&root, bool is_debug_info = false);
   string validate(string query, bool is_debug_info = false);
 
-  pair<string, string> ir_to_string(IR *root,
-                                    vector<vector<IR *>> all_post_trans_vec,
-                                    const vector<STMT_TYPE> &stmt_type_vec);
+  pair<string, string>
+  ir_to_string(IR *root, vector<vector<IR *>> all_post_trans_vec,
+               const vector<vector<STMT_TYPE>> &all_stmt_type_vec);
 
   unsigned int calc_node(IR *root);
   bool replace_one_value_from_datalibray_2d(DATATYPE p_datatype,
