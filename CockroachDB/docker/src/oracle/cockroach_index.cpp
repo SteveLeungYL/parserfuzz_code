@@ -44,7 +44,7 @@ vector<IR *> SQL_INDEX::post_fix_transform_normal_stmt(IR *cur_stmt,
     }
 
     vector<IR *> tmp;
-    tmp.push_back(cur_stmt->deep_copy());
+    tmp.push_back(new_stmt);
     return tmp;
   } else {
     vector<IR *> tmp;
