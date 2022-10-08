@@ -34,6 +34,15 @@ bool SQL_INDEX::is_oracle_normal_stmt(IR *cur_IR) {
 vector<IR *> SQL_INDEX::post_fix_transform_normal_stmt(IR *cur_stmt,
                                                        unsigned multi_run_id) {
   if (!multi_run_id) { // multi_run_id == 0
+
+    IR* new_stmt = cur_stmt->deep_copy();
+    // Remove the `UNIQUE` constraint from the `CREATE INDEX` statement.
+    vector<IR*> v_opt_unique_ir = ir_wrapper.get_ir_node_in_stmt_with_type(new_stmt, TypeOptUnique, false);
+    for (auto &opt_unique_ir : v_opt_unique_ir) {
+        // Remove the UNIQUE constraint.
+        opt_unique_ir->op_->prefix_ = "";
+    }
+
     vector<IR *> tmp;
     tmp.push_back(cur_stmt->deep_copy());
     return tmp;
@@ -46,10 +55,10 @@ vector<IR *> SQL_INDEX::post_fix_transform_normal_stmt(IR *cur_stmt,
 
 bool SQL_INDEX::compare_norm(COMP_RES &res) {
 
-  string &res_a = res.res_str_0;
-  string &res_b = res.res_str_1;
-  int &res_a_int = res.res_int_0;
-  int &res_b_int = res.res_int_1;
+  string &res_a = res.v_res_str[0];
+  string &res_b = res.v_res_str[0];
+  int &res_a_int = res.v_res_int[0];
+  int &res_b_int = res.v_res_int[1];
 
   if (findStringIn(res_a, "ERROR") || findStringIn(res_a, "pq: ") ||
       findStringIn(res_b, "ERROR") || findStringIn(res_b, "pq: ")) {
@@ -102,9 +111,6 @@ bool SQL_INDEX::compare_norm(COMP_RES &res) {
   }
 
   if (res_a_int != res_b_int) { // Found inconsistent.
-    // cerr << "NORMAL Found mismatched: " << "res_a: " << res_a << "res_b: " <<
-    // res_b << " res_a_int: " << res_a_int << "res_b_int: " << res_b_int <<
-    // endl;
     res.comp_res = ORA_COMP_RES::Fail;
     return false;
   }
@@ -114,10 +120,10 @@ bool SQL_INDEX::compare_norm(COMP_RES &res) {
 
 bool SQL_INDEX::compare_uniq(COMP_RES &res) {
 
-  string &res_a = res.res_str_0;
-  string &res_b = res.res_str_1;
-  int &res_a_int = res.res_int_0;
-  int &res_b_int = res.res_int_1;
+  string &res_a = res.v_res_str[0];
+  string &res_b = res.v_res_str[0];
+  int &res_a_int = res.v_res_int[0];
+  int &res_b_int = res.v_res_int[1];
 
   if (findStringIn(res_a, "ERROR") || findStringIn(res_b, "ERROR") ||
       findStringIn(res_a, "pq: ") || findStringIn(res_b, "pq: ")) {
@@ -183,9 +189,6 @@ bool SQL_INDEX::compare_uniq(COMP_RES &res) {
   }
 
   if (res_a_int != res_b_int) { // Found inconsistent.
-    // cerr << "NORMAL Found mismatched: " << "res_a: " << res_a << "res_b: " <<
-    // res_b << " res_a_int: " << res_a_int << "res_b_int: " << res_b_int <<
-    // endl;
     res.comp_res = ORA_COMP_RES::Fail;
     return false;
   }
@@ -196,10 +199,10 @@ bool SQL_INDEX::compare_uniq(COMP_RES &res) {
 /* Handle MIN valid stmt: SELECT MIN(*) FROM ...; and MAX valid stmt: SELECT
  * MAX(*) FROM ...;  */
 bool SQL_INDEX::compare_aggr(COMP_RES &res) {
-  string &res_a = res.res_str_0;
-  string &res_b = res.res_str_1;
-  int &res_a_int = res.res_int_0;
-  int &res_b_int = res.res_int_1;
+  string &res_a = res.v_res_str[0];
+  string &res_b = res.v_res_str[0];
+  int &res_a_int = res.v_res_int[0];
+  int &res_b_int = res.v_res_int[1];
 
   if (findStringIn(res_a, "ERROR") || findStringIn(res_b, "ERROR") ||
       findStringIn(res_a, "pq: ") || findStringIn(res_b, "pq: ")) {
@@ -235,7 +238,12 @@ void SQL_INDEX::compare_results(ALL_COMP_RES &res_out) {
     res_out.final_res = ORA_COMP_RES::Pass;
     bool is_all_err = true;
 
+    vector<VALID_STMT_TYPE_INDEX> v_valid_type;
+    get_v_valid_type(res_out.v_cmd_str[0], v_valid_type);
+
+    int i = -1; // Starts from 0.
     for (COMP_RES &res : res_out.v_res) {
+        i++;
         if (res.v_res_str.size() < 2) {
             // Error handling.
             res.comp_res = ORA_COMP_RES::Error;
@@ -258,21 +266,62 @@ void SQL_INDEX::compare_results(ALL_COMP_RES &res_out) {
             continue;
         }
 
-        vector<string> v_res_a = string_splitter(res.v_res_str[0], '\n');
-        vector<string> v_res_b = string_splitter(res.v_res_str[1], '\n');
+        res.v_res_int.push_back(-1);
+        res.v_res_int.push_back(-1);
 
-        if (v_res_a.size() > 50 || v_res_b.size() > 50) {
-            res.comp_res = ORA_COMP_RES::Error;
-            res.v_res_int.push_back(-1);
-            res.v_res_int.push_back(-1);
-            continue;
+        switch (v_valid_type[i]) {
+            case VALID_STMT_TYPE_INDEX::NORMAL:
+                /* Handle normal valid stmt: SELECT * FROM ...; */
+                if (!compare_norm(res)) {
+                    is_all_err = false;
+                }
+                break; // Break the switch
+
+                /* Compare unique results */
+            case VALID_STMT_TYPE_INDEX::DISTINCT:
+                [[fallthrough]];
+            case VALID_STMT_TYPE_INDEX::GROUP_BY:
+                compare_uniq(res);
+                break;
+
+                /* Compare concret values */
+            case VALID_STMT_TYPE_INDEX::AGGR_AVG:
+                [[fallthrough]];
+                // case VALID_STMT_TYPE_TLP::AGGR_COUNT:
+                //   [[fallthrough]];
+            case VALID_STMT_TYPE_INDEX::AGGR_MAX:
+                [[fallthrough]];
+            case VALID_STMT_TYPE_INDEX::AGGR_MIN:
+                [[fallthrough]];
+            case VALID_STMT_TYPE_INDEX::AGGR_SUM:
+                if (!compare_aggr(res)) {
+                    is_all_err = false;
+                }
+                break; // Break the switch
+
+            default:
+                res.comp_res = ORA_COMP_RES::Error;
+                break;
+        } // Switch stmt.
+        if (res.comp_res == ORA_COMP_RES::Fail) {
+            res_out.final_res = ORA_COMP_RES::Fail;
         }
 
-        res.res_int_0 = v_res_a.size();
-        res.res_int_1 = v_res_b.size();
-
-        res.v_res_int.push_back(res.res_int_0);
-        res.v_res_int.push_back(res.res_int_1);
+//        vector<string> v_res_a = string_splitter(res.v_res_str[0], '\n');
+//        vector<string> v_res_b = string_splitter(res.v_res_str[1], '\n');
+//
+//        if (v_res_a.size() > 50 || v_res_b.size() > 50) {
+//            res.comp_res = ORA_COMP_RES::Error;
+//            res.v_res_int.push_back(-1);
+//            res.v_res_int.push_back(-1);
+//            continue;
+//        }
+//
+//        res.res_int_0 = v_res_a.size();
+//        res.res_int_1 = v_res_b.size();
+//
+//        res.v_res_int.push_back(res.res_int_0);
+//        res.v_res_int.push_back(res.res_int_1);
 
         is_all_err = false;
         if (res.res_int_0 != res.res_int_1) { // Found mismatched.
