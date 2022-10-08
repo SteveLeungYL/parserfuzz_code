@@ -14,7 +14,7 @@ import (
 )
 
 var FORKSRV_FD uintptr = 198
-const maxQueryExec uint64 = 1000
+const maxQueryExec int = 1000
 
 var cleanupQuery = `
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
