@@ -2532,6 +2532,19 @@ static void write_to_testcase(string &input) {
   return;
 }
 
+/*
+ * Restart the CockroachDB persistent server.
+ * */
+static void restart_cockroachdb(char** argv) {
+    if (forksrv_pid != -1) {
+        kill(forksrv_pid, SIGKILL);
+    }
+    forksrv_pid = -1;
+    init_forkserver(argv);
+    return;
+}
+
+
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
@@ -2556,20 +2569,15 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str) {
   MEM_BARRIER();
 BEGIN:
 
-  /*
-   * TODO: Use forkserver instead of call the binary each single time.
-   * */
   write_to_testcase(cmd_str);
 
   // Send the signal to notify the CockroachDB to start executions.
   while ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
-    if (stop_soon)
-      RPFATAL(res, "Unable to request new process from fork server (OOM?)");
-    // cerr <<  "Unable to request new process from fork server (OOM?)";
-    // kill(forksrv_pid, SIGKILL);
-    // close(fsrv_ctl_fd);
-    // close(fsrv_st_fd);
-    // init_forkserver(argv);
+    if (stop_soon) {
+        return FAULT_NONE;
+    }
+    // Make sure the CockroachDB process is restart correctly.
+    restart_cockroachdb(argv);
   }
 
   /* Inside the parent process.
@@ -2587,9 +2595,12 @@ BEGIN:
   if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
     cerr << "The CockroachDB process is not responding? Could be timeout "
             "killed or crashed. \n\n\n";
-    // kill(forksrv_pid, SIGKILL);
     close(fsrv_ctl_fd);
     close(fsrv_st_fd);
+    // Block the execution until handle_timeout has been finished.
+    do {} while (forksrv_pid != -1);
+
+    // Restart the argv execution.
     init_forkserver(argv);
     if (is_timeout) {
       return FAULT_TMOUT;
@@ -2599,10 +2610,12 @@ BEGIN:
   }
 
   if (status > 0) {
-    // Reach 1000 time execution, relaunch CockroachDB.
-    close(fsrv_ctl_fd);
-    close(fsrv_st_fd);
-    init_forkserver(argv);
+      // Reach maximum time execution, CockroachDB auto exit.
+      // Relaunch CockroachDB.
+      close(fsrv_ctl_fd);
+      close(fsrv_st_fd);
+      forksrv_pid = -1;
+      init_forkserver(argv);
   }
 
   getitimer(ITIMER_REAL, &it);
@@ -2647,17 +2660,6 @@ BEGIN:
   }
 
   prev_timed_out = child_timed_out;
-
-  /* If crashed, report outcome to caller. */
-  // if (WIFSIGNALED(status) && !stop_soon) {
-
-  // kill_signal = WTERMSIG(status);
-
-  // if (child_timed_out && kill_signal == SIGKILL) return FAULT_TMOUT;
-
-  // return FAULT_CRASH;
-
-  //}
 
   /* It makes sense to account for the slowest units only if the testcase was
   run under the user defined timeout. */
@@ -6304,24 +6306,12 @@ static void handle_skipreq(int sig) { skip_requested = 1; }
 
 static void handle_timeout(int sig) {
   is_timeout = true;
-
-  /* The CockroachDB works similar to persistent mode.
-   * There is no child_pid provided.
-   * */
-
-  //  if (child_pid > 0) {
-  //
-  //    child_timed_out = 1;
-  //    kill(child_pid, SIGKILL);
-  //  } else if (child_pid == -1 && forksrv_pid > 0) {
-
   child_timed_out = 1;
-  kill(forksrv_pid, SIGKILL);
-  // fsrv_ctl_fd.close();
-  // fsrv_st_fd.close();
-
-  // init_forkserver(argv);
-  //  }
+  // Could have race condition?
+  if (forksrv_pid != -1) {
+      kill(forksrv_pid, SIGKILL);
+  }
+  forksrv_pid = -1;
 }
 
 /* Do a PATH search and find target binary to see that it exists and

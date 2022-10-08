@@ -14,6 +14,7 @@ import (
 )
 
 var FORKSRV_FD uintptr = 198
+const maxQueryExec uint64 = 1000
 
 var cleanupQuery = `
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
@@ -89,7 +90,7 @@ func TestCov(t *testing.T) {
 
 	//log.Printf("Debug: Inside the coverage unit test. \n")
 
-	for per_cycle := 0; per_cycle < 1000; per_cycle++ {
+	for per_cycle := 0; per_cycle < maxQueryExec; per_cycle++ {
 
 		//start := time.Now()
 
@@ -160,7 +161,7 @@ func TestCov(t *testing.T) {
 		//log.Printf("When plotting the coverage output, takes time: %s", duration)
 
 		//log.Printf("Writing to the statusPipe. \n")
-		if per_cycle != 999 {
+		if per_cycle < (maxQueryExec - 1) {
 			//start = time.Now()
 			// Notify the fuzzer that the execution has succeed.
 			_, err := statusPipe.Write([]byte{0, 0, 0, 0})
@@ -179,8 +180,5 @@ func TestCov(t *testing.T) {
 	// Notify the fuzzer that the execution has succeed, and the CockroachDB needs rerun.
 	statusPipe.Write([]byte{1, 0, 0, 0})
 	statusPipe.Sync()
-	//statusPipe.Close()
-	//controlPipe.Close()
-
 }
 
