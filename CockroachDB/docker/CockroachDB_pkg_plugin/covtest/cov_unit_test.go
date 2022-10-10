@@ -47,8 +47,7 @@ func executeQuery(sqlStr string, sqlRun *sqlutils.SQLRunner) string {
 			tmpR, err := sqlutils.RowsToStrMatrix(resRows)
 
 			if err != nil {
-				// TODO: Fix it later.
-				// Seems should not happen.
+				// Should not happen.
 			} else {
 				r := sqlutils.MatrixToStr(tmpR)
 				resStr += fmt.Sprintf("%s", r)
@@ -63,7 +62,6 @@ func executeQuery(sqlStr string, sqlRun *sqlutils.SQLRunner) string {
 func TestCov(t *testing.T) {
 
 	// The Server startup params can be reused multiple times.
-	//params, _ := tests.CreateTestServerParams()
 	params := base.TestServerArgs{}
 
 	// Setup the server testing env.
@@ -83,43 +81,17 @@ func TestCov(t *testing.T) {
 	statusPipe.Write([]byte{0, 0, 0, 0})
 	statusPipe.Sync()
 
-	//log.Printf("Debug: Inside the coverage unit test. \n")
-
 	for per_cycle := 0; per_cycle < maxQueryExec; per_cycle++ {
 
-		//start := time.Now()
-
 		// Wait for the input signal.
-		//log.Printf("Reading from the controlPipe. \n")
 		_, err := controlPipe.Read(tmpCtrlRead)
 		if err != nil {
-			//log.Printf("controlPipe reading failed. %s\n", err.Error())
 			t.Fatal("controlPipe reading failed.\n")
 		}
 
-		//duration := time.Since(start)
-		//log.Printf("When reading from the read pipe, takes time: %s", duration)
-
-		//start = time.Now()
 		// Reset the database.
 		executeQuery(cleanupQuery, sqlRun)
-		//duration = time.Since(start)
-		//log.Printf("When executing the reset query, takes time: %s", duration)
 
-		// Setup optimizer flag.
-		//ie.SetSessionData(
-		//&sessiondata.SessionData{
-		//SessionData: sessiondatapb.SessionData{
-		//Database:  "sqlrightTestDB",
-		//UserProto: "root",
-		//},
-		//LocalOnlySessionData: sessiondatapb.LocalOnlySessionData{
-		//DisallowFullTableScans: false,
-		//},
-		//SequenceState: &sessiondata.SequenceState{},
-		//})
-
-		//start = time.Now()
 		// Read query from local file.
 		inRaw, err := os.ReadFile("./input_query.sql")
 		if err != nil {
@@ -131,42 +103,25 @@ func TestCov(t *testing.T) {
 			panic(outErr)
 		}
 
-		//duration = time.Since(start)
-		//log.Printf("When reading query from local FS, takes time: %s", duration)
-
-		//start = time.Now()
 		// Clean up the coverage log.
 		globalcov.ResetGlobalCov()
-		//duration = time.Since(start)
-		//log.Printf("When cleaning up the coverage log, takes time: %s", duration)
 
-		//start = time.Now()
 		// Execute the query
 		queryRes := executeQuery(string(inRaw), sqlRun)
 		outFile.WriteString(queryRes)
 
 		outFile.Close()
-		//duration = time.Since(start)
-		//log.Printf("When executing the test query, takes time: %s", duration)
 
-		//start = time.Now()
 		// Plot the coverage output.
 		globalcov.SaveGlobalCov()
-		//duration = time.Since(start)
-		//log.Printf("When plotting the coverage output, takes time: %s", duration)
 
-		//log.Printf("Writing to the statusPipe. \n")
 		if per_cycle < (maxQueryExec - 1) {
-			//start = time.Now()
 			// Notify the fuzzer that the execution has succeed.
 			_, err := statusPipe.Write([]byte{0, 0, 0, 0})
 			statusPipe.Sync()
 			if err != nil {
-				//log.Printf("StatusPipe reading failed. %s\n", err.Error())
 				t.Fatalf("StatusPipe writing failed. Error: %s", err.Error())
 			}
-			//duration = time.Since(start)
-			//log.Printf("When notifying the fuzzer using StatusPipe, takes time: %s", duration)
 		} else {
 			break
 		}

@@ -197,7 +197,7 @@ EXP_ST u64 mem_limit = MEM_LIMIT; /* Memory cap for child (MB)        */
 static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
-    dump_library,             /* Dump squirrel libraries          */
+    dump_library = 0,             /* Dump squirrel libraries          */
     force_deterministic,      /* Force deterministic stages?      */
     use_splicing,             /* Recombine input files?           */
     dumb_mode,                /* Run in non-instrumented mode?    */
@@ -2972,16 +2972,11 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
   if (p_oracle->get_mul_run_num() <= 1) {
     /* Compare results between different validation stmts in a single run. */
-    // for (string query : queries_vector) {
-    //   cout << query << endl;
-    // }
-    // cmd_string = expand_valid_stmts_str(queries_vector, true);
+
     string cmd_string = cmd_string_vec[0];
 
     trim_string(cmd_string);
-    // cmd_string = trim(cmd_string);
 
-    // write_to_testcase(cmd_string.c_str(), cmd_string.size());
     fault = run_target(argv, tmout, cmd_string);
     if (stop_soon)
       return fault;
@@ -3007,14 +3002,11 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
   } else {
     /* Compare results of the same validation stmts in different runs. */
     for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
-      // cmd_string = expand_valid_stmts_str(queries_vector, true, idx);
       string cmd_string = cmd_string_vec[idx];
 
-      // cmd_string = trim(cmd_string);
       trim_string(cmd_string);
 
       /* The trace_bits[] are effectively volatile after calling run_target */
-      // write_to_testcase(cmd_string.c_str(), cmd_string.size());
       fault = run_target(argv, tmout, cmd_string);
       if (stop_soon)
         return fault;
@@ -3099,11 +3091,12 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
   } else if (all_comp_res.final_res == ORA_COMP_RES::Pass) {
     total_execs++;
-  } else {
-    /* Query being skipped, or all select stmts return error results. */
+  } else if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+    /* Query, all select stmts return error results. */
     total_execs++;
+  } else {
+    /* Query being skipped. */
   }
-  total_execute++;
   return fault;
 }
 
@@ -5736,7 +5729,6 @@ static u8 fuzz_one(char **argv) {
   vector<IR *> v_ir_stmts;
   v_ir_stmts.clear();
   char *tmp_name = stage_name;
-  // string query_str;
   int skip_count;
   string input;
 
@@ -5977,16 +5969,6 @@ static u8 fuzz_one(char **argv) {
       vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
           cur_root, stmt_type_vec); // All deep_copied.
 
-      // /* Debug  */
-      // cerr << "Just gone through pre_fix_transform, we have: \n";
-      // for (IR* cur_trans: all_pre_trans_vec) {
-      //   cerr << "cur_trans: " << cur_trans->to_string() << "\n";
-      // }
-      // cerr << "Pre-fix transform end. \n\n\n";
-
-      // cerr << "Gone through g_mutator.pre_fix_transform(), the
-      // all_pre_trans_vec.size() is: " << all_pre_trans_vec.size() << "\n\n\n";
-
       /* Build dependency graph, fix ir node, fill in concret values */
       for (IR *cur_trans_stmt : all_pre_trans_vec) {
         if (!g_mutator.validate(cur_trans_stmt)) {
@@ -6014,12 +5996,6 @@ static u8 fuzz_one(char **argv) {
             query_str_pair
                 .second); // Without adding the pre_post_transformed statements.
       }
-
-      // for (auto query_str : query_str_vec) {
-      //   cerr << "Just after validate and fix, Query str: " << query_str <<
-      //   endl;
-      // }
-      // cerr << "End\n\n\n";
 
       /* Clean up allocated resource.  */
       for (int i = 0; i < all_pre_trans_vec.size(); i++) {
@@ -6081,9 +6057,6 @@ static u8 fuzz_one(char **argv) {
     std::chrono::duration<double> single_mutation_used_time =
         single_mutation_end_time - single_mutation_start_time;
 
-    // cerr << "\n\nFor single mutation of seed: " << queue_cur->fname << ",
-    // used time: " << single_mutation_used_time.count() << ". \n\n\n";
-
     for (IR *mutated_ir_root : v_mutated_ir_root) {
       mutated_ir_root->deep_drop();
     }
@@ -6136,9 +6109,6 @@ abandon_entry:
   auto fuzz_one_end_time = std::chrono::system_clock::now();
   std::chrono::duration<double> fuzz_one_used_time =
       fuzz_one_end_time - fuzz_one_start_time;
-
-  // cerr << "\n\nFor total fuzz_one of seed: " << queue_cur->fname << ", used
-  // time: " << fuzz_one_used_time.count() << ". \n\n\n";
 
   return ret_val;
 }
@@ -6312,7 +6282,6 @@ static void handle_skipreq(int sig) { skip_requested = 1; }
 static void handle_timeout(int sig) {
   is_timeout = true;
   child_timed_out = 1;
-  // Could have race condition?
   if (forksrv_pid != -1) {
       kill(forksrv_pid, SIGKILL);
   }
@@ -7290,6 +7259,7 @@ static void load_map_id() {
 int main(int argc, char **argv) {
 
   p_oracle = nullptr;
+  dump_library = 0;
 
   s32 opt;
   u64 prev_queued = 0;
