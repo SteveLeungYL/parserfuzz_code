@@ -79,6 +79,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
+#include <atomic>
 
 #include <filesystem>
 #include <fstream>
@@ -245,9 +246,13 @@ static string
 int bug_output_id = 0;
 int log_output_id = 0;
 
-static s32 forksrv_pid, /* PID of the fork server           */
-    child_pid = -1,     /* PID of the fuzzed program        */
-    out_dir_fd = -1;    /* FD of the lock file              */
+//static s32 forksrv_pid, /* PID of the fork server           */
+//    child_pid = -1,     /* PID of the fuzzed program        */
+//    out_dir_fd = -1;    /* FD of the lock file              */
+static s32 out_dir_fd = -1;
+
+static std::atomic<s32> forksrv_pid = -1, /* PID of the fork server           */
+       child_pid = -1;    /* PID of the fuzzed program        */
 
 EXP_ST u8 trace_bits[MAP_SIZE]; /* SHM with instrumentation bitmap  */
 
