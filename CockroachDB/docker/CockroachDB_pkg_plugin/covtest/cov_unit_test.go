@@ -1,9 +1,9 @@
 package covtest
 
 import (
-    "context"
+	"context"
 	"fmt"
-	"github.com/cockroachdb/cockroach/pkg/sql/tests"
+	"github.com/cockroachdb/cockroach/pkg/base"
 	"github.com/cockroachdb/cockroach/pkg/testutils/serverutils"
 	"github.com/cockroachdb/cockroach/pkg/testutils/sqlutils"
 	//"log"
@@ -14,9 +14,11 @@ import (
 )
 
 var FORKSRV_FD uintptr = 198
+
 const maxQueryExec int = 1000
 
 var cleanupQuery = `
+COMMIT;
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
 CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
 SET DATABASE = sqlrightTestDB;
@@ -61,21 +63,14 @@ func executeQuery(sqlStr string, sqlRun *sqlutils.SQLRunner) string {
 func TestCov(t *testing.T) {
 
 	// The Server startup params can be reused multiple times.
-	params, _ := tests.CreateTestServerParams()
+	//params, _ := tests.CreateTestServerParams()
+	params := base.TestServerArgs{}
 
 	// Setup the server testing env.
 	s, sqlDB, _ := serverutils.StartServer(t, params)
 	defer s.Stopper().Stop(context.Background())
 
-	//ctx := context.Background()
-
-	//mon := sql.MakeInternalExecutorMemMonitor(sql.MemoryMetrics{}, s.ClusterSettings())
-	//mon.StartNoReserved(ctx, s.(*server.TestServer).Server.PGServer().SQLServer.GetBytesMonitor())
-	//ie := sql.MakeInternalExecutor(
-		//s.(*server.TestServer).Server.PGServer().SQLServer, sql.MemoryMetrics{}, mon,
-	//)
-
-    sqlRun := sqlutils.MakeSQLRunner(sqlDB)
+	sqlRun := sqlutils.MakeSQLRunner(sqlDB)
 
 	// Control Read Pipe.
 	controlPipe := os.NewFile(FORKSRV_FD, "pipe")
@@ -113,16 +108,16 @@ func TestCov(t *testing.T) {
 
 		// Setup optimizer flag.
 		//ie.SetSessionData(
-			//&sessiondata.SessionData{
-				//SessionData: sessiondatapb.SessionData{
-					//Database:  "sqlrightTestDB",
-					//UserProto: "root",
-				//},
-				//LocalOnlySessionData: sessiondatapb.LocalOnlySessionData{
-					//DisallowFullTableScans: false,
-				//},
-				//SequenceState: &sessiondata.SequenceState{},
-			//})
+		//&sessiondata.SessionData{
+		//SessionData: sessiondatapb.SessionData{
+		//Database:  "sqlrightTestDB",
+		//UserProto: "root",
+		//},
+		//LocalOnlySessionData: sessiondatapb.LocalOnlySessionData{
+		//DisallowFullTableScans: false,
+		//},
+		//SequenceState: &sessiondata.SequenceState{},
+		//})
 
 		//start = time.Now()
 		// Read query from local file.
