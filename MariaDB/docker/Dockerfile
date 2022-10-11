@@ -77,7 +77,7 @@ FROM sqlright_mariadb_tools AS sqlright_mariadb_source_build
 # build mariadb instrumented by afl-clang-fast
 USER mariadb
 WORKDIR /home/mariadb/
-RUN git clone git@github.com:MariaDB/server.git --depth 1
+RUN git clone https://github.com/MariaDB/server.git --depth 1
 WORKDIR /home/mariadb/server
 
 RUN mkdir bld
@@ -100,7 +100,7 @@ FROM sqlright_mariadb_source_build AS sqlright_src
 USER root
 COPY src /home/mariadb/src
 WORKDIR /home/mariadb/src/parser
-RUN wget https://github.com/mariadb/mysql-server/archive/refs/tags/mysql-8.0.27.zip
+RUN wget https://github.com/mysql/mysql-server/archive/refs/tags/mysql-8.0.27.zip
 RUN unzip mysql-8.0.27.zip 
 RUN mv mysql-server-mysql-8.0.27 mysql-server
 RUN chown -R mariadb:mariadb /home/mariadb/src
@@ -146,7 +146,7 @@ RUN chown -R mariadb:mariadb /home/mariadb/fuzzing/
 # Not sure why, but user mariadb doesn't have the permission to open the database.
 USER root
 RUN chown -R mariadb:mariadb /home/mariadb/server/bld/bin
-RUN chown -R mariadb:mariadb /home/mariadb/server/bld/library_output_directory
+# RUN chown -R mariadb:mariadb /home/mariadb/server/bld/library_output_directory
 RUN chown mariadb:mariadb /home/mariadb/server/bld
 RUN chown -R mariadb:mariadb /var
 RUN chown -R mariadb:mariadb /tmp
@@ -155,7 +155,7 @@ RUN chown -R mariadb:mariadb /tmp
 USER mariadb 
 WORKDIR /home/mariadb/server/bld/
 RUN mkdir data
-RUN ./scripts/maria_install_db --user=sly --basedir=$(pwd) --datadir=$(pwd)/data
+RUN ./scripts/mariadb-install-db --user=mariadb --basedir=$(pwd) --datadir=$(pwd)/data
 RUN mkdir data_all
 RUN mv data data_all/ori_data
 
@@ -166,4 +166,4 @@ RUN python3 setup_database.py
 
 
 USER root
-WORKDIR /home/maria/fuzzing/fuzz_root
+WORKDIR /home/mariadb/fuzzing/fuzz_root

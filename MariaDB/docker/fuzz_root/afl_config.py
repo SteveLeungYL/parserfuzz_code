@@ -1,6 +1,6 @@
 import os
 
-mysql_root_dir = "/home/mysql/mysql-server/bld"
+mysql_root_dir = "/home/mariadb/server/bld"
 mysql_src_data_dir = os.path.join(mysql_root_dir, "data_all/ori_data")
 current_workdir = os.getcwd()
 
