@@ -157,7 +157,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
 
     os.remove(os.path.join(os.getcwd(), "shm_env.txt"))
 
-    mysql_bin_dir = os.path.join(mysql_root_dir, "bin/mysqld")
+    mysql_bin_dir = os.path.join(mysql_root_dir, "bin/mariadbd")
 
     # mysql_command = "__AFL_SHM_ID=" + cur_shm_str + " " + mysql_bin_dir + " --basedir=" + mysql_root_dir + " --datadir=" + cur_mysql_data_dir_str + " --port=" + str(cur_port_num) + " --socket=" + socket_path + " & "
 

@@ -244,7 +244,7 @@ public:
 
     dbname = "test_sqlright1";
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(m_, NULL, "root", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
+    if (mysql_real_connect(m_, NULL, "mariadb", "", dbname.c_str(), bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error1 \n", mysql_errno(m_), mysql_error(m_));
       disconnect();
@@ -279,7 +279,7 @@ public:
     }
 
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "mariadb", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error3 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -288,7 +288,7 @@ public:
     // database_id++;
     bool is_error = false;
 
-    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "RESET PERSIST", "RESET MASTER", "ALTER USER 'root'@'localhost' WITH MAX_USER_CONNECTIONS 0;", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "RESET PERSIST", "RESET MASTER", "ALTER USER 'mariadb'@'localhost' WITH MAX_USER_CONNECTIONS 0;", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
@@ -452,7 +452,7 @@ public:
     }
 
     // cerr << "Using socket: " << socket_path << "\n\n\n";
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "mariadb", "", "test_init", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error5 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -653,7 +653,7 @@ public:
       mysql_close(&tmp_m);
       return false;
     }
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_init", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "mariadb", "", "test_init", bind_to_port, socket_path.c_str(), CLIENT_MULTI_STATEMENTS) == NULL)
     {
       fprintf(stderr, "Connection error2 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -673,7 +673,7 @@ public:
       mysql_close(&tmp_m);
       return 0;
     }
-    if (mysql_real_connect(&tmp_m, NULL, "root", "", "test_sqlright1", bind_to_port, socket_path.c_str(), 0) == NULL)
+    if (mysql_real_connect(&tmp_m, NULL, "mariadb", "", "test_sqlright1", bind_to_port, socket_path.c_str(), 0) == NULL)
     {
       fprintf(stderr, "Connection error4 \n", mysql_errno(&tmp_m), mysql_error(&tmp_m));
       mysql_close(&tmp_m);
@@ -681,7 +681,7 @@ public:
     }
 
     bool is_error = false;
-    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "RESET PERSIST", "RESET MASTER", "ALTER USER 'root'@'localhost' WITH MAX_USER_CONNECTIONS 0;", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
+    vector<string> v_cmd = {"SET GLOBAL TRANSACTION READ WRITE", "SET SESSION TRANSACTION READ WRITE", "RESET PERSIST", "RESET MASTER", "ALTER USER 'mariadb'@'localhost' WITH MAX_USER_CONNECTIONS 0;", "DROP DATABASE IF EXISTS test_sqlright1", "CREATE DATABASE IF NOT EXISTS test_sqlright1", "USE test_sqlright1", "SELECT 'Successful'"};
     for (string cmd : v_cmd) {
       if(mysql_real_query(&tmp_m, cmd.c_str(), cmd.size()))  {
         is_error = true;
@@ -722,7 +722,7 @@ int g_child_pid = -1;
 char *g_current_input = NULL;
 char *g_libary_path;
 IR *g_current_ir = NULL;
-MysqlClient g_mysqlclient((char *)"127.0.0.1", (char *)"root", NULL);
+MysqlClient g_mysqlclient((char *)"127.0.0.1", (char *)"mariadb", NULL);
 
 //MysqlClient g_psql_client;
 
