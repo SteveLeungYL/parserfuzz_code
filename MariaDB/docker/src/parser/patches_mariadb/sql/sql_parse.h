@@ -34,11 +34,7 @@ enum enum_mysql_completiontype {
 };
 
 /* SQLRight Injection */
-
-class IR {
-  const char* abc;
-};
-
+class IR;
 /* End of SQLRight Injection */
 
 extern "C" int path_starts_from_data_home_dir(const char *dir);
@@ -203,4 +199,3 @@ check_table_access(THD *thd, privilege_t requirements,TABLE_LIST *tables,
 #endif /*NO_EMBEDDED_ACCESS_CHECKS*/
 
 #endif /* SQL_PARSE_INCLUDED */
-

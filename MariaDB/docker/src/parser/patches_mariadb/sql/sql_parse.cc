@@ -94,7 +94,10 @@
 #include "opt_trace.h"
 #include "mysql/psi/mysql_sp.h"
 
-#include "my_json_writer.h" 
+#include "my_json_writer.h"
+#include <string>
+
+using std::string;
 
 #define FLAGSTR(V,F) ((V)&(F)?#F" ":"")
 
@@ -10477,6 +10480,8 @@ bool parse_sql(THD *thd, Parser_state *parser_state,
 /* Yu: SQLRight injection */
 extern bool parse_sql(std::vector<IR *> &ir_vec)
   {
+    IR* rootNode = new IR(kIdent, string("Hello World"));
+    ir_vec.push_back(rootNode);
     return true;
 //    bool ret_value;
 //    DBUG_ENTER("parse_sql");
@@ -10590,4 +10595,3 @@ void LEX::mark_first_table_as_inserting()
                       t, t->table_name.str,t->db.str, sql_command));
   DBUG_VOID_RETURN;
 }
-
