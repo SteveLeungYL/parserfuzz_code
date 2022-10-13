@@ -18,6 +18,7 @@
 
 #include "sql_acl.h"                            /* GLOBAL_ACLS */
 #include <vector>
+#include <string>
 
 class Comp_creator;
 class Item;
@@ -61,7 +62,7 @@ bool parse_sql(THD *thd, Parser_state *parser_state,
                Object_creation_ctx *creation_ctx, bool do_pfs_digest=false);
 
 /* Yu: SQLRight injection */
-extern bool parse_sql(std::vector<IR*>& ir_vec);
+extern bool parse_sql(std::string query_str, std::vector<IR*>& ir_vec);
 /* End of SQLRight injection. */
 
 void free_items(Item *item);

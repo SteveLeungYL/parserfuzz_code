@@ -10390,7 +10390,6 @@ bool parse_sql(THD *thd, Parser_state *parser_state,
   DBUG_ASSERT(thd->m_parser_state == NULL);
   DBUG_ASSERT(thd->lex->m_sql_cmd == NULL);
 
-  MYSQL_QUERY_PARSE_START(thd->query());
   /* Backup creation context. */
 
   Object_creation_ctx *backup_ctx= NULL;
@@ -10427,8 +10426,8 @@ bool parse_sql(THD *thd, Parser_state *parser_state,
 
   bool mysql_parse_status= thd->variables.sql_mode & MODE_ORACLE
                            ? ORAparse(thd) : MYSQLparse(thd);
-  DBUG_ASSERT(opt_bootstrap || mysql_parse_status ||
-              thd->lex->select_stack_top == 0);
+//  DBUG_ASSERT(opt_bootstrap || mysql_parse_status ||
+//              thd->lex->select_stack_top == 0);
   thd->lex->current_select= thd->lex->first_select_lex();
 
   /*
@@ -10478,105 +10477,1071 @@ bool parse_sql(THD *thd, Parser_state *parser_state,
 // SQLRight injections
 
 /* Yu: SQLRight injection */
-extern bool parse_sql(std::vector<IR *> &ir_vec)
+
+// Use Static to avoid collitions.
+static MEM_ROOT read_only_root;
+
+#define init_default_storage_engine(X,Y) \
+  init_default_storage_engine_impl(#X, X, &global_system_variables.Y)
+
+static int init_default_storage_engine_impl(const char *opt_name,
+                                            char *engine_name, plugin_ref *res)
+{
+  if (!engine_name)
   {
-    IR* rootNode = new IR(kIdent, string("Hello World"));
-    ir_vec.push_back(rootNode);
-    return true;
-//    bool ret_value;
-//    DBUG_ENTER("parse_sql");
-//    DBUG_ASSERT(thd->m_parser_state == NULL);
-//    DBUG_ASSERT(thd->lex->m_sql_cmd == NULL);
-//
-//    MYSQL_QUERY_PARSE_START(thd->query());
-//    /* Backup creation context. */
-//
-//    Object_creation_ctx *backup_ctx= NULL;
-//
-//    if (creation_ctx)
-//      backup_ctx= creation_ctx->set_n_backup(thd);
-//
-//    /* Set parser state. */
-//
-//    thd->m_parser_state= parser_state;
-//
-//    parser_state->m_digest_psi= NULL;
-//    parser_state->m_lip.m_digest= NULL;
-//
-//    // Don't need do_pfs_digest in the SQLRight parser code.
-//    if (false) // if (do_pfs_digest) {  // Always return false.
+    *res= 0;
+    return 0;
+  }
+
+  LEX_CSTRING name= { engine_name, strlen(engine_name) };
+  plugin_ref plugin;
+  handlerton *hton;
+  if ((plugin= ha_resolve_by_name(0, &name, false)))
+    hton= plugin_hton(plugin);
+  else
+  {
+    sql_print_error("Unknown/unsupported storage engine: %s", engine_name);
+    return 1;
+  }
+  if (!ha_storage_engine_is_enabled(hton))
+  {
+    if (!opt_bootstrap)
+    {
+      sql_print_error("%s (%s) is not available", opt_name, engine_name);
+      return 1;
+    }
+    DBUG_ASSERT(*res);
+  }
+  else
+  {
+    /*
+      Need to unlock as global_system_variables.table_plugin
+      was acquired during plugin_init()
+    */
+    mysql_mutex_lock(&LOCK_global_system_variables);
+    if (*res)
+      plugin_unlock(0, *res);
+    *res= plugin;
+    mysql_mutex_unlock(&LOCK_global_system_variables);
+  }
+  return 0;
+}
+
+
+static void wsrep_set_wsrep_on(THD* thd)
+{
+  if (thd)
+    thd->wsrep_was_on= WSREP_ON_;
+  WSREP_PROVIDER_EXISTS_= wsrep_provider &&
+                          strncasecmp(wsrep_provider, WSREP_NONE, FN_REFLEN);
+  WSREP_ON_= global_system_variables.wsrep_on && WSREP_PROVIDER_EXISTS_;
+}
+
+static int wsrep_provider_verify (const char* provider_str)
+{
+  MY_STAT   f_stat;
+  char path[FN_REFLEN];
+
+  if (!provider_str || strlen(provider_str)== 0)
+    return 1;
+
+  if (!strcmp(provider_str, WSREP_NONE))
+    return 0;
+
+  if (!unpack_filename(path, provider_str))
+    return 1;
+
+  /* check that provider file exists */
+  memset(&f_stat, 0, sizeof(MY_STAT));
+  if (!my_stat(path, &f_stat, MYF(0)))
+  {
+    return 1;
+  }
+
+  if (MY_S_ISDIR(f_stat.st_mode))
+  {
+    return 1;
+  }
+
+  return 0;
+}
+
+static void wsrep_provider_init (const char* value)
+{
+  WSREP_DEBUG("wsrep_provider_init: %s -> %s",
+              (wsrep_provider) ? wsrep_provider : "null",
+              (value) ? value : "null");
+  if (NULL == value || wsrep_provider_verify (value))
+  {
+    WSREP_ERROR("Bad initial value for wsrep_provider: %s",
+                (value ? value : ""));
+    return;
+  }
+
+  if (wsrep_provider) my_free((void *)wsrep_provider);
+  wsrep_provider= my_strdup(PSI_INSTRUMENT_MEM, value, MYF(0));
+  wsrep_set_wsrep_on(NULL);
+}
+
+
+inline void setup_fpu()
+{
+#if defined(__FreeBSD__) && defined(HAVE_IEEEFP_H) && !defined(HAVE_FEDISABLEEXCEPT)
+  /* We can't handle floating point exceptions with threads, so disable
+     this on freebsd
+     Don't fall for overflow, underflow,divide-by-zero or loss of precision.
+     fpsetmask() is deprecated in favor of fedisableexcept() in C99.
+  */
+#if defined(FP_X_DNML)
+  fpsetmask(~(FP_X_INV | FP_X_DNML | FP_X_OFL | FP_X_UFL | FP_X_DZ |
+              FP_X_IMP));
+#else
+  fpsetmask(~(FP_X_INV |             FP_X_OFL | FP_X_UFL | FP_X_DZ |
+              FP_X_IMP));
+#endif /* FP_X_DNML */
+#endif /* __FreeBSD__ && HAVE_IEEEFP_H && !HAVE_FEDISABLEEXCEPT */
+
+#ifdef HAVE_FEDISABLEEXCEPT
+  fedisableexcept(FE_ALL_EXCEPT);
+#endif
+
+#ifdef HAVE_FESETROUND
+  /* Set FPU rounding mode to "round-to-nearest" */
+  fesetround(FE_TONEAREST);
+#endif /* HAVE_FESETROUND */
+
+  /*
+    x86 (32-bit) requires FPU precision to be explicitly set to 64 bit
+    (double precision) for portable results of floating point operations.
+    However, there is no need to do so if compiler is using SSE2 for floating
+    point, double values will be stored and processed in 64 bits anyway.
+  */
+#if defined(__i386__) && !defined(__SSE2_MATH__)
+#if defined(_WIN32)
+#if !defined(_WIN64)
+  _control87(_PC_53, MCW_PC);
+#endif /* !_WIN64 */
+#else /* !_WIN32 */
+  fpu_control_t cw;
+  _FPU_GETCW(cw);
+  cw= (cw & ~_FPU_EXTENDED) | _FPU_DOUBLE;
+  _FPU_SETCW(cw);
+#endif /* _WIN32 && */
+#endif /* __i386__ */
+
+#if defined(__sgi) && defined(HAVE_SYS_FPU_H)
+  /* Enable denormalized DOUBLE values support for IRIX */
+  union fpc_csr n;
+  n.fc_word = get_fpc_csr();
+  n.fc_struct.flush = 0;
+  set_fpc_csr(n.fc_word);
+#endif
+}
+
+
+static int
+init_gtid_pos_auto_engines(void)
+{
+  plugin_ref *plugins;
+
+  /*
+    For the command-line option --gtid_pos_auto_engines, we allow (and ignore)
+    engines that are unknown. This is convenient, since it allows to set
+    default auto-create engines that might not be used by particular users.
+    The option sets a list of storage engines that will have gtid position
+    table auto-created for them if needed. And if the engine is not available,
+    then it will certainly not be needed.
+  */
+  if (gtid_pos_auto_engines)
+    plugins= resolve_engine_list(NULL, gtid_pos_auto_engines,
+                                 strlen(gtid_pos_auto_engines), false, false);
+  else
+    plugins= resolve_engine_list(NULL, "", 0, false, false);
+  if (!plugins)
+    return 1;
+  mysql_mutex_lock(&LOCK_global_system_variables);
+  opt_gtid_pos_auto_plugins= plugins;
+  mysql_mutex_unlock(&LOCK_global_system_variables);
+  return 0;
+}
+
+
+
+static int init_server_components()
+{
+  DBUG_ENTER("init_server_components");
+  /*
+    We need to call each of these following functions to ensure that
+    all things are initialized so that unireg_abort() doesn't fail
+  */
+  my_cpu_init();
+  mdl_init();
+  if (tdc_init() || hostname_cache_init())
+    unireg_abort(1);
+
+  query_cache_set_min_res_unit(query_cache_min_res_unit);
+  query_cache_result_size_limit(query_cache_limit);
+  /* if we set size of QC non-zero in config then probably we want it ON */
+  if (query_cache_size != 0 &&
+      global_system_variables.query_cache_type == 0 &&
+      !IS_SYSVAR_AUTOSIZE(&query_cache_size))
+  {
+    global_system_variables.query_cache_type= 1;
+  }
+  query_cache_init();
+  DBUG_ASSERT(query_cache_size < ULONG_MAX);
+  query_cache_resize((ulong)query_cache_size);
+  my_rnd_init(&sql_rand,(ulong) server_start_time,(ulong) server_start_time/2);
+  setup_fpu();
+  init_thr_lock();
+  backup_init();
+
+  if (init_thr_timer(thread_scheduler->max_threads + extra_max_connections))
+  {
+    fprintf(stderr, "Can't initialize timers\n");
+    unireg_abort(1);
+  }
+
+  my_uuid_init((ulong) (my_rnd(&sql_rand))*12345,12345);
+  wt_init();
+
+  /* Setup logs */
+
+  setup_log_handling();
+
+  /*
+    Enable old-fashioned error log, except when the user has requested
+    help information. Since the implementation of plugin server
+    variables the help output is now written much later.
+  */
+#ifdef _WIN32
+  if (opt_console)
+    opt_error_log= false;
+#endif
+
+  if (opt_error_log)
+  {
+    if (!log_error_file_ptr[0])
+    {
+      fn_format(log_error_file, pidfile_name, mysql_data_home, ".err",
+                MY_REPLACE_EXT); /* replace '.<domain>' by '.err', bug#4997 */
+      SYSVAR_AUTOSIZE(log_error_file_ptr, log_error_file);
+    }
+    else
+    {
+      fn_format(log_error_file, log_error_file_ptr, mysql_data_home, ".err",
+                MY_UNPACK_FILENAME | MY_SAFE_PATH);
+      log_error_file_ptr= log_error_file;
+    }
+    if (!log_error_file[0])
+      opt_error_log= 0;                         // Too long file name
+    else
+    {
+      my_bool res;
+#ifndef EMBEDDED_LIBRARY
+      res= reopen_fstreams(log_error_file, stdout, stderr);
+#else
+      res= reopen_fstreams(log_error_file, NULL, stderr);
+#endif
+
+      if (!res)
+        setbuf(stderr, NULL);
+
+#ifdef _WIN32
+      /* Add error log to windows crash reporting. */
+      add_file_to_crash_report(log_error_file);
+#endif
+    }
+  }
+
+  /* set up the hook before initializing plugins which may use it */
+  error_handler_hook= my_message_sql;
+  proc_info_hook= set_thd_stage_info;
+
+//#ifdef WITH_PERFSCHEMA_STORAGE_ENGINE
+//  /*
+//    Parsing the performance schema command line option may have reported
+//    warnings/information messages.
+//    Now that the logger is finally available, and redirected
+//    to the proper file when the --log--error option is used,
+//    print the buffered messages to the log.
+//  */
+//  buffered_logs.print();
+//  buffered_logs.cleanup();
+//#endif /* WITH_PERFSCHEMA_STORAGE_ENGINE */
+
+//#ifndef EMBEDDED_LIBRARY
+//  /*
+//    Now that the logger is available, redirect character set
+//    errors directly to the logger
+//    (instead of the buffered_logs used at the server startup time).
+//  */
+//  my_charset_error_reporter= charset_error_reporter;
+//#endif
+
+  xid_cache_init();
+
+//  /* need to configure logging before initializing storage engines */
+//  if (!opt_bin_log_used && !WSREP_ON)
+//  {
+//    if (opt_log_slave_updates)
+//      sql_print_warning("You need to use --log-bin to make "
+//                        "--log-slave-updates work.");
+//    if (binlog_format_used)
+//      sql_print_warning("You need to use --log-bin to make "
+//                        "--binlog-format work.");
+//  }
+
+  /* Check that we have not let the format to unspecified at this point */
+//  DBUG_ASSERT((uint)global_system_variables.binlog_format <=
+//              array_elements(binlog_format_names)-1);
+
+//#ifdef HAVE_REPLICATION
+//  if (opt_log_slave_updates && replicate_same_server_id)
+//  {
+//    if (opt_bin_log)
 //    {
-//      /* Start Digest */
-//      parser_state->m_digest_psi= MYSQL_DIGEST_START(thd->m_statement_psi);
-//
-//      if (parser_state->m_digest_psi != NULL)
-//      {
-//        /*
-//          If either:
-//          - the caller wants to compute a digest
-//          - the performance schema wants to compute a digest
-//          set the digest listener in the lexer.
-//        */
-//        parser_state->m_lip.m_digest= thd->m_digest;
-//        parser_state->m_lip.m_digest->m_digest_storage.m_charset_number=
-//            thd->charset()->number;
-//      }
+//      sql_print_error("using --replicate-same-server-id in conjunction with "
+//                      "--log-slave-updates is impossible, it would lead to "
+//                      "infinite loops in this server.");
+//      unireg_abort(1);
+//    }
+//    else
+//      sql_print_warning("using --replicate-same-server-id in conjunction with "
+//                        "--log-slave-updates would lead to infinite loops in "
+//                        "this server. However this will be ignored as the "
+//                        "--log-bin option is not defined.");
+//  }
+//#endif
+
+//  if (opt_bin_log)
+//  {
+//    /* Reports an error and aborts, if the --log-bin's path
+//       is a directory.*/
+//    if (opt_bin_logname[0] &&
+//        opt_bin_logname[strlen(opt_bin_logname) - 1] == FN_LIBCHAR)
+//    {
+//      sql_print_error("Path '%s' is a directory name, please specify "
+//                      "a file name for --log-bin option", opt_bin_logname);
+//      unireg_abort(1);
 //    }
 //
-//    IR *res;
+//    /* Reports an error and aborts, if the --log-bin-index's path
+//       is a directory.*/
+//    if (opt_binlog_index_name &&
+//        opt_binlog_index_name[strlen(opt_binlog_index_name) - 1]
+//            == FN_LIBCHAR)
+//    {
+//      sql_print_error("Path '%s' is a directory name, please specify "
+//                      "a file name for --log-bin-index option",
+//                      opt_binlog_index_name);
+//      unireg_abort(1);
+//    }
 //
-//    /* Actual Parse the query. YACC parser entry. */
-//    //  bool mysql_parse_status= thd->variables.sql_mode & MODE_ORACLE
-//    //                           ? ORAparse(thd, ir_vec, res) : MYSQLparse(thd, ir_vec, res);
-//    bool mysql_parse_status= thd->variables.sql_mode & MODE_ORACLE
-//                                 ? ORAparse(thd)
-//                                 : MYSQLparse(thd);
-//
-//    DBUG_ASSERT(opt_bootstrap || mysql_parse_status ||
-//                thd->lex->select_stack_top == 0);
-//    thd->lex->current_select= thd->lex->first_select_lex();
-//
-//    /*
-//      Check that if MYSQLparse() failed either thd->is_error() is set, or an
-//      internal error handler is set.
-//
-//      The assert will not catch a situation where parsing fails without an
-//      error reported if an error handler exists. The problem is that the
-//      error handler might have intercepted the error, so thd->is_error() is
-//      not set. However, there is no way to be 100% sure here (the error
-//      handler might be for other errors than parsing one).
-//    */
-//
-//    DBUG_ASSERT(!mysql_parse_status || thd->is_error() ||
-//                thd->get_internal_handler());
-//
-//    /* Reset parser state. */
-//
-//    thd->m_parser_state= NULL;
-//
-//    /* Restore creation context. */
-//
-//    if (creation_ctx)
-//      creation_ctx->restore_env(thd, backup_ctx);
-//
-//    /* That's it. */
-//
-//    ret_value= mysql_parse_status || thd->is_fatal_error;
-//
-//    if ((ret_value == 0) && (parser_state->m_digest_psi != NULL))
+//    char buf[FN_REFLEN];
+//    const char *ln;
+//    ln= mysql_bin_log.generate_name(opt_bin_logname, "-bin", 1, buf);
+//    if (!opt_bin_logname[0] && !opt_binlog_index_name)
 //    {
 //      /*
-//        On parsing success, record the digest in the performance schema.
+//        User didn't give us info to name the binlog index file.
+//        Picking `hostname`-bin.index like did in 4.x, causes replication to
+//        fail if the hostname is changed later. So, we would like to instead
+//        require a name. But as we don't want to break many existing setups, we
+//        only give warning, not error.
 //      */
-//      DBUG_ASSERT(do_pfs_digest);
-//      DBUG_ASSERT(thd->m_digest != NULL);
-//      MYSQL_DIGEST_END(parser_state->m_digest_psi,
-//                       &thd->m_digest->m_digest_storage);
+//      sql_print_warning("No argument was provided to --log-bin and "
+//                        "neither --log-basename or --log-bin-index where "
+//                        "used;  This may cause repliction to break when this "
+//                        "server acts as a master and has its hostname "
+//                        "changed! Please use '--log-basename=%s' or "
+//                        "'--log-bin=%s' to avoid this problem.",
+//                        opt_log_basename, ln);
+//    }
+//    if (ln == buf)
+//      opt_bin_logname= my_once_strdup(buf, MYF(MY_WME));
+//  }
+
+  /*
+    Since some wsrep threads (THDs) are create before plugins are
+    initialized, LOCK_plugin mutex needs to be initialized here.
+  */
+  plugin_mutex_init();
+
+  /*
+    Wsrep initialization must happen at this point, because:
+    - opt_bin_logname must be known when starting replication
+      since SST may need it
+    - SST may modify binlog index file, so it must be opened
+      after SST has happened
+
+    We also (unconditionally) initialize wsrep LOCKs and CONDs.
+    It is because they are used while accessing wsrep system
+    variables even when a wsrep provider is not loaded.
+  */
+
+  /* It's now safe to use thread specific memory */
+  mysqld_server_initialized= 1;
+
+#ifndef EMBEDDED_LIBRARY
+  wsrep_thr_init();
+#endif
+
+#ifdef WITH_WSREP
+  if (wsrep_init_server()) unireg_abort(1);
+
+  if (WSREP_ON && !wsrep_recovery)
+  {
+    if (opt_bootstrap) // bootsrap option given - disable wsrep functionality
+    {
+      wsrep_provider_init(WSREP_NONE);
+      if (wsrep_init())
+        unireg_abort(1);
+    }
+    else // full wsrep initialization
+    {
+      // add basedir/bin to PATH to resolve wsrep script names
+      char* const tmp_path= (char*)my_alloca(strlen(mysql_home) +
+                                               strlen("/bin") + 1);
+      if (tmp_path)
+      {
+        strcpy(tmp_path, mysql_home);
+        strcat(tmp_path, "/bin");
+        wsrep_prepend_PATH(tmp_path);
+      }
+      else
+      {
+        WSREP_ERROR("Could not append %s/bin to PATH", mysql_home);
+      }
+      my_afree(tmp_path);
+
+      if (wsrep_before_SE())
+      {
+//        set_ports(); // this is also called in network_init() later but we need
+//                     // to know mysqld_port now - lp:1071882
+        wsrep_init_startup(true);
+      }
+    }
+  }
+#endif /* WITH_WSREP */
+
+//  if (!opt_help && opt_bin_log)
+//  {
+//    if (mysql_bin_log.open_index_file(opt_binlog_index_name, opt_bin_logname,
+//                                      TRUE))
+//    {
+//      unireg_abort(1);
 //    }
 //
-//    MYSQL_QUERY_PARSE_DONE(ret_value);
-//    DBUG_RETURN(ret_value);
+//    log_bin_basename=
+//        rpl_make_log_name(key_memory_MYSQL_BIN_LOG_basename,
+//                          opt_bin_logname, pidfile_name,
+//                          opt_bin_logname ? "" : "-bin");
+//    log_bin_index=
+//        rpl_make_log_name(key_memory_MYSQL_BIN_LOG_index,
+//                          opt_binlog_index_name, log_bin_basename, ".index");
+//    if (log_bin_basename == NULL || log_bin_index == NULL)
+//    {
+//      sql_print_error("Unable to create replication path names:"
+//                      " out of memory or path names too long"
+//                      " (path name exceeds " STRINGIFY_ARG(FN_REFLEN)
+//                          " or file name exceeds " STRINGIFY_ARG(FN_LEN) ").");
+//      unireg_abort(1);
+//    }
+//  }
+
+#ifndef EMBEDDED_LIBRARY
+//  DBUG_PRINT("debug",
+//             ("opt_bin_logname: %s, opt_relay_logname: %s, pidfile_name: %s",
+//              opt_bin_logname, opt_relay_logname, pidfile_name));
+//  if (opt_relay_logname)
+//  {
+//    relay_log_basename=
+//        rpl_make_log_name(key_memory_MYSQL_RELAY_LOG_basename,
+//                          opt_relay_logname, pidfile_name,
+//                          opt_relay_logname ? "" : "-relay-bin");
+//    relay_log_index=
+//        rpl_make_log_name(key_memory_MYSQL_RELAY_LOG_index,
+//                          opt_relaylog_index_name, relay_log_basename, ".index");
+//    if (relay_log_basename == NULL || relay_log_index == NULL)
+//    {
+//      sql_print_error("Unable to create replication path names:"
+//                      " out of memory or path names too long"
+//                      " (path name exceeds " STRINGIFY_ARG(FN_REFLEN)
+//                          " or file name exceeds " STRINGIFY_ARG(FN_LEN) ").");
+//      unireg_abort(1);
+//    }
+//  }
+#endif /* !EMBEDDED_LIBRARY */
+
+  /* call ha_init_key_cache() on all key caches to init them */
+  process_key_caches(&ha_init_key_cache, 0);
+
+  init_global_table_stats();
+  init_global_index_stats();
+  init_update_queries();
+
+  /* Allow storage engine to give real error messages */
+//  if (unlikely(ha_init_errors()))
+//    DBUG_RETURN(1);
+
+  tc_log= 0; // ha_initialize_handlerton() needs that
+
+//  if (ddl_log_initialize())
+//    unireg_abort(1);
+
+//  if (plugin_init(&remaining_argc, remaining_argv,
+//                  (opt_noacl ? PLUGIN_INIT_SKIP_PLUGIN_TABLE : 0) |
+//                      (opt_abort ? PLUGIN_INIT_SKIP_INITIALIZATION : 0)))
+//  {
+//    sql_print_error("Failed to initialize plugins.");
+//    unireg_abort(1);
+//  }
+//  plugins_are_initialized= TRUE;  /* Don't separate from init function */
+
+#ifdef HAVE_REPLICATION
+  /*
+    Semisync is not required by other components, which justifies its
+    initialization at this point when thread specific memory is also available.
+  */
+//  if (repl_semisync_master.init_object() ||
+//      repl_semisync_slave.init_object())
+//  {
+//    sql_print_error("Could not initialize semisync.");
+//    unireg_abort(1);
+//  }
+#endif
+
+#ifndef EMBEDDED_LIBRARY
+//  if (session_tracker_init())
+//    return 1;
+#endif //EMBEDDED_LIBRARY
+
+  /* we do want to exit if there are any other unknown options */
+//  if (remaining_argc > 1)
+//  {
+//    int ho_error;
+//    struct my_option removed_opts[]=
+//    {
+//      /* The following options exist in 5.6 but not in 10.0 */
+//      MYSQL_COMPATIBILITY_OPTION("log-raw"),
+//      MYSQL_COMPATIBILITY_OPTION("log-bin-use-v1-row-events"),
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("default-authentication-plugin"),
+//      MYSQL_COMPATIBILITY_OPTION("binlog-max-flush-queue-time"),
+//      MYSQL_COMPATIBILITY_OPTION("master-info-repository"),
+//      MYSQL_COMPATIBILITY_OPTION("relay-log-info-repository"),
+//      MYSQL_SUGGEST_ANALOG_OPTION("binlog-rows-query-log-events", "--binlog-annotate-row-events"),
+//      MYSQL_COMPATIBILITY_OPTION("binlog-order-commits"),
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("log-throttle-queries-not-using-indexes"),
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("end-markers-in-json"),
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("optimizer-trace-features"),     // OPTIMIZER_TRACE
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("optimizer-trace-offset"),       // OPTIMIZER_TRACE
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("optimizer-trace-limit"),        // OPTIMIZER_TRACE
+//      MYSQL_COMPATIBILITY_OPTION("server-id-bits"),
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("slave-rows-search-algorithms"), // HAVE_REPLICATION
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("slave-allow-batching"),         // HAVE_REPLICATION
+//      MYSQL_COMPATIBILITY_OPTION("slave-checkpoint-period"),      // HAVE_REPLICATION
+//      MYSQL_COMPATIBILITY_OPTION("slave-checkpoint-group"),       // HAVE_REPLICATION
+//      MYSQL_SUGGEST_ANALOG_OPTION("slave-pending-jobs-size-max", "--slave-parallel-max-queued"),  // HAVE_REPLICATION
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("sha256-password-private-key-path"), // HAVE_OPENSSL
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("sha256-password-public-key-path"),  // HAVE_OPENSSL
+//
+//      /* The following options exist in 5.5 and 5.6 but not in 10.0 */
+//      MYSQL_SUGGEST_ANALOG_OPTION("abort-slave-event-count", "--debug-abort-slave-event-count"),
+//      MYSQL_SUGGEST_ANALOG_OPTION("disconnect-slave-event-count", "--debug-disconnect-slave-event-count"),
+//      MYSQL_SUGGEST_ANALOG_OPTION("exit-info", "--debug-exit-info"),
+//      MYSQL_SUGGEST_ANALOG_OPTION("max-binlog-dump-events", "--debug-max-binlog-dump-events"),
+//      MYSQL_SUGGEST_ANALOG_OPTION("sporadic-binlog-dump-fail", "--debug-sporadic-binlog-dump-fail"),
+//      MYSQL_COMPATIBILITY_OPTION("new"),
+//      MYSQL_COMPATIBILITY_OPTION("show_compatibility_56"),
+//
+//      /* The following options were removed in 10.6 */
+//      MARIADB_REMOVED_OPTION("innodb-force-load-corrupted"),
+//
+//    /* The following options were removed in 10.5 */
+//#if defined(__linux__)
+//      MARIADB_REMOVED_OPTION("super-large-pages"),
+//#endif
+//      MARIADB_REMOVED_OPTION("innodb-idle-flush-pct"),
+//      MARIADB_REMOVED_OPTION("innodb-locks-unsafe-for-binlog"),
+//      MARIADB_REMOVED_OPTION("innodb-rollback-segments"),
+//      MARIADB_REMOVED_OPTION("innodb-stats-sample-pages"),
+//      MARIADB_REMOVED_OPTION("max-long-data-size"),
+//      MARIADB_REMOVED_OPTION("multi-range-count"),
+//      MARIADB_REMOVED_OPTION("skip-bdb"),
+//      MARIADB_REMOVED_OPTION("thread-concurrency"),
+//      MARIADB_REMOVED_OPTION("timed-mutexes"),
+//
+//      /* The following options were added after 5.6.10 */
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("rpl-stop-slave-timeout"),
+//      MYSQL_TO_BE_IMPLEMENTED_OPTION("validate-user-plugins"), // NO_EMBEDDED_ACCESS_CHECKS
+//
+//      /* The following options were deprecated in 10.5 or earlier */
+//      MARIADB_REMOVED_OPTION("innodb-adaptive-max-sleep-delay"),
+//      MARIADB_REMOVED_OPTION("innodb-background-scrub-data-check-interval"),
+//      MARIADB_REMOVED_OPTION("innodb-background-scrub-data-compressed"),
+//      MARIADB_REMOVED_OPTION("innodb-background-scrub-data-interval"),
+//      MARIADB_REMOVED_OPTION("innodb-background-scrub-data-uncompressed"),
+//      MARIADB_REMOVED_OPTION("innodb-buffer-pool-instances"),
+//      MARIADB_REMOVED_OPTION("innodb-commit-concurrency"),
+//      MARIADB_REMOVED_OPTION("innodb-concurrency-tickets"),
+//      MARIADB_REMOVED_OPTION("innodb-file-format"),
+//      MARIADB_REMOVED_OPTION("innodb-large-prefix"),
+//      MARIADB_REMOVED_OPTION("innodb-lock-schedule-algorithm"),
+//      MARIADB_REMOVED_OPTION("innodb-log-checksums"),
+//      MARIADB_REMOVED_OPTION("innodb-log-compressed-pages"),
+//      MARIADB_REMOVED_OPTION("innodb-log-files-in-group"),
+//      MARIADB_REMOVED_OPTION("innodb-log-optimize-ddl"),
+//      MARIADB_REMOVED_OPTION("innodb-log-write-ahead-size"),
+//      MARIADB_REMOVED_OPTION("innodb-page-cleaners"),
+//      MARIADB_REMOVED_OPTION("innodb-replication-delay"),
+//      MARIADB_REMOVED_OPTION("innodb-scrub-log"),
+//      MARIADB_REMOVED_OPTION("innodb-scrub-log-speed"),
+//      MARIADB_REMOVED_OPTION("innodb-sync-array-size"),
+//      MARIADB_REMOVED_OPTION("innodb-thread-concurrency"),
+//      MARIADB_REMOVED_OPTION("innodb-thread-sleep-delay"),
+//      MARIADB_REMOVED_OPTION("innodb-undo-logs"),
+//      {0, 0, 0, 0, 0, 0, GET_NO_ARG, NO_ARG, 0, 0, 0, 0, 0, 0}
+//    };
+//    /*
+//      We need to eat any 'loose' arguments first before we conclude
+//      that there are unprocessed options.
+//    */
+//    my_getopt_skip_unknown= 0;
+//#ifdef WITH_WSREP
+//    if (wsrep_recovery)
+//      my_getopt_skip_unknown= TRUE;
+//#endif
+//
+//    if ((ho_error= handle_options(&remaining_argc, &remaining_argv, removed_opts,
+//                                  mysqld_get_one_option)))
+//      unireg_abort(ho_error);
+//    /* Add back the program name handle_options removes */
+//    remaining_argc++;
+//    remaining_argv--;
+//    my_getopt_skip_unknown= TRUE;
+//
+//#ifdef WITH_WSREP
+//    if (!wsrep_recovery)
+//    {
+//#endif
+//      if (remaining_argc > 1)
+//      {
+//        fprintf(stderr, "%s: Too many arguments (first extra is '%s').\n",
+//                my_progname, remaining_argv[1]);
+//        unireg_abort(1);
+//      }
+//#ifdef WITH_WSREP
+//    }
+//#endif
+//  }
+
+//  if (opt_abort)
+//    unireg_abort(0);
+
+//  if (init_io_cache_encryption())
+//    unireg_abort(1);
+
+  /* if the errmsg.sys is not loaded, terminate to maintain behaviour */
+//  if (!DEFAULT_ERRMSGS[0][0])
+//    unireg_abort(1);
+
+  /* We have to initialize the storage engines before CSV logging */
+  if (ha_init())
+  {
+    sql_print_error("Can't init databases");
+    unireg_abort(1);
   }
+
+//  if (opt_bootstrap)
+    log_output_options= LOG_FILE;
+//  else
+//    logger.init_log_tables();
+
+  if (log_output_options & LOG_NONE)
+  {
+    /*
+      Issue a warning if there were specified additional options to the
+      log-output along with NONE. Probably this wasn't what user wanted.
+    */
+    if ((log_output_options & LOG_NONE) && (log_output_options & ~LOG_NONE))
+      sql_print_warning("There were other values specified to "
+                        "log-output besides NONE. Disabling slow "
+                        "and general logs anyway.");
+    logger.set_handlers(LOG_NONE, LOG_NONE);
+  }
+  else
+  {
+    /* fall back to the log files if tables are not present */
+    LEX_CSTRING csv_name={STRING_WITH_LEN("csv")};
+    if (!plugin_is_ready(&csv_name, MYSQL_STORAGE_ENGINE_PLUGIN))
+    {
+      /* purecov: begin inspected */
+      sql_print_error("CSV engine is not present, falling back to the "
+                      "log files");
+      SYSVAR_AUTOSIZE(log_output_options,
+                      (log_output_options & ~LOG_TABLE) | LOG_FILE);
+      /* purecov: end */
+    }
+
+    logger.set_handlers(global_system_variables.sql_log_slow ?
+                                                             log_output_options:LOG_NONE,
+                        opt_log ? log_output_options:LOG_NONE);
+  }
+
+  if (init_default_storage_engine(default_storage_engine, table_plugin))
+    unireg_abort(1);
+
+  if (default_tmp_storage_engine && !*default_tmp_storage_engine)
+    default_tmp_storage_engine= NULL;
+
+  if (enforced_storage_engine && !*enforced_storage_engine)
+    enforced_storage_engine= NULL;
+
+  if (init_default_storage_engine(default_tmp_storage_engine, tmp_table_plugin))
+    unireg_abort(1);
+
+  if (init_default_storage_engine(enforced_storage_engine, enforced_table_plugin))
+    unireg_abort(1);
+
+  if (init_gtid_pos_auto_engines())
+    unireg_abort(1);
+
+#ifdef USE_ARIA_FOR_TMP_TABLES
+//  if (!ha_storage_engine_is_enabled(maria_hton) && !opt_bootstrap)
+//  {
+//    sql_print_error("Aria engine is not enabled or did not start. The Aria engine must be enabled to continue as server was configured with --with-aria-tmp-tables");
+//    unireg_abort(1);
+//  }
+#endif
+
+#ifdef WITH_WSREP
+  /*
+    Now is the right time to initialize members of wsrep startup threads
+    that rely on plugins and other related global system variables to be
+    initialized. This initialization was not possible before, as plugins
+    (and thus some global system variables) are initialized after wsrep
+    startup threads are created.
+    Note: This only needs to be done for rsync and mariabackup based SST
+    methods.
+  */
+  if (wsrep_before_SE())
+    wsrep_plugins_post_init();
+
+  if (WSREP_ON && !opt_bin_log)
+  {
+    wsrep_emulate_bin_log= 1;
+  }
+#endif
+
+  tc_log= get_tc_log_implementation();
+
+//  if (tc_log->open(opt_bin_log ? opt_bin_logname : opt_tc_log_file))
+//  {
+//    sql_print_error("Can't init tc log");
+//    unireg_abort(1);
+//  }
+
+//  if (ha_recover(0))
+//    unireg_abort(1);
+
+#ifndef EMBEDDED_LIBRARY
+//  start_handle_manager();
+#endif
+//  if (opt_bin_log)
+//  {
+//    int error;
+//    mysql_mutex_t *log_lock= mysql_bin_log.get_log_lock();
+//    mysql_mutex_lock(log_lock);
+//    error= mysql_bin_log.open(opt_bin_logname, 0, 0,
+//                              WRITE_CACHE, max_binlog_size, 0, TRUE);
+//    mysql_mutex_unlock(log_lock);
+//    if (unlikely(error))
+//      unireg_abort(1);
+//  }
+
+#ifdef HAVE_REPLICATION
+//  if (opt_bin_log)
+//  {
+//    if (binlog_expire_logs_seconds)
+//    {
+//      time_t purge_time= server_start_time - binlog_expire_logs_seconds;
+//      if (purge_time >= 0)
+//        mysql_bin_log.purge_logs_before_date(purge_time);
+//    }
+//  }
+//  else
+//  {
+//    if (binlog_expire_logs_seconds)
+//      sql_print_warning("You need to use --log-bin to make --expire-logs-days "
+//                        "or --binlog-expire-logs-seconds work.");
+//  }
+#endif
+
+//  if (ddl_log_execute_recovery() > 0)
+//    unireg_abort(1);
+  ha_signal_ddl_recovery_done();
+
+//  if (opt_myisam_log)
+//    (void) mi_log(1);
+
+#if defined(HAVE_MLOCKALL) && defined(MCL_CURRENT) && !defined(EMBEDDED_LIBRARY)
+//  if (locked_in_memory)
+//  {
+//    int error;
+//    if (user_info)
+//    {
+//      DBUG_ASSERT(!getuid());
+//      if (setreuid((uid_t) -1, 0) == -1)
+//      {
+//        sql_perror("setreuid");
+//        unireg_abort(1);
+//      }
+//      error= mlockall(MCL_CURRENT);
+//      set_user(mysqld_user, user_info);
+//    }
+//    else
+//      error= mlockall(MCL_CURRENT);
+//
+//    if (unlikely(error))
+//    {
+//      if (global_system_variables.log_warnings)
+//        sql_print_warning("Failed to lock memory. Errno: %d\n",errno);
+//      locked_in_memory= 0;
+//    }
+//  }
+#else
+  locked_in_memory= 0;
+#endif
+
+  ft_init_stopwords();
+
+  init_max_user_conn();
+  init_global_user_stats();
+  init_global_client_stats();
+//  if (!opt_bootstrap)
+//    servers_init(0);
+  init_status_vars();
+  Item_false= new (&read_only_root) Item_bool_static("FALSE", 0);
+  Item_true=  new (&read_only_root) Item_bool_static("TRUE", 1);
+  DBUG_ASSERT(Item_false);
+
+  DBUG_RETURN(0);
+}
+
+#define MYSQL_DEFAULT_CHARSET_NAME "latin1"
+#define MYSQL_DEFAULT_COLLATION_NAME "latin1_swedish_ci"
+
+static char *default_character_set_name;
+static char *default_collation_name;
+
+extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
+{
+  init_server_components();
+
+  // We turn off wsrep_on for this THD so that it can
+  // operate with wsrep_ready == OFF
+  // We also set this SST thread THD as system thread
+  THD *thd= new THD(next_thread_id());
+  thd->thread_stack= (char*) &thd;
+  thd->store_globals();
+  thd->set_command(COM_DAEMON);
+  thd->system_thread= SYSTEM_THREAD_GENERIC;
+  thd->security_ctx->host_or_ip="";
+
+
+  global_system_variables.lc_messages= my_default_lc_messages;
+//  global_system_variables.errmsgs= my_default_lc_messages->errmsgs->errmsgs;
+  lex_init();
+  if (item_create_init())
+    return 1;
+  item_init();
+  /*
+    Process a comma-separated character set list and choose
+    the first available character set. This is mostly for
+    test purposes, to be able to start "mysqld" even if
+    the requested character set is not available (see bug#18743).
+  */
+  myf utf8_flag= global_system_variables.old_behavior &
+                         OLD_MODE_UTF8_IS_UTF8MB3 ? MY_UTF8_IS_UTF8MB3 : 0;
+  for (;;)
+  {
+    char *next_character_set_name= strchr(default_character_set_name, ',');
+    if (next_character_set_name)
+      *next_character_set_name++= '\0';
+    if (!(default_charset_info=
+              get_charset_by_csname(default_character_set_name,
+                                    MY_CS_PRIMARY, MYF(utf8_flag | MY_WME))))
+    {
+      if (next_character_set_name)
+      {
+        default_character_set_name= next_character_set_name;
+        default_collation_name= 0;          // Ignore collation
+      }
+      else
+        return 1;                           // Eof of the list
+    }
+    else
+      break;
+  }
+
+  if (default_collation_name)
+  {
+    CHARSET_INFO *default_collation;
+    default_collation= get_charset_by_name(default_collation_name, MYF(utf8_flag));
+//    if (!default_collation)
+//    {
+//      sql_print_error(ER_DEFAULT(ER_UNKNOWN_COLLATION), default_collation_name);
+//      return 1;
+//    }
+//    if (!my_charset_same(default_charset_info, default_collation))
+//    {
+//      sql_print_error(ER_DEFAULT(ER_COLLATION_CHARSET_MISMATCH),
+//                      default_collation_name,
+//                      default_charset_info->cs_name.str);
+//      return 1;
+//    }
+    default_charset_info= default_collation;
+  }
+  /* Set collactions that depends on the default collation */
+  global_system_variables.collation_server= default_charset_info;
+  global_system_variables.collation_database= default_charset_info;
+  if (is_supported_parser_charset(default_charset_info))
+  {
+    global_system_variables.collation_connection= default_charset_info;
+    global_system_variables.character_set_results= default_charset_info;
+    global_system_variables.character_set_client= default_charset_info;
+  }
+  else
+  {
+    sql_print_warning("'%s' can not be used as client character set. "
+                      "'%s' will be used as default client character set.",
+                      default_charset_info->cs_name.str,
+                      my_charset_latin1.cs_name.str);
+    global_system_variables.collation_connection= &my_charset_latin1;
+    global_system_variables.character_set_results= &my_charset_latin1;
+    global_system_variables.character_set_client= &my_charset_latin1;
+  }
+
+//  if (!(character_set_filesystem=
+//            get_charset_by_csname(character_set_filesystem_name,
+//                                  MY_CS_PRIMARY, MYF(utf8_flag | MY_WME))))
+//    return 1;
+//  global_system_variables.character_set_filesystem= character_set_filesystem;
+
+//  if (!(my_default_lc_time_names=
+//            my_locale_by_name(lc_time_names_name)))
+//  {
+//    sql_print_error("Unknown locale: '%s'", lc_time_names_name);
+//    return 1;
+//  }
+//  global_system_variables.lc_time_names= my_default_lc_time_names;
+
+  thd->variables.character_set_client= &my_charset_latin1;
+
+  Object_creation_ctx *creation_ctx = NULL;
+
+  char* tmp_query_char = new char[query_str.length()+1];
+  strcpy(tmp_query_char, query_str.c_str());
+  thd->set_query(tmp_query_char, sizeof(tmp_query_char));
+
+  Parser_state parser_state;
+  if (parser_state.init(thd, thd->query(), thd->query_length()))
+  {
+    return -1;
+  }
+
+  bool ret_value;
+  DBUG_ENTER("parse_sql");
+  DBUG_ASSERT(thd->m_parser_state == NULL);
+  DBUG_ASSERT(thd->lex->m_sql_cmd == NULL);
+
+  /* Backup creation context. */
+
+  Object_creation_ctx *backup_ctx= NULL;
+
+  if (creation_ctx)
+    backup_ctx= creation_ctx->set_n_backup(thd);
+
+  /* Set parser state. */
+
+  thd->m_parser_state= &parser_state;
+
+  parser_state.m_digest_psi= NULL;
+  parser_state.m_lip.m_digest= NULL;
+
+  // Don't need do_pfs_digest in the SQLRight parser code.
+  if (false) // if (do_pfs_digest) {  // Always return false.
+  {
+    /* Start Digest */
+    parser_state.m_digest_psi= MYSQL_DIGEST_START(thd->m_statement_psi);
+
+    if (parser_state.m_digest_psi != NULL)
+    {
+      /*
+        If either:
+        - the caller wants to compute a digest
+        - the performance schema wants to compute a digest
+        set the digest listener in the lexer.
+      */
+      parser_state.m_lip.m_digest= thd->m_digest;
+      parser_state.m_lip.m_digest->m_digest_storage.m_charset_number=
+          thd->charset()->number;
+    }
+  }
+
+  IR *res;
+
+  /* Actual Parse the query. YACC parser entry. */
+  //  bool mysql_parse_status= thd->variables.sql_mode & MODE_ORACLE
+  //                           ? ORAparse(thd, ir_vec, res) : MYSQLparse(thd, ir_vec, res);
+  bool mysql_parse_status= thd->variables.sql_mode & MODE_ORACLE
+                           ? ORAparse(thd)
+                           : MYSQLparse(thd);
+
+//  DBUG_ASSERT(opt_bootstrap || mysql_parse_status ||
+//              thd->lex->select_stack_top == 0);
+  thd->lex->current_select= thd->lex->first_select_lex();
+
+  /*
+    Check that if MYSQLparse() failed either thd->is_error() is set, or an
+    internal error handler is set.
+
+    The assert will not catch a situation where parsing fails without an
+    error reported if an error handler exists. The problem is that the
+    error handler might have intercepted the error, so thd->is_error() is
+    not set. However, there is no way to be 100% sure here (the error
+    handler might be for other errors than parsing one).
+  */
+
+  DBUG_ASSERT(!mysql_parse_status || thd->is_error() ||
+              thd->get_internal_handler());
+
+  /* Reset parser state. */
+
+  thd->m_parser_state= NULL;
+
+  /* Restore creation context. */
+
+  if (creation_ctx)
+    creation_ctx->restore_env(thd, backup_ctx);
+
+  /* That's it. */
+
+  ret_value= mysql_parse_status || thd->is_fatal_error;
+
+  if ((ret_value == 0) && (parser_state.m_digest_psi != NULL))
+  {
+    /*
+      On parsing success, record the digest in the performance schema.
+    */
+    DBUG_ASSERT(thd->m_digest != NULL);
+  }
+
+  ir_vec.push_back(new IR(kIdent, string("HelloWorld")));
+
+  DBUG_RETURN(ret_value);
+}
 
 // End of SQLRight Injection.
 
