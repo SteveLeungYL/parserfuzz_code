@@ -95,6 +95,9 @@
 #include "mysql/psi/mysql_sp.h"
 
 #include "my_json_writer.h"
+/* SQLRight Injection. */
+#include "global_errmsgs_init.h"
+/* End of SQLRight Injection */
 #include <string>
 
 using std::string;
@@ -11355,9 +11358,15 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 //  my_pthread_once(&charsets_initialized, init_available_charsets);
 //  init_compiled_charsets(ulong(0));
 
+  my_default_lc_messages= my_locale_by_name("en_US");
+
   default_character_set_name= (char*) MYSQL_DEFAULT_CHARSET_NAME;
   global_system_variables.lc_messages= my_default_lc_messages;
-//  global_system_variables.errmsgs= my_default_lc_messages->errmsgs->errmsgs;
+  global_system_variables.errmsgs= my_default_lc_messages->errmsgs->errmsgs;
+
+  my_default_lc_messages->errmsgs->errmsgs = ret_errmsgs();
+
+  thd->variables.errmsgs = my_default_lc_messages->errmsgs->errmsgs;
   lex_init();
 //  thd->lex->thd = thd;
   thd->lex->start(thd);
@@ -11502,8 +11511,6 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
           thd->charset()->number;
     }
   }
-
-  IR *res;
 
   printf("\n\n\nGetting query: %s\n\n\n", thd->query());
   /* Actual Parse the query. YACC parser entry. */
