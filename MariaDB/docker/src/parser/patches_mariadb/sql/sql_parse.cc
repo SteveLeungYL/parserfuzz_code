@@ -11336,14 +11336,52 @@ static int init_server_components()
 }
 
 #define MYSQL_DEFAULT_CHARSET_NAME "latin1"
-#define MYSQL_DEFAULT_COLLATION_NAME "latin1_swedish_ci"
+//#define MYSQL_DEFAULT_COLLATION_NAME "latin1_swedish_ci"
 
 static char *default_character_set_name;
-static char *default_collation_name;
+//static char *default_collation_name;
+
+extern bool init_SQLRight_parser() {
+  init_server_components();
+
+  /*
+    Process a comma-separated character set list and choose
+    the first available character set. This is mostly for
+    test purposes, to be able to start "mysqld" even if
+    the requested character set is not available (see bug#18743).
+  */
+  myf utf8_flag= global_system_variables.old_behavior &
+                 OLD_MODE_UTF8_IS_UTF8MB3 ? MY_UTF8_IS_UTF8MB3 : 0;
+
+  default_character_set_name= (char*) MYSQL_DEFAULT_CHARSET_NAME;
+  default_charset_info=
+      get_charset_by_csname(default_character_set_name,
+                            MY_CS_PRIMARY, MYF(utf8_flag | MY_WME));
+
+  system_charset_info = default_charset_info;
+
+  /* Set collactions that depends on the default collation */
+  global_system_variables.collation_server= default_charset_info;
+  global_system_variables.collation_database= default_charset_info;
+  if (is_supported_parser_charset(default_charset_info))
+  {
+    printf("\n\n\ndefault_charset_info is set in the global_system_variables. \n\n\n");
+    global_system_variables.collation_connection= default_charset_info;
+    global_system_variables.character_set_results= default_charset_info;
+    global_system_variables.character_set_client= default_charset_info;
+  }
+
+  my_default_lc_messages= my_locale_by_name("en_US");
+  global_system_variables.lc_messages= my_default_lc_messages;
+  global_system_variables.errmsgs= my_default_lc_messages->errmsgs->errmsgs;
+
+  my_default_lc_messages->errmsgs->errmsgs = ret_errmsgs();
+
+  return true;
+}
 
 extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 {
-  init_server_components();
 
   // We turn off wsrep_on for this THD so that it can
   // operate with wsrep_ready == OFF
@@ -11358,13 +11396,7 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 //  my_pthread_once(&charsets_initialized, init_available_charsets);
 //  init_compiled_charsets(ulong(0));
 
-  my_default_lc_messages= my_locale_by_name("en_US");
-
-  default_character_set_name= (char*) MYSQL_DEFAULT_CHARSET_NAME;
-  global_system_variables.lc_messages= my_default_lc_messages;
-  global_system_variables.errmsgs= my_default_lc_messages->errmsgs->errmsgs;
-
-  my_default_lc_messages->errmsgs->errmsgs = ret_errmsgs();
+  my_default_lc_messages= global_system_variables.lc_messages;
 
   thd->variables.errmsgs = my_default_lc_messages->errmsgs->errmsgs;
   lex_init();
@@ -11373,82 +11405,15 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 //  if (item_create_init())
 //    return 1;
 //  item_init();
-  /*
-    Process a comma-separated character set list and choose
-    the first available character set. This is mostly for
-    test purposes, to be able to start "mysqld" even if
-    the requested character set is not available (see bug#18743).
-  */
-  myf utf8_flag= global_system_variables.old_behavior &
-                         OLD_MODE_UTF8_IS_UTF8MB3 ? MY_UTF8_IS_UTF8MB3 : 0;
 
-  default_charset_info=
-              get_charset_by_csname(default_character_set_name,
-                                    MY_CS_PRIMARY, MYF(utf8_flag | MY_WME));
-
-  system_charset_info = default_charset_info;
-
-  if (default_charset_info != nullptr) {
-    printf("\n\n\n The default charset setup is successfull. \n\n\n");
-    printf("Getting the default_charset_info->handler: %p", (void*)(default_charset_info->cset));
-  }
-
-  if (default_collation_name)
-  {
-    CHARSET_INFO *default_collation;
-    default_collation= get_charset_by_name(default_collation_name, MYF(utf8_flag));
-//    if (!default_collation)
-//    {
-//      sql_print_error(ER_DEFAULT(ER_UNKNOWN_COLLATION), default_collation_name);
-//      return 1;
-//    }
-//    if (!my_charset_same(default_charset_info, default_collation))
-//    {
-//      sql_print_error(ER_DEFAULT(ER_COLLATION_CHARSET_MISMATCH),
-//                      default_collation_name,
-//                      default_charset_info->cs_name.str);
-//      return 1;
-//    }
-    default_charset_info= default_collation;
-    printf("\n\n\n\nThe default_charset is set. \n\n\n\n");
-  }
-  /* Set collactions that depends on the default collation */
-  global_system_variables.collation_server= default_charset_info;
-  global_system_variables.collation_database= default_charset_info;
-  if (is_supported_parser_charset(default_charset_info))
-  {
-    printf("\n\n\ndefault_charset_info is set in the global_system_variables. \n\n\n");
-    global_system_variables.collation_connection= default_charset_info;
-    global_system_variables.character_set_results= default_charset_info;
-    global_system_variables.character_set_client= default_charset_info;
-  }
-//  else
-//  {
-//    sql_print_warning("'%s' can not be used as client character set. "
-//                      "'%s' will be used as default client character set.",
-//                      default_charset_info->cs_name.str,
-//                      my_charset_latin1.cs_name.str);
-//    global_system_variables.collation_connection= &my_charset_latin1;
-//    global_system_variables.character_set_results= &my_charset_latin1;
-//    global_system_variables.character_set_client= &my_charset_latin1;
+//  if (default_charset_info != nullptr) {
+//    printf("\n\n\n The default charset setup is successfull. \n\n\n");
+//    printf("Getting the default_charset_info->handler: %p", (void*)(default_charset_info->cset));
 //  }
 
-//  if (!(character_set_filesystem=
-//            get_charset_by_csname(character_set_filesystem_name,
-//                                  MY_CS_PRIMARY, MYF(utf8_flag | MY_WME))))
-//    return 1;
-//  global_system_variables.character_set_filesystem= character_set_filesystem;
-
-//  if (!(my_default_lc_time_names=
-//            my_locale_by_name(lc_time_names_name)))
-//  {
-//    sql_print_error("Unknown locale: '%s'", lc_time_names_name);
-//    return 1;
-//  }
-//  global_system_variables.lc_time_names= my_default_lc_time_names;
 
   thd->variables.character_set_client= default_charset_info;
-  printf("\n\n\ndefault_charset_info is set in the character_set_client. \n\n\n");
+//  printf("\n\n\ndefault_charset_info is set in the character_set_client. \n\n\n");
 
   thd->reset_for_next_command(true);
 
@@ -11459,9 +11424,10 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
   tmp_query_char[query_str.size()]  = 0;
   thd->set_query(tmp_query_char, sizeof(tmp_query_char));
 
+  char* db;
   if (thd->db.str == nullptr) {
     // The THD DTOR will do my_free() on this.
-    char *db = static_cast<char *>(my_malloc(PSI_NOT_INSTRUMENTED, 3, MYF(0)));
+    db = static_cast<char *>(my_malloc(PSI_NOT_INSTRUMENTED, 3, MYF(0)));
     sprintf(db, "db");
     const LEX_CSTRING db_lex_cstr = {db, strlen(db)};
     thd->reset_db(&db_lex_cstr);
@@ -11562,6 +11528,9 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 //  lex_end(thd->lex);
 
   ir_vec.push_back(new IR(kIdent, string("HelloWorld")));
+//  my_free(db);
+  delete[] tmp_query_char;
+  delete thd;
 
   DBUG_RETURN(ret_value);
 }
