@@ -4326,7 +4326,7 @@ V(kUnknown)
 
 
 #define SWITCHSTART \
-    switch(case_idx_){ 
+    switch(case_idx_){
 
 #define SWITCHEND \
     default: \
@@ -4344,7 +4344,7 @@ V(kUnknown)
         }
 
 #define TRANSLATESTART \
-    IR *res = NULL; 
+    IR *res = NULL;
 
 #define GENERATESTART(len) \
     case_idx_ = rand() % len ;
@@ -4355,10 +4355,10 @@ V(kUnknown)
 #define TRANSLATEEND \
      v_ir_collector.push_back(res); \
         \
-     return res; 
+     return res;
 
 #define TRANSLATEENDNOPUSH \
-     return res; 
+     return res;
 
 #define SAFETRANSLATE(a) \
     (assert(a != NULL), a->translate(v_ir_collector))
@@ -4371,7 +4371,7 @@ V(kUnknown)
         SAFEDELETE(_i)
 
 #define OP1(a) \
-    new IROperator(a) 
+    new IROperator(a)
 
 #define OP2(a, b) \
     new IROperator(a,b)
@@ -4418,7 +4418,7 @@ new IROperator("", a, "")
     } \
     \
     case 1: { \
-     
+
 #define DOBOTH  \
     break; }  \
     case 2:{ \
@@ -4428,31 +4428,31 @@ new IROperator("", a, "")
     } \
     \
     return res; \
-    
+
 
 
 enum IRTYPE{
 #define DECLARE_TYPE(v)  \
     v,
-ALLTYPE(DECLARE_TYPE)
+  ALLTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
 enum DATATYPE{
 #define DECLARE_TYPE(v)  \
     k##v,
-ALLDATATYPE(DECLARE_TYPE)
+  ALLDATATYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
 class IROperator{
 public:
-    IROperator(std::string prefix="", std::string middle="", std::string suffix=""):
-        prefix_(prefix), middle_(middle), suffix_(suffix) {}
+  IROperator(std::string prefix="", std::string middle="", std::string suffix=""):
+      prefix_(prefix), middle_(middle), suffix_(suffix) {}
 
-    std::string prefix_;
-    std::string middle_;
-    std::string suffix_;
+  std::string prefix_;
+  std::string middle_;
+  std::string suffix_;
 };
 
 enum DATAFLAG {
@@ -4466,195 +4466,167 @@ enum DATAFLAG {
   kMapToAll,
   kDefine,
   kNoModi,
-  kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc. 
+  kUseDefine,  // Immediate use of the defined column. In PRIMARY KEY(), INDEX() etc.
   kFlagUnknown
 };
 
 class IR{
+
+  // INIT ORDER: type_, data_type_, flag, name, op_, left_, right_, str_val_,
+  //  bool_val_, long_val_, int_val_, float_val_,
+  //  operand_num, unique_id_in_tree, mutated_times
+
 public:
-    IR(IRTYPE type,  IROperator * op, IR * left=NULL, IR* right=NULL):
-        type_(type), op_(op), left_(left), right_(right), operand_num_((!!right)+(!!left)), data_type_(kDataWhatever){
-            name_ = "v0";
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
-        }
+  IR(IRTYPE type,  IROperator * op, IR * left=NULL, IR* right=NULL):
+      type_(type), data_type_(kDataWhatever), op_(op), left_(left), right_(right) {
+    name_ = "v0";
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
 
-    IR(IRTYPE type, std::string str_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
-        type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL), operand_num_
-    (0), data_type_(data_type), scope_(scope) , data_flag_(flag){
-            name_ = "v0";
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
-        }
+  IR(IRTYPE type, std::string str_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
+      type_(type), data_type_(data_type), data_flag_(flag), op_(NULL), left_(NULL), right_(NULL), str_val_(str_val) {
+    name_ = "v0";
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
 
-    IR(IRTYPE type, bool b_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
-        type_(type), bool_val_(b_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
-            name_ = "v0";
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
-        }
+  IR(IRTYPE type, bool b_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
+      type_(type), data_type_(data_type), data_flag_(flag), op_(NULL), left_(NULL), right_(NULL), bool_val_(b_val) {
+    name_ = "v0";
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
 
-    IR(IRTYPE type, unsigned long long_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
-        type_(type), long_val_(long_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
-            name_ = "v0";
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
-        }
+  IR(IRTYPE type, unsigned long long_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
+      type_(type), data_type_(data_type), data_flag_(flag), op_(NULL),  left_(NULL), right_(NULL), long_val_(long_val) {
+    name_ = "v0";
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
 
-    IR(IRTYPE type, int int_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
-        type_(type), int_val_(int_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
-            name_ = "v0";
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
+  IR(IRTYPE type, int int_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
+      type_(type), data_type_(data_type), data_flag_(flag), op_(NULL), left_(NULL), right_(NULL), int_val_(int_val){
+    name_ = "v0";
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
+
+  IR(IRTYPE type, double f_val, DATATYPE data_type=kDataWhatever, DATAFLAG flag = kUse):
+      type_(type), data_type_(data_type), data_flag_(flag), op_(NULL), left_(NULL), right_(NULL), float_val_(f_val){
+    name_ = "v0";
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
+
+  IR(IRTYPE type, DATAFLAG flag, IROperator * op, IR * left, IR* right, double f_val, std::string str_val, std::string name, unsigned int mutated_times):
+      type_(type), data_type_(kDataWhatever),  data_flag_(flag), name_(name), op_(op), left_(left), right_(right),  str_val_(str_val),
+      float_val_(f_val), mutated_times_(mutated_times) {
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
+  }
+
+  IR(const IR* ir, IR* left, IR* right){
+    this->type_ = ir->type_;
+    if(ir->op_ != NULL)
+      this->op_ = OP3(ir->op_->prefix_, ir->op_->middle_, ir->op_->suffix_);
+    else{
+      this->op_ = OP0();
     }
+    this->left_ = left;
+    this->right_ = right;
+    this->str_val_ = ir->str_val_;
+    this->long_val_ = ir->long_val_;
+    this->data_type_ = ir->data_type_;
+    this->data_flag_ = ir->data_flag_;
+    this->name_ = ir->name_;
+    this->mutated_times_ = ir->mutated_times_;
 
-    IR(IRTYPE type, double f_val, DATATYPE data_type=kDataWhatever, int scope = -1, DATAFLAG flag = kUse):
-        type_(type), float_val_(f_val),left_(NULL), op_(NULL), right_(NULL), operand_num_(0), data_type_(kDataWhatever), scope_(scope) , data_flag_(flag){
-            name_ = "v0";
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
-        }
+    if (left_)
+      left_->parent_ = this;
+    if (right_)
+      right_->parent_ = this;
 
-    IR(IRTYPE type, IROperator * op, IR * left, IR* right, double f_val, std::string str_val, std::string name, unsigned int mutated_times, int scope, DATAFLAG flag):
-        type_(type), op_(op), left_(left), right_(right), operand_num_((!!right)+(!!left)), name_(name), str_val_(str_val),
-        float_val_(f_val), mutated_times_(mutated_times), data_type_(kDataWhatever), scope_(scope), data_flag_(flag){
-            if (left_)
-              left_->parent_ = this;
-            if (right_)
-              right_->parent_ = this;
-        }
+  }
 
-    IR(const IR* ir, IR* left, IR* right){
-        this->type_ = ir->type_;
-        if(ir->op_ != NULL)
-            this->op_ = OP3(ir->op_->prefix_, ir->op_->middle_, ir->op_->suffix_);
-        else{
-            this->op_ = OP0();
-        }
-        this->left_ = left;
-        this->right_ = right;
-        this->str_val_ = ir->str_val_;
-        this->long_val_ = ir->long_val_;
-        this->data_type_ = ir->data_type_;
-        this->scope_ = ir->scope_;
-        this->data_flag_ = ir->data_flag_;
-        this->name_ = ir->name_;
-        this->operand_num_ = ir->operand_num_;
-        this->mutated_times_ = ir->mutated_times_;
+  IRTYPE type_;
+  DATATYPE data_type_;
+  DATAFLAG data_flag_;
+  std::string name_;
 
-        if (left_)
-          left_->parent_ = this;
-        if (right_)
-          right_->parent_ = this;
-
-    }
-
-    union{
-        int int_val_;
-        unsigned long long_val_;
-        double float_val_;
-        bool bool_val_;
-    };
-
-    bool is_node_struct_fixed = false; // Do not mutate this IR if this set to be true.
-    bool is_mutating = false;
-
-    IR* deep_copy();
-    void drop();
-    void deep_drop();
-
-    IR* get_left();
-    IR* get_right();
-    std::string get_prefix();
-    std::string get_middle();
-    std::string get_suffix();
-    IR* get_parent();
-
-    bool update_left(IR*);
-    bool update_right(IR*);
-    bool swap_node(IR*, IR*);
-    bool detatch_node(IR*);
-
-	bool is_empty();
-
-    IR* locate_parent(IR*);
-    IR* get_root();
+  IROperator* op_ = NULL;
+  IR* left_ = NULL;
+  IR* right_ = NULL;
+  IR* parent_ = NULL;
 
 
-	IRTYPE get_ir_type();
-	DATATYPE get_data_type();
-    void set_data_type(DATATYPE);
-	DATAFLAG get_data_flag();
-    void set_data_flag(DATAFLAG);
+  std::string str_val_;
+  union{
+    int int_val_;
+    unsigned long long_val_;
+    double float_val_;
+    bool bool_val_;
+  };
 
-    std::string get_str_val();
-    void set_str_val(std::string);
+  unsigned int mutated_times_ = 0;
 
-    int scope_;
-    DATAFLAG data_flag_;
-    DATATYPE data_type_;
-    IRTYPE type_;
-    std::string name_;
+  bool is_node_struct_fixed = false; // Do not mutate this IR if this set to be true.
+  bool is_mutating = false;
 
-    std::string str_val_;
-    //int int_val_ = 0xdeadbeef;
-    //double float_val_ = 1.234;
+  bool update_left(IR*);
+  bool update_right(IR*);
+  bool swap_node(IR*, IR*);
+  bool detatch_node(IR*);
 
-    int uniq_id_in_tree_ = -1;
+  bool is_empty();
 
-    IROperator* op_ = NULL;
-    IR* left_ = NULL;
-    IR* right_ = NULL;
-    IR* parent_ = NULL;
-    int operand_num_;
-    unsigned int mutated_times_ = 0;
+  IR* locate_parent(IR*);
+  IR* get_root();
 
-    std::string to_string();
-    std::string to_string_core();
+  IRTYPE get_ir_type();
+  DATATYPE get_data_type();
+  void set_data_type(DATATYPE);
+  DATAFLAG get_data_flag();
+  void set_data_flag(DATAFLAG);
 
-    IR* where_clause_get_expr();
+  std::string get_str_val();
+  void set_str_val(std::string);
 
-    /* Do not use this func unless necessary (don't know the IR type. ) */
-    bool set_type(DATATYPE, DATAFLAG);
 
-    bool set_ident_type(DATATYPE, DATAFLAG);
-    bool set_opt_ident_type(DATATYPE, DATAFLAG);
-    bool set_ident_string_list_type(DATATYPE, DATAFLAG);
-    bool set_name_list_type(DATATYPE, DATAFLAG);
-    bool set_opt_name_list_type(DATATYPE, DATAFLAG);
-    bool set_table_ident_type(DATATYPE, DATAFLAG);
-    bool set_table_list_type(DATATYPE, DATAFLAG);
-    bool set_window_name_type(DATATYPE, DATAFLAG);
-    bool set_collation_name_type(DATATYPE, DATAFLAG);
-    bool set_charset_name_type(DATATYPE, DATAFLAG);
-    bool set_user_ident_or_text_type(DATAFLAG);
-    bool set_user_type(DATAFLAG);
-    bool set_user_list_type(DATAFLAG);
-    bool set_sp_name_type(DATATYPE, DATAFLAG);
-    bool set_role_type(DATAFLAG);
-    bool set_role_list_type(DATAFLAG);
-    bool set_TEXT_STRING_sys_list_type(DATATYPE, DATAFLAG);
-    bool set_simple_ident_list_type(DATATYPE, DATAFLAG);
-    bool set_view_tail_type(DATAFLAG);
-    bool set_simple_ident_nospvar_type(DATATYPE, DATAFLAG);
-    bool set_using_list_type(DATATYPE, DATAFLAG);
-    bool set_key_part_type(DATATYPE, DATAFLAG);
-    bool set_key_part_with_expression_type(DATATYPE, DATAFLAG);
-    bool set_key_list_with_expression_type(DATATYPE, DATAFLAG);
-    bool set_key_list_type(DATATYPE, DATAFLAG);
+  int uniq_id_in_tree_ = -1;
 
+
+  std::string to_string();
+  std::string to_string_core();
+
+
+  IR* deep_copy();
+  void drop();
+  void deep_drop();
+
+  IR* get_left();
+  IR* get_right();
+  std::string get_prefix();
+  std::string get_middle();
+  std::string get_suffix();
+  IR* get_parent();
+
+//  bool set_type(DATATYPE, DATAFLAG);
+//  bool set_ident_type(DATATYPE, DATAFLAG);
 };
 
 /*
@@ -4662,4 +4634,3 @@ public:
 */
 
 #endif
-
