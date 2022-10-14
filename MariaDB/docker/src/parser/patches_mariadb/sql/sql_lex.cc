@@ -12015,10 +12015,9 @@ IR* deep_copy(const IR* const root) {
   if (root->op_)
     op = OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_);
 
-  copy_res = new IR(root->type_, op, left, right, root->float_val_,
-                   root->str_val_, root->name_, root->mutated_times_, 0, kFlagUnknown);
+  copy_res = new IR(root->type_, root->data_flag_, op, left, right, root->float_val_,
+                       root->str_val_, root->name_, 0);
   copy_res->data_type_ = root->data_type_;
-  copy_res->data_flag_ = root->data_flag_;
 
   copy_res->is_node_struct_fixed = root->is_node_struct_fixed;
   copy_res->is_mutating = root->is_mutating;
@@ -12040,10 +12039,9 @@ IR *IR::deep_copy() {
   if (this->op_)
     op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
-  copy_res = new IR(this->type_, op, left, right, this->float_val_,
-                   this->str_val_, this->name_, this->mutated_times_, 0, kFlagUnknown);
+  copy_res = new IR(this->type_, this->data_flag_, op, left, right, this->float_val_,
+                   this->str_val_, this->name_, 0);
   copy_res->data_type_ = this->data_type_;
-  copy_res->data_flag_ = this->data_flag_;
 
   if (this->parent_) {
     copy_res->parent_ = this->parent_;
@@ -12254,15 +12252,6 @@ bool IR::is_empty() {
   return true;
 }
 
-bool IR::set_ident_type(DATATYPE data_type, DATAFLAG data_flag) {
-  // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
-  assert(this->get_ir_type() == kIdentifier);
-
-  this->set_data_type(data_type);
-  this->set_data_flag(data_flag);
-
-  return true;
-}
 
 std::string IR::get_str_val() {
   return this->str_val_;
@@ -12273,11 +12262,21 @@ void IR::set_str_val(std::string in) {
   return;
 }
 
-bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
-  this->set_data_type(data_type);
-  this->set_data_flag(data_flag);
-  return true;
-}
+//bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
+//  this->set_data_type(data_type);
+//  this->set_data_flag(data_flag);
+//  return true;
+//}
+
+//bool IR::set_ident_type(DATATYPE data_type, DATAFLAG data_flag) {
+//  // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
+//  assert(this->get_ir_type() == kIdentifier);
+//
+//  this->set_data_type(data_type);
+//  this->set_data_flag(data_flag);
+//
+//  return true;
+//}
 
 /*
 ** End SQLRight injected code.

@@ -21,8 +21,11 @@ int main() {
     test_query.assign((std::istreambuf_iterator<char>(t)),
                 std::istreambuf_iterator<char>());
     //string test_query = "SELECT v1 from v0 where v1 = 0;";
-    bool ret = parse_sql(test_query, tmp_input);
+    int ret = 0;
+    ret = parse_sql(test_query, tmp_input);
     string a = tmp_input.front()->to_string();
     cout << "ret: " << ret << ", to_string: " << a << endl;
+    tmp_input.front()->deep_drop();
+    tmp_input.clear();
     return 0;
 }
