@@ -10990,9 +10990,12 @@ static int init_server_components()
 //  if (ddl_log_initialize())
 //    unireg_abort(1);
 
+//  char* remaining_argv[] = {NULL};
+//  int remaining_argc = 1;
+//
 //  if (plugin_init(&remaining_argc, remaining_argv,
 //                  (opt_noacl ? PLUGIN_INIT_SKIP_PLUGIN_TABLE : 0) |
-//                      (opt_abort ? PLUGIN_INIT_SKIP_INITIALIZATION : 0)))
+//                      (0)))
 //  {
 //    sql_print_error("Failed to initialize plugins.");
 //    unireg_abort(1);
@@ -11349,13 +11352,18 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
   thd->system_thread= SYSTEM_THREAD_GENERIC;
   thd->security_ctx->host_or_ip="";
 
+//  my_pthread_once(&charsets_initialized, init_available_charsets);
+//  init_compiled_charsets(ulong(0));
 
+  default_character_set_name= (char*) MYSQL_DEFAULT_CHARSET_NAME;
   global_system_variables.lc_messages= my_default_lc_messages;
 //  global_system_variables.errmsgs= my_default_lc_messages->errmsgs->errmsgs;
   lex_init();
-  if (item_create_init())
-    return 1;
-  item_init();
+//  thd->lex->thd = thd;
+  thd->lex->start(thd);
+//  if (item_create_init())
+//    return 1;
+//  item_init();
   /*
     Process a comma-separated character set list and choose
     the first available character set. This is mostly for
@@ -11364,25 +11372,16 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
   */
   myf utf8_flag= global_system_variables.old_behavior &
                          OLD_MODE_UTF8_IS_UTF8MB3 ? MY_UTF8_IS_UTF8MB3 : 0;
-  for (;;)
-  {
-    char *next_character_set_name= strchr(default_character_set_name, ',');
-    if (next_character_set_name)
-      *next_character_set_name++= '\0';
-    if (!(default_charset_info=
+
+  default_charset_info=
               get_charset_by_csname(default_character_set_name,
-                                    MY_CS_PRIMARY, MYF(utf8_flag | MY_WME))))
-    {
-      if (next_character_set_name)
-      {
-        default_character_set_name= next_character_set_name;
-        default_collation_name= 0;          // Ignore collation
-      }
-      else
-        return 1;                           // Eof of the list
-    }
-    else
-      break;
+                                    MY_CS_PRIMARY, MYF(utf8_flag | MY_WME));
+
+  system_charset_info = default_charset_info;
+
+  if (default_charset_info != nullptr) {
+    printf("\n\n\n The default charset setup is successfull. \n\n\n");
+    printf("Getting the default_charset_info->handler: %p", (void*)(default_charset_info->cset));
   }
 
   if (default_collation_name)
@@ -11402,26 +11401,28 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 //      return 1;
 //    }
     default_charset_info= default_collation;
+    printf("\n\n\n\nThe default_charset is set. \n\n\n\n");
   }
   /* Set collactions that depends on the default collation */
   global_system_variables.collation_server= default_charset_info;
   global_system_variables.collation_database= default_charset_info;
   if (is_supported_parser_charset(default_charset_info))
   {
+    printf("\n\n\ndefault_charset_info is set in the global_system_variables. \n\n\n");
     global_system_variables.collation_connection= default_charset_info;
     global_system_variables.character_set_results= default_charset_info;
     global_system_variables.character_set_client= default_charset_info;
   }
-  else
-  {
-    sql_print_warning("'%s' can not be used as client character set. "
-                      "'%s' will be used as default client character set.",
-                      default_charset_info->cs_name.str,
-                      my_charset_latin1.cs_name.str);
-    global_system_variables.collation_connection= &my_charset_latin1;
-    global_system_variables.character_set_results= &my_charset_latin1;
-    global_system_variables.character_set_client= &my_charset_latin1;
-  }
+//  else
+//  {
+//    sql_print_warning("'%s' can not be used as client character set. "
+//                      "'%s' will be used as default client character set.",
+//                      default_charset_info->cs_name.str,
+//                      my_charset_latin1.cs_name.str);
+//    global_system_variables.collation_connection= &my_charset_latin1;
+//    global_system_variables.character_set_results= &my_charset_latin1;
+//    global_system_variables.character_set_client= &my_charset_latin1;
+//  }
 
 //  if (!(character_set_filesystem=
 //            get_charset_by_csname(character_set_filesystem_name,
@@ -11437,13 +11438,25 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 //  }
 //  global_system_variables.lc_time_names= my_default_lc_time_names;
 
-  thd->variables.character_set_client= &my_charset_latin1;
+  thd->variables.character_set_client= default_charset_info;
+  printf("\n\n\ndefault_charset_info is set in the character_set_client. \n\n\n");
+
+  thd->reset_for_next_command(true);
 
   Object_creation_ctx *creation_ctx = NULL;
 
-  char* tmp_query_char = new char[query_str.length()+1];
-  strcpy(tmp_query_char, query_str.c_str());
+  char* tmp_query_char = new char[query_str.size()+1];
+  strncpy(tmp_query_char, query_str.c_str(), query_str.size());
+  tmp_query_char[query_str.size()]  = 0;
   thd->set_query(tmp_query_char, sizeof(tmp_query_char));
+
+  if (thd->db.str == nullptr) {
+    // The THD DTOR will do my_free() on this.
+    char *db = static_cast<char *>(my_malloc(PSI_NOT_INSTRUMENTED, 3, MYF(0)));
+    sprintf(db, "db");
+    const LEX_CSTRING db_lex_cstr = {db, strlen(db)};
+    thd->reset_db(&db_lex_cstr);
+  }
 
   Parser_state parser_state;
   if (parser_state.init(thd, thd->query(), thd->query_length()))
@@ -11492,6 +11505,7 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
 
   IR *res;
 
+  printf("\n\n\nGetting query: %s\n\n\n", thd->query());
   /* Actual Parse the query. YACC parser entry. */
   //  bool mysql_parse_status= thd->variables.sql_mode & MODE_ORACLE
   //                           ? ORAparse(thd, ir_vec, res) : MYSQLparse(thd, ir_vec, res);
@@ -11537,6 +11551,8 @@ extern bool parse_sql(string query_str, std::vector<IR *> &ir_vec)
     */
     DBUG_ASSERT(thd->m_digest != NULL);
   }
+
+//  lex_end(thd->lex);
 
   ir_vec.push_back(new IR(kIdent, string("HelloWorld")));
 
