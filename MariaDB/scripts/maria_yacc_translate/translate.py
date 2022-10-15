@@ -947,6 +947,9 @@ def mark_statement_location(data):
     line_objs = [Line(lineno, contents) for lineno, contents in enumerate(lines)]
     token_objs = [line_obj for line_obj in line_objs if line_obj.contain_colon]
     token_objs = [line_obj for line_obj in token_objs if line_obj.first_is_token]
+    
+    print("token_objs:")
+    print(token_objs)
 
     token_objs = sorted(token_objs, key=lambda x: x.lineno)
 
@@ -954,6 +957,7 @@ def mark_statement_location(data):
 
     def search_next_semicolon_line(lines, start_index, stop_index):
         partial_lines = lines[start_index:stop_index]
+        print("Getting partial lines: %s" % (partial_lines))
         for relative_index, line in enumerate(partial_lines):
             if line == ";":
                 return start_index + relative_index
@@ -962,7 +966,7 @@ def mark_statement_location(data):
         # if partial_lines[0].endswith(";"):
         #     return start_index
 
-        logger.warning(f"Cannot find next semicolon. {lineno_start} - {lineno_stop}")
+        logger.warning(f"Cannot find next semicolon. {start_index} - {stop_index}")
         logger.warning(partial_lines)
 
     extract_tokens = {}
@@ -977,9 +981,13 @@ def mark_statement_location(data):
             lineno_stop = token_stop.lineno
 
         semicolon_index = search_next_semicolon_line(lines, lineno_start, lineno_stop)
+        print(lines[lineno_start : semicolon_index + 1])
+        print(len(lines))
+
         if not semicolon_index:
             logger.warning(f"Cannot find next semicolon position. ")
 
+        print("\n\n\nlineno_start %d: semicolon_index + 1: %d" % (lineno_start, semicolon_index + 1) )
         extract_tokens[token_start.first_word] = "\n".join(
             lines[lineno_start : semicolon_index + 1]
         )
@@ -1010,13 +1018,13 @@ def mark_statement_location(data):
 
 @click.command()
 @click.option("-o", "--output", default="bison_parser_2.y")
-@click.option("--remove-comments", is_flag=True, default=False)
+@click.option("--remove-comments", is_flag=True, default=True)
 def run(output, remove_comments):
     # Remove all_ir_type.txt, if exist
     if os.path.exists("./all_ir_types.txt"):
         os.remove("./all_ir_types.txt")
 
-    data = open("assets/parser_stmts.y").read()
+    data = open("./assets/parser_stmts.yy").read()
 
     data = remove_comments_if_necessary(data, remove_comments)
     # data = select_translate_region(data)
@@ -1038,24 +1046,24 @@ def run(output, remove_comments):
         f.write(marked_lines)
 
 
-def get_keywords_mapping():
-    with open("assets/lex.h") as f:
-        lines = [line.strip() for line in f.readlines()]
-        lines = [line for line in lines if line.startswith("{SYM")]
+# def get_keywords_mapping():
+#     with open("assets/lex.json") as f:
+#         lines = [line.strip() for line in f.readlines()]
+#         lines = [line for line in lines if line.startswith("{SYM")]
 
-    mapping = {}
-    for line in lines:
-        matched = line[line.find('"') : line.rfind(")")]
-        text, sym = matched.split(",")
-        text = text.strip().strip('"')
-        sym = sym.strip()
-        if sym not in mapping:
-            mapping[sym] = text
+#     mapping = {}
+#     for line in lines:
+#         matched = line[line.find('"') : line.rfind(")")]
+#         text, sym = matched.split(",")
+#         text = text.strip().strip('"')
+#         sym = sym.strip()
+#         if sym not in mapping:
+#             mapping[sym] = text
 
-    additional_mapping = {"END_OF_INPUT": "", "{}": ""}
-    mapping.update(additional_mapping)
-    with open("assets/keywords_mapping.json", "w") as f:
-        json.dump(mapping, f, indent=2, sort_keys=True)
+#     additional_mapping = {"END_OF_INPUT": "", "{}": ""}
+#     mapping.update(additional_mapping)
+#     with open("assets/keywords_mapping.json", "w") as f:
+#         json.dump(mapping, f, indent=2, sort_keys=True)
 
 
 if __name__ == "__main__":
