@@ -11,6 +11,7 @@ ONETAB = " " * 4
 ONESPACE = " "
 default_ir_type = "kUnknown"
 
+all_ir_type_str = []
 saved_ir_type = []
 
 custom_additional_keywords = {
@@ -27,51 +28,29 @@ custom_additional_keywords = {
     "%prec",
 }
 
-custom_additional_keywords_mapping = {
-    "%prec": "",
-    # "/* nothing */": "",
-    # "/* Nothing */": "",
-    # "/* Nothing*/": "",
-    # "/* empty */": "",
-    # "/* Empty */": "",
-}
+# custom_additional_keywords_mapping = {
+#     "%prec": "",
+#     # "/* nothing */": "",
+#     # "/* Nothing */": "",
+#     # "/* Nothing*/": "",
+#     # "/* empty */": "",
+#     # "/* Empty */": "",
+# }
 
 with open("assets/keywords_mapping.json") as f:
     keywords_mapping = json.load(f)
-    keywords_mapping.update(custom_additional_keywords_mapping)
+    # keywords_mapping.update(custom_additional_keywords_mapping)
 
 total_keywords = set()
 with open("assets/keywords.json") as f:
     total_keywords |= set(json.load(f))
-total_keywords |= custom_additional_keywords
+# total_keywords |= custom_additional_keywords
 
 total_tokens = set()
 if os.path.exists("assets/tokens.json"):
     with open("assets/tokens.json") as f:
         total_tokens |= set(json.load(f))
 
-manually_translation = {
-    "opt_returning_type": """
-opt_returning_type:
-
-    // The default returning type is CHAR(512). (The max length of 512
-    // is chosen so that the returned values are not handled as BLOBs
-    // internally. See CONVERT_IF_BIGGER_TO_BLOB.)
-    {
-        res = new IR(kOptReturningType, OP3("", "", ""));
-        $$ = res;
-    }
-
-    | RETURNING_SYM cast_type {
-        auto tmp1 = $2;
-        res = new IR(kOptReturningType, OP3("RETURNING", "", ""), tmp1);
-        $$ = res;
-    }
-
-;
-
-"""
-}
 
 
 class Token:
@@ -305,6 +284,7 @@ def translate_single_line(line, parent):
 
     if body:
         ir_type_str = ir_type_str_rewrite(parent)
+        all_ir_type_str.append(ir_type_str)
         body = f"k{ir_type_str}".join(body.rsplit(default_ir_type, 1))
         body += "$$ = res;"
 
@@ -938,7 +918,7 @@ def mark_statement_location(data):
             first_elem: str = words[0] if words else ""
             self.contain_colon = ":" in first_elem
             self.first_word = first_elem.rstrip(":")
-            self.first_is_token = self.first_word in total_tokens
+            self.first_is_token = True # TODO:: DOUBLE CHECK: Treat all keywords in the rules as token or keywords. 
 
         def __repr__(self):
             return f"Line({self.lineno}, {self.first_word})"
@@ -948,9 +928,6 @@ def mark_statement_location(data):
     token_objs = [line_obj for line_obj in line_objs if line_obj.contain_colon]
     token_objs = [line_obj for line_obj in token_objs if line_obj.first_is_token]
     
-    print("token_objs:")
-    print(token_objs)
-
     token_objs = sorted(token_objs, key=lambda x: x.lineno)
 
     range_bits = [i for i in range(len(lines))]
@@ -985,9 +962,8 @@ def mark_statement_location(data):
         print(len(lines))
 
         if not semicolon_index:
-            logger.warning(f"Cannot find next semicolon position. ")
+            logger.error(f"Cannot find next semicolon position. ")
 
-        print("\n\n\nlineno_start %d: semicolon_index + 1: %d" % (lineno_start, semicolon_index + 1) )
         extract_tokens[token_start.first_word] = "\n".join(
             lines[lineno_start : semicolon_index + 1]
         )
@@ -1032,10 +1008,7 @@ def run(output, remove_comments):
     marked_lines, extract_tokens = mark_statement_location(data)
 
     for token_name, extract_token in extract_tokens.items():
-        if token_name in manually_translation:
-            translation = manually_translation[token_name]
-        else:
-            translation = translate(extract_token)
+        translation = translate(extract_token)
 
         marked_lines = marked_lines.replace(
             f"=== {token_name.strip()} ===", translation, 1
@@ -1046,28 +1019,5 @@ def run(output, remove_comments):
         f.write(marked_lines)
 
 
-# def get_keywords_mapping():
-#     with open("assets/lex.json") as f:
-#         lines = [line.strip() for line in f.readlines()]
-#         lines = [line for line in lines if line.startswith("{SYM")]
-
-#     mapping = {}
-#     for line in lines:
-#         matched = line[line.find('"') : line.rfind(")")]
-#         text, sym = matched.split(",")
-#         text = text.strip().strip('"')
-#         sym = sym.strip()
-#         if sym not in mapping:
-#             mapping[sym] = text
-
-#     additional_mapping = {"END_OF_INPUT": "", "{}": ""}
-#     mapping.update(additional_mapping)
-#     with open("assets/keywords_mapping.json", "w") as f:
-#         json.dump(mapping, f, indent=2, sort_keys=True)
-
-
 if __name__ == "__main__":
-    # get_gram_tokens()
-    # get_gram_keywords()
-    # get_keywords_mapping()
     run()
