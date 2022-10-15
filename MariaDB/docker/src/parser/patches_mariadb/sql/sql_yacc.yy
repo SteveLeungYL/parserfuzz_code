@@ -15296,6 +15296,7 @@ ident_cli:
 IDENT_sys:
           IDENT_cli
           {
+           // printf("\n\n\nInside ident_sys\n\n\n");
             if (unlikely(thd->to_ident_sys_alloc(&$$, &$1)))
               MYSQL_YYABORT;
           }
@@ -15304,6 +15305,7 @@ IDENT_sys:
 TEXT_STRING_sys:
           TEXT_STRING
           {
+            //printf("\n\n\nInside make test string\n\n\n");
             if (thd->make_text_string_sys(&$$, &$1))
               MYSQL_YYABORT;
           }
@@ -15312,6 +15314,7 @@ TEXT_STRING_sys:
 TEXT_STRING_literal:
           TEXT_STRING
           {
+           // printf("\n\n\nInside make test string literal\n\n\n");
             if (thd->make_text_string_connection(&$$, &$1))
               MYSQL_YYABORT;
           }
@@ -15320,6 +15323,7 @@ TEXT_STRING_literal:
 TEXT_STRING_filesystem:
           TEXT_STRING
           {
+           // printf("\n\n\nInside make test string filesystem\n\n\n");
             if (thd->make_text_string_filesystem(&$$, &$1))
               MYSQL_YYABORT;
           }

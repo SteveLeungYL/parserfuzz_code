@@ -11335,7 +11335,8 @@ static int init_server_components()
   DBUG_RETURN(0);
 }
 
-#define MYSQL_DEFAULT_CHARSET_NAME "latin1"
+#define MYSQL_CURRENT_CHARSET_NAME "latin1"
+//#define MYSQL_CURRENT_CHARSET_NAME "ascii"
 //#define MYSQL_DEFAULT_COLLATION_NAME "latin1_swedish_ci"
 
 static char *default_character_set_name;
@@ -11353,7 +11354,7 @@ extern bool init_SQLRight_parser() {
   myf utf8_flag= global_system_variables.old_behavior &
                  OLD_MODE_UTF8_IS_UTF8MB3 ? MY_UTF8_IS_UTF8MB3 : 0;
 
-  default_character_set_name= (char*) MYSQL_DEFAULT_CHARSET_NAME;
+  default_character_set_name= (char*) MYSQL_CURRENT_CHARSET_NAME;
   default_charset_info=
       get_charset_by_csname(default_character_set_name,
                             MY_CS_PRIMARY, MYF(utf8_flag | MY_WME));

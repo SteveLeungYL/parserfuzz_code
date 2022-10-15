@@ -813,7 +813,7 @@ Lex_input_stream::reset(char *buffer, size_t length)
   m_tok_start_prev= NULL;
   m_buf= buffer;
   m_buf_length= length;
-  m_echo= TRUE;
+  m_echo= false;
   m_cpp_tok_start= NULL;
   m_cpp_tok_start_prev= NULL;
   m_cpp_tok_end= NULL;

@@ -4402,8 +4402,8 @@ new IROperator("", a, "")
         v_ir_collector.push_back(res); \
     }
 
-#define PUSH(a) \
-    v_ir_collector.push_back(a)
+//#define PUSH(a) \
+//    v_ir_collector.push_back(a)
 
 #define MUTATESTART \
     IR * res = NULL;       \

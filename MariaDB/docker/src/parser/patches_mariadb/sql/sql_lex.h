@@ -2460,7 +2460,8 @@ private:
 
   void save_in_comment_state()
   {
-    m_echo_saved= m_echo;
+    m_echo_saved= false;
+    m_echo = false;
     in_comment_saved= in_comment;
   }
 
@@ -2491,6 +2492,7 @@ private:
   unsigned char yyGet()
   {
     char c= *m_ptr++;
+//    printf("\n\n\nInside yyGet(), getting c: %c", c);
     if (m_echo)
       *m_cpp_ptr++ = c;
     return c;
