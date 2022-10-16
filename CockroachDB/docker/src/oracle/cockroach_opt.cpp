@@ -55,6 +55,27 @@ void SQL_OPT::compare_results(ALL_COMP_RES &res_out) {
       res.v_res_int.push_back(-1);
       continue;
     }
+    
+    if (findStringIn(res.v_res_str[0], "Internal Error") ||
+        findStringIn(res.v_res_str[0], "unexpected error") ||
+        findStringIn(res.v_res_str[1], "Internal Error") ||
+        findStringIn(res.v_res_str[1], "unexpected error") ||
+        findStringIn(res.v_res_str[2], "Internal Error") ||
+        findStringIn(res.v_res_str[2], "unexpected error") 
+    ) {
+      res.res_int_0 = -1;
+      res.res_int_1 = -1;
+      res.res_int_2 = -1;
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
+
+      res.comp_res = ORA_COMP_RES::Fail;
+      res_out.final_res = ORA_COMP_RES::Fail;
+
+      continue;
+    }
+
     if (findStringIn(res.v_res_str[0], "Error") ||
         findStringIn(res.v_res_str[0], "pq: ") ||
         findStringIn(res.v_res_str[1], "Error") ||
