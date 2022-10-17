@@ -2601,8 +2601,9 @@ BEGIN:
 
     /* Get the timeout message before looping the forksrv_pid.  */
     bool cur_is_timeout = is_timeout;
+
     cerr << "The CockroachDB process is not responding? Could be timeout "
-            "killed or crashed. cur_is_timeout" << cur_is_timeout << "\n\n\n";
+            "killed or crashed. is_timeout: " << cur_is_timeout << "\n\n\n";
 
     // Clean up the fd before calling init_forkserver.
     close(fsrv_ctl_fd);
@@ -2957,6 +2958,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
                       char **argv, u32 tmout = exec_tmout) {
 
   u8 fault;
+  bool is_crashing = false; // For multi-run queries, if encounter crashing, save the fault.
 
   string res_str = "";
 
@@ -3003,6 +3005,9 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
       cur_skipped_paths++;
       return fault;
     }
+    if (fault == FAULT_CRASH) {
+        is_crashing = true;
+    }
     res_str = g_cockroach_output;
     all_comp_res.cmd_str = std::move(cmd_string);
     all_comp_res.res_str = std::move(res_str);
@@ -3032,6 +3037,10 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
         skip_requested = 0;
         cur_skipped_paths++;
         return fault;
+      }
+
+      if (fault == FAULT_CRASH) {
+          is_crashing = true;
       }
       res_str = g_cockroach_output;
 
@@ -3105,7 +3114,12 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
   } else {
     /* Query being skipped. */
   }
-  return fault;
+
+  if (is_crashing) {
+      return FAULT_CRASH;
+  } else {
+      return fault;
+  }
 }
 
 /* The same, but with an adjustable gap. Used for trimming. */
@@ -3786,8 +3800,9 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
-                              const vector<int> &explain_diff_id = {}) {
+static u8 save_if_interesting(char **argv, string &query_str, u8 fault, 
+                                const ALL_COMP_RES& all_comp_res, 
+                                const vector<int> &explain_diff_id = {}) {
 
   u8 *fn = "";
   u8 hnb;
@@ -3981,7 +3996,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     total_crashes++;
 
-    if (unique_crashes >= KEEP_UNIQUE_CRASH)
+    if (unique_crashes >= KEEP_UNIQUE_CRASH) // 5000
       return keeping;
 
     if (!dumb_mode) {
@@ -3992,7 +4007,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_crash, query_str))
+      if (!has_new_bits(virgin_crash, query_str)) // If no new bits. Return.
         return keeping;
     }
 
@@ -4032,11 +4047,18 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
         To avoid query length explosion.
     */
 
-  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
-  if (fd < 0)
-    PFATAL("Unable to create '%s'", fn);
-  ck_write(fd, query_str.c_str(), query_str.size(), fn);
-  close(fd);
+//  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
+//  if (fd < 0)
+//    PFATAL("Unable to create '%s'", fn);
+//  ck_write(fd, query_str.c_str(), query_str.size(), fn);
+//  close(fd);
+
+  string crash_output_file_fn = string((char*)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
+
+  ofstream crash_output_file;
+  crash_output_file.open(crash_output_file_fn, std::ofstream::out);
+  stream_output_res(all_comp_res, crash_output_file);
+  crash_output_file.close(); 
 
   ck_free(fn);
 
@@ -5313,7 +5335,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec,
     return 0;
 
   int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault,
-                                        explain_diff_id);
+                                        all_comp_res, explain_diff_id);
   queued_discovered += should_keep;
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
@@ -6245,7 +6267,9 @@ static void sync_fuzzers(char **argv) {
         }
 
         syncing_party = sd_ent->d_name;
-        queued_imported += save_if_interesting(argv, saved_str, fault);
+        ALL_COMP_RES all_comp_res;
+        vector<int> dump_vec;
+        queued_imported += save_if_interesting(argv, saved_str, fault, all_comp_res);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
