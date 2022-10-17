@@ -214,16 +214,11 @@ RUN make
 ## Setup the fuzzing context.
 USER root
 RUN mkdir /home/cockroach/fuzzing/
-RUN mkdir /home/cockroach/fuzzing/fuzz_root
-RUN mkdir /home/cockroach/fuzzing/fuzz_root/outputs
 
-COPY fuzz_root/cockroach_initlib /home/cockroach/fuzzing/fuzz_root/cockroach_initlib/
-COPY fuzz_root/safe_generate_type /home/cockroach/fuzzing/fuzz_root/
-COPY fuzz_root/global_data_lib /home/cockroach/fuzzing/fuzz_root/
-COPY fuzz_root/inputs /home/cockroach/fuzzing/fuzz_root/inputs
-COPY fuzz_root/run_parallel.py /home/cockroach/fuzzing/fuzz_root/
-RUN mkdir /home/cockroach/fuzzing/Bug_Analysis
-RUN mkdir /home/cockroach/fuzzing/Bug_Analysis/bug_samples
+COPY fuzz_root /home/cockroach/fuzzing/fuzz_root/
+RUN mkdir -p /home/cockroach/fuzzing/fuzz_root/outputs
+RUN mkdir -p /home/cockroach/fuzzing/Bug_Analysis
+RUN mkdir -p /home/cockroach/fuzzing/Bug_Analysis/bug_samples
 
 RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/covtest.test /home/cockroach/fuzzing/fuzz_root/
 RUN cp /home/cockroach/src/afl-fuzz  /home/cockroach/fuzzing/fuzz_root/
