@@ -118,7 +118,7 @@ using namespace std;
 
 #define INIT_LIB_PATH "./cockroach_initlib"
 #define SAFE_GENERATE_PATH "./safe_generate_type"
-#define GLOBAL_TYPE_PATH "./global_data_lib"
+#define FUNCTION_TYPE_PATH "./function_type_lib"
 char *g_library_path;
 
 u64 total_input_failed = 0;
@@ -1478,18 +1478,9 @@ static void do_libary_initialize() {
        << g_mutator.all_query_pstr_set.size()
        << ", all_valid_pstr_vec size: " << g_mutator.all_valid_pstr_vec.size()
        << ". \n";
-  // if (g_mutator.all_query_pstr_set.size() > 0) {
-  //   cout << "Example all_query_pstr_set: " <<
-  //   **(g_mutator.all_query_pstr_set.begin()) << "\n";
-  // }
-  // if (g_mutator.all_valid_pstr_vec.size() > 0) {
-  //   for (auto cur_exam : g_mutator.all_valid_pstr_vec) {
-  //     cout << "Example all_valid_pstr_vec: " <<  *(cur_exam) << "\n";
-  //   }
-  // }
 
-  // g_mutator.init_data_library(GLOBAL_TYPE_PATH);
-  // g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
+  g_mutator.init_data_library(FUNCTION_TYPE_PATH);
+
   cout << "init_lib done" << endl;
 }
 

@@ -191,6 +191,20 @@ bool is_str_empty(string input_str) {
   return true; // Empty
 }
 
+string str_tolower(string str_in) {
+    std::transform(str_in.begin(), str_in.end(), str_in.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+
+    return str_in;
+}
+
+string str_toupper(string str_in) {
+    std::transform(str_in.begin(), str_in.end(), str_in.begin(),
+    [](unsigned char c){ return std::toupper(c); });
+
+    return str_in;
+}
+
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle) {
   auto it =

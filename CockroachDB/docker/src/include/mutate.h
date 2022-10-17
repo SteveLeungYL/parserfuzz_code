@@ -189,11 +189,8 @@ public:
   map<DATATYPE, vector<string>> data_library_;
   map<DATATYPE, map<string, map<DATATYPE, vector<string>>>> data_library_2d_;
 
-  map<DATATYPE, vector<string>> g_data_library_;
-  map<DATATYPE, set<unsigned long>> g_data_library_hash_;
-  map<DATATYPE, map<string, map<DATATYPE, vector<string>>>> g_data_library_2d_;
-  map<DATATYPE, map<string, map<DATATYPE, vector<string>>>>
-      g_data_library_2d_hash_;
+  map<FUNCTIONTYPE, vector<string>> function_library;
+  map<string, FUNCTIONTYPE> func_str_to_type_map;
 
   /*
   ** Not sure its usage yet. Might delete later.
@@ -253,8 +250,6 @@ public:
   static vector<string> v_sys_catalogs_name;
 
   static vector<string> v_saved_reloption_str;
-
-  static vector<string> v_aggregate_func;
 
   // added by vancir
   map<unsigned long, bool> norec_hash;

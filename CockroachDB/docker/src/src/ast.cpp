@@ -52,6 +52,15 @@ DATATYPE get_datatype_by_string(string s) {
   return DataNone;
 }
 
+FUNCTIONTYPE get_functype_by_string(string s) {
+  #define DECLARE_CASE(functiontypename)                                             \
+    if (s == #functiontypename)                                                      \
+      return functiontypename;
+    ALLFUNCTIONTYPES(DECLARE_CASE);
+  #undef DECLARE_CASE
+    return FUNCUNKNOWN;
+}
+
 string get_string_by_option_type(RelOptionType type) {
   switch (type) {
   case Unknown:

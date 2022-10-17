@@ -69,7 +69,6 @@ map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 vector<string> Mutator::v_sys_column_name;
 vector<string> Mutator::v_sys_catalogs_name;
 
-vector<string> Mutator::v_aggregate_func;
 vector<string> Mutator::v_table_with_partition_name;
 
 vector<string> Mutator::v_saved_reloption_str;
@@ -279,14 +278,16 @@ void Mutator::init_data_library(string filename) {
   ifstream input_file(filename);
   string s;
 
-  cout << "[*] init data_library: " << filename << endl;
+  cout << "[*] init function_types library.: " << filename << endl;
   while (getline(input_file, s)) {
     auto pos = s.find(" ");
     if (pos == string::npos)
       continue;
-    auto data_type = get_datatype_by_string(s.substr(0, pos));
+    auto func_type = get_functype_by_string(s.substr(0, pos));
     auto v = s.substr(pos + 1, s.size() - pos - 1);
-    g_data_library_[data_type].push_back(v);
+    
+    function_library[func_type].push_back(v);
+    func_str_to_type_map[v] = func_type;
   }
 
   return;
@@ -344,19 +345,6 @@ void Mutator::init_ir_library(string filename) {
   }
   return;
 }
-
-// void Mutator::init_safe_generate_type(string filename) {
-//   ifstream input_file(filename);
-//   string line;
-
-//   cout << "[*] init safe generate type: " << filename << endl;
-//   while (getline(input_file, line)) {
-//     if (line.empty())
-//       continue;
-//     auto node_type = get_irtype_by_string("k" + line);
-//     safe_generate_type_.insert(node_type);
-//   }
-// }
 
 void Mutator::init_library() {
 
@@ -446,13 +434,6 @@ void Mutator::init_library() {
 
     this->m_reloption[TypeCreateTable] =
         storage_parameter_pair; // TODO: FIXME: Might not be accurate.
-
-    /* added the supported aggregate functons.  */
-    this->v_aggregate_func.push_back("SUM");
-    this->v_aggregate_func.push_back("COUNT");
-    this->v_aggregate_func.push_back("MAX");
-    this->v_aggregate_func.push_back("MIN");
-    this->v_aggregate_func.push_back("AVG");
 
     /* Added default column type for Postgres */
     this->v_sys_column_name.push_back("oid");
@@ -3038,117 +3019,122 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
-    //    /* Fix for reloptions. (Related options. ) and function names.  */
-    //    for (IR* ir_to_fix : ir_to_fix_vec) {
-    //
-    //      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-    //      fixed_ir.end()) {
-    //        continue;
-    //      }
-    //
-    //      if (ir_to_fix->get_data_type() == kDataRelOption) {
-    //        fixed_ir.push_back(ir_to_fix);
-    //
-    //        /* See if we have seen this reloption before, if not, save it.  */
-    //        string ori_str = ir_to_fix->to_string();
-    //        if (
-    //          std::find(v_saved_reloption_str.begin(),
-    //          v_saved_reloption_str.end(), ori_str) ==
-    //          v_saved_reloption_str.end()
-    //        ) {
-    //          if (is_debug_info) {
-    //            cerr << "Dependency: Saving unseen reloption string: " <<
-    //            ori_str << ". \n\n\n";
-    //          }
-    //          v_saved_reloption_str.push_back(ori_str);
-    //        }
-    //
-    //        // Use original reloptions, in 99% of chances.
-    //        if (get_rand_int(100) < 99) {
-    //          continue;
-    //        }
-    //
-    //        if (get_rand_int(5) < 4 && v_saved_reloption_str.size() > 0) {
-    //          /* If 4/5 chances, rerun previously seen reloptions */
-    //          IR* new_reloption_ir = new IR(kReloptionElem,
-    //          vector_rand_ele(v_saved_reloption_str));
-    //          cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-    //          ir_to_deep_drop.push_back(ir_to_fix);
-    //          if (is_debug_info) {
-    //            cerr << "Dependency: In reloption, using previously seen
-    //            reloption: " << new_reloption_ir->get_str_val() << ". \n\n\n";
-    //          }
-    //          continue;
-    //        }
-    //
-    //        if(is_debug_info) {
-    //          cerr << "Dependency: Fixing kDataRelOption: " <<
-    //          get_string_by_ir_type(ir_to_fix->get_ir_type()) << ",
-    //          to_string(): " << ir_to_fix->to_string() << " getting
-    //          rel_option_type: " << ir_to_fix->get_rel_option_type() <<
-    //          "\n\n\n";
-    //        }
-    //
-    //        pair<string, string> reloption_choice;
-    //
-    //        bool is_reset =
-    //        RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type(),
-    //        reloption_choice);
-    //
-    //        if (!is_reset) {
-    //          IR* new_reloption_label = new IR(kReloptionElem,
-    //          reloption_choice.first); IR* new_reloption_args = new
-    //          IR(kReloptionElem, reloption_choice.second);
-    //
-    //          IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""),
-    //          new_reloption_label, new_reloption_args);
-    //
-    //          /* Replace the old reloption ir to the new one. But only
-    //          deep_drop it at the end of the fix_dependency.  */
-    //          cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-    //          /* If nested reloption_elem happens, this will crash the
-    //          program.
-    //          * But I don't think that is a possible case in practice.
-    //          * */
-    //          ir_to_deep_drop.push_back(ir_to_fix);
-    //        } else {
-    //          IR* new_reloption_label = new IR(kReloptionElem,
-    //          reloption_choice.first); IR* new_reloption_ir = new
-    //          IR(kReloptionElem, OP3("", "", ""), new_reloption_label);
-    //
-    //          /* Replace the old reloption ir to the new one. But only
-    //          deep_drop it at the end of the fix_dependency.  */
-    //          cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-    //          /* If nested reloption_elem happens, this will crash the
-    //          program.
-    //          * But I don't think that is a possible case in practice.
-    //          * */
-    //          ir_to_deep_drop.push_back(ir_to_fix);
-    //        }
-    //
-    //      }
-    //
-    //      /* Dont' fix for functions for now.  */
-    //      // /* Fixing for functions.  */
-    //      // if (ir_to_fix->get_data_type() == kDataFunctionName) {
-    //      //   if (ir_to_fix->get_data_flag() == kNoModi) {
-    //      //     continue;
-    //      //   }
-    //
-    //      //   string cur_func_str = ir_to_fix->get_str_val();
-    //
-    //      //   for (string aggr_func : v_aggregate_func) {
-    //      //     if (findStringIn(cur_func_str, aggr_func) || cur_func_str ==
-    //      "x") {
-    //      //       /* This is a aggregate function. Randomly change it to
-    //      another functions.  */
-    //      //
-    //      ir_to_fix->set_str_val(v_aggregate_func[get_rand_int(v_aggregate_func.size())]);
-    //      //       break;
-    //      //     }
-    //      //   }
-    //      // }
-    //    }
+    /* Fix for reloptions. (Related options. ) and function names.  */
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+    
+      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
+      fixed_ir.end()) {
+        continue;
+      }
+    
+      //if (ir_to_fix->get_data_type() == kDataRelOption) {
+        //fixed_ir.push_back(ir_to_fix);
+    
+        //[> See if we have seen this reloption before, if not, save it.  <]
+        //string ori_str = ir_to_fix->to_string();
+        //if (
+          //std::find(v_saved_reloption_str.begin(),
+          //v_saved_reloption_str.end(), ori_str) ==
+          //v_saved_reloption_str.end()
+        //) {
+          //if (is_debug_info) {
+            //cerr << "Dependency: Saving unseen reloption string: " <<
+            //ori_str << ". \n\n\n";
+          //}
+          //v_saved_reloption_str.push_back(ori_str);
+        //}
+    
+        //// Use original reloptions, in 99% of chances.
+        //if (get_rand_int(100) < 99) {
+          //continue;
+        //}
+    
+        //if (get_rand_int(5) < 4 && v_saved_reloption_str.size() > 0) {
+          //[> If 4/5 chances, rerun previously seen reloptions <]
+          //IR* new_reloption_ir = new IR(kReloptionElem,
+          //vector_rand_ele(v_saved_reloption_str));
+          //cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+          //ir_to_deep_drop.push_back(ir_to_fix);
+          //if (is_debug_info) {
+            //cerr << "Dependency: In reloption, using previously seen
+            //reloption: " << new_reloption_ir->get_str_val() << ". \n\n\n";
+          //}
+          //continue;
+        //}
+    
+        //if(is_debug_info) {
+          //cerr << "Dependency: Fixing kDataRelOption: " <<
+          //get_string_by_ir_type(ir_to_fix->get_ir_type()) << ",
+          //to_string(): " << ir_to_fix->to_string() << " getting
+          //rel_option_type: " << ir_to_fix->get_rel_option_type() <<
+          //"\n\n\n";
+        //}
+    
+        //pair<string, string> reloption_choice;
+    
+        //bool is_reset =
+        //RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type(),
+        //reloption_choice);
+    
+        //if (!is_reset) {
+          //IR* new_reloption_label = new IR(kReloptionElem,
+          //reloption_choice.first); IR* new_reloption_args = new
+          //IR(kReloptionElem, reloption_choice.second);
+    
+          //IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""),
+          //new_reloption_label, new_reloption_args);
+    
+          //[> Replace the old reloption ir to the new one. But only
+          //deep_drop it at the end of the fix_dependency.  */
+          //cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+          //[> If nested reloption_elem happens, this will crash the
+          //program.
+          //* But I don't think that is a possible case in practice.
+          //* */
+          //ir_to_deep_drop.push_back(ir_to_fix);
+        //} else {
+          //IR* new_reloption_label = new IR(kReloptionElem,
+          //reloption_choice.first); IR* new_reloption_ir = new
+          //IR(kReloptionElem, OP3("", "", ""), new_reloption_label);
+    
+          //[> Replace the old reloption ir to the new one. But only
+          //deep_drop it at the end of the fix_dependency.  */
+          //cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
+          //[> If nested reloption_elem happens, this will crash the
+          //program.
+          //* But I don't think that is a possible case in practice.
+          //* */
+          //ir_to_deep_drop.push_back(ir_to_fix);
+        //}
+    
+      //}
+    
+       /* Fixing for functions.  */
+       if (ir_to_fix->get_data_type() == DataFunctionName) {
+         if (ir_to_fix->get_data_flag() == ContextNoModi) {
+           continue;
+         }
+    
+         string cur_func_str = ir_to_fix->get_str_val();
+
+         cur_func_str = str_tolower(cur_func_str);
+
+         if (func_str_to_type_map.find(cur_func_str) == func_str_to_type_map.end()) {
+             if (is_debug_info) {
+                 cerr << "For function name: " << cur_func_str << ", cannot find its "
+                     "matching function type. Do not mutate the name in the "
+                     "instantiation. ";
+             }
+             continue;
+         }
+
+         if (get_rand_int(3) < 1) {
+             FUNCTIONTYPE func_type = func_str_to_type_map[cur_func_str];
+             string new_func_name_str = function_library[func_type][get_rand_int(function_library[func_type].size())];
+             ir_to_fix->set_str_val(new_func_name_str);
+         }
+       }
+    }
 
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=

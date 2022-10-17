@@ -593,6 +593,7 @@ const (
 	ContextUndefine
 	ContextReplaceDefine
 	ContextReplaceUndefine
+    ContextNoModi
 )
 
 // SQLRight inject code. To log all the info required for SQLRight to build the IR.

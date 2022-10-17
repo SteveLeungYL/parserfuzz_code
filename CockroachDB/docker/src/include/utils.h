@@ -102,6 +102,9 @@ std::vector<string> string_splitter(const string &input_string,
                                     const char delimiter_re);
 bool is_str_empty(string input_str);
 
+string str_toupper(string str_in);
+string str_tolower(string str_in);
+
 string::const_iterator findStringIter(const std::string &strHaystack,
                                       const std::string &strNeedle);
 bool findStringIn(const std::string &strHaystack, const std::string &strNeedle);

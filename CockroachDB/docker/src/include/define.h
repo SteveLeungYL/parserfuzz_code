@@ -501,7 +501,13 @@
   V(ContextUse)                                                                \
   V(ContextUndefine)                                                           \
   V(ContextReplaceDefine)                                                      \
-  V(ContextReplaceUndefine)
+  V(ContextReplaceUndefine)                                                    \
+  V(ContextNoModi)
+
+#define ALLFUNCTIONTYPES(V)                                                    \
+  V(FUNCAGGR)                                                                  \
+  V(FUNCWINDOW)                                                                \
+  V(FUNCUNKNOWN)
 
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \

@@ -30,6 +30,12 @@ enum DATAFLAG {
 #undef DECLARE_TYPE
 };
 
+enum FUNCTIONTYPE {
+#define DECLARE_TYPE(v) v,
+   ALLFUNCTIONTYPES(DECLARE_TYPE)
+#undef DECLARE_TYPE
+};
+
 #define GEN_NAME() name_ = gen_id_name();
 
 static unsigned long g_id_counter;
@@ -237,6 +243,7 @@ public:
 };
 
 DATATYPE get_datatype_by_string(string s);
+FUNCTIONTYPE get_functype_by_string(string s);
 
 IR *deep_copy(const IR *root);
 
