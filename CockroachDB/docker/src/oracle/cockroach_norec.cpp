@@ -290,6 +290,23 @@ void SQL_NOREC::compare_results(ALL_COMP_RES &res_out) {
   bool is_all_err = true;
 
   for (COMP_RES &res : res_out.v_res) {
+
+    if (findStringIn(res.res_str_0, "Internal Error") ||
+        findStringIn(res.res_str_0, "unexpected error") ||
+        findStringIn(res.res_str_1, "Internal Error") ||
+        findStringIn(res.res_str_1, "unexpected error")
+    ) {
+      res.res_int_0 = -1;
+      res.res_int_1 = -1;
+      res.v_res_int.push_back(-1);
+      res.v_res_int.push_back(-1);
+
+      res.comp_res = ORA_COMP_RES::Fail;
+      res_out.final_res = ORA_COMP_RES::Fail;
+
+      continue;
+    }
+
     if (findStringIn(res.res_str_0, "Error") ||
         findStringIn(res.res_str_0, "pq: ") ||
         findStringIn(res.res_str_1, "Error") ||
