@@ -4055,10 +4055,30 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
   string crash_output_file_fn = string((char*)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
 
-  ofstream crash_output_file;
-  crash_output_file.open(crash_output_file_fn, std::ofstream::out);
-  stream_output_res(all_comp_res, crash_output_file);
-  crash_output_file.close(); 
+  if (!filesystem::exists("../../../Bug_Analysis/")) {
+    filesystem::create_directory("../../../Bug_Analysis/");
+  }
+  if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
+    filesystem::create_directory("../../../Bug_Analysis/bug_samples");
+  }
+  if (!filesystem::exists("../../../Bug_Analysis/bug_samples/crashes")) {
+    filesystem::create_directory("../../../Bug_Analysis/bug_samples/crashes");
+  }
+
+  string bug_output_dir =
+      "../../../Bug_Analysis/bug_samples/crashes/bug:" + to_string(unique_crashes-1) +
+      ":src:" + to_string(current_entry) +
+      ":core:" + std::to_string(bind_to_core_id) + ".txt";
+  // cerr << "Bug output dir is: " << bug_output_dir << endl;
+  ofstream outputfile;
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+  stream_output_res(all_comp_res, outputfile);
+  outputfile.close();
+
+  //ofstream crash_output_file;
+  //crash_output_file.open(crash_output_file_fn, std::ofstream::out);
+  //stream_output_res(all_comp_res, crash_output_file);
+  //crash_output_file.close(); 
 
   ck_free(fn);
 
