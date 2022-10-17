@@ -2598,16 +2598,24 @@ BEGIN:
   setitimer(ITIMER_REAL, &it, NULL);
 
   if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
+
+    /* Get the timeout message before looping the forksrv_pid.  */
+    bool cur_is_timeout = is_timeout;
     cerr << "The CockroachDB process is not responding? Could be timeout "
-            "killed or crashed. \n\n\n";
+            "killed or crashed. cur_is_timeout" << cur_is_timeout << "\n\n\n";
+
+    // Clean up the fd before calling init_forkserver.
     close(fsrv_ctl_fd);
     close(fsrv_st_fd);
+
     // Block the execution until handle_timeout has been finished.
     do {} while (forksrv_pid != -1);
 
     // Restart the argv execution.
     init_forkserver(argv);
-    if (is_timeout) {
+
+    // Return the error.
+    if (cur_is_timeout) {
       return FAULT_TMOUT;
     } else {
       return FAULT_CRASH;
