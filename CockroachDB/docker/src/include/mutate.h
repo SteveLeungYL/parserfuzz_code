@@ -12,6 +12,9 @@
 
 #define LUCKY_NUMBER 500
 
+#define FUNCTION_TYPE_PATH "./function_type_lib"
+#define SET_SESSION_PATH "./set_session_variables.json"
+
 using namespace std;
 
 class SQL_ORACLE;
@@ -63,7 +66,7 @@ public:
   void init_ir_library(string filename);
   inline void init_value_library();
   void init_common_string(string filename);
-  void init_data_library(string filename);
+  void init_data_library();
   void init_not_mutatable_type(string filename);
   // void init_safe_generate_type(string filename);
   void add_ir_to_library(IR *);

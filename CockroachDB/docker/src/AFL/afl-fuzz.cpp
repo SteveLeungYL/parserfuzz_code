@@ -117,8 +117,6 @@ using namespace std;
    really makes no sense to haul them around as function parameters. */
 
 #define INIT_LIB_PATH "./cockroach_initlib"
-#define SAFE_GENERATE_PATH "./safe_generate_type"
-#define FUNCTION_TYPE_PATH "./function_type_lib"
 char *g_library_path;
 
 u64 total_input_failed = 0;

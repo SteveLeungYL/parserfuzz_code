@@ -274,11 +274,14 @@ void Mutator::init_common_string(string filename) {
   }
 }
 
-void Mutator::init_data_library(string filename) {
-  ifstream input_file(filename);
+void Mutator::init_data_library() {
+
+  string func_file_name = FUNCTION_TYPE_PATH;
+
+  ifstream input_file(func_file_name);
   string s;
 
-  cout << "[*] init function_types library.: " << filename << endl;
+  cout << "[*] begin init function_types library: " << func_file_name << endl;
   while (getline(input_file, s)) {
     auto pos = s.find(" ");
     if (pos == string::npos)
@@ -289,6 +292,16 @@ void Mutator::init_data_library(string filename) {
     function_library[func_type].push_back(v);
     func_str_to_type_map[v] = func_type;
   }
+  input_file.close();
+  cout << "[*] end init function_types library: " << func_file_name << endl;
+
+  string set_session_path = SET_SESSION_PATH;
+  cout << "[*] begin init set session path library: " << set_session_path << endl;
+
+    input_file.open(set_session_path);
+
+
+  cout << "[*] end init set session path library: " << set_session_path << endl;
 
   return;
 }

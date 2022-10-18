@@ -509,6 +509,31 @@
   V(FUNCWINDOW)                                                                \
   V(FUNCUNKNOWN)
 
+#define ALLDATAAFFINITY(V)                                                     \
+  /* New one here!!! */                                                        \
+  V(AFFIUNKNOWN)                                                                   \
+  V(AFFIARRAY)                                                                     \
+  V(AFFIBIT)                                                                       \
+  V(AFFIBOOL)                                                                      \
+  V(AFFIBYTES)                                                                     \
+  V(AFFICOLLATE)                                                                   \
+  V(AFFIDATE)                                                                      \
+  V(AFFIENUM)                                                                      \
+  V(AFFIDECIMAL)                                                                   \
+  V(AFFIFLOAT)                                                                     \
+  V(AFFIINET)                                                                      \
+  V(AFFIINT)                                                                       \
+  V(AFFIINTERVAL)                                                                  \
+  V(AFFIJSONB)                                                                     \
+  V(AFFIOID)                                                                       \
+  V(AFFISERIAL)                                                                    \
+  V(AFFISTRING)                                                                    \
+  V(AFFITIME)                                                                      \
+  V(AFFITIMETZ)                                                                    \
+  V(AFFITIMESTAMP)                                                                 \
+  V(AFFITIMESTAMPTZ)                                                               \
+  V(AFFIUUID)
+
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \
   a->deep_delete()
