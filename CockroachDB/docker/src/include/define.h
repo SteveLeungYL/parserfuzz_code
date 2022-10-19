@@ -511,28 +511,40 @@
 
 #define ALLDATAAFFINITY(V)                                                     \
   /* New one here!!! */                                                        \
-  V(AFFIUNKNOWN)                                                                   \
-  V(AFFIARRAY)                                                                     \
-  V(AFFIBIT)                                                                       \
-  V(AFFIBOOL)                                                                      \
-  V(AFFIBYTES)                                                                     \
-  V(AFFICOLLATE)                                                                   \
-  V(AFFIDATE)                                                                      \
-  V(AFFIENUM)                                                                      \
-  V(AFFIDECIMAL)                                                                   \
-  V(AFFIFLOAT)                                                                     \
-  V(AFFIINET)                                                                      \
-  V(AFFIINT)                                                                       \
-  V(AFFIINTERVAL)                                                                  \
-  V(AFFIJSONB)                                                                     \
-  V(AFFIOID)                                                                       \
-  V(AFFISERIAL)                                                                    \
-  V(AFFISTRING)                                                                    \
-  V(AFFITIME)                                                                      \
-  V(AFFITIMETZ)                                                                    \
-  V(AFFITIMESTAMP)                                                                 \
-  V(AFFITIMESTAMPTZ)                                                               \
-  V(AFFIUUID)
+  V(AFFIUNKNOWN)                                                               \
+  V(AFFIARRAY)                                                                 \
+  V(AFFIBIT)                                                                   \
+  V(AFFIBOOL)                                                                  \
+  V(AFFIBYTES)                                                                 \
+  V(AFFICOLLATE)                                                               \
+  V(AFFIDATE)                                                                  \
+  V(AFFIENUM)                                                                  \
+  V(AFFIDECIMAL)                                                               \
+  V(AFFIFLOAT)                                                                 \
+  V(AFFIINET)                                                                  \
+  V(AFFIINT)                                                                   \
+  V(AFFIINTERVAL)                                                              \
+  V(AFFIJSONB)                                                                 \
+  V(AFFIOID)                                                                   \
+  V(AFFISERIAL)                                                                \
+  V(AFFISTRING)                                                                \
+  V(AFFITIME)                                                                  \
+  V(AFFITIMETZ)                                                                \
+  V(AFFITIMESTAMP)                                                             \
+  V(AFFITIMESTAMPTZ)                                                           \
+  V(AFFIUUID)                                                                  \
+  V(AFFIGEOGRAPHY)                                                             \
+  V(AFFIGEOMETRY)                                                              \
+  V(AFFIBOX2D)                                                                 \
+  V(AFFIVOID)                                                                  \
+  V(AFFIPOINT)                                                                 \
+  V(AFFILINESTRING)                                                            \
+  V(AFFIPOLYGON)                                                               \
+  V(AFFIMULTIPOINT)                                                            \
+  V(AFFIMULTILINESTRING)                                                       \
+  V(AFFIMULTIPOLYGON)                                                          \
+  V(AFFIGEOMETRYCOLLECTION)                                                    \
+  V(AFFIOIDWRAPPER)
 
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \
