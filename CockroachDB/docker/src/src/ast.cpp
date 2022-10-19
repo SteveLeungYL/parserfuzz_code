@@ -286,6 +286,8 @@ IR *IR::deep_copy() {
                     this->str_val_, this->name_, this->mutated_times_);
   copy_res->data_type_ = this->data_type_;
   copy_res->data_flag_ = this->data_flag_;
+  copy_res->data_affinity_type = this->data_affinity_type;
+  copy_res->data_affinity = this->data_affinity;
   copy_res->option_type_ = this->option_type_;
 
   return copy_res;
