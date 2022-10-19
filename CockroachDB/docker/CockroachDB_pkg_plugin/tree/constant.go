@@ -563,14 +563,16 @@ func (node *StrVal) LogCurrentNode(depth int) *SQLRightIR {
 		strVal = "'" + node.s + "'"
 	}
 
+	/* Maybe we should not handle the affinity type here. */
 	rootIR := &SQLRightIR{
-		IRType:   TypeStringLiteral,
-		DataType: DataNone,
-		Prefix:   "",
-		Infix:    "",
-		Suffix:   "",
-		Depth:    depth,
-		Str:      strVal, // no need to add `'`.
+		IRType:       TypeStringLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIUNKNOWN, // TODO:: FIXME:: THIS IS NOT AFFIUNKNOWN. Need to FIX IT!!!
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		Str:          strVal, // no need to add `'`.
 	}
 
 	return rootIR
