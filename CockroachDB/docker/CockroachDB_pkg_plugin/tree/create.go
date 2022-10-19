@@ -20,6 +20,7 @@
 package tree
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -1216,16 +1217,19 @@ func (n *EnumValue) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *EnumValue) LogCurrentNode(depth int) *SQLRightIR {
 
+	var tmpBuffer bytes.Buffer
+	lexbase.EncodeSQLString(&tmpBuffer, string(*node))
+	irStr := tmpBuffer.String()
+
 	rootIR := &SQLRightIR{
-		IRType:   TypeEnumValue,
-		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: "",
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
-		Str:    string(*node),
+		IRType:       TypeStringLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIENUM,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		Str:          irStr,
 	}
 
 	return rootIR

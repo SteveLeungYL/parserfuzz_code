@@ -5448,16 +5448,20 @@ func (d *DEnum) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *DEnum) LogCurrentNode(depth int) *SQLRightIR {
 
-	rootIR := &SQLRightIR{
-		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
-		DataAffinity: AFFIENUM,
-		Prefix:       "",
-		Infix:        "",
-		Suffix:       "",
-		Depth:        depth,
-		Str:          node.String(),
-	}
+	s := DBytes(node.PhysicalRep)
+	rootIR := s.LogCurrentNode(depth)
+	rootIR.DataAffinity = AFFIENUM
+	rootIR.IRType = TypeStringLiteral
+
+	//rootIR := &SQLRightIR{
+	//	IRType:       TypeStringLiteral,
+	//	DataType:     DataNone,
+	//	DataAffinity: AFFIENUM,
+	//	Prefix:       "",
+	//	Infix:        "",
+	//	Suffix:       "",
+	//	Depth:        depth,
+	//}
 
 	return rootIR
 }
