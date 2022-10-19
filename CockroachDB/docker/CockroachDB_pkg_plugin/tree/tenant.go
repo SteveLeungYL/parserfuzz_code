@@ -50,15 +50,14 @@ func (t *TenantID) Format(ctx *FmtCtx) {
 func (node *TenantID) LogCurrentNode(depth int) *SQLRightIR {
 
 	uintLiteral := &SQLRightIR{
-		IRType:   TypeIntegerLiteral,
-		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: "",
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
-		UValue: node.ID,
+		IRType:       TypeIntegerLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIINT,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		UValue:       node.ID,
 	}
 
 	rootIR := &SQLRightIR{

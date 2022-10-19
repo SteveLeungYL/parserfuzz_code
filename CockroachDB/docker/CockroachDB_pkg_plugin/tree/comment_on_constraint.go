@@ -79,7 +79,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 		Depth:    depth,
 	}
 
-    commentStr := ""
+	commentStr := ""
 	if node.Comment != nil {
 		commentStr = *(node.Comment)
 	}
@@ -90,7 +90,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,
-		Str:      commentStr,
+		Str:      "'" + commentStr + "'",
 	}
 
 	rootIR = &SQLRightIR{

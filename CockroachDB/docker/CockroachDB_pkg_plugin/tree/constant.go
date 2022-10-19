@@ -11,6 +11,7 @@
 package tree
 
 import (
+	"bytes"
 	"context"
 	"go/constant"
 	"go/token"
@@ -210,24 +211,26 @@ func (node *NumVal) LogCurrentNode(depth int) *SQLRightIR {
 
 	if intErr != nil && floatErr == nil {
 		rootIR := &SQLRightIR{
-			IRType:   TypeFloatLiteral,
-			DataType: DataNone,
-			Prefix:   "",
-			Infix:    "",
-			Suffix:   "",
-			Depth:    depth,
-			FValue:   floatValue,
+			IRType:       TypeFloatLiteral,
+			DataType:     DataNone,
+			DataAffinity: AFFIFLOAT,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			FValue:       floatValue,
 		}
 		return rootIR
 	} else {
 		rootIR := &SQLRightIR{
-			IRType:   TypeIntegerLiteral,
-			DataType: DataNone,
-			Prefix:   "",
-			Infix:    "",
-			Suffix:   "",
-			Depth:    depth,
-			IValue:   intValue,
+			IRType:       TypeIntegerLiteral,
+			DataType:     DataNone,
+			DataAffinity: AFFIINT,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			IValue:       intValue,
 		}
 		return rootIR
 	}
@@ -550,7 +553,15 @@ func (expr *StrVal) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *StrVal) LogCurrentNode(depth int) *SQLRightIR {
 
-	strVal := node.s
+	strVal := ""
+	if node.scannedAsBytes {
+		tmp_buf := new(bytes.Buffer)
+		lexbase.EncodeSQLBytes(tmp_buf, node.s)
+		strVal = tmp_buf.String()
+	} else {
+		//lexbase.EncodeSQLStringWithFlags(tmp_buf, node.s, f.EncodeFlags())
+		strVal = "'" + node.s + "'"
+	}
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeStringLiteral,
@@ -559,7 +570,7 @@ func (node *StrVal) LogCurrentNode(depth int) *SQLRightIR {
 		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,
-		Str:      strVal,
+		Str:      strVal, // no need to add `'`.
 	}
 
 	return rootIR

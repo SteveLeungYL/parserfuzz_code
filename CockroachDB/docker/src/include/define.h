@@ -544,7 +544,8 @@
   V(AFFIMULTILINESTRING)                                                       \
   V(AFFIMULTIPOLYGON)                                                          \
   V(AFFIGEOMETRYCOLLECTION)                                                    \
-  V(AFFIOIDWRAPPER)
+  V(AFFIOIDWRAPPER)                                                            \
+  V(AFFIWHOLESTMT)
 
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \

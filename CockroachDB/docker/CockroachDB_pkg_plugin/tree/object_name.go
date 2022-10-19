@@ -314,13 +314,14 @@ func (u *UnresolvedObjectName) Format(ctx *FmtCtx) {
 func (node *UnresolvedObjectName) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
-		IRType:   TypeStringLiteral,
-		DataType: DataNone,
-		Prefix:   "",
-		Infix:    "",
-		Suffix:   "",
-		Depth:    depth,
-		Str:      node.String(),
+		IRType:      TypeIdentifier,
+		DataType:    DataNone,
+		ContextFlag: ContextUse,
+		Prefix:      "",
+		Infix:       "",
+		Suffix:      "",
+		Depth:       depth,
+		Str:         node.String(),
 	}
 
 	return rootIR

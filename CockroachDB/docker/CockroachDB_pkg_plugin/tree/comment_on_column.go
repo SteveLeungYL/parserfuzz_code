@@ -67,7 +67,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 			Infix:    "",
 			Suffix:   "",
 			Depth:    depth,
-			Str:      *node.Comment,
+			Str:      "'" + *node.Comment + "'",
 		}
 	} else {
 		commentNode = &SQLRightIR{

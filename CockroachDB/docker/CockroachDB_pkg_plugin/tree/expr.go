@@ -2706,7 +2706,7 @@ func (node *CastExpr) LogCurrentNode(depth int) *SQLRightIR {
 				DataType:    DataTypeName,
 				ContextFlag: ContextUse,
 				Prefix:      "",
-				Infix:       " ",
+				Infix:       "",
 				Suffix:      "",
 				Depth:       depth,
 				Str:         typeStr,
@@ -2722,7 +2722,7 @@ func (node *CastExpr) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    typeNode,
 				RNode:    exprNode,
 				Prefix:   "",
-				Infix:    "",
+				Infix:    " ",
 				Suffix:   "",
 				Depth:    depth,
 			}

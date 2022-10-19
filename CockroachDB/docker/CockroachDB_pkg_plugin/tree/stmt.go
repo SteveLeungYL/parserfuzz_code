@@ -91,6 +91,7 @@ type Statements []Statement
 type SQLRightIRType int
 type SQLRightDataType int
 type SQLRightContextFlag int
+type SQLRightDataAffinity int
 
 const (
 	TypeUnknown SQLRightIRType = iota
@@ -593,24 +594,62 @@ const (
 	ContextUndefine
 	ContextReplaceDefine
 	ContextReplaceUndefine
-    ContextNoModi
+)
+
+const (
+	AFFIUNKNOWN SQLRightDataAffinity = iota
+	AFFIARRAY
+	AFFIBIT
+	AFFIBOOL
+	AFFIBYTES
+	AFFICOLLATE
+	AFFIDATE
+	AFFIENUM
+	AFFIDECIMAL
+	AFFIFLOAT
+	AFFIINET
+	AFFIINT
+	AFFIINTERVAL
+	AFFIJSONB
+	AFFIOID
+	AFFISERIAL
+	AFFISTRING
+	AFFITIME
+	AFFITIMETZ
+	AFFITIMESTAMP
+	AFFITIMESTAMPTZ
+	AFFIUUID
+	AFFIGEOGRAPHY // TODO:: FIXME:: Not sure what this is, may need to split to other types.
+	AFFIGEOMETRY  // TODO:: FIXME:: Not sure what this is, may need to split to other types.
+	AFFIBOX2D     // TODO:: FIXME:: Not sure what this is, may need to split to other types.
+	AFFIVOID      // TODO:: FIXME:: Not sure what this is, may need to split to other types.
+	AFFIPOINT
+	AFFILINESTRING
+	AFFIPOLYGON
+	AFFIMULTIPOINT
+	AFFIMULTILINESTRING
+	AFFIMULTIPOLYGON
+	AFFIGEOMETRYCOLLECTION
+	AFFIOIDWRAPPER
+	AFFIWHOLESTMT
 )
 
 // SQLRight inject code. To log all the info required for SQLRight to build the IR.
 type SQLRightIR struct {
-	Prefix      string
-	Infix       string
-	Suffix      string
-	LNode       *SQLRightIR
-	RNode       *SQLRightIR
-	IRType      SQLRightIRType
-	DataType    SQLRightDataType
-	ContextFlag SQLRightContextFlag
-	Depth       int
-	Str         string
-	IValue      int64
-	UValue      uint64
-	FValue      float64
+	Prefix       string
+	Infix        string
+	Suffix       string
+	LNode        *SQLRightIR
+	RNode        *SQLRightIR
+	IRType       SQLRightIRType
+	DataType     SQLRightDataType
+	ContextFlag  SQLRightContextFlag
+	DataAffinity SQLRightDataAffinity
+	Depth        int
+	Str          string
+	IValue       int64
+	UValue       uint64
+	FValue       float64
 }
 
 type SQLRightInterface interface {

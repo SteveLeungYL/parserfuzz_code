@@ -1197,15 +1197,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			return rootIR
 		} else {
 			intLiteral := &SQLRightIR{
-				IRType:   TypeIntegerLiteral,
-				DataType: DataNone,
-				//LNode:    LNode,
-				//RNode:    RNode,
-				Prefix: "",
-				Infix:  "",
-				Suffix: "",
-				Depth:  depth,
-				IValue: int64(node.IndexID),
+				IRType:       TypeIntegerLiteral,
+				DataType:     DataNone,
+				DataAffinity: AFFIINT,
+				Prefix:       "",
+				Infix:        "",
+				Suffix:       "",
+				Depth:        depth,
+				IValue:       int64(node.IndexID),
 			}
 			indexNode := &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -1253,15 +1252,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				indexNode = tmpIndexNode
 			} else {
 				intLiteral := &SQLRightIR{
-					IRType:   TypeIntegerLiteral,
-					DataType: DataNone,
-					//LNode:    LNode,
-					//RNode:    RNode,
-					Prefix: "",
-					Infix:  "",
-					Suffix: "",
-					Depth:  depth,
-					IValue: int64(node.IndexID),
+					IRType:       TypeIntegerLiteral,
+					DataType:     DataNone,
+					DataAffinity: AFFIINT,
+					Prefix:       "",
+					Infix:        "",
+					Suffix:       "",
+					Depth:        depth,
+					IValue:       int64(node.IndexID),
 				}
 				tmpIndexNode := &SQLRightIR{
 					IRType:   TypeUnknown,
@@ -1501,15 +1499,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				for _, id := range node.ZigzagIndexIDs {
 
 					intLiteral := &SQLRightIR{
-						IRType:   TypeIntegerLiteral,
-						DataType: DataNone,
-						//LNode:    LNode,
-						//RNode:    RNode,
-						Prefix: "",
-						Infix:  "",
-						Suffix: "",
-						Depth:  depth,
-						IValue: int64(id),
+						IRType:       TypeIntegerLiteral,
+						DataType:     DataNone,
+						DataAffinity: AFFIINT,
+						Prefix:       "",
+						Infix:        "",
+						Suffix:       "",
+						Depth:        depth,
+						IValue:       int64(id),
 					}
 					indexFlagNode := &SQLRightIR{
 						IRType:   TypeIndexFlag,

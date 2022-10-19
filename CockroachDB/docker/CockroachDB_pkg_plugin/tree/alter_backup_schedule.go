@@ -36,15 +36,14 @@ func (node *AlterBackupSchedule) Format(ctx *FmtCtx) {
 func (node *AlterBackupSchedule) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
-		IRType:   TypeIntegerLiteral,
-		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: "",
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
-		UValue: node.ScheduleID,
+		IRType:       TypeIntegerLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIINT,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		UValue:       node.ScheduleID,
 	}
 
 	LNode := tmpNode

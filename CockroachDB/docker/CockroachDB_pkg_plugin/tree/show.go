@@ -1999,15 +1999,14 @@ func (node *ShowHistogram) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "SHOW HISTOGRAM "
 
 	intLiteralNode := &SQLRightIR{
-		IRType:   TypeIntegerLiteral,
-		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: "",
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
-		IValue: node.HistogramID,
+		IRType:       TypeIntegerLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIINT,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		IValue:       node.HistogramID,
 	}
 
 	rootIR := &SQLRightIR{
@@ -2470,16 +2469,16 @@ func (node *ShowTransferState) LogCurrentNode(depth int) *SQLRightIR {
 	var transferNode *SQLRightIR
 	if node.TransferKey != nil {
 		prefix += " WITH "
+		// TRANSFER KEY.
 		strNode := &SQLRightIR{
-			IRType:   TypeStringLiteral,
-			DataType: DataNone,
-			//LNode:    LNode,
-			//RNode:    RNode,
-			Prefix: "",
-			Infix:  "",
-			Suffix: "",
-			Depth:  depth,
-			Str:    node.TransferKey.String(),
+			IRType:       TypeStringLiteral,
+			DataType:     DataNone,
+			DataAffinity: AFFIUNKNOWN,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			Str:          node.TransferKey.String(),
 		}
 		transferNode = strNode
 	}
@@ -2521,28 +2520,27 @@ func (node *ShowCompletions) LogCurrentNode(depth int) *SQLRightIR {
 		offsetInt = 0
 	}
 	offsetNode := &SQLRightIR{
-		IRType:   TypeIntegerLiteral,
-		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: "",
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
-		IValue: offsetInt,
+		IRType:       TypeIntegerLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIINT,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		IValue:       offsetInt,
 	}
 
 	statementStr := node.Statement.String()
+	// This is a whole SQL statement str.
 	statementNode := &SQLRightIR{
-		IRType:   TypeStringLiteral,
-		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: "",
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
-		Str:    statementStr,
+		IRType:       TypeStringLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIWHOLESTMT,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		Str:          statementStr,
 	}
 
 	rootIR := &SQLRightIR{

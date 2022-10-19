@@ -356,13 +356,14 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 	if node.FetchType.HasCount() {
 
 		intLiteral := &SQLRightIR{
-			IRType:   TypeIntegerLiteral,
-			DataType: DataNone,
-			Prefix:   "",
-			Infix:    "",
-			Suffix:   "",
-			Depth:    depth,
-			IValue:   node.Count,
+			IRType:       TypeIntegerLiteral,
+			DataType:     DataNone,
+			DataAffinity: AFFIINT,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			IValue:       node.Count,
 		}
 		countNode = &SQLRightIR{
 			IRType:   TypeUnknown,

@@ -171,14 +171,15 @@ func (node *RoutineExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR = &SQLRightIR{
-		IRType:   TypeStringLiteral,
-		DataType: DataNone,
-		LNode:    nameNode,
-		RNode:    rootIR,
-		Prefix:   "",
-		Infix:    "(",
-		Suffix:   ")",
-		Depth:    depth,
+		IRType:       TypeStringLiteral,
+		DataType:     DataNone,
+		DataAffinity: AFFIUNKNOWN,
+		LNode:        nameNode,
+		RNode:        rootIR,
+		Prefix:       "",
+		Infix:        "(",
+		Suffix:       ")",
+		Depth:        depth,
 	}
 
 	return rootIR

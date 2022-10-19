@@ -275,15 +275,14 @@ func (node *CreateDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	if node.ConnectionLimit != -1 {
 		infix := " CONNECTION LIMIT = "
 		RNode = &SQLRightIR{
-			IRType:   TypeIntegerLiteral,
-			DataType: DataNone,
-			//LNode:    LNode,
-			//RNode:    RNode,
-			Prefix: "",
-			Infix:  "",
-			Suffix: "",
-			Depth:  depth,
-			IValue: int64(node.ConnectionLimit),
+			IRType:       TypeIntegerLiteral,
+			DataType:     DataNone,
+			DataAffinity: AFFIINT,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			IValue:       int64(node.ConnectionLimit),
 		}
 
 		rootIR = &SQLRightIR{
@@ -2509,15 +2508,14 @@ func (node *ColumnTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		if node.References.Match != MatchSimple {
 			matchStr := node.References.Match.String()
 			matchLiteralNode := &SQLRightIR{
-				IRType:   TypeStringLiteral, // Using string literal here. Not sure.
-				DataType: DataNone,
-				//LNode:    LNode,
-				//RNode:    RNode,
-				Prefix: "",
-				Infix:  "",
-				Suffix: "",
-				Depth:  depth,
-				Str:    matchStr,
+				IRType:       TypeStringLiteral, // Using string literal here. Not sure.
+				DataType:     DataNone,
+				DataAffinity: AFFIUNKNOWN, // Unknown affinity
+				Prefix:       "",
+				Infix:        "",
+				Suffix:       "",
+				Depth:        depth,
+				Str:          "'" + matchStr + "'",
 			}
 
 			matchNode := &SQLRightIR{
@@ -5124,7 +5122,7 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			optionNode := &SQLRightIR{
-				IRType:   TypeStringLiteral,
+				IRType:   TypeStringLiteral, // TODO:: FIXME:: Doesn't seem to be stringliteral.
 				DataType: DataNone,
 				//LNode:    ,
 				//RNode:    RNode,
@@ -5132,7 +5130,7 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 				Infix:  "",
 				Suffix: "",
 				Depth:  depth,
-				Str:    option.AsIntegerType.SQLString(),
+				Str:    "'" + option.AsIntegerType.SQLString() + "'",
 			}
 
 			optionNode = &SQLRightIR{
@@ -5185,15 +5183,14 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			intLiteral := &SQLRightIR{
-				IRType:   TypeIntegerLiteral,
-				DataType: DataNone,
-				//LNode:    ,
-				//RNode:    RNode,
-				Prefix: "",
-				Infix:  "",
-				Suffix: "",
-				Depth:  depth,
-				IValue: *option.IntVal,
+				IRType:       TypeIntegerLiteral,
+				DataType:     DataNone,
+				DataAffinity: AFFIINT,
+				Prefix:       "",
+				Infix:        "",
+				Suffix:       "",
+				Depth:        depth,
+				IValue:       *option.IntVal,
 			}
 
 			optionNode := &SQLRightIR{
@@ -5247,15 +5244,14 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 					Str:         option.Name,
 				}
 				intLiteral := &SQLRightIR{
-					IRType:   TypeIntegerLiteral,
-					DataType: DataNone,
-					//LNode:    ,
-					//RNode:    RNode,
-					Prefix: "",
-					Infix:  "",
-					Suffix: "",
-					Depth:  depth,
-					IValue: *option.IntVal,
+					IRType:       TypeIntegerLiteral,
+					DataType:     DataNone,
+					DataAffinity: AFFIINT,
+					Prefix:       "",
+					Infix:        "",
+					Suffix:       "",
+					Depth:        depth,
+					IValue:       *option.IntVal,
 				}
 				optionNode := &SQLRightIR{
 					IRType:   TypeSequenceOption,
@@ -5286,15 +5282,14 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			intLiteral := &SQLRightIR{
-				IRType:   TypeIntegerLiteral,
-				DataType: DataNone,
-				//LNode:    ,
-				//RNode:    RNode,
-				Prefix: "",
-				Infix:  "",
-				Suffix: "",
-				Depth:  depth,
-				IValue: *option.IntVal,
+				IRType:       TypeIntegerLiteral,
+				DataType:     DataNone,
+				DataAffinity: AFFIINT,
+				Prefix:       "",
+				Infix:        "",
+				Suffix:       "",
+				Depth:        depth,
+				IValue:       *option.IntVal,
 			}
 
 			optionNode := &SQLRightIR{
@@ -5331,15 +5326,14 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 					infix += "WITH "
 				}
 				intLiteral := &SQLRightIR{
-					IRType:   TypeIntegerLiteral,
-					DataType: DataNone,
-					//LNode:    ,
-					//RNode:    RNode,
-					Prefix: "",
-					Infix:  "",
-					Suffix: "",
-					Depth:  depth,
-					IValue: *option.IntVal,
+					IRType:       TypeIntegerLiteral,
+					DataType:     DataNone,
+					DataAffinity: AFFIINT,
+					Prefix:       "",
+					Infix:        "",
+					Suffix:       "",
+					Depth:        depth,
+					IValue:       *option.IntVal,
 				}
 				pIntLiteral = intLiteral
 			}
@@ -5377,15 +5371,14 @@ func (node *SequenceOptions) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			intLiteral := &SQLRightIR{
-				IRType:   TypeIntegerLiteral,
-				DataType: DataNone,
-				//LNode:    ,
-				//RNode:    RNode,
-				Prefix: "",
-				Infix:  "",
-				Suffix: "",
-				Depth:  depth,
-				IValue: *option.IntVal,
+				IRType:       TypeIntegerLiteral,
+				DataType:     DataNone,
+				DataAffinity: AFFIINT,
+				Prefix:       "",
+				Infix:        "",
+				Suffix:       "",
+				Depth:        depth,
+				IValue:       *option.IntVal,
 			}
 			pIntLiteral := intLiteral
 
@@ -6341,15 +6334,14 @@ func (node *CreateStatsOptions) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Throttling != 0 {
 		prefix += "THROTTLING "
 		throttleNumber = &SQLRightIR{
-			IRType:   TypeFloatLiteral,
-			DataType: DataNone,
-			//LNode:    ,
-			//RNode:    RNode,
-			Prefix: "",
-			Infix:  "",
-			Suffix: "",
-			Depth:  depth,
-			FValue: node.Throttling,
+			IRType:       TypeFloatLiteral,
+			DataType:     DataNone,
+			DataAffinity: AFFIFLOAT,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			FValue:       node.Throttling,
 		}
 		sep = " "
 	}
