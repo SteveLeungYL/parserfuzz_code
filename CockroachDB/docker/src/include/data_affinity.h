@@ -20,6 +20,8 @@ DATAAFFINITYTYPE get_data_affinity_by_idx(int idx);
 DATAAFFINITYTYPE get_data_affinity_by_string(string s);
 
 class DataAffinity {
+    /* DataAffninty. Represent all data types supported by CockroachDB EXCEPT for `ARRAY`.  */
+    // TODO:: FIXME:: ARRAY type.
 private:
     DATAAFFINITYTYPE data_affinity;
     bool is_range;
@@ -31,6 +33,12 @@ private:
     vector<string> v_enum_str;
 
 
+
+    /* Helper functions. */
+    bool is_str_collation (const string& str_in);
+    DATAAFFINITYTYPE detect_numerical_type(const string&);
+    DATAAFFINITYTYPE detect_string_type(const string&);
+
 public:
     DataAffinity(): data_affinity(AFFIUNKNOWN), is_range(false), is_enum(false) {
         int_min = 0;
@@ -39,8 +47,8 @@ public:
         float_max = 0.0;
     }
 
-    DataAffinity* recognize_data_type(string str_in); // Return `this` pointer.
-
+    DATAAFFINITYTYPE recognize_data_type(const string& str_in); // Return `this` pointer.
+    void set_data_affinity(DATAAFFINITYTYPE in) {this->data_affinity = in; }
 
 };
 

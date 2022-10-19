@@ -339,6 +339,8 @@ DATATYPE IR::get_data_type() { return data_type_; }
 
 DATAFLAG IR::get_data_flag() { return data_flag_; }
 
+DATAAFFINITYTYPE IR::get_data_affinity() {return this->data_affinity_type;}
+
 IR *IR::get_left() { return left_; }
 
 IR *IR::get_right() { return right_; }
@@ -348,13 +350,41 @@ void IR::set_ir_type(IRTYPE type) { this->type_ = type; }
 void IR::set_data_type(DATATYPE data_type) { this->data_type_ = data_type; }
 
 void IR::set_data_flag(DATAFLAG data_flag) { this->data_flag_ = data_flag; }
-bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
+
+void IR::set_data_affinity(DATAAFFINITYTYPE data_affinity) {
+    this->data_affinity_type = data_affinity;
+    this->data_affinity.set_data_affinity(data_affinity);
+}
+
+bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag, DATAAFFINITYTYPE data_affi) {
 
   /* Set type regardless of the node type. Do not use this unless necessary. */
   this->set_data_type(data_type);
   this->set_data_flag(data_flag);
+  this->set_data_affinity(data_affi);
 
   return true;
+}
+
+DATAAFFINITYTYPE IR::detect_cur_data_type(bool is_override) {
+
+    /* TODO::FIXME Not a correct logic. Need to double check on these commented out code. */
+//    if (this->get_ir_type() != TypeStringLiteral && this->get_ir_type() != TypeIdentifier) {
+//        cerr << "Trying the detect data_type on non-string and non-identifier.";
+//        return AFFIUNKNOWN;
+//    }
+
+    // If not overriding, return the already-setup data affinity type.
+    if (!is_override && this->get_data_affinity() != AFFIUNKNOWN) {
+        return this->get_data_affinity();
+    }
+
+    // Actual detection of the data affinity using the str_val_
+    // TODO::FIXME:: Do we need to consider TypeIdentifier here?
+    DATAAFFINITYTYPE detected_affinity = this->data_affinity.recognize_data_type(this->str_val_);
+    this->data_affinity_type = detected_affinity;
+
+    return detected_affinity;
 }
 
 bool IR::func_name_set_str(string in) {

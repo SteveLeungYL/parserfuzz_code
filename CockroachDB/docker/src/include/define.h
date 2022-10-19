@@ -547,6 +547,104 @@
   V(AFFIOIDWRAPPER)                                                            \
   V(AFFIWHOLESTMT)
 
+#define ALLCOLLATIONS(V)                                                       \
+  V(default)                                                                   \
+  V(und)                                                                       \
+  V(aa)                                                                        \
+  V(af)                                                                        \
+  V(ar)                                                                        \
+  V(as)                                                                        \
+  V(az)                                                                        \
+  V(be)                                                                        \
+  V(bg)                                                                        \
+  V(bn)                                                                        \
+  V(bs)                                                                        \
+  V(bs - Cyrl)                                                                 \
+  V(ca)                                                                        \
+  V(cs)                                                                        \
+  V(cy)                                                                        \
+  V(da)                                                                        \
+  V(de - u - co - phonebk)                                                     \
+  V(de)                                                                        \
+  V(dz)                                                                        \
+  V(ee)                                                                        \
+  V(el)                                                                        \
+  V(en)                                                                        \
+  V(en - US)                                                                   \
+  V(en - US - u - va - posix)                                                  \
+  V(eo)                                                                        \
+  V(es)                                                                        \
+  V(et)                                                                        \
+  V(fa)                                                                        \
+  V(fa - AF)                                                                   \
+  V(fi)                                                                        \
+  V(fi - u - co - standard)                                                    \
+  V(fil)                                                                       \
+  V(fo)                                                                        \
+  V(fr)                                                                        \
+  V(fr - CA)                                                                   \
+  V(gu)                                                                        \
+  V(ha)                                                                        \
+  V(haw)                                                                       \
+  V(he)                                                                        \
+  V(hi)                                                                        \
+  V(hr)                                                                        \
+  V(hu)                                                                        \
+  V(hy)                                                                        \
+  V(ig)                                                                        \
+  V(is)                                                                        \
+  V(ja)                                                                        \
+  V(kk)                                                                        \
+  V(kl)                                                                        \
+  V(km)                                                                        \
+  V(kn)                                                                        \
+  V(ko)                                                                        \
+  V(kok)                                                                       \
+  V(ln - u - co - phonetic)                                                    \
+  V(ln)                                                                        \
+  V(lt)                                                                        \
+  V(lv)                                                                        \
+  V(mk)                                                                        \
+  V(ml)                                                                        \
+  V(mr)                                                                        \
+  V(mt)                                                                        \
+  V(my)                                                                        \
+  V(nb)                                                                        \
+  V(nn)                                                                        \
+  V(nso)                                                                       \
+  V(om)                                                                        \
+  V(or)                                                                        \
+  V(pa)                                                                        \
+  V(pl)                                                                        \
+  V(ps)                                                                        \
+  V(ro)                                                                        \
+  V(ru)                                                                        \
+  V(se)                                                                        \
+  V(si)                                                                        \
+  V(sk)                                                                        \
+  V(sl)                                                                        \
+  V(sq)                                                                        \
+  V(sr)                                                                        \
+  V(sr - Latn)                                                                 \
+  V(ssy)                                                                       \
+  V(sv)                                                                        \
+  V(sv - u - co - standard)                                                    \
+  V(ta)                                                                        \
+  V(te)                                                                        \
+  V(th)                                                                        \
+  V(tn)                                                                        \
+  V(to)                                                                        \
+  V(tr)                                                                        \
+  V(uk)                                                                        \
+  V(ur)                                                                        \
+  V(vi)                                                                        \
+  V(wae)                                                                       \
+  V(yo)                                                                        \
+  V(zh)                                                                        \
+  V(zh - u - co - stroke)                                                      \
+  V(zh - Hant - u - co - pinyin)                                               \
+  V(zh - Hant)
+
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \
   a->deep_delete()

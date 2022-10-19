@@ -222,6 +222,7 @@ public:
   IRTYPE get_ir_type();
   DATATYPE get_data_type();
   DATAFLAG get_data_flag();
+  DATAAFFINITYTYPE get_data_affinity();
   RelOptionType get_rel_option_type();
 
   bool is_empty();
@@ -231,11 +232,14 @@ public:
   void set_ir_type(IRTYPE);
   void set_data_type(DATATYPE);
   void set_data_flag(DATAFLAG);
+  void set_data_affinity(DATAAFFINITYTYPE);
+
+  DATAAFFINITYTYPE detect_cur_data_type(bool is_override = true);
 
   /* helper functions for the IR type */
 
   // Return is_succeed.
-  bool set_type(DATATYPE, DATAFLAG); // Set type regardless of its node type.
+  bool set_type(DATATYPE, DATAFLAG, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN); // Set type regardless of its node type.
   bool func_name_set_str(string);
 
   bool replace_op(IROperator *);
