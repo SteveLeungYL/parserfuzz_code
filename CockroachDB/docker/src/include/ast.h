@@ -70,9 +70,9 @@ public:
 
 class IR {
 public:
-  IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
+  IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL)
       : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
-        operand_num_((!!right) + (!!left)), data_type_(DataNone), data_affinity_type(data_affi) {
+        operand_num_((!!right) + (!!left)), data_type_(DataNone), data_affinity_type(AFFIUNKNOWN) {
     GEN_NAME();
     if (left_)
       left_->parent_ = this;

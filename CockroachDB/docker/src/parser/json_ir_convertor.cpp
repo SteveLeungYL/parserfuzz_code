@@ -89,24 +89,24 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
     curRootIR = new IR(type, str, datatype, dataflag);
     curRootIR->op_ = new IROperator("", "", "");
   } else if (type == TypeStringLiteral) {
-    curRootIR = new IR(type, str);
+    curRootIR = new IR(type, str, datatype, dataflag, data_affi);
     curRootIR->op_ = new IROperator("", "", "");
   } else if (type == TypeIntegerLiteral) {
     if (f_val != 0.0) {
-      curRootIR = new IR(type, f_val);
+      curRootIR = new IR(type, f_val, datatype, dataflag, data_affi);
     } else if (u_val != 0) {
-      curRootIR = new IR(type, u_val);
+      curRootIR = new IR(type, u_val, datatype, dataflag, data_affi);
     } else {
-      curRootIR = new IR(type, i_val);
+      curRootIR = new IR(type, i_val, datatype, dataflag, data_affi);
     }
     curRootIR->op_ = new IROperator("", "", "");
   } else if (type == TypeFloatLiteral) {
     if (f_val != 0.0) {
-      curRootIR = new IR(type, f_val);
+      curRootIR = new IR(type, f_val, datatype, dataflag, data_affi);
     } else if (u_val != 0) {
-      curRootIR = new IR(type, u_val);
+      curRootIR = new IR(type, u_val, datatype, dataflag, data_affi);
     } else {
-      curRootIR = new IR(type, i_val);
+      curRootIR = new IR(type, i_val, datatype, dataflag, data_affi);
     }
     curRootIR->op_ = new IROperator("", "", "");
   } else {
