@@ -20,6 +20,7 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
   IRTYPE type = TypeUnknown;
   DATATYPE datatype = DataNone;
   DATAFLAG dataflag = ContextUnknown;
+  DATAAFFINITYTYPE data_affi = AFFIUNKNOWN;
   IR *LNode = NULL, *RNode = NULL;
   string prefix = "", infix = "", suffix = "";
   string str = "";
@@ -61,6 +62,9 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
     } else if (it.key() == "ContextFlag") {
       dataflag = get_data_flag_by_idx(it.value());
       continue;
+    } else if (it.key() == "DataAffinity") {
+        data_affi = get_data_affinity_by_idx(it.value());
+        continue;
     } else if (it.key() == "Str") {
       str = it.value();
       continue;
@@ -82,7 +86,7 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
   IR *curRootIR;
 
   if (type == TypeIdentifier) {
-    curRootIR = new IR(type, str, datatype, -1, dataflag);
+    curRootIR = new IR(type, str, datatype, dataflag);
     curRootIR->op_ = new IROperator("", "", "");
   } else if (type == TypeStringLiteral) {
     curRootIR = new IR(type, str);

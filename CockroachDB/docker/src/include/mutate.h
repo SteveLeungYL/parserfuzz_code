@@ -102,7 +102,6 @@ public:
                                 set<IRTYPE> &split_set);
   bool connect_back(map<IR *, pair<bool, IR *>> &m_save);
 
-  void analyze_scope(IR *stmt_root);
   void fix_preprocessing(IR *stmt_root, vector<IR *> &ordered_all_subquery_ir);
   bool fix_dependency(IR *cur_stmt_root, const vector<vector<IR *>> ir_to_fix,
                       bool is_debug_info = false);
@@ -194,12 +193,6 @@ public:
 
   map<FUNCTIONTYPE, vector<string>> function_library;
   map<string, FUNCTIONTYPE> func_str_to_type_map;
-
-  /*
-  ** Not sure its usage yet. Might delete later.
-  ** Save all scope -> DATATYPE -> pIR in one query sequence.
-  */
-  map<int, map<DATATYPE, vector<IR *>>> scope_library_;
 
   set<unsigned long> global_hash_;
 

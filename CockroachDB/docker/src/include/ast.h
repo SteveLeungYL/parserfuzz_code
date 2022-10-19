@@ -2,6 +2,7 @@
 #define __AST_H__
 
 #include "define.h"
+#include "data_affinity.h"
 #include "relopt_generator.h"
 #include <map>
 #include <set>
@@ -69,9 +70,9 @@ public:
 
 class IR {
 public:
-  IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL)
+  IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
-        operand_num_((!!right) + (!!left)), data_type_(DataNone) {
+        operand_num_((!!right) + (!!left)), data_type_(DataNone), data_affinity_type(data_affi) {
     GEN_NAME();
     if (left_)
       left_->parent_ = this;
@@ -79,53 +80,53 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, string str_val, DATATYPE data_type = DataNone, int scope = -1,
-     DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, string str_val, DATATYPE data_type = DataNone,
+     DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
-        data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type),
+        data_flag_(flag), data_affinity_type(data_affi) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone, int scope = -1,
-     DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone,
+     DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
-        data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type),
+        data_flag_(flag), data_affinity_type(data_affi) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, unsigned long long_val, DATATYPE data_type = DataNone,
-     int scope = -1, DATAFLAG flag = ContextUnknown)
+     DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
-        data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type),
+        data_flag_(flag), data_affinity_type(data_affi) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone, int scope = -1,
-     DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone,
+     DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
-        data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type),
+        data_flag_(flag), data_affinity_type(data_affi) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone, int scope = -1,
-     DATAFLAG flag = ContextUnknown)
+  IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone,
+     DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type), scope_(scope),
-        data_flag_(flag) {
+        parent_(NULL), operand_num_(0), data_type_(data_type),
+        data_flag_(flag), data_affinity_type(data_affi) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,
-     string str_val, string name, unsigned int mutated_times, int scope = -1,
-     DATAFLAG flag = ContextUnknown)
+     string str_val, string name, unsigned int mutated_times,
+     DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), op_(op), left_(left), right_(right),
         operand_num_((!!right) + (!!left)), name_(name), str_val_(str_val),
         float_val_(f_val), mutated_times_(mutated_times), data_type_(DataNone),
-        scope_(scope), data_flag_(flag) {
+        data_flag_(flag), data_affinity_type(data_affi) {
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -150,8 +151,9 @@ public:
     this->str_val_ = ir->str_val_;
     this->long_val_ = ir->long_val_;
     this->data_type_ = ir->data_type_;
-    this->scope_ = ir->scope_;
     this->data_flag_ = ir->data_flag_;
+    this->data_affinity = ir->data_affinity;
+    this->data_affinity_type = ir->data_affinity_type;
     this->option_type_ = ir->option_type_;
     this->name_ = ir->name_;
     this->operand_num_ = ir->operand_num_;
@@ -165,10 +167,12 @@ public:
     bool bool_val_;
   };
 
-  int scope_;
   int uniq_id_in_tree_ = -1;
   DATAFLAG data_flag_ = DATAFLAG::ContextUnknown;
   DATATYPE data_type_ = DATATYPE::DataNone;
+  DATAAFFINITYTYPE data_affinity_type;
+  DataAffinity data_affinity;
+
   RelOptionType option_type_ = RelOptionType::Unknown;
   IRTYPE type_;
   string name_;

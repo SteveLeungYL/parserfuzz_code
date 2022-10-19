@@ -1477,7 +1477,7 @@ static void do_libary_initialize() {
        << ", all_valid_pstr_vec size: " << g_mutator.all_valid_pstr_vec.size()
        << ". \n";
 
-  g_mutator.init_data_library(FUNCTION_TYPE_PATH);
+  g_mutator.init_data_library();
 
   cout << "init_lib done" << endl;
 }

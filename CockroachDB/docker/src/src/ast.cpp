@@ -146,7 +146,8 @@ void IR::to_string_core(string &res) {
     }
     return;
   case TypeStringLiteral:
-    res += "'" + str_val_ + "'";
+//    res += "'" + str_val_ + "'";
+    res += str_val_;
     return;
   }
 

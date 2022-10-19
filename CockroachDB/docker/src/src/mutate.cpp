@@ -92,11 +92,11 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
         new IR(root->type_,
                OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_),
                left, right, root->float_val_, root->str_val_, root->name_,
-               root->mutated_times_, root->scope_, root->data_flag_);
+               root->mutated_times_, root->data_flag_);
   else
     copy_res = new IR(root->type_, NULL, left, right, root->float_val_,
                       root->str_val_, root->name_, root->mutated_times_,
-                      root->scope_, root->data_flag_);
+                      root->data_flag_);
 
   copy_res->data_type_ = root->data_type_;
 
@@ -1053,7 +1053,6 @@ void Mutator::pre_validate() {
   // Reset components that is local to the one query sequence.
   reset_id_counter();
   reset_data_library();
-  reset_scope_library(true);
   return;
 }
 
@@ -1090,7 +1089,6 @@ bool Mutator::validate(IR *&cur_stmt, bool is_debug_info) {
 
 string Mutator::validate(string query, bool is_debug_info) {
   reset_data_library();
-  reset_scope_library(true);
 
   vector<IR *> ir_set = parse_query_str_get_ir_set(query);
   if (ir_set.size() == 0)
@@ -1377,21 +1375,6 @@ Mutator::ir_to_string(IR *root, vector<vector<IR *>> all_post_trans_vec,
   pair<string, string> output_str_pair =
       make_pair(output_str_mark, output_str_no_mark);
   return output_str_pair;
-}
-
-void Mutator::analyze_scope(IR *stmt_root) {
-  if (stmt_root->left_) {
-    analyze_scope(stmt_root->left_);
-  }
-  if (stmt_root->right_) {
-    analyze_scope(stmt_root->right_);
-  }
-
-  auto data_type = stmt_root->data_type_;
-  if (data_type == DataUnknownType || data_type == DataNone)
-    return;
-
-  scope_library_[stmt_root->scope_][data_type].push_back(stmt_root);
 }
 
 // find tree node whose identifier type can be handled
@@ -3523,11 +3506,6 @@ bool Mutator::remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype,
   }
 
   return true;
-}
-
-void Mutator::reset_scope_library(bool clear_define) {
-  scope_library_.clear();
-  return;
 }
 
 void Mutator::reset_data_library_single_stmt() {

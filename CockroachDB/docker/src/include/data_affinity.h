@@ -13,6 +13,12 @@ enum DATAAFFINITYTYPE {
 #undef DECLARE_TYPE
 };
 
+string get_string_by_affinity_type(DATAAFFINITYTYPE type);
+
+DATAAFFINITYTYPE get_data_affinity_by_idx(int idx);
+
+DATAAFFINITYTYPE get_data_affinity_by_string(string s);
+
 class DataAffinity {
 private:
     DATAAFFINITYTYPE data_affinity;
