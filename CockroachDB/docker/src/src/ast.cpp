@@ -356,6 +356,11 @@ void IR::set_data_affinity(DATAAFFINITYTYPE data_affinity) {
     this->data_affinity.set_data_affinity(data_affinity);
 }
 
+void IR::set_data_affinity(DataAffinity data_affinity) {
+    this->data_affinity = data_affinity;
+    this->data_affinity.set_data_affinity(data_affinity.get_data_affinity());
+}
+
 bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag, DATAAFFINITYTYPE data_affi) {
 
   /* Set type regardless of the node type. Do not use this unless necessary. */
@@ -419,3 +424,21 @@ COLTYPE IR::typename_ir_get_type() {
   }
 
 } /* Finished for Numeric type */
+
+void IR::mutate_literal_random_affinity() {
+    auto random_affi_idx = get_rand_int(DATAAFFINITYTYPE::AFFIELEMENTCOUNT-1) + 1; // Avoid AFFIUNKNOWN;
+    auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+    this->set_data_affinity(random_affi);
+    this->mutate_literal();
+    return;
+}
+// Main literal mutate function.
+void IR::mutate_literal() {
+    // Upon calling this function, we should assume the Data affinity has been set up correctly.
+    if (this->data_affinity_type == AFFIUNKNOWN || this->data_affinity.get_data_affinity() == AFFIUNKNOWN) {
+        cerr << "\n\n\nTrying to mutate literal on IR that has Unknown data affinity. \n\n\n";
+        abort();
+    }
+
+    // TODO:: WIP.
+}

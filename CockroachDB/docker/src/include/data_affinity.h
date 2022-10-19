@@ -11,6 +11,7 @@ enum DATAAFFINITYTYPE {
 #define DECLARE_TYPE(v) v,
     ALLDATAAFFINITY(DECLARE_TYPE)
 #undef DECLARE_TYPE
+        AFFIELEMENTCOUNT,
 };
 
 string get_string_by_affinity_type(DATAAFFINITYTYPE type);
@@ -48,7 +49,8 @@ public:
     }
 
     DATAAFFINITYTYPE recognize_data_type(const string& str_in); // Return `this` pointer.
-    void set_data_affinity(DATAAFFINITYTYPE in) {this->data_affinity = in; }
+    DATAAFFINITYTYPE get_data_affinity() { return this->data_affinity; }
+    void set_data_affinity(DATAAFFINITYTYPE in) { this->data_affinity = in; }
 
 };
 

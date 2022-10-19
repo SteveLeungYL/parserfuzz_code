@@ -133,6 +133,14 @@ public:
       right_->parent_ = this;
   }
 
+  IR(DATAAFFINITYTYPE data_affi): type_(TypeStringLiteral), str_val_("") {
+      this->mutate_literal(data_affi);
+  }
+
+  IR(DataAffinity data_affi): type_(TypeStringLiteral), str_val_("") {
+      this->mutate_literal(data_affi);
+  }
+
   IR(const IR *ir, IR *left, IR *right) {
     this->type_ = ir->type_;
     if (ir->op_ != NULL)
@@ -225,6 +233,13 @@ public:
   DATAAFFINITYTYPE get_data_affinity();
   RelOptionType get_rel_option_type();
 
+  void mutate_literal_random_affinity();
+  void mutate_literal(DATAAFFINITYTYPE data_affi){ this->set_data_affinity(data_affi); this->mutate_literal(); }
+  void mutate_literal(DataAffinity data_affi){ this->set_data_affinity(data_affi); this->mutate_literal(); }
+
+  // Main literal mutate function.
+  void mutate_literal();
+
   bool is_empty();
 
   void set_str_val(string);
@@ -233,6 +248,7 @@ public:
   void set_data_type(DATATYPE);
   void set_data_flag(DATAFLAG);
   void set_data_affinity(DATAAFFINITYTYPE);
+  void set_data_affinity(DataAffinity);
 
   DATAAFFINITYTYPE detect_cur_data_type(bool is_override = true);
 
