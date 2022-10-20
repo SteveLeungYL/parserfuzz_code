@@ -23,10 +23,10 @@ using namespace std;
 //   (a.size() != 0 ? a[get_rand_int(a.size())]                                   \
 //                  : (*a.insert(a.begin(), gen_id_name())))
 
-static std::random_device rd; // random device engine, usually based on
+static std::random_device rdd; // random device engine, usually based on
                               // /dev/random on UNIX-like systems
-// initialize Mersennes' twister using rd to generate the seed
-static std::mt19937 rng{rd()};
+// initialize Mersennes' twister using rdd to generate the seed
+static std::mt19937 rng{rdd()};
 
 // #define get_rand_int(range) rand() % (range)
 inline int get_rand_int(int range) {

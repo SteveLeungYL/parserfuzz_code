@@ -65,6 +65,8 @@ private:
     string mutate_affi_timetz();
     string mutate_affi_string();
 
+    string get_rand_alphabet_num();
+
 public:
     DataAffinity(): data_affinity(AFFIUNKNOWN), is_range(false), is_enum(false) {
         int_min = 0;

@@ -1,5 +1,6 @@
 #include "../include/data_affinity.h"
 #include "../include/utils.h"
+#include "../include/rand_json_generator.h"
 
 #include <regex>
 #include <float.h>
@@ -75,9 +76,10 @@ DATAAFFINITYTYPE DataAffinity::detect_string_type(const string& str_in){
         return AFFIINT;
     }
 
-    // Interval. (Not accurate.)
-    regex interval_sim("^'(?:\\d+h)?(?:\\d+m)?\\d+s'$"); // INTERVAL '2h30m30s'
-    // INTERVAL 'Y-M D H:M:S
+    // Interval.
+    // INTERVAL '2h30m30s'
+    regex interval_sim("^'(?:\\d+h)?(?:\\d+m)?\\d+s'$");
+    // INTERVAL 'Y-M D H:M:S'
     regex interval_SQL("^'(?:\\d+-\\d+)? (?:\\d+)? \\d+:\\d+:\\d+'$");
     // INTERVAL 'P1Y2M3DT4H5M6S'
     regex interval_ISO("^'P(?:\\d+Y)(?:\\d+M)(?:\\d+DT)\\d+H\\d+M\\d+S'$");
@@ -188,8 +190,6 @@ DATAAFFINITYTYPE DataAffinity::recognize_data_type(const string& str_in){
 
 }
 
-
-
 string DataAffinity::mutate_affi_int() {
     // and also for serial.
     // This is actually 64 bits integers.
@@ -294,21 +294,266 @@ string DataAffinity::mutate_affi_bool() {
 }
 
 string DataAffinity::mutate_affi_bit() {
-    // TODO:: Need more editing.
-    return "";
+    string ret_str = "B'";
 
+    int length = get_rand_int(17) + 1; // do not use 0;
+    for (int i = 0; i < length; i++) {
+        if(get_rand_int(2)) {
+            ret_str += "1";
+        } else {
+            ret_str += "0";
+        }
+    }
+    ret_str += "'";
+
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_byte(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = "b'";
+
+    int len = get_rand_int(16) + 1; // Do not use len == 0;
+
+    int format_choice = get_rand_int(4);
+    switch (format_choice) {
+        case 0:
+            // b'abc'
+            for (int i = 0; i < len; i++) {
+                ret_str += char(get_rand_int(256));
+            }
+            break;
+        case 1:
+            // b'\141\142\143'
+            for (int i = 0; i < len; i++) {
+                ret_str += "\\" + to_string(get_rand_int(256));
+            }
+            break;
+        case 2:
+            // b'\x61\x62\x63'
+            for (int i = 0; i < len; i++) {
+                ret_str += "\\x" + get_rand_alphabet_num() + get_rand_alphabet_num();
+            }
+            break;
+        case 3:
+            // b'00001111'
+            len = get_rand_int(3) + 1; // use a shorter length
+            for (int i = 0; i < len; i++) {
+                if(get_rand_int(2)) {
+                    ret_str += "1";
+                } else {
+                    ret_str += "0";
+                }
+            }
+            break;
+    }
+
+    ret_str += "'";
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_jsonb(){
-    // TODO:: Need more editing.
-    return "";
+    // May not be able to control the content inside the JSON.
+    int jsonDepth = 1;
+    string ret_str = "'" + generateRandomJson(1).dump() + "'";
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_interval(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = "";
+
+    int second = get_rand_int(60);
+    int min = get_rand_int(60);
+    int hour = get_rand_int(24);
+    int day = get_rand_int(31);
+    int month = get_rand_int(12);
+    int year = get_rand_int(10); // 10 years range?
+
+    int format = get_rand_int(5);
+
+    // Second.
+    switch(format) {
+        case 0:
+            // INTERVAL '2h30m30s'
+            ret_str += to_string(second) + "s";
+            break;
+        case 1:
+            // INTERVAL 'Y-M D H:M:S'
+            ret_str += to_string(second);
+            break;
+        case 2:
+            // INTERVAL 'P1Y2M3DT4H5M6S'
+            ret_str += to_string(second) + "S";
+            break;
+        case 3:
+            // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
+            ret_str += to_string(second) + " seconds";
+            break;
+        case 4:
+            // INTERVAL '1 yr 2 mons 3 d 4 hrs 5 mins 6 secs'
+            ret_str += to_string(second) + " secs";
+            break;
+    }
+
+    if (get_rand_int(5) < 4) {
+        // 80% chance, ignore the rest.
+        goto interval_early_break;
+    }
+
+    // Mins.
+    switch(format) {
+        case 0:
+            // INTERVAL '2h30m30s'
+            ret_str = to_string(min) + "m" + ret_str;
+            break;
+        case 1:
+            // INTERVAL 'Y-M D H:M:S'
+            ret_str = to_string(min) + ":" + ret_str;
+            break;
+        case 2:
+            // INTERVAL 'P1Y2M3DT4H5M6S'
+            ret_str = to_string(min) + "M" + ret_str;
+            break;
+        case 3:
+            // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
+            ret_str = to_string(min) + " minutes " + ret_str;
+            break;
+        case 4:
+            // INTERVAL '1 yr 2 mons 3 d 4 hrs 5 mins 6 secs'
+            ret_str = to_string(min) + " mins " + ret_str;
+            break;
+    }
+
+    if (get_rand_int(5) < 4) {
+        // 80% chance, ignore the rest.
+        goto interval_early_break;
+    }
+
+
+    // Hour.
+    switch(format) {
+        case 0:
+            // INTERVAL '2h30m30s'
+            ret_str = to_string(hour) + "h" + ret_str;
+            break;
+        case 1:
+            // INTERVAL 'Y-M D H:M:S'
+            ret_str = to_string(hour) + ":" + ret_str;
+            break;
+        case 2:
+            // INTERVAL 'P1Y2M3DT4H5M6S'
+            ret_str = to_string(hour) + "H" + ret_str;
+            break;
+        case 3:
+            // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
+            ret_str = to_string(hour) + " hours " + ret_str;
+            break;
+        case 4:
+            // INTERVAL '1 yr 2 mons 3 d 4 hrs 5 mins 6 secs'
+            ret_str = to_string(min) + " hrs " + ret_str;
+            break;
+    }
+
+    if (get_rand_int(5) < 4) {
+        // 80% chance, ignore the rest.
+        goto interval_early_break;
+    }
+
+
+    // Day.
+    switch(format) {
+        case 0:
+            // INTERVAL '2h30m30s'
+            break;
+        case 1:
+            // INTERVAL 'Y-M D H:M:S'
+            ret_str = to_string(day) + " " + ret_str;
+            break;
+        case 2:
+            // INTERVAL 'P1Y2M3DT4H5M6S'
+            ret_str = to_string(day) + "DT" + ret_str;
+            break;
+        case 3:
+            // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
+            ret_str = to_string(day) + " days " + ret_str;
+            break;
+        case 4:
+            // INTERVAL '1 yr 2 mons 3 d 4 hrs 5 mins 6 secs'
+            ret_str = to_string(day) + " d " + ret_str;
+            break;
+    }
+
+    if (get_rand_int(5) < 4) {
+        // 80% chance, ignore the rest.
+        goto interval_early_break;
+    }
+
+    // Month.
+    switch(format) {
+        case 0:
+            // INTERVAL '2h30m30s'
+            break;
+        case 1:
+            // INTERVAL 'Y-M D H:M:S'
+            ret_str = to_string(month) + " " + ret_str;
+            break;
+        case 2:
+            // INTERVAL 'P1Y2M3DT4H5M6S'
+            ret_str = to_string(month) + "M" + ret_str;
+            break;
+        case 3:
+            // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
+            ret_str = to_string(month) + " months " + ret_str;
+            break;
+        case 4:
+            // INTERVAL '1 yr 2 mons 3 d 4 hrs 5 mins 6 secs'
+            ret_str = to_string(month) + " mons " + ret_str;
+            break;
+    }
+
+    if (get_rand_int(5) < 4) {
+        // 80% chance, ignore the rest.
+        goto interval_early_break;
+    }
+
+
+    // year.
+    switch(format) {
+        case 0:
+            // INTERVAL '2h30m30s'
+            break;
+        case 1:
+            // INTERVAL 'Y-M D H:M:S'
+            ret_str = to_string(year) + "-" + ret_str;
+            break;
+        case 2:
+            // INTERVAL 'P1Y2M3DT4H5M6S'
+            ret_str = to_string(year) + "Y" + ret_str;
+            break;
+        case 3:
+            // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
+            ret_str = to_string(year) + " years " + ret_str;
+            break;
+        case 4:
+            // INTERVAL '1 yr 2 mons 3 d 4 hrs 5 mins 6 secs'
+            ret_str = to_string(year) + " yr " + ret_str;
+            break;
+    }
+
+    if (get_rand_int(5) < 4) {
+        // 80% chance, ignore the rest.
+        goto interval_early_break;
+    }
+
+interval_early_break:
+    if (format == 2) {
+        ret_str = "'P" + ret_str + "'";
+    } else {
+        ret_str = "'" + ret_str + "'";
+    }
+
+    return ret_str;
 };
 string DataAffinity::mutate_affi_date(){
     // TODO:: Need more editing.
@@ -397,5 +642,18 @@ string DataAffinity::get_mutated_literal() {
             return this->mutate_affi_string();
         default:
             return this->mutate_affi_string();
+    }
+}
+
+string DataAffinity::get_rand_alphabet_num() {
+    // no capital letters;
+    // Pure helper function for random mutations.
+    int rand_int = get_rand_int(36);
+    if (rand_int >= 26) {
+        return to_string(rand_int-26);
+    } else {
+        char cch = 'a' + rand_int;
+        string ret_str(cch, 1);
+        return ret_str;
     }
 }

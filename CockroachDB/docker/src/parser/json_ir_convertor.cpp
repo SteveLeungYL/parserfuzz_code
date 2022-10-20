@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "../include/utils.h"
-#include "json.hpp"
+#include "../include/json.hpp"
 #include "json_ir_convertor.h"
 
 using json = nlohmann::json;
