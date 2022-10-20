@@ -2,6 +2,8 @@
 #include "../include/utils.h"
 
 #include <regex>
+#include <float.h>
+#include <math.h>
 
 string get_string_by_affinity_type(DATAAFFINITYTYPE type) {
 #define DECLARE_CASE(classname)                                                \
@@ -30,6 +32,21 @@ bool DataAffinity::is_str_collation(const string& str_in) {
     ALLCOLLATIONS(CMP_STR);
 #undef DECLARE_CASE
     return false;
+}
+
+string DataAffinity::get_rand_collation_str() {
+#define DECLARE_CASE(collationname) "collation_name",
+    vector<string> v_collate_str {
+            ALLCOLLATIONS(DECLARE_CASE)
+    };
+#undef DECLARE_CASE
+
+    auto rand_idx = get_rand_int(v_collate_str.size());
+    if (rand_idx == 0) {
+        return "default";
+    } else {
+        return v_collate_str[rand_idx];
+    }
 }
 
 DATAAFFINITYTYPE DataAffinity::detect_numerical_type(const string& str_in){
@@ -100,6 +117,11 @@ DATAAFFINITYTYPE DataAffinity::detect_string_type(const string& str_in){
         return AFFITIMESTAMPTZ;
     }
 
+    regex uuid_rex("^'(urn:)?(uuid:)?\\w+-\\w+-\\w+-\\w+-\\w+'$");
+    if (regex_match(str_in, uuid_rex)) {
+        return AFFIUUID;
+    }
+
     // Doesn't match any special types. Directly return the AFFISTRING type.
     return AFFISTRING;
 
@@ -164,4 +186,216 @@ DATAAFFINITYTYPE DataAffinity::recognize_data_type(const string& str_in){
         return this->data_affinity;
     }
 
+}
+
+
+
+string DataAffinity::mutate_affi_int() {
+    // and also for serial.
+    // This is actually 64 bits integers.
+
+    if (this->is_enum) {
+        return vector_rand_ele(this->v_enum_str);
+    }
+
+    if (this->is_range) {
+        auto rand_int = get_rand_long_long(9223372036854775807); // Max long long.
+        auto range = int_max - int_min;
+        rand_int = (rand_int % range) + int_min;
+        string rand_int_str = to_string(rand_int);
+        return rand_int_str;
+    }
+
+    if (get_rand_int(3) < 1) { // 1/3 chance, choose special value.
+        auto rand_choice = get_rand_int(3);
+        switch (rand_choice) {
+            case 0:
+                return "-9223372036854775807";
+            case 1:
+                return "9223372036854775807";
+            case 2:
+                return "0";
+        }
+        return "0";
+    } else {
+        // Randomly mutate the number.
+        auto rand_int = get_rand_long_long(9223372036854775807);
+        string rand_int_str = to_string(rand_int);
+        if (get_rand_int(2)) {
+            return rand_int_str;
+        } else {
+            return "-" + rand_int_str;
+        }
+    }
+}
+
+string DataAffinity::mutate_affi_oid() {
+    // unsigned oid.
+    if (this->is_enum) {
+        return vector_rand_ele(this->v_enum_str);
+    }
+
+    if (this->is_range) {
+        auto rand_int = get_rand_long_long(9223372036854775807); // Max long long.
+        auto range = int_max - int_min;
+        rand_int = (rand_int % range) + int_min;
+        string rand_int_str = to_string(rand_int);
+        return rand_int_str;
+    }
+
+    if (get_rand_int(3) < 1) { // 1/3 chance, choose special value.
+        auto rand_choice = get_rand_int(2);
+        switch (rand_choice) {
+            case 0:
+                return "4294967295";
+            case 1:
+                return "0";
+        }
+        return "0";
+    } else {
+        // Randomly mutate the number.
+        auto rand_int = get_rand_int(4294967295);
+        return to_string(rand_int);
+    }
+}
+string DataAffinity::mutate_affi_float() {
+    // decimal and float.
+    // unsigned oid.
+    if (this->is_enum) {
+        return vector_rand_ele(this->v_enum_str);
+    }
+
+    if (this->is_range) {
+        auto rand_float = get_rand_double(DBL_MAX); // Max double precision.
+        auto range = float_max - float_min;
+        rand_float = fmod(rand_float, range) + float_min;
+        string rand_float_str = to_string(rand_float);
+        return rand_float_str;
+    }
+
+    return to_string(get_rand_double(DBL_MIN, DBL_MAX));
+}
+
+string DataAffinity::mutate_affi_array() {
+    // TODO:: Need more editing.
+    return "";
+}
+
+string DataAffinity::mutate_affi_collate() {
+    return this->get_rand_collation_str();
+}
+
+string DataAffinity::mutate_affi_bool() {
+    if(get_rand_int(2)) {
+        return "true";
+    } else {
+        return "false";
+    }
+}
+
+string DataAffinity::mutate_affi_bit() {
+    // TODO:: Need more editing.
+    return "";
+
+};
+string DataAffinity::mutate_affi_byte(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_jsonb(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_interval(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_date(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_timestamp(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_timestamptz(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_uuid(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_enum(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_inet(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_time(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_timetz(){
+    // TODO:: Need more editing.
+    return "";
+};
+string DataAffinity::mutate_affi_string(){
+    // TODO:: Need more editing.
+    return "";
+};
+
+string DataAffinity::get_mutated_literal() {
+    switch (this->data_affinity) {
+        case AFFIUNKNOWN:
+            cerr << "In DataAffinity::get_mutated_literal, getting AFIUNKNOWN. \n";
+            abort();
+
+        case AFFISERIAL:
+            // [[fallthrough]]
+        case AFFIINT:
+            return this->mutate_affi_int();
+
+        case AFFIFLOAT:
+            //[[fallthrough]];
+        case AFFIDECIMAL:
+            return this->mutate_affi_float();
+
+        case AFFIINET:
+            return this->mutate_affi_inet();
+        case AFFIARRAY:
+            return this->mutate_affi_array();
+        case AFFICOLLATE:
+            return this->mutate_affi_collate();
+        case AFFIBOOL:
+            return this->mutate_affi_bool();
+        case AFFIBIT:
+            return this->mutate_affi_bit();
+        case AFFIBYTES:
+            return this->mutate_affi_byte();
+        case AFFIJSONB:
+            return this->mutate_affi_jsonb();
+        case AFFIINTERVAL:
+            return this->mutate_affi_interval();
+        case AFFIDATE:
+            return this->mutate_affi_date();
+        case AFFITIMESTAMP:
+            return this->mutate_affi_timestamp();
+        case AFFITIMESTAMPTZ:
+            return this->mutate_affi_timestamptz();
+        case AFFIUUID:
+            return this->mutate_affi_uuid();
+        case AFFIENUM:
+            return this->mutate_affi_enum();
+        case AFFITIME:
+            return this->mutate_affi_time();
+        case AFFITIMETZ:
+            return this->mutate_affi_timetz();
+        case AFFISTRING:
+            return this->mutate_affi_string();
+        default:
+            return this->mutate_affi_string();
+    }
 }

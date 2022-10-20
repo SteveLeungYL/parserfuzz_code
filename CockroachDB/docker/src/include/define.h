@@ -548,7 +548,7 @@
   V(AFFIWHOLESTMT)
 
 #define ALLCOLLATIONS(V)                                                       \
-  V(default)                                                                   \
+  V(defaultcollation)                                                                   \
   V(und)                                                                       \
   V(aa)                                                                        \
   V(af)                                                                        \
@@ -559,30 +559,23 @@
   V(bg)                                                                        \
   V(bn)                                                                        \
   V(bs)                                                                        \
-  V(bs - Cyrl)                                                                 \
   V(ca)                                                                        \
   V(cs)                                                                        \
   V(cy)                                                                        \
   V(da)                                                                        \
-  V(de - u - co - phonebk)                                                     \
   V(de)                                                                        \
   V(dz)                                                                        \
   V(ee)                                                                        \
   V(el)                                                                        \
   V(en)                                                                        \
-  V(en - US)                                                                   \
-  V(en - US - u - va - posix)                                                  \
   V(eo)                                                                        \
   V(es)                                                                        \
   V(et)                                                                        \
   V(fa)                                                                        \
-  V(fa - AF)                                                                   \
   V(fi)                                                                        \
-  V(fi - u - co - standard)                                                    \
   V(fil)                                                                       \
   V(fo)                                                                        \
   V(fr)                                                                        \
-  V(fr - CA)                                                                   \
   V(gu)                                                                        \
   V(ha)                                                                        \
   V(haw)                                                                       \
@@ -600,7 +593,6 @@
   V(kn)                                                                        \
   V(ko)                                                                        \
   V(kok)                                                                       \
-  V(ln - u - co - phonetic)                                                    \
   V(ln)                                                                        \
   V(lt)                                                                        \
   V(lv)                                                                        \
@@ -613,7 +605,6 @@
   V(nn)                                                                        \
   V(nso)                                                                       \
   V(om)                                                                        \
-  V(or)                                                                        \
   V(pa)                                                                        \
   V(pl)                                                                        \
   V(ps)                                                                        \
@@ -625,10 +616,8 @@
   V(sl)                                                                        \
   V(sq)                                                                        \
   V(sr)                                                                        \
-  V(sr - Latn)                                                                 \
   V(ssy)                                                                       \
   V(sv)                                                                        \
-  V(sv - u - co - standard)                                                    \
   V(ta)                                                                        \
   V(te)                                                                        \
   V(th)                                                                        \
@@ -641,9 +630,6 @@
   V(wae)                                                                       \
   V(yo)                                                                        \
   V(zh)                                                                        \
-  V(zh - u - co - stroke)                                                      \
-  V(zh - Hant - u - co - pinyin)                                               \
-  V(zh - Hant)
 
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \
