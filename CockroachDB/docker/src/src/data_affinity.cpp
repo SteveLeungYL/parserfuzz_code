@@ -612,28 +612,24 @@ string DataAffinity::mutate_affi_timestamp(){
     }
 
     // Format 05:40:00
-    ret_str += to_string(get_rand_int(10));
-    ret_str += to_string(get_rand_int(10));
-    ret_str += ":";
-    ret_str += to_string(get_rand_int(10));
-    ret_str += to_string(get_rand_int(10));
-    ret_str += ":";
-    ret_str += to_string(get_rand_int(10));
-    ret_str += to_string(get_rand_int(10));
-
-    // Optional microsecond precision. HH:MM:SS.SSSSSS
-    if (get_rand_int(2) < 1) {
-        // Append 4 digits microsecond precision.
-        ret_str += ".";
-        ret_str += to_string(get_rand_int(10));
-        ret_str += to_string(get_rand_int(10));
-        ret_str += to_string(get_rand_int(10));
-        ret_str += to_string(get_rand_int(10));
-    }
+    string tmp_affi_time = this->mutate_affi_time();
+    tmp_affi_time = tmp_affi_time.substr(1, tmp_affi_time.size()-2);
+    ret_str += tmp_affi_time;
 
     ret_str = "'" + ret_str + "'";
     return ret_str;
 };
+
+string DataAffinity::add_random_time_zone() {
+    string ret_str = "";
+    if(get_rand_int(2) == 0) {
+        ret_str += "+" + to_string(get_rand_int(13));
+    } else {
+        ret_str += "-" + to_string(get_rand_int(13));
+    }
+    // Do not add the `'` symbol.
+    return ret_str;
+}
 
 string DataAffinity::mutate_affi_timestamptz(){
     string ret_str = "";
@@ -642,11 +638,7 @@ string DataAffinity::mutate_affi_timestamptz(){
     ret_str = mutate_affi_timestamp();
     ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
 
-    if(get_rand_int(2) < 1) {
-        ret_str += "+" + to_string(get_rand_int(13));
-    } else {
-        ret_str += "-" + to_string(get_rand_int(13));
-    }
+    ret_str += add_random_time_zone();
 
     ret_str = "'" + ret_str + "'";
     return ret_str;
@@ -727,7 +719,7 @@ string DataAffinity::mutate_affi_inet(){
         }
     } else {
         // Random ipv 6 address.
-        // Example: 2001:db8:3333:4444:5555:6666:7777:8888
+        // Example: 2001:db88:3333:4444:5555:6666:7777:8888
         for (int i = 0; i < 32; i++) {
             if ((i % 4) == 0 && i != 0) {
                 ret_str += ":";
@@ -737,14 +729,46 @@ string DataAffinity::mutate_affi_inet(){
     }
     return ret_str;
 };
+
 string DataAffinity::mutate_affi_time(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = "";
+
+    // Format 05:40:00
+    ret_str += to_string(get_rand_int(10));
+    ret_str += to_string(get_rand_int(10));
+    ret_str += ":";
+    ret_str += to_string(get_rand_int(10));
+    ret_str += to_string(get_rand_int(10));
+    ret_str += ":";
+    ret_str += to_string(get_rand_int(10));
+    ret_str += to_string(get_rand_int(10));
+
+    // Optional microsecond precision. HH:MM:SS.SSSSSS
+    if (get_rand_int(2) < 1) {
+        // Append 4 digits microsecond precision.
+        ret_str += ".";
+        ret_str += to_string(get_rand_int(10));
+        ret_str += to_string(get_rand_int(10));
+        ret_str += to_string(get_rand_int(10));
+        ret_str += to_string(get_rand_int(10));
+    }
+
+    ret_str = "'" + ret_str + "'";
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_timetz(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = this->mutate_affi_time();
+    ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
+
+    ret_str += this->add_random_time_zone();
+
+    ret_str = "'" + ret_str + "'";
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_string(){
     // TODO:: Need more editing.
     return "";

@@ -66,6 +66,7 @@ private:
     string mutate_affi_string();
 
     string get_rand_alphabet_num();
+    string add_random_time_zone();
 
 public:
     DataAffinity(): data_affinity(AFFIUNKNOWN), is_range(false), is_enum(false) {
