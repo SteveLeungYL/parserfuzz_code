@@ -556,28 +556,186 @@ interval_early_break:
     return ret_str;
 };
 string DataAffinity::mutate_affi_date(){
-    // TODO:: Need more editing.
-    return "";
+
+    int format = get_rand_int(2);
+    int abbr_year = get_rand_int(2);
+    string ret_str = "";
+
+    int month = get_rand_int(12);
+    int day = get_rand_int(32);
+    // For year, do not use the 1980 begin line.
+    // range 5000 years BC and AD.
+    int year = get_rand_int(5000);
+
+    switch(format) {
+        case 0:
+            // MM-DD-YYYY/YY (default)
+            ret_str = to_string(month) + "-" + to_string(day);
+            if (abbr_year) {
+                year = get_rand_int(100); // 2 digits.
+                ret_str += "-" + to_string(year); // FIXME:: Could miss one `0` if single digit.
+            } else {
+                ret_str += "-" + to_string(year); // FIXME:: Could miss prefix `0`s.
+            }
+            break;
+        case 1:
+            // YYYY-MM-DD
+            if (abbr_year) {
+                year = get_rand_int(100); // 2 digits.
+                ret_str = to_string(year); // FIXME:: Could miss one `0` if single digit.
+            } else {
+                ret_str = to_string(year); // FIXME:: Could miss prefix `0`s.
+            }
+            ret_str += "-" + to_string(month) + "-" + to_string(day);
+            break;
+    }
+
+    if (get_rand_int(2)) {
+        ret_str = "'" + ret_str + "'";
+    } else {
+        // Add BC
+        ret_str = "'" + ret_str + " BC'";
+    }
+
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_timestamp(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = "";
+
+    if (get_rand_int(2) < 1) {
+        // 1/2 chance, get date prefix.
+        ret_str = mutate_affi_date();
+        ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
+        ret_str += " "; // Added whitespace.
+    }
+
+    // Format 05:40:00
+    ret_str += to_string(get_rand_int(10));
+    ret_str += to_string(get_rand_int(10));
+    ret_str += ":";
+    ret_str += to_string(get_rand_int(10));
+    ret_str += to_string(get_rand_int(10));
+    ret_str += ":";
+    ret_str += to_string(get_rand_int(10));
+    ret_str += to_string(get_rand_int(10));
+
+    // Optional microsecond precision. HH:MM:SS.SSSSSS
+    if (get_rand_int(2) < 1) {
+        // Append 4 digits microsecond precision.
+        ret_str += ".";
+        ret_str += to_string(get_rand_int(10));
+        ret_str += to_string(get_rand_int(10));
+        ret_str += to_string(get_rand_int(10));
+        ret_str += to_string(get_rand_int(10));
+    }
+
+    ret_str = "'" + ret_str + "'";
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_timestamptz(){
-    // TODO:: Need more editing.
-    return "";
+    string ret_str = "";
+
+    // get timestamp prefix.
+    ret_str = mutate_affi_timestamp();
+    ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
+
+    if(get_rand_int(2) < 1) {
+        ret_str += "+" + to_string(get_rand_int(13));
+    } else {
+        ret_str += "-" + to_string(get_rand_int(13));
+    }
+
+    ret_str = "'" + ret_str + "'";
+    return ret_str;
 };
 string DataAffinity::mutate_affi_uuid(){
-    // TODO:: Need more editing.
-    return "";
+
+    int format = get_rand_int(2);
+    string ret_str = "";
+
+    if (format == 0) {
+        // Hyphen-separated groups of 8, 4, 4, 4, and 12 hexadecimal digits.
+        // Example: acde070d-8c4c-4f0d-9d8a-162843c10333
+        for (int i = 0; i < 32; i++) {
+            if (i == 8 || i == 12 || i == 16 || i == 20) {
+                ret_str += "-";
+            }
+            ret_str += get_rand_alphabet_num();
+        }
+        ret_str = "'" + ret_str + "'";
+    } else {
+        // UUID value specified as a BYTES value.
+        // b'kafef00ddeadbeed'
+        for (int i = 0; i < 16; i++) {
+            ret_str += get_rand_alphabet_num();
+        }
+        ret_str = "b'" + ret_str + "'";
+    }
+
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_enum(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = "";
+    if (this->v_enum_str.size() > 0) {
+        ret_str = vector_rand_ele(this->v_enum_str);
+    }
+
+    ret_str = "'" + ret_str + "'";
+    return ret_str;
 };
+
 string DataAffinity::mutate_affi_inet(){
-    // TODO:: Need more editing.
-    return "";
+
+    string ret_str = "";
+    int format = get_rand_int(3);
+
+    if (format == 0) {
+        // ipv 4.
+        // Typical ipv4 address.
+        switch (get_rand_int(6)) {
+            case 0:
+                ret_str = "192.168.0.0/24";
+                break;
+            case 1:
+                ret_str = "192.168.0.1";
+                break;
+            case 2:
+                ret_str = "172.0.0.0/8"; // loopback
+                break;
+            case 3:
+                ret_str = "169.254.0.0/16"; // link local
+                break;
+            case 4:
+                ret_str = "127.0.0.1"; // localhost
+                break;
+            case 5:
+                ret_str = "127.0.0.1/26257"; // localhost to CockroachDB/PostgreSQL port.
+                break;
+        }
+    } else if (format == 1) {
+        // Random IPV4 address.
+        for (int i = 0; i < 4; i++ ) {
+            if (i > 0) {
+                ret_str += ".";
+            }
+            ret_str += to_string(get_rand_int(256));
+        }
+    } else {
+        // Random ipv 6 address.
+        // Example: 2001:db8:3333:4444:5555:6666:7777:8888
+        for (int i = 0; i < 32; i++) {
+            if ((i % 4) == 0 && i != 0) {
+                ret_str += ":";
+            }
+            ret_str += get_rand_alphabet_num();
+        }
+    }
+    return ret_str;
 };
 string DataAffinity::mutate_affi_time(){
     // TODO:: Need more editing.
