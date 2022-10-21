@@ -425,13 +425,15 @@ func (node *AlterTableAlterColumnType) LogCurrentNode(depth int) *SQLRightIR {
 
 	if len(node.Collation) > 0 {
 		collationNode := &SQLRightIR{
-			IRType:      TypeIdentifier,
-			DataType:    DataCollationName,
-			ContextFlag: ContextUnknown,
-			Prefix:      "",
-			Infix:       "",
-			Suffix:      "",
-			Depth:       depth + 1,
+			IRType:       TypeStringLiteral,
+			DataType:     DataCollationName,
+			ContextFlag:  ContextUnknown,
+			DataAffinity: AFFICOLLATE,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth + 1,
+			Str:          node.Collation,
 		}
 
 		rootIR = &SQLRightIR{

@@ -226,14 +226,15 @@ func (node *CreateDatabase) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Collate != "" {
 		infix := " LC_COLLATE = "
 		RNode = &SQLRightIR{
-			IRType:      TypeIdentifier,
-			DataType:    DataCollationName,
-			ContextFlag: ContextUse,
-			Prefix:      "",
-			Infix:       "",
-			Suffix:      "",
-			Depth:       depth,
-			Str:         node.Collate,
+			IRType:       TypeStringLiteral,
+			DataType:     DataCollationName,
+			ContextFlag:  ContextUse,
+			DataAffinity: AFFICOLLATE,
+			Prefix:       "",
+			Infix:        "",
+			Suffix:       "",
+			Depth:        depth,
+			Str:          node.Collate,
 		}
 
 		rootIR = &SQLRightIR{

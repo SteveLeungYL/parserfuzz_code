@@ -2787,23 +2787,24 @@ func (node *CastExpr) LogCurrentNode(depth int) *SQLRightIR {
 				Str:         strTypStr,
 			}
 
-			colateStr := typ.Locale()
-			colateNode := &SQLRightIR{
-				IRType:      TypeIdentifier,
-				DataType:    DataCollationName,
-				ContextFlag: ContextUse,
-				Prefix:      "",
-				Infix:       "",
-				Suffix:      "",
-				Depth:       depth,
-				Str:         colateStr,
+			collateStr := typ.Locale()
+			collateNode := &SQLRightIR{
+				IRType:       TypeStringLiteral,
+				DataType:     DataCollationName,
+				ContextFlag:  ContextUse,
+				DataAffinity: AFFICOLLATE,
+				Prefix:       "",
+				Infix:        "",
+				Suffix:       "",
+				Depth:        depth,
+				Str:          collateStr,
 			}
 
 			tmpRNode := &SQLRightIR{
 				IRType:   TypeUnknown,
 				DataType: DataNone,
 				LNode:    strTypNode,
-				RNode:    colateNode,
+				RNode:    collateNode,
 				Prefix:   "",
 				Infix:    ") COLLATE ",
 				Suffix:   "",
@@ -3114,14 +3115,15 @@ func (node *CollateExpr) LogCurrentNode(depth int) *SQLRightIR {
 	exprNode := LogCurrentNodeExprFmtWithParen(depth+1, node.Expr)
 	infix := " COLLATE "
 	localeNode := &SQLRightIR{
-		IRType:      TypeIdentifier,
-		DataType:    DataCollationName,
-		ContextFlag: ContextUse,
-		Prefix:      "",
-		Infix:       "",
-		Suffix:      "",
-		Depth:       depth,
-		Str:         node.Locale,
+		IRType:       TypeStringLiteral,
+		DataType:     DataCollationName,
+		ContextFlag:  ContextUse,
+		DataAffinity: AFFICOLLATE,
+		Prefix:       "",
+		Infix:        "",
+		Suffix:       "",
+		Depth:        depth,
+		Str:          node.Locale,
 	}
 
 	rootIR := &SQLRightIR{
