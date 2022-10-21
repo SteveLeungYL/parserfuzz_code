@@ -316,6 +316,17 @@ void SQL_ORACLE::remove_select_stmt_from_ir(IR *ir_root) {
   return;
 }
 
+void SQL_ORACLE::remove_set_stmt_from_ir(IR *ir_root) {
+    ir_wrapper.set_ir_root(ir_root);
+    vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);
+    for (IR *cur_stmt : stmt_vec) {
+        if (cur_stmt->type_ == TypeSetVar) {
+            ir_wrapper.remove_stmt_and_free(cur_stmt);
+        }
+    }
+    return;
+}
+
 void SQL_ORACLE::remove_oracle_select_stmt_from_ir(IR *ir_root) {
   ir_wrapper.set_ir_root(ir_root);
   vector<IR *> stmt_vec = ir_wrapper.get_stmt_ir_vec(ir_root);

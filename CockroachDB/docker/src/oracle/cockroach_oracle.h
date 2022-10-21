@@ -42,6 +42,7 @@ public:
   virtual bool mark_all_valid_node(vector<IR *> &v_ir_collector) = 0;
 
   virtual void remove_select_stmt_from_ir(IR *ir_root);
+  virtual void remove_set_stmt_from_ir(IR *ir_root);
   virtual void remove_oracle_select_stmt_from_ir(IR *ir_root);
   string remove_select_stmt_from_str(string in);
   string remove_oracle_select_stmt_from_str(string in);

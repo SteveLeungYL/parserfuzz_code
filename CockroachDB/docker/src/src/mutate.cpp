@@ -4261,7 +4261,7 @@ IR* Mutator::constr_rand_set_stmt() {
     string connector = get_rand_int(2) ? " = " : " TO ";
     string ret_str = "SET SESSION " + rand_chosen_var + connector + params_str;
 
-    IR* ret_ir = new IR(TypeSetVar, ret_str, DataNone, ContextUnknown, AFFIUNKNOWN);
+    IR* ret_ir = new IR(TypeSetVar, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
     ret_ir = new IR(TypeStmt, OP3("", "; ", ""), ret_ir, NULL);
 
     return ret_ir;

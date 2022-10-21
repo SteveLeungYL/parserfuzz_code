@@ -5868,6 +5868,7 @@ static u8 fuzz_one(char **argv) {
 
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
+  p_oracle->remove_set_stmt_from_ir(cur_root);
 
   /* Append random statements required by the oracle. */
   for (int app_idx = 0; app_idx < p_oracle->get_random_append_stmts_num();
@@ -5878,6 +5879,13 @@ static u8 fuzz_one(char **argv) {
     p_oracle->ir_wrapper.set_ir_root(cur_root);
     p_oracle->ir_wrapper.append_stmt_at_idx(
         app_stmt, get_rand_int(p_oracle->ir_wrapper.get_stmt_num()));
+  }
+
+  /* Append random `SET` statements to the query set. */
+  for (int app_idx = 0; app_idx < 3; app_idx++) {
+      // Randomly append SET statements at the beginning of the query sequence.
+      IR* app_stmt = g_mutator.constr_rand_set_stmt();
+      p_oracle->ir_wrapper.append_stmt_at_idx(app_stmt, 0);
   }
 
   /* Append Create stmts to the queue, if no create table stmts is found. */
