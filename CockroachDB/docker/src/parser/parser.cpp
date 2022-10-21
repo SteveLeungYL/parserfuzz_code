@@ -1,7 +1,7 @@
 #include "iostream"
 #include "string"
 
-#include "json_ir_convertor.h"
+#include "../include/json_ir_convertor.h"
 #include "parser_helper.h"
 
 using std::string;

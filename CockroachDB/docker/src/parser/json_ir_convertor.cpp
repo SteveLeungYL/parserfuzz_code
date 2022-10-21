@@ -2,7 +2,7 @@
 
 #include "../include/utils.h"
 #include "../include/json.hpp"
-#include "json_ir_convertor.h"
+#include "../include/json_ir_convertor.h"
 
 using json = nlohmann::json;
 using std::cout, std::cerr, std::endl;

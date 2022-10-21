@@ -3,7 +3,7 @@
 #include "../include/define.h"
 #include "../include/utils.h"
 
-#include "../parser/json_ir_convertor.h"
+#include "../include/json_ir_convertor.h"
 #include "../parser/parser.h"
 
 #include "../include/relopt_generator.h"
