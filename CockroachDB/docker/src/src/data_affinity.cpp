@@ -770,8 +770,80 @@ string DataAffinity::mutate_affi_timetz(){
 };
 
 string DataAffinity::mutate_affi_string(){
-    // TODO:: Need more editing.
-    return "";
+    /* This function is not a complete mutation function.
+    // This function will generate a complete new string literals,
+    //    regardless of its types (i.e., the mutation function can
+    //    generate any string types data. )
+    // Or, it can generate a complete random ASCII string.
+    */
+
+    int format = get_rand_int(13);
+    string ret_str = "";
+
+    // Handle the `'` symbol in the switch.
+    switch(format) {
+        case 0: {
+            // Complete random string.
+            int len = get_rand_int(10) + 1; // Doesn't need to be long. Avoid 0 len.
+            for (int i = 0; i < len; i++) {
+                char cch = char(get_rand_int(256));
+                string tmp_cch_str = string(cch, 1);
+                ret_str += tmp_cch_str;
+            }
+            ret_str = "'" + ret_str + "'";
+            break;
+        }
+        case 2:
+            // affinity bit type
+            ret_str = this->mutate_affi_bit();
+            break;
+        case 3:
+            // affinity byte type
+            ret_str = this->mutate_affi_byte();
+            break;
+        case 4:
+            // affinity json type
+            ret_str = this->mutate_affi_jsonb();
+            break;
+        case 5:
+            // affinity interval type
+            ret_str = this->mutate_affi_interval();
+            break;
+        case 6:
+            // affinity date type
+            ret_str = this->mutate_affi_date();
+            break;
+        case 7:
+            // affinity timestamp type
+            ret_str = this->mutate_affi_timestamp();
+            break;
+        case 8:
+            // affinity timestamptz type
+            ret_str = this->mutate_affi_timestamptz();
+            break;
+        case 9:
+            // affinity uuid type
+            ret_str = this->mutate_affi_uuid();
+            break;
+        case 10:
+            // affinity inet type
+            ret_str = this->mutate_affi_inet();
+            break;
+        case 11:
+            // affinity time type
+            ret_str = this->mutate_affi_time();
+            break;
+        case 12:
+            // affinity timetz type
+            ret_str = this->mutate_affi_timetz();
+            break;
+//        case 13:
+//            // Use Affinity Array type;
+//            ret_str = this->mutate_affi_array();
+//            break;
+    }
+
+    return ret_str;
 };
 
 string DataAffinity::get_mutated_literal() {
