@@ -5,7 +5,7 @@
     "var_name": "bytea_output",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "enum_values": [
           "hex",
           "escape"
@@ -19,7 +19,7 @@
     "var_name": "datastyle",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "enum_values": [
           "ISO,MDY",
           "ISO,DMY",
@@ -35,7 +35,7 @@
     "var_name": "client_min_messages",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "enum_values": [
           "debug5",
           "debug4",
@@ -57,7 +57,7 @@
     "var_name": "default_int_size",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": true,
         "is_range": false,
         "enum_values": [
@@ -74,7 +74,7 @@
     "var_name": "default_transaction_priority",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "is_enum": true,
         "is_range": false,
         "enum_values": [
@@ -91,7 +91,7 @@
     "var_name": "default_transaction_quality_of_service",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "is_enum": true,
         "is_range": false,
         "enum_values": [
@@ -108,7 +108,7 @@
     "var_name": "default_transaction_read_only",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -118,7 +118,7 @@
     "var_name": "disallow_full_table_scans",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -128,7 +128,7 @@
     "var_name": "distsql",
     "params": [
       {
-        "type": "onoffauto"
+        "type": "AFFIONOFFAUTO"
       }
     ]
   },
@@ -138,7 +138,7 @@
     "var_name": "enable_implicit_select_for_update",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -148,7 +148,7 @@
     "var_name": "enable_insert_fast_path",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -158,7 +158,7 @@
     "var_name": "enable_zigzag_join",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -168,7 +168,7 @@
     "var_name": "extra_float_digits",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": {
             "max": 3,
@@ -183,7 +183,7 @@
     "var_name": "force_savepoint_restart",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -193,7 +193,7 @@
     "var_name": "foreign_key_cascades_limit",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -205,7 +205,7 @@
     "var_name": "idle_in_session_timeout",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -217,7 +217,7 @@
     "var_name": "idle_in_transaction_session_timeout",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -229,7 +229,7 @@
     "var_name": "index_recommendations_enabled",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -239,7 +239,7 @@
     "var_name": "inject_retry_errors_enabled",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -249,7 +249,7 @@
     "var_name": "intervalstyle",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "enum_values": [
           "postgres",
           "iso_8601",
@@ -264,7 +264,7 @@
     "var_name": "lock_timeout",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -276,7 +276,7 @@
     "var_name": "null_ordered_last",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -286,7 +286,7 @@
     "var_name": "optimizer_use_histograms",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -296,7 +296,7 @@
     "var_name": "reorder_joins_limit",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": true,
         "range": {
@@ -312,7 +312,7 @@
     "var_name": "results_buffer_size",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -324,7 +324,7 @@
     "var_name": "require_explicit_primary_keys",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -334,7 +334,7 @@
     "var_name": "search_path",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "enum_values": [
             "public"
         ]
@@ -347,7 +347,7 @@
     "var_name": "serial_normalization",
     "params": [
       {
-        "type": "enum",
+        "type": "AFFIENUM",
         "enum_values": [
             "'rowid'",
             "'virtual_sequence'",
@@ -364,7 +364,7 @@
     "var_name": "sql.defaults.serial_sequences_cache_size",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -376,7 +376,7 @@
     "var_name": "sql_safe_updates",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -386,7 +386,7 @@
     "var_name": "statement_timeout",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -398,7 +398,7 @@
     "var_name": "stub_catalog_tables",
     "params": [
       {
-        "type": "boolean"
+        "type": "AFFIBOOL"
       }
     ]
   },
@@ -408,7 +408,7 @@
     "var_name": "tracing",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -418,7 +418,7 @@
     "var_name": "transaction_read_only",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -428,7 +428,7 @@
     "var_name": "transaction_rows_read_err",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -440,7 +440,7 @@
     "var_name": "transaction_rows_read_log",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -452,7 +452,7 @@
     "var_name": "transaction_rows_written_err",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -464,7 +464,7 @@
     "var_name": "transaction_rows_written_log",
     "params": [
       {
-        "type": "int",
+        "type": "AFFIINT",
         "is_enum": false,
         "is_range": false
       }
@@ -476,7 +476,7 @@
     "var_name": "troubleshooting_mode_enabled",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -486,7 +486,7 @@
     "var_name": "use_declarative_schema_changer",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   },
@@ -496,7 +496,7 @@
     "var_name": "vectorize",
     "params": [
       {
-        "type": "onoff"
+        "type": "AFFIONOFF"
       }
     ]
   }
