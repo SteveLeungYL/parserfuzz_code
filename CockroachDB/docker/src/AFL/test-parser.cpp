@@ -225,5 +225,15 @@ int main(int argc, char *argv[]) {
          << cur_mis.second << "\nEnd mismatched\n\n\n";
   }
 
+
+  // Just unit test the set statment.
+  for (int i = 0; i < 10; i++) {
+      // DEBUGGING.
+      // REMOVE ME.
+      IR* rand_set_stmt = mutator.constr_rand_set_stmt();
+      cerr << "\nGetting random set stmt: \n" << rand_set_stmt->to_string() << "\n";
+      rand_set_stmt->deep_drop();
+  }
+
   return 0;
 }

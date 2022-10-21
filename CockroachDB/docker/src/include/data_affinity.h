@@ -54,6 +54,8 @@ private:
     string mutate_affi_array();
     string mutate_affi_collate();
     string mutate_affi_bool();
+    string mutate_affi_onoff();
+    string mutate_affi_onoffauto();
     string mutate_affi_bit();
     string mutate_affi_byte();
     string mutate_affi_jsonb();

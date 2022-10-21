@@ -183,7 +183,7 @@ IR *convert_json_to_IR(string all_json_str) {
 
 // Helper functon for construct_set_session_library
 
-void constr_set_session_lib_helper(json curJsonNode, map<string, DataAffinity>& affi_library) {
+void constr_set_session_lib_helper(json curJsonNode, vector<string>& all_affi_str, map<string, DataAffinity>& affi_library) {
 
     for (json::iterator it = curJsonNode.begin(); it != curJsonNode.end(); it++) {
         auto cur_set_node = it.value();
@@ -241,38 +241,28 @@ void constr_set_session_lib_helper(json curJsonNode, map<string, DataAffinity>& 
         } else if (affi_type_str == "AFFIONOFF") {
             // Save all the ENUM types into the Data Affinity structure.
             // For AFFIONOFF. The enum only has two string "on" and "off".
-            cur_affi.set_data_affinity(AFFIENUM);
-            vector<string> v_enum_values_str;
-            v_enum_values_str.push_back("on");
-            v_enum_values_str.push_back("off");
-            cur_affi.set_v_enum_str(v_enum_values_str);
 
+            // Pass. No need to do anything.
         } else if (affi_type_str == "AFFIONOFFAUTO") {
             // Save all the ENUM types into the Data Affinity structure.
             // For AFFIONOFFAUTO. The enum only has three string "on", "off" and "auto".
-            cur_affi.set_data_affinity(AFFIENUM);
-            vector<string> v_enum_values_str;
-            v_enum_values_str.push_back("on");
-            v_enum_values_str.push_back("off");
-            v_enum_values_str.push_back("auto");
-            cur_affi.set_v_enum_str(v_enum_values_str);
+
+            // Pass. No need to do anything.
         } else if (affi_type_str == "AFFIBOOL") {
             // Save all the ENUM types into the Data Affinity structure.
             // For AFFIBOOL. The enum only has two string "true" and "false".
-            cur_affi.set_data_affinity(AFFIENUM);
-            vector<string> v_enum_values_str;
-            v_enum_values_str.push_back("true");
-            v_enum_values_str.push_back("false");
-            cur_affi.set_v_enum_str(v_enum_values_str);
+
+            // Pass. No need to do anything.
         }
         affi_library[var_name] = cur_affi;
+        all_affi_str.push_back(var_name);
     }
 
     // Finished the set session handling.
     return;
 }
 
-void constr_set_session_lib(string set_session_str, map<string, DataAffinity>& affi_library) {
+void constr_set_session_lib(string set_session_str, vector<string>& all_affi_str, map<string, DataAffinity>& affi_library) {
     if (set_session_str.size() == 0 || set_session_str[0] != '[') {
         // Return a default Data Affinity. With AFFIUNKNOWN.
         cerr << "\n\n\nInside the construct_set_session_library, not "
@@ -283,7 +273,7 @@ void constr_set_session_lib(string set_session_str, map<string, DataAffinity>& a
 
     try {
         auto json_obj = json::parse(set_session_str);
-        constr_set_session_lib_helper(json_obj, affi_library);
+        constr_set_session_lib_helper(json_obj, all_affi_str, affi_library);
     } catch (json::parse_error &ex) {
         return;
     }

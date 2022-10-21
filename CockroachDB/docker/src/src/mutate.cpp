@@ -1,19 +1,8 @@
 #include "../include/mutate.h"
-#include "../include/ast.h"
-#include "../include/define.h"
-#include "../include/utils.h"
-
 #include "../include/json_ir_convertor.h"
 #include "../parser/parser.h"
-
-#include "../include/relopt_generator.h"
-
 #include "../oracle/cockroach_oracle.h"
-
 #include "../AFL/debug.h"
-
-#include <sys/resource.h>
-#include <sys/time.h>
 
 #include <algorithm>
 #include <assert.h>
@@ -77,6 +66,7 @@ vector<string> Mutator::v_table_with_partition_name;
 
 vector<string> Mutator::v_saved_reloption_str;
 map<string, DataAffinity> Mutator::set_session_lib;
+vector<string> Mutator::all_saved_set_session;
 
 vector<int> Mutator::v_int_literals;
 vector<double> Mutator::v_float_literals;
@@ -308,7 +298,7 @@ void Mutator::init_data_library() {
   std::stringstream buffer;
   buffer << input_file.rdbuf();
   string set_session_json = buffer.str();
-  constr_set_session_lib(set_session_json, this->set_session_lib);
+  constr_set_session_lib(set_session_json, this->all_saved_set_session, this->set_session_lib);
   input_file.close();
   cout << "[*] end init set session path library: " << set_session_path << endl;
 
@@ -4251,4 +4241,28 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
   p_oracle->ir_wrapper.append_stmt_at_end(new_stmt_ir_3);
 
   return true;
+}
+
+IR* Mutator::constr_rand_set_stmt() {
+    // Construct one SET statement as string,
+    //  and then embed the string into one IR.
+    // Return the embedded IR.
+
+    if (this->all_saved_set_session.size() == 0 || this->set_session_lib.size() == 0) {
+        cerr << "Error: The all_save_set_session or set_session_lib failed to init before used. \n\n\n Abort();\n\n\n";
+        abort();
+    }
+
+    string rand_chosen_var = vector_rand_ele(this->all_saved_set_session);
+    DataAffinity cur_data_affi = this->set_session_lib[rand_chosen_var];
+
+    string params_str = cur_data_affi.get_mutated_literal();
+
+    string connector = get_rand_int(2) ? " = " : " TO ";
+    string ret_str = "SET SESSION " + rand_chosen_var + connector + params_str;
+
+    IR* ret_ir = new IR(TypeSetVar, ret_str, DataNone, ContextUnknown, AFFIUNKNOWN);
+    ret_ir = new IR(TypeStmt, OP3("", "; ", ""), ret_ir, NULL);
+
+    return ret_ir;
 }

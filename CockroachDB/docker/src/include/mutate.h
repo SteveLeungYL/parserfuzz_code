@@ -46,6 +46,8 @@ public:
 
   IR *ir_random_generator(vector<IR *> v_ir_collector);
 
+  IR* constr_rand_set_stmt();
+
   vector<IR *> mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
                           u64 &total_mutate_failed, u64 &total_mutate_num);
 
@@ -247,7 +249,10 @@ public:
 
   static vector<string> v_saved_reloption_str;
 
+  // Save the mapping from the SET variable name to
+  //    the mapped Data Affinity for the variable.
   static map<string, DataAffinity> set_session_lib;
+  static vector<string> all_saved_set_session;
 
   // added by vancir
   map<unsigned long, bool> norec_hash;

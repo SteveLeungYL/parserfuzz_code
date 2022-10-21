@@ -312,6 +312,25 @@ string DataAffinity::mutate_affi_bool() {
     }
 }
 
+string DataAffinity::mutate_affi_onoff(){
+    if(get_rand_int(2)) {
+        return "on";
+    } else {
+        return "off";
+    }
+};
+
+string DataAffinity::mutate_affi_onoffauto(){
+    int choice = get_rand_int(3);
+    if(choice == 0) {
+        return "on";
+    } else if (choice == 1){
+        return "off";
+    } else {
+        return "auto";
+    }
+};
+
 string DataAffinity::mutate_affi_bit() {
     string ret_str = "B'";
 
@@ -918,6 +937,10 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
             return this->mutate_affi_timetz();
         case AFFISTRING:
             return this->mutate_affi_string();
+        case AFFIONOFF:
+            return this->mutate_affi_onoff();
+        case AFFIONOFFAUTO:
+            return this->mutate_affi_onoffauto();
         default:
             // For other types, should be collate.
             return this->mutate_affi_array();
@@ -1007,6 +1030,10 @@ DATAAFFINITYTYPE DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in
             return AFFIOIDWRAPPER;
         case AFFIARRAYWHOLESTMT:
             return AFFIWHOLESTMT;
+        case AFFIARRAYONOFF:
+            return AFFIONOFF;
+        case AFFIARRAYONOFFAUTO:
+            return AFFIONOFFAUTO;
     }
     return AFFIUNKNOWN;
 }
