@@ -1,6 +1,5 @@
-#pragma once
-#ifndef __DEFINE_H__
-#define __DEFINE_H__
+#ifndef __DEFINE_SQLRIGHTIR_H__
+#define __DEFINE_SQLRIGHTIR_H__
 
 #define ALLTYPE(V)                                                             \
   /* New one here!!! */                                                        \
@@ -545,44 +544,44 @@
   V(AFFIGEOMETRYCOLLECTION)                                                    \
   V(AFFIOIDWRAPPER)                                                            \
   V(AFFIWHOLESTMT)                                                             \
-  V(AFFIARRAY)                                                                      \
-  V(AFFIARRAYUNKNOWN)                                                               \
-  V(AFFIARRAYBIT)                                                                   \
-  V(AFFIARRAYBOOL)                                                                  \
-  V(AFFIARRAYBYTES)                                                                 \
-  V(AFFIARRAYCOLLATE)                                                               \
-  V(AFFIARRAYDATE)                                                                  \
-  V(AFFIARRAYENUM)                                                                  \
-  V(AFFIARRAYDECIMAL)                                                               \
-  V(AFFIARRAYFLOAT)                                                                 \
-  V(AFFIARRAYINET)                                                                  \
-  V(AFFIARRAYINT)                                                                   \
-  V(AFFIARRAYINTERVAL)                                                              \
-  V(AFFIARRAYJSONB)                                                                 \
-  V(AFFIARRAYOID)                                                                   \
-  V(AFFIARRAYSERIAL)                                                                \
-  V(AFFIARRAYSTRING)                                                                \
-  V(AFFIARRAYTIME)                                                                  \
-  V(AFFIARRAYTIMETZ)                                                                \
-  V(AFFIARRAYTIMESTAMP)                                                             \
-  V(AFFIARRAYTIMESTAMPTZ)                                                           \
-  V(AFFIARRAYUUID)                                                                  \
-  V(AFFIARRAYGEOGRAPHY)                                                             \
-  V(AFFIARRAYGEOMETRY)                                                              \
-  V(AFFIARRAYBOX2D)                                                                 \
-  V(AFFIARRAYVOID)                                                                  \
-  V(AFFIARRAYPOINT)                                                                 \
-  V(AFFIARRAYLINESTRING)                                                            \
-  V(AFFIARRAYPOLYGON)                                                               \
-  V(AFFIARRAYMULTIPOINT)                                                            \
-  V(AFFIARRAYMULTILINESTRING)                                                       \
-  V(AFFIARRAYMULTIPOLYGON)                                                          \
-  V(AFFIARRAYGEOMETRYCOLLECTION)                                                    \
-  V(AFFIARRAYOIDWRAPPER)                                                            \
-  V(AFFIARRAYWHOLESTMT) \
+  V(AFFIARRAY)                                                                 \
+  V(AFFIARRAYUNKNOWN)                                                          \
+  V(AFFIARRAYBIT)                                                              \
+  V(AFFIARRAYBOOL)                                                             \
+  V(AFFIARRAYBYTES)                                                            \
+  V(AFFIARRAYCOLLATE)                                                          \
+  V(AFFIARRAYDATE)                                                             \
+  V(AFFIARRAYENUM)                                                             \
+  V(AFFIARRAYDECIMAL)                                                          \
+  V(AFFIARRAYFLOAT)                                                            \
+  V(AFFIARRAYINET)                                                             \
+  V(AFFIARRAYINT)                                                              \
+  V(AFFIARRAYINTERVAL)                                                         \
+  V(AFFIARRAYJSONB)                                                            \
+  V(AFFIARRAYOID)                                                              \
+  V(AFFIARRAYSERIAL)                                                           \
+  V(AFFIARRAYSTRING)                                                           \
+  V(AFFIARRAYTIME)                                                             \
+  V(AFFIARRAYTIMETZ)                                                           \
+  V(AFFIARRAYTIMESTAMP)                                                        \
+  V(AFFIARRAYTIMESTAMPTZ)                                                      \
+  V(AFFIARRAYUUID)                                                             \
+  V(AFFIARRAYGEOGRAPHY)                                                        \
+  V(AFFIARRAYGEOMETRY)                                                         \
+  V(AFFIARRAYBOX2D)                                                            \
+  V(AFFIARRAYVOID)                                                             \
+  V(AFFIARRAYPOINT)                                                            \
+  V(AFFIARRAYLINESTRING)                                                       \
+  V(AFFIARRAYPOLYGON)                                                          \
+  V(AFFIARRAYMULTIPOINT)                                                       \
+  V(AFFIARRAYMULTILINESTRING)                                                  \
+  V(AFFIARRAYMULTIPOLYGON)                                                     \
+  V(AFFIARRAYGEOMETRYCOLLECTION)                                               \
+  V(AFFIARRAYOIDWRAPPER)                                                       \
+  V(AFFIARRAYWHOLESTMT)
 
 #define ALLCOLLATIONS(V)                                                       \
-  V(defaultcollation)                                                                   \
+  V(defaultcollation)                                                          \
   V(und)                                                                       \
   V(aa)                                                                        \
   V(af)                                                                        \
@@ -663,7 +662,7 @@
   V(vi)                                                                        \
   V(wae)                                                                       \
   V(yo)                                                                        \
-  V(zh)                                                                        \
+  V(zh)
 
 #define SAFEDELETE(a)                                                          \
   if (a != NULL)                                                               \
@@ -711,4 +710,4 @@
                                                                                \
   return res;
 
-#endif
+#endif // __DEFINE_SQLRIGHTIR_H__

@@ -277,8 +277,27 @@ string DataAffinity::mutate_affi_float() {
 }
 
 string DataAffinity::mutate_affi_array() {
-    // TODO:: Need more editing.
-    return "";
+
+    DATAAFFINITYTYPE cur_transformed_affi = this->transfer_array_to_normal_type(this->data_affinity);
+
+    int format = get_rand_int(2);
+    int len = get_rand_int(6) + 1; // At most 6 elements.
+    string ret_str = "";
+
+    if (format) {
+        ret_str = "ARRAY";
+    }
+    ret_str += "[";
+
+    for (int i = 0; i < len; i++) {
+        if (i > 0) {
+            ret_str += ", ";
+        }
+        ret_str += this->get_mutated_literal(cur_transformed_affi);
+    }
+
+    ret_str += "]";
+    return ret_str;
 }
 
 string DataAffinity::mutate_affi_collate() {
@@ -846,8 +865,14 @@ string DataAffinity::mutate_affi_string(){
     return ret_str;
 };
 
-string DataAffinity::get_mutated_literal() {
-    switch (this->data_affinity) {
+string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
+
+    DATAAFFINITYTYPE cur_affi = type_in;
+    if (cur_affi == AFFIUNKNOWN) {
+        cur_affi = this->data_affinity;
+    }
+
+    switch (cur_affi) {
         case AFFIUNKNOWN:
             cerr << "In DataAffinity::get_mutated_literal, getting AFIUNKNOWN. \n";
 //            abort();
@@ -910,4 +935,78 @@ string DataAffinity::get_rand_alphabet_num() {
         string ret_str(cch, 1);
         return ret_str;
     }
+}
+
+DATAAFFINITYTYPE DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in_type) {
+    switch(in_type) {
+        case AFFIARRAYUNKNOWN:
+            return AFFIUNKNOWN;
+        case AFFIARRAYBIT:
+            return AFFIBIT;
+        case AFFIARRAYBOOL:
+            return AFFIBOOL;
+        case AFFIARRAYBYTES:
+            return AFFIBYTES;
+        case AFFIARRAYCOLLATE:
+            return AFFICOLLATE;
+        case AFFIARRAYDATE:
+            return AFFIDATE;
+        case AFFIARRAYENUM:
+            return AFFIENUM;
+        case AFFIARRAYDECIMAL:
+            return AFFIDECIMAL;
+        case AFFIARRAYFLOAT:
+            return AFFIFLOAT;
+        case AFFIARRAYINET:
+            return AFFIINET;
+        case AFFIARRAYINT:
+            return AFFIINT;
+        case AFFIARRAYINTERVAL:
+            return AFFIINTERVAL;
+        case AFFIARRAYJSONB:
+            return AFFIJSONB;
+        case AFFIARRAYOID:
+            return AFFIOID;
+        case AFFIARRAYSERIAL:
+            return AFFISERIAL;
+        case AFFIARRAYSTRING:
+            return AFFISTRING;
+        case AFFIARRAYTIME:
+            return AFFITIME;
+        case AFFIARRAYTIMETZ:
+            return AFFITIMETZ;
+        case AFFIARRAYTIMESTAMP:
+            return AFFITIMESTAMP;
+        case AFFIARRAYTIMESTAMPTZ:
+            return AFFITIMESTAMPTZ;
+        case AFFIARRAYUUID:
+            return AFFIUUID;
+        case AFFIARRAYGEOGRAPHY:
+            return AFFIGEOGRAPHY;
+        case AFFIARRAYGEOMETRY:
+            return AFFIGEOMETRY;
+        case AFFIARRAYBOX2D:
+            return AFFIBOX2D;
+        case AFFIARRAYVOID:
+            return AFFIVOID;
+        case AFFIARRAYPOINT:
+            return AFFIPOINT;
+        case AFFIARRAYLINESTRING:
+            return AFFILINESTRING;
+        case AFFIARRAYPOLYGON:
+            return AFFIPOLYGON;
+        case AFFIARRAYMULTIPOINT:
+            return AFFIMULTIPOINT;
+        case AFFIARRAYMULTILINESTRING:
+            return AFFIMULTILINESTRING;
+        case AFFIARRAYMULTIPOLYGON:
+            return AFFIMULTIPOLYGON;
+        case AFFIARRAYGEOMETRYCOLLECTION:
+            return AFFIGEOMETRYCOLLECTION;
+        case AFFIARRAYOIDWRAPPER:
+            return AFFIOIDWRAPPER;
+        case AFFIARRAYWHOLESTMT:
+            return AFFIWHOLESTMT;
+    }
+    return AFFIUNKNOWN;
 }

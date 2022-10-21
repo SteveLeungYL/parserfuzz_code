@@ -431,8 +431,26 @@ void IR::mutate_literal() {
     // Upon calling this function, we should assume the Data affinity has been set up correctly.
     if (this->data_affinity_type == AFFIUNKNOWN || this->data_affinity.get_data_affinity() == AFFIUNKNOWN) {
         cerr << "\n\n\nTrying to mutate literal on IR that has Unknown data affinity. \n\n\n";
-        abort();
+//        abort();
+        this->set_data_affinity(AFFISTRING);
     }
 
-    // TODO:: WIP.
+    this->set_str_val(this->data_affinity.get_mutated_literal());
+    this->float_val_ = 0.0;
+    this->int_val_ = 0;
+    if (this->op_) {
+        this->op_->prefix_ = "";
+        this->op_->suffix_ = "";
+        this->op_->middle_ = "";
+    }
+    if (this->get_left()) {
+        this->get_left()->deep_drop();
+        this->update_left(NULL);
+    }
+    if (this->get_right()) {
+        this->get_right()->deep_drop();
+        this->update_right(NULL);
+    }
+
+    return;
 }

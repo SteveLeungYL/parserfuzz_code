@@ -4,7 +4,7 @@
 #include <vector>
 #include "define.h" // import the ALLDATATAFFINITY(V)
 #include <string>
-#include <memory>
+//#include <memory>
 
 using namespace std;
 
@@ -39,6 +39,8 @@ private:
     double float_max;
     vector<string> v_enum_str;
 
+//    unique_ptr<vector<DataAffinity>> v_array_elem;
+
     /* Helper functions. */
     bool is_str_collation (const string& str_in);
     string get_rand_collation_str();
@@ -68,6 +70,7 @@ private:
 
     string get_rand_alphabet_num();
     string add_random_time_zone();
+    DATAAFFINITYTYPE transfer_array_to_normal_type(DATAAFFINITYTYPE in_type);
 
 public:
     DataAffinity(): data_affinity(AFFIUNKNOWN), is_range(false), is_enum(false) {
@@ -81,7 +84,7 @@ public:
     DATAAFFINITYTYPE get_data_affinity() { return this->data_affinity; }
     void set_data_affinity(DATAAFFINITYTYPE in) { this->data_affinity = in; }
 
-    string get_mutated_literal();
+    string get_mutated_literal(DATAAFFINITYTYPE type_in = AFFIUNKNOWN);
 
 };
 
