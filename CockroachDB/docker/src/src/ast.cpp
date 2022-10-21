@@ -403,25 +403,8 @@ bool IR::replace_op(IROperator *op_in) {
   return true;
 }
 
-COLTYPE IR::typename_ir_get_type() {
-  assert(get_ir_type() == TypeIdentifier);
-
-  if (str_val_ == "INT") {
-    return COLTYPE::INT_T;
-  } else if (str_val_ == "BOOL") {
-    return COLTYPE::BOOLEAN_T;
-  } else if (str_val_ == "REAL" || str_val_ == "DOUBLE" || str_val_ == "DEC" ||
-             str_val_ == "FLOAT") {
-    return COLTYPE::FLOAT_T;
-  } else {
-    return COLTYPE::STRING_T;
-  }
-
-} /* Finished for Numeric type */
-
 void IR::mutate_literal_random_affinity() {
-    auto random_affi_idx = get_rand_int(DATAAFFINITYTYPE::AFFIELEMENTCOUNT-1) + 1; // Avoid AFFIUNKNOWN;
-    auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+    auto random_affi = get_random_affinity_type();
     this->set_data_affinity(random_affi);
     this->mutate_literal();
     return;

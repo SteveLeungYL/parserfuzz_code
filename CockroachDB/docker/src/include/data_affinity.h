@@ -23,12 +23,16 @@ enum COLLATIONTYPE {
 
 string get_string_by_affinity_type(DATAAFFINITYTYPE type);
 
+DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only = true);
+string get_random_affinity_type_str(bool is_basic_type_only = true);
+string get_random_affinity_type_str_formal(bool is_basic_type_only = true);
+string get_affinity_type_str_formal(DATAAFFINITYTYPE);
+
 DATAAFFINITYTYPE get_data_affinity_by_idx(int idx);
 DATAAFFINITYTYPE get_data_affinity_by_string(string s);
 
 class DataAffinity {
-    /* DataAffninty. Represent all data types supported by CockroachDB EXCEPT for `ARRAY`.  */
-    // TODO:: FIXME:: ARRAY type.
+
 private:
     DATAAFFINITYTYPE data_affinity;
     bool is_range;

@@ -1,5 +1,6 @@
 #include "../include/mutate.h"
 #include "../include/json_ir_convertor.h"
+#include "../include/data_affinity.h"
 #include "../parser/parser.h"
 #include "../oracle/cockroach_oracle.h"
 #include "../AFL/debug.h"
@@ -36,9 +37,10 @@ vector<string> Mutator::v_alias_names_single; // All alias name local to one
 map<string, vector<string>>
     Mutator::m_table2alias_single; // Table name to alias mapping.
 map<string, COLTYPE>
-    Mutator::m_column2datatype; // Column name mapping to column type. 0 means
+    Mutator::m_column2datatypeLegacy; // Column name mapping to column type. 0 means
                                 // unknown, 1 means numerical, 2 means
                                 // character_type_, 3 means boolean_type_.
+map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
 vector<string>
     Mutator::v_column_names_single; // All used column names in one query
                                     // statement. Used to confirm literal type.
@@ -1409,7 +1411,8 @@ void Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
       DataColumnName,     DataTableName,       DataIndexName,
       DataTableAliasName, DataColumnAliasName, DataSequenceName,
-      DataViewName,       DataConstraintName,  DataSequenceName};
+      DataViewName,       DataConstraintName,  DataSequenceName,
+      DataTypeName};
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
@@ -1968,18 +1971,18 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         //            IR* typename_ir = ir_to_fix ->get_parent() ->get_right();
         //            COLTYPE column_type = typename_ir->typename_ir_get_type();
         //
-        //            m_column2datatype[new_name] = column_type;
+        //            m_column2datatypeLegacy[new_name] = column_type;
         //
         //          }
         //          /* For view, we don't have the obvious type information.
         //          Currently treat it as unknown types. */ else {
-        //            m_column2datatype[new_name] = COLTYPE::UNKNOWN_T; //
+        //            m_column2datatypeLegacy[new_name] = COLTYPE::UNKNOWN_T; //
         //            Unknown data type.
         //          }
         //          if (is_debug_info) {
         //            cerr << "Dependency: For newly declared column: " <<
         //            new_name << ", we map with type: " <<
-        //            m_column2datatype[new_name] << "\n\n\n";
+        //            m_column2datatypeLegacy[new_name] << "\n\n\n";
         //          }
         //        } else { // kReplace for type mapping
         //          /* This is a ALTER replace column statment. Find the
@@ -1989,13 +1992,13 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         //          collect_ir(cur_stmt_root, type_to_search, column_name_ir);
         //          string prev_column_name = column_name_ir[0]->str_val_;
         //          COLTYPE column_data_type =
-        //          m_column2datatype[prev_column_name];
-        //          m_column2datatype[new_name] = column_data_type;
+        //          m_column2datatypeLegacy[prev_column_name];
+        //          m_column2datatypeLegacy[new_name] = column_data_type;
         //          if (is_debug_info) {
         //            cerr << "Dependency: In the context of kReplace column
         //            mapping replace, we map the old column name: " <<
         //            prev_column_name << "to new column_name: " << new_name <<
-        //            ", mapped type: " << m_column2datatype[new_name] << ".
+        //            ", mapped type: " << m_column2datatypeLegacy[new_name] << ".
         //            \n\n\n";
         //          }
         //        }
@@ -2420,6 +2423,48 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
+    /* Fix the Data Type identifiers  */
+    for (IR* ir_to_fix: ir_to_fix_vec) {
+        if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
+            fixed_ir.end()) {
+            continue;
+        }
+
+        IRTYPE type = ir_to_fix->get_ir_type();
+        DATATYPE data_type = ir_to_fix->get_data_type();
+        DATAFLAG data_flag = ir_to_fix->get_data_flag();
+        if (
+                type == TypeIdentifier &&
+                data_type == DataTypeName &&
+                data_flag == ContextDefine
+            ) {
+            // Handling of the Column Data Type definition.
+            // Use basic types.
+            auto tmp_affi_type = get_random_affinity_type();
+            string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
+
+            ir_to_fix->set_str_val(tmp_affi_type_str);
+            if (is_debug_info) {
+                cerr << "\nFor data type definition, getting new data type: " << tmp_affi_type_str << "\n\n\n";
+            }
+
+            if (ir_to_fix->get_parent() &&
+                ir_to_fix->get_parent()->get_left() &&
+                ir_to_fix->get_parent()->get_left()->get_data_type() == DataColumnName) {
+                    DataAffinity cur_data_affi;
+                    cur_data_affi.set_data_affinity(tmp_affi_type);
+                    string column_str = ir_to_fix->get_parent()->get_left()->get_str_val();
+                    this->m_column2datatype[column_str] = cur_data_affi;
+                    if (is_debug_info) {
+                        cerr << "\nAttach data affinity: " <<
+                            get_string_by_affinity_type(cur_data_affi.get_data_affinity()) << " to column: "
+                            << column_str << ". \n\n\n";
+                    }
+            }
+
+        }
+    }
+
     /* Fix the Literal. */
     int cur_literal_idx = -1;
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -2517,7 +2562,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         if (v_column_names_single.size() > cur_literal_idx) {
           /* For cases like INSERT INTO v0 (c1, c2) VALUES (1, 2); */
           string cur_column_name = v_column_names_single[cur_literal_idx];
-          column_data_type = m_column2datatype[cur_column_name];
+          column_data_type = m_column2datatypeLegacy[cur_column_name];
           if (is_debug_info) {
             cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
                  << ", we found column name: " << cur_column_name
@@ -2529,7 +2574,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           /* For cases like INSERT INTO v0 VALUES (1, 2); */
           string cur_column_name =
               m_tables[v_table_names_single[0]][cur_literal_idx];
-          column_data_type = m_column2datatype[cur_column_name];
+          column_data_type = m_column2datatypeLegacy[cur_column_name];
           if (is_debug_info) {
             cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
                  << ", no column info found, but found table_name: "

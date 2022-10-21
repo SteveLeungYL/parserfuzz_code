@@ -214,9 +214,10 @@ public:
   static map<string, vector<string>>
       m_table2alias_single; // Table name to alias mapping.
   static map<string, COLTYPE>
-      m_column2datatype; // Column name mapping to column type. 0 means unknown,
+      m_column2datatypeLegacy; // Column name mapping to column type. 0 means unknown,
                          // 1 means numerical, 2 means character_type_, 3 means
                          // boolean_type_.
+  static map<string, DataAffinity> m_column2datatype; // New solution.
   static vector<string>
       v_column_names_single; // All used column names in one query statement.
                              // Used to confirm literal type.

@@ -1037,3 +1037,66 @@ DATAAFFINITYTYPE DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in
     }
     return AFFIUNKNOWN;
 }
+
+DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only) {
+
+    if (is_basic_type_only) {
+
+        if (get_rand_int(10) < 9) {
+            // Basic type except for Array.
+            auto random_affi_idx = get_rand_int(20) + 1; // Avoid AFFIUNKNOWN;
+            auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+            return random_affi;
+        } else {
+            // Basic ARRAY type. 1/10 chances to get ARRAY type.
+            auto random_affi_idx = get_rand_int(20) + AFFIARRAYUNKNOWN + 1; // Avoid AFFIARRAYUNKNOWN;
+            auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+            return random_affi;
+        }
+
+    } else {
+
+        auto random_affi_idx = get_rand_int(DATAAFFINITYTYPE::AFFIELEMENTCOUNT - 1) + 1; // Avoid AFFIUNKNOWN;
+        auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+        return random_affi;
+    }
+}
+
+string get_random_affinity_type_str(bool is_basic_type_only) {
+    auto random_affi = get_random_affinity_type();
+    return get_string_by_affinity_type(random_affi);
+}
+
+string get_random_affinity_type_str_formal(bool is_basic_type_only) {
+    auto rand_type = get_random_affinity_type();
+    return get_affinity_type_str_formal(rand_type);
+}
+
+string get_affinity_type_str_formal(DATAAFFINITYTYPE type_in) {
+
+    string type_str = get_string_by_affinity_type(type_in);
+
+    type_str = type_str.substr(4, type_str.size()-4);
+    string ori_str = type_str;
+
+    if (type_str.size() > 5 && type_str.substr(0, 5) == "ARRAY") {
+        // This is an ARRAY type, need more handling of the formal representation.
+        cerr << "For type_str: " << type_str << ", assuming ARRAY type. \n\n\n";
+        switch(get_rand_int(2)) {
+            case 0: {
+                // First format: example: c0 string[]
+                type_str = type_str.substr(5, (type_str.size() - 5));
+                type_str += "[]";
+                break;
+            }
+            case 1: {
+                // Second format: example: c0 INT ARRAY
+                type_str = type_str.substr(5, (type_str.size() - 5));
+                type_str += " ARRAY";
+                break;
+            }
+        }
+    }
+
+    return type_str;
+}
