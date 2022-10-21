@@ -147,6 +147,7 @@ int main(int argc, char *argv[]) {
   }
 
   mutator.init("");
+  mutator.init_data_library();
 
   string input(argv[1]);
   ifstream input_test(input);

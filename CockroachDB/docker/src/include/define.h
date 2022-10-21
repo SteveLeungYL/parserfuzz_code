@@ -544,6 +544,8 @@
   V(AFFIGEOMETRYCOLLECTION)                                                    \
   V(AFFIOIDWRAPPER)                                                            \
   V(AFFIWHOLESTMT)                                                             \
+  V(AFFIONOFF)                                                                 \
+  V(AFFIONOFFAUTO)                                                             \
   V(AFFIARRAY)                                                                 \
   V(AFFIARRAYUNKNOWN)                                                          \
   V(AFFIARRAYBIT)                                                              \
@@ -578,7 +580,9 @@
   V(AFFIARRAYMULTIPOLYGON)                                                     \
   V(AFFIARRAYGEOMETRYCOLLECTION)                                               \
   V(AFFIARRAYOIDWRAPPER)                                                       \
-  V(AFFIARRAYWHOLESTMT)
+  V(AFFIARRAYWHOLESTMT)                                                        \
+  V(AFFIARRAYONOFF)                                                            \
+  V(AFFIARRAYONOFFAUTO)
 
 #define ALLCOLLATIONS(V)                                                       \
   V(defaultcollation)                                                          \

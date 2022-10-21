@@ -73,16 +73,20 @@ private:
     DATAAFFINITYTYPE transfer_array_to_normal_type(DATAAFFINITYTYPE in_type);
 
 public:
-    DataAffinity(): data_affinity(AFFIUNKNOWN), is_range(false), is_enum(false) {
-        int_min = 0;
-        int_max = 0;
-        float_min = 0.0;
-        float_max = 0.0;
+    DataAffinity(): data_affinity(AFFIUNKNOWN), is_range(false), is_enum(false),
+        int_min(0), int_max(0), float_min(0.0), float_max(0.0) {
+            // No need to init v_enum_str;
     }
 
     DATAAFFINITYTYPE recognize_data_type(const string& str_in); // Return `this` pointer.
     DATAAFFINITYTYPE get_data_affinity() { return this->data_affinity; }
+
     void set_data_affinity(DATAAFFINITYTYPE in) { this->data_affinity = in; }
+    void set_is_range(bool in) {this->is_range = in;}
+    void set_is_enum(bool in) {this->is_enum = in;}
+    void set_v_enum_str(const vector<string>& in) {this->v_enum_str = in;}
+    void set_int_range(long long min, long long max) {this->int_min = min; this->int_max = max;}
+    void set_float_range(double min, double max) {this->float_min = min; this->float_max = max;}
 
     string get_mutated_literal(DATAAFFINITYTYPE type_in = AFFIUNKNOWN);
 

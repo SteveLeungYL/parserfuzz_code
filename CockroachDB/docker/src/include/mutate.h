@@ -247,6 +247,8 @@ public:
 
   static vector<string> v_saved_reloption_str;
 
+  static map<string, DataAffinity> set_session_lib;
+
   // added by vancir
   map<unsigned long, bool> norec_hash;
   vector<string *> all_valid_pstr_vec;

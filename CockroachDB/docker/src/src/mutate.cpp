@@ -2,6 +2,8 @@
 #include "../include/ast.h"
 #include "../include/define.h"
 #include "../include/utils.h"
+
+#include "../parser/json_ir_convertor.h"
 #include "../parser/parser.h"
 
 #include "../include/relopt_generator.h"
@@ -22,6 +24,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <sstream>
+
 #define _NON_REPLACE_
 
 using namespace std;
@@ -72,6 +76,7 @@ vector<string> Mutator::v_sys_catalogs_name;
 vector<string> Mutator::v_table_with_partition_name;
 
 vector<string> Mutator::v_saved_reloption_str;
+map<string, DataAffinity> Mutator::set_session_lib;
 
 vector<int> Mutator::v_int_literals;
 vector<double> Mutator::v_float_literals;
@@ -298,9 +303,13 @@ void Mutator::init_data_library() {
   string set_session_path = SET_SESSION_PATH;
   cout << "[*] begin init set session path library: " << set_session_path << endl;
 
-    input_file.open(set_session_path);
+  input_file.open(set_session_path);
 
-
+  std::stringstream buffer;
+  buffer << input_file.rdbuf();
+  string set_session_json = buffer.str();
+  constr_set_session_lib(set_session_json, this->set_session_lib);
+  input_file.close();
   cout << "[*] end init set session path library: " << set_session_path << endl;
 
   return;
