@@ -1,16 +1,10 @@
 #include "../include/ast.h"
-#include "../include/define.h"
 #include "../include/utils.h"
 #include <algorithm>
 #include <cassert>
-#include <cstdio>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <string.h>
-#include <vector>
-
-static string s_table_name;
 
 string get_string_by_ir_type(IRTYPE type) {
 

@@ -512,7 +512,6 @@
 #define ALLDATAAFFINITY(V)                                                     \
   /* New one here!!! */                                                        \
   V(AFFIUNKNOWN)                                                               \
-  V(AFFIARRAY)                                                                 \
   V(AFFIBIT)                                                                   \
   V(AFFIBOOL)                                                                  \
   V(AFFIBYTES)                                                                 \
@@ -545,7 +544,42 @@
   V(AFFIMULTIPOLYGON)                                                          \
   V(AFFIGEOMETRYCOLLECTION)                                                    \
   V(AFFIOIDWRAPPER)                                                            \
-  V(AFFIWHOLESTMT)
+  V(AFFIWHOLESTMT)                                                             \
+  V(AFFIARRAY)                                                                      \
+  V(AFFIARRAYUNKNOWN)                                                               \
+  V(AFFIARRAYBIT)                                                                   \
+  V(AFFIARRAYBOOL)                                                                  \
+  V(AFFIARRAYBYTES)                                                                 \
+  V(AFFIARRAYCOLLATE)                                                               \
+  V(AFFIARRAYDATE)                                                                  \
+  V(AFFIARRAYENUM)                                                                  \
+  V(AFFIARRAYDECIMAL)                                                               \
+  V(AFFIARRAYFLOAT)                                                                 \
+  V(AFFIARRAYINET)                                                                  \
+  V(AFFIARRAYINT)                                                                   \
+  V(AFFIARRAYINTERVAL)                                                              \
+  V(AFFIARRAYJSONB)                                                                 \
+  V(AFFIARRAYOID)                                                                   \
+  V(AFFIARRAYSERIAL)                                                                \
+  V(AFFIARRAYSTRING)                                                                \
+  V(AFFIARRAYTIME)                                                                  \
+  V(AFFIARRAYTIMETZ)                                                                \
+  V(AFFIARRAYTIMESTAMP)                                                             \
+  V(AFFIARRAYTIMESTAMPTZ)                                                           \
+  V(AFFIARRAYUUID)                                                                  \
+  V(AFFIARRAYGEOGRAPHY)                                                             \
+  V(AFFIARRAYGEOMETRY)                                                              \
+  V(AFFIARRAYBOX2D)                                                                 \
+  V(AFFIARRAYVOID)                                                                  \
+  V(AFFIARRAYPOINT)                                                                 \
+  V(AFFIARRAYLINESTRING)                                                            \
+  V(AFFIARRAYPOLYGON)                                                               \
+  V(AFFIARRAYMULTIPOINT)                                                            \
+  V(AFFIARRAYMULTILINESTRING)                                                       \
+  V(AFFIARRAYMULTIPOLYGON)                                                          \
+  V(AFFIARRAYGEOMETRYCOLLECTION)                                                    \
+  V(AFFIARRAYOIDWRAPPER)                                                            \
+  V(AFFIARRAYWHOLESTMT) \
 
 #define ALLCOLLATIONS(V)                                                       \
   V(defaultcollation)                                                                   \

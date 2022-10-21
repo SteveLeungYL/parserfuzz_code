@@ -4,6 +4,7 @@
 #include <vector>
 #include "define.h" // import the ALLDATATAFFINITY(V)
 #include <string>
+#include <memory>
 
 using namespace std;
 

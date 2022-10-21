@@ -850,7 +850,8 @@ string DataAffinity::get_mutated_literal() {
     switch (this->data_affinity) {
         case AFFIUNKNOWN:
             cerr << "In DataAffinity::get_mutated_literal, getting AFIUNKNOWN. \n";
-            abort();
+//            abort();
+            return this->mutate_affi_string();
 
         case AFFISERIAL:
             // [[fallthrough]]
@@ -864,8 +865,6 @@ string DataAffinity::get_mutated_literal() {
 
         case AFFIINET:
             return this->mutate_affi_inet();
-        case AFFIARRAY:
-            return this->mutate_affi_array();
         case AFFICOLLATE:
             return this->mutate_affi_collate();
         case AFFIBOOL:
@@ -895,7 +894,8 @@ string DataAffinity::get_mutated_literal() {
         case AFFISTRING:
             return this->mutate_affi_string();
         default:
-            return this->mutate_affi_string();
+            // For other types, should be collate.
+            return this->mutate_affi_array();
     }
 }
 
