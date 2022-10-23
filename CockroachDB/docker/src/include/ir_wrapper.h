@@ -127,6 +127,34 @@ public:
   bool is_ir_in(IR *, IR *);
   bool is_ir_in(IR *, IRTYPE);
 
+  // Helper function for find_closest_nearby_IR_with_type();
+  inline bool comp_type(IR* cur_node, IRTYPE ir_type) {
+      if (cur_node->get_ir_type() == ir_type) {
+          return true;
+      } else {
+          return false;
+      }
+  }
+  inline bool comp_type(IR* cur_node, DATATYPE data_type) {
+    if (cur_node->get_data_type() == data_type) {
+        return true;
+    } else {
+        return false;
+    }
+  }
+
+  template <class TYPE> IR* iter_cur_node(IR* cur_node, TYPE type);
+  // C++ template. The TYPE could be ir_type or data_type.
+  template <class TYPE> IR* find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type);
+
+  template <class TYPE> bool is_find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type) {
+      if (this->find_closest_nearby_IR_with_type(cur_node, ir_type)) {
+          return true;
+      } else {
+          return false;
+      }
+  }
+
 private:
   IR *ir_root = nullptr;
 };

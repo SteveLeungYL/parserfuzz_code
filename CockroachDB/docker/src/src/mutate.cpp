@@ -61,9 +61,9 @@ vector<string> Mutator::v_constraint_name;    // All constraint names defined in
                                               // the current SQL.
 vector<string> Mutator::v_foreign_table_name; // All foreign table names defined
                                               // in the current SQL.
-vector<string>
-    Mutator::v_create_foreign_table_names_single; // All foreign table names
-                                                  // created in the current single SQL statement.
+//vector<string>
+//    Mutator::v_create_foreign_table_names_single; // All foreign table names
+//                                                  // created in the current single SQL statement.
 
 vector<string> Mutator::v_sys_column_name;
 vector<string> Mutator::v_sys_catalogs_name;
@@ -3431,9 +3431,7 @@ void Mutator::reset_data_library_single_stmt() {
 }
 
 void Mutator::reset_data_library() {
-
   this->reset_data_library_single_stmt();
-
   m_table2columns.clear();
   v_table_names.clear();
   m_table2index.clear();
