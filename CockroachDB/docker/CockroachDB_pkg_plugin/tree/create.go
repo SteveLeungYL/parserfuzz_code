@@ -1960,7 +1960,7 @@ func (node *ColumnTableDef) LogCurrentNode(depth int) *SQLRightIR {
 		RNode = &SQLRightIR{
 			IRType:      TypeIdentifier,
 			DataType:    DataTypeName,
-			ContextFlag: ContextUnknown,
+			ContextFlag: ContextDefine,
 			Prefix:      "",
 			Infix:       "",
 			Suffix:      "",
@@ -4247,10 +4247,10 @@ func (node *PartitionBy) LogCurrentNodeListOrRange(depth int) *SQLRightIR {
 
 	for i := range node.List {
 		prefix = ""
-		if i == 0 {
-			prefix = " ) ("
-		}
 		infix := " "
+		if i == 0 {
+			infix = " ) ("
+		}
 		if i > 0 {
 			infix = ", "
 		}
@@ -4273,9 +4273,8 @@ func (node *PartitionBy) LogCurrentNodeListOrRange(depth int) *SQLRightIR {
 		infix := " "
 		if i > 0 {
 			infix = ", "
-		}
-		if i == 0 {
-			prefix = " ) ("
+		} else if i == 0 {
+			infix = " ) ("
 		}
 		pRNode := node.Range[i].LogCurrentNode(depth + 1)
 		rootIR = &SQLRightIR{
