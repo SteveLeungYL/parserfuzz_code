@@ -364,17 +364,21 @@ func (node *UnresolvedName) LogCurrentNode(depth int) *SQLRightIR {
 			nodeList = append(nodeList, curNode)
 		} else {
 			dataType := DataUnknownType
+			dataFlag := ContextUnknown
 			if i == 1 {
 				dataType = DataTableName
+				dataFlag = ContextUseFollow
 			} else if i == 2 {
 				dataType = DataSchemaName
+				dataFlag = ContextUse
 			} else if i == 3 {
 				dataType = DataDatabaseName
+				dataFlag = ContextUse
 			}
 			curNode := &SQLRightIR{
 				IRType:      TypeIdentifier,
 				DataType:    dataType,
-				ContextFlag: ContextUse,
+				ContextFlag: dataFlag,
 				Prefix:      "",
 				Infix:       "",
 				Suffix:      "",

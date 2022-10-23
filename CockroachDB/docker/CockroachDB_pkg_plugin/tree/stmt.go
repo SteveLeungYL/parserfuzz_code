@@ -594,6 +594,8 @@ const (
 	ContextUndefine
 	ContextReplaceDefine
 	ContextReplaceUndefine
+	ContextNoModi
+	ContextUseFollow // Use Follow stands for the table names or column names that has already been referred in the statement.
 )
 
 const (
