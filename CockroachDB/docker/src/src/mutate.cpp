@@ -1,6 +1,5 @@
 #include "../include/mutate.h"
 #include "../include/json_ir_convertor.h"
-#include "../include/data_affinity.h"
 #include "../parser/parser.h"
 #include "../oracle/cockroach_oracle.h"
 #include "../AFL/debug.h"
@@ -23,50 +22,54 @@ using namespace std;
 set<IR *>
     Mutator::visited; // Already validated/fixed node. Avoid multiple fixing.
 map<string, vector<string>>
-    Mutator::m_tables; // Table name to column name mapping.
+    Mutator::m_table2columns; // Table name to column name mapping.
 map<string, vector<string>>
     Mutator::m_table2index;                   // Table name to index mapping.
 vector<string> Mutator::v_table_names;        // All saved table names
 vector<string> Mutator::v_table_names_single; // All used table names in one
                                               // query statement.
+vector<string> Mutator::v_column_names_single; // All used table names in one
+// query statement.
 vector<string>
     Mutator::v_create_table_names_single; // All table names just created in the
-                                          // current stmt.
-vector<string> Mutator::v_alias_names_single; // All alias name local to one
-                                              // query statement.
-map<string, vector<string>>
-    Mutator::m_table2alias_single; // Table name to alias mapping.
-map<string, COLTYPE>
-    Mutator::m_column2datatypeLegacy; // Column name mapping to column type. 0 means
-                                // unknown, 1 means numerical, 2 means
-                                // character_type_, 3 means boolean_type_.
+                                          // current stmt. Will clean up after
+                                          // solving the current statement.
+
+// All alias name local to one query statement.
+// Can be used for quick alias name random referencing.
+// Clean up after every single query statement.
+vector<string> Mutator::v_table_alias_names_single;
+vector<string> Mutator::v_column_alias_names_single;
+
+map<string, string>
+    Mutator::m_alias2table_single; // table alias to original table name mapping.
+map<string, string>
+    Mutator::m_alias2column_single; // column name to alias mapping.
+
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
-vector<string>
-    Mutator::v_column_names_single; // All used column names in one query
-                                    // statement. Used to confirm literal type.
-vector<string>
-    Mutator::v_table_name_follow_single; // All used table names follow type in
-                                         // one query stmt.
+
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the
                                            // current stmt.
+
+// Views should share the same handling as Tables
+vector<string> Mutator::v_view_name;          // All saved view names.
+// The column to view mapping will be saved into the m_table2columns mapping.
+
 vector<string>
     Mutator::v_sequence_name; // All sequence names defined in the current SQL.
-vector<string> Mutator::v_view_name;          // All saved view names.
 vector<string> Mutator::v_constraint_name;    // All constraint names defined in
                                               // the current SQL.
 vector<string> Mutator::v_foreign_table_name; // All foreign table names defined
-                                              // inthe current SQL.
+                                              // in the current SQL.
 vector<string>
     Mutator::v_create_foreign_table_names_single; // All foreign table names
-                                                  // created in the current SQL.
+                                                  // created in the current single SQL statement.
 
-map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> Mutator::m_reloption;
 vector<string> Mutator::v_sys_column_name;
 vector<string> Mutator::v_sys_catalogs_name;
 
-vector<string> Mutator::v_table_with_partition_name;
+vector<string> Mutator::v_table_with_partition;
 
-vector<string> Mutator::v_saved_reloption_str;
 map<string, DataAffinity> Mutator::set_session_lib;
 vector<string> Mutator::all_saved_set_session;
 
@@ -370,21 +373,10 @@ void Mutator::init_library() {
     int_types_.insert(TypeIntegerLiteral);
     string_types_.insert(TypeStringLiteral);
 
-    relationmap_[DataColumnName][DataTableName] = kRelationSubtype;
-    //    relationmap_[kDataPragmaValue][kDataPragmaKey] = kRelationSubtype;
-    relationmap_[DataTableName][DataTableName] = kRelationElement;
-    relationmap_[DataColumnName][DataColumnName] = kRelationElement;
-
     split_stmt_types_.insert(TypeStmt);
     split_substmt_types_.insert({TypeSelect});
 
     not_mutatable_types_.insert({TypeRoot, TypeStmtList, TypeStmt});
-    //                                 , TypeCreate,
-    //                                 kDropStmt, kCreateTableStmt,
-    //                                 kCreateIndexStmt, kCreateViewStmt,
-    //                                 kDropIndexStmt, kDropTableStmt,
-    //                                 kDropViewStmt, kSelectStmt, kUpdateStmt,
-    //                                 kInsertStmt, kAlterStmt, kReindexStmt});
 
     // Initialize the common_string_library();
     common_string_library_.push_back("HELLO");
@@ -402,53 +394,6 @@ void Mutator::init_library() {
     common_string_library_.push_back("bug");
     common_string_library_.push_back("sample");
 
-    // Initialize the storage parameters from the CREATE TABLE stmt.
-
-    vector<pair<string, DEF_ARG_TYPE>> storage_parameter_pair;
-    storage_parameter_pair.push_back(
-        pair<string, DEF_ARG_TYPE>("fillfactor", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "toast_tuple_target", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(
-        pair<string, DEF_ARG_TYPE>("parallel_workers", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_enabled", DEF_ARG_TYPE::boolean));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "vacuum_index_cleanup", DEF_ARG_TYPE::on_off_auto));
-    storage_parameter_pair.push_back(
-        pair<string, DEF_ARG_TYPE>("vacuum_truncate", DEF_ARG_TYPE::boolean));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_vacuum_threshold", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_vacuum_scale_factor", DEF_ARG_TYPE::floating_point));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_vacuum_insert_threshold", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_vacuum_insert_scale_factor", DEF_ARG_TYPE::floating_point));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_analyze_scale_factor", DEF_ARG_TYPE::floating_point));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_vacuum_cost_delay", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_vacuum_cost_limit", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_freeze_min_age", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_freeze_max_age", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_multixact_freeze_min_age", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_multixact_freeze_max_age", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "autovacuum_multixact_freeze_table_age", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "log_autovacuum_min_duration", DEF_ARG_TYPE::integer));
-    storage_parameter_pair.push_back(pair<string, DEF_ARG_TYPE>(
-        "user_catalog_table", DEF_ARG_TYPE::boolean));
-
-    this->m_reloption[TypeCreateTable] =
-        storage_parameter_pair; // TODO: FIXME: Might not be accurate.
-
     /* Added default column type for Postgres */
     this->v_sys_column_name.push_back("oid");
     this->v_sys_column_name.push_back("tableoid");
@@ -458,102 +403,102 @@ void Mutator::init_library() {
     this->v_sys_column_name.push_back("cmax");
     this->v_sys_column_name.push_back("ctid");
 
-    this->v_sys_catalogs_name.push_back("pg_aggregate");
-    this->v_sys_catalogs_name.push_back("g_am");
-    this->v_sys_catalogs_name.push_back("g_amop");
-    this->v_sys_catalogs_name.push_back("g_amproc");
-    this->v_sys_catalogs_name.push_back("g_attrdef");
-    this->v_sys_catalogs_name.push_back("g_attribute");
-    this->v_sys_catalogs_name.push_back("g_authid");
-    this->v_sys_catalogs_name.push_back("g_auth_members");
-    this->v_sys_catalogs_name.push_back("pg_cast");
-    this->v_sys_catalogs_name.push_back("pg_class");
-    this->v_sys_catalogs_name.push_back("pg_collation");
-    this->v_sys_catalogs_name.push_back("pg_constraint");
-    this->v_sys_catalogs_name.push_back("pg_conversion");
-    this->v_sys_catalogs_name.push_back("pg_database");
-    this->v_sys_catalogs_name.push_back("pg_db_role_setting");
-    this->v_sys_catalogs_name.push_back("pg_default_acl");
-    this->v_sys_catalogs_name.push_back("pg_depend");
-    this->v_sys_catalogs_name.push_back("pg_description");
-    this->v_sys_catalogs_name.push_back("pg_enum");
-    this->v_sys_catalogs_name.push_back("pg_event_trigger");
-    this->v_sys_catalogs_name.push_back("pg_extension");
-    this->v_sys_catalogs_name.push_back("pg_foreign_data_wrapper");
-    this->v_sys_catalogs_name.push_back("pg_foreign_server");
-    this->v_sys_catalogs_name.push_back("pg_foreign_table");
-    this->v_sys_catalogs_name.push_back("pg_index");
-    this->v_sys_catalogs_name.push_back("pg_inherits");
-    this->v_sys_catalogs_name.push_back("pg_init_privs");
-    this->v_sys_catalogs_name.push_back("pg_language");
-    this->v_sys_catalogs_name.push_back("pg_largeobject");
-    this->v_sys_catalogs_name.push_back("pg_largeobject_metadata");
-    this->v_sys_catalogs_name.push_back("pg_namespace");
-    this->v_sys_catalogs_name.push_back("pg_opclass");
-    this->v_sys_catalogs_name.push_back("pg_operator");
-    this->v_sys_catalogs_name.push_back("pg_opfamily");
-    this->v_sys_catalogs_name.push_back("pg_partitioned_table");
-    this->v_sys_catalogs_name.push_back("pg_policy");
-    this->v_sys_catalogs_name.push_back("pg_proc");
-    this->v_sys_catalogs_name.push_back("pg_publication");
-    this->v_sys_catalogs_name.push_back("pg_publication_rel");
-    this->v_sys_catalogs_name.push_back("pg_range");
-    this->v_sys_catalogs_name.push_back("pg_replication_origin");
-    this->v_sys_catalogs_name.push_back("pg_rewrite");
-    this->v_sys_catalogs_name.push_back("pg_seclabel");
-    this->v_sys_catalogs_name.push_back("pg_sequence");
-    this->v_sys_catalogs_name.push_back("pg_shdepend");
-    this->v_sys_catalogs_name.push_back("pg_shdescription");
-    this->v_sys_catalogs_name.push_back("pg_shseclabel");
-    this->v_sys_catalogs_name.push_back("pg_statistic");
-    this->v_sys_catalogs_name.push_back("pg_statistic_ext");
-    this->v_sys_catalogs_name.push_back("pg_statistic_ext_data");
-    this->v_sys_catalogs_name.push_back("pg_subscription");
-    this->v_sys_catalogs_name.push_back("pg_subscription_rel");
-    this->v_sys_catalogs_name.push_back("pg_tablespace");
-    this->v_sys_catalogs_name.push_back("pg_transform");
-    this->v_sys_catalogs_name.push_back("pg_trigger");
-    this->v_sys_catalogs_name.push_back("pg_ts_config");
-    this->v_sys_catalogs_name.push_back("pg_ts_config_map");
-    this->v_sys_catalogs_name.push_back("pg_ts_dict");
-    this->v_sys_catalogs_name.push_back("pg_ts_parser");
-    this->v_sys_catalogs_name.push_back("pg_ts_template");
-    this->v_sys_catalogs_name.push_back("pg_type");
-    this->v_sys_catalogs_name.push_back("pg_user_mapping");
-    this->v_sys_catalogs_name.push_back("System Views");
-    this->v_sys_catalogs_name.push_back("pg_available_extensions");
-    this->v_sys_catalogs_name.push_back("pg_available_extension_versions");
-    this->v_sys_catalogs_name.push_back("pg_backend_memory_contexts");
-    this->v_sys_catalogs_name.push_back("pg_config");
-    this->v_sys_catalogs_name.push_back("pg_cursors");
-    this->v_sys_catalogs_name.push_back("pg_file_settings");
-    this->v_sys_catalogs_name.push_back("pg_group");
-    this->v_sys_catalogs_name.push_back("pg_hba_file_rules");
-    this->v_sys_catalogs_name.push_back("pg_indexes");
-    this->v_sys_catalogs_name.push_back("pg_locks");
-    this->v_sys_catalogs_name.push_back("pg_matviews");
-    this->v_sys_catalogs_name.push_back("pg_policies");
-    this->v_sys_catalogs_name.push_back("pg_prepared_statements");
-    this->v_sys_catalogs_name.push_back("pg_prepared_xacts");
-    this->v_sys_catalogs_name.push_back("pg_publication_tables");
-    this->v_sys_catalogs_name.push_back("pg_replication_origin_status");
-    this->v_sys_catalogs_name.push_back("pg_replication_slots");
-    this->v_sys_catalogs_name.push_back("pg_roles");
-    this->v_sys_catalogs_name.push_back("pg_rules");
-    this->v_sys_catalogs_name.push_back("pg_seclabels");
-    this->v_sys_catalogs_name.push_back("pg_sequences");
-    this->v_sys_catalogs_name.push_back("pg_settings");
-    this->v_sys_catalogs_name.push_back("pg_shadow");
-    this->v_sys_catalogs_name.push_back("pg_shmem_allocations");
-    this->v_sys_catalogs_name.push_back("pg_stats");
-    this->v_sys_catalogs_name.push_back("pg_stats_ext");
-    this->v_sys_catalogs_name.push_back("pg_stats_ext_exprs");
-    this->v_sys_catalogs_name.push_back("pg_tables");
-    this->v_sys_catalogs_name.push_back("pg_timezone_abbrevs");
-    this->v_sys_catalogs_name.push_back("pg_timezone_names");
-    this->v_sys_catalogs_name.push_back("pg_user");
-    this->v_sys_catalogs_name.push_back("pg_user_mappings");
-    this->v_sys_catalogs_name.push_back("pg_views");
+//    this->v_sys_catalogs_name.push_back("pg_aggregate");
+//    this->v_sys_catalogs_name.push_back("g_am");
+//    this->v_sys_catalogs_name.push_back("g_amop");
+//    this->v_sys_catalogs_name.push_back("g_amproc");
+//    this->v_sys_catalogs_name.push_back("g_attrdef");
+//    this->v_sys_catalogs_name.push_back("g_attribute");
+//    this->v_sys_catalogs_name.push_back("g_authid");
+//    this->v_sys_catalogs_name.push_back("g_auth_members");
+//    this->v_sys_catalogs_name.push_back("pg_cast");
+//    this->v_sys_catalogs_name.push_back("pg_class");
+//    this->v_sys_catalogs_name.push_back("pg_collation");
+//    this->v_sys_catalogs_name.push_back("pg_constraint");
+//    this->v_sys_catalogs_name.push_back("pg_conversion");
+//    this->v_sys_catalogs_name.push_back("pg_database");
+//    this->v_sys_catalogs_name.push_back("pg_db_role_setting");
+//    this->v_sys_catalogs_name.push_back("pg_default_acl");
+//    this->v_sys_catalogs_name.push_back("pg_depend");
+//    this->v_sys_catalogs_name.push_back("pg_description");
+//    this->v_sys_catalogs_name.push_back("pg_enum");
+//    this->v_sys_catalogs_name.push_back("pg_event_trigger");
+//    this->v_sys_catalogs_name.push_back("pg_extension");
+//    this->v_sys_catalogs_name.push_back("pg_foreign_data_wrapper");
+//    this->v_sys_catalogs_name.push_back("pg_foreign_server");
+//    this->v_sys_catalogs_name.push_back("pg_foreign_table");
+//    this->v_sys_catalogs_name.push_back("pg_index");
+//    this->v_sys_catalogs_name.push_back("pg_inherits");
+//    this->v_sys_catalogs_name.push_back("pg_init_privs");
+//    this->v_sys_catalogs_name.push_back("pg_language");
+//    this->v_sys_catalogs_name.push_back("pg_largeobject");
+//    this->v_sys_catalogs_name.push_back("pg_largeobject_metadata");
+//    this->v_sys_catalogs_name.push_back("pg_namespace");
+//    this->v_sys_catalogs_name.push_back("pg_opclass");
+//    this->v_sys_catalogs_name.push_back("pg_operator");
+//    this->v_sys_catalogs_name.push_back("pg_opfamily");
+//    this->v_sys_catalogs_name.push_back("pg_partitioned_table");
+//    this->v_sys_catalogs_name.push_back("pg_policy");
+//    this->v_sys_catalogs_name.push_back("pg_proc");
+//    this->v_sys_catalogs_name.push_back("pg_publication");
+//    this->v_sys_catalogs_name.push_back("pg_publication_rel");
+//    this->v_sys_catalogs_name.push_back("pg_range");
+//    this->v_sys_catalogs_name.push_back("pg_replication_origin");
+//    this->v_sys_catalogs_name.push_back("pg_rewrite");
+//    this->v_sys_catalogs_name.push_back("pg_seclabel");
+//    this->v_sys_catalogs_name.push_back("pg_sequence");
+//    this->v_sys_catalogs_name.push_back("pg_shdepend");
+//    this->v_sys_catalogs_name.push_back("pg_shdescription");
+//    this->v_sys_catalogs_name.push_back("pg_shseclabel");
+//    this->v_sys_catalogs_name.push_back("pg_statistic");
+//    this->v_sys_catalogs_name.push_back("pg_statistic_ext");
+//    this->v_sys_catalogs_name.push_back("pg_statistic_ext_data");
+//    this->v_sys_catalogs_name.push_back("pg_subscription");
+//    this->v_sys_catalogs_name.push_back("pg_subscription_rel");
+//    this->v_sys_catalogs_name.push_back("pg_tablespace");
+//    this->v_sys_catalogs_name.push_back("pg_transform");
+//    this->v_sys_catalogs_name.push_back("pg_trigger");
+//    this->v_sys_catalogs_name.push_back("pg_ts_config");
+//    this->v_sys_catalogs_name.push_back("pg_ts_config_map");
+//    this->v_sys_catalogs_name.push_back("pg_ts_dict");
+//    this->v_sys_catalogs_name.push_back("pg_ts_parser");
+//    this->v_sys_catalogs_name.push_back("pg_ts_template");
+//    this->v_sys_catalogs_name.push_back("pg_type");
+//    this->v_sys_catalogs_name.push_back("pg_user_mapping");
+//    this->v_sys_catalogs_name.push_back("System Views");
+//    this->v_sys_catalogs_name.push_back("pg_available_extensions");
+//    this->v_sys_catalogs_name.push_back("pg_available_extension_versions");
+//    this->v_sys_catalogs_name.push_back("pg_backend_memory_contexts");
+//    this->v_sys_catalogs_name.push_back("pg_config");
+//    this->v_sys_catalogs_name.push_back("pg_cursors");
+//    this->v_sys_catalogs_name.push_back("pg_file_settings");
+//    this->v_sys_catalogs_name.push_back("pg_group");
+//    this->v_sys_catalogs_name.push_back("pg_hba_file_rules");
+//    this->v_sys_catalogs_name.push_back("pg_indexes");
+//    this->v_sys_catalogs_name.push_back("pg_locks");
+//    this->v_sys_catalogs_name.push_back("pg_matviews");
+//    this->v_sys_catalogs_name.push_back("pg_policies");
+//    this->v_sys_catalogs_name.push_back("pg_prepared_statements");
+//    this->v_sys_catalogs_name.push_back("pg_prepared_xacts");
+//    this->v_sys_catalogs_name.push_back("pg_publication_tables");
+//    this->v_sys_catalogs_name.push_back("pg_replication_origin_status");
+//    this->v_sys_catalogs_name.push_back("pg_replication_slots");
+//    this->v_sys_catalogs_name.push_back("pg_roles");
+//    this->v_sys_catalogs_name.push_back("pg_rules");
+//    this->v_sys_catalogs_name.push_back("pg_seclabels");
+//    this->v_sys_catalogs_name.push_back("pg_sequences");
+//    this->v_sys_catalogs_name.push_back("pg_settings");
+//    this->v_sys_catalogs_name.push_back("pg_shadow");
+//    this->v_sys_catalogs_name.push_back("pg_shmem_allocations");
+//    this->v_sys_catalogs_name.push_back("pg_stats");
+//    this->v_sys_catalogs_name.push_back("pg_stats_ext");
+//    this->v_sys_catalogs_name.push_back("pg_stats_ext_exprs");
+//    this->v_sys_catalogs_name.push_back("pg_tables");
+//    this->v_sys_catalogs_name.push_back("pg_timezone_abbrevs");
+//    this->v_sys_catalogs_name.push_back("pg_timezone_names");
+//    this->v_sys_catalogs_name.push_back("pg_user");
+//    this->v_sys_catalogs_name.push_back("pg_user_mappings");
+//    this->v_sys_catalogs_name.push_back("pg_views");
   }
 }
 
@@ -1433,152 +1378,117 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
    * all IR that needs deep_drop, and drop them at the end of the function.
    * */
   vector<IR *> ir_to_deep_drop;
-  vector<IR *> fixed_ir;
   string cur_ir_str = cur_stmt_root->to_string();
 
+  // If set true, meaning we are in an ALTER TABLE RENAME statement.
   bool is_replace_table = false, is_replace_column = false;
+
   for (const vector<IR *> &ir_to_fix_vec :
        cur_stmt_ir_to_fix_vec) { // Loop for substmt.
 
     vector<string> v_with_clause_alias_table_name;
 
-    /* Definition of kDataTableName */
+    /* Definition of TypeDataTableName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       if ((ir_to_fix->data_type_ == DataTableName
-           //          ir_to_fix->data_type_ == kDataForeignTableName
            ) &&
-          (ir_to_fix->data_flag_ == ContextDefine)) {
+          (ir_to_fix->data_flag_ == ContextDefine ||
+            ir_to_fix->data_flag_ == ContextReplaceDefine
+          )) {
         string new_name = gen_id_name();
         ir_to_fix->str_val_ = new_name;
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
 
-        //        if (ir_to_fix->data_type_ == kDataForeignTableName) {
-        //          v_create_foreign_table_names_single.push_back(new_name);
-        //        }
-
+        // Save the table name that just defined inside this single statement.
+        // Will permanently save this table name at the end of the function.
         v_create_table_names_single.push_back(new_name);
         if (is_debug_info) {
           cerr << "Dependency: Added to v_table_names: " << new_name
                << ", in kDataTableName with kDefine or kReplace. \n\n\n";
+          cerr << "Dependency: All current statement defined name: ";
+          for (string &all_defined_name: v_table_names_single) {
+                   cerr << all_defined_name << " ";
+          }
+          cerr << "Dependency: All previously saved table names: ";
           for (string &all_used_name : v_table_names) {
-            cerr << "Dependency: All saved table used names: " << all_used_name
-                 << "\n\n\n";
+                cerr << "previously saved table used names: " << all_used_name << "\n\n\n";
           }
         }
-        is_replace_table = true;
+
+        if (ir_to_fix->data_flag_ == ContextReplaceDefine) {
+            // If the newly defined table is marked as ContextReplaceDefine, which means
+            // the statement is related to ALTER TABLE v0 RENAME TO v1;
+            // Mark the replacing table mark.
+            is_replace_table = true;
+        }
       }
     }
 
-    /* Undefine of kDataTableName */
+    /* Undefine of TypeDataTableName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       if ((ir_to_fix->data_type_ == DataTableName) &&
-          ir_to_fix->data_flag_ == ContextUndefine) {
+              (ir_to_fix->data_flag_ == ContextUndefine || ir_to_fix->data_flag_ == ContextReplaceUndefine)) {
         if (v_table_names.size() > 0) {
+            // Choose random table name that defined before to drop.
           string removed_table_name =
               v_table_names[get_rand_int(v_table_names.size())];
           v_table_names.erase(std::remove(v_table_names.begin(),
                                           v_table_names.end(),
                                           removed_table_name),
                               v_table_names.end());
-          v_table_names_single.erase(std::remove(v_table_names_single.begin(),
-                                                 v_table_names_single.end(),
-                                                 removed_table_name),
-                                     v_table_names_single.end());
+
+          // FIXME:: Should we also remove the table name string inside the v_create_table_names_single?
+
           ir_to_fix->str_val_ = removed_table_name;
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           if (is_debug_info) {
             cerr << "Dependency: Removed from v_table_names: "
                  << removed_table_name
-                 << ", in kDataTableName with kUndefine \n\n\n";
+                 << ", in TypeDataTableName with ContextUndefine \n\n\n";
           }
+
           if (is_replace_table && v_create_table_names_single.size() != 0) {
+              // In most of the case, the replacement would only have one pair of table names.
             string new_table_name = v_create_table_names_single.front();
-            m_tables[new_table_name] = m_tables[removed_table_name];
+              m_table2columns[new_table_name] = m_table2columns[removed_table_name];
           }
         } else {
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names, "
                     "in kDataTableName with kUndefine. \n\n\n";
           }
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_str_val("x");
+          ir_to_fix->set_is_instantiated(true);
         }
-        // TODO: FIXME: Foreign table handling. Add it back later.
-        //      } else if (
-        //        (
-        //          ir_to_fix->data_type_ == kDataForeignTableName
-        //        ) &&
-        //        ir_to_fix->data_flag_ == kUndefine)
-        //      {
-        //        if (v_foreign_table_name.size() > 0 ) {
-        //          /* Find table name in the foreign table vector, not normal
-        //          table vec.  */ string removed_table_name =
-        //          v_foreign_table_name[get_rand_int(v_foreign_table_name.size())];
-        //          v_foreign_table_name.erase(std::remove(v_foreign_table_name.begin(),
-        //          v_foreign_table_name.end(), removed_table_name),
-        //          v_foreign_table_name.end());
-        //
-        //          v_table_names.erase(std::remove(v_table_names.begin(),
-        //          v_table_names.end(), removed_table_name),
-        //          v_table_names.end());
-        //          v_table_names_single.erase(std::remove(v_table_names_single.begin(),
-        //          v_table_names_single.end(), removed_table_name),
-        //          v_table_names_single.end()); ir_to_fix->str_val_ =
-        //          removed_table_name; fixed_ir.push_back(ir_to_fix); if
-        //          (is_debug_info) {
-        //            cerr << "Dependency: Removed from v_foreign_table_names: "
-        //            << removed_table_name << ", in kDataForeignTableName with
-        //            kUndefine \n\n\n";
-        //          }
-        //          if (is_replace_table &&
-        //          v_create_foreign_table_names_single.size() != 0) {
-        //            string new_table_name =
-        //            v_create_foreign_table_names_single.front();
-        //            m_tables[new_table_name] = m_tables[removed_table_name];
-        //          }
-        //
-        //        } else {
-        //          if (is_debug_info) {
-        //            cerr << "Dependency Error: Failed to find info in
-        //            v_foreign_table_names, in kDataForeignTableName with
-        //            kUndefine. \n\n\n";
-        //          }
-        //          /* Unreconized, keep original */
-        //          // ir_to_fix->str_val_ = "y";
-        //          fixed_ir.push_back(ir_to_fix);
-        //        }
-        //
-        //      }
       }
     }
 
     /* kUse of kDataTableName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       if (ir_to_fix->data_type_ == DataTableName &&
           ir_to_fix->data_flag_ == ContextUse) {
 
         /* If the original SQL is using the system catalogs,
-         * gives just 10% chance to fix it.
+         * gives just 10% chance to mutate it to another values.
          * */
 
         string ori_str = ir_to_fix->get_str_val();
         if (find(v_sys_catalogs_name.begin(), v_sys_catalogs_name.end(),
                  ori_str) != v_sys_catalogs_name.end() &&
             get_rand_int(10) < 9) {
+
           continue;
         }
 
@@ -1586,13 +1496,13 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
          * v_table_with_partition_names */
         if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypePartitionBy)) {
           if (is_debug_info) {
-            cerr << "Dependency: Detected fixing for kUse kTablename in the "
+            cerr << "Dependency: Detected fixing for ContextUse TypeTableName in the "
                     "PARTITION OF clause. \n\n\n";
           }
-          if (v_table_with_partition_name.size() > 0) {
+          if (v_table_with_partition.size() > 0) {
             ir_to_fix->set_str_val(
-                vector_rand_ele(v_table_with_partition_name));
-            fixed_ir.push_back(ir_to_fix);
+                vector_rand_ele(v_table_with_partition));
+            ir_to_fix->set_is_instantiated(true);
             if (is_debug_info) {
               cerr << "Dependency: In kUse of kTableName, use table name with "
                       "partitioning: "
@@ -1606,12 +1516,13 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             }
             /* In this error case, 20% use original */
             if (get_rand_int(5) < 1) {
-              fixed_ir.push_back(ir_to_fix);
+              ir_to_fix->set_is_instantiated(true);
               continue;
             }
           }
         }
 
+        /* TODO::FIXME:: Should get the system catalogs dedicated to the CockroachDB working. */
         // /* Give 5% chances, use system catalogs tables */
         // if (get_rand_int(20) < 1) {
         //   ir_to_fix->str_val_ = vector_rand_ele(v_sys_catalogs_name);
@@ -1628,9 +1539,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names "
                     "and v_create_table_names_single, in kDataTableName with "
-                    "kUse. \n\n\n";
+                    "ContextUse. \n\n\n";
           }
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           continue;
         }
         string used_name = "";
@@ -1644,10 +1555,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
               v_create_table_names_single.size())];
         }
         ir_to_fix->str_val_ = used_name;
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
         v_table_names_single.push_back(used_name);
         if (is_debug_info) {
-          cerr << "Dependency: In the context of kUsed table, we got "
+          cerr << "Dependency: In the context of ContextUsed table, we got "
                   "table_name: "
                << used_name << ". \n\n\n";
           for (string &all_used_name : v_table_names) {
@@ -1664,8 +1575,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         //            if (v_create_table_names_single.size() > 0) {
         //              string newly_create_table_str =
         //              v_create_table_names_single.front();
-        //              m_tables[newly_create_table_str] =
-        //              m_tables[ir_to_fix->get_str_val()];
+        //              m_table2columns[newly_create_table_str] =
+        //              m_table2columns[ir_to_fix->get_str_val()];
         //            }
         //
         //        }
@@ -1674,16 +1585,15 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* kDefine of kDataViewName. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       if (ir_to_fix->data_type_ == DataViewName &&
           ir_to_fix->data_flag_ == ContextDefine) {
         string new_view_name_str = gen_view_name();
         ir_to_fix->set_str_val(new_view_name_str);
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
 
         v_create_table_names_single.push_back(new_view_name_str);
         v_view_name.push_back(new_view_name_str);
@@ -1698,10 +1608,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* kUndefine of kDataViewName. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       if (ir_to_fix->data_type_ == DataViewName &&
           ir_to_fix->data_flag_ == ContextUndefine) {
@@ -1710,12 +1619,12 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             cerr << "Dependency Error: In kUndefine of kDataViewname, cannot "
                     "find view name defined before. \n\n\n";
           }
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           continue;
         }
         string view_to_rov_str = vector_rand_ele(v_view_name);
         ir_to_fix->set_str_val(view_to_rov_str);
-        fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
 
         remove(v_view_name.begin(), v_view_name.end(), view_to_rov_str);
         remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
@@ -1741,7 +1650,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
         string view_str = vector_rand_ele(v_view_name);
         ir_to_fix->set_str_val(view_str);
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
         v_table_names_single.push_back(view_str);
 
         if (is_debug_info) {
@@ -1781,10 +1690,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     /* Fix of DataTableAlias name. */
     int alias_idx = 0;
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       /* All DataTableAlias are alias to Table name.  */
       if (ir_to_fix->data_type_ == DataTableAliasName) {
@@ -1844,8 +1752,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
            * */
           string alias_name = gen_alias_name();
           ir_to_fix->str_val_ = alias_name;
-          v_alias_names_single.push_back(alias_name);
-          fixed_ir.push_back(ir_to_fix);
+          v_table_alias_names_single.push_back(alias_name);
+          ir_to_fix->set_is_instantiated(true);
           continue;
           // return false;
         }
@@ -1854,11 +1762,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
          * alias and save it.  */
         string alias_name = gen_alias_name();
         ir_to_fix->set_str_val(alias_name);
-        vector<string> &cur_mapped_alias_vec =
-            m_table2alias_single[closest_table_name];
-        cur_mapped_alias_vec.push_back(alias_name);
-        v_alias_names_single.push_back(alias_name);
-        fixed_ir.push_back(ir_to_fix);
+        m_alias2table_single[closest_table_name] = alias_name;
+        v_table_alias_names_single.push_back(alias_name);
+        ir_to_fix->set_is_instantiated(true);
 
         if (is_debug_info) {
           cerr << "Dependency: In TypeTableAliasName defined, generates: "
@@ -1874,10 +1780,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* kDefine and kReplace of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       /* Don't fix values inside the kValueClause. That is not permitted by
        * Postgres semantics. Change it to kDataLiteral, and it would be handled
@@ -1898,7 +1803,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
         string new_name = gen_column_name();
         ir_to_fix->str_val_ = new_name;
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
         string closest_table_name = "";
         /* Attach the newly generated column name to the table. */
         if (v_create_table_names_single.size() > 0) {
@@ -1959,7 +1864,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                << ", found closest_table_name: " << closest_table_name
                << ". \n\n\n";
         }
-        m_tables[closest_table_name].push_back(new_name);
+        m_table2columns[closest_table_name].push_back(new_name);
 
         // TODO: FIXME: Remove the type mapping for now. Will add back later.
         //        /* Next, we save the column type to the mapping */
@@ -2026,7 +1931,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           }
           /* Unreconized, keep original */
           // return false;
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           continue;
         }
 
@@ -2036,7 +1941,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                << closest_table_name << ". \n\n\n";
         }
 
-        vector<string> &column_vec = m_tables[closest_table_name];
+        vector<string> &column_vec = m_table2columns[closest_table_name];
         if (column_vec.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the mapped column_vec for "
@@ -2046,7 +1951,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           /* Not reconized column name. Keep original */
           // ir_to_fix->str_val_ = "y";
           // return false;
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           continue;
         }
         string removed_column_name =
@@ -2055,7 +1960,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                                      removed_column_name),
                          column_vec.end());
         ir_to_fix->str_val_ = removed_column_name;
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
 
         if (is_debug_info) {
           cerr << "Dependency: In kDataColumnName, kUndefine, found "
@@ -2069,10 +1974,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* kUse of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       /* Don't fix values inside the kValueClause. That is not permitted by
        * Postgres semantics. Change it to kDataLiteral, and it would be handled
@@ -2091,8 +1995,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
                << "\n\n\n";
           cerr << "In the kDataColumnName with kUse, found "
-                  "v_alias_names_single.size: "
-               << v_alias_names_single.size() << "\n\n\n";
+                  "v_table_alias_names_single.size: "
+               << v_table_alias_names_single.size() << "\n\n\n";
         }
         /* If we are seeing system default columns, 75% skip the fixing and
          * reuse the original.  */
@@ -2104,12 +2008,12 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         } else if (
             // Do not use alias inside kWithClause
             !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith) &&
-            v_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
+            v_table_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
           /* We have defined a new alias for column name! use it with 66%
            * percentage. */
           // cerr << "DEBUG: is in kWithClause: " <<
           // p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
-          ir_to_fix->str_val_ = vector_rand_ele(v_alias_names_single);
+          ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
           if (is_debug_info) {
             cerr << "Dependency: Using alias inside kUse of kColumnName: "
                  << ir_to_fix->str_val_ << ". \n\n\n";
@@ -2140,9 +2044,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                  << closest_table_name << " for column name origin. \n\n\n"
                  << endl;
           }
-        } else if (v_alias_names_single.size() != 0) {
+        } else if (v_table_alias_names_single.size() != 0) {
           ir_to_fix->str_val_ =
-              v_alias_names_single[get_rand_int(v_alias_names_single.size())];
+              v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
           if (is_debug_info) {
             cerr << "Dependency: In kUse of kDataColumnName, use alias name as "
                     "the column name. Use alias name: "
@@ -2150,7 +2054,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                  << endl;
           }
           // Finished assigning column name. continue;
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           continue;
         } else if (v_table_names.size() != 0) {
 
@@ -2159,7 +2063,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           ** 20%, use predefined table name.
           */
           if (get_rand_int(5) < 4) {
-            fixed_ir.push_back(ir_to_fix);
+              ir_to_fix->set_is_instantiated(true);
             continue;
           }
 
@@ -2181,24 +2085,24 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                     "the query. Error cloest_table_name is: "
                  << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
           }
-          if (v_alias_names_single.size() != 0) {
-            ir_to_fix->str_val_ = vector_rand_ele(v_alias_names_single);
+          if (v_table_alias_names_single.size() != 0) {
+            ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
             if (is_debug_info) {
               cerr << "Dependency: Using alias inside kUse of kColumnName: "
                    << ir_to_fix->str_val_ << ". \n\n\n";
             }
-            fixed_ir.push_back(ir_to_fix);
+            ir_to_fix->set_is_instantiated(true);
             continue;
           }
           /* Unreconized, keep original */
           // ir_to_fix->str_val_ = "y";
           // return false;
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           continue;
         }
 
         vector<string> &cur_mapped_column_name_vec =
-            m_tables[closest_table_name];
+            m_table2columns[closest_table_name];
         if (is_debug_info) {
           cerr << "Dependency: In kUse of kDataColunName, use origin table "
                   "name: "
@@ -2210,7 +2114,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           string cur_chosen_column = cur_mapped_column_name_vec[get_rand_int(
               cur_mapped_column_name_vec.size())];
           ir_to_fix->str_val_ = cur_chosen_column;
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           v_column_names_single.push_back(cur_chosen_column);
           if (is_debug_info) {
             cerr << "Dependency: In kDataColumnName, kUse, we choose "
@@ -2221,7 +2125,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         } else {
           /* Unreconized, keep original */
           // ir_to_fix->str_val_ = "y";
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
           if (is_debug_info) {
             cerr << "Dependency Error: In kDataColumnName, kUse, cannot find "
                     "mapping from table_name"
@@ -2302,7 +2206,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //        if (table_follow_idx < v_table_name_follow_single.size()) {
     //          string cur_chosen_table_name =
     //          v_table_name_follow_single[table_follow_idx]; vector<string>&
-    //          v_cur_mapped_column = m_tables[cur_chosen_table_name]; if (
+    //          v_cur_mapped_column = m_table2columns[cur_chosen_table_name]; if (
     //          !v_cur_mapped_column.size() ) {
     //            if (is_debug_info) {
     //              cerr << "Dependency Error: In kDataColumnNameFollow, choose
@@ -2337,16 +2241,15 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* Fix of kDataIndex name. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       if (ir_to_fix->get_data_type() == DataIndexName) {
         if (ir_to_fix->get_data_flag() == ContextDefine) {
           string tmp_index_name = gen_index_name();
           ir_to_fix->set_str_val(tmp_index_name);
-          fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
 
           /* Find the table used in this stmt. */
           if (v_table_names_single.size() != 0) {
@@ -2391,7 +2294,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           }
           if (tmp_index_name != "y") {
             ir_to_fix->set_str_val(tmp_index_name);
-            fixed_ir.push_back(ir_to_fix);
+            ir_to_fix->set_is_instantiated(true);
           }
         }
 
@@ -2417,7 +2320,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           }
           if (tmp_index_name != "y") {
             ir_to_fix->set_str_val(tmp_index_name);
-            fixed_ir.push_back(ir_to_fix);
+            ir_to_fix->set_is_instantiated(true);
           }
         }
       }
@@ -2425,8 +2328,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* Fix the Data Type identifiers  */
     for (IR* ir_to_fix: ir_to_fix_vec) {
-        if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-            fixed_ir.end()) {
+        if (ir_to_fix->get_is_instantiated()) {
             continue;
         }
 
@@ -2465,18 +2367,68 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
     }
 
-    /* Fix the Literal. */
+
+
+      // TODO: FIXME: Foreign table handling. Add it back later.
+      //      } else if (
+      //        (
+      //          ir_to_fix->data_type_ == kDataForeignTableName
+      //        ) &&
+      //        ir_to_fix->data_flag_ == kUndefine)
+      //      {
+      //        if (v_foreign_table_name.size() > 0 ) {
+      //          /* Find table name in the foreign table vector, not normal
+      //          table vec.  */ string removed_table_name =
+      //          v_foreign_table_name[get_rand_int(v_foreign_table_name.size())];
+      //          v_foreign_table_name.erase(std::remove(v_foreign_table_name.begin(),
+      //          v_foreign_table_name.end(), removed_table_name),
+      //          v_foreign_table_name.end());
+      //
+      //          v_table_names.erase(std::remove(v_table_names.begin(),
+      //          v_table_names.end(), removed_table_name),
+      //          v_table_names.end());
+      //          v_table_names_single.erase(std::remove(v_table_names_single.begin(),
+      //          v_table_names_single.end(), removed_table_name),
+      //          v_table_names_single.end()); ir_to_fix->str_val_ =
+      //          removed_table_name; fixed_ir.push_back(ir_to_fix); if
+      //          (is_debug_info) {
+      //            cerr << "Dependency: Removed from v_foreign_table_names: "
+      //            << removed_table_name << ", in kDataForeignTableName with
+      //            kUndefine \n\n\n";
+      //          }
+      //          if (is_replace_table &&
+      //          v_create_foreign_table_names_single.size() != 0) {
+      //            string new_table_name =
+      //            v_create_foreign_table_names_single.front();
+      //            m_table2columns[new_table_name] = m_table2columns[removed_table_name];
+      //          }
+      //
+      //        } else {
+      //          if (is_debug_info) {
+      //            cerr << "Dependency Error: Failed to find info in
+      //            v_foreign_table_names, in kDataForeignTableName with
+      //            kUndefine. \n\n\n";
+      //          }
+      //          /* Unreconized, keep original */
+      //          // ir_to_fix->str_val_ = "y";
+      //          fixed_ir.push_back(ir_to_fix);
+      //        }
+      //
+      //      }
+
+
+      // TODO:: Fix the Data type for the literal. Do not use the current Implementation.
+      /* Fix the Literal. */
     int cur_literal_idx = -1;
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
       IRTYPE type = ir_to_fix->get_ir_type();
       if (type == TypeFloatLiteral || type == TypeStringLiteral ||
           type == TypeIntegerLiteral) {
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
 
         if (is_debug_info) {
           cerr << "Fixing Literals: ori_literals: " << ir_to_fix->get_str_val()
@@ -2562,7 +2514,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         if (v_column_names_single.size() > cur_literal_idx) {
           /* For cases like INSERT INTO v0 (c1, c2) VALUES (1, 2); */
           string cur_column_name = v_column_names_single[cur_literal_idx];
-          column_data_type = m_column2datatypeLegacy[cur_column_name];
+          // TODO:: Fix the Data type for the literal. Do not use the current Implementation.
+          column_data_type = COLTYPE::STRING_T;
           if (is_debug_info) {
             cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
                  << ", we found column name: " << cur_column_name
@@ -2570,11 +2523,12 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                  << ". \n\n\n";
           }
         } else if (v_table_names_single.size() != 0 &&
-                   m_tables[v_table_names_single[0]].size() > cur_literal_idx) {
+                   m_table2columns[v_table_names_single[0]].size() > cur_literal_idx) {
           /* For cases like INSERT INTO v0 VALUES (1, 2); */
           string cur_column_name =
-              m_tables[v_table_names_single[0]][cur_literal_idx];
-          column_data_type = m_column2datatypeLegacy[cur_column_name];
+              m_table2columns[v_table_names_single[0]][cur_literal_idx];
+          // TODO:: Fix the Data type for the literal. Do not use the current Implementation.
+          column_data_type = COLTYPE::STRING_T;
           if (is_debug_info) {
             cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
                  << ", no column info found, but found table_name: "
@@ -3062,94 +3016,11 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
     /* Fix for reloptions. (Related options. ) and function names.  */
     for (IR* ir_to_fix : ir_to_fix_vec) {
-    
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-      fixed_ir.end()) {
-        continue;
-      }
-    
-      //if (ir_to_fix->get_data_type() == kDataRelOption) {
-        //fixed_ir.push_back(ir_to_fix);
-    
-        //[> See if we have seen this reloption before, if not, save it.  <]
-        //string ori_str = ir_to_fix->to_string();
-        //if (
-          //std::find(v_saved_reloption_str.begin(),
-          //v_saved_reloption_str.end(), ori_str) ==
-          //v_saved_reloption_str.end()
-        //) {
-          //if (is_debug_info) {
-            //cerr << "Dependency: Saving unseen reloption string: " <<
-            //ori_str << ". \n\n\n";
-          //}
-          //v_saved_reloption_str.push_back(ori_str);
-        //}
-    
-        //// Use original reloptions, in 99% of chances.
-        //if (get_rand_int(100) < 99) {
-          //continue;
-        //}
-    
-        //if (get_rand_int(5) < 4 && v_saved_reloption_str.size() > 0) {
-          //[> If 4/5 chances, rerun previously seen reloptions <]
-          //IR* new_reloption_ir = new IR(kReloptionElem,
-          //vector_rand_ele(v_saved_reloption_str));
-          //cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-          //ir_to_deep_drop.push_back(ir_to_fix);
-          //if (is_debug_info) {
-            //cerr << "Dependency: In reloption, using previously seen
-            //reloption: " << new_reloption_ir->get_str_val() << ". \n\n\n";
-          //}
-          //continue;
-        //}
-    
-        //if(is_debug_info) {
-          //cerr << "Dependency: Fixing kDataRelOption: " <<
-          //get_string_by_ir_type(ir_to_fix->get_ir_type()) << ",
-          //to_string(): " << ir_to_fix->to_string() << " getting
-          //rel_option_type: " << ir_to_fix->get_rel_option_type() <<
-          //"\n\n\n";
-        //}
-    
-        //pair<string, string> reloption_choice;
-    
-        //bool is_reset =
-        //RelOptionGenerator::get_rel_option_pair(ir_to_fix->get_rel_option_type(),
-        //reloption_choice);
-    
-        //if (!is_reset) {
-          //IR* new_reloption_label = new IR(kReloptionElem,
-          //reloption_choice.first); IR* new_reloption_args = new
-          //IR(kReloptionElem, reloption_choice.second);
-    
-          //IR* new_reloption_ir = new IR(kReloptionElem, OP3("", "=", ""),
-          //new_reloption_label, new_reloption_args);
-    
-          //[> Replace the old reloption ir to the new one. But only
-          //deep_drop it at the end of the fix_dependency.  */
-          //cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-          //[> If nested reloption_elem happens, this will crash the
-          //program.
-          //* But I don't think that is a possible case in practice.
-          //* */
-          //ir_to_deep_drop.push_back(ir_to_fix);
-        //} else {
-          //IR* new_reloption_label = new IR(kReloptionElem,
-          //reloption_choice.first); IR* new_reloption_ir = new
-          //IR(kReloptionElem, OP3("", "", ""), new_reloption_label);
-    
-          //[> Replace the old reloption ir to the new one. But only
-          //deep_drop it at the end of the fix_dependency.  */
-          //cur_stmt_root->swap_node(ir_to_fix, new_reloption_ir);
-          //[> If nested reloption_elem happens, this will crash the
-          //program.
-          //* But I don't think that is a possible case in practice.
-          //* */
-          //ir_to_deep_drop.push_back(ir_to_fix);
-        //}
-    
-      //}
-    
+
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+
        /* Fixing for functions.  */
        if (ir_to_fix->get_data_type() == DataFunctionName) {
          if (ir_to_fix->get_data_flag() == ContextNoModi) {
@@ -3178,46 +3049,45 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     }
 
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-          fixed_ir.end()) {
-        continue;
-      }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
-      //      if (ir_to_fix->get_data_type() == kDataStatisticName) {
-      //        if (ir_to_fix->get_data_flag() == kDefine) {
-      //          string cur_chosen_name = gen_statistic_name();
-      //          ir_to_fix->set_str_val(cur_chosen_name);
-      //          fixed_ir.push_back(ir_to_fix);
-      //          v_statistics_name.push_back(cur_chosen_name);
-      //        }
-      //
-      //        else if (ir_to_fix->get_data_flag() == kUndefine) {
-      //          if (!v_statistics_name.size()) continue;
-      //          string cur_chosen_name = vector_rand_ele(v_statistics_name);
-      //          ir_to_fix->set_str_val(cur_chosen_name);
-      //          fixed_ir.push_back(ir_to_fix);
-      //
-      //          /* remove the statistic name from the vector */
-      //          vector<string> v_tmp;
-      //          for (string& s : v_statistics_name) {
-      //            if (s != cur_chosen_name) {
-      //              v_tmp.push_back(s);
-      //            }
-      //          }
-      //          v_statistics_name = v_tmp;
-      //        }
-      //
-      //        else if (ir_to_fix->get_data_flag() == kUse) {
-      //          if (!v_statistics_name.size()) continue;
-      //          string cur_chosen_name = vector_rand_ele(v_statistics_name);
-      //          ir_to_fix->set_str_val(cur_chosen_name);
-      //          fixed_ir.push_back(ir_to_fix);
-      //        }
-      //      }
+            if (ir_to_fix->get_data_type() == DataStatsName) {
+              if (ir_to_fix->get_data_flag() == ContextDefine) {
+                string cur_chosen_name = gen_statistic_name();
+                ir_to_fix->set_str_val(cur_chosen_name);
+                ir_to_fix->set_is_instantiated(true);
+                v_statistics_name.push_back(cur_chosen_name);
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+                if (!v_statistics_name.size()) continue;
+                string cur_chosen_name = vector_rand_ele(v_statistics_name);
+                ir_to_fix->set_str_val(cur_chosen_name);
+                ir_to_fix->set_is_instantiated(true);
+
+                /* remove the statistic name from the vector */
+                vector<string> v_tmp;
+                for (string& s : v_statistics_name) {
+                  if (s != cur_chosen_name) {
+                    v_tmp.push_back(s);
+                  }
+                }
+                v_statistics_name = v_tmp;
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUse) {
+                if (!v_statistics_name.size()) continue;
+                string cur_chosen_name = vector_rand_ele(v_statistics_name);
+                ir_to_fix->set_str_val(cur_chosen_name);
+                ir_to_fix->set_is_instantiated(true);
+              }
+            }
 
       /* Fix for kDataSequenceName */
       if (ir_to_fix->get_data_type() == DataSequenceName) {
-        fixed_ir.push_back(ir_to_fix);
+          ir_to_fix->set_is_instantiated(true);
         if (ir_to_fix->get_data_flag() == ContextDefine) {
           // string cur_chosen_name = gen_sequence_name();
           // ir_to_fix->set_str_val(cur_chosen_name);
@@ -3253,7 +3123,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
       /* Fix for kDataConstraintName */
       if (ir_to_fix->get_data_type() == DataConstraintName) {
-        fixed_ir.push_back(ir_to_fix);
+        ir_to_fix->set_is_instantiated(true);
         if (ir_to_fix->get_data_flag() == ContextDefine) {
           // string cur_chosen_name = gen_sequence_name();
           // ir_to_fix->set_str_val(cur_chosen_name);
@@ -3303,16 +3173,13 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
   if (is_table_par && v_create_table_names_single.size() > 0) {
     string new_par_table_name = v_create_table_names_single.front();
-    v_table_with_partition_name.push_back(new_par_table_name);
+    v_table_with_partition.push_back(new_par_table_name);
   }
 
   /* For the newly declared v_table_names_single, save all these newly declared
    * statement to the global v_table_names. */
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(),
                        v_create_table_names_single.end());
-  v_foreign_table_name.insert(v_foreign_table_name.end(),
-                              v_create_foreign_table_names_single.begin(),
-                              v_create_foreign_table_names_single.end());
 
   /* Reiterate the substmt.
   ** Added missing dependency information that is missing before.
@@ -3331,10 +3198,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           string cur_new_table_name_str = v_create_table_names_single.front();
           string inherit_table_name_str = ir_to_fix->get_str_val();
 
-          vector<string> &inherit_m_tables = m_tables[inherit_table_name_str];
+          vector<string> &inherit_m_tables = m_table2columns[inherit_table_name_str];
 
           for (string col_name : inherit_m_tables) {
-            m_tables[cur_new_table_name_str].push_back(col_name);
+            m_table2columns[cur_new_table_name_str].push_back(col_name);
           }
         }
       }
@@ -3421,10 +3288,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           if (findStringIn(cur_men_column_str, ".")) {
             cur_men_column_str = string_splitter(cur_men_column_str, '.')[1];
           }
-          vector<string> &cur_m_table = m_tables[ir_to_fix->str_val_];
+          vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
           if (std::find(cur_m_table.begin(), cur_m_table.end(),
                         cur_men_column_str) == cur_m_table.end()) {
-            m_tables[ir_to_fix->str_val_].push_back(cur_men_column_str);
+            m_table2columns[ir_to_fix->str_val_].push_back(cur_men_column_str);
             if (is_debug_info) {
               cerr << "Dependency: Adding mappings: For table/view: "
                    << ir_to_fix->str_val_
@@ -3456,12 +3323,12 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           for (IR *cur_men_tablename_ir : all_mentioned_table_kUsed_vec) {
             string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
             const vector<string> &cur_men_column_vec =
-                m_tables[cur_men_tablename_str];
+                m_table2columns[cur_men_tablename_str];
             for (const string &cur_men_column_str : cur_men_column_vec) {
-              vector<string> &cur_m_table = m_tables[ir_to_fix->str_val_];
+              vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
               if (std::find(cur_m_table.begin(), cur_m_table.end(),
                             cur_men_column_str) == cur_m_table.end()) {
-                m_tables[ir_to_fix->str_val_].push_back(cur_men_column_str);
+                m_table2columns[ir_to_fix->str_val_].push_back(cur_men_column_str);
                 if (is_debug_info) {
                   cerr << "Dependency: Adding mappings: For table/view: "
                        << ir_to_fix->str_val_
@@ -3555,33 +3422,28 @@ bool Mutator::remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype,
 
 void Mutator::reset_data_library_single_stmt() {
   this->v_table_names_single.clear();
-  this->v_create_table_names_single.clear();
-  this->v_alias_names_single.clear();
-  this->m_table2alias_single.clear();
   this->v_column_names_single.clear();
-  this->v_table_name_follow_single.clear();
-  this->v_create_foreign_table_names_single.clear();
+  this->v_create_table_names_single.clear();
+  this->v_table_alias_names_single.clear();
+  this->v_column_alias_names_single.clear();
+  this->m_alias2table_single.clear();
+  this->m_alias2column_single.clear();
 }
 
 void Mutator::reset_data_library() {
-  // data_library_.clear();
-  // data_library_2d_.clear();
-  m_tables.clear();
+
+  this->reset_data_library_single_stmt();
+
+  m_table2columns.clear();
   v_table_names.clear();
   m_table2index.clear();
-  m_table2alias_single.clear();
-  v_table_names_single.clear();
-  v_create_table_names_single.clear();
-  v_alias_names_single.clear();
-  v_column_names_single.clear();
-  v_table_name_follow_single.clear();
+  m_column2datatype.clear();
   v_statistics_name.clear();
-  v_create_foreign_table_names_single.clear();
   v_sequence_name.clear();
   v_view_name.clear();
   v_constraint_name.clear();
   v_foreign_table_name.clear();
-  v_table_with_partition_name.clear();
+  v_table_with_partition.clear();
   v_int_literals.clear();
   v_float_literals.clear();
   v_string_literals.clear();

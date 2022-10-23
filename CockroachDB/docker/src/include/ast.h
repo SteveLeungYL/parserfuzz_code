@@ -195,9 +195,13 @@ public:
       false; // Do not mutate this IR if this set to be true.
   int operand_num_;
   unsigned int mutated_times_ = 0;
+  bool is_instantiated = false;
 
   string to_string();
   void to_string_core(string &);
+
+  bool get_is_instantiated() { return this->is_instantiated; }
+  void set_is_instantiated(const bool& in) {this->is_instantiated = in; return;}
 
   // delete this IR and necessary clean up
   void drop();

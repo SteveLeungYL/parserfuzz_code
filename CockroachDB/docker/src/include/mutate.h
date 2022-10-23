@@ -173,12 +173,12 @@ public:
   IR *mutated_root_ = NULL;
   map<IRTYPE, vector<IR *>> ir_library_;
   map<IRTYPE, set<unsigned long>> ir_library_hash_;
+  set<unsigned long> global_hash_;
 
+  // Common data libraries. Can be used globally for instantiation.
   vector<string> string_library_;
   set<unsigned long> string_library_hash_;
   vector<unsigned long> value_library_;
-
-  map<DATATYPE, map<DATATYPE, RELATIONTYPE>> relationmap_;
 
   vector<string> common_string_library_;
   set<IRTYPE> not_mutatable_types_;
@@ -196,64 +196,73 @@ public:
   map<FUNCTIONTYPE, vector<string>> function_library;
   map<string, FUNCTIONTYPE> func_str_to_type_map;
 
-  set<unsigned long> global_hash_;
+  static vector<string> v_sys_column_name;
+  static vector<string> v_sys_catalogs_name;
 
-  /* New data library. Without using dependency graph */
+  // Save the mapping from the SET variable name to
+  //    the mapped Data Affinity for the variable.
+  static map<string, DataAffinity> set_session_lib;
+  static vector<string> all_saved_set_session;
+
+  /* New data library. SQLRight CockroachDB data instantiation. */
   static map<string, vector<string>>
-      m_tables; // Table name to column name mapping.
+      m_table2columns; // Global Table name to column name mapping.
   static map<string, vector<string>>
-      m_table2index;                   // Table name to index mapping.
-  static vector<string> v_table_names; // All saved table names
+      m_table2index;                   // Global table name to index mapping.
+      // We do not save the index to column mapping because it seems unnecessary.
+  static vector<string> v_table_names; // All saved table names from previous statements.
+
+  // All used table names in one query statement. The table names are typically defined in
+  //    `FROM` statement.
   static vector<string>
-      v_table_names_single; // All used table names in one query statement.
+      v_table_names_single;
+  // All used column names in one query statement. The column names can be used to identify number
+  // of parameters required for the VALUES clause etc.
+  static vector<string> v_column_names_single;
+
+  // All table names just created in the
+  // current stmt but yet to be transmitted into v_table_names.
   static vector<string>
-      v_create_table_names_single; // All table names just created in the
-                                   // current stmt.
-  static vector<string>
-      v_alias_names_single; // All alias name local to one query statement.
-  static map<string, vector<string>>
-      m_table2alias_single; // Table name to alias mapping.
-  static map<string, COLTYPE>
-      m_column2datatypeLegacy; // Column name mapping to column type. 0 means unknown,
-                         // 1 means numerical, 2 means character_type_, 3 means
-                         // boolean_type_.
-  static map<string, DataAffinity> m_column2datatype; // New solution.
-  static vector<string>
-      v_column_names_single; // All used column names in one query statement.
-                             // Used to confirm literal type.
-  static vector<string>
-      v_table_name_follow_single; // All used table names follow type in one
-                                  // query stmt.
+      v_create_table_names_single;
+  /* Alias names are always local to one statement. */
+
+  // All alias name local to one query statement.
+  // Can be used for quick alias name random referencing.
+  // Clean up after every single query statement.
+  static vector<string> v_table_alias_names_single;
+  static vector<string> v_column_alias_names_single;
+
+  // Save the relationship between the table/column name to the alias name.
+  static map<string, string> m_alias2table_single;
+  // The column alias is used in limited situations, such as GROUP BY columns AS column_alias, or `SELECT SUM(column) AS c ...`
+  // Maybe also from `WITH` clause?
+  static map<string, string> m_alias2column_single;
+
+  // A mapping from the column name to the datatype class.
+  // The datatype class is also responsible to handle literal mutation.
+  static map<string, DataAffinity> m_column2datatype;
+
+  // All used table names follow type in one query stmt.
   static vector<string>
       v_statistics_name; // All statistic names defined in the current SQL.
   static vector<string>
       v_sequence_name; // All sequence names defined in the current SQL.
+
+  // The purpose to have a vector of view names is because for DROP statement,
+  // ALTER stmts etc, mixed with view names and table names are not appropriate.
   static vector<string> v_view_name; // All saved view names.
   static vector<string>
       v_constraint_name; // All constraint names defined in the current SQL.
-  static vector<string>
-      v_create_foreign_table_names_single; // All foreign table names created in
-                                           // the current SQL.
   static vector<string> v_foreign_table_name; // All foreign table names defined
                                               // inthe current SQL.
   static vector<string>
-      v_table_with_partition_name; // All table names that contiains TABLE
+      v_table_with_partition; // All table names that contiains TABLE
                                    // PARTITIONING.
 
   static vector<int> v_int_literals;
   static vector<double> v_float_literals;
   static vector<string> v_string_literals;
 
-  static map<IRTYPE, vector<pair<string, DEF_ARG_TYPE>>> m_reloption;
-  static vector<string> v_sys_column_name;
-  static vector<string> v_sys_catalogs_name;
-
-  static vector<string> v_saved_reloption_str;
-
-  // Save the mapping from the SET variable name to
-  //    the mapped Data Affinity for the variable.
-  static map<string, DataAffinity> set_session_lib;
-  static vector<string> all_saved_set_session;
 
   // added by vancir
   map<unsigned long, bool> norec_hash;
