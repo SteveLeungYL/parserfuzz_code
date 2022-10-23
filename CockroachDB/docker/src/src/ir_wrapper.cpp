@@ -946,8 +946,9 @@ bool IRWrapper::is_ir_in(IR *sub_ir, IRTYPE par_type) {
 // Return the matched, otherwise return NULL.
 template<class TYPE> IR* IRWrapper::iter_cur_node(IR* cur_node, TYPE type) {
     // Recursive function.
+    // Depth first search.
 
-    // Template. Could be type or data_type.
+    // Template. Could be ir_type or data_type.
     if (this->comp_type(cur_node, type)) {
         return cur_node;
     }
@@ -1002,9 +1003,12 @@ IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
         return ret_node;
     }
 
-    IR* ori_cur_node = cur_node;
+    // Has already check the sub-node before. If no parent, can directly drop.
+    if (cur_node->get_parent() == NULL) {
+        return NULL;
+    }
 
-    while (cur_node->get_parent() != NULL) {
+    do {
         IR* ori_child_node = cur_node;
         cur_node = cur_node->get_parent();
 
@@ -1019,7 +1023,8 @@ IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
                 return ret_node;
             }
         }
+    } while (cur_node->get_parent() != NULL);
 
-    }
-
+    // Cannot find the matching node.
+    return NULL;
 }
