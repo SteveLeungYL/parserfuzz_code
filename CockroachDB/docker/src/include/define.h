@@ -501,7 +501,8 @@
   V(ContextUndefine)                                                           \
   V(ContextReplaceDefine)                                                      \
   V(ContextReplaceUndefine)                                                    \
-  V(ContextNoModi)
+  V(ContextNoModi)                                                             \
+  V(ContextUseFollow)
 
 #define ALLFUNCTIONTYPES(V)                                                    \
   V(FUNCAGGR)                                                                  \

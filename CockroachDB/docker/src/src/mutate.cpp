@@ -69,6 +69,7 @@ vector<string> Mutator::v_sys_column_name;
 vector<string> Mutator::v_sys_catalogs_name;
 
 vector<string> Mutator::v_table_with_partition;
+map<string, vector<string>> Mutator::m_table2partition;
 
 map<string, DataAffinity> Mutator::set_session_lib;
 vector<string> Mutator::all_saved_set_session;
@@ -403,102 +404,6 @@ void Mutator::init_library() {
     this->v_sys_column_name.push_back("cmax");
     this->v_sys_column_name.push_back("ctid");
 
-//    this->v_sys_catalogs_name.push_back("pg_aggregate");
-//    this->v_sys_catalogs_name.push_back("g_am");
-//    this->v_sys_catalogs_name.push_back("g_amop");
-//    this->v_sys_catalogs_name.push_back("g_amproc");
-//    this->v_sys_catalogs_name.push_back("g_attrdef");
-//    this->v_sys_catalogs_name.push_back("g_attribute");
-//    this->v_sys_catalogs_name.push_back("g_authid");
-//    this->v_sys_catalogs_name.push_back("g_auth_members");
-//    this->v_sys_catalogs_name.push_back("pg_cast");
-//    this->v_sys_catalogs_name.push_back("pg_class");
-//    this->v_sys_catalogs_name.push_back("pg_collation");
-//    this->v_sys_catalogs_name.push_back("pg_constraint");
-//    this->v_sys_catalogs_name.push_back("pg_conversion");
-//    this->v_sys_catalogs_name.push_back("pg_database");
-//    this->v_sys_catalogs_name.push_back("pg_db_role_setting");
-//    this->v_sys_catalogs_name.push_back("pg_default_acl");
-//    this->v_sys_catalogs_name.push_back("pg_depend");
-//    this->v_sys_catalogs_name.push_back("pg_description");
-//    this->v_sys_catalogs_name.push_back("pg_enum");
-//    this->v_sys_catalogs_name.push_back("pg_event_trigger");
-//    this->v_sys_catalogs_name.push_back("pg_extension");
-//    this->v_sys_catalogs_name.push_back("pg_foreign_data_wrapper");
-//    this->v_sys_catalogs_name.push_back("pg_foreign_server");
-//    this->v_sys_catalogs_name.push_back("pg_foreign_table");
-//    this->v_sys_catalogs_name.push_back("pg_index");
-//    this->v_sys_catalogs_name.push_back("pg_inherits");
-//    this->v_sys_catalogs_name.push_back("pg_init_privs");
-//    this->v_sys_catalogs_name.push_back("pg_language");
-//    this->v_sys_catalogs_name.push_back("pg_largeobject");
-//    this->v_sys_catalogs_name.push_back("pg_largeobject_metadata");
-//    this->v_sys_catalogs_name.push_back("pg_namespace");
-//    this->v_sys_catalogs_name.push_back("pg_opclass");
-//    this->v_sys_catalogs_name.push_back("pg_operator");
-//    this->v_sys_catalogs_name.push_back("pg_opfamily");
-//    this->v_sys_catalogs_name.push_back("pg_partitioned_table");
-//    this->v_sys_catalogs_name.push_back("pg_policy");
-//    this->v_sys_catalogs_name.push_back("pg_proc");
-//    this->v_sys_catalogs_name.push_back("pg_publication");
-//    this->v_sys_catalogs_name.push_back("pg_publication_rel");
-//    this->v_sys_catalogs_name.push_back("pg_range");
-//    this->v_sys_catalogs_name.push_back("pg_replication_origin");
-//    this->v_sys_catalogs_name.push_back("pg_rewrite");
-//    this->v_sys_catalogs_name.push_back("pg_seclabel");
-//    this->v_sys_catalogs_name.push_back("pg_sequence");
-//    this->v_sys_catalogs_name.push_back("pg_shdepend");
-//    this->v_sys_catalogs_name.push_back("pg_shdescription");
-//    this->v_sys_catalogs_name.push_back("pg_shseclabel");
-//    this->v_sys_catalogs_name.push_back("pg_statistic");
-//    this->v_sys_catalogs_name.push_back("pg_statistic_ext");
-//    this->v_sys_catalogs_name.push_back("pg_statistic_ext_data");
-//    this->v_sys_catalogs_name.push_back("pg_subscription");
-//    this->v_sys_catalogs_name.push_back("pg_subscription_rel");
-//    this->v_sys_catalogs_name.push_back("pg_tablespace");
-//    this->v_sys_catalogs_name.push_back("pg_transform");
-//    this->v_sys_catalogs_name.push_back("pg_trigger");
-//    this->v_sys_catalogs_name.push_back("pg_ts_config");
-//    this->v_sys_catalogs_name.push_back("pg_ts_config_map");
-//    this->v_sys_catalogs_name.push_back("pg_ts_dict");
-//    this->v_sys_catalogs_name.push_back("pg_ts_parser");
-//    this->v_sys_catalogs_name.push_back("pg_ts_template");
-//    this->v_sys_catalogs_name.push_back("pg_type");
-//    this->v_sys_catalogs_name.push_back("pg_user_mapping");
-//    this->v_sys_catalogs_name.push_back("System Views");
-//    this->v_sys_catalogs_name.push_back("pg_available_extensions");
-//    this->v_sys_catalogs_name.push_back("pg_available_extension_versions");
-//    this->v_sys_catalogs_name.push_back("pg_backend_memory_contexts");
-//    this->v_sys_catalogs_name.push_back("pg_config");
-//    this->v_sys_catalogs_name.push_back("pg_cursors");
-//    this->v_sys_catalogs_name.push_back("pg_file_settings");
-//    this->v_sys_catalogs_name.push_back("pg_group");
-//    this->v_sys_catalogs_name.push_back("pg_hba_file_rules");
-//    this->v_sys_catalogs_name.push_back("pg_indexes");
-//    this->v_sys_catalogs_name.push_back("pg_locks");
-//    this->v_sys_catalogs_name.push_back("pg_matviews");
-//    this->v_sys_catalogs_name.push_back("pg_policies");
-//    this->v_sys_catalogs_name.push_back("pg_prepared_statements");
-//    this->v_sys_catalogs_name.push_back("pg_prepared_xacts");
-//    this->v_sys_catalogs_name.push_back("pg_publication_tables");
-//    this->v_sys_catalogs_name.push_back("pg_replication_origin_status");
-//    this->v_sys_catalogs_name.push_back("pg_replication_slots");
-//    this->v_sys_catalogs_name.push_back("pg_roles");
-//    this->v_sys_catalogs_name.push_back("pg_rules");
-//    this->v_sys_catalogs_name.push_back("pg_seclabels");
-//    this->v_sys_catalogs_name.push_back("pg_sequences");
-//    this->v_sys_catalogs_name.push_back("pg_settings");
-//    this->v_sys_catalogs_name.push_back("pg_shadow");
-//    this->v_sys_catalogs_name.push_back("pg_shmem_allocations");
-//    this->v_sys_catalogs_name.push_back("pg_stats");
-//    this->v_sys_catalogs_name.push_back("pg_stats_ext");
-//    this->v_sys_catalogs_name.push_back("pg_stats_ext_exprs");
-//    this->v_sys_catalogs_name.push_back("pg_tables");
-//    this->v_sys_catalogs_name.push_back("pg_timezone_abbrevs");
-//    this->v_sys_catalogs_name.push_back("pg_timezone_names");
-//    this->v_sys_catalogs_name.push_back("pg_user");
-//    this->v_sys_catalogs_name.push_back("pg_user_mappings");
-//    this->v_sys_catalogs_name.push_back("pg_views");
   }
 }
 
@@ -1444,6 +1349,12 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                                           v_table_names.end(),
                                           removed_table_name),
                               v_table_names.end());
+          // Also remove the v_table_with_partition, if matched.
+          v_table_with_partition.erase(std::remove(v_table_with_partition.begin(),
+                                                   v_table_with_partition.end(),
+                                                   removed_table_name
+                                                   ),
+                                       v_table_with_partition.end());
 
           // FIXME:: Should we also remove the table name string inside the v_create_table_names_single?
 
@@ -1456,83 +1367,35 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           }
 
           if (is_replace_table && v_create_table_names_single.size() != 0) {
-              // In most of the case, the replacement would only have one pair of table names.
-            string new_table_name = v_create_table_names_single.front();
-              m_table2columns[new_table_name] = m_table2columns[removed_table_name];
+            // In most of the case, the replacement would only have one pair of table names.
+            string new_table_name = v_create_table_names_single.back();
+            m_table2columns[new_table_name] = m_table2columns[removed_table_name];
           }
         } else {
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names, "
-                    "in kDataTableName with kUndefine. \n\n\n";
+                    "in DataTableName with ContextUndefine. \n\n\n";
           }
+          // Randomly delete a not existed table.
           ir_to_fix->set_str_val("x");
           ir_to_fix->set_is_instantiated(true);
         }
       }
     }
 
-    /* kUse of kDataTableName */
+    /* ContextUse of kDataTableName */
+    /* The ContextUseFollow will be handled further below. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-        if (ir_to_fix->get_is_instantiated()) {
-            continue;
-        }
+      if (ir_to_fix->get_is_instantiated()) {
+          continue;
+      }
 
       if (ir_to_fix->data_type_ == DataTableName &&
           ir_to_fix->data_flag_ == ContextUse) {
 
-        /* If the original SQL is using the system catalogs,
-         * gives just 10% chance to mutate it to another values.
+        /* INFO:: CockroachDB does not have the syntax of PARTITION OF table.
+         * Therefore, we don't need to consider the PARTITION OF partitioned_table grammar.
          * */
-
-        string ori_str = ir_to_fix->get_str_val();
-        if (find(v_sys_catalogs_name.begin(), v_sys_catalogs_name.end(),
-                 ori_str) != v_sys_catalogs_name.end() &&
-            get_rand_int(10) < 9) {
-
-          continue;
-        }
-
-        /* Check whether we are in the PARTITION OF clause, if yes, use the
-         * v_table_with_partition_names */
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypePartitionBy)) {
-          if (is_debug_info) {
-            cerr << "Dependency: Detected fixing for ContextUse TypeTableName in the "
-                    "PARTITION OF clause. \n\n\n";
-          }
-          if (v_table_with_partition.size() > 0) {
-            ir_to_fix->set_str_val(
-                vector_rand_ele(v_table_with_partition));
-            ir_to_fix->set_is_instantiated(true);
-            if (is_debug_info) {
-              cerr << "Dependency: In kUse of kTableName, use table name with "
-                      "partitioning: "
-                   << ir_to_fix->get_str_val() << ". \n\n\n";
-            }
-            continue;
-          } else {
-            if (is_debug_info) {
-              cerr << "Dependency Error: In kUse of kTableName, cannot find "
-                      "table names with partitioning. \n\n\n";
-            }
-            /* In this error case, 20% use original */
-            if (get_rand_int(5) < 1) {
-              ir_to_fix->set_is_instantiated(true);
-              continue;
-            }
-          }
-        }
-
-        /* TODO::FIXME:: Should get the system catalogs dedicated to the CockroachDB working. */
-        // /* Give 5% chances, use system catalogs tables */
-        // if (get_rand_int(20) < 1) {
-        //   ir_to_fix->str_val_ = vector_rand_ele(v_sys_catalogs_name);
-        //   if (is_debug_info) {
-        //     cerr << "Dependency: In the context of kUsed table, we use
-        //     system_catalog table with table_name: " << ir_to_fix->str_val_ <<
-        //     ". \n\n\n";
-        //   }
-        //   continue;
-        // }
 
         if (v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
             v_create_table_names_single.size() == 0) {
@@ -1542,20 +1405,37 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                     "ContextUse. \n\n\n";
           }
           ir_to_fix->set_is_instantiated(true);
+          ir_to_fix->set_str_val("x");
           continue;
         }
         string used_name = "";
+        // For the ContextUse, prefer to use the table name that defined in
+        // previous statement first.
         if (v_table_names.size() != 0) {
           used_name = v_table_names[get_rand_int(v_table_names.size())];
         } else if (v_table_names_single.size() != 0) {
+            // If the statement use some table names before,
+            // we can refer to the table name here.
+            // We can imagine v_table_names_single could contain
+            // alias name defined in WITH clause or other places.
           used_name =
               v_table_names_single[get_rand_int(v_table_names_single.size())];
-        } else {
+        } else if (v_create_table_names_single.size() != 0){
+            // If cannot find any table names defined or used before,
+            // consider the table name that just defined in this statement.
           used_name = v_create_table_names_single[get_rand_int(
               v_create_table_names_single.size())];
+        } else {
+            if (is_debug_info) {
+                cerr << "Cannot find any used or defined table names. Use simple x as name. \n\n\n";
+            }
+            used_name = "x";
         }
         ir_to_fix->str_val_ = used_name;
         ir_to_fix->set_is_instantiated(true);
+        // Save the table name used in this statement.
+        // The saved table name can be referred later by
+        //   contextUseFollow.
         v_table_names_single.push_back(used_name);
         if (is_debug_info) {
           cerr << "Dependency: In the context of ContextUsed table, we got "
@@ -1564,6 +1444,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           for (string &all_used_name : v_table_names) {
             cerr << "Dependency: All saved table used names: " << all_used_name
                  << "\n\n\n";
+          }
+          for (string &all_used_name : v_create_table_names_single) {
+              cerr << "Dependency: All saved table used names: " << all_used_name
+                   << "\n\n\n";
           }
         }
 
@@ -1581,6 +1465,79 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         //
         //        }
       }
+    }
+
+    /* ContextUseFollow of DataTableName. */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+
+        if (ir_to_fix->data_type_ == DataTableName &&
+            ir_to_fix->data_flag_ == ContextUseFollow
+            ) {
+
+            if (v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
+                v_create_table_names_single.size() == 0) {
+                if (is_debug_info) {
+                    cerr << "Dependency Error: Failed to find info in v_table_names "
+                            "and v_create_table_names_single, in kDataTableName with "
+                            "ContextUse. \n\n\n";
+                }
+                ir_to_fix->set_is_instantiated(true);
+                ir_to_fix->set_str_val("x");
+                continue;
+            }
+            string used_name = "";
+            // For the ContextUseFoolow, we should use table name that already
+            // mentioned in the current statement.
+            // For example, for `v0.v1`, where v0 is imported from `FROM v0;`
+            if (v_table_names_single.size() != 0) {
+                used_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+            } else if (v_create_table_names_single.size() != 0){
+                // If cannot find any table names defined or used before,
+                // consider the table name that defined from previous statements.
+                // Not sure whether this situation is possible or not.
+                if (is_debug_info) {
+                    cerr << "\n\n\nIn the scenario of table name ContextUseFollow, cannot find table name inside "
+                            "v_table_names_single. Use previous defined table names instead. \n\n\n";
+                }
+                used_name = v_create_table_names_single[get_rand_int(
+                        v_create_table_names_single.size())];
+            } else if (v_table_names.size() != 0) {
+                // If the statement use some table names before,
+                // we can refer to the table name here.
+                // We can imagine v_table_names_single could contain
+                // alias name defined in WITH clause or other places.
+                if (is_debug_info) {
+                    cerr << "\n\n\nIn the scenario of table name ContextUseFollow, cannot find table name inside "
+                            "v_table_names_single. Use previous defined table names instead. \n\n\n";
+                }
+                used_name =
+                        v_table_names[get_rand_int(v_table_names.size())];
+            } else {
+                if (is_debug_info) {
+                    cerr << "Cannot find any used or defined table names. Use simple x as name. \n\n\n";
+                }
+                used_name = "x";
+            }
+            ir_to_fix->str_val_ = used_name;
+            ir_to_fix->set_is_instantiated(true);
+
+            if (is_debug_info) {
+                cerr << "Dependency: In the context of ContextUsed table, we got "
+                        "table_name: "
+                     << used_name << ". \n\n\n";
+                for (string &all_used_name : v_table_names) {
+                    cerr << "Dependency: All saved table used names: " << all_used_name
+                         << "\n\n\n";
+                }
+                for (string &all_used_name : v_create_table_names_single) {
+                    cerr << "Dependency: All saved table used names: " << all_used_name
+                         << "\n\n\n";
+                }
+            }
+        }
     }
 
     /* kDefine of kDataViewName. */
@@ -1659,6 +1616,157 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
       }
     }
+
+    /* Fix of DataPartitionName. */
+    /* ContextDefine, ContextUse and ContextUndefine of DataPartitionName. */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+
+        if (ir_to_fix->data_type_ == DataPartitionName &&
+            ir_to_fix->data_flag_ == ContextDefine) {
+            string new_partition_name_str = gen_partition_name();
+            ir_to_fix->set_str_val(new_partition_name_str);
+            ir_to_fix->set_is_instantiated(true);
+
+            /* Get the table name that is mentioned by this statement. */
+            string cur_table_name = "";
+            if (v_create_table_names_single.size() != 0) {
+                cur_table_name = v_create_table_names_single.back();
+            } else if (v_table_names_single.size() != 0) {
+                cur_table_name = vector_rand_ele(v_table_names_single);
+            } else if (v_table_with_partition.size() != 0) {
+                if (is_debug_info) {
+                    cerr << "Error: When trying to fetch data partition name in: "
+                            "partition name define. Cannot find table name defined "
+                            "in the statement. Use previous v_table_with_partition "
+                            "instead. ";
+                }
+                cur_table_name = vector_rand_ele(v_table_with_partition);
+            } else if (v_table_names.size() != 0) {
+                if (is_debug_info) {
+                    cerr << "Error: When trying to fetch data partition name in: "
+                            "partition name define. Cannot find table name defined "
+                            "in the statement. Use previous v_table_with_partition "
+                            "instead. ";
+                }
+                cur_table_name = vector_rand_ele(v_table_names);
+            } else {
+                if (is_debug_info) {
+                    cerr << "Error: When trying to fetch data partition name in: "
+                            "partition name define. Cannot find table name defined "
+                            "in the statement. Cannot find anything matched. Not able "
+                            " to connect to any table names. ";
+                }
+                continue;
+            }
+
+            this->v_table_with_partition.push_back(cur_table_name);
+            this->m_table2partition[cur_table_name].push_back(cur_table_name);
+
+            if (is_debug_info) {
+                cerr << "Dependency: In ContextDefine of DataPartitionName, generating data partition "
+                        "name: "
+                     << new_partition_name_str << ", attached to table name: "
+                     << cur_table_name << " \n\n\n";
+            }
+        }
+
+        if (ir_to_fix->data_type_ == DataPartitionName &&
+            ir_to_fix->data_flag_ == ContextUse) {
+
+            ir_to_fix->set_is_instantiated(true);
+
+            string cur_table_name = "";
+            if (v_table_with_partition.size() > 0) {
+                cur_table_name = vector_rand_ele(cur_table_name);
+            } else {
+                if (is_debug_info) {
+                    cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                            "find pre-defined table that contains partitions. "
+                            "Therefore, use dummy x for the partition name. \n";
+                }
+                ir_to_fix->set_str_val("x");
+                // Skip the subsequent handling. Use the dummy `x`.
+                continue;
+            }
+
+            const vector<string>& all_partitions = m_table2partition[cur_table_name];
+            if (all_partitions.size() == 0) {
+                if (is_debug_info) {
+                    cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                            "find m_table2partition partitions. Table name is: " << cur_table_name
+                            << "Therefore, use dummy x for the partition name. \n";
+                }
+                ir_to_fix->set_str_val("x");
+                // Skip the subsequent handling. Use the dummy `x`.
+                continue;
+            }
+
+            string used_partition_name = vector_rand_ele(all_partitions);
+            ir_to_fix->set_str_val(used_partition_name);
+
+            if (is_debug_info) {
+                cerr << "Dependency: In kDefine of kDataViewName, using partition name: "
+                     << used_partition_name << ", matching from table: " << cur_table_name << "\n\n\n";
+            }
+            // Succeed. Continue to the next IR.
+        }
+
+        if (ir_to_fix->data_type_ == DataPartitionName &&
+            ir_to_fix->data_flag_ == ContextUndefine) {
+            ir_to_fix->set_is_instantiated(true);
+
+            string cur_table_name = "";
+            if (v_table_with_partition.size() > 0) {
+                cur_table_name = vector_rand_ele(cur_table_name);
+            } else {
+                if (is_debug_info) {
+                    cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                            "find pre-defined table that contains partitions. "
+                            "Therefore, use dummy x for the partition name. \n";
+                }
+                ir_to_fix->set_str_val("x");
+                // Skip the subsequent handling. Use the dummy `x`.
+                continue;
+            }
+
+            vector<string>& all_partitions = m_table2partition[cur_table_name];
+            if (all_partitions.size() == 0) {
+                if (is_debug_info) {
+                    cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                            "find m_table2partition partitions. Table name is: " << cur_table_name
+                         << "Therefore, use dummy x for the partition name. \n";
+                }
+                ir_to_fix->set_str_val("x");
+                // Skip the subsequent handling. Use the dummy `x`.
+                continue;
+            }
+
+            string used_partition_name = vector_rand_ele(all_partitions);
+            ir_to_fix->set_str_val(used_partition_name);
+
+            all_partitions.erase(std::remove(all_partitions.begin(),
+                                            all_partitions.end(),
+                                            used_partition_name),
+                                all_partitions.end());
+            if (all_partitions.size() == 0) {
+                v_table_with_partition.erase(std::remove(v_table_with_partition.begin(),
+                                                         v_table_with_partition.end(),
+                                                         cur_table_name),
+                                             v_table_with_partition.end());
+            }
+
+            if (is_debug_info) {
+                cerr << "Dependency: In ContextUndefine of kDataPartitionName, removed partition name: "
+                     << used_partition_name << ", matching from table: " << cur_table_name << "\n\n\n";
+            }
+            // Succeed. Continue to the next IR.
+
+        }
+    }
+    /* Handling of DataPartitionName completed. */
 
     //    /* Fix of kAliasTableName.  */
     //    for (IR* ir_to_fix : ir_to_fix_vec) {
@@ -3160,22 +3268,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
   } /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
 
-  /* Check whether the table is in the context of TABLE PARTITIONING */
-  bool is_table_par = false;
-  // First, check kOptPartitionClause
-  vector<IR *> v_opt_par_clause =
-      p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-          cur_stmt_root, TypePartitionBy, false);
-  if (v_opt_par_clause.size() > 0) {
-    is_table_par = true;
-  }
-  v_opt_par_clause.clear();
-
-  if (is_table_par && v_create_table_names_single.size() > 0) {
-    string new_par_table_name = v_create_table_names_single.front();
-    v_table_with_partition.push_back(new_par_table_name);
-  }
-
   /* For the newly declared v_table_names_single, save all these newly declared
    * statement to the global v_table_names. */
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(),
@@ -3433,6 +3525,7 @@ void Mutator::reset_data_library_single_stmt() {
 void Mutator::reset_data_library() {
   this->reset_data_library_single_stmt();
   m_table2columns.clear();
+  m_table2partition.clear();
   v_table_names.clear();
   m_table2index.clear();
   m_column2datatype.clear();

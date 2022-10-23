@@ -258,6 +258,7 @@ public:
   static vector<string>
       v_table_with_partition; // All table names that contiains TABLE
                                    // PARTITIONING.
+  static map<string, vector<string>> m_table2partition;
 
   static vector<int> v_int_literals;
   static vector<double> v_float_literals;
