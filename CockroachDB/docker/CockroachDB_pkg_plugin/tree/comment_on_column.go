@@ -62,7 +62,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Comment != nil {
 		commentNode = &SQLRightIR{
 			IRType:   TypeStringLiteral,
-			DataType: DataNone, // TODO: FIXME: Data type unknown.
+			DataType: DataLiteral, // TODO: FIXME: Data type unknown.
 			Prefix:   "",
 			Infix:    "",
 			Suffix:   "",
@@ -72,7 +72,7 @@ func (node *CommentOnColumn) LogCurrentNode(depth int) *SQLRightIR {
 	} else {
 		commentNode = &SQLRightIR{
 			IRType:   TypeStringLiteral,
-			DataType: DataNone, // TODO: FIXME: Data type unknown.
+			DataType: DataLiteral, // TODO: FIXME: Data type unknown.
 			Prefix:   "",
 			Infix:    "",
 			Suffix:   "",

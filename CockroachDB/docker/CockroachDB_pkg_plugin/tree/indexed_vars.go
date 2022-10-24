@@ -98,7 +98,7 @@ func (node *IndexedVar) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral, // TODO:: FIXME:: Unknown type.
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIUNKNOWN,
 		Prefix:       "",
 		Infix:        "",

@@ -585,6 +585,7 @@ const (
 	DataChannelName
 	DataTableAliasName
 	DataColumnAliasName
+	DataLiteral
 )
 
 const (

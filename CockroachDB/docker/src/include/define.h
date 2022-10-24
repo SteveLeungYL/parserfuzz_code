@@ -492,7 +492,8 @@
   V(DataZoneName)                                                              \
   V(DataChannelName)                                                           \
   V(DataTableAliasName)                                                        \
-  V(DataColumnAliasName)
+  V(DataColumnAliasName)                                                       \
+  V(DataLiteral)
 
 #define ALLCONTEXTFLAGS(V)                                                     \
   V(ContextUnknown)                                                            \

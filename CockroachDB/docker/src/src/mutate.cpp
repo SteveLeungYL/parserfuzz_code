@@ -1270,7 +1270,7 @@ void Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
       DataColumnName,      DataTableName,    DataIndexName, DataTableAliasName,
       DataColumnAliasName, DataSequenceName, DataViewName,  DataConstraintName,
-      DataSequenceName,    DataTypeName};
+      DataSequenceName,    DataTypeName,     DataLiteral};
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }

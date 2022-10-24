@@ -699,7 +699,7 @@ func (node *DBitArray) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIBIT,
 		Prefix:       "",
 		Infix:        "",
@@ -877,7 +877,7 @@ func (node *DInt) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
 		Prefix:       prefix,
 		Infix:        infix,
@@ -1070,7 +1070,7 @@ func (node *DFloat) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeFloatLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIFLOAT,
 		Prefix:       "",
 		Infix:        "",
@@ -1271,7 +1271,7 @@ func (node *DDecimal) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIDECIMAL,
 		Prefix:       "",
 		Infix:        "",
@@ -1433,7 +1433,7 @@ func (node *DString) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFISTRING,
 		Prefix:       "",
 		Infix:        "",
@@ -1740,7 +1740,7 @@ func (node *DBytes) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIBYTES,
 		Prefix:       "",
 		Infix:        "",
@@ -1829,7 +1829,7 @@ func (node *DEncodedKey) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIUNKNOWN, // TODO:: FIXME:: Doesn't know what the affinity should be.
 		Prefix:       "",
 		Infix:        "",
@@ -1975,7 +1975,7 @@ func (node *DUuid) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIUUID,
 		Prefix:       "",
 		Infix:        "",
@@ -2164,7 +2164,7 @@ func (node *DIPAddr) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINET,
 		Prefix:       "",
 		Infix:        "",
@@ -2442,7 +2442,7 @@ func (node *DDate) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIDATE,
 		Prefix:       "",
 		Infix:        "",
@@ -2588,7 +2588,7 @@ func (node *DTime) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFITIME,
 		Prefix:       "",
 		Infix:        "",
@@ -2781,7 +2781,7 @@ func (node *DTimeTZ) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFITIMETZ,
 		Prefix:       "",
 		Infix:        "",
@@ -3097,7 +3097,7 @@ func (node *DTimestamp) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFITIMESTAMP,
 		Prefix:       "",
 		Infix:        "",
@@ -3298,7 +3298,7 @@ func (node *DTimestampTZ) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFITIMESTAMPTZ,
 		Prefix:       "",
 		Infix:        "",
@@ -3549,7 +3549,7 @@ func (node *DInterval) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINTERVAL,
 		Prefix:       "",
 		Infix:        "",
@@ -3688,7 +3688,7 @@ func (node *DGeography) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIGEOGRAPHY,
 		Prefix:       "",
 		Infix:        "",
@@ -3827,7 +3827,7 @@ func (node *DGeometry) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIGEOMETRY,
 		Prefix:       "",
 		Infix:        "",
@@ -3966,7 +3966,7 @@ func (node *DBox2D) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIBOX2D,
 		Prefix:       "",
 		Infix:        "",
@@ -4214,7 +4214,7 @@ func (node *DJSON) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIJSONB,
 		Prefix:       "",
 		Infix:        "",
@@ -5313,7 +5313,7 @@ func (node *DVoid) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIVOID,
 		Prefix:       "",
 		Infix:        "",
@@ -5452,6 +5452,7 @@ func (node *DEnum) LogCurrentNode(depth int) *SQLRightIR {
 	rootIR := s.LogCurrentNode(depth)
 	rootIR.DataAffinity = AFFIENUM
 	rootIR.IRType = TypeStringLiteral
+	rootIR.DataType = DataLiteral
 
 	//rootIR := &SQLRightIR{
 	//	IRType:       TypeStringLiteral,
@@ -5782,7 +5783,7 @@ func (node *DOid) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIOID,
 		Prefix:       "",
 		Infix:        "",
@@ -5976,7 +5977,7 @@ func (node *DOidWrapper) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:       TypeStringLiteral, // TODO: FIXME: Unsure
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIOIDWRAPPER,
 		Prefix:       "",
 		Infix:        "",

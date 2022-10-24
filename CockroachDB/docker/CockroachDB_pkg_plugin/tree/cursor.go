@@ -357,7 +357,7 @@ func (node *CursorStmt) LogCurrentNode(depth int) *SQLRightIR {
 
 		intLiteral := &SQLRightIR{
 			IRType:       TypeIntegerLiteral,
-			DataType:     DataNone,
+			DataType:     DataLiteral,
 			DataAffinity: AFFIINT,
 			Prefix:       "",
 			Infix:        "",

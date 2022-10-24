@@ -58,7 +58,7 @@ func (n *TableRef) Format(ctx *FmtCtx) {
 func (node *TableRef) LogCurrentNodeHelper(depth int, tableID int64) *SQLRightIR {
 	tableNode := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
 		Prefix:       "",
 		Infix:        "",
@@ -76,7 +76,7 @@ func (node *TableRef) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "["
 	tableIDNode := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataUnknownType, // TODO: FIXME: Data type unknown.
+		DataType:     DataLiteral, // TODO: FIXME: Data type unknown.
 		DataAffinity: AFFIINT,
 		Prefix:       "",
 		Infix:        "",

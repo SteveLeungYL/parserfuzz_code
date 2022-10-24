@@ -51,7 +51,7 @@ func (node *TenantID) LogCurrentNode(depth int) *SQLRightIR {
 
 	uintLiteral := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
 		Prefix:       "",
 		Infix:        "",

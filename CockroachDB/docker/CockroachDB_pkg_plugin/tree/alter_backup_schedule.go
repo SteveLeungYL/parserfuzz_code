@@ -37,7 +37,7 @@ func (node *AlterBackupSchedule) LogCurrentNode(depth int) *SQLRightIR {
 
 	tmpNode := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
 		Prefix:       "",
 		Infix:        "",

@@ -563,11 +563,11 @@ func (f *AliasClause) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *AliasClause) LogCurrentNode(depth int) *SQLRightIR {
 
-	dataType := DataColumnAliasName
+	dataType := DataTableAliasName
 
-	if len(node.Cols) > 0 {
-		dataType = DataTableAliasName
-	}
+	//if len(node.Cols) > 0 {
+	//	dataType = DataTableAliasName
+	//}
 
 	aliasStr := node.Alias.String()
 	tmpAliasNode := &SQLRightIR{
@@ -586,7 +586,7 @@ func (node *AliasClause) LogCurrentNode(depth int) *SQLRightIR {
 	suffix := ""
 	var colNode *SQLRightIR
 	if len(node.Cols) != 0 {
-		infix = " ("
+		infix = "("
 		suffix = ")"
 		tmpColNode := node.Cols.LogCurrentNodeWithType(depth+1, DataColumnAliasName, ContextDefine)
 		colNode = tmpColNode
@@ -1198,7 +1198,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 		} else {
 			intLiteral := &SQLRightIR{
 				IRType:       TypeIntegerLiteral,
-				DataType:     DataNone,
+				DataType:     DataLiteral,
 				DataAffinity: AFFIINT,
 				Prefix:       "",
 				Infix:        "",
@@ -1253,7 +1253,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			} else {
 				intLiteral := &SQLRightIR{
 					IRType:       TypeIntegerLiteral,
-					DataType:     DataNone,
+					DataType:     DataLiteral,
 					DataAffinity: AFFIINT,
 					Prefix:       "",
 					Infix:        "",
@@ -1500,7 +1500,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 
 					intLiteral := &SQLRightIR{
 						IRType:       TypeIntegerLiteral,
-						DataType:     DataNone,
+						DataType:     DataLiteral,
 						DataAffinity: AFFIINT,
 						Prefix:       "",
 						Infix:        "",

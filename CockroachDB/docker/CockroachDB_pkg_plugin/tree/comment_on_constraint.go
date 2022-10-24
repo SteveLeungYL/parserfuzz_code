@@ -85,7 +85,7 @@ func (node *CommentOnConstraint) LogCurrentNode(depth int) *SQLRightIR {
 	}
 	commentNode := &SQLRightIR{
 		IRType:   TypeStringLiteral,
-		DataType: DataNone,
+		DataType: DataLiteral,
 		Prefix:   "",
 		Infix:    "",
 		Suffix:   "",

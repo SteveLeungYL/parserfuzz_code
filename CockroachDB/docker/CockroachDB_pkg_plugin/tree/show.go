@@ -2000,7 +2000,7 @@ func (node *ShowHistogram) LogCurrentNode(depth int) *SQLRightIR {
 
 	intLiteralNode := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
 		Prefix:       "",
 		Infix:        "",
@@ -2472,7 +2472,7 @@ func (node *ShowTransferState) LogCurrentNode(depth int) *SQLRightIR {
 		// TRANSFER KEY.
 		strNode := &SQLRightIR{
 			IRType:       TypeStringLiteral,
-			DataType:     DataNone,
+			DataType:     DataLiteral,
 			DataAffinity: AFFIUNKNOWN,
 			Prefix:       "",
 			Infix:        "",
@@ -2521,7 +2521,7 @@ func (node *ShowCompletions) LogCurrentNode(depth int) *SQLRightIR {
 	}
 	offsetNode := &SQLRightIR{
 		IRType:       TypeIntegerLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIINT,
 		Prefix:       "",
 		Infix:        "",
@@ -2534,7 +2534,7 @@ func (node *ShowCompletions) LogCurrentNode(depth int) *SQLRightIR {
 	// This is a whole SQL statement str.
 	statementNode := &SQLRightIR{
 		IRType:       TypeStringLiteral,
-		DataType:     DataNone,
+		DataType:     DataLiteral,
 		DataAffinity: AFFIWHOLESTMT,
 		Prefix:       "",
 		Infix:        "",
