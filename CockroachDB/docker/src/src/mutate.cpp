@@ -1277,6 +1277,70 @@ void Mutator::fix_preprocessing(IR *stmt_root,
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
 
+string Mutator::find_cloest_table_name(IR* ir_to_fix, bool is_debug_info) {
+    string closest_table_name = "";
+    IR* closest_table_ir = NULL;
+    closest_table_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(ir_to_fix, DataTableName);
+    if (closest_table_ir != NULL) {
+        closest_table_name = closest_table_ir->get_str_val();
+        if (is_debug_info) {
+            cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
+                 << closest_table_name << " for column name. \n\n\n"
+                 << endl;
+        }
+    } else if (v_table_names_single.size() != 0) {
+        closest_table_name =
+                v_table_names_single[get_rand_int(v_table_names_single.size())];
+        if (is_debug_info) {
+            cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
+                 << closest_table_name << " for column name origin. \n\n\n"
+                 << endl;
+        }
+    } else if (v_create_table_names_single.size() != 0) {
+        closest_table_name = v_create_table_names_single[0];
+        if (is_debug_info) {
+            cerr << "Dependency: In kUse of kDataColumnName, find newly "
+                    "declared table name: "
+                 << closest_table_name << " for column name origin. \n\n\n"
+                 << endl;
+        }
+    } else if (v_table_alias_names_single.size() != 0) {
+        ir_to_fix->str_val_ = v_table_alias_names_single[get_rand_int(
+                v_table_alias_names_single.size())];
+        if (is_debug_info) {
+            cerr << "Dependency: In kUse of kDataColumnName, use alias name as "
+                    "the column name. Use alias name: "
+                 << ir_to_fix->str_val_ << " for column name. \n\n\n"
+                 << endl;
+        }
+        // Finished assigning column name. continue;
+        ir_to_fix->set_is_instantiated(true);
+        return "";
+    } else if (v_table_names.size() != 0) {
+
+        /* This should be an error.
+        ** 80% chances, keep original.
+        ** 20%, use predefined table name.
+        */
+        if (get_rand_int(5) < 4) {
+            ir_to_fix->set_is_instantiated(true);
+            return "";
+        }
+
+        closest_table_name =
+                v_table_names[get_rand_int(v_table_names.size())];
+        if (is_debug_info) {
+            cerr << "Dependency Error: In kUse of kDataColumnName, cannot find "
+                    "v_table_names_single. Thus find from v_table_name "
+                    "instead. Use table name: "
+                 << closest_table_name << " for column name origin. \n\n\n"
+                 << endl;
+        }
+    }
+
+    return closest_table_name;
+}
+
 bool Mutator::fix_dependency(IR *cur_stmt_root,
                              const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
                              bool is_debug_info) {
@@ -2272,8 +2336,129 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           }
       }
 
+      /* For ContextUse of DataColumnName.
+       * Special case, avoid using duplicated column names
+       * in the TypeNameList clause.
+       * */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
 
-      /* kUse of kDataColumnName */
+          if (ir_to_fix->data_type_ == DataColumnName &&
+              ir_to_fix->data_flag_ == ContextUse) {
+
+              if ( !(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)) ) {
+                  // Ignore the case that is not in TypeNameList.
+                  continue;
+              }
+
+              if (is_debug_info) {
+                  cerr << "\n\n\nHandling with column name inside the TypeNameList. Column Name: "
+                       << ir_to_fix->to_string() << ". \n\n\n";
+              }
+
+              ir_to_fix->set_is_instantiated(true);
+
+              IR* name_list = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
+              IR* name_list_left_child = name_list->get_left();
+              IR* name_list_right_child = name_list->get_right();
+              if (name_list_left_child != nullptr) {
+                  ir_to_deep_drop.push_back(name_list_left_child);
+              }
+              if (name_list_right_child != nullptr) {
+                  ir_to_deep_drop.push_back(name_list_right_child);
+              }
+              p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                      name_list, [](IR* cur_node) -> void {
+                          cur_node->set_is_instantiated(true);
+                          cur_node->set_data_flag(ContextNoModi);
+                      });
+              name_list->update_left(nullptr);
+              name_list->update_right(nullptr);
+
+              string closest_table_name = this->find_cloest_table_name(name_list, is_debug_info);
+
+
+              if (closest_table_name == "" || closest_table_name == "x" ||
+                  closest_table_name == "y") {
+                  if (is_debug_info) {
+                      cerr << "Dependency Error: Cannot find the closest_table_name from "
+                              "the query. Error cloest_table_name is: "
+                           << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+                      continue;
+                  }
+              }
+
+              vector<string> v_used_column_str;
+              vector<string> v_column_names_from_table = m_table2columns[closest_table_name];
+              if (v_column_names_from_table.size() == 0) {
+                  if (is_debug_info) {
+                      cerr << "Dependency Error: Cannot find mapping from table name to column name. "
+                              "Find the closest_table_name from "
+                              "the query. Cloest_table_name is: "
+                           << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+                      continue;
+                  }
+              }
+              int max_values_clause_len = v_column_names_from_table.size();
+
+              vector<IR*> v_new_column_list_node;
+              string ret_str = "";
+              for (int idx = 0; idx < max_values_clause_len;) {
+                  string new_rand_column = "";
+                  do {
+                      new_rand_column = vector_rand_ele(v_column_names_from_table);
+                  } while (find(v_used_column_str.begin(), v_used_column_str.end(), new_rand_column)
+                            != v_used_column_str.end());
+                  if (is_debug_info) {
+                      cerr << "\n\n\n When reconstructing the column names inside the TypeNameList, "
+                           << ", getting random column name: " << new_rand_column << "\n\n\n";
+                  }
+                  v_used_column_str.push_back(new_rand_column);
+
+                  IR* new_column_node = new IR(TypeIdentifier, string(new_rand_column),
+                                               DataColumnName, ContextNoModi);
+
+                  v_new_column_list_node.push_back(new_column_node);
+
+                  idx++;
+                  if (get_rand_int(5) == 0) {
+                      // 1/5 chances, drop the value clause and no need for whole length typelist.
+                      break;
+                  }
+              }
+
+              IR* new_name_list_expr = NULL;
+
+              for (int idx = 0; idx < v_new_column_list_node.size(); idx++) {
+                  if (idx == 1) {
+                      continue;
+                  } else if (idx == 0) {
+                      IR *LNode = v_new_column_list_node[0];
+                      IR *RNode = nullptr;
+                      string infix = "";
+                      if (v_new_column_list_node.size() >= 2) {
+                          RNode = v_new_column_list_node[1];
+                          infix = ", ";
+                      }
+                      new_name_list_expr = new IR(TypeUnknown, OP3("", infix, ""), LNode, RNode);
+                  } else {
+                      // idx > 2
+                      IR* LNode = new_name_list_expr;
+                      IR* RNode = v_new_column_list_node[idx];
+
+                      new_name_list_expr = new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
+                  }
+              }
+              new_name_list_expr->set_ir_type(TypeNameList);
+              name_list->update_left(new_name_list_expr);
+              name_list->op_->middle_ = "";
+          }
+      }
+
+
+    /* kUse of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -2289,97 +2474,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                    << v_table_alias_names_single.size() << "\n\n\n";
           }
 
-          // TODO::FIXME:: Do not care about the system default column for now.
-          // Use completely random column mutations.
-//        /* If we are seeing system default columns, 75% skip the fixing and
-//         * reuse the original.  */
-//        string ori_str = ir_to_fix->get_str_val();
-//        if (find(v_sys_column_name.begin(), v_sys_column_name.end(), ori_str) !=
-//                v_sys_column_name.end() &&
-//            get_rand_int(4) >= 1) {
-//          continue;
-//        } else if (
-//            // Do not use alias inside kWithClause
-//            !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith) &&
-//            v_table_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
-//          /* We have defined a new alias for column name! use it with 66%
-//           * percentage. */
-//          // cerr << "DEBUG: is in kWithClause: " <<
-//          // p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
-//          ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
-//          if (is_debug_info) {
-//            cerr << "Dependency: Using alias inside kUse of kColumnName: "
-//                 << ir_to_fix->str_val_ << ". \n\n\n";
-//          }
-//          continue;
-//        }
-//        /* Or, assign with system column in 5% chances */
-//        else if (get_rand_int(20) < 1) {
-//          ir_to_fix->str_val_ =
-//              v_sys_column_name[get_rand_int(v_sys_column_name.size())];
-//          continue;
-//        }
+          ir_to_fix->set_is_instantiated(true);
 
           // Actual random mutation of the ColumnName. ContextUse.
-          string closest_table_name = "";
-          IR* closest_table_ir = NULL;
-          closest_table_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(ir_to_fix, DataTableName);
-         if (closest_table_ir != NULL) {
-            closest_table_name = closest_table_ir->get_str_val();
-             if (is_debug_info) {
-                 cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
-                      << closest_table_name << " for column name. \n\n\n"
-                      << endl;
-             }
-         } else if (v_table_names_single.size() != 0) {
-          closest_table_name =
-              v_table_names_single[get_rand_int(v_table_names_single.size())];
-          if (is_debug_info) {
-            cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
-                 << closest_table_name << " for column name origin. \n\n\n"
-                 << endl;
-          }
-        } else if (v_create_table_names_single.size() != 0) {
-          closest_table_name = v_create_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: In kUse of kDataColumnName, find newly "
-                    "declared table name: "
-                 << closest_table_name << " for column name origin. \n\n\n"
-                 << endl;
-          }
-        } else if (v_table_alias_names_single.size() != 0) {
-          ir_to_fix->str_val_ = v_table_alias_names_single[get_rand_int(
-              v_table_alias_names_single.size())];
-          if (is_debug_info) {
-            cerr << "Dependency: In kUse of kDataColumnName, use alias name as "
-                    "the column name. Use alias name: "
-                 << ir_to_fix->str_val_ << " for column name. \n\n\n"
-                 << endl;
-          }
-          // Finished assigning column name. continue;
-          ir_to_fix->set_is_instantiated(true);
-          continue;
-        } else if (v_table_names.size() != 0) {
-
-          /* This should be an error.
-          ** 80% chances, keep original.
-          ** 20%, use predefined table name.
-          */
-          if (get_rand_int(5) < 4) {
-            ir_to_fix->set_is_instantiated(true);
-            continue;
-          }
-
-          closest_table_name =
-              v_table_names[get_rand_int(v_table_names.size())];
-          if (is_debug_info) {
-            cerr << "Dependency Error: In kUse of kDataColumnName, cannot find "
-                    "v_table_names_single. Thus find from v_table_name "
-                    "instead. Use table name: "
-                 << closest_table_name << " for column name origin. \n\n\n"
-                 << endl;
-          }
-        }
+          string closest_table_name = this->find_cloest_table_name(ir_to_fix, is_debug_info);
 
         if (closest_table_name == "" || closest_table_name == "x" ||
             closest_table_name == "y") {
@@ -2387,6 +2485,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             cerr << "Dependency Error: Cannot find the closest_table_name from "
                     "the query. Error cloest_table_name is: "
                  << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+            ir_to_fix->set_str_val("x");
+            continue;
           }
           if (v_table_alias_names_single.size() != 0) {
             ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
@@ -2594,7 +2694,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                 IR* type_list_node = v_type_name_list.front();
                 vector<IR*> v_column_node = p_oracle->ir_wrapper
                         .get_ir_node_in_stmt_with_type(type_list_node, DataColumnName, false);
-                cerr << "\n\n\nDEBUG:::: Getting v_column_node size: " << v_column_node.size() << "\n\n\n";
+//                cerr << "\n\n\nDEBUG:::: Getting v_column_node size: " << v_column_node.size() << "\n\n\n";
                 for (IR* cur_column_node : v_column_node) {
                     string cur_column_str = cur_column_node->get_str_val();
                     if (m_column2datatype.count(cur_column_str)) {

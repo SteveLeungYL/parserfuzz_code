@@ -105,6 +105,7 @@ public:
   bool connect_back(map<IR *, pair<bool, IR *>> &m_save);
 
   void fix_preprocessing(IR *stmt_root, vector<IR *> &ordered_all_subquery_ir);
+  string find_cloest_table_name(IR* ir_to_fix, bool is_debug_info);
   bool fix_dependency(IR *cur_stmt_root, const vector<vector<IR *>> ir_to_fix,
                       bool is_debug_info = false);
   void reset_scope_library(bool clear_define);
