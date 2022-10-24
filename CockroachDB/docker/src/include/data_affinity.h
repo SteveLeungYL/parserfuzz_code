@@ -75,6 +75,7 @@ private:
     string mutate_affi_string();
 
     string get_rand_alphabet_num();
+    string get_rand_hex_num();
     string add_random_time_zone();
     DATAAFFINITYTYPE transfer_array_to_normal_type(DATAAFFINITYTYPE in_type);
 

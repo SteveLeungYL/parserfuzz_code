@@ -373,18 +373,18 @@ string DataAffinity::mutate_affi_byte(){
                 ret_str += char(get_rand_int(256));
             }
             break;
-        case 1 ... 2:
+        case 1:
             // b'\141\142\143'
             for (int i = 0; i < len; i++) {
                 ret_str += "\\" + to_string(get_rand_int(256));
             }
             break;
-//        case 2:
-//            // b'\x61\x62\x63'
-//            for (int i = 0; i < len; i++) {
-//                ret_str += "\\x" + get_rand_alphabet_num() + get_rand_alphabet_num();
-//            }
-//            break;
+        case 2:
+            // b'\x61\x62\x63'
+            for (int i = 0; i < len; i++) {
+                ret_str += "\\x" + get_rand_hex_num() + get_rand_hex_num();
+            }
+            break;
         case 3:
             // b'00001111'
             len = get_rand_int(3) + 1; // use a shorter length
@@ -726,14 +726,14 @@ string DataAffinity::mutate_affi_uuid(){
             if (i == 8 || i == 12 || i == 16 || i == 20) {
                 ret_str += "-";
             }
-            ret_str += get_rand_alphabet_num();
+            ret_str += get_rand_hex_num();
         }
         ret_str = "'" + ret_str + "'";
     } else {
         // UUID value specified as a BYTES value.
         // b'kafef00ddeadbeed'
         for (int i = 0; i < 16; i++) {
-            ret_str += get_rand_alphabet_num();
+            ret_str += get_rand_hex_num();
         }
         ret_str = "b'" + ret_str + "'";
     }
@@ -796,7 +796,7 @@ string DataAffinity::mutate_affi_inet(){
             if ((i % 4) == 0 && i != 0) {
                 ret_str += ":";
             }
-            ret_str += get_rand_alphabet_num();
+            ret_str += get_rand_hex_num();
         }
     }
     ret_str = "'" + ret_str + "'";
@@ -855,7 +855,7 @@ string DataAffinity::mutate_affi_string(){
 
     // Handle the `'` symbol in the switch.
     switch(format) {
-        case 0: {
+        case 0 ... 2: {
             // Complete random string.
             int len = get_rand_int(10) + 1; // Doesn't need to be long. Avoid 0 len.
             for (int i = 0; i < len; i++) {
@@ -866,14 +866,14 @@ string DataAffinity::mutate_affi_string(){
             ret_str = "'" + ret_str + "'";
             break;
         }
-        case 1:
-            // affinity bit type
-            ret_str = this->mutate_affi_bit();
-            break;
-        case 2:
-            // affinity byte type
-            ret_str = this->mutate_affi_byte();
-            break;
+//        case 1:
+//            // affinity bit type
+//            ret_str = this->mutate_affi_bit();
+//            break;
+//        case 2:
+//            // affinity byte type
+//            ret_str = this->mutate_affi_byte();
+//            break;
         case 3:
             // affinity json type
             ret_str = this->mutate_affi_jsonb();
@@ -993,6 +993,21 @@ string DataAffinity::get_rand_alphabet_num() {
         return to_string(rand_int-26);
     } else {
         char cch = 'a' + rand_int;
+        string ret_str(1, cch);
+//        cerr << "\nDebug: Getting rand_alphabet (letter): " << rand_int << ":" << ret_str << "\n";
+        return ret_str;
+    }
+}
+
+string DataAffinity::get_rand_hex_num() {
+    // no capital letters;
+    // Pure helper function for random mutations.
+    int rand_int = get_rand_int(16);
+    if (rand_int < 10) {
+//        cerr << "\nDebug: Getting rand_alphabet (number): " << rand_int << ":" << to_string(rand_int-26) << "\n";
+        return to_string(rand_int);
+    } else {
+        char cch = 'a' + (rand_int - 10);
         string ret_str(1, cch);
 //        cerr << "\nDebug: Getting rand_alphabet (letter): " << rand_int << ":" << ret_str << "\n";
         return ret_str;
