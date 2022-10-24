@@ -86,7 +86,7 @@ public:
     }
 
     // Copy constructor.
-    DataAffinity(DataAffinity& copy_in):
+    DataAffinity(const DataAffinity& copy_in):
             data_affinity(copy_in.get_data_affinity()),
             is_range(copy_in.get_is_range()),
             is_enum(copy_in.get_is_enum()),
@@ -101,25 +101,25 @@ public:
 
     DATAAFFINITYTYPE recognize_data_type(const string& str_in); // Return `this` pointer.
 
-    DATAAFFINITYTYPE get_data_affinity() { return this->data_affinity; }
+    DATAAFFINITYTYPE get_data_affinity() const { return this->data_affinity; }
     void set_data_affinity(DATAAFFINITYTYPE in) { this->data_affinity = in; }
 
     void set_is_range(bool in) {this->is_range = in;}
-    bool get_is_range() {return this->is_range;}
+    bool get_is_range() const {return this->is_range;}
 
     void set_is_enum(bool in) {this->is_enum = in;}
-    bool get_is_enum() {return this->is_enum;}
+    bool get_is_enum() const {return this->is_enum;}
 
     void set_v_enum_str(const vector<string>& in) {this->v_enum_str = in;}
-    vector<string> get_v_enum_str() {return this->v_enum_str;}
+    vector<string> get_v_enum_str() const {return this->v_enum_str;}
 
     void set_int_range(long long min, long long max) {this->int_min = min; this->int_max = max;}
-    long long get_int_max() {return this->int_max;}
-    long long get_int_min() {return this->int_min;}
+    long long get_int_max() const {return this->int_max;}
+    long long get_int_min() const {return this->int_min;}
 
     void set_float_range(double min, double max) {this->float_min = min; this->float_max = max;}
-    double get_float_max() {return this->float_max;}
-    double get_float_min() {return this->float_min;}
+    double get_float_max() const {return this->float_max;}
+    double get_float_min() const {return this->float_min;}
 
     string get_mutated_literal(DATAAFFINITYTYPE type_in = AFFIUNKNOWN);
 

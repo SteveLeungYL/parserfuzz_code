@@ -30,7 +30,8 @@ public:
 
   bool is_exist_ir_node_in_stmt_with_type(IRTYPE ir_type, bool is_subquery,
                                           int stmt_idx);
-  bool is_exist_ir_node_in_stmt_with_type(IR *cur_stmt, IRTYPE ir_type,
+  template <typename TYPE>
+  bool is_exist_ir_node_in_stmt_with_type(IR *cur_stmt, TYPE ir_type,
                                           bool is_subquery = false,
                                           bool ignore_is_subquery = false);
   bool is_exist_ir_node_in_stmt_with_type(IR *cur_stmt, IRTYPE ir_type);
@@ -38,7 +39,8 @@ public:
   /* By default, is_ignore_type_suffix == true.
    * Which means kSelectStmt_1 and kSelectStmt_2 is the same type
    */
-  vector<IR *> get_ir_node_in_stmt_with_type(IR *cur_stmt, IRTYPE ir_type,
+  template <typename TYPE>
+  vector<IR *> get_ir_node_in_stmt_with_type(IR *cur_stmt, TYPE ir_type,
                                              bool is_subquery = false,
                                              bool ignore_is_subquery = false,
                                              bool is_ignore_type_suffix = true);
@@ -101,6 +103,8 @@ public:
   */
   IRTYPE get_parent_type(IR *cur_IR, int depth = 0);
   IR *get_p_parent_with_a_type(IR *cur_IR, int depth = 0);
+
+  template <typename TYPE> IR* get_parent_node_with_type(IR *cur_IR, TYPE);
 
   /**/
   bool is_exist_group_clause(IR *);
@@ -253,6 +257,101 @@ IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
 
     // Cannot find the matching node.
     return NULL;
+}
+
+template <typename TYPE>
+IR* IRWrapper::get_parent_node_with_type(IR *cur_IR, TYPE ir_type) {
+    while (cur_IR->get_parent() != nullptr) {
+        IR* par_IR = cur_IR->get_parent();
+        if (this->comp_type(par_IR, ir_type)) {
+            return par_IR;
+        }
+        cur_IR = cur_IR->get_parent();
+    }
+    return nullptr;
+}
+
+template <typename TYPE>
+vector<IR *> IRWrapper::get_ir_node_in_stmt_with_type(IR *cur_stmt,
+                                                      TYPE ir_type,
+                                                      bool is_subquery,
+                                                      bool ignore_is_subquery,
+                                                      bool ignore_type_suffix) {
+
+    // Iterate IR binary tree, left depth prioritized.
+    bool is_finished_search = false;
+    std::vector<IR *> ir_vec_iter;
+    std::vector<IR *> ir_vec_matching_type;
+    IR *cur_IR = cur_stmt;
+    // Begin iterating.
+    while (!is_finished_search) {
+        ir_vec_iter.push_back(cur_IR);
+        if (!ignore_type_suffix && this->comp_type(cur_IR, ir_type)) {
+            ir_vec_matching_type.push_back(cur_IR);
+        } else if (ignore_type_suffix && comp_type(cur_IR, ir_type)) {
+            ir_vec_matching_type.push_back(cur_IR);
+        }
+
+        if (cur_IR->left_ != nullptr) {
+            cur_IR = cur_IR->left_;
+            continue;
+        } else { // Reaching the most depth. Consulting ir_vec_iter for right_
+            // nodes.
+            cur_IR = nullptr;
+            while (cur_IR == nullptr) {
+                if (ir_vec_iter.size() == 0) {
+                    is_finished_search = true;
+                    break;
+                }
+                cur_IR = ir_vec_iter.back()->right_;
+                ir_vec_iter.pop_back();
+            }
+            continue;
+        }
+    }
+
+    // cerr << "We have ir_vec_matching_type.size()" <<
+    // ir_vec_matching_type.size() << "\n\n\n"; if (ir_vec_matching_type.size() >
+    // 0 ) {
+    //     cerr << "We have ir_vec_matching_type.type_, parent->type_,
+    //     parent->parent->type_: " << ir_vec_matching_type[0] ->type_ << "  "
+    //          << get_parent_type(ir_vec_matching_type[0], 3)  << "   " <<
+    //          get_parent_type(ir_vec_matching_type[0], 4) << "\n\n\n";
+    //     cerr << "is_sub_query: " << this->is_in_subquery(cur_stmt,
+    //     ir_vec_matching_type[0]) << "\n\n\n"; cerr <<
+    //     "ir_vec_matching_type->to_string: " <<
+    //     ir_vec_matching_type[0]->to_string() << "\n\n\n";
+    // }
+
+    // Check whether IR node is in a SELECT subquery.
+    if (!ignore_is_subquery) {
+        std::vector<IR *> ir_vec_matching_type_depth;
+        for (IR *ir_match : ir_vec_matching_type) {
+            if (this->is_in_subquery(cur_stmt, ir_match) == is_subquery) {
+                ir_vec_matching_type_depth.push_back(ir_match);
+            }
+            continue;
+        }
+        // cerr << "We have ir_vec_matching_type_depth.size()" <<
+        // ir_vec_matching_type_depth.size() << "\n\n\n";
+        return ir_vec_matching_type_depth;
+    } else {
+        return ir_vec_matching_type;
+    }
+}
+
+template <typename TYPE>
+bool IRWrapper::is_exist_ir_node_in_stmt_with_type(IR *cur_stmt, TYPE ir_type,
+                                                   bool is_subquery,
+                                                   bool ignore_is_subquery) {
+
+    vector<IR *> matching_IR_vec = this->get_ir_node_in_stmt_with_type(
+            cur_stmt, ir_type, is_subquery, ignore_is_subquery);
+    if (matching_IR_vec.size() == 0) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 #endif

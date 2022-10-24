@@ -2068,20 +2068,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      /* TODO::FIXME:: Not sure whether it is necessary in the CockroachDB code.
-       */
-      //      /* Don't fix values inside the kValueClause. That is not permitted
-      //      by
-      //       * Postgres semantics. Change it to kDataLiteral, and it would be
-      //       handled
-      //       * by later kDataLiteral logic.
-      //       * */
-      //      if (cur_stmt_root->get_ir_type() == TypeInsert &&
-      //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
-      //        ir_to_fix->set_type(DataNone, ContextUnknown);
-      //        continue;
-      //      }
-
       if (ir_to_fix->data_type_ == DataColumnName &&
           (ir_to_fix->data_flag_ == ContextDefine ||
            ir_to_fix->data_flag_ == ContextReplaceDefine)) {
@@ -2293,19 +2279,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      // TODO:: FIXME:: Not sure whether this is correct in CockroachDB. Needs double check.
-//      /*
-//       * Don't fix values inside the kValueClause. That is not permitted by
-//       * Postgres semantics. Change it to kDataLiteral, and it would be handled
-//       * by later kDataLiteral logic.
-//       * */
-//      if (cur_stmt_root->get_ir_type() == TypeInsert &&
-//          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
-//        ir_to_fix->set_type(DataNone, ContextUnknown);
-//        // fixed_ir.push_back(ir_to_fix);
-//        continue;
-//      }
-
       if (ir_to_fix->data_type_ == DataColumnName &&
           ir_to_fix->data_flag_ == ContextUse) {
           if (is_debug_info) {
@@ -2514,8 +2487,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //      }
 
 
-    /* TODO::FIXME:: Remove the the first loop? */
-    /* Fix the Literal. */
+    /* Fix the Literal inside VALUES clause. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
         if (ir_to_fix->get_is_instantiated()) {
             continue;
@@ -2530,7 +2502,142 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
              * and try to match the type of the column name or literal.
              * */
 
-//            ir_to_fix->set_data_affinity(AFFIUNKNOWN);
+            if (! p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
+                // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
+                // branch. These literals would be handled later by the next `Fix for literals`
+                // loop.
+                /* Do not set the is_instantiated flag. */
+                continue;
+            }
+
+            // Handle the ValuesClause.
+            // Get the TypeValuesClause first.
+            IR* values_clause_node = p_oracle->ir_wrapper
+                    .get_parent_node_with_type(ir_to_fix, TypeValuesClause);
+
+            // Remove the original expressions.
+            IR* values_expr_node = values_clause_node->get_left();
+            values_clause_node->update_left(nullptr);
+            // Avoid further handling of the child node from `TypeValueClauses`
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    values_expr_node, [](IR* cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+            ir_to_deep_drop.push_back(values_expr_node);
+            if (is_debug_info) {
+                cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause expression:"
+                     << values_expr_node->to_string() << "\n\n\n";
+            }
+
+
+            /* Reconstruct the new Value clause that matched the referenced table. */
+
+            // Search whether there are referenced columns in the `TypeNameList`.
+            // If there is, should be the first TypeNameList from the statement.
+            vector<IR*> v_type_name_list = p_oracle->ir_wrapper
+                    .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeNameList, false);
+
+            vector<DataAffinity> referencing_affinity;
+            if (v_type_name_list.size() == 0) {
+                // Cannot find a specifically referenced column name list.
+                // Use the referenced table name to refer to the column name list.
+                if (is_debug_info) {
+                    cerr << "\n\n\nDependency: Cannot find the column name list from the statement. \n\n\n";
+                }
+
+                // Find the table name used in this statement.
+                if (v_table_names_single.size() == 0) {
+                    if (is_debug_info) {
+                        cerr << "\n\n\nERROR: Cannot find the column name list AND table name from the statement. \n\n\n";
+                    }
+                    DataAffinity cur_affi;
+                    cur_affi.set_data_affinity(AFFISTRING);
+                    referencing_affinity.push_back(cur_affi);
+                } else {
+                    // Found the table name referenced from the statement.
+                    if (is_debug_info) {
+                        cerr << "\n\n\nFound the table name referenced from the statement, "
+                                "table name: " << v_table_names_single.front() << ". \n\n\n";
+                    }
+                    string cur_table_name = v_table_names_single.front();
+                    const vector<string>& column_list = m_table2columns[cur_table_name];
+                    for (const string& cur_column_str : column_list ) {
+                        if (m_column2datatype.count(cur_column_str)) {
+                            DataAffinity cur_affi = m_column2datatype[cur_column_str];
+                            referencing_affinity.push_back(cur_affi);
+                            if (is_debug_info) {
+                                cerr << "\n\n\nMatching column: " << cur_column_str << " from table: "
+                                     << cur_table_name
+                                     << " with data type: "
+                                     << get_string_by_affinity_type(cur_affi.get_data_affinity())
+                                     << "\n\n\n";
+                            }
+                        } else {
+                            DataAffinity cur_affi;
+                            cur_affi.set_data_affinity(AFFISTRING);
+                            referencing_affinity.push_back(cur_affi);
+                            if (is_debug_info) {
+                                cerr << "\n\n\n Cannot find matching column types: "
+                                     << cur_column_str << ". Using dummy AFFISTRING instead. "
+                                     << "\n\n\n";
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (is_debug_info) {
+                    cerr << "\n\n\nDependency: Find the column name list from the stmt:"
+                            << v_type_name_list.front()->to_string() << ". \n\n\n";
+                }
+
+                IR* type_list_node = v_type_name_list.front();
+                vector<IR*> v_column_node = p_oracle->ir_wrapper
+                        .get_ir_node_in_stmt_with_type(type_list_node, DataColumnName, false);
+                cerr << "\n\n\nDEBUG:::: Getting v_column_node size: " << v_column_node.size() << "\n\n\n";
+                for (IR* cur_column_node : v_column_node) {
+                    string cur_column_str = cur_column_node->get_str_val();
+                    if (m_column2datatype.count(cur_column_str)) {
+                        DataAffinity cur_affi = m_column2datatype[cur_column_str];
+                        referencing_affinity.push_back(cur_affi);
+                        if (is_debug_info) {
+                            cerr << "\n\n\nMatching column: " << cur_column_str << " with data type: "
+                                 << get_string_by_affinity_type(cur_affi.get_data_affinity())
+                                 << "\n\n\n";
+                        }
+                    } else {
+                        DataAffinity cur_affi;
+                        cur_affi.set_data_affinity(AFFISTRING);
+                        referencing_affinity.push_back(cur_affi);
+                        if (is_debug_info) {
+                            cerr << "\n\n\n Cannot find matching column types: "
+                                 << cur_column_str << ". Using dummy AFFISTRING instead. "
+                                 << "\n\n\n";
+                        }
+                    }
+                }
+            }
+
+            // After we get a list of referencing_affinity, we can now begin to fill in the ValuesClause expression.
+            string ret_str = "";
+            int idx = 0;
+            for (DataAffinity& cur_affi : referencing_affinity) {
+                if (idx != 0) {
+                    ret_str += ", ";
+                }
+                ret_str += cur_affi.get_mutated_literal();
+                idx++;
+            }
+            IR* new_values_expr_node = new IR(TypeStringLiteral, ret_str);
+            new_values_expr_node->set_is_instantiated(true);
+
+            values_clause_node->update_left(new_values_expr_node);
+
+            if (is_debug_info) {
+                cerr << "\n\n\nDependency: getting new valuesclause expression: "
+                     << new_values_expr_node->to_string() << ". \n\n\n";
+            }
+
         }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
