@@ -36,7 +36,7 @@ bool DataAffinity::is_str_collation(const string& str_in) {
 }
 
 string DataAffinity::get_rand_collation_str() {
-#define DECLARE_CASE(collation_name) "collation_name",
+#define DECLARE_CASE(collation_name) #collation_name,
     vector<string> v_collate_str {
             ALLCOLLATIONS(DECLARE_CASE)
     };
@@ -243,7 +243,7 @@ string DataAffinity::mutate_affi_oid() {
         return rand_int_str;
     }
 
-    if (get_rand_int(3) < 1) { // 1/3 chance, choose special value.
+    if (get_rand_int(3) == 0) { // 1/3 chance, choose special value.
         auto rand_choice = get_rand_int(2);
         switch (rand_choice) {
             case 0:
@@ -254,7 +254,7 @@ string DataAffinity::mutate_affi_oid() {
         return "0";
     } else {
         // Randomly mutate the number.
-        auto rand_int = get_rand_int(4294967295);
+        auto rand_int = get_rand_int(INT16_MAX);
         return to_string(rand_int);
     }
 }
@@ -273,7 +273,7 @@ string DataAffinity::mutate_affi_float() {
         return rand_float_str;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(10) != 0) {
         // 80% of chance.
         return to_string(get_rand_double(-100.0, 100.0));
     } else {
@@ -286,14 +286,16 @@ string DataAffinity::mutate_affi_array() {
 
     DATAAFFINITYTYPE cur_transformed_affi = this->transfer_array_to_normal_type(this->data_affinity);
 
-    int format = get_rand_int(2);
+//    int format = get_rand_int(2);
+    int format = 1; // Do not use the direct string method.
     int len = get_rand_int(6) + 1; // At most 6 elements.
     string ret_str = "";
 
     if (format) {
-        ret_str = "ARRAY";
+        ret_str = "ARRAY[";
+    } else {
+        ret_str += "'{";
     }
-    ret_str += "[";
 
     for (int i = 0; i < len; i++) {
         if (i > 0) {
@@ -302,7 +304,11 @@ string DataAffinity::mutate_affi_array() {
         ret_str += this->get_mutated_literal(cur_transformed_affi);
     }
 
-    ret_str += "]";
+    if (format) {
+        ret_str += "]";
+    } else {
+        ret_str += "}'";
+    }
     return ret_str;
 }
 
@@ -367,18 +373,18 @@ string DataAffinity::mutate_affi_byte(){
                 ret_str += char(get_rand_int(256));
             }
             break;
-        case 1:
+        case 1 ... 2:
             // b'\141\142\143'
             for (int i = 0; i < len; i++) {
                 ret_str += "\\" + to_string(get_rand_int(256));
             }
             break;
-        case 2:
-            // b'\x61\x62\x63'
-            for (int i = 0; i < len; i++) {
-                ret_str += "\\x" + get_rand_alphabet_num() + get_rand_alphabet_num();
-            }
-            break;
+//        case 2:
+//            // b'\x61\x62\x63'
+//            for (int i = 0; i < len; i++) {
+//                ret_str += "\\x" + get_rand_alphabet_num() + get_rand_alphabet_num();
+//            }
+//            break;
         case 3:
             // b'00001111'
             len = get_rand_int(3) + 1; // use a shorter length
@@ -632,6 +638,8 @@ string DataAffinity::mutate_affi_date(){
         year_str = "00" + to_string(year);
     } else if (year < 1000) {
         year_str = "0" + to_string(year);
+    } else {
+        year_str = to_string(year);
     }
 
     if (get_rand_int(2)) {
@@ -852,7 +860,7 @@ string DataAffinity::mutate_affi_string(){
             int len = get_rand_int(10) + 1; // Doesn't need to be long. Avoid 0 len.
             for (int i = 0; i < len; i++) {
                 char cch = char(get_rand_int(256));
-                string tmp_cch_str = string(cch, 1);
+                string tmp_cch_str = string(1, cch);
                 ret_str += tmp_cch_str;
             }
             ret_str = "'" + ret_str + "'";
@@ -968,6 +976,8 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
             return this->mutate_affi_onoff();
         case AFFIONOFFAUTO:
             return this->mutate_affi_onoffauto();
+        case AFFIOID:
+            return this->mutate_affi_oid();
         default:
             // For other types, should be collate.
             return this->mutate_affi_array();
@@ -1063,6 +1073,8 @@ DATAAFFINITYTYPE DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in
             return AFFIONOFF;
         case AFFIARRAYONOFFAUTO:
             return AFFIONOFFAUTO;
+        default:
+            return AFFISTRING;
     }
     return AFFIUNKNOWN;
 }
@@ -1075,12 +1087,21 @@ DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only) {
             // Basic type except for Array.
             auto random_affi_idx = get_rand_int(20) + 1; // Avoid AFFIUNKNOWN;
             auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
-            return random_affi;
+
+            if (random_affi != AFFICOLLATE && random_affi != AFFIENUM) {
+                return random_affi;
+            } else {
+                return AFFISTRING;
+            }
         } else {
             // Basic ARRAY type. 1/10 chances to get ARRAY type.
             auto random_affi_idx = get_rand_int(20) + AFFIARRAYUNKNOWN + 1; // Avoid AFFIARRAYUNKNOWN;
             auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
-            return random_affi;
+            if (random_affi != AFFIARRAYENUM && random_affi != AFFIARRAYCOLLATE) {
+                return random_affi;
+            } else {
+                return AFFISTRING;
+            }
         }
 
     } else {
