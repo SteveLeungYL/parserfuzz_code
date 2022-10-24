@@ -351,8 +351,9 @@ void IR::set_data_affinity(DATAAFFINITYTYPE data_affinity) {
 }
 
 void IR::set_data_affinity(DataAffinity data_affinity) {
+    cerr << "\n\n\nSetting data_affinity: " << get_string_by_affinity_type(data_affinity.get_data_affinity()) << "\n\n\n";
+    this->data_affinity_type = data_affinity.get_data_affinity();
     this->data_affinity = data_affinity;
-    this->data_affinity.set_data_affinity(data_affinity.get_data_affinity());
 }
 
 bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag, DATAAFFINITYTYPE data_affi) {
@@ -414,6 +415,8 @@ void IR::mutate_literal() {
     // Upon calling this function, we should assume the Data affinity has been set up correctly.
     if (this->data_affinity_type == AFFIUNKNOWN || this->data_affinity.get_data_affinity() == AFFIUNKNOWN) {
         cerr << "\n\n\nTrying to mutate literal on IR that has Unknown data affinity. \n\n\n";
+        cerr << "this->data_affinity_type: " << get_string_by_affinity_type(this->data_affinity_type);
+        cerr << ", this->data_affinity.get_data_affinity(): " << get_string_by_affinity_type(this->data_affinity.get_data_affinity());
 //        abort();
         this->set_data_affinity(AFFISTRING);
     }

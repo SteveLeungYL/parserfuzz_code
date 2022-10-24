@@ -2059,45 +2059,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-    /* Fix the Data Type identifiers. Must be done before ContextDefine of DataColumnName. */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-        if (ir_to_fix->get_is_instantiated()) {
-            continue;
-        }
-        IRTYPE type = ir_to_fix->get_ir_type();
-        DATATYPE data_type = ir_to_fix->get_data_type();
-        DATAFLAG data_flag = ir_to_fix->get_data_flag();
-
-        if (type == TypeIdentifier && data_type == DataTypeName &&
-            data_flag == ContextDefine) {
-            // Handling of the Column Data Type definition.
-            // Use basic types.
-            auto tmp_affi_type = get_random_affinity_type();
-            string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
-
-            ir_to_fix->set_str_val(tmp_affi_type_str);
-            if (is_debug_info) {
-                cerr << "\nFor data type definition, getting new data type: "
-                     << tmp_affi_type_str << "\n\n\n";
-            }
-
-            if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
-                ir_to_fix->get_parent()->get_left()->get_data_type() ==
-                DataColumnName) {
-                DataAffinity cur_data_affi;
-                cur_data_affi.set_data_affinity(tmp_affi_type);
-                string column_str =
-                        ir_to_fix->get_parent()->get_left()->get_str_val();
-                this->m_column2datatype[column_str] = cur_data_affi;
-                if (is_debug_info) {
-                    cerr << "\nAttach data affinity: "
-                         << get_string_by_affinity_type(
-                                 cur_data_affi.get_data_affinity())
-                         << " to column: " << column_str << ". \n\n\n";
-                }
-            }
-        }
-    }
 
     /* kDefine and kReplace of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -2283,7 +2244,48 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
 
-    /* kUse of kDataColumnName */
+      /* Fix the Data Type identifiers. Must be done after ContextDefine of DataColumnName. */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+          IRTYPE type = ir_to_fix->get_ir_type();
+          DATATYPE data_type = ir_to_fix->get_data_type();
+          DATAFLAG data_flag = ir_to_fix->get_data_flag();
+
+          if (type == TypeIdentifier && data_type == DataTypeName &&
+              data_flag == ContextDefine) {
+              // Handling of the Column Data Type definition.
+              // Use basic types.
+              auto tmp_affi_type = get_random_affinity_type();
+              string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
+
+              ir_to_fix->set_str_val(tmp_affi_type_str);
+              if (is_debug_info) {
+                  cerr << "\nFor data type definition, getting new data type: "
+                       << tmp_affi_type_str << "\n\n\n";
+              }
+
+              if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
+                  ir_to_fix->get_parent()->get_left()->get_data_type() ==
+                  DataColumnName) {
+                  DataAffinity cur_data_affi;
+                  cur_data_affi.set_data_affinity(tmp_affi_type);
+                  string column_str =
+                          ir_to_fix->get_parent()->get_left()->get_str_val();
+                  this->m_column2datatype[column_str] = cur_data_affi;
+                  if (is_debug_info) {
+                      cerr << "\nAttach data affinity: "
+                           << get_string_by_affinity_type(
+                                   cur_data_affi.get_data_affinity())
+                           << " to column: " << column_str << ". \n\n\n";
+                  }
+              }
+          }
+      }
+
+
+      /* kUse of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -2536,7 +2538,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      ir_to_fix->set_is_instantiated(true);
 
       IRTYPE type = ir_to_fix->get_ir_type();
 
@@ -2547,13 +2548,23 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
            * Data Affinity.
            * */
 
+          ir_to_fix->set_is_instantiated(true);
+
+          if (is_debug_info) {
+              cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string() << "\n\n\n";
+          }
+
           // If the literal already has fixed data affinity type, skip the mutation.
           if (ir_to_fix->get_data_flag() == ContextNoModi) {
+              if (is_debug_info) {
+                  cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string() << " because it has "
+                         "flag ContextNoModi. \n\n\n";
+              }
               continue;
           }
-          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
-              continue;
-          }
+//          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+//              continue;
+//          }
 
           if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
               // Do not mutate the literals inside the SET statement.
@@ -2607,14 +2618,14 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                       if (is_debug_info) {
                           cerr << "Dependency: INFO: From Literal handling, getting column name: "
                                << nearby_column_str << ", the column comes with affinity: "
-                               << get_string_by_affinity_type(cur_affi.get_data_affinity());
+                               << get_string_by_affinity_type(cur_affi.get_data_affinity()) << "\n\n\n";
                       }
                   } else {
                       ir_to_fix->set_data_affinity(AFFISTRING);
                       if (is_debug_info) {
                           cerr << "Dependency: INFO: From Literal handling, getting column name: "
                                << nearby_column_str << ". However, the colum name does not come with affinity: "
-                                                       ", dummy fix the literal to AFFISTRING now.";
+                                                       ", dummy fix the literal to AFFISTRING now." << "\n\n\n";
                       }
                   }
               } else {

@@ -36,7 +36,7 @@ bool DataAffinity::is_str_collation(const string& str_in) {
 }
 
 string DataAffinity::get_rand_collation_str() {
-#define DECLARE_CASE(collationname) "collation_name",
+#define DECLARE_CASE(collation_name) "collation_name",
     vector<string> v_collate_str {
             ALLCOLLATIONS(DECLARE_CASE)
     };
@@ -206,7 +206,7 @@ string DataAffinity::mutate_affi_int() {
         return rand_int_str;
     }
 
-    if (get_rand_int(3) < 1) { // 1/3 chance, choose special value.
+    if (get_rand_int(3) == 0) { // 1/3 chance, choose special value.
         auto rand_choice = get_rand_int(3);
         switch (rand_choice) {
             case 0:
@@ -273,7 +273,13 @@ string DataAffinity::mutate_affi_float() {
         return rand_float_str;
     }
 
-    return to_string(get_rand_double(DBL_MIN, DBL_MAX));
+    if (get_rand_int(5) < 4) {
+        // 80% of chance.
+        return to_string(get_rand_double(-100.0, 100.0));
+    } else {
+        return to_string(get_rand_double(DBL_MIN, DBL_MAX));
+    }
+
 }
 
 string DataAffinity::mutate_affi_array() {
@@ -434,7 +440,7 @@ string DataAffinity::mutate_affi_interval(){
             break;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(5) == 0) {
         // 80% chance, ignore the rest.
         goto interval_early_break;
     }
@@ -463,7 +469,7 @@ string DataAffinity::mutate_affi_interval(){
             break;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(5) == 0) {
         // 80% chance, ignore the rest.
         goto interval_early_break;
     }
@@ -493,7 +499,7 @@ string DataAffinity::mutate_affi_interval(){
             break;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(5) == 0) {
         // 80% chance, ignore the rest.
         goto interval_early_break;
     }
@@ -522,7 +528,7 @@ string DataAffinity::mutate_affi_interval(){
             break;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(5) == 0) {
         // 80% chance, ignore the rest.
         goto interval_early_break;
     }
@@ -550,7 +556,7 @@ string DataAffinity::mutate_affi_interval(){
             break;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(5) == 0) {
         // 80% chance, ignore the rest.
         goto interval_early_break;
     }
@@ -579,7 +585,7 @@ string DataAffinity::mutate_affi_interval(){
             break;
     }
 
-    if (get_rand_int(5) < 4) {
+    if (get_rand_int(5) == 0) {
         // 80% chance, ignore the rest.
         goto interval_early_break;
     }
@@ -595,36 +601,53 @@ interval_early_break:
 };
 string DataAffinity::mutate_affi_date(){
 
-    int format = get_rand_int(2);
+    int format = get_rand_int(10);
     int abbr_year = get_rand_int(2);
     string ret_str = "";
 
-    int month = get_rand_int(12);
-    int day = get_rand_int(32);
+    int month = get_rand_int(12)+1;
+    string month_str = "";
+    if (month < 10) {
+        month_str = "0" + to_string(month);
+    } else {
+        month_str = to_string(month);
+    }
+
+    int day = get_rand_int(32)+1;
+    string day_str = "";
+    if (day < 10) {
+        day_str = "0" + to_string(day);
+    } else {
+        day_str = to_string(day);
+    }
+
     // For year, do not use the 1980 begin line.
     // range 5000 years BC and AD.
-    int year = get_rand_int(5000);
+    int year = get_rand_int(5001);
+    string year_str = "";
+    // Add padding 0.
+    if (year < 10) {
+        year_str = "000" + to_string(year);
+    } else if (year < 100) {
+        year_str = "00" + to_string(year);
+    } else if (year < 1000) {
+        year_str = "0" + to_string(year);
+    }
+
+    if (get_rand_int(2)) {
+        year_str = year_str.substr(2, 2);
+    }
 
     switch(format) {
-        case 0:
+        case 0 ... 8:
             // MM-DD-YYYY/YY (default)
-            ret_str = to_string(month) + "-" + to_string(day);
-            if (abbr_year) {
-                year = get_rand_int(100); // 2 digits.
-                ret_str += "-" + to_string(year); // FIXME:: Could miss one `0` if single digit.
-            } else {
-                ret_str += "-" + to_string(year); // FIXME:: Could miss prefix `0`s.
-            }
+            ret_str = month_str + "-" + day_str;
+            ret_str += "-" + year_str;
             break;
-        case 1:
+        case 9:
             // YYYY-MM-DD
-            if (abbr_year) {
-                year = get_rand_int(100); // 2 digits.
-                ret_str = to_string(year); // FIXME:: Could miss one `0` if single digit.
-            } else {
-                ret_str = to_string(year); // FIXME:: Could miss prefix `0`s.
-            }
-            ret_str += "-" + to_string(month) + "-" + to_string(day);
+            ret_str = year_str; // FIXME:: Could miss prefix `0`s.
+            ret_str += "-" + month_str + "-" + day_str;
             break;
     }
 
@@ -642,7 +665,7 @@ string DataAffinity::mutate_affi_timestamp(){
 
     string ret_str = "";
 
-    if (get_rand_int(2) < 1) {
+    if (get_rand_int(2) == 0) {
         // 1/2 chance, get date prefix.
         ret_str = mutate_affi_date();
         ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
@@ -681,6 +704,7 @@ string DataAffinity::mutate_affi_timestamptz(){
     ret_str = "'" + ret_str + "'";
     return ret_str;
 };
+
 string DataAffinity::mutate_affi_uuid(){
 
     int format = get_rand_int(2);
@@ -690,6 +714,7 @@ string DataAffinity::mutate_affi_uuid(){
         // Hyphen-separated groups of 8, 4, 4, 4, and 12 hexadecimal digits.
         // Example: acde070d-8c4c-4f0d-9d8a-162843c10333
         for (int i = 0; i < 32; i++) {
+//            cerr << "\n" << ret_str << "\n";
             if (i == 8 || i == 12 || i == 16 || i == 20) {
                 ret_str += "-";
             }
@@ -705,6 +730,7 @@ string DataAffinity::mutate_affi_uuid(){
         ret_str = "b'" + ret_str + "'";
     }
 
+//    cerr << "\n\n\nmutate uuid: " << ret_str << "\n\n\n";
     return ret_str;
 };
 
@@ -765,6 +791,7 @@ string DataAffinity::mutate_affi_inet(){
             ret_str += get_rand_alphabet_num();
         }
     }
+    ret_str = "'" + ret_str + "'";
     return ret_str;
 };
 
@@ -815,7 +842,7 @@ string DataAffinity::mutate_affi_string(){
     // Or, it can generate a complete random ASCII string.
     */
 
-    int format = get_rand_int(13);
+    int format = get_rand_int(12);
     string ret_str = "";
 
     // Handle the `'` symbol in the switch.
@@ -831,47 +858,47 @@ string DataAffinity::mutate_affi_string(){
             ret_str = "'" + ret_str + "'";
             break;
         }
-        case 2:
+        case 1:
             // affinity bit type
             ret_str = this->mutate_affi_bit();
             break;
-        case 3:
+        case 2:
             // affinity byte type
             ret_str = this->mutate_affi_byte();
             break;
-        case 4:
+        case 3:
             // affinity json type
             ret_str = this->mutate_affi_jsonb();
             break;
-        case 5:
+        case 4:
             // affinity interval type
             ret_str = this->mutate_affi_interval();
             break;
-        case 6:
+        case 5:
             // affinity date type
             ret_str = this->mutate_affi_date();
             break;
-        case 7:
+        case 6:
             // affinity timestamp type
             ret_str = this->mutate_affi_timestamp();
             break;
-        case 8:
+        case 7:
             // affinity timestamptz type
             ret_str = this->mutate_affi_timestamptz();
             break;
-        case 9:
+        case 8:
             // affinity uuid type
             ret_str = this->mutate_affi_uuid();
             break;
-        case 10:
+        case 9:
             // affinity inet type
             ret_str = this->mutate_affi_inet();
             break;
-        case 11:
+        case 10:
             // affinity time type
             ret_str = this->mutate_affi_time();
             break;
-        case 12:
+        case 11:
             // affinity timetz type
             ret_str = this->mutate_affi_timetz();
             break;
@@ -952,10 +979,12 @@ string DataAffinity::get_rand_alphabet_num() {
     // Pure helper function for random mutations.
     int rand_int = get_rand_int(36);
     if (rand_int >= 26) {
+//        cerr << "\nDebug: Getting rand_alphabet (number): " << rand_int << ":" << to_string(rand_int-26) << "\n";
         return to_string(rand_int-26);
     } else {
         char cch = 'a' + rand_int;
-        string ret_str(cch, 1);
+        string ret_str(1, cch);
+//        cerr << "\nDebug: Getting rand_alphabet (letter): " << rand_int << ":" << ret_str << "\n";
         return ret_str;
     }
 }

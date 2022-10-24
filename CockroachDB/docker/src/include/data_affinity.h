@@ -4,7 +4,6 @@
 #include <vector>
 #include "define.h" // import the ALLDATATAFFINITY(V)
 #include <string>
-//#include <memory>
 
 using namespace std;
 
@@ -34,6 +33,7 @@ DATAAFFINITYTYPE get_data_affinity_by_string(string s);
 class DataAffinity {
 
 private:
+    // Data Structure.
     DATAAFFINITYTYPE data_affinity;
     bool is_range;
     bool is_enum;
@@ -84,15 +84,41 @@ public:
             // No need to init v_enum_str;
     }
 
-    DATAAFFINITYTYPE recognize_data_type(const string& str_in); // Return `this` pointer.
-    DATAAFFINITYTYPE get_data_affinity() { return this->data_affinity; }
+    // Copy constructor.
+    DataAffinity(DataAffinity& copy_in):
+            data_affinity(copy_in.get_data_affinity()),
+            is_range(copy_in.get_is_range()),
+            is_enum(copy_in.get_is_enum()),
+            int_min(copy_in.get_int_min()),
+            int_max(copy_in.get_int_max()),
+            float_min(copy_in.get_float_min()),
+            float_max(copy_in.get_float_max()),
+            v_enum_str(copy_in.get_v_enum_str()) {
+        // No need to handle any other things.
+//        std::cerr << "\n\n\nCopy instructor called. \n\n\n";
+    }
 
+    DATAAFFINITYTYPE recognize_data_type(const string& str_in); // Return `this` pointer.
+
+    DATAAFFINITYTYPE get_data_affinity() { return this->data_affinity; }
     void set_data_affinity(DATAAFFINITYTYPE in) { this->data_affinity = in; }
+
     void set_is_range(bool in) {this->is_range = in;}
+    bool get_is_range() {return this->is_range;}
+
     void set_is_enum(bool in) {this->is_enum = in;}
+    bool get_is_enum() {return this->is_enum;}
+
     void set_v_enum_str(const vector<string>& in) {this->v_enum_str = in;}
+    vector<string> get_v_enum_str() {return this->v_enum_str;}
+
     void set_int_range(long long min, long long max) {this->int_min = min; this->int_max = max;}
+    long long get_int_max() {return this->int_max;}
+    long long get_int_min() {return this->int_min;}
+
     void set_float_range(double min, double max) {this->float_min = min; this->float_max = max;}
+    double get_float_max() {return this->float_max;}
+    double get_float_min() {return this->float_min;}
 
     string get_mutated_literal(DATAAFFINITYTYPE type_in = AFFIUNKNOWN);
 
