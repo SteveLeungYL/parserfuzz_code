@@ -942,3 +942,26 @@ bool IRWrapper::is_ir_in(IR *sub_ir, IRTYPE par_type) {
   return false;
 }
 
+// Given current node, iterate through all its child node and see if it can find matches.
+// Return the matched, otherwise return NULL.
+void IRWrapper::iter_cur_node_with_handler(IR* cur_node, handler_t handler) {
+    // Recursive function.
+    // Depth first search.
+    if (cur_node == NULL || handler == NULL) {
+        return;
+    }
+
+    // Call the handler function to modify all the searched nodes.
+    handler(cur_node);
+
+    // Check its left and right child node.
+    if (cur_node->get_left()) {
+        iter_cur_node_with_handler(cur_node->get_left(), handler);
+    }
+
+    if (cur_node->get_right()) {
+        iter_cur_node_with_handler(cur_node->get_right(), handler);
+    }
+
+    return;
+}

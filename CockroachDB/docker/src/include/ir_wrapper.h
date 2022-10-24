@@ -143,6 +143,12 @@ public:
     }
   }
 
+  // Iterate all the child node from the input cur_node. For each child node,
+  // call the handler function from its input function pointer.
+  typedef void (*handler_t)(IR*);
+  void iter_cur_node_with_handler(IR* cur_node, handler_t);
+
+  // Iterate all the child node from the input cur_node. Left Depth first.
   template <typename TYPE> IR* iter_cur_node(IR* cur_node, TYPE type);
   // C++ template. The TYPE could be ir_type or data_type.
   template <typename TYPE> IR* find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type);
