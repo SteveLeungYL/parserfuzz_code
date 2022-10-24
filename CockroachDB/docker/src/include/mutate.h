@@ -212,7 +212,7 @@ public:
       // We do not save the index to column mapping because it seems unnecessary.
   static vector<string> v_table_names; // All saved table names from previous statements.
 
-  // All used table names in one query statement. The table names are typically defined in
+  // All used table and view names in one query statement. The table names are typically defined in
   //    `FROM` statement.
   static vector<string>
       v_table_names_single;
@@ -224,6 +224,8 @@ public:
   // current stmt but yet to be transmitted into v_table_names.
   static vector<string>
       v_create_table_names_single;
+  static vector<string>
+      v_create_view_names_single;
   /* Alias names are always local to one statement. */
 
   // All alias name local to one query statement.
@@ -234,6 +236,7 @@ public:
 
   // Save the relationship between the table/column name to the alias name.
   static map<string, string> m_alias2table_single;
+  static map<string, string> m_aliastable2column_single;
   // The column alias is used in limited situations, such as GROUP BY columns AS column_alias, or `SELECT SUM(column) AS c ...`
   // Maybe also from `WITH` clause?
   static map<string, string> m_alias2column_single;

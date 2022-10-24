@@ -48,7 +48,8 @@ static inline void clear_id() { g_id_counter = 0; }
 static string gen_id_name() { return "v" + to_string(g_id_counter++); }
 static string gen_column_name() { return "c" + to_string(g_id_counter++); }
 static string gen_index_name() { return "i" + to_string(g_id_counter++); }
-static string gen_alias_name() { return "a" + to_string(g_id_counter++); }
+static string gen_table_alias_name() { return "ta" + to_string(g_id_counter++); }
+static string gen_column_alias_name() { return "ca" + to_string(g_id_counter++); }
 static string gen_statistic_name() { return "s" + to_string(g_id_counter++); }
 static string gen_sequence_name() { return "seq" + to_string(g_id_counter++); }
 static string gen_view_name() { return "view" + to_string(g_id_counter++); }
