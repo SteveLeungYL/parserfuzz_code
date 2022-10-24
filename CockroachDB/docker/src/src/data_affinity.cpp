@@ -808,14 +808,35 @@ string DataAffinity::mutate_affi_time(){
     string ret_str = "";
 
     // Format 05:40:00
-    ret_str += to_string(get_rand_int(10));
-    ret_str += to_string(get_rand_int(10));
+    int hours = get_rand_int(24);
+    string hours_str = "";
+    if (hours < 10) {
+        hours_str = "0" + to_string(hours);
+    } else {
+        hours_str = to_string(hours);
+    }
+
+    int mins = get_rand_int(60);
+    string mins_str = "";
+    if (mins < 10) {
+        mins_str = "0" + to_string(mins);
+    } else {
+        mins_str = to_string(mins);
+    }
+
+    int secs = get_rand_int(60);
+    string secs_str = "";
+    if (secs < 10) {
+        secs_str = "0" + to_string(secs);
+    } else {
+        secs_str = to_string(secs);
+    }
+
+    ret_str += hours_str;
     ret_str += ":";
-    ret_str += to_string(get_rand_int(10));
-    ret_str += to_string(get_rand_int(10));
+    ret_str += mins_str;
     ret_str += ":";
-    ret_str += to_string(get_rand_int(10));
-    ret_str += to_string(get_rand_int(10));
+    ret_str += secs_str;
 
     // Optional microsecond precision. HH:MM:SS.SSSSSS
     if (get_rand_int(2) < 1) {
