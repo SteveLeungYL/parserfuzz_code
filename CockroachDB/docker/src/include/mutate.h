@@ -245,6 +245,11 @@ public:
   // The datatype class is also responsible to handle literal mutation.
   static map<string, DataAffinity> m_column2datatype;
 
+  // A mapping to save all literals that is used inside the
+  // whole SQL sequence. It maps the data type to pre-defined
+  // literal string.
+  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2literals;
+
   // All used table names follow type in one query stmt.
   static vector<string>
       v_statistics_name; // All statistic names defined in the current SQL.

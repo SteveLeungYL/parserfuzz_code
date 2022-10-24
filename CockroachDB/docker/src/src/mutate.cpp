@@ -55,6 +55,8 @@ map<string, string> Mutator::m_aliastable2column_single;
 
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
 
+map<DATAAFFINITYTYPE, vector<string>> Mutator::m_datatype2literals;
+
 vector<string> Mutator::v_statistics_name; // All statistic names defined in the
                                            // current stmt.
 
@@ -2638,9 +2640,22 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
               }
           }
 
-          // Now we ensure the ir_to_fix has an affinity.
-          // Mutate the literal with the affinity
-          ir_to_fix->mutate_literal(); // Handles everything.
+          /* After knowing the data affinity of the literal,
+           * we have two choices to instantiate the value.
+           * 1. If the current data affinity is the same as previous
+           * fixed literals, reuse the value.
+           * 2. Mutate to get a new value.
+           * */
+          if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 && get_rand_int(3) == 0) {
+              // Reuse previous defined literals.
+              string tmp_new_literal = vector_rand_ele(m_datatype2literals[ir_to_fix->get_data_affinity()]);
+              ir_to_fix->set_str_val(tmp_new_literal);
+          } else {
+              // Now we ensure the ir_to_fix has an affinity.
+              // Mutate the literal with the affinity
+              ir_to_fix->mutate_literal(); // Handles everything.
+              m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(ir_to_fix->get_str_val());
+          }
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
@@ -3062,6 +3077,7 @@ void Mutator::reset_data_library() {
   v_table_names.clear();
   m_table2index.clear();
   m_column2datatype.clear();
+  m_datatype2literals.clear();
   v_statistics_name.clear();
   v_sequence_name.clear();
   v_view_name.clear();
