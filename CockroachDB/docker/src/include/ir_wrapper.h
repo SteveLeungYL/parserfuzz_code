@@ -143,11 +143,11 @@ public:
     }
   }
 
-  template <class TYPE> IR* iter_cur_node(IR* cur_node, TYPE type);
+  template <typename TYPE> IR* iter_cur_node(IR* cur_node, TYPE type);
   // C++ template. The TYPE could be ir_type or data_type.
-  template <class TYPE> IR* find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type);
+  template <typename TYPE> IR* find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type);
 
-  template <class TYPE> bool is_find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type) {
+  template <typename TYPE> bool is_find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type) {
       if (this->find_closest_nearby_IR_with_type(cur_node, ir_type)) {
           return true;
       } else {
@@ -158,5 +158,95 @@ public:
 private:
   IR *ir_root = nullptr;
 };
+
+// Given current node, iterate through all its child node and see if it can find matches.
+// Return the matched, otherwise return NULL.
+template<typename TYPE> IR* IRWrapper::iter_cur_node(IR* cur_node, TYPE type) {
+    // Recursive function.
+    // Depth first search.
+    if (cur_node == NULL) {
+        return NULL;
+    }
+
+    // Template. Could be ir_type or data_type.
+    if (this->comp_type(cur_node, type)) {
+        return cur_node;
+    }
+
+    // Check its left and right child node.
+    if (cur_node->get_left()) {
+        IR* left_child = iter_cur_node(cur_node->get_left(), type);
+        if (left_child != NULL) {
+            return left_child;
+        }
+    }
+
+    if (cur_node->get_right()) {
+        IR* right_child = iter_cur_node(cur_node->get_right(), type);
+        if (right_child != NULL) {
+            return right_child;
+        }
+    }
+
+    return NULL;
+}
+
+template <typename TYPE>
+IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
+    // Given one node, find the closest and nearby IR that matches the inputted
+    // ir_type.
+    // The function would iterate to the parent node and find the closest nearby
+    // matched node.
+
+    if (cur_node == NULL) {
+        cerr << "ERROR: Inside the function: find_closest_nearby_IR_with_type, getting "
+                "NULL cur_node. \n\n\n";
+        return NULL;
+    }
+
+    // First of all, check all the child node for the current node,
+    // make sure there is no ir_type matched in the child node of the current
+    // node.
+    // Avoid comparing to the original input node.
+
+    IR* ret_node = NULL;
+    if (cur_node->get_left()) {
+        ret_node = iter_cur_node(cur_node->get_left(), ir_type);
+    }
+    if (ret_node != NULL) {
+        return ret_node;
+    }
+    if (cur_node->get_right()) {
+        ret_node = iter_cur_node(cur_node->get_right(), ir_type);
+    }
+    if (ret_node != NULL) {
+        return ret_node;
+    }
+
+    // Has already check the sub-node before. If no parent, can directly drop.
+    if (cur_node->get_parent() == NULL) {
+        return NULL;
+    }
+
+    do {
+        IR* ori_child_node = cur_node;
+        cur_node = cur_node->get_parent();
+
+        if (ori_child_node == cur_node->get_left()) {
+            ret_node = this->iter_cur_node(cur_node->get_right(), ir_type);
+            if (ret_node != NULL) {
+                return ret_node;
+            }
+        } else { // ori_child_node == cur_node->get_right()
+            ret_node = this->iter_cur_node(cur_node->get_left(), ir_type);
+            if (ret_node != NULL) {
+                return ret_node;
+            }
+        }
+    } while (cur_node->get_parent() != NULL);
+
+    // Cannot find the matching node.
+    return NULL;
+}
 
 #endif

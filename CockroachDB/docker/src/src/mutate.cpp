@@ -49,6 +49,9 @@ map<string, string> Mutator::m_alias2table_single; // table alias to original
                                                    // table name mapping.
 map<string, string>
     Mutator::m_alias2column_single; // column name to alias mapping.
+/* A mapping that defines an aliased table name to its resulting column name. */
+map<string, string> Mutator::m_aliastable2column_single;
+
 
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
 
@@ -1808,7 +1811,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         string closest_table_name = "";
 
         IR *closest_table_ir =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
                 ir_to_fix, DataTableName);
 
         if (closest_table_ir != NULL) {
@@ -1938,11 +1941,11 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
            * In this case, the TypeTableAlias is provided, we need to
            * connect the TypeTableAlias to the TypeColumnAlias.
            * Challenge: On the other hand, we need to make sure the number of
-           * alise column matched the 
+           * alise column matched the SELECT clause element in the subquery.
            */
 
           IR *alias_table_ir =
-              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
                   ir_to_fix, DataTableAliasName);
           string alias_table_str;
           if (alias_table_ir != NULL) {
@@ -2056,6 +2059,46 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
+    /* Fix the Data Type identifiers. Must be done before ContextDefine of DataColumnName. */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+        IRTYPE type = ir_to_fix->get_ir_type();
+        DATATYPE data_type = ir_to_fix->get_data_type();
+        DATAFLAG data_flag = ir_to_fix->get_data_flag();
+
+        if (type == TypeIdentifier && data_type == DataTypeName &&
+            data_flag == ContextDefine) {
+            // Handling of the Column Data Type definition.
+            // Use basic types.
+            auto tmp_affi_type = get_random_affinity_type();
+            string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
+
+            ir_to_fix->set_str_val(tmp_affi_type_str);
+            if (is_debug_info) {
+                cerr << "\nFor data type definition, getting new data type: "
+                     << tmp_affi_type_str << "\n\n\n";
+            }
+
+            if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
+                ir_to_fix->get_parent()->get_left()->get_data_type() ==
+                DataColumnName) {
+                DataAffinity cur_data_affi;
+                cur_data_affi.set_data_affinity(tmp_affi_type);
+                string column_str =
+                        ir_to_fix->get_parent()->get_left()->get_str_val();
+                this->m_column2datatype[column_str] = cur_data_affi;
+                if (is_debug_info) {
+                    cerr << "\nAttach data affinity: "
+                         << get_string_by_affinity_type(
+                                 cur_data_affi.get_data_affinity())
+                         << " to column: " << column_str << ". \n\n\n";
+                }
+            }
+        }
+    }
+
     /* kDefine and kReplace of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
@@ -2079,6 +2122,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       if (ir_to_fix->data_type_ == DataColumnName &&
           (ir_to_fix->data_flag_ == ContextDefine ||
            ir_to_fix->data_flag_ == ContextReplaceDefine)) {
+
         if (ir_to_fix->data_flag_ == ContextReplaceDefine) {
           is_replace_column = true;
         }
@@ -2088,7 +2132,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         string closest_table_name = "";
         /* Attach the newly generated column name to the table. */
         if (v_create_table_names_single.size() > 0) {
-          /* We have table name that is newly defined. */
+          /* We have table name that is newly defined. Should be only one
+           * newly created table name. */
           closest_table_name = v_create_table_names_single[0];
           if (is_debug_info) {
             cerr << "Dependency: For newly defined column name: " << new_name
@@ -2136,7 +2181,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
            * And ignore the mapping for the moment
            * */
 
-          /* Unreconized, keep original */
+          /* Unrecognized, keep original */
           // ir_to_fix->str_val_ = gen_column_name();
           continue;
         }
@@ -2147,61 +2192,47 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
         m_table2columns[closest_table_name].push_back(new_name);
 
-        // TODO: FIXME: Remove the type mapping for now. Will add back later.
-        //        /* Next, we save the column type to the mapping */
-        //        if (ir_to_fix->data_flag_ == ContextDefine) {
-        //          /* For normal tables, we need to save its column type. */
-        //          if (ir_to_fix ->get_parent() ->get_right() &&
-        //          ir_to_fix->get_parent()->get_right()->get_ir_type() ==  ) {
-        //
-        //            IR* typename_ir = ir_to_fix ->get_parent() ->get_right();
-        //            COLTYPE column_type = typename_ir->typename_ir_get_type();
-        //
-        //            m_column2datatypeLegacy[new_name] = column_type;
-        //
-        //          }
-        //          /* For view, we don't have the obvious type information.
-        //          Currently treat it as unknown types. */ else {
-        //            m_column2datatypeLegacy[new_name] = COLTYPE::UNKNOWN_T; //
-        //            Unknown data type.
-        //          }
-        //          if (is_debug_info) {
-        //            cerr << "Dependency: For newly declared column: " <<
-        //            new_name << ", we map with type: " <<
-        //            m_column2datatypeLegacy[new_name] << "\n\n\n";
-        //          }
-        //        } else { // kReplace for type mapping
-        //          /* This is a ALTER replace column statment. Find the
-        //          previous column name type, map it to the new one. */
-        //          vector<IR*> column_name_ir;
-        //          set<DATATYPE> type_to_search = {kDataColumnName};
-        //          collect_ir(cur_stmt_root, type_to_search, column_name_ir);
-        //          string prev_column_name = column_name_ir[0]->str_val_;
-        //          COLTYPE column_data_type =
-        //          m_column2datatypeLegacy[prev_column_name];
-        //          m_column2datatypeLegacy[new_name] = column_data_type;
-        //          if (is_debug_info) {
-        //            cerr << "Dependency: In the context of kReplace column
-        //            mapping replace, we map the old column name: " <<
-        //            prev_column_name << "to new column_name: " << new_name <<
-        //            ", mapped type: " << m_column2datatypeLegacy[new_name] <<
-        //            ". \n\n\n";
-        //          }
-        //        }
-        //        /* Finished mapping algorithm. */
+        /* Next, fix the data type of the Column name. Map it to the column name. */
+        // The closest type to the current fixed node should be the one that define the column type.
+        IR* data_type_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(ir_to_fix, DataTypeName);
+        if (data_type_node != NULL) {
+            DATAAFFINITYTYPE data_affinity = get_data_affinity_by_string(data_type_node->get_str_val());
+            DataAffinity data_affi;
+            data_affi.set_data_affinity(data_affinity);
+            m_column2datatype[new_name] = data_affi;
+        } else {
+            if(is_debug_info) {
+                cerr << "Error: In a DataColumn ContextDefine, failed to find the data type identifier that defined the "
+                        "column data type. Use default AFFISTRING. \n\n\n";
+            }
+            DataAffinity data_affi;
+            data_affi.set_data_affinity(AFFISTRING);
+            m_column2datatype[new_name] = data_affi;
+        }
 
+
+        /* ContextUndefine scenario of the DataColumnName */
       } else if (ir_to_fix->data_type_ == DataColumnName &&
                  ir_to_fix->data_flag_ == ContextUndefine) {
-        /* Find the table_name in the query first. */
-        string closest_table_name = "";
-        if (v_table_names_single.size() != 0) {
-          closest_table_name = v_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: For removing kDataColumnName: we find "
-                    "v_create_table_names_single: "
-                 << closest_table_name << "\n\n\n";
+          /* Find the table_name in the query first. */
+          string closest_table_name = "";
+          IR* closest_table_ir = NULL;
+          closest_table_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type
+                  (ir_to_fix, DataTableName);
+          if (closest_table_ir != NULL) {
+                closest_table_name = closest_table_ir->get_str_val();
+                if (is_debug_info) {
+                    cerr << "Dependency: For removing DataColumnName, we find "
+                            "closest_table_ir: " << closest_table_name << "\n\n\n";
+                }
+          } else if (v_table_names_single.size() != 0) {
+              closest_table_name = v_table_names_single[0];
+              if (is_debug_info) {
+                cerr << "Dependency: For removing kDataColumnName: we find "
+                        "v_table_names_single: "
+                     << closest_table_name << "\n\n\n";
+              }
           }
-        }
         if (closest_table_name == "" || closest_table_name == "x" ||
             closest_table_name == "y") {
           if (is_debug_info) {
@@ -2210,7 +2241,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                  << closest_table_name
                  << ". In kDataColumnName, kUndefine. \n\n\n";
           }
-          /* Unreconized, keep original */
+          /* Unrecognized, keep original */
           // return false;
           ir_to_fix->set_is_instantiated(true);
           continue;
@@ -2235,8 +2266,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           ir_to_fix->set_is_instantiated(true);
           continue;
         }
-        string removed_column_name =
-            column_vec[get_rand_int(column_vec.size())];
+        string removed_column_name = column_vec[get_rand_int(column_vec.size())];
         column_vec.erase(std::remove(column_vec.begin(), column_vec.end(),
                                      removed_column_name),
                          column_vec.end());
@@ -2259,61 +2289,76 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      /* Don't fix values inside the kValueClause. That is not permitted by
-       * Postgres semantics. Change it to kDataLiteral, and it would be handled
-       * by later kDataLiteral logic.
-       * */
-      if (cur_stmt_root->get_ir_type() == TypeInsert &&
-          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
-        ir_to_fix->set_type(DataNone, ContextUnknown);
-        // fixed_ir.push_back(ir_to_fix);
-        continue;
-      }
+      // TODO:: FIXME:: Not sure whether this is correct in CockroachDB. Needs double check.
+//      /*
+//       * Don't fix values inside the kValueClause. That is not permitted by
+//       * Postgres semantics. Change it to kDataLiteral, and it would be handled
+//       * by later kDataLiteral logic.
+//       * */
+//      if (cur_stmt_root->get_ir_type() == TypeInsert &&
+//          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
+//        ir_to_fix->set_type(DataNone, ContextUnknown);
+//        // fixed_ir.push_back(ir_to_fix);
+//        continue;
+//      }
 
       if (ir_to_fix->data_type_ == DataColumnName &&
           ir_to_fix->data_flag_ == ContextUse) {
-        if (is_debug_info) {
-          cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
-               << "\n\n\n";
-          cerr << "In the kDataColumnName with kUse, found "
-                  "v_table_alias_names_single.size: "
-               << v_table_alias_names_single.size() << "\n\n\n";
-        }
-        /* If we are seeing system default columns, 75% skip the fixing and
-         * reuse the original.  */
-        string ori_str = ir_to_fix->get_str_val();
-        if (find(v_sys_column_name.begin(), v_sys_column_name.end(), ori_str) !=
-                v_sys_column_name.end() &&
-            get_rand_int(4) >= 1) {
-          continue;
-        } else if (
-            // Do not use alias inside kWithClause
-            !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith) &&
-            v_table_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
-          /* We have defined a new alias for column name! use it with 66%
-           * percentage. */
-          // cerr << "DEBUG: is in kWithClause: " <<
-          // p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
-          ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
           if (is_debug_info) {
-            cerr << "Dependency: Using alias inside kUse of kColumnName: "
-                 << ir_to_fix->str_val_ << ". \n\n\n";
+              cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
+                   << "\n\n\n";
+              cerr << "In the kDataColumnName with kUse, found "
+                      "v_table_alias_names_single.size: "
+                   << v_table_alias_names_single.size() << "\n\n\n";
           }
-          continue;
-        }
-        /* Or, assign with system column in 5% chances */
-        else if (get_rand_int(20) < 1) {
-          ir_to_fix->str_val_ =
-              v_sys_column_name[get_rand_int(v_sys_column_name.size())];
-          continue;
-        }
 
-        string closest_table_name = "";
-        if (v_table_names_single.size() != 0) {
+          // TODO::FIXME:: Do not care about the system default column for now.
+          // Use completely random column mutations.
+//        /* If we are seeing system default columns, 75% skip the fixing and
+//         * reuse the original.  */
+//        string ori_str = ir_to_fix->get_str_val();
+//        if (find(v_sys_column_name.begin(), v_sys_column_name.end(), ori_str) !=
+//                v_sys_column_name.end() &&
+//            get_rand_int(4) >= 1) {
+//          continue;
+//        } else if (
+//            // Do not use alias inside kWithClause
+//            !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith) &&
+//            v_table_alias_names_single.size() > 0 && get_rand_int(3) < 2) {
+//          /* We have defined a new alias for column name! use it with 66%
+//           * percentage. */
+//          // cerr << "DEBUG: is in kWithClause: " <<
+//          // p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kWithClause) << "\n\n\n";
+//          ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
+//          if (is_debug_info) {
+//            cerr << "Dependency: Using alias inside kUse of kColumnName: "
+//                 << ir_to_fix->str_val_ << ". \n\n\n";
+//          }
+//          continue;
+//        }
+//        /* Or, assign with system column in 5% chances */
+//        else if (get_rand_int(20) < 1) {
+//          ir_to_fix->str_val_ =
+//              v_sys_column_name[get_rand_int(v_sys_column_name.size())];
+//          continue;
+//        }
+
+          // Actual random mutation of the ColumnName. ContextUse.
+          string closest_table_name = "";
+          IR* closest_table_ir = NULL;
+          closest_table_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(ir_to_fix, DataTableName);
+         if (closest_table_ir != NULL) {
+            closest_table_name = closest_table_ir->get_str_val();
+             if (is_debug_info) {
+                 cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
+                      << closest_table_name << " for column name. \n\n\n"
+                      << endl;
+             }
+         } else if (v_table_names_single.size() != 0) {
           closest_table_name =
               v_table_names_single[get_rand_int(v_table_names_single.size())];
           if (is_debug_info) {
-            cerr << "Dependency: In kUse of kDataColumnName, find table name: "
+            cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
                  << closest_table_name << " for column name origin. \n\n\n"
                  << endl;
           }
@@ -2416,150 +2461,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-    // TODO: FIXME: Remove kDataTableNameFollow and kDataColumnNameFollow for
-    // now.
-    //    /* Fix for kDataTableNameFollow.  */
-    //    for (IR* ir_to_fix : ir_to_fix_vec) {
-    //      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-    //      fixed_ir.end()) {
-    //        continue;
-    //      }
-    //      if (ir_to_fix->get_data_type() == kDataTableNameFollow) {
-    //        /* This type is used in kDataTableNameFollow .
-    //        kDataColumnNameFollow. */
-    //
-    //        string cur_chosen_table_name = "";
-    //        if (v_table_names_single.size()){
-    //          cur_chosen_table_name =
-    //          v_table_names_single[get_rand_int(v_table_names_single.size())];
-    //        } else if (v_create_table_names_single.size()) {
-    //          cur_chosen_table_name =
-    //          v_create_table_names_single[get_rand_int(v_create_table_names_single.size())];
-    //        } else if (v_table_names.size()) {
-    //          if (is_debug_info) {
-    //            cerr << "Dependency Error: In kDataTableNameFollow, cannot
-    //            find mapping for cur_chosen_table_name in the local stmt, use
-    //            v_table_names instead\n\n\n";
-    //          }
-    //          cur_chosen_table_name =
-    //          v_table_names[get_rand_int(v_table_names.size())];
-    //        } else {
-    //          if (is_debug_info) {
-    //            cerr << "Dependency Error: In kDataTableNameFollow, cannot
-    //            find mapping for cur_chosen_table_name. \n\n\n";
-    //          }
-    //          fixed_ir.push_back(ir_to_fix);
-    //          continue;
-    //        }
-    //
-    //        /* Save the chosen table name before change it to alias name.  */
-    //        v_table_name_follow_single.push_back(cur_chosen_table_name);
-    //
-    //        /* If the chosen table name has alias, use the alias */
-    //        if (m_table2alias_single[cur_chosen_table_name].size()) {
-    //          cur_chosen_table_name =
-    //          m_table2alias_single[cur_chosen_table_name][0];
-    //        }
-    //
-    //        ir_to_fix->set_str_val(cur_chosen_table_name);
-    //        fixed_ir.push_back(ir_to_fix);
-    //
-    //        if (is_debug_info) {
-    //          cerr << "Dependency: In kDataTableNameFollow, choose table name:
-    //          " << cur_chosen_table_name << ". \n\n\n";
-    //        }
-    //
-    //      }
-    //    }
-    //
-    //    /* Fix for kDataColumnNameFollow.  */
-    //    int table_follow_idx = 0;
-    //    for (IR* ir_to_fix : ir_to_fix_vec) {
-    //      if (std::find(fixed_ir.begin(), fixed_ir.end(), ir_to_fix) !=
-    //      fixed_ir.end()) {
-    //        continue;
-    //      }
-    //
-    //      if (ir_to_fix->get_data_type() == kDataColumnNameFollow) {
-    //        /* This type is used in kDataTableNameFollow .
-    //        kDataColumnNameFollow. */
-    //
-    //        if (table_follow_idx < v_table_name_follow_single.size()) {
-    //          string cur_chosen_table_name =
-    //          v_table_name_follow_single[table_follow_idx]; vector<string>&
-    //          v_cur_mapped_column = m_table2columns[cur_chosen_table_name]; if
-    //          ( !v_cur_mapped_column.size() ) {
-    //            if (is_debug_info) {
-    //              cerr << "Dependency Error: In kDataColumnNameFollow, choose
-    //              table name: " << cur_chosen_table_name << " cannot find
-    //              mapped column names. \n\n\n";
-    //            }
-    //            fixed_ir.push_back(ir_to_fix);
-    //            continue;
-    //          }
-    //
-    //          string cur_chosen_column_name =
-    //          v_cur_mapped_column[get_rand_int(v_cur_mapped_column.size())];
-    //          ir_to_fix->set_str_val(cur_chosen_column_name);
-    //          fixed_ir.push_back(ir_to_fix);
-    //
-    //          if (is_debug_info) {
-    //            cerr << "Dependency: In kDataColumnNameFollow, choose table
-    //            name: " << cur_chosen_table_name << ", mapped with
-    //            kDataColumnName:" << cur_chosen_column_name << ". \n\n\n";
-    //          }
-    //
-    //        } else {
-    //            if (is_debug_info) {
-    //              cerr << "Dependency Error: In kDataColumnNameFollow, cannot
-    //              find mapped table_follow names. \n\n\n";
-    //            }
-    //            fixed_ir.push_back(ir_to_fix);
-    //            continue;
-    //        }
-    //      }
-    //    }
-
-    /* Fix the Data Type identifiers  */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      IRTYPE type = ir_to_fix->get_ir_type();
-      DATATYPE data_type = ir_to_fix->get_data_type();
-      DATAFLAG data_flag = ir_to_fix->get_data_flag();
-      if (type == TypeIdentifier && data_type == DataTypeName &&
-          data_flag == ContextDefine) {
-        // Handling of the Column Data Type definition.
-        // Use basic types.
-        auto tmp_affi_type = get_random_affinity_type();
-        string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
-
-        ir_to_fix->set_str_val(tmp_affi_type_str);
-        if (is_debug_info) {
-          cerr << "\nFor data type definition, getting new data type: "
-               << tmp_affi_type_str << "\n\n\n";
-        }
-
-        if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
-            ir_to_fix->get_parent()->get_left()->get_data_type() ==
-                DataColumnName) {
-          DataAffinity cur_data_affi;
-          cur_data_affi.set_data_affinity(tmp_affi_type);
-          string column_str =
-              ir_to_fix->get_parent()->get_left()->get_str_val();
-          this->m_column2datatype[column_str] = cur_data_affi;
-          if (is_debug_info) {
-            cerr << "\nAttach data affinity: "
-                 << get_string_by_affinity_type(
-                        cur_data_affi.get_data_affinity())
-                 << " to column: " << column_str << ". \n\n\n";
-          }
-        }
-      }
-    }
-
     // TODO: FIXME: Foreign table handling. Add it back later.
     //      } else if (
     //        (
@@ -2608,604 +2509,127 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //
     //      }
 
-    // TODO:: Fix the Data type for the literal. Do not use the current
-    // Implementation.
+
+    /* TODO::FIXME:: Remove the the first loop? */
     /* Fix the Literal. */
-    int cur_literal_idx = -1;
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+
+        IRTYPE type = ir_to_fix->get_ir_type();
+
+        if (type == TypeFloatLiteral || type == TypeStringLiteral ||
+            type == TypeIntegerLiteral) {
+            /* Completely rewritten Literal handling and mutation logic.
+             * The idea is to search for the closest Column Name or fixed literals,
+             * and try to match the type of the column name or literal.
+             * */
+
+//            ir_to_fix->set_data_affinity(AFFIUNKNOWN);
+        }
+    } /* for (IR* ir_to_fix : ir_to_fix_vec) */
+
+    /* The next loop to handle all the Literals, after setting all literals to AFFIUNKNOWN. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
       }
 
+      ir_to_fix->set_is_instantiated(true);
+
       IRTYPE type = ir_to_fix->get_ir_type();
+
       if (type == TypeFloatLiteral || type == TypeStringLiteral ||
           type == TypeIntegerLiteral) {
-        ir_to_fix->set_is_instantiated(true);
+          /* Continue from the previous loop, we now search around the ir_to_fix
+           * and see if we can find column name or literals that can help deduce
+           * Data Affinity.
+           * */
 
-        if (is_debug_info) {
-          cerr << "Fixing Literals: ori_literals: " << ir_to_fix->get_str_val()
-               << "\n\n\n";
-        }
-
-        string ori_str = ir_to_fix->get_str_val();
-        if (ir_to_fix->get_ir_type() == TypeStringLiteral &&
-            find(common_string_library_.begin(), common_string_library_.end(),
-                 ori_str) == common_string_library_.end() &&
-            get_rand_int(10) < 5) {
-          /* Update unseen string with just 10% chances. (heuristic) */
-          common_string_library_.push_back(ori_str);
-        }
-
-        /* Mutate the literals in just 1% of chances is enough.
-         * For 99% of chances, keep original.
-         * Only for non_select stmts.
-         * For select stmts, 1/5 keep original.
-         */
-        bool is_keep_ori = false;
-        if (cur_stmt_root->get_ir_type() != TypeSelect &&
-            get_rand_int(100) < 99) {
-          is_keep_ori = true;
-        } else if (cur_stmt_root->get_ir_type() == TypeSelect &&
-                   get_rand_int(60) < 10) {
-          is_keep_ori = true;
-        }
-
-        if (is_keep_ori) {
-          /* Save the already seen literals */
-          if (ir_to_fix->get_ir_type() == TypeIntegerLiteral) {
-            string ori_str = ir_to_fix->get_str_val();
-            try {
-              int ori_int = std::stoi(ori_str);
-              v_int_literals.push_back(ori_int);
-
-              if (is_debug_info) {
-                cerr << "Dependency: Saved int literals: " << ori_str
-                     << "\n\n\n";
-              }
-            } catch (...) {
+          // If the literal already has fixed data affinity type, skip the mutation.
+          if (ir_to_fix->get_data_flag() == ContextNoModi) {
               continue;
-            }
-          } else if (ir_to_fix->get_ir_type() == TypeFloatLiteral) {
-            string ori_str = ir_to_fix->get_str_val();
-            try {
-              double ori_float = std::stod(ori_str);
-              v_float_literals.push_back(ori_float);
-
-              if (is_debug_info) {
-                cerr << "Dependency: Saved float literals: " << ori_str
-                     << "\n\n\n";
-              }
-            } catch (...) {
+          }
+          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
               continue;
-            }
-          } else if (ir_to_fix->get_ir_type() == TypeStringLiteral) {
-            v_string_literals.push_back(ir_to_fix->get_str_val());
-            if (is_debug_info) {
-              cerr << "Dependency: Saved string literals: "
-                   << ir_to_fix->get_str_val() << "\n\n\n";
-            }
-          }
-          /* Do not save boolean. Not necessary.  */
-          continue;
-        }
-
-        //        if (
-        //          cur_stmt_root->get_ir_type() == kVariableSetStmt ||
-        //          cur_stmt_root->get_ir_type() == kVariableResetStmt ||
-        //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kGenericSet) ||
-        //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kReloptionElem) ||
-        //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kDefElem) ||
-        //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kReloptions)
-        //        ) {
-        //          /* Do not fix literals used to define reloptions or Postgres
-        //          configurations.  */ continue;
-        //        }
-
-        cur_literal_idx++;
-        COLTYPE column_data_type = COLTYPE::UNKNOWN_T;
-        if (v_column_names_single.size() > cur_literal_idx) {
-          /* For cases like INSERT INTO v0 (c1, c2) VALUES (1, 2); */
-          string cur_column_name = v_column_names_single[cur_literal_idx];
-          // TODO:: Fix the Data type for the literal. Do not use the current
-          // Implementation.
-          column_data_type = COLTYPE::STRING_T;
-          if (is_debug_info) {
-            cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
-                 << ", we found column name: " << cur_column_name
-                 << ", thus choose column_data_type: " << column_data_type
-                 << ". \n\n\n";
-          }
-        } else if (v_table_names_single.size() != 0 &&
-                   m_table2columns[v_table_names_single[0]].size() >
-                       cur_literal_idx) {
-          /* For cases like INSERT INTO v0 VALUES (1, 2); */
-          string cur_column_name =
-              m_table2columns[v_table_names_single[0]][cur_literal_idx];
-          // TODO:: Fix the Data type for the literal. Do not use the current
-          // Implementation.
-          column_data_type = COLTYPE::STRING_T;
-          if (is_debug_info) {
-            cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
-                 << ", no column info found, but found table_name: "
-                 << v_table_names_single[0]
-                 << ", we choose column_data_type: " << column_data_type
-                 << ". \n\n\n";
-          }
-        } else {
-          column_data_type = COLTYPE::UNKNOWN_T;
-          if (is_debug_info) {
-            cerr << "Dependency Error: For fixing literal idx: "
-                 << cur_literal_idx
-                 << ". Cannot find any table or column name that help identify "
-                    "the literal type. Randomly choose now. \n\n\n";
-          }
-        }
-
-        /* For non-select, 95% chances, choose the original type.
-         * For select, 1/3 chances, keep original type.
-         */
-        is_keep_ori = false;
-        if (cur_stmt_root->get_ir_type() != TypeSelect &&
-            get_rand_int(20) < 19) {
-          is_keep_ori = true;
-        } else if (cur_stmt_root->get_ir_type() == TypeSelect &&
-                   get_rand_int(50) < 10) {
-          is_keep_ori = true;
-        }
-
-        if (is_keep_ori) {
-          if (ir_to_fix->get_ir_type() == TypeIntegerLiteral) {
-            column_data_type = COLTYPE::INT_T;
-          } else if (ir_to_fix->get_ir_type() == TypeFloatLiteral) {
-            column_data_type = COLTYPE::FLOAT_T;
-          }
-          //          else if (ir_to_fix->get_ir_type() == kBoolLiteral) {
-          //            column_data_type = COLTYPE::BOOLEAN_T;
-          //          }
-          else if (ir_to_fix->get_ir_type() == TypeStringLiteral) {
-            column_data_type = COLTYPE::STRING_T;
           }
 
-          if (is_debug_info) {
-            cerr << "Dependency: For fixing literal idx: " << cur_literal_idx
-                 << ", str_val_: " << ir_to_fix->str_val_
-                 << " choose to use the original type for the literal: "
-                 << column_data_type << "\n\n\n";
-          }
-        }
-
-        // TODO:: FIXME::
-        //        /* If it is used for defining length of column or text, use
-        //        kIntLiteral */ if (
-        //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength) ||
-        //          p_oracle->ir_wrapper.is_ir_in(ir_to_fix,
-        //          kCharacterWithLength)
-        //        ) {
-        //          column_data_type = COLTYPE::INT_T;
-        //        }
-
-        if (column_data_type == COLTYPE::UNKNOWN_T) {
-          // Randomly choose Numerical, Character or Boolean.
-          int rand_int = get_rand_int(4);
-          switch (rand_int) {
-          case 0:
-            column_data_type = COLTYPE::INT_T;
-            break;
-          case 1:
-            column_data_type = COLTYPE::FLOAT_T;
-            break;
-          case 2:
-            column_data_type = COLTYPE::BOOLEAN_T;
-            break;
-          case 3:
-            column_data_type = COLTYPE::STRING_T;
-            break;
-          }
-        }
-
-        /* INT */
-        if (column_data_type == COLTYPE::INT_T) {
-
-          // TODO:: FIXME
-          //          /* 'Size of' values, do not use too big values.  */
-          //          if (
-          //            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kBitWithLength)
-          //            || p_oracle->ir_wrapper.is_ir_in(ir_to_fix,
-          //            kCharacterWithLength)
-          //          ) {
-          //            ir_to_fix->int_val_ = (get_rand_int(100));
-          //            if (ir_to_fix->int_val_ < 0) ir_to_fix->int_val_ = -
-          //            ir_to_fix->int_val_; ir_to_fix->str_val_ =
-          //            to_string(ir_to_fix->int_val_);
-          //
-          //            /* Don't save it to v_int_literals, because they are not
-          //            data literals. */
-          //            // v_int_literals.push_back(ir_to_fix->int_val_);
-          //            // if (is_debug_info) {
-          //            //   cerr << "Dependency: Saved int literals: " <<
-          //            ir_to_fix->int_val_ << "\n\n\n";
-          //            // }
-          //
-          //            continue;
-          //          }
-
-          /* In 90% chances, use the already seen int literals. */
-          if (v_int_literals.size() > 0 && get_rand_int(10) < 9) {
-            ir_to_fix->int_val_ = vector_rand_ele(v_int_literals);
-            ir_to_fix->str_val_ = std::to_string(ir_to_fix->int_val_);
-            if (is_debug_info) {
-              cerr << "Dependency: Fixing int literal with previously seen int "
-                      "literals: "
-                   << ir_to_fix->str_val_ << "\n\n\n";
-            }
-            continue;
-          }
-
-          /* Preferred to choose a same range number with 4/5 chances */
-          if (get_rand_int(5) < 4) {
-            string ori_str = ir_to_fix->get_str_val();
-            int ori_int = 0;
-            try {
-              ori_int = std::stoi(ori_str);
-            } catch (...) {
-              ori_int = -1;
-            }
-            if (ori_int >= 0 && ori_int <= 7 && get_rand_int(5) < 4) {
-              int tmp = get_rand_int(8);
-              ir_to_fix->str_val_ = to_string(tmp);
-
-              v_int_literals.push_back(tmp);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved int literals: " << tmp << "\n\n\n";
-              }
-
+          if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
+              // Do not mutate the literals inside the SET statement.
+              // The set statement's literal has already been fixed when introduced.
               continue;
-            }
-
-            if (ori_int < -10000) {
-              if (get_rand_int(2) < 1) {
-                int new_int = get_rand_int(INT_MIN, -10000);
-                ir_to_fix->int_val_ = new_int;
-                ir_to_fix->str_val_ = to_string(new_int);
-
-                v_int_literals.push_back(new_int);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved int literals: " << new_int
-                       << "\n\n\n";
-                }
-
-                continue;
-              } else {
-                int new_int = get_rand_int(-10000, 10000);
-                ir_to_fix->int_val_ = new_int;
-                ir_to_fix->str_val_ = to_string(new_int);
-
-                v_int_literals.push_back(new_int);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved int literals: " << new_int
-                       << "\n\n\n";
-                }
-
-                continue;
-              }
-            } else if (ori_int < -10) {
-              int new_int = get_rand_int(-10000, -10);
-              ir_to_fix->int_val_ = new_int;
-              ir_to_fix->str_val_ = to_string(new_int);
-
-              v_int_literals.push_back(new_int);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved int literals: " << new_int
-                     << "\n\n\n";
-              }
-
-              continue;
-            } else if (ori_int < 0) {
-              int new_int = get_rand_int(-10, 0);
-              ir_to_fix->int_val_ = new_int;
-              ir_to_fix->str_val_ = to_string(new_int);
-
-              v_int_literals.push_back(new_int);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved int literals: " << new_int
-                     << "\n\n\n";
-              }
-
-              continue;
-            } else if (ori_int < 10) {
-              int new_int = get_rand_int(0, 10);
-              ir_to_fix->int_val_ = new_int;
-              ir_to_fix->str_val_ = to_string(new_int);
-
-              v_int_literals.push_back(new_int);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved int literals: " << new_int
-                     << "\n\n\n";
-              }
-
-              continue;
-            } else if (ori_int < 10000) {
-              int new_int = get_rand_int(0, 10);
-              ir_to_fix->int_val_ = new_int;
-              ir_to_fix->str_val_ = to_string(new_int);
-
-              v_int_literals.push_back(new_int);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved int literals: " << new_int
-                     << "\n\n\n";
-              }
-
-              continue;
-            } else {
-              if (get_rand_int(2) < 1) {
-                int new_int = get_rand_int(10000, INT_MAX);
-                ir_to_fix->int_val_ = new_int;
-                ir_to_fix->str_val_ = to_string(new_int);
-
-                v_int_literals.push_back(new_int);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved int literals: " << new_int
-                       << "\n\n\n";
-                }
-
-                continue;
-              } else {
-                int new_int = get_rand_int(-10000, 10000);
-                ir_to_fix->int_val_ = new_int;
-                ir_to_fix->str_val_ = to_string(new_int);
-
-                v_int_literals.push_back(new_int);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved int literals: " << new_int
-                       << "\n\n\n";
-                }
-
-                continue;
-              }
-            }
           }
 
-          /* 4/5 chances, use value_library, 1/2, use rand_int up to INT_MAX */
-          if (get_rand_int(5) < 4 && value_library_.size()) {
-            if (value_library_.size() == 0) {
-              FATAL("Error: value_library_ is not being init properly. \n");
-            }
-            ir_to_fix->int_val_ = vector_rand_ele(value_library_);
-            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+          // First, search if we can find a nearby literal that already has the
+          // affinity fixed.
 
-            v_int_literals.push_back(ir_to_fix->int_val_);
-            if (is_debug_info) {
-              cerr << "Dependency: Saved int literals: " << ir_to_fix->int_val_
-                   << "\n\n\n";
-            }
+          IR* near_int_literal_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(ir_to_fix, TypeIntegerLiteral);
+          IR* near_float_literal_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(ir_to_fix, TypeFloatLiteral);
+          IR* near_string_literal_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(ir_to_fix, TypeStringLiteral);
 
-            continue;
+          if (
+                  near_int_literal_node != NULL &&
+                  near_int_literal_node->get_data_affinity() != AFFIUNKNOWN
+          ) {
+              ir_to_fix->set_data_affinity(near_int_literal_node->get_data_affinity());
+              cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
+                   << near_int_literal_node->to_string() << ", the literal comes with affinity: "
+                   << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
+          } else if (
+                  near_float_literal_node != NULL &&
+                  near_float_literal_node->get_data_affinity() != AFFIUNKNOWN
+                  ) {
+              ir_to_fix->set_data_affinity(near_int_literal_node->get_data_affinity());
+              cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
+                   << near_int_literal_node->to_string() << ", the literal comes with affinity: "
+                   << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
+          } else if (
+                  near_string_literal_node != NULL &&
+                  near_string_literal_node->get_data_affinity() != AFFIUNKNOWN
+                  ) {
+              ir_to_fix->set_data_affinity(near_int_literal_node->get_data_affinity());
+              cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
+                   << near_int_literal_node->to_string() << ", the literal comes with affinity: "
+                   << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
           } else {
-            ir_to_fix->int_val_ = get_rand_int(INT_MAX);
-            ir_to_fix->str_val_ = to_string(ir_to_fix->int_val_);
+              // If we end up in this branch, we cannot find a nearby literal that already
+              // has fixed affinity.
+              // This is expected, such as case: `SELECT * FROM v0 WHERE v1 = 100;`
+              // Then, we should look at the nearby column name for more information.
 
-            v_int_literals.push_back(ir_to_fix->int_val_);
-            if (is_debug_info) {
-              cerr << "Dependency: Saved int literals: " << ir_to_fix->int_val_
-                   << "\n\n\n";
-            }
-
-            continue;
-          }
-
-          /* Randomly use string format of the int */
-          // if ( get_rand_int(10) < 3 && ir_to_fix->str_val_.find("'") ==
-          // string::npos) {
-          //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
-          // }
-
-          ir_to_fix->type_ = TypeIntegerLiteral;
-        }
-
-        /* FLOAT */
-        else if (column_data_type == COLTYPE::FLOAT_T) { // FLOAT
-
-          /* In 90% chances, use the already seen float literals. */
-          if (v_float_literals.size() > 0 && get_rand_int(10) < 9) {
-            ir_to_fix->float_val_ = vector_rand_ele(v_float_literals);
-            ir_to_fix->str_val_ = std::to_string(ir_to_fix->float_val_);
-            if (is_debug_info) {
-              cerr << "Dependency: Fixing float literal with previously seen "
-                      "float literals: "
-                   << ir_to_fix->str_val_ << "\n\n\n";
-            }
-
-            ir_to_fix->type_ = TypeFloatLiteral;
-            continue;
-          }
-
-          if (get_rand_int(100) < 95) {
-            /* Give more possibility to mutate on the same flot range */
-            string ori_str = ir_to_fix->get_str_val();
-            double ori_float = 0;
-            try {
-              ori_float = std::stoi(ori_str);
-            } catch (...) {
-              /* Mutate based on random generation */
-              ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
-              ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
-              ir_to_fix->type_ = TypeFloatLiteral;
-
-              v_float_literals.push_back(ir_to_fix->float_val_);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved float literals: "
-                     << ir_to_fix->float_val_ << "\n\n\n";
-              }
-
-              ir_to_fix->type_ = TypeFloatLiteral;
-              continue;
-            }
-
-            if (ori_float < -10000.0) {
-              if (get_rand_int(2) < 1) {
-                double new_float = get_rand_double(-DBL_MIN, -10000.0);
-                ir_to_fix->float_val_ = new_float;
-                ir_to_fix->str_val_ = to_string(new_float);
-
-                v_float_literals.push_back(ir_to_fix->float_val_);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved float literals: "
-                       << ir_to_fix->float_val_ << "\n\n\n";
-                }
-
-                ir_to_fix->type_ = TypeFloatLiteral;
-                continue;
+              IR* nearby_column_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix, DataColumnName);
+              if (nearby_column_ir != NULL) {
+                  string nearby_column_str = nearby_column_ir->get_str_val();
+                  if (m_column2datatype.count(nearby_column_str)) {
+                      DataAffinity cur_affi = m_column2datatype[nearby_column_str];
+                      ir_to_fix->set_data_affinity(cur_affi);
+                      if (is_debug_info) {
+                          cerr << "Dependency: INFO: From Literal handling, getting column name: "
+                               << nearby_column_str << ", the column comes with affinity: "
+                               << get_string_by_affinity_type(cur_affi.get_data_affinity());
+                      }
+                  } else {
+                      ir_to_fix->set_data_affinity(AFFISTRING);
+                      if (is_debug_info) {
+                          cerr << "Dependency: INFO: From Literal handling, getting column name: "
+                               << nearby_column_str << ". However, the colum name does not come with affinity: "
+                                                       ", dummy fix the literal to AFFISTRING now.";
+                      }
+                  }
               } else {
-                double new_float = get_rand_double(-10000.0, 10000.0);
-                ir_to_fix->float_val_ = new_float;
-                ir_to_fix->str_val_ = to_string(new_float);
-
-                v_float_literals.push_back(ir_to_fix->float_val_);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved float literals: "
-                       << ir_to_fix->float_val_ << "\n\n\n";
-                }
-
-                ir_to_fix->type_ = TypeFloatLiteral;
-                continue;
+                  // Cannot find nearby COLUMN NAME?
+                  if (is_debug_info) {
+                      cerr << "Error: For fixing literal, cannot find nearby column name definition. "
+                              "Use dummy AFFISTRING instead for now. ";
+                  }
+                  ir_to_fix->set_data_affinity(AFFISTRING);
               }
-            } else if (ori_float < -10.0) {
-              double new_float = get_rand_double(-10000.0, -10.0);
-              ir_to_fix->float_val_ = new_float;
-              ir_to_fix->str_val_ = to_string(new_float);
-
-              v_float_literals.push_back(ir_to_fix->float_val_);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved float literals: "
-                     << ir_to_fix->float_val_ << "\n\n\n";
-              }
-
-              ir_to_fix->type_ = TypeFloatLiteral;
-              continue;
-            } else if (ori_float < 0.0) {
-              double new_float = get_rand_double(-10.0, 0.0);
-              ir_to_fix->float_val_ = new_float;
-              ir_to_fix->str_val_ = to_string(new_float);
-
-              v_float_literals.push_back(ir_to_fix->float_val_);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved float literals: "
-                     << ir_to_fix->float_val_ << "\n\n\n";
-              }
-
-              ir_to_fix->type_ = TypeFloatLiteral;
-              continue;
-            } else if (ori_float < 10.0) {
-              double new_float = get_rand_double(0.0, 10.0);
-              ir_to_fix->float_val_ = new_float;
-              ir_to_fix->str_val_ = to_string(new_float);
-
-              v_float_literals.push_back(ir_to_fix->float_val_);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved float literals: "
-                     << ir_to_fix->float_val_ << "\n\n\n";
-              }
-
-              ir_to_fix->type_ = TypeFloatLiteral;
-              continue;
-            } else if (ori_float < 10000.0) {
-              double new_float = get_rand_double(10.0, 10000.0);
-              ir_to_fix->float_val_ = new_float;
-              ir_to_fix->str_val_ = to_string(new_float);
-
-              v_float_literals.push_back(ir_to_fix->float_val_);
-              if (is_debug_info) {
-                cerr << "Dependency: Saved float literals: "
-                     << ir_to_fix->float_val_ << "\n\n\n";
-              }
-
-              ir_to_fix->type_ = TypeFloatLiteral;
-              continue;
-            } else {
-              if (get_rand_int(2) < 1) {
-                double new_float = get_rand_double(10000.0, DBL_MAX);
-                ir_to_fix->float_val_ = new_float;
-                ir_to_fix->str_val_ = to_string(new_float);
-
-                v_float_literals.push_back(ir_to_fix->float_val_);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved float literals: "
-                       << ir_to_fix->float_val_ << "\n\n\n";
-                }
-
-                ir_to_fix->type_ = TypeFloatLiteral;
-                continue;
-              } else {
-                double new_float = get_rand_double(-10000.0, 10000.0);
-                ir_to_fix->float_val_ = new_float;
-                ir_to_fix->str_val_ = to_string(new_float);
-
-                v_float_literals.push_back(ir_to_fix->float_val_);
-                if (is_debug_info) {
-                  cerr << "Dependency: Saved float literals: "
-                       << ir_to_fix->float_val_ << "\n\n\n";
-                }
-
-                ir_to_fix->type_ = TypeFloatLiteral;
-                continue;
-              }
-            }
-          } else {
-            /* Mutate based on random generation */
-            ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
-            ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
-
-            v_float_literals.push_back(ir_to_fix->float_val_);
-            if (is_debug_info) {
-              cerr << "Dependency: Saved float literals: "
-                   << ir_to_fix->float_val_ << "\n\n\n";
-            }
-
-            ir_to_fix->type_ = TypeFloatLiteral;
-            continue;
           }
 
-        }
-
-        //        /* BOOLEAN */
-        //        else if (column_data_type == COLTYPE::BOOLEAN_T){
-        //          if (get_rand_int(100) < 50){
-        //            ir_to_fix->str_val_ = "TRUE";
-        //          } else {
-        //            ir_to_fix->str_val_ = "FALSE";
-        //          }
-        //
-        //          ir_to_fix->type_ = kBoolLiteral;
-        //        }
-
-        /* STRING */
-        /* STRING could represent too many types: inet, datetime, or even
-         * regular expressions.
-         *
-         */
-        else {
-
-          /* In 90% chances, use the already seen string literals. */
-          if (v_string_literals.size() > 0 && get_rand_int(10) < 9) {
-            ir_to_fix->str_val_ = vector_rand_ele(v_string_literals);
-            if (is_debug_info) {
-              cerr << "Dependency: Fixing string literal with previously seen "
-                      "string literals: "
-                   << ir_to_fix->str_val_ << "\n\n\n";
-            }
-            continue;
-          }
-
-          ir_to_fix->str_val_ = get_a_string();
-
-          v_string_literals.push_back(ir_to_fix->str_val_);
-          if (is_debug_info) {
-            cerr << "Dependency: Fixing string literal with: "
-                 << ir_to_fix->str_val_ << "\n\n\n";
-          }
-
-          ir_to_fix->type_ = TypeStringLiteral;
-        }
+          // Now we ensure the ir_to_fix has an affinity.
+          // Mutate the literal with the affinity
+          ir_to_fix->mutate_literal(); // Handles everything.
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
