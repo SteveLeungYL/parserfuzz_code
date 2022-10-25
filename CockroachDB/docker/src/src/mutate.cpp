@@ -3172,21 +3172,20 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   "cur_stmt_ir_to_fix_vec.size: "
                << cur_stmt_ir_to_fix_vec.size() << ". \n\n\n";
         }
-        // id_column_name should be in the subqueries and already been resolved
+        // id_column_name should be in the subquery and already been resolved
         // in the previous loop.
         vector<IR *> all_mentioned_column_vec;
         set<DATATYPE> column_type_set = {DataColumnName};
         collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
 
         /* Fix: also, add column alias name defined here to the table */
-        vector<IR *> all_mentioned_alias_vec;
-        set<DATATYPE> alias_type_set = {DataColumnAliasName};
-        collect_ir(cur_stmt_root, alias_type_set, all_mentioned_alias_vec);
+        vector<IR *> all_mentioned_column_alias_vec;
+        set<DATATYPE> column_alias_type_set = {DataColumnAliasName};
+        collect_ir(cur_stmt_root, column_alias_type_set, all_mentioned_column_alias_vec);
 
-        all_mentioned_column_vec.insert(all_mentioned_column_vec.end(),
-                                        all_mentioned_alias_vec.begin(),
-                                        all_mentioned_alias_vec.end());
-        all_mentioned_alias_vec.clear();
+//        all_mentioned_column_vec.insert(all_mentioned_column_vec.end(),
+//                                        all_mentioned_column_alias_vec.begin(),
+//                                        all_mentioned_column_alias_vec.end());
 
         if (is_debug_info) {
           cerr << "Dependency: When building extra mapping for CREATE VIEW AS, "
@@ -3194,64 +3193,73 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                << all_mentioned_column_vec.size() << ". \n\n\n";
         }
 
-        for (const IR *const cur_men_column_ir : all_mentioned_column_vec) {
-          string cur_men_column_str = cur_men_column_ir->str_val_;
-          if (findStringIn(cur_men_column_str, ".")) {
-            cur_men_column_str = string_splitter(cur_men_column_str, '.')[1];
-          }
-          vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
-          if (std::find(cur_m_table.begin(), cur_m_table.end(),
-                        cur_men_column_str) == cur_m_table.end()) {
-            m_table2columns[ir_to_fix->str_val_].push_back(cur_men_column_str);
-            if (is_debug_info) {
-              cerr << "Dependency: Adding mappings: For table/view: "
-                   << ir_to_fix->str_val_
-                   << ", map with column: " << cur_men_column_str << ". \n\n\n";
+        if (column_alias_type_set.size() != 0) {
+            m_table2columns[ir_to_fix->get_str_val()].clear();
+            for (auto& cur_column_alias_ir : all_mentioned_column_vec) {
+                string cur_column_alias = cur_column_alias_ir->get_str_val();
+                m_table2columns[ir_to_fix->get_str_val()].push_back(cur_column_alias);
             }
-          }
-        }
-
-        /* For CREATE VIEW x AS SELECT * FROM v0; */
-        if (all_mentioned_column_vec.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Dependency: For mapping CREATE VIEW, cannot find column "
-                    "name in the current subqueries. Thus, see if we can find "
-                    "table names, and map from there. \n\n\n";
-          }
-          vector<IR *> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
-          set<DATATYPE> table_type_set = {DataTableName};
-          collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
-          for (IR *mentioned_table_ir : all_mentioned_table_vec) {
-            if (mentioned_table_ir->data_flag_ == ContextUse) {
-              all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
-              if (is_debug_info) {
-                cerr << "Dependency: For mapping CREATE VIEW, getting "
-                        "mentioned table name: "
-                     << mentioned_table_ir->str_val_ << ". \n\n\n";
-              }
-            }
-          }
-          for (IR *cur_men_tablename_ir : all_mentioned_table_kUsed_vec) {
-            string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
-            const vector<string> &cur_men_column_vec =
-                m_table2columns[cur_men_tablename_str];
-            for (const string &cur_men_column_str : cur_men_column_vec) {
-              vector<string> &cur_m_table =
-                  m_table2columns[ir_to_fix->str_val_];
-              if (std::find(cur_m_table.begin(), cur_m_table.end(),
-                            cur_men_column_str) == cur_m_table.end()) {
-                m_table2columns[ir_to_fix->str_val_].push_back(
-                    cur_men_column_str);
-                if (is_debug_info) {
-                  cerr << "Dependency: Adding mappings: For table/view: "
-                       << ir_to_fix->str_val_
-                       << ", map with column: " << cur_men_column_str
-                       << ". \n\n\n";
+        } else {
+            for (const IR *const cur_men_column_ir: all_mentioned_column_vec) {
+                string cur_men_column_str = cur_men_column_ir->str_val_;
+                if (findStringIn(cur_men_column_str, ".")) {
+                    vector<string> v_cur_men_column_str = string_splitter(cur_men_column_str, '.');
+                    cur_men_column_str = v_cur_men_column_str[v_cur_men_column_str.size() - 1];
                 }
-              }
+                vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
+                if (std::find(cur_m_table.begin(), cur_m_table.end(),
+                              cur_men_column_str) == cur_m_table.end()) {
+                    m_table2columns[ir_to_fix->str_val_].push_back(cur_men_column_str);
+                    if (is_debug_info) {
+                        cerr << "Dependency: Adding mappings: For table/view: "
+                             << ir_to_fix->str_val_
+                             << ", map with column: " << cur_men_column_str << ". \n\n\n";
+                    }
+                }
             }
-          } // for (IR* cur_men_tablename_ir : all_mentioned_table_kUsed_vec)
-        }   // if (all_mentioned_column_vec.size() == 0)
+
+            /* For CREATE VIEW x AS SELECT * FROM v0; */
+            if (all_mentioned_column_vec.size() == 0) {
+                if (is_debug_info) {
+                    cerr << "Dependency: For mapping CREATE VIEW, cannot find column "
+                            "name in the current subqueries. Thus, see if we can find "
+                            "table names, and map from there. \n\n\n";
+                }
+                vector<IR *> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
+                set<DATATYPE> table_type_set = {DataTableName};
+                collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
+                for (IR *mentioned_table_ir: all_mentioned_table_vec) {
+                    if (mentioned_table_ir->data_flag_ == ContextUse) {
+                        all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
+                        if (is_debug_info) {
+                            cerr << "Dependency: For mapping CREATE VIEW, getting "
+                                    "mentioned table name: "
+                                 << mentioned_table_ir->str_val_ << ". \n\n\n";
+                        }
+                    }
+                }
+                for (IR *cur_men_tablename_ir: all_mentioned_table_kUsed_vec) {
+                    string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+                    const vector<string> &cur_men_column_vec =
+                            m_table2columns[cur_men_tablename_str];
+                    for (const string &cur_men_column_str: cur_men_column_vec) {
+                        vector<string> &cur_m_table =
+                                m_table2columns[ir_to_fix->str_val_];
+                        if (std::find(cur_m_table.begin(), cur_m_table.end(),
+                                      cur_men_column_str) == cur_m_table.end()) {
+                            m_table2columns[ir_to_fix->str_val_].push_back(
+                                    cur_men_column_str);
+                            if (is_debug_info) {
+                                cerr << "Dependency: Adding mappings: For table/view: "
+                                     << ir_to_fix->str_val_
+                                     << ", map with column: " << cur_men_column_str
+                                     << ". \n\n\n";
+                            }
+                        }
+                    }
+                } // for (IR* cur_men_tablename_ir : all_mentioned_table_kUsed_vec)
+            }   // if (all_mentioned_column_vec.size() == 0)
+        }
 
         /* The extra mapping only need to be done once. Once reach this point,
          * break the loop. */

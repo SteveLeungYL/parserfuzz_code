@@ -351,7 +351,7 @@ void IR::set_data_affinity(DATAAFFINITYTYPE data_affinity) {
 }
 
 void IR::set_data_affinity(DataAffinity data_affinity) {
-    cerr << "\n\n\nSetting data_affinity: " << get_string_by_affinity_type(data_affinity.get_data_affinity()) << "\n\n\n";
+//    cerr << "\n\n\nSetting data_affinity: " << get_string_by_affinity_type(data_affinity.get_data_affinity()) << "\n\n\n";
     this->data_affinity_type = data_affinity.get_data_affinity();
     this->data_affinity = data_affinity;
 }
