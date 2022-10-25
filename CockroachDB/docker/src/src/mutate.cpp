@@ -50,7 +50,7 @@ map<string, string> Mutator::m_alias2table_single; // table alias to original
 map<string, string>
     Mutator::m_alias2column_single; // column name to alias mapping.
 /* A mapping that defines an aliased table name to its resulting column name. */
-map<string, string> Mutator::m_aliastable2column_single;
+map<string, string> Mutator::m_alias_table2column_single;
 
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
 
@@ -1981,66 +1981,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-    // TODO:: FIXME:: The DataColumnAlias should not be here.
-    /* Fix of DataColumnAlias name. */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      if (ir_to_fix->data_type_ == DataColumnAliasName) {
-
-        ir_to_fix->set_is_instantiated(true);
-
-        string closest_table_alias_name = "";
-
-        /* Two situations:
-         * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-         * Customer FROM Customers;`
-         * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
-         * c(x);`
-         * */
-
-        bool is_alias_clause = false;
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
-          is_alias_clause = true;
-        }
-
-        if (is_alias_clause) {
-          /* Fix the TypeAliasClause scenario first.
-           * In this case, the TypeTableAlias is provided, we need to
-           * connect the TypeTableAlias to the TypeColumnAlias.
-           * Challenge: On the other hand, we need to make sure the number of
-           * alise column matched the SELECT clause element in the subquery.
-           */
-
-          IR *alias_table_ir =
-              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                  ir_to_fix, DataTableAliasName);
-          string alias_table_str;
-          if (alias_table_ir != NULL) {
-            alias_table_str = alias_table_ir->get_str_val();
-          } else {
-            if (is_debug_info) {
-              cerr << "\n\n\nError: Cannot find table alias name inside the "
-                      "TypeAliasClause \n\n\n";
-              ir_to_fix->set_str_val("x");
-              continue;
-            }
-          }
-
-          // TODO:: FIXME::
-        } else {
-          /* Fix the TypeSelectExprs scenario now.
-           * In this case, the TypeTableAlias is provided, we need to
-           * connect the TypeTableAlias to the TypeColumnAlias.
-           * Challenge: On the other hand, we need to make sure the number of
-           * alise column matched the
-           */
-          // TODO:: FIXME::
-        }
-      }
-    }
 
     /* Fix of kDataIndex name. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -2607,6 +2547,99 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //
     //      }
 
+    /* The fixing of DataColumnAlias must be after the fixing of DataColumnName. */
+    /* Fix of DataColumnAlias name. */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+
+        if (ir_to_fix->data_type_ == DataColumnAliasName) {
+
+            ir_to_fix->set_is_instantiated(true);
+
+            string closest_table_alias_name = "";
+
+            /* Three situations:
+             * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+             * Customer FROM Customers;`
+             * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
+             * c(x);`
+             * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100) SELECT * FROM r WHERE c = 100;
+             *
+             * The 2 and 3 cases are similar.
+             * */
+
+            bool is_alias_clause = false;
+            if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
+                is_alias_clause = true;
+            }
+
+            if (is_alias_clause) {
+                /* Fix the TypeAliasClause scenario first.
+                 * In this case, the TypeTableAlias is provided, we need to
+                 * connect the TypeTableAlias to the TypeColumnAlias.
+                 * Challenge: On the other hand, we need to make sure the number of
+                 * alise column matched the SELECT clause element in the subquery.
+                 * This mapping between the ColumnAlias and the mapped column would
+                 * be solved in the second loop of the cur_stmt_ir_to_fix_vec,
+                 * after all variables (including the subquery ones) are instantiated.
+                 */
+
+                IR *alias_table_ir =
+                        p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                                ir_to_fix, DataTableAliasName);
+                string alias_table_str;
+                if (alias_table_ir != NULL) {
+                    alias_table_str = alias_table_ir->get_str_val();
+                } else {
+                    if (is_debug_info) {
+                        cerr << "\n\n\nError: Cannot find table alias name inside the "
+                                "TypeAliasClause \n\n\n";
+                        ir_to_fix->set_str_val("x");
+                        continue;
+                    }
+                }
+
+                string column_alias_name = gen_column_alias_name();
+                ir_to_fix->set_str_val(column_alias_name);
+
+                m_alias_table2column_single[column_alias_name] = alias_table_str;
+                continue;
+
+            } else {
+                /* Fix the TypeSelectExprs scenario now.
+                 * In this case, the TypeTableAlias is provided, we need to
+                 * connect the TypeTableAlias to the TypeColumnAlias.
+                 * Will map the column_alias_name to the actual column name
+                 * in the second loop of cur_stmt_ir_to_fix_vec.
+                 */
+
+                IR *near_table_ir =
+                        p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                                ir_to_fix, DataTableName);
+                string near_table_str;
+                if (near_table_ir != NULL) {
+                    near_table_str = near_table_ir->get_str_val();
+                } else {
+                    if (is_debug_info) {
+                        cerr << "\n\n\nError: Cannot find table alias name inside the "
+                                "TypeAliasClause \n\n\n";
+                        ir_to_fix->set_str_val("x");
+                        continue;
+                    }
+                }
+
+                string column_alias_name = gen_column_alias_name();
+                ir_to_fix->set_str_val(column_alias_name);
+
+                m_alias_table2column_single[column_alias_name] = near_table_str;
+                continue;
+
+            }
+        }
+    }
+
     /* Fix the Literal inside VALUES clause. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
@@ -2837,7 +2870,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                     "nearby literal: "
                  << near_int_literal_node->to_string()
                  << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(ir_to_fix->get_data_affinity())
+                 << get_string_by_affinity_type(near_int_literal_node->get_data_affinity())
                  << "\n\n\n";
           }
         } else if (near_float_literal_node != NULL &&
@@ -2850,7 +2883,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                     "literal: "
                  << near_float_literal_node->to_string()
                  << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(ir_to_fix->get_data_affinity())
+                 << get_string_by_affinity_type(near_float_literal_node->get_data_affinity())
                  << "\n\n\n";
           }
         } else if (near_string_literal_node != NULL &&
@@ -2863,7 +2896,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                     "literal: "
                  << near_string_literal_node->to_string()
                  << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(ir_to_fix->get_data_affinity())
+                 << get_string_by_affinity_type(near_string_literal_node->get_data_affinity())
                  << "\n\n\n";
           }
         } else {
@@ -3330,7 +3363,7 @@ void Mutator::reset_data_library_single_stmt() {
   this->v_column_alias_names_single.clear();
   this->m_alias2table_single.clear();
   this->m_alias2column_single.clear();
-  this->m_aliastable2column_single.clear();
+  this->m_alias_table2column_single.clear();
 }
 
 void Mutator::reset_data_library() {
