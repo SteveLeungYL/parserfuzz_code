@@ -146,6 +146,22 @@ public:
         return false;
     }
   }
+  inline bool comp_type(IR* cur_node, vector<IRTYPE> v_ir_type) {
+      for (auto& ir_type : v_ir_type) {
+          if (cur_node->get_ir_type() == ir_type) {
+              return true;
+          }
+      }
+      return false;
+  }
+  inline bool comp_type(IR* cur_node, vector<DATATYPE> v_data_type) {
+      for (auto& data_type : v_data_type) {
+          if (cur_node->get_data_type() == data_type) {
+              return true;
+          }
+      }
+      return false;
+  }
 
   // Iterate all the child node from the input cur_node. For each child node,
   // call the handler function from its input function pointer.
@@ -153,9 +169,19 @@ public:
   void iter_cur_node_with_handler(IR* cur_node, handler_t);
 
   // Iterate all the child node from the input cur_node. Left Depth first.
-  template <typename TYPE> IR* iter_cur_node(IR* cur_node, TYPE type);
+  template <typename T, typename U> IR* iter_cur_node(IR* cur_node, T ir_name, U cap_name);
+  template <typename T> IR* iter_cur_node(IR* cur_node, T ir_name) {
+      vector<T> dummy_vec;
+      return this->iter_cur_node(cur_node, ir_name, dummy_vec);
+  };
   // C++ template. The TYPE could be ir_type or data_type.
-  template <typename TYPE> IR* find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type);
+  template <typename T, typename U> IR*
+            find_closest_nearby_IR_with_type(IR* cur_node, T ir_name, U cap_name);
+  template <typename T> IR*
+    find_closest_nearby_IR_with_type(IR* cur_node, T ir_name) {
+      vector<T> dummy_vec;
+      return this->find_closest_nearby_IR_with_type(cur_node, ir_name, dummy_vec);
+    }
 
   template <typename TYPE> bool is_find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type) {
       if (this->find_closest_nearby_IR_with_type(cur_node, ir_type)) {
@@ -171,28 +197,34 @@ private:
 
 // Given current node, iterate through all its child node and see if it can find matches.
 // Return the matched, otherwise return NULL.
-template<typename TYPE> IR* IRWrapper::iter_cur_node(IR* cur_node, TYPE type) {
+template<typename T, typename U> IR* IRWrapper::iter_cur_node(IR* cur_node, T ir_type, U cap_type) {
     // Recursive function.
     // Depth first search.
     if (cur_node == NULL) {
         return NULL;
     }
 
+    if (comp_type(cur_node, cap_type)) {
+        // Encounter the cap_type.
+        // Do not search any further.
+        return NULL;
+    }
+
     // Template. Could be ir_type or data_type.
-    if (this->comp_type(cur_node, type)) {
+    if (this->comp_type(cur_node, ir_type)) {
         return cur_node;
     }
 
     // Check its left and right child node.
     if (cur_node->get_left()) {
-        IR* left_child = iter_cur_node(cur_node->get_left(), type);
+        IR* left_child = iter_cur_node(cur_node->get_left(), ir_type, cap_type);
         if (left_child != NULL) {
             return left_child;
         }
     }
 
     if (cur_node->get_right()) {
-        IR* right_child = iter_cur_node(cur_node->get_right(), type);
+        IR* right_child = iter_cur_node(cur_node->get_right(), ir_type, cap_type);
         if (right_child != NULL) {
             return right_child;
         }
@@ -201,12 +233,13 @@ template<typename TYPE> IR* IRWrapper::iter_cur_node(IR* cur_node, TYPE type) {
     return NULL;
 }
 
-template <typename TYPE>
-IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
+template <typename T, typename U>
+IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, T ir_type, U cap_type){
     // Given one node, find the closest and nearby IR that matches the inputted
     // ir_type.
     // The function would iterate to the parent node and find the closest nearby
     // matched node.
+    // The find function will be stopped if it encounters capType.
 
     if (cur_node == NULL) {
         cerr << "ERROR: Inside the function: find_closest_nearby_IR_with_type, getting "
@@ -221,13 +254,13 @@ IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
 
     IR* ret_node = NULL;
     if (cur_node->get_left()) {
-        ret_node = iter_cur_node(cur_node->get_left(), ir_type);
+        ret_node = iter_cur_node(cur_node->get_left(), ir_type, cap_type);
     }
     if (ret_node != NULL) {
         return ret_node;
     }
     if (cur_node->get_right()) {
-        ret_node = iter_cur_node(cur_node->get_right(), ir_type);
+        ret_node = iter_cur_node(cur_node->get_right(), ir_type, cap_type);
     }
     if (ret_node != NULL) {
         return ret_node;
@@ -238,17 +271,27 @@ IR* IRWrapper::find_closest_nearby_IR_with_type(IR* cur_node, TYPE ir_type){
         return NULL;
     }
 
+    if (comp_type(cur_node->get_parent(), cap_type)) {
+        return NULL;
+    }
+
     do {
         IR* ori_child_node = cur_node;
         cur_node = cur_node->get_parent();
 
+        if (comp_type(cur_node, cap_type)) {
+            // Encounter the cap_type.
+            // Do not search any further.
+            break;
+        }
+
         if (ori_child_node == cur_node->get_left()) {
-            ret_node = this->iter_cur_node(cur_node->get_right(), ir_type);
+            ret_node = this->iter_cur_node(cur_node->get_right(), ir_type, cap_type);
             if (ret_node != NULL) {
                 return ret_node;
             }
         } else { // ori_child_node == cur_node->get_right()
-            ret_node = this->iter_cur_node(cur_node->get_left(), ir_type);
+            ret_node = this->iter_cur_node(cur_node->get_left(), ir_type, cap_type);
             if (ret_node != NULL) {
                 return ret_node;
             }

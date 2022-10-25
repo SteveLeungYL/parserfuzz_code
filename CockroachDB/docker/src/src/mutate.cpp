@@ -2851,54 +2851,28 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         // First, search if we can find a nearby literal that already has the
         // affinity fixed.
 
-        IR *near_int_literal_node =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(
-                ir_to_fix, TypeIntegerLiteral);
-        IR *near_float_literal_node =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(
-                ir_to_fix, TypeFloatLiteral);
-        IR *near_string_literal_node =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(
-                ir_to_fix, TypeStringLiteral);
+        vector<IRTYPE> v_matched_literal_types = {
+                TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral
+        };
+        vector<IRTYPE> v_capped_ir_types = {
+                TypeSelectClause, TypeSelect
+        };
+        IR *near_literal_node =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<vector<IRTYPE>, vector<IRTYPE>>(
+                ir_to_fix, v_matched_literal_types, v_capped_ir_types);
 
-        if (near_int_literal_node != NULL &&
-            near_int_literal_node->get_data_affinity() != AFFIUNKNOWN) {
-          ir_to_fix->set_data_affinity(
-              near_int_literal_node->get_data_affinity());
-          if (is_debug_info) {
-            cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
-                    "nearby literal: "
-                 << near_int_literal_node->to_string()
-                 << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(near_int_literal_node->get_data_affinity())
-                 << "\n\n\n";
-          }
-        } else if (near_float_literal_node != NULL &&
-                   near_float_literal_node->get_data_affinity() !=
-                       AFFIUNKNOWN) {
-          ir_to_fix->set_data_affinity(
-              near_float_literal_node->get_data_affinity());
-          if (is_debug_info) {
-            cerr << "Dependency: INFO: From Literal handling, getting nearby "
-                    "literal: "
-                 << near_float_literal_node->to_string()
-                 << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(near_float_literal_node->get_data_affinity())
-                 << "\n\n\n";
-          }
-        } else if (near_string_literal_node != NULL &&
-                   near_string_literal_node->get_data_affinity() !=
-                       AFFIUNKNOWN) {
-          ir_to_fix->set_data_affinity(
-              near_string_literal_node->get_data_affinity());
-          if (is_debug_info) {
-            cerr << "Dependency: INFO: From Literal handling, getting nearby "
-                    "literal: "
-                 << near_string_literal_node->to_string()
-                 << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(near_string_literal_node->get_data_affinity())
-                 << "\n\n\n";
-          }
+       if (near_literal_node != NULL &&
+           near_literal_node->get_data_affinity() != AFFIUNKNOWN) {
+         ir_to_fix->set_data_affinity(
+             near_literal_node->get_data_affinity());
+         if (is_debug_info) {
+           cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
+                   "nearby literal: "
+                << near_literal_node->to_string()
+                << ", the literal comes with affinity: "
+                << get_string_by_affinity_type(near_literal_node->get_data_affinity())
+                << "\n\n\n";
+         }
         } else {
           // If we end up in this branch, we cannot find a nearby literal that
           // already has fixed affinity. This is expected, such as case: `SELECT

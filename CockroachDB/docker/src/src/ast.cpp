@@ -346,6 +346,8 @@ void IR::set_data_type(DATATYPE data_type) { this->data_type_ = data_type; }
 void IR::set_data_flag(DATAFLAG data_flag) { this->data_flag_ = data_flag; }
 
 void IR::set_data_affinity(DATAAFFINITYTYPE data_affinity) {
+//    cerr << "\n\n\nNode: "<< this->to_string() << ", setting data affinity "
+//                          <<  get_string_by_affinity_type(data_affinity) << "AFFIKNONW.\n\n\n";
     this->data_affinity_type = data_affinity;
     this->data_affinity.set_data_affinity(data_affinity);
 }
