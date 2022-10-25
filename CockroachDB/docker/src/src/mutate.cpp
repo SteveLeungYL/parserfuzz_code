@@ -2800,17 +2800,17 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   near_float_literal_node != NULL &&
                   near_float_literal_node->get_data_affinity() != AFFIUNKNOWN
                   ) {
-              ir_to_fix->set_data_affinity(near_int_literal_node->get_data_affinity());
+              ir_to_fix->set_data_affinity(near_float_literal_node->get_data_affinity());
               cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
-                   << near_int_literal_node->to_string() << ", the literal comes with affinity: "
+                   << near_float_literal_node->to_string() << ", the literal comes with affinity: "
                    << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
           } else if (
                   near_string_literal_node != NULL &&
                   near_string_literal_node->get_data_affinity() != AFFIUNKNOWN
                   ) {
-              ir_to_fix->set_data_affinity(near_int_literal_node->get_data_affinity());
+              ir_to_fix->set_data_affinity(near_string_literal_node->get_data_affinity());
               cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
-                   << near_int_literal_node->to_string() << ", the literal comes with affinity: "
+                   << near_string_literal_node->to_string() << ", the literal comes with affinity: "
                    << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
           } else {
               // If we end up in this branch, we cannot find a nearby literal that already
