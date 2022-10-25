@@ -52,7 +52,6 @@ map<string, string>
 /* A mapping that defines an aliased table name to its resulting column name. */
 map<string, string> Mutator::m_aliastable2column_single;
 
-
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
 
 map<DATAAFFINITYTYPE, vector<string>> Mutator::m_datatype2literals;
@@ -1277,68 +1276,69 @@ void Mutator::fix_preprocessing(IR *stmt_root,
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
 
-string Mutator::find_cloest_table_name(IR* ir_to_fix, bool is_debug_info) {
-    string closest_table_name = "";
-    IR* closest_table_ir = NULL;
-    closest_table_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(ir_to_fix, DataTableName);
-    if (closest_table_ir != NULL) {
-        closest_table_name = closest_table_ir->get_str_val();
-        if (is_debug_info) {
-            cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
-                 << closest_table_name << " for column name. \n\n\n"
-                 << endl;
-        }
-    } else if (v_table_names_single.size() != 0) {
-        closest_table_name =
-                v_table_names_single[get_rand_int(v_table_names_single.size())];
-        if (is_debug_info) {
-            cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
-                 << closest_table_name << " for column name origin. \n\n\n"
-                 << endl;
-        }
-    } else if (v_create_table_names_single.size() != 0) {
-        closest_table_name = v_create_table_names_single[0];
-        if (is_debug_info) {
-            cerr << "Dependency: In kUse of kDataColumnName, find newly "
-                    "declared table name: "
-                 << closest_table_name << " for column name origin. \n\n\n"
-                 << endl;
-        }
-    } else if (v_table_alias_names_single.size() != 0) {
-        ir_to_fix->str_val_ = v_table_alias_names_single[get_rand_int(
-                v_table_alias_names_single.size())];
-        if (is_debug_info) {
-            cerr << "Dependency: In kUse of kDataColumnName, use alias name as "
-                    "the column name. Use alias name: "
-                 << ir_to_fix->str_val_ << " for column name. \n\n\n"
-                 << endl;
-        }
-        // Finished assigning column name. continue;
-        ir_to_fix->set_is_instantiated(true);
-        return "";
-    } else if (v_table_names.size() != 0) {
+string Mutator::find_cloest_table_name(IR *ir_to_fix, bool is_debug_info) {
+  string closest_table_name = "";
+  IR *closest_table_ir = NULL;
+  closest_table_ir =
+      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+          ir_to_fix, DataTableName);
+  if (closest_table_ir != NULL) {
+    closest_table_name = closest_table_ir->get_str_val();
+    if (is_debug_info) {
+      cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
+           << closest_table_name << " for column name. \n\n\n"
+           << endl;
+    }
+  } else if (v_table_names_single.size() != 0) {
+    closest_table_name =
+        v_table_names_single[get_rand_int(v_table_names_single.size())];
+    if (is_debug_info) {
+      cerr << "Dependency: In ContextUse of kDataColumnName, find table name: "
+           << closest_table_name << " for column name origin. \n\n\n"
+           << endl;
+    }
+  } else if (v_create_table_names_single.size() != 0) {
+    closest_table_name = v_create_table_names_single[0];
+    if (is_debug_info) {
+      cerr << "Dependency: In kUse of kDataColumnName, find newly "
+              "declared table name: "
+           << closest_table_name << " for column name origin. \n\n\n"
+           << endl;
+    }
+  } else if (v_table_alias_names_single.size() != 0) {
+    ir_to_fix->str_val_ = v_table_alias_names_single[get_rand_int(
+        v_table_alias_names_single.size())];
+    if (is_debug_info) {
+      cerr << "Dependency: In kUse of kDataColumnName, use alias name as "
+              "the column name. Use alias name: "
+           << ir_to_fix->str_val_ << " for column name. \n\n\n"
+           << endl;
+    }
+    // Finished assigning column name. continue;
+    ir_to_fix->set_is_instantiated(true);
+    return "";
+  } else if (v_table_names.size() != 0) {
 
-        /* This should be an error.
-        ** 80% chances, keep original.
-        ** 20%, use predefined table name.
-        */
-        if (get_rand_int(5) < 4) {
-            ir_to_fix->set_is_instantiated(true);
-            return "";
-        }
-
-        closest_table_name =
-                v_table_names[get_rand_int(v_table_names.size())];
-        if (is_debug_info) {
-            cerr << "Dependency Error: In kUse of kDataColumnName, cannot find "
-                    "v_table_names_single. Thus find from v_table_name "
-                    "instead. Use table name: "
-                 << closest_table_name << " for column name origin. \n\n\n"
-                 << endl;
-        }
+    /* This should be an error.
+    ** 80% chances, keep original.
+    ** 20%, use predefined table name.
+    */
+    if (get_rand_int(5) < 4) {
+      ir_to_fix->set_is_instantiated(true);
+      return "";
     }
 
-    return closest_table_name;
+    closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
+    if (is_debug_info) {
+      cerr << "Dependency Error: In kUse of kDataColumnName, cannot find "
+              "v_table_names_single. Thus find from v_table_name "
+              "instead. Use table name: "
+           << closest_table_name << " for column name origin. \n\n\n"
+           << endl;
+    }
+  }
+
+  return closest_table_name;
 }
 
 bool Mutator::fix_dependency(IR *cur_stmt_root,
@@ -1884,21 +1884,25 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           closest_table_name = closest_table_ir->get_str_val();
         } else if (v_table_names_single.size() != 0) {
           if (is_debug_info) {
-            cerr << "Error: Dependency: When handling the DataTableAliasName, "
-                    "cannot find the table name nearby the ir_to_fix(). ";
-            cerr << "\n More debugging information: cur node: "
+            cerr << "\n\n\nError: Dependency: When handling the "
+                    "DataTableAliasName, "
+                    "cannot find the table name nearby the ir_to_fix(). \n\n\n";
+            cerr << "\n\n\n More debugging information: cur node: "
                  << ir_to_fix->to_string()
-                 << "; whole statement: " << cur_stmt_root->to_string();
+                 << "; whole statement: " << cur_stmt_root->to_string()
+                 << "\n\n\n";
           }
           closest_table_name =
               v_table_names_single[get_rand_int(v_table_names_single.size())];
         } else if (v_create_table_names_single.size() != 0) {
           if (is_debug_info) {
-            cerr << "Error: Dependency: When handling the DataTableAliasName, "
-                    "cannot find the table name nearby the ir_to_fix(). ";
-            cerr << "\n More debugging information: cur node: "
+            cerr << "\n\n\nError: Dependency: When handling the "
+                    "DataTableAliasName, "
+                    "cannot find the table name nearby the ir_to_fix(). \n\n\n";
+            cerr << "\n\n\n More debugging information: cur node: "
                  << ir_to_fix->to_string()
-                 << "; whole statement: " << cur_stmt_root->to_string();
+                 << "; whole statement: " << cur_stmt_root->to_string()
+                 << "\n\n\n";
           }
           closest_table_name = v_create_table_names_single[0];
           if (is_debug_info) {
@@ -2125,7 +2129,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-
     /* kDefine and kReplace of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
@@ -2205,47 +2208,54 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
         m_table2columns[closest_table_name].push_back(new_name);
 
-        /* Next, fix the data type of the Column name. Map it to the column name. */
-        // The closest type to the current fixed node should be the one that define the column type.
-        IR* data_type_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(ir_to_fix, DataTypeName);
+        /* Next, fix the data type of the Column name. Map it to the column
+         * name. */
+        // The closest type to the current fixed node should be the one that
+        // define the column type.
+        IR *data_type_node =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                ir_to_fix, DataTypeName);
         if (data_type_node != NULL) {
-            DATAAFFINITYTYPE data_affinity = get_data_affinity_by_string(data_type_node->get_str_val());
-            DataAffinity data_affi;
-            data_affi.set_data_affinity(data_affinity);
-            m_column2datatype[new_name] = data_affi;
+          DATAAFFINITYTYPE data_affinity =
+              get_data_affinity_by_string(data_type_node->get_str_val());
+          DataAffinity data_affi;
+          data_affi.set_data_affinity(data_affinity);
+          m_column2datatype[new_name] = data_affi;
         } else {
-            if(is_debug_info) {
-                cerr << "Error: In a DataColumn ContextDefine, failed to find the data type identifier that defined the "
-                        "column data type. Use default AFFISTRING. \n\n\n";
-            }
-            DataAffinity data_affi;
-            data_affi.set_data_affinity(AFFISTRING);
-            m_column2datatype[new_name] = data_affi;
+          if (is_debug_info) {
+            cerr << "Error: In a DataColumn ContextDefine, failed to find the "
+                    "data type identifier that defined the "
+                    "column data type. Use default AFFISTRING. \n\n\n";
+          }
+          DataAffinity data_affi;
+          data_affi.set_data_affinity(AFFISTRING);
+          m_column2datatype[new_name] = data_affi;
         }
-
 
         /* ContextUndefine scenario of the DataColumnName */
       } else if (ir_to_fix->data_type_ == DataColumnName &&
                  ir_to_fix->data_flag_ == ContextUndefine) {
-          /* Find the table_name in the query first. */
-          string closest_table_name = "";
-          IR* closest_table_ir = NULL;
-          closest_table_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type
-                  (ir_to_fix, DataTableName);
-          if (closest_table_ir != NULL) {
-                closest_table_name = closest_table_ir->get_str_val();
-                if (is_debug_info) {
-                    cerr << "Dependency: For removing DataColumnName, we find "
-                            "closest_table_ir: " << closest_table_name << "\n\n\n";
-                }
-          } else if (v_table_names_single.size() != 0) {
-              closest_table_name = v_table_names_single[0];
-              if (is_debug_info) {
-                cerr << "Dependency: For removing kDataColumnName: we find "
-                        "v_table_names_single: "
-                     << closest_table_name << "\n\n\n";
-              }
+        /* Find the table_name in the query first. */
+        string closest_table_name = "";
+        IR *closest_table_ir = NULL;
+        closest_table_ir =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+                ir_to_fix, DataTableName);
+        if (closest_table_ir != NULL) {
+          closest_table_name = closest_table_ir->get_str_val();
+          if (is_debug_info) {
+            cerr << "Dependency: For removing DataColumnName, we find "
+                    "closest_table_ir: "
+                 << closest_table_name << "\n\n\n";
           }
+        } else if (v_table_names_single.size() != 0) {
+          closest_table_name = v_table_names_single[0];
+          if (is_debug_info) {
+            cerr << "Dependency: For removing kDataColumnName: we find "
+                    "v_table_names_single: "
+                 << closest_table_name << "\n\n\n";
+          }
+        }
         if (closest_table_name == "" || closest_table_name == "x" ||
             closest_table_name == "y") {
           if (is_debug_info) {
@@ -2279,7 +2289,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           ir_to_fix->set_is_instantiated(true);
           continue;
         }
-        string removed_column_name = column_vec[get_rand_int(column_vec.size())];
+        string removed_column_name =
+            column_vec[get_rand_int(column_vec.size())];
         column_vec.erase(std::remove(column_vec.begin(), column_vec.end(),
                                      removed_column_name),
                          column_vec.end());
@@ -2296,167 +2307,176 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
 
-      /* Fix the Data Type identifiers. Must be done after ContextDefine of DataColumnName. */
-      for (IR *ir_to_fix : ir_to_fix_vec) {
-          if (ir_to_fix->get_is_instantiated()) {
-              continue;
+    /* Fix the Data Type identifiers. Must be done after ContextDefine of
+     * DataColumnName. */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_is_instantiated()) {
+        continue;
+      }
+      IRTYPE type = ir_to_fix->get_ir_type();
+      DATATYPE data_type = ir_to_fix->get_data_type();
+      DATAFLAG data_flag = ir_to_fix->get_data_flag();
+
+      if (type == TypeIdentifier && data_type == DataTypeName &&
+          data_flag == ContextDefine) {
+        // Handling of the Column Data Type definition.
+        // Use basic types.
+        auto tmp_affi_type = get_random_affinity_type();
+        string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
+
+        ir_to_fix->set_str_val(tmp_affi_type_str);
+        if (is_debug_info) {
+          cerr << "\nFor data type definition, getting new data type: "
+               << tmp_affi_type_str << "\n\n\n";
+        }
+
+        if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
+            ir_to_fix->get_parent()->get_left()->get_data_type() ==
+                DataColumnName) {
+          DataAffinity cur_data_affi;
+          cur_data_affi.set_data_affinity(tmp_affi_type);
+          string column_str =
+              ir_to_fix->get_parent()->get_left()->get_str_val();
+          this->m_column2datatype[column_str] = cur_data_affi;
+          if (is_debug_info) {
+            cerr << "\nAttach data affinity: "
+                 << get_string_by_affinity_type(
+                        cur_data_affi.get_data_affinity())
+                 << " to column: " << column_str << ". \n\n\n";
           }
-          IRTYPE type = ir_to_fix->get_ir_type();
-          DATATYPE data_type = ir_to_fix->get_data_type();
-          DATAFLAG data_flag = ir_to_fix->get_data_flag();
+        }
+      }
+    }
 
-          if (type == TypeIdentifier && data_type == DataTypeName &&
-              data_flag == ContextDefine) {
-              // Handling of the Column Data Type definition.
-              // Use basic types.
-              auto tmp_affi_type = get_random_affinity_type();
-              string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
-
-              ir_to_fix->set_str_val(tmp_affi_type_str);
-              if (is_debug_info) {
-                  cerr << "\nFor data type definition, getting new data type: "
-                       << tmp_affi_type_str << "\n\n\n";
-              }
-
-              if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
-                  ir_to_fix->get_parent()->get_left()->get_data_type() ==
-                  DataColumnName) {
-                  DataAffinity cur_data_affi;
-                  cur_data_affi.set_data_affinity(tmp_affi_type);
-                  string column_str =
-                          ir_to_fix->get_parent()->get_left()->get_str_val();
-                  this->m_column2datatype[column_str] = cur_data_affi;
-                  if (is_debug_info) {
-                      cerr << "\nAttach data affinity: "
-                           << get_string_by_affinity_type(
-                                   cur_data_affi.get_data_affinity())
-                           << " to column: " << column_str << ". \n\n\n";
-                  }
-              }
-          }
+    /* For ContextUse of DataColumnName.
+     * Special case, avoid using duplicated column names
+     * in the TypeNameList clause.
+     * */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_is_instantiated()) {
+        continue;
       }
 
-      /* For ContextUse of DataColumnName.
-       * Special case, avoid using duplicated column names
-       * in the TypeNameList clause.
-       * */
-      for (IR *ir_to_fix : ir_to_fix_vec) {
-          if (ir_to_fix->get_is_instantiated()) {
-              continue;
+      if (ir_to_fix->data_type_ == DataColumnName &&
+          ir_to_fix->data_flag_ == ContextUse) {
+
+        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
+          // Ignore the case that is not in TypeNameList.
+          continue;
+        }
+
+        if (is_debug_info) {
+          cerr << "\n\n\nHandling with column name inside the TypeNameList. "
+                  "Column Name: "
+               << ir_to_fix->to_string() << ". \n\n\n";
+        }
+
+        ir_to_fix->set_is_instantiated(true);
+
+        IR *name_list = p_oracle->ir_wrapper.get_parent_node_with_type(
+            ir_to_fix, TypeNameList);
+        IR *name_list_left_child = name_list->get_left();
+        IR *name_list_right_child = name_list->get_right();
+        if (name_list_left_child != nullptr) {
+          ir_to_deep_drop.push_back(name_list_left_child);
+        }
+        if (name_list_right_child != nullptr) {
+          ir_to_deep_drop.push_back(name_list_right_child);
+        }
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+            name_list, [](IR *cur_node) -> void {
+              cur_node->set_is_instantiated(true);
+              cur_node->set_data_flag(ContextNoModi);
+            });
+        name_list->update_left(nullptr);
+        name_list->update_right(nullptr);
+
+        string closest_table_name =
+            this->find_cloest_table_name(name_list, is_debug_info);
+
+        if (closest_table_name == "" || closest_table_name == "x" ||
+            closest_table_name == "y") {
+          if (is_debug_info) {
+            cerr << "Dependency Error: Cannot find the closest_table_name from "
+                    "the query. Error cloest_table_name is: "
+                 << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+            continue;
           }
+        }
 
-          if (ir_to_fix->data_type_ == DataColumnName &&
-              ir_to_fix->data_flag_ == ContextUse) {
-
-              if ( !(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)) ) {
-                  // Ignore the case that is not in TypeNameList.
-                  continue;
-              }
-
-              if (is_debug_info) {
-                  cerr << "\n\n\nHandling with column name inside the TypeNameList. Column Name: "
-                       << ir_to_fix->to_string() << ". \n\n\n";
-              }
-
-              ir_to_fix->set_is_instantiated(true);
-
-              IR* name_list = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
-              IR* name_list_left_child = name_list->get_left();
-              IR* name_list_right_child = name_list->get_right();
-              if (name_list_left_child != nullptr) {
-                  ir_to_deep_drop.push_back(name_list_left_child);
-              }
-              if (name_list_right_child != nullptr) {
-                  ir_to_deep_drop.push_back(name_list_right_child);
-              }
-              p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                      name_list, [](IR* cur_node) -> void {
-                          cur_node->set_is_instantiated(true);
-                          cur_node->set_data_flag(ContextNoModi);
-                      });
-              name_list->update_left(nullptr);
-              name_list->update_right(nullptr);
-
-              string closest_table_name = this->find_cloest_table_name(name_list, is_debug_info);
-
-
-              if (closest_table_name == "" || closest_table_name == "x" ||
-                  closest_table_name == "y") {
-                  if (is_debug_info) {
-                      cerr << "Dependency Error: Cannot find the closest_table_name from "
-                              "the query. Error cloest_table_name is: "
-                           << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-                      continue;
-                  }
-              }
-
-              vector<string> v_used_column_str;
-              vector<string> v_column_names_from_table = m_table2columns[closest_table_name];
-              if (v_column_names_from_table.size() == 0) {
-                  if (is_debug_info) {
-                      cerr << "Dependency Error: Cannot find mapping from table name to column name. "
-                              "Find the closest_table_name from "
-                              "the query. Cloest_table_name is: "
-                           << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-                      continue;
-                  }
-              }
-              int max_values_clause_len = v_column_names_from_table.size();
-
-              vector<IR*> v_new_column_list_node;
-              string ret_str = "";
-              for (int idx = 0; idx < max_values_clause_len;) {
-                  string new_rand_column = "";
-                  do {
-                      new_rand_column = vector_rand_ele(v_column_names_from_table);
-                  } while (find(v_used_column_str.begin(), v_used_column_str.end(), new_rand_column)
-                            != v_used_column_str.end());
-                  if (is_debug_info) {
-                      cerr << "\n\n\n When reconstructing the column names inside the TypeNameList, "
-                           << ", getting random column name: " << new_rand_column << "\n\n\n";
-                  }
-                  v_used_column_str.push_back(new_rand_column);
-
-                  IR* new_column_node = new IR(TypeIdentifier, string(new_rand_column),
-                                               DataColumnName, ContextNoModi);
-
-                  v_new_column_list_node.push_back(new_column_node);
-
-                  idx++;
-                  if (get_rand_int(5) == 0) {
-                      // 1/5 chances, drop the value clause and no need for whole length typelist.
-                      break;
-                  }
-              }
-
-              IR* new_name_list_expr = NULL;
-
-              for (int idx = 0; idx < v_new_column_list_node.size(); idx++) {
-                  if (idx == 1) {
-                      continue;
-                  } else if (idx == 0) {
-                      IR *LNode = v_new_column_list_node[0];
-                      IR *RNode = nullptr;
-                      string infix = "";
-                      if (v_new_column_list_node.size() >= 2) {
-                          RNode = v_new_column_list_node[1];
-                          infix = ", ";
-                      }
-                      new_name_list_expr = new IR(TypeUnknown, OP3("", infix, ""), LNode, RNode);
-                  } else {
-                      // idx > 2
-                      IR* LNode = new_name_list_expr;
-                      IR* RNode = v_new_column_list_node[idx];
-
-                      new_name_list_expr = new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
-                  }
-              }
-              new_name_list_expr->set_ir_type(TypeNameList);
-              name_list->update_left(new_name_list_expr);
-              name_list->op_->middle_ = "";
+        vector<string> v_used_column_str;
+        vector<string> v_column_names_from_table =
+            m_table2columns[closest_table_name];
+        if (v_column_names_from_table.size() == 0) {
+          if (is_debug_info) {
+            cerr << "Dependency Error: Cannot find mapping from table name to "
+                    "column name. "
+                    "Find the closest_table_name from "
+                    "the query. Cloest_table_name is: "
+                 << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+            continue;
           }
+        }
+        int max_values_clause_len = v_column_names_from_table.size();
+
+        vector<IR *> v_new_column_list_node;
+        string ret_str = "";
+        for (int idx = 0; idx < max_values_clause_len;) {
+          string new_rand_column = "";
+          do {
+            new_rand_column = vector_rand_ele(v_column_names_from_table);
+          } while (find(v_used_column_str.begin(), v_used_column_str.end(),
+                        new_rand_column) != v_used_column_str.end());
+          if (is_debug_info) {
+            cerr << "\n\n\n When reconstructing the column names inside the "
+                    "TypeNameList, "
+                 << ", getting random column name: " << new_rand_column
+                 << "\n\n\n";
+          }
+          v_used_column_str.push_back(new_rand_column);
+
+          IR *new_column_node = new IR(TypeIdentifier, string(new_rand_column),
+                                       DataColumnName, ContextNoModi);
+
+          v_new_column_list_node.push_back(new_column_node);
+
+          idx++;
+          if (get_rand_int(5) == 0) {
+            // 1/5 chances, drop the value clause and no need for whole length
+            // typelist.
+            break;
+          }
+        }
+
+        IR *new_name_list_expr = NULL;
+
+        for (int idx = 0; idx < v_new_column_list_node.size(); idx++) {
+          if (idx == 1) {
+            continue;
+          } else if (idx == 0) {
+            IR *LNode = v_new_column_list_node[0];
+            IR *RNode = nullptr;
+            string infix = "";
+            if (v_new_column_list_node.size() >= 2) {
+              RNode = v_new_column_list_node[1];
+              infix = ", ";
+            }
+            new_name_list_expr =
+                new IR(TypeUnknown, OP3("", infix, ""), LNode, RNode);
+          } else {
+            // idx > 2
+            IR *LNode = new_name_list_expr;
+            IR *RNode = v_new_column_list_node[idx];
+
+            new_name_list_expr =
+                new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
+          }
+        }
+        new_name_list_expr->set_ir_type(TypeNameList);
+        name_list->update_left(new_name_list_expr);
+        name_list->op_->middle_ = "";
       }
-
+    }
 
     /* kUse of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -2466,18 +2486,19 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
       if (ir_to_fix->data_type_ == DataColumnName &&
           ir_to_fix->data_flag_ == ContextUse) {
-          if (is_debug_info) {
-              cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
-                   << "\n\n\n";
-              cerr << "In the kDataColumnName with kUse, found "
-                      "v_table_alias_names_single.size: "
-                   << v_table_alias_names_single.size() << "\n\n\n";
-          }
+        if (is_debug_info) {
+          cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
+               << "\n\n\n";
+          cerr << "In the kDataColumnName with kUse, found "
+                  "v_table_alias_names_single.size: "
+               << v_table_alias_names_single.size() << "\n\n\n";
+        }
 
-          ir_to_fix->set_is_instantiated(true);
+        ir_to_fix->set_is_instantiated(true);
 
-          // Actual random mutation of the ColumnName. ContextUse.
-          string closest_table_name = this->find_cloest_table_name(ir_to_fix, is_debug_info);
+        // Actual random mutation of the ColumnName. ContextUse.
+        string closest_table_name =
+            this->find_cloest_table_name(ir_to_fix, is_debug_info);
 
         if (closest_table_name == "" || closest_table_name == "x" ||
             closest_table_name == "y") {
@@ -2498,8 +2519,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             continue;
           }
           /* Unreconized, keep original */
-          // ir_to_fix->str_val_ = "y";
-          // return false;
           ir_to_fix->set_is_instantiated(true);
           continue;
         }
@@ -2586,283 +2605,331 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //
     //      }
 
-
     /* Fix the Literal inside VALUES clause. */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-        if (ir_to_fix->get_is_instantiated()) {
-            continue;
-        }
-
-        IRTYPE type = ir_to_fix->get_ir_type();
-
-        if (type == TypeFloatLiteral || type == TypeStringLiteral ||
-            type == TypeIntegerLiteral) {
-            /* Completely rewritten Literal handling and mutation logic.
-             * The idea is to search for the closest Column Name or fixed literals,
-             * and try to match the type of the column name or literal.
-             * */
-
-            if (! p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
-                // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
-                // branch. These literals would be handled later by the next `Fix for literals`
-                // loop.
-                /* Do not set the is_instantiated flag. */
-                continue;
-            }
-
-            // Handle the ValuesClause.
-            // Get the TypeValuesClause first.
-            IR* values_clause_node = p_oracle->ir_wrapper
-                    .get_parent_node_with_type(ir_to_fix, TypeValuesClause);
-
-            // Remove the original expressions.
-            IR* values_expr_node = values_clause_node->get_left();
-            values_clause_node->update_left(nullptr);
-            // Avoid further handling of the child node from `TypeValueClauses`
-            p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                    values_expr_node, [](IR* cur_node) -> void {
-                        cur_node->set_is_instantiated(true);
-                        cur_node->set_data_flag(ContextNoModi);
-                    });
-            ir_to_deep_drop.push_back(values_expr_node);
-            if (is_debug_info) {
-                cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause expression:"
-                     << values_expr_node->to_string() << "\n\n\n";
-            }
-
-
-            /* Reconstruct the new Value clause that matched the referenced table. */
-
-            // Search whether there are referenced columns in the `TypeNameList`.
-            // If there is, should be the first TypeNameList from the statement.
-            vector<IR*> v_type_name_list = p_oracle->ir_wrapper
-                    .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeNameList, false);
-
-            vector<DataAffinity> referencing_affinity;
-            if (v_type_name_list.size() == 0) {
-                // Cannot find a specifically referenced column name list.
-                // Use the referenced table name to refer to the column name list.
-                if (is_debug_info) {
-                    cerr << "\n\n\nDependency: Cannot find the column name list from the statement. \n\n\n";
-                }
-
-                // Find the table name used in this statement.
-                if (v_table_names_single.size() == 0) {
-                    if (is_debug_info) {
-                        cerr << "\n\n\nERROR: Cannot find the column name list AND table name from the statement. \n\n\n";
-                    }
-                    DataAffinity cur_affi;
-                    cur_affi.set_data_affinity(AFFISTRING);
-                    referencing_affinity.push_back(cur_affi);
-                } else {
-                    // Found the table name referenced from the statement.
-                    if (is_debug_info) {
-                        cerr << "\n\n\nFound the table name referenced from the statement, "
-                                "table name: " << v_table_names_single.front() << ". \n\n\n";
-                    }
-                    string cur_table_name = v_table_names_single.front();
-                    const vector<string>& column_list = m_table2columns[cur_table_name];
-                    for (const string& cur_column_str : column_list ) {
-                        if (m_column2datatype.count(cur_column_str)) {
-                            DataAffinity cur_affi = m_column2datatype[cur_column_str];
-                            referencing_affinity.push_back(cur_affi);
-                            if (is_debug_info) {
-                                cerr << "\n\n\nMatching column: " << cur_column_str << " from table: "
-                                     << cur_table_name
-                                     << " with data type: "
-                                     << get_string_by_affinity_type(cur_affi.get_data_affinity())
-                                     << "\n\n\n";
-                            }
-                        } else {
-                            DataAffinity cur_affi;
-                            cur_affi.set_data_affinity(AFFISTRING);
-                            referencing_affinity.push_back(cur_affi);
-                            if (is_debug_info) {
-                                cerr << "\n\n\n Cannot find matching column types: "
-                                     << cur_column_str << ". Using dummy AFFISTRING instead. "
-                                     << "\n\n\n";
-                            }
-                        }
-                    }
-                }
-            } else {
-                if (is_debug_info) {
-                    cerr << "\n\n\nDependency: Find the column name list from the stmt:"
-                            << v_type_name_list.front()->to_string() << ". \n\n\n";
-                }
-
-                IR* type_list_node = v_type_name_list.front();
-                vector<IR*> v_column_node = p_oracle->ir_wrapper
-                        .get_ir_node_in_stmt_with_type(type_list_node, DataColumnName, false);
-//                cerr << "\n\n\nDEBUG:::: Getting v_column_node size: " << v_column_node.size() << "\n\n\n";
-                for (IR* cur_column_node : v_column_node) {
-                    string cur_column_str = cur_column_node->get_str_val();
-                    if (m_column2datatype.count(cur_column_str)) {
-                        DataAffinity cur_affi = m_column2datatype[cur_column_str];
-                        referencing_affinity.push_back(cur_affi);
-                        if (is_debug_info) {
-                            cerr << "\n\n\nMatching column: " << cur_column_str << " with data type: "
-                                 << get_string_by_affinity_type(cur_affi.get_data_affinity())
-                                 << "\n\n\n";
-                        }
-                    } else {
-                        DataAffinity cur_affi;
-                        cur_affi.set_data_affinity(AFFISTRING);
-                        referencing_affinity.push_back(cur_affi);
-                        if (is_debug_info) {
-                            cerr << "\n\n\n Cannot find matching column types: "
-                                 << cur_column_str << ". Using dummy AFFISTRING instead. "
-                                 << "\n\n\n";
-                        }
-                    }
-                }
-            }
-
-            // After we get a list of referencing_affinity, we can now begin to fill in the ValuesClause expression.
-            string ret_str = "";
-            int idx = 0;
-            for (DataAffinity& cur_affi : referencing_affinity) {
-                if (idx != 0) {
-                    ret_str += ", ";
-                }
-                ret_str += cur_affi.get_mutated_literal();
-                idx++;
-            }
-            IR* new_values_expr_node = new IR(TypeStringLiteral, ret_str);
-            new_values_expr_node->set_is_instantiated(true);
-
-            values_clause_node->update_left(new_values_expr_node);
-
-            if (is_debug_info) {
-                cerr << "\n\n\nDependency: getting new valuesclause expression: "
-                     << new_values_expr_node->to_string() << ". \n\n\n";
-            }
-
-        }
-    } /* for (IR* ir_to_fix : ir_to_fix_vec) */
-
-    /* The next loop to handle all the Literals, after setting all literals to AFFIUNKNOWN. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
       }
 
+      IRTYPE type = ir_to_fix->get_ir_type();
+
+      if (type == TypeFloatLiteral || type == TypeStringLiteral ||
+          type == TypeIntegerLiteral) {
+        /* Completely rewritten Literal handling and mutation logic.
+         * The idea is to search for the closest Column Name or fixed literals,
+         * and try to match the type of the column name or literal.
+         * */
+
+        if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
+          // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
+          // branch. These literals would be handled later by the next `Fix for
+          // literals` loop.
+          /* Do not set the is_instantiated flag. */
+          continue;
+        }
+
+        // Handle the ValuesClause.
+        // Get the TypeValuesClause first.
+        IR *values_clause_node = p_oracle->ir_wrapper.get_parent_node_with_type(
+            ir_to_fix, TypeValuesClause);
+
+        // Remove the original expressions.
+        IR *values_expr_node = values_clause_node->get_left();
+        values_clause_node->update_left(nullptr);
+        // Avoid further handling of the child node from `TypeValueClauses`
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+            values_expr_node, [](IR *cur_node) -> void {
+              cur_node->set_is_instantiated(true);
+              cur_node->set_data_flag(ContextNoModi);
+            });
+        ir_to_deep_drop.push_back(values_expr_node);
+        if (is_debug_info) {
+          cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
+                  "expression:"
+               << values_expr_node->to_string() << "\n\n\n";
+        }
+
+        /* Reconstruct the new Value clause that matched the referenced table.
+         */
+
+        // Search whether there are referenced columns in the `TypeNameList`.
+        // If there is, should be the first TypeNameList from the statement.
+        vector<IR *> v_type_name_list =
+            p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                cur_stmt_root, TypeNameList, false);
+
+        vector<DataAffinity> referencing_affinity;
+        if (v_type_name_list.size() == 0) {
+          // Cannot find a specifically referenced column name list.
+          // Use the referenced table name to refer to the column name list.
+          if (is_debug_info) {
+            cerr << "\n\n\nDependency: Cannot find the column name list from "
+                    "the statement. \n\n\n";
+          }
+
+          // Find the table name used in this statement.
+          if (v_table_names_single.size() == 0) {
+            if (is_debug_info) {
+              cerr << "\n\n\nERROR: Cannot find the column name list AND table "
+                      "name from the statement. \n\n\n";
+            }
+            DataAffinity cur_affi;
+            cur_affi.set_data_affinity(AFFISTRING);
+            referencing_affinity.push_back(cur_affi);
+          } else {
+            // Found the table name referenced from the statement.
+            if (is_debug_info) {
+              cerr << "\n\n\nFound the table name referenced from the "
+                      "statement, "
+                      "table name: "
+                   << v_table_names_single.front() << ". \n\n\n";
+            }
+            string cur_table_name = v_table_names_single.front();
+            const vector<string> &column_list = m_table2columns[cur_table_name];
+            for (const string &cur_column_str : column_list) {
+              if (m_column2datatype.count(cur_column_str)) {
+                DataAffinity cur_affi = m_column2datatype[cur_column_str];
+                referencing_affinity.push_back(cur_affi);
+                if (is_debug_info) {
+                  cerr << "\n\n\nMatching column: " << cur_column_str
+                       << " from table: " << cur_table_name
+                       << " with data type: "
+                       << get_string_by_affinity_type(
+                              cur_affi.get_data_affinity())
+                       << "\n\n\n";
+                }
+              } else {
+                DataAffinity cur_affi;
+                cur_affi.set_data_affinity(AFFISTRING);
+                referencing_affinity.push_back(cur_affi);
+                if (is_debug_info) {
+                  cerr << "\n\n\n Cannot find matching column types: "
+                       << cur_column_str << ". Using dummy AFFISTRING instead. "
+                       << "\n\n\n";
+                }
+              }
+            }
+          }
+        } else {
+          if (is_debug_info) {
+            cerr << "\n\n\nDependency: Find the column name list from the stmt:"
+                 << v_type_name_list.front()->to_string() << ". \n\n\n";
+          }
+
+          IR *type_list_node = v_type_name_list.front();
+          vector<IR *> v_column_node =
+              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                  type_list_node, DataColumnName, false);
+          //                cerr << "\n\n\nDEBUG:::: Getting v_column_node size:
+          //                " << v_column_node.size() << "\n\n\n";
+          for (IR *cur_column_node : v_column_node) {
+            string cur_column_str = cur_column_node->get_str_val();
+            if (m_column2datatype.count(cur_column_str)) {
+              DataAffinity cur_affi = m_column2datatype[cur_column_str];
+              referencing_affinity.push_back(cur_affi);
+              if (is_debug_info) {
+                cerr << "\n\n\nMatching column: " << cur_column_str
+                     << " with data type: "
+                     << get_string_by_affinity_type(
+                            cur_affi.get_data_affinity())
+                     << "\n\n\n";
+              }
+            } else {
+              DataAffinity cur_affi;
+              cur_affi.set_data_affinity(AFFISTRING);
+              referencing_affinity.push_back(cur_affi);
+              if (is_debug_info) {
+                cerr << "\n\n\n Cannot find matching column types: "
+                     << cur_column_str << ". Using dummy AFFISTRING instead. "
+                     << "\n\n\n";
+              }
+            }
+          }
+        }
+
+        // After we get a list of referencing_affinity, we can now begin to fill
+        // in the ValuesClause expression.
+        string ret_str = "";
+        int idx = 0;
+        for (DataAffinity &cur_affi : referencing_affinity) {
+          if (idx != 0) {
+            ret_str += ", ";
+          }
+          ret_str += cur_affi.get_mutated_literal();
+          idx++;
+        }
+        IR *new_values_expr_node = new IR(TypeStringLiteral, ret_str);
+        new_values_expr_node->set_is_instantiated(true);
+
+        values_clause_node->update_left(new_values_expr_node);
+
+        if (is_debug_info) {
+          cerr << "\n\n\nDependency: getting new valuesclause expression: "
+               << new_values_expr_node->to_string() << ". \n\n\n";
+        }
+      }
+    } /* for (IR* ir_to_fix : ir_to_fix_vec) */
+
+    /* The next loop to handle all the Literals, after setting all literals to
+     * AFFIUNKNOWN. */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_is_instantiated()) {
+        continue;
+      }
 
       IRTYPE type = ir_to_fix->get_ir_type();
 
       if (type == TypeFloatLiteral || type == TypeStringLiteral ||
           type == TypeIntegerLiteral) {
-          /* Continue from the previous loop, we now search around the ir_to_fix
-           * and see if we can find column name or literals that can help deduce
-           * Data Affinity.
-           * */
+        /* Continue from the previous loop, we now search around the ir_to_fix
+         * and see if we can find column name or literals that can help deduce
+         * Data Affinity.
+         * */
 
-          ir_to_fix->set_is_instantiated(true);
+        ir_to_fix->set_is_instantiated(true);
 
+        if (is_debug_info) {
+          cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string()
+               << "\n\n\n";
+        }
+
+        // If the literal already has fixed data affinity type, skip the
+        // mutation.
+        if (ir_to_fix->get_data_flag() == ContextNoModi) {
           if (is_debug_info) {
-              cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string() << "\n\n\n";
+            cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string()
+                 << " because it has "
+                    "flag ContextNoModi. \n\n\n";
           }
+          continue;
+        }
+        //          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+        //              continue;
+        //          }
 
-          // If the literal already has fixed data affinity type, skip the mutation.
-          if (ir_to_fix->get_data_flag() == ContextNoModi) {
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
+          // Do not mutate the literals inside the SET statement.
+          // The set statement's literal has already been fixed when introduced.
+          continue;
+        }
+
+        // First, search if we can find a nearby literal that already has the
+        // affinity fixed.
+
+        IR *near_int_literal_node =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(
+                ir_to_fix, TypeIntegerLiteral);
+        IR *near_float_literal_node =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(
+                ir_to_fix, TypeFloatLiteral);
+        IR *near_string_literal_node =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(
+                ir_to_fix, TypeStringLiteral);
+
+        if (near_int_literal_node != NULL &&
+            near_int_literal_node->get_data_affinity() != AFFIUNKNOWN) {
+          ir_to_fix->set_data_affinity(
+              near_int_literal_node->get_data_affinity());
+          if (is_debug_info) {
+            cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
+                    "nearby literal: "
+                 << near_int_literal_node->to_string()
+                 << ", the literal comes with affinity: "
+                 << get_string_by_affinity_type(ir_to_fix->get_data_affinity())
+                 << "\n\n\n";
+          }
+        } else if (near_float_literal_node != NULL &&
+                   near_float_literal_node->get_data_affinity() !=
+                       AFFIUNKNOWN) {
+          ir_to_fix->set_data_affinity(
+              near_float_literal_node->get_data_affinity());
+          if (is_debug_info) {
+            cerr << "Dependency: INFO: From Literal handling, getting nearby "
+                    "literal: "
+                 << near_float_literal_node->to_string()
+                 << ", the literal comes with affinity: "
+                 << get_string_by_affinity_type(ir_to_fix->get_data_affinity())
+                 << "\n\n\n";
+          }
+        } else if (near_string_literal_node != NULL &&
+                   near_string_literal_node->get_data_affinity() !=
+                       AFFIUNKNOWN) {
+          ir_to_fix->set_data_affinity(
+              near_string_literal_node->get_data_affinity());
+          if (is_debug_info) {
+            cerr << "Dependency: INFO: From Literal handling, getting nearby "
+                    "literal: "
+                 << near_string_literal_node->to_string()
+                 << ", the literal comes with affinity: "
+                 << get_string_by_affinity_type(ir_to_fix->get_data_affinity())
+                 << "\n\n\n";
+          }
+        } else {
+          // If we end up in this branch, we cannot find a nearby literal that
+          // already has fixed affinity. This is expected, such as case: `SELECT
+          // * FROM v0 WHERE v1 = 100;` Then, we should look at the nearby
+          // column name for more information.
+
+          IR *nearby_column_ir =
+              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+                  ir_to_fix, DataColumnName);
+          if (nearby_column_ir != NULL) {
+            string nearby_column_str = nearby_column_ir->get_str_val();
+            if (m_column2datatype.count(nearby_column_str)) {
+              DataAffinity cur_affi = m_column2datatype[nearby_column_str];
+              ir_to_fix->set_data_affinity(cur_affi);
               if (is_debug_info) {
-                  cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string() << " because it has "
-                         "flag ContextNoModi. \n\n\n";
+                cerr << "Dependency: INFO: From Literal handling, getting "
+                        "column name: "
+                     << nearby_column_str
+                     << ", the column comes with affinity: "
+                     << get_string_by_affinity_type(
+                            cur_affi.get_data_affinity())
+                     << "\n\n\n";
               }
-              continue;
-          }
-//          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
-//              continue;
-//          }
-
-          if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
-              // Do not mutate the literals inside the SET statement.
-              // The set statement's literal has already been fixed when introduced.
-              continue;
-          }
-
-          // First, search if we can find a nearby literal that already has the
-          // affinity fixed.
-
-          IR* near_int_literal_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(ir_to_fix, TypeIntegerLiteral);
-          IR* near_float_literal_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(ir_to_fix, TypeFloatLiteral);
-          IR* near_string_literal_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<IRTYPE>(ir_to_fix, TypeStringLiteral);
-
-          if (
-                  near_int_literal_node != NULL &&
-                  near_int_literal_node->get_data_affinity() != AFFIUNKNOWN
-          ) {
-              ir_to_fix->set_data_affinity(near_int_literal_node->get_data_affinity());
-              cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
-                   << near_int_literal_node->to_string() << ", the literal comes with affinity: "
-                   << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
-          } else if (
-                  near_float_literal_node != NULL &&
-                  near_float_literal_node->get_data_affinity() != AFFIUNKNOWN
-                  ) {
-              ir_to_fix->set_data_affinity(near_float_literal_node->get_data_affinity());
-              cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
-                   << near_float_literal_node->to_string() << ", the literal comes with affinity: "
-                   << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
-          } else if (
-                  near_string_literal_node != NULL &&
-                  near_string_literal_node->get_data_affinity() != AFFIUNKNOWN
-                  ) {
-              ir_to_fix->set_data_affinity(near_string_literal_node->get_data_affinity());
-              cerr << "Dependency: INFO: From Literal handling, getting nearby literal: "
-                   << near_string_literal_node->to_string() << ", the literal comes with affinity: "
-                   << get_string_by_affinity_type(ir_to_fix->get_data_affinity());
-          } else {
-              // If we end up in this branch, we cannot find a nearby literal that already
-              // has fixed affinity.
-              // This is expected, such as case: `SELECT * FROM v0 WHERE v1 = 100;`
-              // Then, we should look at the nearby column name for more information.
-
-              IR* nearby_column_ir = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix, DataColumnName);
-              if (nearby_column_ir != NULL) {
-                  string nearby_column_str = nearby_column_ir->get_str_val();
-                  if (m_column2datatype.count(nearby_column_str)) {
-                      DataAffinity cur_affi = m_column2datatype[nearby_column_str];
-                      ir_to_fix->set_data_affinity(cur_affi);
-                      if (is_debug_info) {
-                          cerr << "Dependency: INFO: From Literal handling, getting column name: "
-                               << nearby_column_str << ", the column comes with affinity: "
-                               << get_string_by_affinity_type(cur_affi.get_data_affinity()) << "\n\n\n";
-                      }
-                  } else {
-                      ir_to_fix->set_data_affinity(AFFISTRING);
-                      if (is_debug_info) {
-                          cerr << "Dependency: INFO: From Literal handling, getting column name: "
-                               << nearby_column_str << ". However, the colum name does not come with affinity: "
-                                                       ", dummy fix the literal to AFFISTRING now." << "\n\n\n";
-                      }
-                  }
-              } else {
-                  // Cannot find nearby COLUMN NAME?
-                  if (is_debug_info) {
-                      cerr << "Error: For fixing literal, cannot find nearby column name definition. "
-                              "Use dummy AFFISTRING instead for now. ";
-                  }
-                  ir_to_fix->set_data_affinity(AFFISTRING);
+            } else {
+              ir_to_fix->set_data_affinity(AFFISTRING);
+              if (is_debug_info) {
+                cerr
+                    << "Dependency: INFO: From Literal handling, getting "
+                       "column name: "
+                    << nearby_column_str
+                    << ". However, the colum name does not come with affinity: "
+                       ", dummy fix the literal to AFFISTRING now."
+                    << "\n\n\n";
               }
-          }
-
-          /* After knowing the data affinity of the literal,
-           * we have two choices to instantiate the value.
-           * 1. If the current data affinity is the same as previous
-           * fixed literals, reuse the value.
-           * 2. Mutate to get a new value.
-           * */
-          if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 && get_rand_int(3) == 0) {
-              // Reuse previous defined literals.
-              string tmp_new_literal = vector_rand_ele(m_datatype2literals[ir_to_fix->get_data_affinity()]);
-              ir_to_fix->set_str_val(tmp_new_literal);
+            }
           } else {
-              // Now we ensure the ir_to_fix has an affinity.
-              // Mutate the literal with the affinity
-              ir_to_fix->mutate_literal(); // Handles everything.
-              m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(ir_to_fix->get_str_val());
+            // Cannot find nearby COLUMN NAME?
+            if (is_debug_info) {
+              cerr << "\n\n\n Error: For fixing literal, cannot find nearby "
+                      "column name definition. "
+                      "Use dummy AFFISTRING instead for now. "
+                   << "\n\n\n";
+            }
+            ir_to_fix->set_data_affinity(AFFISTRING);
           }
+        }
+
+        /* After knowing the data affinity of the literal,
+         * we have two choices to instantiate the value.
+         * 1. If the current data affinity is the same as previous
+         * fixed literals, reuse the value.
+         * 2. Mutate to get a new value.
+         * */
+        if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
+            get_rand_int(3) == 0) {
+          // Reuse previous defined literals.
+          string tmp_new_literal = vector_rand_ele(
+              m_datatype2literals[ir_to_fix->get_data_affinity()]);
+          ir_to_fix->set_str_val(tmp_new_literal);
+        } else {
+          // Now we ensure the ir_to_fix has an affinity.
+          // Mutate the literal with the affinity
+          ir_to_fix->mutate_literal(); // Handles everything.
+          m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(
+              ir_to_fix->get_str_val());
+        }
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
@@ -2886,10 +2953,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         if (func_str_to_type_map.find(cur_func_str) ==
             func_str_to_type_map.end()) {
           if (is_debug_info) {
-            cerr << "For function name: " << cur_func_str
+            cerr << "\n\n\nFor function name: " << cur_func_str
                  << ", cannot find its "
                     "matching function type. Do not mutate the name in the "
-                    "instantiation. ";
+                    "instantiation. \n\n\n";
           }
           continue;
         }
