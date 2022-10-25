@@ -5,6 +5,7 @@
 #include "../parser/parser.h"
 
 #include <algorithm>
+#include <list>
 #include <assert.h>
 #include <cfloat>
 #include <climits>
@@ -1009,8 +1010,9 @@ bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
   for (auto &substmt : substmts) {
     substmt->parent_ = NULL;
 
-    int tmp_node_num = calc_node(substmt);
-
+    // Disabled feature.
+    /* Avoid fixing IR file that is to big. */
+//    int tmp_node_num = calc_node(substmt);
     /* No sub-queries, then <= 150, sub-queries <= 120 */
     // if ((substmt_num == 1 && tmp_node_num > 230) || tmp_node_num > 200) {
     //   if (is_debug_info) {
@@ -1151,11 +1153,25 @@ vector<vector<IR *>> Mutator::post_fix_transform(
 vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
                                        map<IR *, pair<bool, IR *>> &m_save,
                                        set<IRTYPE> &split_set) {
+    /* This function is responsible to detect
+     * and detach all the subqueries from the statement.
+     * Additionally, it needs to decide the order of the
+     * subquery instantiation.
+     * For normal subquery, it can use variables defined in the
+     * parent query, which means they should be fixed later than the
+     * root query.
+     * However, for WITH clause SELECT, CREATE VIEW and CREATE TABLE AS,
+     * the subquery that defines the main semantic should be fixed earlier,
+     * so that the root stmt can correctly map the dependencies to the subquery
+     * tables/columns.
+     */
+
+  list<IR*> res_list;
   vector<IR *> res;
   deque<IR *> bfs = {cur_stmt};
 
   /* The root cur_stmt should always be saved. */
-  res.push_back(cur_stmt);
+  res_list.push_back(cur_stmt);
 
   while (!bfs.empty()) {
     auto node = bfs.front();
@@ -1172,7 +1188,17 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
         find(split_set.begin(), split_set.end(), node->left_->type_) !=
             split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)) {
-      res.push_back(node->left_);
+        if (
+            p_oracle->ir_wrapper.is_ir_in(node->get_right(), TypeWith) ||
+            node->get_ir_type() == TypeCreateView ||
+            node->get_ir_type() == TypeCreateTableAs
+        ){
+            // If the statement is in the WITH clause, Create Table AS
+            // or Create view as, fix the subquery first.
+            res_list.push_front(node->get_left());
+        } else {
+            res_list.push_back(node->get_left());
+        }
       pair<bool, IR *> cur_m_save =
           make_pair<bool, IR *>(true, node->get_left());
       m_save[node] = cur_m_save;
@@ -1181,14 +1207,34 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
         find(split_set.begin(), split_set.end(), node->right_->type_) !=
             split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->right_)) {
-      res.push_back(node->right_);
+
+        if (
+            p_oracle->ir_wrapper.is_ir_in(node->get_right(), TypeWith) ||
+            node->get_ir_type() == TypeCreateView ||
+            node->get_ir_type() == TypeCreateTableAs
+        ) {
+            // If the statement is in the WITH clause, Create Table AS
+            // or Create view as, fix the subquery first.
+            res_list.push_front(node->get_right());
+        } else {
+            res_list.push_back(node->get_right());
+        }
       pair<bool, IR *> cur_m_save =
           make_pair<bool, IR *>(false, node->get_right());
       m_save[node] = cur_m_save;
     }
   }
 
-  for (int idx = 1; idx < res.size(); idx++) {
+  for (auto ptr = res_list.begin(); ptr != res_list.end(); ptr++) {
+      res.push_back(*ptr);
+  }
+
+  for (int idx = 0; idx < res.size(); idx++) {
+      if (res[idx] == cur_stmt) {
+          // Avoid detach the root node.
+          continue;
+      }
+      // Detach all the subquery.
     cur_stmt->detach_node(res[idx]);
   }
 

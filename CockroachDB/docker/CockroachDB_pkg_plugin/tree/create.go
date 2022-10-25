@@ -4722,7 +4722,7 @@ func (node *CreateTable) LogCurrentNodeBody(depth int) *SQLRightIR {
 		pAsSourceNode := node.AsSource.LogCurrentNode(depth + 1) // This is a SELECT
 
 		rootIR = &SQLRightIR{
-			IRType:   TypeUnknown,
+			IRType:   TypeCreateTableAs,
 			DataType: DataNone,
 			LNode:    nodeDefNode,
 			RNode:    pAsSourceNode,

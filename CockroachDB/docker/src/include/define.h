@@ -454,7 +454,8 @@
   V(TypeUnlisten)                                                              \
   V(TypeTableRef)                                                              \
   V(TypeHaving)                                                                \
-  V(TypeConstraintCluster)
+  V(TypeConstraintCluster)                                                     \
+  V(TypeCreateTableAs)
 
 #define ALLDATATYPE(V)                                                         \
   V(DataNone)                                                                  \

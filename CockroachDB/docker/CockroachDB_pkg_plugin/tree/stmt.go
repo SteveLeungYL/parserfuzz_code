@@ -546,6 +546,7 @@ const (
 	TypeTableRef
 	TypeHaving
 	TypeConstraintCluster
+	TypeCreateTableAs
 )
 
 const (
