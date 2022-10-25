@@ -1167,7 +1167,10 @@ string get_affinity_type_str_formal(DATAAFFINITYTYPE type_in) {
 
     if (type_str.size() > 5 && type_str.substr(0, 5) == "ARRAY") {
         // This is an ARRAY type, need more handling of the formal representation.
-        cerr << "For type_str: " << type_str << ", assuming ARRAY type. \n\n\n";
+
+        // Debug
+//        cerr << "For type_str: " << type_str << ", assuming ARRAY type. \n\n\n";
+
         switch(get_rand_int(2)) {
             case 0: {
                 // First format: example: c0 string[]

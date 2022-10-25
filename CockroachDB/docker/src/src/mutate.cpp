@@ -2375,21 +2375,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
         IR *name_list = p_oracle->ir_wrapper.get_parent_node_with_type(
             ir_to_fix, TypeNameList);
-        IR *name_list_left_child = name_list->get_left();
-        IR *name_list_right_child = name_list->get_right();
-        if (name_list_left_child != nullptr) {
-          ir_to_deep_drop.push_back(name_list_left_child);
-        }
-        if (name_list_right_child != nullptr) {
-          ir_to_deep_drop.push_back(name_list_right_child);
-        }
-        p_oracle->ir_wrapper.iter_cur_node_with_handler(
-            name_list, [](IR *cur_node) -> void {
-              cur_node->set_is_instantiated(true);
-              cur_node->set_data_flag(ContextNoModi);
-            });
-        name_list->update_left(nullptr);
-        name_list->update_right(nullptr);
 
         string closest_table_name =
             this->find_cloest_table_name(name_list, is_debug_info);
@@ -2414,8 +2399,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                     "Find the closest_table_name from "
                     "the query. Cloest_table_name is: "
                  << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-            continue;
           }
+          continue;
         }
         int max_values_clause_len = v_column_names_from_table.size();
 
@@ -2472,6 +2457,23 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                 new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
           }
         }
+
+        IR *name_list_left_child = name_list->get_left();
+        IR *name_list_right_child = name_list->get_right();
+        if (name_list_left_child != nullptr) {
+            ir_to_deep_drop.push_back(name_list_left_child);
+        }
+        if (name_list_right_child != nullptr) {
+            ir_to_deep_drop.push_back(name_list_right_child);
+        }
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                name_list, [](IR *cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+        name_list->update_left(nullptr);
+        name_list->update_right(nullptr);
+
         new_name_list_expr->set_ir_type(TypeNameList);
         name_list->update_left(new_name_list_expr);
         name_list->op_->middle_ = "";
@@ -3183,10 +3185,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         set<DATATYPE> column_alias_type_set = {DataColumnAliasName};
         collect_ir(cur_stmt_root, column_alias_type_set, all_mentioned_column_alias_vec);
 
-//        all_mentioned_column_vec.insert(all_mentioned_column_vec.end(),
-//                                        all_mentioned_column_alias_vec.begin(),
-//                                        all_mentioned_column_alias_vec.end());
-
         if (is_debug_info) {
           cerr << "Dependency: When building extra mapping for CREATE VIEW AS, "
                   "collected kDataColumnName.size: "
@@ -3277,23 +3275,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
   return true;
 }
-
-// bool Mutator::fill_stmt_graph_one(map<IR *, vector<IR *>> &graph, IR *ir) {
-//   if (graph.find(ir) == graph.end())
-//     return true;
-
-//   bool res = true;
-//   auto type = ir->data_type_;
-//   auto &vec = graph[ir];
-
-//   if (!vec.empty()) {
-//     for (auto d : vec) {
-//       res = res & fill_one_pair(ir, d);
-//       res = res & fill_stmt_graph_one(graph, d);
-//     }
-//   }
-//   return res;
-// }
 
 static bool replace_in_vector(string &old_str, string &new_str,
                               vector<string> &victim) {
