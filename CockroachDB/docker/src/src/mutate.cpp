@@ -1322,9 +1322,11 @@ void Mutator::fix_preprocessing(IR *stmt_root,
 string Mutator::find_cloest_table_name(IR *ir_to_fix, bool is_debug_info) {
   string closest_table_name = "";
   IR *closest_table_ir = NULL;
+  vector<DATATYPE> search_type = {DataTableName, DataTableAliasName};
+  vector<IRTYPE> cap_type = {TypeSelect};
   closest_table_ir =
-      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-          ir_to_fix, DataTableName);
+      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<vector<DATATYPE>, vector<IRTYPE>>(
+          ir_to_fix, search_type, cap_type);
   if (closest_table_ir != NULL) {
     closest_table_name = closest_table_ir->get_str_val();
     if (is_debug_info) {
@@ -1500,6 +1502,133 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
+      /* Fix of DataTableAlias name. */
+      /* For DataTableAlias name, do not need to
+       * handle ContextUse and ContextUndefine situations.
+       * i,e. we only need to consider the ContextDefine.
+       * After the handling of current SQL statement finished,
+       * all info related to this alias should be removed
+       * automatically.
+       * */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          if (ir_to_fix->data_type_ == DataTableAliasName) {
+
+              ir_to_fix->set_is_instantiated(true);
+
+//              string closest_table_name = "";
+//
+//              IR *closest_table_ir =
+//                      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+//                              ir_to_fix, DataTableName);
+//
+//              if (closest_table_ir != NULL) {
+//                  closest_table_name = closest_table_ir->get_str_val();
+//              } else if (v_table_names_single.size() != 0) {
+//                  if (is_debug_info) {
+//                      cerr << "\n\n\nError: Dependency: When handling the "
+//                              "DataTableAliasName, "
+//                              "cannot find the table name nearby the ir_to_fix(). \n\n\n";
+//                      cerr << "\n\n\n More debugging information: cur node: "
+//                           << ir_to_fix->to_string()
+//                           << "; whole statement: " << cur_stmt_root->to_string()
+//                           << "\n\n\n";
+//                  }
+//                  closest_table_name =
+//                          v_table_names_single[get_rand_int(v_table_names_single.size())];
+//              } else if (v_create_table_names_single.size() != 0) {
+//                  if (is_debug_info) {
+//                      cerr << "\n\n\nError: Dependency: When handling the "
+//                              "DataTableAliasName, "
+//                              "cannot find the table name nearby the ir_to_fix(). \n\n\n";
+//                      cerr << "\n\n\n More debugging information: cur node: "
+//                           << ir_to_fix->to_string()
+//                           << "; whole statement: " << cur_stmt_root->to_string()
+//                           << "\n\n\n";
+//                  }
+//                  closest_table_name = v_create_table_names_single[0];
+//                  if (is_debug_info) {
+//                      cerr << "Dependency: In kAlias defined, find newly declared table "
+//                              "name: "
+//                           << closest_table_name << ". \n\n\n"
+//                           << endl;
+//                  }
+//              } else if (v_table_names.size() != 0) {
+//                  if (is_debug_info) {
+//                      cerr << "Error: Dependency: When handling the DataTableAliasName, "
+//                              "cannot find the table name nearby the ir_to_fix(). ";
+//                      cerr << "\n More debugging information: cur node: "
+//                           << ir_to_fix->to_string()
+//                           << "; whole statement: " << cur_stmt_root->to_string();
+//                  }
+//                  closest_table_name =
+//                          v_table_names[get_rand_int(v_table_names.size())];
+//                  if (is_debug_info) {
+//                      cerr << "Dependency Error: In defined of kDataAliasName, cannot "
+//                              "find v_table_names_single. Thus find from v_table_name "
+//                              "instead. Use table name: "
+//                           << closest_table_name << ". \n\n\n"
+//                           << endl;
+//                  }
+//              } else {
+//                  if (is_debug_info) {
+//                      cerr << "Error: Dependency: When handling the DataTableAliasName, "
+//                              "cannot find the any way to refer to a table name nearby "
+//                              "the ir_to_fix(). ";
+//                      cerr << "\n More debugging information: cur node: "
+//                           << ir_to_fix->to_string()
+//                           << "; whole statement: " << cur_stmt_root->to_string();
+//                  }
+//                  ir_to_fix->set_str_val("x");
+//                  // Break the current ir instantiation handling.
+//                  continue;
+//              }
+//
+//              if (is_debug_info) {
+//                  cerr << "Dependency: In DataTableAliasName ContextDefined, find "
+//                          "table name: "
+//                       << closest_table_name << ". \n\n\n"
+//                       << endl;
+//              }
+//
+//              if (closest_table_name == "" || closest_table_name == "x" ||
+//                  closest_table_name == "y") {
+//                  if (is_debug_info) {
+//                      cerr << "Dependency Error: Cannot find the closest_table_name from "
+//                              "the query. Error cloest_table_name is: "
+//                           << closest_table_name << ". In kAliasName Define. \n\n\n";
+//                  }
+//                  /* Randomly set an alias name to the defined table.
+//                   * And ignore the mapping for the moment
+//                   * */
+//                  string alias_name = gen_table_alias_name();
+//                  ir_to_fix->str_val_ = alias_name;
+//                  v_table_alias_names_single.push_back(alias_name);
+//                  continue;
+//              }
+//
+//              /* Found the table name that matched to the alias, now generate the
+//               * alias and save it.  */
+//              string alias_name = gen_table_alias_name();
+//              ir_to_fix->set_str_val(alias_name);
+//              m_alias2table_single[closest_table_name] = alias_name;
+//              v_table_alias_names_single.push_back(alias_name);
+//
+//              if (is_debug_info) {
+//                  cerr << "Dependency: In TypeTableAliasName defined, generates: "
+//                       << alias_name << " mapping to table name: " << closest_table_name
+//                       << ". \n\n\n"
+//                       << endl;
+//              }
+                  string alias_name = gen_table_alias_name();
+                  ir_to_fix->set_str_val(alias_name);
+                  v_table_alias_names_single.push_back(alias_name);
+          }
+      }
+
     /* ContextUse of kDataTableName */
     /* The ContextUseFollow will be handled further below. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -1529,20 +1658,22 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         string used_name = "";
         // For the ContextUse, prefer to use the table name that defined in
         // previous statement first.
-        if (v_table_names.size() != 0) {
-          used_name = v_table_names[get_rand_int(v_table_names.size())];
+        if (v_table_alias_names_single.size() != 0) {
+            used_name = v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
         } else if (v_table_names_single.size() != 0) {
-          // If the statement use some table names before,
-          // we can refer to the table name here.
-          // We can imagine v_table_names_single could contain
-          // alias name defined in WITH clause or other places.
-          used_name =
-              v_table_names_single[get_rand_int(v_table_names_single.size())];
+            // If the statement use some table names before,
+            // we can refer to the table name here.
+            // We can imagine v_table_names_single could contain
+            // alias name defined in WITH clause or other places.
+          used_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
         } else if (v_create_table_names_single.size() != 0) {
-          // If cannot find any table names defined or used before,
-          // consider the table name that just defined in this statement.
-          used_name = v_create_table_names_single[get_rand_int(
-              v_create_table_names_single.size())];
+            // If cannot find any table names defined or used before,
+            // consider the table name that just defined in this statement.
+            used_name = v_create_table_names_single[get_rand_int(
+                    v_create_table_names_single.size())];
+        } else if (v_table_names.size() != 0) {
+          used_name =
+              v_table_names[get_rand_int(v_table_names.size())];
         } else {
           if (is_debug_info) {
             cerr << "Cannot find any used or defined table names. Use simple x "
@@ -1586,7 +1717,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
+
+
     /* ContextUseFollow of DataTableName. */
+    /* This scenario searches for table name usage that is in the WHERE clause.  */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -1595,7 +1729,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       if (ir_to_fix->data_type_ == DataTableName &&
           ir_to_fix->data_flag_ == ContextUseFollow) {
 
-        if (v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
+          if (v_table_alias_names_single.size() == 0 && v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
             v_create_table_names_single.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: Failed to find info in v_table_names "
@@ -1607,10 +1741,21 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           continue;
         }
         string used_name = "";
+
+          if (is_debug_info) {
+              cerr << "\n\n\nDEBUG: In Table ContextUseFoolow: getting v_table_alias_names_single.size(): "
+                   << v_table_alias_names_single.size()
+                   << ", v_table_names_single: " << v_table_names_single.size()
+                   << ", v_create_table_names_single" << v_create_table_names_single.size()
+                   << "\n\n\n";
+          }
         // For the ContextUseFoolow, we should use table name that already
         // mentioned in the current statement.
         // For example, for `v0.v1`, where v0 is imported from `FROM v0;`
-        if (v_table_names_single.size() != 0) {
+        if (v_table_alias_names_single.size() != 0){
+          used_name =
+                  v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
+        } else if (v_table_names_single.size() != 0) {
           used_name =
               v_table_names_single[get_rand_int(v_table_names_single.size())];
         } else if (v_create_table_names_single.size() != 0) {
@@ -1895,131 +2040,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                << ", matching from table: " << cur_table_name << "\n\n\n";
         }
         // Succeed. Continue to the next IR.
-      }
-    }
-    /* Handling of DataPartitionName completed. */
-
-    /* Fix of DataTableAlias name. */
-    /* For DataTableAlias name, do not need to
-     * handle ContextUse and ContextUndefine situations.
-     * i,e. we only need to consider the ContextDefine.
-     * After the handling of current SQL statement finished,
-     * all info related to this alias should be removed
-     * automatically.
-     * */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      if (ir_to_fix->data_type_ == DataTableAliasName) {
-
-        ir_to_fix->set_is_instantiated(true);
-
-        string closest_table_name = "";
-
-        IR *closest_table_ir =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                ir_to_fix, DataTableName);
-
-        if (closest_table_ir != NULL) {
-          closest_table_name = closest_table_ir->get_str_val();
-        } else if (v_table_names_single.size() != 0) {
-          if (is_debug_info) {
-            cerr << "\n\n\nError: Dependency: When handling the "
-                    "DataTableAliasName, "
-                    "cannot find the table name nearby the ir_to_fix(). \n\n\n";
-            cerr << "\n\n\n More debugging information: cur node: "
-                 << ir_to_fix->to_string()
-                 << "; whole statement: " << cur_stmt_root->to_string()
-                 << "\n\n\n";
-          }
-          closest_table_name =
-              v_table_names_single[get_rand_int(v_table_names_single.size())];
-        } else if (v_create_table_names_single.size() != 0) {
-          if (is_debug_info) {
-            cerr << "\n\n\nError: Dependency: When handling the "
-                    "DataTableAliasName, "
-                    "cannot find the table name nearby the ir_to_fix(). \n\n\n";
-            cerr << "\n\n\n More debugging information: cur node: "
-                 << ir_to_fix->to_string()
-                 << "; whole statement: " << cur_stmt_root->to_string()
-                 << "\n\n\n";
-          }
-          closest_table_name = v_create_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: In kAlias defined, find newly declared table "
-                    "name: "
-                 << closest_table_name << ". \n\n\n"
-                 << endl;
-          }
-        } else if (v_table_names.size() != 0) {
-          if (is_debug_info) {
-            cerr << "Error: Dependency: When handling the DataTableAliasName, "
-                    "cannot find the table name nearby the ir_to_fix(). ";
-            cerr << "\n More debugging information: cur node: "
-                 << ir_to_fix->to_string()
-                 << "; whole statement: " << cur_stmt_root->to_string();
-          }
-          closest_table_name =
-              v_table_names[get_rand_int(v_table_names.size())];
-          if (is_debug_info) {
-            cerr << "Dependency Error: In defined of kDataAliasName, cannot "
-                    "find v_table_names_single. Thus find from v_table_name "
-                    "instead. Use table name: "
-                 << closest_table_name << ". \n\n\n"
-                 << endl;
-          }
-        } else {
-          if (is_debug_info) {
-            cerr << "Error: Dependency: When handling the DataTableAliasName, "
-                    "cannot find the any way to refer to a table name nearby "
-                    "the ir_to_fix(). ";
-            cerr << "\n More debugging information: cur node: "
-                 << ir_to_fix->to_string()
-                 << "; whole statement: " << cur_stmt_root->to_string();
-          }
-          ir_to_fix->set_str_val("x");
-          // Break the current ir instantiation handling.
-          continue;
-        }
-
-        if (is_debug_info) {
-          cerr << "Dependency: In DataTableAliasName ContextDefined, find "
-                  "table name: "
-               << closest_table_name << ". \n\n\n"
-               << endl;
-        }
-
-        if (closest_table_name == "" || closest_table_name == "x" ||
-            closest_table_name == "y") {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from "
-                    "the query. Error cloest_table_name is: "
-                 << closest_table_name << ". In kAliasName Define. \n\n\n";
-          }
-          /* Randomly set an alias name to the defined table.
-           * And ignore the mapping for the moment
-           * */
-          string alias_name = gen_table_alias_name();
-          ir_to_fix->str_val_ = alias_name;
-          v_table_alias_names_single.push_back(alias_name);
-          continue;
-        }
-
-        /* Found the table name that matched to the alias, now generate the
-         * alias and save it.  */
-        string alias_name = gen_table_alias_name();
-        ir_to_fix->set_str_val(alias_name);
-        m_alias2table_single[closest_table_name] = alias_name;
-        v_table_alias_names_single.push_back(alias_name);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In TypeTableAliasName defined, generates: "
-               << alias_name << " mapping to table name: " << closest_table_name
-               << ". \n\n\n"
-               << endl;
-        }
       }
     }
 
@@ -2585,8 +2605,15 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
 
         vector<string> v_used_column_str;
-        vector<string> v_column_names_from_table =
-            m_table2columns[closest_table_name];
+
+        vector<string> v_column_names_from_table;
+        if (m_alias_table2column_single.count(closest_table_name) > 0) {
+            v_column_names_from_table =
+                    m_alias_table2column_single[closest_table_name];
+        } else {
+            v_column_names_from_table =
+                    m_table2columns[closest_table_name];
+        }
         if (v_column_names_from_table.size() == 0) {
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find mapping from table name to "
@@ -2706,22 +2733,45 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             ir_to_fix->set_str_val("x");
             continue;
           }
+          bool is_found = false;
           if (v_table_alias_names_single.size() != 0) {
-            ir_to_fix->str_val_ = vector_rand_ele(v_table_alias_names_single);
+            closest_table_name = vector_rand_ele(v_table_alias_names_single);
             if (is_debug_info) {
-              cerr << "Dependency: Using alias inside kUse of kColumnName: "
-                   << ir_to_fix->str_val_ << ". \n\n\n";
+              cerr << "Dependency: In column fixing, find table alias name from "
+                      "v_table_alias_names_single: " << closest_table_name
+                   << ". \n\n\n";
             }
-            ir_to_fix->set_is_instantiated(true);
+            is_found = true;
+          }
+          if (!is_found && v_table_names_single.size() != 0) {
+              closest_table_name = vector_rand_ele(v_table_names_single);
+              if (is_debug_info) {
+                  cerr << "Dependency: In column fixing, find table alias name from "
+                          "v_table_names_single: " << closest_table_name
+                       << ". \n\n\n";
+              }
+              is_found = true;
+          }
+
+          if (!is_found) {
+            ir_to_fix->set_str_val("x");
+            if (is_debug_info) {
+                cerr << "Dependency: In column fixing, failed to find any table inside the statement. "
+                        "dumping random x as column name. \n\n\n";
+            }
             continue;
           }
-          /* Unreconized, keep original */
-          ir_to_fix->set_is_instantiated(true);
-          continue;
         }
 
-        vector<string> &cur_mapped_column_name_vec =
-            m_table2columns[closest_table_name];
+        vector<string> cur_mapped_column_name_vec;
+        if (m_alias_table2column_single.count(closest_table_name) > 0) {
+             cur_mapped_column_name_vec =
+                    m_alias_table2column_single[closest_table_name];
+        } else {
+            cur_mapped_column_name_vec =
+                    m_table2columns[closest_table_name];
+        }
+
         if (is_debug_info) {
           cerr << "Dependency: In kUse of kDataColunName, use origin table "
                   "name: "
@@ -2882,10 +2932,27 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                    << v_table_names_single.front() << ". \n\n\n";
             }
             string cur_table_name = v_table_names_single.front();
-            const vector<string> &column_list = m_table2columns[cur_table_name];
+            vector<string> column_list;
+            bool is_alias = false;
+            if (m_alias_table2column_single.count(cur_table_name) > 0) {
+                is_alias = true;
+                column_list = m_alias_table2column_single[cur_table_name];
+            } else {
+                is_alias = false;
+                column_list = m_table2columns[cur_table_name];
+            }
             for (const string &cur_column_str : column_list) {
-              if (m_column2datatype.count(cur_column_str)) {
-                DataAffinity cur_affi = m_column2datatype[cur_column_str];
+                string actual_column_str = cur_column_str;
+                if (is_alias && m_alias2column_single.count(actual_column_str) > 0) {
+                    if (is_debug_info) {
+                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                                << cur_column_str << " to column name: "
+                                << actual_column_str << "\n\n\n";
+                    }
+                    actual_column_str = m_alias2column_single[cur_column_str];
+                }
+              if (m_column2datatype.count(actual_column_str) > 0) {
+                DataAffinity cur_affi = m_column2datatype[actual_column_str];
                 referencing_affinity.push_back(cur_affi);
                 if (is_debug_info) {
                   cerr << "\n\n\nMatching column: " << cur_column_str
@@ -2921,8 +2988,17 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           //                " << v_column_node.size() << "\n\n\n";
           for (IR *cur_column_node : v_column_node) {
             string cur_column_str = cur_column_node->get_str_val();
-            if (m_column2datatype.count(cur_column_str)) {
-              DataAffinity cur_affi = m_column2datatype[cur_column_str];
+            if (m_column2datatype.count(cur_column_str) || m_alias2column_single.count(cur_column_str)) {
+                string actual_column_str = cur_column_str;
+                if (m_alias2column_single.count(cur_column_str)) {
+                    actual_column_str = m_alias2column_single[cur_column_str];
+                    if (is_debug_info) {
+                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                             << cur_column_str << " to column name: "
+                             << actual_column_str << "\n\n\n";
+                    }
+                }
+              DataAffinity cur_affi = m_column2datatype[actual_column_str];
               referencing_affinity.push_back(cur_affi);
               if (is_debug_info) {
                 cerr << "\n\n\nMatching column: " << cur_column_str
@@ -3044,8 +3120,17 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   ir_to_fix, DataColumnName);
           if (nearby_column_ir != NULL) {
             string nearby_column_str = nearby_column_ir->get_str_val();
-            if (m_column2datatype.count(nearby_column_str)) {
-              DataAffinity cur_affi = m_column2datatype[nearby_column_str];
+            string actual_column_str = nearby_column_str;
+            if (m_column2datatype.count(nearby_column_str) || m_alias2column_single.count(nearby_column_str)) {
+                if (m_alias2column_single.count(nearby_column_str)) {
+                    actual_column_str = m_alias2column_single[nearby_column_str];
+                    if (is_debug_info) {
+                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                             << nearby_column_str << " to column name: "
+                             << actual_column_str << "\n\n\n";
+                    }
+                }
+              DataAffinity cur_affi = m_column2datatype[actual_column_str];
               ir_to_fix->set_data_affinity(cur_affi);
               if (is_debug_info) {
                 cerr << "Dependency: INFO: From Literal handling, getting "
