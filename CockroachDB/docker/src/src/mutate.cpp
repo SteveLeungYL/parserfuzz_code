@@ -51,7 +51,7 @@ map<string, string> Mutator::m_alias2table_single; // table alias to original
 map<string, string>
     Mutator::m_alias2column_single; // column name to alias mapping.
 /* A mapping that defines an aliased table name to its resulting column name. */
-map<string, string> Mutator::m_alias_table2column_single;
+map<string, vector<string>> Mutator::m_alias_table2column_single;
 
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
 
@@ -1900,8 +1900,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         // Succeed. Continue to the next IR.
       }
     }
-
     /* Handling of DataPartitionName completed. */
+
+
 
     /* Fix of DataTableAlias name. */
     /* For DataTableAlias name, do not need to
@@ -2115,7 +2116,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-    /* kDefine and kReplace of kDataColumnName */
+      /* kDefine and kReplace of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -2293,8 +2294,205 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
 
-    /* Fix the Data Type identifiers. Must be done after ContextDefine of
-     * DataColumnName. */
+      /* Fix of DataColumnAlias name.
+       * There are two parts of the DataColumnAliasName handling.
+       * The first part is inside TypeAliasClause, where the table
+       * alias name and column alias name are all provided.
+       * The second part is direct column referencing.
+       * For the second part, we choose to ignore the mapping,
+       * because these cases are not very interesting, and won't
+       * reflect on the outputs.
+       * */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          if (ir_to_fix->data_type_ == DataColumnAliasName) {
+
+              ir_to_fix->set_is_instantiated(true);
+
+              string closest_table_alias_name = "";
+
+              /* Three situations:
+               * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+               * Customer FROM Customers;`
+               * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
+               * c(x);`
+               * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100) SELECT * FROM r WHERE c = 100;
+               *
+               * The 2 and 3 cases are similar.
+               * */
+
+              bool is_alias_clause = false;
+              if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
+                  is_alias_clause = true;
+              }
+
+              if (is_alias_clause) {
+                  /* Fix the TypeAliasClause scenario first.
+                   * This scenario must be handled before the ContextUse of
+                   * DataColumnName.
+                   * In this case, the TypeTableAlias is provided, we need to
+                   * connect the TypeTableAlias to the TypeColumnAlias.
+                   * Challenge: We need to make sure the number of
+                   * alise column matched the SELECT clause element in the subquery.
+                   * Luckily, we can ensure that when running in this scenario,
+                   * the subquery has already been instantiated, so that all the column
+                   * mappings are correct.
+                   */
+
+                  // First, check the nearby select subquery.
+                  IR* select_subquery = p_oracle->ir_wrapper
+                          .find_closest_nearby_IR_with_type(ir_to_fix, TypeSelect);
+                  if (select_subquery != NULL && select_subquery != cur_stmt_root) {
+                      cerr << "\n\n\nDependency: when fixing the select subquery, found select subquery: "
+                           << select_subquery->to_string() << "\n\n\n";
+                  } else {
+                      cerr << "\n\n\nError: Cannot find the select subquery from the current stmt. "
+                              "skip the current statement fixing. \n\n\n";
+                  }
+
+                  // Search whether there are columns defined in the `TypeSelectExprs`.
+                  vector<IR*> all_column_in_subselect = p_oracle->ir_wrapper
+                          .get_ir_node_in_stmt_with_type(select_subquery, DataColumnName);
+                  vector<IR*> all_table_in_subselect = p_oracle->ir_wrapper
+                          .get_ir_node_in_stmt_with_type(select_subquery, DataTableName);
+                  vector<IR*> all_stars_in_subselect = p_oracle->ir_wrapper
+                          .get_ir_node_in_stmt_with_type(select_subquery, TypeUnqualifiedStar);
+
+                  // Try to handle the columns defined in the subquery first.
+                  // Only look at the columns defined in the SELECT clause:
+                  // e.g. `SELECT v1, v2 FROM v0`
+
+                  vector<IR*> ref_column_in_subselect;
+                  vector<string> new_column_alias_names;
+                  string ret_str = "";
+                  for (auto& cur_column_in_subselect : all_column_in_subselect) {
+                      if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect, TypeSelectExprs)) {
+                          if (is_debug_info) {
+                              cerr << "\n\n\nFound column name in TypeSelectExprs: "
+                                   << cur_column_in_subselect->to_string() << "\n\n\n";
+                          }
+                          ref_column_in_subselect.push_back(cur_column_in_subselect);
+                      }
+                  }
+
+                  int ref_col_idx = 0;
+                  if (ref_column_in_subselect.size() > 0) {
+                      for (auto& cur_column_in_sub : ref_column_in_subselect) {
+                          string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
+                          string new_column_alias_name = gen_column_alias_name();
+                          m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
+                          new_column_alias_names.push_back(new_column_alias_name);
+                          if (ref_col_idx > 0) {
+                              ret_str += ", ";
+                          }
+                          ref_col_idx++;
+                          ret_str += new_column_alias_name;
+                          if (is_debug_info) {
+                              cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+                                       << " to column name " << cur_col_in_sub_str
+                                       << " in TypeSelectExprs. ";
+                          }
+                      }
+                  }
+                  // Inherit the ref_col_idx.
+                  if (all_stars_in_subselect.size() > 0 && all_table_in_subselect.size() > 0) {
+                      IR* cur_select_table = all_table_in_subselect.front();
+                      for (string& matched_column : m_table2columns[cur_select_table->get_str_val()]) {
+                          string new_column_alias_name = gen_column_alias_name();
+                          m_alias2column_single[new_column_alias_name] = matched_column;
+                          new_column_alias_names.push_back(new_column_alias_name);
+                          if (ref_col_idx > 0) {
+                              ret_str += ", ";
+                          }
+                          ref_col_idx++;
+                          ret_str += new_column_alias_name;
+                          if (is_debug_info) {
+                              cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+                                   << " to column name " << matched_column
+                                   << " in TypeSelectExprs. ";
+                          }
+                      }
+                  }
+
+                  // Next, match the table alias name.
+                  IR *alias_table_ir =
+                          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                                  ir_to_fix, DataTableAliasName);
+                  string alias_table_str;
+                  if (alias_table_ir != NULL) {
+                      alias_table_str = alias_table_ir->get_str_val();
+                  } else {
+                      if (is_debug_info) {
+                          cerr << "\n\n\nError: Cannot find table alias name inside the "
+                                  "TypeAliasClause \n\n\n";
+                          ir_to_fix->set_str_val("x");
+                          continue;
+                      }
+                  }
+
+                  for (string& cur_new_column_alias_name : new_column_alias_names) {
+                      m_alias_table2column_single[alias_table_str].push_back(cur_new_column_alias_name);
+                  }
+
+                  // Actually replace the current node.
+                  IR* alias_clause_ir = p_oracle->ir_wrapper
+                          .get_parent_node_with_type(ir_to_fix, TypeAliasClause);
+                  if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
+                      if (is_debug_info) {
+                          cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR from Columnaliaslist. \n\n\n";
+                      }
+                      continue;
+                  }
+
+                  ir_to_deep_drop.push_back(alias_clause_ir->get_right());
+                  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                          alias_clause_ir->get_right(), [](IR* cur_node) -> void {
+                              cur_node->set_is_instantiated(true);
+                              cur_node->set_data_flag(ContextNoModi);
+                          });
+                  IR* new_column_alias_list = new IR(TypeColumnDefList, ret_str);
+                  alias_clause_ir->update_right(new_column_alias_list);
+
+                  continue;
+
+              } else {
+                  /* Fix the TypeSelectExprs scenario now.
+                   * No need for extra work for this scenario because it is
+                   * not very interesting.
+                   * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+                   * Customer FROM Customers;`
+                   */
+
+                  IR *near_table_ir =
+                          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                                  ir_to_fix, DataTableName);
+                  string near_table_str;
+                  if (near_table_ir != NULL) {
+                      near_table_str = near_table_ir->get_str_val();
+                  } else {
+                      if (is_debug_info) {
+                          cerr << "\n\n\nError: Cannot find table alias name inside the "
+                                  "TypeAliasClause \n\n\n";
+                          ir_to_fix->set_str_val("x");
+                          continue;
+                      }
+                  }
+
+                  string column_alias_name = gen_column_alias_name();
+                  ir_to_fix->set_str_val(column_alias_name);
+
+                  m_alias_table2column_single[near_table_str].push_back(column_alias_name);
+                  continue;
+
+              }
+          }
+      }
+
+      /* Fix the Data Type identifiers. Must be done after ContextDefine of
+       * DataColumnName. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -2492,7 +2690,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             closest_table_name == "y") {
           if (is_debug_info) {
             cerr << "Dependency Error: Cannot find the closest_table_name from "
-                    "the query. Error cloest_table_name is: "
+                    "the query. Error closest_table_name is: "
                  << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
             ir_to_fix->set_str_val("x");
             continue;
@@ -2593,98 +2791,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //
     //      }
 
-    /* The fixing of DataColumnAlias must be after the fixing of DataColumnName. */
-    /* Fix of DataColumnAlias name. */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-        if (ir_to_fix->get_is_instantiated()) {
-            continue;
-        }
-
-        if (ir_to_fix->data_type_ == DataColumnAliasName) {
-
-            ir_to_fix->set_is_instantiated(true);
-
-            string closest_table_alias_name = "";
-
-            /* Three situations:
-             * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-             * Customer FROM Customers;`
-             * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
-             * c(x);`
-             * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100) SELECT * FROM r WHERE c = 100;
-             *
-             * The 2 and 3 cases are similar.
-             * */
-
-            bool is_alias_clause = false;
-            if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
-                is_alias_clause = true;
-            }
-
-            if (is_alias_clause) {
-                /* Fix the TypeAliasClause scenario first.
-                 * In this case, the TypeTableAlias is provided, we need to
-                 * connect the TypeTableAlias to the TypeColumnAlias.
-                 * Challenge: On the other hand, we need to make sure the number of
-                 * alise column matched the SELECT clause element in the subquery.
-                 * This mapping between the ColumnAlias and the mapped column would
-                 * be solved in the second loop of the cur_stmt_ir_to_fix_vec,
-                 * after all variables (including the subquery ones) are instantiated.
-                 */
-
-                IR *alias_table_ir =
-                        p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                                ir_to_fix, DataTableAliasName);
-                string alias_table_str;
-                if (alias_table_ir != NULL) {
-                    alias_table_str = alias_table_ir->get_str_val();
-                } else {
-                    if (is_debug_info) {
-                        cerr << "\n\n\nError: Cannot find table alias name inside the "
-                                "TypeAliasClause \n\n\n";
-                        ir_to_fix->set_str_val("x");
-                        continue;
-                    }
-                }
-
-                string column_alias_name = gen_column_alias_name();
-                ir_to_fix->set_str_val(column_alias_name);
-
-                m_alias_table2column_single[column_alias_name] = alias_table_str;
-                continue;
-
-            } else {
-                /* Fix the TypeSelectExprs scenario now.
-                 * In this case, the TypeTableAlias is provided, we need to
-                 * connect the TypeTableAlias to the TypeColumnAlias.
-                 * Will map the column_alias_name to the actual column name
-                 * in the second loop of cur_stmt_ir_to_fix_vec.
-                 */
-
-                IR *near_table_ir =
-                        p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                                ir_to_fix, DataTableName);
-                string near_table_str;
-                if (near_table_ir != NULL) {
-                    near_table_str = near_table_ir->get_str_val();
-                } else {
-                    if (is_debug_info) {
-                        cerr << "\n\n\nError: Cannot find table alias name inside the "
-                                "TypeAliasClause \n\n\n";
-                        ir_to_fix->set_str_val("x");
-                        continue;
-                    }
-                }
-
-                string column_alias_name = gen_column_alias_name();
-                ir_to_fix->set_str_val(column_alias_name);
-
-                m_alias_table2column_single[column_alias_name] = near_table_str;
-                continue;
-
-            }
-        }
-    }
 
     /* Fix the Literal inside VALUES clause. */
     for (IR *ir_to_fix : ir_to_fix_vec) {

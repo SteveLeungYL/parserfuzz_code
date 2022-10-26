@@ -237,7 +237,7 @@ public:
 
   // Save the relationship between the table/column name to the alias name.
   static map<string, string> m_alias2table_single;
-  static map<string, string> m_alias_table2column_single;
+  static map<string, vector<string>> m_alias_table2column_single;
   // The column alias is used in limited situations, such as GROUP BY columns AS column_alias, or `SELECT SUM(column) AS c ...`
   // Maybe also from `WITH` clause?
   static map<string, string> m_alias2column_single;
