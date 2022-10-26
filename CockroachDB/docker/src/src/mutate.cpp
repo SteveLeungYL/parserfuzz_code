@@ -5,7 +5,6 @@
 #include "../parser/parser.h"
 
 #include <algorithm>
-#include <list>
 #include <assert.h>
 #include <cfloat>
 #include <climits>
@@ -13,6 +12,7 @@
 #include <deque>
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <sstream>
 #include <string>
 
@@ -1012,7 +1012,7 @@ bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
 
     // Disabled feature.
     /* Avoid fixing IR file that is to big. */
-//    int tmp_node_num = calc_node(substmt);
+    //    int tmp_node_num = calc_node(substmt);
     /* No sub-queries, then <= 150, sub-queries <= 120 */
     // if ((substmt_num == 1 && tmp_node_num > 230) || tmp_node_num > 200) {
     //   if (is_debug_info) {
@@ -1153,21 +1153,21 @@ vector<vector<IR *>> Mutator::post_fix_transform(
 vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
                                        map<IR *, pair<bool, IR *>> &m_save,
                                        set<IRTYPE> &split_set) {
-    /* This function is responsible to detect
-     * and detach all the subqueries from the statement.
-     * Additionally, it needs to decide the order of the
-     * subquery instantiation.
-     * For normal subquery, it can use variables defined in the
-     * parent query, which means they should be fixed later than the
-     * root query.
-     * However, for WITH clause SELECT, CREATE VIEW and CREATE TABLE AS,
-     * the subquery that defines the main semantic should be fixed earlier,
-     * so that the root stmt can correctly map the dependencies to the subquery
-     * tables/columns.
-     */
-    cur_stmt->parent_ = NULL;
+  /* This function is responsible to detect
+   * and detach all the subqueries from the statement.
+   * Additionally, it needs to decide the order of the
+   * subquery instantiation.
+   * For normal subquery, it can use variables defined in the
+   * parent query, which means they should be fixed later than the
+   * root query.
+   * However, for WITH clause SELECT, CREATE VIEW and CREATE TABLE AS,
+   * the subquery that defines the main semantic should be fixed earlier,
+   * so that the root stmt can correctly map the dependencies to the subquery
+   * tables/columns.
+   */
+  cur_stmt->parent_ = NULL;
 
-  list<IR*> res_list;
+  list<IR *> res_list;
   vector<IR *> res;
   deque<IR *> bfs = {cur_stmt};
 
@@ -1189,17 +1189,15 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
         find(split_set.begin(), split_set.end(), node->left_->type_) !=
             split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)) {
-        if (
-            p_oracle->ir_wrapper.is_ir_in(node->get_left(), TypeWith) ||
-            node->get_ir_type() == TypeCreateView ||
-            node->get_ir_type() == TypeCreateTableAs
-        ){
-            // If the statement is in the WITH clause, Create Table AS
-            // or Create view as, fix the subquery first.
-            res_list.push_front(node->get_left());
-        } else {
-            res_list.push_back(node->get_left());
-        }
+      if (p_oracle->ir_wrapper.is_ir_in(node->get_left(), TypeWith) ||
+          node->get_ir_type() == TypeCreateView ||
+          node->get_ir_type() == TypeCreateTableAs) {
+        // If the statement is in the WITH clause, Create Table AS
+        // or Create view as, fix the subquery first.
+        res_list.push_front(node->get_left());
+      } else {
+        res_list.push_back(node->get_left());
+      }
       pair<bool, IR *> cur_m_save =
           make_pair<bool, IR *>(true, node->get_left());
       m_save[node] = cur_m_save;
@@ -1209,17 +1207,15 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
             split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->right_)) {
 
-        if (
-            p_oracle->ir_wrapper.is_ir_in(node->get_right(), TypeWith) ||
-            node->get_ir_type() == TypeCreateView ||
-            node->get_ir_type() == TypeCreateTableAs
-        ) {
-            // If the statement is in the WITH clause, Create Table AS
-            // or Create view as, fix the subquery first.
-            res_list.push_front(node->get_right());
-        } else {
-            res_list.push_back(node->get_right());
-        }
+      if (p_oracle->ir_wrapper.is_ir_in(node->get_right(), TypeWith) ||
+          node->get_ir_type() == TypeCreateView ||
+          node->get_ir_type() == TypeCreateTableAs) {
+        // If the statement is in the WITH clause, Create Table AS
+        // or Create view as, fix the subquery first.
+        res_list.push_front(node->get_right());
+      } else {
+        res_list.push_back(node->get_right());
+      }
       pair<bool, IR *> cur_m_save =
           make_pair<bool, IR *>(false, node->get_right());
       m_save[node] = cur_m_save;
@@ -1227,15 +1223,15 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
   }
 
   for (auto ptr = res_list.begin(); ptr != res_list.end(); ptr++) {
-      res.push_back(*ptr);
+    res.push_back(*ptr);
   }
 
   for (int idx = 0; idx < res.size(); idx++) {
-      if (res[idx] == cur_stmt) {
-          // Avoid detach the root node.
-          continue;
-      }
-      // Detach all the subquery.
+    if (res[idx] == cur_stmt) {
+      // Avoid detach the root node.
+      continue;
+    }
+    // Detach all the subquery.
     cur_stmt->detach_node(res[idx]);
   }
 
@@ -1903,8 +1899,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     }
     /* Handling of DataPartitionName completed. */
 
-
-
     /* Fix of DataTableAlias name. */
     /* For DataTableAlias name, do not need to
      * handle ContextUse and ContextUndefine situations.
@@ -2029,7 +2023,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-
     /* Fix of kDataIndex name. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
@@ -2117,7 +2110,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-      /* kDefine and kReplace of kDataColumnName */
+    /* kDefine and kReplace of kDataColumnName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -2295,210 +2288,222 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
 
-      /* Fix of DataColumnAlias name.
-       * There are two parts of the DataColumnAliasName handling.
-       * The first part is inside TypeAliasClause, where the table
-       * alias name and column alias name are all provided.
-       * The second part is direct column referencing.
-       * For the second part, we choose to ignore the mapping,
-       * because these cases are not very interesting, and won't
-       * reflect on the outputs.
-       * */
-      for (IR *ir_to_fix : ir_to_fix_vec) {
-          if (ir_to_fix->get_is_instantiated()) {
-              continue;
-          }
-
-          if (ir_to_fix->data_type_ == DataColumnAliasName) {
-
-              ir_to_fix->set_is_instantiated(true);
-
-              string closest_table_alias_name = "";
-
-              /* Three situations:
-               * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-               * Customer FROM Customers;`
-               * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
-               * c(x);`
-               * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100) SELECT * FROM r WHERE c = 100;
-               *
-               * The 2 and 3 cases are similar.
-               * */
-
-              bool is_alias_clause = false;
-              if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
-                  is_alias_clause = true;
-              }
-
-              if (is_alias_clause) {
-                  /* Fix the TypeAliasClause scenario first.
-                   * This scenario must be handled before the ContextUse of
-                   * DataColumnName.
-                   * In this case, the TypeTableAlias is provided, we need to
-                   * connect the TypeTableAlias to the TypeColumnAlias.
-                   * Challenge: We need to make sure the number of
-                   * alise column matched the SELECT clause element in the subquery.
-                   * Luckily, we can ensure that when running in this scenario,
-                   * the subquery has already been instantiated, so that all the column
-                   * mappings are correct.
-                   */
-
-                  // First, check the nearby select subquery.
-                  IR* select_subquery = p_oracle->ir_wrapper
-                          .find_closest_nearby_IR_with_type(ir_to_fix, TypeSelect);
-                  if (select_subquery != NULL && select_subquery != cur_stmt_root) {
-                      if (is_debug_info) {
-                          cerr << "\n\n\nDependency: when fixing the select subquery, found select subquery: "
-                               << select_subquery->to_string() << "\n\n\n";
-                      }
-                  } else {
-                      if (is_debug_info) {
-                          cerr << "\n\n\nError: Cannot find the select subquery from the current stmt. "
-                                  "skip the current statement fixing. \n\n\n";
-                      }
-                      continue;
-                  }
-
-                  // Search whether there are columns defined in the `TypeSelectExprs`.
-                  vector<IR*> all_column_in_subselect = p_oracle->ir_wrapper
-                          .get_ir_node_in_stmt_with_type(select_subquery, DataColumnName);
-                  vector<IR*> all_table_in_subselect = p_oracle->ir_wrapper
-                          .get_ir_node_in_stmt_with_type(select_subquery, DataTableName);
-                  vector<IR*> all_stars_in_subselect = p_oracle->ir_wrapper
-                          .get_ir_node_in_stmt_with_type(select_subquery, TypeUnqualifiedStar);
-
-                  // Try to handle the columns defined in the subquery first.
-                  // Only look at the columns defined in the SELECT clause:
-                  // e.g. `SELECT v1, v2 FROM v0`
-
-                  vector<IR*> ref_column_in_subselect;
-                  vector<string> new_column_alias_names;
-                  string ret_str = "";
-                  for (auto& cur_column_in_subselect : all_column_in_subselect) {
-                      if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect, TypeSelectExprs)) {
-                          if (is_debug_info) {
-                              cerr << "\n\n\nFound column name in TypeSelectExprs: "
-                                   << cur_column_in_subselect->to_string() << "\n\n\n";
-                          }
-                          ref_column_in_subselect.push_back(cur_column_in_subselect);
-                      }
-                  }
-
-                  int ref_col_idx = 0;
-                  if (ref_column_in_subselect.size() > 0) {
-                      for (auto& cur_column_in_sub : ref_column_in_subselect) {
-                          string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
-                          string new_column_alias_name = gen_column_alias_name();
-                          m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
-                          new_column_alias_names.push_back(new_column_alias_name);
-                          if (ref_col_idx > 0) {
-                              ret_str += ", ";
-                          }
-                          ref_col_idx++;
-                          ret_str += new_column_alias_name;
-                          if (is_debug_info) {
-                              cerr << "\n\n\nMapping alias name: " << new_column_alias_name
-                                       << " to column name " << cur_col_in_sub_str
-                                       << " in TypeSelectExprs. ";
-                          }
-                      }
-                  }
-                  // Inherit the ref_col_idx.
-                  if (all_stars_in_subselect.size() > 0 && all_table_in_subselect.size() > 0) {
-                      IR* cur_select_table = all_table_in_subselect.front();
-                      for (string& matched_column : m_table2columns[cur_select_table->get_str_val()]) {
-                          string new_column_alias_name = gen_column_alias_name();
-                          m_alias2column_single[new_column_alias_name] = matched_column;
-                          new_column_alias_names.push_back(new_column_alias_name);
-                          if (ref_col_idx > 0) {
-                              ret_str += ", ";
-                          }
-                          ref_col_idx++;
-                          ret_str += new_column_alias_name;
-                          if (is_debug_info) {
-                              cerr << "\n\n\nMapping alias name: " << new_column_alias_name
-                                   << " to column name " << matched_column
-                                   << " in TypeSelectExprs. ";
-                          }
-                      }
-                  }
-
-                  // Next, match the table alias name.
-                  IR *alias_table_ir =
-                          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                                  ir_to_fix, DataTableAliasName);
-                  string alias_table_str;
-                  if (alias_table_ir != NULL) {
-                      alias_table_str = alias_table_ir->get_str_val();
-                  } else {
-                      if (is_debug_info) {
-                          cerr << "\n\n\nError: Cannot find table alias name inside the "
-                                  "TypeAliasClause \n\n\n";
-                          ir_to_fix->set_str_val("x");
-                          continue;
-                      }
-                  }
-
-                  for (string& cur_new_column_alias_name : new_column_alias_names) {
-                      m_alias_table2column_single[alias_table_str].push_back(cur_new_column_alias_name);
-                  }
-
-                  // Actually replace the current node.
-                  IR* alias_clause_ir = p_oracle->ir_wrapper
-                          .get_parent_node_with_type(ir_to_fix, TypeAliasClause);
-                  if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
-                      if (is_debug_info) {
-                          cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR from Columnaliaslist. \n\n\n";
-                      }
-                      continue;
-                  }
-
-                  ir_to_deep_drop.push_back(alias_clause_ir->get_right());
-                  p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                          alias_clause_ir->get_right(), [](IR* cur_node) -> void {
-                              cur_node->set_is_instantiated(true);
-                              cur_node->set_data_flag(ContextNoModi);
-                          });
-                  IR* new_column_alias_list = new IR(TypeColumnDefList, ret_str);
-                  alias_clause_ir->update_right(new_column_alias_list);
-
-                  continue;
-
-              } else {
-                  /* Fix the TypeSelectExprs scenario now.
-                   * No need for extra work for this scenario because it is
-                   * not very interesting.
-                   * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-                   * Customer FROM Customers;`
-                   */
-
-                  IR *near_table_ir =
-                          p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                                  ir_to_fix, DataTableName);
-                  string near_table_str;
-                  if (near_table_ir != NULL) {
-                      near_table_str = near_table_ir->get_str_val();
-                  } else {
-                      if (is_debug_info) {
-                          cerr << "\n\n\nError: Cannot find table alias name inside the "
-                                  "TypeAliasClause \n\n\n";
-                          ir_to_fix->set_str_val("x");
-                          continue;
-                      }
-                  }
-
-                  string column_alias_name = gen_column_alias_name();
-                  ir_to_fix->set_str_val(column_alias_name);
-
-                  m_alias_table2column_single[near_table_str].push_back(column_alias_name);
-                  continue;
-
-              }
-          }
+    /* Fix of DataColumnAlias name.
+     * There are two parts of the DataColumnAliasName handling.
+     * The first part is inside TypeAliasClause, where the table
+     * alias name and column alias name are all provided.
+     * The second part is direct column referencing.
+     * For the second part, we choose to ignore the mapping,
+     * because these cases are not very interesting, and won't
+     * reflect on the outputs.
+     * */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+      if (ir_to_fix->get_is_instantiated()) {
+        continue;
       }
 
-      /* Fix the Data Type identifiers. Must be done after ContextDefine of
-       * DataColumnName. */
+      if (ir_to_fix->data_type_ == DataColumnAliasName) {
+
+        ir_to_fix->set_is_instantiated(true);
+
+        string closest_table_alias_name = "";
+
+        /* Three situations:
+         * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+         * Customer FROM Customers;`
+         * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
+         * c(x);`
+         * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100)
+         * SELECT * FROM r WHERE c = 100;
+         *
+         * The 2 and 3 cases are similar.
+         * */
+
+        bool is_alias_clause = false;
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
+          is_alias_clause = true;
+        }
+
+        if (is_alias_clause) {
+          /* Fix the TypeAliasClause scenario first.
+           * This scenario must be handled before the ContextUse of
+           * DataColumnName.
+           * In this case, the TypeTableAlias is provided, we need to
+           * connect the TypeTableAlias to the TypeColumnAlias.
+           * Challenge: We need to make sure the number of
+           * alise column matched the SELECT clause element in the subquery.
+           * Luckily, we can ensure that when running in this scenario,
+           * the subquery has already been instantiated, so that all the column
+           * mappings are correct.
+           */
+
+          // First, check the nearby select subquery.
+          IR *select_subquery =
+              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
+                                                                    TypeSelect);
+          if (select_subquery != NULL && select_subquery != cur_stmt_root) {
+            if (is_debug_info) {
+              cerr << "\n\n\nDependency: when fixing the select subquery, "
+                      "found select subquery: "
+                   << select_subquery->to_string() << "\n\n\n";
+            }
+          } else {
+            if (is_debug_info) {
+              cerr << "\n\n\nError: Cannot find the select subquery from the "
+                      "current stmt. "
+                      "skip the current statement fixing. \n\n\n";
+            }
+            continue;
+          }
+
+          // Search whether there are columns defined in the `TypeSelectExprs`.
+          vector<IR *> all_column_in_subselect =
+              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                  select_subquery, DataColumnName);
+          vector<IR *> all_table_in_subselect =
+              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                  select_subquery, DataTableName);
+          vector<IR *> all_stars_in_subselect =
+              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                  select_subquery, TypeUnqualifiedStar);
+
+          // Try to handle the columns defined in the subquery first.
+          // Only look at the columns defined in the SELECT clause:
+          // e.g. `SELECT v1, v2 FROM v0`
+
+          vector<IR *> ref_column_in_subselect;
+          vector<string> new_column_alias_names;
+          string ret_str = "";
+          for (auto &cur_column_in_subselect : all_column_in_subselect) {
+            if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect,
+                                              TypeSelectExprs)) {
+              if (is_debug_info) {
+                cerr << "\n\n\nFound column name in TypeSelectExprs: "
+                     << cur_column_in_subselect->to_string() << "\n\n\n";
+              }
+              ref_column_in_subselect.push_back(cur_column_in_subselect);
+            }
+          }
+
+          int ref_col_idx = 0;
+          if (ref_column_in_subselect.size() > 0) {
+            for (auto &cur_column_in_sub : ref_column_in_subselect) {
+              string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
+              string new_column_alias_name = gen_column_alias_name();
+              m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
+              new_column_alias_names.push_back(new_column_alias_name);
+              if (ref_col_idx > 0) {
+                ret_str += ", ";
+              }
+              ref_col_idx++;
+              ret_str += new_column_alias_name;
+              if (is_debug_info) {
+                cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+                     << " to column name " << cur_col_in_sub_str
+                     << " in TypeSelectExprs. ";
+              }
+            }
+          }
+          // Inherit the ref_col_idx.
+          if (all_stars_in_subselect.size() > 0 &&
+              all_table_in_subselect.size() > 0) {
+            IR *cur_select_table = all_table_in_subselect.front();
+            for (string &matched_column :
+                 m_table2columns[cur_select_table->get_str_val()]) {
+              string new_column_alias_name = gen_column_alias_name();
+              m_alias2column_single[new_column_alias_name] = matched_column;
+              new_column_alias_names.push_back(new_column_alias_name);
+              if (ref_col_idx > 0) {
+                ret_str += ", ";
+              }
+              ref_col_idx++;
+              ret_str += new_column_alias_name;
+              if (is_debug_info) {
+                cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+                     << " to column name " << matched_column
+                     << " in TypeSelectExprs. ";
+              }
+            }
+          }
+
+          // Next, match the table alias name.
+          IR *alias_table_ir =
+              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                  ir_to_fix, DataTableAliasName);
+          string alias_table_str;
+          if (alias_table_ir != NULL) {
+            alias_table_str = alias_table_ir->get_str_val();
+          } else {
+            if (is_debug_info) {
+              cerr << "\n\n\nError: Cannot find table alias name inside the "
+                      "TypeAliasClause \n\n\n";
+              ir_to_fix->set_str_val("x");
+              continue;
+            }
+          }
+
+          for (string &cur_new_column_alias_name : new_column_alias_names) {
+            m_alias_table2column_single[alias_table_str].push_back(
+                cur_new_column_alias_name);
+          }
+
+          // Actually replace the current node.
+          IR *alias_clause_ir = p_oracle->ir_wrapper.get_parent_node_with_type(
+              ir_to_fix, TypeAliasClause);
+          if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
+            if (is_debug_info) {
+              cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR "
+                      "from Columnaliaslist. \n\n\n";
+            }
+            continue;
+          }
+
+          ir_to_deep_drop.push_back(alias_clause_ir->get_right());
+          p_oracle->ir_wrapper.iter_cur_node_with_handler(
+              alias_clause_ir->get_right(), [](IR *cur_node) -> void {
+                cur_node->set_is_instantiated(true);
+                cur_node->set_data_flag(ContextNoModi);
+              });
+          IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
+          alias_clause_ir->update_right(new_column_alias_list);
+
+          continue;
+
+        } else {
+          /* Fix the TypeSelectExprs scenario now.
+           * No need for extra work for this scenario because it is
+           * not very interesting.
+           * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+           * Customer FROM Customers;`
+           */
+
+          IR *near_table_ir =
+              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                  ir_to_fix, DataTableName);
+          string near_table_str;
+          if (near_table_ir != NULL) {
+            near_table_str = near_table_ir->get_str_val();
+          } else {
+            if (is_debug_info) {
+              cerr << "\n\n\nError: Cannot find table alias name inside the "
+                      "TypeAliasClause \n\n\n";
+              ir_to_fix->set_str_val("x");
+              continue;
+            }
+          }
+
+          string column_alias_name = gen_column_alias_name();
+          ir_to_fix->set_str_val(column_alias_name);
+
+          m_alias_table2column_single[near_table_str].push_back(
+              column_alias_name);
+          continue;
+        }
+      }
+    }
+
+    /* Fix the Data Type identifiers. Must be done after ContextDefine of
+     * DataColumnName. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -2651,16 +2656,16 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         IR *name_list_left_child = name_list->get_left();
         IR *name_list_right_child = name_list->get_right();
         if (name_list_left_child != nullptr) {
-            ir_to_deep_drop.push_back(name_list_left_child);
+          ir_to_deep_drop.push_back(name_list_left_child);
         }
         if (name_list_right_child != nullptr) {
-            ir_to_deep_drop.push_back(name_list_right_child);
+          ir_to_deep_drop.push_back(name_list_right_child);
         }
         p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                name_list, [](IR *cur_node) -> void {
-                    cur_node->set_is_instantiated(true);
-                    cur_node->set_data_flag(ContextNoModi);
-                });
+            name_list, [](IR *cur_node) -> void {
+              cur_node->set_is_instantiated(true);
+              cur_node->set_data_flag(ContextNoModi);
+            });
         name_list->update_left(nullptr);
         name_list->update_right(nullptr);
 
@@ -2796,7 +2801,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //        }
     //
     //      }
-
 
     /* Fix the Literal inside VALUES clause. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -3010,27 +3014,25 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         // affinity fixed.
 
         vector<IRTYPE> v_matched_literal_types = {
-                TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral
-        };
-        vector<IRTYPE> v_capped_ir_types = {
-                TypeSelectClause, TypeSelect
-        };
+            TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral};
+        vector<IRTYPE> v_capped_ir_types = {TypeSelectClause, TypeSelect};
         IR *near_literal_node =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<vector<IRTYPE>, vector<IRTYPE>>(
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<
+                vector<IRTYPE>, vector<IRTYPE>>(
                 ir_to_fix, v_matched_literal_types, v_capped_ir_types);
 
-       if (near_literal_node != NULL &&
-           near_literal_node->get_data_affinity() != AFFIUNKNOWN) {
-         ir_to_fix->set_data_affinity(
-             near_literal_node->get_data_affinity());
-         if (is_debug_info) {
-           cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
-                   "nearby literal: "
-                << near_literal_node->to_string()
-                << ", the literal comes with affinity: "
-                << get_string_by_affinity_type(near_literal_node->get_data_affinity())
-                << "\n\n\n";
-         }
+        if (near_literal_node != NULL &&
+            near_literal_node->get_data_affinity() != AFFIUNKNOWN) {
+          ir_to_fix->set_data_affinity(near_literal_node->get_data_affinity());
+          if (is_debug_info) {
+            cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
+                    "nearby literal: "
+                 << near_literal_node->to_string()
+                 << ", the literal comes with affinity: "
+                 << get_string_by_affinity_type(
+                        near_literal_node->get_data_affinity())
+                 << "\n\n\n";
+          }
         } else {
           // If we end up in this branch, we cannot find a nearby literal that
           // already has fixed affinity. This is expected, such as case: `SELECT
@@ -3348,7 +3350,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         /* Fix: also, add column alias name defined here to the table */
         vector<IR *> all_mentioned_column_alias_vec;
         set<DATATYPE> column_alias_type_set = {DataColumnAliasName};
-        collect_ir(cur_stmt_root, column_alias_type_set, all_mentioned_column_alias_vec);
+        collect_ir(cur_stmt_root, column_alias_type_set,
+                   all_mentioned_column_alias_vec);
 
         if (is_debug_info) {
           cerr << "Dependency: When building extra mapping for CREATE VIEW AS, "
@@ -3357,71 +3360,77 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
 
         if (column_alias_type_set.size() != 0) {
-            m_table2columns[ir_to_fix->get_str_val()].clear();
-            for (auto& cur_column_alias_ir : all_mentioned_column_vec) {
-                string cur_column_alias = cur_column_alias_ir->get_str_val();
-                m_table2columns[ir_to_fix->get_str_val()].push_back(cur_column_alias);
-            }
+          m_table2columns[ir_to_fix->get_str_val()].clear();
+          for (auto &cur_column_alias_ir : all_mentioned_column_vec) {
+            string cur_column_alias = cur_column_alias_ir->get_str_val();
+            m_table2columns[ir_to_fix->get_str_val()].push_back(
+                cur_column_alias);
+          }
         } else {
-            for (const IR *const cur_men_column_ir: all_mentioned_column_vec) {
-                string cur_men_column_str = cur_men_column_ir->str_val_;
-                if (findStringIn(cur_men_column_str, ".")) {
-                    vector<string> v_cur_men_column_str = string_splitter(cur_men_column_str, '.');
-                    cur_men_column_str = v_cur_men_column_str[v_cur_men_column_str.size() - 1];
+          for (const IR *const cur_men_column_ir : all_mentioned_column_vec) {
+            string cur_men_column_str = cur_men_column_ir->str_val_;
+            if (findStringIn(cur_men_column_str, ".")) {
+              vector<string> v_cur_men_column_str =
+                  string_splitter(cur_men_column_str, '.');
+              cur_men_column_str =
+                  v_cur_men_column_str[v_cur_men_column_str.size() - 1];
+            }
+            vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
+            if (std::find(cur_m_table.begin(), cur_m_table.end(),
+                          cur_men_column_str) == cur_m_table.end()) {
+              m_table2columns[ir_to_fix->str_val_].push_back(
+                  cur_men_column_str);
+              if (is_debug_info) {
+                cerr << "Dependency: Adding mappings: For table/view: "
+                     << ir_to_fix->str_val_
+                     << ", map with column: " << cur_men_column_str
+                     << ". \n\n\n";
+              }
+            }
+          }
+
+          /* For CREATE VIEW x AS SELECT * FROM v0; */
+          if (all_mentioned_column_vec.size() == 0) {
+            if (is_debug_info) {
+              cerr
+                  << "Dependency: For mapping CREATE VIEW, cannot find column "
+                     "name in the current subqueries. Thus, see if we can find "
+                     "table names, and map from there. \n\n\n";
+            }
+            vector<IR *> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
+            set<DATATYPE> table_type_set = {DataTableName};
+            collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
+            for (IR *mentioned_table_ir : all_mentioned_table_vec) {
+              if (mentioned_table_ir->data_flag_ == ContextUse) {
+                all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
+                if (is_debug_info) {
+                  cerr << "Dependency: For mapping CREATE VIEW, getting "
+                          "mentioned table name: "
+                       << mentioned_table_ir->str_val_ << ". \n\n\n";
                 }
-                vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
+              }
+            }
+            for (IR *cur_men_tablename_ir : all_mentioned_table_kUsed_vec) {
+              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+              const vector<string> &cur_men_column_vec =
+                  m_table2columns[cur_men_tablename_str];
+              for (const string &cur_men_column_str : cur_men_column_vec) {
+                vector<string> &cur_m_table =
+                    m_table2columns[ir_to_fix->str_val_];
                 if (std::find(cur_m_table.begin(), cur_m_table.end(),
                               cur_men_column_str) == cur_m_table.end()) {
-                    m_table2columns[ir_to_fix->str_val_].push_back(cur_men_column_str);
-                    if (is_debug_info) {
-                        cerr << "Dependency: Adding mappings: For table/view: "
-                             << ir_to_fix->str_val_
-                             << ", map with column: " << cur_men_column_str << ". \n\n\n";
-                    }
+                  m_table2columns[ir_to_fix->str_val_].push_back(
+                      cur_men_column_str);
+                  if (is_debug_info) {
+                    cerr << "Dependency: Adding mappings: For table/view: "
+                         << ir_to_fix->str_val_
+                         << ", map with column: " << cur_men_column_str
+                         << ". \n\n\n";
+                  }
                 }
-            }
-
-            /* For CREATE VIEW x AS SELECT * FROM v0; */
-            if (all_mentioned_column_vec.size() == 0) {
-                if (is_debug_info) {
-                    cerr << "Dependency: For mapping CREATE VIEW, cannot find column "
-                            "name in the current subqueries. Thus, see if we can find "
-                            "table names, and map from there. \n\n\n";
-                }
-                vector<IR *> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
-                set<DATATYPE> table_type_set = {DataTableName};
-                collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
-                for (IR *mentioned_table_ir: all_mentioned_table_vec) {
-                    if (mentioned_table_ir->data_flag_ == ContextUse) {
-                        all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
-                        if (is_debug_info) {
-                            cerr << "Dependency: For mapping CREATE VIEW, getting "
-                                    "mentioned table name: "
-                                 << mentioned_table_ir->str_val_ << ". \n\n\n";
-                        }
-                    }
-                }
-                for (IR *cur_men_tablename_ir: all_mentioned_table_kUsed_vec) {
-                    string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
-                    const vector<string> &cur_men_column_vec =
-                            m_table2columns[cur_men_tablename_str];
-                    for (const string &cur_men_column_str: cur_men_column_vec) {
-                        vector<string> &cur_m_table =
-                                m_table2columns[ir_to_fix->str_val_];
-                        if (std::find(cur_m_table.begin(), cur_m_table.end(),
-                                      cur_men_column_str) == cur_m_table.end()) {
-                            m_table2columns[ir_to_fix->str_val_].push_back(
-                                    cur_men_column_str);
-                            if (is_debug_info) {
-                                cerr << "Dependency: Adding mappings: For table/view: "
-                                     << ir_to_fix->str_val_
-                                     << ", map with column: " << cur_men_column_str
-                                     << ". \n\n\n";
-                            }
-                        }
-                    }
-                } // for (IR* cur_men_tablename_ir : all_mentioned_table_kUsed_vec)
-            }   // if (all_mentioned_column_vec.size() == 0)
+              }
+            } // for (IR* cur_men_tablename_ir : all_mentioned_table_kUsed_vec)
+          }   // if (all_mentioned_column_vec.size() == 0)
         }
 
         /* The extra mapping only need to be done once. Once reach this point,
