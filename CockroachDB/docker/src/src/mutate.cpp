@@ -1314,7 +1314,7 @@ void Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
       DataColumnName,      DataTableName,    DataIndexName, DataTableAliasName,
       DataColumnAliasName, DataSequenceName, DataViewName,  DataConstraintName,
-      DataSequenceName,    DataTypeName,     DataLiteral};
+      DataSequenceName,    DataTypeName,     DataLiteral, DataDatabaseName, DataSchemaName};
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
@@ -1409,6 +1409,20 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
   for (const vector<IR *> &ir_to_fix_vec :
        cur_stmt_ir_to_fix_vec) { // Loop for substmt.
+
+      /* Fix all DataDataBaseName and DataSchemaName */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+          if ((ir_to_fix->data_type_ == DataDatabaseName)) {
+              ir_to_fix->set_str_val("sqlrighttestdb");
+          }
+
+          if (ir_to_fix->data_type_ == DataSchemaName) {
+              ir_to_fix->set_str_val("public");
+          }
+      }
 
     /* Definition of TypeDataTableName */
     for (IR *ir_to_fix : ir_to_fix_vec) {
