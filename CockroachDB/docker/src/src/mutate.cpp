@@ -2347,11 +2347,16 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   IR* select_subquery = p_oracle->ir_wrapper
                           .find_closest_nearby_IR_with_type(ir_to_fix, TypeSelect);
                   if (select_subquery != NULL && select_subquery != cur_stmt_root) {
-                      cerr << "\n\n\nDependency: when fixing the select subquery, found select subquery: "
-                           << select_subquery->to_string() << "\n\n\n";
+                      if (is_debug_info) {
+                          cerr << "\n\n\nDependency: when fixing the select subquery, found select subquery: "
+                               << select_subquery->to_string() << "\n\n\n";
+                      }
                   } else {
-                      cerr << "\n\n\nError: Cannot find the select subquery from the current stmt. "
-                              "skip the current statement fixing. \n\n\n";
+                      if (is_debug_info) {
+                          cerr << "\n\n\nError: Cannot find the select subquery from the current stmt. "
+                                  "skip the current statement fixing. \n\n\n";
+                      }
+                      continue;
                   }
 
                   // Search whether there are columns defined in the `TypeSelectExprs`.
