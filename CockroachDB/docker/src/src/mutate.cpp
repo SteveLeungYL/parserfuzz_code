@@ -3383,39 +3383,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
        * column mapping. */
       IR *cur_ir = ir_to_fix;
       bool is_in_create_view = false;
-      while (cur_ir != nullptr) {
-        if (cur_ir->type_ == TypeStmt) {
-          break;
-        }
-        if (cur_ir->type_ == TypeCreateView) {
+      if (cur_stmt_root->get_ir_type() == TypeCreateView) {
           is_in_create_view = true;
-          if (is_debug_info) {
-            cerr << "Dependency: We are in a kCreateViewStmt. \n\n\n";
-          }
-          break;
-        }
-        /* Yu: Dirty fix for CREATE TABLE PARTITION OF or CREATE TABLE ... AS
-         * SELECT ... stmt. */
-        if (cur_ir_str.find("PARTITION OF") != string::npos &&
-            cur_ir_str.find("CREATE") != string::npos) {
-          is_in_create_view = true;
-          if (is_debug_info) {
-            cerr << "Dependency: We are in a CREATE TABLE PARTITION OF. Hack, "
-                    "treat it CREATE VIEW.  \n\n\n";
-          }
-          break;
-        }
-        if (cur_ir_str.find("CREATE TABLE") != string::npos &&
-            cur_ir_str.find("AS SELECT") != string::npos) {
-          is_in_create_view = true;
-          if (is_debug_info) {
-            cerr << "Dependency: We are in a CREATE TABLE AS SELECT. Hack, "
-                    "treat it CREATE VIEW.  \n\n\n";
-          }
-          break;
-        }
-
-        cur_ir = cur_ir->parent_;
       }
       if (is_in_create_view) {
         /* Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT...
@@ -3444,12 +3413,18 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                << all_mentioned_column_vec.size() << ". \n\n\n";
         }
 
-        if (column_alias_type_set.size() != 0) {
+        if (all_mentioned_column_alias_vec.size() != 0) {
           m_table2columns[ir_to_fix->get_str_val()].clear();
-          for (auto &cur_column_alias_ir : all_mentioned_column_vec) {
+          for (auto &cur_column_alias_ir : all_mentioned_column_alias_vec) {
             string cur_column_alias = cur_column_alias_ir->get_str_val();
             m_table2columns[ir_to_fix->get_str_val()].push_back(
                 cur_column_alias);
+              if (is_debug_info) {
+                  cerr << "Dependency: Adding mappings: For table/view: "
+                       << ir_to_fix->str_val_
+                       << ", map from column alias to column str: " <<cur_column_alias
+                       << ". \n\n\n";
+              }
           }
         } else {
           for (const IR *const cur_men_column_ir : all_mentioned_column_vec) {
