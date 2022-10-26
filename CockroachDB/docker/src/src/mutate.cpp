@@ -1314,7 +1314,9 @@ void Mutator::fix_preprocessing(IR *stmt_root,
   set<DATATYPE> type_to_fix = {
       DataColumnName,      DataTableName,    DataIndexName, DataTableAliasName,
       DataColumnAliasName, DataSequenceName, DataViewName,  DataConstraintName,
-      DataSequenceName,    DataTypeName,     DataLiteral, DataDatabaseName, DataSchemaName};
+      DataSequenceName,    DataTypeName,     DataLiteral,   DataDatabaseName,
+      DataSchemaName,      DataViewColumnName
+  };
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
 }
@@ -1868,6 +1870,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         remove(v_view_name.begin(), v_view_name.end(), view_to_rov_str);
         remove(v_create_view_names_single.begin(),
                v_create_view_names_single.end(), view_to_rov_str);
+        remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
 
         if (is_debug_info) {
           cerr << "Dependency: In ContextUndefine of kDataViewName, removing "
@@ -3356,6 +3359,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
    * statement to the global v_table_names. */
   v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(),
                        v_create_table_names_single.end());
+  v_table_names.insert(v_table_names.end(), v_create_view_names_single.begin(),
+                         v_create_view_names_single.end());
   v_view_name.insert(v_view_name.end(), v_create_view_names_single.begin(),
                      v_create_view_names_single.end());
 
@@ -3512,7 +3517,104 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         break;
       } // if (is_in_create_view)
 
+
     } // for (IR* ir_to_fix : ir_to_fix_vec)
+
+    // The second loop that fix the DataViewColumn.
+    // Need to rewrite the column mapping.
+    for (IR* ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_data_type() == DataViewColumnName) {
+
+           if (cur_stmt_root->get_ir_type() != TypeCreateView) {
+               cerr << "\n\n\nError: Finding DataViewColumnName that is not in the Create View statement. \n\n\n";
+               continue;
+           }
+
+           IR* type_name_list = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
+           if (type_name_list == NULL) {
+               if (is_debug_info) {
+                   cerr
+                           << "\n\n\nError: In DataViewColumnName fixing. Cannot find the type_name_list from the statement."
+                              "More debug info, view column is: " << ir_to_fix->to_string() << ". \n\n\n";
+               }
+               continue;
+           }
+
+           string ret_str = "";
+           IR* near_view_name_node = p_oracle->ir_wrapper
+                   .find_closest_nearby_IR_with_type(ir_to_fix, DataViewName);
+           if (near_view_name_node == NULL) {
+               if (is_debug_info) {
+                   cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the near_view_name from the "
+                           "statement. More debug info, view column is: " << ir_to_fix->to_string() << ". \n\n\n";
+               }
+           }
+           string near_view_name_str = near_view_name_node->to_string();
+           vector<string> matched_columns = m_table2columns[near_view_name_str];
+
+           vector<string> v_new_view_col_name_str;
+           int view_col_idx = 0;
+           for (string cur_matched_columns : matched_columns) {
+               string new_view_column_name = gen_view_column_name();
+               v_new_view_col_name_str.push_back(new_view_column_name);
+               m_column2datatype[new_view_column_name] = m_column2datatype[cur_matched_columns];
+
+               if (view_col_idx != 0) {
+                   ret_str += ", ";
+               }
+
+               view_col_idx ++;
+               ret_str += new_view_column_name;
+
+               if (is_debug_info) {
+                   cerr << "\n\n\nDependency: INFO:: Transporting data affinity from column: "
+                        << cur_matched_columns << " to view column: " << new_view_column_name
+                        << ", with affinity: "
+                        << get_string_by_affinity_type(m_column2datatype[new_view_column_name].get_data_affinity())
+                        << ". \n\n\n";
+               }
+           }
+
+           m_table2columns[near_view_name_str] = v_new_view_col_name_str;
+
+            if (is_debug_info) {
+                for (string& view_col_name: v_new_view_col_name_str) {
+                    cerr << "\n\n\nDependency: INFO:: Appending new view column: "
+                         << view_col_name
+                         << " to view: " << near_view_name_str
+                         << ". \n\n\n";
+                }
+            }
+
+            // At last, switch the whole TypeNameList node in the Create View column clause.
+//            ret_str = "(" + ret_str + ")";
+            IR* new_name_list_ir = new IR(TypeNameList, ret_str);
+
+            IR* name_list_left = type_name_list->get_left();
+            IR* name_list_right = type_name_list->get_right();
+
+            if (name_list_left != NULL) {
+                ir_to_deep_drop.push_back(name_list_left);
+                p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                        name_list_left, [](IR* cur_node) -> void {
+                            cur_node->set_is_instantiated(true);
+                            cur_node->set_data_flag(ContextNoModi);
+                        });
+            }
+            if (name_list_right) {
+                ir_to_deep_drop.push_back(name_list_right);
+                p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                        name_list_right, [](IR* cur_node) -> void {
+                            cur_node->set_is_instantiated(true);
+                            cur_node->set_data_flag(ContextNoModi);
+                        });
+            }
+
+            type_name_list->update_left(new_name_list_ir);
+            type_name_list->update_right(NULL);
+        }
+    }
+
   }
 
   for (IR *ir_to_drop : ir_to_deep_drop) {

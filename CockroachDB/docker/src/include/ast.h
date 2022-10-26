@@ -53,6 +53,7 @@ static string gen_column_alias_name() { return "ca" + to_string(g_id_counter++);
 static string gen_statistic_name() { return "s" + to_string(g_id_counter++); }
 static string gen_sequence_name() { return "seq" + to_string(g_id_counter++); }
 static string gen_view_name() { return "view" + to_string(g_id_counter++); }
+static string gen_view_column_name() { return "view_c" + to_string(g_id_counter++); }
 static string gen_partition_name() { return "par" + to_string(g_id_counter++); }
 
 string get_string_by_ir_type(IRTYPE type);
