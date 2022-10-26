@@ -125,7 +125,7 @@ public:
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,
      string str_val, string name, unsigned int mutated_times,
      DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
-      : type_(type), op_(op), left_(left), right_(right),
+      : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
         operand_num_((!!right) + (!!left)), name_(name), str_val_(str_val),
         float_val_(f_val), mutated_times_(mutated_times), data_type_(DataNone),
         data_flag_(flag), data_affinity_type(data_affi) {
@@ -135,11 +135,13 @@ public:
       right_->parent_ = this;
   }
 
-  IR(DATAAFFINITYTYPE data_affi): type_(TypeStringLiteral), str_val_("") {
+  IR(DATAAFFINITYTYPE data_affi): type_(TypeStringLiteral), str_val_(""), left_(NULL),
+    right_(NULL), parent_(NULL) {
       this->mutate_literal(data_affi);
   }
 
-  IR(DataAffinity data_affi): type_(TypeStringLiteral), str_val_("") {
+  IR(DataAffinity data_affi): type_(TypeStringLiteral), str_val_("") , left_(NULL),
+                              right_(NULL), parent_(NULL) {
       this->mutate_literal(data_affi);
   }
 

@@ -1165,6 +1165,7 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
      * so that the root stmt can correctly map the dependencies to the subquery
      * tables/columns.
      */
+    cur_stmt->parent_ = NULL;
 
   list<IR*> res_list;
   vector<IR *> res;
@@ -1189,7 +1190,7 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
             split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)) {
         if (
-            p_oracle->ir_wrapper.is_ir_in(node->get_right(), TypeWith) ||
+            p_oracle->ir_wrapper.is_ir_in(node->get_left(), TypeWith) ||
             node->get_ir_type() == TypeCreateView ||
             node->get_ir_type() == TypeCreateTableAs
         ){
