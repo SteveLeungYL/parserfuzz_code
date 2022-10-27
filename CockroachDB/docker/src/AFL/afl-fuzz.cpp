@@ -3973,7 +3973,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     last_hang_time = get_cur_time();
 
-    break;
+    return 0;
+//    break;
 
   case FAULT_CRASH:
 
