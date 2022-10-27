@@ -9,6 +9,7 @@ DEPEN_PATH  = ../src/*.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
+TMIN_OBJS:= AFL/afl-tmin.o $(COMM_OBJS)
 GEN_OBJS:= AFL/generate_inputs.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
@@ -21,7 +22,7 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl
 
 
-all: afl-fuzz test-parser generate_inputs
+all: afl-fuzz test-parser generate_inputs afl-tmin
 
 parser:
 	@$(MAKE) -C $@
@@ -34,6 +35,9 @@ afl-fuzz: $(SUB_DIRS)
 
 test-parser: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+
+afl-tmin: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(TMIN_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 
 generate_inputs: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(GEN_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
