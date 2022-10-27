@@ -44,6 +44,8 @@
 #include <dirent.h>
 #include <fcntl.h>
 
+#include "debug.h"
+
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <sys/shm.h>
@@ -101,64 +103,64 @@ static volatile u8
 static bool is_timeout;
 
 
-/* Classify tuple counts. This is a slow & naive version, but good enough here. */
-
-static const u8 count_class_lookup[256] = {
-
-  [0]           = 0,
-  [1]           = 1,
-  [2]           = 2,
-  [3]           = 4,
-  [4 ... 7]     = 8,
-  [8 ... 15]    = 16,
-  [16 ... 31]   = 32,
-  [32 ... 127]  = 64,
-  [128 ... 255] = 128
-
-};
+///* Classify tuple counts. This is a slow & naive version, but good enough here. */
+//
+//static const u8 count_class_lookup[256] = {
+//
+//  [0]           = 0,
+//  [1]           = 1,
+//  [2]           = 2,
+//  [3]           = 4,
+//  [4 ... 7]     = 8,
+//  [8 ... 15]    = 16,
+//  [16 ... 31]   = 32,
+//  [32 ... 127]  = 64,
+//  [128 ... 255] = 128
+//
+//};
 
 static void init_forkserver(char **argv);
 
-static void classify_counts(u8* mem) {
+//static void classify_counts(u8* mem) {
+//
+//  u32 i = MAP_SIZE;
+//
+//  if (edges_only) {
+//
+//    while (i--) {
+//      if (*mem) *mem = 1;
+//      mem++;
+//    }
+//
+//  } else {
+//
+//    while (i--) {
+//      *mem = count_class_lookup[*mem];
+//      mem++;
+//    }
+//
+//  }
+//
+//}
 
-  u32 i = MAP_SIZE;
 
-  if (edges_only) {
-
-    while (i--) {
-      if (*mem) *mem = 1;
-      mem++;
-    }
-
-  } else {
-
-    while (i--) {
-      *mem = count_class_lookup[*mem];
-      mem++;
-    }
-
-  }
-
-}
-
-
-/* Apply mask to classified bitmap (if set). */
-
-static void apply_mask(u32* mem, u32* mask) {
-
-  u32 i = (MAP_SIZE >> 2);
-
-  if (!mask) return;
-
-  while (i--) {
-
-    *mem &= ~*mask;
-    mem++;
-    mask++;
-
-  }
-
-}
+///* Apply mask to classified bitmap (if set). */
+//
+//static void apply_mask(u32* mem, u32* mask) {
+//
+//  u32 i = (MAP_SIZE >> 2);
+//
+//  if (!mask) return;
+//
+//  while (i--) {
+//
+//    *mem &= ~*mask;
+//    mem++;
+//    mask++;
+//
+//  }
+//
+//}
 
 
 /* See if any bytes are set in the bitmap. */
@@ -686,7 +688,7 @@ static void handle_stop_sig(int sig) {
 
 static void set_up_environment(void) {
 
-  u8* x;
+  char* x;
 
   dev_null_fd = open("/dev/null", O_RDWR);
   if (dev_null_fd < 0) PFATAL("Unable to open /dev/null");
@@ -859,9 +861,9 @@ static void usage(u8* argv0) {
 
 /* Find binary. */
 
-static void find_binary(u8* fname) {
+static void find_binary(char* fname) {
 
-  u8* env_path = 0;
+  char* env_path = 0;
   struct stat st;
 
   if (strchr(fname, '/') || !(env_path = getenv("PATH"))) {
@@ -876,7 +878,7 @@ static void find_binary(u8* fname) {
 
     while (env_path) {
 
-      u8 *cur_elem, *delim = strchr(env_path, ':');
+      char *cur_elem, *delim = strchr(env_path, ':');
 
       if (delim) {
 
@@ -915,7 +917,7 @@ static void find_binary(u8* fname) {
 static char** get_qemu_argv(u8* own_loc, char** argv, int argc) {
 
   char** new_argv = ck_alloc(sizeof(char*) * (argc + 4));
-  u8 *tmp, *cp, *rsl, *own_copy;
+  char *tmp, *cp, *rsl, *own_copy;
 
   /* Workaround for a QEMU stability glitch. */
 
@@ -1143,7 +1145,7 @@ static void init_forkserver(char **argv) {
 
   if (WIFSIGNALED(status)) {
 
-    if (mem_limit && mem_limit < 500 && uses_asan) {
+    if (mem_limit && mem_limit < 500 ) {  // && uses_asan) {
 
       SAYF("\n" cLRD "[-] " cRST "Whoops, the target binary crashed suddenly, "
            "before receiving any input\n"
@@ -1222,8 +1224,9 @@ static void init_forkserver(char **argv) {
 
            "    - Less likely, there is a horrible bug in the fuzzer. If other "
            "options\n"
-           "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n",
-           DMS(mem_limit << 20), mem_limit - 1);
+           "      fail, poke <lcamtuf@coredump.cx> for troubleshooting tips.\n"
+//           DMS(mem_limit << 20), mem_limit - 1
+           );
     }
 
     FATAL("Fork server crashed with signal %d", WTERMSIG(status));
@@ -1232,7 +1235,7 @@ static void init_forkserver(char **argv) {
   if (*(u32 *)trace_bits == EXEC_FAIL_SIG)
     FATAL("Unable to execute target application ('%s')", argv[0]);
 
-  if (mem_limit && mem_limit < 500 && uses_asan) {
+  if (mem_limit && mem_limit < 500 ) { // && uses_asan) {
 
     SAYF("\n" cLRD "[-] " cRST "Hmm, looks like the target binary terminated "
          "before we could complete a\n"
@@ -1282,8 +1285,9 @@ static void init_forkserver(char **argv) {
             ? "    - You are using deferred forkserver, but __AFL_INIT() is "
               "never\n"
               "      reached before the program terminates.\n\n"
-            : "",
-        DMS(mem_limit << 20), mem_limit - 1);
+            : ""
+//        DMS(mem_limit << 20), mem_limit - 1
+        );
   }
 
   FATAL("Fork server handshake failed");
