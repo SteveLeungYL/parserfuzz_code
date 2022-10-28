@@ -68,6 +68,8 @@ vector<string>
     Mutator::v_sequence_name; // All sequence names defined in the current SQL.
 vector<string> Mutator::v_constraint_name;    // All constraint names defined in
                                               // the current SQL.
+vector<string> Mutator::v_family_name;    // All family names defined in
+                                          // the current SQL.
 vector<string> Mutator::v_foreign_table_name; // All foreign table names defined
                                               // in the current SQL.
 // vector<string>
@@ -1315,7 +1317,7 @@ void Mutator::fix_preprocessing(IR *stmt_root,
       DataColumnName,      DataTableName,    DataIndexName, DataTableAliasName,
       DataColumnAliasName, DataSequenceName, DataViewName,  DataConstraintName,
       DataSequenceName,    DataTypeName,     DataLiteral,   DataDatabaseName,
-      DataSchemaName,      DataViewColumnName
+      DataSchemaName,      DataViewColumnName, DataFamilyName
   };
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -2869,6 +2871,190 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
     //
     //      }
 
+      /* Fix for reloptions. (Related options. ) and function names.  */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          /* Fixing for functions.  */
+          if (ir_to_fix->get_data_type() == DataFunctionName) {
+              if (ir_to_fix->get_data_flag() == ContextNoModi) {
+                  continue;
+              }
+
+              string cur_func_str = ir_to_fix->get_str_val();
+
+              cur_func_str = str_tolower(cur_func_str);
+
+              if (func_str_to_type_map.find(cur_func_str) ==
+                  func_str_to_type_map.end()) {
+                  if (is_debug_info) {
+                      cerr << "\n\n\nFor function name: " << cur_func_str
+                           << ", cannot find its "
+                              "matching function type. Do not mutate the name in the "
+                              "instantiation. \n\n\n";
+                  }
+                  continue;
+              }
+
+              if (get_rand_int(3) < 1) {
+                  FUNCTIONTYPE func_type = func_str_to_type_map[cur_func_str];
+                  string new_func_name_str = function_library[func_type][get_rand_int(
+                          function_library[func_type].size())];
+                  ir_to_fix->set_str_val(new_func_name_str);
+              }
+          }
+      }
+
+
+
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          if (ir_to_fix->get_data_type() == DataStatsName) {
+              if (ir_to_fix->get_data_flag() == ContextDefine) {
+                  string cur_chosen_name = gen_statistic_name();
+                  ir_to_fix->set_str_val(cur_chosen_name);
+                  ir_to_fix->set_is_instantiated(true);
+                  v_statistics_name.push_back(cur_chosen_name);
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+                  if (!v_statistics_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_statistics_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+                  ir_to_fix->set_is_instantiated(true);
+
+                  /* remove the statistic name from the vector */
+                  vector<string> v_tmp;
+                  for (string &s : v_statistics_name) {
+                      if (s != cur_chosen_name) {
+                          v_tmp.push_back(s);
+                      }
+                  }
+                  v_statistics_name = v_tmp;
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUse) {
+                  if (!v_statistics_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_statistics_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+                  ir_to_fix->set_is_instantiated(true);
+              }
+          }
+
+          /* Fix for kDataSequenceName */
+          if (ir_to_fix->get_data_type() == DataSequenceName) {
+              ir_to_fix->set_is_instantiated(true);
+              if (ir_to_fix->get_data_flag() == ContextDefine) {
+                  // string cur_chosen_name = gen_sequence_name();
+                  // ir_to_fix->set_str_val(cur_chosen_name);
+
+                  /* Yu: Do not fix for sequence name for now */
+                  string cur_chosen_name = ir_to_fix->get_str_val();
+                  v_sequence_name.push_back(cur_chosen_name);
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+                  if (!v_sequence_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_sequence_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+
+                  /* remove the statistic name from the vector */
+                  vector<string> v_tmp;
+                  for (string &s : v_sequence_name) {
+                      if (s != cur_chosen_name) {
+                          v_tmp.push_back(s);
+                      }
+                  }
+                  v_sequence_name = v_tmp;
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUse) {
+                  if (!v_sequence_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_sequence_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+              }
+          }
+
+          /* Fix for kDataConstraintName */
+          if (ir_to_fix->get_data_type() == DataConstraintName) {
+              ir_to_fix->set_is_instantiated(true);
+              if (ir_to_fix->get_data_flag() == ContextDefine) {
+
+                  string cur_chosen_name = gen_constraint_name();
+                  ir_to_fix->set_str_val(cur_chosen_name);
+                  v_constraint_name.push_back(cur_chosen_name);
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+                  if (!v_constraint_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_constraint_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+
+                  /* remove the statistic name from the vector */
+                  vector<string> v_tmp;
+                  for (string &s : v_constraint_name) {
+                      if (s != cur_chosen_name) {
+                          v_tmp.push_back(s);
+                      }
+                  }
+                  v_constraint_name = v_tmp;
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUse) {
+                  if (!v_constraint_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_constraint_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+              }
+          }
+
+
+          /* Fix for DataFamilyName */
+          if (ir_to_fix->get_data_type() == DataFamilyName) {
+              ir_to_fix->set_is_instantiated(true);
+              if (ir_to_fix->get_data_flag() == ContextDefine) {
+
+                  string cur_chosen_name = gen_family_name();
+                  ir_to_fix->set_str_val(cur_chosen_name);
+                  v_family_name.push_back(cur_chosen_name);
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+                  if (!v_family_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_family_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+
+                  /* remove the statistic name from the vector */
+                  vector<string> v_tmp;
+                  for (string &s : v_family_name) {
+                      if (s != cur_chosen_name) {
+                          v_tmp.push_back(s);
+                      }
+                  }
+                  v_family_name = v_tmp;
+              }
+
+              else if (ir_to_fix->get_data_flag() == ContextUse) {
+                  if (!v_family_name.size())
+                      continue;
+                  string cur_chosen_name = vector_rand_ele(v_family_name);
+                  ir_to_fix->set_str_val(cur_chosen_name);
+              }
+          }
+      }
+
     /* Fix the Literal inside VALUES clause. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
@@ -3204,154 +3390,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
-    /* Fix for reloptions. (Related options. ) and function names.  */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      /* Fixing for functions.  */
-      if (ir_to_fix->get_data_type() == DataFunctionName) {
-        if (ir_to_fix->get_data_flag() == ContextNoModi) {
-          continue;
-        }
-
-        string cur_func_str = ir_to_fix->get_str_val();
-
-        cur_func_str = str_tolower(cur_func_str);
-
-        if (func_str_to_type_map.find(cur_func_str) ==
-            func_str_to_type_map.end()) {
-          if (is_debug_info) {
-            cerr << "\n\n\nFor function name: " << cur_func_str
-                 << ", cannot find its "
-                    "matching function type. Do not mutate the name in the "
-                    "instantiation. \n\n\n";
-          }
-          continue;
-        }
-
-        if (get_rand_int(3) < 1) {
-          FUNCTIONTYPE func_type = func_str_to_type_map[cur_func_str];
-          string new_func_name_str = function_library[func_type][get_rand_int(
-              function_library[func_type].size())];
-          ir_to_fix->set_str_val(new_func_name_str);
-        }
-      }
-    }
-
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      if (ir_to_fix->get_data_type() == DataStatsName) {
-        if (ir_to_fix->get_data_flag() == ContextDefine) {
-          string cur_chosen_name = gen_statistic_name();
-          ir_to_fix->set_str_val(cur_chosen_name);
-          ir_to_fix->set_is_instantiated(true);
-          v_statistics_name.push_back(cur_chosen_name);
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-          if (!v_statistics_name.size())
-            continue;
-          string cur_chosen_name = vector_rand_ele(v_statistics_name);
-          ir_to_fix->set_str_val(cur_chosen_name);
-          ir_to_fix->set_is_instantiated(true);
-
-          /* remove the statistic name from the vector */
-          vector<string> v_tmp;
-          for (string &s : v_statistics_name) {
-            if (s != cur_chosen_name) {
-              v_tmp.push_back(s);
-            }
-          }
-          v_statistics_name = v_tmp;
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUse) {
-          if (!v_statistics_name.size())
-            continue;
-          string cur_chosen_name = vector_rand_ele(v_statistics_name);
-          ir_to_fix->set_str_val(cur_chosen_name);
-          ir_to_fix->set_is_instantiated(true);
-        }
-      }
-
-      /* Fix for kDataSequenceName */
-      if (ir_to_fix->get_data_type() == DataSequenceName) {
-        ir_to_fix->set_is_instantiated(true);
-        if (ir_to_fix->get_data_flag() == ContextDefine) {
-          // string cur_chosen_name = gen_sequence_name();
-          // ir_to_fix->set_str_val(cur_chosen_name);
-
-          /* Yu: Do not fix for sequence name for now */
-          string cur_chosen_name = ir_to_fix->get_str_val();
-          v_sequence_name.push_back(cur_chosen_name);
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-          if (!v_sequence_name.size())
-            continue;
-          string cur_chosen_name = vector_rand_ele(v_sequence_name);
-          ir_to_fix->set_str_val(cur_chosen_name);
-
-          /* remove the statistic name from the vector */
-          vector<string> v_tmp;
-          for (string &s : v_sequence_name) {
-            if (s != cur_chosen_name) {
-              v_tmp.push_back(s);
-            }
-          }
-          v_sequence_name = v_tmp;
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUse) {
-          if (!v_sequence_name.size())
-            continue;
-          string cur_chosen_name = vector_rand_ele(v_sequence_name);
-          ir_to_fix->set_str_val(cur_chosen_name);
-        }
-      }
-
-      /* Fix for kDataConstraintName */
-      if (ir_to_fix->get_data_type() == DataConstraintName) {
-        ir_to_fix->set_is_instantiated(true);
-        if (ir_to_fix->get_data_flag() == ContextDefine) {
-          // string cur_chosen_name = gen_sequence_name();
-          // ir_to_fix->set_str_val(cur_chosen_name);
-
-          /* Yu: Do not fix for constraint name for now */
-          string cur_chosen_name = ir_to_fix->get_str_val();
-          v_constraint_name.push_back(cur_chosen_name);
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-          if (!v_constraint_name.size())
-            continue;
-          string cur_chosen_name = vector_rand_ele(v_constraint_name);
-          ir_to_fix->set_str_val(cur_chosen_name);
-
-          /* remove the statistic name from the vector */
-          vector<string> v_tmp;
-          for (string &s : v_constraint_name) {
-            if (s != cur_chosen_name) {
-              v_tmp.push_back(s);
-            }
-          }
-          v_constraint_name = v_tmp;
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUse) {
-          if (!v_constraint_name.size())
-            continue;
-          string cur_chosen_name = vector_rand_ele(v_constraint_name);
-          ir_to_fix->set_str_val(cur_chosen_name);
-        }
-      }
-    }
 
   } /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
 

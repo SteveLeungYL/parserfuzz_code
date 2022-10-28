@@ -256,12 +256,14 @@ public:
       v_statistics_name; // All statistic names defined in the current SQL.
   static vector<string>
       v_sequence_name; // All sequence names defined in the current SQL.
+  static vector<string>
+      v_constraint_name; // All constraint names defined in the current SQL.
+  static vector<string>
+      v_family_name; // All family names defined in the current SQL.
 
   // The purpose to have a vector of view names is because for DROP statement,
   // ALTER stmts etc, mixed with view names and table names are not appropriate.
   static vector<string> v_view_name; // All saved view names.
-  static vector<string>
-      v_constraint_name; // All constraint names defined in the current SQL.
   static vector<string> v_foreign_table_name; // All foreign table names defined
                                               // inthe current SQL.
   static vector<string>

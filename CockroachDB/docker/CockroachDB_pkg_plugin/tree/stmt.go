@@ -587,6 +587,7 @@ const (
 	DataTableAliasName
 	DataColumnAliasName
 	DataLiteral
+	DataViewColumnName
 )
 
 const (

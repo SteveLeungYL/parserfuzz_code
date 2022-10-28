@@ -3972,7 +3972,7 @@ func (node *FamilyTableDef) LogCurrentNode(depth int) *SQLRightIR {
 	infix := "("
 	suffix := ")"
 
-	columnsNode := node.Columns.LogCurrentNode(depth + 1)
+	columnsNode := node.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	rootIR = &SQLRightIR{
 		IRType:   TypeFamilyTableDef,
@@ -6076,7 +6076,7 @@ func (node *CreateView) LogCurrentNode(depth int) *SQLRightIR {
 	if len(node.ColumnNames) > 0 {
 		infix := ""
 		infix += " ("
-		columnNamesNode := node.ColumnNames.LogCurrentNode(depth + 1)
+		columnNamesNode := node.ColumnNames.LogCurrentNodeWithType(depth+1, DataViewColumnName)
 		suffix := ")"
 
 		rootIR = &SQLRightIR{
