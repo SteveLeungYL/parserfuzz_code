@@ -3070,6 +3070,17 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
          * and try to match the type of the column name or literal.
          * */
 
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
+            /*
+             * Should not change any literals inside the TypeOptStorageParams clause.
+             * These literals are for Storage Parameters (Storage Settings).
+             * These values will be fixed by another fixing function,
+             * later in the second ir_to_fix loop.
+             * */
+            continue;
+        }
+
+        // IF NOT IN!!! Skipped.
         if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
           // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
           // branch. These literals would be handled later by the next `Fix for
@@ -3077,6 +3088,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           /* Do not set the is_instantiated flag. */
           continue;
         }
+
+        ir_to_fix->set_is_instantiated(true);
 
         // Handle the ValuesClause.
         // Get the TypeValuesClause first.
@@ -3262,6 +3275,16 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
          * Data Affinity.
          * */
 
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
+            /*
+             * Should not change any literals inside the TypeOptStorageParams clause.
+             * These literals are for Storage Parameters (Storage Settings).
+             * These values will be fixed by another fixing function,
+             * later in the second ir_to_fix loop.
+             * */
+            continue;
+        }
+
         ir_to_fix->set_is_instantiated(true);
 
         if (is_debug_info) {
@@ -3375,7 +3398,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
          * 2. Mutate to get a new value.
          * */
         if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
-            get_rand_int(3) == 0) {
+            get_rand_int(2) == 0) {
           // Reuse previous defined literals.
           string tmp_new_literal = vector_rand_ele(
               m_datatype2literals[ir_to_fix->get_data_affinity()]);
