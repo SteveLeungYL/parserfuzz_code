@@ -98,7 +98,7 @@ static u8  crash_mode,                /* Crash-centric mode?               */
 
 static volatile u8
            stop_soon,                 /* Ctrl-C pressed?                   */
-           child_timed_out;           /* Child timed out?                  */
+           child_timed_out = 0;           /* Child timed out?                  */
 
 static bool is_timeout;
 
@@ -118,6 +118,142 @@ static bool is_timeout;
 //  [128 ... 255] = 128
 //
 //};
+static u8 count_class_lookup8[256] = {0};
+static u8 simplify_lookup[256] = {0};
+
+static u16 count_class_lookup16[65536];
+
+
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
+
+static void simplify_trace(u64 *mem) {
+
+    u32 i = MAP_SIZE >> 3;
+
+    while (i--) {
+
+        /* Optimize for sparse bitmaps. */
+
+        if (unlikely(*mem)) {
+
+            u8 *mem8 = (u8 *)mem;
+
+            mem8[0] = simplify_lookup[mem8[0]];
+            mem8[1] = simplify_lookup[mem8[1]];
+            mem8[2] = simplify_lookup[mem8[2]];
+            mem8[3] = simplify_lookup[mem8[3]];
+            mem8[4] = simplify_lookup[mem8[4]];
+            mem8[5] = simplify_lookup[mem8[5]];
+            mem8[6] = simplify_lookup[mem8[6]];
+            mem8[7] = simplify_lookup[mem8[7]];
+        } else
+            *mem = 0x0101010101010101ULL;
+
+        mem++;
+    }
+}
+
+#else
+
+static void simplify_trace(u32 *mem) {
+
+  u32 i = MAP_SIZE >> 2;
+
+  while (i--) {
+
+    /* Optimize for sparse bitmaps. */
+
+    if (unlikely(*mem)) {
+
+      u8 *mem8 = (u8 *)mem;
+
+      mem8[0] = simplify_lookup[mem8[0]];
+      mem8[1] = simplify_lookup[mem8[1]];
+      mem8[2] = simplify_lookup[mem8[2]];
+      mem8[3] = simplify_lookup[mem8[3]];
+    } else
+      *mem = 0x01010101;
+
+    mem++;
+  }
+}
+
+#endif /* ^__x86_64__ */
+
+
+void memset_array() {
+    simplify_lookup[0] = 1;
+    memset(simplify_lookup + 1, 128, 255);
+
+    count_class_lookup8[0] = 0;
+    count_class_lookup8[1] = 1;
+    count_class_lookup8[2] = 2;
+    count_class_lookup8[3] = 4;
+    memset(count_class_lookup8 + 4, 8, 7 - 4 + 1);
+    memset(count_class_lookup8 + 8, 16, 15 - 8 + 1);
+    memset(count_class_lookup8 + 16, 32, 32 - 16);
+    memset(count_class_lookup8 + 32, 64, 128 - 32);
+    memset(count_class_lookup8 + 128, 128, 128);
+}
+
+static void init_count_class16(void) {
+
+    u32 b1, b2;
+
+    for (b1 = 0; b1 < 256; b1++)
+        for (b2 = 0; b2 < 256; b2++)
+            count_class_lookup16[(b1 << 8) + b2] =
+                    (count_class_lookup8[b1] << 8) | count_class_lookup8[b2];
+}
+
+
+#if defined(__x86_64__) || defined(__arm64__) || defined(__aarch64__)
+static inline void classify_counts(u64 *mem) {
+
+    u32 i = MAP_SIZE >> 3;
+
+    while (i--) {
+
+        /* Optimize for sparse bitmaps. */
+
+        if (unlikely(*mem)) {
+
+            u16 *mem16 = (u16 *)mem;
+
+            mem16[0] = count_class_lookup16[mem16[0]];
+            mem16[1] = count_class_lookup16[mem16[1]];
+            mem16[2] = count_class_lookup16[mem16[2]];
+            mem16[3] = count_class_lookup16[mem16[3]];
+        }
+
+        mem++;
+    }
+}
+
+#else
+
+static inline void classify_counts(u32 *mem) {
+
+  u32 i = MAP_SIZE >> 2;
+
+  while (i--) {
+
+    /* Optimize for sparse bitmaps. */
+
+    if (unlikely(*mem)) {
+
+      u16 *mem16 = (u16 *)mem;
+
+      mem16[0] = count_class_lookup16[mem16[0]];
+      mem16[1] = count_class_lookup16[mem16[1]];
+    }
+
+    mem++;
+  }
+}
+
+#endif /* ^__x86_64__ */
+
 
 static void init_forkserver(char **argv);
 
@@ -277,12 +413,11 @@ static void restart_cockroachdb(char** argv) {
 static void handle_timeout(int sig) {
 
   is_timeout = true;
-  child_timed_out = 1;
+//  child_timed_out = 1;
   if (forksrv_pid != -1) {
       kill(forksrv_pid, SIGKILL);
   }
   forksrv_pid = -1;
-
 }
 
 
@@ -345,6 +480,14 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
     // Restart the argv execution.
     init_forkserver(argv);
 
+    if (filesystem::exists("./cov_out.bin")) {
+        ifstream fin("./cov_out.bin", ios::in | ios::binary);
+        fin.read(trace_bits, MAP_SIZE);
+        fin.close();
+        // Remove the file. Ignore the returned value.
+        remove("./cov_out.bin");
+    }
+
     // Return the error.
     if (cur_is_timeout) {
       return 0;
@@ -377,44 +520,51 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
 
   setitimer(ITIMER_REAL, &it, NULL);
 
-
-  /* Handle crashing inputs depending on current mode. */
-
-  if (WIFSIGNALED(status) ||
-      (WIFEXITED(status) && WEXITSTATUS(status) == MSAN_ERROR) ||
-      (WIFEXITED(status) && WEXITSTATUS(status) && exit_crash)) {
-
-    if (first_run) crash_mode = 1;
-
-    if (crash_mode) {
-
-      if (!exact_mode) return 1;
-
-    } else {
-
-      missed_crashes++;
-      return 0;
-
-    }
-
-  } else
-
-  /* Handle non-crashing inputs appropriately. */
-
-  if (crash_mode) {
-
-    missed_paths++;
-    return 0;
-
+  if (filesystem::exists("./cov_out.bin")) {
+      ifstream fin("./cov_out.bin", ios::in | ios::binary);
+      fin.read(trace_bits, MAP_SIZE);
+      fin.close();
+      // Remove the file. Ignore the returned value.
+      remove("./cov_out.bin");
   }
 
-  cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
-
-  if (first_run) orig_cksum = cksum;
-
-  if (orig_cksum == cksum) return 1;
-  
-  missed_paths++;
+//  /* Handle crashing inputs depending on current mode. */
+//
+//  if (WIFSIGNALED(status) ||
+//      (WIFEXITED(status) && WEXITSTATUS(status) == MSAN_ERROR) ||
+//      (WIFEXITED(status) && WEXITSTATUS(status) && exit_crash)) {
+//
+//    if (first_run) crash_mode = 1;
+//
+//    if (crash_mode) {
+//
+//      if (!exact_mode) return 1;
+//
+//    } else {
+//
+//      missed_crashes++;
+//      return 0;
+//
+//    }
+//
+//  } else
+//
+//  /* Handle non-crashing inputs appropriately. */
+//
+//  if (crash_mode) {
+//
+//    missed_paths++;
+//    return 0;
+//
+//  }
+//
+//  cksum = hash32(trace_bits, MAP_SIZE, HASH_CONST);
+//
+//  if (first_run) orig_cksum = cksum;
+//
+//  if (orig_cksum == cksum) return 1;
+//
+//  missed_paths++;
   return 0;
 
 }
@@ -443,6 +593,8 @@ static void minimize(char** argv) {
   u32 del_len, set_len, del_pos, set_pos, i, alpha_size, cur_pass = 0;
   u32 syms_removed, alpha_del0 = 0, alpha_del1, alpha_del2, alpha_d_total = 0;
   u8  changed_any, prev_del;
+
+  init_forkserver(argv);
 
   /***********************
    * BLOCK NORMALIZATION *
@@ -996,6 +1148,8 @@ static void init_forkserver(char **argv) {
   int status;
   s32 rlen;
 
+  cerr << "\n\n\nRunning forkserver. \n\n\n";
+
   ACTF("Spinning up the fork server...");
 
   if (pipe(st_pipe) || pipe(ctl_pipe))
@@ -1137,8 +1291,8 @@ static void init_forkserver(char **argv) {
     return;
   }
 
-  if (child_timed_out)
-    FATAL("Timeout while initializing fork server (adjusting -t may help)");
+//  if (child_timed_out)
+//    FATAL("Timeout while initializing fork server (adjusting -t may help)");
 
   if (waitpid(forksrv_pid, &status, 0) <= 0)
     PFATAL("waitpid() failed");
@@ -1451,6 +1605,8 @@ int main(int argc, char** argv) {
   SAYF("\n");
 
   read_initial_file();
+
+  init_forkserver(use_argv);
 
   ACTF("Performing dry run (mem limit = %llu MB, timeout = %u ms%s)...",
        mem_limit, exec_tmout, edges_only ? ", edges only" : "");
