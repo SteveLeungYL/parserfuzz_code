@@ -673,12 +673,10 @@ string DataAffinity::mutate_affi_timestamp(){
 
     string ret_str = "";
 
-    if (get_rand_int(2) == 0) {
-        // 1/2 chance, get date prefix.
-        ret_str = mutate_affi_date();
-        ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
-        ret_str += " "; // Added whitespace.
-    }
+    // The date prefix is always necessary.
+    ret_str = mutate_affi_date();
+    ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
+    ret_str += " "; // Added whitespace.
 
     // Format 05:40:00
     string tmp_affi_time = this->mutate_affi_time();
