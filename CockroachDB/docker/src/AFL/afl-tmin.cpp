@@ -488,6 +488,11 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
         // Remove the file. Ignore the returned value.
         remove("./cov_out.bin");
     }
+    if(!anything_set()) {
+        // In case the program is crashed and the cov_out.bin
+        // is not generated.
+        trace_bits[100] = 1;
+    }
 
     // Return the error.
     if (cur_is_timeout) {
