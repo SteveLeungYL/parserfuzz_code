@@ -3454,15 +3454,32 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
         // id_column_name should be in the subquery and already been resolved
         // in the previous loop.
+        vector<IR *> tmp_column_vec;
         vector<IR *> all_mentioned_column_vec;
         set<DATATYPE> column_type_set = {DataColumnName};
         collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
+
+        for (IR* cur_mentioned_column : all_mentioned_column_vec) {
+            if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_column, TypeSelectExprs)) {
+                tmp_column_vec.push_back(cur_mentioned_column);
+            }
+        }
+        all_mentioned_column_vec = tmp_column_vec;
+        tmp_column_vec.clear();
 
         /* Fix: also, add column alias name defined here to the table */
         vector<IR *> all_mentioned_column_alias_vec;
         set<DATATYPE> column_alias_type_set = {DataColumnAliasName};
         collect_ir(cur_stmt_root, column_alias_type_set,
                    all_mentioned_column_alias_vec);
+
+        for (IR* cur_mentioned_alias : all_mentioned_column_alias_vec) {
+            if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_alias, TypeSelectExprs)) {
+                tmp_column_vec.push_back(cur_mentioned_alias);
+            }
+        }
+        all_mentioned_column_alias_vec = tmp_column_vec;
+        tmp_column_vec.clear();
 
         if (is_debug_info) {
           cerr << "Dependency: When building extra mapping for CREATE VIEW AS, "
