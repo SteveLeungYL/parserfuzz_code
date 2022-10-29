@@ -86,6 +86,9 @@ map<string, vector<string>> Mutator::m_table2partition;
 map<string, DataAffinity> Mutator::set_session_lib;
 vector<string> Mutator::all_saved_set_session;
 
+map<string, DataAffinity> Mutator::storage_param_lib;
+vector<string> Mutator::all_storage_param;
+
 vector<int> Mutator::v_int_literals;
 vector<double> Mutator::v_float_literals;
 vector<string> Mutator::v_string_literals;
@@ -314,13 +317,29 @@ void Mutator::init_data_library() {
 
   input_file.open(set_session_path);
 
-  std::stringstream buffer;
-  buffer << input_file.rdbuf();
-  string set_session_json = buffer.str();
-  constr_set_session_lib(set_session_json, this->all_saved_set_session,
-                         this->set_session_lib);
+  std::stringstream buffer_set_session;
+  buffer_set_session << input_file.rdbuf();
+  string set_session_json = buffer_set_session.str();
+    constr_key_pair_datatype_lib(set_session_json, this->all_saved_set_session,
+                                 this->set_session_lib);
   input_file.close();
+  buffer_set_session.clear();
+  cout << "[*] Getting all_saved_set_session.size(): " << this->all_saved_set_session.size() << endl;
   cout << "[*] end init set session path library: " << set_session_path << endl;
+
+  string storage_parameter_path = STORAGE_PARAM_PATH;
+  cout << "[*] begin init storage parameter library: " << storage_parameter_path
+       << endl;
+
+  std::stringstream buffer_storage_param;
+  input_file.open(storage_parameter_path);
+  buffer_storage_param << input_file.rdbuf();
+  string storage_param_str = buffer_storage_param.str();
+  constr_key_pair_datatype_lib(storage_param_str, this->all_storage_param,
+                                 this->storage_param_lib);
+  input_file.close();
+  cerr << "[*] Getting all_storage_param.size(): " << this->all_storage_param.size() << endl;
+  cout << "[*] end init storage parameter library: " << storage_parameter_path << endl;
 
   return;
 }
@@ -1317,7 +1336,7 @@ void Mutator::fix_preprocessing(IR *stmt_root,
       DataColumnName,      DataTableName,    DataIndexName, DataTableAliasName,
       DataColumnAliasName, DataSequenceName, DataViewName,  DataConstraintName,
       DataSequenceName,    DataTypeName,     DataLiteral,   DataDatabaseName,
-      DataSchemaName,      DataViewColumnName, DataFamilyName
+      DataSchemaName,      DataViewColumnName, DataFamilyName, DataStorageParams
   };
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -3413,6 +3432,50 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
+    for (IR* ir_to_fix: ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
+
+        IRTYPE type = ir_to_fix->get_ir_type();
+        DATATYPE data_type = ir_to_fix->get_data_type();
+
+        if (type == TypeStorageParams && data_type == DataStorageParams) {
+
+            if (ir_to_fix->get_parent() == NULL) {
+                cerr << "\n\n\nLogical Error: Getting empty parent from TypeStorageParams. \n\n\n";
+            }
+
+            IR* opt_storage_params = ir_to_fix->get_parent();
+
+            IR* opt_storage_params_left = opt_storage_params->get_left();
+            IR* opt_storage_params_right = opt_storage_params->get_right();
+
+            if (opt_storage_params_left != NULL) {
+                p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                        opt_storage_params_left, [](IR* cur_node) -> void {
+                            cur_node->set_is_instantiated(true);
+                            cur_node->set_data_flag(ContextNoModi);
+                        });
+                ir_to_deep_drop.push_back(opt_storage_params_left);
+            }
+            if (opt_storage_params_right != NULL) {
+                p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                        opt_storage_params_right, [](IR* cur_node) -> void {
+                            cur_node->set_is_instantiated(true);
+                            cur_node->set_data_flag(ContextNoModi);
+                        });
+                ir_to_deep_drop.push_back(opt_storage_params_right);
+            }
+
+            // Do not use param_num == 0;
+            IR* new_storage_param_node = this->constr_rand_storage_param(get_rand_int(3)+1);
+            opt_storage_params->update_left(new_storage_param_node);
+            opt_storage_params->update_right(NULL);
+
+        }
+
+    }
 
   } /* for (const vector<IR*>& ir_to_fix_vec : cur_stmt_ir_to_fix_vec) */
 
@@ -4506,4 +4569,42 @@ IR *Mutator::constr_rand_set_stmt() {
   ret_ir = new IR(TypeStmt, OP3("", "; ", ""), ret_ir, NULL);
 
   return ret_ir;
+}
+
+IR *Mutator::constr_rand_storage_param(int param_num) {
+    // Construct one SET statement as string,
+    //  and then embed the string into one IR.
+    // Return the embedded IR.
+
+    if (param_num < 1) {
+        cerr << "\n\n\n Logic Error: Inside constr_rand_storage_param. ";
+    }
+
+    if (this->all_storage_param.size() == 0 ||
+        this->storage_param_lib.size() == 0) {
+        cerr << "Error: The all_storage_param or storage_param_lib failed to init "
+                "before used. \n\n\n Abort();\n\n\n";
+        abort();
+    }
+
+    string ret_str = "";
+    for (int idx = 0; idx != param_num; idx++ ) {
+
+        string rand_chosen_var = vector_rand_ele(this->all_storage_param);
+        DataAffinity cur_data_affi = this->storage_param_lib[rand_chosen_var];
+
+        string params_str = cur_data_affi.get_mutated_literal();
+
+        if (idx > 0) {
+            ret_str += ", ";
+        }
+
+        ret_str += rand_chosen_var + " = " + params_str;
+
+    };
+
+    IR *ret_ir =
+            new IR(TypeStorageParams, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
+
+    return ret_ir;
 }

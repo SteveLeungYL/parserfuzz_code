@@ -112,6 +112,9 @@ inline IR *convert_json_to_IR_helper(json curJsonNode, int depth) {
   } else {
     IROperator *ir_opt = new IROperator(prefix, infix, suffix);
     curRootIR = new IR(type, ir_opt, LNode, RNode);
+    curRootIR->set_data_type(datatype);
+    curRootIR->set_data_flag(dataflag);
+    curRootIR->set_str_val(str);
   }
 
   return curRootIR;
@@ -183,9 +186,9 @@ IR *convert_json_to_IR(string all_json_str) {
 
 // Helper functon for construct_set_session_library
 
-void constr_set_session_lib_helper(json curJsonNode, vector<string>& all_affi_str, map<string, DataAffinity>& affi_library) {
+void constr_key_pair_datatype_lib_helper(json key_pair_json, vector<string>& v_all_key_str, map<string, DataAffinity>& mapped_key_pair) {
 
-    for (json::iterator it = curJsonNode.begin(); it != curJsonNode.end(); it++) {
+    for (json::iterator it = key_pair_json.begin(); it != key_pair_json.end(); it++) {
         auto cur_set_node = it.value();
         if (!cur_set_node["enabled"]) {
             // Ignore the not enabled.
@@ -254,30 +257,29 @@ void constr_set_session_lib_helper(json curJsonNode, vector<string>& all_affi_st
 
             // Pass. No need to do anything.
         }
-        affi_library[var_name] = cur_affi;
-        all_affi_str.push_back(var_name);
+        mapped_key_pair[var_name] = cur_affi;
+        v_all_key_str.push_back(var_name);
     }
 
     // Finished the set session handling.
     return;
 }
 
-void constr_set_session_lib(string set_session_str, vector<string>& all_affi_str, map<string, DataAffinity>& affi_library) {
-    if (set_session_str.size() == 0 || set_session_str[0] != '[') {
+void constr_key_pair_datatype_lib(string key_pair_str, vector<string>& v_all_key_str, map<string, DataAffinity>& mapped_key_pair) {
+    if (key_pair_str.size() == 0 || key_pair_str[0] != '[') {
         // Return a default Data Affinity. With AFFIUNKNOWN.
         cerr << "\n\n\nInside the construct_set_session_library, not "
                 "getting a correct json file. \n\n\n";
-        cerr << set_session_str << "\n\n\n";
+        cerr << key_pair_str << "\n\n\n";
         return;
     }
 
     try {
-        auto json_obj = json::parse(set_session_str);
-        constr_set_session_lib_helper(json_obj, all_affi_str, affi_library);
+        auto json_obj = json::parse(key_pair_str);
+        constr_key_pair_datatype_lib_helper(json_obj, v_all_key_str, mapped_key_pair);
     } catch (json::parse_error &ex) {
-        return;
+        cerr << "\n\n\nJSON PARSING ERROR!!!\n\n\n";
     }
-
 
     return;
 }
