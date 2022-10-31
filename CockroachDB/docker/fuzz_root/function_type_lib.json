@@ -2596,6 +2596,90 @@
         "ret_type": "AFFIDECIMAL"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "experimental_uuid_v4",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "gen_random_ulid",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIUUID"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "gen_random_uuid",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIUUID"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "unique_rowid",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "unordered_unique_rowid",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "uuid_generate_v4",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIUUID"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "uuid_v4",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
   }
 
 ]
