@@ -1,0 +1,857 @@
+[
+  {
+    "enabled": true,
+    "func_name": "array_agg",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "avg",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIINTERVAL",
+        "ret_type": "AFFIINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "bit_and",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "bit_or",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "bool_and",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIBOOL",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "bool_or",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIBOOL",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "concat_agg",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIBYTES"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "corr",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "count",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFLINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "count_rows",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": true,
+    "params": [
+      {
+        "ret_type": "AFFLINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "covar_pop",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": false,
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cover_samp",
+    "is_agg_func": "FUNCAGGR",
+    "is_type_matched:": false,
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "every",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIBOOL",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_agg",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_agg",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "json_object_agg",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "jsonb_object_agg",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "max",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "min",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
+  },
+
+
+  {
+    "enabled": true,
+    "func_name": "percentile_cont",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIINTERVAL"
+      },
+      {
+        "arg_type_0": "AFFIARRAYFLOAT",
+        "ret_type": "AFFIARRAYFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIARRAYFLOAT",
+        "ret_type": "AFFIARRAYINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "percentile_disc",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIANY"
+      },
+      {
+        "arg_type_0": "AFFIARRAYFLOAT",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_avgx",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_count",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_intercept",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_r2",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_slope",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_sxx",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regr_sxy",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sqrdiff",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "st_collect",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIGEOMETRY",
+        "ret_type": "AFFIGEOMETRY"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "st_extent",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIGEOMETRY",
+        "ret_type": "AFFIBOX2D"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "st_makeline",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIGEOMETRY",
+        "ret_type": "AFFIGEOMETRY"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "st_memcollect",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIGEOMETRY",
+        "ret_type": "AFFIGEOMETRY"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "st_memunion",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIGEOMETRY",
+        "ret_type": "AFFIGEOMETRY"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "st_union",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIGEOMETRY",
+        "ret_type": "AFFIGEOMETRY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "stddev",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "stddev_pop",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "stddev_samp",
+    "is_type_matched:": false,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "string_agg",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sum",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
+  },
+  
+  {
+    "enabled": true,
+    "func_name": "sum_int",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "var_pop",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "var_samp",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "variance",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "xor_agg",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCAGGR",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "cume_dist"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "dense_rank"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "first_value"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "lag"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "last_value"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "lead"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "nth_value"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "ntile"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "rank"
+  },
+  {
+    "is_agg_func": "FUNCWINDOW",
+    "func_name": "row_number"
+  }
+]
