@@ -7,7 +7,7 @@
     "params": [
       {
         "arg_type_0": "AFFIANY",
-        "ret_type": "AFFIARRAYANY"
+        "ret_type": "AFFIAFFIANY"
       }
     ]
   },
@@ -815,43 +815,163 @@
   },
 
   {
+    "enabled": true,
+    "func_name": "cume_dist",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "cume_dist"
+    "params": [
+      {
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "dense_rank",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "dense_rank"
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "first_value",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "first_value"
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "lag",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "lag"
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      },
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIANY"
+      },
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "last_value",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "last_value"
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "lead",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "lead"
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      },
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIANY"
+      },
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "nth_value",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "nth_value"
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "ntile",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "ntile"
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "percent_rank",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "rank"
+    "params": [
+      {
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
   },
+
   {
+    "enabled": true,
+    "func_name": "percent_rank",
+    "is_type_matched:": true,
     "is_agg_func": "FUNCWINDOW",
-    "func_name": "row_number"
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "row_number",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCWINDOW",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ]
   }
 ]
