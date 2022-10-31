@@ -1312,6 +1312,58 @@
         "ret_type": "AFFIBOOL"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "greatest",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCCOMPARE",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "least",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCCOMPARE",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "num_nonnulls",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCCOMPARE",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "num_nulls",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCCOMPARE",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIINT"
+      }
+    ]
   }
 
 ]
