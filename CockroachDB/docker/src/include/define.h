@@ -516,6 +516,7 @@
 #define ALLDATAAFFINITY(V)                                                     \
   /* New one here!!! */                                                        \
   V(AFFIUNKNOWN)                                                               \
+  V(AFFIANY)                                                                   \
   V(AFFIBIT)                                                                   \
   V(AFFIBOOL)                                                                  \
   V(AFFIBYTES)                                                                 \
@@ -552,6 +553,7 @@
   V(AFFIONOFF)                                                                 \
   V(AFFIONOFFAUTO)                                                             \
   V(AFFIARRAY)                                                                 \
+  V(AFFIARRAYANY)                                                              \
   V(AFFIARRAYUNKNOWN)                                                          \
   V(AFFIARRAYBIT)                                                              \
   V(AFFIARRAYBOOL)                                                             \

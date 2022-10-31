@@ -771,27 +771,23 @@ func (node *CreateIndex) LogCurrentNode(depth int) *SQLRightIR {
 	LNode := &SQLRightIR{
 		IRType:   TypeOptUnique,
 		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: tmpUniStr,
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
+		Prefix:   tmpUniStr,
+		Infix:    "",
+		Suffix:   "",
+		Depth:    depth,
 	}
 
 	tmpInvertedStr := ""
-	if node.Inverted {
-		tmpInvertedStr = "INVERTED "
-	}
+	//if node.Inverted {
+	//	tmpInvertedStr = "INVERTED "
+	//}
 	RNode := &SQLRightIR{
 		IRType:   TypeOptInverted,
 		DataType: DataNone,
-		//LNode:    LNode,
-		//RNode:    RNode,
-		Prefix: tmpInvertedStr,
-		Infix:  "",
-		Suffix: "",
-		Depth:  depth,
+		Prefix:   tmpInvertedStr,
+		Infix:    "",
+		Suffix:   "",
+		Depth:    depth,
 	}
 
 	rootIR := &SQLRightIR{
@@ -1083,7 +1079,7 @@ func (node *CreateIndex) LogCurrentNode(depth int) *SQLRightIR {
 		}
 
 	} else {
-		optPartitionNode := &SQLRightIR{
+		optStorageParams := &SQLRightIR{
 			IRType:   TypeOptStorageParams,
 			DataType: DataNone,
 			//LNode:    pStoringNode,
@@ -1097,7 +1093,7 @@ func (node *CreateIndex) LogCurrentNode(depth int) *SQLRightIR {
 			IRType:   TypeUnknown,
 			DataType: DataNone,
 			LNode:    rootIR,
-			RNode:    optPartitionNode,
+			RNode:    optStorageParams,
 			Prefix:   "",
 			Infix:    "",
 			Suffix:   "",
@@ -4496,8 +4492,10 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 			// Take care of the first two nodes.
 			LNode := curTmpIR
 			var RNode *SQLRightIR
+			infix := ""
 			if len(*node) >= 2 {
 				RNode = irList[1]
+				infix = ", "
 			}
 			rootIR = &SQLRightIR{
 				IRType:   TypeUnknown,
@@ -4505,7 +4503,7 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    " ",
+				Infix:    infix,
 				Suffix:   "",
 				Depth:    depth,
 			}
@@ -4524,7 +4522,7 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    " ",
+				Infix:    ", ",
 				Suffix:   "",
 				Depth:    depth,
 			}
@@ -4533,7 +4531,9 @@ func (node *StorageParams) LogCurrentNode(depth int) *SQLRightIR {
 
 	// Only flag the root node for the type.
 	rootIR.IRType = TypeStorageParams
-	return tmpIR
+	rootIR.DataType = DataStorageParams
+
+	return rootIR
 }
 
 // GetVal returns corresponding value if a key exists, otherwise nil is

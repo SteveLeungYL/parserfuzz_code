@@ -588,6 +588,7 @@ const (
 	DataColumnAliasName
 	DataLiteral
 	DataViewColumnName
+	DataStorageParams
 )
 
 const (
@@ -603,6 +604,7 @@ const (
 
 const (
 	AFFIUNKNOWN SQLRightDataAffinity = iota
+	AFFIANY
 	AFFIBIT
 	AFFIBOOL
 	AFFIBYTES
@@ -639,6 +641,7 @@ const (
 	AFFIONOFF
 	AFFIONOFFAUTO
 	AFFIARRAY
+	AFFIARRAYANY
 	AFFIARRAYUNKNOWN
 	AFFIARRAYBIT
 	AFFIARRAYBOOL
