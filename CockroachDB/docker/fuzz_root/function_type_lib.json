@@ -1420,6 +1420,19 @@
         "ret_type": "AFFIBYTES"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "hlc_to_timestamp",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCDECIMAL",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
   }
 
 ]
