@@ -64,6 +64,7 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     shutil.copy2("./covtest.test", os.path.join(cur_workdir, "covtest.test"))
     shutil.copyfile("./function_type_lib", os.path.join(cur_workdir, "./function_type_lib"))
     shutil.copyfile("./set_session_variables.json", os.path.join(cur_workdir, "./set_session_variables.json"))
+    shutil.copyfile("./storage_parameter.json", os.path.join(cur_workdir, "./storage_parameter.json"))
     shutil.copytree("./inputs", os.path.join(cur_workdir, "inputs"))
     shutil.copytree("./cockroach_initlib", os.path.join(cur_workdir, "./cockroach_initlib"))
     shutil.copytree("./parser", os.path.join(cur_workdir, "./parser"))
