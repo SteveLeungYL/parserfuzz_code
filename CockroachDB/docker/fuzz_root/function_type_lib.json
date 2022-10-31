@@ -1364,6 +1364,62 @@
         "ret_type": "AFFIINT"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "digest",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCCRYPTO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "'md5'",
+          "'sha1'",
+          "'sha224'",
+          "'sha256'",
+          "'sha384'",
+          "'sha512'"
+        ],
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "'md5'",
+          "'sha1'",
+          "'sha224'",
+          "'sha256'",
+          "'sha384'",
+          "'sha512'"
+        ],
+        "ret_type": "AFFIBYTES"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "hmac",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCCRYPTO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIBYTES",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ]
   }
 
 ]
