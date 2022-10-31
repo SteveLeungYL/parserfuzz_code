@@ -1890,6 +1890,50 @@
         "ret_type": "AFFITIMESTAMPTZ"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "enum_first",
+    "is_type_matched:": true,
+    "func_type": "FUNCENUM",
+    "params": [
+      {
+        "arg_type_0": "AFFIENUM",
+        "ret_type": "AFFIENUM"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "enum_last",
+    "is_type_matched:": true,
+    "func_type": "FUNCENUM",
+    "params": [
+      {
+        "arg_type_0": "AFFIENUM",
+        "ret_type": "AFFIENUM"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "enum_range",
+    "is_type_matched:": true,
+    "func_type": "FUNCENUM",
+    "params": [
+      {
+        "arg_type_0": "AFFIENUM",
+        "arg_type_1": "AFFIENUM",
+        "ret_type": "AFFIARRAYENUM"
+      },
+      {
+        "arg_type_0": "AFFIENUM",
+        "ret_type": "AFFIARRAYENUM"
+      }
+    ]
   }
 
 ]
