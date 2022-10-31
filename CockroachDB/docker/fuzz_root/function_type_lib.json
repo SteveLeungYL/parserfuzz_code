@@ -1195,6 +1195,123 @@
         "ret_type": "AFFIARRAYSTRING"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "ilike_escape",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "inet_contained_by_or_equals",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "arg_type_1": "AFFIINET",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "inet_contains_or_equals",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "arg_type_1": "AFFIINET",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "inet_same_family",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "arg_type_1": "AFFIINET",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "like_escape",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "not_ilike_escape",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+  
+  {
+    "enabled": true,
+    "func_name": "not_like_escape",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "not_similar_to_escape",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCBOOL",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
   }
 
 ]
