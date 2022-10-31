@@ -938,6 +938,21 @@ string DataAffinity::mutate_affi_string(){
     return ret_str;
 };
 
+/* Spatial types mutation */
+
+string DataAffinity::mutate_affi_box2d() {
+
+}
+
+//string DataAffinity::mutate_affi_void();
+//string DataAffinity::mutate_affi_point();
+//string DataAffinity::mutate_affi_linestring();
+//string DataAffinity::mutate_affi_polygon();
+//string DataAffinity::mutate_affi_multipoint();
+//string DataAffinity::mutate_affi_multilinestring();
+//string DataAffinity::mutate_affi_multipolygon();
+//string DataAffinity::mutate_affi_geometrycollection();
+
 string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
 
     DATAAFFINITYTYPE cur_affi = type_in;

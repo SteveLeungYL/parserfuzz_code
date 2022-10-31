@@ -74,6 +74,18 @@ private:
     string mutate_affi_timetz();
     string mutate_affi_string();
 
+    // Spatial types
+    /* Seems not implemented. */
+//    string mutate_affi_box2d();
+//    string mutate_affi_void();
+//    string mutate_affi_point();
+//    string mutate_affi_linestring();
+//    string mutate_affi_polygon();
+//    string mutate_affi_multipoint();
+//    string mutate_affi_multilinestring();
+//    string mutate_affi_multipolygon();
+//    string mutate_affi_geometrycollection();
+
     string get_rand_alphabet_num();
     string get_rand_hex_num();
     string add_random_time_zone();
