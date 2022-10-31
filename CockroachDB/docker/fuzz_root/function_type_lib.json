@@ -2,7 +2,7 @@
   {
     "enabled": true,
     "func_name": "array_agg",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -15,7 +15,7 @@
   {
     "enabled": true,
     "func_name": "avg",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -40,7 +40,7 @@
   {
     "enabled": true,
     "func_name": "bit_and",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -53,7 +53,7 @@
   {
     "enabled": true,
     "func_name": "bit_or",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -66,7 +66,7 @@
   {
     "enabled": true,
     "func_name": "bool_and",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -79,7 +79,7 @@
   {
     "enabled": true,
     "func_name": "bool_or",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -92,7 +92,7 @@
   {
     "enabled": true,
     "func_name": "concat_agg",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -109,7 +109,7 @@
   {
     "enabled": true,
     "func_name": "corr",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -138,7 +138,7 @@
   {
     "enabled": true,
     "func_name": "count",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -151,7 +151,7 @@
   {
     "enabled": true,
     "func_name": "count_rows",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": true,
     "params": [
       {
@@ -163,7 +163,7 @@
   {
     "enabled": true,
     "func_name": "covar_pop",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": false,
     "params": [
       {
@@ -192,7 +192,7 @@
   {
     "enabled": true,
     "func_name": "cover_samp",
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "is_type_matched:": false,
     "params": [
       {
@@ -222,7 +222,7 @@
     "enabled": true,
     "func_name": "every",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIBOOL",
@@ -235,7 +235,7 @@
     "enabled": true,
     "func_name": "json_agg",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -248,7 +248,7 @@
     "enabled": true,
     "func_name": "jsonb_agg",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -261,7 +261,7 @@
     "enabled": false,
     "func_name": "json_object_agg",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -275,7 +275,7 @@
     "enabled": false,
     "func_name": "jsonb_object_agg",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -289,7 +289,7 @@
     "enabled": true,
     "func_name": "max",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -302,7 +302,7 @@
     "enabled": true,
     "func_name": "min",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -316,7 +316,7 @@
     "enabled": true,
     "func_name": "percentile_cont",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -341,7 +341,7 @@
     "enabled": true,
     "func_name": "percentile_disc",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -358,7 +358,7 @@
     "enabled": true,
     "func_name": "regr_avgx",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -387,7 +387,7 @@
     "enabled": true,
     "func_name": "regr_count",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -416,7 +416,7 @@
     "enabled": true,
     "func_name": "regr_intercept",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -445,7 +445,7 @@
     "enabled": true,
     "func_name": "regr_r2",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -474,7 +474,7 @@
     "enabled": true,
     "func_name": "regr_slope",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -503,7 +503,7 @@
     "enabled": true,
     "func_name": "regr_sxx",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -532,7 +532,7 @@
     "enabled": true,
     "func_name": "regr_sxy",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -561,7 +561,7 @@
     "enabled": true,
     "func_name": "sqrdiff",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -578,7 +578,7 @@
     "enabled": false,
     "func_name": "st_collect",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIGEOMETRY",
@@ -591,7 +591,7 @@
     "enabled": false,
     "func_name": "st_extent",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIGEOMETRY",
@@ -604,7 +604,7 @@
     "enabled": false,
     "func_name": "st_makeline",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIGEOMETRY",
@@ -617,7 +617,7 @@
     "enabled": false,
     "func_name": "st_memcollect",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIGEOMETRY",
@@ -630,7 +630,7 @@
     "enabled": false,
     "func_name": "st_memunion",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIGEOMETRY",
@@ -643,7 +643,7 @@
     "enabled": false,
     "func_name": "st_union",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIGEOMETRY",
@@ -656,7 +656,7 @@
     "enabled": true,
     "func_name": "stddev",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIINT",
@@ -673,7 +673,7 @@
     "enabled": true,
     "func_name": "stddev_pop",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -690,7 +690,7 @@
     "enabled": true,
     "func_name": "stddev_samp",
     "is_type_matched:": false,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIFLOAT",
@@ -707,7 +707,7 @@
     "enabled": true,
     "func_name": "string_agg",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIBYTES",
@@ -724,7 +724,7 @@
     "enabled": true,
     "func_name": "sum",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -737,7 +737,7 @@
     "enabled": true,
     "func_name": "sum_int",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIINT",
@@ -750,7 +750,7 @@
     "enabled": true,
     "func_name": "var_pop",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIINT",
@@ -767,7 +767,7 @@
     "enabled": true,
     "func_name": "var_samp",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIINT",
@@ -784,7 +784,7 @@
     "enabled": true,
     "func_name": "variance",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIINT",
@@ -801,7 +801,7 @@
     "enabled": true,
     "func_name": "xor_agg",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCAGGR",
+    "func_type": "FUNCAGGR",
     "params": [
       {
         "arg_type_0": "AFFIBYTES",
@@ -818,7 +818,7 @@
     "enabled": true,
     "func_name": "cume_dist",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "ret_type": "AFFIFLOAT"
@@ -830,7 +830,7 @@
     "enabled": true,
     "func_name": "dense_rank",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "ret_type": "AFFIINT"
@@ -842,7 +842,7 @@
     "enabled": true,
     "func_name": "first_value",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -855,7 +855,7 @@
     "enabled": true,
     "func_name": "lag",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -879,7 +879,7 @@
     "enabled": true,
     "func_name": "last_value",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -892,7 +892,7 @@
     "enabled": true,
     "func_name": "lead",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -916,7 +916,7 @@
     "enabled": true,
     "func_name": "nth_value",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -930,7 +930,7 @@
     "enabled": true,
     "func_name": "ntile",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "arg_type_0": "AFFIINT",
@@ -943,7 +943,7 @@
     "enabled": true,
     "func_name": "percent_rank",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "ret_type": "AFFIFLOAT"
@@ -955,7 +955,7 @@
     "enabled": true,
     "func_name": "percent_rank",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "ret_type": "AFFIINT"
@@ -967,7 +967,7 @@
     "enabled": true,
     "func_name": "row_number",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCWINDOW",
+    "func_type": "FUNCWINDOW",
     "params": [
       {
         "ret_type": "AFFIINT"
@@ -979,7 +979,7 @@
     "enabled": true,
     "func_name": "array_append",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -993,7 +993,7 @@
     "enabled": true,
     "func_name": "array_cat",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1007,7 +1007,7 @@
     "enabled": true,
     "func_name": "array_length",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1024,7 +1024,7 @@
     "enabled": true,
     "func_name": "array_lower",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1041,7 +1041,7 @@
     "enabled": true,
     "func_name": "array_position",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1055,7 +1055,7 @@
     "enabled": true,
     "func_name": "array_prepend",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -1069,7 +1069,7 @@
     "enabled": true,
     "func_name": "array_remove",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1083,7 +1083,7 @@
     "enabled": true,
     "func_name": "array_replace",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1098,7 +1098,7 @@
     "enabled": true,
     "func_name": "array_to_string",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1112,7 +1112,7 @@
     "enabled": true,
     "func_name": "array_upper",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1129,7 +1129,7 @@
     "enabled": true,
     "func_name": "cardinality",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYANY",
@@ -1142,7 +1142,7 @@
     "enabled": true,
     "func_name": "crdb_internal.merge_statement_stats",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYJSONB",
@@ -1155,7 +1155,7 @@
     "enabled": true,
     "func_name": "crdb_internal.merge_stats_metadata",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYJSONB",
@@ -1168,7 +1168,7 @@
     "enabled": true,
     "func_name": "crdb_internal.merge_transaction_stats",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFIARRAYJSONB",
@@ -1181,7 +1181,7 @@
     "enabled": true,
     "func_name": "string_to_array",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCARRAY",
+    "func_type": "FUNCARRAY",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -1201,7 +1201,7 @@
     "enabled": true,
     "func_name": "ilike_escape",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -1216,7 +1216,7 @@
     "enabled": true,
     "func_name": "inet_contained_by_or_equals",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFIINET",
@@ -1230,7 +1230,7 @@
     "enabled": true,
     "func_name": "inet_contains_or_equals",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFIINET",
@@ -1244,7 +1244,7 @@
     "enabled": true,
     "func_name": "inet_same_family",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFIINET",
@@ -1258,7 +1258,7 @@
     "enabled": true,
     "func_name": "like_escape",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -1273,7 +1273,7 @@
     "enabled": true,
     "func_name": "not_ilike_escape",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -1288,7 +1288,7 @@
     "enabled": true,
     "func_name": "not_like_escape",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -1303,7 +1303,7 @@
     "enabled": true,
     "func_name": "not_similar_to_escape",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCBOOL",
+    "func_type": "FUNCBOOL",
     "params": [
       {
         "arg_type_0": "AFFISTRING",
@@ -1318,7 +1318,7 @@
     "enabled": true,
     "func_name": "greatest",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCCOMPARE",
+    "func_type": "FUNCCOMPARE",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -1331,7 +1331,7 @@
     "enabled": true,
     "func_name": "least",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCCOMPARE",
+    "func_type": "FUNCCOMPARE",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -1344,7 +1344,7 @@
     "enabled": true,
     "func_name": "num_nonnulls",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCCOMPARE",
+    "func_type": "FUNCCOMPARE",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -1357,7 +1357,7 @@
     "enabled": true,
     "func_name": "num_nulls",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCCOMPARE",
+    "func_type": "FUNCCOMPARE",
     "params": [
       {
         "arg_type_0": "AFFIANY",
@@ -1370,7 +1370,7 @@
     "enabled": true,
     "func_name": "digest",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCCRYPTO",
+    "func_type": "FUNCCRYPTO",
     "params": [
       {
         "arg_type_0": "AFFIBYTES",
@@ -1405,7 +1405,7 @@
     "enabled": true,
     "func_name": "hmac",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCCRYPTO",
+    "func_type": "FUNCCRYPTO",
     "params": [
       {
         "arg_type_0": "AFFIBYTES",
@@ -1426,7 +1426,7 @@
     "enabled": true,
     "func_name": "hlc_to_timestamp",
     "is_type_matched:": true,
-    "is_agg_func": "FUNCDECIMAL",
+    "func_type": "FUNCDECIMAL",
     "params": [
       {
         "arg_type_0": "AFFIDECIMAL",
