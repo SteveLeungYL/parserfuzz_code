@@ -973,5 +973,228 @@
         "ret_type": "AFFIINT"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_append",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIANY",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_cat",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIARRAYANY",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_length",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "1"
+        ],
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_lower",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "1"
+        ],
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_position",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIANY",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_prepend",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIARRAYANY",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_remove",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIANY",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_replace",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIANY",
+        "arg_type_2": "AFFIANY",
+        "ret_type": "AFFIARRAYANY"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_to_string",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_upper",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "1"
+        ],
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cardinality",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.merge_statement_stats",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.merge_stats_metadata",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.merge_transaction_stats",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "string_to_array",
+    "is_type_matched:": true,
+    "is_agg_func": "FUNCARRAY",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIARRAYSTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIARRAYSTRING"
+      }
+    ]
   }
+
 ]
