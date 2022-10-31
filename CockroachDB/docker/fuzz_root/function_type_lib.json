@@ -1934,6 +1934,668 @@
         "ret_type": "AFFIARRAYENUM"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "abs",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "acos",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "acosd",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "acosh",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "asin",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "asind",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "asinh",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "atan",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "atan2",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "atan2d",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "atand",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "atandh",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cbrt",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "ceil",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "ceiling",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cos",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cosd",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cosh",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cot",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cotd",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "degrees",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "div",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "exp",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      }
+    ]
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "floor",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "isnan",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "ln",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "log",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "mod",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "pi",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "ret_type": "AFFIDECIMAL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "pow",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "power",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "arg_type_1": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "radians",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "random",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sign",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sin",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sind",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sinh",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sqrt",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "tan",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "tand",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "tanh",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "trunc",
+    "is_type_matched:": true,
+    "func_type": "FUNCFLOAT",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFIDECIMAL"
+      }
+    ] 
   }
 
 ]
