@@ -1433,6 +1433,463 @@
         "ret_type": "AFFITIMESTAMPTZ"
       }
     ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "age",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFITIMESTAMPTZ",
+        "arg_type_1": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFIINTERVAL"
+      },
+      {
+        "arg_type_0": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFIINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "clock_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "ret_type": "AFFITIMESTAMP"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "current_date",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFIDATE"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "current_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "date_part",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIDATE",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINTERVAL",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIME",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMP",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMETZ",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "date_trunc",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIDATE",
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINTERVAL",
+        "ret_type": "AFFIINTERVAL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIME",
+        "ret_type": "AFFIINTERVAL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMP",
+        "ret_type": "AFFIINTERVAL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMETZ",
+        "ret_type": "AFFITIMETZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "experimental_follower_read_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "experimental_strftime",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFIDATE",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFITIMESTAMP",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFITIMESTAMPTZ",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "experimental_strptime",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "extract",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIDATE",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINTERVAL",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIME",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMP",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFIFLOAT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMETZ",
+        "ret_type": "AFFIFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "extract_duration",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINTERVAL",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "follower_read_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "localtimestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "now",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "statement_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "timeofday",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFITIMESTAMP"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "timezone",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIME",
+        "ret_type": "AFFITIMETZ"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMP",
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMP",
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITIMETZ",
+        "ret_type": "AFFITIMETZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "to_char",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFIDATE",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFIINTERVAL",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFITIMESTAMP",
+        "ret_type": "AFFISTRING"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "transaction_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "with_max_staleness",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFIINTERVALTZ",
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFIINTERVALTZ",
+        "arg_type_1": "AFFIBOOL",
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "with_min_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCDATETIME",
+    "params": [
+      {
+        "arg_type_0": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFITIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "AFFITIMESTAMPTZ",
+        "arg_type_1": "AFFIBOOL",
+        "ret_type": "AFFITIMESTAMPTZ"
+      }
+    ]
   }
 
 ]
