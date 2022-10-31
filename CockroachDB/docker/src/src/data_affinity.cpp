@@ -940,9 +940,9 @@ string DataAffinity::mutate_affi_string(){
 
 /* Spatial types mutation */
 
-string DataAffinity::mutate_affi_box2d() {
-
-}
+//string DataAffinity::mutate_affi_box2d() {
+//
+//}
 
 //string DataAffinity::mutate_affi_void();
 //string DataAffinity::mutate_affi_point();
