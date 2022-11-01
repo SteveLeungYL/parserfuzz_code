@@ -3542,6 +3542,74 @@
         "ret_type": "AFFIINT"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.complete_stream_ingestion_job",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTREAM",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFITIMESTAMPTZ",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.replication_stream_progress",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTREAM",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.replication_stream_spec",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTREAM",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.start_replication_stream",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTREAM",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.stream_partition",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTREAM",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIBYTES",
+        "ret_type": "AFFITUPLE"
+      }
+    ] 
   }
 
 ]
