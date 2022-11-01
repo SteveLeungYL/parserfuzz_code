@@ -290,7 +290,49 @@ void Mutator::init_common_string(string filename) {
   }
 }
 
+void Mutator::init_sql_type_alias_2_type() {
+    if (sql_type_alias_2_type.size()) {
+        return;
+    }
+
+    sql_type_alias_2_type["AFFIVARCHAR"] = "AFFISTRING";
+    sql_type_alias_2_type["AFFICHAR"] = "AFFISTRING";
+    sql_type_alias_2_type["CHARACTER"] = "AFFISTRING";
+    sql_type_alias_2_type["AFFITEXT"] = "AFFISTRING";
+    sql_type_alias_2_type["AFFICHARACTER VARYING"] = "AFFISTRING";
+
+    sql_type_alias_2_type["AFFIVARBIT"] = "AFFIBIT";
+
+    sql_type_alias_2_type["AFFIBYTEA"] = "AFFIBYTES";
+    sql_type_alias_2_type["AFFIBLOB"] = "AFFIBYTES";
+
+    sql_type_alias_2_type["AFFIDEC"] = "AFFIDECIMAL";
+    sql_type_alias_2_type["AFFINUMERIC"] = "AFFIDECIMAL";
+
+    sql_type_alias_2_type["AFFINUMERIC"] = "AFFIFLOAT";
+    sql_type_alias_2_type["AFFIFLOAT4"] = "AFFIFLOAT";
+    sql_type_alias_2_type["AFFIFLOAT8"] = "AFFIFLOAT";
+    sql_type_alias_2_type["AFFIREAL"] = "AFFIFLOAT";
+    sql_type_alias_2_type["AFFIDOUBLE PRECISION"] = "AFFIFLOAT";
+
+    sql_type_alias_2_type["AFFIINT2"] = "AFFIINT";
+    sql_type_alias_2_type["AFFIINT4"] = "AFFIINT";
+    sql_type_alias_2_type["AFFIINT8"] = "AFFIINT";
+
+    sql_type_alias_2_type["AFFIJSON"] = "AFFIJSONB";
+
+    sql_type_alias_2_type["AFFITIME WITHOUT TIME ZONE"] = "AFFITIME";
+
+    sql_type_alias_2_type["AFFITIME WITH TIME ZONE"] = "AFFITIMETZ";
+
+    sql_type_alias_2_type["AFFITIMESTAMP WITHOUT TIME ZONE"] = "AFFITIME";
+    sql_type_alias_2_type["AFFITIMESTAMP WITH TIME ZONE"] = "AFFITIMETZ";
+
+}
+
 void Mutator::init_data_library() {
+
+  this->init_sql_type_alias_2_type();
 
   string func_file_name = FUNCTION_TYPE_PATH;
 
@@ -298,16 +340,24 @@ void Mutator::init_data_library() {
   string s;
 
   cout << "[*] begin init function_types library: " << func_file_name << endl;
-  while (getline(input_file, s)) {
-    auto pos = s.find(" ");
-    if (pos == string::npos)
-      continue;
-    auto func_type = get_functype_by_string(s.substr(0, pos));
-    auto v = s.substr(pos + 1, s.size() - pos - 1);
 
-    function_library[func_type].push_back(v);
-    func_str_to_type_map[v] = func_type;
-  }
+  string function_types_path = FUNCTION_TYPE_PATH;
+  std::stringstream buffer_func_types;
+  buffer_func_types << input_file.rdbuf();
+  string func_types_str = buffer_func_types.str();
+
+//  while (getline(input_file, s)) {
+//    auto pos = s.find(" ");
+//    if (pos == string::npos)
+//      continue;
+//    auto func_type = get_functype_by_string(s.substr(0, pos));
+//    auto v = s.substr(pos + 1, s.size() - pos - 1);
+//
+//    func_type_lib[func_type].push_back(v);
+//    func_str_to_type_map[v] = func_type;
+//  }
+  constr_sql_func_lib(func_types_str, all_saved_func_name, func_type_lib, func_str_to_type_map);
+
   input_file.close();
   cout << "[*] end init function_types library: " << func_file_name << endl;
 
@@ -320,7 +370,8 @@ void Mutator::init_data_library() {
   std::stringstream buffer_set_session;
   buffer_set_session << input_file.rdbuf();
   string set_session_json = buffer_set_session.str();
-    constr_key_pair_datatype_lib(set_session_json, this->all_saved_set_session,
+
+  constr_key_pair_datatype_lib(set_session_json, this->all_saved_set_session,
                                  this->set_session_lib);
   input_file.close();
   buffer_set_session.clear();
@@ -335,6 +386,7 @@ void Mutator::init_data_library() {
   input_file.open(storage_parameter_path);
   buffer_storage_param << input_file.rdbuf();
   string storage_param_str = buffer_storage_param.str();
+
   constr_key_pair_datatype_lib(storage_param_str, this->all_storage_param,
                                  this->storage_param_lib);
   input_file.close();
@@ -2918,12 +2970,13 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   continue;
               }
 
-              if (get_rand_int(3) < 1) {
-                  FUNCTIONTYPE func_type = func_str_to_type_map[cur_func_str];
-                  string new_func_name_str = function_library[func_type][get_rand_int(
-                          function_library[func_type].size())];
-                  ir_to_fix->set_str_val(new_func_name_str);
-              }
+              // TODO:: FIXME:: FIXING the function later.
+//              if (get_rand_int(3) < 1) {
+//                  FUNCTIONTYPE func_type = func_str_to_type_map[cur_func_str];
+//                  string new_func_name_str = func_type_lib[func_type][get_rand_int(
+//                          func_type_lib[func_type].size())];
+//                  ir_to_fix->set_str_val(new_func_name_str);
+//              }
           }
       }
 

@@ -6,6 +6,8 @@
 #include <float.h>
 #include <math.h>
 
+map<string, string> sql_type_alias_2_type = {};
+
 string get_string_by_affinity_type(DATAAFFINITYTYPE type) {
 #define DECLARE_CASE(classname)                                                \
   if (type == classname)                                                       \
@@ -15,13 +17,36 @@ string get_string_by_affinity_type(DATAAFFINITYTYPE type) {
     return "";
 }
 
+inline void rewrite_data_affinity_string_macro(string& in) {
+    if (in.size() > 4 && in.substr(0, 4) == "AFFI") {
+        return;
+    } else {
+        in = "AFFI" + in;
+    }
+
+    // Remove the various length
+    in = string_splitter(in, '(')[0];
+
+    if (sql_type_alias_2_type.count(in) != 0) {
+        cerr << "\n\n\nDEBUG: rewriting in: " << in;
+        in = sql_type_alias_2_type[in];
+        cerr << " to: " << in << "\n\n\n";
+    }
+}
+
 DATAAFFINITYTYPE get_data_affinity_by_string(string s) {
+    rewrite_data_affinity_string_macro(s);
+
 #define DECLARE_CASE(dataAffiname)                                             \
   if (s == #dataAffiname)                                                      \
     return dataAffiname;
     ALLDATAAFFINITY(DECLARE_CASE);
 #undef DECLARE_CASE
-    return AFFIUNKNOWN;
+    string err = "\n\n\nError: Cannot find the matching data affinity by"
+            " string: " + s + " \n\n\n";
+    cerr << err;
+    abort();
+//    return AFFIUNKNOWN;
 }
 
 DATAAFFINITYTYPE get_data_affinity_by_idx(int idx) { return static_cast<DATAAFFINITYTYPE>(idx); }

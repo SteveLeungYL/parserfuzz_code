@@ -4,8 +4,11 @@
 #include <vector>
 #include "define.h" // import the ALLDATATAFFINITY(V)
 #include <string>
+#include <map>
 
 using namespace std;
+
+extern map<string, string> sql_type_alias_2_type;
 
 enum DATAAFFINITYTYPE {
 #define DECLARE_TYPE(v) v,

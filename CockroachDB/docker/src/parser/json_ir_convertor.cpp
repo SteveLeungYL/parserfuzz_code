@@ -283,3 +283,10 @@ void constr_key_pair_datatype_lib(string key_pair_str, vector<string>& v_all_key
 
     return;
 }
+
+void constr_sql_func_lib(string func_types_str, vector<string>& v_all_func_str,
+                         map<FUNCTIONTYPE, vector<string>> func_type_lib,
+                         map<string, vector<vector<DataAffinity>>>& func_str_to_type_map) {
+    cerr << "\n\n\nDEBUG: getting func_types_str: func_types_str. \n\n\n";
+    return;
+}

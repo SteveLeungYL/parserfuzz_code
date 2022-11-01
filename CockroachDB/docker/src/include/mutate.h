@@ -12,7 +12,7 @@
 
 #define LUCKY_NUMBER 500
 
-#define FUNCTION_TYPE_PATH "./function_type_lib"
+#define FUNCTION_TYPE_PATH "./function_type_lib.json"
 #define SET_SESSION_PATH "./set_session_variables.json"
 #define STORAGE_PARAM_PATH "./storage_parameter.json"
 
@@ -71,6 +71,7 @@ public:
   inline void init_value_library();
   void init_common_string(string filename);
   void init_data_library();
+  void init_sql_type_alias_2_type();
   void init_not_mutatable_type(string filename);
   // void init_safe_generate_type(string filename);
   void add_ir_to_library(IR *);
@@ -196,8 +197,9 @@ public:
   map<DATATYPE, vector<string>> data_library_;
   map<DATATYPE, map<string, map<DATATYPE, vector<string>>>> data_library_2d_;
 
-  map<FUNCTIONTYPE, vector<string>> function_library;
-  map<string, FUNCTIONTYPE> func_str_to_type_map;
+  vector<string> all_saved_func_name;
+  map<FUNCTIONTYPE, vector<string>> func_type_lib;
+  map<string, vector<vector<DataAffinity>>> func_str_to_type_map;
 
   static vector<string> v_sys_column_name;
   static vector<string> v_sys_catalogs_name;

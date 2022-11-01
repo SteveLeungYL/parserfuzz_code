@@ -43,7 +43,12 @@ DATATYPE get_datatype_by_string(string s) {
     return datatypename;
   ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
-  return DataNone;
+
+  string err = "\n\n\nError: Cannot find the matching data type by"
+               " string: " + s + " \n\n\n";
+  cerr << err;
+  abort();
+//  return DataNone;
 }
 
 FUNCTIONTYPE get_functype_by_string(string s) {
@@ -52,7 +57,11 @@ FUNCTIONTYPE get_functype_by_string(string s) {
       return functiontypename;
     ALLFUNCTIONTYPES(DECLARE_CASE);
   #undef DECLARE_CASE
-    return FUNCUNKNOWN;
+    string err = "\n\n\nError: Cannot find the matching function type by"
+                 " string: " + s + " \n\n\n";
+    cerr << err;
+    abort();
+//    return FUNCUNKNOWN;
 }
 
 string get_string_by_option_type(RelOptionType type) {
