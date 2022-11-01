@@ -3410,7 +3410,7 @@
   }, 
 
   {
-    "enabled": false,
+    "enabled": true,
     "func_name": "row_to_json",
     "is_type_matched:": true,
     "func_type": "FUNCJSONB",
@@ -3423,7 +3423,7 @@
   }, 
 
   {
-    "enabled": false,
+    "enabled": true,
     "func_name": "to_json",
     "is_type_matched:": true,
     "func_type": "FUNCJSONB",
@@ -3440,7 +3440,7 @@
   }, 
 
   {
-    "enabled": false,
+    "enabled": true,
     "func_name": "to_jsonb",
     "is_type_matched:": true,
     "func_type": "FUNCJSONB",
@@ -3452,6 +3452,94 @@
       {
         "arg_type_0": "AFFIARRAYANY",
         "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "regexp_split_to_array",
+    "is_type_matched:": true,
+    "func_type": "FUNCARRAYSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIARRAYSTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFIENUM",
+        "arg_type_2_ENUM": [
+          "'c'",
+          "'g'",
+          "'i'",
+          "'m'",
+          "'n'",
+          "'p'",
+          "'s'",
+          "'w'"
+        ],
+        "ret_type": "AFFIARRAYSTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "currval",
+    "is_type_matched:": true,
+    "func_type": "FUNCSEQUENCE",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "lastval",
+    "is_type_matched:": true,
+    "func_type": "FUNCSEQUENCE",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "nextval",
+    "is_type_matched:": true,
+    "func_type": "FUNCSEQUENCE",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "setval",
+    "is_type_matched:": true,
+    "func_type": "FUNCSEQUENCE",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIBOOL",
+        "ret_type": "AFFIINT"
       }
     ] 
   }
