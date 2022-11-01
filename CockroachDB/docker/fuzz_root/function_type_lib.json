@@ -3610,6 +3610,1216 @@
         "ret_type": "AFFITUPLE"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "ASCII",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "bit_length",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "btrim",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "char_length",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "character_length",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "chr",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "compress",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "concat",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "concat_ws",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "convert_from",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+  
+  {
+    "enabled": true,
+    "func_name": "convert_to",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.decode_plan_gist",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFFSTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.show_create_all_schemas",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFFSTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.show_create_all_tables",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFFSTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.show_create_all_types",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFFSTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "decode",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFFSTRING",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "'hex'",
+          "'escape'",
+          "'base64'"
+        ],
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "decompress",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "'gzip'"
+        ],
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "difference",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "encode",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "from_ip",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "from_uuid",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "get_bit",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "get_byte",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "initcap",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "left",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "length",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "lower",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "lpad",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },   
+
+  {
+    "enabled": true,
+    "func_name": "ltrim",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "md5",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "octet_length",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "overlay",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFIINT",
+        "arg_type_3": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "parse_date",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIDATE"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIDATE"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "parse_interval",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIINTERVAL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINTERVAL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "parser_time",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFITIME"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFITIME"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "parser_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFITIMESTAMP"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFITIMESTAMP"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "parser_timetz",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFITIMETZ"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFITIMETZ"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "prettify_statement",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIWHOLESTATEMENT",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIINT",
+        "arg_type_3": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "quote_ident",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "quote_literal",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }, 
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "quote_nullable",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }, 
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "regexp_extract",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "regex_replace",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "arg_type_3": "AFFIENUM",
+        "arg_type_3_enum": [
+          "'c'",
+          "'g'",
+          "'i'",
+          "'m'",
+          "'n'",
+          "'p'",
+          "'s'",
+          "'w'"
+        ],
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "repeat",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "replace",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "reverse",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "right",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "rpad",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "rtrim",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "set_bit",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "set_byte",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sha1",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sha224",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sha256",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sha384",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "sha512",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "similar_escape",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "similar_to_escape",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "soundex",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "split_part",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "strpos",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "substr",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "substring",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "to_char_with_style",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIDATE",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFIINTERVAL",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFITIMESTAMP",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "to_english",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "to_hex",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "to_ip",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "to_uuid",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "translate",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "ulid_to_uuid",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIUUID"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "unaccent",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "upper",
+    "is_type_matched:": true,
+    "func_type": "FUNCSTRING",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
   }
 
 ]
