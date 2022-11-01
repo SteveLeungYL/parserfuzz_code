@@ -2811,6 +2811,158 @@
         "ret_type": "AFFISTRING"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crc32c",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crc32cieee",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "fnv32",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "fnv32a",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "fnv64",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "fnv64a",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "levenshtein",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFIINT",
+        "arg_type_3": "AFFIINT",
+        "arg_type_4": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "width_bucket",
+    "is_type_matched:": true,
+    "func_type": "FUNCINT",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIDECIMAL",
+        "arg_type_2": "AFFIDECIMAL",
+        "arg_type_3": "AFFIINT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIINT",
+        "arg_type_3": "AFFIINT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIARRAYANY",
+        "ret_type": "AFFIINT"
+      }
+    ] 
   }
 
 ]
