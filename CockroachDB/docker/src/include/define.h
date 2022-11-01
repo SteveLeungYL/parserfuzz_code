@@ -589,7 +589,10 @@
   V(AFFIARRAYOIDWRAPPER)                                                       \
   V(AFFIARRAYWHOLESTMT)                                                        \
   V(AFFIARRAYONOFF)                                                            \
-  V(AFFIARRAYONOFFAUTO)
+  V(AFFIARRAYONOFFAUTO)                                                        \
+  V(AFFITABLENAME)                                                             \
+  V(AFFICOLUMNNAME)                                                            \
+  V(AFFICONSTRAINTNAME)
 
 #define ALLCOLLATIONS(V)                                                       \
   V(defaultcollation)                                                          \

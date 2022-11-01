@@ -1206,7 +1206,7 @@
       {
         "arg_type_0": "AFFISTRING",
         "arg_type_1": "AFFISTRING",
-        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
         "ret_type": "AFFIBOOL"
       }
     ]
@@ -5664,6 +5664,607 @@
         "ret_type": "AFFIBOOL"
       }
     ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "current_time",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "ret_type": "AFFITIME"
+      },
+      {
+        "ret_type": "AFFITIMETZ"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIME"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIMETZ"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "localtime",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "ret_type": "AFFITIME"
+      },
+      {
+        "ret_type": "AFFITIMETZ"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIME"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITIMETZ"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "current_setting",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIENUM",
+        "arg_type_1_enum": [
+          "'true'"
+        ],
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "format_type",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "getdatabaseencoding",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "has_any_column_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFITABLENAME",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITABLENAME",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIOID",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIOID",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "has_column_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFITABLENAME",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFITABLENAME",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIOID",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIOID",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "has_database_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "has_foreign_data_wrapper_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "has_language_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "has_schema_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "has_sequence_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "has_server_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "has_table_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "has_tablespace_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "has_type_privilege",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      },
+      {
+        "arg_type_0": "AFFISTING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "information_schema._pg_numeric_precision",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "information_schema._pg_numeric_precision_radix",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "oid",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "ret_type": "AFFIOID"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": false,
+    "func_name": "pg_backend_pid",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "pg_collation_for",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFISTRING"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "pg_column_is_updatable",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIBOOL",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "pg_column_size",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "pg_get_serial_sequence",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "pg_has_role",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "pg_is_other_temp_schema",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "pg_my_temp_schema",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "ret_type": "AFFIOID"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "pg_relation_is_updatable",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "arg_type_1": "AFFIBOOL",
+        "ret_type": "AFFIINT"
+      }
+    ]
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "pg_sleep",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIFLOAT",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": false,
+    "func_name": "pg_table_is_visible",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
+  },
+
+  {
+    "enabled": true,
+    "func_name": "set_config",
+    "is_type_matched:": true,
+    "func_type": "FUNCTIMETZ",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "arg_type_2": "AFFIBOOL",
+        "ret_type": "AFFIBOOL"
+      }
+    ]
   }
 
 ]
