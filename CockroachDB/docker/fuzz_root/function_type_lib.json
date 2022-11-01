@@ -2963,6 +2963,497 @@
         "ret_type": "AFFIINT"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "array_to_json",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "arg_type_1": "AFFIBOOL",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.json_to_pb",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIJSONB",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.pb_to_json",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIBYTES",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIBYTES",
+        "arg_type_2": "AFFIBOOL",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFIBYTES",
+        "arg_type_2": "AFFIBOOL",
+        "arg_type_3": "AFFIBOOL",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.read_file",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.write_file",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_array_length",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_build_array",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_build_object",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_extract_path",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_extract_path_text",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_extract_path_text",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYSTRING",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYSTRING",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_remove_path",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "json_set",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "arg_type_2": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "arg_type_2": "AFFIJSONB",
+        "arg_type_3": "AFFIBOOL",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "json_strip_nulls",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "json_typeof",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "json_valid",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_array_length",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "json_build_array",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "json_build_object",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_exists_any",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_extract_path",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_extract_path_text",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_insert",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "arg_type_2": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "arg_type_2": "AFFIJSONB",
+        "arg_type_3": "AFFIBOOL",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },   
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_object",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIARRAYSTRING",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },   
+
+  {
+    "enabled": true,
+    "func_name": "json_pretty",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },   
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_set",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "arg_type_2": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIARRAYSTRING",
+        "arg_type_2": "AFFIJSONB",
+        "arg_type_3": "AFFIBOOL",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },   
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_strip_nulls",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },   
+
+  {
+    "enabled": true,
+    "func_name": "jsonb_typeof",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "row_to_json",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFITUPLE",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "to_json",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": false,
+    "func_name": "to_jsonb",
+    "is_type_matched:": true,
+    "func_type": "FUNCJSONB",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIJSONB"
+      },
+      {
+        "arg_type_0": "AFFIARRAYANY",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
   }
 
 ]
