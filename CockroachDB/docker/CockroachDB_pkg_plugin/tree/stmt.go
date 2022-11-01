@@ -628,7 +628,7 @@ const (
 	AFFIGEOGRAPHY // TODO:: FIXME:: Not sure what this is, may need to split to other types.
 	AFFIGEOMETRY  // TODO:: FIXME:: Not sure what this is, may need to split to other types.
 	AFFIBOX2D     // TODO:: FIXME:: Not sure what this is, may need to split to other types.
-	AFFIVOID      // TODO:: FIXME:: Not sure what this is, may need to split to other types.
+	AFFIVOID
 	AFFIPOINT
 	AFFILINESTRING
 	AFFIPOLYGON
@@ -678,6 +678,9 @@ const (
 	AFFIARRAYWHOLESTM
 	AFFIARRAYONOFF
 	AFFIARRAYONOFFAUTO
+	AFFITABLENAME
+	AFFICOLUMNNAME
+	AFFICONSTRAINTNAME
 )
 
 // SQLRight inject code. To log all the info required for SQLRight to build the IR.
