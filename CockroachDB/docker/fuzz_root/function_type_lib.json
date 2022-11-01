@@ -4820,6 +4820,850 @@
         "ret_type": "AFFISTRING"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "cluster_logical_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIDECIMAL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.active_version",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.approximate_timestamp",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "ret_type": "AFFITIMESTAMP"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.assignment_cast",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.check_consistency",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBOOL",
+        "arg_type_1": "AFFIBYTES",
+        "arg_type_2": "AFFIBYTES",
+        "ret_type": "AFFITUPLE"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.check_password_hash_format",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.cluster_id",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIUUID"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.cluster_name",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.cluster_setting_encoded_default",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.completed_migrations",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIARRAYSTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.create_join_token",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.decode_cluster_setting",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },  
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.deserialize_session",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.encode_key",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIANY",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.force_assertion_error",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.force_error",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.force_log_fatal",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.force_log_fatal",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.force_panic",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.force_retry",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINTERVAL",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.get_database_id",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.get_namespace_id",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.get_vmodule",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.get_zone_config",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.has_role_option",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.is_admin",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.is_at_least_version",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.lease_holder",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.list_sql_keys_in_range",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFITUPLE"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.locality_value",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.no_constant_folding",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIANY"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.node_executable_version",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.node_id",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.notice",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": false,
+    "func_name": "crdb_internal.num_geo_inverted_index_entries",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIGEOGRAPHY",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIINT",
+        "arg_type_2": "AFFIGEOMETRY",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.num_inverted_index_entries",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIANY",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIANY",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIJSONB",
+        "ret_type": "AFFIINT"
+      },
+      {
+        "arg_type_0": "AFFIJSONB",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.payloads_for_span",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.payloads_for_trace",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.pretty_key",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.pretty_span",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIBYTES",
+        "arg_type_2": "AFFIINT",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.range_stats",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIJSONB"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.repair_ttl_table_scheduled_job",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIOID",
+        "ret_type": "AFFIVOID"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.reset_index_usage_stats",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.reset_sql_stats",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.revalidate_unique_constraint",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFITABLENAME",
+        "arg_type_1": "AFFICONSTRAINTNAME",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.revalidate_unique_constraints_in_all_tables",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIVOID"
+      },
+      {
+        "arg_type_0": "AFFITABLENAME",
+        "ret_type": "AFFIVOID"
+      }
+    ] 
+  }, 
+
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.round_decimal_values",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIDECIMAL",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIDECIMAL"
+      },
+      {
+        "arg_type_0": "AFFIARRAYDECIMAL",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFIARRAYDECIMAL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.schedule_sql_stats_compaction",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.serialize_session",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIBYTES"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.set_trace_verbose",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "arg_type_1": "AFFIBOOL",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.set_vmodule",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.trace_id",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.unsafe_clear_gossip_info",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFISTRING",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.validate_session_revival_token",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "arg_type_0": "AFFIBYTES",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.validate_ttl_scheduled_jobs",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIVOID"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.void_func",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFIVOID"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "current_database",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "current_schema",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      },
+      {
+        "arg_type_0": "AFFIBOOL",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "current_user",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "session_user",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  }, 
+
+  {
+    "enabled": true,
+    "func_name": "version",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMINFO",
+    "params": [
+      {
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "crdb_internal.force_delete_table_data",
+    "is_type_matched:": true,
+    "func_type": "FUNCSYSTEMREPAIR",
+    "params": [
+      {
+        "arg_type_0": "AFFIINT",
+        "ret_type": "AFFIBOOL"
+      }
+    ] 
   }
 
 ]
