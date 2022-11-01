@@ -2680,6 +2680,137 @@
         "ret_type": "AFFIBYTES"
       }
     ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "uuid_to_ulid",
+    "is_type_matched:": true,
+    "func_type": "FUNCUUID",
+    "params": [
+      {
+        "arg_type_0": "AFFIUUID",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "abbrev",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "broadcast",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFIINET"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "family",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "host",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "hostmask",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFIINET"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "masklen",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFIINT"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "netmask",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFINET"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "set_masklen",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "arg_type_1": "AFFIINT",
+        "ret_type": "AFFINET"
+      }
+    ] 
+  },
+
+  {
+    "enabled": true,
+    "func_name": "text",
+    "is_type_matched:": true,
+    "func_type": "FUNCINET",
+    "params": [
+      {
+        "arg_type_0": "AFFIINET",
+        "ret_type": "AFFISTRING"
+      }
+    ] 
   }
 
 ]
