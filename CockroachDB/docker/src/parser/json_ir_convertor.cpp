@@ -326,18 +326,24 @@ void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
                  cur_arg_type.set_data_affinity(get_data_affinity_by_string(it_params->at(arg_key)));
 
 
-                 string arg_key_enum = arg_key + "_ENUM";
+                 string arg_key_enum = arg_key + "_enum";
                  if (it_params->contains(arg_key_enum)) {
                      auto enum_node = it_params->at(arg_key_enum);
                      vector<string> v_enum;
                      for (json::iterator it_enum = enum_node.begin(); it_enum != enum_node.end(); it_enum++) {
                         string enum_str = it_enum.value();
                         v_enum.push_back(enum_str);
-//                         cerr << "\n\n\n For function name: " << func_name << "getting enum" << enum_str << "\n\n\n";
                      }
                      cur_arg_type.set_v_enum_str(v_enum);
                  }
 
+                 string arg_key_range = arg_key + "_range";
+                 if (it_params->contains(arg_key_range)) {
+                     auto range_node = it_params->at(arg_key_range);
+                     auto range_max = range_node.at("max");
+                     auto range_min = range_node.at("min");
+                     cur_arg_type.set_range(range_min, range_max, cur_arg_type.get_data_affinity());
+                 }
 
                  single_signiture.push_back(cur_arg_type);
              }

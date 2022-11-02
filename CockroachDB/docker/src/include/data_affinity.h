@@ -129,15 +129,38 @@ public:
     void set_v_enum_str(const vector<string>& in) {this->v_enum_str = in;}
     vector<string> get_v_enum_str() const {return this->v_enum_str;}
 
-    void set_int_range(long long min, long long max) {this->int_min = min; this->int_max = max;}
+    void set_int_range(long long min, long long max) { this->int_min = min; this->int_max = max;}
     long long get_int_max() const {return this->int_max;}
     long long get_int_min() const {return this->int_min;}
 
-    void set_float_range(double min, double max) {this->float_min = min; this->float_max = max;}
+    void set_float_range(double min, double max) { this->float_min = min; this->float_max = max;}
     double get_float_max() const {return this->float_max;}
     double get_float_min() const {return this->float_min;}
 
     string get_mutated_literal(DATAAFFINITYTYPE type_in = AFFIUNKNOWN);
+
+    template <typename T>
+    void set_range(T min, T max, DATAAFFINITYTYPE data_affi = AFFIINT) {
+        switch(data_affi) {
+            case AFFIINT:
+            case AFFIARRAYINT:
+            case AFFIOID:
+            case AFFIARRAYOID:
+            case AFFISERIAL:
+            case AFFIARRAYSERIAL:
+                set_int_range(min, max);
+                return;
+            case AFFIDECIMAL:
+            case AFFIARRAYDECIMAL:
+            case AFFIFLOAT:
+            case AFFIARRAYFLOAT:
+                set_float_range(min, max);
+                return;
+            default:
+                set_int_range(min, max);
+                return;
+        }
+    }
 
 };
 

@@ -357,6 +357,7 @@ void Mutator::init_data_library() {
 //    func_str_to_type_map[v] = func_type;
 //  }
   constr_sql_func_lib(func_types_str, all_saved_func_name, func_type_lib, func_str_to_type_map);
+  cout << "[*] Getting all_saved_func_name.size(): " << this->all_saved_func_name.size() << endl;
 
   input_file.close();
   cout << "[*] end init function_types library: " << func_file_name << endl;
