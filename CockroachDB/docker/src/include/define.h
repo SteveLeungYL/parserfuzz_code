@@ -508,27 +508,28 @@
   V(ContextNoModi)                                                             \
   V(ContextUseFollow)
 
-#define ALLFUNCTIONTYPES(V) \
+#define ALLFUNCTIONTYPES(V)                                                    \
   V(FUNCAGGR)                                                                  \
   V(FUNCWINDOW)                                                                \
-  V(FUNCARRAY)                                                                \
-  V(FUNCENUM)                                                                \
-  V(FUNCBOOL)                                                                \
-  V(FUNCCOMPARE)                                                                \
+  V(FUNCARRAY)                                                                 \
+  V(FUNCENUM)                                                                  \
+  V(FUNCBOOL)                                                                  \
+  V(FUNCCOMPARE)                                                               \
   V(FUNCCRYPTO)                                                                \
-  V(FUNCDATETIME)                                                                \
-  V(FUNCDECIMAL)                                                                \
-  V(FUNCFLOAT)                                                                \
-  V(FUNCUUID)                                                                \
-  V(FUNCINET)                                                                \
-  V(FUNCINT)                                                                \
-  V(FUNCJSONB)                                                                \
-  V(FUNCARRAYSTRING)                                                                \
-  V(FUNCSEQUENCE)                                                                \
+  V(FUNCDATETIME)                                                              \
+  V(FUNCDECIMAL)                                                               \
+  V(FUNCFLOAT)                                                                 \
+  V(FUNCUUID)                                                                  \
+  V(FUNCINET)                                                                  \
+  V(FUNCINT)                                                                   \
+  V(FUNCJSONB)                                                                 \
+  V(FUNCARRAYSTRING)                                                           \
+  V(FUNCSEQUENCE)                                                              \
   V(FUNCSTREAM)                                                                \
   V(FUNCSTRING)                                                                \
-  V(FUNCSYSTEMINFO)                                                                \
+  V(FUNCSYSTEMINFO)                                                            \
   V(FUNCTIMETZ)                                                                \
+  V(FUNCSYSTEMREPAIR)                                                          \
   V(FUNCUNKNOWN)
 
 #define ALLDATAAFFINITY(V)                                                     \
@@ -546,6 +547,7 @@
   V(AFFIINET)                                                                  \
   V(AFFIINT)                                                                   \
   V(AFFIINTERVAL)                                                              \
+  V(AFFIINTERVALTZ)                                                            \
   V(AFFIJSONB)                                                                 \
   V(AFFIOID)                                                                   \
   V(AFFISERIAL)                                                                \

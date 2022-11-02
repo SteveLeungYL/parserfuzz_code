@@ -630,6 +630,20 @@ interval_early_break:
 
     return ret_str;
 };
+
+string DataAffinity::mutate_affi_intervaltz() {
+    string ret_str = "";
+
+    // get timestamp prefix.
+    ret_str = mutate_affi_interval();
+    ret_str = ret_str.substr(1,ret_str.size()-2); // Remove the `'` symbol.
+
+    ret_str += add_random_time_zone();
+
+    ret_str = "'" + ret_str + "'";
+    return ret_str;
+}
+
 string DataAffinity::mutate_affi_date(){
 
     int format = get_rand_int(10);
@@ -1015,6 +1029,8 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
             return this->mutate_affi_jsonb();
         case AFFIINTERVAL:
             return this->mutate_affi_interval();
+        case AFFIINTERVALTZ:
+            return this->mutate_affi_intervaltz();
         case AFFIDATE:
             return this->mutate_affi_date();
         case AFFITIMESTAMP:

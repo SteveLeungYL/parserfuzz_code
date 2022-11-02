@@ -67,6 +67,7 @@ private:
     string mutate_affi_byte();
     string mutate_affi_jsonb();
     string mutate_affi_interval();
+    string mutate_affi_intervaltz();
     string mutate_affi_date();
     string mutate_affi_timestamp();
     string mutate_affi_timestamptz();

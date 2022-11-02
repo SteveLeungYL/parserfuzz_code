@@ -186,7 +186,7 @@ IR *convert_json_to_IR(string all_json_str) {
 
 // Helper functon for construct_set_session_library
 
-void constr_key_pair_datatype_lib_helper(json key_pair_json, vector<string>& v_all_key_str, map<string, DataAffinity>& mapped_key_pair) {
+void constr_key_pair_datatype_lib_helper(json& key_pair_json, vector<string>& v_all_key_str, map<string, DataAffinity>& mapped_key_pair) {
 
     for (json::iterator it = key_pair_json.begin(); it != key_pair_json.end(); it++) {
         auto cur_set_node = it.value();
@@ -284,9 +284,84 @@ void constr_key_pair_datatype_lib(string key_pair_str, vector<string>& v_all_key
     return;
 }
 
+void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
+                                map<FUNCTIONTYPE, vector<string>>& func_type_lib,
+                                map<string, vector<vector<DataAffinity>>>& func_str_to_type_map) {
+
+    for (json::iterator it = json_obj.begin(); it != json_obj.end(); it++) {
+        auto cur_set_node = it.value();
+        if (!cur_set_node.at("enabled")) {
+            // Ignored the not enabled.
+            continue;
+        }
+
+        FUNCTIONTYPE func_type = get_functype_by_string(cur_set_node.at("func_type"));
+        if (
+                func_type == FUNCCRYPTO ||
+                func_type == FUNCSYSTEMINFO
+        ) {
+            continue;
+        }
+
+        string func_name = string(cur_set_node.at("func_name"));
+        bool is_type_matched = cur_set_node.at("is_type_matched");
+
+//        cerr << "\n\n\nHandling function name: " << func_name << "\n\n\n";
+
+        auto params_node = cur_set_node.at("params");
+        for (json::iterator it_params = params_node.begin(); it_params != params_node.end(); it_params++) {
+             vector<DataAffinity> single_signiture;
+
+             DataAffinity ret_type;
+             ret_type.set_data_affinity(get_data_affinity_by_string(it_params->at("ret_type")));
+             single_signiture.push_back(ret_type);
+
+             for (int i = 0; i < it_params->size(); i++) {
+                 string arg_key = "arg_type_" + to_string(i);
+                 if (!it_params->contains(arg_key)) {
+                     break;
+                 }
+
+                 DataAffinity cur_arg_type;
+                 cur_arg_type.set_data_affinity(get_data_affinity_by_string(it_params->at(arg_key)));
+
+
+                 string arg_key_enum = arg_key + "_ENUM";
+                 if (it_params->contains(arg_key_enum)) {
+                     auto enum_node = it_params->at(arg_key_enum);
+                     vector<string> v_enum;
+                     for (json::iterator it_enum = enum_node.begin(); it_enum != enum_node.end(); it_enum++) {
+                        string enum_str = it_enum.value();
+                        v_enum.push_back(enum_str);
+//                         cerr << "\n\n\n For function name: " << func_name << "getting enum" << enum_str << "\n\n\n";
+                     }
+                     cur_arg_type.set_v_enum_str(v_enum);
+                 }
+
+
+                 single_signiture.push_back(cur_arg_type);
+             }
+
+             func_str_to_type_map[func_name].push_back(single_signiture);
+        }
+
+        v_all_func_str.push_back(func_name);
+        func_type_lib[func_type].push_back(func_name);
+
+    }
+
+}
+
 void constr_sql_func_lib(string func_types_str, vector<string>& v_all_func_str,
-                         map<FUNCTIONTYPE, vector<string>> func_type_lib,
+                         map<FUNCTIONTYPE, vector<string>>& func_type_lib,
                          map<string, vector<vector<DataAffinity>>>& func_str_to_type_map) {
-    cerr << "\n\n\nDEBUG: getting func_types_str: func_types_str. \n\n\n";
+
+    try {
+        auto json_obj = json::parse(func_types_str);
+        constr_sql_func_lib_helper(json_obj, v_all_func_str, func_type_lib, func_str_to_type_map);
+    } catch (json::parse_error &ex) {
+        cerr << "\n\n\nJSON PARSING ERROR!!!\n\n\n";
+    }
+
     return;
 }
