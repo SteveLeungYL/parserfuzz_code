@@ -109,8 +109,8 @@ public:
 
   void fix_preprocessing(IR *stmt_root, vector<IR *> &ordered_all_subquery_ir);
   string find_cloest_table_name(IR* ir_to_fix, bool is_debug_info);
-  bool fix_dependency(IR *cur_stmt_root, const vector<vector<IR *>> ir_to_fix,
-                      bool is_debug_info = false);
+
+
   void reset_scope_library(bool clear_define);
   IR *find_closest_node(IR *stmt_root, IR *node, DATATYPE type);
   bool fill_one(IR *parent);
@@ -172,6 +172,15 @@ public:
 
   IR *get_ir_with_type(const IRTYPE type_);
   bool add_missing_create_table_stmt(IR *);
+
+  DATAAFFINITYTYPE get_nearby_data_affinity(IR* ir_to_fix, bool is_debug_info);
+  bool fix_dependency(IR *cur_stmt_root, const vector<vector<IR *>> ir_to_fix,
+                      bool is_debug_info = false);
+  void instan_database_schema_name(IR* ir_to_fix, bool is_debug_info);
+  void instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_debug_info);
+  void instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_debug_info);
+  void instan_view_name(IR* ir_to_fix, bool is_debug_info);
+  void instan_partition_name(IR* ir_to_fix, bool is_debug_info);
 
   IR *record_ = NULL;
   IR *mutated_root_ = NULL;

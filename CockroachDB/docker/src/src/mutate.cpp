@@ -1,5 +1,4 @@
 #include "../include/mutate.h"
-#include "../AFL/debug.h"
 #include "../include/json_ir_convertor.h"
 #include "../oracle/cockroach_oracle.h"
 #include "../parser/parser.h"
@@ -1462,6 +1461,699 @@ string Mutator::find_cloest_table_name(IR *ir_to_fix, bool is_debug_info) {
   return closest_table_name;
 }
 
+DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR* ir_to_fix, bool is_debug_info) {
+
+    // First, search if we can find a nearby literal that already has the
+    // affinity fixed.
+
+    DATAAFFINITYTYPE ret_data_affi;
+
+    vector<IRTYPE> v_matched_literal_types = {
+            TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral};
+    vector<IRTYPE> v_capped_ir_types = {TypeSelectClause, TypeSelect};
+    IR *near_literal_node =
+            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<
+                    vector<IRTYPE>, vector<IRTYPE>>(
+                    ir_to_fix, v_matched_literal_types, v_capped_ir_types);
+
+    if (near_literal_node != NULL &&
+        near_literal_node->get_data_affinity() != AFFIUNKNOWN) {
+//        ir_to_fix->set_data_affinity(near_literal_node->get_data_affinity());
+        ret_data_affi = near_literal_node->get_data_affinity();
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
+                    "nearby literal: "
+                 << near_literal_node->to_string()
+                 << ", the literal comes with affinity: "
+                 << get_string_by_affinity_type(
+                         near_literal_node->get_data_affinity())
+                 << "\n\n\n";
+        }
+    } else {
+        // If we end up in this branch, we cannot find a nearby literal that
+        // already has fixed affinity. This is expected, such as case: `SELECT
+        // * FROM v0 WHERE v1 = 100;` Then, we should look at the nearby
+        // column name for more information.
+
+        IR *nearby_column_ir =
+                p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+                        ir_to_fix, DataColumnName);
+        if (nearby_column_ir != NULL) {
+            string nearby_column_str = nearby_column_ir->get_str_val();
+            string actual_column_str = nearby_column_str;
+            if (m_column2datatype.count(nearby_column_str) || m_alias2column_single.count(nearby_column_str)) {
+                if (m_alias2column_single.count(nearby_column_str)) {
+                    actual_column_str = m_alias2column_single[nearby_column_str];
+                    if (is_debug_info) {
+                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                             << nearby_column_str << " to column name: "
+                             << actual_column_str << "\n\n\n";
+                    }
+                }
+                DataAffinity cur_affi = m_column2datatype[actual_column_str];
+//                ir_to_fix->set_data_affinity(cur_affi);
+                ret_data_affi = cur_affi.get_data_affinity();
+                if (is_debug_info) {
+                    cerr << "Dependency: INFO: From Literal handling, getting "
+                            "column name: "
+                         << nearby_column_str
+                         << ", the column comes with affinity: "
+                         << get_string_by_affinity_type(
+                                 cur_affi.get_data_affinity())
+                         << "\n\n\n";
+                }
+            } else {
+//                ir_to_fix->set_data_affinity(AFFISTRING);
+                ret_data_affi = AFFISTRING;
+                if (is_debug_info) {
+                    cerr
+                            << "Dependency: INFO: From Literal handling, getting "
+                               "column name: "
+                            << nearby_column_str
+                            << ". However, the colum name does not come with affinity: "
+                               ", dummy fix the literal to AFFISTRING now."
+                            << "\n\n\n";
+                }
+            }
+        } else {
+            // Cannot find nearby COLUMN NAME?
+            if (is_debug_info) {
+                cerr << "\n\n\n Error: For fixing literal, cannot find nearby "
+                        "column name definition. "
+                        "Use dummy AFFISTRING instead for now. "
+                     << "\n\n\n";
+            }
+//            ir_to_fix->set_data_affinity(AFFISTRING);
+            ret_data_affi = AFFISTRING;
+        }
+    }
+
+    return ret_data_affi;
+}
+
+void Mutator::instan_database_schema_name(IR* ir_to_fix, bool is_debug_info) {
+    if ((ir_to_fix->data_type_ == DataDatabaseName)) {
+        ir_to_fix->set_str_val("sqlrighttestdb");
+    }
+
+    if (ir_to_fix->data_type_ == DataSchemaName) {
+        ir_to_fix->set_str_val("public");
+    }
+    return;
+}
+
+void Mutator::instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_debug_info) {
+
+    if ((ir_to_fix->data_type_ == DataTableName) &&
+        (ir_to_fix->data_flag_ == ContextDefine ||
+         ir_to_fix->data_flag_ == ContextReplaceDefine)) {
+        string new_name = gen_id_name();
+        ir_to_fix->str_val_ = new_name;
+        ir_to_fix->set_is_instantiated(true);
+
+        // Save the table name that just defined inside this single statement.
+        // Will permanently save this table name at the end of the function.
+        v_create_table_names_single.push_back(new_name);
+        if (is_debug_info) {
+            cerr << "Dependency: Added to v_table_names: " << new_name
+                 << ", in kDataTableName with kDefine or kReplace. \n\n\n";
+            cerr << "Dependency: All current statement defined name: ";
+            for (string &all_defined_name : v_table_names_single) {
+                cerr << all_defined_name << " ";
+            }
+            cerr << "Dependency: All previously saved table names: ";
+            for (string &all_used_name : v_table_names) {
+                cerr << "previously saved table used names: " << all_used_name
+                     << "\n\n\n";
+            }
+        }
+
+        if (ir_to_fix->data_flag_ == ContextReplaceDefine) {
+            // If the newly defined table is marked as ContextReplaceDefine, which
+            // means the statement is related to ALTER TABLE v0 RENAME TO v1; Mark
+            // the replacing table mark.
+            is_replace_table = true;
+        }
+    }
+
+    else if ((ir_to_fix->data_type_ == DataTableName) &&
+        (ir_to_fix->data_flag_ == ContextUndefine ||
+         ir_to_fix->data_flag_ == ContextReplaceUndefine)) {
+        if (v_table_names.size() > 0) {
+            // Choose random table name that defined before to drop.
+            string removed_table_name =
+                    v_table_names[get_rand_int(v_table_names.size())];
+            v_table_names.erase(std::remove(v_table_names.begin(),
+                                            v_table_names.end(),
+                                            removed_table_name),
+                                v_table_names.end());
+            // Also remove the v_table_with_partition, if matched.
+            v_table_with_partition.erase(
+                    std::remove(v_table_with_partition.begin(),
+                                v_table_with_partition.end(), removed_table_name),
+                    v_table_with_partition.end());
+
+            // FIXME:: Should we also remove the table name string inside the
+            // v_create_table_names_single?
+
+            ir_to_fix->str_val_ = removed_table_name;
+            ir_to_fix->set_is_instantiated(true);
+            if (is_debug_info) {
+                cerr << "Dependency: Removed from v_table_names: "
+                     << removed_table_name
+                     << ", in TypeDataTableName with ContextUndefine \n\n\n";
+            }
+
+            if (is_replace_table && v_create_table_names_single.size() != 0) {
+                // In most of the case, the replacement would only have one pair of
+                // table names.
+                string new_table_name = v_create_table_names_single.back();
+                m_table2columns[new_table_name] =
+                        m_table2columns[removed_table_name];
+            }
+        } else {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Failed to find info in v_table_names, "
+                        "in DataTableName with ContextUndefine. \n\n\n";
+            }
+            // Randomly delete a not existed table.
+            ir_to_fix->set_str_val("x");
+            ir_to_fix->set_is_instantiated(true);
+        }
+    }
+
+    else if (ir_to_fix->data_type_ == DataTableName &&
+                  ir_to_fix->data_flag_ == ContextUse) {
+
+        /* INFO:: CockroachDB does not have the syntax of PARTITION OF table.
+         * Therefore, we don't need to consider the PARTITION OF
+         * partitioned_table grammar.
+         * */
+
+        if (v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
+            v_create_table_names_single.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Failed to find info in v_table_names "
+                        "and v_create_table_names_single, in kDataTableName with "
+                        "ContextUse. \n\n\n";
+            }
+            ir_to_fix->set_is_instantiated(true);
+            ir_to_fix->set_str_val("x");
+            return;
+        }
+        string used_name = "";
+        // For the ContextUse, prefer to use the table name that defined in
+        // previous statement first.
+        if (v_table_alias_names_single.size() != 0) {
+            used_name = v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
+        } else if (v_table_names_single.size() != 0) {
+            // If the statement use some table names before,
+            // we can refer to the table name here.
+            // We can imagine v_table_names_single could contain
+            // alias name defined in WITH clause or other places.
+            used_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+        } else if (v_create_table_names_single.size() != 0) {
+            // If cannot find any table names defined or used before,
+            // consider the table name that just defined in this statement.
+            used_name = v_create_table_names_single[get_rand_int(
+                    v_create_table_names_single.size())];
+        } else if (v_table_names.size() != 0) {
+            used_name =
+                    v_table_names[get_rand_int(v_table_names.size())];
+        } else {
+            if (is_debug_info) {
+                cerr << "Cannot find any used or defined table names. Use simple x "
+                        "as name. \n\n\n";
+            }
+            used_name = "x";
+        }
+        ir_to_fix->str_val_ = used_name;
+        ir_to_fix->set_is_instantiated(true);
+        // Save the table name used in this statement.
+        // The saved table name can be referred later by
+        //   contextUseFollow.
+        v_table_names_single.push_back(used_name);
+        if (is_debug_info) {
+            cerr << "Dependency: In the context of ContextUsed table, we got "
+                    "table_name: "
+                 << used_name << ". \n\n\n";
+            for (string &all_used_name : v_table_names) {
+                cerr << "Dependency: All saved table used names: " << all_used_name
+                     << "\n\n\n";
+            }
+            for (string &all_used_name : v_create_table_names_single) {
+                cerr << "Dependency: All saved table used names: " << all_used_name
+                     << "\n\n\n";
+            }
+        }
+
+        // TODO: FIXME: Create AS.
+        //        if (cur_stmt_root->get_ir_type() == TypeCreateTable &&
+        //            p_oracle->ir_wrapper.is_ir_in(ir_to_fix,
+        //            kTableLikeClause)) {
+        //
+        //            if (v_create_table_names_single.size() > 0) {
+        //              string newly_create_table_str =
+        //              v_create_table_names_single.front();
+        //              m_table2columns[newly_create_table_str] =
+        //              m_table2columns[ir_to_fix->get_str_val()];
+        //            }
+        //
+        //        }
+    }
+
+    else if (ir_to_fix->data_type_ == DataTableName &&
+                   ir_to_fix->data_flag_ == ContextUseFollow) {
+
+        if (v_table_alias_names_single.size() == 0 && v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
+            v_create_table_names_single.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Failed to find info in v_table_names "
+                        "and v_create_table_names_single, in kDataTableName with "
+                        "ContextUse. \n\n\n";
+            }
+            ir_to_fix->set_is_instantiated(true);
+            ir_to_fix->set_str_val("x");
+            return;
+        }
+        string used_name = "";
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG: In Table ContextUseFoolow: getting v_table_alias_names_single.size(): "
+                 << v_table_alias_names_single.size()
+                 << ", v_table_names_single: " << v_table_names_single.size()
+                 << ", v_create_table_names_single" << v_create_table_names_single.size()
+                 << "\n\n\n";
+        }
+        // For the ContextUseFoolow, we should use table name that already
+        // mentioned in the current statement.
+        // For example, for `v0.v1`, where v0 is imported from `FROM v0;`
+        if (v_table_alias_names_single.size() != 0){
+            used_name =
+                    v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
+        } else if (v_table_names_single.size() != 0) {
+            used_name =
+                    v_table_names_single[get_rand_int(v_table_names_single.size())];
+        } else if (v_create_table_names_single.size() != 0) {
+            // If cannot find any table names defined or used before,
+            // consider the table name that defined from previous statements.
+            // Not sure whether this situation is possible or not.
+            if (is_debug_info) {
+                cerr << "\n\n\nIn the scenario of table name ContextUseFollow, "
+                        "cannot find table name inside "
+                        "v_table_names_single. Use previous defined table names "
+                        "instead. \n\n\n";
+            }
+            used_name = v_create_table_names_single[get_rand_int(
+                    v_create_table_names_single.size())];
+        } else if (v_table_names.size() != 0) {
+            // If the statement use some table names before,
+            // we can refer to the table name here.
+            // We can imagine v_table_names_single could contain
+            // alias name defined in WITH clause or other places.
+            if (is_debug_info) {
+                cerr << "\n\n\nIn the scenario of table name ContextUseFollow, "
+                        "cannot find table name inside "
+                        "v_table_names_single. Use previous defined table names "
+                        "instead. \n\n\n";
+            }
+            used_name = v_table_names[get_rand_int(v_table_names.size())];
+        } else {
+            if (is_debug_info) {
+                cerr << "Cannot find any used or defined table names. Use simple x "
+                        "as name. \n\n\n";
+            }
+            used_name = "x";
+        }
+        ir_to_fix->str_val_ = used_name;
+        ir_to_fix->set_is_instantiated(true);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In the context of ContextUsed table, we got "
+                    "table_name: "
+                 << used_name << ". \n\n\n";
+            for (string &all_used_name : v_table_names) {
+                cerr << "Dependency: All saved table used names: " << all_used_name
+                     << "\n\n\n";
+            }
+            for (string &all_used_name : v_create_table_names_single) {
+                cerr << "Dependency: All saved table used names: " << all_used_name
+                     << "\n\n\n";
+            }
+        }
+    }
+
+    return;
+}
+
+void Mutator::instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_debug_info) {
+
+    /* There is no need to consider the Context in this loop.
+     * Because TableAliasName almost always occur on ContextDefine.
+     * The Alias name will be saved into the
+     */
+
+    if (ir_to_fix->data_type_ == DataTableAliasName) {
+
+        ir_to_fix->set_is_instantiated(true);
+
+        string closest_table_name = "";
+
+        IR *closest_table_ir =
+                p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                        ir_to_fix, DataTableName);
+
+        if (closest_table_ir != NULL) {
+            closest_table_name = closest_table_ir->get_str_val();
+        } else if (v_table_names_single.size() != 0) {
+            if (is_debug_info) {
+                cerr << "\n\n\nError: Dependency: When handling the "
+                        "DataTableAliasName, "
+                        "cannot find the table name nearby the ir_to_fix(). \n\n\n";
+                cerr << "\n\n\n More debugging information: cur node: "
+                     << ir_to_fix->to_string()
+                     << "; whole statement: " << cur_stmt_root->to_string()
+                     << "\n\n\n";
+            }
+            closest_table_name =
+                    v_table_names_single[get_rand_int(v_table_names_single.size())];
+        } else if (v_create_table_names_single.size() != 0) {
+            if (is_debug_info) {
+                cerr << "\n\n\nError: Dependency: When handling the "
+                        "DataTableAliasName, "
+                        "cannot find the table name nearby the ir_to_fix(). \n\n\n";
+                cerr << "\n\n\n More debugging information: cur node: "
+                     << ir_to_fix->to_string()
+                     << "; whole statement: " << cur_stmt_root->to_string()
+                     << "\n\n\n";
+            }
+            closest_table_name = v_create_table_names_single[0];
+            if (is_debug_info) {
+                cerr << "Dependency: In kAlias defined, find newly declared table "
+                        "name: "
+                     << closest_table_name << ". \n\n\n"
+                     << endl;
+            }
+        } else if (v_table_names.size() != 0) {
+            if (is_debug_info) {
+                cerr << "Error: Dependency: When handling the DataTableAliasName, "
+                        "cannot find the table name nearby the ir_to_fix(). ";
+                cerr << "\n More debugging information: cur node: "
+                     << ir_to_fix->to_string()
+                     << "; whole statement: " << cur_stmt_root->to_string();
+            }
+            closest_table_name =
+                    v_table_names[get_rand_int(v_table_names.size())];
+            if (is_debug_info) {
+                cerr << "Dependency Error: In defined of kDataAliasName, cannot "
+                        "find v_table_names_single. Thus find from v_table_name "
+                        "instead. Use table name: "
+                     << closest_table_name << ". \n\n\n"
+                     << endl;
+            }
+        } else {
+            if (is_debug_info) {
+                cerr << "Error: Dependency: When handling the DataTableAliasName, "
+                        "cannot find the any way to refer to a table name nearby "
+                        "the ir_to_fix(). ";
+                cerr << "\n More debugging information: cur node: "
+                     << ir_to_fix->to_string()
+                     << "; whole statement: " << cur_stmt_root->to_string();
+            }
+            ir_to_fix->set_str_val("x");
+            // Break the current ir instantiation handling.
+            return;
+        }
+
+        if (is_debug_info) {
+            cerr << "Dependency: In DataTableAliasName ContextDefined, find "
+                    "table name: "
+                 << closest_table_name << ". \n\n\n"
+                 << endl;
+        }
+
+        if (closest_table_name == "" || closest_table_name == "x" ||
+            closest_table_name == "y") {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the closest_table_name from "
+                        "the query. Error cloest_table_name is: "
+                     << closest_table_name << ". In kAliasName Define. \n\n\n";
+            }
+            /* Randomly set an alias name to the defined table.
+             * And ignore the mapping for the moment
+             * */
+            string alias_name = gen_table_alias_name();
+            ir_to_fix->str_val_ = alias_name;
+            v_table_alias_names_single.push_back(alias_name);
+            return;
+        }
+
+        /* Found the table name that matched to the alias, now generate the
+         * alias and save it.  */
+        string alias_name = gen_table_alias_name();
+        ir_to_fix->set_str_val(alias_name);
+        m_alias2table_single[alias_name] = closest_table_name;
+        v_table_alias_names_single.push_back(alias_name);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In TypeTableAliasName defined, generates: "
+                 << alias_name << " mapping to table name: " << closest_table_name
+                 << ". \n\n\n"
+                 << endl;
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_view_name(IR* ir_to_fix, bool is_debug_info) {
+
+    /* Context Define. */
+    if (ir_to_fix->data_type_ == DataViewName &&
+        ir_to_fix->data_flag_ == ContextDefine) {
+
+        string new_view_name_str = gen_view_name();
+        ir_to_fix->set_str_val(new_view_name_str);
+        ir_to_fix->set_is_instantiated(true);
+
+        v_create_view_names_single.push_back(new_view_name_str);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In kDefine of kDataViewName, generating view "
+                    "name: "
+                 << new_view_name_str << "\n\n\n";
+        }
+    }
+
+    /* Context Undefine */
+    if (ir_to_fix->data_type_ == DataViewName &&
+        ir_to_fix->data_flag_ == ContextUndefine) {
+        if (v_view_name.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Dependency Error: In kUndefine of kDataViewname, cannot "
+                        "find view name defined before. \n\n\n";
+            }
+            ir_to_fix->set_is_instantiated(true);
+            return;
+        }
+        string view_to_rov_str = vector_rand_ele(v_view_name);
+        ir_to_fix->set_str_val(view_to_rov_str);
+        ir_to_fix->set_is_instantiated(true);
+
+        remove(v_view_name.begin(), v_view_name.end(), view_to_rov_str);
+        remove(v_create_view_names_single.begin(),
+               v_create_view_names_single.end(), view_to_rov_str);
+        remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In ContextUndefine of kDataViewName, removing "
+                    "view "
+                    "name: "
+                 << view_to_rov_str << "\n\n\n";
+        }
+    }
+
+    /* kUse of kDataViewName */
+    else if (ir_to_fix->data_type_ == DataViewName &&
+        ir_to_fix->data_flag_ == ContextUse) {
+        if (!v_view_name.size()) {
+            if (is_debug_info) {
+                cerr << "Dependency Error: In ContextUndefine of kDataViewname, "
+                        "cannot "
+                        "find view name defined before. \n\n\n";
+            }
+            return;
+        }
+        string view_str = vector_rand_ele(v_view_name);
+        ir_to_fix->set_str_val(view_str);
+        ir_to_fix->set_is_instantiated(true);
+        v_table_names_single.push_back(view_str);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In kUse of kDataViewName, using view name: "
+                 << view_str << "\n\n\n";
+        }
+    }
+
+    return;
+}
+
+void Mutator::instan_partition_name(IR* ir_to_fix, bool is_debug_info) {
+
+    /* Context Define, Context Use and ContextUndefine of partition name. */
+    if (ir_to_fix->data_type_ == DataPartitionName &&
+        ir_to_fix->data_flag_ == ContextDefine) {
+        string new_partition_name_str = gen_partition_name();
+        ir_to_fix->set_str_val(new_partition_name_str);
+        ir_to_fix->set_is_instantiated(true);
+
+        /* Get the table name that is mentioned by this statement. */
+        string cur_table_name = "";
+        if (v_create_table_names_single.size() != 0) {
+            cur_table_name = v_create_table_names_single.back();
+        } else if (v_table_names_single.size() != 0) {
+            cur_table_name = vector_rand_ele(v_table_names_single);
+        } else if (v_table_with_partition.size() != 0) {
+            if (is_debug_info) {
+                cerr << "Error: When trying to fetch data partition name in: "
+                        "partition name define. Cannot find table name defined "
+                        "in the statement. Use previous v_table_with_partition "
+                        "instead. ";
+            }
+            cur_table_name = vector_rand_ele(v_table_with_partition);
+        } else if (v_table_names.size() != 0) {
+            if (is_debug_info) {
+                cerr << "Error: When trying to fetch data partition name in: "
+                        "partition name define. Cannot find table name defined "
+                        "in the statement. Use previous v_table_with_partition "
+                        "instead. ";
+            }
+            cur_table_name = vector_rand_ele(v_table_names);
+        } else {
+            if (is_debug_info) {
+                cerr << "Error: When trying to fetch data partition name in: "
+                        "partition name define. Cannot find table name defined "
+                        "in the statement. Cannot find anything matched. Not able "
+                        " to connect to any table names. ";
+            }
+            return;
+        }
+
+        this->v_table_with_partition.push_back(cur_table_name);
+        this->m_table2partition[cur_table_name].push_back(cur_table_name);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In ContextDefine of DataPartitionName, "
+                    "generating data partition "
+                    "name: "
+                 << new_partition_name_str
+                 << ", attached to table name: " << cur_table_name << " \n\n\n";
+        }
+    }
+
+    if (ir_to_fix->data_type_ == DataPartitionName &&
+        ir_to_fix->data_flag_ == ContextUse) {
+
+        ir_to_fix->set_is_instantiated(true);
+
+        string cur_table_name = "";
+        if (v_table_with_partition.size() > 0) {
+            cur_table_name = vector_rand_ele(cur_table_name);
+        } else {
+            if (is_debug_info) {
+                cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                        "find pre-defined table that contains partitions. "
+                        "Therefore, use dummy x for the partition name. \n";
+            }
+            ir_to_fix->set_str_val("x");
+            // Skip the subsequent handling. Use the dummy `x`.
+            return;
+        }
+
+        const vector<string> &all_partitions =
+                m_table2partition[cur_table_name];
+        if (all_partitions.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                        "find m_table2partition partitions. Table name is: "
+                     << cur_table_name
+                     << "Therefore, use dummy x for the partition name. \n";
+            }
+            ir_to_fix->set_str_val("x");
+            // Skip the subsequent handling. Use the dummy `x`.
+            return;
+        }
+
+        string used_partition_name = vector_rand_ele(all_partitions);
+        ir_to_fix->set_str_val(used_partition_name);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In kDefine of kDataViewName, using partition "
+                    "name: "
+                 << used_partition_name
+                 << ", matching from table: " << cur_table_name << "\n\n\n";
+        }
+        // Succeed. Continue to the next IR.
+    }
+
+    else if (ir_to_fix->data_type_ == DataPartitionName &&
+        ir_to_fix->data_flag_ == ContextUndefine) {
+        ir_to_fix->set_is_instantiated(true);
+
+        string cur_table_name = "";
+        if (v_table_with_partition.size() > 0) {
+            cur_table_name = vector_rand_ele(cur_table_name);
+        } else {
+            if (is_debug_info) {
+                cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                        "find pre-defined table that contains partitions. "
+                        "Therefore, use dummy x for the partition name. \n";
+            }
+            ir_to_fix->set_str_val("x");
+            // Skip the subsequent handling. Use the dummy `x`.
+            return;
+        }
+
+        vector<string> &all_partitions = m_table2partition[cur_table_name];
+        if (all_partitions.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Error: Inside Context Use of DataPartitionName, cannot "
+                        "find m_table2partition partitions. Table name is: "
+                     << cur_table_name
+                     << "Therefore, use dummy x for the partition name. \n";
+            }
+            ir_to_fix->set_str_val("x");
+            // Skip the subsequent handling. Use the dummy `x`.
+            return;
+        }
+
+        string used_partition_name = vector_rand_ele(all_partitions);
+        ir_to_fix->set_str_val(used_partition_name);
+
+        all_partitions.erase(std::remove(all_partitions.begin(),
+                                         all_partitions.end(),
+                                         used_partition_name),
+                             all_partitions.end());
+        if (all_partitions.size() == 0) {
+            v_table_with_partition.erase(
+                    std::remove(v_table_with_partition.begin(),
+                                v_table_with_partition.end(), cur_table_name),
+                    v_table_with_partition.end());
+        }
+
+        if (is_debug_info) {
+            cerr << "Dependency: In ContextUndefine of kDataPartitionName, "
+                    "removed partition name: "
+                 << used_partition_name
+                 << ", matching from table: " << cur_table_name << "\n\n\n";
+        }
+        // Succeed. Continue to the next IR.
+    }
+
+    return;
+}
+
 bool Mutator::fix_dependency(IR *cur_stmt_root,
                              const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
                              bool is_debug_info) {
@@ -1491,13 +2183,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           if (ir_to_fix->get_is_instantiated()) {
               continue;
           }
-          if ((ir_to_fix->data_type_ == DataDatabaseName)) {
-              ir_to_fix->set_str_val("sqlrighttestdb");
-          }
-
-          if (ir_to_fix->data_type_ == DataSchemaName) {
-              ir_to_fix->set_str_val("public");
-          }
+          this->instan_database_schema_name(ir_to_fix, is_debug_info);
       }
 
     /* Definition of TypeDataTableName */
@@ -1509,33 +2195,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       if ((ir_to_fix->data_type_ == DataTableName) &&
           (ir_to_fix->data_flag_ == ContextDefine ||
            ir_to_fix->data_flag_ == ContextReplaceDefine)) {
-        string new_name = gen_id_name();
-        ir_to_fix->str_val_ = new_name;
-        ir_to_fix->set_is_instantiated(true);
-
-        // Save the table name that just defined inside this single statement.
-        // Will permanently save this table name at the end of the function.
-        v_create_table_names_single.push_back(new_name);
-        if (is_debug_info) {
-          cerr << "Dependency: Added to v_table_names: " << new_name
-               << ", in kDataTableName with kDefine or kReplace. \n\n\n";
-          cerr << "Dependency: All current statement defined name: ";
-          for (string &all_defined_name : v_table_names_single) {
-            cerr << all_defined_name << " ";
-          }
-          cerr << "Dependency: All previously saved table names: ";
-          for (string &all_used_name : v_table_names) {
-            cerr << "previously saved table used names: " << all_used_name
-                 << "\n\n\n";
-          }
-        }
-
-        if (ir_to_fix->data_flag_ == ContextReplaceDefine) {
-          // If the newly defined table is marked as ContextReplaceDefine, which
-          // means the statement is related to ALTER TABLE v0 RENAME TO v1; Mark
-          // the replacing table mark.
-          is_replace_table = true;
-        }
+          this->instan_table_name(ir_to_fix, is_replace_table, is_debug_info);
       }
     }
 
@@ -1545,269 +2205,45 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      if ((ir_to_fix->data_type_ == DataTableName) &&
+      if (ir_to_fix->data_type_ == DataTableName &&
           (ir_to_fix->data_flag_ == ContextUndefine ||
            ir_to_fix->data_flag_ == ContextReplaceUndefine)) {
-        if (v_table_names.size() > 0) {
-          // Choose random table name that defined before to drop.
-          string removed_table_name =
-              v_table_names[get_rand_int(v_table_names.size())];
-          v_table_names.erase(std::remove(v_table_names.begin(),
-                                          v_table_names.end(),
-                                          removed_table_name),
-                              v_table_names.end());
-          // Also remove the v_table_with_partition, if matched.
-          v_table_with_partition.erase(
-              std::remove(v_table_with_partition.begin(),
-                          v_table_with_partition.end(), removed_table_name),
-              v_table_with_partition.end());
-
-          // FIXME:: Should we also remove the table name string inside the
-          // v_create_table_names_single?
-
-          ir_to_fix->str_val_ = removed_table_name;
-          ir_to_fix->set_is_instantiated(true);
-          if (is_debug_info) {
-            cerr << "Dependency: Removed from v_table_names: "
-                 << removed_table_name
-                 << ", in TypeDataTableName with ContextUndefine \n\n\n";
-          }
-
-          if (is_replace_table && v_create_table_names_single.size() != 0) {
-            // In most of the case, the replacement would only have one pair of
-            // table names.
-            string new_table_name = v_create_table_names_single.back();
-            m_table2columns[new_table_name] =
-                m_table2columns[removed_table_name];
-          }
-        } else {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Failed to find info in v_table_names, "
-                    "in DataTableName with ContextUndefine. \n\n\n";
-          }
-          // Randomly delete a not existed table.
-          ir_to_fix->set_str_val("x");
-          ir_to_fix->set_is_instantiated(true);
-        }
+          this->instan_table_name(ir_to_fix, is_replace_table, is_debug_info);
       }
     }
 
-      /* Fix of DataTableAlias name. */
-      /* For DataTableAlias name, do not need to
-       * handle ContextUse and ContextUndefine situations.
-       * i,e. we only need to consider the ContextDefine.
-       * After the handling of current SQL statement finished,
-       * all info related to this alias should be removed
-       * automatically.
-       * */
-      for (IR *ir_to_fix : ir_to_fix_vec) {
-          if (ir_to_fix->get_is_instantiated()) {
-              continue;
-          }
+    /* Fix of DataTableAlias name. */
+    /* For DataTableAlias name, do not need to
+     * handle ContextUse and ContextUndefine situations.
+     * i,e. we only need to consider the ContextDefine.
+     * After the handling of current SQL statement finished,
+     * all info related to this alias should be removed
+     * automatically.
+     * */
+    for (IR *ir_to_fix : ir_to_fix_vec) {
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
+        }
 
-          if (ir_to_fix->data_type_ == DataTableAliasName) {
+        if (ir_to_fix->data_type_ == DataTableAliasName) {
 
-              ir_to_fix->set_is_instantiated(true);
-
-//              string closest_table_name = "";
-//
-//              IR *closest_table_ir =
-//                      p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-//                              ir_to_fix, DataTableName);
-//
-//              if (closest_table_ir != NULL) {
-//                  closest_table_name = closest_table_ir->get_str_val();
-//              } else if (v_table_names_single.size() != 0) {
-//                  if (is_debug_info) {
-//                      cerr << "\n\n\nError: Dependency: When handling the "
-//                              "DataTableAliasName, "
-//                              "cannot find the table name nearby the ir_to_fix(). \n\n\n";
-//                      cerr << "\n\n\n More debugging information: cur node: "
-//                           << ir_to_fix->to_string()
-//                           << "; whole statement: " << cur_stmt_root->to_string()
-//                           << "\n\n\n";
-//                  }
-//                  closest_table_name =
-//                          v_table_names_single[get_rand_int(v_table_names_single.size())];
-//              } else if (v_create_table_names_single.size() != 0) {
-//                  if (is_debug_info) {
-//                      cerr << "\n\n\nError: Dependency: When handling the "
-//                              "DataTableAliasName, "
-//                              "cannot find the table name nearby the ir_to_fix(). \n\n\n";
-//                      cerr << "\n\n\n More debugging information: cur node: "
-//                           << ir_to_fix->to_string()
-//                           << "; whole statement: " << cur_stmt_root->to_string()
-//                           << "\n\n\n";
-//                  }
-//                  closest_table_name = v_create_table_names_single[0];
-//                  if (is_debug_info) {
-//                      cerr << "Dependency: In kAlias defined, find newly declared table "
-//                              "name: "
-//                           << closest_table_name << ". \n\n\n"
-//                           << endl;
-//                  }
-//              } else if (v_table_names.size() != 0) {
-//                  if (is_debug_info) {
-//                      cerr << "Error: Dependency: When handling the DataTableAliasName, "
-//                              "cannot find the table name nearby the ir_to_fix(). ";
-//                      cerr << "\n More debugging information: cur node: "
-//                           << ir_to_fix->to_string()
-//                           << "; whole statement: " << cur_stmt_root->to_string();
-//                  }
-//                  closest_table_name =
-//                          v_table_names[get_rand_int(v_table_names.size())];
-//                  if (is_debug_info) {
-//                      cerr << "Dependency Error: In defined of kDataAliasName, cannot "
-//                              "find v_table_names_single. Thus find from v_table_name "
-//                              "instead. Use table name: "
-//                           << closest_table_name << ". \n\n\n"
-//                           << endl;
-//                  }
-//              } else {
-//                  if (is_debug_info) {
-//                      cerr << "Error: Dependency: When handling the DataTableAliasName, "
-//                              "cannot find the any way to refer to a table name nearby "
-//                              "the ir_to_fix(). ";
-//                      cerr << "\n More debugging information: cur node: "
-//                           << ir_to_fix->to_string()
-//                           << "; whole statement: " << cur_stmt_root->to_string();
-//                  }
-//                  ir_to_fix->set_str_val("x");
-//                  // Break the current ir instantiation handling.
-//                  continue;
-//              }
-//
-//              if (is_debug_info) {
-//                  cerr << "Dependency: In DataTableAliasName ContextDefined, find "
-//                          "table name: "
-//                       << closest_table_name << ". \n\n\n"
-//                       << endl;
-//              }
-//
-//              if (closest_table_name == "" || closest_table_name == "x" ||
-//                  closest_table_name == "y") {
-//                  if (is_debug_info) {
-//                      cerr << "Dependency Error: Cannot find the closest_table_name from "
-//                              "the query. Error cloest_table_name is: "
-//                           << closest_table_name << ". In kAliasName Define. \n\n\n";
-//                  }
-//                  /* Randomly set an alias name to the defined table.
-//                   * And ignore the mapping for the moment
-//                   * */
-//                  string alias_name = gen_table_alias_name();
-//                  ir_to_fix->str_val_ = alias_name;
-//                  v_table_alias_names_single.push_back(alias_name);
-//                  continue;
-//              }
-//
-//              /* Found the table name that matched to the alias, now generate the
-//               * alias and save it.  */
-//              string alias_name = gen_table_alias_name();
-//              ir_to_fix->set_str_val(alias_name);
-//              m_alias2table_single[closest_table_name] = alias_name;
-//              v_table_alias_names_single.push_back(alias_name);
-//
-//              if (is_debug_info) {
-//                  cerr << "Dependency: In TypeTableAliasName defined, generates: "
-//                       << alias_name << " mapping to table name: " << closest_table_name
-//                       << ". \n\n\n"
-//                       << endl;
-//              }
-                  string alias_name = gen_table_alias_name();
-                  ir_to_fix->set_str_val(alias_name);
-                  v_table_alias_names_single.push_back(alias_name);
-          }
-      }
+            ir_to_fix->set_is_instantiated(true);
+            this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
+        }
+    }
 
     /* ContextUse of kDataTableName */
     /* The ContextUseFollow will be handled further below. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      if (ir_to_fix->data_type_ == DataTableName &&
-          ir_to_fix->data_flag_ == ContextUse) {
-
-        /* INFO:: CockroachDB does not have the syntax of PARTITION OF table.
-         * Therefore, we don't need to consider the PARTITION OF
-         * partitioned_table grammar.
-         * */
-
-        if (v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
-            v_create_table_names_single.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Failed to find info in v_table_names "
-                    "and v_create_table_names_single, in kDataTableName with "
-                    "ContextUse. \n\n\n";
-          }
-          ir_to_fix->set_is_instantiated(true);
-          ir_to_fix->set_str_val("x");
-          continue;
-        }
-        string used_name = "";
-        // For the ContextUse, prefer to use the table name that defined in
-        // previous statement first.
-        if (v_table_alias_names_single.size() != 0) {
-            used_name = v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
-        } else if (v_table_names_single.size() != 0) {
-            // If the statement use some table names before,
-            // we can refer to the table name here.
-            // We can imagine v_table_names_single could contain
-            // alias name defined in WITH clause or other places.
-          used_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
-        } else if (v_create_table_names_single.size() != 0) {
-            // If cannot find any table names defined or used before,
-            // consider the table name that just defined in this statement.
-            used_name = v_create_table_names_single[get_rand_int(
-                    v_create_table_names_single.size())];
-        } else if (v_table_names.size() != 0) {
-          used_name =
-              v_table_names[get_rand_int(v_table_names.size())];
-        } else {
-          if (is_debug_info) {
-            cerr << "Cannot find any used or defined table names. Use simple x "
-                    "as name. \n\n\n";
-          }
-          used_name = "x";
-        }
-        ir_to_fix->str_val_ = used_name;
-        ir_to_fix->set_is_instantiated(true);
-        // Save the table name used in this statement.
-        // The saved table name can be referred later by
-        //   contextUseFollow.
-        v_table_names_single.push_back(used_name);
-        if (is_debug_info) {
-          cerr << "Dependency: In the context of ContextUsed table, we got "
-                  "table_name: "
-               << used_name << ". \n\n\n";
-          for (string &all_used_name : v_table_names) {
-            cerr << "Dependency: All saved table used names: " << all_used_name
-                 << "\n\n\n";
-          }
-          for (string &all_used_name : v_create_table_names_single) {
-            cerr << "Dependency: All saved table used names: " << all_used_name
-                 << "\n\n\n";
-          }
+        if (ir_to_fix->get_is_instantiated()) {
+            continue;
         }
 
-        // TODO: FIXME: Create AS.
-        //        if (cur_stmt_root->get_ir_type() == TypeCreateTable &&
-        //            p_oracle->ir_wrapper.is_ir_in(ir_to_fix,
-        //            kTableLikeClause)) {
-        //
-        //            if (v_create_table_names_single.size() > 0) {
-        //              string newly_create_table_str =
-        //              v_create_table_names_single.front();
-        //              m_table2columns[newly_create_table_str] =
-        //              m_table2columns[ir_to_fix->get_str_val()];
-        //            }
-        //
-        //        }
-      }
+        if (ir_to_fix->data_type_ == DataTableName &&
+            ir_to_fix->data_flag_ == ContextUse) {
+            this->instan_table_name(ir_to_fix, is_replace_table, is_debug_info);
+        }
     }
-
-
 
     /* ContextUseFollow of DataTableName. */
     /* This scenario searches for table name usage that is in the WHERE clause.  */
@@ -1818,162 +2254,18 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
       if (ir_to_fix->data_type_ == DataTableName &&
           ir_to_fix->data_flag_ == ContextUseFollow) {
-
-          if (v_table_alias_names_single.size() == 0 && v_table_names.size() == 0 && v_table_names_single.size() == 0 &&
-            v_create_table_names_single.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Failed to find info in v_table_names "
-                    "and v_create_table_names_single, in kDataTableName with "
-                    "ContextUse. \n\n\n";
-          }
-          ir_to_fix->set_is_instantiated(true);
-          ir_to_fix->set_str_val("x");
-          continue;
-        }
-        string used_name = "";
-
-          if (is_debug_info) {
-              cerr << "\n\n\nDEBUG: In Table ContextUseFoolow: getting v_table_alias_names_single.size(): "
-                   << v_table_alias_names_single.size()
-                   << ", v_table_names_single: " << v_table_names_single.size()
-                   << ", v_create_table_names_single" << v_create_table_names_single.size()
-                   << "\n\n\n";
-          }
-        // For the ContextUseFoolow, we should use table name that already
-        // mentioned in the current statement.
-        // For example, for `v0.v1`, where v0 is imported from `FROM v0;`
-        if (v_table_alias_names_single.size() != 0){
-          used_name =
-                  v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
-        } else if (v_table_names_single.size() != 0) {
-          used_name =
-              v_table_names_single[get_rand_int(v_table_names_single.size())];
-        } else if (v_create_table_names_single.size() != 0) {
-          // If cannot find any table names defined or used before,
-          // consider the table name that defined from previous statements.
-          // Not sure whether this situation is possible or not.
-          if (is_debug_info) {
-            cerr << "\n\n\nIn the scenario of table name ContextUseFollow, "
-                    "cannot find table name inside "
-                    "v_table_names_single. Use previous defined table names "
-                    "instead. \n\n\n";
-          }
-          used_name = v_create_table_names_single[get_rand_int(
-              v_create_table_names_single.size())];
-        } else if (v_table_names.size() != 0) {
-          // If the statement use some table names before,
-          // we can refer to the table name here.
-          // We can imagine v_table_names_single could contain
-          // alias name defined in WITH clause or other places.
-          if (is_debug_info) {
-            cerr << "\n\n\nIn the scenario of table name ContextUseFollow, "
-                    "cannot find table name inside "
-                    "v_table_names_single. Use previous defined table names "
-                    "instead. \n\n\n";
-          }
-          used_name = v_table_names[get_rand_int(v_table_names.size())];
-        } else {
-          if (is_debug_info) {
-            cerr << "Cannot find any used or defined table names. Use simple x "
-                    "as name. \n\n\n";
-          }
-          used_name = "x";
-        }
-        ir_to_fix->str_val_ = used_name;
-        ir_to_fix->set_is_instantiated(true);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In the context of ContextUsed table, we got "
-                  "table_name: "
-               << used_name << ". \n\n\n";
-          for (string &all_used_name : v_table_names) {
-            cerr << "Dependency: All saved table used names: " << all_used_name
-                 << "\n\n\n";
-          }
-          for (string &all_used_name : v_create_table_names_single) {
-            cerr << "Dependency: All saved table used names: " << all_used_name
-                 << "\n\n\n";
-          }
-        }
+          this->instan_table_name(ir_to_fix, is_replace_table, is_debug_info);
       }
+
     }
 
-    /* Fix for DataDefine of kDataViewName. */
+    /* Fix for kDataViewName. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
       }
-
-      if (ir_to_fix->data_type_ == DataViewName &&
-          ir_to_fix->data_flag_ == ContextDefine) {
-
-        string new_view_name_str = gen_view_name();
-        ir_to_fix->set_str_val(new_view_name_str);
-        ir_to_fix->set_is_instantiated(true);
-
-        v_create_view_names_single.push_back(new_view_name_str);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In kDefine of kDataViewName, generating view "
-                  "name: "
-               << new_view_name_str << "\n\n\n";
-        }
-      }
-    }
-
-    /* kUndefine of kDataViewName. */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
-      }
-
-      if (ir_to_fix->data_type_ == DataViewName &&
-          ir_to_fix->data_flag_ == ContextUndefine) {
-        if (v_view_name.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Dependency Error: In kUndefine of kDataViewname, cannot "
-                    "find view name defined before. \n\n\n";
-          }
-          ir_to_fix->set_is_instantiated(true);
-          continue;
-        }
-        string view_to_rov_str = vector_rand_ele(v_view_name);
-        ir_to_fix->set_str_val(view_to_rov_str);
-        ir_to_fix->set_is_instantiated(true);
-
-        remove(v_view_name.begin(), v_view_name.end(), view_to_rov_str);
-        remove(v_create_view_names_single.begin(),
-               v_create_view_names_single.end(), view_to_rov_str);
-        remove(v_table_names.begin(), v_table_names.end(), view_to_rov_str);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In ContextUndefine of kDataViewName, removing "
-                  "view "
-                  "name: "
-               << view_to_rov_str << "\n\n\n";
-        }
-      }
-
-      /* kUse of kDataViewName */
-      if (ir_to_fix->data_type_ == DataViewName &&
-          ir_to_fix->data_flag_ == ContextUse) {
-        if (!v_view_name.size()) {
-          if (is_debug_info) {
-            cerr << "Dependency Error: In ContextUndefine of kDataViewname, "
-                    "cannot "
-                    "find view name defined before. \n\n\n";
-          }
-          continue;
-        }
-        string view_str = vector_rand_ele(v_view_name);
-        ir_to_fix->set_str_val(view_str);
-        ir_to_fix->set_is_instantiated(true);
-        v_table_names_single.push_back(view_str);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In kUse of kDataViewName, using view name: "
-               << view_str << "\n\n\n";
-        }
+      if (ir_to_fix->get_data_type() == DataViewName) {
+          this->instan_view_name(ir_to_fix, is_debug_info);
       }
     }
 
@@ -1983,154 +2275,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       if (ir_to_fix->get_is_instantiated()) {
         continue;
       }
-
-      if (ir_to_fix->data_type_ == DataPartitionName &&
-          ir_to_fix->data_flag_ == ContextDefine) {
-        string new_partition_name_str = gen_partition_name();
-        ir_to_fix->set_str_val(new_partition_name_str);
-        ir_to_fix->set_is_instantiated(true);
-
-        /* Get the table name that is mentioned by this statement. */
-        string cur_table_name = "";
-        if (v_create_table_names_single.size() != 0) {
-          cur_table_name = v_create_table_names_single.back();
-        } else if (v_table_names_single.size() != 0) {
-          cur_table_name = vector_rand_ele(v_table_names_single);
-        } else if (v_table_with_partition.size() != 0) {
-          if (is_debug_info) {
-            cerr << "Error: When trying to fetch data partition name in: "
-                    "partition name define. Cannot find table name defined "
-                    "in the statement. Use previous v_table_with_partition "
-                    "instead. ";
-          }
-          cur_table_name = vector_rand_ele(v_table_with_partition);
-        } else if (v_table_names.size() != 0) {
-          if (is_debug_info) {
-            cerr << "Error: When trying to fetch data partition name in: "
-                    "partition name define. Cannot find table name defined "
-                    "in the statement. Use previous v_table_with_partition "
-                    "instead. ";
-          }
-          cur_table_name = vector_rand_ele(v_table_names);
-        } else {
-          if (is_debug_info) {
-            cerr << "Error: When trying to fetch data partition name in: "
-                    "partition name define. Cannot find table name defined "
-                    "in the statement. Cannot find anything matched. Not able "
-                    " to connect to any table names. ";
-          }
-          continue;
-        }
-
-        this->v_table_with_partition.push_back(cur_table_name);
-        this->m_table2partition[cur_table_name].push_back(cur_table_name);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In ContextDefine of DataPartitionName, "
-                  "generating data partition "
-                  "name: "
-               << new_partition_name_str
-               << ", attached to table name: " << cur_table_name << " \n\n\n";
-        }
-      }
-
-      if (ir_to_fix->data_type_ == DataPartitionName &&
-          ir_to_fix->data_flag_ == ContextUse) {
-
-        ir_to_fix->set_is_instantiated(true);
-
-        string cur_table_name = "";
-        if (v_table_with_partition.size() > 0) {
-          cur_table_name = vector_rand_ele(cur_table_name);
-        } else {
-          if (is_debug_info) {
-            cerr << "Error: Inside Context Use of DataPartitionName, cannot "
-                    "find pre-defined table that contains partitions. "
-                    "Therefore, use dummy x for the partition name. \n";
-          }
-          ir_to_fix->set_str_val("x");
-          // Skip the subsequent handling. Use the dummy `x`.
-          continue;
-        }
-
-        const vector<string> &all_partitions =
-            m_table2partition[cur_table_name];
-        if (all_partitions.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Error: Inside Context Use of DataPartitionName, cannot "
-                    "find m_table2partition partitions. Table name is: "
-                 << cur_table_name
-                 << "Therefore, use dummy x for the partition name. \n";
-          }
-          ir_to_fix->set_str_val("x");
-          // Skip the subsequent handling. Use the dummy `x`.
-          continue;
-        }
-
-        string used_partition_name = vector_rand_ele(all_partitions);
-        ir_to_fix->set_str_val(used_partition_name);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In kDefine of kDataViewName, using partition "
-                  "name: "
-               << used_partition_name
-               << ", matching from table: " << cur_table_name << "\n\n\n";
-        }
-        // Succeed. Continue to the next IR.
-      }
-
-      if (ir_to_fix->data_type_ == DataPartitionName &&
-          ir_to_fix->data_flag_ == ContextUndefine) {
-        ir_to_fix->set_is_instantiated(true);
-
-        string cur_table_name = "";
-        if (v_table_with_partition.size() > 0) {
-          cur_table_name = vector_rand_ele(cur_table_name);
-        } else {
-          if (is_debug_info) {
-            cerr << "Error: Inside Context Use of DataPartitionName, cannot "
-                    "find pre-defined table that contains partitions. "
-                    "Therefore, use dummy x for the partition name. \n";
-          }
-          ir_to_fix->set_str_val("x");
-          // Skip the subsequent handling. Use the dummy `x`.
-          continue;
-        }
-
-        vector<string> &all_partitions = m_table2partition[cur_table_name];
-        if (all_partitions.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Error: Inside Context Use of DataPartitionName, cannot "
-                    "find m_table2partition partitions. Table name is: "
-                 << cur_table_name
-                 << "Therefore, use dummy x for the partition name. \n";
-          }
-          ir_to_fix->set_str_val("x");
-          // Skip the subsequent handling. Use the dummy `x`.
-          continue;
-        }
-
-        string used_partition_name = vector_rand_ele(all_partitions);
-        ir_to_fix->set_str_val(used_partition_name);
-
-        all_partitions.erase(std::remove(all_partitions.begin(),
-                                         all_partitions.end(),
-                                         used_partition_name),
-                             all_partitions.end());
-        if (all_partitions.size() == 0) {
-          v_table_with_partition.erase(
-              std::remove(v_table_with_partition.begin(),
-                          v_table_with_partition.end(), cur_table_name),
-              v_table_with_partition.end());
-        }
-
-        if (is_debug_info) {
-          cerr << "Dependency: In ContextUndefine of kDataPartitionName, "
-                  "removed partition name: "
-               << used_partition_name
-               << ", matching from table: " << cur_table_name << "\n\n\n";
-        }
-        // Succeed. Continue to the next IR.
+      if (ir_to_fix->get_data_type() == DataPartitionName) {
+          this->instan_partition_name(ir_to_fix, is_debug_info);
       }
     }
 
@@ -2971,17 +3117,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   continue;
               }
 
-              // TODO:: FIXME:: FIXING the function later.
-//              if (get_rand_int(3) < 1) {
-//                  FUNCTIONTYPE func_type = func_str_to_type_map[cur_func_str];
-//                  string new_func_name_str = func_type_lib[func_type][get_rand_int(
-//                          func_type_lib[func_type].size())];
-//                  ir_to_fix->set_str_val(new_func_name_str);
-//              }
+              // TODO:: FIXME::
+
           }
       }
-
-
 
       for (IR *ir_to_fix : ir_to_fix_vec) {
           if (ir_to_fix->get_is_instantiated()) {
@@ -3385,84 +3524,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           continue;
         }
 
-        // First, search if we can find a nearby literal that already has the
-        // affinity fixed.
-
-        vector<IRTYPE> v_matched_literal_types = {
-            TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral};
-        vector<IRTYPE> v_capped_ir_types = {TypeSelectClause, TypeSelect};
-        IR *near_literal_node =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<
-                vector<IRTYPE>, vector<IRTYPE>>(
-                ir_to_fix, v_matched_literal_types, v_capped_ir_types);
-
-        if (near_literal_node != NULL &&
-            near_literal_node->get_data_affinity() != AFFIUNKNOWN) {
-          ir_to_fix->set_data_affinity(near_literal_node->get_data_affinity());
-          if (is_debug_info) {
-            cerr << "\n\n\nDependency: INFO: From Literal handling, getting "
-                    "nearby literal: "
-                 << near_literal_node->to_string()
-                 << ", the literal comes with affinity: "
-                 << get_string_by_affinity_type(
-                        near_literal_node->get_data_affinity())
-                 << "\n\n\n";
-          }
-        } else {
-          // If we end up in this branch, we cannot find a nearby literal that
-          // already has fixed affinity. This is expected, such as case: `SELECT
-          // * FROM v0 WHERE v1 = 100;` Then, we should look at the nearby
-          // column name for more information.
-
-          IR *nearby_column_ir =
-              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
-                  ir_to_fix, DataColumnName);
-          if (nearby_column_ir != NULL) {
-            string nearby_column_str = nearby_column_ir->get_str_val();
-            string actual_column_str = nearby_column_str;
-            if (m_column2datatype.count(nearby_column_str) || m_alias2column_single.count(nearby_column_str)) {
-                if (m_alias2column_single.count(nearby_column_str)) {
-                    actual_column_str = m_alias2column_single[nearby_column_str];
-                    if (is_debug_info) {
-                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
-                             << nearby_column_str << " to column name: "
-                             << actual_column_str << "\n\n\n";
-                    }
-                }
-              DataAffinity cur_affi = m_column2datatype[actual_column_str];
-              ir_to_fix->set_data_affinity(cur_affi);
-              if (is_debug_info) {
-                cerr << "Dependency: INFO: From Literal handling, getting "
-                        "column name: "
-                     << nearby_column_str
-                     << ", the column comes with affinity: "
-                     << get_string_by_affinity_type(
-                            cur_affi.get_data_affinity())
-                     << "\n\n\n";
-              }
-            } else {
-              ir_to_fix->set_data_affinity(AFFISTRING);
-              if (is_debug_info) {
-                cerr
-                    << "Dependency: INFO: From Literal handling, getting "
-                       "column name: "
-                    << nearby_column_str
-                    << ". However, the colum name does not come with affinity: "
-                       ", dummy fix the literal to AFFISTRING now."
-                    << "\n\n\n";
-              }
-            }
-          } else {
-            // Cannot find nearby COLUMN NAME?
-            if (is_debug_info) {
-              cerr << "\n\n\n Error: For fixing literal, cannot find nearby "
-                      "column name definition. "
-                      "Use dummy AFFISTRING instead for now. "
-                   << "\n\n\n";
-            }
-            ir_to_fix->set_data_affinity(AFFISTRING);
-          }
-        }
+        ir_to_fix->set_data_affinity(this->get_nearby_data_affinity(ir_to_fix, is_debug_info));
 
         /* After knowing the data affinity of the literal,
          * we have two choices to instantiate the value.
