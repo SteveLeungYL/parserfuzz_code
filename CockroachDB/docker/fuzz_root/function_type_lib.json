@@ -7,7 +7,7 @@
     "params": [
       {
         "arg_type_0": "AFFIANY",
-        "ret_type": "AFFIAFFIANY"
+        "ret_type": "AFFIANY"
       }
     ]
   },
@@ -143,7 +143,7 @@
     "params": [
       {
         "arg_type_0": "AFFIANY",
-        "ret_type": "AFFLINT"
+        "ret_type": "AFFIINT"
       }
     ]
   },
@@ -155,7 +155,7 @@
     "is_type_matched": true,
     "params": [
       {
-        "ret_type": "AFFLINT"
+        "ret_type": "AFFIINT"
       }
     ]
   },
@@ -2781,7 +2781,7 @@
     "params": [
       {
         "arg_type_0": "AFFIINET",
-        "ret_type": "AFFINET"
+        "ret_type": "AFFIINET"
       }
     ] 
   },
@@ -2795,7 +2795,7 @@
       {
         "arg_type_0": "AFFIINET",
         "arg_type_1": "AFFIINT",
-        "ret_type": "AFFINET"
+        "ret_type": "AFFIINET"
       }
     ] 
   },
@@ -3410,7 +3410,7 @@
   }, 
 
   {
-    "enabled": true,
+    "enabled": false,
     "func_name": "row_to_json",
     "is_type_matched": true,
     "func_type": "FUNCJSONB",
@@ -3784,7 +3784,7 @@
     "func_type": "FUNCSTRING",
     "params": [
       {
-        "arg_type_0": "AFFFSTRING",
+        "arg_type_0": "AFFISTRING",
         "ret_type": "AFFISTRING"
       }
     ] 
@@ -3797,7 +3797,7 @@
     "func_type": "FUNCSTRING",
     "params": [
       {
-        "arg_type_0": "AFFFSTRING",
+        "arg_type_0": "AFFISTRING",
         "ret_type": "AFFISTRING"
       }
     ] 
@@ -3810,7 +3810,7 @@
     "func_type": "FUNCSTRING",
     "params": [
       {
-        "arg_type_0": "AFFFSTRING",
+        "arg_type_0": "AFFISTRING",
         "ret_type": "AFFISTRING"
       }
     ] 
@@ -3823,7 +3823,7 @@
     "func_type": "FUNCSTRING",
     "params": [
       {
-        "arg_type_0": "AFFFSTRING",
+        "arg_type_0": "AFFISTRING",
         "ret_type": "AFFISTRING"
       }
     ] 
@@ -3836,7 +3836,7 @@
     "func_type": "FUNCSTRING",
     "params": [
       {
-        "arg_type_0": "AFFFSTRING",
+        "arg_type_0": "AFFISTRING",
         "arg_type_1": "AFFIENUM",
         "arg_type_1_enum": [
           "'hex'",
@@ -4195,7 +4195,7 @@
     "func_type": "FUNCSTRING",
     "params": [
       {
-        "arg_type_0": "AFFIWHOLESTATEMENT",
+        "arg_type_0": "AFFIWHOLESTMT",
         "arg_type_1": "AFFIINT",
         "arg_type_2": "AFFIINT",
         "arg_type_3": "AFFIINT",
