@@ -559,6 +559,7 @@ const (
 	DataCatalogName
 	DataSchemaName
 	DataFunctionName
+	DataFunctionExpr
 	DataExtensionName
 	DataCollationName
 	DataColumnName
@@ -616,6 +617,7 @@ const (
 	AFFIINET
 	AFFIINT
 	AFFIINTERVAL
+	AFFIINTERVALTZ
 	AFFIJSONB
 	AFFIOID
 	AFFISERIAL

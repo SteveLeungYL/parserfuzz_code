@@ -2485,6 +2485,7 @@ func (node *FuncExpr) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.IRType = TypeFuncExpr
+	rootIR.DataType = DataFunctionExpr
 
 	return rootIR
 }
