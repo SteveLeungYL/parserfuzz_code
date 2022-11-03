@@ -1,6 +1,6 @@
 CREATE TABLE abc (a int primary key, b int, c int);
 CREATE TABLE new_abc (a int, b int, c int);
-INSERT INTO new_abc VALUES (1, 2, 3), (2, 3, 4)
+INSERT INTO new_abc VALUES (1, 2, 3), (2, 3, 4);
 INSERT INTO abc VALUES (1, 20, 300), (2, 30, 400);
 UPDATE abc SET b = other.b + 1, c = other.c + 1 FROM abc AS other WHERE abc.a = other.a;
 UPDATE abc SET b = other.b + 1 FROM abc AS other WHERE abc.a = other.a;
