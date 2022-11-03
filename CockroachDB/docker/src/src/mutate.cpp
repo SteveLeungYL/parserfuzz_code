@@ -2154,6 +2154,1537 @@ void Mutator::instan_partition_name(IR* ir_to_fix, bool is_debug_info) {
     return;
 }
 
+void Mutator::instan_index_name(IR* ir_to_fix, bool is_debug_info) {
+
+    if (ir_to_fix->get_data_type() == DataIndexName) {
+        if (ir_to_fix->get_data_flag() == ContextDefine) {
+            string tmp_index_name = gen_index_name();
+            ir_to_fix->set_str_val(tmp_index_name);
+            ir_to_fix->set_is_instantiated(true);
+
+            /* Find the table used in this stmt. */
+            if (v_table_names_single.size() != 0) {
+                string tmp_table_name = v_table_names_single[0];
+                m_table2index[tmp_table_name].push_back(tmp_index_name);
+            }
+        } else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+
+            string tmp_index_name = "y";
+
+            /* Find the table used in this stmt. */
+            if (v_table_names_single.size() != 0) {
+                string tmp_table_name = v_table_names_single[0];
+                vector<string> &v_index_name = m_table2index[tmp_table_name];
+                if (!v_index_name.size())
+                    return;
+                tmp_index_name = vector_rand_ele(v_index_name);
+
+                vector<string> tmp_v_index_name;
+                for (string s : v_index_name) {
+                    if (s != tmp_index_name) {
+                        tmp_v_index_name.push_back(s);
+                    }
+                }
+                v_index_name = tmp_v_index_name;
+            } else {
+                for (auto it = m_table2index.begin(); it != m_table2index.end();
+                     it++) {
+                    vector<string> &v_index_name = it->second;
+                    if (!v_index_name.size())
+                        continue;
+                    tmp_index_name = vector_rand_ele(v_index_name);
+
+                    vector<string> tmp_v_index_name;
+                    for (string s : v_index_name) {
+                        if (s != tmp_index_name) {
+                            tmp_v_index_name.push_back(s);
+                        }
+                    }
+                    v_index_name = tmp_v_index_name;
+                }
+            }
+            if (tmp_index_name != "y") {
+                ir_to_fix->set_str_val(tmp_index_name);
+                ir_to_fix->set_is_instantiated(true);
+            }
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUse) {
+
+            string tmp_index_name = "y";
+
+            /* Find the table used in this stmt. */
+            if (v_table_names_single.size() != 0) {
+                string tmp_table_name = v_table_names_single[0];
+                vector<string> &v_index_name = m_table2index[tmp_table_name];
+                if (!v_index_name.size())
+                    return;
+                tmp_index_name = vector_rand_ele(v_index_name);
+            } else {
+                for (auto it = m_table2index.begin(); it != m_table2index.end();
+                     it++) {
+                    vector<string> &v_index_name = it->second;
+                    if (!v_index_name.size())
+                        continue;
+                    tmp_index_name = vector_rand_ele(v_index_name);
+                }
+            }
+            if (tmp_index_name != "y") {
+                ir_to_fix->set_str_val(tmp_index_name);
+                ir_to_fix->set_is_instantiated(true);
+            }
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
+
+    if (ir_to_fix->data_type_ == DataColumnName &&
+        (ir_to_fix->data_flag_ == ContextDefine ||
+         ir_to_fix->data_flag_ == ContextReplaceDefine)) {
+
+        if (ir_to_fix->data_flag_ == ContextReplaceDefine) {
+            is_replace_column = true;
+        }
+        string new_name = gen_column_name();
+        ir_to_fix->str_val_ = new_name;
+        ir_to_fix->set_is_instantiated(true);
+        string closest_table_name = "";
+        /* Attach the newly generated column name to the table. */
+        if (v_create_table_names_single.size() > 0) {
+            /* We have table name that is newly defined. Should be only one
+             * newly created table name. */
+            closest_table_name = v_create_table_names_single[0];
+            if (is_debug_info) {
+                cerr << "Dependency: For newly defined column name: " << new_name
+                     << ", we find v_create_table_names_single: "
+                     << closest_table_name << "\n\n\n";
+            }
+        } else if (v_table_names_single.size() != 0) {
+            /* We cannot find the newly defined table name, see whether there are
+             * local table name used, this is typical in ALTER statement.  */
+            closest_table_name = v_table_names_single[0];
+            if (is_debug_info) {
+                cerr << "Dependency: For newly defined column name: " << new_name
+                     << ", cannot find v_create_table_names_single, is it in a "
+                        "ALTER statement? We find v_table_names_single: "
+                     << closest_table_name << "\n\n\n";
+            }
+        } else if (v_table_names.size() != 0) {
+            /* This is an ERROR. Cannot find the TABLE name to attach to.
+            ** 80% chance, keep original.
+            ** 20% chance, find any declared table and attached to it. */
+            if (get_rand_int(5) < 4) {
+                /* Keep original */
+                return;
+            }
+            closest_table_name =
+                    v_table_names[get_rand_int(v_table_names.size())];
+            if (is_debug_info) {
+                cerr << "Dependency ERROR: For newly defined column name: "
+                     << new_name
+                     << ", ERROR finding matched newly created table names. Used "
+                        "previous declared table name: "
+                     << closest_table_name << "\n\n\n";
+            }
+        }
+        if (closest_table_name == "" || closest_table_name == "x" ||
+            closest_table_name == "y") {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the closest_table_name from "
+                        "the query. ";
+                cerr << "cloest_table_name returns: " << closest_table_name
+                     << "In kDataColumnName, kDefine or kReplace. \n\n\n";
+            }
+            // return false;
+            /* Randomly set a name to the defined column.
+             * And ignore the mapping for the moment
+             * */
+
+            /* Unrecognized, keep original */
+            // ir_to_fix->str_val_ = gen_column_name();
+            return;
+        }
+        if (is_debug_info) {
+            cerr << "Dependency: For column_name: " << new_name
+                 << ", found closest_table_name: " << closest_table_name
+                 << ". \n\n\n";
+        }
+        m_table2columns[closest_table_name].push_back(new_name);
+
+        /* Next, fix the data type of the Column name. Map it to the column
+         * name. */
+        // The closest type to the current fixed node should be the one that
+        // define the column type.
+        IR *data_type_node =
+                p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                        ir_to_fix, DataTypeName);
+        if (data_type_node != NULL) {
+            DATAAFFINITYTYPE data_affinity =
+                    get_data_affinity_by_string(data_type_node->get_str_val());
+            DataAffinity data_affi;
+            data_affi.set_data_affinity(data_affinity);
+            m_column2datatype[new_name] = data_affi;
+        } else {
+            if (is_debug_info) {
+                cerr << "Error: In a DataColumn ContextDefine, failed to find the "
+                        "data type identifier that defined the "
+                        "column data type. Use default AFFISTRING. \n\n\n";
+            }
+            DataAffinity data_affi;
+            data_affi.set_data_affinity(AFFISTRING);
+            m_column2datatype[new_name] = data_affi;
+        }
+
+        /* ContextUndefine scenario of the DataColumnName */
+    } else if (ir_to_fix->data_type_ == DataColumnName &&
+               ir_to_fix->data_flag_ == ContextUndefine) {
+        /* Find the table_name in the query first. */
+        string closest_table_name = "";
+        IR *closest_table_ir = NULL;
+        closest_table_ir =
+                p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
+                        ir_to_fix, DataTableName);
+        if (closest_table_ir != NULL) {
+            closest_table_name = closest_table_ir->get_str_val();
+            if (is_debug_info) {
+                cerr << "Dependency: For removing DataColumnName, we find "
+                        "closest_table_ir: "
+                     << closest_table_name << "\n\n\n";
+            }
+        } else if (v_table_names_single.size() != 0) {
+            closest_table_name = v_table_names_single[0];
+            if (is_debug_info) {
+                cerr << "Dependency: For removing kDataColumnName: we find "
+                        "v_table_names_single: "
+                     << closest_table_name << "\n\n\n";
+            }
+        }
+        if (closest_table_name == "" || closest_table_name == "x" ||
+            closest_table_name == "y") {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the closest_table_name from "
+                        "the query. closest_table_name returns: "
+                     << closest_table_name
+                     << ". In kDataColumnName, kUndefine. \n\n\n";
+            }
+            /* Unrecognized, keep original */
+            // return false;
+            ir_to_fix->set_is_instantiated(true);
+            return;
+        }
+
+        if (is_debug_info) {
+            cerr << "Dependency: In kDataColumnName, kUndefine, found "
+                    "closest_table_name: "
+                 << closest_table_name << ". \n\n\n";
+        }
+
+        vector<string> &column_vec = m_table2columns[closest_table_name];
+        if (column_vec.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the mapped column_vec for "
+                        "table_name: "
+                     << closest_table_name << " \n\n\n";
+            }
+            /* Not reconized column name. Keep original */
+            // ir_to_fix->str_val_ = "y";
+            // return false;
+            ir_to_fix->set_is_instantiated(true);
+            return;
+        }
+        string removed_column_name =
+                column_vec[get_rand_int(column_vec.size())];
+        column_vec.erase(std::remove(column_vec.begin(), column_vec.end(),
+                                     removed_column_name),
+                         column_vec.end());
+        ir_to_fix->str_val_ = removed_column_name;
+        ir_to_fix->set_is_instantiated(true);
+
+        if (is_debug_info) {
+            cerr << "Dependency: In kDataColumnName, kUndefine, found "
+                    "removed_column_name: "
+                 << removed_column_name
+                 << ", from closest_table_name: " << closest_table_name
+                 << ". \n\n\n";
+        }
+    }
+
+    else if (ir_to_fix->data_type_ == DataColumnName &&
+             ir_to_fix->data_flag_ == ContextUse) {
+
+        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
+            // Ignore the case that is not in TypeNameList.
+            return;
+        }
+
+        if (is_debug_info) {
+            cerr << "\n\n\nHandling with column name inside the TypeNameList. "
+                    "Column Name: "
+                 << ir_to_fix->to_string() << ". \n\n\n";
+        }
+
+        ir_to_fix->set_is_instantiated(true);
+
+        IR *name_list = p_oracle->ir_wrapper.get_parent_node_with_type(
+                ir_to_fix, TypeNameList);
+
+        string closest_table_name =
+                this->find_cloest_table_name(name_list, is_debug_info);
+
+        if (closest_table_name == "" || closest_table_name == "x" ||
+            closest_table_name == "y") {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the closest_table_name from "
+                        "the query. Error cloest_table_name is: "
+                     << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+                return;
+            }
+        }
+
+        vector<string> v_used_column_str;
+
+        vector<string> v_column_names_from_table;
+        if (m_alias_table2column_single.count(closest_table_name) > 0) {
+            v_column_names_from_table =
+                    m_alias_table2column_single[closest_table_name];
+        } else {
+            v_column_names_from_table =
+                    m_table2columns[closest_table_name];
+        }
+        if (v_column_names_from_table.size() == 0) {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find mapping from table name to "
+                        "column name. "
+                        "Find the closest_table_name from "
+                        "the query. Cloest_table_name is: "
+                     << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+            }
+            return;
+        }
+        int max_values_clause_len = v_column_names_from_table.size();
+
+        vector<IR *> v_new_column_list_node;
+        string ret_str = "";
+        for (int idx = 0; idx < max_values_clause_len;) {
+            string new_rand_column = "";
+            do {
+                new_rand_column = vector_rand_ele(v_column_names_from_table);
+            } while (find(v_used_column_str.begin(), v_used_column_str.end(),
+                          new_rand_column) != v_used_column_str.end());
+            if (is_debug_info) {
+                cerr << "\n\n\n When reconstructing the column names inside the "
+                        "TypeNameList, "
+                     << ", getting random column name: " << new_rand_column
+                     << "\n\n\n";
+            }
+            v_used_column_str.push_back(new_rand_column);
+
+            IR *new_column_node = new IR(TypeIdentifier, string(new_rand_column),
+                                         DataColumnName, ContextNoModi);
+
+            v_new_column_list_node.push_back(new_column_node);
+
+            idx++;
+            if (get_rand_int(5) == 0) {
+                // 1/5 chances, drop the value clause and no need for whole length
+                // typelist.
+                break;
+            }
+        }
+
+        IR *new_name_list_expr = NULL;
+
+        for (int idx = 0; idx < v_new_column_list_node.size(); idx++) {
+            if (idx == 1) {
+                continue;
+            } else if (idx == 0) {
+                IR *LNode = v_new_column_list_node[0];
+                IR *RNode = nullptr;
+                string infix = "";
+                if (v_new_column_list_node.size() >= 2) {
+                    RNode = v_new_column_list_node[1];
+                    infix = ", ";
+                }
+                new_name_list_expr =
+                        new IR(TypeUnknown, OP3("", infix, ""), LNode, RNode);
+            } else {
+                // idx > 2
+                IR *LNode = new_name_list_expr;
+                IR *RNode = v_new_column_list_node[idx];
+
+                new_name_list_expr =
+                        new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
+            }
+        }
+
+        IR *name_list_left_child = name_list->get_left();
+        IR *name_list_right_child = name_list->get_right();
+        if (name_list_left_child != nullptr) {
+            ir_to_deep_drop.push_back(name_list_left_child);
+        }
+        if (name_list_right_child != nullptr) {
+            ir_to_deep_drop.push_back(name_list_right_child);
+        }
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                name_list, [](IR *cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+        name_list->update_left(nullptr);
+        name_list->update_right(nullptr);
+
+        new_name_list_expr->set_ir_type(TypeNameList);
+        name_list->update_left(new_name_list_expr);
+        name_list->op_->middle_ = "";
+    }
+
+    else if (ir_to_fix->data_type_ == DataColumnName &&
+             ir_to_fix->data_flag_ == ContextUse) {
+        if (is_debug_info) {
+            cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
+                 << "\n\n\n";
+            cerr << "In the kDataColumnName with kUse, found "
+                    "v_table_alias_names_single.size: "
+                 << v_table_alias_names_single.size() << "\n\n\n";
+        }
+
+        ir_to_fix->set_is_instantiated(true);
+
+        // Actual random mutation of the ColumnName. ContextUse.
+        string closest_table_name =
+                this->find_cloest_table_name(ir_to_fix, is_debug_info);
+
+        if (closest_table_name == "" || closest_table_name == "x" ||
+            closest_table_name == "y") {
+            if (is_debug_info) {
+                cerr << "Dependency Error: Cannot find the closest_table_name from "
+                        "the query. Error closest_table_name is: "
+                     << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+                ir_to_fix->set_str_val("x");
+                return;
+            }
+            bool is_found = false;
+            if (v_table_alias_names_single.size() != 0) {
+                closest_table_name = vector_rand_ele(v_table_alias_names_single);
+                if (is_debug_info) {
+                    cerr << "Dependency: In column fixing, find table alias name from "
+                            "v_table_alias_names_single: " << closest_table_name
+                         << ". \n\n\n";
+                }
+                is_found = true;
+            }
+            if (!is_found && v_table_names_single.size() != 0) {
+                closest_table_name = vector_rand_ele(v_table_names_single);
+                if (is_debug_info) {
+                    cerr << "Dependency: In column fixing, find table alias name from "
+                            "v_table_names_single: " << closest_table_name
+                         << ". \n\n\n";
+                }
+                is_found = true;
+            }
+
+            if (!is_found) {
+                ir_to_fix->set_str_val("x");
+                if (is_debug_info) {
+                    cerr << "Dependency: In column fixing, failed to find any table inside the statement. "
+                            "dumping random x as column name. \n\n\n";
+                }
+                return;
+            }
+        }
+
+        vector<string> cur_mapped_column_name_vec;
+        if (m_alias_table2column_single.count(closest_table_name) > 0) {
+            cur_mapped_column_name_vec =
+                    m_alias_table2column_single[closest_table_name];
+        } else {
+            cur_mapped_column_name_vec =
+                    m_table2columns[closest_table_name];
+        }
+
+        if (is_debug_info) {
+            cerr << "Dependency: In kUse of kDataColunName, use origin table "
+                    "name: "
+                 << closest_table_name
+                 << ". column size is: " << cur_mapped_column_name_vec.size()
+                 << ". \n\n\n";
+        }
+        if (cur_mapped_column_name_vec.size() > 0) {
+            string cur_chosen_column = cur_mapped_column_name_vec[get_rand_int(
+                    cur_mapped_column_name_vec.size())];
+            ir_to_fix->str_val_ = cur_chosen_column;
+            ir_to_fix->set_is_instantiated(true);
+            v_column_names_single.push_back(cur_chosen_column);
+            if (is_debug_info) {
+                cerr << "Dependency: In kDataColumnName, kUse, we choose "
+                        "closest_table_name: "
+                     << closest_table_name
+                     << " and column_name: " << cur_chosen_column << ". \n\n\n";
+            }
+        } else {
+            /* Unreconized, keep original */
+            // ir_to_fix->str_val_ = "y";
+            ir_to_fix->set_is_instantiated(true);
+            if (is_debug_info) {
+                cerr << "Dependency Error: In kDataColumnName, kUse, cannot find "
+                        "mapping from table_name"
+                     << closest_table_name << ". \n\n\n";
+            }
+        }
+    }
+
+
+    return;
+}
+
+void Mutator::instan_column_alias_name(IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
+
+    if (ir_to_fix->data_type_ == DataColumnAliasName) {
+
+        ir_to_fix->set_is_instantiated(true);
+
+        string closest_table_alias_name = "";
+
+        /* Three situations:
+         * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+         * Customer FROM Customers;`
+         * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
+         * c(x);`
+         * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100)
+         * SELECT * FROM r WHERE c = 100;
+         *
+         * The 2 and 3 cases are similar.
+         * */
+
+        bool is_alias_clause = false;
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
+            is_alias_clause = true;
+        }
+
+        if (is_alias_clause) {
+            /* Fix the TypeAliasClause scenario first.
+             * This scenario must be handled before the ContextUse of
+             * DataColumnName.
+             * In this case, the TypeTableAlias is provided, we need to
+             * connect the TypeTableAlias to the TypeColumnAlias.
+             * Challenge: We need to make sure the number of
+             * alise column matched the SELECT clause element in the subquery.
+             * Luckily, we can ensure that when running in this scenario,
+             * the subquery has already been instantiated, so that all the column
+             * mappings are correct.
+             */
+
+            // First, check the nearby select subquery.
+            IR *select_subquery =
+                    p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
+                                                                          TypeSelect);
+            if (select_subquery != NULL && select_subquery != cur_stmt_root) {
+                if (is_debug_info) {
+                    cerr << "\n\n\nDependency: when fixing the select subquery, "
+                            "found select subquery: "
+                         << select_subquery->to_string() << "\n\n\n";
+                }
+            } else {
+                if (is_debug_info) {
+                    cerr << "\n\n\nError: Cannot find the select subquery from the "
+                            "current stmt. "
+                            "skip the current statement fixing. \n\n\n";
+                }
+                return;
+            }
+
+            // Search whether there are columns defined in the `TypeSelectExprs`.
+            vector<IR *> all_column_in_subselect =
+                    p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                            select_subquery, DataColumnName);
+            vector<IR *> all_table_in_subselect =
+                    p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                            select_subquery, DataTableName);
+            vector<IR *> all_stars_in_subselect =
+                    p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                            select_subquery, TypeUnqualifiedStar);
+
+            // Try to handle the columns defined in the subquery first.
+            // Only look at the columns defined in the SELECT clause:
+            // e.g. `SELECT v1, v2 FROM v0`
+
+            vector<IR *> ref_column_in_subselect;
+            vector<string> new_column_alias_names;
+            string ret_str = "";
+            for (auto &cur_column_in_subselect : all_column_in_subselect) {
+                if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect,
+                                                  TypeSelectExprs)) {
+                    if (is_debug_info) {
+                        cerr << "\n\n\nFound column name in TypeSelectExprs: "
+                             << cur_column_in_subselect->to_string() << "\n\n\n";
+                    }
+                    ref_column_in_subselect.push_back(cur_column_in_subselect);
+                }
+            }
+
+            int ref_col_idx = 0;
+            if (ref_column_in_subselect.size() > 0) {
+                for (auto &cur_column_in_sub : ref_column_in_subselect) {
+                    string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
+                    string new_column_alias_name = gen_column_alias_name();
+                    m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
+                    new_column_alias_names.push_back(new_column_alias_name);
+                    if (ref_col_idx > 0) {
+                        ret_str += ", ";
+                    }
+                    ref_col_idx++;
+                    ret_str += new_column_alias_name;
+                    if (is_debug_info) {
+                        cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+                             << " to column name " << cur_col_in_sub_str
+                             << " in TypeSelectExprs. ";
+                    }
+                }
+            }
+            // Inherit the ref_col_idx.
+            if (all_stars_in_subselect.size() > 0 &&
+                all_table_in_subselect.size() > 0) {
+                IR *cur_select_table = all_table_in_subselect.front();
+                for (string &matched_column :
+                        m_table2columns[cur_select_table->get_str_val()]) {
+                    string new_column_alias_name = gen_column_alias_name();
+                    m_alias2column_single[new_column_alias_name] = matched_column;
+                    new_column_alias_names.push_back(new_column_alias_name);
+                    if (ref_col_idx > 0) {
+                        ret_str += ", ";
+                    }
+                    ref_col_idx++;
+                    ret_str += new_column_alias_name;
+                    if (is_debug_info) {
+                        cerr << "\n\n\nMapping alias name: " << new_column_alias_name
+                             << " to column name " << matched_column
+                             << " in TypeSelectExprs. ";
+                    }
+                }
+            }
+
+            // Next, match the table alias name.
+            IR *alias_table_ir =
+                    p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                            ir_to_fix, DataTableAliasName);
+            string alias_table_str;
+            if (alias_table_ir != NULL) {
+                alias_table_str = alias_table_ir->get_str_val();
+            } else {
+                if (is_debug_info) {
+                    cerr << "\n\n\nError: Cannot find table alias name inside the "
+                            "TypeAliasClause \n\n\n";
+                    ir_to_fix->set_str_val("x");
+                    return;
+                }
+            }
+
+            for (string &cur_new_column_alias_name : new_column_alias_names) {
+                m_alias_table2column_single[alias_table_str].push_back(
+                        cur_new_column_alias_name);
+            }
+
+            // Actually replace the current node.
+            IR *alias_clause_ir = p_oracle->ir_wrapper.get_parent_node_with_type(
+                    ir_to_fix, TypeAliasClause);
+            if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
+                if (is_debug_info) {
+                    cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR "
+                            "from Columnaliaslist. \n\n\n";
+                }
+                return;
+            }
+
+            ir_to_deep_drop.push_back(alias_clause_ir->get_right());
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    alias_clause_ir->get_right(), [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+            IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
+            alias_clause_ir->update_right(new_column_alias_list);
+
+            return;
+
+        } else {
+            /* Fix the TypeSelectExprs scenario now.
+             * No need for extra work for this scenario because it is
+             * not very interesting.
+             * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
+             * Customer FROM Customers;`
+             */
+
+            IR *near_table_ir =
+                    p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+                            ir_to_fix, DataTableName);
+            string near_table_str;
+            if (near_table_ir != NULL) {
+                near_table_str = near_table_ir->get_str_val();
+            } else {
+                if (is_debug_info) {
+                    cerr << "\n\n\nError: Cannot find table alias name inside the "
+                            "TypeAliasClause \n\n\n";
+                    ir_to_fix->set_str_val("x");
+                    return;
+                }
+            }
+
+            string column_alias_name = gen_column_alias_name();
+            ir_to_fix->set_str_val(column_alias_name);
+
+            m_alias_table2column_single[near_table_str].push_back(
+                    column_alias_name);
+            return;
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_sql_type_name(IR* ir_to_fix, bool is_debug_info) {
+
+    IRTYPE type = ir_to_fix->get_ir_type();
+    DATATYPE data_type = ir_to_fix->get_data_type();
+    DATAFLAG data_flag = ir_to_fix->get_data_flag();
+
+    if (type == TypeIdentifier && data_type == DataTypeName &&
+        data_flag == ContextDefine) {
+        // Handling of the Column Data Type definition.
+        // Use basic types.
+        auto tmp_affi_type = get_random_affinity_type();
+        string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
+
+        ir_to_fix->set_str_val(tmp_affi_type_str);
+        if (is_debug_info) {
+            cerr << "\nFor data type definition, getting new data type: "
+                 << tmp_affi_type_str << "\n\n\n";
+        }
+
+        if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
+            ir_to_fix->get_parent()->get_left()->get_data_type() ==
+            DataColumnName) {
+            DataAffinity cur_data_affi;
+            cur_data_affi.set_data_affinity(tmp_affi_type);
+            string column_str =
+                    ir_to_fix->get_parent()->get_left()->get_str_val();
+            this->m_column2datatype[column_str] = cur_data_affi;
+            if (is_debug_info) {
+                cerr << "\nAttach data affinity: "
+                     << get_string_by_affinity_type(
+                             cur_data_affi.get_data_affinity())
+                     << " to column: " << column_str << ". \n\n\n";
+            }
+        }
+    }
+}
+
+
+void Mutator::instan_foreign_table_name(IR* ir_to_fix, bool is_debug_info) {
+
+    /* TODO: FIXME: Foreign table handling. Add it back later. */
+//    if (
+        //        (
+        //          ir_to_fix->data_type_ == kDataForeignTableName
+        //        ) &&
+        //        ir_to_fix->data_flag_ == kUndefine)
+        //      {
+        //        if (v_foreign_table_name.size() > 0 ) {
+        //          /* Find table name in the foreign table vector, not normal
+        //          table vec.  */ string removed_table_name =
+        //          v_foreign_table_name[get_rand_int(v_foreign_table_name.size())];
+        //          v_foreign_table_name.erase(std::remove(v_foreign_table_name.begin(),
+        //          v_foreign_table_name.end(), removed_table_name),
+        //          v_foreign_table_name.end());
+        //
+        //          v_table_names.erase(std::remove(v_table_names.begin(),
+        //          v_table_names.end(), removed_table_name),
+        //          v_table_names.end());
+        //          v_table_names_single.erase(std::remove(v_table_names_single.begin(),
+        //          v_table_names_single.end(), removed_table_name),
+        //          v_table_names_single.end()); ir_to_fix->str_val_ =
+        //          removed_table_name; fixed_ir.push_back(ir_to_fix); if
+        //          (is_debug_info) {
+        //            cerr << "Dependency: Removed from v_foreign_table_names: "
+        //            << removed_table_name << ", in kDataForeignTableName with
+        //            kUndefine \n\n\n";
+        //          }
+        //          if (is_replace_table &&
+        //          v_create_foreign_table_names_single.size() != 0) {
+        //            string new_table_name =
+        //            v_create_foreign_table_names_single.front();
+        //            m_table2columns[new_table_name] =
+        //            m_table2columns[removed_table_name];
+        //          }
+        //
+        //        } else {
+        //          if (is_debug_info) {
+        //            cerr << "Dependency Error: Failed to find info in
+        //            v_foreign_table_names, in kDataForeignTableName with
+        //            kUndefine. \n\n\n";
+        //          }
+        //          /* Unreconized, keep original */
+        //          // ir_to_fix->str_val_ = "y";
+        //          fixed_ir.push_back(ir_to_fix);
+        //        }
+        //
+        //      }
+
+}
+
+void Mutator::instan_statistic_name (IR* ir_to_fix, bool is_debug_info) {
+
+    if (ir_to_fix->get_data_type() == DataStatsName) {
+        if (ir_to_fix->get_data_flag() == ContextDefine) {
+            string cur_chosen_name = gen_statistic_name();
+            ir_to_fix->set_str_val(cur_chosen_name);
+            ir_to_fix->set_is_instantiated(true);
+            v_statistics_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+            if (!v_statistics_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_statistics_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+            ir_to_fix->set_is_instantiated(true);
+
+            /* remove the statistic name from the vector */
+            vector<string> v_tmp;
+            for (string &s : v_statistics_name) {
+                if (s != cur_chosen_name) {
+                    v_tmp.push_back(s);
+                }
+            }
+            v_statistics_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUse) {
+            if (!v_statistics_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_statistics_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+            ir_to_fix->set_is_instantiated(true);
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_sequence_name (IR* ir_to_fix, bool is_debug_info){
+
+    /* Fix for kDataSequenceName */
+    if (ir_to_fix->get_data_type() == DataSequenceName) {
+        ir_to_fix->set_is_instantiated(true);
+        if (ir_to_fix->get_data_flag() == ContextDefine) {
+            // string cur_chosen_name = gen_sequence_name();
+            // ir_to_fix->set_str_val(cur_chosen_name);
+
+            /* Yu: Do not fix for sequence name for now */
+            string cur_chosen_name = ir_to_fix->get_str_val();
+            v_sequence_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+            if (!v_sequence_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_sequence_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+
+            /* remove the statistic name from the vector */
+            vector<string> v_tmp;
+            for (string &s : v_sequence_name) {
+                if (s != cur_chosen_name) {
+                    v_tmp.push_back(s);
+                }
+            }
+            v_sequence_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUse) {
+            if (!v_sequence_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_sequence_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_constraint_name (IR* ir_to_fix, bool is_debug_info) {
+
+    /* Fix for kDataConstraintName */
+    if (ir_to_fix->get_data_type() == DataConstraintName) {
+        ir_to_fix->set_is_instantiated(true);
+        if (ir_to_fix->get_data_flag() == ContextDefine) {
+
+            string cur_chosen_name = gen_constraint_name();
+            ir_to_fix->set_str_val(cur_chosen_name);
+            v_constraint_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+            if (!v_constraint_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_constraint_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+
+            /* remove the statistic name from the vector */
+            vector<string> v_tmp;
+            for (string &s : v_constraint_name) {
+                if (s != cur_chosen_name) {
+                    v_tmp.push_back(s);
+                }
+            }
+            v_constraint_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUse) {
+            if (!v_constraint_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_constraint_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_family_name (IR* ir_to_fix, bool is_debug_info) {
+
+    /* Fix for DataFamilyName */
+    if (ir_to_fix->get_data_type() == DataFamilyName) {
+        ir_to_fix->set_is_instantiated(true);
+        if (ir_to_fix->get_data_flag() == ContextDefine) {
+
+            string cur_chosen_name = gen_family_name();
+            ir_to_fix->set_str_val(cur_chosen_name);
+            v_family_name.push_back(cur_chosen_name);
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUndefine) {
+            if (!v_family_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_family_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+
+            /* remove the statistic name from the vector */
+            vector<string> v_tmp;
+            for (string &s : v_family_name) {
+                if (s != cur_chosen_name) {
+                    v_tmp.push_back(s);
+                }
+            }
+            v_family_name = v_tmp;
+        }
+
+        else if (ir_to_fix->get_data_flag() == ContextUse) {
+            if (!v_family_name.size())
+                return;
+            string cur_chosen_name = vector_rand_ele(v_family_name);
+            ir_to_fix->set_str_val(cur_chosen_name);
+        }
+    }
+
+    return;
+}
+
+void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
+
+    /* First Loop */
+
+    IRTYPE type = ir_to_fix->get_ir_type();
+
+    if (type == TypeFloatLiteral || type == TypeStringLiteral ||
+        type == TypeIntegerLiteral) {
+        /* Completely rewritten Literal handling and mutation logic.
+         * The idea is to search for the closest Column Name or fixed literals,
+         * and try to match the type of the column name or literal.
+         * */
+
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
+            /*
+             * Should not change any literals inside the TypeOptStorageParams clause.
+             * These literals are for Storage Parameters (Storage Settings).
+             * These values will be fixed by another fixing function,
+             * later in the second ir_to_fix loop.
+             * */
+            return;
+        }
+
+        // IF NOT IN!!! Skipped.
+        if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
+            // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
+            // branch. These literals would be handled later by the next `Fix for
+            // literals` loop.
+            /* Do not set the is_instantiated flag. */
+            return;
+        }
+
+        ir_to_fix->set_is_instantiated(true);
+
+        // Handle the ValuesClause.
+        // Get the TypeValuesClause first.
+        IR *values_clause_node = p_oracle->ir_wrapper.get_parent_node_with_type(
+                ir_to_fix, TypeValuesClause);
+
+        // Remove the original expressions.
+        IR *values_expr_node = values_clause_node->get_left();
+        values_clause_node->update_left(nullptr);
+        // Avoid further handling of the child node from `TypeValueClauses`
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                values_expr_node, [](IR *cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+        ir_to_deep_drop.push_back(values_expr_node);
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
+                    "expression:"
+                 << values_expr_node->to_string() << "\n\n\n";
+        }
+
+        /* Reconstruct the new Value clause that matched the referenced table.
+         */
+
+        // Search whether there are referenced columns in the `TypeNameList`.
+        // If there is, should be the first TypeNameList from the statement.
+        vector<IR *> v_type_name_list =
+                p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                        cur_stmt_root, TypeNameList, false);
+
+        vector<DataAffinity> referencing_affinity;
+        if (v_type_name_list.size() == 0) {
+            // Cannot find a specifically referenced column name list.
+            // Use the referenced table name to refer to the column name list.
+            if (is_debug_info) {
+                cerr << "\n\n\nDependency: Cannot find the column name list from "
+                        "the statement. \n\n\n";
+            }
+
+            // Find the table name used in this statement.
+            if (v_table_names_single.size() == 0) {
+                if (is_debug_info) {
+                    cerr << "\n\n\nERROR: Cannot find the column name list AND table "
+                            "name from the statement. \n\n\n";
+                }
+                DataAffinity cur_affi;
+                cur_affi.set_data_affinity(AFFISTRING);
+                referencing_affinity.push_back(cur_affi);
+            } else {
+                // Found the table name referenced from the statement.
+                if (is_debug_info) {
+                    cerr << "\n\n\nFound the table name referenced from the "
+                            "statement, "
+                            "table name: "
+                         << v_table_names_single.front() << ". \n\n\n";
+                }
+                string cur_table_name = v_table_names_single.front();
+                vector<string> column_list;
+                bool is_alias = false;
+                if (m_alias_table2column_single.count(cur_table_name) > 0) {
+                    is_alias = true;
+                    column_list = m_alias_table2column_single[cur_table_name];
+                } else {
+                    is_alias = false;
+                    column_list = m_table2columns[cur_table_name];
+                }
+                for (const string &cur_column_str : column_list) {
+                    string actual_column_str = cur_column_str;
+                    if (is_alias && m_alias2column_single.count(actual_column_str) > 0) {
+                        if (is_debug_info) {
+                            cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                                 << cur_column_str << " to column name: "
+                                 << actual_column_str << "\n\n\n";
+                        }
+                        actual_column_str = m_alias2column_single[cur_column_str];
+                    }
+                    if (m_column2datatype.count(actual_column_str) > 0) {
+                        DataAffinity cur_affi = m_column2datatype[actual_column_str];
+                        referencing_affinity.push_back(cur_affi);
+                        if (is_debug_info) {
+                            cerr << "\n\n\nMatching column: " << cur_column_str
+                                 << " from table: " << cur_table_name
+                                 << " with data type: "
+                                 << get_string_by_affinity_type(
+                                         cur_affi.get_data_affinity())
+                                 << "\n\n\n";
+                        }
+                    } else {
+                        DataAffinity cur_affi;
+                        cur_affi.set_data_affinity(AFFISTRING);
+                        referencing_affinity.push_back(cur_affi);
+                        if (is_debug_info) {
+                            cerr << "\n\n\n Cannot find matching column types: "
+                                 << cur_column_str << ". Using dummy AFFISTRING instead. "
+                                 << "\n\n\n";
+                        }
+                    }
+                }
+            }
+        } else {
+            if (is_debug_info) {
+                cerr << "\n\n\nDependency: Find the column name list from the stmt:"
+                     << v_type_name_list.front()->to_string() << ". \n\n\n";
+            }
+
+            IR *type_list_node = v_type_name_list.front();
+            vector<IR *> v_column_node =
+                    p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                            type_list_node, DataColumnName, false);
+            //                cerr << "\n\n\nDEBUG:::: Getting v_column_node size:
+            //                " << v_column_node.size() << "\n\n\n";
+            for (IR *cur_column_node : v_column_node) {
+                string cur_column_str = cur_column_node->get_str_val();
+                if (m_column2datatype.count(cur_column_str) || m_alias2column_single.count(cur_column_str)) {
+                    string actual_column_str = cur_column_str;
+                    if (m_alias2column_single.count(cur_column_str)) {
+                        actual_column_str = m_alias2column_single[cur_column_str];
+                        if (is_debug_info) {
+                            cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                                 << cur_column_str << " to column name: "
+                                 << actual_column_str << "\n\n\n";
+                        }
+                    }
+                    DataAffinity cur_affi = m_column2datatype[actual_column_str];
+                    referencing_affinity.push_back(cur_affi);
+                    if (is_debug_info) {
+                        cerr << "\n\n\nMatching column: " << cur_column_str
+                             << " with data type: "
+                             << get_string_by_affinity_type(
+                                     cur_affi.get_data_affinity())
+                             << "\n\n\n";
+                    }
+                } else {
+                    DataAffinity cur_affi;
+                    cur_affi.set_data_affinity(AFFISTRING);
+                    referencing_affinity.push_back(cur_affi);
+                    if (is_debug_info) {
+                        cerr << "\n\n\n Cannot find matching column types: "
+                             << cur_column_str << ". Using dummy AFFISTRING instead. "
+                             << "\n\n\n";
+                    }
+                }
+            }
+        }
+
+        // After we get a list of referencing_affinity, we can now begin to fill
+        // in the ValuesClause expression.
+        string ret_str = "";
+        int idx = 0;
+        for (DataAffinity &cur_affi : referencing_affinity) {
+            if (idx != 0) {
+                ret_str += ", ";
+            }
+            ret_str += cur_affi.get_mutated_literal();
+            idx++;
+        }
+        IR *new_values_expr_node = new IR(TypeStringLiteral, ret_str);
+        new_values_expr_node->set_is_instantiated(true);
+
+        values_clause_node->update_left(new_values_expr_node);
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: getting new valuesclause expression: "
+                 << new_values_expr_node->to_string() << ". \n\n\n";
+        }
+    }
+
+    /* The second loop */
+
+    type = ir_to_fix->get_ir_type();
+
+    if (type == TypeFloatLiteral || type == TypeStringLiteral ||
+        type == TypeIntegerLiteral) {
+        /* Continue from the previous loop, we now search around the ir_to_fix
+         * and see if we can find column name or literals that can help deduce
+         * Data Affinity.
+         * */
+
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
+            /*
+             * Should not change any literals inside the TypeOptStorageParams clause.
+             * These literals are for Storage Parameters (Storage Settings).
+             * These values will be fixed by another fixing function,
+             * later in the second ir_to_fix loop.
+             * */
+            return;
+        }
+
+        ir_to_fix->set_is_instantiated(true);
+
+        if (is_debug_info) {
+            cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string()
+                 << "\n\n\n";
+        }
+
+        // If the literal already has fixed data affinity type, skip the
+        // mutation.
+        if (ir_to_fix->get_data_flag() == ContextNoModi) {
+            if (is_debug_info) {
+                cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string()
+                     << " because it has "
+                        "flag ContextNoModi. \n\n\n";
+            }
+            return;
+        }
+        //          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+        //              continue;
+        //          }
+
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
+            // Do not mutate the literals inside the SET statement.
+            // The set statement's literal has already been fixed when introduced.
+            return;
+        }
+
+        ir_to_fix->set_data_affinity(this->get_nearby_data_affinity(ir_to_fix, is_debug_info));
+
+        /* After knowing the data affinity of the literal,
+         * we have two choices to instantiate the value.
+         * 1. If the current data affinity is the same as previous
+         * fixed literals, reuse the value.
+         * 2. Mutate to get a new value.
+         * */
+        if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
+            get_rand_int(2) == 0) {
+            // Reuse previous defined literals.
+            string tmp_new_literal = vector_rand_ele(
+                    m_datatype2literals[ir_to_fix->get_data_affinity()]);
+            ir_to_fix->set_str_val(tmp_new_literal);
+        } else {
+            // Now we ensure the ir_to_fix has an affinity.
+            // Mutate the literal with the affinity
+            ir_to_fix->mutate_literal(); // Handles everything.
+            m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(
+                    ir_to_fix->get_str_val());
+        }
+    }
+
+    return;
+
+}
+
+void Mutator::instan_storage_param (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
+
+    IRTYPE type = ir_to_fix->get_ir_type();
+    DATATYPE data_type = ir_to_fix->get_data_type();
+
+    if (type == TypeStorageParams && data_type == DataStorageParams) {
+
+        if (ir_to_fix->get_parent() == NULL) {
+            cerr << "\n\n\nLogical Error: Getting empty parent from TypeStorageParams. \n\n\n";
+        }
+
+        IR* opt_storage_params = ir_to_fix->get_parent();
+
+        IR* opt_storage_params_left = opt_storage_params->get_left();
+        IR* opt_storage_params_right = opt_storage_params->get_right();
+
+        if (opt_storage_params_left != NULL) {
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    opt_storage_params_left, [](IR* cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+            ir_to_deep_drop.push_back(opt_storage_params_left);
+        }
+        if (opt_storage_params_right != NULL) {
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    opt_storage_params_right, [](IR* cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+            ir_to_deep_drop.push_back(opt_storage_params_right);
+        }
+
+        // Do not use param_num == 0;
+        IR* new_storage_param_node = this->constr_rand_storage_param(get_rand_int(3)+1);
+        new_storage_param_node->set_is_instantiated(true);
+        opt_storage_params->update_left(new_storage_param_node);
+        opt_storage_params->update_right(NULL);
+
+    }
+
+    return;
+
+}
+
+void Mutator::map_create_view (IR* ir_to_fix, IR* cur_stmt_root,
+                               const vector<vector<IR *>> cur_stmt_ir_to_fix_vec, bool is_debug_info) {
+
+
+    if (ir_to_fix->data_type_ != DataTableName &&
+        ir_to_fix->data_type_ != DataViewName) {
+        return;
+    }
+
+    /* Add missing mapping for CREATE VIEW stmt.  */
+    /* Check whether we are in the CreateViewStatement. If yes, save the
+     * column mapping. */
+    IR *cur_ir = ir_to_fix;
+    bool is_in_create_view = false;
+    if (cur_stmt_root->get_ir_type() == TypeCreateView) {
+        is_in_create_view = true;
+    }
+    if (is_in_create_view) {
+        /* Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT...
+         * statement.
+         */
+        if (is_debug_info) {
+            cerr << "Dependency: In CREATE VIEW statement, getting "
+                    "cur_stmt_ir_to_fix_vec.size: "
+                 << cur_stmt_ir_to_fix_vec.size() << ". \n\n\n";
+        }
+        // id_column_name should be in the subquery and already been resolved
+        // in the previous loop.
+        vector<IR *> tmp_column_vec;
+        vector<IR *> all_mentioned_column_vec;
+        set<DATATYPE> column_type_set = {DataColumnName};
+        collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
+
+        for (IR* cur_mentioned_column : all_mentioned_column_vec) {
+            if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_column, TypeSelectExprs)) {
+                tmp_column_vec.push_back(cur_mentioned_column);
+            }
+        }
+        all_mentioned_column_vec = tmp_column_vec;
+        tmp_column_vec.clear();
+
+        /* Fix: also, add column alias name defined here to the table */
+        vector<IR *> all_mentioned_column_alias_vec;
+        set<DATATYPE> column_alias_type_set = {DataColumnAliasName};
+        collect_ir(cur_stmt_root, column_alias_type_set,
+                   all_mentioned_column_alias_vec);
+
+        for (IR* cur_mentioned_alias : all_mentioned_column_alias_vec) {
+            if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_alias, TypeSelectExprs)) {
+                tmp_column_vec.push_back(cur_mentioned_alias);
+            }
+        }
+        all_mentioned_column_alias_vec = tmp_column_vec;
+        tmp_column_vec.clear();
+
+        if (is_debug_info) {
+            cerr << "Dependency: When building extra mapping for CREATE VIEW AS, "
+                    "collected kDataColumnName.size: "
+                 << all_mentioned_column_vec.size() << ". \n\n\n";
+        }
+
+        if (all_mentioned_column_alias_vec.size() != 0) {
+            m_table2columns[ir_to_fix->get_str_val()].clear();
+            for (auto &cur_column_alias_ir : all_mentioned_column_alias_vec) {
+                string cur_column_alias = cur_column_alias_ir->get_str_val();
+                m_table2columns[ir_to_fix->get_str_val()].push_back(
+                        cur_column_alias);
+                if (is_debug_info) {
+                    cerr << "Dependency: Adding mappings: For table/view: "
+                         << ir_to_fix->str_val_
+                         << ", map from column alias to column str: " <<cur_column_alias
+                         << ". \n\n\n";
+                }
+            }
+        } else {
+            for (const IR *const cur_men_column_ir : all_mentioned_column_vec) {
+                string cur_men_column_str = cur_men_column_ir->str_val_;
+                if (findStringIn(cur_men_column_str, ".")) {
+                    vector<string> v_cur_men_column_str =
+                            string_splitter(cur_men_column_str, '.');
+                    cur_men_column_str =
+                            v_cur_men_column_str[v_cur_men_column_str.size() - 1];
+                }
+                vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
+                if (std::find(cur_m_table.begin(), cur_m_table.end(),
+                              cur_men_column_str) == cur_m_table.end()) {
+                    m_table2columns[ir_to_fix->str_val_].push_back(
+                            cur_men_column_str);
+                    if (is_debug_info) {
+                        cerr << "Dependency: Adding mappings: For table/view: "
+                             << ir_to_fix->str_val_
+                             << ", map with column: " << cur_men_column_str
+                             << ". \n\n\n";
+                    }
+                }
+            }
+
+            /* For CREATE VIEW x AS SELECT * FROM v0; */
+            if (all_mentioned_column_vec.size() == 0) {
+                if (is_debug_info) {
+                    cerr
+                            << "Dependency: For mapping CREATE VIEW, cannot find column "
+                               "name in the current subqueries. Thus, see if we can find "
+                               "table names, and map from there. \n\n\n";
+                }
+                vector<IR *> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
+                set<DATATYPE> table_type_set = {DataTableName};
+                collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
+                for (IR *mentioned_table_ir : all_mentioned_table_vec) {
+                    if (mentioned_table_ir->data_flag_ == ContextUse) {
+                        all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
+                        if (is_debug_info) {
+                            cerr << "Dependency: For mapping CREATE VIEW, getting "
+                                    "mentioned table name: "
+                                 << mentioned_table_ir->str_val_ << ". \n\n\n";
+                        }
+                    }
+                }
+                for (IR *cur_men_tablename_ir : all_mentioned_table_kUsed_vec) {
+                    string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
+                    const vector<string> &cur_men_column_vec =
+                            m_table2columns[cur_men_tablename_str];
+                    for (const string &cur_men_column_str : cur_men_column_vec) {
+                        vector<string> &cur_m_table =
+                                m_table2columns[ir_to_fix->str_val_];
+                        if (std::find(cur_m_table.begin(), cur_m_table.end(),
+                                      cur_men_column_str) == cur_m_table.end()) {
+                            m_table2columns[ir_to_fix->str_val_].push_back(
+                                    cur_men_column_str);
+                            if (is_debug_info) {
+                                cerr << "Dependency: Adding mappings: For table/view: "
+                                     << ir_to_fix->str_val_
+                                     << ", map with column: " << cur_men_column_str
+                                     << ". \n\n\n";
+                            }
+                        }
+                    }
+                } // for (IR* cur_men_tablename_ir : all_mentioned_table_kUsed_vec)
+            }   // if (all_mentioned_column_vec.size() == 0)
+        }
+
+        /* The extra mapping only need to be done once. Once reach this point,
+         * break the loop. */
+        return;
+    } // if (is_in_create_view)
+
+}
+
+void Mutator::map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
+
+    IR* type_name_list = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
+    if (type_name_list == NULL) {
+        if (is_debug_info) {
+            cerr
+                    << "\n\n\nError: In DataViewColumnName fixing. Cannot find the type_name_list from the statement."
+                       "More debug info, view column is: " << ir_to_fix->to_string() << ". \n\n\n";
+        }
+        return;
+    }
+
+    string ret_str = "";
+    IR* near_view_name_node = p_oracle->ir_wrapper
+            .find_closest_nearby_IR_with_type(ir_to_fix, DataViewName);
+    if (near_view_name_node == NULL) {
+        if (is_debug_info) {
+            cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the near_view_name from the "
+                    "statement. More debug info, view column is: " << ir_to_fix->to_string() << ". \n\n\n";
+        }
+    }
+    string near_view_name_str = near_view_name_node->to_string();
+    vector<string> matched_columns = m_table2columns[near_view_name_str];
+
+    vector<string> v_new_view_col_name_str;
+    int view_col_idx = 0;
+    for (string cur_matched_columns : matched_columns) {
+        string new_view_column_name = gen_view_column_name();
+        v_new_view_col_name_str.push_back(new_view_column_name);
+        m_column2datatype[new_view_column_name] = m_column2datatype[cur_matched_columns];
+
+        if (view_col_idx != 0) {
+            ret_str += ", ";
+        }
+
+        view_col_idx ++;
+        ret_str += new_view_column_name;
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: INFO:: Transporting data affinity from column: "
+                 << cur_matched_columns << " to view column: " << new_view_column_name
+                 << ", with affinity: "
+                 << get_string_by_affinity_type(m_column2datatype[new_view_column_name].get_data_affinity())
+                 << ". \n\n\n";
+        }
+    }
+
+    m_table2columns[near_view_name_str] = v_new_view_col_name_str;
+
+    if (is_debug_info) {
+        for (string& view_col_name: v_new_view_col_name_str) {
+            cerr << "\n\n\nDependency: INFO:: Appending new view column: "
+                 << view_col_name
+                 << " to view: " << near_view_name_str
+                 << ". \n\n\n";
+        }
+    }
+
+    // At last, switch the whole TypeNameList node in the Create View column clause.
+//            ret_str = "(" + ret_str + ")";
+    IR* new_name_list_ir = new IR(TypeNameList, ret_str);
+
+    IR* name_list_left = type_name_list->get_left();
+    IR* name_list_right = type_name_list->get_right();
+
+    if (name_list_left != NULL) {
+        ir_to_deep_drop.push_back(name_list_left);
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                name_list_left, [](IR* cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+    }
+    if (name_list_right) {
+        ir_to_deep_drop.push_back(name_list_right);
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                name_list_right, [](IR* cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+    }
+
+    type_name_list->update_left(new_name_list_ir);
+    type_name_list->update_right(NULL);
+
+    return;
+
+}
+
+void Mutator::instan_function_name (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
+    /* Fixing for functions.  */
+    if (ir_to_fix->get_data_type() == DataFunctionName) {
+        if (ir_to_fix->get_data_flag() == ContextNoModi) {
+            return;
+        }
+
+        string cur_func_str = ir_to_fix->get_str_val();
+
+        cur_func_str = str_tolower(cur_func_str);
+
+        if (func_str_to_type_map.find(cur_func_str) ==
+            func_str_to_type_map.end()) {
+            if (is_debug_info) {
+                cerr << "\n\n\nFor function name: " << cur_func_str
+                     << ", cannot find its "
+                        "matching function type. Do not mutate the name in the "
+                        "instantiation. \n\n\n";
+            }
+            return;
+        }
+
+        // TODO:: FIXME::
+
+    }
+
+    return;
+}
+
+
 bool Mutator::fix_dependency(IR *cur_stmt_root,
                              const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
                              bool is_debug_info) {
@@ -2226,7 +3757,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         }
 
         if (ir_to_fix->data_type_ == DataTableAliasName) {
-
             ir_to_fix->set_is_instantiated(true);
             this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
         }
@@ -2286,85 +3816,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      if (ir_to_fix->get_data_type() == DataIndexName) {
-        if (ir_to_fix->get_data_flag() == ContextDefine) {
-          string tmp_index_name = gen_index_name();
-          ir_to_fix->set_str_val(tmp_index_name);
-          ir_to_fix->set_is_instantiated(true);
-
-          /* Find the table used in this stmt. */
-          if (v_table_names_single.size() != 0) {
-            string tmp_table_name = v_table_names_single[0];
-            m_table2index[tmp_table_name].push_back(tmp_index_name);
-          }
-        } else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-
-          string tmp_index_name = "y";
-
-          /* Find the table used in this stmt. */
-          if (v_table_names_single.size() != 0) {
-            string tmp_table_name = v_table_names_single[0];
-            vector<string> &v_index_name = m_table2index[tmp_table_name];
-            if (!v_index_name.size())
-              continue;
-            tmp_index_name = vector_rand_ele(v_index_name);
-
-            vector<string> tmp_v_index_name;
-            for (string s : v_index_name) {
-              if (s != tmp_index_name) {
-                tmp_v_index_name.push_back(s);
-              }
-            }
-            v_index_name = tmp_v_index_name;
-          } else {
-            for (auto it = m_table2index.begin(); it != m_table2index.end();
-                 it++) {
-              vector<string> &v_index_name = it->second;
-              if (!v_index_name.size())
-                continue;
-              tmp_index_name = vector_rand_ele(v_index_name);
-
-              vector<string> tmp_v_index_name;
-              for (string s : v_index_name) {
-                if (s != tmp_index_name) {
-                  tmp_v_index_name.push_back(s);
-                }
-              }
-              v_index_name = tmp_v_index_name;
-            }
-          }
-          if (tmp_index_name != "y") {
-            ir_to_fix->set_str_val(tmp_index_name);
-            ir_to_fix->set_is_instantiated(true);
-          }
-        }
-
-        else if (ir_to_fix->get_data_flag() == ContextUse) {
-
-          string tmp_index_name = "y";
-
-          /* Find the table used in this stmt. */
-          if (v_table_names_single.size() != 0) {
-            string tmp_table_name = v_table_names_single[0];
-            vector<string> &v_index_name = m_table2index[tmp_table_name];
-            if (!v_index_name.size())
-              continue;
-            tmp_index_name = vector_rand_ele(v_index_name);
-          } else {
-            for (auto it = m_table2index.begin(); it != m_table2index.end();
-                 it++) {
-              vector<string> &v_index_name = it->second;
-              if (!v_index_name.size())
-                continue;
-              tmp_index_name = vector_rand_ele(v_index_name);
-            }
-          }
-          if (tmp_index_name != "y") {
-            ir_to_fix->set_str_val(tmp_index_name);
-            ir_to_fix->set_is_instantiated(true);
-          }
-        }
-      }
+      this->instan_index_name(ir_to_fix, is_debug_info);
     }
 
     /* kDefine and kReplace of kDataColumnName */
@@ -2377,171 +3829,14 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           (ir_to_fix->data_flag_ == ContextDefine ||
            ir_to_fix->data_flag_ == ContextReplaceDefine)) {
 
-        if (ir_to_fix->data_flag_ == ContextReplaceDefine) {
-          is_replace_column = true;
-        }
-        string new_name = gen_column_name();
-        ir_to_fix->str_val_ = new_name;
-        ir_to_fix->set_is_instantiated(true);
-        string closest_table_name = "";
-        /* Attach the newly generated column name to the table. */
-        if (v_create_table_names_single.size() > 0) {
-          /* We have table name that is newly defined. Should be only one
-           * newly created table name. */
-          closest_table_name = v_create_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: For newly defined column name: " << new_name
-                 << ", we find v_create_table_names_single: "
-                 << closest_table_name << "\n\n\n";
-          }
-        } else if (v_table_names_single.size() != 0) {
-          /* We cannot find the newly defined table name, see whether there are
-           * local table name used, this is typical in ALTER statement.  */
-          closest_table_name = v_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: For newly defined column name: " << new_name
-                 << ", cannot find v_create_table_names_single, is it in a "
-                    "ALTER statement? We find v_table_names_single: "
-                 << closest_table_name << "\n\n\n";
-          }
-        } else if (v_table_names.size() != 0) {
-          /* This is an ERROR. Cannot find the TABLE name to attach to.
-          ** 80% chance, keep original.
-          ** 20% chance, find any declared table and attached to it. */
-          if (get_rand_int(5) < 4) {
-            /* Keep original */
-            continue;
-          }
-          closest_table_name =
-              v_table_names[get_rand_int(v_table_names.size())];
-          if (is_debug_info) {
-            cerr << "Dependency ERROR: For newly defined column name: "
-                 << new_name
-                 << ", ERROR finding matched newly created table names. Used "
-                    "previous declared table name: "
-                 << closest_table_name << "\n\n\n";
-          }
-        }
-        if (closest_table_name == "" || closest_table_name == "x" ||
-            closest_table_name == "y") {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from "
-                    "the query. ";
-            cerr << "cloest_table_name returns: " << closest_table_name
-                 << "In kDataColumnName, kDefine or kReplace. \n\n\n";
-          }
-          // return false;
-          /* Randomly set a name to the defined column.
-           * And ignore the mapping for the moment
-           * */
-
-          /* Unrecognized, keep original */
-          // ir_to_fix->str_val_ = gen_column_name();
-          continue;
-        }
-        if (is_debug_info) {
-          cerr << "Dependency: For column_name: " << new_name
-               << ", found closest_table_name: " << closest_table_name
-               << ". \n\n\n";
-        }
-        m_table2columns[closest_table_name].push_back(new_name);
-
-        /* Next, fix the data type of the Column name. Map it to the column
-         * name. */
-        // The closest type to the current fixed node should be the one that
-        // define the column type.
-        IR *data_type_node =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                ir_to_fix, DataTypeName);
-        if (data_type_node != NULL) {
-          DATAAFFINITYTYPE data_affinity =
-              get_data_affinity_by_string(data_type_node->get_str_val());
-          DataAffinity data_affi;
-          data_affi.set_data_affinity(data_affinity);
-          m_column2datatype[new_name] = data_affi;
-        } else {
-          if (is_debug_info) {
-            cerr << "Error: In a DataColumn ContextDefine, failed to find the "
-                    "data type identifier that defined the "
-                    "column data type. Use default AFFISTRING. \n\n\n";
-          }
-          DataAffinity data_affi;
-          data_affi.set_data_affinity(AFFISTRING);
-          m_column2datatype[new_name] = data_affi;
-        }
+          this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop, is_debug_info);
 
         /* ContextUndefine scenario of the DataColumnName */
       } else if (ir_to_fix->data_type_ == DataColumnName &&
                  ir_to_fix->data_flag_ == ContextUndefine) {
-        /* Find the table_name in the query first. */
-        string closest_table_name = "";
-        IR *closest_table_ir = NULL;
-        closest_table_ir =
-            p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(
-                ir_to_fix, DataTableName);
-        if (closest_table_ir != NULL) {
-          closest_table_name = closest_table_ir->get_str_val();
-          if (is_debug_info) {
-            cerr << "Dependency: For removing DataColumnName, we find "
-                    "closest_table_ir: "
-                 << closest_table_name << "\n\n\n";
-          }
-        } else if (v_table_names_single.size() != 0) {
-          closest_table_name = v_table_names_single[0];
-          if (is_debug_info) {
-            cerr << "Dependency: For removing kDataColumnName: we find "
-                    "v_table_names_single: "
-                 << closest_table_name << "\n\n\n";
-          }
-        }
-        if (closest_table_name == "" || closest_table_name == "x" ||
-            closest_table_name == "y") {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from "
-                    "the query. closest_table_name returns: "
-                 << closest_table_name
-                 << ". In kDataColumnName, kUndefine. \n\n\n";
-          }
-          /* Unrecognized, keep original */
-          // return false;
-          ir_to_fix->set_is_instantiated(true);
-          continue;
-        }
 
-        if (is_debug_info) {
-          cerr << "Dependency: In kDataColumnName, kUndefine, found "
-                  "closest_table_name: "
-               << closest_table_name << ". \n\n\n";
-        }
+          this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop, is_debug_info);
 
-        vector<string> &column_vec = m_table2columns[closest_table_name];
-        if (column_vec.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the mapped column_vec for "
-                    "table_name: "
-                 << closest_table_name << " \n\n\n";
-          }
-          /* Not reconized column name. Keep original */
-          // ir_to_fix->str_val_ = "y";
-          // return false;
-          ir_to_fix->set_is_instantiated(true);
-          continue;
-        }
-        string removed_column_name =
-            column_vec[get_rand_int(column_vec.size())];
-        column_vec.erase(std::remove(column_vec.begin(), column_vec.end(),
-                                     removed_column_name),
-                         column_vec.end());
-        ir_to_fix->str_val_ = removed_column_name;
-        ir_to_fix->set_is_instantiated(true);
-
-        if (is_debug_info) {
-          cerr << "Dependency: In kDataColumnName, kUndefine, found "
-                  "removed_column_name: "
-               << removed_column_name
-               << ", from closest_table_name: " << closest_table_name
-               << ". \n\n\n";
-        }
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
 
@@ -2559,204 +3854,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      if (ir_to_fix->data_type_ == DataColumnAliasName) {
+      this->instan_column_alias_name(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
 
-        ir_to_fix->set_is_instantiated(true);
-
-        string closest_table_alias_name = "";
-
-        /* Three situations:
-         * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-         * Customer FROM Customers;`
-         * 2. TypeAliasClause: `SELECT c.x FROM (SELECT COUNT(*) FROM users) AS
-         * c(x);`
-         * 3. TypeAliasClause: WITH r(c) AS (SELECT * FROM v0 WHERE v1 = 100)
-         * SELECT * FROM r WHERE c = 100;
-         *
-         * The 2 and 3 cases are similar.
-         * */
-
-        bool is_alias_clause = false;
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeAliasClause)) {
-          is_alias_clause = true;
-        }
-
-        if (is_alias_clause) {
-          /* Fix the TypeAliasClause scenario first.
-           * This scenario must be handled before the ContextUse of
-           * DataColumnName.
-           * In this case, the TypeTableAlias is provided, we need to
-           * connect the TypeTableAlias to the TypeColumnAlias.
-           * Challenge: We need to make sure the number of
-           * alise column matched the SELECT clause element in the subquery.
-           * Luckily, we can ensure that when running in this scenario,
-           * the subquery has already been instantiated, so that all the column
-           * mappings are correct.
-           */
-
-          // First, check the nearby select subquery.
-          IR *select_subquery =
-              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix,
-                                                                    TypeSelect);
-          if (select_subquery != NULL && select_subquery != cur_stmt_root) {
-            if (is_debug_info) {
-              cerr << "\n\n\nDependency: when fixing the select subquery, "
-                      "found select subquery: "
-                   << select_subquery->to_string() << "\n\n\n";
-            }
-          } else {
-            if (is_debug_info) {
-              cerr << "\n\n\nError: Cannot find the select subquery from the "
-                      "current stmt. "
-                      "skip the current statement fixing. \n\n\n";
-            }
-            continue;
-          }
-
-          // Search whether there are columns defined in the `TypeSelectExprs`.
-          vector<IR *> all_column_in_subselect =
-              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                  select_subquery, DataColumnName);
-          vector<IR *> all_table_in_subselect =
-              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                  select_subquery, DataTableName);
-          vector<IR *> all_stars_in_subselect =
-              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                  select_subquery, TypeUnqualifiedStar);
-
-          // Try to handle the columns defined in the subquery first.
-          // Only look at the columns defined in the SELECT clause:
-          // e.g. `SELECT v1, v2 FROM v0`
-
-          vector<IR *> ref_column_in_subselect;
-          vector<string> new_column_alias_names;
-          string ret_str = "";
-          for (auto &cur_column_in_subselect : all_column_in_subselect) {
-            if (p_oracle->ir_wrapper.is_ir_in(cur_column_in_subselect,
-                                              TypeSelectExprs)) {
-              if (is_debug_info) {
-                cerr << "\n\n\nFound column name in TypeSelectExprs: "
-                     << cur_column_in_subselect->to_string() << "\n\n\n";
-              }
-              ref_column_in_subselect.push_back(cur_column_in_subselect);
-            }
-          }
-
-          int ref_col_idx = 0;
-          if (ref_column_in_subselect.size() > 0) {
-            for (auto &cur_column_in_sub : ref_column_in_subselect) {
-              string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
-              string new_column_alias_name = gen_column_alias_name();
-              m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
-              new_column_alias_names.push_back(new_column_alias_name);
-              if (ref_col_idx > 0) {
-                ret_str += ", ";
-              }
-              ref_col_idx++;
-              ret_str += new_column_alias_name;
-              if (is_debug_info) {
-                cerr << "\n\n\nMapping alias name: " << new_column_alias_name
-                     << " to column name " << cur_col_in_sub_str
-                     << " in TypeSelectExprs. ";
-              }
-            }
-          }
-          // Inherit the ref_col_idx.
-          if (all_stars_in_subselect.size() > 0 &&
-              all_table_in_subselect.size() > 0) {
-            IR *cur_select_table = all_table_in_subselect.front();
-            for (string &matched_column :
-                 m_table2columns[cur_select_table->get_str_val()]) {
-              string new_column_alias_name = gen_column_alias_name();
-              m_alias2column_single[new_column_alias_name] = matched_column;
-              new_column_alias_names.push_back(new_column_alias_name);
-              if (ref_col_idx > 0) {
-                ret_str += ", ";
-              }
-              ref_col_idx++;
-              ret_str += new_column_alias_name;
-              if (is_debug_info) {
-                cerr << "\n\n\nMapping alias name: " << new_column_alias_name
-                     << " to column name " << matched_column
-                     << " in TypeSelectExprs. ";
-              }
-            }
-          }
-
-          // Next, match the table alias name.
-          IR *alias_table_ir =
-              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                  ir_to_fix, DataTableAliasName);
-          string alias_table_str;
-          if (alias_table_ir != NULL) {
-            alias_table_str = alias_table_ir->get_str_val();
-          } else {
-            if (is_debug_info) {
-              cerr << "\n\n\nError: Cannot find table alias name inside the "
-                      "TypeAliasClause \n\n\n";
-              ir_to_fix->set_str_val("x");
-              continue;
-            }
-          }
-
-          for (string &cur_new_column_alias_name : new_column_alias_names) {
-            m_alias_table2column_single[alias_table_str].push_back(
-                cur_new_column_alias_name);
-          }
-
-          // Actually replace the current node.
-          IR *alias_clause_ir = p_oracle->ir_wrapper.get_parent_node_with_type(
-              ir_to_fix, TypeAliasClause);
-          if (alias_clause_ir == NULL || alias_clause_ir->get_right() == NULL) {
-            if (is_debug_info) {
-              cerr << "\n\n\nLogical Error: Cannot find the TypeAliasClauseIR "
-                      "from Columnaliaslist. \n\n\n";
-            }
-            continue;
-          }
-
-          ir_to_deep_drop.push_back(alias_clause_ir->get_right());
-          p_oracle->ir_wrapper.iter_cur_node_with_handler(
-              alias_clause_ir->get_right(), [](IR *cur_node) -> void {
-                cur_node->set_is_instantiated(true);
-                cur_node->set_data_flag(ContextNoModi);
-              });
-          IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
-          alias_clause_ir->update_right(new_column_alias_list);
-
-          continue;
-
-        } else {
-          /* Fix the TypeSelectExprs scenario now.
-           * No need for extra work for this scenario because it is
-           * not very interesting.
-           * 1. TypeSelectExprs: `SELECT CustomerID AS ID, CustomerName AS
-           * Customer FROM Customers;`
-           */
-
-          IR *near_table_ir =
-              p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                  ir_to_fix, DataTableName);
-          string near_table_str;
-          if (near_table_ir != NULL) {
-            near_table_str = near_table_ir->get_str_val();
-          } else {
-            if (is_debug_info) {
-              cerr << "\n\n\nError: Cannot find table alias name inside the "
-                      "TypeAliasClause \n\n\n";
-              ir_to_fix->set_str_val("x");
-              continue;
-            }
-          }
-
-          string column_alias_name = gen_column_alias_name();
-          ir_to_fix->set_str_val(column_alias_name);
-
-          m_alias_table2column_single[near_table_str].push_back(
-              column_alias_name);
-          continue;
-        }
-      }
     }
 
     /* Fix the Data Type identifiers. Must be done after ContextDefine of
@@ -2773,30 +3872,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           data_flag == ContextDefine) {
         // Handling of the Column Data Type definition.
         // Use basic types.
-        auto tmp_affi_type = get_random_affinity_type();
-        string tmp_affi_type_str = get_affinity_type_str_formal(tmp_affi_type);
 
-        ir_to_fix->set_str_val(tmp_affi_type_str);
-        if (is_debug_info) {
-          cerr << "\nFor data type definition, getting new data type: "
-               << tmp_affi_type_str << "\n\n\n";
-        }
+        this->instan_sql_type_name(ir_to_fix, is_debug_info);
 
-        if (ir_to_fix->get_parent() && ir_to_fix->get_parent()->get_left() &&
-            ir_to_fix->get_parent()->get_left()->get_data_type() ==
-                DataColumnName) {
-          DataAffinity cur_data_affi;
-          cur_data_affi.set_data_affinity(tmp_affi_type);
-          string column_str =
-              ir_to_fix->get_parent()->get_left()->get_str_val();
-          this->m_column2datatype[column_str] = cur_data_affi;
-          if (is_debug_info) {
-            cerr << "\nAttach data affinity: "
-                 << get_string_by_affinity_type(
-                        cur_data_affi.get_data_affinity())
-                 << " to column: " << column_str << ". \n\n\n";
-          }
-        }
       }
     }
 
@@ -2808,135 +3886,10 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       if (ir_to_fix->get_is_instantiated()) {
         continue;
       }
-
-      if (ir_to_fix->data_type_ == DataColumnName &&
-          ir_to_fix->data_flag_ == ContextUse) {
-
-        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
-          // Ignore the case that is not in TypeNameList.
-          continue;
+        if (ir_to_fix->data_type_ == DataColumnName &&
+            ir_to_fix->data_flag_ == ContextUse) {
+            this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop, is_debug_info);
         }
-
-        if (is_debug_info) {
-          cerr << "\n\n\nHandling with column name inside the TypeNameList. "
-                  "Column Name: "
-               << ir_to_fix->to_string() << ". \n\n\n";
-        }
-
-        ir_to_fix->set_is_instantiated(true);
-
-        IR *name_list = p_oracle->ir_wrapper.get_parent_node_with_type(
-            ir_to_fix, TypeNameList);
-
-        string closest_table_name =
-            this->find_cloest_table_name(name_list, is_debug_info);
-
-        if (closest_table_name == "" || closest_table_name == "x" ||
-            closest_table_name == "y") {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from "
-                    "the query. Error cloest_table_name is: "
-                 << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-            continue;
-          }
-        }
-
-        vector<string> v_used_column_str;
-
-        vector<string> v_column_names_from_table;
-        if (m_alias_table2column_single.count(closest_table_name) > 0) {
-            v_column_names_from_table =
-                    m_alias_table2column_single[closest_table_name];
-        } else {
-            v_column_names_from_table =
-                    m_table2columns[closest_table_name];
-        }
-        if (v_column_names_from_table.size() == 0) {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find mapping from table name to "
-                    "column name. "
-                    "Find the closest_table_name from "
-                    "the query. Cloest_table_name is: "
-                 << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-          }
-          continue;
-        }
-        int max_values_clause_len = v_column_names_from_table.size();
-
-        vector<IR *> v_new_column_list_node;
-        string ret_str = "";
-        for (int idx = 0; idx < max_values_clause_len;) {
-          string new_rand_column = "";
-          do {
-            new_rand_column = vector_rand_ele(v_column_names_from_table);
-          } while (find(v_used_column_str.begin(), v_used_column_str.end(),
-                        new_rand_column) != v_used_column_str.end());
-          if (is_debug_info) {
-            cerr << "\n\n\n When reconstructing the column names inside the "
-                    "TypeNameList, "
-                 << ", getting random column name: " << new_rand_column
-                 << "\n\n\n";
-          }
-          v_used_column_str.push_back(new_rand_column);
-
-          IR *new_column_node = new IR(TypeIdentifier, string(new_rand_column),
-                                       DataColumnName, ContextNoModi);
-
-          v_new_column_list_node.push_back(new_column_node);
-
-          idx++;
-          if (get_rand_int(5) == 0) {
-            // 1/5 chances, drop the value clause and no need for whole length
-            // typelist.
-            break;
-          }
-        }
-
-        IR *new_name_list_expr = NULL;
-
-        for (int idx = 0; idx < v_new_column_list_node.size(); idx++) {
-          if (idx == 1) {
-            continue;
-          } else if (idx == 0) {
-            IR *LNode = v_new_column_list_node[0];
-            IR *RNode = nullptr;
-            string infix = "";
-            if (v_new_column_list_node.size() >= 2) {
-              RNode = v_new_column_list_node[1];
-              infix = ", ";
-            }
-            new_name_list_expr =
-                new IR(TypeUnknown, OP3("", infix, ""), LNode, RNode);
-          } else {
-            // idx > 2
-            IR *LNode = new_name_list_expr;
-            IR *RNode = v_new_column_list_node[idx];
-
-            new_name_list_expr =
-                new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
-          }
-        }
-
-        IR *name_list_left_child = name_list->get_left();
-        IR *name_list_right_child = name_list->get_right();
-        if (name_list_left_child != nullptr) {
-          ir_to_deep_drop.push_back(name_list_left_child);
-        }
-        if (name_list_right_child != nullptr) {
-          ir_to_deep_drop.push_back(name_list_right_child);
-        }
-        p_oracle->ir_wrapper.iter_cur_node_with_handler(
-            name_list, [](IR *cur_node) -> void {
-              cur_node->set_is_instantiated(true);
-              cur_node->set_data_flag(ContextNoModi);
-            });
-        name_list->update_left(nullptr);
-        name_list->update_right(nullptr);
-
-        new_name_list_expr->set_ir_type(TypeNameList);
-        name_list->update_left(new_name_list_expr);
-        name_list->op_->middle_ = "";
-      }
     }
 
     /* kUse of kDataColumnName */
@@ -2945,151 +3898,28 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      if (ir_to_fix->data_type_ == DataColumnName &&
-          ir_to_fix->data_flag_ == ContextUse) {
-        if (is_debug_info) {
-          cerr << "Dependency: ori column name: " << ir_to_fix->str_val_
-               << "\n\n\n";
-          cerr << "In the kDataColumnName with kUse, found "
-                  "v_table_alias_names_single.size: "
-               << v_table_alias_names_single.size() << "\n\n\n";
+        if (ir_to_fix->data_type_ == DataColumnName &&
+            ir_to_fix->data_flag_ == ContextUse) {
+            this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop, is_debug_info);
         }
 
-        ir_to_fix->set_is_instantiated(true);
-
-        // Actual random mutation of the ColumnName. ContextUse.
-        string closest_table_name =
-            this->find_cloest_table_name(ir_to_fix, is_debug_info);
-
-        if (closest_table_name == "" || closest_table_name == "x" ||
-            closest_table_name == "y") {
-          if (is_debug_info) {
-            cerr << "Dependency Error: Cannot find the closest_table_name from "
-                    "the query. Error closest_table_name is: "
-                 << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-            ir_to_fix->set_str_val("x");
-            continue;
-          }
-          bool is_found = false;
-          if (v_table_alias_names_single.size() != 0) {
-            closest_table_name = vector_rand_ele(v_table_alias_names_single);
-            if (is_debug_info) {
-              cerr << "Dependency: In column fixing, find table alias name from "
-                      "v_table_alias_names_single: " << closest_table_name
-                   << ". \n\n\n";
-            }
-            is_found = true;
-          }
-          if (!is_found && v_table_names_single.size() != 0) {
-              closest_table_name = vector_rand_ele(v_table_names_single);
-              if (is_debug_info) {
-                  cerr << "Dependency: In column fixing, find table alias name from "
-                          "v_table_names_single: " << closest_table_name
-                       << ". \n\n\n";
-              }
-              is_found = true;
-          }
-
-          if (!is_found) {
-            ir_to_fix->set_str_val("x");
-            if (is_debug_info) {
-                cerr << "Dependency: In column fixing, failed to find any table inside the statement. "
-                        "dumping random x as column name. \n\n\n";
-            }
-            continue;
-          }
-        }
-
-        vector<string> cur_mapped_column_name_vec;
-        if (m_alias_table2column_single.count(closest_table_name) > 0) {
-             cur_mapped_column_name_vec =
-                    m_alias_table2column_single[closest_table_name];
-        } else {
-            cur_mapped_column_name_vec =
-                    m_table2columns[closest_table_name];
-        }
-
-        if (is_debug_info) {
-          cerr << "Dependency: In kUse of kDataColunName, use origin table "
-                  "name: "
-               << closest_table_name
-               << ". column size is: " << cur_mapped_column_name_vec.size()
-               << ". \n\n\n";
-        }
-        if (cur_mapped_column_name_vec.size() > 0) {
-          string cur_chosen_column = cur_mapped_column_name_vec[get_rand_int(
-              cur_mapped_column_name_vec.size())];
-          ir_to_fix->str_val_ = cur_chosen_column;
-          ir_to_fix->set_is_instantiated(true);
-          v_column_names_single.push_back(cur_chosen_column);
-          if (is_debug_info) {
-            cerr << "Dependency: In kDataColumnName, kUse, we choose "
-                    "closest_table_name: "
-                 << closest_table_name
-                 << " and column_name: " << cur_chosen_column << ". \n\n\n";
-          }
-        } else {
-          /* Unreconized, keep original */
-          // ir_to_fix->str_val_ = "y";
-          ir_to_fix->set_is_instantiated(true);
-          if (is_debug_info) {
-            cerr << "Dependency Error: In kDataColumnName, kUse, cannot find "
-                    "mapping from table_name"
-                 << closest_table_name << ". \n\n\n";
-          }
-        }
-      }
     }
 
-    // TODO: FIXME: Foreign table handling. Add it back later.
-    //      } else if (
-    //        (
-    //          ir_to_fix->data_type_ == kDataForeignTableName
-    //        ) &&
-    //        ir_to_fix->data_flag_ == kUndefine)
-    //      {
-    //        if (v_foreign_table_name.size() > 0 ) {
-    //          /* Find table name in the foreign table vector, not normal
-    //          table vec.  */ string removed_table_name =
-    //          v_foreign_table_name[get_rand_int(v_foreign_table_name.size())];
-    //          v_foreign_table_name.erase(std::remove(v_foreign_table_name.begin(),
-    //          v_foreign_table_name.end(), removed_table_name),
-    //          v_foreign_table_name.end());
-    //
-    //          v_table_names.erase(std::remove(v_table_names.begin(),
-    //          v_table_names.end(), removed_table_name),
-    //          v_table_names.end());
-    //          v_table_names_single.erase(std::remove(v_table_names_single.begin(),
-    //          v_table_names_single.end(), removed_table_name),
-    //          v_table_names_single.end()); ir_to_fix->str_val_ =
-    //          removed_table_name; fixed_ir.push_back(ir_to_fix); if
-    //          (is_debug_info) {
-    //            cerr << "Dependency: Removed from v_foreign_table_names: "
-    //            << removed_table_name << ", in kDataForeignTableName with
-    //            kUndefine \n\n\n";
-    //          }
-    //          if (is_replace_table &&
-    //          v_create_foreign_table_names_single.size() != 0) {
-    //            string new_table_name =
-    //            v_create_foreign_table_names_single.front();
-    //            m_table2columns[new_table_name] =
-    //            m_table2columns[removed_table_name];
-    //          }
-    //
-    //        } else {
-    //          if (is_debug_info) {
-    //            cerr << "Dependency Error: Failed to find info in
-    //            v_foreign_table_names, in kDataForeignTableName with
-    //            kUndefine. \n\n\n";
-    //          }
-    //          /* Unreconized, keep original */
-    //          // ir_to_fix->str_val_ = "y";
-    //          fixed_ir.push_back(ir_to_fix);
-    //        }
-    //
-    //      }
+//      /* kUse of DataForeignTable */
+//      for (IR *ir_to_fix : ir_to_fix_vec) {
+//          if (ir_to_fix->get_is_instantiated()) {
+//              continue;
+//          }
+//
+//          if (ir_to_fix->data_type_ == kDataForeignTableName &&
+//              ir_to_fix->data_flag_ == ContextDefine) {
+//              this->instan_foreign_table_name(ir_to_fix, is_debug_info);
+//          }
+//
+//      }
 
-      /* Fix for reloptions. (Related options. ) and function names.  */
+
+      /* Fix function names.  */
       for (IR *ir_to_fix : ir_to_fix_vec) {
 
           if (ir_to_fix->get_is_instantiated()) {
@@ -3102,168 +3932,35 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
                   continue;
               }
 
-              string cur_func_str = ir_to_fix->get_str_val();
-
-              cur_func_str = str_tolower(cur_func_str);
-
-              if (func_str_to_type_map.find(cur_func_str) ==
-                  func_str_to_type_map.end()) {
-                  if (is_debug_info) {
-                      cerr << "\n\n\nFor function name: " << cur_func_str
-                           << ", cannot find its "
-                              "matching function type. Do not mutate the name in the "
-                              "instantiation. \n\n\n";
-                  }
-                  continue;
-              }
-
-              // TODO:: FIXME::
+              instan_function_name(ir_to_fix, ir_to_deep_drop, is_debug_info);
 
           }
       }
 
+      /* Fix for statistic and sequence name */
       for (IR *ir_to_fix : ir_to_fix_vec) {
           if (ir_to_fix->get_is_instantiated()) {
               continue;
           }
 
           if (ir_to_fix->get_data_type() == DataStatsName) {
-              if (ir_to_fix->get_data_flag() == ContextDefine) {
-                  string cur_chosen_name = gen_statistic_name();
-                  ir_to_fix->set_str_val(cur_chosen_name);
-                  ir_to_fix->set_is_instantiated(true);
-                  v_statistics_name.push_back(cur_chosen_name);
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-                  if (!v_statistics_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_statistics_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-                  ir_to_fix->set_is_instantiated(true);
-
-                  /* remove the statistic name from the vector */
-                  vector<string> v_tmp;
-                  for (string &s : v_statistics_name) {
-                      if (s != cur_chosen_name) {
-                          v_tmp.push_back(s);
-                      }
-                  }
-                  v_statistics_name = v_tmp;
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUse) {
-                  if (!v_statistics_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_statistics_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-                  ir_to_fix->set_is_instantiated(true);
-              }
+              this->instan_statistic_name(ir_to_fix, is_debug_info);
           }
 
           /* Fix for kDataSequenceName */
           if (ir_to_fix->get_data_type() == DataSequenceName) {
-              ir_to_fix->set_is_instantiated(true);
-              if (ir_to_fix->get_data_flag() == ContextDefine) {
-                  // string cur_chosen_name = gen_sequence_name();
-                  // ir_to_fix->set_str_val(cur_chosen_name);
-
-                  /* Yu: Do not fix for sequence name for now */
-                  string cur_chosen_name = ir_to_fix->get_str_val();
-                  v_sequence_name.push_back(cur_chosen_name);
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-                  if (!v_sequence_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_sequence_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-
-                  /* remove the statistic name from the vector */
-                  vector<string> v_tmp;
-                  for (string &s : v_sequence_name) {
-                      if (s != cur_chosen_name) {
-                          v_tmp.push_back(s);
-                      }
-                  }
-                  v_sequence_name = v_tmp;
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUse) {
-                  if (!v_sequence_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_sequence_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-              }
+             this->instan_sequence_name(ir_to_fix, is_debug_info);
           }
 
           /* Fix for kDataConstraintName */
           if (ir_to_fix->get_data_type() == DataConstraintName) {
-              ir_to_fix->set_is_instantiated(true);
-              if (ir_to_fix->get_data_flag() == ContextDefine) {
-
-                  string cur_chosen_name = gen_constraint_name();
-                  ir_to_fix->set_str_val(cur_chosen_name);
-                  v_constraint_name.push_back(cur_chosen_name);
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-                  if (!v_constraint_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_constraint_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-
-                  /* remove the statistic name from the vector */
-                  vector<string> v_tmp;
-                  for (string &s : v_constraint_name) {
-                      if (s != cur_chosen_name) {
-                          v_tmp.push_back(s);
-                      }
-                  }
-                  v_constraint_name = v_tmp;
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUse) {
-                  if (!v_constraint_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_constraint_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-              }
+              this->instan_constraint_name(ir_to_fix, is_debug_info);
           }
 
 
           /* Fix for DataFamilyName */
           if (ir_to_fix->get_data_type() == DataFamilyName) {
-              ir_to_fix->set_is_instantiated(true);
-              if (ir_to_fix->get_data_flag() == ContextDefine) {
-
-                  string cur_chosen_name = gen_family_name();
-                  ir_to_fix->set_str_val(cur_chosen_name);
-                  v_family_name.push_back(cur_chosen_name);
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUndefine) {
-                  if (!v_family_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_family_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-
-                  /* remove the statistic name from the vector */
-                  vector<string> v_tmp;
-                  for (string &s : v_family_name) {
-                      if (s != cur_chosen_name) {
-                          v_tmp.push_back(s);
-                      }
-                  }
-                  v_family_name = v_tmp;
-              }
-
-              else if (ir_to_fix->get_data_flag() == ContextUse) {
-                  if (!v_family_name.size())
-                      continue;
-                  string cur_chosen_name = vector_rand_ele(v_family_name);
-                  ir_to_fix->set_str_val(cur_chosen_name);
-              }
+              this->instan_family_name(ir_to_fix, is_debug_info);
           }
       }
 
@@ -3273,202 +3970,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
 
-      IRTYPE type = ir_to_fix->get_ir_type();
+      this->instan_literal(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
 
-      if (type == TypeFloatLiteral || type == TypeStringLiteral ||
-          type == TypeIntegerLiteral) {
-        /* Completely rewritten Literal handling and mutation logic.
-         * The idea is to search for the closest Column Name or fixed literals,
-         * and try to match the type of the column name or literal.
-         * */
-
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
-            /*
-             * Should not change any literals inside the TypeOptStorageParams clause.
-             * These literals are for Storage Parameters (Storage Settings).
-             * These values will be fixed by another fixing function,
-             * later in the second ir_to_fix loop.
-             * */
-            continue;
-        }
-
-        // IF NOT IN!!! Skipped.
-        if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
-          // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
-          // branch. These literals would be handled later by the next `Fix for
-          // literals` loop.
-          /* Do not set the is_instantiated flag. */
-          continue;
-        }
-
-        ir_to_fix->set_is_instantiated(true);
-
-        // Handle the ValuesClause.
-        // Get the TypeValuesClause first.
-        IR *values_clause_node = p_oracle->ir_wrapper.get_parent_node_with_type(
-            ir_to_fix, TypeValuesClause);
-
-        // Remove the original expressions.
-        IR *values_expr_node = values_clause_node->get_left();
-        values_clause_node->update_left(nullptr);
-        // Avoid further handling of the child node from `TypeValueClauses`
-        p_oracle->ir_wrapper.iter_cur_node_with_handler(
-            values_expr_node, [](IR *cur_node) -> void {
-              cur_node->set_is_instantiated(true);
-              cur_node->set_data_flag(ContextNoModi);
-            });
-        ir_to_deep_drop.push_back(values_expr_node);
-        if (is_debug_info) {
-          cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
-                  "expression:"
-               << values_expr_node->to_string() << "\n\n\n";
-        }
-
-        /* Reconstruct the new Value clause that matched the referenced table.
-         */
-
-        // Search whether there are referenced columns in the `TypeNameList`.
-        // If there is, should be the first TypeNameList from the statement.
-        vector<IR *> v_type_name_list =
-            p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                cur_stmt_root, TypeNameList, false);
-
-        vector<DataAffinity> referencing_affinity;
-        if (v_type_name_list.size() == 0) {
-          // Cannot find a specifically referenced column name list.
-          // Use the referenced table name to refer to the column name list.
-          if (is_debug_info) {
-            cerr << "\n\n\nDependency: Cannot find the column name list from "
-                    "the statement. \n\n\n";
-          }
-
-          // Find the table name used in this statement.
-          if (v_table_names_single.size() == 0) {
-            if (is_debug_info) {
-              cerr << "\n\n\nERROR: Cannot find the column name list AND table "
-                      "name from the statement. \n\n\n";
-            }
-            DataAffinity cur_affi;
-            cur_affi.set_data_affinity(AFFISTRING);
-            referencing_affinity.push_back(cur_affi);
-          } else {
-            // Found the table name referenced from the statement.
-            if (is_debug_info) {
-              cerr << "\n\n\nFound the table name referenced from the "
-                      "statement, "
-                      "table name: "
-                   << v_table_names_single.front() << ". \n\n\n";
-            }
-            string cur_table_name = v_table_names_single.front();
-            vector<string> column_list;
-            bool is_alias = false;
-            if (m_alias_table2column_single.count(cur_table_name) > 0) {
-                is_alias = true;
-                column_list = m_alias_table2column_single[cur_table_name];
-            } else {
-                is_alias = false;
-                column_list = m_table2columns[cur_table_name];
-            }
-            for (const string &cur_column_str : column_list) {
-                string actual_column_str = cur_column_str;
-                if (is_alias && m_alias2column_single.count(actual_column_str) > 0) {
-                    if (is_debug_info) {
-                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
-                                << cur_column_str << " to column name: "
-                                << actual_column_str << "\n\n\n";
-                    }
-                    actual_column_str = m_alias2column_single[cur_column_str];
-                }
-              if (m_column2datatype.count(actual_column_str) > 0) {
-                DataAffinity cur_affi = m_column2datatype[actual_column_str];
-                referencing_affinity.push_back(cur_affi);
-                if (is_debug_info) {
-                  cerr << "\n\n\nMatching column: " << cur_column_str
-                       << " from table: " << cur_table_name
-                       << " with data type: "
-                       << get_string_by_affinity_type(
-                              cur_affi.get_data_affinity())
-                       << "\n\n\n";
-                }
-              } else {
-                DataAffinity cur_affi;
-                cur_affi.set_data_affinity(AFFISTRING);
-                referencing_affinity.push_back(cur_affi);
-                if (is_debug_info) {
-                  cerr << "\n\n\n Cannot find matching column types: "
-                       << cur_column_str << ". Using dummy AFFISTRING instead. "
-                       << "\n\n\n";
-                }
-              }
-            }
-          }
-        } else {
-          if (is_debug_info) {
-            cerr << "\n\n\nDependency: Find the column name list from the stmt:"
-                 << v_type_name_list.front()->to_string() << ". \n\n\n";
-          }
-
-          IR *type_list_node = v_type_name_list.front();
-          vector<IR *> v_column_node =
-              p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                  type_list_node, DataColumnName, false);
-          //                cerr << "\n\n\nDEBUG:::: Getting v_column_node size:
-          //                " << v_column_node.size() << "\n\n\n";
-          for (IR *cur_column_node : v_column_node) {
-            string cur_column_str = cur_column_node->get_str_val();
-            if (m_column2datatype.count(cur_column_str) || m_alias2column_single.count(cur_column_str)) {
-                string actual_column_str = cur_column_str;
-                if (m_alias2column_single.count(cur_column_str)) {
-                    actual_column_str = m_alias2column_single[cur_column_str];
-                    if (is_debug_info) {
-                        cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
-                             << cur_column_str << " to column name: "
-                             << actual_column_str << "\n\n\n";
-                    }
-                }
-              DataAffinity cur_affi = m_column2datatype[actual_column_str];
-              referencing_affinity.push_back(cur_affi);
-              if (is_debug_info) {
-                cerr << "\n\n\nMatching column: " << cur_column_str
-                     << " with data type: "
-                     << get_string_by_affinity_type(
-                            cur_affi.get_data_affinity())
-                     << "\n\n\n";
-              }
-            } else {
-              DataAffinity cur_affi;
-              cur_affi.set_data_affinity(AFFISTRING);
-              referencing_affinity.push_back(cur_affi);
-              if (is_debug_info) {
-                cerr << "\n\n\n Cannot find matching column types: "
-                     << cur_column_str << ". Using dummy AFFISTRING instead. "
-                     << "\n\n\n";
-              }
-            }
-          }
-        }
-
-        // After we get a list of referencing_affinity, we can now begin to fill
-        // in the ValuesClause expression.
-        string ret_str = "";
-        int idx = 0;
-        for (DataAffinity &cur_affi : referencing_affinity) {
-          if (idx != 0) {
-            ret_str += ", ";
-          }
-          ret_str += cur_affi.get_mutated_literal();
-          idx++;
-        }
-        IR *new_values_expr_node = new IR(TypeStringLiteral, ret_str);
-        new_values_expr_node->set_is_instantiated(true);
-
-        values_clause_node->update_left(new_values_expr_node);
-
-        if (is_debug_info) {
-          cerr << "\n\n\nDependency: getting new valuesclause expression: "
-               << new_values_expr_node->to_string() << ". \n\n\n";
-        }
-      }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
     /* The next loop to handle all the Literals, after setting all literals to
@@ -3487,64 +3990,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
          * Data Affinity.
          * */
 
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
-            /*
-             * Should not change any literals inside the TypeOptStorageParams clause.
-             * These literals are for Storage Parameters (Storage Settings).
-             * These values will be fixed by another fixing function,
-             * later in the second ir_to_fix loop.
-             * */
-            continue;
-        }
+        this->instan_literal(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
 
-        ir_to_fix->set_is_instantiated(true);
-
-        if (is_debug_info) {
-          cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string()
-               << "\n\n\n";
-        }
-
-        // If the literal already has fixed data affinity type, skip the
-        // mutation.
-        if (ir_to_fix->get_data_flag() == ContextNoModi) {
-          if (is_debug_info) {
-            cerr << "\n\n\nSkip fixing literal: " << ir_to_fix->to_string()
-                 << " because it has "
-                    "flag ContextNoModi. \n\n\n";
-          }
-          continue;
-        }
-        //          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
-        //              continue;
-        //          }
-
-        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
-          // Do not mutate the literals inside the SET statement.
-          // The set statement's literal has already been fixed when introduced.
-          continue;
-        }
-
-        ir_to_fix->set_data_affinity(this->get_nearby_data_affinity(ir_to_fix, is_debug_info));
-
-        /* After knowing the data affinity of the literal,
-         * we have two choices to instantiate the value.
-         * 1. If the current data affinity is the same as previous
-         * fixed literals, reuse the value.
-         * 2. Mutate to get a new value.
-         * */
-        if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
-            get_rand_int(2) == 0) {
-          // Reuse previous defined literals.
-          string tmp_new_literal = vector_rand_ele(
-              m_datatype2literals[ir_to_fix->get_data_affinity()]);
-          ir_to_fix->set_str_val(tmp_new_literal);
-        } else {
-          // Now we ensure the ir_to_fix has an affinity.
-          // Mutate the literal with the affinity
-          ir_to_fix->mutate_literal(); // Handles everything.
-          m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(
-              ir_to_fix->get_str_val());
-        }
       }
     } /* for (IR* ir_to_fix : ir_to_fix_vec) */
 
@@ -3558,36 +4005,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
         if (type == TypeStorageParams && data_type == DataStorageParams) {
 
-            if (ir_to_fix->get_parent() == NULL) {
-                cerr << "\n\n\nLogical Error: Getting empty parent from TypeStorageParams. \n\n\n";
-            }
-
-            IR* opt_storage_params = ir_to_fix->get_parent();
-
-            IR* opt_storage_params_left = opt_storage_params->get_left();
-            IR* opt_storage_params_right = opt_storage_params->get_right();
-
-            if (opt_storage_params_left != NULL) {
-                p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                        opt_storage_params_left, [](IR* cur_node) -> void {
-                            cur_node->set_is_instantiated(true);
-                            cur_node->set_data_flag(ContextNoModi);
-                        });
-                ir_to_deep_drop.push_back(opt_storage_params_left);
-            }
-            if (opt_storage_params_right != NULL) {
-                p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                        opt_storage_params_right, [](IR* cur_node) -> void {
-                            cur_node->set_is_instantiated(true);
-                            cur_node->set_data_flag(ContextNoModi);
-                        });
-                ir_to_deep_drop.push_back(opt_storage_params_right);
-            }
-
-            // Do not use param_num == 0;
-            IR* new_storage_param_node = this->constr_rand_storage_param(get_rand_int(3)+1);
-            opt_storage_params->update_left(new_storage_param_node);
-            opt_storage_params->update_right(NULL);
+            this->instan_storage_param (ir_to_fix, ir_to_deep_drop, is_debug_info);
 
         }
 
@@ -3609,277 +4027,52 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
   */
   for (const vector<IR *> &ir_to_fix_vec : cur_stmt_ir_to_fix_vec) {
 
-    /* Added mapping for Inheritance.  */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->data_type_ == DataTableName &&
-          (cur_stmt_root->get_ir_type() == TypeCreateTable ||
-           cur_stmt_root->get_ir_type() == TypeCreateView ||
-           cur_stmt_root->get_ir_type() == TypeCreateIndex) &&
-          //        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kOptInherit) &&
-          ir_to_fix->data_flag_ == ContextUse) {
-        if (v_create_table_names_single.size() > 0) {
-          string cur_new_table_name_str = v_create_table_names_single.front();
-          string inherit_table_name_str = ir_to_fix->get_str_val();
+      /* Added mapping for Inheritance.  */
+      for (IR *ir_to_fix: ir_to_fix_vec) {
+          if (ir_to_fix->data_type_ == DataTableName &&
+              (cur_stmt_root->get_ir_type() == TypeCreateTable ||
+               cur_stmt_root->get_ir_type() == TypeCreateView ||
+               cur_stmt_root->get_ir_type() == TypeCreateIndex) &&
+              //        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kOptInherit) &&
+              ir_to_fix->data_flag_ == ContextUse) {
+              if (v_create_table_names_single.size() > 0) {
+                  string cur_new_table_name_str = v_create_table_names_single.front();
+                  string inherit_table_name_str = ir_to_fix->get_str_val();
 
-          vector<string> &inherit_m_tables =
-              m_table2columns[inherit_table_name_str];
+                  vector<string> &inherit_m_tables =
+                          m_table2columns[inherit_table_name_str];
 
-          for (string col_name : inherit_m_tables) {
-            m_table2columns[cur_new_table_name_str].push_back(col_name);
-          }
-        }
-      }
-    }
-
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->data_type_ != DataTableName &&
-          ir_to_fix->data_type_ != DataViewName) {
-        continue;
-      }
-
-      /* Add missing mapping for CREATE VIEW stmt.  */
-      /* Check whether we are in the CreateViewStatement. If yes, save the
-       * column mapping. */
-      IR *cur_ir = ir_to_fix;
-      bool is_in_create_view = false;
-      if (cur_stmt_root->get_ir_type() == TypeCreateView) {
-          is_in_create_view = true;
-      }
-      if (is_in_create_view) {
-        /* Added column mapping for CREATE TABLE/VIEW... v0 AS SELECT...
-         * statement.
-         */
-        if (is_debug_info) {
-          cerr << "Dependency: In CREATE VIEW statement, getting "
-                  "cur_stmt_ir_to_fix_vec.size: "
-               << cur_stmt_ir_to_fix_vec.size() << ". \n\n\n";
-        }
-        // id_column_name should be in the subquery and already been resolved
-        // in the previous loop.
-        vector<IR *> tmp_column_vec;
-        vector<IR *> all_mentioned_column_vec;
-        set<DATATYPE> column_type_set = {DataColumnName};
-        collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
-
-        for (IR* cur_mentioned_column : all_mentioned_column_vec) {
-            if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_column, TypeSelectExprs)) {
-                tmp_column_vec.push_back(cur_mentioned_column);
-            }
-        }
-        all_mentioned_column_vec = tmp_column_vec;
-        tmp_column_vec.clear();
-
-        /* Fix: also, add column alias name defined here to the table */
-        vector<IR *> all_mentioned_column_alias_vec;
-        set<DATATYPE> column_alias_type_set = {DataColumnAliasName};
-        collect_ir(cur_stmt_root, column_alias_type_set,
-                   all_mentioned_column_alias_vec);
-
-        for (IR* cur_mentioned_alias : all_mentioned_column_alias_vec) {
-            if (p_oracle->ir_wrapper.is_ir_in(cur_mentioned_alias, TypeSelectExprs)) {
-                tmp_column_vec.push_back(cur_mentioned_alias);
-            }
-        }
-        all_mentioned_column_alias_vec = tmp_column_vec;
-        tmp_column_vec.clear();
-
-        if (is_debug_info) {
-          cerr << "Dependency: When building extra mapping for CREATE VIEW AS, "
-                  "collected kDataColumnName.size: "
-               << all_mentioned_column_vec.size() << ". \n\n\n";
-        }
-
-        if (all_mentioned_column_alias_vec.size() != 0) {
-          m_table2columns[ir_to_fix->get_str_val()].clear();
-          for (auto &cur_column_alias_ir : all_mentioned_column_alias_vec) {
-            string cur_column_alias = cur_column_alias_ir->get_str_val();
-            m_table2columns[ir_to_fix->get_str_val()].push_back(
-                cur_column_alias);
-              if (is_debug_info) {
-                  cerr << "Dependency: Adding mappings: For table/view: "
-                       << ir_to_fix->str_val_
-                       << ", map from column alias to column str: " <<cur_column_alias
-                       << ". \n\n\n";
-              }
-          }
-        } else {
-          for (const IR *const cur_men_column_ir : all_mentioned_column_vec) {
-            string cur_men_column_str = cur_men_column_ir->str_val_;
-            if (findStringIn(cur_men_column_str, ".")) {
-              vector<string> v_cur_men_column_str =
-                  string_splitter(cur_men_column_str, '.');
-              cur_men_column_str =
-                  v_cur_men_column_str[v_cur_men_column_str.size() - 1];
-            }
-            vector<string> &cur_m_table = m_table2columns[ir_to_fix->str_val_];
-            if (std::find(cur_m_table.begin(), cur_m_table.end(),
-                          cur_men_column_str) == cur_m_table.end()) {
-              m_table2columns[ir_to_fix->str_val_].push_back(
-                  cur_men_column_str);
-              if (is_debug_info) {
-                cerr << "Dependency: Adding mappings: For table/view: "
-                     << ir_to_fix->str_val_
-                     << ", map with column: " << cur_men_column_str
-                     << ". \n\n\n";
-              }
-            }
-          }
-
-          /* For CREATE VIEW x AS SELECT * FROM v0; */
-          if (all_mentioned_column_vec.size() == 0) {
-            if (is_debug_info) {
-              cerr
-                  << "Dependency: For mapping CREATE VIEW, cannot find column "
-                     "name in the current subqueries. Thus, see if we can find "
-                     "table names, and map from there. \n\n\n";
-            }
-            vector<IR *> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
-            set<DATATYPE> table_type_set = {DataTableName};
-            collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
-            for (IR *mentioned_table_ir : all_mentioned_table_vec) {
-              if (mentioned_table_ir->data_flag_ == ContextUse) {
-                all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
-                if (is_debug_info) {
-                  cerr << "Dependency: For mapping CREATE VIEW, getting "
-                          "mentioned table name: "
-                       << mentioned_table_ir->str_val_ << ". \n\n\n";
-                }
-              }
-            }
-            for (IR *cur_men_tablename_ir : all_mentioned_table_kUsed_vec) {
-              string cur_men_tablename_str = cur_men_tablename_ir->str_val_;
-              const vector<string> &cur_men_column_vec =
-                  m_table2columns[cur_men_tablename_str];
-              for (const string &cur_men_column_str : cur_men_column_vec) {
-                vector<string> &cur_m_table =
-                    m_table2columns[ir_to_fix->str_val_];
-                if (std::find(cur_m_table.begin(), cur_m_table.end(),
-                              cur_men_column_str) == cur_m_table.end()) {
-                  m_table2columns[ir_to_fix->str_val_].push_back(
-                      cur_men_column_str);
-                  if (is_debug_info) {
-                    cerr << "Dependency: Adding mappings: For table/view: "
-                         << ir_to_fix->str_val_
-                         << ", map with column: " << cur_men_column_str
-                         << ". \n\n\n";
+                  for (string col_name: inherit_m_tables) {
+                      m_table2columns[cur_new_table_name_str].push_back(col_name);
                   }
-                }
               }
-            } // for (IR* cur_men_tablename_ir : all_mentioned_table_kUsed_vec)
-          }   // if (all_mentioned_column_vec.size() == 0)
-        }
+          }
+      }
 
-        /* The extra mapping only need to be done once. Once reach this point,
-         * break the loop. */
-        break;
-      } // if (is_in_create_view)
+      for (IR *ir_to_fix: ir_to_fix_vec) {
 
+          this->map_create_view(ir_to_fix, cur_stmt_root, cur_stmt_ir_to_fix_vec, is_debug_info);
 
-    } // for (IR* ir_to_fix : ir_to_fix_vec)
+      } // for (IR* ir_to_fix : ir_to_fix_vec)
 
-    // The second loop that fix the DataViewColumn.
-    // Need to rewrite the column mapping.
-    for (IR* ir_to_fix : ir_to_fix_vec) {
-        if (ir_to_fix->get_data_type() == DataViewColumnName) {
+      // The second loop that fix the DataViewColumn.
+      // Need to rewrite the column mapping.
+      for (IR *ir_to_fix: ir_to_fix_vec) {
+          if (ir_to_fix->get_data_type() == DataViewColumnName) {
+              if (cur_stmt_root->get_ir_type() != TypeCreateView) {
+                  cerr << "\n\n\nError: Finding DataViewColumnName that is not in the Create View statement. \n\n\n";
+                  continue;
+              }
+              this->map_create_view_column(ir_to_fix, ir_to_deep_drop, is_debug_info);
+          }
+      }
+  } // for (const vector<IR *> &ir_to_fix_vec : cur_stmt_ir_to_fix_vec)
 
-           if (cur_stmt_root->get_ir_type() != TypeCreateView) {
-               cerr << "\n\n\nError: Finding DataViewColumnName that is not in the Create View statement. \n\n\n";
-               continue;
-           }
-
-           IR* type_name_list = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
-           if (type_name_list == NULL) {
-               if (is_debug_info) {
-                   cerr
-                           << "\n\n\nError: In DataViewColumnName fixing. Cannot find the type_name_list from the statement."
-                              "More debug info, view column is: " << ir_to_fix->to_string() << ". \n\n\n";
-               }
-               continue;
-           }
-
-           string ret_str = "";
-           IR* near_view_name_node = p_oracle->ir_wrapper
-                   .find_closest_nearby_IR_with_type(ir_to_fix, DataViewName);
-           if (near_view_name_node == NULL) {
-               if (is_debug_info) {
-                   cerr << "\n\n\nError: In DataViewColumnName fixing. Cannot find the near_view_name from the "
-                           "statement. More debug info, view column is: " << ir_to_fix->to_string() << ". \n\n\n";
-               }
-           }
-           string near_view_name_str = near_view_name_node->to_string();
-           vector<string> matched_columns = m_table2columns[near_view_name_str];
-
-           vector<string> v_new_view_col_name_str;
-           int view_col_idx = 0;
-           for (string cur_matched_columns : matched_columns) {
-               string new_view_column_name = gen_view_column_name();
-               v_new_view_col_name_str.push_back(new_view_column_name);
-               m_column2datatype[new_view_column_name] = m_column2datatype[cur_matched_columns];
-
-               if (view_col_idx != 0) {
-                   ret_str += ", ";
-               }
-
-               view_col_idx ++;
-               ret_str += new_view_column_name;
-
-               if (is_debug_info) {
-                   cerr << "\n\n\nDependency: INFO:: Transporting data affinity from column: "
-                        << cur_matched_columns << " to view column: " << new_view_column_name
-                        << ", with affinity: "
-                        << get_string_by_affinity_type(m_column2datatype[new_view_column_name].get_data_affinity())
-                        << ". \n\n\n";
-               }
-           }
-
-           m_table2columns[near_view_name_str] = v_new_view_col_name_str;
-
-            if (is_debug_info) {
-                for (string& view_col_name: v_new_view_col_name_str) {
-                    cerr << "\n\n\nDependency: INFO:: Appending new view column: "
-                         << view_col_name
-                         << " to view: " << near_view_name_str
-                         << ". \n\n\n";
-                }
-            }
-
-            // At last, switch the whole TypeNameList node in the Create View column clause.
-//            ret_str = "(" + ret_str + ")";
-            IR* new_name_list_ir = new IR(TypeNameList, ret_str);
-
-            IR* name_list_left = type_name_list->get_left();
-            IR* name_list_right = type_name_list->get_right();
-
-            if (name_list_left != NULL) {
-                ir_to_deep_drop.push_back(name_list_left);
-                p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                        name_list_left, [](IR* cur_node) -> void {
-                            cur_node->set_is_instantiated(true);
-                            cur_node->set_data_flag(ContextNoModi);
-                        });
-            }
-            if (name_list_right) {
-                ir_to_deep_drop.push_back(name_list_right);
-                p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                        name_list_right, [](IR* cur_node) -> void {
-                            cur_node->set_is_instantiated(true);
-                            cur_node->set_data_flag(ContextNoModi);
-                        });
-            }
-
-            type_name_list->update_left(new_name_list_ir);
-            type_name_list->update_right(NULL);
-        }
-    }
-
+  for (IR *ir_to_drop: ir_to_deep_drop) {
+      if (ir_to_drop) {
+          ir_to_drop->deep_drop();
+      }
   }
-
-  for (IR *ir_to_drop : ir_to_deep_drop) {
-    if (ir_to_drop) {
-      ir_to_drop->deep_drop();
-    }
-  }
-
   return true;
 }
 
