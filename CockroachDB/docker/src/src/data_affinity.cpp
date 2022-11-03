@@ -18,6 +18,9 @@ string get_string_by_affinity_type(DATAAFFINITYTYPE type) {
 }
 
 inline void rewrite_data_affinity_string_macro(string& in) {
+
+    in = str_toupper(in);
+
     if (in.size() > 4 && in.substr(0, 4) == "AFFI") {
         return;
     } else {
