@@ -53,6 +53,7 @@ map<string, string>
 map<string, vector<string>> Mutator::m_alias_table2column_single;
 
 map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
+map<DATAAFFINITYTYPE, vector<string>> Mutator::m_datatype2column; // New solution.
 
 map<DATAAFFINITYTYPE, vector<string>> Mutator::m_datatype2literals;
 
@@ -1388,7 +1389,8 @@ void Mutator::fix_preprocessing(IR *stmt_root,
       DataColumnName,      DataTableName,    DataIndexName, DataTableAliasName,
       DataColumnAliasName, DataSequenceName, DataViewName,  DataConstraintName,
       DataSequenceName,    DataTypeName,     DataLiteral,   DataDatabaseName,
-      DataSchemaName,      DataViewColumnName, DataFamilyName, DataStorageParams
+      DataSchemaName,      DataViewColumnName, DataFamilyName, DataStorageParams,
+      DataFunctionExpr
   };
   vector<IR *> ir_to_fix;
   collect_ir(stmt_root, type_to_fix, ordered_all_subquery_ir);
@@ -2328,6 +2330,7 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
             DataAffinity data_affi;
             data_affi.set_data_affinity(data_affinity);
             m_column2datatype[new_name] = data_affi;
+            m_datatype2column[data_affi.get_data_affinity()].push_back(new_name);
         } else {
             if (is_debug_info) {
                 cerr << "Error: In a DataColumn ContextDefine, failed to find the "
@@ -2337,6 +2340,7 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
             DataAffinity data_affi;
             data_affi.set_data_affinity(AFFISTRING);
             m_column2datatype[new_name] = data_affi;
+            m_datatype2column[data_affi.get_data_affinity()].push_back(new_name);
         }
 
         /* ContextUndefine scenario of the DataColumnName */
@@ -2873,6 +2877,7 @@ void Mutator::instan_sql_type_name(IR* ir_to_fix, bool is_debug_info) {
             string column_str =
                     ir_to_fix->get_parent()->get_left()->get_str_val();
             this->m_column2datatype[column_str] = cur_data_affi;
+            this->m_datatype2column[cur_data_affi.get_data_affinity()].push_back(column_str);
             if (is_debug_info) {
                 cerr << "\nAttach data affinity: "
                      << get_string_by_affinity_type(
@@ -3596,6 +3601,7 @@ void Mutator::map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_dro
         string new_view_column_name = gen_view_column_name();
         v_new_view_col_name_str.push_back(new_view_column_name);
         m_column2datatype[new_view_column_name] = m_column2datatype[cur_matched_columns];
+        m_datatype2column[m_column2datatype[cur_matched_columns].get_data_affinity()].push_back(new_view_column_name);
 
         if (view_col_idx != 0) {
             ret_str += ", ";
@@ -3657,27 +3663,35 @@ void Mutator::map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_dro
 
 void Mutator::instan_function_name (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info) {
     /* Fixing for functions.  */
-    if (ir_to_fix->get_data_type() == DataFunctionName) {
+    if (ir_to_fix->get_data_type() == DataFunctionExpr) {
         if (ir_to_fix->get_data_flag() == ContextNoModi) {
             return;
         }
 
-        string cur_func_str = ir_to_fix->get_str_val();
-
-        cur_func_str = str_tolower(cur_func_str);
-
-        if (func_str_to_type_map.find(cur_func_str) ==
-            func_str_to_type_map.end()) {
+        IR* parent_node = ir_to_fix->get_parent();
+        if (parent_node == NULL) {
             if (is_debug_info) {
-                cerr << "\n\n\nFor function name: " << cur_func_str
-                     << ", cannot find its "
-                        "matching function type. Do not mutate the name in the "
-                        "instantiation. \n\n\n";
+                cerr << "\n\n\nERROR: Getting parent node is empty in instan_function_name. \n\n\n";
             }
             return;
         }
 
-        // TODO:: FIXME::
+        DATAAFFINITYTYPE chosen_affi;
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSelectExprs)) {
+            // If in the SELECT clause, we can choose any affinity we want.
+            chosen_affi = get_random_affinity_type(true, true); // no array types. Only basic types.
+        } else {
+            chosen_affi = this->get_nearby_data_affinity(ir_to_fix, is_debug_info);
+        }
+
+        IR* new_func_node = constr_rand_func_with_affinity(chosen_affi);
+
+        parent_node->swap_node(ir_to_fix, new_func_node);
+
+        cerr << "\n\n\nDependency: Inside instan_function_name, generating new function: "
+             << new_func_node->to_string() << "\n\n\n";
+
+        ir_to_deep_drop.push_back(ir_to_fix);
 
     }
 
@@ -3927,7 +3941,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
           }
 
           /* Fixing for functions.  */
-          if (ir_to_fix->get_data_type() == DataFunctionName) {
+          if (ir_to_fix->get_data_type() == DataFunctionExpr) {
               if (ir_to_fix->get_data_flag() == ContextNoModi) {
                   continue;
               }
@@ -4140,6 +4154,7 @@ void Mutator::reset_data_library() {
   v_table_names.clear();
   m_table2index.clear();
   m_column2datatype.clear();
+  m_datatype2column.clear();
   m_datatype2literals.clear();
   v_statistics_name.clear();
   v_sequence_name.clear();
@@ -4916,4 +4931,50 @@ IR *Mutator::constr_rand_storage_param(int param_num) {
             new IR(TypeStorageParams, ret_str, DataNone, ContextNoModi, AFFIUNKNOWN);
 
     return ret_ir;
+}
+
+IR* Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
+
+    string cur_func_name = "";
+    string ret_str = "";
+    if (in_affi == AFFIANY || in_affi == AFFIUNKNOWN) {
+       cur_func_name = vector_rand_ele(this->all_saved_func_name);
+    } else if (this->func_type_lib.count(in_affi) > 0) {
+       cur_func_name = vector_rand_ele(func_type_lib[in_affi]);
+    } else {
+       cur_func_name = vector_rand_ele(this->all_saved_func_name);
+    }
+
+    ret_str = cur_func_name + "(";
+
+    // Randomly choose a set of arguments.
+    vector<DataAffinity> v_func_affi = vector_rand_ele(func_str_to_type_map[cur_func_name]);
+
+    int arg_idx = 0;
+    for (DataAffinity& cur_arg_affi : v_func_affi) {
+
+        if (arg_idx > 0) {
+            ret_str += ", ";
+        }
+        arg_idx++;
+
+        if (this->m_datatype2column.count(cur_arg_affi.get_data_affinity()) && get_rand_int(3)) {
+            // Use the data column that match the affinity.
+            string cur_col_str = vector_rand_ele(this->m_datatype2column[cur_arg_affi.get_data_affinity()]);
+            ret_str += cur_col_str;
+        } else {
+            // Use literal that match the affinity type.
+            string cur_arg_str = cur_arg_affi.get_mutated_literal();
+            ret_str += cur_arg_str;
+        }
+    }
+
+    ret_str += ") ";
+
+    IR* ret_IR = new IR(TypeStringLiteral, ret_str);
+    ret_IR->set_is_instantiated(true);
+    ret_IR->set_data_flag(ContextNoModi);
+
+    return ret_IR;
+
 }

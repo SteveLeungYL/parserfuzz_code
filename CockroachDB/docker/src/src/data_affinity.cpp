@@ -1169,13 +1169,13 @@ DATAAFFINITYTYPE DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in
     return AFFIUNKNOWN;
 }
 
-DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only) {
+DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only, bool is_no_array) {
 
     if (is_basic_type_only) {
 
-        if (get_rand_int(10) < 9) {
+        if (is_no_array || get_rand_int(10) < 9) {
             // Basic type except for Array.
-            auto random_affi_idx = get_rand_int(20) + 1; // Avoid AFFIUNKNOWN;
+            auto random_affi_idx = get_rand_int(22) + 1; // Avoid AFFIUNKNOWN;
             auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
 
             if (random_affi != AFFICOLLATE && random_affi != AFFIENUM) {

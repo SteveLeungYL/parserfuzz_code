@@ -467,6 +467,7 @@
   V(DataCatalogName)                                                           \
   V(DataSchemaName)                                                            \
   V(DataFunctionName)                                                          \
+  V(DataFunctionExpr)                                                          \
   V(DataExtensionName)                                                         \
   V(DataCollationName)                                                         \
   V(DataColumnName)                                                            \

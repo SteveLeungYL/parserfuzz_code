@@ -49,6 +49,7 @@ public:
 
   IR* constr_rand_set_stmt();
   IR* constr_rand_storage_param(int param_num = 3);
+  IR* constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi);
 
   vector<IR *> mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
                           u64 &total_mutate_failed, u64 &total_mutate_num);
@@ -221,7 +222,7 @@ public:
   map<DATATYPE, map<string, map<DATATYPE, vector<string>>>> data_library_2d_;
 
   vector<string> all_saved_func_name;
-  map<FUNCTIONTYPE, vector<string>> func_type_lib;
+  map<DATAAFFINITYTYPE, vector<string>> func_type_lib;
   map<string, vector<vector<DataAffinity>>> func_str_to_type_map;
 
   static vector<string> v_sys_column_name;
@@ -277,6 +278,7 @@ public:
   // A mapping from the column name to the datatype class.
   // The datatype class is also responsible to handle literal mutation.
   static map<string, DataAffinity> m_column2datatype;
+  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2column;
 
   // A mapping to save all literals that is used inside the
   // whole SQL sequence. It maps the data type to pre-defined

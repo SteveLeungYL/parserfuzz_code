@@ -25,7 +25,7 @@ enum COLLATIONTYPE {
 
 string get_string_by_affinity_type(DATAAFFINITYTYPE type);
 
-DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only = true);
+DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only = true, bool is_no_array = false);
 string get_random_affinity_type_str(bool is_basic_type_only = true);
 string get_random_affinity_type_str_formal(bool is_basic_type_only = true);
 string get_affinity_type_str_formal(DATAAFFINITYTYPE);

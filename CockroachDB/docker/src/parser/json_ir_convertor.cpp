@@ -285,7 +285,7 @@ void constr_key_pair_datatype_lib(string key_pair_str, vector<string>& v_all_key
 }
 
 void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
-                                map<FUNCTIONTYPE, vector<string>>& func_type_lib,
+                                map<DATAAFFINITYTYPE, vector<string>>& func_type_lib,
                                 map<string, vector<vector<DataAffinity>>>& func_str_to_type_map) {
 
     for (json::iterator it = json_obj.begin(); it != json_obj.end(); it++) {
@@ -315,6 +315,13 @@ void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
              DataAffinity ret_type;
              ret_type.set_data_affinity(get_data_affinity_by_string(it_params->at("ret_type")));
              single_signiture.push_back(ret_type);
+
+             // Save the return affinity to function name mapping.
+             vector<string>& v_tmp = func_type_lib[ret_type.get_data_affinity()];
+             if (find(v_tmp.begin(), v_tmp.end(), func_name) == v_tmp.end()) {
+                 // avoid duplication.
+                 v_tmp.push_back(func_name);
+             }
 
              for (int i = 0; i < it_params->size(); i++) {
                  string arg_key = "arg_type_" + to_string(i);
@@ -352,14 +359,12 @@ void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
         }
 
         v_all_func_str.push_back(func_name);
-        func_type_lib[func_type].push_back(func_name);
-
     }
 
 }
 
 void constr_sql_func_lib(string func_types_str, vector<string>& v_all_func_str,
-                         map<FUNCTIONTYPE, vector<string>>& func_type_lib,
+                         map<DATAAFFINITYTYPE, vector<string>>& func_type_lib,
                          map<string, vector<vector<DataAffinity>>>& func_str_to_type_map) {
 
     try {
