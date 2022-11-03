@@ -2522,8 +2522,13 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
                 IR *RNode = v_new_column_list_node[idx];
 
                 new_name_list_expr =
-                        new IR(TypeUnknown, OP3("", ",", ""), LNode, RNode);
+                        new IR(TypeUnknown, OP3("", ", ", ""), LNode, RNode);
             }
+        }
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEPENDENCY: From the original name list: "
+                 << name_list->to_string();
         }
 
         IR *name_list_left_child = name_list->get_left();
@@ -2545,6 +2550,12 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
         new_name_list_expr->set_ir_type(TypeNameList);
         name_list->update_left(new_name_list_expr);
         name_list->op_->middle_ = "";
+        name_list->set_is_instantiated(true);
+
+        if (is_debug_info) {
+            cerr << "   replaced to new name list: "
+                 << name_list->get_parent()->to_string() << "\n\n\n";
+        }
     }
 
     else if (ir_to_fix->data_type_ == DataColumnName &&
@@ -3126,6 +3137,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
             return;
         }
 
+        // Fix the literals in the VALUES clause.
         // IF NOT IN!!! Skipped.
         if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
             // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
@@ -3608,7 +3620,7 @@ void Mutator::map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_dro
             ret_str += ", ";
         }
 
-        view_col_idx ++;
+        view_col_idx++;
         ret_str += new_view_column_name;
 
         if (is_debug_info) {
@@ -3657,6 +3669,7 @@ void Mutator::map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_dro
 
     type_name_list->update_left(new_name_list_ir);
     type_name_list->update_right(NULL);
+    type_name_list->op_->middle_ = "";
 
     return;
 

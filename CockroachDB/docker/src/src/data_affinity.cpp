@@ -1220,6 +1220,14 @@ string get_affinity_type_str_formal(DATAAFFINITYTYPE type_in) {
     string type_str = get_string_by_affinity_type(type_in);
 
     type_str = type_str.substr(4, type_str.size()-4);
+
+    /* Dirty fix for the INTERVALTZ type. */
+    if (type_str == "INTERVALTZ") {
+        type_str = "INTERVAL";
+    } else if (type_str == "ARRAYINTERVALTZ") {
+        type_str = "ARRAYINTERVAL";
+    }
+
     string ori_str = type_str;
 
     if (type_str.size() > 5 && type_str.substr(0, 5) == "ARRAY") {
