@@ -164,7 +164,7 @@ USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov  /home/cockroach/go_projects/src/github.com/globalcov
 RUN sed -i -e '4s/^/replace github.com\/globalcov => ..\/..\/globalcov\n/' ./go.mod
-RUN sed -i -e '8s/^/github.com\/globalcov v0.0.0-00010101000000-000000000000\n/' ./go.mod
+RUN sed -i -e '14s/^/github.com\/globalcov v0.0.0-00010101000000-000000000000\n/' ./go.mod
 RUN go mod vendor; exit 0;
 
 # Copy the globalcov folder to the vendor folder
@@ -176,6 +176,7 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github.com/globalcov
 # TODO: Fix it later.
 RUN mkdir -p github
 RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
+RUN cp -r ~/CockroachDB_pkg_plugin/globalcov /home/cockroach/go_projects/src/github.com/globalcov
 
 #USER cockroach
 ### Copy the go library to the GOPATH. 
@@ -193,7 +194,7 @@ RUN cp -r ~/CockroachDB_pkg_plugin/globalcov ./github/globalcov
 USER cockroach
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
 # The build.rev is a randomly set commit hash. 
-RUN go test -c -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=development -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
+RUN go test -c -mod=vendor -tags ' gss make x86_64_linux_gnu crdb_test' -ldflags '-X github.com/cockroachdb/cockroach/pkg/build.typ=release -extldflags "" -X "github.com/cockroachdb/cockroach/pkg/build.tag=cockroach-instrumented" -X "github.com/cockroachdb/cockroach/pkg/build.rev=566348f48c7064014438e1d2c7f46624b4e2c4f1" -X "github.com/cockroachdb/cockroach/pkg/build.cgoTargetTriple=x86_64-linux-gnu"  ' -run "." -timeout 99999m ./pkg/covtest
 
 
 # Compile the SQLRight main code. 
