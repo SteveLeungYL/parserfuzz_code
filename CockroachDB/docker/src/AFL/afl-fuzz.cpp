@@ -2555,6 +2555,11 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str) {
 
   child_timed_out = 0;
 
+  // Init forkserver if it is not started.
+  if (forksrv_pid == -1) {
+      init_forkserver(argv);
+  }
+
   /* After this memset, trace_bits[] are effectively volatile, so we
      must prevent any earlier operations from venturing into that
      territory. */
@@ -3180,7 +3185,7 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
   /* Make sure the forkserver is up before we do anything, and let's not
      count its spin-up time toward binary calibration. */
 
-  if (dumb_mode != 1 && !no_forkserver && !forksrv_pid) {
+  if (dumb_mode != 1 && !no_forkserver && forksrv_pid == -1) {
     init_forkserver(argv);
   }
 
