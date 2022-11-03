@@ -2317,31 +2317,32 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
         }
         m_table2columns[closest_table_name].push_back(new_name);
 
-        /* Next, fix the data type of the Column name. Map it to the column
-         * name. */
-        // The closest type to the current fixed node should be the one that
-        // define the column type.
-        IR *data_type_node =
-                p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
-                        ir_to_fix, DataTypeName);
-        if (data_type_node != NULL) {
-            DATAAFFINITYTYPE data_affinity =
-                    get_data_affinity_by_string(data_type_node->get_str_val());
-            DataAffinity data_affi;
-            data_affi.set_data_affinity(data_affinity);
-            m_column2datatype[new_name] = data_affi;
-            m_datatype2column[data_affi.get_data_affinity()].push_back(new_name);
-        } else {
-            if (is_debug_info) {
-                cerr << "Error: In a DataColumn ContextDefine, failed to find the "
-                        "data type identifier that defined the "
-                        "column data type. Use default AFFISTRING. \n\n\n";
-            }
-            DataAffinity data_affi;
-            data_affi.set_data_affinity(AFFISTRING);
-            m_column2datatype[new_name] = data_affi;
-            m_datatype2column[data_affi.get_data_affinity()].push_back(new_name);
-        }
+        /* No need to map the current column to data types. */
+//        /* Next, fix the data type of the Column name. Map it to the column
+//         * name. */
+//        // The closest type to the current fixed node should be the one that
+//        // define the column type.
+//        IR *data_type_node =
+//                p_oracle->ir_wrapper.find_closest_nearby_IR_with_type<DATATYPE>(
+//                        ir_to_fix, DataTypeName);
+//        if (data_type_node != NULL) {
+//            DATAAFFINITYTYPE data_affinity =
+//                    get_data_affinity_by_string(data_type_node->get_str_val());
+//            DataAffinity data_affi;
+//            data_affi.set_data_affinity(data_affinity);
+//            m_column2datatype[new_name] = data_affi;
+//            m_datatype2column[data_affi.get_data_affinity()].push_back(new_name);
+//        } else {
+//            if (is_debug_info) {
+//                cerr << "Error: In a DataColumn ContextDefine, failed to find the "
+//                        "data type identifier that defined the "
+//                        "column data type. Use default AFFISTRING. \n\n\n";
+//            }
+//            DataAffinity data_affi;
+//            data_affi.set_data_affinity(AFFISTRING);
+//            m_column2datatype[new_name] = data_affi;
+//            m_datatype2column[data_affi.get_data_affinity()].push_back(new_name);
+//        }
 
         /* ContextUndefine scenario of the DataColumnName */
     } else if (ir_to_fix->data_type_ == DataColumnName &&
@@ -3688,8 +3689,10 @@ void Mutator::instan_function_name (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop,
 
         parent_node->swap_node(ir_to_fix, new_func_node);
 
-        cerr << "\n\n\nDependency: Inside instan_function_name, generating new function: "
-             << new_func_node->to_string() << "\n\n\n";
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: Inside instan_function_name, generating new function: "
+                 << new_func_node->to_string() << "\n\n\n";
+        }
 
         ir_to_deep_drop.push_back(ir_to_fix);
 
