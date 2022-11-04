@@ -547,6 +547,7 @@ const (
 	TypeHaving
 	TypeConstraintCluster
 	TypeCreateTableAs
+	TypeINExpr
 )
 
 const (

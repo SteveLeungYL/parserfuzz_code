@@ -2345,7 +2345,10 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
 //        }
 
         /* ContextUndefine scenario of the DataColumnName */
-    } else if (ir_to_fix->data_type_ == DataColumnName &&
+    }
+
+
+    else if (ir_to_fix->data_type_ == DataColumnName &&
                ir_to_fix->data_flag_ == ContextUndefine) {
         /* Find the table_name in the query first. */
         string closest_table_name = "";
@@ -2416,15 +2419,20 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
                  << ", from closest_table_name: " << closest_table_name
                  << ". \n\n\n";
         }
+
+        return;
     }
 
+    // Column name inside the TypeNameList.
     else if (ir_to_fix->data_type_ == DataColumnName &&
-             ir_to_fix->data_flag_ == ContextUse) {
+             ir_to_fix->data_flag_ == ContextUse &&
+             p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)
+             ) {
 
-        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
-            // Ignore the case that is not in TypeNameList.
-            return;
-        }
+//        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
+//            // Ignore the case that is not in TypeNameList.
+//            return;
+//        }
 
         if (is_debug_info) {
             cerr << "\n\n\nHandling with column name inside the TypeNameList. "
@@ -2556,6 +2564,8 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
             cerr << "   replaced to new name list: "
                  << name_list->get_parent()->to_string() << "\n\n\n";
         }
+
+        return;
     }
 
     else if (ir_to_fix->data_type_ == DataColumnName &&
@@ -3121,7 +3131,9 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
     IRTYPE type = ir_to_fix->get_ir_type();
 
     if (type == TypeFloatLiteral || type == TypeStringLiteral ||
-        type == TypeIntegerLiteral) {
+        type == TypeIntegerLiteral &&
+        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)
+        ) {
         /* Completely rewritten Literal handling and mutation logic.
          * The idea is to search for the closest Column Name or fixed literals,
          * and try to match the type of the column name or literal.
@@ -3137,41 +3149,93 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
             return;
         }
 
-        // Fix the literals in the VALUES clause.
-        // IF NOT IN the VALUES clause!!! Skipped.
-        if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
-            // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
-            // branch. These literals would be handled later by the next `Fix for
-            // literals` loop.
-            /* Do not set the is_instantiated flag. */
-            return;
-        }
-
         ir_to_fix->set_is_instantiated(true);
 
         // Handle the ValuesClause.
         // Get the TypeValuesClause first.
-        IR *values_clause_node = p_oracle->ir_wrapper.get_parent_node_with_type(
+        IR * type_exprs_node = p_oracle->ir_wrapper.get_parent_node_with_type(
                 ir_to_fix, TypeExprs);
 
         // Remove the original expressions.
-        IR *values_expr_node = values_clause_node->get_left();
-        values_clause_node->update_left(nullptr);
+        IR *type_exprs_left_node = type_exprs_node->get_left();
+        type_exprs_node->update_left(nullptr);
         // Avoid further handling of the child node from `TypeValueClauses`
         p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                values_expr_node, [](IR *cur_node) -> void {
+                type_exprs_left_node, [](IR *cur_node) -> void {
                     cur_node->set_is_instantiated(true);
                     cur_node->set_data_flag(ContextNoModi);
                 });
-        ir_to_deep_drop.push_back(values_expr_node);
+        ir_to_deep_drop.push_back(type_exprs_left_node);
+
+        IR *type_exprs_right_node = type_exprs_node->get_right();
+        type_exprs_node->update_right(nullptr);
+        // Avoid further handling of the child node from `TypeValueClauses`
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                type_exprs_right_node, [](IR *cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+        ir_to_deep_drop.push_back(type_exprs_right_node);
+        type_exprs_node->op_->middle_ = "";
+
         if (is_debug_info) {
             cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
                     "expression:"
-                 << values_expr_node->to_string() << "\n\n\n";
+                 << type_exprs_left_node->to_string() << "\n\n\n";
         }
 
-        /* Reconstruct the new Value clause that matched the referenced table.
+        /* Reconstruct the new type expressions clause that matched the referenced table.
          */
+
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeINExpr)) {
+            /* Fix for the IN clause. */
+            vector<DATATYPE> search_type = {DataColumnName, DataColumnAliasName};
+            vector<IRTYPE> cap_type = {TypeSelect};
+            IR* closet_column_node = p_oracle->ir_wrapper.find_closest_nearby_IR_with_type(ir_to_fix, search_type, cap_type);
+
+            if (closet_column_node == nullptr) {
+                if (is_debug_info) {
+                    cerr << "\n\n\nLOGIC ERROR: Inside the IN clause, cannot find the nearby column name. Do not fix. Return. \n\n\n";
+                }
+                return;
+            }
+
+            string col_str = closet_column_node->get_str_val();
+            DataAffinity col_affi = m_column2datatype[col_str];
+
+            // Avoid 0.
+            int num_of_in_elem = get_rand_int(5) + 1;
+
+            string ret_str = "";
+            for (int in_idx = 0; in_idx < num_of_in_elem; in_idx++) {
+
+                if (in_idx != 0) {
+                    ret_str += ", ";
+                }
+                ret_str += col_affi.get_mutated_literal();
+            }
+
+            IR *new_type_exprs_node = new IR(TypeStringLiteral, ret_str);
+            new_type_exprs_node->set_is_instantiated(true);
+
+            type_exprs_node->update_left(new_type_exprs_node);
+
+            if (is_debug_info) {
+                cerr << "\n\n\nDependency: getting new IN clause expression: "
+                     << new_type_exprs_node->to_string() << ". \n\n\n";
+            }
+
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    type_exprs_left_node, [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+
+            return;
+
+        }
+
+        /* else, VALUE clause only?  */
 
         // Search whether there are referenced columns in the `TypeNameList`.
         // If there is, should be the first TypeNameList from the statement.
@@ -3308,7 +3372,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         IR *new_values_expr_node = new IR(TypeStringLiteral, ret_str);
         new_values_expr_node->set_is_instantiated(true);
 
-        values_clause_node->update_left(new_values_expr_node);
+        type_exprs_node->update_left(new_values_expr_node);
 
         if (is_debug_info) {
             cerr << "\n\n\nDependency: getting new valuesclause expression: "
@@ -3316,7 +3380,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         }
 
         p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                values_expr_node, [](IR *cur_node) -> void {
+                type_exprs_left_node, [](IR *cur_node) -> void {
                     cur_node->set_is_instantiated(true);
                     cur_node->set_data_flag(ContextNoModi);
                 });

@@ -231,8 +231,14 @@ func LogCurrentNodeBinExprFmtWithParen(depth int, e1 Expr, op string, e2 Expr, p
 	}
 	exprWithParenNode2 := LogCurrentNodeExprFmtWithParen(depth+1, e2)
 
+	irType := TypeBinExprFmtWithParen
+
+	if op == "IN" {
+		irType = TypeINExpr
+	}
+
 	rootIR := &SQLRightIR{
-		IRType:   TypeBinExprFmtWithParen,
+		IRType:   irType,
 		DataType: DataNone,
 		LNode:    exprWithParenNode,
 		RNode:    exprWithParenNode2,
