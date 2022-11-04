@@ -1915,6 +1915,7 @@ void Mutator::instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_
         string alias_name = gen_table_alias_name();
         ir_to_fix->set_str_val(alias_name);
         m_alias2table_single[alias_name] = closest_table_name;
+        m_alias_table2column_single[alias_name] = m_table2columns[closest_table_name];
         v_table_alias_names_single.push_back(alias_name);
 
         if (is_debug_info) {
@@ -2657,7 +2658,7 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
             ir_to_fix->set_is_instantiated(true);
             if (is_debug_info) {
                 cerr << "Dependency Error: In kDataColumnName, kUse, cannot find "
-                        "mapping from table_name"
+                        "mapping from table_name: "
                      << closest_table_name << ". \n\n\n";
             }
         }
@@ -3847,25 +3848,6 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-    /* Fix of DataTableAlias name. */
-    /* For DataTableAlias name, do not need to
-     * handle ContextUse and ContextUndefine situations.
-     * i,e. we only need to consider the ContextDefine.
-     * After the handling of current SQL statement finished,
-     * all info related to this alias should be removed
-     * automatically.
-     * */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-        if (ir_to_fix->get_is_instantiated()) {
-            continue;
-        }
-
-        if (ir_to_fix->data_type_ == DataTableAliasName) {
-            ir_to_fix->set_is_instantiated(true);
-            this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
-        }
-    }
-
     /* ContextUse of kDataTableName */
     /* The ContextUseFollow will be handled further below. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
@@ -3878,6 +3860,25 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
             this->instan_table_name(ir_to_fix, is_replace_table, is_debug_info);
         }
     }
+
+      /* Fix of DataTableAlias name. */
+      /* For DataTableAlias name, do not need to
+       * handle ContextUse and ContextUndefine situations.
+       * i,e. we only need to consider the ContextDefine.
+       * After the handling of current SQL statement finished,
+       * all info related to this alias should be removed
+       * automatically.
+       * */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          if (ir_to_fix->data_type_ == DataTableAliasName) {
+              ir_to_fix->set_is_instantiated(true);
+              this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
+          }
+      }
 
     /* ContextUseFollow of DataTableName. */
     /* This scenario searches for table name usage that is in the WHERE clause.  */
