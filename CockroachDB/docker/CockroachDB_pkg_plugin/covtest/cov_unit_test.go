@@ -17,8 +17,11 @@ var FORKSRV_FD uintptr = 198
 
 const maxQueryExec int = 1000
 
-var cleanupQuery = `
+const cleanupQueryCommit = `
 COMMIT;
+`
+
+const cleanupQuery = `
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
 CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
 SET DATABASE = sqlrightTestDB;
@@ -90,6 +93,7 @@ func TestCov(t *testing.T) {
 		}
 
 		// Reset the database.
+		executeQuery(cleanupQueryCommit, sqlRun)
 		executeQuery(cleanupQuery, sqlRun)
 
 		// Read query from local file.
