@@ -1178,8 +1178,12 @@ DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only, bool is_no_ar
 
         if (is_no_array || get_rand_int(10) < 9) {
             // Basic type except for Array.
-            auto random_affi_idx = get_rand_int(22) + 1; // Avoid AFFIUNKNOWN;
+            auto random_affi_idx = get_rand_int(AFFIUUID - AFFIBIT) + AFFIBIT; // Avoid AFFIUNKNOWN;
             auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+
+            if (random_affi == AFFIINTERVALTZ) {
+                return AFFIINTERVAL;
+            }
 
             if (random_affi != AFFICOLLATE && random_affi != AFFIENUM) {
                 return random_affi;
@@ -1188,8 +1192,9 @@ DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only, bool is_no_ar
             }
         } else {
             // Basic ARRAY type. 1/10 chances to get ARRAY type.
-            auto random_affi_idx = get_rand_int(20) + AFFIARRAYUNKNOWN + 1; // Avoid AFFIARRAYUNKNOWN;
+            auto random_affi_idx = get_rand_int(AFFIARRAYUUID - AFFIARRAYBIT) + AFFIARRAYBIT + 1; // Avoid AFFIARRAYUNKNOWN;
             auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+
             if (random_affi != AFFIARRAYENUM && random_affi != AFFIARRAYCOLLATE) {
                 return random_affi;
             } else {
@@ -1226,6 +1231,10 @@ string get_affinity_type_str_formal(DATAAFFINITYTYPE type_in) {
         type_str = "INTERVAL";
     } else if (type_str == "ARRAYINTERVALTZ") {
         type_str = "ARRAYINTERVAL";
+    } else if (type_str == "ANY") {
+        type_str = "STRING";
+    } else if (type_str == "ARRAYANY") {
+        type_str = "STRING[]";
     }
 
     string ori_str = type_str;

@@ -3138,7 +3138,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         }
 
         // Fix the literals in the VALUES clause.
-        // IF NOT IN!!! Skipped.
+        // IF NOT IN the VALUES clause!!! Skipped.
         if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
             // if the ir_to_fix is NOOOOT in TypeValuesClause, ignored in this
             // branch. These literals would be handled later by the next `Fix for
@@ -3152,7 +3152,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         // Handle the ValuesClause.
         // Get the TypeValuesClause first.
         IR *values_clause_node = p_oracle->ir_wrapper.get_parent_node_with_type(
-                ir_to_fix, TypeValuesClause);
+                ir_to_fix, TypeExprs);
 
         // Remove the original expressions.
         IR *values_expr_node = values_clause_node->get_left();
@@ -3314,6 +3314,14 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
             cerr << "\n\n\nDependency: getting new valuesclause expression: "
                  << new_values_expr_node->to_string() << ". \n\n\n";
         }
+
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                values_expr_node, [](IR *cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+
+        return;
     }
 
     /* The second loop */
