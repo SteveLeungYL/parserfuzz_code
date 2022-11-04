@@ -2325,7 +2325,12 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
                  << ", found closest_table_name: " << closest_table_name
                  << ". \n\n\n";
         }
-        m_table2columns[closest_table_name].push_back(new_name);
+
+        // Avoid adding duplicated columns to the table mapping.
+        vector<string>& cur_col_names = m_table2columns[closest_table_name];
+        if (find(cur_col_names.begin(), cur_col_names.end(), new_name) == cur_col_names.end()) {
+            cur_col_names.push_back(new_name);
+        }
 
         /* No need to map the current column to data types. */
 //        /* Next, fix the data type of the Column name. Map it to the column
@@ -2494,8 +2499,12 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
         string ret_str = "";
         for (int idx = 0; idx < max_values_clause_len;) {
             string new_rand_column = "";
+            int trial = 10;
             do {
                 new_rand_column = vector_rand_ele(v_column_names_from_table);
+                if ((--trial) == 0) {
+                    break;
+                }
             } while (find(v_used_column_str.begin(), v_used_column_str.end(),
                           new_rand_column) != v_used_column_str.end());
             if (is_debug_info) {
