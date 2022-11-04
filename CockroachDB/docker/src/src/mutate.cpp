@@ -3134,7 +3134,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
             (type == TypeFloatLiteral || type == TypeStringLiteral ||
             type == TypeIntegerLiteral)
             &&
-            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeExprs)
         ) {
         /* Completely rewritten Literal handling and mutation logic.
          * The idea is to search for the closest Column Name or fixed literals,
