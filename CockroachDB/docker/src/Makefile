@@ -16,8 +16,8 @@ PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
 
 export CC = g++
-export DEBUG =
-export OPT = -O3
+export DEBUG = -g
+export OPT = -O0
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
 LDFLAGS = -ldl
 
@@ -60,4 +60,4 @@ clean:
 	@make clean -C src
 	@make clean -C oracle
 	@make clean -C AFL
-	rm -rf afl-fuzz test-parser
+	rm -rf afl-fuzz test-parser afl-tmin
