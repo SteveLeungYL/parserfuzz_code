@@ -1664,10 +1664,11 @@ void Mutator::instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_d
             return;
         }
         string used_name = "";
-        // For the ContextUse, prefer to use the table name that defined in
-        // previous statement first.
-        if (v_table_alias_names_single.size() != 0) {
+
+        if (v_table_alias_names_single.size() != 0 && get_rand_int(2)) {
             used_name = v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
+            // Save it to the v_table_names_single, so that the ContextUsedFollow can use this name.
+            v_table_names_single.push_back(used_name);
         } else if (v_table_names_single.size() != 0) {
             // If the statement use some table names before,
             // we can refer to the table name here.
@@ -1741,7 +1742,7 @@ void Mutator::instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_d
         string used_name = "";
 
         if (is_debug_info) {
-            cerr << "\n\n\nDEBUG: In Table ContextUseFoolow: getting v_table_alias_names_single.size(): "
+            cerr << "\n\n\nDEBUG: In Table ContextUseFollow: getting v_table_alias_names_single.size(): "
                  << v_table_alias_names_single.size()
                  << ", v_table_names_single: " << v_table_names_single.size()
                  << ", v_create_table_names_single" << v_create_table_names_single.size()
@@ -1750,10 +1751,10 @@ void Mutator::instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_d
         // For the ContextUseFoolow, we should use table name that already
         // mentioned in the current statement.
         // For example, for `v0.v1`, where v0 is imported from `FROM v0;`
-        if (v_table_alias_names_single.size() != 0){
-            used_name =
-                    v_table_alias_names_single[get_rand_int(v_table_alias_names_single.size())];
-        } else if (v_table_names_single.size() != 0) {
+        // Therefore, we should not directly use the Table Alias name.
+        // If the table alias is defined in the FROM clause,
+        // then the alias name should also be in the v_table_names_single.
+        if (v_table_names_single.size() != 0) {
             used_name =
                     v_table_names_single[get_rand_int(v_table_names_single.size())];
         } else if (v_create_table_names_single.size() != 0) {
@@ -1917,6 +1918,14 @@ void Mutator::instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_
         m_alias2table_single[alias_name] = closest_table_name;
         m_alias_table2column_single[alias_name] = m_table2columns[closest_table_name];
         v_table_alias_names_single.push_back(alias_name);
+        if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeFrom)) {
+            if (is_debug_info) {
+                cerr << "\n\n\n The table alias: " << alias_name << " is defined "
+                    "inside the FROM clause, so we can safely move the alias into the"
+                    "v_table_name_single. \n\n\n";
+            }
+            v_table_names_single.push_back(alias_name);
+        }
 
         if (is_debug_info) {
             cerr << "Dependency: In TypeTableAliasName defined, generates: "
@@ -3848,7 +3857,32 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     }
 
-    /* ContextUse of kDataTableName */
+      /* Fix of DataTableAlias name. */
+      /* For DataTableAlias name, do not need to
+       * handle ContextUse and ContextUndefine situations.
+       * i,e. we only need to consider the ContextDefine.
+       * After the handling of current SQL statement finished,
+       * all info related to this alias should be removed
+       * automatically.
+       * */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          // If NOT IN WITH clause, do not fix before the Table Name ContextUse.
+          if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith)) {
+              continue;
+          }
+
+          if (ir_to_fix->data_type_ == DataTableAliasName) {
+              ir_to_fix->set_is_instantiated(true);
+              this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
+          }
+      }
+
+
+          /* ContextUse of kDataTableName */
     /* The ContextUseFollow will be handled further below. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
         if (ir_to_fix->get_is_instantiated()) {
@@ -3871,6 +3905,11 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
        * */
       for (IR *ir_to_fix : ir_to_fix_vec) {
           if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          // Fix the other aliases outside the WITH clause.
+          if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeWith)) {
               continue;
           }
 
@@ -3945,26 +3984,26 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
 
-    /* Fix of DataColumnAlias name.
-     * There are two parts of the DataColumnAliasName handling.
-     * The first part is inside TypeAliasClause, where the table
-     * alias name and column alias name are all provided.
-     * The second part is direct column referencing.
-     * For the second part, we choose to ignore the mapping,
-     * because these cases are not very interesting, and won't
-     * reflect on the outputs.
-     * */
-    for (IR *ir_to_fix : ir_to_fix_vec) {
-      if (ir_to_fix->get_is_instantiated()) {
-        continue;
+      /* Fix of DataColumnAlias name.
+    * There are two parts of the DataColumnAliasName handling.
+    * The first part is inside TypeAliasClause, where the table
+    * alias name and column alias name are all provided.
+    * The second part is direct column referencing.
+    * For the second part, we choose to ignore the mapping,
+    * because these cases are not very interesting, and won't
+    * reflect on the outputs.
+    * */
+      for (IR *ir_to_fix : ir_to_fix_vec) {
+          if (ir_to_fix->get_is_instantiated()) {
+              continue;
+          }
+
+          this->instan_column_alias_name(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
+
       }
 
-      this->instan_column_alias_name(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
-
-    }
-
-    /* Fix the Data Type identifiers. Must be done after ContextDefine of
-     * DataColumnName. */
+      /* Fix the Data Type identifiers. Must be done after ContextDefine of
+       * DataColumnName. */
     for (IR *ir_to_fix : ir_to_fix_vec) {
       if (ir_to_fix->get_is_instantiated()) {
         continue;
@@ -3992,7 +4031,9 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
         continue;
       }
         if (ir_to_fix->data_type_ == DataColumnName &&
-            ir_to_fix->data_flag_ == ContextUse) {
+            ir_to_fix->data_flag_ == ContextUse &&
+            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)
+            ) {
             this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop, is_debug_info);
         }
     }

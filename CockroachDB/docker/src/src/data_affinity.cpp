@@ -688,17 +688,18 @@ string DataAffinity::mutate_affi_date(){
         year_str = year_str.substr(2, 2);
     }
 
+    // Always use the default format of the date.
     switch(format) {
-        case 0 ... 8:
+        case 0 ... 9:
             // MM-DD-YYYY/YY (default)
             ret_str = month_str + "-" + day_str;
             ret_str += "-" + year_str;
             break;
-        case 9:
-            // YYYY-MM-DD
-            ret_str = year_str; // FIXME:: Could miss prefix `0`s.
-            ret_str += "-" + month_str + "-" + day_str;
-            break;
+//        case 9:
+//            // YYYY-MM-DD
+//            ret_str = year_str; // FIXME:: Could miss prefix `0`s.
+//            ret_str += "-" + month_str + "-" + day_str;
+//            break;
     }
 
     if (get_rand_int(2)) {
