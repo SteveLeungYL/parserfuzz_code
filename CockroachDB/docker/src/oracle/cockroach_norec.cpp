@@ -60,22 +60,8 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
 
   IR *target_list_ir = v_target_list_ir.front();
 
-  // TODO:: FIXME:: This logic is not correct.
-  //  while ( target_list_ir->get_ir_type() == TypeSelectExprs &&
-  //  target_list_ir->get_right()) {
-  //    /* Clean all the extra select target clauses, only leave the first one
-  //    untouched.
-  //     * If this is the first kTargetList, the right sub-node should be empty.
-  //     * */
-  //    target_list_ir->replace_op(OP0());
-  //    IR* extra_targetel_ir = target_list_ir->get_right();
-  //    target_list_ir->update_right(NULL);
-  //    extra_targetel_ir->deep_drop();
-  //    target_list_ir = target_list_ir->get_left();
-  //  }
-
-  // cerr << "num_target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) <<
-  // "\n";
+//   cerr << "num_target_el: " << ir_wrapper.get_num_select_exprs(cur_stmt) <<
+//   "\n";
 
   if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, TypeFrom,
                                                     false) &&
@@ -122,6 +108,14 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
           continue;
         }
         if (func_app_ir->to_string() == "*") {
+
+            IR* type_select_exprs_node = ir_wrapper.get_parent_node_with_type(count_func_ir, TypeSelectExprs);
+            this->ir_wrapper.iter_cur_node_with_handler(
+                    type_select_exprs_node, [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+
           return true;
         }
       }
@@ -192,7 +186,7 @@ vector<IR *> SQL_NOREC::post_fix_transform_select_stmt(IR *cur_stmt,
   // g_mutator->debug(cur_stmt, 0);
   // cerr << "\n\n\n\n\n\n\n";
 
-  is_oracle_select_stmt(cur_stmt);
+//  is_oracle_select_stmt(cur_stmt);
 
   vector<IR *> transformed_temp_vec =
       g_mutator->parse_query_str_get_ir_set(this->post_fix_temp);
