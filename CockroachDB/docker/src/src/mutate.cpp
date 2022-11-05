@@ -1675,6 +1675,17 @@ void Mutator::instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_d
             // We can imagine v_table_names_single could contain
             // alias name defined in WITH clause or other places.
             used_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+
+            int trial = 10;
+            while (
+                        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeInsert) &&
+                        trial-- != 0 &&
+                        find(v_view_name.begin(), v_view_name.end(), used_name) != v_view_name.end()
+                    ) {
+                cerr << "\n\n\nRetry table name fixing in the INSERT statement. \n\n\n";
+                used_name = v_table_names_single[get_rand_int(v_table_names_single.size())];
+            }
+
         } else if (v_create_table_names_single.size() != 0) {
             // If cannot find any table names defined or used before,
             // consider the table name that just defined in this statement.
@@ -1683,6 +1694,18 @@ void Mutator::instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_d
         } else if (v_table_names.size() != 0) {
             used_name =
                     v_table_names[get_rand_int(v_table_names.size())];
+
+            int trial = 10;
+            while (
+                    p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeInsert) &&
+                    trial-- != 0 &&
+                    find(v_view_name.begin(), v_view_name.end(), used_name) != v_view_name.end()
+                    ) {
+                cerr << "\n\n\nRetry table name fixing in the INSERT statement. \n\n\n";
+                used_name =
+                        v_table_names[get_rand_int(v_table_names.size())];
+            }
+
         } else {
             if (is_debug_info) {
                 cerr << "Cannot find any used or defined table names. Use simple x "
