@@ -132,7 +132,7 @@ func (node *CreateDatabase) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *CreateDatabase) LogCurrentNode(depth int) *SQLRightIR {
 
-	prefix := "CREATE DATABASE"
+	prefix := "CREATE DATABASE "
 
 	optIfNotExistStr := ""
 	if node.IfNotExists {

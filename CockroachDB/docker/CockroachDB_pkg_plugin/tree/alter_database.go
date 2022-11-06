@@ -185,7 +185,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 	if node.IfExists {
 		tmpStr = "IF EXISTS "
 	}
-	tmpNode = &SQLRightIR{
+	tmpRNode := &SQLRightIR{
 		IRType:   TypeOptIfExists,
 		DataType: DataNone,
 		Prefix:   tmpStr,
@@ -193,7 +193,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 		Suffix:   "",
 		Depth:    depth,
 	}
-	RNode := tmpNode
+	RNode := tmpRNode
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -221,7 +221,7 @@ func (node *AlterDatabaseDropRegion) LogCurrentNode(depth int) *SQLRightIR {
 	rootIR = &SQLRightIR{
 		IRType:   TypeAlterDatabaseDropRegion,
 		DataType: DataNone,
-		LNode:    LNode,
+		LNode:    rootIR,
 		RNode:    RNode,
 		Prefix:   "",
 		Infix:    "",

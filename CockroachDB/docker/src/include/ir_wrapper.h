@@ -105,6 +105,7 @@ public:
   IR *get_p_parent_with_a_type(IR *cur_IR, int depth = 0);
 
   template <typename TYPE> IR* get_parent_node_with_type(IR *cur_IR, TYPE);
+  template <typename TYPE> IR* get_parent_node_with_type_past(IR *cur_IR, TYPE);
 
   /**/
   bool is_exist_group_clause(IR *);
@@ -307,6 +308,22 @@ IR* IRWrapper::get_parent_node_with_type(IR *cur_IR, TYPE ir_type) {
     while (cur_IR->get_parent() != nullptr) {
         IR* par_IR = cur_IR->get_parent();
         if (this->comp_type(par_IR, ir_type)) {
+            return par_IR;
+        }
+        cur_IR = cur_IR->get_parent();
+    }
+    return nullptr;
+}
+
+template <typename TYPE>
+IR* IRWrapper::get_parent_node_with_type_past(IR *cur_IR, TYPE ir_type) {
+    // Reach TYPE, and then return the parent for the given TYPE.
+    bool is_reached = false;
+    while (cur_IR->get_parent() != nullptr) {
+        IR* par_IR = cur_IR->get_parent();
+        if (this->comp_type(par_IR, ir_type)) {
+            is_reached = true;
+        } else if (is_reached) {
             return par_IR;
         }
         cur_IR = cur_IR->get_parent();

@@ -2542,6 +2542,7 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
                                          DataColumnName, ContextNoModi);
 
             v_new_column_list_node.push_back(new_column_node);
+            v_column_names_single.push_back(new_rand_column);
 
             idx++;
             if (get_rand_int(5) == 0) {
@@ -2686,13 +2687,24 @@ void Mutator::instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<
                     cur_mapped_column_name_vec.size())];
             ir_to_fix->str_val_ = cur_chosen_column;
             ir_to_fix->set_is_instantiated(true);
-            v_column_names_single.push_back(cur_chosen_column);
-            if (is_debug_info) {
-                cerr << "Dependency: In kDataColumnName, kUse, we choose "
-                        "closest_table_name: "
-                     << closest_table_name
-                     << " and column_name: " << cur_chosen_column << ". \n\n\n";
+            if (! p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
+                v_column_names_single.push_back(cur_chosen_column);
+                if (is_debug_info) {
+                    cerr << "Dependency: In kDataColumnName, kUse, we choose "
+                            "closest_table_name: "
+                         << closest_table_name
+                         << " and column_name: " << cur_chosen_column << ". \n\n\n";
+                }
+            } else {
+                if (is_debug_info) {
+                    cerr << "Dependency: In kDataColumnName, kUse, we choose "
+                            "closest_table_name: "
+                         << closest_table_name
+                         << " and column_name: " << cur_chosen_column << ""
+                         ", however, the column_name is in the VALUES clause, won't saved.. \n\n\n";
+                }
             }
+
         } else {
             /* Unreconized, keep original */
             // ir_to_fix->str_val_ = "y";
@@ -3200,6 +3212,12 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         IR * type_exprs_node = p_oracle->ir_wrapper.get_parent_node_with_type(
                 ir_to_fix, TypeExprs);
 
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
+                    "expression:"
+                 << type_exprs_node->to_string() << "\n\n\n";
+        }
+
         // Remove the original expressions.
         IR *type_exprs_left_node = type_exprs_node->get_left();
         type_exprs_node->update_left(nullptr);
@@ -3222,11 +3240,6 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         ir_to_deep_drop.push_back(type_exprs_right_node);
         type_exprs_node->op_->middle_ = "";
 
-        if (is_debug_info) {
-            cerr << "\n\n\nDependency: INFO: Removing the original VALUES clause "
-                    "expression:"
-                 << type_exprs_left_node->to_string() << "\n\n\n";
-        }
 
         /* Reconstruct the new type expressions clause that matched the referenced table.
          */
@@ -3363,14 +3376,9 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
             }
 
             IR *type_list_node = v_type_name_list.front();
-            vector<IR *> v_column_node =
-                    p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-                            type_list_node, DataColumnName, false);
-            //                cerr << "\n\n\nDEBUG:::: Getting v_column_node size:
-            //                " << v_column_node.size() << "\n\n\n";
-            for (IR *cur_column_node : v_column_node) {
-                string cur_column_str = cur_column_node->get_str_val();
-                if (m_column2datatype.count(cur_column_str) || m_alias2column_single.count(cur_column_str)) {
+            vector<string>& v_column_str = this->v_column_names_single;
+            if (v_column_str.size() != 0) {
+                for (string& cur_column_str : v_column_str) {
                     string actual_column_str = cur_column_str;
                     if (m_alias2column_single.count(cur_column_str)) {
                         actual_column_str = m_alias2column_single[cur_column_str];
@@ -3389,14 +3397,44 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
                                      cur_affi.get_data_affinity())
                              << "\n\n\n";
                     }
-                } else {
-                    DataAffinity cur_affi;
-                    cur_affi.set_data_affinity(AFFISTRING);
-                    referencing_affinity.push_back(cur_affi);
-                    if (is_debug_info) {
-                        cerr << "\n\n\n Cannot find matching column types: "
-                             << cur_column_str << ". Using dummy AFFISTRING instead. "
-                             << "\n\n\n";
+                }
+            }
+
+            else {
+
+                vector<IR *> v_column_node =
+                        p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+                                type_list_node, DataColumnName, false);
+                for (IR *cur_column_node: v_column_node) {
+                    string cur_column_str = cur_column_node->get_str_val();
+                    if (m_column2datatype.count(cur_column_str) || m_alias2column_single.count(cur_column_str)) {
+                        string actual_column_str = cur_column_str;
+                        if (m_alias2column_single.count(cur_column_str)) {
+                            actual_column_str = m_alias2column_single[cur_column_str];
+                            if (is_debug_info) {
+                                cerr << "\n\n\nDependency: INFO: In literal fixing, mapping the column alias: "
+                                     << cur_column_str << " to column name: "
+                                     << actual_column_str << "\n\n\n";
+                            }
+                        }
+                        DataAffinity cur_affi = m_column2datatype[actual_column_str];
+                        referencing_affinity.push_back(cur_affi);
+                        if (is_debug_info) {
+                            cerr << "\n\n\nMatching column: " << cur_column_str
+                                 << " with data type: "
+                                 << get_string_by_affinity_type(
+                                         cur_affi.get_data_affinity())
+                                 << "\n\n\n";
+                        }
+                    } else {
+                        DataAffinity cur_affi;
+                        cur_affi.set_data_affinity(AFFISTRING);
+                        referencing_affinity.push_back(cur_affi);
+                        if (is_debug_info) {
+                            cerr << "\n\n\n Cannot find matching column types: "
+                                 << cur_column_str << ". Using dummy AFFISTRING instead. "
+                                 << "\n\n\n";
+                        }
                     }
                 }
             }
@@ -3419,7 +3457,7 @@ void Mutator::instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_
         type_exprs_node->update_left(new_values_expr_node);
 
         if (is_debug_info) {
-            cerr << "\n\n\nDependency: getting new valuesclause expression: "
+            cerr << "\n\n\nDependency: getting new values clause expression: "
                  << new_values_expr_node->to_string() << ". \n\n\n";
         }
 
