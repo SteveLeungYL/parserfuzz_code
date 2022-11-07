@@ -1478,7 +1478,7 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR *ir_to_fix,
   DATAAFFINITYTYPE ret_data_affi;
 
   vector<IRTYPE> v_matched_literal_types = {
-      TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral};
+      TypeIntegerLiteral, TypeStringLiteral, TypeFloatLiteral, TypeIdentifier};
   vector<IRTYPE> v_capped_ir_types = {TypeSelectClause, TypeSelect};
   IR *near_literal_node =
       p_oracle->ir_wrapper
@@ -1486,7 +1486,10 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR *ir_to_fix,
               ir_to_fix, v_matched_literal_types, v_capped_ir_types);
 
   if (near_literal_node != NULL &&
-      near_literal_node->get_data_affinity() != AFFIUNKNOWN) {
+      near_literal_node->get_data_affinity() != AFFIUNKNOWN &&
+      near_literal_node->get_data_affinity() != AFFIANY &&
+      near_literal_node->get_is_instantiated() == true
+      ) {
     //        ir_to_fix->set_data_affinity(near_literal_node->get_data_affinity());
     ret_data_affi = near_literal_node->get_data_affinity();
     if (is_debug_info) {
@@ -1499,7 +1502,7 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR *ir_to_fix,
            << "\n\n\n";
     }
   } else {
-    // If we end up in this branch, we cannot find a nearby literal that
+    // If we end up in this branch, we cannot find a nearby literal or column names that
     // already has fixed affinity. This is expected, such as case: `SELECT
     // * FROM v0 WHERE v1 = 100;` Then, we should look at the nearby
     // column name for more information.
@@ -2691,6 +2694,10 @@ void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
           cur_mapped_column_name_vec.size())];
       ir_to_fix->str_val_ = cur_chosen_column;
       ir_to_fix->set_is_instantiated(true);
+      if (m_column2datatype.count(cur_chosen_column)) {
+          ir_to_fix->set_data_affinity(m_column2datatype[cur_chosen_column]);
+      }
+
       if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
         v_column_names_single.push_back(cur_chosen_column);
         if (is_debug_info) {
