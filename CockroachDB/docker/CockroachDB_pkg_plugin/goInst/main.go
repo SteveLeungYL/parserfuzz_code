@@ -134,7 +134,7 @@ func (f *File) newCounter() string {
 	}
 
 	randOff := getRndOffset()
-	retStmt := fmt.Sprintf("globalcov.LogGlobalCov(%d)", randOff)
+	retStmt := fmt.Sprintf("globalcov.LogCovRoutine(%d)", randOff)
 	return retStmt
 }
 
@@ -142,7 +142,7 @@ func (f *File) newCounter() string {
 func (f *File) addVariables(w io.Writer, logIdx int) {
 	// Ignore the original Basic Block instrumentation self-check.
 	// Declare the coverage struct as a package-level variable.
-	fmt.Fprintf(w, "\nvar (dumplog_%d = globalcov.LogGlobalCov );", logIdx)
+	fmt.Fprintf(w, "\nvar (dumplog_%d = globalcov.LogCovRoutine );", logIdx)
 }
 
 // -----------------------------------------------------
