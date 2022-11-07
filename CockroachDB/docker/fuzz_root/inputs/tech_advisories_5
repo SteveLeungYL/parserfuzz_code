@@ -1,0 +1,10 @@
+create database test;
+use test;
+create table assets (id uuid not null default gen_random_uuid(), tenant_id uuid not null, external_id    text, legacy_id      text not null, delete_time    timestamptz default null,constraint asset_ck_id unique (id) );
+create unique index asset_unique_external_id_per_tenant on assets(external_id, tenant_id) where delete_time is null;
+create unique index asset_unique_legacy_id_per_tenant on assets (legacy_id, tenant_id) where delete_time is null;
+insert into assets (id,tenant_id,external_id,legacy_id,delete_time) VALUES  ('d07dfac2-1384-4a3e-9bd6-5b7e63d5bcbf'::uuid,'f862c2b1-f949-4117-8fc8-dbdd7d5d352a'::uuid,'2-3231925','Qo4E89',NULL), ('3121b4e5-d1be-4d8c-9008-227fcd1d52b8'::uuid,'f862c2b1-f949-4117-8fc8-dbdd7d5d352a'::uuid,NULL,'5cOAr6','2021-11-26 18:13:17.314984+01');
+select * from assets where external_id ='2-3231925' and tenant_id='f862c2b1-f949-4117-8fc8-dbdd7d5d352a' and delete_time is null;
+update assets set external_id = null where id='d07dfac2-1384-4a3e-9bd6-5b7e63d5bcbf';
+select * from assets where external_id ='2-3231925' and tenant_id='f862c2b1-f949-4117-8fc8-dbdd7d5d352a' and delete_time is null;
+select * from assets@primary where external_id ='2-3231925' and tenant_id='f862c2b1-f949-4117-8fc8-dbdd7d5d352a' and delete_time is null;

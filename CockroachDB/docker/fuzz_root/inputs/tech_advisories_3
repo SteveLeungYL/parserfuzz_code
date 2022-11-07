@@ -1,0 +1,1 @@
+SELECT tenants.id, tenants.active, tenants.info, tenant_usage.ru_burst_limit, tenant_usage.ru_refill_rate, tenant_usage.ru_current, tenant_usage.total_consumption  FROM system.tenants LEFT JOIN system.tenant_usage ON tenants.id = tenant_usage.tenant_id AND tenant_usage.instance_id = 0;
