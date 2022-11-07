@@ -4353,6 +4353,7 @@ bool Mutator::remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype,
 void Mutator::reset_data_library_single_stmt() {
   this->v_table_names_single.clear();
   this->v_column_names_single.clear();
+  this->v_create_view_names_single.clear();
   this->v_create_table_names_single.clear();
   this->v_table_alias_names_single.clear();
   this->v_column_alias_names_single.clear();
@@ -4374,6 +4375,7 @@ void Mutator::reset_data_library() {
   v_sequence_name.clear();
   v_view_name.clear();
   v_constraint_name.clear();
+  v_family_name.clear();
   v_foreign_table_name.clear();
   v_table_with_partition.clear();
   v_int_literals.clear();
