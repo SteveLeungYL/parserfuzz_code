@@ -449,15 +449,18 @@ string DataAffinity::mutate_affi_interval() {
   switch (format) {
   case 0:
     // INTERVAL '2h30m30s'
-    ret_str += to_string(second) + "s";
+    ret_str += to_string(hour) + "h" + to_string(min) + "m" + to_string(second) + "s";
     break;
   case 1:
     // INTERVAL 'Y-M D H:M:S'
-    ret_str += to_string(second);
+    ret_str +=  to_string(year) + "-" + to_string(month) + " "
+            + to_string(day) + " " + to_string(hour) + ":" + to_string(min) + ":" + to_string(second);
     break;
   case 2:
     // INTERVAL 'P1Y2M3DT4H5M6S'
-    ret_str += to_string(second) + "S";
+    ret_str +=  "P" + to_string(year) + "Y" + to_string(month) + "M"
+            + to_string(day) + "DT" + to_string(hour) + "H" + to_string(min) + "M" + to_string(second)
+            + "S";
     break;
   case 3:
     // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
@@ -476,18 +479,6 @@ string DataAffinity::mutate_affi_interval() {
 
   // Mins.
   switch (format) {
-  case 0:
-    // INTERVAL '2h30m30s'
-    ret_str = to_string(min) + "m" + ret_str;
-    break;
-  case 1:
-    // INTERVAL 'Y-M D H:M:S'
-    ret_str = to_string(min) + ":" + ret_str;
-    break;
-  case 2:
-    // INTERVAL 'P1Y2M3DT4H5M6S'
-    ret_str = to_string(min) + "M" + ret_str;
-    break;
   case 3:
     // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
     ret_str = to_string(min) + " minutes " + ret_str;
@@ -505,18 +496,6 @@ string DataAffinity::mutate_affi_interval() {
 
   // Hour.
   switch (format) {
-  case 0:
-    // INTERVAL '2h30m30s'
-    ret_str = to_string(hour) + "h" + ret_str;
-    break;
-  case 1:
-    // INTERVAL 'Y-M D H:M:S'
-    ret_str = to_string(hour) + ":" + ret_str;
-    break;
-  case 2:
-    // INTERVAL 'P1Y2M3DT4H5M6S'
-    ret_str = to_string(hour) + "H" + ret_str;
-    break;
   case 3:
     // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
     ret_str = to_string(hour) + " hours " + ret_str;
@@ -534,17 +513,6 @@ string DataAffinity::mutate_affi_interval() {
 
   // Day.
   switch (format) {
-  case 0:
-    // INTERVAL '2h30m30s'
-    break;
-  case 1:
-    // INTERVAL 'Y-M D H:M:S'
-    ret_str = to_string(day) + " " + ret_str;
-    break;
-  case 2:
-    // INTERVAL 'P1Y2M3DT4H5M6S'
-    ret_str = to_string(day) + "DT" + ret_str;
-    break;
   case 3:
     // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
     ret_str = to_string(day) + " days " + ret_str;
@@ -562,17 +530,6 @@ string DataAffinity::mutate_affi_interval() {
 
   // Month.
   switch (format) {
-  case 0:
-    // INTERVAL '2h30m30s'
-    break;
-  case 1:
-    // INTERVAL 'Y-M D H:M:S'
-    ret_str = to_string(month) + " " + ret_str;
-    break;
-  case 2:
-    // INTERVAL 'P1Y2M3DT4H5M6S'
-    ret_str = to_string(month) + "M" + ret_str;
-    break;
   case 3:
     // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
     ret_str = to_string(month) + " months " + ret_str;
@@ -590,17 +547,6 @@ string DataAffinity::mutate_affi_interval() {
 
   // year.
   switch (format) {
-  case 0:
-    // INTERVAL '2h30m30s'
-    break;
-  case 1:
-    // INTERVAL 'Y-M D H:M:S'
-    ret_str = to_string(year) + "-" + ret_str;
-    break;
-  case 2:
-    // INTERVAL 'P1Y2M3DT4H5M6S'
-    ret_str = to_string(year) + "Y" + ret_str;
-    break;
   case 3:
     // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
     ret_str = to_string(year) + " years " + ret_str;
