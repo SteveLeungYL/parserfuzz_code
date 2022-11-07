@@ -2698,9 +2698,9 @@ inline void print_norec_exec_debug_info() {
          << g_mutator.get_cri_valid_collection_size() << "\n"
          << "\33[2K total_valid_stmts:       "
          << g_mutator.get_valid_collection_size() << "\n"
-         << "\33[2K total bad queries:       " << debug_error << " / "
+         << "\33[2K total good SELECT percentage:       " << debug_error << " / "
          << debug_error + debug_good << " ("
-         << debug_error * 100.0 / (debug_error + debug_good) << "%)\n"
+         << debug_good * 100.0 / (debug_error + debug_good) << "%)\n"
          << "\33[2K cockroach_execute_ok:      " << cockroach_execute_ok << "\n"
          << "\33[2K cockroach_execute_error:   " << cockroach_execute_error
          << "\n"
