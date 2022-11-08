@@ -1488,8 +1488,7 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR *ir_to_fix,
   if (near_literal_node != NULL &&
       near_literal_node->get_data_affinity() != AFFIUNKNOWN &&
       near_literal_node->get_data_affinity() != AFFIANY &&
-      near_literal_node->get_is_instantiated() == true
-      ) {
+      near_literal_node->get_is_instantiated() == true) {
     //        ir_to_fix->set_data_affinity(near_literal_node->get_data_affinity());
     ret_data_affi = near_literal_node->get_data_affinity();
     if (is_debug_info) {
@@ -1502,8 +1501,9 @@ DATAAFFINITYTYPE Mutator::get_nearby_data_affinity(IR *ir_to_fix,
            << "\n\n\n";
     }
   } else {
-    // If we end up in this branch, we cannot find a nearby literal or column names that
-    // already has fixed affinity. This is expected, such as case: `SELECT
+    // If we end up in this branch, we cannot find a nearby literal or column
+    // names that already has fixed affinity. This is expected, such as case:
+    // `SELECT
     // * FROM v0 WHERE v1 = 100;` Then, we should look at the nearby
     // column name for more information.
 
@@ -2695,7 +2695,7 @@ void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
       ir_to_fix->str_val_ = cur_chosen_column;
       ir_to_fix->set_is_instantiated(true);
       if (m_column2datatype.count(cur_chosen_column)) {
-          ir_to_fix->set_data_affinity(m_column2datatype[cur_chosen_column]);
+        ir_to_fix->set_data_affinity(m_column2datatype[cur_chosen_column]);
       }
 
       if (!p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)) {
@@ -3200,12 +3200,13 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
      * and try to match the type of the column name or literal.
      * */
 
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
+    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
+        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
       /*
-       * Should not change any literals inside the TypeOptStorageParams clause.
-       * These literals are for Storage Parameters (Storage Settings).
-       * These values will be fixed by another fixing function,
-       * later in the second ir_to_fix loop.
+       * Should not change any literals inside the TypeOptStorageParams and
+       * TypeSetVar clause. These literals are for Storage Parameters (Storage
+       * Settings) or SET parameters. These values will be fixed by another
+       * fixing function, later in the second ir_to_fix loop.
        * */
       return;
     }
@@ -3488,12 +3489,13 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
      * Data Affinity.
      * */
 
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams)) {
+    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
+        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
       /*
-       * Should not change any literals inside the TypeOptStorageParams clause.
-       * These literals are for Storage Parameters (Storage Settings).
-       * These values will be fixed by another fixing function,
-       * later in the second ir_to_fix loop.
+       * Should not change any literals inside the TypeOptStorageParams and
+       * TypeSetVar clause. These literals are for Storage Parameters (Storage
+       * Settings) or SET parameters. These values will be fixed by another
+       * fixing function, later in the second ir_to_fix loop.
        * */
       return;
     }
