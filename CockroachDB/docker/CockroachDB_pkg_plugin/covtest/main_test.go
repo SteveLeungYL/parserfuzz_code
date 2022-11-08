@@ -1,7 +1,7 @@
 package covtest
 
 import (
-	"log"
+	// "log"
 	"os"
 	"testing"
 
