@@ -10,7 +10,7 @@ import (
 )
 
 var GCov GlobalCovInfo
-var ch = make(chan uint32, 100)
+var sqlrightCh = make(chan uint32, 100)
 var controlCh = make(chan uint32)
 var isCovRoutineReady int32 = 0
 
@@ -25,12 +25,10 @@ func InitCovRoutine() {
 	// Sub-go-routine for the logging jobs. May save some CPU time
 	// for the main routine.
 	go func() {
-		defer close(ch)
-		defer close(controlCh)
 		var x uint32 = 0
 		for {
 			select {
-			case x = <-ch:
+			case x = <-sqlrightCh:
 				// Actual branch coverage logging.
 				LogGlobalCov(x)
 			case x = <-controlCh:
@@ -58,7 +56,7 @@ func InitCovRoutine() {
 
 func LogCovRoutine(curLoc uint32) {
 	if uint8(atomic.LoadInt32(&isCovRoutineReady)) == 1 {
-		ch <- curLoc
+		sqlrightCh <- curLoc
 	}
 	return
 }
