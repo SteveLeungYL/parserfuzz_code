@@ -16,7 +16,7 @@ PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
 
 export CC = g++
-export DEBUG =
+export DEBUG = -g
 export OPT = -O3
 export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN_FLAGS)
 LDFLAGS = -ldl
