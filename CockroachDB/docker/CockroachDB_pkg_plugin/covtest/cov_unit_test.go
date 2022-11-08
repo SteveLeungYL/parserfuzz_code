@@ -1,7 +1,5 @@
 package covtest
 
-import globalcov "github.com/globalcov"
-
 import (
 	"context"
 	"fmt"
@@ -17,7 +15,7 @@ import (
 
 var FORKSRV_FD uintptr = 198
 
-const maxQueryExec int = 30
+const maxQueryExec int = 1000
 
 const cleanupQueryCommit = `
 COMMIT;
@@ -110,14 +108,16 @@ func TestCov(t *testing.T) {
 		}
 
 		// Clean up the coverage log.
-		globalcov.InitCovRoutine()
+		globalcov.ResetGlobalCov()
 
 		// Execute the query
 		queryRes := executeQuery(string(inRaw), sqlRun)
 		outFile.WriteString(queryRes)
 
 		outFile.Close()
-		globalcov.CloseCovRoutine()
+
+		// Plot the coverage output.
+		globalcov.SaveGlobalCov()
 
 		if per_cycle < (maxQueryExec - 1) {
 			// Notify the fuzzer that the execution has succeed.
@@ -135,3 +135,4 @@ func TestCov(t *testing.T) {
 	statusPipe.Write([]byte{1, 0, 0, 0})
 	statusPipe.Sync()
 }
+

@@ -6,67 +6,14 @@ import (
 
 	//"fmt"
 	"log"
-	"sync/atomic"
 )
 
 var GCov GlobalCovInfo
-var sqlrightCh = make(chan uint32, 100)
-var controlCh = make(chan uint32)
-var isCovRoutineReady int32 = 0
 
 type GlobalCovInfo struct {
 	// Default PrevLoc value is 0.
 	prevLoc uint32         // Max: 262143
 	buf     [1 << 18]uint8 // trace_bit buffer. 262144 size.
-}
-
-func InitCovRoutine() {
-
-	// Sub-go-routine for the logging jobs. May save some CPU time
-	// for the main routine.
-	go func() {
-		var x uint32 = 0
-		for {
-			select {
-			case x = <-sqlrightCh:
-				// Actual branch coverage logging.
-				LogGlobalCov(x)
-			case x = <-controlCh:
-				if x == 0 {
-					// Plot the coverage output.
-					SaveGlobalCov()
-					controlCh <- 0
-					return
-				} else if x == 1 {
-					// Reset the global coverage.
-					ResetGlobalCov()
-					controlCh <- 1
-				}
-			}
-		}
-	}()
-
-	controlCh <- 1
-	<-controlCh
-
-	atomic.StoreInt32(&isCovRoutineReady, 1)
-
-	return
-}
-
-func LogCovRoutine(curLoc uint32) {
-	if uint8(atomic.LoadInt32(&isCovRoutineReady)) == 1 {
-		sqlrightCh <- curLoc
-	}
-	return
-}
-
-func CloseCovRoutine() {
-
-	atomic.StoreInt32(&isCovRoutineReady, 0)
-
-	controlCh <- 0
-	<-controlCh
 }
 
 func LogGlobalCov(curLoc uint32) {

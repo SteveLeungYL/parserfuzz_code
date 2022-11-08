@@ -14,9 +14,13 @@ import (
 )
 
 func TestMain(m *testing.M) {
+
+	// log.Printf("\n\n\nDebug: Inside main_test(). \n\n\n")
+
 	securityassets.SetLoader(securitytest.EmbeddedAssets)
 	randutil.SeedForTests()
 	serverutils.InitTestServerFactory(server.TestServerFactory)
 	serverutils.InitTestClusterFactory(testcluster.TestClusterFactory)
 	os.Exit(m.Run())
+
 }
