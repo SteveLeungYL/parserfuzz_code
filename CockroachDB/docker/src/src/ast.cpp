@@ -48,7 +48,7 @@ DATATYPE get_datatype_by_string(string s) {
                " string: " + s + " \n\n\n";
   cerr << err;
 //  abort();
-//  return DataNone;
+  return DataUnknownType;
 }
 
 FUNCTIONTYPE get_functype_by_string(string s) {
@@ -61,7 +61,7 @@ FUNCTIONTYPE get_functype_by_string(string s) {
                  " string: " + s + " \n\n\n";
     cerr << err;
 //    abort();
-//    return FUNCUNKNOWN;
+    return FUNCUNKNOWN;
 }
 
 string get_string_by_option_type(RelOptionType type) {

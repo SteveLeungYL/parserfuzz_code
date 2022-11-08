@@ -50,7 +50,7 @@ DATAAFFINITYTYPE get_data_affinity_by_string(string s) {
                s + " \n\n\n";
   cerr << err;
 //  abort();
-  //    return AFFIUNKNOWN;
+      return AFFIUNKNOWN;
 }
 
 DATAAFFINITYTYPE get_data_affinity_by_idx(int idx) {
