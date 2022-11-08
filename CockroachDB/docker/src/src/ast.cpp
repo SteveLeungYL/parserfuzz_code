@@ -47,7 +47,7 @@ DATATYPE get_datatype_by_string(string s) {
   string err = "\n\n\nError: Cannot find the matching data type by"
                " string: " + s + " \n\n\n";
   cerr << err;
-  abort();
+//  abort();
 //  return DataNone;
 }
 
@@ -60,7 +60,7 @@ FUNCTIONTYPE get_functype_by_string(string s) {
     string err = "\n\n\nError: Cannot find the matching function type by"
                  " string: " + s + " \n\n\n";
     cerr << err;
-    abort();
+//    abort();
 //    return FUNCUNKNOWN;
 }
 

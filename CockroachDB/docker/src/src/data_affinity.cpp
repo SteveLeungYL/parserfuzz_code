@@ -49,7 +49,7 @@ DATAAFFINITYTYPE get_data_affinity_by_string(string s) {
                " string: " +
                s + " \n\n\n";
   cerr << err;
-  abort();
+//  abort();
   //    return AFFIUNKNOWN;
 }
 
