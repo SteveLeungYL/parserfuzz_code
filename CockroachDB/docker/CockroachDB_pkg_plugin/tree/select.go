@@ -2021,7 +2021,7 @@ func (node *UsingJoinCond) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := "USING ("
 	infix := ")"
 
-	colsNode := node.Cols.LogCurrentNode(depth + 1)
+	colsNode := node.Cols.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUsingJoinCond,
