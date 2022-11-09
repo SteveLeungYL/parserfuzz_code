@@ -47,6 +47,8 @@ vector<string> Mutator::v_column_alias_names_single;
 
 map<string, string> Mutator::m_alias2table_single; // table alias to original
                                                    // table name mapping.
+map<string, vector<string>> Mutator::m_enforced_table2alias_single; // All table alias that is NOT
+                                                            // in the WITH clause.
 map<string, string>
     Mutator::m_alias2column_single; // column name to alias mapping.
 /* A mapping that defines an aliased table name to its resulting column name. */
@@ -1786,7 +1788,7 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
            << ", v_create_table_names_single"
            << v_create_table_names_single.size() << "\n\n\n";
     }
-    // For the ContextUseFoolow, we should use table name that already
+    // For the ContextUseFollow, we should use table name that already
     // mentioned in the current statement.
     // For example, for `v0.v1`, where v0 is imported from `FROM v0;`
     // Therefore, we should not directly use the Table Alias name.
@@ -1826,6 +1828,19 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
       }
       used_name = "x";
     }
+
+    // Check whether the chosen alias name is inside the enforced table alias mapping.
+    if (m_enforced_table2alias_single.count(used_name) != 0 && m_enforced_table2alias_single[used_name].size() != 0) {
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: Inside the table name use follow instantiation, forced map the table name "
+                 << used_name << " to ";
+        }
+        used_name = vector_rand_ele(m_enforced_table2alias_single[used_name]);
+        if (is_debug_info) {
+            cerr << used_name << "\n\n\n";
+        }
+    }
+
     ir_to_fix->str_val_ = used_name;
     ir_to_fix->set_is_instantiated(true);
 
@@ -1847,7 +1862,7 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
   return;
 }
 
-void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
+void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root, bool is_alias_optional,
                                       bool is_debug_info) {
 
   /* There is no need to consider the Context in this loop.
@@ -1952,6 +1967,9 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
     string alias_name = gen_table_alias_name();
     ir_to_fix->set_str_val(alias_name);
     m_alias2table_single[alias_name] = closest_table_name;
+    if (!is_alias_optional) {
+        m_enforced_table2alias_single[closest_table_name].push_back(alias_name);
+    }
     m_alias_table2column_single[alias_name] =
         m_table2columns[closest_table_name];
     v_table_alias_names_single.push_back(alias_name);
@@ -3964,7 +3982,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
       if (ir_to_fix->data_type_ == DataTableAliasName) {
         ir_to_fix->set_is_instantiated(true);
-        this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
+        // For the WITH clause table alias, the usage is optional.
+        this->instan_table_alias_name(ir_to_fix, cur_stmt_root, true, is_debug_info);
       }
     }
 
@@ -4001,7 +4020,8 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
 
       if (ir_to_fix->data_type_ == DataTableAliasName) {
         ir_to_fix->set_is_instantiated(true);
-        this->instan_table_alias_name(ir_to_fix, cur_stmt_root, is_debug_info);
+        // For the table alias that is outside the WITH clause, the usage is enforced!
+        this->instan_table_alias_name(ir_to_fix, cur_stmt_root, false, is_debug_info);
       }
     }
 
@@ -4360,6 +4380,7 @@ void Mutator::reset_data_library_single_stmt() {
   this->v_table_alias_names_single.clear();
   this->v_column_alias_names_single.clear();
   this->m_alias2table_single.clear();
+  this->m_enforced_table2alias_single.clear();
   this->m_alias2column_single.clear();
   this->m_alias_table2column_single.clear();
 }

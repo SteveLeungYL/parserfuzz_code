@@ -179,7 +179,7 @@ public:
                       bool is_debug_info = false);
   void instan_database_schema_name(IR* ir_to_fix, bool is_debug_info);
   void instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_debug_info);
-  void instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_debug_info);
+  void instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_alias_optional, bool is_debug_info);
   void instan_view_name(IR* ir_to_fix, bool is_debug_info);
   void instan_partition_name(IR* ir_to_fix, bool is_debug_info);
   void instan_index_name(IR* ir_to_fix, bool is_debug_info);
@@ -270,6 +270,7 @@ public:
 
   // Save the relationship between the table/column name to the alias name.
   static map<string, string> m_alias2table_single;
+  static map<string, vector<string>> m_enforced_table2alias_single;
   static map<string, vector<string>> m_alias_table2column_single;
   // The column alias is used in limited situations, such as GROUP BY columns AS column_alias, or `SELECT SUM(column) AS c ...`
   // Maybe also from `WITH` clause?
