@@ -3,7 +3,7 @@
 # This file is used for start the SQLRight CockroachDB fuzzing inside the Docker env.
 # entrypoint: bash
 
-chown -R cockroach:cockroach /home/cockroach/fuzzing/fuzz_root
+chown -R cockroach:cockroach /home/cockroach/fuzzing
 
 SCRIPT_EXEC=$(cat << EOF
 cd /home/cockroach/fuzzing/fuzz_root/
