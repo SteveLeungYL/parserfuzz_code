@@ -85,6 +85,16 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
       return false;
     }
 
+    vector<IR*> v_alias_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExpr);
+    for (auto alias_clause : v_alias_clause) {
+        if (alias_clause->get_middle() == " AS ") {
+            IR* alias_expr = alias_clause->get_right();
+            alias_clause->update_right(nullptr);
+            alias_expr->deep_drop();
+            alias_clause->op_->middle_ = "";
+        }
+    }
+
     vector<IR *> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(
         cur_stmt, TypeIdentifier, false);
 
