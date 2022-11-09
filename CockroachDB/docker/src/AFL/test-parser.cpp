@@ -131,7 +131,17 @@ bool try_validate_query(IR *cur_root) {
     cur_root->deep_drop();
     return false;
   }
-  cout << "validate: >" << validity << "<" << endl;
+  string tmp_validity = "";
+  for (auto& it : validity) {
+      if (it == ';') {
+          tmp_validity += "; \n";
+      } else {
+          tmp_validity += it;
+      }
+  }
+  validity = tmp_validity;
+
+  cout << "validate: \n" << validity << "\n\n\n" << endl;
 
   cur_root->deep_drop();
 
@@ -226,14 +236,14 @@ int main(int argc, char *argv[]) {
   }
 
 
-  // Just unit test the set statment.
-  for (int i = 0; i < 10; i++) {
-      // DEBUGGING.
-      // REMOVE ME.
-      IR* rand_set_stmt = mutator.constr_rand_set_stmt();
-      cerr << "\nGetting random set stmt: \n" << rand_set_stmt->to_string() << "\n";
-      rand_set_stmt->deep_drop();
-  }
+//  // Just unit test the set statment.
+//  for (int i = 0; i < 10; i++) {
+//      // DEBUGGING.
+//      // REMOVE ME.
+//      IR* rand_set_stmt = mutator.constr_rand_set_stmt();
+//      cerr << "\nGetting random set stmt: \n" << rand_set_stmt->to_string() << "\n";
+//      rand_set_stmt->deep_drop();
+//  }
 
   return 0;
 }
