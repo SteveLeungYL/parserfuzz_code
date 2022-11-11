@@ -428,7 +428,18 @@ string DataAffinity::mutate_affi_byte() {
 string DataAffinity::mutate_affi_jsonb() {
   // May not be able to control the content inside the JSON.
   int jsonDepth = 1;
-  string ret_str = "'" + generateRandomJson(1).dump() + "'";
+  string ret_str = generateRandomJson(1).dump();
+  string tmp_escape_str = "";
+  for (auto c : ret_str) {
+      if (c == '\'') {
+          tmp_escape_str += "\\'";
+      } else {
+          tmp_escape_str += c;
+      }
+  }
+  ret_str = tmp_escape_str;
+
+  ret_str = "'" + ret_str + "'";
   return ret_str;
 };
 
@@ -728,6 +739,16 @@ string DataAffinity::mutate_affi_enum() {
     ret_str = vector_rand_ele(this->v_enum_str);
   }
 
+  string tmp_escape_str = "";
+  for (auto c : ret_str) {
+      if (c == '\'') {
+          tmp_escape_str += "\\'";
+      } else {
+          tmp_escape_str += c;
+      }
+  }
+  ret_str = tmp_escape_str;
+
   ret_str = "'" + ret_str + "'";
   return ret_str;
 };
@@ -863,6 +884,17 @@ string DataAffinity::mutate_affi_string() {
       string tmp_cch_str = string(1, cch);
       ret_str += tmp_cch_str;
     }
+
+    string tmp_escape_str = "";
+    for (auto c : ret_str) {
+        if (c == '\'') {
+            tmp_escape_str += "\\'";
+        } else {
+            tmp_escape_str += c;
+        }
+    }
+    ret_str = tmp_escape_str;
+
     ret_str = "'" + ret_str + "'";
     break;
   }
