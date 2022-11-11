@@ -2821,6 +2821,34 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
   }
 
   p_oracle->compare_results(all_comp_res);
+
+  for (COMP_RES &res : all_comp_res.v_res) {
+      if (res.v_res_str.size() == 0) {
+          continue;
+      }
+      if (
+              (
+                      findStringIn(res.v_res_str[0], "pq: unsupported comparison") &&
+                      findStringIn(res.v_res_str[0], "operator:")
+              ) ||
+              findStringIn(res.v_res_str[0], "pq: unknown signature") ||
+              findStringIn(res.v_res_str[0], "parsing as type") ||
+              findStringIn(res.v_res_str[0], "pq: type") ||
+              findStringIn(res.v_res_str[0], "cannot subscript type string") ||
+              findStringIn(res.v_res_str[0], "function undefined") ||
+              findStringIn(res.v_res_str[0], "to be of type") ||
+              (
+                      findStringIn(res.v_res_str[0], "could not parse") &&
+                      findStringIn(res.v_res_str[0], "as type")
+              )
+              ) {
+          total_data_type_error_num++;
+          total_select_error_num++;
+      } else if (res.comp_res == ORA_COMP_RES::Error) {
+          total_select_error_num++;
+      }
+  }
+
   return;
 }
 
