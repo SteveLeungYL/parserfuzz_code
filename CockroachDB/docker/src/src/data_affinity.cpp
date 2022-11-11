@@ -876,9 +876,8 @@ string DataAffinity::mutate_affi_string() {
     // Complete random string.
     int len = get_rand_int(10) + 1; // Doesn't need to be long. Avoid 0 len.
     for (int i = 0; i < len; i++) {
-      char cch = char(get_rand_int(256));
-      string tmp_cch_str = string(1, cch);
-      ret_str += tmp_cch_str;
+      string cch = get_rand_alphabet_num();
+      ret_str += cch;
     }
 
     string tmp_escape_str = "";
