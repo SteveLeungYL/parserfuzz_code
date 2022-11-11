@@ -11,6 +11,7 @@ AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 TMIN_OBJS:= AFL/afl-tmin.o $(COMM_OBJS)
 GEN_OBJS:= AFL/generate_inputs.o $(COMM_OBJS)
+SETTING_OBJS:= AFL/afl-setting-mutator.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -22,7 +23,7 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl
 
 
-all: afl-fuzz test-parser generate_inputs afl-tmin
+all: afl-fuzz test-parser generate_inputs afl-tmin afl-setting-mutator
 
 parser:
 	@$(MAKE) -C $@
@@ -42,6 +43,9 @@ afl-tmin: $(SUB_DIRS)
 generate_inputs: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(GEN_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 
+afl-setting-mutator: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(SETTING_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+
 debug: DEBUG = -g
 debug: OPT = -O0
 debug:
@@ -60,4 +64,4 @@ clean:
 	@make clean -C src
 	@make clean -C oracle
 	@make clean -C AFL
-	rm -rf afl-fuzz test-parser afl-tmin
+	rm -rf afl-fuzz test-parser afl-tmin afl-setting-mutator generate_inputs

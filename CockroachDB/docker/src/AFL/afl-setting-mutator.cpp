@@ -489,6 +489,10 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
 
       if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
 
+          if (stop_soon) {
+              exit(0);
+          }
+
           /* Get the timeout message before looping the forksrv_pid.  */
           bool cur_is_timeout = is_timeout;
 
@@ -539,6 +543,8 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
           // Remove the file. Ignore the returned value.
           remove("./query_res_out.txt");
       }
+
+      cerr << "Getting Results: \n" << sql_res_str << "\n\n";
 
       if (findStringIn(sql_res_str, "internal error")) {
           ofstream out_file("./crash_poc", ios_base::out);
