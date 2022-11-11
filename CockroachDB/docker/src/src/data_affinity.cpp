@@ -574,11 +574,7 @@ string DataAffinity::mutate_affi_interval() {
   }
 
 interval_early_break:
-  if (format == 2) {
-    ret_str = "'P" + ret_str + "'";
-  } else {
-    ret_str = "'" + ret_str + "'";
-  }
+  ret_str = "'" + ret_str + "'";
 
   return ret_str;
 };
