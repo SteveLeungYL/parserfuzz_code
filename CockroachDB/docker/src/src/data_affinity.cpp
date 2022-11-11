@@ -399,13 +399,13 @@ string DataAffinity::mutate_affi_byte() {
   case 1:
     // b'\141\142\143'
     for (int i = 0; i < len; i++) {
-      ret_str += "\\" + to_string(get_rand_int(256));
+      ret_str += "\\\\" + to_string(get_rand_int(256));
     }
     break;
   case 2:
     // b'\x61\x62\x63'
     for (int i = 0; i < len; i++) {
-      ret_str += "\\x" + get_rand_hex_num() + get_rand_hex_num();
+      ret_str += "\\\\x" + get_rand_hex_num() + get_rand_hex_num();
     }
     break;
   case 3:
