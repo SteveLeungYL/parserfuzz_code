@@ -453,12 +453,16 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
 
       mutated_str = in_str;
 
-      for (int j = 0; j < 3; j++) {
+      if (stop_soon) {
+          exit(0);
+      }
+
+      for (int j = 0; j < 10; j++) {
           IR* new_rand_ir = mutator.constr_rand_set_stmt();
           string new_rand_str = new_rand_ir->to_string();
           new_rand_ir->deep_drop();
 
-          mutated_str = new_rand_str + mutated_str;
+          mutated_str = new_rand_str + "\n" + mutated_str;
       }
 
       cerr << "\n\n\nTesting with mutated_str: \n" << mutated_str << "\n\n\n";
@@ -488,10 +492,6 @@ static u8 run_target(char** argv, u8* mem, u32 len, u8 first_run) {
       setitimer(ITIMER_REAL, &it, NULL);
 
       if ((res = read(fsrv_st_fd, &status, 4)) != 4) {
-
-          if (stop_soon) {
-              exit(0);
-          }
 
           /* Get the timeout message before looping the forksrv_pid.  */
           bool cur_is_timeout = is_timeout;
