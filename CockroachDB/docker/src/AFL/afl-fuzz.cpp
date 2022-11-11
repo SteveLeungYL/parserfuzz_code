@@ -2927,6 +2927,7 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
                   findStringIn(res.res_str_0, "pq: unsupported comparison") &&
                   findStringIn(res.res_str_0, "operator:")
               ) ||
+              findStringIn(res.res_str_0, "pq: unsupported binary operator") ||
               findStringIn(res.res_str_0, "pq: unknown signature") ||
               findStringIn(res.res_str_0, "parsing as type") ||
               findStringIn(res.res_str_0, "pq: type") ||
@@ -2936,6 +2937,10 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
               (
                   findStringIn(res.res_str_0, "could not parse") &&
                   findStringIn(res.res_str_0, "as type")
+              ) ||
+              (
+                      findStringIn(res.res_str_0, "incompatible") &&
+                      findStringIn(res.res_str_0, "argument type")
               )
               ) {
           total_data_type_error_num++;
