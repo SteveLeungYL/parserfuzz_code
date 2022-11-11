@@ -4136,7 +4136,7 @@
 
   {
     "enabled": true,
-    "func_name": "parser_time",
+    "func_name": "parse_time",
     "is_type_matched": true,
     "func_type": "FUNCSTRING",
     "params": [
@@ -4154,7 +4154,7 @@
 
   {
     "enabled": true,
-    "func_name": "parser_timestamp",
+    "func_name": "parse_timestamp",
     "is_type_matched": true,
     "func_type": "FUNCSTRING",
     "params": [
@@ -4172,7 +4172,7 @@
 
   {
     "enabled": true,
-    "func_name": "parser_timetz",
+    "func_name": "parse_timetz",
     "is_type_matched": true,
     "func_type": "FUNCSTRING",
     "params": [
