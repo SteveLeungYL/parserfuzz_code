@@ -5217,7 +5217,11 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
   int arg_idx = 0;
   for (DataAffinity &cur_arg_affi : v_func_affi) {
 
-    if (arg_idx > 0) {
+    // The first arg is the function returned type.
+    if (arg_idx == 0) {
+        continue;
+    }
+    if (arg_idx > 1) {
       ret_str += ", ";
     }
     arg_idx++;

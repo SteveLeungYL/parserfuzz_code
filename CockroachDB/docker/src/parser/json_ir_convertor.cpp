@@ -312,6 +312,7 @@ void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
         for (json::iterator it_params = params_node.begin(); it_params != params_node.end(); it_params++) {
              vector<DataAffinity> single_signiture;
 
+             // The ret_type must exist.
              DataAffinity ret_type;
              ret_type.set_data_affinity(get_data_affinity_by_string(it_params->at("ret_type")));
              single_signiture.push_back(ret_type);
