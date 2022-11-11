@@ -1578,6 +1578,12 @@ void Mutator::instan_database_schema_name(IR *ir_to_fix, bool is_debug_info) {
 void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
                                 bool is_debug_info) {
 
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)
+          ) {
+      return;
+  }
+
   if ((ir_to_fix->data_type_ == DataTableName) &&
       (ir_to_fix->data_flag_ == ContextDefine ||
        ir_to_fix->data_flag_ == ContextReplaceDefine)) {
@@ -1997,6 +2003,12 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root, bool is_
 
 void Mutator::instan_view_name(IR *ir_to_fix, bool is_debug_info) {
 
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)
+          ) {
+      return;
+  }
+
   /* Context Define. */
   if (ir_to_fix->data_type_ == DataViewName &&
       ir_to_fix->data_flag_ == ContextDefine) {
@@ -2306,6 +2318,12 @@ void Mutator::instan_index_name(IR *ir_to_fix, bool is_debug_info) {
 void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
                                  vector<IR *> &ir_to_deep_drop,
                                  bool is_debug_info) {
+
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)
+          ) {
+      return;
+  }
 
   if (ir_to_fix->data_type_ == DataColumnName &&
       (ir_to_fix->data_flag_ == ContextDefine ||
@@ -3864,6 +3882,13 @@ void Mutator::map_create_view_column(IR *ir_to_fix,
 
 void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
                                    bool is_debug_info) {
+
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)
+  ) {
+      return;
+  }
+
   /* Fixing for functions.  */
   if (ir_to_fix->get_data_type() == DataFunctionExpr) {
     if (ir_to_fix->get_data_flag() == ContextNoModi) {
