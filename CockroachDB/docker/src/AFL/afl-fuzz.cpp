@@ -2895,12 +2895,20 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
 
   for (COMP_RES &res : all_comp_res.v_res) {
       if (
-              findStringIn(res.res_str_0, "pq: unsupported comparison") ||
-              findStringIn(res.res_str_0, "unknown signature") ||
+              (
+                  findStringIn(res.res_str_0, "pq: unsupported comparison") &&
+                  findStringIn(res.res_str_0, "operator:")
+              ) ||
+              findStringIn(res.res_str_0, "pq: unknown signature") ||
               findStringIn(res.res_str_0, "parsing as type") ||
               findStringIn(res.res_str_0, "pq: type") ||
               findStringIn(res.res_str_0, "cannot subscript type string") ||
-              findStringIn(res.res_str_0, "function undefined")
+              findStringIn(res.res_str_0, "function undefined") ||
+              findStringIn(res.res_str_0, "to be of type") ||
+              (
+                  findStringIn(res.res_str_0, "could not parse") &&
+                  findStringIn(res.res_str_0, "as type")
+              )
               ) {
           total_data_type_error_num++;
           total_select_error_num++;
