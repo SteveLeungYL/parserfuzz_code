@@ -1449,7 +1449,13 @@ int main(int argc, char** argv) {
   ACTF("Performing dry run (mem limit = %llu MB, timeout = %u ms%s)...",
        mem_limit, exec_tmout, edges_only ? ", edges only" : "");
 
-  run_target(use_argv, in_data, in_len, 1);
+  u8 res;
+  do {
+      res = run_target(argv, in_data, in_len, 0);
+  } while (!res);
+
+  cerr << "\n\n\nFound the crashing test case. EXIT. \n\n\n";
+  exit(0);
 
   if (child_timed_out)
     FATAL("Target binary times out (adjusting -t may help).");
