@@ -135,6 +135,9 @@ u64 num_reparse = 0;
 u64 num_append = 0;
 u64 num_validate = 0;
 
+u64 total_select_error_num = 0;
+u64 total_data_type_error_num = 0;
+
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
 
@@ -2875,6 +2878,7 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
     if (idx < res_vec_3.size()) {
       comp_res.res_str_3 = res_vec_3[idx];
     }
+
     if (idx < exp_vec_0.size()) {
       if ((idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) ||
           (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) ||
@@ -2888,6 +2892,23 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
 
   /* Now we can compare the results and find whether there are inconsistant. */
   p_oracle->compare_results(all_comp_res);
+
+  for (COMP_RES &res : all_comp_res.v_res) {
+      if (
+              findStringIn(res.res_str_0, "pq: unsupported comparison") ||
+              findStringIn(res.res_str_0, "unknown signature") ||
+              findStringIn(res.res_str_0, "parsing as type") ||
+              findStringIn(res.res_str_0, "pq: type") ||
+              findStringIn(res.res_str_0, "cannot subscript type string") ||
+              findStringIn(res.res_str_0, "function undefined")
+              ) {
+          total_data_type_error_num++;
+          total_select_error_num++;
+      } else if (res.comp_res == ORA_COMP_RES::Error) {
+          total_select_error_num++;
+      }
+  }
+
   return;
 }
 
@@ -4295,7 +4316,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           /* Format */
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%"
           "%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%0.02f%%"
           "\n",
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
@@ -4309,7 +4330,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           cockroach_execute_total,
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0),
           num_valid, num_parse, num_mutate_all, num_reparse, num_append,
-          num_validate); /* ignore errors */
+          num_validate, total_data_type_error_num, total_select_error_num,
+          float(total_data_type_error_num)/float(total_select_error_num)
+          ); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -6760,7 +6783,7 @@ EXP_ST void setup_dirs_fds(void) {
           "total_valid_stmts,total_good_queries,cockroach_execute_ok,cockroach_"
           "execute_error,cockroach_execute_total,"
           "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,"
-          "num_append,num_validate\n");
+          "num_append,num_validate,total_data_type_related_error,total_error,type_error_percentage\n");
 
   /* ignore errors */
 }
