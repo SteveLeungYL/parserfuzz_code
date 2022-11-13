@@ -122,6 +122,20 @@ public:
   int num_oracle_select_mutate = 0;
   int num_oracle_select_succeed = 0;
 
+  virtual int is_res_str_error (string in_ret) {
+#define ff(x) findStringIn(in_ret, x)
+      if (
+              ff("pq:") ||
+              ff("ERROR: ") ||
+              ff("SQLSTATE: ")
+              ) {
+          return 1;
+      } else {
+          return 0;
+      }
+#undef ff
+  };
+
 protected:
   Mutator *g_mutator;
 

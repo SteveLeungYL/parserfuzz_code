@@ -137,6 +137,8 @@ u64 num_validate = 0;
 
 u64 total_select_error_num = 0;
 u64 total_data_type_error_num = 0;
+u64 total_instan_succeed_num = 0;
+u64 total_instan_num = 0;
 
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
@@ -2545,7 +2547,7 @@ static void restart_cockroachdb(char** argv) {
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
-static u8 run_target(char **argv, u32 timeout, string cmd_str) {
+static u8 run_target(char **argv, u32 timeout, string cmd_str, int is_reset_server = 1) {
 
   static struct itimerval it;
   static u32 prev_timed_out = 0;
@@ -2567,20 +2569,34 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str) {
      must prevent any earlier operations from venturing into that
      territory. */
 
-  memset(trace_bits, 0, MAP_SIZE);
-  MEM_BARRIER();
+  if (is_reset_server != 0) {
+      memset(trace_bits, 0, MAP_SIZE);
+      MEM_BARRIER();
+  }
 BEGIN:
 
-  write_to_testcase(cmd_str);
+  if (cmd_str != "") {
+      write_to_testcase(cmd_str);
+  }
 
   // Send the signal to notify the CockroachDB to start executions.
-  while ((res = write(fsrv_ctl_fd, &prev_timed_out, 4)) != 4) {
+  // If the is_reset_server_only is 1, then the CockroachDB server
+  // will reset its database.
+  while ((res = write(fsrv_ctl_fd, &is_reset_server, 4)) != 4) {
     if (stop_soon) {
         return FAULT_NONE;
     }
+
     // Make sure the CockroachDB process is restart correctly.
     restart_cockroachdb(argv);
+
+    memset(trace_bits, 0, MAP_SIZE);
+    MEM_BARRIER();
   }
+
+//  if (cmd_str == "") {
+//      return FAULT_NONE;
+//  }
 
   /* Inside the parent process.
   // Wait for the child process.
@@ -2679,6 +2695,11 @@ BEGIN:
   }
 
   return FAULT_NONE;
+}
+
+inline void reset_database_without_restart(char** argv) {
+    run_target(argv, exec_tmout, "", 1);
+    return;
 }
 
 inline void print_norec_exec_debug_info() {
@@ -4357,7 +4378,8 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           /* Format */
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%"
           "%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%0.02f%%"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%0.02f%%,"
+          "%llu,%llu,%0.02f%%"
           "\n",
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
@@ -4372,7 +4394,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0),
           num_valid, num_parse, num_mutate_all, num_reparse, num_append,
           num_validate, total_data_type_error_num, total_select_error_num,
-          float(total_data_type_error_num)/float(total_select_error_num)
+          float(total_data_type_error_num)/float(total_select_error_num),
+          total_instan_succeed_num, total_instan_num,
+          float(total_instan_succeed_num)/float(total_instan_num)
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -6086,14 +6110,55 @@ static u8 fuzz_one(char **argv) {
       vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
           cur_root, stmt_type_vec); // All deep_copied.
 
+
       /* Build dependency graph, fix ir node, fill in concret values */
+      string whole_query_sequence = "";
       for (IR *cur_trans_stmt : all_pre_trans_vec) {
-        if (!g_mutator.validate(cur_trans_stmt)) {
-          // cerr << "Error: g_mutator.validate returns errors. \n";
-          /* Do nothing. */
-        }
+          // Move the reset_data_library_single_stmt out in the outer loop.
+          // So that rescanning the instantiation process using the
+          // error hints can reuse the table data.
+          g_mutator.reset_data_library_single_stmt();
+          g_mutator.validate(cur_trans_stmt);
+
+          int ret_res = FAULT_NONE;
+          int trial = 10;
+          do {
+              total_instan_num++;
+              trial--;
+              string cur_stmt_str = cur_trans_stmt->to_string();
+              if (ret_res == FAULT_CRASH) {
+                  cur_stmt_str = whole_query_sequence + cur_stmt_str;
+                  // Reset the server after crash.
+                  ret_res = run_target(argv, exec_tmout, cur_stmt_str, 1);
+              } else {
+                  // Do not reset the server while running each single statement.
+                  ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
+              }
+
+              if (ret_res == FAULT_NONE) {
+                  total_instan_succeed_num++;
+                  whole_query_sequence += cur_stmt_str;
+              } else if (ret_res == FAULT_CRASH) {
+                  ALL_COMP_RES all_comp_res;
+                  string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str;
+                  // If an crash is encountered, save the output to the crash log.
+                  save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
+              }
+
+              if (p_oracle->is_res_str_error(g_cockroach_output)) {
+                  ret_res = FAULT_ERROR;
+
+                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, true);
+
+              }
+
+          } while (ret_res != FAULT_NONE && trial != 0);
       }
 
+      // After fixing all the statements, reset the database data.
+      reset_database_without_restart(argv);
+
+      // Continues to the post-fix oracle transformation.
       vector<vector<STMT_TYPE>> post_fix_stmt_type_vec;
       /* post_fix_transformation from the oracle. All deep_copied. */
       vector<vector<vector<IR *>>> all_post_trans_vec_all_runs =
@@ -6824,7 +6889,9 @@ EXP_ST void setup_dirs_fds(void) {
           "total_valid_stmts,total_good_queries,cockroach_execute_ok,cockroach_"
           "execute_error,cockroach_execute_total,"
           "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,"
-          "num_append,num_validate,total_data_type_related_error,total_error,type_error_percentage\n");
+          "num_append,num_validate,total_data_type_related_error,total_error,type_error_percentage,"
+          "total_instan_succeed,total_instan_num,total_instan_success_rate"
+          "\n");
 
   /* ignore errors */
 }

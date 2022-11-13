@@ -1020,7 +1020,7 @@ bool Mutator::validate(IR *&cur_stmt, bool is_debug_info) {
     cerr << "Trying to fix stmt: " << cur_stmt->to_string() << " \n";
   }
 
-  if (!fix_one_stmt(
+  if (!instan_one_stmt(
           cur_stmt,
           is_debug_info)) { // Pass in kStmt, not kSpecificStatementType.
     return false;
@@ -1064,11 +1064,11 @@ unsigned int Mutator::calc_node(IR *root) {
   return res + 1;
 }
 
-bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
+bool Mutator::instan_one_stmt(IR *cur_stmt, bool is_debug_info) {
   bool res = true;
 
-  /* Reset library that is local to one query set. */
-  reset_data_library_single_stmt();
+//  /* Reset library that is local to one query set. */
+//  reset_data_library_single_stmt();
 
   /* m_substmt_save, used for reconstruct the tree. */
   map<IR *, pair<bool, IR *>> m_substmt_save;
@@ -1104,14 +1104,14 @@ bool Mutator::fix_one_stmt(IR *cur_stmt, bool is_debug_info) {
     // }
 
     vector<IR *> cur_substmt_ir_to_fix;
-    this->fix_preprocessing(substmt, cur_substmt_ir_to_fix);
+      this->instan_preprocessing(substmt, cur_substmt_ir_to_fix);
 
     cur_stmt_ir_to_fix.push_back(cur_substmt_ir_to_fix);
   }
 
   res = connect_back(m_substmt_save) && res;
 
-  res = fix_dependency(cur_stmt, cur_stmt_ir_to_fix, is_debug_info);
+  res = instan_dependency(cur_stmt, cur_stmt_ir_to_fix, is_debug_info);
 
   return res;
 }
@@ -1390,8 +1390,8 @@ static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
 ** relationmap_[kDataTableName][kDataTableName] = kRelationElement;
 ** relationmap_[kDataColumnName][kDataColumnName] = kRelationElement;
 */
-void Mutator::fix_preprocessing(IR *stmt_root,
-                                vector<IR *> &ordered_all_subquery_ir) {
+void Mutator::instan_preprocessing(IR *stmt_root,
+                                   vector<IR *> &ordered_all_subquery_ir) {
   set<DATATYPE> type_to_fix = {
       DataColumnName,     DataTableName,       DataIndexName,
       DataTableAliasName, DataColumnAliasName, DataSequenceName,
@@ -3929,9 +3929,9 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
   return;
 }
 
-bool Mutator::fix_dependency(IR *cur_stmt_root,
-                             const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
-                             bool is_debug_info) {
+bool Mutator::instan_dependency(IR *cur_stmt_root,
+                                const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
+                                bool is_debug_info) {
 
   if (is_debug_info) {
     cerr << "Fix_dependency: cur_stmt_root: " << cur_stmt_root->to_string()
@@ -3940,7 +3940,7 @@ bool Mutator::fix_dependency(IR *cur_stmt_root,
   }
 
   /* Used to mark the IRs that are needed to be deep_drop(). However, it is not
-   * a good idea to deep_drop in the middle of the fix_dependency() function,
+   * a good idea to deep_drop in the middle of the instan_dependency() function,
    * some ir_to_fix node might have nested IR strcuture. Use this vector to save
    * all IR that needs deep_drop, and drop them at the end of the function.
    * */
@@ -5246,4 +5246,66 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
   ret_IR->set_data_flag(ContextNoModi);
 
   return ret_IR;
+}
+
+void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_info) {
+
+    string ori_str = cur_stmt_root->to_string();
+
+    vector<string> v_err_note;
+
+    // Naive solution for now.
+    vector tmp_err_note = string_splitter(res_str, '"');
+
+    for (int i = 1; i < tmp_err_note.size(); i+=2) {
+        v_err_note.push_back(tmp_err_note.at(i));
+    }
+
+    if (v_err_note.size() == 0) {
+        return;
+    }
+
+    for (string& cur_err_note: v_err_note) {
+        vector<IR *> node_matching;
+        vector<string> potential_matched_str;
+        potential_matched_str.push_back(cur_err_note);
+        potential_matched_str.push_back("'" + cur_err_note + "'");
+        node_matching = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type
+                (cur_stmt_root,
+                 potential_matched_str, false, true);
+
+        vector<IR*> node_matching_filtered;
+
+        for (IR* cur_node_matching : node_matching) {
+            if (cur_node_matching->get_data_flag() != ContextDefine &&
+                cur_node_matching->get_data_flag() != ContextUndefine &&
+                cur_node_matching->get_data_flag() != ContextUnknown  &&
+                cur_node_matching->get_data_flag() != ContextNoModi
+            ) {
+                node_matching_filtered.push_back(cur_node_matching);
+            }
+        }
+
+        vector<vector<IR*>> tmp_node_matching;
+        tmp_node_matching.push_back(node_matching_filtered);
+
+        if (is_debug_info) {
+            cerr << "\n\n\nFor error message: \n" << res_str
+                 << "\nGetting node: ";
+            for (IR* cur_node_matching : node_matching_filtered) {
+                cerr << cur_node_matching->to_string() << ", ";
+            }
+            cerr << "\n\n";
+        }
+
+        this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
+    }
+
+    if (is_debug_info) {
+        cerr << "After trying to fix the error from the error message, we get ori str: \n"
+             << ori_str << "\nto: \n" << cur_stmt_root->to_string() << "\n\n\n";
+    }
+
+    return;
+
 }

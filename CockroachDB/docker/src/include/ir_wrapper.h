@@ -147,6 +147,12 @@ public:
         return false;
     }
   }
+  inline bool comp_type(IR* cur_node, string in_str) {
+      if (cur_node->to_string() == in_str) {
+          return true;
+      }
+      return false;
+  }
   inline bool comp_type(IR* cur_node, vector<IRTYPE> v_ir_type) {
       for (auto& ir_type : v_ir_type) {
           if (cur_node->get_ir_type() == ir_type) {
@@ -158,6 +164,14 @@ public:
   inline bool comp_type(IR* cur_node, vector<DATATYPE> v_data_type) {
       for (auto& data_type : v_data_type) {
           if (cur_node->get_data_type() == data_type) {
+              return true;
+          }
+      }
+      return false;
+  }
+  inline bool comp_type(IR* cur_node, vector<string> v_in_str) {
+      for (string& in_str : v_in_str) {
+          if (cur_node->to_string() == in_str) {
               return true;
           }
       }

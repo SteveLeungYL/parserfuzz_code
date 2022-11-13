@@ -102,13 +102,13 @@ public:
                                           vector<STMT_TYPE> &stmt_type_vec,
                                           vector<STMT_TYPE> &, int run_count);
 
-  bool fix_one_stmt(IR *cur_stmt, bool is_debug_info = false);
+  bool instan_one_stmt(IR *cur_stmt, bool is_debug_info = false);
 
   vector<IR *> split_to_substmt(IR *root, map<IR *, pair<bool, IR *>> &m_save,
                                 set<IRTYPE> &split_set);
   bool connect_back(map<IR *, pair<bool, IR *>> &m_save);
 
-  void fix_preprocessing(IR *stmt_root, vector<IR *> &ordered_all_subquery_ir);
+  void instan_preprocessing(IR *stmt_root, vector<IR *> &ordered_all_subquery_ir);
   string find_cloest_table_name(IR* ir_to_fix, bool is_debug_info);
 
 
@@ -175,8 +175,8 @@ public:
   bool add_missing_create_table_stmt(IR *);
 
   DATAAFFINITYTYPE get_nearby_data_affinity(IR* ir_to_fix, bool is_debug_info);
-  bool fix_dependency(IR *cur_stmt_root, const vector<vector<IR *>> ir_to_fix,
-                      bool is_debug_info = false);
+  bool instan_dependency(IR *cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
+                         bool is_debug_info = false);
   void instan_database_schema_name(IR* ir_to_fix, bool is_debug_info);
   void instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_debug_info);
   void instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_alias_optional, bool is_debug_info);
@@ -196,6 +196,8 @@ public:
   void instan_function_name (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
   void map_create_view (IR* ir_to_fix, IR* cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec, bool is_debug_info);
   void map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
+
+  void fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
 
   IR *record_ = NULL;
   IR *mutated_root_ = NULL;
