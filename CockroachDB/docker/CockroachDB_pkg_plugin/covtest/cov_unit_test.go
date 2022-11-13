@@ -95,6 +95,9 @@ func TestCov(t *testing.T) {
 
         tmpCtrlReadInt := binary.BigEndian.Uint32(tmpCtrlRead)
 
+        // DEBUG:
+        fmt.Printf("\n\n\nGetting tmpCtrlReadInt: %d \n\n\n", tmpCtrlReadInt)
+
         if tmpCtrlReadInt != 0 {
             // Reset the database.
             executeQuery(cleanupQueryCommit, sqlRun)
