@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+    "encoding/binary"
 )
 
 var FORKSRV_FD uintptr = 198
@@ -73,7 +74,6 @@ func TestCov(t *testing.T) {
 
 	sqlRun := sqlutils.MakeSQLRunner(sqlDB)
 
-	// Control Read Pipe.
 	controlPipe := os.NewFile(FORKSRV_FD, "pipe")
 	tmpCtrlRead := []byte{0, 0, 0, 0}
 	// Status Write Pipe.
@@ -86,15 +86,20 @@ func TestCov(t *testing.T) {
 
 	for per_cycle := 0; per_cycle < maxQueryExec; per_cycle++ {
 
+        // Control Read Pipe.
 		// Wait for the input signal.
 		_, err := controlPipe.Read(tmpCtrlRead)
 		if err != nil {
 			t.Fatal("controlPipe reading failed.\n")
 		}
 
-		// Reset the database.
-		executeQuery(cleanupQueryCommit, sqlRun)
-		executeQuery(cleanupQuery, sqlRun)
+        tmpCtrlReadInt := binary.BigEndian.Uint32(tmpCtrlRead)
+
+        if tmpCtrlReadInt != 0 {
+            // Reset the database.
+            executeQuery(cleanupQueryCommit, sqlRun)
+            executeQuery(cleanupQuery, sqlRun)
+        } // else. 
 
 		// Read query from local file.
 		inRaw, err := os.ReadFile("./input_query.sql")
@@ -111,8 +116,12 @@ func TestCov(t *testing.T) {
 		globalcov.ResetGlobalCov()
 
 		// Execute the query
-		queryRes := executeQuery(string(inRaw), sqlRun)
-		outFile.WriteString(queryRes)
+        if string(inRaw) != "" {
+            queryRes := executeQuery(string(inRaw), sqlRun)
+            outFile.WriteString(queryRes)
+        } else {
+            outFile.WriteString("")
+        }
 
 		outFile.Close()
 
