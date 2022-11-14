@@ -23,6 +23,7 @@ COMMIT;
 `
 
 const cleanupQuery = `
+SET sql_safe_updates = false;
 DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
 CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
 SET DATABASE = sqlrightTestDB;
@@ -93,10 +94,10 @@ func TestCov(t *testing.T) {
 			t.Fatal("controlPipe reading failed.\n")
 		}
 
-        tmpCtrlReadInt := binary.BigEndian.Uint32(tmpCtrlRead)
+        tmpCtrlReadInt := binary.LittleEndian.Uint32(tmpCtrlRead)
 
         // DEBUG:
-        fmt.Printf("\n\n\nGetting tmpCtrlReadInt: %d \n\n\n", tmpCtrlReadInt)
+        //fmt.Printf("\n\n\nGetting tmpCtrlReadInt: %d \n\n\n", tmpCtrlReadInt)
 
         if tmpCtrlReadInt != 0 {
             // Reset the database.
