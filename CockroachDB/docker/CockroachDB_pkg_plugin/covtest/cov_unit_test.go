@@ -16,7 +16,7 @@ import (
 
 var FORKSRV_FD uintptr = 198
 
-const maxQueryExec int = 50
+const maxQueryExec int = 100000
 
 const cleanupQueryCommit = `
 COMMIT;

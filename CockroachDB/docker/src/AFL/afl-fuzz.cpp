@@ -6114,6 +6114,7 @@ static u8 fuzz_one(char **argv) {
       /* Build dependency graph, fix ir node, fill in concret values */
 
       // Before fixing all the statements, reset the database data.
+      restart_cockroachdb(argv);
       reset_database_without_restart(argv);
 
       string whole_query_sequence = "";
@@ -6152,7 +6153,7 @@ static u8 fuzz_one(char **argv) {
               if (p_oracle->is_res_str_error(g_cockroach_output)) {
                   ret_res = FAULT_ERROR;
 
-                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, true);
+                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, false);
 
               }
 
@@ -6160,6 +6161,7 @@ static u8 fuzz_one(char **argv) {
       }
 
       // After fixing all the statements, reset the database data.
+      restart_cockroachdb(argv);
       reset_database_without_restart(argv);
 
       // Continues to the post-fix oracle transformation.
