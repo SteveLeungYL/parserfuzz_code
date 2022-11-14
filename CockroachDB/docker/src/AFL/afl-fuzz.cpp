@@ -6112,6 +6112,10 @@ static u8 fuzz_one(char **argv) {
 
 
       /* Build dependency graph, fix ir node, fill in concret values */
+
+      // Before fixing all the statements, reset the database data.
+      reset_database_without_restart(argv);
+
       string whole_query_sequence = "";
       for (IR *cur_trans_stmt : all_pre_trans_vec) {
           // Move the reset_data_library_single_stmt out in the outer loop.
