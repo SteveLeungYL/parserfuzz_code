@@ -5254,52 +5254,64 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_
 
     vector<string> v_err_note;
 
-    // Naive solution for now.
-    vector tmp_err_note = string_splitter(res_str, '"');
+    vector<vector<IR*>> tmp_node_matching;
 
-    for (int i = 1; i < tmp_err_note.size(); i+=2) {
-        v_err_note.push_back(tmp_err_note.at(i));
-    }
-
-    if (v_err_note.size() == 0) {
-        return;
-    }
-
-    for (string& cur_err_note: v_err_note) {
-        vector<IR *> node_matching;
-        vector<string> potential_matched_str;
-        potential_matched_str.push_back(cur_err_note);
-        potential_matched_str.push_back("'" + cur_err_note + "'");
-        node_matching = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type
-                (cur_stmt_root,
-                 potential_matched_str, false, true);
-
-        vector<IR*> node_matching_filtered;
-
-        for (IR* cur_node_matching : node_matching) {
-            if (cur_node_matching->get_data_flag() != ContextDefine &&
-                cur_node_matching->get_data_flag() != ContextUndefine &&
-                cur_node_matching->get_data_flag() != ContextUnknown  &&
-                cur_node_matching->get_data_flag() != ContextNoModi
+    if (findStringIn(res_str, "unknown function") ||
+        findStringIn(res_str, "unknown signature")
             ) {
-                node_matching_filtered.push_back(cur_node_matching);
-            }
+        vector<IR*> all_func_ir = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root,
+                                               DataFunctionName, false, true);
+
+        tmp_node_matching.push_back(all_func_ir);
+    } else {
+
+        // Naive solution for now.
+        vector tmp_err_note = string_splitter(res_str, '"');
+
+        for (int i = 1; i < tmp_err_note.size(); i+=2) {
+            v_err_note.push_back(tmp_err_note.at(i));
         }
 
-        vector<vector<IR*>> tmp_node_matching;
-        tmp_node_matching.push_back(node_matching_filtered);
-
-        if (is_debug_info) {
-            cerr << "\n\n\nFor error message: \n" << res_str
-                 << "\nGetting node: ";
-            for (IR* cur_node_matching : node_matching_filtered) {
-                cerr << cur_node_matching->to_string() << ", ";
-            }
-            cerr << "\n\n";
+        if (v_err_note.size() == 0) {
+            return;
         }
 
-        this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
+        for (string &cur_err_note: v_err_note) {
+            vector<IR *> node_matching;
+            vector<string> potential_matched_str;
+            potential_matched_str.push_back(cur_err_note);
+            potential_matched_str.push_back("'" + cur_err_note + "'");
+            node_matching = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type
+                    (cur_stmt_root,
+                     potential_matched_str, false, true);
+
+            vector<IR *> node_matching_filtered;
+
+            for (IR *cur_node_matching: node_matching) {
+                if (cur_node_matching->get_data_flag() != ContextDefine &&
+                    cur_node_matching->get_data_flag() != ContextUndefine &&
+                    cur_node_matching->get_data_flag() != ContextUnknown &&
+                    cur_node_matching->get_data_flag() != ContextNoModi
+                        ) {
+                    node_matching_filtered.push_back(cur_node_matching);
+                }
+            }
+
+            tmp_node_matching.push_back(node_matching_filtered);
+
+            if (is_debug_info) {
+                cerr << "\n\n\nFor error message: \n" << res_str
+                     << "\nGetting node: ";
+                for (IR *cur_node_matching: node_matching_filtered) {
+                    cerr << cur_node_matching->to_string() << ", ";
+                }
+                cerr << "\n\n";
+            }
+        }
     }
+
+    this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
 
     if (is_debug_info) {
         cerr << "After trying to fix the error from the error message, we get ori str: \n"

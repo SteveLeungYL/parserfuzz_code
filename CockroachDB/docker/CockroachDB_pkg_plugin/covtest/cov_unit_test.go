@@ -97,7 +97,12 @@ func TestCov(t *testing.T) {
         tmpCtrlReadInt := binary.LittleEndian.Uint32(tmpCtrlRead)
 
         // DEBUG:
-        //fmt.Printf("\n\n\nGetting tmpCtrlReadInt: %d \n\n\n", tmpCtrlReadInt)
+        fmt.Printf("\n\n\nGetting tmpCtrlReadInt: %d \n\n\n", tmpCtrlReadInt)
+
+        if tmpCtrlReadInt == 2 {
+            fmt.Printf("\n\n\nExit the current CockroachDB server. \n\n\n")
+            break;
+        }
 
         if tmpCtrlReadInt != 0 {
             // Reset the database.

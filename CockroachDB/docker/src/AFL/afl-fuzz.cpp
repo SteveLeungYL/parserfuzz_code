@@ -2535,9 +2535,19 @@ static void write_to_testcase(string &input) {
  * Restart the CockroachDB persistent server.
  * */
 static void restart_cockroachdb(char** argv) {
+
+    // Exit the current CockroachDB server.
+//    int status = 0;
+//    int set_int = 2;
+//    write(fsrv_ctl_fd, &set_int, sizeof(set_int));
+//    read(fsrv_st_fd, &status, 4);
     if (forksrv_pid != -1) {
         kill(forksrv_pid, SIGKILL);
+        int status = 0;
+        wait(&status);
     }
+
+
     forksrv_pid = -1;
     init_forkserver(argv);
     return;
@@ -2582,7 +2592,7 @@ BEGIN:
   // Send the signal to notify the CockroachDB to start executions.
   // If the is_reset_server_only is 1, then the CockroachDB server
   // will reset its database.
-  while ((res = write(fsrv_ctl_fd, &is_reset_server, 4)) != 4) {
+  while ((res = write(fsrv_ctl_fd, &is_reset_server, sizeof(is_reset_server))) != 4) {
     if (stop_soon) {
         return FAULT_NONE;
     }
@@ -6160,7 +6170,7 @@ static u8 fuzz_one(char **argv) {
       }
 
       // After fixing all the statements, reset the database data.
-      restart_cockroachdb(argv);
+//      restart_cockroachdb(argv);
       reset_database_without_restart(argv);
 
       // Continues to the post-fix oracle transformation.
