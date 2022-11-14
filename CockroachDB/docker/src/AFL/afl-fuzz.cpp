@@ -2547,6 +2547,8 @@ static void restart_cockroachdb(char** argv) {
         wait(&status);
     }
 
+    close(fsrv_st_fd);
+    close(fsrv_ctl_fd);
 
     forksrv_pid = -1;
     init_forkserver(argv);
@@ -5421,6 +5423,11 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec,
   fault = execute_cmd_string(query_str_vec, explain_diff_id, all_comp_res, argv,
                              exec_tmout);
 
+  if ((total_execs % 100) == 0) {
+      // Proactively restart the CockroachDB server.
+      restart_cockroachdb(argv);
+  }
+
   if (stop_soon)
     return 1;
 
@@ -6124,7 +6131,6 @@ static u8 fuzz_one(char **argv) {
       /* Build dependency graph, fix ir node, fill in concret values */
 
       // Before fixing all the statements, reset the database data.
-      restart_cockroachdb(argv);
       reset_database_without_restart(argv);
 
       string whole_query_sequence = "";
