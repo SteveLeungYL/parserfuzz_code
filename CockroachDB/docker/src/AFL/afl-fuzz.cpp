@@ -6140,6 +6140,11 @@ static u8 fuzz_one(char **argv) {
                   ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
               }
 
+              if (p_oracle->is_res_str_error(g_cockroach_output)) {
+                  ret_res = FAULT_ERROR;
+                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, false);
+              }
+
               if (ret_res == FAULT_NONE) {
                   total_instan_succeed_num++;
                   whole_query_sequence += cur_stmt_str;
@@ -6150,12 +6155,6 @@ static u8 fuzz_one(char **argv) {
                   save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
               }
 
-              if (p_oracle->is_res_str_error(g_cockroach_output)) {
-                  ret_res = FAULT_ERROR;
-
-                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, false);
-
-              }
 
           } while (ret_res != FAULT_NONE && trial != 0);
       }
