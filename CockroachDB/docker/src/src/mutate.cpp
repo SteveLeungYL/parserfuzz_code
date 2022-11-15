@@ -5199,7 +5199,8 @@ IR *Mutator::constr_rand_storage_param(int param_num) {
 IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
 
   string cur_func_name = "";
-  string ret_str = "";
+  string func_name_ret_str = "";
+  string arg_names_ret_str = "";
   if (in_affi == AFFIANY || in_affi == AFFIUNKNOWN) {
     cur_func_name = vector_rand_ele(this->all_saved_func_name);
   } else if (this->func_type_lib.count(in_affi) > 0) {
@@ -5208,42 +5209,47 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
     cur_func_name = vector_rand_ele(this->all_saved_func_name);
   }
 
-  ret_str = cur_func_name + "(";
+  func_name_ret_str = cur_func_name;
+//  arg_names_ret_str = "(";
 
   // Randomly choose a set of arguments.
   vector<DataAffinity> v_func_affi =
       vector_rand_ele(func_str_to_type_map[cur_func_name]);
 
-  int arg_idx = 0;
+  int arg_idx = -1;
+//  cerr << "\n\n\nDEBUG:: For function name: " << cur_func_name << ", getting arg size: " << v_func_affi.size() << "\n\n\n";
   for (DataAffinity &cur_arg_affi : v_func_affi) {
-
+    arg_idx++;
     // The first arg is the function returned type.
     if (arg_idx == 0) {
         continue;
     }
     if (arg_idx > 1) {
-      ret_str += ", ";
+      arg_names_ret_str += ", ";
     }
-    arg_idx++;
 
     if (this->m_datatype2column.count(cur_arg_affi.get_data_affinity()) &&
         get_rand_int(3)) {
       // Use the data column that match the affinity.
       string cur_col_str = vector_rand_ele(
           this->m_datatype2column[cur_arg_affi.get_data_affinity()]);
-      ret_str += cur_col_str;
+      arg_names_ret_str += cur_col_str;
     } else {
       // Use literal that match the affinity type.
       string cur_arg_str = cur_arg_affi.get_mutated_literal();
-      ret_str += cur_arg_str;
+      arg_names_ret_str += cur_arg_str;
     }
   }
 
-  ret_str += ") ";
+//  arg_names_ret_str += ") ";
 
-  IR *ret_IR = new IR(TypeStringLiteral, ret_str);
+  IR *ret_IR = new IR(TypeIdentifier, func_name_ret_str, DataFunctionName, ContextUse);
   ret_IR->set_is_instantiated(true);
-  ret_IR->set_data_flag(ContextNoModi);
+  IR *arg_IR = new IR(TypeExprs, arg_names_ret_str, DataUnknownType, ContextUndefine);
+  arg_IR->set_is_instantiated(true);
+  ret_IR = new IR(TypeFuncExpr, OP3("", "(", ")"), ret_IR, arg_IR);
+  ret_IR->set_is_instantiated(true);
+//  ret_IR->set_data_flag(ContextNoModi);
 
   return ret_IR;
 }
@@ -5259,9 +5265,25 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_
     if (findStringIn(res_str, "unknown function") ||
         findStringIn(res_str, "unknown signature")
             ) {
+
+        if (is_debug_info) {
+            cerr << "\n\n\nGetting unknown function(signature), ";
+        }
+
         vector<IR*> all_func_ir = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root,
                                                DataFunctionName, false, true);
+
+        if (is_debug_info) {
+            for (IR *cur_func_ir : all_func_ir) {
+                cerr << "\ngetting cur_func_ir: " << cur_func_ir->to_string();
+            }
+            cerr << "\n\n\n";
+        }
+
+        for (IR *cur_func_ir : all_func_ir) {
+            cur_func_ir->set_is_instantiated(false);
+        }
 
         tmp_node_matching.push_back(all_func_ir);
     } else {
@@ -5291,9 +5313,9 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_
             for (IR *cur_node_matching: node_matching) {
                 if (cur_node_matching->get_data_flag() != ContextDefine &&
                     cur_node_matching->get_data_flag() != ContextUndefine &&
-                    cur_node_matching->get_data_flag() != ContextUnknown &&
                     cur_node_matching->get_data_flag() != ContextNoModi
                         ) {
+                    cur_node_matching->set_is_instantiated(false);
                     node_matching_filtered.push_back(cur_node_matching);
                 }
             }

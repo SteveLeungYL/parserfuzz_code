@@ -2587,9 +2587,7 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str, int is_reset_serv
   }
 BEGIN:
 
-  if (cmd_str != "") {
-      write_to_testcase(cmd_str);
-  }
+  write_to_testcase(cmd_str);
 
   // Send the signal to notify the CockroachDB to start executions.
   // If the is_reset_server_only is 1, then the CockroachDB server
@@ -6167,6 +6165,7 @@ static u8 fuzz_one(char **argv) {
               } else if (ret_res == FAULT_CRASH) {
                   ALL_COMP_RES all_comp_res;
                   string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str;
+                  restart_cockroachdb(argv);
                   // If an crash is encountered, save the output to the crash log.
                   save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
               }
