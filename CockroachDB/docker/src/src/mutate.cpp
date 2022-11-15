@@ -3707,7 +3707,10 @@ void Mutator::map_create_view(IR *ir_to_fix, IR *cur_stmt_root,
       m_table2columns[ir_to_fix->get_str_val()].clear();
       for (auto &cur_column_alias_ir : all_mentioned_column_alias_vec) {
         string cur_column_alias = cur_column_alias_ir->get_str_val();
-        m_table2columns[ir_to_fix->get_str_val()].push_back(cur_column_alias);
+        vector<string>& v_view_column_str = m_table2columns[ir_to_fix->get_str_val()];
+        if (find(v_view_column_str.begin(), v_view_column_str.end(), cur_column_alias) == v_view_column_str.end()) {
+            v_view_column_str.push_back(cur_column_alias);
+        }
         if (is_debug_info) {
           cerr << "Dependency: Adding mappings: For table/view: "
                << ir_to_fix->str_val_
@@ -4341,7 +4344,10 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
               m_table2columns[inherit_table_name_str];
 
           for (string col_name : inherit_m_tables) {
-            m_table2columns[cur_new_table_name_str].push_back(col_name);
+              vector<string> & cur_col_list = m_table2columns[cur_new_table_name_str];
+              if (find(cur_col_list.begin(), cur_col_list.end(), col_name) == cur_col_list.end()) {
+                 cur_col_list.push_back(col_name);
+              }
           }
         }
       }
