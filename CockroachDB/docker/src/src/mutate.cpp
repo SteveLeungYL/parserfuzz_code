@@ -2510,7 +2510,9 @@ void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
   // Column name inside the TypeNameList.
   else if (ir_to_fix->data_type_ == DataColumnName &&
            ir_to_fix->data_flag_ == ContextUse &&
-           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)) {
+           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList) &&
+           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeFamilyTableDef) // Not inside the FAMILY.
+          ) {
 
     //        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
     //            // Ignore the case that is not in TypeNameList.
@@ -5254,7 +5256,7 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
   return ret_IR;
 }
 
-void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_info) {
+void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
 
     string ori_str = cur_stmt_root->to_string();
 
@@ -5262,7 +5264,10 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_
 
     vector<vector<IR*>> tmp_node_matching;
 
-    if (findStringIn(res_str, "unknown function") ||
+    vector tmp_err_note = string_splitter(res_str, '"');
+
+    if (trial < 7 &&
+        findStringIn(res_str, "unknown function") ||
         findStringIn(res_str, "unknown signature")
             ) {
 
@@ -5286,10 +5291,8 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_
         }
 
         tmp_node_matching.push_back(all_func_ir);
-    } else {
-
-        // Naive solution for now.
-        vector tmp_err_note = string_splitter(res_str, '"');
+        this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
+    } else if (tmp_err_note.size() >= 3 && trial < 7) {
 
         for (int i = 1; i < tmp_err_note.size(); i+=2) {
             v_err_note.push_back(tmp_err_note.at(i));
@@ -5330,10 +5333,12 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_
                 }
                 cerr << "\n\n";
             }
+            this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
         }
+    } else {
+        this->reset_data_library_single_stmt();
+        this->validate(cur_stmt_root);
     }
-
-    this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
 
     if (is_debug_info) {
         cerr << "After trying to fix the error from the error message, we get ori str: \n"

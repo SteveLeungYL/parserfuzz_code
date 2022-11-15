@@ -6140,10 +6140,10 @@ static u8 fuzz_one(char **argv) {
           g_mutator.validate(cur_trans_stmt);
 
           int ret_res = FAULT_NONE;
-          int trial = 10;
+          int trial = 0;
           do {
               total_instan_num++;
-              trial--;
+              trial++;
               string cur_stmt_str = cur_trans_stmt->to_string();
               if (ret_res == FAULT_CRASH) {
                   cur_stmt_str = whole_query_sequence + cur_stmt_str;
@@ -6156,7 +6156,7 @@ static u8 fuzz_one(char **argv) {
 
               if (p_oracle->is_res_str_error(g_cockroach_output)) {
                   ret_res = FAULT_ERROR;
-                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, false);
+                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
               }
 
               if (ret_res == FAULT_NONE) {
@@ -6171,7 +6171,7 @@ static u8 fuzz_one(char **argv) {
               }
 
 
-          } while (ret_res != FAULT_NONE && trial != 0);
+          } while (ret_res != FAULT_NONE && trial <= 10);
       }
 
       // After fixing all the statements, reset the database data.

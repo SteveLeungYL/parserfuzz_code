@@ -197,7 +197,7 @@ public:
   void map_create_view (IR* ir_to_fix, IR* cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec, bool is_debug_info);
   void map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
 
-  void fix_instan_error(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
+  void fix_instan_error(IR* cur_stmt_root, string res_str, int trial = 0, bool is_debug_info = false);
 
   IR *record_ = NULL;
   IR *mutated_root_ = NULL;
