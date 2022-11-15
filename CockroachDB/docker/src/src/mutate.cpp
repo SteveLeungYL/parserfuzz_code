@@ -5270,7 +5270,7 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
 
   IR *ret_IR = new IR(TypeIdentifier, func_name_ret_str, DataFunctionName, ContextUse);
   ret_IR->set_is_instantiated(true);
-  IR *arg_IR = new IR(TypeExprs, arg_names_ret_str, DataUnknownType, ContextUndefine);
+  IR *arg_IR = new IR(TypeUnknown, arg_names_ret_str, DataUnknownType, ContextUndefine);
   arg_IR->set_is_instantiated(true);
   ret_IR = new IR(TypeFuncExpr, OP3("", "(", ")"), ret_IR, arg_IR);
   ret_IR->set_is_instantiated(true);

@@ -6139,6 +6139,9 @@ static u8 fuzz_one(char **argv) {
           // Move the reset_data_library_single_stmt out in the outer loop.
           // So that rescanning the instantiation process using the
           // error hints can reuse the table data.
+
+          string ori_stmt_before_instan = cur_trans_stmt->to_string();
+
           g_mutator.reset_data_library_single_stmt();
           g_mutator.validate(cur_trans_stmt);
 
@@ -6159,13 +6162,23 @@ static u8 fuzz_one(char **argv) {
 
               if (p_oracle->is_res_str_error(g_cockroach_output)) {
                   ret_res = FAULT_ERROR;
-                  IR* ori_stmt = cur_trans_stmt;
-                  string ori_str = cur_trans_stmt->to_string();
-                  // Reference rewrite.
-                  IR* new_parsed_root = g_mutator.parse_query_str_get_ir_set(ori_str).front();
+                  IR* ori_trans_stmt = cur_trans_stmt;
+                  string cur_trans_str = cur_trans_stmt->to_string();
+                  // Statement re-parsed.
+                  vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_trans_str);
+                  if (v_new_parsed.size() == 0) {
+                      // fallback to the string before instantiation.
+                      v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
+                  }
+                  if (v_new_parsed.size() == 0) {
+                      cur_trans_stmt = NULL;
+                      ori_trans_stmt->deep_drop();
+                      break;
+                  }
+                  IR* new_parsed_root = v_new_parsed.front();
                   cur_trans_stmt = new_parsed_root->get_left()->get_left()->deep_copy();
                   new_parsed_root->deep_drop();
-                  ori_stmt->deep_drop();
+                  ori_trans_stmt->deep_drop();
                   g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
               }
 
@@ -6183,7 +6196,9 @@ static u8 fuzz_one(char **argv) {
 
           } while (ret_res != FAULT_NONE && trial <= 10);
 
-          tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
+          if (cur_trans_stmt != NULL) {
+              tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
+          }
       }
 
       all_pre_trans_vec = tmp_all_pre_trans_vec;
