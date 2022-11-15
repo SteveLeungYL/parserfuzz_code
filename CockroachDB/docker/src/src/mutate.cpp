@@ -3336,7 +3336,7 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
           });
 
       return;
-    }
+    } // IN clause
 
     /* else, VALUE clause only?  */
 

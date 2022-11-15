@@ -6132,7 +6132,10 @@ static u8 fuzz_one(char **argv) {
       reset_database_without_restart(argv);
 
       string whole_query_sequence = "";
-      for (IR *cur_trans_stmt : all_pre_trans_vec) {
+      IR* cur_trans_stmt;
+      vector<IR*> tmp_all_pre_trans_vec;
+      for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
+          cur_trans_stmt = all_pre_trans_vec[stmt_idx];
           // Move the reset_data_library_single_stmt out in the outer loop.
           // So that rescanning the instantiation process using the
           // error hints can reuse the table data.
@@ -6156,6 +6159,13 @@ static u8 fuzz_one(char **argv) {
 
               if (p_oracle->is_res_str_error(g_cockroach_output)) {
                   ret_res = FAULT_ERROR;
+                  IR* ori_stmt = cur_trans_stmt;
+                  string ori_str = cur_trans_stmt->to_string();
+                  // Reference rewrite.
+                  IR* new_parsed_root = g_mutator.parse_query_str_get_ir_set(ori_str).front();
+                  cur_trans_stmt = new_parsed_root->get_left()->get_left()->deep_copy();
+                  new_parsed_root->deep_drop();
+                  ori_stmt->deep_drop();
                   g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
               }
 
@@ -6172,7 +6182,11 @@ static u8 fuzz_one(char **argv) {
 
 
           } while (ret_res != FAULT_NONE && trial <= 10);
+
+          tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
       }
+
+      all_pre_trans_vec = tmp_all_pre_trans_vec;
 
       // After fixing all the statements, reset the database data.
 //      restart_cockroachdb(argv);
