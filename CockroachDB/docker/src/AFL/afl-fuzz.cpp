@@ -5421,7 +5421,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec,
   fault = execute_cmd_string(query_str_vec, explain_diff_id, all_comp_res, argv,
                              exec_tmout);
 
-  if ((total_execs % 100) == 0) {
+  if ((total_execs % 20) == 0) {
       // Proactively restart the CockroachDB server.
       restart_cockroachdb(argv);
   }
