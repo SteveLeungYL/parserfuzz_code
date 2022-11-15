@@ -2832,7 +2832,7 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
       // Search whether there are columns defined in the `TypeSelectExprs`.
       vector<IR *> all_column_in_subselect =
           p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(select_subquery,
-                                                             DataColumnName);
+                                                             TypeSelectExpr);
       vector<IR *> all_table_in_subselect =
           p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(select_subquery,
                                                              DataTableName);
@@ -2854,7 +2854,7 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
             cerr << "\n\n\nFound column name in TypeSelectExprs: "
                  << cur_column_in_subselect->to_string() << "\n\n\n";
           }
-          ref_column_in_subselect.push_back(cur_column_in_subselect);
+          ref_column_in_subselect.push_back(cur_column_in_subselect->get_left());
         }
       }
 
@@ -2864,6 +2864,9 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
           string cur_col_in_sub_str = cur_column_in_sub->get_str_val();
           string new_column_alias_name = gen_column_alias_name();
           m_alias2column_single[new_column_alias_name] = cur_col_in_sub_str;
+          if (m_column2datatype.count(cur_col_in_sub_str) == 0 && cur_column_in_sub->get_ir_type() != TypeIdentifier) {
+              m_column2datatype[cur_col_in_sub_str] = cur_column_in_sub->data_affinity;
+          }
           new_column_alias_names.push_back(new_column_alias_name);
           if (ref_col_idx > 0) {
             ret_str += ", ";
