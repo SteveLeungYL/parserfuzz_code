@@ -2247,7 +2247,7 @@ EXP_ST void init_forkserver(char **argv) {
 
     if (mem_limit) {
 
-      r.rlim_max = r.rlim_cur = ((rlim_t)mem_limit) << 50;
+      r.rlim_max = r.rlim_cur = ((rlim_t)mem_limit) << 20;
 
 #ifdef RLIMIT_AS
 
