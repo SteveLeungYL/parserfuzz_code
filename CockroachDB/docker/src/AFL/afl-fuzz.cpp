@@ -6165,7 +6165,7 @@ static u8 fuzz_one(char **argv) {
               } else if (ret_res == FAULT_CRASH) {
                   ALL_COMP_RES all_comp_res;
                   string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str;
-                  restart_cockroachdb(argv);
+//                  restart_cockroachdb(argv);
                   // If an crash is encountered, save the output to the crash log.
                   save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
               }
@@ -6471,10 +6471,11 @@ static void handle_stop_sig(int sig) {
 
   stop_soon = 1;
 
-  //  if (child_pid > 0)
-  //    kill(child_pid, SIGKILL);
-  if (forksrv_pid > 0)
-    kill(forksrv_pid, SIGKILL);
+  if (forksrv_pid > 0) {
+      kill(forksrv_pid, SIGKILL);
+      int status;
+      wait(&status);
+  }
 }
 
 /* Handle skip request (SIGUSR1). */
@@ -6488,6 +6489,8 @@ static void handle_timeout(int sig) {
   child_timed_out = 1;
   if (forksrv_pid != -1) {
       kill(forksrv_pid, SIGKILL);
+      int status;
+      wait(&status);
   }
   forksrv_pid = -1;
 }
@@ -7941,10 +7944,11 @@ int main(int argc, char **argv) {
   /* If we stopped programmatically, we kill the forkserver and the current
      runner. If we stopped manually, this is done by the signal handler. */
   if (stop_soon == 2) {
-    //    if (child_pid > 0)
-    //      kill(child_pid, SIGKILL);
-    if (forksrv_pid > 0)
-      kill(forksrv_pid, SIGKILL);
+    if (forksrv_pid > 0) {
+        kill(forksrv_pid, SIGKILL);
+        int status;
+        wait(&status);
+    }
   }
   /* Now that we've killed the forkserver, we wait for it to be able to get
    * rusage stats. */
