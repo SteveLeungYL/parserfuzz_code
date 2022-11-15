@@ -3931,6 +3931,20 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
   return;
 }
 
+void Mutator::remove_type_annotation(IR *cur_stmt_root) {
+    vector<IR*> v_type_annotation_node = p_oracle->ir_wrapper
+            .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeAnnotateTypeExpr, false, true);
+
+    for (IR* cur_type_anno_node : v_type_annotation_node) {
+        IR* right_node = cur_type_anno_node->get_right();
+        cur_type_anno_node->update_right(NULL);
+        cur_type_anno_node->op_->middle_ = "";
+        if (right_node != NULL) {
+            right_node->deep_drop();
+        }
+    }
+}
+
 bool Mutator::instan_dependency(IR *cur_stmt_root,
                                 const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
                                 bool is_debug_info) {
@@ -3939,6 +3953,12 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
     cerr << "Fix_dependency: cur_stmt_root: " << cur_stmt_root->to_string()
          << ", size of cur_stmt_ir_to_fix_vec " << cur_stmt_ir_to_fix_vec.size()
          << ". \n\n\n";
+  }
+
+  this->remove_type_annotation(cur_stmt_root);
+
+  if (is_debug_info) {
+      cerr <<  "\n\n\nAfter removing the type annotations, getting " << cur_stmt_root->to_string() << "\n\n\n";
   }
 
   /* Used to mark the IRs that are needed to be deep_drop(). However, it is not
