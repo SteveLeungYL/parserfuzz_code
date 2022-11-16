@@ -2227,7 +2227,7 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 			var RNode *SQLRightIR
 			infix := ""
 			if len(*node) >= 2 {
-				infix = ", ORDER BY "
+				infix = ", "
 				RNode = (*node)[1].LogCurrentNode(depth + 1)
 			}
 			tmpIR = &SQLRightIR{
@@ -2256,7 +2256,7 @@ func (node *OrderBy) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    LNode,
 				RNode:    RNode,
 				Prefix:   "",
-				Infix:    ", ORDER BY ",
+				Infix:    ", ",
 				Suffix:   "",
 				Depth:    depth,
 			}
