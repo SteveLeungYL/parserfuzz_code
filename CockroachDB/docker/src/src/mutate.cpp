@@ -5319,6 +5319,7 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
             cur_func_ir->set_is_instantiated(false);
         }
 
+        tmp_node_matching.clear();
         tmp_node_matching.push_back(all_func_ir);
         this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
     } else if (tmp_err_note.size() >= 3 && trial < 7) {
@@ -5352,6 +5353,7 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
                 }
             }
 
+            tmp_node_matching.clear();
             tmp_node_matching.push_back(node_matching_filtered);
 
             if (is_debug_info) {
