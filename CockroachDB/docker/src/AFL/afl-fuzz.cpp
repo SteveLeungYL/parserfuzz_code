@@ -4404,9 +4404,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0),
           num_valid, num_parse, num_mutate_all, num_reparse, num_append,
           num_validate, total_data_type_error_num, total_select_error_num,
-          float(total_data_type_error_num)/float(total_select_error_num),
+          float(total_data_type_error_num) * 100.0 /float(total_select_error_num),
           total_instan_succeed_num, total_instan_num,
-          float(total_instan_succeed_num)/float(total_instan_num)
+          float(total_instan_succeed_num) * 100.0 /float(total_instan_num)
           ); /* ignore errors */
   fflush(plot_file);
 }
