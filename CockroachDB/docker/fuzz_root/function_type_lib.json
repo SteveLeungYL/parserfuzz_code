@@ -2599,7 +2599,7 @@
   },
 
   {
-    "enabled": true,
+    "enabled": false,
     "func_name": "experimental_uuid_v4",
     "is_type_matched": true,
     "func_type": "FUNCUUID",
@@ -2671,7 +2671,7 @@
   },
 
   {
-    "enabled": true,
+    "enabled": false,
     "func_name": "uuid_v4",
     "is_type_matched": true,
     "func_type": "FUNCUUID",
