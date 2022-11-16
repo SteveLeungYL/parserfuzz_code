@@ -6177,6 +6177,7 @@ static u8 fuzz_one(char **argv) {
                   }
                   IR* new_parsed_root = v_new_parsed.front();
                   cur_trans_stmt = new_parsed_root->get_left()->get_left()->deep_copy();
+                  cur_trans_stmt->parent_ = NULL;
                   new_parsed_root->deep_drop();
                   ori_trans_stmt->deep_drop();
                   g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
