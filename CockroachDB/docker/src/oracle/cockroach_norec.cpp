@@ -80,7 +80,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
     IR *where_clause =
         ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeWhere, false)[0];
     // The first one should be the parent one.
-    if (where_clause->is_empty()) {
+    if (where_clause->is_empty() || where_clause->get_left() == NULL || where_clause->get_left()->to_string() == "HAVING") {
       // cerr << "Return false because WHERE clause is empty \n";
       return false;
     }
