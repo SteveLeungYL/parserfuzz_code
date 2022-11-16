@@ -2070,14 +2070,13 @@ func (node *Where) LogCurrentNode(depth int) *SQLRightIR {
 
 	infix := " "
 	typeNode := &SQLRightIR{
-		IRType:      TypeIdentifier,
-		DataType:    DataTypeName,
-		ContextFlag: ContextUse,
-		Prefix:      "",
+		IRType:      TypeUnknown,
+		DataType:    DataUnknownType,
+		ContextFlag: ContextUnknown,
+		Prefix:      node.Type,
 		Infix:       "",
 		Suffix:      "",
 		Depth:       depth,
-		Str:         node.Type,
 	}
 
 	exprNode := node.Expr.LogCurrentNode(depth + 1)
