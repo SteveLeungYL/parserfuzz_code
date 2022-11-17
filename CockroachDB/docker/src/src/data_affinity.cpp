@@ -388,7 +388,7 @@ string DataAffinity::mutate_affi_byte() {
 
   int len = get_rand_int(16) + 1; // Do not use len == 0;
 
-  int format_choice = get_rand_int(4);
+  int format_choice = get_rand_int(3);
   switch (format_choice) {
   case 0:
     // b'abc'
@@ -399,16 +399,17 @@ string DataAffinity::mutate_affi_byte() {
   case 1:
     // b'\141\142\143'
     for (int i = 0; i < len; i++) {
-      ret_str += "\\" + to_string(get_rand_int(256));
+        int rand_int = get_rand_int(256);
+        if (rand_int >= 100) {
+            ret_str += "\\" + to_string(rand_int);
+        } else if (rand_int >= 10) {
+            ret_str += "\\x" + to_string(rand_int);
+        } else { // rand_int < 10
+            ret_str += "\\x0" + to_string(rand_int);
+        }
     }
     break;
   case 2:
-    // b'\x61\x62\x63'
-    for (int i = 0; i < len; i++) {
-      ret_str += "\\x" + get_rand_hex_num() + get_rand_hex_num();
-    }
-    break;
-  case 3:
     // b'00001111'
     len = get_rand_int(3) + 1; // use a shorter length
     for (int i = 0; i < len; i++) {

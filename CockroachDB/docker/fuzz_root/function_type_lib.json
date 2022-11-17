@@ -5722,7 +5722,7 @@
         "arg_type_0": "AFFISTRING",
         "arg_type_1": "AFFIENUM",
         "arg_type_1_enum": [
-          "'true'"
+          "true"
         ],
         "ret_type": "AFFISTRING"
       }
