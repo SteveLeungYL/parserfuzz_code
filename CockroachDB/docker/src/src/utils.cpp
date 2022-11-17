@@ -72,7 +72,7 @@ void trim_string(string &res) {
   // res.erase(res.find_last_not_of(' ') + 1);
 
   int effect_idx = 0, idx = 0;
-  bool prev_is_space = false;
+  bool prev_is_space = false, prev_is_minus = false;
   int sz = res.size();
 
   // skip leading spaces
@@ -101,8 +101,18 @@ void trim_string(string &res) {
 
       prev_is_space = false;
 
+    } else if (c == '-') {
+
+        if (prev_is_minus) {
+            continue;
+        }
+
+        prev_is_minus = true;
+        res[effect_idx++] = c;
+
     } else {
 
+      prev_is_minus = false;
       prev_is_space = false;
       res[effect_idx++] = c;
     }
