@@ -529,7 +529,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
 
     vector<IR *> v_ir = parse_query_str_get_ir_set(line);
     if (v_ir.size() <= 0) {
-      cerr << "failed to parse: " << line << endl;
+//      cerr << "failed to parse: " << line << endl;
       continue;
     }
 
@@ -540,9 +540,9 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
 
     v_ir = parse_query_str_get_ir_set(strip_sql);
     if (v_ir.size() <= 0) {
-      cerr << "failed to parse after extract_struct:" << endl
-           << line << endl
-           << strip_sql << "\n\n\n";
+//      cerr << "failed to parse after extract_struct:" << endl
+//           << line << endl
+//           << strip_sql << "\n\n\n";
       continue;
     }
 
@@ -3937,16 +3937,25 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
   return;
 }
 
-void Mutator::remove_type_annotation(IR *cur_stmt_root) {
+void Mutator::remove_type_annotation(IR *cur_stmt_root, vector<IR*>& ir_to_deep_drop ) {
     vector<IR*> v_type_annotation_node = p_oracle->ir_wrapper
             .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeAnnotateTypeExpr, false, true);
 
     for (IR* cur_type_anno_node : v_type_annotation_node) {
+        if (cur_type_anno_node->get_middle() != ":::") {
+            // Only remove the force type casting statement.
+            continue;
+        }
         IR* right_node = cur_type_anno_node->get_right();
         cur_type_anno_node->update_right(NULL);
         cur_type_anno_node->op_->middle_ = "";
         if (right_node != NULL) {
-            right_node->deep_drop();
+            ir_to_deep_drop.push_back(right_node);
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    right_node, [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
         }
     }
 }
@@ -3961,12 +3970,6 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
          << ". \n\n\n";
   }
 
-  this->remove_type_annotation(cur_stmt_root);
-
-  if (is_debug_info) {
-      cerr <<  "\n\n\nAfter removing the type annotations, getting " << cur_stmt_root->to_string() << "\n\n\n";
-  }
-
   /* Used to mark the IRs that are needed to be deep_drop(). However, it is not
    * a good idea to deep_drop in the middle of the instan_dependency() function,
    * some ir_to_fix node might have nested IR strcuture. Use this vector to save
@@ -3974,6 +3977,12 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
    * */
   vector<IR *> ir_to_deep_drop;
   string cur_ir_str = cur_stmt_root->to_string();
+
+  this->remove_type_annotation(cur_stmt_root, ir_to_deep_drop);
+
+  if (is_debug_info) {
+      cerr <<  "\n\n\nAfter removing the type annotations, getting " << cur_stmt_root->to_string() << "\n\n\n";
+  }
 
   // If set true, meaning we are in an ALTER TABLE RENAME statement.
   bool is_replace_table = false, is_replace_column = false;
