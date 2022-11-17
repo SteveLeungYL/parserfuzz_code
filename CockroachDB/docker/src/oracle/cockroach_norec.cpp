@@ -137,8 +137,19 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
   return false;
 }
 
-bool SQL_NOREC::mark_all_valid_node(vector<IR *> &v_ir_collector) {
-  // TODO:: FixLater
+bool SQL_NOREC::mark_all_valid_node(IR * cur_stmt) {
+
+    vector<IR*> v_all_select_exprs = ir_wrapper
+            .get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExprs, false);
+
+    for (auto cur_select_exprs : v_all_select_exprs)  {
+        ir_wrapper.iter_cur_node_with_handler(
+                cur_select_exprs, [](IR *cur_node) -> void {
+                    cur_node->set_is_instantiated(true);
+                    cur_node->set_data_flag(ContextNoModi);
+                });
+    }
+
   return true;
 }
 

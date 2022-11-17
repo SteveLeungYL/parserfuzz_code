@@ -100,7 +100,7 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
 
     /* Restrict changes on the signiture norec select components. Could increase
      * mutation efficiency. */
-    mark_all_valid_node(ir_tree);
+    mark_all_valid_node(ir_tree.back());
 
     // cout << "root: " << root->to_string()  << endl;
 

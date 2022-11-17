@@ -12,7 +12,7 @@ using namespace std;
 
 class SQL_OPT : public SQL_ORACLE {
 public:
-  bool mark_all_valid_node(vector<IR *> &v_ir_collector) override {
+  bool mark_all_valid_node(IR * cur_stmt) override {
     return true;
   }
 

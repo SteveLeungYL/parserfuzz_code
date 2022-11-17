@@ -6180,6 +6180,10 @@ static u8 fuzz_one(char **argv) {
                   cur_trans_stmt->parent_ = NULL;
                   new_parsed_root->deep_drop();
                   ori_trans_stmt->deep_drop();
+
+                  // Avoid modifying the required nodes for the oracle.
+                  p_oracle->mark_all_valid_node(cur_trans_stmt);
+
                   g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
               }
 

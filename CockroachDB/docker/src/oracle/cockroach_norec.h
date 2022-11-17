@@ -12,7 +12,7 @@ using namespace std;
 
 class SQL_NOREC : public SQL_ORACLE {
 public:
-  bool mark_all_valid_node(vector<IR *> &v_ir_collector) override;
+  bool mark_all_valid_node(IR*) override;
   void compare_results(ALL_COMP_RES &res_out) override;
 
   bool is_oracle_select_stmt(IR *cur_IR) override;

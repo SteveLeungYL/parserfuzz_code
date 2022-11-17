@@ -37,9 +37,9 @@ public:
     return NULL;
   }
 
-  /* Mark all the IR node in the IR tree, that is related to teh validation
+  /* Mark all the IR node in the IR tree, that is related to the validation
    * statement, that you do not want to mutate. */
-  virtual bool mark_all_valid_node(vector<IR *> &v_ir_collector) = 0;
+  virtual bool mark_all_valid_node(IR* ir_root) = 0;
 
   virtual void remove_select_stmt_from_ir(IR *ir_root);
   virtual void remove_set_stmt_from_ir(IR *ir_root);

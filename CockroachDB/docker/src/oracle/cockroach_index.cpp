@@ -5,7 +5,7 @@
 #include <regex>
 #include <string>
 
-bool SQL_INDEX::mark_all_valid_node(vector<IR *> &v_ir_collector) {
+bool SQL_INDEX::mark_all_valid_node(IR* cur_stmt) {
   // TODO::FixLater.
   return true;
 }
