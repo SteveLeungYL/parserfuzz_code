@@ -1376,12 +1376,12 @@
         "arg_type_0": "AFFIBYTES",
         "arg_type_1": "AFFIENUM",
         "arg_type_1_enum": [
-          "'md5'",
-          "'sha1'",
-          "'sha224'",
-          "'sha256'",
-          "'sha384'",
-          "'sha512'"
+          "md5",
+          "sha1",
+          "sha224",
+          "sha256",
+          "sha384",
+          "sha512"
         ],
         "ret_type": "AFFIBYTES"
       },
@@ -1389,12 +1389,12 @@
         "arg_type_0": "AFFISTRING",
         "arg_type_1": "AFFIENUM",
         "arg_type_1_enum": [
-          "'md5'",
-          "'sha1'",
-          "'sha224'",
-          "'sha256'",
-          "'sha384'",
-          "'sha512'"
+          "md5",
+          "sha1",
+          "sha224",
+          "sha256",
+          "sha384",
+          "sha512"
         ],
         "ret_type": "AFFIBYTES"
       }
@@ -3472,14 +3472,14 @@
         "arg_type_1": "AFFISTRING",
         "arg_type_2": "AFFIENUM",
         "arg_type_2_ENUM": [
-          "'c'",
-          "'g'",
-          "'i'",
-          "'m'",
-          "'n'",
-          "'p'",
-          "'s'",
-          "'w'"
+          "c",
+          "g",
+          "i",
+          "m",
+          "n",
+          "p",
+          "s",
+          "w"
         ],
         "ret_type": "AFFIARRAYSTRING"
       }
@@ -3839,9 +3839,9 @@
         "arg_type_0": "AFFISTRING",
         "arg_type_1": "AFFIENUM",
         "arg_type_1_enum": [
-          "'hex'",
-          "'escape'",
-          "'base64'"
+          "hex",
+          "escape",
+          "base64"
         ],
         "ret_type": "AFFIBYTES"
       }
@@ -3858,7 +3858,7 @@
         "arg_type_0": "AFFIBYTES",
         "arg_type_1": "AFFIENUM",
         "arg_type_1_enum": [
-          "'gzip'"
+          "gzip"
         ],
         "ret_type": "AFFIBYTES"
       }
@@ -4287,14 +4287,14 @@
         "arg_type_2": "AFFISTRING",
         "arg_type_3": "AFFIENUM",
         "arg_type_3_enum": [
-          "'c'",
-          "'g'",
-          "'i'",
-          "'m'",
-          "'n'",
-          "'p'",
-          "'s'",
-          "'w'"
+          "c",
+          "g",
+          "i",
+          "m",
+          "n",
+          "p",
+          "s",
+          "w"
         ],
         "ret_type": "AFFISTRING"
       }

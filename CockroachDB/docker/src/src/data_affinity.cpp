@@ -399,7 +399,8 @@ string DataAffinity::mutate_affi_byte() {
   case 1:
     // b'\141\142\143'
     for (int i = 0; i < len; i++) {
-        int rand_int = get_rand_int(256);
+//        int rand_int = get_rand_int(256);
+        int rand_int = get_rand_int(100);
         if (rand_int >= 100) {
             ret_str += "\\" + to_string(rand_int);
         } else if (rand_int >= 10) {
