@@ -438,5 +438,7 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
             ) {
 //          cerr << "\n\n\nOther types error message: " << in_str << "\n\n\n";
         return SemanticErrorType::OtherUndefinedError;
+    } else {
+        return SemanticErrorType::NoSemanticError;
     }
 }

@@ -18,7 +18,8 @@ enum SemanticErrorType {
     ColumnTypeRelatedError = 0,
     AliasRelatedError,
     SyntaxRelatedError,
-    OtherUndefinedError
+    OtherUndefinedError,
+    NoSemanticError
 };
 
 class SQL_ORACLE {
