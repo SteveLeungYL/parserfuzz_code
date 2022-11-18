@@ -4058,7 +4058,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
 #else
 
-    fn = alloc_printf("%s/hangs/id_%06llu", out_dir, unique_hangs);
+//    fn = alloc_printf("%s/hangs/id_%06llu", out_dir, unique_hangs);
 
 #endif /* ^!SIMPLE_FILES */
 
