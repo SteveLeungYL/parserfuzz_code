@@ -4053,8 +4053,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
 #ifndef SIMPLE_FILES
 
-    fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir, unique_hangs,
-                      describe_op(0));
+//    fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir, unique_hangs,
+//                      describe_op(0));
 
 #else
 
