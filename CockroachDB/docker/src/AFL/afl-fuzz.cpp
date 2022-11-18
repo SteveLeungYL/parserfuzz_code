@@ -139,6 +139,8 @@ u64 total_select_error_num = 0;
 u64 total_data_type_error_num = 0;
 u64 total_instan_succeed_num = 0;
 u64 total_instan_num = 0;
+u64 total_alias_type_error_num = 0;
+u64 total_instan_caused_error_num = 0;
 
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
@@ -2868,17 +2870,40 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
               findStringIn(res.v_res_str[0], "cannot subscript type string") ||
               findStringIn(res.v_res_str[0], "function undefined") ||
               findStringIn(res.v_res_str[0], "to be of type") ||
+              findStringIn(res.v_res_str[0], "pq: ambiguous call") ||
+              findStringIn(res.v_res_str[0], "pq: unsupported binary operator") ||
+              findStringIn(res.v_res_str[0], "invalid cast") ||
               (
                       findStringIn(res.v_res_str[0], "could not parse") &&
                       findStringIn(res.v_res_str[0], "as type")
-              )
+              ) ||
+              findStringIn(res.v_res_str[0], "ERROR: relation") ||
+              findStringIn(res.v_res_str[0], "pq: relation")
               ) {
+          cerr << "\n\n\nType error message: " << res.v_res_str[0] << "\n\n\n";
           total_data_type_error_num++;
           total_select_error_num++;
+      } else if (
+              findStringIn(res.v_res_str[0], "ERROR: source") ||
+              findStringIn(res.v_res_str[0], "pq: source") ||
+              findStringIn(res.v_res_str[0], "pq: column")
+              )
+      {
+          cerr << "\n\n\nAlias error message: " << res.v_res_str[0] << "\n\n\n";
+          total_alias_type_error_num++;
+          total_select_error_num++;
+      } else if (
+              findStringIn(res.v_res_str[0], "invalid syntax") ||
+              findStringIn(res.v_res_str[0], "syntax error") ||
+              findStringIn(res.v_res_str[0], "invalid syntax")
+              ) {
+          cerr << "\n\n\nInstan error message: " << res.v_res_str[0] << "\n\n\n";
+          total_instan_caused_error_num++;
+          total_select_error_num++;
       } else if (res.comp_res == ORA_COMP_RES::Error) {
+          cerr << "\n\n\nOther types error message: " << res.v_res_str[0] << "\n\n\n";
           total_select_error_num++;
       }
-  }
 
   return;
 }
@@ -2955,28 +2980,47 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
   for (COMP_RES &res : all_comp_res.v_res) {
       if (
               (
-                  findStringIn(res.res_str_0, "pq: unsupported comparison") &&
-                  findStringIn(res.res_str_0, "operator:")
+                      findStringIn(res.res_str_0, "pq: unsupported comparison") &&
+                      findStringIn(res.res_str_0, "operator:")
               ) ||
-              findStringIn(res.res_str_0, "pq: unsupported binary operator") ||
               findStringIn(res.res_str_0, "pq: unknown signature") ||
               findStringIn(res.res_str_0, "parsing as type") ||
               findStringIn(res.res_str_0, "pq: type") ||
               findStringIn(res.res_str_0, "cannot subscript type string") ||
               findStringIn(res.res_str_0, "function undefined") ||
               findStringIn(res.res_str_0, "to be of type") ||
+              findStringIn(res.res_str_0, "pq: ambiguous call") ||
+              findStringIn(res.res_str_0, "pq: unsupported binary operator") ||
+              findStringIn(res.res_str_0, "invalid cast") ||
               (
-                  findStringIn(res.res_str_0, "could not parse") &&
-                  findStringIn(res.res_str_0, "as type")
+                      findStringIn(res.res_str_0, "could not parse") &&
+                      findStringIn(res.res_str_0, "as type")
               ) ||
-              (
-                      findStringIn(res.res_str_0, "incompatible") &&
-                      findStringIn(res.res_str_0, "argument type")
-              )
+              findStringIn(res.res_str_0, "ERROR: relation") ||
+              findStringIn(res.res_str_0, "pq: relation")
               ) {
+          cerr << "\n\n\nType error message: " << res.res_str_0 << "\n\n\n";
           total_data_type_error_num++;
           total_select_error_num++;
+      } else if (
+              findStringIn(res.res_str_0, "ERROR: source") ||
+              findStringIn(res.res_str_0, "pq: source") ||
+              findStringIn(res.res_str_0, "pq: column")
+              )
+      {
+          cerr << "\n\n\nAlias error message: " << res.res_str_0 << "\n\n\n";
+          total_alias_type_error_num++;
+          total_select_error_num++;
+      } else if (
+              findStringIn(res.res_str_0, "invalid syntax") ||
+              findStringIn(res.res_str_0, "syntax error") ||
+              findStringIn(res.res_str_0, "invalid syntax")
+              ) {
+          cerr << "\n\n\nInstan error message: " << res.res_str_0 << "\n\n\n";
+          total_instan_caused_error_num++;
+          total_select_error_num++;
       } else if (res.comp_res == ORA_COMP_RES::Error) {
+          cerr << "\n\n\nOther types error message: " << res.res_str_0 << "\n\n\n";
           total_select_error_num++;
       }
   }
@@ -4388,7 +4432,8 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           /* Format */
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%"
           "%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%0.02f%%,"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
+          "%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%,%0.02f%%"
           "%llu,%llu,%0.02f%%"
           "\n",
           /* Data */
@@ -4403,8 +4448,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           cockroach_execute_total,
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0),
           num_valid, num_parse, num_mutate_all, num_reparse, num_append,
-          num_validate, total_data_type_error_num, total_select_error_num,
-          float(total_data_type_error_num) * 100.0 /float(total_select_error_num),
+          num_validate, total_data_type_error_num, total_alias_type_error_num, total_instan_caused_error_num, total_select_error_num,
+          float(total_data_type_error_num)*100.0/float(total_select_error_num),float(total_alias_type_error_num)*100.0/float(total_select_error_num),
+          float(total_instan_caused_error_num)*100.0/float(total_select_error_num),
           total_instan_succeed_num, total_instan_num,
           float(total_instan_succeed_num) * 100.0 /float(total_instan_num)
           ); /* ignore errors */
@@ -6953,7 +6999,8 @@ EXP_ST void setup_dirs_fds(void) {
           "total_valid_stmts,total_good_queries,cockroach_execute_ok,cockroach_"
           "execute_error,cockroach_execute_total,"
           "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,"
-          "num_append,num_validate,total_data_type_related_error,total_error,type_error_percentage,"
+          "num_append,num_validate,total_data_type_related_error,total_alias_type_error,total_instan_type_error,total_error,type_error_percentage,"
+          "alias_error_percentage,instan_error_percentage,"
           "total_instan_succeed,total_instan_num,total_instan_success_rate"
           "\n");
 
