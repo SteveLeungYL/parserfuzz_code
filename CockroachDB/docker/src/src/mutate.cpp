@@ -5324,9 +5324,9 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
             cerr << "\n\n\n";
         }
 
-        for (IR *cur_func_ir : all_func_ir) {
-            cur_func_ir->set_is_instantiated(false);
-        }
+//        for (IR *cur_func_ir : all_func_ir) {
+//            cur_func_ir->set_is_instantiated(false);
+//        }
 
         tmp_node_matching.clear();
         tmp_node_matching.push_back(all_func_ir);
