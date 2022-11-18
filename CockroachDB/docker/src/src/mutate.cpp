@@ -889,26 +889,22 @@ string Mutator::extract_struct(IR *root) {
 
 void Mutator::_extract_struct(IR *root) {
 
-  if (root->get_data_flag() == ContextUnknown) {
-    return;
-  }
-  if (root->get_data_type() == DataNone) {
-    return;
-  }
-  if (root->get_data_type() == DataFunctionName) {
-    return;
-  }
-  if (root->get_data_type() == DataTypeName) {
-    return;
-  }
-
-  auto type = root->type_;
   if (root->left_) {
     extract_struct(root->left_);
   }
   if (root->right_) {
     extract_struct(root->right_);
   }
+
+  auto type = root->type_;
+  if (root->get_data_type() == DataTypeName ||
+      root->get_data_type() == DataNone
+  ) {
+    return;
+  }
+//  if (root->get_data_flag() == ContextUnknown) {
+//    return;
+//  }
 
   if (root->get_ir_type() == TypeIntegerLiteral) {
     root->int_val_ = 0;
@@ -918,13 +914,8 @@ void Mutator::_extract_struct(IR *root) {
     root->float_val_ = 0.0;
     root->str_val_ = "0.0";
     return;
-    //  } else if (root->get_ir_type() == kBoolLiteral) {
-    //    root->bool_val_ = true;
-    //    root->str_val_ = "true";
-    //    return;
-    //  }
   } else if (root->get_ir_type() == TypeStringLiteral) {
-    root->str_val_ = "x";
+    root->str_val_ = "'x'";
     return;
   }
 
