@@ -3985,11 +3985,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
-      // IR * tmp_ir = ir_tree[ir_tree.size() - 1];
-      // g_mutator.extract_struct(tmp_ir);
-      // g_mutator.add_all_to_library(
-      // tmp_ir->to_string(),
-      // explain_diff_id);
+       IR * tmp_ir = ir_tree.back();
+       g_mutator.extract_struct(tmp_ir);
+       g_mutator.add_all_to_library(tmp_ir->to_string(), explain_diff_id);
       ir_tree.back()->deep_drop();
     } else {
       return keeping; // keep = 0, meaning nothing added to the queue.
