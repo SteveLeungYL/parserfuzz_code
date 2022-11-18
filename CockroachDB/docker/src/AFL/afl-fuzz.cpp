@@ -2887,8 +2887,7 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
               findStringIn(res.v_res_str[0], "ERROR: source") ||
               findStringIn(res.v_res_str[0], "pq: source") ||
               findStringIn(res.v_res_str[0], "pq: column")
-              )
-      {
+              ) {
           cerr << "\n\n\nAlias error message: " << res.v_res_str[0] << "\n\n\n";
           total_alias_type_error_num++;
           total_select_error_num++;
@@ -2904,6 +2903,7 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
           cerr << "\n\n\nOther types error message: " << res.v_res_str[0] << "\n\n\n";
           total_select_error_num++;
       }
+  }
 
   return;
 }
