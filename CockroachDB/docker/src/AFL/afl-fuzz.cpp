@@ -6134,6 +6134,9 @@ static u8 fuzz_one(char **argv) {
       string whole_query_sequence = "";
       IR* cur_trans_stmt;
       vector<IR*> tmp_all_pre_trans_vec;
+
+      const int max_trial = 10;
+
       for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
           cur_trans_stmt = all_pre_trans_vec[stmt_idx];
           // Move the reset_data_library_single_stmt out in the outer loop.
@@ -6147,7 +6150,7 @@ static u8 fuzz_one(char **argv) {
 
           int ret_res = FAULT_NONE;
           int trial = 0;
-          do {
+          while (ret_res != FAULT_NONE && trial < max_trial) {
               total_instan_num++;
               trial++;
               string cur_stmt_str = cur_trans_stmt->to_string();
@@ -6162,6 +6165,11 @@ static u8 fuzz_one(char **argv) {
 
               if (p_oracle->is_res_str_error(g_cockroach_output)) {
                   ret_res = FAULT_ERROR;
+
+                  if (trial >= max_trial) {
+                      break;
+                  }
+
                   IR* ori_trans_stmt = cur_trans_stmt;
                   string cur_trans_str = cur_trans_stmt->to_string();
                   // Statement re-parsed.
@@ -6176,7 +6184,7 @@ static u8 fuzz_one(char **argv) {
                       break;
                   }
                   IR* new_parsed_root = v_new_parsed.back();
-                  cur_trans_stmt = new_parsed_root->get_left()->get_left()->deep_copy();
+                  cur_trans_stmt = new_parsed_root->get_left()->get_left()->get_left()->deep_copy();
                   cur_trans_stmt->parent_ = NULL;
                   new_parsed_root->deep_drop();
                   ori_trans_stmt->deep_drop();
@@ -6198,8 +6206,7 @@ static u8 fuzz_one(char **argv) {
                   save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
               }
 
-
-          } while (ret_res != FAULT_NONE && trial <= 10);
+          }
 
           if (cur_trans_stmt != NULL) {
               tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
