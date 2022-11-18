@@ -4,10 +4,10 @@
 #include "json.hpp"
 #include<iostream>
 #include<random>
-#define MAX_STRING_LENGTH 10
-#define MAXIMUM_KEYS 7
-#define MINIMUM_KEYS 4
-#define MAX_JSON_DEPTH 4
+#define MAX_STRING_LENGTH 3
+#define MAXIMUM_KEYS 3
+#define MINIMUM_KEYS 1
+#define MAX_JSON_DEPTH 2
 #define MAX_VALUE_RANDOM_INTEGER 50
 #define MIN_VALUE_RANDOM_INTEGER 5
 #define MAX_VECTOR_LENGTH 9
