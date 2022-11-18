@@ -393,3 +393,50 @@ bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
   ir_vec.back()->deep_drop();
   return res;
 }
+
+SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
+    if (
+            (
+                    findStringIn(in_str, "pq: unsupported comparison") &&
+                    findStringIn(in_str, "operator:")
+            ) ||
+            findStringIn(in_str, "pq: unknown signature") ||
+            findStringIn(in_str, "parsing as type") ||
+            findStringIn(in_str, "pq: type") ||
+            findStringIn(in_str, "cannot subscript type string") ||
+            findStringIn(in_str, "function undefined") ||
+            findStringIn(in_str, "to be of type") ||
+            findStringIn(in_str, "pq: ambiguous call") ||
+            findStringIn(in_str, "pq: unsupported binary operator") ||
+            findStringIn(in_str, "invalid cast") ||
+            (
+                    findStringIn(in_str, "could not parse") &&
+                    findStringIn(in_str, "as type")
+            ) ||
+            findStringIn(in_str, "ERROR: relation") ||
+            findStringIn(in_str, "pq: relation")
+            ) {
+//          cerr << "\n\n\nType error message: " << in_str << "\n\n\n";
+        return SemanticErrorType::ColumnTypeRelatedError;
+    } else if (
+            findStringIn(in_str, "ERROR: source") ||
+            findStringIn(in_str, "pq: source") ||
+            findStringIn(in_str, "pq: column")
+            ) {
+//          cerr << "\n\n\nAlias error message: " << in_str << "\n\n\n";
+        return SemanticErrorType::AliasRelatedError;
+    } else if (
+            findStringIn(in_str, "invalid syntax") ||
+            findStringIn(in_str, "syntax error") ||
+            findStringIn(in_str, "invalid syntax")
+            ) {
+//          cerr << "\n\n\nInstan error message: " << in_str << "\n\n\n";
+        return SemanticErrorType::SyntaxRelatedError;
+    } else if (
+            findStringIn(in_str, "Error") ||
+            findStringIn(in_str, "pq: ")
+            ) {
+//          cerr << "\n\n\nOther types error message: " << in_str << "\n\n\n";
+        return SemanticErrorType::OtherUndefinedError;
+    }
+}

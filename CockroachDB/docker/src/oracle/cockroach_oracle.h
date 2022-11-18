@@ -14,6 +14,13 @@ using namespace std;
 
 class Mutator;
 
+enum SemanticErrorType {
+    ColumnTypeRelatedError = 0,
+    AliasRelatedError,
+    SyntaxRelatedError,
+    OtherUndefinedError
+};
+
 class SQL_ORACLE {
 public:
   /* Functions to check and count how many query validation statements are in
@@ -135,6 +142,8 @@ public:
       }
 #undef ff
   };
+
+  virtual SemanticErrorType detect_semantic_error_type(string in_str);
 
 protected:
   Mutator *g_mutator;

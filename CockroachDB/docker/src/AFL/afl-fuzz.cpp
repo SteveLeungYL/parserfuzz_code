@@ -2859,48 +2859,25 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
       if (res.v_res_str.size() == 0) {
           continue;
       }
+      SemanticErrorType err_type = p_oracle->detect_semantic_error_type(res.v_res_str[0]);
       if (
-              (
-                      findStringIn(res.v_res_str[0], "pq: unsupported comparison") &&
-                      findStringIn(res.v_res_str[0], "operator:")
-              ) ||
-              findStringIn(res.v_res_str[0], "pq: unknown signature") ||
-              findStringIn(res.v_res_str[0], "parsing as type") ||
-              findStringIn(res.v_res_str[0], "pq: type") ||
-              findStringIn(res.v_res_str[0], "cannot subscript type string") ||
-              findStringIn(res.v_res_str[0], "function undefined") ||
-              findStringIn(res.v_res_str[0], "to be of type") ||
-              findStringIn(res.v_res_str[0], "pq: ambiguous call") ||
-              findStringIn(res.v_res_str[0], "pq: unsupported binary operator") ||
-              findStringIn(res.v_res_str[0], "invalid cast") ||
-              (
-                      findStringIn(res.v_res_str[0], "could not parse") &&
-                      findStringIn(res.v_res_str[0], "as type")
-              ) ||
-              findStringIn(res.v_res_str[0], "ERROR: relation") ||
-              findStringIn(res.v_res_str[0], "pq: relation")
+              err_type == SemanticErrorType::ColumnTypeRelatedError
               ) {
-          cerr << "\n\n\nType error message: " << res.v_res_str[0] << "\n\n\n";
           total_data_type_error_num++;
           total_select_error_num++;
       } else if (
-              findStringIn(res.v_res_str[0], "ERROR: source") ||
-              findStringIn(res.v_res_str[0], "pq: source") ||
-              findStringIn(res.v_res_str[0], "pq: column")
+              err_type == SemanticErrorType::AliasRelatedError
               ) {
-          cerr << "\n\n\nAlias error message: " << res.v_res_str[0] << "\n\n\n";
           total_alias_type_error_num++;
           total_select_error_num++;
       } else if (
-              findStringIn(res.v_res_str[0], "invalid syntax") ||
-              findStringIn(res.v_res_str[0], "syntax error") ||
-              findStringIn(res.v_res_str[0], "invalid syntax")
+              err_type == SemanticErrorType::SyntaxRelatedError
               ) {
-          cerr << "\n\n\nInstan error message: " << res.v_res_str[0] << "\n\n\n";
           total_instan_caused_error_num++;
           total_select_error_num++;
-      } else if (res.comp_res == ORA_COMP_RES::Error) {
-          cerr << "\n\n\nOther types error message: " << res.v_res_str[0] << "\n\n\n";
+      } else if (
+              err_type == SemanticErrorType::OtherUndefinedError
+              ) {
           total_select_error_num++;
       }
   }
@@ -2978,49 +2955,25 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
   p_oracle->compare_results(all_comp_res);
 
   for (COMP_RES &res : all_comp_res.v_res) {
+      SemanticErrorType err_type = p_oracle->detect_semantic_error_type(res.res_str_0);
       if (
-              (
-                      findStringIn(res.res_str_0, "pq: unsupported comparison") &&
-                      findStringIn(res.res_str_0, "operator:")
-              ) ||
-              findStringIn(res.res_str_0, "pq: unknown signature") ||
-              findStringIn(res.res_str_0, "parsing as type") ||
-              findStringIn(res.res_str_0, "pq: type") ||
-              findStringIn(res.res_str_0, "cannot subscript type string") ||
-              findStringIn(res.res_str_0, "function undefined") ||
-              findStringIn(res.res_str_0, "to be of type") ||
-              findStringIn(res.res_str_0, "pq: ambiguous call") ||
-              findStringIn(res.res_str_0, "pq: unsupported binary operator") ||
-              findStringIn(res.res_str_0, "invalid cast") ||
-              (
-                      findStringIn(res.res_str_0, "could not parse") &&
-                      findStringIn(res.res_str_0, "as type")
-              ) ||
-              findStringIn(res.res_str_0, "ERROR: relation") ||
-              findStringIn(res.res_str_0, "pq: relation")
-              ) {
-          cerr << "\n\n\nType error message: " << res.res_str_0 << "\n\n\n";
+              err_type == SemanticErrorType::ColumnTypeRelatedError
+          ) {
           total_data_type_error_num++;
           total_select_error_num++;
       } else if (
-              findStringIn(res.res_str_0, "ERROR: source") ||
-              findStringIn(res.res_str_0, "pq: source") ||
-              findStringIn(res.res_str_0, "pq: column")
-              )
-      {
-          cerr << "\n\n\nAlias error message: " << res.res_str_0 << "\n\n\n";
+              err_type == SemanticErrorType::AliasRelatedError
+          ) {
           total_alias_type_error_num++;
           total_select_error_num++;
       } else if (
-              findStringIn(res.res_str_0, "invalid syntax") ||
-              findStringIn(res.res_str_0, "syntax error") ||
-              findStringIn(res.res_str_0, "invalid syntax")
-              ) {
-          cerr << "\n\n\nInstan error message: " << res.res_str_0 << "\n\n\n";
+              err_type == SemanticErrorType::SyntaxRelatedError
+          ) {
           total_instan_caused_error_num++;
           total_select_error_num++;
-      } else if (res.comp_res == ORA_COMP_RES::Error) {
-          cerr << "\n\n\nOther types error message: " << res.res_str_0 << "\n\n\n";
+      } else if (
+              err_type == SemanticErrorType::OtherUndefinedError
+              ) {
           total_select_error_num++;
       }
   }

@@ -4512,35 +4512,6 @@ IR *Mutator::find_closest_node(IR *stmt_root, IR *node, DATATYPE type) {
   return NULL;
 }
 
-// int Mutator::try_fix(char *buf, int len, char *&new_buf, int &new_len) {
-// string sql(buf);
-
-// new_buf = buf;
-// new_len = len;
-
-// IR* ir_root = raw_parser(sql);
-
-// if (ir_root == NULL)
-// return 0;
-// validate(ir_root);
-// string fixed = ir_root->to_string();
-// if (fixed == "") {
-// return 0;
-//}
-// deep_delete(ir_root);
-// if (fixed.empty())
-// return 0;
-
-// char *sfixed = (char *)malloc(fixed.size() + 1);
-// memcpy(sfixed, fixed.c_str(), fixed.size());
-// sfixed[fixed.size()] = 0;
-
-// new_buf = sfixed;
-// new_len = fixed.size();
-
-// return 1;
-//}
-
 // added by vancir.
 
 // Return use_temp or not.
@@ -4592,17 +4563,6 @@ vector<IR *> Mutator::parse_query_str_get_ir_set(string &query_str) const {
   } catch (...) {
     return ir_set;
   }
-
-  //// Dirty fix for now. Remove all the reloption type.
-  //    vector<IR*> v_reloptions =
-  //    p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(root_ir,
-  //    kGroupClause, false, true);
-  //      for (IR* reloption_ir : v_reloptions) {
-  //          if (! reloption_ir->is_empty()) {
-  //              root_ir->detach_node(reloption_ir);
-  //              reloption_ir->deep_drop();
-  //          }
-  //      }
 
   /* Debug */
   // root_ir->deep_drop();
