@@ -5245,15 +5245,10 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
   return ret_IR;
 }
 
-void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
-
-    string ori_str = cur_stmt_root->to_string();
-
-    vector<string> v_err_note;
-
-    vector<vector<IR*>> tmp_node_matching;
+void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
 
     vector tmp_err_note = string_splitter(res_str, '"');
+    string ori_str = cur_stmt_root->to_string();
 
     if (trial < 7 &&
         findStringIn(res_str, "unknown function") ||
@@ -5279,10 +5274,13 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
 //            cur_func_ir->set_is_instantiated(false);
 //        }
 
-        tmp_node_matching.clear();
+        vector<vector<IR*>> tmp_node_matching;
         tmp_node_matching.push_back(all_func_ir);
         this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
+
     } else if (tmp_err_note.size() >= 3 && trial < 7) {
+
+        vector<string> v_err_note;
 
         for (int i = 1; i < tmp_err_note.size(); i+=2) {
             v_err_note.push_back(tmp_err_note.at(i));
@@ -5313,7 +5311,7 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
                 }
             }
 
-            tmp_node_matching.clear();
+            vector<vector<IR*>> tmp_node_matching;
             tmp_node_matching.push_back(node_matching_filtered);
 
             if (is_debug_info) {
@@ -5336,6 +5334,21 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
              << ori_str << "\nto: \n" << cur_stmt_root->to_string() << "\n\n\n";
     }
 
-    return;
+}
+
+void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
+
+    string ori_str = cur_stmt_root->to_string();
+
+
+    vector<vector<IR*>> tmp_node_matching;
+
+    SemanticErrorType cur_error_type = p_oracle->detect_semantic_error_type(res_str);
+
+    if (cur_error_type == ColumnTypeRelatedError) {
+        this->fix_col_type_rel_errors(cur_stmt_root, res_str, trial, is_debug_info);
+    } else {
+        this->validate(cur_stmt_root, is_debug_info);
+    }
 
 }

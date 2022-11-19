@@ -6147,7 +6147,7 @@ static u8 fuzz_one(char **argv) {
 
           int ret_res = FAULT_NONE;
           int trial = 0;
-          while (ret_res != FAULT_NONE && trial < max_trial) {
+          do {
               total_instan_num++;
               trial++;
               string cur_stmt_str = cur_trans_stmt->to_string();
@@ -6190,7 +6190,8 @@ static u8 fuzz_one(char **argv) {
                   p_oracle->mark_all_valid_node(cur_trans_stmt);
 
                   g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
-              }
+
+              } while (ret_res != FAULT_NONE && trial < max_trial)
 
               if (ret_res == FAULT_NONE) {
                   total_instan_succeed_num++;
