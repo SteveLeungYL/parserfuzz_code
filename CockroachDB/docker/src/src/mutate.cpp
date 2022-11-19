@@ -5270,6 +5270,16 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
   return ret_IR;
 }
 
+DATAAFFINITYTYPE Mutator::detect_str_affinity(std::string str_in) {
+
+    if (this->m_column2datatype.count(str_in) != 0) {
+        return this->m_column2datatype[str_in].get_data_affinity();
+    } else {
+        return get_data_affinity_by_string(str_in);
+    }
+
+}
+
 void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
 
     vector tmp_err_note = string_splitter(res_str, '"');
@@ -5299,11 +5309,63 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
 //            cur_func_ir->set_is_instantiated(false);
 //        }
 
-        vector<vector<IR*>> tmp_node_matching;
-        tmp_node_matching.push_back(all_func_ir);
-        this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
+        vector<IR*> ir_to_deep_drop;
+        for (IR* cur_func_ir : all_func_ir) {
+            this->instan_function_name(cur_func_ir, ir_to_deep_drop, is_debug_info);
+        }
+        for (IR* ir_drop : ir_to_deep_drop) {
+            ir_drop->deep_drop();
+        }
+    }
+    else if (findStringIn(res_str, "to be of type")) {
+        // Getting error: pq: expected B'111111' to be of type string[], found type varbit
 
-    } else if (tmp_err_note.size() >= 3 && trial < 7) {
+        string err_str_type = "";
+        vector<string> tmp_str_split;
+        tmp_str_split = string_splitter(res_str, "to be of type");
+        if (tmp_str_split.size() < 2) {
+            cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
+            return;
+        }
+        err_str_type = tmp_str_split.at(1);
+        tmp_str_split = string_splitter(err_str_type, ",");
+        if (tmp_str_split.size() < 2) {
+            cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
+            return;
+        }
+        err_str_type = tmp_str_split.at(0);
+
+        string err_str_literal = "";
+        tmp_str_split = string_splitter(res_str, "expected ");
+        if (tmp_str_split.size() < 2) {
+            cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
+            return;
+        }
+        err_str_literal = tmp_str_split.at(1);
+        tmp_str_split = string_splitter(err_str_literal, ",");
+        if (tmp_str_split.size() < 2) {
+            cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
+            return;
+        }
+        err_str_literal = tmp_str_split.at(0);
+
+        DATAAFFINITYTYPE corr_affi = this->detect_str_affinity(err_str_type);
+
+        vector<IR*> v_matched_node = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, err_str_literal, false, true);
+
+        for (IR* cur_matched_node : v_matched_node) {
+            cur_matched_node->set_data_affinity(corr_affi);
+            cur_matched_node->mutate_literal(corr_affi);
+        }
+
+        if (is_debug_info) {
+            cerr << "DEPENDENCY: Fixing semantic error. Matching rule 'to be of type' from: \n" << res_str
+                 << "\n getting new corr_affi: " << get_string_by_affinity_type(corr_affi) << "\n\n\n";
+        }
+
+    }
+    else if (tmp_err_note.size() >= 3 && trial < 7) {
 
         vector<string> v_err_note;
 
