@@ -3929,6 +3929,9 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
 }
 
 void Mutator::remove_type_annotation(IR *cur_stmt_root, vector<IR*>& ir_to_deep_drop ) {
+
+    // Ignore all kinds of Column Type changes for now.
+
     vector<IR*> v_type_annotation_node = p_oracle->ir_wrapper
             .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeAnnotateTypeExpr, false, true);
 
@@ -3949,6 +3952,28 @@ void Mutator::remove_type_annotation(IR *cur_stmt_root, vector<IR*>& ir_to_deep_
                     });
         }
     }
+
+    v_type_annotation_node = p_oracle->ir_wrapper
+            .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeCastExpr, false, true);
+
+    for (IR* cur_type_anno_node : v_type_annotation_node) {
+        if (cur_type_anno_node->get_middle() != "::") {
+            // Only remove the force type casting statement.
+            continue;
+        }
+        IR* right_node = cur_type_anno_node->get_right();
+        cur_type_anno_node->update_right(NULL);
+        cur_type_anno_node->op_->middle_ = "";
+        if (right_node != NULL) {
+            ir_to_deep_drop.push_back(right_node);
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    right_node, [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+        }
+    }
+
 }
 
 bool Mutator::instan_dependency(IR *cur_stmt_root,

@@ -311,7 +311,7 @@ string DataAffinity::mutate_affi_array() {
 
   //    int format = get_rand_int(2);
   int format = 1;                // Do not use the direct string method.
-  int len = get_rand_int(6) + 1; // At most 6 elements.
+  int len = get_rand_int(3) + 1; // At most 3 elements.
   string ret_str = "";
 
   if (format) {
@@ -1026,7 +1026,8 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
     return this->mutate_affi_oid();
   default:
     // For other types, should be collate.
-    return this->mutate_affi_array();
+//    return this->mutate_affi_array();
+    return this->mutate_affi_string();
   }
 }
 
@@ -1148,9 +1149,9 @@ DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in_type) {
 DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only,
                                           bool is_no_array) {
 
-  if (is_basic_type_only) {
+//  if (is_basic_type_only) {
 
-    if (is_no_array || get_rand_int(10) < 9) {
+//    if (is_no_array) {
       // Basic type except for Array.
       auto random_affi_idx =
           get_rand_int(AFFIUUID - AFFIBIT) + AFFIBIT; // Avoid AFFIUNKNOWN;
@@ -1165,27 +1166,28 @@ DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only,
       } else {
         return AFFISTRING;
       }
-    } else {
-      // Basic ARRAY type. 1/10 chances to get ARRAY type.
-      auto random_affi_idx = get_rand_int(AFFIARRAYUUID - AFFIARRAYBIT) +
-                             AFFIARRAYBIT + 1; // Avoid AFFIARRAYUNKNOWN;
-      auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+//    }
+//    else {
+//      // Basic ARRAY type. 1/10 chances to get ARRAY type.
+//      auto random_affi_idx = get_rand_int(AFFIARRAYUUID - AFFIARRAYBIT) +
+//                             AFFIARRAYBIT + 1; // Avoid AFFIARRAYUNKNOWN;
+//      auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+//
+//      if (random_affi != AFFIARRAYENUM && random_affi != AFFIARRAYCOLLATE) {
+//        return random_affi;
+//      } else {
+//        return AFFISTRING;
+//      }
+//    }
 
-      if (random_affi != AFFIARRAYENUM && random_affi != AFFIARRAYCOLLATE) {
-        return random_affi;
-      } else {
-        return AFFISTRING;
-      }
-    }
-
-  } else {
-
-    auto random_affi_idx =
-        get_rand_int(DATAAFFINITYTYPE::AFFIELEMENTCOUNT - 1) +
-        1; // Avoid AFFIUNKNOWN;
-    auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
-    return random_affi;
-  }
+//  } else {
+//
+//    auto random_affi_idx =
+//        get_rand_int(DATAAFFINITYTYPE::AFFIELEMENTCOUNT - 1) +
+//        1; // Avoid AFFIUNKNOWN;
+//    auto random_affi = static_cast<DATAAFFINITYTYPE>(random_affi_idx);
+//    return random_affi;
+//  }
 }
 
 string get_random_affinity_type_str(bool is_basic_type_only) {
