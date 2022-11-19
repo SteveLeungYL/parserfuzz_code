@@ -193,7 +193,7 @@ public:
   void instan_family_name (IR* ir_to_fix, bool is_debug_info);
   void instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
   void instan_storage_param (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
-  void instan_function_name (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
+  void instan_func_expr (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
   void map_create_view (IR* ir_to_fix, IR* cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec, bool is_debug_info);
   void map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
 

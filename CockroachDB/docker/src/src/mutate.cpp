@@ -3879,8 +3879,8 @@ void Mutator::map_create_view_column(IR *ir_to_fix,
   return;
 }
 
-void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
-                                   bool is_debug_info) {
+void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
+                               bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)
@@ -3888,8 +3888,23 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
       return;
   }
 
+  if (ir_to_fix->get_data_type() == DataFunctionName) {
+      IR* ori_ir_to_fix = ir_to_fix;
+      ir_to_fix = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, DataFunctionExpr);
+      if (ir_to_fix == NULL) {
+          ir_to_fix = p_oracle->ir_wrapper.get_parent_node_with_type(ori_ir_to_fix, TypeFuncObj);
+      }
+      if (ir_to_fix == NULL) {
+          if (is_debug_info) {
+              cerr << "\n\n\nERROR: Inside instan_func_expr, cannot get "
+                      "DataFunctionExpr/TypeFuncObj from DataFunctionName. \n\n\n";
+          }
+          return;
+      }
+  }
+
   /* Fixing for functions.  */
-  if (ir_to_fix->get_data_type() == DataFunctionExpr) {
+  if (ir_to_fix->get_data_type() == DataFunctionExpr || ir_to_fix->get_ir_type() == TypeFuncObj ) {
     if (ir_to_fix->get_data_flag() == ContextNoModi) {
       return;
     }
@@ -3898,7 +3913,7 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
     if (parent_node == NULL) {
       if (is_debug_info) {
         cerr << "\n\n\nERROR: Getting parent node is empty in "
-                "instan_function_name. \n\n\n";
+                "instan_func_expr. \n\n\n";
       }
       return;
     }
@@ -3917,7 +3932,7 @@ void Mutator::instan_function_name(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
     parent_node->swap_node(ir_to_fix, new_func_node);
 
     if (is_debug_info) {
-      cerr << "\n\n\nDependency: Inside instan_function_name, generating new "
+      cerr << "\n\n\nDependency: Inside instan_func_expr, generating new "
               "function: "
            << new_func_node->to_string() << "\n\n\n";
     }
@@ -4261,7 +4276,7 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
           continue;
         }
 
-        instan_function_name(ir_to_fix, ir_to_deep_drop, is_debug_info);
+          instan_func_expr(ir_to_fix, ir_to_deep_drop, is_debug_info);
       }
     }
 
@@ -5311,7 +5326,7 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
 
         vector<IR*> ir_to_deep_drop;
         for (IR* cur_func_ir : all_func_ir) {
-            this->instan_function_name(cur_func_ir, ir_to_deep_drop, is_debug_info);
+            this->instan_func_expr(cur_func_ir, ir_to_deep_drop, is_debug_info);
         }
         for (IR* ir_drop : ir_to_deep_drop) {
             ir_drop->deep_drop();
