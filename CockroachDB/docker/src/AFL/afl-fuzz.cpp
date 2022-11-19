@@ -4384,7 +4384,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%"
           "%,%llu,%llu,%llu,%llu,%llu,%llu,"
           "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%,%0.02f%%"
+          "%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%,%0.02f%%,"
           "%llu,%llu,%0.02f%%"
           "\n",
           /* Data */
@@ -6191,7 +6191,7 @@ static u8 fuzz_one(char **argv) {
 
                   g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
 
-              } while (ret_res != FAULT_NONE && trial < max_trial)
+              }
 
               if (ret_res == FAULT_NONE) {
                   total_instan_succeed_num++;
@@ -6204,7 +6204,7 @@ static u8 fuzz_one(char **argv) {
                   save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
               }
 
-          }
+          } while (ret_res != FAULT_NONE && trial < max_trial);
 
           if (cur_trans_stmt != NULL) {
               tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
