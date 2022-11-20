@@ -198,6 +198,7 @@ public:
   void map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
 
   void remove_type_annotation(IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop);
+  void rollback_instan_lib_changes();
 
   DATAAFFINITYTYPE detect_str_affinity(string);
 

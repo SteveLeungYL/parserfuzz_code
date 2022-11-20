@@ -119,6 +119,14 @@ bool try_validate_query(IR *cur_root) {
     } else {
       cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
     }
+    string tmp_str = cur_trans_stmt->to_string();
+    cur_trans_stmt = mutator.parse_query_str_get_ir_set(tmp_str).back();
+    mutator.reset_data_library_single_stmt();
+    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
+        cerr << "Error: second time g_mutator.validate returns errors. \n\n\n";
+    } else {
+        cout << "Second time Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
+    }
   }
 
   // Clean up allocated resource.

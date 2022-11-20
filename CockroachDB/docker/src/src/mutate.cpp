@@ -19,6 +19,13 @@
 
 using namespace std;
 
+#define find_vector(x, y) (find(x.begin(), x.end(), y) != x.end())
+#define remove_vector(x, y) (x.erase(std::remove(x.begin(), \
+                             x.end(), y),\
+                             x.end()));
+#define find_map(x, y) (x.count(y) > 0)
+#define remove_map(x, y) (x.erase(y))
+
 set<IR *>
     Mutator::visited; // Already validated/fixed node. Avoid multiple fixing.
 map<string, vector<string>>
@@ -5438,10 +5445,49 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
 
 }
 
+void Mutator::rollback_instan_lib_changes() {
+
+    for(string& cur_create_table: v_create_table_names_single) {
+        if (find_vector(v_table_names, cur_create_table)) {
+            remove_vector(v_table_names, cur_create_table);
+        }
+        if (find_vector(v_view_name, cur_create_table)) {
+            remove_vector(v_view_name, cur_create_table);
+        }
+        if (find_vector(v_table_with_partition, cur_create_table)) {
+            remove_vector(v_table_with_partition, cur_create_table);
+        }
+        if (find_vector(v_foreign_table_name, cur_create_table)) {
+            remove_vector(v_foreign_table_name, cur_create_table);
+        }
+
+        if (find_map(m_table2columns, cur_create_table)) {
+            vector<string> all_mapped_col = m_table2columns[cur_create_table];
+            for (string cur_mapped_col: all_mapped_col) {
+                if (find_map(m_column2datatype, cur_mapped_col)) {
+                    remove_map(m_column2datatype, cur_mapped_col);
+                }
+            }
+            remove_map(m_table2columns, cur_create_table);
+        }
+        if (find_map(m_table2index, cur_create_table)) {
+            remove_map(m_table2index, cur_create_table);
+        }
+        if (find_map(m_table2partition, cur_create_table)) {
+            remove_map(m_table2partition, cur_create_table);
+        }
+    }
+
+    this->v_create_table_names_single.clear();
+    this->v_create_view_names_single.clear();
+
+}
+
 void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
 
     string ori_str = cur_stmt_root->to_string();
 
+    this->rollback_instan_lib_changes();
 
     vector<vector<IR*>> tmp_node_matching;
 
@@ -5450,6 +5496,7 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
     if (cur_error_type == ColumnTypeRelatedError) {
         this->fix_col_type_rel_errors(cur_stmt_root, res_str, trial, is_debug_info);
     } else {
+        this->reset_data_library_single_stmt();
         this->validate(cur_stmt_root, is_debug_info);
     }
 
