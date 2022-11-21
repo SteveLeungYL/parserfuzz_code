@@ -3888,6 +3888,10 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
                                 const ALL_COMP_RES& all_comp_res, 
                                 const vector<int> &explain_diff_id = {}) {
 
+  if (is_str_empty(query_str)) {
+      return 0;
+  }
+
   u8 *fn = "";
   u8 hnb;
   s32 fd;
