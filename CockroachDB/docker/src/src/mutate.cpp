@@ -5596,11 +5596,12 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
 
     else if (
             findStringIn(res_str, "unsupported binary operator: ") &&
-            findStringIn(res_str, "(desired")
+            findStringIn(res_str, "(desired ")
         ) {
 
         if (is_debug_info) {
-            cerr << "\n\n\nDEBUG:: Inside the ERROR: could not parse literal as type TYPE \n\n\n";
+            cerr << "\n\n\nDEBUG:: Inside the unsupported binary operator: (desired ...)\n\n\n";
+            cerr << "\n\n\nDEBUG:: ERROR message: " << res_str << "\n\n\n";
         }
 
         vector<IR*> ir_to_deep_drop;
@@ -5618,11 +5619,11 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         str_operator = v_tmp_split.at(1);
 
         v_tmp_split = string_splitter(str_operator, " <");
-        if (v_tmp_split.size() <= 1) {
+        if (v_tmp_split.size() < 2) {
             cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
             return;
         }
-        str_operator = v_tmp_split.at(0);
+        str_operator = v_tmp_split.at(v_tmp_split.size() - 2);
 
         // Get the target type name.
         v_tmp_split = string_splitter(res_str, "(desired <");
@@ -5644,7 +5645,7 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
         for (IR* cur_binary_operator : v_binary_operator) {
-            if (cur_binary_operator->get_middle() != str_operator) {
+            if (cur_binary_operator->get_middle() != (" " + str_operator + " ")) {
                 continue;
             }
 
@@ -5680,7 +5681,7 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
 
     }
     else if (
-            findStringIn(res_str, "unsupported binary operator: ")
+            findStringIn(res_str, "unsupported binary operator")
             ) {
 
         /*
@@ -5688,6 +5689,11 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
          * Forced change the binary operator to '=' for now.
          * TODO:: apply operator specificed operations.
          * */
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG:: Inside the unsupported binary operator. clean \n\n\n";
+            cerr << "\n\n\nDEBUG:: ERROR message: " << res_str << "\n\n\n";
+        }
 
         string str_operator = "";
         vector<string> v_tmp_split;
@@ -5701,16 +5707,16 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         str_operator = v_tmp_split.at(1);
 
         v_tmp_split = string_splitter(str_operator, " <");
-        if (v_tmp_split.size() <= 1) {
+        if (v_tmp_split.size() < 1) {
             cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
             return;
         }
-        str_operator = v_tmp_split.at(0);
+        str_operator = v_tmp_split.at(v_tmp_split.size() - 1);
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
         for (IR* cur_binary_operator : v_binary_operator) {
-            if (cur_binary_operator->get_middle() != str_operator) {
+            if (cur_binary_operator->get_middle() != (" " + str_operator + " ")) {
                 continue;
             }
             cur_binary_operator->op_->middle_ = " = ";
