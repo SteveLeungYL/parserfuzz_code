@@ -5312,6 +5312,7 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
 DATAAFFINITYTYPE Mutator::detect_str_affinity(std::string str_in) {
 
     if (this->m_column2datatype.count(str_in) != 0) {
+        // Useless?
         return this->m_column2datatype[str_in].get_data_affinity();
     } else {
         return get_data_affinity_by_string(str_in);
@@ -5319,9 +5320,10 @@ DATAAFFINITYTYPE Mutator::detect_str_affinity(std::string str_in) {
 
 }
 
-void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debug_info) {
+void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debug_info) {
 
     /* Fix type mismatched problems from the operators.
+     * This function only handles the error when comparing two literals.
      * */
 
     // Case 1:
@@ -5331,9 +5333,9 @@ void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debu
     // expected true to be of type timestamp, found type bool
 
     if (
-            findStringIn(res_str, "unsupported comparison operator: ") ||
-            findStringIn(res_str, "expected" ) ||
-            findStringIn(res_str, "to be of type" ) ||
+            findStringIn(res_str, "unsupported comparison operator: ") &&
+            findStringIn(res_str, "expected" ) &&
+            findStringIn(res_str, "to be of type" ) &&
             findStringIn(res_str, "found type " )
     ) {
 
@@ -5437,6 +5439,11 @@ void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debu
                 old_left_node->deep_drop();
                 old_right_node->deep_drop();
 
+                if (is_debug_info) {
+                    cerr << "\n\n\nDEBUG::Mutated the unsupported LIKE comparison to "
+                         << cur_binary_operator->to_string() << "\n\n\n";
+                }
+
 
                 return;
 
@@ -5448,6 +5455,12 @@ void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debu
                  * select * FROM v0 where 123 < 'abc';
                  * ERROR: unsupported comparison operator: <int> < <string>
                  */
+
+                /*
+                 * This rule also matches the two sides column comparisons.
+                 * select * from v0 where c1 > c2;
+                 * ERROR: unsupported comparison operator: <int> > <string>
+                 * */
 
                 if (is_debug_info) {
                     cerr << "\n\n\nDEBUG:: Getting the other types (non-like) of the comparison operator fixing. ";
@@ -5482,8 +5495,163 @@ void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debu
                 cur_binary_operator->update_right(new_right_node);
                 old_right_node->deep_drop();
 
+                if (is_debug_info) {
+                    cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
+                         << cur_binary_operator->to_string() << "\n\n\n";
+                }
             }
         }
+
+    }
+}
+
+void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info) {
+    /*
+     * Fix the error when comparing columns to mismatched string literals.
+     */
+
+    if (
+            findStringIn(res_str, "ERROR: could not parse ") &&
+            findStringIn(res_str, " as type ")
+        ) {
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG:: Inside the ERROR: could not parse literal as type TYPE \n\n\n";
+        }
+
+        string str_literal = "";
+        string str_target_type = "";
+        vector<string> v_tmp_split;
+
+        // Get the troublesome variable.
+        v_tmp_split = string_splitter(res_str, "ERROR: could not parse ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find ERROR: could not parse  in the string. \n\n\n";
+            return;
+        }
+        str_literal = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_literal, " as type ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find as type in the string. \n\n\n";
+            return;
+        }
+        str_literal = v_tmp_split.at(0);
+
+        // Get the target type name.
+        v_tmp_split = string_splitter(res_str, " as type ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_target_type, ": ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(0);
+
+        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+
+        vector<IR*> v_matched_nodes = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, str_literal, false, true);
+        for (IR* cur_matched_node: v_matched_nodes) {
+            cur_matched_node->set_is_instantiated(true);
+            cur_matched_node->mutate_literal(fix_affi);
+
+            if (is_debug_info) {
+                cerr << "\n\n\nDEBUG::Mutated the literal to " << cur_matched_node->to_string() << "\n\n\n";
+            }
+        }
+
+        return;
+    }
+
+    else if (
+            findStringIn(res_str, "unsupported binary operator: ") &&
+            findStringIn(res_str, "(desired")
+        ) {
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG:: Inside the ERROR: could not parse literal as type TYPE \n\n\n";
+        }
+
+        vector<IR*> ir_to_deep_drop;
+
+        string str_target_type = "";
+        string str_operator = "";
+        vector<string> v_tmp_split;
+
+        // Get the target type name.
+        v_tmp_split = string_splitter(res_str, "> ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
+            return;
+        }
+        str_operator = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_operator, " <");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
+            return;
+        }
+        str_operator = v_tmp_split.at(0);
+
+        // Get the target type name.
+        v_tmp_split = string_splitter(res_str, "(desired <");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find (desired < in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_target_type, ">)");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find >) in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(0);
+
+        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+
+        vector<IR*> v_binary_operator = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
+        for (IR* cur_binary_operator : v_binary_operator) {
+            if (cur_binary_operator->get_middle() != str_operator) {
+                continue;
+            }
+
+            for (IR* prev_dropped : ir_to_deep_drop) {
+                if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, prev_dropped)) {
+                    continue;
+                }
+            }
+
+            IR* par_node = cur_binary_operator->get_parent();
+            if (par_node == NULL) {
+                if (is_debug_info) {
+                    cerr << "\n\n\nERROR:: Cannot find parent node from the cur_binary_operator->get_parent();\n\n\n";
+                }
+                return;
+            }
+            IR* new_ir = new IR(TypeUnknown, OP0(), NULL, NULL);
+            new_ir->set_is_instantiated(true);
+            new_ir->mutate_literal(fix_affi);
+
+            par_node->swap_node(cur_binary_operator, new_ir);
+
+            cur_binary_operator->parent_ = NULL;
+            ir_to_deep_drop.push_back(cur_binary_operator);
+
+        }
+
+        for (IR* cur_dropped : ir_to_deep_drop) {
+            cur_dropped->deep_drop();
+        }
+
+        return;
 
     }
 
@@ -5580,7 +5748,7 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
             findStringIn(res_str, "unsupported binary operator")
     ) {
 
-        fix_operator_error(cur_stmt_root, res_str, is_debug_info);
+        fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
 
     }
     else if (tmp_err_note.size() >= 3 && trial < 7) {

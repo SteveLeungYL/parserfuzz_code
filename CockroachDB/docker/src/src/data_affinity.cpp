@@ -31,9 +31,9 @@ inline void rewrite_data_affinity_string_macro(string &in) {
   in = string_splitter(in, '(')[0];
 
   if (sql_type_alias_2_type.count(in) != 0) {
-    cerr << "\n\n\nDEBUG: rewriting in: " << in;
+//    cerr << "\n\n\nDEBUG: rewriting in: " << in;
     in = sql_type_alias_2_type[in];
-    cerr << " to: " << in << "\n\n\n";
+//    cerr << " to: " << in << "\n\n\n";
   }
 }
 

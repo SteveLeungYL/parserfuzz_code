@@ -345,7 +345,8 @@ public:
 private:
 
     // Some helper function to fix the instantiation problems from the error messages.
-    void fix_operator_error(IR* cur_stmt_root, string res_in, bool is_debug_info = false);
+    void fix_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
+    void fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
 
 };
 
