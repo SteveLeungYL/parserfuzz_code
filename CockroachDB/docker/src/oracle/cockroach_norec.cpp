@@ -101,7 +101,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
 
     for (IR *count_func_ir : count_func_vec) {
 
-      if (count_func_ir->data_type_ != DataFunctionName) {
+      if (count_func_ir->data_type_ != DataFunctionName || count_func_ir->get_str_val() != "COUNT") {
         continue;
       }
 

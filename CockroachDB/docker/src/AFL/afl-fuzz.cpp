@@ -2734,7 +2734,7 @@ inline void print_norec_exec_debug_info() {
          << g_mutator.get_cri_valid_collection_size() << "\n"
          << "\33[2K total_valid_stmts:       "
          << g_mutator.get_valid_collection_size() << "\n"
-         << "\33[2K total good SELECT percentage:       " << debug_error << " / "
+         << "\33[2K total good SELECT percentage:       " << debug_good << " / "
          << debug_error + debug_good << " ("
          << debug_good * 100.0 / (debug_error + debug_good) << "%)\n"
          << "\33[2K cockroach_execute_ok:      " << cockroach_execute_ok << "\n"
@@ -6143,6 +6143,9 @@ static u8 fuzz_one(char **argv) {
           string ori_stmt_before_instan = cur_trans_stmt->to_string();
 
           g_mutator.reset_data_library_single_stmt();
+
+          // Avoid modifying the required nodes for the oracle.
+          p_oracle->mark_all_valid_node(cur_trans_stmt);
           g_mutator.validate(cur_trans_stmt);
 
           int ret_res = FAULT_NONE;
