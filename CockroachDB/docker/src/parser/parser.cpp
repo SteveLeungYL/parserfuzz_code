@@ -20,11 +20,11 @@ IR *raw_parser(const string input_str) {
     // cout <<  "Parse Helper return NULL. Parsing failed. \n";
     return NULL;
   }
-  else if (gores.r1 > 20000) {
-      // cout <<  "Parse Helper return NULL because the parsed json string is too large. \n";
-      free(gores.r0);
-      return NULL;
-  }
+//  else if (gores.r1 > 20000) {
+//      // cout <<  "Parse Helper return NULL because the parsed json string is too large. \n";
+//      free(gores.r0);
+//      return NULL;
+//  }
 
   // Extract the parsed JSON string. Free the char array memory.
   string res_json_str = "";
