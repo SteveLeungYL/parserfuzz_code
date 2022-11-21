@@ -4363,12 +4363,22 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
 
   /* For the newly declared v_table_names_single, save all these newly declared
    * statement to the global v_table_names. */
-  v_table_names.insert(v_table_names.end(), v_create_table_names_single.begin(),
-                       v_create_table_names_single.end());
-  v_table_names.insert(v_table_names.end(), v_create_view_names_single.begin(),
-                       v_create_view_names_single.end());
-  v_view_name.insert(v_view_name.end(), v_create_view_names_single.begin(),
-                     v_create_view_names_single.end());
+
+  for (string cur_add_table : v_create_table_names_single) {
+      if (!find_vector(v_table_names, cur_add_table)) {
+          v_table_names.push_back(cur_add_table);
+      }
+  }
+  for (string cur_add_table : v_create_view_names_single) {
+      if (!find_vector(v_table_names, cur_add_table)) {
+          v_table_names.push_back(cur_add_table);
+      }
+  }
+  for (string cur_add_table : v_view_name) {
+      if (!find_vector(v_view_name, cur_add_table)) {
+          v_view_name.push_back(cur_add_table);
+      }
+  }
 
   /* Reiterate the substmt.
   ** Added missing dependency information.
