@@ -5757,12 +5757,18 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
     }
 
     else if (
-            findStringIn(res_str, "unsupported comparison") ||
-            findStringIn(res_str, "unsupported binary operator")
+            findStringIn(res_str, "unsupported comparison")
     ) {
-
         fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
-
+    }
+    else if (
+        findStringIn(res_str, "unsupported binary operator") ||
+        (
+            findStringIn(res_str, "ERROR: could not parse ") &&
+            findStringIn(res_str, " as type ")
+        )
+        ){
+        fix_column_literal_op_err(cur_stmt_root, res_str, is_debug_info);
     }
     else if (tmp_err_note.size() >= 3 && trial < 7) {
 
