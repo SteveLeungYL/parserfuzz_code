@@ -5449,6 +5449,19 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
             }
 
+            else if (
+                    cur_binary_operator->get_middle() == " @> " ||
+                    cur_binary_operator->get_middle() == " >@ " ||
+                    cur_binary_operator->get_middle() == " #> " ||
+                    cur_binary_operator->get_middle() == " #>> " ||
+                    cur_binary_operator->get_middle() == " ? " ||
+                    cur_binary_operator->get_middle() == " ?& " ||
+                    cur_binary_operator->get_middle() == " ?| "
+            ) {
+                // Do not apply operations that is related to the JSON types.
+                cur_binary_operator->op_->middle_ = " = ";
+            }
+
             else {
                 /*
                  * If it is other types of comparison, follow the types from the left side.

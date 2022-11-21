@@ -24,7 +24,12 @@ inline void rewrite_data_affinity_string_macro(string &in) {
   if (in.size() > 4 && in.substr(0, 4) == "AFFI") {
     return;
   } else {
-    in = "AFFI" + in;
+      if (findStringIn(in, "[]")) {
+          // Detect the array type, and remove the [] symbol.
+          in = "AFFIARRAY" + in.substr(0, in.size()-2);
+      } else {
+          in = "AFFI" + in;
+      }
   }
 
   // Remove the various length
