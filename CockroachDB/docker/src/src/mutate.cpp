@@ -5402,10 +5402,18 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
         /*
          * Type mismatched when comparing between two literals.
          * */
+        vector<IR*> ir_to_deep_drop;
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinExprFmtWithParen, false, true);
         for (IR* cur_binary_operator : v_binary_operator) {
+
+            for (auto ir_drop: ir_to_deep_drop) {
+                if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, ir_drop)) {
+                    continue;
+                }
+            }
+
             if (cur_binary_operator->get_middle() == " LIKE ") {
                 /*
                  * SELECT COUNT( *) FROM v0 WHERE c1 LIKE true;
@@ -5436,16 +5444,13 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 cur_binary_operator->update_left(new_left_node);
                 cur_binary_operator->update_right(new_right_node);
 
-                old_left_node->deep_drop();
-                old_right_node->deep_drop();
+                ir_to_deep_drop.push_back(old_left_node);
+                ir_to_deep_drop.push_back(old_right_node);
 
                 if (is_debug_info) {
                     cerr << "\n\n\nDEBUG::Mutated the unsupported LIKE comparison to "
                          << cur_binary_operator->to_string() << "\n\n\n";
                 }
-
-
-                return;
 
             }
 
@@ -5506,7 +5511,9 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
                 IR* old_right_node = cur_binary_operator->get_right();
                 cur_binary_operator->update_right(new_right_node);
-                old_right_node->deep_drop();
+                if (old_right_node != NULL) {
+                    ir_to_deep_drop.push_back(old_right_node);
+                }
 
                 if (is_debug_info) {
                     cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
@@ -5515,7 +5522,12 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
             }
         }
 
+        for (auto ir_drop: ir_to_deep_drop) {
+            ir_drop->deep_drop();
+        }
+
     }
+    return;
 }
 
 void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info) {
@@ -5667,6 +5679,44 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         return;
 
     }
+    else if (
+            findStringIn(res_str, "unsupported binary operator: ")
+            ) {
+
+        /*
+         * pq: unsupported binary operator: <string> / <string>
+         * Forced change the binary operator to '=' for now.
+         * TODO:: apply operator specificed operations.
+         * */
+
+        string str_operator = "";
+        vector<string> v_tmp_split;
+
+        // Get the target type name.
+        v_tmp_split = string_splitter(res_str, "> ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
+            return;
+        }
+        str_operator = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_operator, " <");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
+            return;
+        }
+        str_operator = v_tmp_split.at(0);
+
+        vector<IR*> v_binary_operator = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
+        for (IR* cur_binary_operator : v_binary_operator) {
+            if (cur_binary_operator->get_middle() != str_operator) {
+                continue;
+            }
+            cur_binary_operator->op_->middle_ = " = ";
+        }
+
+    }
 
 }
 
@@ -5706,6 +5756,20 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
         for (IR* ir_drop : ir_to_deep_drop) {
             ir_drop->deep_drop();
         }
+    }
+    else if (
+            findStringIn(res_str, "unsupported comparison")
+            ) {
+        fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
+    }
+    else if (
+            findStringIn(res_str, "unsupported binary operator") ||
+            (
+                    findStringIn(res_str, "ERROR: could not parse ") &&
+                    findStringIn(res_str, " as type ")
+            )
+            ){
+        fix_column_literal_op_err(cur_stmt_root, res_str, is_debug_info);
     }
     else if (findStringIn(res_str, "to be of type")) {
         // Getting error: pq: expected B'111111' to be of type string[], found type varbit
@@ -5756,20 +5820,7 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
 
     }
 
-    else if (
-            findStringIn(res_str, "unsupported comparison")
-    ) {
-        fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
-    }
-    else if (
-        findStringIn(res_str, "unsupported binary operator") ||
-        (
-            findStringIn(res_str, "ERROR: could not parse ") &&
-            findStringIn(res_str, " as type ")
-        )
-        ){
-        fix_column_literal_op_err(cur_stmt_root, res_str, is_debug_info);
-    }
+
     else if (tmp_err_note.size() >= 3 && trial < 7) {
 
         vector<string> v_err_note;
