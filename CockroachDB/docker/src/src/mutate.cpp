@@ -5312,6 +5312,83 @@ DATAAFFINITYTYPE Mutator::detect_str_affinity(std::string str_in) {
 
 }
 
+void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debug_info) {
+
+    /* Fix type mismatched problems from the operators.
+     * */
+
+    // Case 1:
+    // SELECT COUNT( *), SUM( x), REGR_SXX( x, type_op6), SUM( x), REGR_SYY( x, x),
+    // REGR_SXY( x, x) FROM v0 WHERE c1 IN (true, true, false, true, false);
+    // pq: unsupported comparison operator: c1 IN (true, true, false, true, false):
+    // expected true to be of type timestamp, found type bool
+
+    if (
+            findStringIn(res_str, "unsupported comparison operator: ") ||
+            findStringIn(res_str, "expected" ) ||
+            findStringIn(res_str, "to be of type" ) ||
+            findStringIn(res_str, "found type " )
+    ) {
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG::Matching rule unsupported comparison operator: \n\n\n";
+        }
+
+        string str_literal = "";
+        string str_target_type = "";
+        vector<string> v_tmp_split;
+
+        // Get the troublesome variable.
+        v_tmp_split = string_splitter(res_str, ": expected ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+            return;
+        }
+        str_literal = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_literal, " to be of type ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+            return;
+        }
+        str_literal = v_tmp_split.at(0);
+
+        // Get the target type name.
+        v_tmp_split = string_splitter(res_str, " to be of type ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_target_type, ", ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(0);
+
+        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+
+        // Find all the matching literals.
+        vector<IR*> v_matched_node = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, str_literal, false, true);
+        for (IR* cur_matched_node : v_matched_node) {
+            if (is_debug_info) {
+                cerr << "\n\n\nDEBUG:: Matching node: " << cur_matched_node->to_string();
+            }
+            cur_matched_node->mutate_literal(fix_affi);
+            if (is_debug_info) {
+                cerr << ", mutated to node: " << cur_matched_node->to_string() << "\n\n\n";
+            }
+        }
+
+        return;
+
+    }
+
+}
+
 void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int trial, bool is_debug_info) {
 
     vector tmp_err_note = string_splitter(res_str, '"');
@@ -5395,6 +5472,15 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
             cerr << "DEPENDENCY: Fixing semantic error. Matching rule 'to be of type' from: \n" << res_str
                  << "\n getting new corr_affi: " << get_string_by_affinity_type(corr_affi) << "\n\n\n";
         }
+
+    }
+
+    else if (
+            findStringIn(res_str, "unsupported comparison") ||
+            findStringIn(res_str, "unsupported binary operator")
+    ) {
+
+        fix_operator_error(cur_stmt_root, res_str, is_debug_info);
 
     }
     else if (tmp_err_note.size() >= 3 && trial < 7) {

@@ -341,6 +341,12 @@ public:
   map<IRTYPE, vector<pair<string *, int>>> right_lib_set;
 
   static set<IR *> visited;
+
+private:
+
+    // Some helper function to fix the instantiation problems from the error messages.
+    void fix_operator_error(IR* cur_stmt_root, string res_in, bool is_debug_info = false);
+
 };
 
 #endif
