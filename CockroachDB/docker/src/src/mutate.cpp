@@ -3979,22 +3979,29 @@ void Mutator::remove_type_annotation(IR *cur_stmt_root, vector<IR*>& ir_to_deep_
             .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeCastExpr, false, true);
 
     for (IR* cur_type_anno_node : v_type_annotation_node) {
-        if (cur_type_anno_node->get_middle() != "::") {
-            // Only remove the force type casting statement.
-            continue;
-        }
-        IR* right_node = cur_type_anno_node->get_right();
-        cur_type_anno_node->update_right(NULL);
-        cur_type_anno_node->op_->middle_ = "";
-        if (right_node != NULL) {
-            ir_to_deep_drop.push_back(right_node);
-            p_oracle->ir_wrapper.iter_cur_node_with_handler(
-                    right_node, [](IR *cur_node) -> void {
-                        cur_node->set_is_instantiated(true);
-                        cur_node->set_data_flag(ContextNoModi);
-                    });
+        if (cur_type_anno_node->get_middle() == "::") {
+            IR *right_node = cur_type_anno_node->get_right();
+            cur_type_anno_node->update_right(NULL);
+            cur_type_anno_node->op_->middle_ = "";
+            if (right_node != NULL) {
+                ir_to_deep_drop.push_back(right_node);
+                p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                        right_node, [](IR *cur_node) -> void {
+                            cur_node->set_is_instantiated(true);
+                            cur_node->set_data_flag(ContextNoModi);
+                        });
+            }
+        } else if (cur_type_anno_node->get_left() != NULL &&
+            cur_type_anno_node->get_left()->get_data_type() == DataTypeName) {
+                IR* left_node = cur_type_anno_node->get_left();
+                cur_type_anno_node->update_left(nullptr);
+                left_node->set_is_instantiated(true);
+                left_node->set_data_flag(ContextNoModi);
+                ir_to_deep_drop.push_back(left_node);
         }
     }
+
+    return;
 
 }
 
@@ -5384,6 +5391,99 @@ void Mutator::fix_operator_error(IR *cur_stmt_root, string res_str, bool is_debu
         }
 
         return;
+
+    }
+
+    else if (
+        findStringIn(res_str, "unsupported comparison operator: ")
+    ) {
+        /*
+         * Type mismatched when comparing between two literals.
+         * */
+
+        vector<IR*> v_binary_operator = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinExprFmtWithParen, false, true);
+        for (IR* cur_binary_operator : v_binary_operator) {
+            if (cur_binary_operator->get_middle() == " LIKE ") {
+                /*
+                 * SELECT COUNT( *) FROM v0 WHERE c1 LIKE true;
+                 * pq: unsupported comparison operator: <bool> LIKE <bool>
+                 * For LIKE operator, both sides should be STRING types
+                 */
+                if (is_debug_info) {
+                    cerr << "\n\n\nDEBUG:: Getting the LIKE error fixing. ";
+                }
+
+                IR* new_left_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+                new_left_node->set_is_instantiated(true);
+                if (m_datatype2column.count(AFFISTRING) > 0) {
+                    string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
+                    new_left_node->set_str_val(col_str);
+                } else {
+                    new_left_node->mutate_literal(AFFISTRING);
+                }
+
+                IR* new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+                new_right_node->set_is_instantiated(true);
+                new_right_node->mutate_literal(AFFISTRING);
+
+                // Replacing the old nodes.
+                IR* old_left_node = cur_binary_operator->get_left();
+                IR* old_right_node = cur_binary_operator->get_right();
+
+                cur_binary_operator->update_left(new_left_node);
+                cur_binary_operator->update_right(new_right_node);
+
+                old_left_node->deep_drop();
+                old_right_node->deep_drop();
+
+
+                return;
+
+            }
+
+            else {
+                /*
+                 * If it is other types of comparison, follow the types from the left side.
+                 * select * FROM v0 where 123 < 'abc';
+                 * ERROR: unsupported comparison operator: <int> < <string>
+                 */
+
+                if (is_debug_info) {
+                    cerr << "\n\n\nDEBUG:: Getting the other types (non-like) of the comparison operator fixing. ";
+                }
+
+                string str_target_type = "";
+                vector<string> v_tmp_split;
+
+                // Get the troublesome variable.
+                v_tmp_split = string_splitter(res_str, " operator: <");
+                if (v_tmp_split.size() <= 1) {
+                    cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+                    return;
+                }
+                str_target_type = v_tmp_split.at(1);
+
+                v_tmp_split = string_splitter(str_target_type, ">");
+                if (v_tmp_split.size() <= 1) {
+                    cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+                    return;
+                }
+                str_target_type = v_tmp_split.at(0);
+
+                DATAAFFINITYTYPE fixed_affi = this->detect_str_affinity(str_target_type);
+
+                // Replace the right node with the new affinity literals.
+                IR* new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+                new_right_node->set_is_instantiated(true);
+                new_right_node->mutate_literal(fixed_affi);
+
+                IR* old_right_node = cur_binary_operator->get_right();
+                cur_binary_operator->update_right(new_right_node);
+                old_right_node->deep_drop();
+
+            }
+        }
 
     }
 
