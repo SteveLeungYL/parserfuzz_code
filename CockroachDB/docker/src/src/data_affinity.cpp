@@ -376,6 +376,9 @@ string DataAffinity::mutate_affi_bit() {
   string ret_str = "B'";
 
   int length = get_rand_int(17) + 1; // do not use 0;
+
+  // TODO:: FIXME:: Use varying size of Bit type.
+  length = 1;
   for (int i = 0; i < length; i++) {
     if (get_rand_int(2)) {
       ret_str += "1";
