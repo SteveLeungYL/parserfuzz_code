@@ -5858,7 +5858,7 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
 
         string err_str_type = "";
         vector<string> tmp_str_split;
-        tmp_str_split = string_splitter(res_str, "to be of type");
+        tmp_str_split = string_splitter(res_str, "to be of type ");
         if (tmp_str_split.size() < 2) {
             cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
             return;
@@ -5878,7 +5878,7 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
             return;
         }
         err_str_literal = tmp_str_split.at(1);
-        tmp_str_split = string_splitter(err_str_literal, ",");
+        tmp_str_split = string_splitter(err_str_literal, " to be of type");
         if (tmp_str_split.size() < 2) {
             cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
             return;
