@@ -879,7 +879,7 @@ string DataAffinity::mutate_affi_string() {
 
   // Handle the `'` symbol in the switch.
   switch (format) {
-  case 0 ... 2: {
+  case 0 ... 3: {
     // Complete random string.
     int len = get_rand_int(10) + 1; // Doesn't need to be long. Avoid 0 len.
     for (int i = 0; i < len; i++) {
@@ -908,10 +908,10 @@ string DataAffinity::mutate_affi_string() {
     //            // affinity byte type
     //            ret_str = this->mutate_affi_byte();
     //            break;
-  case 3:
-    // affinity json type
-    ret_str = this->mutate_affi_jsonb();
-    break;
+//  case 3:
+//    // affinity json type
+//    ret_str = this->mutate_affi_jsonb();
+//    break;
   case 4:
     // affinity interval type
     ret_str = this->mutate_affi_interval();
@@ -1166,7 +1166,8 @@ DATAAFFINITYTYPE get_random_affinity_type(bool is_basic_type_only,
         return AFFIINTERVAL;
       }
 
-      if (random_affi != AFFICOLLATE && random_affi != AFFIENUM) {
+      // TODO:: Aviod generating JBONB colum types for now.
+      if (random_affi != AFFICOLLATE && random_affi != AFFIENUM && random_affi != AFFIJSONB) {
         return random_affi;
       } else {
         return AFFISTRING;
