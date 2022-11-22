@@ -58,7 +58,6 @@
         "is_enum": true,
         "is_range": false,
         "enum_values": [
-            2,
             4,
             8
         ]
