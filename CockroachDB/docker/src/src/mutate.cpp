@@ -5326,6 +5326,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
      * This function only handles the error when comparing two literals.
      * */
 
+    vector<IR*> ir_to_deep_drop;
+
     // Case 1:
     // SELECT COUNT( *), SUM( x), REGR_SXX( x, type_op6), SUM( x), REGR_SYY( x, x),
     // REGR_SXY( x, x) FROM v0 WHERE c1 IN (true, true, false, true, false);
@@ -5383,13 +5385,35 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
         vector<IR*> v_matched_node = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, str_literal, false, true);
         for (IR* cur_matched_node : v_matched_node) {
+
+            bool is_skip = false;
+            for (auto cur_drop: ir_to_deep_drop) {
+                if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_drop)) {
+                    is_skip = true;
+                    break;
+                }
+            }
+            if (is_skip) {
+                continue;
+            }
+
             if (is_debug_info) {
                 cerr << "\n\n\nDEBUG:: Matching node: " << cur_matched_node->to_string();
             }
-            cur_matched_node->mutate_literal(fix_affi);
+
+            IR* new_literal_node = new IR(TypeStringLiteral, OP0());
+            new_literal_node->set_is_instantiated(true);
+            new_literal_node->mutate_literal(fix_affi);
+            cur_stmt_root->swap_node(cur_matched_node, new_literal_node);
+            ir_to_deep_drop.push_back(cur_matched_node);
+
             if (is_debug_info) {
-                cerr << ", mutated to node: " << cur_matched_node->to_string() << "\n\n\n";
+                cerr << ", mutated to node: " << new_literal_node->to_string() << "\n\n\n";
             }
+        }
+
+        for (auto cur_drop: ir_to_deep_drop) {
+            cur_drop->deep_drop();
         }
 
         return;
@@ -5401,6 +5425,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
     ) {
         /*
          * Type mismatched when comparing between two literals.
+         * SELECT COUNT( *) FROM v0 WHERE v0.c5 = B'010' AND v0.c3 = B'10001111101';
+         *   pq: unsupported comparison operator: <decimal> = <varbit>
          * */
         vector<IR*> ir_to_deep_drop;
 
@@ -5408,10 +5434,15 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinExprFmtWithParen, false, true);
         for (IR* cur_binary_operator : v_binary_operator) {
 
+            bool is_skip = false;
             for (auto ir_drop: ir_to_deep_drop) {
                 if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, ir_drop)) {
-                    continue;
+                    is_skip = true;
+                    break;
                 }
+            }
+            if (is_skip) {
+                continue;
             }
 
             if (cur_binary_operator->get_middle() == " LIKE ") {
@@ -5490,14 +5521,14 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 // Get the troublesome variable.
                 v_tmp_split = string_splitter(res_str, " operator: <");
                 if (v_tmp_split.size() <= 1) {
-                    cerr << "\n\n\nERROR: Cannot find : expected in the string. \n\n\n";
+                    cerr << "\n\n\nERROR: Cannot find  operator: < in the string " << res_str << "\n\n\n";
                     return;
                 }
                 str_target_type = v_tmp_split.at(1);
 
                 v_tmp_split = string_splitter(str_target_type, ">");
                 if (v_tmp_split.size() <= 1) {
-                    cerr << "\n\n\nERROR: Cannot find to be of type in the string. \n\n\n";
+                    cerr << "\n\n\nERROR: Cannot find > in the string: "<< str_target_type << " \n\n\n";
                     return;
                 }
                 str_target_type = v_tmp_split.at(0);
@@ -5539,6 +5570,8 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
             findStringIn(res_str, "ERROR: could not parse ") &&
             findStringIn(res_str, " as type ")
         ) {
+
+        vector<IR*> ir_to_deep_drop;
 
         if (is_debug_info) {
             cerr << "\n\n\nDEBUG:: Inside the ERROR: could not parse literal as type TYPE \n\n\n";
@@ -5583,12 +5616,31 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         vector<IR*> v_matched_nodes = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, str_literal, false, true);
         for (IR* cur_matched_node: v_matched_nodes) {
-            cur_matched_node->set_is_instantiated(true);
-            cur_matched_node->mutate_literal(fix_affi);
+
+            bool is_skip = false;
+            for (auto cur_drop: ir_to_deep_drop) {
+                if (p_oracle->ir_wrapper.is_ir_in(cur_matched_node, cur_drop)) {
+                    is_skip = true;
+                    break;
+                }
+            }
+            if (is_skip) {
+                continue;
+            }
+
+            IR* new_matched_node = new IR(TypeUnknown, OP0());
+            new_matched_node->set_is_instantiated(true);
+            new_matched_node->mutate_literal(fix_affi);
+            cur_stmt_root->swap_node(cur_matched_node, new_matched_node);
+            ir_to_deep_drop.push_back(cur_matched_node);
 
             if (is_debug_info) {
                 cerr << "\n\n\nDEBUG::Mutated the literal to " << cur_matched_node->to_string() << "\n\n\n";
             }
+        }
+
+        for (auto cur_drop: ir_to_deep_drop) {
+            cur_drop->deep_drop();
         }
 
         return;
@@ -5616,14 +5668,20 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
             cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
             return;
         }
-        str_operator = v_tmp_split.at(1);
+        str_operator = "";
+        for (int i = 1; i < v_tmp_split.size(); i++) {
+            str_operator += v_tmp_split.at(i);
+            if ((i+1) < v_tmp_split.size()) {
+                str_operator += "> ";
+            }
+        }
 
         v_tmp_split = string_splitter(str_operator, " <");
         if (v_tmp_split.size() < 2) {
             cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
             return;
         }
-        str_operator = v_tmp_split.at(v_tmp_split.size() - 2);
+        str_operator = v_tmp_split.at(v_tmp_split.size() - 3);
 
         // Get the target type name.
         v_tmp_split = string_splitter(res_str, "(desired <");
@@ -5649,10 +5707,15 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
                 continue;
             }
 
+            bool is_skip = false;
             for (IR* prev_dropped : ir_to_deep_drop) {
                 if (p_oracle->ir_wrapper.is_ir_in(cur_binary_operator, prev_dropped)) {
-                    continue;
+                    is_skip = true;
+                    break;
                 }
+            }
+            if (is_skip) {
+                continue;
             }
 
             IR* par_node = cur_binary_operator->get_parent();
@@ -5704,14 +5767,21 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
             cerr << "\n\n\nERROR: Cannot find > in the string. \n\n\n";
             return;
         }
-        str_operator = v_tmp_split.at(1);
+        str_operator = "";
+        for (int i = 1; i < v_tmp_split.size(); i++) {
+            str_operator += v_tmp_split.at(i);
+            if ((i+1) < v_tmp_split.size()) {
+                str_operator += "> ";
+            }
+        }
 
         v_tmp_split = string_splitter(str_operator, " <");
-        if (v_tmp_split.size() < 1) {
+        if (v_tmp_split.size() < 2) {
             cerr << "\n\n\nERROR: Cannot find < in the string. \n\n\n";
             return;
         }
-        str_operator = v_tmp_split.at(v_tmp_split.size() - 1);
+
+        str_operator = v_tmp_split.at(v_tmp_split.size() - 2);
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
