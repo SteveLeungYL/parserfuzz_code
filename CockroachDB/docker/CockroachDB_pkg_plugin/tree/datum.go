@@ -520,7 +520,7 @@ func (node *DBool) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeDBool,
-		DataType: DataNone,
+		DataType: DataLiteral,
 		Prefix:   prefix,
 		Infix:    "",
 		Suffix:   "",
@@ -4699,6 +4699,7 @@ func (node *DTuple) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR.IRType = TypeDTuple
+	rootIR.DataType = DataLiteral
 
 	return rootIR
 }
@@ -4886,7 +4887,7 @@ func (node dNull) LogCurrentNode(depth int) *SQLRightIR {
 
 	rootIR := &SQLRightIR{
 		IRType:   TypedNull,
-		DataType: DataNone,
+		DataType: DataLiteral,
 		Prefix:   prefix,
 		Infix:    "",
 		Suffix:   "",
@@ -5163,6 +5164,7 @@ func (node DArray) LogCurrentNode(depth int) *SQLRightIR {
 	rootIR.Suffix = suffix
 
 	rootIR.IRType = TypeDArray
+	rootIR.DataType = DataLiteral
 
 	return rootIR
 }
