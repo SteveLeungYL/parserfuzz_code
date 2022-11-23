@@ -5644,6 +5644,10 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
             ir_to_deep_drop.push_back(cur_match_node);
         }
 
+        for (auto ir_drop: ir_to_deep_drop) {
+            ir_drop->deep_drop();
+        }
+
     }
 
     return;
