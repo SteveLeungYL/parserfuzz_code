@@ -5564,6 +5564,88 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
         }
 
     }
+
+    else if (
+            findStringIn(res_str, "parsing as type ") &&
+            findStringIn(res_str, "could not parse")
+        ) {
+
+//        pq: unsupported comparison operator: c4 = ANY ARRAY['2ci10p4', '09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2', '05-08-4034 BC 06:58:13-5', '05-1
+//        0-3656 14:14:21-3']: parsing as type timestamp: could not parse "2ci10p4"
+
+        vector<IR*> ir_to_deep_drop;
+
+        string str_literal = "";
+        string str_target_type = "";
+        vector<string> v_tmp_split;
+
+        // Get the troublesome variable.
+        v_tmp_split = string_splitter(res_str, "could not parse ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find parsing as type  in the string. \n\n\n";
+            return;
+        }
+        str_literal = v_tmp_split.at(1);
+
+        // Remove the "" symbol.
+        if (str_literal.size() > 0 && str_literal[0] == '"') {
+            str_literal = str_literal.substr(1, str_literal.size()-1);
+        }
+        if (str_literal.size() > 0 && str_literal[str_literal.size()-1] == '\n') {
+            str_literal = str_literal.substr(0, str_literal.size()-1);
+        }
+        if (str_literal.size() > 0 && str_literal[str_literal.size()-1] == '"') {
+            str_literal = str_literal.substr(0, str_literal.size()-1);
+        }
+
+        // Get the target type name.
+        v_tmp_split = string_splitter(res_str, "parsing as type ");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find parsing as type  in the string. \n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(1);
+
+        v_tmp_split = string_splitter(str_target_type, ":");
+        if (v_tmp_split.size() <= 1) {
+            cerr << "\n\n\nERROR: Cannot find : in the string," << str_target_type << "\n\n\n";
+            return;
+        }
+        str_target_type = v_tmp_split.at(0);
+
+        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+
+        // Find all the matching literals.
+        vector<IR*> v_matched_node = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, str_literal, false, true);
+
+        if (v_matched_node.size() == 0) {
+            v_matched_node = p_oracle->ir_wrapper
+                    .get_ir_node_in_stmt_with_type(cur_stmt_root, "'" + str_literal + "'", false, true);
+        }
+
+        for (auto cur_match_node : v_matched_node) {
+            bool is_skip = false;
+            for (IR* cur_drop : ir_to_deep_drop) {
+                if (p_oracle->ir_wrapper.is_ir_in(cur_match_node, cur_drop)) {
+                    is_skip = true;
+                    break;
+                }
+            }
+            if (is_skip) {
+                continue;
+            }
+
+            IR* newLiteralNode = new IR(TypeUnknown, OP0());
+            newLiteralNode->set_is_instantiated(true);
+            newLiteralNode->mutate_literal(fix_affi);
+
+            cur_stmt_root->swap_node(cur_match_node, newLiteralNode);
+            ir_to_deep_drop.push_back(cur_match_node);
+        }
+
+    }
+
     return;
 }
 
@@ -5840,7 +5922,11 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
         }
     }
     else if (
-            findStringIn(res_str, "unsupported comparison")
+            findStringIn(res_str, "unsupported comparison") ||
+                (
+                    findStringIn(res_str, "parsing as type ") &&
+                    findStringIn(res_str, "could not parse")
+                )
             ) {
         fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
     }
