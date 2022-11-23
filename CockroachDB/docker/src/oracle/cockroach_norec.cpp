@@ -34,8 +34,9 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
           ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeLockingClause, false);
   for (IR *locking_clause: v_locking_clause) {
       if (!locking_clause->is_empty()){
-          cur_stmt->swap_node(locking_clause, NULL);
-          locking_clause->deep_drop();
+          if (cur_stmt->swap_node(locking_clause, NULL)) {
+              locking_clause->deep_drop();
+          }
       }
   }
 

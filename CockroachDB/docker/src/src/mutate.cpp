@@ -5890,6 +5890,47 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
     string ori_str = cur_stmt_root->to_string();
 
     if (trial < 7 &&
+        findStringIn(res_str, "(desired <") &&
+        findStringIn(res_str, "unknown function")
+        ) {
+        // select count(*) from v0 where md5(v1);
+        // ERROR: unknown signature: md5(int) (desired <bool>)
+        // The problem is that the function is directly used in the WHERE clause,
+        // where the where clause only accept BOOL type.
+
+        if (is_debug_info) {
+            cerr << "\n\n\nGetting unknown function(signature), (desired <bool>). "
+                    "Guessing it is coming from the function direct usage in the"
+                    "WHERE clause. \n\n\n";
+        }
+
+        string str_func_name = "";
+        vector<string> tmp_str_split;
+        tmp_str_split = string_splitter(res_str, "unknown signature: ");
+        if (tmp_str_split.size() < 2) {
+            cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
+            return;
+        }
+        str_func_name = tmp_str_split.at(1);
+        tmp_str_split = string_splitter(str_func_name, "(");
+        if (tmp_str_split.size() < 2) {
+            cerr << "\n\n\n ERROR: The error message: " << res_str << " does not match the pattern. \n\n\n";
+            return;
+        }
+        str_func_name = tmp_str_split.at(0);
+
+        vector<IR*> v_func_names = p_oracle->ir_wrapper
+                .get_ir_node_in_stmt_with_type(cur_stmt_root, str_func_name, false, true);
+
+        // Dirty fix, directly modify the TypeFunctionExpr type nodes.
+        for (IR* cur_func_node : v_func_names) {
+            IR* cur_func_expr = p_oracle->ir_wrapper.get_parent_node_with_type(cur_func_node, TypeFuncExpr);
+            if (cur_func_expr != NULL) {
+                cur_func_expr->op_->suffix_ += " = 0";
+            }
+        }
+    }
+    else if (trial < 7 &&
         findStringIn(res_str, "unknown function") ||
         findStringIn(res_str, "unknown signature")
             ) {
