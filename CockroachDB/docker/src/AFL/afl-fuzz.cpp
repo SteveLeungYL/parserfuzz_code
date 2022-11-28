@@ -2223,6 +2223,8 @@ EXP_ST void init_forkserver(char **argv) {
   int status;
   s32 rlen;
 
+  child_timed_out = 0;
+
   ACTF("Spinning up the fork server...");
 
   if (pipe(st_pipe) || pipe(ctl_pipe))
