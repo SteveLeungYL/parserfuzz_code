@@ -43,8 +43,6 @@ static unsigned long g_id_counter;
 
 static inline void reset_id_counter() { g_id_counter = 0; }
 
-static inline void clear_id() { g_id_counter = 0; }
-
 static string gen_id_name() { return "v" + to_string(g_id_counter++); }
 static string gen_column_name() { return "c" + to_string(g_id_counter++); }
 static string gen_index_name() { return "i" + to_string(g_id_counter++); }
@@ -78,7 +76,7 @@ public:
   IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL)
       : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
         operand_num_((!!right) + (!!left)), data_type_(DataNone), data_affinity_type(AFFIUNKNOWN) {
-    GEN_NAME();
+//    GEN_NAME();
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -90,7 +88,7 @@ public:
       : type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-    GEN_NAME();
+//    GEN_NAME();
   }
 
   IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone,
@@ -98,7 +96,7 @@ public:
       : type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-    GEN_NAME();
+//    GEN_NAME();
   }
 
   IR(IRTYPE type, unsigned long long_val, DATATYPE data_type = DataNone,
@@ -106,7 +104,7 @@ public:
       : type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-    GEN_NAME();
+//    GEN_NAME();
   }
 
   IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone,
@@ -114,7 +112,7 @@ public:
       : type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-    GEN_NAME();
+//    GEN_NAME();
   }
 
   IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone,
@@ -122,7 +120,7 @@ public:
       : type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-    GEN_NAME();
+//    GEN_NAME();
   }
 
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,

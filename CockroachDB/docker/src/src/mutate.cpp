@@ -4514,6 +4514,7 @@ void Mutator::reset_data_library_single_stmt() {
 
 void Mutator::reset_data_library() {
   this->reset_data_library_single_stmt();
+  reset_id_counter();
   m_table2columns.clear();
   m_table2partition.clear();
   v_table_names.clear();
