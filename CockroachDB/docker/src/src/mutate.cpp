@@ -1264,41 +1264,44 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
 
     /* See if current node type is matching split_set. If yes, disconnect
      * node->left and node->right. */
-    if (node->left_ &&
-        find(split_set.begin(), split_set.end(), node->left_->type_) !=
-            split_set.end() &&
-        p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)) {
-      if (p_oracle->ir_wrapper.is_ir_in(node->get_left(), TypeWith) ||
-          node->get_ir_type() == TypeCreateView ||
-          node->get_ir_type() == TypeCreateTableAs) {
-        // If the statement is in the WITH clause, Create Table AS
-        // or Create view as, fix the subquery first.
-        res_list.push_front(node->get_left());
-      } else {
-        res_list.push_back(node->get_left());
-      }
-      pair<bool, IR *> cur_m_save =
-          make_pair<bool, IR *>(true, node->get_left());
-      m_save[node] = cur_m_save;
-    }
-    if (node->right_ &&
-        find(split_set.begin(), split_set.end(), node->right_->type_) !=
-            split_set.end() &&
-        p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->right_)) {
-
-      if (p_oracle->ir_wrapper.is_ir_in(node->get_right(), TypeWith) ||
-          node->get_ir_type() == TypeCreateView ||
-          node->get_ir_type() == TypeCreateTableAs) {
-        // If the statement is in the WITH clause, Create Table AS
-        // or Create view as, fix the subquery first.
-        res_list.push_front(node->get_right());
-      } else {
-        res_list.push_back(node->get_right());
-      }
-      pair<bool, IR *> cur_m_save =
-          make_pair<bool, IR *>(false, node->get_right());
-      m_save[node] = cur_m_save;
-    }
+        if (node->get_ir_type() == TypeCTECluster) {
+            // If the sub-statement is inside the WITH CTE clause,
+            // fix them first before the main statement.
+            if (node->get_right() != NULL) {
+                res_list.push_front(node->get_right());
+            }
+            pair<bool, IR *> cur_m_save =
+                    make_pair<bool, IR *>(false, node->get_right());
+            m_save[node] = cur_m_save;
+        }
+        else if (
+                node->get_ir_type() == TypeCreateView ||
+                node->get_ir_type() == TypeCreateTableAs) {
+            // If the statement is in the Create Table AS
+            // or Create view as, fix the subquery first.
+            res_list.push_front(node->get_right());
+            pair<bool, IR *> cur_m_save =
+                    make_pair<bool, IR *>(false, node->get_right());
+            m_save[node] = cur_m_save;
+        }
+        else if (node->left_ &&
+                     find(split_set.begin(), split_set.end(), node->left_->type_) !=
+                     split_set.end() &&
+                     p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)) {
+            res_list.push_back(node->get_left());
+            pair<bool, IR *> cur_m_save =
+                    make_pair<bool, IR *>(true, node->get_left());
+            m_save[node] = cur_m_save;
+        }
+        else if (node->get_right() &&
+                 find(split_set.begin(), split_set.end(), node->get_right()->get_ir_type()) !=
+                 split_set.end() &&
+                 p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->get_right())) {
+            res_list.push_back(node->get_right());
+            pair<bool, IR *> cur_m_save =
+                    make_pair<bool, IR *>(false, node->get_right());
+            m_save[node] = cur_m_save;
+        }
   }
 
   for (auto ptr = res_list.begin(); ptr != res_list.end(); ptr++) {
@@ -1313,6 +1316,10 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt,
     // Detach all the subquery.
     cur_stmt->detach_node(res[idx]);
   }
+
+//  for (auto cur_sub : res) {
+//      cerr << "\nGetting subquery: " << cur_sub->to_string() << "\n\n";
+//  }
 
   return res;
 }
