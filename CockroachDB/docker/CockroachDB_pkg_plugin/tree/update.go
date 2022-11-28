@@ -277,7 +277,7 @@ func (node *UpdateExpr) LogCurrentNode(depth int) *SQLRightIR {
 		infix = ")"
 	}
 
-	nameNode := node.Names.LogCurrentNode(depth + 1)
+	nameNode := node.Names.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	infix += " = "
 
