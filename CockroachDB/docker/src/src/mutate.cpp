@@ -3238,7 +3238,7 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
 
   IRTYPE type = ir_to_fix->get_ir_type();
 
-  if ((type == TypeFloatLiteral || type == TypeStringLiteral ||
+  if ((type == TypeFloatLiteral || type == TypeStringLiteral || type == TypeDBool ||
        type == TypeIntegerLiteral) &&
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeExprs)) {
     /* Completely rewritten Literal handling and mutation logic.
@@ -3528,7 +3528,7 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
 
   type = ir_to_fix->get_ir_type();
 
-  if (type == TypeFloatLiteral || type == TypeStringLiteral ||
+  if (type == TypeFloatLiteral || type == TypeStringLiteral || type == TypeDBool ||
       type == TypeIntegerLiteral) {
     /* Continue from the previous loop, we now search around the ir_to_fix
      * and see if we can find column name or literals that can help deduce
