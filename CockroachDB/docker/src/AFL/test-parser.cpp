@@ -127,6 +127,7 @@ bool try_validate_query(IR *cur_root) {
     } else {
         cout << "Second time Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
     }
+    mutator.rollback_instan_lib_changes();
   }
 
   // Clean up allocated resource.
