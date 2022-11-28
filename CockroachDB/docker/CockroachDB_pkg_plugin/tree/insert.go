@@ -181,7 +181,7 @@ func (node *Insert) LogCurrentNode(depth int) *SQLRightIR {
 		if len(node.OnConflict.Columns) > 0 {
 			infix = " ("
 			suffix := ")"
-			columnNode := node.OnConflict.Columns.LogCurrentNode(depth + 1)
+			columnNode := node.OnConflict.Columns.LogCurrentNodeWithType(depth+1, DataColumnName)
 			rootIR = &SQLRightIR{
 				IRType:   TypeUnknown,
 				DataType: DataNone,

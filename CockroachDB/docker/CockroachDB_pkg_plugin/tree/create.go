@@ -326,7 +326,7 @@ func (node *CreateDatabase) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.Regions != nil {
 		infix := " REGIONS = "
-		pRNode := node.Regions.LogCurrentNode(depth + 1)
+		pRNode := node.Regions.LogCurrentNodeWithType(depth+1, DataRegionName)
 
 		rootIR = &SQLRightIR{
 			IRType:   TypeUnknown,
@@ -3731,7 +3731,7 @@ func (node *ForeignKeyConstraintTableDef) LogCurrentNode(depth int) *SQLRightIR 
 	}
 
 	infix := "FOREIGN KEY ("
-	fromCol := node.FromCols.LogCurrentNode(depth + 1)
+	fromCol := node.FromCols.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	rootIR = &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -3760,7 +3760,7 @@ func (node *ForeignKeyConstraintTableDef) LogCurrentNode(depth int) *SQLRightIR 
 
 	if len(node.ToCols) > 0 {
 		infix = " ("
-		toColNode := node.ToCols.LogCurrentNode(depth + 1)
+		toColNode := node.ToCols.LogCurrentNodeWithType(depth+1, DataColumnName)
 		suffix := ")"
 
 		rootIR = &SQLRightIR{
@@ -4227,7 +4227,7 @@ func (node *PartitionBy) LogCurrentNodeListOrRange(depth int) *SQLRightIR {
 		prefix = `RANGE (`
 	}
 
-	pLNode := node.Fields.LogCurrentNode(depth + 1)
+	pLNode := node.Fields.LogCurrentNodeWithType(depth+1, DataColumnName)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -6243,7 +6243,7 @@ func (node *CreateStats) LogCurrentNode(depth int) *SQLRightIR {
 	var columnNameNode *SQLRightIR
 	if len(node.ColumnNames) > 0 {
 		infix = " ON "
-		columnNameNode = node.ColumnNames.LogCurrentNode(depth + 1)
+		columnNameNode = node.ColumnNames.LogCurrentNodeWithType(depth+1, DataColumnName)
 	}
 
 	rootIR := &SQLRightIR{

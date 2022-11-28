@@ -1408,7 +1408,7 @@ func (node *AlterTableResetStorageParams) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *AlterTableResetStorageParams) LogCurrentNode(depth int) *SQLRightIR {
 
-	LNode := node.Params.LogCurrentNode(depth + 1)
+	LNode := node.Params.LogCurrentNodeWithType(depth+1, DataStorageParams)
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeAlterTableResetStorageParams,

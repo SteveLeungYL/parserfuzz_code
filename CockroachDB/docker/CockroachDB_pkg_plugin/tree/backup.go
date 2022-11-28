@@ -1435,7 +1435,7 @@ func (node *BackupTargetList) LogCurrentNode(depth int) *SQLRightIR {
 	if node.Databases != nil {
 
 		prefix := "DATABASE "
-		databaseNode := node.Databases.LogCurrentNode(depth + 1)
+		databaseNode := node.Databases.LogCurrentNodeWithType(depth+1, DataDatabaseName)
 
 		rootIR := &SQLRightIR{
 			IRType:   TypeBackupTargetList,

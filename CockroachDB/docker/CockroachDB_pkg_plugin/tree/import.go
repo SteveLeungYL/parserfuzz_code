@@ -131,7 +131,7 @@ func (node *Import) LogCurrentNode(depth int) *SQLRightIR {
 			var colNode *SQLRightIR
 			if node.IntoCols != nil {
 				infix = "("
-				colNode = node.IntoCols.LogCurrentNode(depth + 1)
+				colNode = node.IntoCols.LogCurrentNodeWithType(depth+1, DataColumnName)
 				suffix = ")"
 			} else {
 				infix = " "

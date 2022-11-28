@@ -247,7 +247,7 @@ func (node *ScrubOptionIndex) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.IndexNames != nil {
 		prefix += "("
-		indexNameNode := node.IndexNames.LogCurrentNode(depth + 1)
+		indexNameNode := node.IndexNames.LogCurrentNodeWithType(depth+1, DataIndexName)
 		infix := ")"
 
 		rootIR := &SQLRightIR{

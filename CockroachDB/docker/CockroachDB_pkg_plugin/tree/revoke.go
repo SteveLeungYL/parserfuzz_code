@@ -129,7 +129,7 @@ func (node *RevokeRole) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += "ADMIN OPTION FOR "
 	}
 
-	roleNode := node.Roles.LogCurrentNode(depth + 1)
+	roleNode := node.Roles.LogCurrentNodeWithType(depth+1, DataRoleName)
 
 	infix := " FROM "
 

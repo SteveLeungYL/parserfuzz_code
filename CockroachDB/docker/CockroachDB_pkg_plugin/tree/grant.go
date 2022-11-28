@@ -101,7 +101,7 @@ func (node *GrantTargetList) LogCurrentNode(depth int) *SQLRightIR {
 
 	if node.Databases != nil {
 		prefix := "DATABASE "
-		databaseNode := node.Databases.LogCurrentNode(depth + 1)
+		databaseNode := node.Databases.LogCurrentNodeWithType(depth+1, DataDatabaseName)
 
 		rootIR := &SQLRightIR{
 			IRType:   TypeGrantTargetList,
@@ -411,7 +411,7 @@ func (node *GrantRole) LogCurrentNode(depth int) *SQLRightIR {
 
 	prefix := "GRANT "
 
-	roleNode := node.Roles.LogCurrentNode(depth + 1)
+	roleNode := node.Roles.LogCurrentNodeWithType(depth+1, DataRoleName)
 
 	infix := " TO "
 
