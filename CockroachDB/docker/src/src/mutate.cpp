@@ -3952,6 +3952,11 @@ void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
     }
 
     ir_to_deep_drop.push_back(ir_to_fix);
+      p_oracle->ir_wrapper.iter_cur_node_with_handler(
+              ir_to_fix, [](IR *cur_node) -> void {
+                  cur_node->set_is_instantiated(true);
+                  cur_node->set_data_flag(ContextNoModi);
+              });
   }
 
   return;
@@ -6132,6 +6137,13 @@ void Mutator::rollback_instan_lib_changes() {
             remove_map(m_table2partition, cur_create_table);
         }
     }
+
+    // Remove all alias related
+    this->v_table_alias_names_single.clear();
+    this->v_column_alias_names_single.clear();
+    this->m_alias2table_single.clear();
+    this->m_alias2column_single.clear();
+    this->m_alias_table2column_single.clear();
 
     this->v_create_table_names_single.clear();
     this->v_create_view_names_single.clear();
