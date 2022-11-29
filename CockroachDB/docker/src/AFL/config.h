@@ -301,8 +301,8 @@
 /* Fork server init timeout multiplier: we'll wait the user-selected
    timeout plus this much for the fork server to spin up. */
 
-// 1 second.
-#define FORK_WAIT_MULT 1000
+// 10 second.
+#define FORK_WAIT_MULT 10000
 
 /* Calibration timeout adjustments, to be a bit more generous when resuming
    fuzzing sessions or trying to calibrate already-added internal finds.
