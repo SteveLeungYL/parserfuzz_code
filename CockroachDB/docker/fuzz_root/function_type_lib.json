@@ -711,10 +711,12 @@
     "params": [
       {
         "arg_type_0": "AFFIBYTES",
+        "arg_type_1": "AFFIBYTES",
         "ret_type": "AFFIBYTES"
       },
       {
         "arg_type_0": "AFFISTRING",
+        "arg_type_1": "AFFISTRING",
         "ret_type": "AFFISTRING"
       }
     ]
@@ -6101,6 +6103,7 @@
     "func_type": "FUNCTIMETZ",
     "params": [
       {
+        "arg_type_0": "AFFIINT",
         "ret_type": "AFFIOID"
       }
     ] 
