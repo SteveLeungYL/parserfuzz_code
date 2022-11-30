@@ -411,6 +411,8 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
             findStringIn(in_str, "pq: ambiguous call") ||
             findStringIn(in_str, "pq: unsupported binary operator") ||
             findStringIn(in_str, "invalid cast") ||
+            findStringIn(in_str, "Error: relation") ||
+            findStringIn(in_str, "ERROR: relation") ||
             (
                     findStringIn(in_str, "could not parse") &&
                     findStringIn(in_str, "as type")
@@ -434,6 +436,7 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
         return SemanticErrorType::SyntaxRelatedError;
     } else if (
             findStringIn(in_str, "Error") ||
+            findStringIn(in_str, "ERROR") ||
             findStringIn(in_str, "pq: ")
             ) {
 //          cerr << "\n\n\nOther types error message: " << in_str << "\n\n\n";
