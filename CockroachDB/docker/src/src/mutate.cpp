@@ -2320,7 +2320,7 @@ void Mutator::instan_index_name(IR *ir_to_fix, bool is_debug_info) {
   return;
 }
 
-void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
+void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_replace_column,
                                  vector<IR *> &ir_to_deep_drop,
                                  bool is_debug_info) {
 
@@ -2541,9 +2541,18 @@ void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
     if (closest_table_name == "" || closest_table_name == "x" ||
         closest_table_name == "y") {
       if (is_debug_info) {
-        cerr << "Dependency Error: Cannot find the closest_table_name from "
+        cerr << "Error: Cannot find the closest_table_name from "
                 "the query. Error cloest_table_name is: "
-             << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+             << closest_table_name << ". In kDataColumnName, kUse of TypeNameList. \n\n\n";
+//        cerr << "Choose to use the literal in this scenario now. \n\n\n";
+//
+//        ir_to_fix->set_is_instantiated(false);
+//        ir_to_fix->set_ir_type(TypeStringLiteral);
+//        ir_to_fix->set_data_type(DataLiteral);
+//        ir_to_fix->set_data_flag(ContextUse);
+//
+//        this->instan_literal(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
+
         return;
       }
     }
@@ -2680,10 +2689,19 @@ void Mutator::instan_column_name(IR *ir_to_fix, bool &is_replace_column,
     if (closest_table_name == "" || closest_table_name == "x" ||
         closest_table_name == "y") {
       if (is_debug_info) {
-        cerr << "Dependency Error: Cannot find the closest_table_name from "
-                "the query. Error closest_table_name is: "
+        cerr << "Dependency : Cannot find the closest_table_name from "
+                "the query. closest_table_name is: "
              << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
-        ir_to_fix->set_str_val("x");
+
+        cerr << "Choose to use the literal in this scenario now. \n\n\n";
+
+        ir_to_fix->set_is_instantiated(false);
+        ir_to_fix->set_ir_type(TypeStringLiteral);
+        ir_to_fix->set_data_type(DataLiteral);
+        ir_to_fix->set_data_flag(ContextUse);
+
+        this->instan_literal(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
+
         return;
       }
       bool is_found = false;
@@ -3588,12 +3606,20 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
       string tmp_new_literal =
           vector_rand_ele(m_datatype2literals[ir_to_fix->get_data_affinity()]);
       ir_to_fix->set_str_val(tmp_new_literal);
+      if (is_debug_info) {
+          cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
+               << ir_to_fix->to_string() << "\n\n\n";
+      }
     } else {
       // Now we ensure the ir_to_fix has an affinity.
       // Mutate the literal with the affinity
       ir_to_fix->mutate_literal(); // Handles everything.
       m_datatype2literals[ir_to_fix->get_data_affinity()].push_back(
           ir_to_fix->get_str_val());
+      if (is_debug_info) {
+          cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
+               << ir_to_fix->to_string() << "\n\n\n";
+      }
     }
   }
 
@@ -3941,7 +3967,7 @@ void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
       chosen_affi = this->get_nearby_data_affinity(ir_to_fix, is_debug_info);
     }
 
-    IR *new_func_node = constr_rand_func_with_affinity(chosen_affi);
+    IR *new_func_node = constr_rand_func_with_affinity(chosen_affi, is_debug_info);
 
     parent_node->swap_node(ir_to_fix, new_func_node);
 
@@ -4198,14 +4224,14 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
           (ir_to_fix->data_flag_ == ContextDefine ||
            ir_to_fix->data_flag_ == ContextReplaceDefine)) {
 
-        this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop,
+        this->instan_column_name(ir_to_fix, cur_stmt_root, is_replace_column, ir_to_deep_drop,
                                  is_debug_info);
 
         /* ContextUndefine scenario of the DataColumnName */
       } else if (ir_to_fix->data_type_ == DataColumnName &&
                  ir_to_fix->data_flag_ == ContextUndefine) {
 
-        this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop,
+        this->instan_column_name(ir_to_fix, cur_stmt_root, is_replace_column, ir_to_deep_drop,
                                  is_debug_info);
       }
     } // for (IR* ir_to_fix : ir_to_fix_vec)
@@ -4258,7 +4284,7 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
       if (ir_to_fix->data_type_ == DataColumnName &&
           ir_to_fix->data_flag_ == ContextUse &&
           p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList)) {
-        this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop,
+        this->instan_column_name(ir_to_fix, cur_stmt_root, is_replace_column, ir_to_deep_drop,
                                  is_debug_info);
       }
     }
@@ -4271,7 +4297,7 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
 
       if (ir_to_fix->data_type_ == DataColumnName &&
           ir_to_fix->data_flag_ == ContextUse) {
-        this->instan_column_name(ir_to_fix, is_replace_column, ir_to_deep_drop,
+        this->instan_column_name(ir_to_fix, cur_stmt_root, is_replace_column, ir_to_deep_drop,
                                  is_debug_info);
       }
     }
@@ -5264,17 +5290,32 @@ IR *Mutator::constr_rand_storage_param(int param_num) {
   return ret_ir;
 }
 
-IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
+IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi, bool is_debug_info) {
 
   string cur_func_name = "";
   string func_name_ret_str = "";
   string arg_names_ret_str = "";
   if (in_affi == AFFIANY || in_affi == AFFIUNKNOWN) {
     cur_func_name = vector_rand_ele(this->all_saved_func_name);
+      if (is_debug_info) {
+          cerr << "\n\n\nDependency: Fixing functions with "
+               << get_string_by_affinity_type(in_affi) << "\nGetting func name: " << cur_func_name
+               << "\n\n\n";
+      }
   } else if (this->func_type_lib.count(in_affi) > 0) {
     cur_func_name = vector_rand_ele(func_type_lib[in_affi]);
+      if (is_debug_info) {
+          cerr << "\n\n\nDependency: Fixing functions with "
+               << get_string_by_affinity_type(in_affi) << "\nGetting func name: " << cur_func_name
+               << "\n\n\n";
+      }
   } else {
     cur_func_name = vector_rand_ele(this->all_saved_func_name);
+      if (is_debug_info) {
+          cerr << "\n\n\nError: Cannot find affinity type in_affi, "
+               << get_string_by_affinity_type(in_affi) << "\nGetting func name: " << cur_func_name
+               << "\n\n\n";
+      }
   }
 
   func_name_ret_str = cur_func_name;
@@ -5296,20 +5337,42 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi) {
       arg_names_ret_str += ", ";
     }
 
-    if (this->m_datatype2column.count(cur_arg_affi.get_data_affinity()) &&
-        get_rand_int(3)) {
-      // Use the data column that match the affinity.
-      string cur_col_str = vector_rand_ele(
-          this->m_datatype2column[cur_arg_affi.get_data_affinity()]);
-      arg_names_ret_str += cur_col_str;
-    } else {
+    string cur_col_str;
+    if (this->m_datatype2column.count(cur_arg_affi.get_data_affinity())) {
+        // Use the data column that match the affinity.
+        cur_col_str = vector_rand_ele(
+                this->m_datatype2column[cur_arg_affi.get_data_affinity()]);
+    }
+
+    bool is_col_used_ok = false;
+    for (string used_table_name : v_table_names_single) {
+        vector<string> cur_col_vec = m_table2columns[used_table_name];
+        if(find_vector(cur_col_vec, cur_col_str)) {
+            is_col_used_ok = true;
+            break;
+        }
+    }
+
+    // Check whether the referenced column name has been used in this table before or not.
+//    if (find_vector(v_column_names_single, cur_col_str) && get_rand_int(3)) {
+//        arg_names_ret_str += cur_col_str;
+//    }
+    if (is_col_used_ok && get_rand_int(3)) {
+        arg_names_ret_str += cur_col_str;
+        if (is_debug_info) {
+            cerr << "\n\n\nDependency: Getting good to use cur_col_str: " << cur_col_str << "\n\n\n";
+        }
+    }
+    else {
       // Use literal that match the affinity type.
       string cur_arg_str = cur_arg_affi.get_mutated_literal();
       arg_names_ret_str += cur_arg_str;
+      if (is_debug_info) {
+          cerr << "\n\n\nDependency: cur_col_str is not referenced before, do not use column names, "
+                  "use literal instead: " << cur_arg_str << "\n\n\n";
+      }
     }
   }
-
-//  arg_names_ret_str += ") ";
 
   IR *ret_IR = new IR(TypeIdentifier, func_name_ret_str, DataFunctionName, ContextUse);
   ret_IR->set_is_instantiated(true);

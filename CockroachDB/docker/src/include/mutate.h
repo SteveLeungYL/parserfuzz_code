@@ -49,7 +49,7 @@ public:
 
   IR* constr_rand_set_stmt();
   IR* constr_rand_storage_param(int param_num = 3);
-  IR* constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi);
+  IR* constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi, bool is_debug_info = false);
 
   vector<IR *> mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
                           u64 &total_mutate_failed, u64 &total_mutate_num);
@@ -183,7 +183,7 @@ public:
   void instan_view_name(IR* ir_to_fix, bool is_debug_info);
   void instan_partition_name(IR* ir_to_fix, bool is_debug_info);
   void instan_index_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_column_name(IR* ir_to_fix, bool& is_replace_column, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
+  void instan_column_name(IR* ir_to_fix, IR* cur_stmt_root, bool& is_replace_column, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
   void instan_column_alias_name(IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
   void instan_sql_type_name(IR* ir_to_fix, bool is_debug_info);
   void instan_foreign_table_name(IR* ir_to_fix, bool is_debug_info);
