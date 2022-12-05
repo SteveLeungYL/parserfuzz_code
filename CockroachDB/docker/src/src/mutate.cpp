@@ -6098,9 +6098,32 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
         vector<IR*> v_matched_node = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, err_str_literal, false, true);
 
+        vector<IR*> ir_to_deep_drop;
+
         for (IR* cur_matched_node : v_matched_node) {
-            cur_matched_node->set_data_affinity(corr_affi);
-            cur_matched_node->mutate_literal(corr_affi);
+
+            bool is_skip = false;
+            for (auto cur_rov : ir_to_deep_drop) {
+                if (p_oracle->ir_wrapper.is_ir_in( cur_matched_node, cur_rov )) {
+                    is_skip = true;
+                }
+            }
+            if (is_skip) {
+                continue;
+            }
+
+            IR* new_literal = new IR(TypeStringLiteral, OP0(), NULL, NULL);
+            new_literal->set_is_instantiated(true);
+            new_literal->set_data_affinity(corr_affi);
+            new_literal->mutate_literal(corr_affi);
+
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    cur_matched_node, [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+            cur_stmt_root->swap_node(cur_matched_node, new_literal);
+            ir_to_deep_drop.push_back(cur_matched_node);
         }
 
         if (is_debug_info) {
