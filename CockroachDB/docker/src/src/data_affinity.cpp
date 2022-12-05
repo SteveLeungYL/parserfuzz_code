@@ -436,7 +436,7 @@ string DataAffinity::mutate_affi_byte() {
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_jsonb() {
+string DataAffinity::mutate_affi_jsonb(bool is_cast) {
   // May not be able to control the content inside the JSON.
   int jsonDepth = 1;
   string ret_str = generateRandomJson(1).dump();
@@ -451,6 +451,10 @@ string DataAffinity::mutate_affi_jsonb() {
   ret_str = tmp_escape_str;
 
   ret_str = "'" + ret_str + "'";
+
+  if(is_cast) {
+      ret_str += "::JSONB";
+  }
   return ret_str;
 };
 

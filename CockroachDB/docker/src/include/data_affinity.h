@@ -65,7 +65,7 @@ private:
     string mutate_affi_onoffauto();
     string mutate_affi_bit();
     string mutate_affi_byte();
-    string mutate_affi_jsonb();
+    string mutate_affi_jsonb(bool is_cast = true);
     string mutate_affi_interval(bool is_cast = true);
     string mutate_affi_intervaltz(bool is_cast = true);
     string mutate_affi_date(bool is_cast = true);
