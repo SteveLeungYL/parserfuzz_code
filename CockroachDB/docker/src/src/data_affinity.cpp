@@ -454,7 +454,7 @@ string DataAffinity::mutate_affi_jsonb() {
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_interval() {
+string DataAffinity::mutate_affi_interval(bool is_cast) {
 
   string ret_str = "";
 
@@ -587,26 +587,33 @@ string DataAffinity::mutate_affi_interval() {
 interval_early_break:
   ret_str = "'" + ret_str + "'";
 
+  if (is_cast) {
+      ret_str += ret_str + "::INTERVAL";
+  }
+
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_intervaltz() {
+string DataAffinity::mutate_affi_intervaltz(bool is_cast) {
   string ret_str = "";
 
   // get timestamp prefix.
-  ret_str = mutate_affi_interval();
-  ret_str = ret_str.substr(1, ret_str.size() - 2); // Remove the `'` symbol.
+  ret_str = mutate_affi_interval(false);
+  ret_str = ret_str.substr(1, ret_str.size() - 2); // Remove the `'::INTERVAL` symbol.
 
   ret_str += add_random_time_zone();
 
   ret_str = "'" + ret_str + "'";
+  if (is_cast) {
+      ret_str += "::INTERVAL";
+  }
   return ret_str;
 }
 
-string DataAffinity::mutate_affi_date() {
+string DataAffinity::mutate_affi_date(bool is_cast) {
 
   int format = get_rand_int(10);
-  int abbr_year = get_rand_int(2);
+//  int abbr_year = get_rand_int(2);
   string ret_str = "";
 
   int month = get_rand_int(12) + 1;
@@ -665,15 +672,19 @@ string DataAffinity::mutate_affi_date() {
     ret_str = "'" + ret_str + " BC'";
   }
 
+  if (is_cast) {
+      ret_str += "::DATE";
+  }
+
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_timestamp() {
+string DataAffinity::mutate_affi_timestamp(bool is_cast) {
 
   string ret_str = "";
 
   // The date prefix is always necessary.
-  ret_str = mutate_affi_date();
+  ret_str = mutate_affi_date(false);
   ret_str = ret_str.substr(1, ret_str.size() - 2); // Remove the `'` symbol.
   ret_str += " ";                                  // Added whitespace.
 
@@ -683,6 +694,11 @@ string DataAffinity::mutate_affi_timestamp() {
   ret_str += tmp_affi_time;
 
   ret_str = "'" + ret_str + "'";
+
+  if (is_cast) {
+      ret_str += "::TIMESTAMP";
+  }
+
   return ret_str;
 };
 
@@ -697,20 +713,25 @@ string DataAffinity::add_random_time_zone() {
   return ret_str;
 }
 
-string DataAffinity::mutate_affi_timestamptz() {
+string DataAffinity::mutate_affi_timestamptz(bool is_cast) {
   string ret_str = "";
 
   // get timestamp prefix.
-  ret_str = mutate_affi_timestamp();
+  ret_str = mutate_affi_timestamp(false);
   ret_str = ret_str.substr(1, ret_str.size() - 2); // Remove the `'` symbol.
 
   ret_str += add_random_time_zone();
 
   ret_str = "'" + ret_str + "'";
+
+  if (is_cast) {
+      ret_str += "::TIMESTAMPTZ";
+  }
+
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_uuid() {
+string DataAffinity::mutate_affi_uuid(bool is_cast) {
 
   int format = get_rand_int(2);
   string ret_str = "";
@@ -733,6 +754,10 @@ string DataAffinity::mutate_affi_uuid() {
       ret_str += get_rand_hex_num();
     }
     ret_str = "b'" + ret_str + "'";
+  }
+
+  if (is_cast) {
+      ret_str += "::UUID";
   }
 
   //    cerr << "\n\n\nmutate uuid: " << ret_str << "\n\n\n";
@@ -760,7 +785,7 @@ string DataAffinity::mutate_affi_enum() {
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_inet() {
+string DataAffinity::mutate_affi_inet(bool is_cast) {
 
   string ret_str = "";
   int format = get_rand_int(3);
@@ -807,10 +832,15 @@ string DataAffinity::mutate_affi_inet() {
     }
   }
   ret_str = "'" + ret_str + "'";
+
+  if (is_cast) {
+      ret_str += "::INET";
+  }
+
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_time() {
+string DataAffinity::mutate_affi_time(bool is_cast) {
 
   string ret_str = "";
 
@@ -856,17 +886,27 @@ string DataAffinity::mutate_affi_time() {
   }
 
   ret_str = "'" + ret_str + "'";
+
+  if (is_cast) {
+      ret_str += "::TIME";
+  }
+
   return ret_str;
 };
 
-string DataAffinity::mutate_affi_timetz() {
+string DataAffinity::mutate_affi_timetz(bool is_cast) {
 
-  string ret_str = this->mutate_affi_time();
+  string ret_str = this->mutate_affi_time(false);
   ret_str = ret_str.substr(1, ret_str.size() - 2); // Remove the `'` symbol.
 
   ret_str += this->add_random_time_zone();
 
   ret_str = "'" + ret_str + "'";
+
+  if (is_cast) {
+      ret_str += "::TIME";
+  }
+
   return ret_str;
 };
 
@@ -918,35 +958,35 @@ string DataAffinity::mutate_affi_string() {
 //    break;
   case 4:
     // affinity interval type
-    ret_str = this->mutate_affi_interval();
+    ret_str = this->mutate_affi_interval(false);
     break;
   case 5:
     // affinity date type
-    ret_str = this->mutate_affi_date();
+    ret_str = this->mutate_affi_date(false);
     break;
   case 6:
     // affinity timestamp type
-    ret_str = this->mutate_affi_timestamp();
+    ret_str = this->mutate_affi_timestamp(false);
     break;
   case 7:
     // affinity timestamptz type
-    ret_str = this->mutate_affi_timestamptz();
+    ret_str = this->mutate_affi_timestamptz(false);
     break;
   case 8:
     // affinity uuid type
-    ret_str = this->mutate_affi_uuid();
+    ret_str = this->mutate_affi_uuid(false);
     break;
   case 9:
     // affinity inet type
-    ret_str = this->mutate_affi_inet();
+    ret_str = this->mutate_affi_inet(false);
     break;
   case 10:
     // affinity time type
-    ret_str = this->mutate_affi_time();
+    ret_str = this->mutate_affi_time(false);
     break;
   case 11:
     // affinity timetz type
-    ret_str = this->mutate_affi_timetz();
+    ret_str = this->mutate_affi_timetz(false);
     break;
     //        case 13:
     //            // Use Affinity Array type;

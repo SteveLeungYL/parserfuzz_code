@@ -66,16 +66,16 @@ private:
     string mutate_affi_bit();
     string mutate_affi_byte();
     string mutate_affi_jsonb();
-    string mutate_affi_interval();
-    string mutate_affi_intervaltz();
-    string mutate_affi_date();
-    string mutate_affi_timestamp();
-    string mutate_affi_timestamptz();
-    string mutate_affi_uuid();
+    string mutate_affi_interval(bool is_cast = true);
+    string mutate_affi_intervaltz(bool is_cast = true);
+    string mutate_affi_date(bool is_cast = true);
+    string mutate_affi_timestamp(bool is_cast = true);
+    string mutate_affi_timestamptz(bool is_cast = true);
+    string mutate_affi_time(bool is_cast = true);
+    string mutate_affi_timetz(bool is_cast = true);
+    string mutate_affi_uuid(bool is_cast = true);
     string mutate_affi_enum();
-    string mutate_affi_inet();
-    string mutate_affi_time();
-    string mutate_affi_timetz();
+    string mutate_affi_inet(bool is_cast = true);
     string mutate_affi_string();
 
     // Spatial types
