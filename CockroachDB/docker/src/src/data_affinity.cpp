@@ -588,7 +588,7 @@ interval_early_break:
   ret_str = "'" + ret_str + "'";
 
   if (is_cast) {
-      ret_str += ret_str + "::INTERVAL";
+      ret_str += "::INTERVAL";
   }
 
   return ret_str;
@@ -689,7 +689,7 @@ string DataAffinity::mutate_affi_timestamp(bool is_cast) {
   ret_str += " ";                                  // Added whitespace.
 
   // Format 05:40:00
-  string tmp_affi_time = this->mutate_affi_time();
+  string tmp_affi_time = this->mutate_affi_time(false);
   tmp_affi_time = tmp_affi_time.substr(1, tmp_affi_time.size() - 2);
   ret_str += tmp_affi_time;
 
