@@ -6183,13 +6183,16 @@ static u8 fuzz_one(char **argv) {
                   if (v_new_parsed.size() == 0) {
                       // fallback to the string before instantiation.
                       g_mutator.rollback_instan_lib_changes();
-                      v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
-                  }
-                  if (v_new_parsed.size() == 0) {
+                      // v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
                       cur_trans_stmt = NULL;
                       ori_trans_stmt->deep_drop();
                       break;
                   }
+//                  if (v_new_parsed.size() == 0) {
+//                      cur_trans_stmt = NULL;
+//                      ori_trans_stmt->deep_drop();
+//                      break;
+//                  }
                   IR* new_parsed_root = v_new_parsed.back();
                   cur_trans_stmt = new_parsed_root->get_left()->get_left()->get_left()->deep_copy();
                   cur_trans_stmt->parent_ = NULL;
