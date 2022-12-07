@@ -817,14 +817,14 @@ string DataAffinity::mutate_affi_inet(bool is_cast) {
       ret_str = "127.0.0.1/26257"; // localhost to CockroachDB/PostgreSQL port.
       break;
     }
-  } else if (format == 1) {
-    // Random IPV4 address.
-    for (int i = 0; i < 4; i++) {
-      if (i > 0) {
-        ret_str += ".";
-      }
-      ret_str += to_string(get_rand_int(256));
-    }
+//  } else if (format == 1) {
+//    // Random IPV4 address.
+//    for (int i = 0; i < 4; i++) {
+//      if (i > 0) {
+//        ret_str += ".";
+//      }
+//      ret_str += to_string(get_rand_int(256));
+//    }
   } else {
     // Random ipv 6 address.
     // Example: 2001:db88:3333:4444:5555:6666:7777:8888
