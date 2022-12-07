@@ -908,7 +908,7 @@ string DataAffinity::mutate_affi_timetz(bool is_cast) {
   ret_str = "'" + ret_str + "'";
 
   if (is_cast) {
-      ret_str += "::TIME";
+      ret_str += "::TIMETZ";
   }
 
   return ret_str;
