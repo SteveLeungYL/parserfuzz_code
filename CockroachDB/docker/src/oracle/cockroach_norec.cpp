@@ -112,6 +112,11 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
         return false;
     }
 
+    if (ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_stmt, TypeRowsFromExpr, false)) {
+        // Do not use statements with ROWS FROM expr. It does not come with column reference.
+        return false;
+    }
+
     vector<IR *> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(
         cur_stmt, TypeIdentifier, false);
 
