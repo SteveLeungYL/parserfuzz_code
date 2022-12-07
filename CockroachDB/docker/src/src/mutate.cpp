@@ -5956,7 +5956,10 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
         for (IR* cur_binary_operator : v_binary_operator) {
-            if (cur_binary_operator->get_middle() != (" " + str_operator + " ")) {
+            string cur_binary_str = cur_binary_operator->get_middle();
+            trim_string(cur_binary_str);
+            trim_string(str_operator);
+            if (cur_binary_str == str_operator) {
                 continue;
             }
             cur_binary_operator->op_->middle_ = " = ";
