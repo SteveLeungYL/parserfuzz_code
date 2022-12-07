@@ -6182,6 +6182,7 @@ static u8 fuzz_one(char **argv) {
                   vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_trans_str);
                   if (v_new_parsed.size() == 0) {
                       // fallback to the string before instantiation.
+                      g_mutator.rollback_instan_lib_changes();
                       v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
                   }
                   if (v_new_parsed.size() == 0) {
