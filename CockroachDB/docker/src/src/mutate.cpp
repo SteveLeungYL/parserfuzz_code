@@ -2516,7 +2516,8 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
   else if (ir_to_fix->data_type_ == DataColumnName &&
            ir_to_fix->data_flag_ == ContextUse &&
            p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList) &&
-           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeFamilyTableDef) // Not inside the FAMILY.
+           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeFamilyTableDef) && // Not inside the FAMILY.
+           !p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeUpdateExpr)
           ) {
 
     //        if (!(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeNameList))) {
