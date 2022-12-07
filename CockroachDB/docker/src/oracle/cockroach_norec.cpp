@@ -97,7 +97,7 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
       return false;
     }
 
-    vector<IR*> v_alias_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExpr);
+    vector<IR*> v_alias_clause = ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt, TypeSelectExpr, false);
     for (auto alias_clause : v_alias_clause) {
         if (alias_clause->get_middle() == " AS ") {
 //            IR* alias_expr = alias_clause->get_right();
@@ -106,6 +106,10 @@ bool SQL_NOREC::is_oracle_select_stmt(IR *cur_stmt) {
 //            alias_clause->op_->middle_ = "";
               return false;
         }
+    }
+    if (v_alias_clause.size() != 1) {
+        // Only looking for SELECT with one select expression, that is `COUNT(*)`.
+        return false;
     }
 
     vector<IR *> count_func_vec = ir_wrapper.get_ir_node_in_stmt_with_type(
