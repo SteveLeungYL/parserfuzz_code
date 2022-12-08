@@ -3890,10 +3890,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
                                 const ALL_COMP_RES& all_comp_res, 
                                 const vector<int> &explain_diff_id = {}) {
 
-  if (is_str_empty(query_str)) {
-      return 0;
-  }
-
   u8 *fn = "";
   u8 hnb;
   s32 fd;
@@ -6214,6 +6210,8 @@ static u8 fuzz_one(char **argv) {
                   string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str;
 //                  restart_cockroachdb(argv);
                   // If an crash is encountered, save the output to the crash log.
+                  all_comp_res.cmd_str = tmp_whole_query_sequence;
+                  all_comp_res.v_cmd_str.push_back(tmp_whole_query_sequence);
                   save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
               }
 
