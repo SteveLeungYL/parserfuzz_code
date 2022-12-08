@@ -1,0 +1,183 @@
+//
+// Created by Yu Liang on 12/8/22.
+//
+#include "../include/ast.h"
+#include "../include/define.h"
+#include "../include/mutate.h"
+#include "../include/utils.h"
+#include "../oracle/cockroach_opt.h"
+#include "../oracle/cockroach_oracle.h"
+
+#include <fstream>
+#include <iostream>
+#include <ostream>
+#include <string>
+#include <utility>
+
+using namespace std;
+
+enum {
+    /* 00 */ FAULT_NONE,
+    /* 01 */ FAULT_TMOUT,
+    /* 02 */ FAULT_CRASH,
+    /* 03 */ FAULT_ERROR,
+    /* 04 */ FAULT_NOINST,
+    /* 05 */ FAULT_NOBITS
+};
+
+Mutator g_mutator;
+SQL_ORACLE *p_oracle;
+
+bool iden_common_error(IR* cur_stmt) {
+    vector<IR*> all_nodes = p_oracle->ir_wrapper.get_all_ir_node(cur_stmt);
+    for (IR* cur_node: all_nodes) {
+        string cur_node_str = cur_node->to_string();
+        trim_string(cur_node_str);
+        if (cur_node_str == "x" || cur_node_str == "y") {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_vec, bool is_debug) {
+
+    IR* cur_trans_stmt;
+    string whole_query_sequence = "";
+    const int max_trial = 3;
+    int total_instan_num = 0;
+    vector<IR*> tmp_all_pre_trans_vec;
+
+    for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
+        cur_trans_stmt = all_pre_trans_vec[stmt_idx];
+        // Move the reset_data_library_single_stmt out in the outer loop.
+        // So that rescanning the instantiation process using the
+        // error hints can reuse the table data.
+
+        string ori_stmt_before_instan = cur_trans_stmt->to_string();
+
+        g_mutator.reset_data_library_single_stmt();
+
+        // Avoid modifying the required nodes for the oracle.
+        p_oracle->mark_all_valid_node(cur_trans_stmt);
+        g_mutator.validate(cur_trans_stmt);
+
+        int ret_res = FAULT_NONE;
+        int trial = 0;
+        do {
+            total_instan_num++;
+            trial++;
+            string cur_stmt_str = cur_trans_stmt->to_string();
+
+            if (p_oracle->is_res_str_error(res_vec[stmt_idx])) {
+                ret_res = FAULT_ERROR;
+
+                if (trial >= max_trial) {
+                    break;
+                }
+
+                IR* ori_trans_stmt = cur_trans_stmt;
+                string cur_trans_str = cur_trans_stmt->to_string();
+                // Statement re-parsed.
+                vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_trans_str);
+                if (v_new_parsed.size() == 0) {
+                    // fallback to the string before instantiation.
+                    g_mutator.rollback_instan_lib_changes();
+                    // v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
+                    cur_trans_stmt = NULL;
+                    ori_trans_stmt->deep_drop();
+                    break;
+                }
+//                  if (v_new_parsed.size() == 0) {
+//                      cur_trans_stmt = NULL;
+//                      ori_trans_stmt->deep_drop();
+//                      break;
+//                  }
+                IR* new_parsed_root = v_new_parsed.back();
+                cur_trans_stmt = new_parsed_root->get_left()->get_left()->get_left()->deep_copy();
+                cur_trans_stmt->parent_ = NULL;
+                new_parsed_root->deep_drop();
+                ori_trans_stmt->deep_drop();
+
+                // Avoid modifying the required nodes for the oracle.
+                p_oracle->mark_all_valid_node(cur_trans_stmt);
+
+                g_mutator.fix_instan_error(cur_trans_stmt, res_vec[stmt_idx], trial, is_debug);
+
+            }
+
+            if (ret_res == FAULT_NONE) {
+                whole_query_sequence += cur_stmt_str;
+            }
+        } while (ret_res != FAULT_NONE && trial < max_trial);
+
+        if (cur_trans_stmt != NULL) {
+            tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
+        }
+    }
+
+    all_pre_trans_vec = tmp_all_pre_trans_vec;
+
+    return true;
+
+}
+
+bool unit_test_failure_create(bool is_show_debug = false) {
+    // Succeed with return true,
+    // Failed with return false.
+
+    vector<string> stmt_list {
+            "create table v0 (v1 int, v2 string, family (v1, v1));",
+            "select * from v0 where v1 = 0;"
+    };
+
+    vector<string> res_list {
+            "ERROR: relation \"v0\" (112): column 1 is in both family 0 and 0",
+            ""
+    };
+
+    vector<IR*> ir_list;
+    for (string& cur_stmt: stmt_list) {
+        IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+        ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+        cur_root->deep_drop();
+    }
+
+    dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+    bool is_no_error;
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+        }
+        is_no_error = iden_common_error(cur_stmt);
+        if (!is_no_error) {
+            break;
+        }
+    }
+
+    return is_no_error;
+
+}
+
+
+
+int main(int argc, char *argv[]) {
+
+    if (argc != 1) {
+        cout << "./unit_test_dyn_fix" << endl;
+        return -1;
+    }
+
+    g_mutator.init("");
+    g_mutator.init_data_library();
+
+    p_oracle = new SQL_OPT();
+
+    g_mutator.set_p_oracle(p_oracle);
+    p_oracle->set_mutator(&g_mutator);
+
+    assert(unit_test_failure_create(false));
+    assert(unit_test_samples(false));
+
+    return 0;
+}

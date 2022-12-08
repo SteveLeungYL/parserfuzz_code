@@ -12,6 +12,7 @@ TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 TMIN_OBJS:= AFL/afl-tmin.o $(COMM_OBJS)
 GEN_OBJS:= AFL/generate_inputs.o $(COMM_OBJS)
 SETTING_OBJS:= AFL/afl-setting-mutator.o $(COMM_OBJS)
+UNITTEST_OBJS:= AFL/dyn-fix-unit-test.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -23,7 +24,7 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl
 
 
-all: afl-fuzz test-parser generate_inputs afl-tmin afl-setting-mutator
+all: afl-fuzz test-parser generate_inputs afl-tmin afl-setting-mutator dyn-fix-unit-test
 
 parser:
 	@$(MAKE) -C $@
@@ -45,6 +46,9 @@ generate_inputs: $(SUB_DIRS)
 
 afl-setting-mutator: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(SETTING_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+
+dyn-fix-unit-test: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(UNITTEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 
 debug: DEBUG = -g
 debug: OPT = -O0
