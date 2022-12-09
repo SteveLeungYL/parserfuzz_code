@@ -44,7 +44,7 @@ bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_
 
     IR* cur_trans_stmt;
     string whole_query_sequence = "";
-    const int max_trial = 3;
+    const int max_trial = 100;
     int total_instan_num = 0;
     vector<IR*> tmp_all_pre_trans_vec;
 
@@ -189,9 +189,8 @@ bool unit_test_samples(bool is_show_debug = false) {
             "ERROR: relation \\\"v9\\\" (112): column 1 is in both family 0 and 0",
             "",
             "",
-            "ERROR: column \"c3\" is not a computed column",
-//            "ERROR: column \"x\" does not exist"
-            ""
+            "ERROR: column \"x\" does not exist",
+            "",
     };
 
     vector<IR*> ir_list;
