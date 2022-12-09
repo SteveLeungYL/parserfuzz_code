@@ -81,6 +81,8 @@ bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_
                 // Statement re-parsed.
                 vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_trans_str);
                 if (v_new_parsed.size() == 0) {
+                    cerr << "\n\n\nFATAL ERROR: The fixed stmt cannot pass the parser: \n"
+                         << cur_trans_str << "\n\n\n";
                     // fallback to the string before instantiation.
                     g_mutator.rollback_instan_lib_changes();
                     // v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
@@ -162,7 +164,7 @@ bool unit_test_failure_create(bool is_show_debug = false) {
 
 }
 
-bool unit_test_samples(bool is_show_debug = false) {
+bool unit_test_alter_bugs(bool is_show_debug = false) {
 
     g_mutator.pre_validate();
 
@@ -216,6 +218,104 @@ bool unit_test_samples(bool is_show_debug = false) {
 
 }
 
+
+bool unit_test_alias_0(bool is_show_debug = false) {
+
+    g_mutator.pre_validate();
+
+    // Succeed with return true,
+    // Failed with return false.
+
+    vector<string> stmt_list {
+            "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+            "SELECT TRUNC(69.396928) FROM v0 FULL JOIN v0 AS ta10(x, x, x) USING "
+            "(c1, c3, c4) FULL JOIN v0 AS ta11(x, x, x) USING (c4) FULL JOIN v0 "
+            "AS ta12(x, x, x) USING (c1) WHERE c3 BETWEEN 'hss' AND '10-14-70 04:31:23.2571+1';"
+    };
+
+    vector<string> res_list {
+            "",
+            "ERROR: column \"c1\" specified in USING clause does not exist in right table"
+    };
+
+    vector<IR*> ir_list;
+    for (string& cur_stmt: stmt_list) {
+        IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+        ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+        cur_root->deep_drop();
+    }
+
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+        }
+    }
+
+    dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+    bool is_no_error;
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+        }
+        is_no_error = iden_common_error(cur_stmt);
+        if (!is_no_error) {
+            break;
+        }
+    }
+
+    return is_no_error;
+
+}
+
+
+bool unit_test_with_alias_1(bool is_show_debug = false) {
+
+    g_mutator.pre_validate();
+
+    // Succeed with return true,
+    // Failed with return false.
+
+    vector<string> stmt_list {
+            "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+            "WITH ta0(tc1) AS (SELECT COUNT(*) FROM v0) SELECT * FROM v0;"
+    };
+
+    vector<string> res_list {
+            "",
+            "ERROR: relation \"tc0\" does not exist"
+    };
+
+    vector<IR*> ir_list;
+    for (string& cur_stmt: stmt_list) {
+        IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+        ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+        cur_root->deep_drop();
+    }
+
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+        }
+    }
+
+    dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+    bool is_no_error;
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+        }
+        is_no_error = iden_common_error(cur_stmt);
+        if (!is_no_error) {
+            break;
+        }
+    }
+
+    return is_no_error;
+
+}
+
+
+
 int main(int argc, char *argv[]) {
 
     if (argc != 1) {
@@ -232,7 +332,10 @@ int main(int argc, char *argv[]) {
     p_oracle->set_mutator(&g_mutator);
 
     assert(unit_test_failure_create(false));
-    assert(unit_test_samples(true));
+    assert(unit_test_alter_bugs(false));
+    assert(unit_test_alias_0(false));
+    assert(unit_test_with_alias_1(true));
+
 
     return 0;
 }

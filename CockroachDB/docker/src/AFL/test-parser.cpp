@@ -112,6 +112,7 @@ bool try_validate_query(IR *cur_root) {
   vector<IR *> all_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec();
 
   for (IR *cur_trans_stmt : all_stmt_vec) {
+    mutator.reset_data_library_single_stmt();
     cerr << "\n\n\n\n\n\n\nCur stmt: " << cur_trans_stmt->to_string()
          << "\n\n\n";
     if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
@@ -119,15 +120,15 @@ bool try_validate_query(IR *cur_root) {
     } else {
       cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
     }
-    string tmp_str = cur_trans_stmt->to_string();
-    cur_trans_stmt = mutator.parse_query_str_get_ir_set(tmp_str).back();
-    mutator.reset_data_library_single_stmt();
-    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
-        cerr << "Error: second time g_mutator.validate returns errors. \n\n\n";
-    } else {
-        cout << "Second time Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
-    }
-    mutator.rollback_instan_lib_changes();
+//    string tmp_str = cur_trans_stmt->to_string();
+//    cur_trans_stmt = mutator.parse_query_str_get_ir_set(tmp_str).back();
+//    mutator.reset_data_library_single_stmt();
+//    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
+//        cerr << "Error: second time g_mutator.validate returns errors. \n\n\n";
+//    } else {
+//        cout << "Second time Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
+//    }
+//    mutator.rollback_instan_lib_changes();
   }
 
   // Clean up allocated resource.
