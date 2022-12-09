@@ -1989,7 +1989,7 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root, bool is_
         cerr << "\n\n\n The table alias: " << alias_name
              << " is defined "
                 "inside the FROM clause, so we can safely move the alias into "
-                "the"
+                "the "
                 "v_table_name_single. \n\n\n";
       }
       v_table_names_single.push_back(alias_name);
@@ -2801,6 +2801,10 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 
   if (ir_to_fix->data_type_ == DataColumnAliasName) {
 
+      if (is_debug_info) {
+          cerr << "\n\n\nDebug::Trying to fix the DataColumnAliasName. \n\n\n";
+      }
+
     ir_to_fix->set_is_instantiated(true);
 
     string closest_table_alias_name = "";
@@ -2846,11 +2850,33 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
         }
       } else {
         if (is_debug_info) {
-          cerr << "\n\n\nError: Cannot find the select subquery from the "
+          cerr << "\n\n\nDependency: Cannot find the select subquery from the "
                   "current stmt. "
-                  "skip the current statement fixing. \n\n\n";
+                  "Remove the current column alias clause. \n\n\n";
         }
+
+        IR* alias_clause = p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeAliasClause);
+        if (alias_clause == NULL) {
+            cerr << "\n\n\nFATAL ERROR: Cannot find the TypeAliasClause in the TypeAliasClause instantiation. \n\n\n";
+            return;
+        }
+
+        // Remove the column alias clause, AS `ta0(x, x, x)`, to `AS ta0`.
+        IR* column_alias_clause = alias_clause->get_right();
+        if (column_alias_clause != NULL) {
+            alias_clause->update_right(NULL);
+            p_oracle->ir_wrapper.iter_cur_node_with_handler(
+                    column_alias_clause, [](IR *cur_node) -> void {
+                        cur_node->set_is_instantiated(true);
+                        cur_node->set_data_flag(ContextNoModi);
+                    });
+            ir_to_deep_drop.push_back(column_alias_clause);
+            alias_clause->op_->middle_ = "";
+            alias_clause->op_->suffix_ = "";
+        }
+
         return;
+
       }
 
       // Search whether there are columns defined in the `TypeSelectExprs`.
@@ -2964,8 +2990,16 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
             cur_node->set_is_instantiated(true);
             cur_node->set_data_flag(ContextNoModi);
           });
-      IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
-      alias_clause_ir->update_right(new_column_alias_list);
+      if (ret_str != "") {
+          IR *new_column_alias_list = new IR(TypeColumnDefList, ret_str);
+          alias_clause_ir->update_right(new_column_alias_list);
+      } else {
+          // ret_str == ""
+          // If no column alias observed, remove the empty bracket.
+          alias_clause_ir->update_right(NULL);
+          alias_clause_ir->op_->middle_ = "";
+          alias_clause_ir->op_->suffix_ = "";
+      }
 
       return;
 
