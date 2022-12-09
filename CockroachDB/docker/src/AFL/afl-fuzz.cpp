@@ -6157,7 +6157,7 @@ static u8 fuzz_one(char **argv) {
               trial++;
               string cur_stmt_str = cur_trans_stmt->to_string();
               if (ret_res == FAULT_CRASH) {
-                  cur_stmt_str = whole_query_sequence + cur_stmt_str;
+                  cur_stmt_str = whole_query_sequence + cur_stmt_str + "; \n";
                   // Reset the server after crash.
                   ret_res = run_target(argv, exec_tmout, cur_stmt_str, 1);
               } else {
@@ -6204,10 +6204,10 @@ static u8 fuzz_one(char **argv) {
 
               if (ret_res == FAULT_NONE) {
                   total_instan_succeed_num++;
-                  whole_query_sequence += cur_stmt_str;
+                  whole_query_sequence += cur_stmt_str + "; \n";
               } else if (ret_res == FAULT_CRASH) {
                   ALL_COMP_RES all_comp_res;
-                  string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str;
+                  string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str + "; \n";
 //                  restart_cockroachdb(argv);
                   // If an crash is encountered, save the output to the crash log.
                   all_comp_res.cmd_str = tmp_whole_query_sequence;
