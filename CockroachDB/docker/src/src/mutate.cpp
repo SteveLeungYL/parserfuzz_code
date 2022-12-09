@@ -29,10 +29,10 @@ using namespace std;
 set<IR *>
     Mutator::visited; // Already validated/fixed node. Avoid multiple fixing.
 map<string, vector<string>>
-    Mutator::m_table2columns; // Table name to column name mapping.
+    Mutator::m_table2columns, Mutator::m_table2columns_snapshot; // Table name to column name mapping.
 map<string, vector<string>>
-    Mutator::m_table2index;                    // Table name to index mapping.
-vector<string> Mutator::v_table_names;         // All saved table names
+    Mutator::m_table2index, Mutator::m_table2index_snapshot;                    // Table name to index mapping.
+vector<string> Mutator::v_table_names, Mutator::v_table_names_snapshot;         // All saved table names
 vector<string> Mutator::v_table_names_single;  // All used table names in one
                                                // query statement.
 vector<string> Mutator::v_column_names_single; // All used table names in one
@@ -61,26 +61,26 @@ map<string, string>
 /* A mapping that defines an aliased table name to its resulting column name. */
 map<string, vector<string>> Mutator::m_alias_table2column_single;
 
-map<string, DataAffinity> Mutator::m_column2datatype; // New solution.
+map<string, DataAffinity> Mutator::m_column2datatype, Mutator::m_column2datatype_snapshot; // New solution.
 map<DATAAFFINITYTYPE, vector<string>>
-    Mutator::m_datatype2column; // New solution.
+    Mutator::m_datatype2column, Mutator::m_datatype2column_snapshot; // New solution.
 
-map<DATAAFFINITYTYPE, vector<string>> Mutator::m_datatype2literals;
+map<DATAAFFINITYTYPE, vector<string>> Mutator::m_datatype2literals, Mutator::m_datatype2literals_snapshot;
 
-vector<string> Mutator::v_statistics_name; // All statistic names defined in the
+vector<string> Mutator::v_statistics_name, Mutator::v_statistics_name_snapshot; // All statistic names defined in the
                                            // current stmt.
 
 // Views should share the same handling as Tables
-vector<string> Mutator::v_view_name; // All saved view names.
+vector<string> Mutator::v_view_name, Mutator::v_view_name_snapshot; // All saved view names.
 // The column to view mapping will be saved into the m_table2columns mapping.
 
 vector<string>
-    Mutator::v_sequence_name; // All sequence names defined in the current SQL.
-vector<string> Mutator::v_constraint_name;    // All constraint names defined in
+    Mutator::v_sequence_name, Mutator::v_sequence_name_snapshot; // All sequence names defined in the current SQL.
+vector<string> Mutator::v_constraint_name, Mutator::v_constraint_name_snapshot;    // All constraint names defined in
                                               // the current SQL.
-vector<string> Mutator::v_family_name;        // All family names defined in
+vector<string> Mutator::v_family_name, Mutator::v_family_name_snapshot;        // All family names defined in
                                               // the current SQL.
-vector<string> Mutator::v_foreign_table_name; // All foreign table names defined
+vector<string> Mutator::v_foreign_table_name, Mutator::v_foreign_table_name_snapshot; // All foreign table names defined
                                               // in the current SQL.
 // vector<string>
 //    Mutator::v_create_foreign_table_names_single; // All foreign table names
@@ -90,8 +90,8 @@ vector<string> Mutator::v_foreign_table_name; // All foreign table names defined
 vector<string> Mutator::v_sys_column_name;
 vector<string> Mutator::v_sys_catalogs_name;
 
-vector<string> Mutator::v_table_with_partition;
-map<string, vector<string>> Mutator::m_table2partition;
+vector<string> Mutator::v_table_with_partition, Mutator::v_table_with_partition_snapshot;
+map<string, vector<string>> Mutator::m_table2partition, Mutator::m_table2partition_snapshot;
 
 map<string, DataAffinity> Mutator::set_session_lib;
 vector<string> Mutator::all_saved_set_session;
@@ -99,9 +99,9 @@ vector<string> Mutator::all_saved_set_session;
 map<string, DataAffinity> Mutator::storage_param_lib;
 vector<string> Mutator::all_storage_param;
 
-vector<int> Mutator::v_int_literals;
-vector<double> Mutator::v_float_literals;
-vector<string> Mutator::v_string_literals;
+vector<int> Mutator::v_int_literals, Mutator::v_int_literals_snapshot;
+vector<double> Mutator::v_float_literals, Mutator::v_float_literals_snapshot;
+vector<string> Mutator::v_string_literals, Mutator::v_string_literals_snapshot;
 
 //#define GRAPHLOG
 
@@ -4542,10 +4542,49 @@ void Mutator::reset_data_library_single_stmt() {
   this->m_enforced_table2alias_single.clear();
   this->m_alias2column_single.clear();
   this->m_alias_table2column_single.clear();
+
+  // Clear the snapshot from the previous statement,
+  // and save the new one.
+  this->m_table2columns_snapshot.clear();
+  this->m_table2partition_snapshot.clear();
+  this->v_table_names_snapshot.clear();
+  this->m_table2index_snapshot.clear();
+  this->m_column2datatype_snapshot.clear();
+  this->m_datatype2column_snapshot.clear();
+  this->m_datatype2literals_snapshot.clear();
+  this->v_statistics_name_snapshot.clear();
+  this->v_sequence_name_snapshot.clear();
+  this->v_view_name_snapshot.clear();
+  this->v_constraint_name_snapshot.clear();
+  this->v_family_name_snapshot.clear();
+  this->v_foreign_table_name_snapshot.clear();
+  this->v_table_with_partition_snapshot.clear();
+  this->v_int_literals_snapshot.clear();
+  this->v_float_literals_snapshot.clear();
+  this->v_string_literals_snapshot.clear();
+
+  // Clear the snapshot from the previous statement,
+  // and save the new one.
+  this->m_table2columns_snapshot = m_table2columns;
+  this->m_table2partition_snapshot = m_table2partition;
+  this->v_table_names_snapshot = v_table_names;
+  this->m_table2index_snapshot = m_table2index;
+  this->m_column2datatype_snapshot = m_column2datatype;
+  this->m_datatype2column_snapshot = m_datatype2column;
+  this->m_datatype2literals_snapshot = m_datatype2literals;
+  this->v_statistics_name_snapshot = v_statistics_name;
+  this->v_sequence_name_snapshot = v_sequence_name;
+  this->v_view_name_snapshot = v_view_name;
+  this->v_constraint_name_snapshot = v_constraint_name;
+  this->v_family_name_snapshot = v_family_name;
+  this->v_foreign_table_name_snapshot = v_foreign_table_name;
+  this->v_table_with_partition_snapshot = v_table_with_partition;
+  this->v_int_literals_snapshot = v_int_literals;
+  this->v_float_literals_snapshot = v_float_literals;
+  this->v_string_literals_snapshot = v_string_literals;
 }
 
 void Mutator::reset_data_library() {
-  this->reset_data_library_single_stmt();
   reset_id_counter();
   m_table2columns.clear();
   m_table2partition.clear();
@@ -4564,6 +4603,9 @@ void Mutator::reset_data_library() {
   v_int_literals.clear();
   v_float_literals.clear();
   v_string_literals.clear();
+
+  this->reset_data_library_single_stmt();
+
 }
 
 static IR *search_mapped_ir(IR *ir, DATATYPE type) {
@@ -6228,6 +6270,11 @@ void Mutator::rollback_instan_lib_changes() {
             remove_map(m_table2partition, cur_create_table);
         }
     }
+
+    // For ALTER TABLE statement.
+    m_table2columns = m_table2columns_snapshot;
+    m_table2index = m_table2index_snapshot;
+    m_table2partition = m_table2partition_snapshot;
 
     // Remove all alias related
     this->v_table_alias_names_single.clear();

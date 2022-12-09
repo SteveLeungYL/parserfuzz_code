@@ -248,11 +248,11 @@ public:
 
   /* New data library. SQLRight CockroachDB data instantiation. */
   static map<string, vector<string>>
-      m_table2columns; // Global Table name to column name mapping.
+      m_table2columns, m_table2columns_snapshot; // Global Table name to column name mapping.
   static map<string, vector<string>>
-      m_table2index;                   // Global table name to index mapping.
+      m_table2index, m_table2index_snapshot;                   // Global table name to index mapping.
       // We do not save the index to column mapping because it seems unnecessary.
-  static vector<string> v_table_names; // All saved table names from previous statements.
+  static vector<string> v_table_names, v_table_names_snapshot; // All saved table names from previous statements.
 
   // All used table and view names in one query statement. The table names are typically defined in
   //    `FROM` statement.
@@ -286,37 +286,37 @@ public:
 
   // A mapping from the column name to the datatype class.
   // The datatype class is also responsible to handle literal mutation.
-  static map<string, DataAffinity> m_column2datatype;
-  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2column;
+  static map<string, DataAffinity> m_column2datatype, m_column2datatype_snapshot;
+  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2column, m_datatype2column_snapshot;
 
   // A mapping to save all literals that is used inside the
   // whole SQL sequence. It maps the data type to pre-defined
   // literal string.
-  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2literals;
+  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2literals, m_datatype2literals_snapshot;
 
   // All used table names follow type in one query stmt.
   static vector<string>
-      v_statistics_name; // All statistic names defined in the current SQL.
+      v_statistics_name, v_statistics_name_snapshot; // All statistic names defined in the current SQL.
   static vector<string>
-      v_sequence_name; // All sequence names defined in the current SQL.
+      v_sequence_name, v_sequence_name_snapshot; // All sequence names defined in the current SQL.
   static vector<string>
-      v_constraint_name; // All constraint names defined in the current SQL.
+      v_constraint_name, v_constraint_name_snapshot; // All constraint names defined in the current SQL.
   static vector<string>
-      v_family_name; // All family names defined in the current SQL.
+      v_family_name, v_family_name_snapshot; // All family names defined in the current SQL.
 
   // The purpose to have a vector of view names is because for DROP statement,
   // ALTER stmts etc, mixed with view names and table names are not appropriate.
-  static vector<string> v_view_name; // All saved view names.
-  static vector<string> v_foreign_table_name; // All foreign table names defined
+  static vector<string> v_view_name, v_view_name_snapshot; // All saved view names.
+  static vector<string> v_foreign_table_name, v_foreign_table_name_snapshot; // All foreign table names defined
                                               // inthe current SQL.
   static vector<string>
-      v_table_with_partition; // All table names that contiains TABLE
+      v_table_with_partition, v_table_with_partition_snapshot; // All table names that contiains TABLE
                                    // PARTITIONING.
-  static map<string, vector<string>> m_table2partition;
+  static map<string, vector<string>> m_table2partition, m_table2partition_snapshot;
 
-  static vector<int> v_int_literals;
-  static vector<double> v_float_literals;
-  static vector<string> v_string_literals;
+  static vector<int> v_int_literals, v_int_literals_snapshot;
+  static vector<double> v_float_literals, v_float_literals_snapshot;
+  static vector<string> v_string_literals, v_string_literals_snapshot;
 
 
   // added by vancir
