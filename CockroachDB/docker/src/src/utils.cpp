@@ -212,7 +212,7 @@ vector<string> string_splitter(string s, string delimiter) {
 bool is_str_empty(string input_str) {
   for (int i = 0; i < input_str.size(); i++) {
     char c = input_str[i];
-    if (!isspace(c) && c != '\n' && c != '\0')
+    if (!isspace(c) && c != '\n' && c != '\0' && c != '\t' && c != '\r')
       return false; // Not empty.
   }
   return true; // Empty

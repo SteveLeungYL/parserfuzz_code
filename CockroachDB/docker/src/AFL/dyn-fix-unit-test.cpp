@@ -123,6 +123,9 @@ bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_
 }
 
 bool unit_test_failure_create(bool is_show_debug = false) {
+
+    g_mutator.pre_validate();
+
     // Succeed with return true,
     // Failed with return false.
 
@@ -159,7 +162,60 @@ bool unit_test_failure_create(bool is_show_debug = false) {
 
 }
 
+bool unit_test_samples(bool is_show_debug = false) {
 
+    g_mutator.pre_validate();
+
+    // Succeed with return true,
+    // Failed with return false.
+
+    vector<string> stmt_list {
+        "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+        "SET enable_implicit_select_for_update = off;",
+        "SET transaction_read_only = off;",
+        "SET null_ordered_last = true;",
+        "CREATE TABLE v9 (c10 INTERVAL PRIMARY KEY, c11 DECIMAL, FAMILY family_12(c11, c10));", // "ERROR: relation \"v9\" (112): column 1 is in both family 0 and 0",
+        "INSERT INTO v9 VALUES ('4-8 29 7:21:59'::INTERVAL, 54.112271);",
+        "ALTER TABLE v9 ADD COLUMN c13 TIME AS ('03:36:39'::TIME) STORED;",
+        "ALTER TABLE v0 ALTER COLUMN c3 DROP STORED, DROP COLUMN c11 CASCADE;", // ERROR: column "c3" is not a computed column
+        "SELECT DISTINCT ON (LOG(69.446394, -53.124958)) COUNT( *) FROM v9 WHERE x IN ('61', '20 d 4 hrs 4 mins 32 secs', '169.254.0.0/16');" // ERROR: column "x" does not exist
+    };
+
+    vector<string> res_list {
+            "",
+            "",
+            "",
+            "",
+            "ERROR: relation \\\"v9\\\" (112): column 1 is in both family 0 and 0",
+            "",
+            "",
+            "ERROR: column \"c3\" is not a computed column",
+//            "ERROR: column \"x\" does not exist"
+            ""
+    };
+
+    vector<IR*> ir_list;
+    for (string& cur_stmt: stmt_list) {
+        IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+        ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+        cur_root->deep_drop();
+    }
+
+    dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+    bool is_no_error;
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+        }
+        is_no_error = iden_common_error(cur_stmt);
+        if (!is_no_error) {
+            break;
+        }
+    }
+
+    return is_no_error;
+
+}
 
 int main(int argc, char *argv[]) {
 
@@ -177,7 +233,7 @@ int main(int argc, char *argv[]) {
     p_oracle->set_mutator(&g_mutator);
 
     assert(unit_test_failure_create(false));
-    assert(unit_test_samples(false));
+    assert(unit_test_samples(true));
 
     return 0;
 }
