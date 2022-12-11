@@ -3009,13 +3009,17 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
     out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res;
     out << "\n\n\n\n";
   } else { // multiple execute SQLite.
-    out << "Multiple execution of SQLite: \n";
+    out << "Multiple execution of CockroachDB: \n";
 
     for (int i = 0; i < all_comp_res.v_cmd_str.size(); i++) {
       out << "Query: " << i << ": \n";
       out << all_comp_res.v_cmd_str[i] << "\n";
       out << "Result string: \n";
-      out << all_comp_res.v_res_str[i] << "\n";
+      if (i < all_comp_res.v_res_str.size()) {
+          out << all_comp_res.v_res_str[i] << "\n";
+      } else {
+          out << "\n";
+      }
     }
     out << "\nFinal_res: " << all_comp_res.final_res << "\n";
     out << "Detailed result: "
@@ -3034,7 +3038,7 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
       iter++;
     }
 
-    out << "Compare_No_Rec_result_int: \n" << all_comp_res.final_res;
+    out << "Compare_result_int: \n" << all_comp_res.final_res;
     out << "\n\n\n\n";
   }
 }
@@ -3089,6 +3093,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
     if (skip_requested) {
       skip_requested = 0;
       cur_skipped_paths++;
+      fault = FAULT_NONE;
       return fault;
     }
     if (fault == FAULT_CRASH) {
@@ -6491,6 +6496,8 @@ static void sync_fuzzers(char **argv) {
         syncing_party = sd_ent->d_name;
         ALL_COMP_RES all_comp_res;
         vector<int> dump_vec;
+        all_comp_res.cmd_str = saved_str;
+        all_comp_res.v_cmd_str.push_back(saved_str);
         queued_imported += save_if_interesting(argv, saved_str, fault, all_comp_res);
         syncing_party = 0;
 
