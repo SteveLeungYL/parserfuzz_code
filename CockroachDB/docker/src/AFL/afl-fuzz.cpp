@@ -3146,8 +3146,10 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
   /* Log the debug_error and debug_good. */
   for (auto &res : all_comp_res.v_res) {
     if (res.comp_res == ORA_COMP_RES::Pass) {
+      total_execs++;
       debug_good++;
     } else {
+      total_execs++;
       debug_error++;
     }
   }
@@ -3195,13 +3197,10 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     outputfile.close();
 
-    total_execs++;
 
   } else if (all_comp_res.final_res == ORA_COMP_RES::Pass) {
-    total_execs++;
   } else if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
     /* Query, all select stmts return error results. */
-    total_execs++;
   } else {
     /* Query being skipped. */
   }
@@ -6057,7 +6056,7 @@ static u8 fuzz_one(char **argv) {
 
   /* Get some oracle compatible SELECT stmts.  */
   v_oracle_select_stmts.clear();
-  get_oracle_select_stmts(v_oracle_select_stmts, 10);
+  get_oracle_select_stmts(v_oracle_select_stmts, 120);
 
   int cur_reparse;
   cur_reparse = 0;
