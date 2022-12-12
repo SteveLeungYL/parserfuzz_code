@@ -18,15 +18,19 @@ var FORKSRV_FD uintptr = 198
 
 const maxQueryExec int = 100000
 
-const cleanupQueryCommit = `
-COMMIT;
+const initQuery = `
+RESET ALL;
+SET testing_optimizer_disable_rule_probability = 0.0;
+SET sql_safe_updates = false;
+BEGIN PRIORITY HIGH;
 `
 
 const cleanupQuery = `
+ROLLBACK;
+RESET ALL;
+SET testing_optimizer_disable_rule_probability = 0.0;
 SET sql_safe_updates = false;
-DROP DATABASE IF EXISTS sqlrightTestDB CASCADE;
-CREATE DATABASE IF NOT EXISTS sqlrightTestDB;
-SET DATABASE = sqlrightTestDB;
+BEGIN PRIORITY HIGH;
 `
 
 // Execute the query string, return the results as string.
@@ -75,6 +79,9 @@ func TestCov(t *testing.T) {
 
 	sqlRun := sqlutils.MakeSQLRunner(sqlDB)
 
+    // Initialize the Database transaction. 
+    executeQuery(initQuery, sqlRun)
+
 	controlPipe := os.NewFile(FORKSRV_FD, "pipe")
 	tmpCtrlRead := []byte{0, 0, 0, 0}
 	// Status Write Pipe.
@@ -106,7 +113,6 @@ func TestCov(t *testing.T) {
 
         if tmpCtrlReadInt == 1 {
             // Reset the database.
-            executeQuery(cleanupQueryCommit, sqlRun)
             executeQuery(cleanupQuery, sqlRun)
         } // else. 
 
