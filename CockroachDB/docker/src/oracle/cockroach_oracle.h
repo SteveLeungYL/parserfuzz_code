@@ -133,6 +133,7 @@ public:
   virtual int is_res_str_error (string in_ret) {
 #define ff(x) findStringIn(in_ret, x)
       if (
+              !ff("internal error") && // Internal Error, not SQL error.
               ff("pq:") ||
               ff("ERROR: ") ||
               ff("SQLSTATE: ")
@@ -143,6 +144,33 @@ public:
       }
 #undef ff
   };
+
+  virtual int is_res_str_internal_error (string in_ret) {
+#define ff(x) findStringIn(in_ret, x)
+      if (
+              ff("internal error")
+              ) {
+          return 1;
+      } else {
+          return 0;
+      }
+#undef ff
+  }
+
+  virtual int is_sql_str_transaction_related (string in_ret) {
+#define ff(x) findStringIn(in_ret, x)
+        if (
+                ff("BEGIN") ||
+                ff("TRANSACTION") ||
+                ff("ROLLBACK") ||
+                ff("SAVEPOINT")
+                ) {
+            return 1;
+        } else {
+            return 0;
+        }
+#undef ff
+  }
 
   virtual SemanticErrorType detect_semantic_error_type(string in_str);
 

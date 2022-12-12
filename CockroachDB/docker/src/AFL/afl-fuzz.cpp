@@ -6175,6 +6175,11 @@ static u8 fuzz_one(char **argv) {
 
         string cur_stmt_str = cur_trans_stmt->to_string();
 
+        if (p_oracle->is_sql_str_transaction_related(cur_stmt_str)) {
+            // If the stmt is TRANSACTION related, ignored.
+            continue;
+        }
+
         whole_query_seq_with_next = whole_query_seq + "; \n" + cur_stmt_str;
 
         if (is_prev_stmt_error) {
