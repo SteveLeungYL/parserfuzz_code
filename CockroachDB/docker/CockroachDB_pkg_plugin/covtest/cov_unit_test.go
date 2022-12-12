@@ -111,6 +111,24 @@ func TestCov(t *testing.T) {
             break;
         }
 
+		if tmpCtrlReadInt == 3 {
+			// Log the code coverage.
+			globalcov.SaveGlobalCov()
+			// Clean up the coverage log.
+			globalcov.ResetGlobalCov()
+
+			// Notify the fuzzer that the coverage output has succeeded.
+			_, err := statusPipe.Write([]byte{0, 0, 0, 0})
+			statusPipe.Sync()
+			if err != nil {
+				t.Fatalf("StatusPipe writing failed. Error: %s", err.Error())
+			}
+
+			// Avoid exiting the loop in this situation.
+			per_cycle--;
+			continue;
+		}
+
         if tmpCtrlReadInt == 1 {
             // Reset the database.
             executeQuery(cleanupQuery, sqlRun)
@@ -127,8 +145,6 @@ func TestCov(t *testing.T) {
 			panic(outErr)
 		}
 
-		// Clean up the coverage log.
-		globalcov.ResetGlobalCov()
 
 		// Execute the query
         if string(inRaw) != "" {
@@ -139,9 +155,6 @@ func TestCov(t *testing.T) {
         }
 
 		outFile.Close()
-
-		// Plot the coverage output.
-		globalcov.SaveGlobalCov()
 
 		if per_cycle < (maxQueryExec - 1) {
 			// Notify the fuzzer that the execution has succeed.

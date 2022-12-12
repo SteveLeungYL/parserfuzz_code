@@ -368,6 +368,7 @@ bool SQL_ORACLE::is_oracle_select_stmt(string in) {
   vector<IR *> ir_vec = g_mutator->parse_query_str_get_ir_set(in);
   if (!ir_vec.size()) {
     cerr << "Error: getting empty ir_vec. Parsing failed. \n";
+    cerr << "Error stmt: " << in << "\n\n\n";
     return false;
   }
   IR *cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_vec.back());
@@ -384,6 +385,7 @@ bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
   vector<IR *> ir_vec = g_mutator->parse_query_str_get_ir_set(in);
   if (!ir_vec.size()) {
     cerr << "Error: getting empty ir_vec. Parsing failed. \n";
+    cerr << "Error stmt: " << in << "\n\n\n";
     return false;
   }
   IR *cur_stmt = ir_wrapper.get_first_stmt_from_root(ir_vec.back());

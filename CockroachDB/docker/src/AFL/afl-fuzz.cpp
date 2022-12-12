@@ -2566,6 +2566,8 @@ static void restart_cockroachdb(char **argv) {
 static u8 run_target(char **argv, u32 timeout, string cmd_str,
                      int is_reset_server = 1) {
 
+//    cerr << "Running stmt: " << cmd_str << "\nis_reset_server: " << is_reset_server << "\n\n\n";
+
   static struct itimerval it;
   static u32 prev_timed_out = 0;
   static u64 exec_ms = 0;
@@ -2586,10 +2588,10 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str,
      must prevent any earlier operations from venturing into that
      territory. */
 
-  if (is_reset_server != 0) {
-    memset(trace_bits, 0, MAP_SIZE);
-    MEM_BARRIER();
-  }
+//  if (is_reset_server != 0) {
+//    memset(trace_bits, 0, MAP_SIZE);
+//    MEM_BARRIER();
+//  }
 BEGIN:
 
   write_to_testcase(cmd_str);
@@ -2675,15 +2677,15 @@ BEGIN:
 
   // total_execs++;
 
-  if (filesystem::exists("./cov_out.bin")) {
-    ifstream fin("./cov_out.bin", ios::in | ios::binary);
-    fin.read(trace_bits, MAP_SIZE);
-    fin.close();
-    // Remove the file. Ignore the returned value.
-    remove("./cov_out.bin");
-  }
-
-  classify_counts((u64 *)trace_bits);
+//  if (filesystem::exists("./cov_out.bin")) {
+//    ifstream fin("./cov_out.bin", ios::in | ios::binary);
+//    fin.read(trace_bits, MAP_SIZE);
+//    fin.close();
+//    // Remove the file. Ignore the returned value.
+//    remove("./cov_out.bin");
+//  }
+//
+//  classify_counts((u64 *)trace_bits);
 
   // Log the query execution results.
   g_cockroach_output = "";
@@ -2712,8 +2714,48 @@ BEGIN:
     slowest_exec_ms = exec_ms;
   }
 
+//  cerr << "res: " << g_cockroach_output << "\n\n\n";
   return FAULT_NONE;
 }
+
+/* Tell the DBMS to output the code coverage information. */
+void record_code_coverage(char** argv) {
+    memset(trace_bits, 0, MAP_SIZE);
+    MEM_BARRIER();
+
+    // Send the signal to notify the CockroachDB to start executions.
+    // If the is_reset_server_only is 1, then the CockroachDB server
+    // will reset its database.
+    int log_cov_flag = 3;
+    while ((write(fsrv_ctl_fd, &log_cov_flag,
+                  sizeof(log_cov_flag))) != 4) {
+        if (stop_soon) {
+            return;
+        }
+        // Make sure the CockroachDB process is restart correctly.
+        restart_cockroachdb(argv);
+    }
+
+    /* Inside the parent process.
+  // Wait for the child process.
+  // Check the code coverage.
+  */
+
+    int status;
+    read(fsrv_st_fd, &status, 4);
+
+    if (filesystem::exists("./cov_out.bin")) {
+        ifstream fin("./cov_out.bin", ios::in | ios::binary);
+        fin.read(trace_bits, MAP_SIZE);
+        fin.close();
+        // Remove the file. Ignore the returned value.
+        remove("./cov_out.bin");
+    }
+    classify_counts((u64 *)trace_bits);
+
+    return;
+}
+
 
 inline void reset_database_without_restart(char **argv) {
   run_target(argv, exec_tmout, "", 1);
@@ -3292,14 +3334,17 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
       program_input_str += use_mem[output_index];
     }
     // cerr << program_input_str << endl;
-    vector<int> dummy_vec;
-    ALL_COMP_RES dummy_all_comp_res;
-    vector<string> program_input_str_vec{program_input_str};
-    fault = execute_cmd_string(program_input_str_vec, dummy_vec,
-                               dummy_all_comp_res, argv, use_tmout);
+//    vector<int> dummy_vec;
+//    ALL_COMP_RES dummy_all_comp_res;
+//    vector<string> program_input_str_vec{program_input_str};
+//    fault = execute_cmd_string(program_input_str_vec, dummy_vec,
+//                               dummy_all_comp_res, argv, use_tmout);
 
-    /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
-       we want to bail out quickly. */
+    fault = run_target(argv, exec_tmout, program_input_str, 1);
+    record_code_coverage(argv);
+
+      /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
+         we want to bail out quickly. */
 
     if (stop_soon || fault != crash_mode)
       goto abort_calibration;
@@ -6267,32 +6312,35 @@ static u8 fuzz_one(char **argv) {
           // Attach the SELECT statement at the end of the query sequence.
           // Execute it, and then log the code coverage information.
           // This SELECT will never be saved into the whole_query_seq.
+          record_code_coverage(argv);
 
           // Check whether the statement contains new code coverage.
+          // The save_if_interesting also handles the crashing.
           ALL_COMP_RES tmp_all_comp_res;
           tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
           tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
           save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                               tmp_all_comp_res);
 
-          // Here, also test whether the non-OPT version of the query could contain
-          // errors.
-          // The non-opt version of the code causes a lot of bugs in CockroachDB.
-          string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
-          ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
+//          // Here, also test whether the non-OPT version of the query could contain
+//          // errors.
+//          // The non-opt version of the code causes a lot of bugs in CockroachDB.
+//          string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
+//          ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
+//
+//          if (ret_res == FAULT_CRASH) {
+//              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
+//              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+//              save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
+//                                  tmp_all_comp_res);
+//          }
+//
+//          // Because we set the optimization flags, we need to reset the whole database.
+//          reset_database_without_restart(argv);
+//          is_prev_stmt_error = false;
 
-          if (ret_res == FAULT_CRASH) {
-              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
-              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
-              save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
-                                  tmp_all_comp_res);
-          }
-
-          // Because we set the optimization flags, we need to reset the whole database.
-          reset_database_without_restart(argv);
-          is_prev_stmt_error = false;
-
-          total_execs++;
+            total_execs++;
+            show_stats();
 
         } // End of SELECT statement handling.
         else {
@@ -6302,6 +6350,15 @@ static u8 fuzz_one(char **argv) {
           // check with SELECT stmt) If no errors, the new non-SELECT statement
           // will be saved into whole_query_seq. If errors, and cannot be fixed
           // with dyn_fixing, abort the new statement.
+
+          if (ret_res == FAULT_CRASH) {
+              // Check whether the statement contains new code coverage.
+              ALL_COMP_RES tmp_all_comp_res;
+              tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
+              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+              save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                                  tmp_all_comp_res);
+          }
 
           if (is_prev_stmt_error) {
             // On error, no need to save anything.
