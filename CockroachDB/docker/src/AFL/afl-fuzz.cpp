@@ -47,6 +47,7 @@
 #include "../include/mutate.h"
 #include "../include/utils.h"
 #include <algorithm>
+#include <atomic>
 #include <cassert>
 #include <chrono>
 #include <ctime>
@@ -79,7 +80,6 @@
 #include <time.h>
 #include <unistd.h>
 #include <vector>
-#include <atomic>
 
 #include <filesystem>
 #include <fstream>
@@ -157,8 +157,8 @@ string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0;\n";
 // sql.stats.histogram_collection.enabled = true;\n" "SET CLUSTER SETTING
 // sql.query_cache.enabled = true;\n" "SET reorder_joins_limit = 8;\n";
 
-string no_opt_str = "SET testing_optimizer_disable_rule_probability = 1.0;\n";
-// string no_opt_str =  "SET CLUSTER SETTING
+string no_opt_sql_str = "SET testing_optimizer_disable_rule_probability = 1.0; \n";
+// string no_opt_sql_str =  "SET CLUSTER SETTING
 // sql.stats.automatic_collection.enabled = false; DELETE FROM
 // system.table_statistics WHERE true;\n" "SET CLUSTER SETTING
 // sql.stats.histogram_collection.enabled = false;\n" "SET CLUSTER SETTING
@@ -202,7 +202,7 @@ EXP_ST u64 mem_limit = MEM_LIMIT; /* Memory cap for child (MB)        */
 static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
-    dump_library = 0,             /* Dump squirrel libraries          */
+    dump_library = 0,         /* Dump squirrel libraries          */
     force_deterministic,      /* Force deterministic stages?      */
     use_splicing,             /* Recombine input files?           */
     dumb_mode,                /* Run in non-instrumented mode?    */
@@ -251,13 +251,13 @@ static string
 int bug_output_id = 0;
 int log_output_id = 0;
 
-//static s32 forksrv_pid, /* PID of the fork server           */
+// static s32 forksrv_pid, /* PID of the fork server           */
 //    child_pid = -1,     /* PID of the fuzzed program        */
 //    out_dir_fd = -1;    /* FD of the lock file              */
 static s32 out_dir_fd = -1;
 
 static std::atomic<s32> forksrv_pid = -1, /* PID of the fork server           */
-       child_pid = -1;    /* PID of the fuzzed program        */
+    child_pid = -1;                       /* PID of the fuzzed program        */
 
 EXP_ST u8 trace_bits[MAP_SIZE]; /* SHM with instrumentation bitmap  */
 
@@ -445,7 +445,8 @@ enum {
   /* 02 */ FAULT_CRASH,
   /* 03 */ FAULT_ERROR,
   /* 04 */ FAULT_NOINST,
-  /* 05 */ FAULT_NOBITS
+  /* 05 */ FAULT_NOBITS,
+  /* 06 */ FAULT_SQLERROR
 };
 
 /* Get unix time in milliseconds */
@@ -2538,32 +2539,32 @@ static void write_to_testcase(string &input) {
 /*
  * Restart the CockroachDB persistent server.
  * */
-static void restart_cockroachdb(char** argv) {
+static void restart_cockroachdb(char **argv) {
 
-    // Exit the current CockroachDB server.
-//    int status = 0;
-//    int set_int = 2;
-//    write(fsrv_ctl_fd, &set_int, sizeof(set_int));
-//    read(fsrv_st_fd, &status, 4);
-    if (forksrv_pid != -1) {
-        kill(forksrv_pid, SIGKILL);
-        int status = 0;
-        wait(&status);
-    }
+  // Exit the current CockroachDB server.
+  //    int status = 0;
+  //    int set_int = 2;
+  //    write(fsrv_ctl_fd, &set_int, sizeof(set_int));
+  //    read(fsrv_st_fd, &status, 4);
+  if (forksrv_pid != -1) {
+    kill(forksrv_pid, SIGKILL);
+    int status = 0;
+    wait(&status);
+  }
 
-    close(fsrv_st_fd);
-    close(fsrv_ctl_fd);
+  close(fsrv_st_fd);
+  close(fsrv_ctl_fd);
 
-    forksrv_pid = -1;
-    init_forkserver(argv);
-    return;
+  forksrv_pid = -1;
+  init_forkserver(argv);
+  return;
 }
-
 
 /* Execute target application, monitoring for timeouts. Return status
    information. The called program will update trace_bits[]. */
 
-static u8 run_target(char **argv, u32 timeout, string cmd_str, int is_reset_server = 1) {
+static u8 run_target(char **argv, u32 timeout, string cmd_str,
+                     int is_reset_server = 1) {
 
   static struct itimerval it;
   static u32 prev_timed_out = 0;
@@ -2578,7 +2579,7 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str, int is_reset_serv
 
   // Init forkserver if it is not started.
   if (forksrv_pid == -1) {
-      init_forkserver(argv);
+    init_forkserver(argv);
   }
 
   /* After this memset, trace_bits[] are effectively volatile, so we
@@ -2586,8 +2587,8 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str, int is_reset_serv
      territory. */
 
   if (is_reset_server != 0) {
-      memset(trace_bits, 0, MAP_SIZE);
-      MEM_BARRIER();
+    memset(trace_bits, 0, MAP_SIZE);
+    MEM_BARRIER();
   }
 BEGIN:
 
@@ -2596,9 +2597,10 @@ BEGIN:
   // Send the signal to notify the CockroachDB to start executions.
   // If the is_reset_server_only is 1, then the CockroachDB server
   // will reset its database.
-  while ((res = write(fsrv_ctl_fd, &is_reset_server, sizeof(is_reset_server))) != 4) {
+  while ((res = write(fsrv_ctl_fd, &is_reset_server,
+                      sizeof(is_reset_server))) != 4) {
     if (stop_soon) {
-        return FAULT_NONE;
+      return FAULT_NONE;
     }
 
     // Make sure the CockroachDB process is restart correctly.
@@ -2608,9 +2610,9 @@ BEGIN:
     MEM_BARRIER();
   }
 
-//  if (cmd_str == "") {
-//      return FAULT_NONE;
-//  }
+  //  if (cmd_str == "") {
+  //      return FAULT_NONE;
+  //  }
 
   /* Inside the parent process.
   // Wait for the child process.
@@ -2630,14 +2632,16 @@ BEGIN:
     bool cur_is_timeout = is_timeout;
 
     cerr << "The CockroachDB process is not responding? Could be timeout "
-            "killed or crashed. is_timeout: " << cur_is_timeout << "\n\n\n";
+            "killed or crashed. is_timeout: "
+         << cur_is_timeout << "\n\n\n";
 
     // Clean up the fd before calling init_forkserver.
     close(fsrv_ctl_fd);
     close(fsrv_st_fd);
 
     // Block the execution until handle_timeout has been finished.
-    do {} while (forksrv_pid != -1);
+    do {
+    } while (forksrv_pid != -1);
 
     // Restart the argv execution.
     init_forkserver(argv);
@@ -2651,12 +2655,12 @@ BEGIN:
   }
 
   if (status > 0) {
-      // Reach maximum time execution, CockroachDB auto exit.
-      // Relaunch CockroachDB.
-      close(fsrv_ctl_fd);
-      close(fsrv_st_fd);
-      forksrv_pid = -1;
-      init_forkserver(argv);
+    // Reach maximum time execution, CockroachDB auto exit.
+    // Relaunch CockroachDB.
+    close(fsrv_ctl_fd);
+    close(fsrv_st_fd);
+    forksrv_pid = -1;
+    init_forkserver(argv);
   }
 
   getitimer(ITIMER_REAL, &it);
@@ -2711,9 +2715,9 @@ BEGIN:
   return FAULT_NONE;
 }
 
-inline void reset_database_without_restart(char** argv) {
-    run_target(argv, exec_tmout, "", 1);
-    return;
+inline void reset_database_without_restart(char **argv) {
+  run_target(argv, exec_tmout, "", 1);
+  return;
 }
 
 inline void print_norec_exec_debug_info() {
@@ -2858,30 +2862,23 @@ void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
   p_oracle->compare_results(all_comp_res);
 
   for (COMP_RES &res : all_comp_res.v_res) {
-      if (res.v_res_str.size() == 0) {
-          continue;
-      }
-      SemanticErrorType err_type = p_oracle->detect_semantic_error_type(res.v_res_str[0]);
-      if (
-              err_type == SemanticErrorType::ColumnTypeRelatedError
-              ) {
-          total_data_type_error_num++;
-          total_select_error_num++;
-      } else if (
-              err_type == SemanticErrorType::AliasRelatedError
-              ) {
-          total_alias_type_error_num++;
-          total_select_error_num++;
-      } else if (
-              err_type == SemanticErrorType::SyntaxRelatedError
-              ) {
-          total_instan_caused_error_num++;
-          total_select_error_num++;
-      } else if (
-              err_type == SemanticErrorType::OtherUndefinedError
-              ) {
-          total_select_error_num++;
-      }
+    if (res.v_res_str.size() == 0) {
+      continue;
+    }
+    SemanticErrorType err_type =
+        p_oracle->detect_semantic_error_type(res.v_res_str[0]);
+    if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
+      total_data_type_error_num++;
+      total_select_error_num++;
+    } else if (err_type == SemanticErrorType::AliasRelatedError) {
+      total_alias_type_error_num++;
+      total_select_error_num++;
+    } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
+      total_instan_caused_error_num++;
+      total_select_error_num++;
+    } else if (err_type == SemanticErrorType::OtherUndefinedError) {
+      total_select_error_num++;
+    }
   }
 
   return;
@@ -2957,27 +2954,20 @@ void compare_query_result(ALL_COMP_RES &all_comp_res,
   p_oracle->compare_results(all_comp_res);
 
   for (COMP_RES &res : all_comp_res.v_res) {
-      SemanticErrorType err_type = p_oracle->detect_semantic_error_type(res.res_str_0);
-      if (
-              err_type == SemanticErrorType::ColumnTypeRelatedError
-          ) {
-          total_data_type_error_num++;
-          total_select_error_num++;
-      } else if (
-              err_type == SemanticErrorType::AliasRelatedError
-          ) {
-          total_alias_type_error_num++;
-          total_select_error_num++;
-      } else if (
-              err_type == SemanticErrorType::SyntaxRelatedError
-          ) {
-          total_instan_caused_error_num++;
-          total_select_error_num++;
-      } else if (
-              err_type == SemanticErrorType::OtherUndefinedError
-              ) {
-          total_select_error_num++;
-      }
+    SemanticErrorType err_type =
+        p_oracle->detect_semantic_error_type(res.res_str_0);
+    if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
+      total_data_type_error_num++;
+      total_select_error_num++;
+    } else if (err_type == SemanticErrorType::AliasRelatedError) {
+      total_alias_type_error_num++;
+      total_select_error_num++;
+    } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
+      total_instan_caused_error_num++;
+      total_select_error_num++;
+    } else if (err_type == SemanticErrorType::OtherUndefinedError) {
+      total_select_error_num++;
+    }
   }
 
   return;
@@ -3016,9 +3006,9 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
       out << all_comp_res.v_cmd_str[i] << "\n";
       out << "Result string: \n";
       if (i < all_comp_res.v_res_str.size()) {
-          out << all_comp_res.v_res_str[i] << "\n";
+        out << all_comp_res.v_res_str[i] << "\n";
       } else {
-          out << "\n";
+        out << "\n";
       }
     }
     out << "\nFinal_res: " << all_comp_res.final_res << "\n";
@@ -3048,7 +3038,8 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
                       char **argv, u32 tmout = exec_tmout) {
 
   u8 fault;
-  bool is_crashing = false; // For multi-run queries, if encounter crashing, save the fault.
+  bool is_crashing =
+      false; // For multi-run queries, if encounter crashing, save the fault.
 
   string res_str = "";
 
@@ -3097,7 +3088,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
       return fault;
     }
     if (fault == FAULT_CRASH) {
-        is_crashing = true;
+      is_crashing = true;
     }
     res_str = g_cockroach_output;
     all_comp_res.cmd_str = std::move(cmd_string);
@@ -3131,7 +3122,7 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
       }
 
       if (fault == FAULT_CRASH) {
-          is_crashing = true;
+        is_crashing = true;
       }
       res_str = g_cockroach_output;
 
@@ -3197,18 +3188,17 @@ u8 execute_cmd_string(vector<string> &cmd_string_vec,
 
     outputfile.close();
 
-
   } else if (all_comp_res.final_res == ORA_COMP_RES::Pass) {
-  } else if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error){
+  } else if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error) {
     /* Query, all select stmts return error results. */
   } else {
     /* Query being skipped. */
   }
 
   if (is_crashing) {
-      return FAULT_CRASH;
+    return FAULT_CRASH;
   } else {
-      return fault;
+    return fault;
   }
 }
 
@@ -3890,9 +3880,9 @@ static void write_crash_readme(void) {
    save or queue the input test case for further analysis if so. Returns 1 if
    entry is saved, 0 otherwise. */
 
-static u8 save_if_interesting(char **argv, string &query_str, u8 fault, 
-                                const ALL_COMP_RES& all_comp_res, 
-                                const vector<int> &explain_diff_id = {}) {
+static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
+                              const ALL_COMP_RES &all_comp_res,
+                              const vector<int> &explain_diff_id = {}) {
 
   u8 *fn = "";
   u8 hnb;
@@ -3944,9 +3934,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
-       IR * tmp_ir = ir_tree.back();
-       g_mutator.extract_struct(tmp_ir);
-       g_mutator.add_all_to_library(tmp_ir->to_string(), explain_diff_id);
+      IR *tmp_ir = ir_tree.back();
+      g_mutator.extract_struct(tmp_ir);
+      g_mutator.add_all_to_library(tmp_ir->to_string(), explain_diff_id);
       ir_tree.back()->deep_drop();
     } else {
       return keeping; // keep = 0, meaning nothing added to the queue.
@@ -4059,12 +4049,12 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
 #ifndef SIMPLE_FILES
 
-//    fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir, unique_hangs,
-//                      describe_op(0));
+    //    fn = alloc_printf("%s/hangs/id:%06llu,%s", out_dir, unique_hangs,
+    //                      describe_op(0));
 
 #else
 
-//    fn = alloc_printf("%s/hangs/id_%06llu", out_dir, unique_hangs);
+    //    fn = alloc_printf("%s/hangs/id_%06llu", out_dir, unique_hangs);
 
 #endif /* ^!SIMPLE_FILES */
 
@@ -4073,7 +4063,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     last_hang_time = get_cur_time();
 
     return 0;
-//    break;
+    //    break;
 
   case FAULT_CRASH:
 
@@ -4136,13 +4126,14 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
         To avoid query length explosion.
     */
 
-//  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
-//  if (fd < 0)
-//    PFATAL("Unable to create '%s'", fn);
-//  ck_write(fd, query_str.c_str(), query_str.size(), fn);
-//  close(fd);
+  //  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
+  //  if (fd < 0)
+  //    PFATAL("Unable to create '%s'", fn);
+  //  ck_write(fd, query_str.c_str(), query_str.size(), fn);
+  //  close(fd);
 
-  string crash_output_file_fn = string((char*)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
+  string crash_output_file_fn =
+      string((char *)(out_dir)) + "/crashes/id:" + to_string(unique_crashes);
 
   if (!filesystem::exists("../../../Bug_Analysis/")) {
     filesystem::create_directory("../../../Bug_Analysis/");
@@ -4154,20 +4145,20 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     filesystem::create_directory("../../../Bug_Analysis/bug_samples/crashes");
   }
 
-  string bug_output_dir =
-      "../../../Bug_Analysis/bug_samples/crashes/bug:" + to_string(unique_crashes-1) +
-      ":src:" + to_string(current_entry) +
-      ":core:" + std::to_string(bind_to_core_id) + ".txt";
+  string bug_output_dir = "../../../Bug_Analysis/bug_samples/crashes/bug:" +
+                          to_string(unique_crashes - 1) +
+                          ":src:" + to_string(current_entry) +
+                          ":core:" + std::to_string(bind_to_core_id) + ".txt";
   // cerr << "Bug output dir is: " << bug_output_dir << endl;
   ofstream outputfile;
   outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
   stream_output_res(all_comp_res, outputfile);
   outputfile.close();
 
-  //ofstream crash_output_file;
-  //crash_output_file.open(crash_output_file_fn, std::ofstream::out);
-  //stream_output_res(all_comp_res, crash_output_file);
-  //crash_output_file.close(); 
+  // ofstream crash_output_file;
+  // crash_output_file.open(crash_output_file_fn, std::ofstream::out);
+  // stream_output_res(all_comp_res, crash_output_file);
+  // crash_output_file.close();
 
   ck_free(fn);
 
@@ -4364,11 +4355,11 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
   static u32 prev_qp, prev_pf, prev_pnf, prev_ce, prev_md;
   static u64 prev_qc, prev_uc, prev_uh;
 
-//  if (prev_qp == queued_paths && prev_pf == pending_favored &&
-//      prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
-//      prev_qc == queue_cycle && prev_uc == unique_crashes &&
-//      prev_uh == unique_hangs && prev_md == max_depth)
-//    return;
+  //  if (prev_qp == queued_paths && prev_pf == pending_favored &&
+  //      prev_pnf == pending_not_fuzzed && prev_ce == current_entry &&
+  //      prev_qc == queue_cycle && prev_uc == unique_crashes &&
+  //      prev_uh == unique_hangs && prev_md == max_depth)
+  //    return;
 
   prev_qp = queued_paths;
   prev_pf = pending_favored;
@@ -4385,32 +4376,35 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps) {
      favored_not_fuzzed, unique_crashes, unique_hangs, max_depth,
      execs_per_sec */
 
-  fprintf(plot_file,
-          /* Format */
-          "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%"
-          "%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%,%0.02f%%,"
-          "%llu,%llu,%0.02f%%"
-          "\n",
-          /* Data */
-          get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
-          pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
-          unique_hangs, max_depth, eps, total_execs, total_input_failed,
-          p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid,
-          total_add_to_queue, total_mutate_all_failed, total_mutate_failed,
-          total_append_failed, g_mutator.get_cri_valid_collection_size(),
-          debug_error, (debug_good * 100.0 / (debug_error + debug_good)),
-          cockroach_execute_ok, cockroach_execute_error,
-          cockroach_execute_total,
-          (float(total_mutate_failed) / float(total_mutate_num) * 100.0),
-          num_valid, num_parse, num_mutate_all, num_reparse, num_append,
-          num_validate, total_data_type_error_num, total_alias_type_error_num, total_instan_caused_error_num, total_select_error_num,
-          float(total_data_type_error_num)*100.0/float(total_select_error_num),float(total_alias_type_error_num)*100.0/float(total_select_error_num),
-          float(total_instan_caused_error_num)*100.0/float(total_select_error_num),
-          total_instan_succeed_num, total_instan_num,
-          float(total_instan_succeed_num) * 100.0 /float(total_instan_num)
-          ); /* ignore errors */
+  fprintf(
+      plot_file,
+      /* Format */
+      "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%"
+      "%,%llu,%llu,%llu,%llu,%llu,%llu,"
+      "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
+      "%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%,%0.02f%%,"
+      "%llu,%llu,%0.02f%%"
+      "\n",
+      /* Data */
+      get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
+      pending_not_fuzzed, pending_favored, bitmap_cvg, unique_crashes,
+      unique_hangs, max_depth, eps, total_execs, total_input_failed,
+      p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid,
+      total_add_to_queue, total_mutate_all_failed, total_mutate_failed,
+      total_append_failed, g_mutator.get_cri_valid_collection_size(),
+      debug_error, (debug_good * 100.0 / (debug_error + debug_good)),
+      cockroach_execute_ok, cockroach_execute_error, cockroach_execute_total,
+      (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid,
+      num_parse, num_mutate_all, num_reparse, num_append, num_validate,
+      total_data_type_error_num, total_alias_type_error_num,
+      total_instan_caused_error_num, total_select_error_num,
+      float(total_data_type_error_num) * 100.0 / float(total_select_error_num),
+      float(total_alias_type_error_num) * 100.0 / float(total_select_error_num),
+      float(total_instan_caused_error_num) * 100.0 /
+          float(total_select_error_num),
+      total_instan_succeed_num, total_instan_num,
+      float(total_instan_succeed_num) * 100.0 /
+          float(total_instan_num)); /* ignore errors */
   fflush(plot_file);
 }
 
@@ -5425,8 +5419,8 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec,
                              exec_tmout);
 
   if ((total_execs % 20) == 0) {
-      // Proactively restart the CockroachDB server.
-      restart_cockroachdb(argv);
+    // Proactively restart the CockroachDB server.
+    restart_cockroachdb(argv);
   }
 
   if (stop_soon)
@@ -5859,6 +5853,32 @@ void split_queries_into_small_pieces(string &large_query,
   }
 }
 
+/* Output logical bugs to the bug reporting folder. */
+void log_logical_bug(string buggy_query_str) {
+    ofstream outputfile;
+    bug_output_id++;
+    if (!filesystem::exists("../../../Bug_Analysis/")) {
+        filesystem::create_directory("../../../Bug_Analysis/");
+    }
+    if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
+        filesystem::create_directory("../../../Bug_Analysis/bug_samples");
+    }
+
+    string bug_output_dir =
+            "../../../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) +
+            ":src:" + to_string(current_entry) +
+            ":core:" + std::to_string(bind_to_core_id) + ".txt";
+    // cerr << "Bug output dir is: " << bug_output_dir << endl;
+    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+
+    ALL_COMP_RES tmp_all_comp_res;
+    tmp_all_comp_res.cmd_str = buggy_query_str;
+    tmp_all_comp_res.v_cmd_str.push_back(buggy_query_str);
+    stream_output_res(tmp_all_comp_res, outputfile);
+
+    outputfile.close();
+}
+
 /* Take the current entry from the queue, fuzz it for a while. This
    function is a tad too long... returns 0 if fuzzed successfully, 1 if
    skipped or bailed out. */
@@ -5995,9 +6015,9 @@ static u8 fuzz_one(char **argv) {
 
   /* Append random `SET` statements to the query set. */
   for (int app_idx = 0; app_idx < 3; app_idx++) {
-      // Randomly append SET statements at the beginning of the query sequence.
-      IR* app_stmt = g_mutator.constr_rand_set_stmt();
-      p_oracle->ir_wrapper.append_stmt_at_idx(app_stmt, 0);
+    // Randomly append SET statements at the beginning of the query sequence.
+    IR *app_stmt = g_mutator.constr_rand_set_stmt();
+    p_oracle->ir_wrapper.append_stmt_at_idx(app_stmt, 0);
   }
 
   /* Append Create stmts to the queue, if no create table stmts is found. */
@@ -6128,185 +6148,180 @@ static u8 fuzz_one(char **argv) {
       vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
           cur_root, stmt_type_vec); // All deep_copied.
 
-
       /* Build dependency graph, fix ir node, fill in concret values */
 
       // Before fixing all the statements, reset the database data.
       reset_database_without_restart(argv);
 
-      string whole_query_sequence = "";
-      IR* cur_trans_stmt;
-      vector<IR*> tmp_all_pre_trans_vec;
-
-      const int max_trial = 10;
+      // Variable for each statement's instantiation.
+      string whole_query_seq = "";
+      string whole_query_seq_with_next =
+          ""; // Whole query sequence with next stmt. Abort if error.
+      bool is_prev_stmt_error = false;
+      constexpr int max_trial = 10;
 
       for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
-          cur_trans_stmt = all_pre_trans_vec[stmt_idx];
-          // Move the reset_data_library_single_stmt out in the outer loop.
-          // So that rescanning the instantiation process using the
-          // error hints can reuse the table data.
+        // Prepare for a new statement of instantiation.
+        // Set the savepoint for instantiation library rollback.
+        g_mutator.reset_data_library_single_stmt();
 
-          string ori_stmt_before_instan = cur_trans_stmt->to_string();
+        IR *cur_trans_stmt = all_pre_trans_vec[stmt_idx];
 
-          g_mutator.reset_data_library_single_stmt();
+        // Avoid modifying the required nodes for the oracle.
+        p_oracle->mark_all_valid_node(cur_trans_stmt);
+        g_mutator.validate(cur_trans_stmt);
+
+        int ret_res = FAULT_NONE;
+
+        string cur_stmt_str = cur_trans_stmt->to_string();
+
+        whole_query_seq_with_next = whole_query_seq + "; \n" + cur_stmt_str;
+
+        if (is_prev_stmt_error) {
+          // If the previous statement contains error, we need to reset the
+          // server.
+          ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+        } else {
+          // If the previous statement is OK, we can directly execute the SELECT
+          // without resetting.
+          ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
+        }
+
+        int dyn_fix_trial = 0;
+
+        while ((ret_res == FAULT_NONE || ret_res == FAULT_SQLERROR) &&
+               p_oracle->is_res_str_error(g_cockroach_output) &&
+               dyn_fix_trial < max_trial) {
+          // Check whether the statement execution contains SQL errors.
+          // If yes, use the dynamic fixing to try to fix the statement.
+
+          // Setup the error flag first.
+          ret_res = FAULT_SQLERROR;
+
+          // Iterate the counter.
+          dyn_fix_trial++;
+
+          // Parse the query string and then apply dynamic fixing.
+          vector<IR *> v_new_parsed =
+              g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
+          if (v_new_parsed.size() == 0) {
+            // The instantiated query cannot pass the parser.
+            // Ignore current stmt.
+            g_mutator.rollback_instan_lib_changes();
+            cur_trans_stmt = NULL;
+            break;
+          }
+
+          IR *new_parsed_root = v_new_parsed.back();
+          IR *new_parsed_stmt =
+              new_parsed_root->get_left()->get_left()->get_left()->deep_copy();
+          new_parsed_stmt->parent_ = NULL;
+          new_parsed_root->deep_drop();
 
           // Avoid modifying the required nodes for the oracle.
-          p_oracle->mark_all_valid_node(cur_trans_stmt);
-          g_mutator.validate(cur_trans_stmt);
+          p_oracle->mark_all_valid_node(new_parsed_stmt);
 
-          int ret_res = FAULT_NONE;
-          int trial = 0;
-          do {
-              total_instan_num++;
-              trial++;
-              string cur_stmt_str = cur_trans_stmt->to_string();
-              if (ret_res == FAULT_CRASH) {
-                  cur_stmt_str = whole_query_sequence + cur_stmt_str + "; \n";
-                  // Reset the server after crash.
-                  ret_res = run_target(argv, exec_tmout, cur_stmt_str, 1);
-              } else {
-                  // Do not reset the server while running each single statement.
-                  ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
-              }
+          // Apply the dynamic fixing.
+          g_mutator.rollback_instan_lib_changes();
+          g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
+                                     dyn_fix_trial, false);
 
-              if (p_oracle->is_res_str_error(g_cockroach_output)) {
-                  ret_res = FAULT_ERROR;
+          // The dynamic fixed stmt will be passed out from the cur_stmt_str
+          // string variable.
+          cur_stmt_str = new_parsed_stmt->to_string();
+          // Left nothing behind.
+          new_parsed_stmt->deep_drop();
 
-                  if (trial >= max_trial) {
-                      break;
-                  }
+          whole_query_seq_with_next = whole_query_seq + "; \n" + cur_stmt_str;
+          // We have to reset the server, because the previous query execution
+          // contains error.
+          ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+        }
 
-                  IR* ori_trans_stmt = cur_trans_stmt;
-                  string cur_trans_str = cur_trans_stmt->to_string();
-                  // Statement re-parsed.
-                  vector<IR*> v_new_parsed = g_mutator.parse_query_str_get_ir_set(cur_trans_str);
-                  if (v_new_parsed.size() == 0) {
-                      // fallback to the string before instantiation.
-                      g_mutator.rollback_instan_lib_changes();
-                      // v_new_parsed = g_mutator.parse_query_str_get_ir_set(ori_stmt_before_instan);
-                      cur_trans_stmt = NULL;
-                      ori_trans_stmt->deep_drop();
-                      break;
-                  }
-//                  if (v_new_parsed.size() == 0) {
-//                      cur_trans_stmt = NULL;
-//                      ori_trans_stmt->deep_drop();
-//                      break;
-//                  }
-                  IR* new_parsed_root = v_new_parsed.back();
-                  cur_trans_stmt = new_parsed_root->get_left()->get_left()->get_left()->deep_copy();
-                  cur_trans_stmt->parent_ = NULL;
-                  new_parsed_root->deep_drop();
-                  ori_trans_stmt->deep_drop();
+        if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+            // If the query execution triggers an Internal Error,
+            // log the buggy query string.
+            log_logical_bug(whole_query_seq_with_next);
+            ret_res = FAULT_ERROR;
+            is_prev_stmt_error = true;
+        }
 
-                  // Avoid modifying the required nodes for the oracle.
-                  p_oracle->mark_all_valid_node(cur_trans_stmt);
+        // Setup the is_prev_stmt_error flag.
+        if (ret_res == FAULT_NONE) {
+          // Log the error flag. Hint the fuzzer to reset the database on next
+          // execution.
+          is_prev_stmt_error = false;
+        } else {
+          // Revert the changes.
+          is_prev_stmt_error = true;
+          g_mutator.rollback_instan_lib_changes();
+        }
 
-                  g_mutator.fix_instan_error(cur_trans_stmt, g_cockroach_output, trial, false);
+        if (p_oracle->is_oracle_select_stmt(cur_stmt_str)) {
+          // The current attached statement IS A SELECT statement.
+          // Attach the SELECT statement at the end of the query sequence.
+          // Execute it, and then log the code coverage information.
+          // This SELECT will never be saved into the whole_query_seq.
 
-              }
+          // Check whether the statement contains new code coverage.
+          ALL_COMP_RES tmp_all_comp_res;
+          tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
+          tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+          save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                              tmp_all_comp_res);
 
-              if (ret_res == FAULT_NONE) {
-                  total_instan_succeed_num++;
-                  whole_query_sequence += cur_stmt_str + "; \n";
-              } else if (ret_res == FAULT_CRASH) {
-                  ALL_COMP_RES all_comp_res;
-                  string tmp_whole_query_sequence = whole_query_sequence + cur_stmt_str + "; \n";
-//                  restart_cockroachdb(argv);
-                  // If an crash is encountered, save the output to the crash log.
-                  all_comp_res.cmd_str = tmp_whole_query_sequence;
-                  all_comp_res.v_cmd_str.push_back(tmp_whole_query_sequence);
-                  save_if_interesting(argv, tmp_whole_query_sequence, ret_res, all_comp_res);
-              }
+          // Here, also test whether the non-OPT version of the query could contain
+          // errors.
+          // The non-opt version of the code causes a lot of bugs in CockroachDB.
+          string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
+          ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
 
-          } while (ret_res != FAULT_NONE && trial < max_trial);
-
-          if (cur_trans_stmt != NULL) {
-              tmp_all_pre_trans_vec.push_back(cur_trans_stmt);
+          if (ret_res == FAULT_CRASH) {
+              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
+              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+              save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
+                                  tmp_all_comp_res);
           }
-      }
 
-      all_pre_trans_vec = tmp_all_pre_trans_vec;
+          // Because we set the optimization flags, we need to reset the whole database.
+          reset_database_without_restart(argv);
+          is_prev_stmt_error = false;
 
-      // After fixing all the statements, reset the database data.
-//      restart_cockroachdb(argv);
+          total_execs++;
+
+        } // End of SELECT statement handling.
+        else {
+          // For non-SELECT statements.
+          // Attach the current non-select statement at the end of the query
+          // sequence. Execute it, but no need to check the code coverage. (only
+          // check with SELECT stmt) If no errors, the new non-SELECT statement
+          // will be saved into whole_query_seq. If errors, and cannot be fixed
+          // with dyn_fixing, abort the new statement.
+
+          if (is_prev_stmt_error) {
+            // On error, no need to save anything.
+          } else {
+            // Without error, save the current stmt to the whole_query_seq.
+            // But no need to check the code coverage here.  (only check with
+            // SELECT stmt)
+            whole_query_seq = whole_query_seq_with_next;
+          }
+        }
+      } // Finished the whole query sequences (with multiple SELECTs
+        // executions).
+
+      // After executing all the statements, reset the database data.
       reset_database_without_restart(argv);
-
-      // Continues to the post-fix oracle transformation.
-      vector<vector<STMT_TYPE>> post_fix_stmt_type_vec;
-      /* post_fix_transformation from the oracle. All deep_copied. */
-      vector<vector<vector<IR *>>> all_post_trans_vec_all_runs =
-          g_mutator.post_fix_transform(all_pre_trans_vec, stmt_type_vec,
-                                       post_fix_stmt_type_vec);
-
-      for (auto post_trans_idx = 0; post_trans_idx < all_post_trans_vec_all_runs.size(); post_trans_idx++) {
-           auto& all_post_trans_vec = all_post_trans_vec_all_runs[post_trans_idx];
-           auto cur_post_fix_stmt_type_vec = post_fix_stmt_type_vec[post_trans_idx];
-
-        // Final step, transform IR tree to string. Add marker to important
-        // statements.
-        pair<string, string> query_str_pair = g_mutator.ir_to_string(
-            cur_root, all_post_trans_vec, cur_post_fix_stmt_type_vec);
-        query_str_vec.push_back(query_str_pair.first);
-        query_str_no_marks_vec.push_back(
-            query_str_pair
-                .second); // Without adding the pre_post_transformed statements.
-      }
 
       /* Clean up allocated resource.  */
       for (int i = 0; i < all_pre_trans_vec.size(); i++) {
-        all_pre_trans_vec[i]->deep_drop();
+          all_pre_trans_vec[i]->deep_drop();
       }
 
-      for (int i = 0; i < all_post_trans_vec_all_runs.size(); i++) {
-        for (int j = 0; j < all_post_trans_vec_all_runs[i].size(); j++) {
-          for (int k = 0; k < all_post_trans_vec_all_runs[i][j].size(); k++) {
-            all_post_trans_vec_all_runs[i][j][k]->deep_drop();
-          }
-        }
-      }
+      total_execute++;
+      stage_cur++;
+      show_stats();
 
-      num_validate++;
-
-      if (cur_ir_tree.size() > 0) {
-        cur_ir_tree.back()->deep_drop();
-      }
-
-      /* Finished clean up */
-
-      if (query_str_vec.size() == 0) {
-        total_append_failed++;
-        skip_count++;
-        continue;
-      } else if (query_str_vec[0] == "") {
-        total_append_failed++;
-        skip_count++;
-        continue;
-      } else {
-        show_stats();
-        stage_name = "fuzz";
-
-        if (p_oracle->get_oracle_type() == "OPT") {
-          string ori_stmt = query_str_vec[0];
-          string no_opt_stmt = no_opt_str + ori_stmt;
-          string all_opt_stmt = all_opt_str + ori_stmt;
-          query_str_vec[1] = no_opt_stmt;
-          query_str_vec[2] = all_opt_stmt;
-
-          ori_stmt = query_str_no_marks_vec[0];
-          no_opt_stmt = no_opt_str + ori_stmt;
-          all_opt_stmt = all_opt_str + ori_stmt;
-          query_str_no_marks_vec.push_back(no_opt_stmt);
-          query_str_no_marks_vec.push_back(all_opt_stmt);
-          query_str_no_marks_vec[1] = no_opt_stmt;
-          query_str_no_marks_vec[2] = all_opt_stmt;
-        }
-
-        common_fuzz_stuff(argv, query_str_vec, query_str_no_marks_vec);
-        total_execute++;
-        stage_cur++;
-        show_stats();
-      }
     } // v_mutated_ir_root
 
     auto single_mutation_end_time = std::chrono::system_clock::now();
@@ -6497,7 +6512,8 @@ static void sync_fuzzers(char **argv) {
         vector<int> dump_vec;
         all_comp_res.cmd_str = saved_str;
         all_comp_res.v_cmd_str.push_back(saved_str);
-        queued_imported += save_if_interesting(argv, saved_str, fault, all_comp_res);
+        queued_imported +=
+            save_if_interesting(argv, saved_str, fault, all_comp_res);
         syncing_party = 0;
 
         munmap(mem, st.st_size);
@@ -6528,9 +6544,9 @@ static void handle_stop_sig(int sig) {
   stop_soon = 1;
 
   if (forksrv_pid > 0) {
-      kill(forksrv_pid, SIGKILL);
-      int status;
-      wait(&status);
+    kill(forksrv_pid, SIGKILL);
+    int status;
+    wait(&status);
   }
 }
 
@@ -6544,9 +6560,9 @@ static void handle_timeout(int sig) {
   is_timeout = true;
   child_timed_out = 1;
   if (forksrv_pid != -1) {
-      kill(forksrv_pid, SIGKILL);
-      int status;
-      wait(&status);
+    kill(forksrv_pid, SIGKILL);
+    int status;
+    wait(&status);
   }
   forksrv_pid = -1;
 }
@@ -6958,20 +6974,22 @@ EXP_ST void setup_dirs_fds(void) {
   if (!plot_file)
     PFATAL("fdopen() failed");
 
-  fprintf(plot_file,
-          "unix_time,cycles_done,cur_path,paths_total,"
-          "pending_total,pending_favs,map_size,unique_crashes,"
-          "unique_hangs,max_depth,execs_per_sec,total_execs,"
-          "total_input_failed,total_random_VALID,total_add_to_queue,total_"
-          "mutate_all_failed,"
-          "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
-          "total_valid_stmts,total_good_queries,cockroach_execute_ok,cockroach_"
-          "execute_error,cockroach_execute_total,"
-          "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,"
-          "num_append,num_validate,total_data_type_related_error,total_alias_type_error,total_instan_type_error,total_error,type_error_percentage,"
-          "alias_error_percentage,instan_error_percentage,"
-          "total_instan_succeed,total_instan_num,total_instan_success_rate"
-          "\n");
+  fprintf(
+      plot_file,
+      "unix_time,cycles_done,cur_path,paths_total,"
+      "pending_total,pending_favs,map_size,unique_crashes,"
+      "unique_hangs,max_depth,execs_per_sec,total_execs,"
+      "total_input_failed,total_random_VALID,total_add_to_queue,total_"
+      "mutate_all_failed,"
+      "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
+      "total_valid_stmts,total_good_queries,cockroach_execute_ok,cockroach_"
+      "execute_error,cockroach_execute_total,"
+      "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,"
+      "num_append,num_validate,total_data_type_related_error,total_alias_type_"
+      "error,total_instan_type_error,total_error,type_error_percentage,"
+      "alias_error_percentage,instan_error_percentage,"
+      "total_instan_succeed,total_instan_num,total_instan_success_rate"
+      "\n");
 
   /* ignore errors */
 }
@@ -8002,9 +8020,9 @@ int main(int argc, char **argv) {
      runner. If we stopped manually, this is done by the signal handler. */
   if (stop_soon == 2) {
     if (forksrv_pid > 0) {
-        kill(forksrv_pid, SIGKILL);
-        int status;
-        wait(&status);
+      kill(forksrv_pid, SIGKILL);
+      int status;
+      wait(&status);
     }
   }
   /* Now that we've killed the forkserver, we wait for it to be able to get
