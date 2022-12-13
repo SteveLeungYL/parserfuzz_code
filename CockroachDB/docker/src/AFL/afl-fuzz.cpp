@@ -157,7 +157,8 @@ string all_opt_str = "SET testing_optimizer_disable_rule_probability = 0.0;\n";
 // sql.stats.histogram_collection.enabled = true;\n" "SET CLUSTER SETTING
 // sql.query_cache.enabled = true;\n" "SET reorder_joins_limit = 8;\n";
 
-string no_opt_sql_str = "SET testing_optimizer_disable_rule_probability = 1.0; \n";
+string no_opt_sql_str =
+    "SET testing_optimizer_disable_rule_probability = 1.0; \n";
 // string no_opt_sql_str =  "SET CLUSTER SETTING
 // sql.stats.automatic_collection.enabled = false; DELETE FROM
 // system.table_statistics WHERE true;\n" "SET CLUSTER SETTING
@@ -2566,7 +2567,8 @@ static void restart_cockroachdb(char **argv) {
 static u8 run_target(char **argv, u32 timeout, string cmd_str,
                      int is_reset_server = 1) {
 
-//    cerr << "Running stmt: " << cmd_str << "\nis_reset_server: " << is_reset_server << "\n\n\n";
+  //    cerr << "Running stmt: " << cmd_str << "\nis_reset_server: " <<
+  //    is_reset_server << "\n\n\n";
 
   static struct itimerval it;
   static u32 prev_timed_out = 0;
@@ -2677,15 +2679,15 @@ BEGIN:
 
   // total_execs++;
 
-//  if (filesystem::exists("./cov_out.bin")) {
-//    ifstream fin("./cov_out.bin", ios::in | ios::binary);
-//    fin.read(trace_bits, MAP_SIZE);
-//    fin.close();
-//    // Remove the file. Ignore the returned value.
-//    remove("./cov_out.bin");
-//  }
-//
-//  classify_counts((u64 *)trace_bits);
+  //  if (filesystem::exists("./cov_out.bin")) {
+  //    ifstream fin("./cov_out.bin", ios::in | ios::binary);
+  //    fin.read(trace_bits, MAP_SIZE);
+  //    fin.close();
+  //    // Remove the file. Ignore the returned value.
+  //    remove("./cov_out.bin");
+  //  }
+  //
+  //  classify_counts((u64 *)trace_bits);
 
   // Log the query execution results.
   g_cockroach_output = "";
@@ -2714,48 +2716,46 @@ BEGIN:
     slowest_exec_ms = exec_ms;
   }
 
-//  cerr << "res: " << g_cockroach_output << "\n\n\n";
+  //  cerr << "res: " << g_cockroach_output << "\n\n\n";
   return FAULT_NONE;
 }
 
 /* Tell the DBMS to output the code coverage information. */
-void record_code_coverage(char** argv) {
-    memset(trace_bits, 0, MAP_SIZE);
-    MEM_BARRIER();
+void record_code_coverage(char **argv) {
+  memset(trace_bits, 0, MAP_SIZE);
+  MEM_BARRIER();
 
-    // Send the signal to notify the CockroachDB to start executions.
-    // If the is_reset_server_only is 1, then the CockroachDB server
-    // will reset its database.
-    int log_cov_flag = 3;
-    while ((write(fsrv_ctl_fd, &log_cov_flag,
-                  sizeof(log_cov_flag))) != 4) {
-        if (stop_soon) {
-            return;
-        }
-        // Make sure the CockroachDB process is restart correctly.
-        restart_cockroachdb(argv);
+  // Send the signal to notify the CockroachDB to start executions.
+  // If the is_reset_server_only is 1, then the CockroachDB server
+  // will reset its database.
+  int log_cov_flag = 3;
+  while ((write(fsrv_ctl_fd, &log_cov_flag, sizeof(log_cov_flag))) != 4) {
+    if (stop_soon) {
+      return;
     }
+    // Make sure the CockroachDB process is restart correctly.
+    restart_cockroachdb(argv);
+  }
 
-    /* Inside the parent process.
-  // Wait for the child process.
-  // Check the code coverage.
-  */
+  /* Inside the parent process.
+// Wait for the child process.
+// Check the code coverage.
+*/
 
-    int status;
-    read(fsrv_st_fd, &status, 4);
+  int status;
+  read(fsrv_st_fd, &status, 4);
 
-    if (filesystem::exists("./cov_out.bin")) {
-        ifstream fin("./cov_out.bin", ios::in | ios::binary);
-        fin.read(trace_bits, MAP_SIZE);
-        fin.close();
-        // Remove the file. Ignore the returned value.
-        remove("./cov_out.bin");
-    }
-    classify_counts((u64 *)trace_bits);
+  if (filesystem::exists("./cov_out.bin")) {
+    ifstream fin("./cov_out.bin", ios::in | ios::binary);
+    fin.read(trace_bits, MAP_SIZE);
+    fin.close();
+    // Remove the file. Ignore the returned value.
+    remove("./cov_out.bin");
+  }
+  classify_counts((u64 *)trace_bits);
 
-    return;
+  return;
 }
-
 
 inline void reset_database_without_restart(char **argv) {
   run_target(argv, exec_tmout, "", 1);
@@ -3334,17 +3334,17 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
       program_input_str += use_mem[output_index];
     }
     // cerr << program_input_str << endl;
-//    vector<int> dummy_vec;
-//    ALL_COMP_RES dummy_all_comp_res;
-//    vector<string> program_input_str_vec{program_input_str};
-//    fault = execute_cmd_string(program_input_str_vec, dummy_vec,
-//                               dummy_all_comp_res, argv, use_tmout);
+    //    vector<int> dummy_vec;
+    //    ALL_COMP_RES dummy_all_comp_res;
+    //    vector<string> program_input_str_vec{program_input_str};
+    //    fault = execute_cmd_string(program_input_str_vec, dummy_vec,
+    //                               dummy_all_comp_res, argv, use_tmout);
 
     fault = run_target(argv, exec_tmout, program_input_str, 1);
     record_code_coverage(argv);
 
-      /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
-         we want to bail out quickly. */
+    /* stop_soon is set by the handler for Ctrl+C. When it's pressed,
+       we want to bail out quickly. */
 
     if (stop_soon || fault != crash_mode)
       goto abort_calibration;
@@ -5900,28 +5900,28 @@ void split_queries_into_small_pieces(string &large_query,
 
 /* Output logical bugs to the bug reporting folder. */
 void log_logical_bug(string buggy_query_str) {
-    ofstream outputfile;
-    bug_output_id++;
-    if (!filesystem::exists("../../../Bug_Analysis/")) {
-        filesystem::create_directory("../../../Bug_Analysis/");
-    }
-    if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
-        filesystem::create_directory("../../../Bug_Analysis/bug_samples");
-    }
+  ofstream outputfile;
+  bug_output_id++;
+  if (!filesystem::exists("../../../Bug_Analysis/")) {
+    filesystem::create_directory("../../../Bug_Analysis/");
+  }
+  if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
+    filesystem::create_directory("../../../Bug_Analysis/bug_samples");
+  }
 
-    string bug_output_dir =
-            "../../../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) +
-            ":src:" + to_string(current_entry) +
-            ":core:" + std::to_string(bind_to_core_id) + ".txt";
-    // cerr << "Bug output dir is: " << bug_output_dir << endl;
-    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
+  string bug_output_dir =
+      "../../../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) +
+      ":src:" + to_string(current_entry) +
+      ":core:" + std::to_string(bind_to_core_id) + ".txt";
+  // cerr << "Bug output dir is: " << bug_output_dir << endl;
+  outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
 
-    ALL_COMP_RES tmp_all_comp_res;
-    tmp_all_comp_res.cmd_str = buggy_query_str;
-    tmp_all_comp_res.v_cmd_str.push_back(buggy_query_str);
-    stream_output_res(tmp_all_comp_res, outputfile);
+  ALL_COMP_RES tmp_all_comp_res;
+  tmp_all_comp_res.cmd_str = buggy_query_str;
+  tmp_all_comp_res.v_cmd_str.push_back(buggy_query_str);
+  stream_output_res(tmp_all_comp_res, outputfile);
 
-    outputfile.close();
+  outputfile.close();
 }
 
 /* Take the current entry from the queue, fuzz it for a while. This
@@ -6205,6 +6205,7 @@ static u8 fuzz_one(char **argv) {
       bool is_prev_stmt_error = false;
       constexpr int max_trial = 4;
 
+      cerr << "\n\n\nDEBUG:: all_pre_trans_vec.size(): " << all_pre_trans_vec.size() << "\n\n\n";
       for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
         // Prepare for a new statement of instantiation.
         // Set the savepoint for instantiation library rollback.
@@ -6220,129 +6221,140 @@ static u8 fuzz_one(char **argv) {
 
         string cur_stmt_str = cur_trans_stmt->to_string();
 
-        if (p_oracle->is_sql_str_transaction_related(cur_stmt_str)) {
-            // If the stmt is TRANSACTION related, ignored.
-            continue;
-        }
-
-        whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-
-        auto single_exec_begin_time = std::chrono::system_clock::now();
-        if (is_prev_stmt_error) {
-          // If the previous statement contains error, we need to reset the
-          // server.
-          ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-          cerr << "For stmt: " << whole_query_seq_with_next << "\nis_reset: 1\n";
-        } else {
-          // If the previous statement is OK, we can directly execute the SELECT
-          // without resetting.
-          ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
-          cerr << "For stmt: " << cur_stmt_str << "\nis_reset: 0\n";
-        }
-        auto single_exec_end_time = std::chrono::system_clock::now();
-        std::chrono::duration<double> single_exec_used_time =
-                  single_exec_end_time - single_exec_begin_time;
-        cerr << "Takes time: " << single_exec_used_time.count() << "\n";
-        cerr << "Res: " << g_cockroach_output << "\n";
-        cerr << "ret_res: " << ret_res << "\n\n\n";
-
-
-        int dyn_fix_trial = 0;
-
-        while (
-               p_oracle->is_res_str_error(g_cockroach_output) &&
-               dyn_fix_trial < max_trial
-               ) {
-          // Check whether the statement execution contains SQL errors.
-          // If yes, use the dynamic fixing to try to fix the statement.
-
-          // Setup the error flag first.
-          ret_res = FAULT_SQLERROR;
-
-          // Iterate the counter.
-          dyn_fix_trial++;
-
-          // Parse the query string and then apply dynamic fixing.
-          vector<IR *> v_new_parsed =
-              g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
-          if (v_new_parsed.size() == 0) {
-            // The instantiated query cannot pass the parser.
-            // Ignore current stmt.
-            g_mutator.rollback_instan_lib_changes();
-            cur_trans_stmt = NULL;
-            cerr << "Break because the instantiated query cannot be reparsed. \n\n\n";
-            break;
-          }
-
-          IR *new_parsed_root = v_new_parsed.back();
-          IR *new_parsed_stmt =
-              new_parsed_root->get_left()->get_left()->get_left()->deep_copy();
-          new_parsed_stmt->parent_ = NULL;
-          new_parsed_root->deep_drop();
-
-          // Avoid modifying the required nodes for the oracle.
-          p_oracle->mark_all_valid_node(new_parsed_stmt);
-
-          // Apply the dynamic fixing.
-          g_mutator.rollback_instan_lib_changes();
-          g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
-                                     dyn_fix_trial, false);
-
-          // The dynamic fixed stmt will be passed out from the cur_stmt_str
-          // string variable.
-          cur_stmt_str = new_parsed_stmt->to_string();
-          // Left nothing behind.
-          new_parsed_stmt->deep_drop();
-
-          whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
-          // We have to reset the server, because the previous query execution
-          // contains error.
-          auto single_exec_begin_time = std::chrono::system_clock::now();
-          ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-          cerr << "For stmt: " << whole_query_seq_with_next << "\nis_reset: 1\n";
-          auto single_exec_end_time = std::chrono::system_clock::now();
-          std::chrono::duration<double> single_exec_used_time =
-                  single_exec_end_time - single_exec_begin_time;
-          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
-          cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
-
-        }
-
-        if (p_oracle->is_res_str_error(g_cockroach_output)) {
-            // Be careful, after the last dyn_fixing, the query could still be semantic error.
-            ret_res = FAULT_SQLERROR;
-        }
-
-        if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
-            // If the query execution triggers an Internal Error,
-            // log the buggy query string.
-            log_logical_bug(whole_query_seq_with_next);
-            ret_res = FAULT_ERROR;
-            is_prev_stmt_error = true;
-        }
-
-        // Setup the is_prev_stmt_error flag.
-        if (ret_res == FAULT_NONE) {
-          // Log the error flag. Hint the fuzzer to reset the database on next
-          // execution.
-          is_prev_stmt_error = false;
-        } else {
-          // Revert the changes.
-          is_prev_stmt_error = true;
-          g_mutator.rollback_instan_lib_changes();
-        }
-
         if (p_oracle->is_oracle_select_stmt(cur_stmt_str)) {
           // The current attached statement IS A SELECT statement.
           // Attach the SELECT statement at the end of the query sequence.
           // Execute it, and then log the code coverage information.
           // This SELECT will never be saved into the whole_query_seq.
+
+          whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
+
           auto single_exec_begin_time = std::chrono::system_clock::now();
-          record_code_coverage(argv);
+          if (is_prev_stmt_error) {
+            // If the previous statement contains error, we need to reset the
+            // server.
+            ret_res = run_target(argv, exec_tmout,
+                                 whole_query_seq + "SAVEPOINT foo; \n" +
+                                     cur_stmt_str + "; \n",
+                                 1);
+            cerr << "For SELECT stmt: " << whole_query_seq + "SAVEPOINT foo; \n" + cur_stmt_str + "; \n"
+                 << "\nis_reset: 1\n";
+          } else {
+            // If the previous statement is OK, we can directly execute the
+            // SELECT without resetting.
+            ret_res = run_target(argv, exec_tmout, "SAVEPOINT foo; \n" + cur_stmt_str + "; \n", 0);
+            cerr << "For SELECT stmt: " << cur_stmt_str << "\nis_reset: 0\n";
+          }
+
           auto single_exec_end_time = std::chrono::system_clock::now();
           std::chrono::duration<double> single_exec_used_time =
-                  single_exec_end_time - single_exec_begin_time;
-          cerr << "Save coverage takes time: " << single_exec_used_time.count() << "\n\n\n";
+              single_exec_end_time - single_exec_begin_time;
+          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+          cerr << "Res: " << g_cockroach_output << "\n";
+          cerr << "ret_res: " << ret_res << "\n\n\n";
+
+          int dyn_fix_trial = 0;
+
+          while (p_oracle->is_res_str_error(g_cockroach_output) &&
+                 dyn_fix_trial < max_trial) {
+            // Check whether the statement execution contains SQL errors.
+            // If yes, use the dynamic fixing to try to fix the statement.
+
+            // No need to set up the error flag.
+            // ret_res = FAULT_NONE;
+
+            // Iterate the counter.
+            dyn_fix_trial++;
+
+            // Parse the query string and then apply dynamic fixing.
+            vector<IR *> v_new_parsed =
+                g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
+            if (v_new_parsed.size() == 0) {
+              // The instantiated query cannot pass the parser.
+              // Ignore current stmt.
+              g_mutator.rollback_instan_lib_changes();
+              cur_trans_stmt = NULL;
+              cerr << "Break because the instantiated query cannot be "
+                      "re-parsed. \n\n\n";
+              break;
+            }
+
+            IR *new_parsed_root = v_new_parsed.back();
+            IR *new_parsed_stmt = new_parsed_root->get_left()
+                                      ->get_left()
+                                      ->get_left()
+                                      ->deep_copy();
+            new_parsed_stmt->parent_ = NULL;
+            new_parsed_root->deep_drop();
+
+            // Avoid modifying the required nodes for the oracle.
+            p_oracle->mark_all_valid_node(new_parsed_stmt);
+
+            // Apply the dynamic fixing.
+            g_mutator.rollback_instan_lib_changes();
+            g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
+                                       dyn_fix_trial, false);
+
+            // The dynamic fixed stmt will be passed out from the cur_stmt_str
+            // string variable.
+            cur_stmt_str = new_parsed_stmt->to_string();
+            // Left nothing behind.
+            new_parsed_stmt->deep_drop();
+
+            whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
+            // We have to reset the server, because the previous query execution
+            // contains error.
+            auto single_exec_begin_time = std::chrono::system_clock::now();
+            ret_res =
+                run_target(argv, exec_tmout,
+                           "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
+            cerr << "For stmt: \n" << "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str
+                 << "\nis_reset: 1\n";
+            auto single_exec_end_time = std::chrono::system_clock::now();
+            std::chrono::duration<double> single_exec_used_time =
+                single_exec_end_time - single_exec_begin_time;
+            cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+            cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
+          }
+
+          if (p_oracle->is_res_str_error(g_cockroach_output)) {
+            // Be careful, after the last dyn_fixing, the query could still be
+            // semantic error.
+            ret_res = run_target(argv, exec_tmout,
+                                 "ROLLBACK TO SAVEPOINT FOO; \n", 0);
+          }
+
+          if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+            // If the query execution triggers an Internal Error,
+            // log the buggy query string.
+            log_logical_bug(whole_query_seq_with_next);
+//            ret_res = FAULT_ERROR;
+
+            // Rollback to the previous savepoint, so no need to worry about the
+            // is_prv_stmt_error.
+            ret_res = run_target(argv, exec_tmout,
+                                 "ROLLBACK TO SAVEPOINT FOO; \n", 0);
+            is_prev_stmt_error = false;
+          }
+
+          // Setup the is_prev_stmt_error flag.
+          if (ret_res == FAULT_NONE) {
+            // Log the error flag. Hint the fuzzer to reset the database on next
+            // execution.
+            is_prev_stmt_error = false;
+          } else {
+            // If crashes, revert the changes, and reset the database on new
+            // execution.
+            is_prev_stmt_error = true;
+            g_mutator.rollback_instan_lib_changes();
+          }
+
+          single_exec_begin_time = std::chrono::system_clock::now();
+          record_code_coverage(argv);
+          single_exec_end_time = std::chrono::system_clock::now();
+          single_exec_used_time = single_exec_end_time - single_exec_begin_time;
+          cerr << "Save coverage takes time: " << single_exec_used_time.count()
+               << "\n\n\n";
 
           // Check whether the statement contains new code coverage.
           // The save_if_interesting also handles the crashing.
@@ -6352,28 +6364,30 @@ static u8 fuzz_one(char **argv) {
           save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                               tmp_all_comp_res);
 
-//          // Here, also test whether the non-OPT version of the query could contain
-//          // errors.
-//          // The non-opt version of the code causes a lot of bugs in CockroachDB.
-//          string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
-//          ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
-//
-//          if (ret_res == FAULT_CRASH) {
-//              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
-//              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
-//              save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
-//                                  tmp_all_comp_res);
-//          }
-//
-//          // Because we set the optimization flags, we need to reset the whole database.
-//          reset_database_without_restart(argv);
-//          is_prev_stmt_error = false;
+          //          // Here, also test whether the non-OPT version of the
+          //          query could contain
+          //          // errors.
+          //          // The non-opt version of the code causes a lot of bugs in
+          //          CockroachDB. string whole_query_seq_no_opt =
+          //          no_opt_sql_str + whole_query_seq_with_next; ret_res =
+          //          run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
+          //
+          //          if (ret_res == FAULT_CRASH) {
+          //              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
+          //              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+          //              save_if_interesting(argv, whole_query_seq_no_opt,
+          //              ret_res,
+          //                                  tmp_all_comp_res);
+          //          }
+          //
+          //          // Because we set the optimization flags, we need to reset
+          //          the whole database. reset_database_without_restart(argv);
+          //          is_prev_stmt_error = false;
 
-            total_execs++;
-            show_stats();
+          total_execs++;
+          show_stats();
 
-        } // End of SELECT statement handling.
-        else {
+        } else {
           // For non-SELECT statements.
           // Attach the current non-select statement at the end of the query
           // sequence. Execute it, but no need to check the code coverage. (only
@@ -6381,13 +6395,129 @@ static u8 fuzz_one(char **argv) {
           // will be saved into whole_query_seq. If errors, and cannot be fixed
           // with dyn_fixing, abort the new statement.
 
+          if (p_oracle->is_sql_str_transaction_related(cur_stmt_str)) {
+            // If the stmt is TRANSACTION related, ignored.
+            continue;
+          }
+
+          whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
+
+          auto single_exec_begin_time = std::chrono::system_clock::now();
+          if (is_prev_stmt_error) {
+            // If the previous statement contains error, we need to reset the
+            // server.
+            ret_res =
+                run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+            cerr << "For stmt: " << whole_query_seq_with_next
+                 << "\nis_reset: 1\n";
+          } else {
+            // If the previous statement is OK, we can directly execute the
+            // SELECT without resetting.
+            ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
+            cerr << "For stmt: " << cur_stmt_str << "\nis_reset: 0\n";
+          }
+          auto single_exec_end_time = std::chrono::system_clock::now();
+          std::chrono::duration<double> single_exec_used_time =
+              single_exec_end_time - single_exec_begin_time;
+          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+          cerr << "Res: " << g_cockroach_output << "\n";
+          cerr << "ret_res: " << ret_res << "\n\n\n";
+
+          int dyn_fix_trial = 0;
+
+          while (p_oracle->is_res_str_error(g_cockroach_output) &&
+                 dyn_fix_trial < max_trial) {
+            // Check whether the statement execution contains SQL errors.
+            // If yes, use the dynamic fixing to try to fix the statement.
+
+            // Setup the error flag first.
+            ret_res = FAULT_SQLERROR;
+
+            // Iterate the counter.
+            dyn_fix_trial++;
+
+            // Parse the query string and then apply dynamic fixing.
+            vector<IR *> v_new_parsed =
+                g_mutator.parse_query_str_get_ir_set(cur_stmt_str);
+            if (v_new_parsed.size() == 0) {
+              // The instantiated query cannot pass the parser.
+              // Ignore current stmt.
+              g_mutator.rollback_instan_lib_changes();
+              cur_trans_stmt = NULL;
+              cerr << "Break because the instantiated query cannot be "
+                      "reparsed. \n\n\n";
+              break;
+            }
+
+            IR *new_parsed_root = v_new_parsed.back();
+            IR *new_parsed_stmt = new_parsed_root->get_left()
+                                      ->get_left()
+                                      ->get_left()
+                                      ->deep_copy();
+            new_parsed_stmt->parent_ = NULL;
+            new_parsed_root->deep_drop();
+
+            // Avoid modifying the required nodes for the oracle.
+            p_oracle->mark_all_valid_node(new_parsed_stmt);
+
+            // Apply the dynamic fixing.
+            g_mutator.rollback_instan_lib_changes();
+            g_mutator.fix_instan_error(new_parsed_stmt, g_cockroach_output,
+                                       dyn_fix_trial, false);
+
+            // The dynamic fixed stmt will be passed out from the cur_stmt_str
+            // string variable.
+            cur_stmt_str = new_parsed_stmt->to_string();
+            // Left nothing behind.
+            new_parsed_stmt->deep_drop();
+
+            whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
+            // We have to reset the server, because the previous query execution
+            // contains error.
+            auto single_exec_begin_time = std::chrono::system_clock::now();
+            ret_res =
+                run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+            cerr << "For stmt: " << whole_query_seq_with_next
+                 << "\nis_reset: 1\n";
+            auto single_exec_end_time = std::chrono::system_clock::now();
+            std::chrono::duration<double> single_exec_used_time =
+                single_exec_end_time - single_exec_begin_time;
+            cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+            cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
+          }
+
+          if (p_oracle->is_res_str_error(g_cockroach_output)) {
+            // Be careful, after the last dyn_fixing, the query could still be
+            // semantic error.
+            ret_res = FAULT_SQLERROR;
+          }
+
+          if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+            // If the query execution triggers an Internal Error,
+            // log the buggy query string.
+            log_logical_bug(whole_query_seq_with_next);
+            ret_res = FAULT_ERROR;
+            is_prev_stmt_error = true;
+          }
+
+          // Setup the is_prev_stmt_error flag.
+          if (ret_res == FAULT_NONE) {
+            // Log the error flag. Hint the fuzzer to reset the database on next
+            // execution.
+            is_prev_stmt_error = false;
+          } else {
+            // Revert the changes.
+            is_prev_stmt_error = true;
+            g_mutator.rollback_instan_lib_changes();
+          }
+
           if (ret_res == FAULT_CRASH) {
-              // Check whether the statement contains new code coverage.
-              ALL_COMP_RES tmp_all_comp_res;
-              tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
-              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
-              save_if_interesting(argv, whole_query_seq_with_next, ret_res,
-                                  tmp_all_comp_res);
+            // Check whether the statement contains new code coverage.
+            ALL_COMP_RES tmp_all_comp_res;
+            tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
+            tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+            save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                                tmp_all_comp_res);
           }
 
           if (is_prev_stmt_error) {
@@ -6402,12 +6532,14 @@ static u8 fuzz_one(char **argv) {
       } // Finished the whole query sequences (with multiple SELECTs
         // executions).
 
+        cerr << "\n\n\nDEBUG: Finished one mutation: total_execs: " << total_execs << "\n\n\n";
+
       // After executing all the statements, reset the database data.
       reset_database_without_restart(argv);
 
       /* Clean up allocated resource.  */
       for (int i = 0; i < all_pre_trans_vec.size(); i++) {
-          all_pre_trans_vec[i]->deep_drop();
+        all_pre_trans_vec[i]->deep_drop();
       }
 
       total_execute++;
@@ -6416,7 +6548,9 @@ static u8 fuzz_one(char **argv) {
 
     } // v_mutated_ir_root
 
-    auto single_mutation_end_time = std::chrono::system_clock::now();
+      cerr << "\n\n\nDEBUG: Finished one seed: total_execs: " << total_execs << ", cur_path: " << current_entry << "\n\n\n";
+
+      auto single_mutation_end_time = std::chrono::system_clock::now();
     std::chrono::duration<double> single_mutation_used_time =
         single_mutation_end_time - single_mutation_start_time;
 
