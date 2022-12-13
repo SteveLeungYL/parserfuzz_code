@@ -6203,7 +6203,7 @@ static u8 fuzz_one(char **argv) {
       string whole_query_seq_with_next =
           ""; // Whole query sequence with next stmt. Abort if error.
       bool is_prev_stmt_error = false;
-      constexpr int max_trial = 10;
+      constexpr int max_trial = 4;
 
       for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
         // Prepare for a new statement of instantiation.
@@ -6225,23 +6225,34 @@ static u8 fuzz_one(char **argv) {
             continue;
         }
 
-        whole_query_seq_with_next = whole_query_seq + "; \n" + cur_stmt_str;
+        whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
 
+        auto single_exec_begin_time = std::chrono::system_clock::now();
         if (is_prev_stmt_error) {
           // If the previous statement contains error, we need to reset the
           // server.
           ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+          cerr << "For stmt: " << whole_query_seq_with_next << "\nis_reset: 1\n";
         } else {
           // If the previous statement is OK, we can directly execute the SELECT
           // without resetting.
           ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
+          cerr << "For stmt: " << cur_stmt_str << "\nis_reset: 0\n";
         }
+        auto single_exec_end_time = std::chrono::system_clock::now();
+        std::chrono::duration<double> single_exec_used_time =
+                  single_exec_end_time - single_exec_begin_time;
+        cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+        cerr << "Res: " << g_cockroach_output << "\n";
+        cerr << "ret_res: " << ret_res << "\n\n\n";
+
 
         int dyn_fix_trial = 0;
 
-        while ((ret_res == FAULT_NONE || ret_res == FAULT_SQLERROR) &&
+        while (
                p_oracle->is_res_str_error(g_cockroach_output) &&
-               dyn_fix_trial < max_trial) {
+               dyn_fix_trial < max_trial
+               ) {
           // Check whether the statement execution contains SQL errors.
           // If yes, use the dynamic fixing to try to fix the statement.
 
@@ -6259,6 +6270,7 @@ static u8 fuzz_one(char **argv) {
             // Ignore current stmt.
             g_mutator.rollback_instan_lib_changes();
             cur_trans_stmt = NULL;
+            cerr << "Break because the instantiated query cannot be reparsed. \n\n\n";
             break;
           }
 
@@ -6282,10 +6294,23 @@ static u8 fuzz_one(char **argv) {
           // Left nothing behind.
           new_parsed_stmt->deep_drop();
 
-          whole_query_seq_with_next = whole_query_seq + "; \n" + cur_stmt_str;
+          whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
           // We have to reset the server, because the previous query execution
           // contains error.
+          auto single_exec_begin_time = std::chrono::system_clock::now();
           ret_res = run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
+          cerr << "For stmt: " << whole_query_seq_with_next << "\nis_reset: 1\n";
+          auto single_exec_end_time = std::chrono::system_clock::now();
+          std::chrono::duration<double> single_exec_used_time =
+                  single_exec_end_time - single_exec_begin_time;
+          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+          cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
+
+        }
+
+        if (p_oracle->is_res_str_error(g_cockroach_output)) {
+            // Be careful, after the last dyn_fixing, the query could still be semantic error.
+            ret_res = FAULT_SQLERROR;
         }
 
         if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
@@ -6312,7 +6337,12 @@ static u8 fuzz_one(char **argv) {
           // Attach the SELECT statement at the end of the query sequence.
           // Execute it, and then log the code coverage information.
           // This SELECT will never be saved into the whole_query_seq.
+          auto single_exec_begin_time = std::chrono::system_clock::now();
           record_code_coverage(argv);
+          auto single_exec_end_time = std::chrono::system_clock::now();
+          std::chrono::duration<double> single_exec_used_time =
+                  single_exec_end_time - single_exec_begin_time;
+          cerr << "Save coverage takes time: " << single_exec_used_time.count() << "\n\n\n";
 
           // Check whether the statement contains new code coverage.
           // The save_if_interesting also handles the crashing.
