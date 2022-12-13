@@ -314,6 +314,52 @@ bool unit_test_with_alias_1(bool is_show_debug = false) {
 
 }
 
+bool unit_test_jsonb_operator(bool is_show_debug = false) {
+
+    g_mutator.pre_validate();
+
+    // Succeed with return true,
+    // Failed with return false.
+
+    vector<string> stmt_list {
+            "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+            "SELECT x FROM (SELECT TIMEOFDAY( )->'9yhrt' AS ca189 FROM v0) WHERE x IS NOT NULL;"
+    };
+
+    vector<string> res_list {
+            "",
+            "pq: unsupported binary operator: <bit> -> <varbit>"
+    };
+
+    vector<IR*> ir_list;
+    for (string& cur_stmt: stmt_list) {
+        IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+        ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+        cur_root->deep_drop();
+    }
+
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+        }
+    }
+
+    dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+    bool is_no_error;
+    for (IR* cur_stmt: ir_list) {
+        if (is_show_debug) {
+            cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+        }
+        is_no_error = iden_common_error(cur_stmt);
+        if (!is_no_error) {
+            break;
+        }
+    }
+
+    return is_no_error;
+
+}
+
 
 
 int main(int argc, char *argv[]) {
@@ -334,8 +380,8 @@ int main(int argc, char *argv[]) {
     assert(unit_test_failure_create(false));
     assert(unit_test_alter_bugs(false));
     assert(unit_test_alias_0(false));
-    assert(unit_test_with_alias_1(true));
-
+    assert(unit_test_with_alias_1(false));
+    assert(unit_test_jsonb_operator(false));
 
     return 0;
 }

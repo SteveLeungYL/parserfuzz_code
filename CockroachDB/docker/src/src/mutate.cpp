@@ -6029,13 +6029,22 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
 
         str_operator = v_tmp_split.at(v_tmp_split.size() - 2);
 
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG::When fixing the unsupported binary operator, clean, getting binary operator: "
+                 << str_operator << "\n\n\n";
+        }
+
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
         for (IR* cur_binary_operator : v_binary_operator) {
             string cur_binary_str = cur_binary_operator->get_middle();
             trim_string(cur_binary_str);
             trim_string(str_operator);
-            if (cur_binary_str == str_operator) {
+            if (is_debug_info) {
+                cerr << "\n\n\nDEBUG::When fixing the unsupported binary operator, clean, getting binary operator:"
+                     << str_operator << ", node str:" << cur_binary_str << ".\n\n\n";
+            }
+            if (cur_binary_str != str_operator) {
                 continue;
             }
             cur_binary_operator->op_->middle_ = " = ";
