@@ -68,4 +68,4 @@ clean:
 	@make clean -C src
 	@make clean -C oracle
 	@make clean -C AFL
-	rm -rf afl-fuzz test-parser afl-tmin afl-setting-mutator generate_inputs
+	rm -rf afl-fuzz test-parser afl-tmin afl-setting-mutator generate_inputs dyn-fix-unit-test
