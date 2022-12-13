@@ -323,12 +323,15 @@ bool unit_test_jsonb_operator(bool is_show_debug = false) {
 
     vector<string> stmt_list {
             "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
-            "SELECT x FROM (SELECT TIMEOFDAY( )->'9yhrt' AS ca189 FROM v0) WHERE x IS NOT NULL;"
+            "SELECT x FROM (SELECT TIMEOFDAY( )->'9yhrt' AS ca189 FROM v0) WHERE x IS NOT NULL;",
+            "SELECT DISTINCT ON (\"RIGHT\"( b'9', -688706232)) '4-7 9 5:37:27' AS ca207, ta206.c2 FROM v0 "
+            "AS ta206 WHERE (ta206.c3 % B'0') = B'0';"
     };
 
     vector<string> res_list {
             "",
-            "pq: unsupported binary operator: <bit> -> <varbit>"
+            "pq: unsupported binary operator: <bit> -> <varbit>",
+            "pq: unsupported binary operator: <bit> % <varbit>"
     };
 
     vector<IR*> ir_list;
