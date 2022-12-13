@@ -6121,7 +6121,7 @@ static u8 fuzz_one(char **argv) {
 
   /* Get some oracle compatible SELECT stmts.  */
   v_oracle_select_stmts.clear();
-  get_oracle_select_stmts(v_oracle_select_stmts, 120);
+  get_oracle_select_stmts(v_oracle_select_stmts, 20);
 
   int cur_reparse;
   cur_reparse = 0;
