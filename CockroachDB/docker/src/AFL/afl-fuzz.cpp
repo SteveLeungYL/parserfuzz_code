@@ -6205,7 +6205,7 @@ static u8 fuzz_one(char **argv) {
       bool is_prev_stmt_error = false;
       constexpr int max_trial = 4;
 
-      cerr << "\n\n\nDEBUG:: all_pre_trans_vec.size(): " << all_pre_trans_vec.size() << "\n\n\n";
+//      cerr << "\n\n\nDEBUG:: all_pre_trans_vec.size(): " << all_pre_trans_vec.size() << "\n\n\n";
       for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
         // Prepare for a new statement of instantiation.
         // Set the savepoint for instantiation library rollback.
@@ -6229,7 +6229,7 @@ static u8 fuzz_one(char **argv) {
 
           whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
 
-          auto single_exec_begin_time = std::chrono::system_clock::now();
+//          auto single_exec_begin_time = std::chrono::system_clock::now();
           if (is_prev_stmt_error) {
             // If the previous statement contains error, we need to reset the
             // server.
@@ -6237,21 +6237,21 @@ static u8 fuzz_one(char **argv) {
                                  whole_query_seq + "SAVEPOINT foo; \n" +
                                      cur_stmt_str + "; \n",
                                  1);
-            cerr << "For SELECT stmt: " << whole_query_seq + "SAVEPOINT foo; \n" + cur_stmt_str + "; \n"
-                 << "\nis_reset: 1\n";
+//            cerr << "For SELECT stmt: " << whole_query_seq + "SAVEPOINT foo; \n" + cur_stmt_str + "; \n"
+//                 << "\nis_reset: 1\n";
           } else {
             // If the previous statement is OK, we can directly execute the
             // SELECT without resetting.
             ret_res = run_target(argv, exec_tmout, "SAVEPOINT foo; \n" + cur_stmt_str + "; \n", 0);
-            cerr << "For SELECT stmt: " << cur_stmt_str << "\nis_reset: 0\n";
+//            cerr << "For SELECT stmt: " << cur_stmt_str << "\nis_reset: 0\n";
           }
 
-          auto single_exec_end_time = std::chrono::system_clock::now();
-          std::chrono::duration<double> single_exec_used_time =
-              single_exec_end_time - single_exec_begin_time;
-          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
-          cerr << "Res: " << g_cockroach_output << "\n";
-          cerr << "ret_res: " << ret_res << "\n\n\n";
+//          auto single_exec_end_time = std::chrono::system_clock::now();
+//          std::chrono::duration<double> single_exec_used_time =
+//              single_exec_end_time - single_exec_begin_time;
+//          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+//          cerr << "Res: " << g_cockroach_output << "\n";
+//          cerr << "ret_res: " << ret_res << "\n\n\n";
 
           int dyn_fix_trial = 0;
 
@@ -6274,8 +6274,8 @@ static u8 fuzz_one(char **argv) {
               // Ignore current stmt.
               g_mutator.rollback_instan_lib_changes();
               cur_trans_stmt = NULL;
-              cerr << "Break because the instantiated query cannot be "
-                      "re-parsed. \n\n\n";
+//              cerr << "Break because the instantiated query cannot be "
+//                      "re-parsed. \n\n\n";
               break;
             }
 
@@ -6304,17 +6304,17 @@ static u8 fuzz_one(char **argv) {
             whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
             // We have to reset the server, because the previous query execution
             // contains error.
-            auto single_exec_begin_time = std::chrono::system_clock::now();
+//            auto single_exec_begin_time = std::chrono::system_clock::now();
             ret_res =
                 run_target(argv, exec_tmout,
                            "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
-            cerr << "For stmt: \n" << "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str
-                 << "\nis_reset: 1\n";
-            auto single_exec_end_time = std::chrono::system_clock::now();
-            std::chrono::duration<double> single_exec_used_time =
-                single_exec_end_time - single_exec_begin_time;
-            cerr << "Takes time: " << single_exec_used_time.count() << "\n";
-            cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
+//            cerr << "For stmt: \n" << "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str
+//                 << "\nis_reset: 1\n";
+//            auto single_exec_end_time = std::chrono::system_clock::now();
+//            std::chrono::duration<double> single_exec_used_time =
+//                single_exec_end_time - single_exec_begin_time;
+//            cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+//            cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
           }
 
           if (p_oracle->is_res_str_error(g_cockroach_output)) {
@@ -6349,12 +6349,12 @@ static u8 fuzz_one(char **argv) {
             g_mutator.rollback_instan_lib_changes();
           }
 
-          single_exec_begin_time = std::chrono::system_clock::now();
+//          single_exec_begin_time = std::chrono::system_clock::now();
           record_code_coverage(argv);
-          single_exec_end_time = std::chrono::system_clock::now();
-          single_exec_used_time = single_exec_end_time - single_exec_begin_time;
-          cerr << "Save coverage takes time: " << single_exec_used_time.count()
-               << "\n\n\n";
+//          single_exec_end_time = std::chrono::system_clock::now();
+//          single_exec_used_time = single_exec_end_time - single_exec_begin_time;
+//          cerr << "Save coverage takes time: " << single_exec_used_time.count()
+//               << "\n\n\n";
 
           // Check whether the statement contains new code coverage.
           // The save_if_interesting also handles the crashing.
@@ -6402,26 +6402,26 @@ static u8 fuzz_one(char **argv) {
 
           whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
 
-          auto single_exec_begin_time = std::chrono::system_clock::now();
+//          auto single_exec_begin_time = std::chrono::system_clock::now();
           if (is_prev_stmt_error) {
             // If the previous statement contains error, we need to reset the
             // server.
             ret_res =
                 run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-            cerr << "For stmt: " << whole_query_seq_with_next
-                 << "\nis_reset: 1\n";
+//            cerr << "For stmt: " << whole_query_seq_with_next
+//                 << "\nis_reset: 1\n";
           } else {
             // If the previous statement is OK, we can directly execute the
             // SELECT without resetting.
             ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
-            cerr << "For stmt: " << cur_stmt_str << "\nis_reset: 0\n";
+//            cerr << "For stmt: " << cur_stmt_str << "\nis_reset: 0\n";
           }
-          auto single_exec_end_time = std::chrono::system_clock::now();
-          std::chrono::duration<double> single_exec_used_time =
-              single_exec_end_time - single_exec_begin_time;
-          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
-          cerr << "Res: " << g_cockroach_output << "\n";
-          cerr << "ret_res: " << ret_res << "\n\n\n";
+//          auto single_exec_end_time = std::chrono::system_clock::now();
+//          std::chrono::duration<double> single_exec_used_time =
+//              single_exec_end_time - single_exec_begin_time;
+//          cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+//          cerr << "Res: " << g_cockroach_output << "\n";
+//          cerr << "ret_res: " << ret_res << "\n\n\n";
 
           int dyn_fix_trial = 0;
 
@@ -6444,8 +6444,8 @@ static u8 fuzz_one(char **argv) {
               // Ignore current stmt.
               g_mutator.rollback_instan_lib_changes();
               cur_trans_stmt = NULL;
-              cerr << "Break because the instantiated query cannot be "
-                      "reparsed. \n\n\n";
+//              cerr << "Break because the instantiated query cannot be "
+//                      "reparsed. \n\n\n";
               break;
             }
 
@@ -6477,13 +6477,13 @@ static u8 fuzz_one(char **argv) {
             auto single_exec_begin_time = std::chrono::system_clock::now();
             ret_res =
                 run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-            cerr << "For stmt: " << whole_query_seq_with_next
-                 << "\nis_reset: 1\n";
-            auto single_exec_end_time = std::chrono::system_clock::now();
-            std::chrono::duration<double> single_exec_used_time =
-                single_exec_end_time - single_exec_begin_time;
-            cerr << "Takes time: " << single_exec_used_time.count() << "\n";
-            cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
+//            cerr << "For stmt: " << whole_query_seq_with_next
+//                 << "\nis_reset: 1\n";
+//            auto single_exec_end_time = std::chrono::system_clock::now();
+//            std::chrono::duration<double> single_exec_used_time =
+//                single_exec_end_time - single_exec_begin_time;
+//            cerr << "Takes time: " << single_exec_used_time.count() << "\n";
+//            cerr << "Res: \n" << g_cockroach_output << "\n\n\n";
           }
 
           if (p_oracle->is_res_str_error(g_cockroach_output)) {
@@ -6532,7 +6532,7 @@ static u8 fuzz_one(char **argv) {
       } // Finished the whole query sequences (with multiple SELECTs
         // executions).
 
-        cerr << "\n\n\nDEBUG: Finished one mutation: total_execs: " << total_execs << "\n\n\n";
+//        cerr << "\n\n\nDEBUG: Finished one mutation: total_execs: " << total_execs << "\n\n\n";
 
       // After executing all the statements, reset the database data.
       reset_database_without_restart(argv);
@@ -6548,7 +6548,7 @@ static u8 fuzz_one(char **argv) {
 
     } // v_mutated_ir_root
 
-      cerr << "\n\n\nDEBUG: Finished one seed: total_execs: " << total_execs << ", cur_path: " << current_entry << "\n\n\n";
+//      cerr << "\n\n\nDEBUG: Finished one seed: total_execs: " << total_execs << ", cur_path: " << current_entry << "\n\n\n";
 
       auto single_mutation_end_time = std::chrono::system_clock::now();
     std::chrono::duration<double> single_mutation_used_time =
