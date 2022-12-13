@@ -6261,11 +6261,17 @@ static u8 fuzz_one(char **argv) {
           //          << "ret_res: " << ret_res << "\n\n\n";
 
           int dyn_fix_trial = 0;
+//          bool is_tried_dyn_fix = false;
 
           while (p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
+//
+//            if (dyn_fix_trial == 0) {
+//                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
+//                is_tried_dyn_fix = true;
+//            }
 
             // No need to set up the error flag.
             // ret_res = FAULT_NONE;
@@ -6328,6 +6334,10 @@ static u8 fuzz_one(char **argv) {
             //            single_exec_used_time.count() << "\n"; cerr << "Res:
             //            \n" << g_cockroach_output << "\n\n\n";
           }
+//
+//          if (is_tried_dyn_fix) {
+//              cerr << "After dynamic fixing: " << cur_stmt_str << "\nres: \n" << g_cockroach_output << "\n\n\n";
+//          }
 
           if (p_oracle->is_res_str_error(g_cockroach_output)) {
             // Be careful, after the last dyn_fixing, the query could still be
@@ -6382,25 +6392,22 @@ static u8 fuzz_one(char **argv) {
           save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                               tmp_all_comp_res);
 
-          //          // Here, also test whether the non-OPT version of the
-          //          query could contain
-          //          // errors.
-          //          // The non-opt version of the code causes a lot of bugs in
-          //          CockroachDB. string whole_query_seq_no_opt =
-          //          no_opt_sql_str + whole_query_seq_with_next; ret_res =
-          //          run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
-          //
-          //          if (ret_res == FAULT_CRASH) {
-          //              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
-          //              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
-          //              save_if_interesting(argv, whole_query_seq_no_opt,
-          //              ret_res,
-          //                                  tmp_all_comp_res);
-          //          }
-          //
-          //          // Because we set the optimization flags, we need to reset
-          //          the whole database. reset_database_without_restart(argv);
-          //          is_prev_stmt_error = false;
+          // Here, also test whether the non-OPT version of the query could contain
+          // errors. The non-opt code path of the Cockroach code already causes a lot of bugs in
+          // CockroachDB.
+          string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
+          ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
+
+          if (ret_res == FAULT_CRASH) {
+              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
+              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+              save_if_interesting(argv, whole_query_seq_no_opt,
+              ret_res, tmp_all_comp_res);
+          }
+
+          // Because we change the setting of the execution, we should rerun the whole query statement
+          // in the next round of the fuzzing. Use is_prev_stmt_error to trigger query rerun for the next round.
+          is_prev_stmt_error = true;
 
           total_execs++;
           show_stats();
@@ -6445,11 +6452,17 @@ static u8 fuzz_one(char **argv) {
           //          << "ret_res: " << ret_res << "\n\n\n";
 
           int dyn_fix_trial = 0;
+//          bool is_tried_dyn_fix = false;
 
           while (p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
+//
+//            if (dyn_fix_trial == 0) {
+//                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
+//                is_tried_dyn_fix = true;
+//            }
 
             // Setup the error flag first.
             ret_res = FAULT_SQLERROR;
@@ -6515,6 +6528,10 @@ static u8 fuzz_one(char **argv) {
             // semantic error.
             ret_res = FAULT_SQLERROR;
           }
+//
+//          if (is_tried_dyn_fix) {
+//              cerr << "After dynamic fixing: " << cur_stmt_str << "\nres: \n" << g_cockroach_output << "\n\n\n";
+//          }
 
           if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
             // If the query execution triggers an Internal Error,
