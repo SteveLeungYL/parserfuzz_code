@@ -1823,7 +1823,7 @@ func (node *Subquery) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	rootIR := &SQLRightIR{
-		IRType:   TypeOptIfExists,
+		IRType:   TypeSubquery,
 		DataType: DataNone,
 		LNode:    existNode,
 		RNode:    selectNode,

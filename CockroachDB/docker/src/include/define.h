@@ -456,8 +456,8 @@
   V(TypeHaving)                                                                \
   V(TypeConstraintCluster)                                                     \
   V(TypeCreateTableAs)                                                         \
-  V(TypeINExpr)
-
+  V(TypeINExpr)                                                                \
+  V(TypeSubquery)
 
 #define ALLDATATYPE(V)                                                         \
   V(DataNone)                                                                  \

@@ -548,6 +548,7 @@ const (
 	TypeConstraintCluster
 	TypeCreateTableAs
 	TypeINExpr
+	TypeSubquery
 )
 
 const (
