@@ -6405,6 +6405,12 @@ static u8 fuzz_one(char **argv) {
               ret_res, tmp_all_comp_res);
           }
 
+          if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
+              // If the no opt query execution triggers an Internal Error,
+              // log the buggy query string.
+              log_logical_bug(whole_query_seq_with_next);
+          }
+
           // Because we change the setting of the execution, we should rerun the whole query statement
           // in the next round of the fuzzing. Use is_prev_stmt_error to trigger query rerun for the next round.
           is_prev_stmt_error = true;
