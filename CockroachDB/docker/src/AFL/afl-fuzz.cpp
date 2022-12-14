@@ -5919,6 +5919,8 @@ void log_logical_bug(string buggy_query_str) {
   ALL_COMP_RES tmp_all_comp_res;
   tmp_all_comp_res.cmd_str = buggy_query_str;
   tmp_all_comp_res.v_cmd_str.push_back(buggy_query_str);
+  tmp_all_comp_res.res_str = g_cockroach_output;
+  tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
   stream_output_res(tmp_all_comp_res, outputfile);
 
   outputfile.close();
@@ -6408,7 +6410,7 @@ static u8 fuzz_one(char **argv) {
           if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
               // If the no opt query execution triggers an Internal Error,
               // log the buggy query string.
-              log_logical_bug(whole_query_seq_with_next);
+              log_logical_bug(whole_query_seq_no_opt);
           }
 
           // Because we change the setting of the execution, we should rerun the whole query statement
