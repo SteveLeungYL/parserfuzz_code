@@ -152,18 +152,24 @@ public:
   int get_ir_libary_2D_hash_kStatement_size();
   bool is_stripped_str_in_lib(string stripped_str);
 
-  void add_all_to_library(IR *, const vector<int> &);
-  void add_all_to_library(IR *ir) {
+  void add_all_to_library(IR *, const vector<int> &, u8 (*run_target)(char **, u32, string,
+                                                                      int, string&)=NULL);
+  void add_all_to_library(IR *ir, u8 (*run_target)(char **, u32, string,
+                                                   int, string&)=NULL) {
     vector<int> dummy_vec;
-    add_all_to_library(ir, dummy_vec);
+    add_all_to_library(ir, dummy_vec, run_target);
   }
-  void add_all_to_library(string, const vector<int> &);
-  void add_all_to_library(string whole_query_str) {
+  void add_all_to_library(string, const vector<int> &, u8 (*run_target)(char **, u32, string,
+                                                                        int, string&)=NULL);
+  void add_all_to_library(string whole_query_str, u8 (*run_target)(char **, u32, string,
+                                                                   int, string&)=NULL) {
     vector<int> dummy_vec;
-    add_all_to_library(whole_query_str, dummy_vec);
+    add_all_to_library(whole_query_str, dummy_vec, run_target);
   }
-  void add_to_valid_lib(IR *, string &, const bool);
-  void add_to_library(IR *, string &);
+  void add_to_valid_lib(IR *, string &, const bool, u8 (*run_target)(char **, u32, string,
+                                                                     int, string&)=NULL);
+  void add_to_library(IR *, string &, u8 (*run_target)(char **, u32, string,
+                                                       int, string&)=NULL);
   void add_to_library_core(IR *, string *);
   int get_valid_collection_size();
   int get_cri_valid_collection_size();
@@ -202,7 +208,7 @@ public:
 
   // Auto detect the data types from any query expressions or subqueries.
   void auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                            int));
+                                                                                                                            int, string&), bool is_debug_info = false);
 
   DATAAFFINITYTYPE detect_str_affinity(string);
 
@@ -346,15 +352,15 @@ public:
 
   static set<IR *> visited;
 
+  void setup_arguments_for_run_target(char** in_argv, u32 exec_tmout_in) {this->argv_for_run_target = in_argv; this->exec_tmout_for_run_target = exec_tmout_in; }
+
 private:
 
     // Some helper function to fix the instantiation problems from the error messages.
     void fix_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
     void fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
-
-    void auto_mark_data_types_from_stmt_helper(IR* cur_stmt_root, IR* cur_node, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                                   int));
-
+    char** argv_for_run_target;
+    u32 exec_tmout_for_run_target;
 };
 
 #endif

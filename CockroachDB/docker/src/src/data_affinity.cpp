@@ -310,6 +310,28 @@ string DataAffinity::mutate_affi_float() {
   }
 }
 
+string DataAffinity::mutate_affi_tuple() {
+  // (123, 'str', '192.168.0.1', ...)
+
+  string ret_str = "";
+
+  ret_str += "(";
+
+  int idx = 0;
+  for (auto cur_elem: this->v_tuple_types) {
+      const string cur_elem_str = cur_elem->get_mutated_literal();
+      if (idx > 0) {
+        ret_str += ", ";
+      }
+      ret_str += cur_elem_str;
+  }
+
+  ret_str += ")";
+
+  return ret_str;
+
+}
+
 string DataAffinity::mutate_affi_array() {
 
   DATAAFFINITYTYPE cur_transformed_affi =

@@ -5,6 +5,7 @@
 #include "define.h" // import the ALLDATATAFFINITY(V)
 #include <string>
 #include <map>
+#include <memory>
 
 using namespace std;
 
@@ -46,7 +47,8 @@ private:
     double float_max;
     vector<string> v_enum_str;
 
-//    unique_ptr<vector<DataAffinity>> v_array_elem;
+    /* For various data types inside the Tuple.  */
+    vector<shared_ptr<DataAffinity>> v_tuple_types;
 
     /* Helper functions. */
     bool is_str_collation (const string& str_in);
@@ -55,10 +57,14 @@ private:
     DATAAFFINITYTYPE detect_numerical_type(const string&);
     DATAAFFINITYTYPE detect_string_type(const string&);
 
+    /* Compact data types */
+    string mutate_affi_tuple();
+    string mutate_affi_array();
+
+    /* Basic data types */
     string mutate_affi_int(); // and also for serial.
     string mutate_affi_oid(); // unsigned oid.
     string mutate_affi_float(); // decimal and float.
-    string mutate_affi_array();
     string mutate_affi_collate();
     string mutate_affi_bool();
     string mutate_affi_onoff();

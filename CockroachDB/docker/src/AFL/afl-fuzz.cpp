@@ -2565,7 +2565,7 @@ static void restart_cockroachdb(char **argv) {
    information. The called program will update trace_bits[]. */
 
 static u8 run_target(char **argv, u32 timeout, string cmd_str,
-                     int is_reset_server = 1) {
+                     int is_reset_server = 1, string& res_str = g_cockroach_output) {
 
   //    cerr << "Running stmt: " << cmd_str << "\nis_reset_server: " <<
   //    is_reset_server << "\n\n\n";
@@ -2690,7 +2690,7 @@ BEGIN:
   //  classify_counts((u64 *)trace_bits);
 
   // Log the query execution results.
-  g_cockroach_output = "";
+  res_str = "";
   if (filesystem::exists("query_res_out.txt")) {
     ifstream res_in("query_res_out.txt", ios::in);
     if (res_in) {
@@ -2701,7 +2701,7 @@ BEGIN:
 
       char tmp_res[length];
       res_in.read(tmp_res, length);
-      g_cockroach_output = string(tmp_res, length);
+      res_str = string(tmp_res, length);
     }
     res_in.close();
     // Remove the file. Ignore the returned value.
@@ -2716,7 +2716,7 @@ BEGIN:
     slowest_exec_ms = exec_ms;
   }
 
-  //  cerr << "res: " << g_cockroach_output << "\n\n\n";
+  //  cerr << "res: " << res_str << "\n\n\n";
   return FAULT_NONE;
 }
 
@@ -3979,9 +3979,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
-      IR *tmp_ir = ir_tree.back();
-      g_mutator.extract_struct(tmp_ir);
-      g_mutator.add_all_to_library(tmp_ir->to_string(), explain_diff_id);
+      IR *tmp_ir_root = ir_tree.back();
+      g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id, run_target);
       ir_tree.back()->deep_drop();
     } else {
       return keeping; // keep = 0, meaning nothing added to the queue.
@@ -8195,6 +8194,8 @@ int main(int argc, char **argv) {
     use_argv = get_qemu_argv(argv[0], argv + optind, argc - optind);
   else
     use_argv = argv + optind;
+
+  g_mutator.setup_arguments_for_run_target(use_argv, exec_tmout);
 
   u64 start_time = get_cur_time();
   do_libary_initialize();

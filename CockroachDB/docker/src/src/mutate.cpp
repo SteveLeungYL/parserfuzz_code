@@ -4815,8 +4815,9 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str) {
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id) {
-  add_all_to_library(ir->to_string(), explain_diff_id);
+void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, u8 (*run_target)(char **, u32, string,
+                                                                                              int, string&)) {
+  add_all_to_library(ir->to_string(), explain_diff_id, run_target);
 }
 
 /*  Save an interesting query stmt into the mutator library.
@@ -4834,7 +4835,8 @@ void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id) {
  */
 
 void Mutator::add_all_to_library(string whole_query_str,
-                                 const vector<int> &explain_diff_id) {
+                                 const vector<int> &explain_diff_id, u8 (*run_target)(char **, u32, string,
+                                                                                      int, string&)) {
 
   /* If the query_str is empty. Ignored and return. */
   bool is_empty = true;
@@ -4880,13 +4882,13 @@ void Mutator::add_all_to_library(string whole_query_str,
       // if (p_oracle->is_oracle_valid_stmt(current_query)) {
       if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
-        add_to_valid_lib(root, current_query, true);
+        add_to_valid_lib(root, current_query, true, run_target);
       } else {
-        add_to_valid_lib(root, current_query, false);
+        add_to_valid_lib(root, current_query, false, run_target);
       }
       ++i; // For counting oracle valid stmt IDs.
     } else {
-      add_to_library(root, current_query);
+      add_to_library(root, current_query, run_target);
     }
 
     root->deep_drop();
@@ -4894,7 +4896,8 @@ void Mutator::add_all_to_library(string whole_query_str,
 }
 
 void Mutator::add_to_valid_lib(IR *ir, string &select,
-                               const bool is_explain_diff) {
+                               const bool is_explain_diff, u8 (*run_target)(char **, u32, string,
+                                                                            int, string&)) {
 
   unsigned long p_hash = hash(select);
 
@@ -4907,6 +4910,11 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
 
   all_query_pstr_set.insert(new_select);
   all_valid_pstr_vec.push_back(new_select);
+
+  if (run_target != NULL) {
+    auto_mark_data_types_from_stmt(ir, argv_for_run_target,
+                                   exec_tmout_for_run_target, 0, run_target, true);
+  }
 
   //  if (this->dump_library) {
   //    std::ofstream f;
@@ -4921,7 +4929,8 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   return;
 }
 
-void Mutator::add_to_library(IR *ir, string &query) {
+void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u32, string,
+                                                                     int, string&)) {
 
   if (query == "")
     return;
@@ -6352,15 +6361,55 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
 
 // Auto-detect the data types from any query expressions or subqueries.
 void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                          int)) {
+                                                                                                                          int, string&), bool is_debug_info) {
     // Pass in the run_target function from the main afl-fuzz.cpp file to here through function pointer.
     // Will not change the original signature of the run_target function, which is static.
 
-}
-void Mutator::auto_mark_data_types_from_stmt_helper(IR* cur_stmt_root, IR* cur_node, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                                 int)) {
-    // This is the helper function from the auto_mark. It is designed to be a recursive function that iterate through the nodes, and then mark the one
-    // expression or subquery with matched data types.
+    vector<IR*> vec_all_nodes = p_oracle->ir_wrapper.get_all_ir_node(cur_stmt_root);
 
+    for ( IR* cur_node : vec_all_nodes ) {
+        // Check whether the current data type matches the following types.
+        IRTYPE cur_ir_type = cur_node->get_ir_type();
+        if (
+            cur_ir_type == TypeAndExpr ||
+            cur_ir_type == TypeOrExpr ||
+            cur_ir_type == TypeNotExpr ||
+            cur_ir_type == TypeIsNullExpr ||
+            cur_ir_type == TypeIsNotNullExpr ||
+            cur_ir_type == TypeBinaryExpr ||
+            cur_ir_type == TypeUnaryExpr ||
+            cur_ir_type == TypeComparisonExpr ||
+            cur_ir_type == TypeRangeCond ||
+            cur_ir_type == TypeIsOfTypeExpr
+            ) {
+            // For these expression types, add a bracket to the ir node,
+            // and then add the `= true` to the expression.
+
+            // Backup the current node.
+            IR* copied_cur_node = cur_node->deep_copy();
+
+            // Add a bracket and = true statement to the current node.
+            cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+            cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TURE";
+
+            // Get the updated string, and run the statement.
+            string updated_stmt = "SAVEPOINT foo; \n" + cur_stmt_root->to_string() + "; \n ROLLBACK foo; \n";
+            string res_str = "";
+            run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+            // Analyze the res str.
+            // TODO:: Print out the string for now.
+            if (is_debug_info) {
+                cerr << "\n\n\nDEBUG:: For stmt: \n" << updated_stmt  << "\n getting res: \n" << res_str << "\n\n\n";
+            }
+
+            cur_stmt_root->swap_node(cur_node, copied_cur_node);
+            cur_node->deep_drop();
+
+            continue;
+        }
+    }
+
+    return;
 
 }
