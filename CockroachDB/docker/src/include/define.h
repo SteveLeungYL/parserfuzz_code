@@ -615,7 +615,8 @@
   V(AFFIARRAYONOFFAUTO)                                                        \
   V(AFFITABLENAME)                                                             \
   V(AFFICOLUMNNAME)                                                            \
-  V(AFFICONSTRAINTNAME)
+  V(AFFICONSTRAINTNAME)                                                        \
+  V(AFFITUPLE)
 
 #define ALLCOLLATIONS(V)                                                       \
   V(defaultcollation)                                                          \

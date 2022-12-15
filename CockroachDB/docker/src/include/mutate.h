@@ -200,6 +200,10 @@ public:
   void remove_type_annotation(IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop);
   void rollback_instan_lib_changes();
 
+  // Auto detect the data types from any query expressions or subqueries.
+  void auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                            int));
+
   DATAAFFINITYTYPE detect_str_affinity(string);
 
   void fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int trial=0, bool is_debug_info = false);
@@ -347,6 +351,9 @@ private:
     // Some helper function to fix the instantiation problems from the error messages.
     void fix_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
     void fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
+
+    void auto_mark_data_types_from_stmt_helper(IR* cur_stmt_root, IR* cur_node, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                   int));
 
 };
 

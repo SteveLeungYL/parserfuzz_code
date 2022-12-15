@@ -6349,3 +6349,18 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
     }
 
 }
+
+// Auto-detect the data types from any query expressions or subqueries.
+void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                          int)) {
+    // Pass in the run_target function from the main afl-fuzz.cpp file to here through function pointer.
+    // Will not change the original signature of the run_target function, which is static.
+
+}
+void Mutator::auto_mark_data_types_from_stmt_helper(IR* cur_stmt_root, IR* cur_node, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                 int)) {
+    // This is the helper function from the auto_mark. It is designed to be a recursive function that iterate through the nodes, and then mark the one
+    // expression or subquery with matched data types.
+
+
+}
