@@ -685,6 +685,7 @@ const (
 	AFFITABLENAME
 	AFFICOLUMNNAME
 	AFFICONSTRAINTNAME
+	AFFITUPLE
 )
 
 // SQLRight inject code. To log all the info required for SQLRight to build the IR.
