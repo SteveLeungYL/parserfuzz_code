@@ -1393,3 +1393,27 @@ string get_affinity_type_str_formal(DATAAFFINITYTYPE type_in) {
 
   return type_str;
 }
+
+unsigned long long DataAffinity::calc_hash() {
+
+    string res_str;
+    if (this->data_affinity != AFFITUPLE) {
+      res_str = get_string_by_affinity_type(this->get_data_affinity());
+      return fuzzing_hash(res_str.c_str(), res_str.size());
+    }
+
+    // Handle the AFFITUPLE type.
+    res_str = "{";
+    int idx = 0;
+    for (auto cur_type: this->v_tuple_types) {
+      if (idx > 0) {
+        res_str += ",";
+      }
+      res_str += get_string_by_affinity_type(cur_type->get_data_affinity());
+      idx++;
+    }
+    res_str += "}";
+
+    return fuzzing_hash(res_str.c_str(), res_str.size());
+
+}

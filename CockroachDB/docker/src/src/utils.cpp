@@ -10,7 +10,7 @@ string magic_string_generator(string &s) {
   return "**%s**";
 }
 
-typedef unsigned long uint64_t;
+typedef unsigned long long uint64_t;
 
 uint64_t fuzzing_hash(const void *key, int len) {
   const uint64_t m = 0xc6a4a7935bd1e995;

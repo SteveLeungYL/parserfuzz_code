@@ -185,6 +185,7 @@ public:
         return;
     }
 
+    unsigned long long calc_hash();
 };
 
 DataAffinity get_data_affinity_by_string(string s);
