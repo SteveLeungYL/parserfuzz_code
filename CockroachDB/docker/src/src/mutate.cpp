@@ -6422,7 +6422,7 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
             // Analyze the res str.
-            cerr << "\n\n\nDEBUG: From Stmt: " << cur_stmt_root->to_string() << ";\n";
+//            cerr << "\n\n\nDEBUG: From Stmt: " << cur_stmt_root->to_string() << ";\n";
             label_ir_data_type_from_err_msg(cur_node, res_str);
 
             // Rollback to the original statement.
@@ -6438,8 +6438,11 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
 
 void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg){
 
-    if (is_str_empty(err_msg)) {
-        cerr << "getting type boolean. \n\n\n";
+    if (
+        is_str_empty(err_msg) || // err_msg is empty.
+        !p_oracle->is_res_str_error(err_msg) // No error message.
+        ) {
+//        cerr << "getting type boolean. \n\n\n";
         ir->set_data_affinity(AFFIBOOL);
         return;
     }
@@ -6452,7 +6455,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg){
         ){
         // The error message does not match the expected one.
         // Ignored.
-        cerr << "getting other error: " << err_msg << "\n\n\n";
+//        cerr << "getting other error: " << err_msg << "\n\n\n";
         return;
   }
 
@@ -6473,7 +6476,9 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg){
   }
   hinted_type_str = v_tmp_str.front();
 
-  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n\n\n";
+  DATAAFFINITYTYPE data_affi = get_data_affinity_by_string(hinted_type_str);
+//  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
+//  cerr << "DEBUG:: Getting the data_affinity:" << data_affi << ".\n\n\n";
 
 #undef ff
 #undef ss
