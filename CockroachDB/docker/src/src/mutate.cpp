@@ -6399,7 +6399,35 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
 
             // Analyze the res str.
             cerr << "\n\n\nDEBUG:From Stmt: " << cur_stmt_root->to_string() << ";\n";
-            label_ir_data_type_from_err_msg(cur_node, res_str);
+            bool is_syntax_error = false;
+            label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+            // Rollback to the original statement.
+            cur_node->op_->prefix_ = ori_prefix_;
+            cur_node->op_->suffix_ = ori_suffix_;
+
+            if (!is_syntax_error) {
+                // If the change does not cause a syntax error, then
+                // this modification is succeeded. We can move on to
+                // the next node.
+                continue;
+            }
+
+            // Otherwise, the current modification = TRUE causes a syntax error,
+            // let's try to add an extra bracket to the statement and try again.
+            // Add an extra bracket and = true statement to the current node.
+            cur_node->op_->prefix_ = "((" + cur_node->op_->prefix_;
+            cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE)";
+
+            // Get the updated string, and run the statement.
+            updated_stmt = "SAVEPOINT foo; \n" + cur_stmt_root->to_string() + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+            res_str.clear();
+            run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+            // Analyze the res str.
+            cerr << "\n\n\nDEBUG:From extra bracket Stmt: " << cur_stmt_root->to_string() << ";\n";
+            is_syntax_error = false;
+            label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
             // Rollback to the original statement.
             cur_node->op_->prefix_ = ori_prefix_;
@@ -6422,10 +6450,39 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
             // Analyze the res str.
-//            cerr << "\n\n\nDEBUG: From Stmt: " << cur_stmt_root->to_string() << ";\n";
-            label_ir_data_type_from_err_msg(cur_node, res_str);
+            cerr << "\n\n\nDEBUG: From Stmt: " << cur_stmt_root->to_string() << ";\n";
+            bool is_syntax_error = false;
+            label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
             // Rollback to the original statement.
+            cur_node->op_->suffix_ = ori_suffix_;
+
+            if (!is_syntax_error) {
+                // If the change does not cause a syntax error, then
+                // this modification is succeeded. We can move on to
+                // the next node.
+                continue;
+            }
+
+            // Otherwise, the current modification = TRUE causes a syntax error,
+            // let's try to add an extra bracket to the statement and try again.
+            // Add an extra bracket and = true statement to the current node.
+            string ori_prefix_ = cur_node->op_->prefix_;
+            cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+            cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE)";
+
+            // Get the updated string, and run the statement.
+            updated_stmt = "SAVEPOINT foo; \n" + cur_stmt_root->to_string() + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+            res_str = "";
+            run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+            // Analyze the res str.
+            cerr << "\n\n\nDEBUG: From Stmt: " << cur_stmt_root->to_string() << ";\n";
+            is_syntax_error = false;
+            label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+            // Rollback to the original statement.
+            cur_node->op_->prefix_ = ori_prefix_;
             cur_node->op_->suffix_ = ori_suffix_;
 
             continue;
@@ -6436,26 +6493,33 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
 
 }
 
-void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg){
+void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error){
 
     if (
         is_str_empty(err_msg) || // err_msg is empty.
         !p_oracle->is_res_str_error(err_msg) // No error message.
         ) {
-//        cerr << "getting type boolean. \n\n\n";
+        cerr << "getting type boolean. \n\n\n";
         ir->set_data_affinity(AFFIBOOL);
         return;
     }
 
 #define ff(x) findStringIn(x, "unsupported comparison operator:")
+#define fff(x) findStringIn(x, "syntax error")
 #define ss(x, y) string_splitter(x, y)
+
+    if(fff(err_msg)) {
+      is_syntax_error = true;
+      cerr << " getting syntax error: " << err_msg << "\n\n\n";
+      return;
+    }
 
   if (
         !ff(err_msg)
         ){
         // The error message does not match the expected one.
         // Ignored.
-//        cerr << "getting other error: " << err_msg << "\n\n\n";
+        cerr << "getting other error: " << err_msg << "\n\n\n";
         return;
   }
 
@@ -6477,9 +6541,10 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg){
   hinted_type_str = v_tmp_str.front();
 
   DATAAFFINITYTYPE data_affi = get_data_affinity_by_string(hinted_type_str);
-//  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
-//  cerr << "DEBUG:: Getting the data_affinity:" << data_affi << ".\n\n\n";
+  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
+  cerr << "DEBUG:: Getting the data_affinity:" << data_affi << ".\n\n\n";
 
+#undef fff
 #undef ff
 #undef ss
 

@@ -209,7 +209,7 @@ public:
   // Auto detect the data types from any query expressions or subqueries.
   void auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
                                                                                                                             int, string&), bool is_debug_info = false);
-  void label_ir_data_type_from_err_msg(IR* ir, string& err_msg);
+  void label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error);
 
   DATAAFFINITYTYPE detect_str_affinity(string);
 
