@@ -6589,7 +6589,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
   }
   hinted_type_str = v_tmp_str.front();
 
-  DATAAFFINITYTYPE data_affi = get_data_affinity_by_string(hinted_type_str);
+  DATAAFFINITYTYPE data_affi = get_data_affinity_by_string(hinted_type_str.substr(1, hinted_type_str.size()-2));
   cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
   cerr << "DEBUG:: Getting the data_affinity:" << data_affi << ".\n\n\n";
 
