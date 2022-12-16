@@ -322,8 +322,8 @@
       {
         "type": "AFFIENUM",
         "enum_values": [
-            "'rowid'",
-            "'virtual_sequence'",
+            "rowid",
+            "virtual_sequence",
             "sql_sequence",
             "sql_sequence_cached",
             "unordered_rowid"
