@@ -206,10 +206,6 @@ public:
   void remove_type_annotation(IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop);
   void rollback_instan_lib_changes();
 
-  // Auto detect the data types from any query expressions or subqueries.
-  void auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                            int, string&), bool is_debug_info = false);
-  void label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error);
 
   DATAAFFINITYTYPE detect_str_affinity(string);
 
@@ -362,6 +358,13 @@ private:
     void fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
     char** argv_for_run_target;
     u32 exec_tmout_for_run_target;
+
+    // Auto-detect the data types from any query expressions or subqueries.
+    void auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                     int, string&), bool is_debug_info = false);
+    void auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                     int, string&), bool is_debug_info = false);
+    void label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error);
 
 };
 

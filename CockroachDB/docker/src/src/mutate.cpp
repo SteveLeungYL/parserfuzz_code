@@ -4957,6 +4957,12 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   //    f.close();
   //  }
 
+  if (run_target != NULL) {
+    auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
+                                          exec_tmout_for_run_target, 0,
+                                          run_target, true);
+  }
+
   // cerr << "Saving str: " << *p_query_str << " to the lib. \n\n\n";
   add_to_library_core(ir, p_query_str);
 
@@ -6537,6 +6543,187 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
         }
 
     }
+
+    return;
+
+}
+
+// Auto-detect the data types from any query expressions or subqueries.
+void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                          int, string&), bool is_debug_info) {
+  // Pass in the run_target function from the main afl-fuzz.cpp file to here through function pointer.
+  // Will not change the original signature of the run_target function, which is static.
+
+  vector<IR*> vec_all_nodes = p_oracle->ir_wrapper.get_all_ir_node(cur_stmt_root);
+
+  vector<IR*> v_from_clause = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, TypeFrom, false);
+  IR* from_clause = NULL;
+  if(v_from_clause.size() > 0) {
+       from_clause = v_from_clause.front();
+  }
+
+  for ( IR* cur_node : vec_all_nodes ) {
+    // Check whether the current data type matches the following types.
+    IRTYPE cur_ir_type = cur_node->get_ir_type();
+    if (
+        cur_ir_type == TypeAndExpr ||
+        cur_ir_type == TypeOrExpr ||
+        cur_ir_type == TypeNotExpr ||
+        cur_ir_type == TypeIsNullExpr ||
+        cur_ir_type == TypeIsNotNullExpr ||
+        cur_ir_type == TypeBinaryExpr ||
+        cur_ir_type == TypeUnaryExpr ||
+        cur_ir_type == TypeComparisonExpr ||
+        cur_ir_type == TypeRangeCond ||
+        cur_ir_type == TypeIsOfTypeExpr
+        ) {
+      // For these expression types, add a bracket to the ir node,
+      // and then add the `= true` to the expression.
+      string ori_prefix_ = cur_node->op_->prefix_;
+      string ori_suffix_ = cur_node->op_->suffix_;
+
+      // Add a bracket and = true statement to the current node.
+      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE";
+
+      string updated_stmt = "";
+      updated_stmt = "SELECT " + cur_node->to_string();
+      if (from_clause) {
+                // From non-select statement, expression could reference contents
+                // from the FROM clause, therefore, we should import them
+                // for usage.
+                updated_stmt += " " + from_clause->to_string();
+      }
+
+      // Get the updated string, and run the statement.
+      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+      string res_str = "";
+      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+      // Analyze the res str.
+      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+      bool is_syntax_error = false;
+      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+      // Rollback to the original statement.
+      cur_node->op_->prefix_ = ori_prefix_;
+      cur_node->op_->suffix_ = ori_suffix_;
+
+      if (!is_syntax_error) {
+        // If the change does not cause a syntax error, then
+        // this modification is succeeded. We can move on to
+        // the next node.
+        return;
+      }
+
+      // Otherwise, the current modification = TRUE causes a syntax error,
+      // let's try to add an extra bracket to the statement and try again.
+      // Add an extra bracket and = true statement to the current node.
+      cur_node->op_->prefix_ = "((" + cur_node->op_->prefix_;
+      cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE)";
+
+      // Get the updated string, and run the statement.
+      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+        // The expression located in the FROM clause behaves a bit different than
+        // the one in the WHERE clause.
+        // Bring the expressions or subquery out as a new SELECT to check its data
+        // types.
+        // Construct a new SELECT statement.
+        // Only use the cur_node expression, instead of using the whole original SELECT.
+        updated_stmt = "SELECT " + cur_node->to_string();
+      } else {
+        updated_stmt = cur_stmt_root->to_string();
+      }
+      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+      res_str.clear();
+      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+      // Analyze the res str.
+      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+      is_syntax_error = false;
+      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+      // Rollback to the original statement.
+      cur_node->op_->prefix_ = ori_prefix_;
+      cur_node->op_->suffix_ = ori_suffix_;
+
+      return;
+    } else if (
+        cur_ir_type == TypeSubquery
+        ) {
+
+      // For subqueries, add the `= true` to the expression.
+      string ori_suffix_ = cur_node->op_->suffix_;
+
+      // Add a bracket and = true statement to the current node.
+      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE";
+
+      // Get the updated string, and run the statement.
+      string updated_stmt = "";
+      // Get the updated string, and run the statement.
+      updated_stmt = "SELECT " + cur_node->to_string();
+      if (from_clause) {
+        // From non-select statement, expression could reference contents
+        // from the FROM clause, therefore, we should import them
+        // for usage.
+        updated_stmt += " " + from_clause->to_string();
+      }
+
+      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+      string res_str = "";
+      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+      // Analyze the res str.
+      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+      bool is_syntax_error = false;
+      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+      // Rollback to the original statement.
+      cur_node->op_->suffix_ = ori_suffix_;
+
+      if (!is_syntax_error) {
+        // If the change does not cause a syntax error, then
+        // this modification is succeeded. We can move on to
+        // the next node.
+        return;
+      }
+
+      // Otherwise, the current modification = TRUE causes a syntax error,
+      // let's try to add an extra bracket to the statement and try again.
+      // Add an extra bracket and = true statement to the current node.
+      string ori_prefix_ = cur_node->op_->prefix_;
+      cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
+      cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE)";
+
+      // Get the updated string, and run the statement.
+      if (p_oracle->ir_wrapper.is_ir_in(cur_node, TypeFrom)) {
+        // The expression located in the FROM clause behaves a bit different than
+        // the one in the WHERE clause.
+        // Bring the expressions or subquery out as a new SELECT to check its data
+        // types.
+        // Construct a new SELECT statement.
+        // Only use the cur_node expression, instead of using the whole original SELECT.
+        updated_stmt = "SELECT " + cur_node->to_string();
+      } else {
+        updated_stmt = cur_stmt_root->to_string();
+      }
+      updated_stmt = "SAVEPOINT foo; \n" + updated_stmt + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+      res_str = "";
+      run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+      // Analyze the res str.
+      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+      is_syntax_error = false;
+      label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+      // Rollback to the original statement.
+      cur_node->op_->prefix_ = ori_prefix_;
+      cur_node->op_->suffix_ = ori_suffix_;
+
+      return;
+    }
+
+  }
 
     return;
 
