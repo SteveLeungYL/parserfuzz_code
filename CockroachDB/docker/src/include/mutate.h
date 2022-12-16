@@ -362,6 +362,11 @@ private:
     void fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
     char** argv_for_run_target;
     u32 exec_tmout_for_run_target;
+
+    void auto_mark_data_types_from_select_from_clause_exprs(IR* cur_stmt_root, IR* cur_node, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                                  int, string&), bool is_debug_info);
+    void auto_mark_data_types_from_select_exprs(IR* cur_stmt_root, IR* cur_node, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+                                                                                                                                      int, string&), bool is_debug_info);
 };
 
 #endif
