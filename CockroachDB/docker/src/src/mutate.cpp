@@ -6384,16 +6384,15 @@ void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32
             ) {
             // For these expression types, add a bracket to the ir node,
             // and then add the `= true` to the expression.
-
-            // Backup the current node.
-            IR* copied_cur_node = cur_node->deep_copy();
+            string ori_prefix_ = cur_node->op_->prefix_;
+            string ori_suffix_ = cur_node->op_->suffix_;
 
             // Add a bracket and = true statement to the current node.
             cur_node->op_->prefix_ = "(" + cur_node->op_->prefix_;
-            cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TURE";
+            cur_node->op_->suffix_ = cur_node->op_->suffix_ + ") = TRUE";
 
             // Get the updated string, and run the statement.
-            string updated_stmt = "SAVEPOINT foo; \n" + cur_stmt_root->to_string() + "; \n ROLLBACK foo; \n";
+            string updated_stmt = "SAVEPOINT foo; \n" + cur_stmt_root->to_string() + ";\n ROLLBACK TO SAVEPOINT foo; \n";
             string res_str = "";
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
@@ -6403,8 +6402,9 @@ void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32
                 cerr << "\n\n\nDEBUG:: For stmt: \n" << updated_stmt  << "\n getting res: \n" << res_str << "\n\n\n";
             }
 
-            cur_stmt_root->swap_node(cur_node, copied_cur_node);
-            cur_node->deep_drop();
+            // Rollback to the original statement.
+            cur_node->op_->prefix_ = ori_prefix_;
+            cur_node->op_->suffix_ = ori_suffix_;
 
             continue;
         }

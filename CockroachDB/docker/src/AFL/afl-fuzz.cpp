@@ -3926,7 +3926,7 @@ static void write_crash_readme(void) {
    entry is saved, 0 otherwise. */
 
 static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
-                              const ALL_COMP_RES &all_comp_res,
+                              const ALL_COMP_RES &all_comp_res, const bool is_auto_detect_data_type = false,
                               const vector<int> &explain_diff_id = {}) {
 
   u8 *fn = "";
@@ -3980,7 +3980,13 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
       IR *tmp_ir_root = ir_tree.back();
-      g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id, run_target);
+      if (is_auto_detect_data_type) {
+        g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
+                                     run_target);
+      } else {
+        g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
+                                     NULL); // Do not provide the run_target function.
+      }
       ir_tree.back()->deep_drop();
     } else {
       return keeping; // keep = 0, meaning nothing added to the queue.
@@ -5494,7 +5500,7 @@ EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec,
     return 0;
 
   int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault,
-                                        all_comp_res, explain_diff_id);
+                                        all_comp_res, false, explain_diff_id);
   queued_discovered += should_keep;
 
   if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
@@ -6263,6 +6269,7 @@ static u8 fuzz_one(char **argv) {
 
           int dyn_fix_trial = 0;
 //          bool is_tried_dyn_fix = false;
+          bool is_select_error = false;
 
           while (p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
@@ -6343,6 +6350,7 @@ static u8 fuzz_one(char **argv) {
           if (p_oracle->is_res_str_error(g_cockroach_output)) {
             // Be careful, after the last dyn_fixing, the query could still be
             // semantic error.
+            is_select_error = true;
             ret_res = run_target(argv, exec_tmout,
                                  "ROLLBACK TO SAVEPOINT FOO; \n", 0);
             debug_error++;
@@ -6390,8 +6398,15 @@ static u8 fuzz_one(char **argv) {
           ALL_COMP_RES tmp_all_comp_res;
           tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
           tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
-          save_if_interesting(argv, whole_query_seq_with_next, ret_res,
-                              tmp_all_comp_res);
+          if (!is_select_error) {
+            save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                                tmp_all_comp_res, true);
+          } else {
+            // If the SELECT is causing semantic error, do not auto detect the
+            // date types from the query expressions or subqueries.
+            save_if_interesting(argv, whole_query_seq_with_next, ret_res,
+                                tmp_all_comp_res, false);
+          }
 
           // Here, also test whether the non-OPT version of the query could contain
           // errors. The non-opt code path of the Cockroach code already causes a lot of bugs in
