@@ -4912,8 +4912,9 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_valid_pstr_vec.push_back(new_select);
 
   if (run_target != NULL) {
-    auto_mark_data_types_from_stmt(ir, argv_for_run_target,
-                                   exec_tmout_for_run_target, 0, run_target, true);
+    auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
+                                          exec_tmout_for_run_target, 0,
+                                          run_target, true);
   }
 
   //  if (this->dump_library) {
@@ -6360,7 +6361,7 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
 }
 
 // Auto-detect the data types from any query expressions or subqueries.
-void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
+void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
                                                                                                                           int, string&), bool is_debug_info) {
     // Pass in the run_target function from the main afl-fuzz.cpp file to here through function pointer.
     // Will not change the original signature of the run_target function, which is static.
@@ -6397,13 +6398,34 @@ void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
             // Analyze the res str.
-            // TODO:: Print out the string for now.
-            if (is_debug_info) {
-                cerr << "\n\n\nDEBUG:: For stmt: \n" << updated_stmt  << "\n getting res: \n" << res_str << "\n\n\n";
-            }
+            cerr << "\n\n\nDEBUG:From Stmt: " << cur_stmt_root->to_string() << ";\n";
+            label_ir_data_type_from_err_msg(cur_node, res_str);
 
             // Rollback to the original statement.
             cur_node->op_->prefix_ = ori_prefix_;
+            cur_node->op_->suffix_ = ori_suffix_;
+
+            continue;
+        } else if (
+            cur_ir_type == TypeSubquery
+            ) {
+
+            // For subqueries, add the `= true` to the expression.
+            string ori_suffix_ = cur_node->op_->suffix_;
+
+            // Add a bracket and = true statement to the current node.
+            cur_node->op_->suffix_ = cur_node->op_->suffix_ + " = TRUE";
+
+            // Get the updated string, and run the statement.
+            string updated_stmt = "SAVEPOINT foo; \n" + cur_stmt_root->to_string() + ";\n ROLLBACK TO SAVEPOINT foo; \n";
+            string res_str = "";
+            run_target(argv, exec_tmout, updated_stmt, 0, res_str);
+
+            // Analyze the res str.
+            cerr << "\n\n\nDEBUG: From Stmt: " << cur_stmt_root->to_string() << ";\n";
+            label_ir_data_type_from_err_msg(cur_node, res_str);
+
+            // Rollback to the original statement.
             cur_node->op_->suffix_ = ori_suffix_;
 
             continue;
@@ -6412,4 +6434,49 @@ void Mutator::auto_mark_data_types_from_stmt(IR* cur_stmt_root, char **argv, u32
 
     return;
 
+}
+
+void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg){
+
+    if (is_str_empty(err_msg)) {
+        cerr << "getting type boolean. \n\n\n";
+        ir->set_data_affinity(AFFIBOOL);
+        return;
+    }
+
+#define ff(x) findStringIn(x, "unsupported comparison operator:")
+#define ss(x, y) string_splitter(x, y)
+
+  if (
+        !ff(err_msg)
+        ){
+        // The error message does not match the expected one.
+        // Ignored.
+        cerr << "getting other error: " << err_msg << "\n\n\n";
+        return;
+  }
+
+  // Grep the error hinted data types from the error message.
+  string hinted_type_str;
+  vector<string> v_tmp_str = ss(err_msg, "<");
+  if (v_tmp_str.size() < 2) {
+        cerr << "Error: cannot get the < symbol from the error: " << err_msg << "\n\n\n";
+        return;
+  }
+  for (int i = 1; i < v_tmp_str.size(); i++) {
+        hinted_type_str += "<" + v_tmp_str[i];
+  }
+  v_tmp_str = ss(hinted_type_str, " =");
+  if (v_tmp_str.size() < 2) {
+        cerr << "Error: cannot get the = symbol from the error: " << hinted_type_str << "\n\n\n";
+        return;
+  }
+  hinted_type_str = v_tmp_str.front();
+
+  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n\n\n";
+
+#undef ff
+#undef ss
+
+  return;
 }

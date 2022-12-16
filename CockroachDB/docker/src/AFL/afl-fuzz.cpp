@@ -6366,6 +6366,8 @@ static u8 fuzz_one(char **argv) {
             log_logical_bug(whole_query_seq_with_next);
             //            ret_res = FAULT_ERROR;
 
+            is_select_error = true;
+
             // Rollback to the previous savepoint, so no need to worry about the
             // is_prv_stmt_error.
             ret_res = run_target(argv, exec_tmout,
