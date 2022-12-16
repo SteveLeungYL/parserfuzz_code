@@ -5484,7 +5484,7 @@ DATAAFFINITYTYPE Mutator::detect_str_affinity(std::string str_in) {
         // Useless?
         return this->m_column2datatype[str_in].get_data_affinity();
     } else {
-        return get_data_affinity_by_string(str_in);
+        return get_data_affinity_by_string(str_in).get_data_affinity();
     }
 
 }
@@ -6776,13 +6776,15 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
   }
   hinted_type_str = v_tmp_str.front();
 
-  DATAAFFINITYTYPE data_affi = get_data_affinity_by_string(hinted_type_str.substr(1, hinted_type_str.size()-2));
+  DataAffinity data_affi = get_data_affinity_by_string(hinted_type_str.substr(1, hinted_type_str.size()-2));
   cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
-  cerr << "DEBUG:: Getting the data_affinity:" << data_affi << ".\n\n\n";
+  cerr << "DEBUG:: Getting the data_affinity:" << data_affi.get_data_affinity() << ".\n\n\n";
 
 #undef fff
 #undef ff
 #undef ss
+
+  ir->set_data_affinity(data_affi);
 
   return;
 }

@@ -202,7 +202,7 @@ void constr_key_pair_datatype_lib_helper(json& key_pair_json, vector<string>& v_
 
         string affi_type_str = string(params_node.at("type"));
 
-        DATAAFFINITYTYPE affi_type = get_data_affinity_by_string(affi_type_str);
+        DATAAFFINITYTYPE affi_type = get_data_affinity_by_string(affi_type_str).get_data_affinity();
 
         cur_affi.set_data_affinity(affi_type);
 
@@ -314,7 +314,7 @@ void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
 
              // The ret_type must exist.
              DataAffinity ret_type;
-             ret_type.set_data_affinity(get_data_affinity_by_string(it_params->at("ret_type")));
+             ret_type.set_data_affinity(get_data_affinity_by_string(it_params->at("ret_type")).get_data_affinity());
              single_signiture.push_back(ret_type);
 
              // Save the return affinity to function name mapping.
@@ -331,7 +331,7 @@ void constr_sql_func_lib_helper(json& json_obj, vector<string>& v_all_func_str,
                  }
 
                  DataAffinity cur_arg_type;
-                 cur_arg_type.set_data_affinity(get_data_affinity_by_string(it_params->at(arg_key)));
+                 cur_arg_type.set_data_affinity(get_data_affinity_by_string(it_params->at(arg_key)).get_data_affinity());
 
 
                  string arg_key_enum = arg_key + "_enum";

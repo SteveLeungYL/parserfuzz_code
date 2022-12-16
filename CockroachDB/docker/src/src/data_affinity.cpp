@@ -43,20 +43,93 @@ inline void rewrite_data_affinity_string_macro(string &in) {
   }
 }
 
-DATAAFFINITYTYPE get_data_affinity_by_string(string s) {
+inline DataAffinity get_tuple_data_affinity_by_string(string& s) {
+  s = str_toupper(s);
+  trim_string(s);
+
+  if (s == "AFFITUPLE") {
+    // No other information are available.
+    // Directly return.
+    return DataAffinity(AFFITUPLE);
+  }
+
+  // Now, we need to handle the Tuple type information returned
+  // from the DBMS error message.
+  /*
+   *
+   * Getting the hinted_type_str:<tuple{timestamp AS column1,
+   *  timestamptz AS column2, string AS column3, decimal AS column4,
+   *  timestamp AS column5}>.
+   *
+   */
+
+  DataAffinity res_data_affi(AFFITUPLE);
+
+  string data_affi_str;
+  vector<string> v_data_affi;
+
+  v_data_affi = string_splitter(s, "{");
+  if(v_data_affi.size() < 2) {
+    cerr << "\n\n\nError: Cannot get the list of tuple types in: "
+        << s << "\n\n\n";
+    return DataAffinity(AFFITUPLE);
+  }
+  data_affi_str = v_data_affi.back();
+  v_data_affi = string_splitter(data_affi_str, "}");
+  if(v_data_affi.size() < 2) {
+    cerr << "\n\n\nError: Cannot get the list of tuple types in: "
+         << s << "\n\n\n";
+    return DataAffinity(AFFITUPLE);
+  }
+  data_affi_str = v_data_affi.front();
+
+  // Now the data_affi_str contains the list of data types.
+  // The AS something might not exist.
+  /*
+   * timestamp AS column1,
+   *  timestamptz AS column2, string AS column3, decimal AS column4,
+   *  timestamp AS column5
+   */
+
+  v_data_affi = string_splitter(data_affi_str, ", ");
+
+  for (string& cur_data_affi: v_data_affi) {
+    if (findStringIn(cur_data_affi, " AS ")) {
+          cur_data_affi = string_splitter(cur_data_affi, " AS ").front();
+    }
+    DataAffinity cur_detected_affi = get_data_affinity_by_string(cur_data_affi);
+    res_data_affi.push_new_v_tuple_types(cur_detected_affi);
+  }
+
+  cerr << "\n\n\nDEBUG:: When handling the tuple types, from res_str: \n" << s << "getting: \n";
+  vector<shared_ptr<DataAffinity>> tmp_debug_v = res_data_affi.get_v_tuple_types();
+  for (auto cur_debug : tmp_debug_v) {
+    cerr << get_string_by_affinity_type(cur_debug->get_data_affinity()) << ", ";
+  }
+  cerr << "end\n\n\n";
+
+  return res_data_affi;
+
+}
+
+DataAffinity get_data_affinity_by_string(string s) {
+
+  if (findStringIn(s, "tuple")) {
+    return get_tuple_data_affinity_by_string(s);
+  }
+
   rewrite_data_affinity_string_macro(s);
 
 #define DECLARE_CASE(dataAffiname)                                             \
   if (s == #dataAffiname)                                                      \
-    return dataAffiname;
+    return DataAffinity(dataAffiname);
   ALLDATAAFFINITY(DECLARE_CASE);
 #undef DECLARE_CASE
   string err = "\n\n\nError: Cannot find the matching data affinity by"
                " string: " +
                s + " \n\n\n";
   cerr << err;
-//  abort();
-      return AFFIUNKNOWN;
+  return DataAffinity();
 }
 
 DATAAFFINITYTYPE get_data_affinity_by_idx(int idx) {

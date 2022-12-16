@@ -32,7 +32,6 @@ string get_random_affinity_type_str_formal(bool is_basic_type_only = true);
 string get_affinity_type_str_formal(DATAAFFINITYTYPE);
 
 DATAAFFINITYTYPE get_data_affinity_by_idx(int idx);
-DATAAFFINITYTYPE get_data_affinity_by_string(string s);
 
 class DataAffinity {
 
@@ -107,6 +106,10 @@ public:
             // No need to init v_enum_str;
     }
 
+    DataAffinity(const DATAAFFINITYTYPE type_in): data_affinity(type_in), is_range(false), is_enum(false),
+                                                   int_min(0), int_max(0), float_min(0.0), float_max(0.0) {
+    }
+
     // Copy constructor.
     DataAffinity(const DataAffinity& copy_in):
             data_affinity(copy_in.get_data_affinity()),
@@ -168,6 +171,22 @@ public:
         }
     }
 
+    vector<shared_ptr<DataAffinity>> get_v_tuple_types() {
+        return this->v_tuple_types;
+    }
+
+    void push_new_v_tuple_types(const DataAffinity& data_affi_in) {
+        this->v_tuple_types.push_back(make_shared<DataAffinity>(DataAffinity(data_affi_in)));
+        return;
+    }
+
+    void clean_up_v_tuple_types() {
+        this->v_tuple_types.clear();
+        return;
+    }
+
 };
+
+DataAffinity get_data_affinity_by_string(string s);
 
 #endif //SRC_DATA_AFFINITY_H
