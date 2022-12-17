@@ -201,6 +201,7 @@ public:
   int operand_num_;
   unsigned int mutated_times_ = 0;
   bool is_instantiated = false;
+  bool is_compact_expr = false;
 
   string to_string();
   void to_string_core(string &);
@@ -268,6 +269,9 @@ public:
   bool func_name_set_str(string);
 
   bool replace_op(IROperator *);
+
+  void set_is_compact_expr(bool in) {this->is_compact_expr = in;}
+  bool get_is_compact_expr() {return this->is_compact_expr;}
 
   /* From the kTypename ir, return the int representing the Postgres column
    * type.

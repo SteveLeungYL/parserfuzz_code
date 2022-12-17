@@ -4994,6 +4994,14 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     // up.\n\n\n";
     return;
   }
+
+  if (p_type != TypeRoot && ir->get_is_instantiated()) {
+      uint64_t data_affi_hash = ir->data_affinity.calc_hash();
+      data_affi_set[data_affi_hash].push_back(
+          std::make_pair(p_query_str, current_unique_id)
+          );
+  }
+
   if (p_type != TypeRoot)
     ir_libary_2D_hash_[p_type].insert(p_hash);
 
@@ -6737,6 +6745,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
         ) {
         cerr << "getting type boolean. \n\n\n";
         ir->set_data_affinity(AFFIBOOL);
+        ir->set_is_compact_expr(true);
         return;
     }
 
@@ -6785,6 +6794,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
 #undef ss
 
   ir->set_data_affinity(data_affi);
+  ir->set_is_compact_expr(true);
 
   return;
 }
