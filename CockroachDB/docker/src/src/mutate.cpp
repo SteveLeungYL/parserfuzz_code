@@ -5556,7 +5556,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
         }
         str_target_type = v_tmp_split.at(0);
 
-        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+        DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+        uint64_t fix_affi_hash = fix_affi.calc_hash();
 
         // Find all the matching literals.
         vector<IR*> v_matched_node = p_oracle->ir_wrapper
@@ -5578,14 +5579,41 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 cerr << "\n\n\nDEBUG:: Matching node: " << cur_matched_node->to_string();
             }
 
-            IR* new_literal_node = new IR(TypeStringLiteral, OP0());
-            new_literal_node->set_is_instantiated(true);
-            new_literal_node->mutate_literal(fix_affi);
-            cur_stmt_root->swap_node(cur_matched_node, new_literal_node);
-            ir_to_deep_drop.push_back(cur_matched_node);
+            IR* new_node = NULL;
+            if (
+                // TODO:: With probabilities?
+                this->data_affi_set.count(fix_affi_hash) != 0
+                ) {
+                pair<string*, int> cur_chosen_pair =
+                    vector_rand_ele(this->data_affi_set[fix_affi_hash]);
+                new_node = this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
 
-            if (is_debug_info) {
-                cerr << ", mutated to node: " << new_literal_node->to_string() << "\n\n\n";
+                if (is_debug_info && new_node != NULL) {
+                    cerr << "\nDEBUG:: From data affinity library, "
+                            << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                            << " getting "
+                         << new_node->to_string() << "\n\n\n";
+                }
+
+            }
+            else {
+                new_node = new IR(TypeStringLiteral, OP0());
+                new_node->set_is_instantiated(true);
+                new_node->mutate_literal(fix_affi);
+            }
+
+            if (new_node != NULL) {
+                cur_stmt_root->swap_node(cur_matched_node, new_node);
+                ir_to_deep_drop.push_back(cur_matched_node);
+
+                if (is_debug_info) {
+                    cerr << ", mutated to node: " << new_node->to_string()
+                         << "\n\n\n";
+                }
+            } else {
+                if (is_debug_info) {
+                    cerr << ", failed to mutate because new_node is NULL. \n\n\n ";
+                }
             }
         }
 
@@ -5717,22 +5745,46 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 }
                 str_target_type = v_tmp_split.at(0);
 
-                DATAAFFINITYTYPE fixed_affi = this->detect_str_affinity(str_target_type);
+                DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+                uint64_t fix_affi_hash = fix_affi.calc_hash();
 
-                // Replace the right node with the new affinity literals.
-                IR* new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);
-                new_right_node->set_is_instantiated(true);
-                new_right_node->mutate_literal(fixed_affi);
+                IR* new_node = NULL;
+                if (
+                    // TODO:: With probabilities?
+                    this->data_affi_set.count(fix_affi_hash) != 0
+                ) {
+                    pair<string*, int> cur_chosen_pair =
+                        vector_rand_ele(this->data_affi_set[fix_affi_hash]);
+                    new_node = this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
 
-                IR* old_right_node = cur_binary_operator->get_right();
-                cur_binary_operator->update_right(new_right_node);
-                if (old_right_node != NULL) {
-                    ir_to_deep_drop.push_back(old_right_node);
+                    if (is_debug_info && new_node != NULL) {
+                      cerr << "\nDEBUG:: From data affinity library, "
+                           << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                           << " getting "
+                           << new_node->to_string() << "\n\n\n";
+                    }
+
+                }
+                else {
+                    new_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+                    new_node->set_is_instantiated(true);
+                    new_node->mutate_literal(fix_affi);
                 }
 
-                if (is_debug_info) {
-                    cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
-                         << cur_binary_operator->to_string() << "\n\n\n";
+                if (new_node != NULL) {
+                    IR* old_right_node = cur_binary_operator->get_right();
+                    cur_binary_operator->update_right(new_node);
+                    if (old_right_node != NULL) {
+                      ir_to_deep_drop.push_back(old_right_node);
+                    }
+                    if (is_debug_info) {
+                      cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
+                           << cur_binary_operator->to_string() << "\n\n\n";
+                    }
+                } else {
+                    if (is_debug_info) {
+                      cerr << ", failed to mutate because new_node is NULL. \n\n\n ";
+                    }
                 }
             }
         }
@@ -6797,4 +6849,33 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
   ir->set_is_compact_expr(true);
 
   return;
+}
+
+IR* Mutator::get_ir_node_from_data_affi_pair(const pair<string*, int>& in_pair) {
+
+  if (in_pair.first == NULL) {
+        cerr << "ERROR: The input pair from get_ir_node_from_data_affi_pair are empty! \n\n\n";
+        return NULL;
+  }
+
+  vector<IR*> v_parsed_ir = parse_query_str_get_ir_set(*(in_pair.first));
+  if (v_parsed_ir.size() == 0) {
+       cerr << "ERROR: The input pair from get_ir_node_from_data_affi_pair cannot be parsed\n"
+                "Getting: \n" << *(in_pair.first) << "! \n\n\n";
+  }
+
+  for (auto cur_ir: v_parsed_ir) {
+       if (cur_ir->uniq_id_in_tree_ == in_pair.second) {
+          IR* res_ir = cur_ir->deep_copy();
+          res_ir->parent_ = NULL;
+          v_parsed_ir.back()->deep_drop();
+          return res_ir;
+       }
+  }
+
+  cerr << "Error: The input pair from get_ir_node_from_data_affi_pair, the node number: "
+          << in_pair.second << " cannot be found from string: " << *(in_pair.first) << "\n\n\n";
+  v_parsed_ir.back()->deep_drop();
+  return NULL;
+
 }

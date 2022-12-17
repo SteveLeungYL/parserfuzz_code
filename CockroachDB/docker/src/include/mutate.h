@@ -373,6 +373,7 @@ private:
                                                                                                                                      int, string&), bool is_debug_info = false);
     void label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error);
 
+    inline IR* get_ir_node_from_data_affi_pair(const pair<string*, int>&);
 };
 
 #endif
