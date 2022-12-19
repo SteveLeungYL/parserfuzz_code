@@ -349,10 +349,10 @@ public:
 
   /* This is the interface used for saving the mapping between detected
    * data types and its mapped query node. The logic is similar to the
-   * IR mutation, as shown above. And it re-use the saving string* to
+   * IR mutation, as shown above. And it reuses the saving string* to
    * save the extra memory space.
    * */
-  map<uint64_t, vector<pair<string *, int>>> data_affi_set;
+  map<uint64_t, vector<IR*>> data_affi_set;
 
   static set<IR *> visited;
 

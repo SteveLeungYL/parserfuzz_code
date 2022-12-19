@@ -5005,8 +5005,11 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
         cerr << "\n\n\nSaving new data affinity type: "
            << get_string_by_affinity_type(ir->get_data_affinity()) << ". \n\n\n";
       }
+//      data_affi_set[data_affi_hash].push_back(
+//          std::make_pair(p_query_str, current_unique_id)
+//          );
       data_affi_set[data_affi_hash].push_back(
-          std::make_pair(p_query_str, current_unique_id)
+          ir->deep_copy()
           );
   }
   cerr << "\n\n\nGetting data_affi_set size: " << this->data_affi_set.size() << "\n\n\n";
@@ -5598,9 +5601,10 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 this->data_affi_set.count(fix_affi_hash) != 0 &&
                 get_rand_int(10) < 9
                 ) {
-                pair<string*, int> cur_chosen_pair =
-                    vector_rand_ele(this->data_affi_set[fix_affi_hash]);
-                new_node = this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
+//                pair<string*, int> cur_chosen_pair =
+//                    vector_rand_ele(this->data_affi_set[fix_affi_hash]);
+//                new_node = this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
+                new_node = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
 
                 if (is_debug_info && new_node != NULL) {
                     cerr << "\nDEBUG:: From data affinity library, "
@@ -5776,9 +5780,10 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                     this->data_affi_set.count(fix_affi_hash) != 0 &&
                     get_rand_int(10) < 9
                 ) {
-                    pair<string*, int> cur_chosen_pair =
-                        vector_rand_ele(this->data_affi_set[fix_affi_hash]);
-                    new_node = this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
+//                    pair<string*, int> cur_chosen_pair =
+//                        vector_rand_ele(this->data_affi_set[fix_affi_hash]);
+//                    new_node = this->get_ir_node_from_data_affi_pair(cur_chosen_pair);
+                    new_node = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
 
                     if (is_debug_info && new_node != NULL) {
                       cerr << "\nDEBUG:: From data affinity library, "
@@ -6924,12 +6929,18 @@ void Mutator::instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debu
   // Label all the column names inside the function expressions. So that the
   // instan_column_name can directly recognize the data type.
 
-
-  for (auto cur_table_node: v_table_names) {
-       this->instan_table_name(cur_table_node);
+  vector<IR*> ir_to_deep_drop;
+  for (IR* cur_table_node: v_table_nodes) {
+       bool dummy_bool = false;
+       this->instan_table_name(cur_table_node, dummy_bool, false);
   }
   for (auto cur_column_node: v_column_nodes) {
-       this->instan_column_name(cur_column_node);
+       bool dummy_bool = false;
+       this->instan_column_name(cur_column_node, cur_stmt_root, dummy_bool, ir_to_deep_drop, false);
+  }
+
+  for (auto ir_to_drop: ir_to_deep_drop) {
+       ir_to_drop->deep_drop();
   }
 
   return;
@@ -6945,14 +6956,14 @@ void Mutator::label_identifiers_in_func_expr(IR* cur_func_expr, bool is_debug_in
   // First of all, find the function name node.
   vector<IR*> tmp_func_name_nodes = p_oracle->ir_wrapper
        .get_ir_node_in_stmt_with_type(cur_func_expr, DataFunctionName, false);
-  if (tmp_func_name_nodes.size == 0) {
+  if (tmp_func_name_nodes.size() == 0) {
        cerr << "ERROR: cannot find function name node inside the function "
                "expressions. ";
        return;
   }
   IR* func_name = tmp_func_name_nodes.front();
 
-  if (func_str_to_type_map.count(func_name) == 0) {
+  if (func_str_to_type_map.count(func_name->to_string()) == 0) {
        cerr << "ERROR: cannot find the function name to function arguments "
                "mapping, using function name: " << func_name << "\n\n\n";
        return;
