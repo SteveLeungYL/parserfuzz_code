@@ -3515,6 +3515,8 @@ static void perform_dry_run(char **argv) {
       if (crash_mode)
         FATAL("Test case '%s' does *NOT* crash", fn);
 
+      g_mutator.add_all_to_library(query_str, {}, run_target);
+
       break;
 
     case FAULT_TMOUT:
