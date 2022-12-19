@@ -101,12 +101,12 @@ inline DataAffinity get_tuple_data_affinity_by_string(string& s) {
     res_data_affi.push_new_v_tuple_types(cur_detected_affi);
   }
 
-  cerr << "\n\n\nDEBUG:: When handling the tuple types, from res_str: \n" << s << "getting: \n";
-  vector<shared_ptr<DataAffinity>> tmp_debug_v = res_data_affi.get_v_tuple_types();
-  for (auto cur_debug : tmp_debug_v) {
-    cerr << get_string_by_affinity_type(cur_debug->get_data_affinity()) << ", ";
-  }
-  cerr << "end\n\n\n";
+//  cerr << "\n\n\nDEBUG:: When handling the tuple types, from res_str: \n" << s << "getting: \n";
+//  vector<shared_ptr<DataAffinity>> tmp_debug_v = res_data_affi.get_v_tuple_types();
+//  for (auto cur_debug : tmp_debug_v) {
+//    cerr << get_string_by_affinity_type(cur_debug->get_data_affinity()) << ", ";
+//  }
+//  cerr << "end\n\n\n";
 
   return res_data_affi;
 

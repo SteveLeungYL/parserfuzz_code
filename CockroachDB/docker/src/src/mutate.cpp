@@ -4912,6 +4912,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_valid_pstr_vec.push_back(new_select);
 
   if (run_target != NULL) {
+    cerr << "\n\n\nAuto mark!!!\n\n\n";
     auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
@@ -4958,7 +4959,8 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   //  }
 
   if (run_target != NULL) {
-    auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
+    cerr << "\n\n\nAuto mark!!!\n\n\n";
+    auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
   }
@@ -4990,17 +4992,18 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   if (p_type != TypeRoot && ir_libary_2D_hash_[p_type].find(p_hash) !=
                                 ir_libary_2D_hash_[p_type].end()) {
     /* current node not interesting enough. Ignore it and clean up. */
-    // cerr << "current node not interesting enough. Ignore it and clean
-    // up.\n\n\n";
+//     cerr << "current node not interesting enough. Ignore it and clean up.\n\n\n";
     return;
   }
 
-  if (p_type != TypeRoot && ir->get_is_instantiated()) {
+  cerr << "\n\n\nSaving to the data affinity library. \n\n\n";
+  if (p_type != TypeRoot && ir->get_is_compact_expr()) {
       uint64_t data_affi_hash = ir->data_affinity.calc_hash();
       data_affi_set[data_affi_hash].push_back(
           std::make_pair(p_query_str, current_unique_id)
           );
   }
+  cerr << "\n\n\nGetting data_affi_set size: " << this->data_affi_set.size() << "\n\n\n";
 
   if (p_type != TypeRoot)
     ir_libary_2D_hash_[p_type].insert(p_hash);
@@ -5579,6 +5582,11 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 cerr << "\n\n\nDEBUG:: Matching node: " << cur_matched_node->to_string();
             }
 
+            cerr << "\n\n\naffi_library size: " << this->data_affi_set.size() << "\n";
+            cerr << "\nGetting current need to match type: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                << "\n\n\n";
+
+
             IR* new_node = NULL;
             if (
                 // TODO:: With probabilities?
@@ -5594,9 +5602,14 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                             << " getting "
                          << new_node->to_string() << "\n\n\n";
                 }
+                cerr << "\nDEBUG:: From data affinity library, "
+                     << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                     << " getting "
+                     << new_node->to_string() << "\n\n\n";
 
             }
             else {
+                cerr << "Does not match successfully. \n\n\n";
                 new_node = new IR(TypeStringLiteral, OP0());
                 new_node->set_is_instantiated(true);
                 new_node->mutate_literal(fix_affi);
@@ -5747,6 +5760,10 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
                 DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
                 uint64_t fix_affi_hash = fix_affi.calc_hash();
+
+                cerr << "\n\n\naffi_library size: " << this->data_affi_set.size() << "\n";
+                cerr << "\nGetting current need to match type: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                     << "\n\n\n";
 
                 IR* new_node = NULL;
                 if (
@@ -6477,7 +6494,7 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
             // Analyze the res str.
-            cerr << "\n\n\nDEBUG:From Stmt: " << updated_stmt << ";\n";
+//            cerr << "\n\n\nDEBUG:From Stmt: " << updated_stmt << ";\n";
             bool is_syntax_error = false;
             label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6553,7 +6570,7 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
             // Analyze the res str.
-            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
+//            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
             bool is_syntax_error = false;
             label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6591,7 +6608,7 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
             run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
             // Analyze the res str.
-            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
+//            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
             is_syntax_error = false;
             label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6795,7 +6812,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
         is_str_empty(err_msg) || // err_msg is empty.
         !p_oracle->is_res_str_error(err_msg) // No error message.
         ) {
-        cerr << "getting type boolean. \n\n\n";
+//        cerr << "getting type boolean. \n\n\n";
         ir->set_data_affinity(AFFIBOOL);
         ir->set_is_compact_expr(true);
         return;
@@ -6807,7 +6824,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
 
     if(fff(err_msg)) {
       is_syntax_error = true;
-      cerr << " getting syntax error: " << err_msg << "\n\n\n";
+//      cerr << " getting syntax error: " << err_msg << "\n\n\n";
       return;
     }
 
@@ -6816,7 +6833,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
         ){
         // The error message does not match the expected one.
         // Ignored.
-        cerr << "getting other error: " << err_msg << "\n\n\n";
+//        cerr << "getting other error: " << err_msg << "\n\n\n";
         return;
   }
 

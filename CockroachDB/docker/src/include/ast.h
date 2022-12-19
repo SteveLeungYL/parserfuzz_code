@@ -171,6 +171,7 @@ public:
     this->name_ = ir->name_;
     this->operand_num_ = ir->operand_num_;
     this->mutated_times_ = ir->mutated_times_;
+    this->is_compact_expr = ir->is_compact_expr;
   }
 
   union {
