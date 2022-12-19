@@ -886,3 +886,35 @@ void IRWrapper::iter_cur_node_with_handler(IR* cur_node, handler_t handler) {
 
     return;
 }
+
+vector<IR*> IRWrapper::get_expr_vec_from_expr_list(IR* expr_list) {
+
+    if (expr_list->get_ir_type() != TypeExprs) {
+        cerr << "ERROR: Not getting TypeExprs from get_expr_vec_from_expr_list, "
+                "getting: " << get_string_by_ir_type(expr_list->get_ir_type())
+        << "\n\n\n";
+        return {};
+    }
+
+    vector<IR*> tmp_vec;
+    vector<IR*> res_vec;
+    IR* cur_expr_node = expr_list;
+
+    while(cur_expr_node && cur_expr_node->get_ir_type() == TypeExprs) {
+        tmp_vec.push_back(cur_expr_node);
+        cur_expr_node = cur_expr_node->get_left();
+    }
+
+    res_vec.push_back(cur_expr_node);
+
+    while (tmp_vec.size()) {
+        cur_expr_node = tmp_vec.back();
+        tmp_vec.pop_back();
+        if (cur_expr_node && cur_expr_node->get_right()) {
+          res_vec.push_back(cur_expr_node->get_right());
+        }
+    }
+
+    return res_vec;
+
+}

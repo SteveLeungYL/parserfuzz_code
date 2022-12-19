@@ -4996,9 +4996,15 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     return;
   }
 
-  cerr << "\n\n\nSaving to the data affinity library. \n\n\n";
   if (p_type != TypeRoot && ir->get_is_compact_expr()) {
+      cerr << "\n\n\nSaving to the data affinity library with type: "
+         << get_string_by_affinity_type(ir->get_data_affinity())
+        << ", node: \n" << ir->to_string() << ". \n\n\n";
       uint64_t data_affi_hash = ir->data_affinity.calc_hash();
+      if(data_affi_set.count(data_affi_hash) == 0) {
+        cerr << "\n\n\nSaving new data affinity type: "
+           << get_string_by_affinity_type(ir->get_data_affinity()) << ". \n\n\n";
+      }
       data_affi_set[data_affi_hash].push_back(
           std::make_pair(p_query_str, current_unique_id)
           );
@@ -5589,8 +5595,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
             IR* new_node = NULL;
             if (
-                // TODO:: With probabilities?
-                this->data_affi_set.count(fix_affi_hash) != 0
+                this->data_affi_set.count(fix_affi_hash) != 0 &&
+                get_rand_int(10) < 9
                 ) {
                 pair<string*, int> cur_chosen_pair =
                     vector_rand_ele(this->data_affi_set[fix_affi_hash]);
@@ -5767,8 +5773,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
                 IR* new_node = NULL;
                 if (
-                    // TODO:: With probabilities?
-                    this->data_affi_set.count(fix_affi_hash) != 0
+                    this->data_affi_set.count(fix_affi_hash) != 0 &&
+                    get_rand_int(10) < 9
                 ) {
                     pair<string*, int> cur_chosen_pair =
                         vector_rand_ele(this->data_affi_set[fix_affi_hash]);
@@ -5780,6 +5786,11 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                            << " getting "
                            << new_node->to_string() << "\n\n\n";
                     }
+
+                    cerr << "\nDEBUG:: From data affinity library, "
+                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                         << " getting "
+                         << new_node->to_string() << "\n\n\n";
 
                 }
                 else {
@@ -6894,5 +6905,71 @@ IR* Mutator::get_ir_node_from_data_affi_pair(const pair<string*, int>& in_pair) 
           << in_pair.second << " cannot be found from string: " << *(in_pair.first) << "\n\n\n";
   v_parsed_ir.back()->deep_drop();
   return NULL;
+
+}
+
+void Mutator::instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debug_info) {
+
+  /* This function is used to fix the instantiation mismatches when replacing
+   * query nodes from the mutator library. The saved query parts might not
+   * contain the same table/column names as the current query statement, therefore,
+   * all table/column names needs rewrite.
+   * */
+
+  // First of all, gather all the function/table/column names from the cur_node.
+  vector<IR*> v_func_expr_nodes = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_node, DataFunctionExpr, false, true);
+  vector<IR*> v_table_nodes = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_node, DataTableName, false, true);
+  vector<IR*> v_column_nodes = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_node, DataColumnName, false, true);
+
+  // Label all the column names inside the function expressions. So that the
+  // instan_column_name can directly recognize the data type.
+
+
+  for (auto cur_table_node: v_table_names) {
+       this->instan_table_name(cur_table_node);
+  }
+  for (auto cur_column_node: v_column_nodes) {
+       this->instan_column_name(cur_column_node);
+  }
+
+  return;
+
+}
+
+void Mutator::label_identifiers_in_func_expr(IR* cur_func_expr, bool is_debug_info) {
+
+  // Given one DataFunctionExpr node, label all the column name data types in the
+  // sub-nodes. So that the instan_column_name function can correctly recognize
+  // the data types.
+
+  // First of all, find the function name node.
+  vector<IR*> tmp_func_name_nodes = p_oracle->ir_wrapper
+       .get_ir_node_in_stmt_with_type(cur_func_expr, DataFunctionName, false);
+  if (tmp_func_name_nodes.size == 0) {
+       cerr << "ERROR: cannot find function name node inside the function "
+               "expressions. ";
+       return;
+  }
+  IR* func_name = tmp_func_name_nodes.front();
+
+  if (func_str_to_type_map.count(func_name) == 0) {
+       cerr << "ERROR: cannot find the function name to function arguments "
+               "mapping, using function name: " << func_name << "\n\n\n";
+       return;
+  }
+
+  vector<IR*> v_func_exprs = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
+      cur_func_expr, TypeExprs, false
+      );
+  if (v_func_exprs.size() == 0) {
+       cerr << "ERROR: cannot find the v_func_exprs from the function expressions. \n\n\n";
+       return;
+  }
+  v_func_exprs = p_oracle->ir_wrapper.get_expr_vec_from_expr_list(v_func_exprs.front());
+
+  /* TODO:: Code not finished. Changing to another approach, save the IR nodes
+   * instead just the query string, in order to preserve the data type information.
+   */
+//  if (v_func_exprs.size() != )
 
 }

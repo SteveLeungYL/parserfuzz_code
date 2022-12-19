@@ -124,6 +124,8 @@ public:
   bool is_exist_EXCEPT_SELECT(IR *cur_stmt);
   bool is_exist_set_operator(IR *cur_stmt);
 
+  vector<IR*> get_expr_vec_from_expr_list(IR* expr_list);
+
   vector<IR *> get_select_exprs(IR *cur_stmt);
   int get_num_select_exprs(IR *cur_stmt) {
     return this->get_select_exprs(cur_stmt).size();

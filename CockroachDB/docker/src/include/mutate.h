@@ -374,6 +374,10 @@ private:
     void label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error);
 
     inline IR* get_ir_node_from_data_affi_pair(const pair<string*, int>&);
+
+    void instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debug_info);
+
+    void label_identifiers_in_func_expr(IR* cur_func_expr, bool is_debug_info);
 };
 
 #endif
