@@ -2729,12 +2729,17 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
       // This is used in query dynamic fixing, where the replaced query nodes
       // are saved in a whole, and the column node data affinity are preserved.
 
+      if (is_debug_info) {
+        cerr << "\n\n\nDEBUG: Special handling of the column name, in dynamic fixing"
+                " context. \n\n\n";
+      }
+
       if (m_datatype2column.count(ir_to_fix->get_data_affinity()) == 0) {
         // If it cannot find the matching column names, instantiate this node
         // as an literal.
         ir_to_fix->type_ = TypeStringLiteral;
-        ir_to_fix->data_type_ = DataUnknownType;
-        ir_to_fix->mutate_literal();
+        ir_to_fix->data_type_ = DataLiteral;
+        ir_to_fix->mutate_literal(ir_to_fix->get_data_affinity());
         return;
       }
       string cur_chosen_col = vector_rand_ele(m_datatype2column[ir_to_fix->get_data_affinity()]);
@@ -3378,12 +3383,17 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
     return;
   }
 
-  /* First Loop */
+  /* First Loop, handles IN expression and Values clause.  */
   IRTYPE type = ir_to_fix->get_ir_type();
 
   if ((type == TypeFloatLiteral || type == TypeStringLiteral || type == TypeDBool ||
        type == TypeIntegerLiteral) &&
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeExprs)) {
+      (
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeINExpr) ||
+          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeValuesClause)
+//          p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeTuple)
+      )
+      ) {
     /* Completely rewritten Literal handling and mutation logic.
      * The idea is to search for the closest Column Name or fixed literals,
      * and try to match the type of the column name or literal.
@@ -5745,6 +5755,11 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
          * SELECT COUNT( *) FROM v0 WHERE v0.c5 = B'010' AND v0.c3 = B'10001111101';
          *   pq: unsupported comparison operator: <decimal> = <varbit>
          * */
+
+        if (is_debug_info) {
+            cerr << "Inside the unsupported comparison operator: other types. \n\n\n";
+        }
+
         vector<IR*> ir_to_deep_drop;
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper

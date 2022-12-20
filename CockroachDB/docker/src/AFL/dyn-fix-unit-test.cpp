@@ -44,7 +44,7 @@ bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_
 
     IR* cur_trans_stmt;
     string whole_query_sequence = "";
-    const int max_trial = 10;
+    const int max_trial = 3;
     int total_instan_num = 0;
     vector<IR*> tmp_all_pre_trans_vec;
 
@@ -417,6 +417,59 @@ bool unit_test_tuple_instan(bool is_show_debug = false) {
 
 }
 
+bool unit_test_tuple_instan_2(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+      "SELECT * FROM v0 WHERE ('6597:6b20:879b:b681:c388:8635:ba39:1d50', '6ab3:767c:bd55:606b:67ac:f29d:9478:e420', 0, '03:42:35.1468', '05:14:42.1891') != c3;"
+  };
+
+  vector<string> res_list {
+      "",
+      "ERROR: unsupported comparison operator: <tuple{string, string, int, string, string}> != <interval>"
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[1], [](IR *cur_node) -> void {
+        if (cur_node->get_ir_type() == TypeStringLiteral) {
+          cur_node->set_is_instantiated(true);
+        }
+      });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+  }
+
+  return is_no_error;
+
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -439,6 +492,7 @@ int main(int argc, char *argv[]) {
     assert(unit_test_with_alias_1(false));
     assert(unit_test_jsonb_operator(false));
     assert(unit_test_tuple_instan(false));
+    assert(unit_test_tuple_instan_2(false));
 
     return 0;
 }

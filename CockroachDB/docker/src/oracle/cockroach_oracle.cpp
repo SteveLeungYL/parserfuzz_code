@@ -401,7 +401,7 @@ bool SQL_ORACLE::is_oracle_normal_stmt(string in) {
 SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
     if (
             (
-                    findStringIn(in_str, "pq: unsupported comparison") &&
+                    findStringIn(in_str, "unsupported comparison") &&
                     findStringIn(in_str, "operator:")
             ) ||
             findStringIn(in_str, "pq: unknown signature") ||
