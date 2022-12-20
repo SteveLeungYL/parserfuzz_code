@@ -160,6 +160,10 @@ bool unit_test_failure_create(bool is_show_debug = false) {
         }
     }
 
+    for (auto cur_ir: ir_list) {
+        cur_ir->deep_drop();
+    }
+
     return is_no_error;
 
 }
@@ -214,6 +218,10 @@ bool unit_test_alter_bugs(bool is_show_debug = false) {
         }
     }
 
+    for (auto cur_ir: ir_list) {
+        cur_ir->deep_drop();
+    }
+
     return is_no_error;
 
 }
@@ -263,6 +271,10 @@ bool unit_test_alias_0(bool is_show_debug = false) {
         }
     }
 
+    for (auto cur_ir: ir_list) {
+        cur_ir->deep_drop();
+    }
+
     return is_no_error;
 
 }
@@ -308,6 +320,10 @@ bool unit_test_with_alias_1(bool is_show_debug = false) {
         if (!is_no_error) {
             break;
         }
+    }
+
+    for (auto cur_ir: ir_list) {
+      cur_ir->deep_drop();
     }
 
     return is_no_error;
@@ -359,8 +375,11 @@ bool unit_test_jsonb_operator(bool is_show_debug = false) {
         }
     }
 
-    return is_no_error;
+    for (auto cur_ir: ir_list) {
+        cur_ir->deep_drop();
+    }
 
+    return is_no_error;
 }
 
 
@@ -411,6 +430,10 @@ bool unit_test_tuple_instan(bool is_show_debug = false) {
         if (!is_no_error) {
             break;
         }
+    }
+
+    for (auto cur_ir: ir_list) {
+        cur_ir->deep_drop();
     }
 
     return is_no_error;
@@ -464,6 +487,10 @@ bool unit_test_tuple_instan_2(bool is_show_debug = false) {
     if (!is_no_error) {
       break;
     }
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
   }
 
   return is_no_error;
