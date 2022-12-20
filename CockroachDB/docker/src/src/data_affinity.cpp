@@ -397,6 +397,7 @@ string DataAffinity::mutate_affi_tuple() {
         ret_str += ", ";
       }
       ret_str += cur_elem_str;
+      idx++;
   }
 
   ret_str += ")";
@@ -1123,6 +1124,9 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
     //            cerr << "In DataAffinity::get_mutated_literal, getting
     //            AFIUNKNOWN. \n"; abort();
     return this->mutate_affi_string();
+
+  case AFFITUPLE:
+    return this->mutate_affi_tuple();
 
   case AFFISERIAL:
     // [[fallthrough]]

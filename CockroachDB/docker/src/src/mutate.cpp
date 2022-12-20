@@ -5002,7 +5002,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_valid_pstr_vec.push_back(new_select);
 
   if (run_target != NULL) {
-    cerr << "\n\n\nAuto mark!!!\n\n\n";
+//    cerr << "\n\n\nAuto mark!!!\n\n\n";
     auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
@@ -5053,7 +5053,7 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   //  }
 
   if (run_target != NULL) {
-    cerr << "\n\n\nAuto mark!!!\n\n\n";
+//    cerr << "\n\n\nAuto mark!!!\n\n\n";
     auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
@@ -5095,14 +5095,14 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   }
 
   if (p_type != TypeRoot && ir->get_is_compact_expr()) {
-      cerr << "\n\n\nSaving to the data affinity library with type: "
-         << get_string_by_affinity_type(ir->get_data_affinity())
-        << ", node: \n" << ir->to_string() << ". \n\n\n";
+//      cerr << "\n\n\nSaving to the data affinity library with type: "
+//         << get_string_by_affinity_type(ir->get_data_affinity())
+//        << ", node: \n" << ir->to_string() << ". \n\n\n";
       uint64_t data_affi_hash = ir->data_affinity.calc_hash();
-      if(data_affi_set.count(data_affi_hash) == 0) {
-        cerr << "\n\n\nSaving new data affinity type: "
-           << get_string_by_affinity_type(ir->get_data_affinity()) << ". \n\n\n";
-      }
+//      if(data_affi_set.count(data_affi_hash) == 0) {
+//        cerr << "\n\n\nSaving new data affinity type: "
+//           << get_string_by_affinity_type(ir->get_data_affinity()) << ". \n\n\n";
+//      }
 //      data_affi_set[data_affi_hash].push_back(
 //          std::make_pair(p_query_str, current_unique_id)
 //          );
@@ -5110,7 +5110,12 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
           ir->deep_copy()
           );
   }
-  cerr << "\n\n\nGetting data_affi_set size: " << this->data_affi_set.size() << "\n\n\n";
+//  cerr << "\n\n\nGetting data_affi_set data type size: " << this->data_affi_set.size() << "\n";
+//  int tmp_size=0;
+//  for (auto it = data_affi_set.begin(); it != data_affi_set.end(); it++) {
+//      tmp_size += it->second.size();
+//  }
+//  cerr << "total saved: " << tmp_size << "\n\n\n";
 
   if (p_type != TypeRoot)
     ir_libary_2D_hash_[p_type].insert(p_hash);
@@ -5596,17 +5601,6 @@ IR *Mutator::constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi, bool is_de
   return ret_IR;
 }
 
-DATAAFFINITYTYPE Mutator::detect_str_affinity(std::string str_in) {
-
-    if (this->m_column2datatype.count(str_in) != 0) {
-        // Useless?
-        return this->m_column2datatype[str_in].get_data_affinity();
-    } else {
-        return get_data_affinity_by_string(str_in).get_data_affinity();
-    }
-
-}
-
 void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debug_info) {
 
     /* Fix type mismatched problems from the operators.
@@ -5689,9 +5683,9 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 cerr << "\n\n\nDEBUG:: Matching node: " << cur_matched_node->to_string();
             }
 
-            cerr << "\n\n\naffi_library size: " << this->data_affi_set.size() << "\n";
-            cerr << "\nGetting current need to match type: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                << "\n\n\n";
+//            cerr << "\n\n\naffi_library size: " << this->data_affi_set.size() << "\n";
+//            cerr << "\nGetting current need to match type: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//                << "\n\n\n";
 
 
             IR* new_node = NULL;
@@ -5710,11 +5704,6 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                             << " getting "
                          << new_node->to_string() << "\n\n\n";
                 }
-                cerr << "\nDEBUG:: From data affinity library, "
-                     << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                     << " getting "
-                     << new_node->to_string() << "\n\n\n";
-
             }
             else {
                 cerr << "Does not match successfully. \n\n\n";
@@ -5871,9 +5860,9 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
                 uint64_t fix_affi_hash = fix_affi.calc_hash();
 
-                cerr << "\n\n\naffi_library size: " << this->data_affi_set.size() << "\n";
-                cerr << "\nGetting current need to match type: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                     << "\n\n\n";
+//                cerr << "\n\n\naffi_library size: " << this->data_affi_set.size() << "\n";
+//                cerr << "\nGetting current need to match type: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
+//                     << "\n\n\n";
 
                 IR* new_node = NULL;
                 if (
@@ -5891,12 +5880,6 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                            << " getting "
                            << new_node->to_string() << "\n\n\n";
                     }
-
-                    cerr << "\nDEBUG:: From data affinity library, "
-                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
-                         << " getting "
-                         << new_node->to_string() << "\n\n\n";
-
                 }
                 else {
                     new_node = new IR(TypeUnknown, OP0(), NULL, NULL);
@@ -5979,7 +5962,7 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
         }
         str_target_type = v_tmp_split.at(0);
 
-        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+        DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
 
         // Find all the matching literals.
         vector<IR*> v_matched_node = p_oracle->ir_wrapper
@@ -6025,7 +6008,8 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
      */
 
     if (
-            findStringIn(res_str, "ERROR: could not parse ") &&
+        // Could be pq: could not parse or ERROR: could not parse
+            findStringIn(res_str, "could not parse ") &&
             findStringIn(res_str, " as type ")
         ) {
 
@@ -6040,7 +6024,7 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         vector<string> v_tmp_split;
 
         // Get the troublesome variable.
-        v_tmp_split = string_splitter(res_str, "ERROR: could not parse ");
+        v_tmp_split = string_splitter(res_str, "could not parse ");
         if (v_tmp_split.size() <= 1) {
             cerr << "\n\n\nERROR: Cannot find ERROR: could not parse  in the string. \n\n\n";
             return;
@@ -6053,6 +6037,10 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
             return;
         }
         str_literal = v_tmp_split.at(0);
+        if (findStringIn(str_literal, "\"")
+            ) {
+            str_literal = "'" + str_literal.substr(1, str_literal.size() - 2) + "'";
+        }
 
         // Get the target type name.
         v_tmp_split = string_splitter(res_str, " as type ");
@@ -6069,7 +6057,23 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         }
         str_target_type = v_tmp_split.at(0);
 
-        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+        if (is_debug_info) {
+          cerr << "\n\n\nGetting str_target_type: " << str_target_type
+                 << "\nstr_literal: " << str_literal
+                 << "\n\n\n";
+        }
+
+        DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
+
+        if (is_debug_info) {
+          cerr << "\n\n\nGetting parsed fix_affi: " << get_string_by_affinity_type(fix_affi.get_data_affinity())
+               << "\n\n\n";
+          vector<shared_ptr<DataAffinity>> tmp_debug_v = fix_affi.get_v_tuple_types();
+          for (auto cur_debug : tmp_debug_v) {
+            cerr << get_string_by_affinity_type(cur_debug->get_data_affinity()) << ", ";
+          }
+          cerr << "end\n\n\n";
+        }
 
         vector<IR*> v_matched_nodes = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, str_literal, false, true);
@@ -6156,7 +6160,7 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
         }
         str_target_type = v_tmp_split.at(0);
 
-        DATAAFFINITYTYPE fix_affi = detect_str_affinity(str_target_type);
+        DataAffinity fix_affi = get_data_affinity_by_string(str_target_type);
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, TypeBinaryExpr, false, true);
@@ -6271,7 +6275,8 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
     vector tmp_err_note = string_splitter(res_str, '"');
     string ori_str = cur_stmt_root->to_string();
 
-    if (trial < 7 &&
+    if (
+//        trial < 7 &&
         findStringIn(res_str, "(desired <") &&
         findStringIn(res_str, "unknown function")
         ) {
@@ -6312,7 +6317,8 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
             }
         }
     }
-    else if (trial < 7 &&
+    else if (
+//        trial < 7 &&
         findStringIn(res_str, "unknown function") ||
         findStringIn(res_str, "unknown signature")
             ) {
@@ -6351,19 +6357,32 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
                     findStringIn(res_str, "could not parse")
                 )
             ) {
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+                    "unsupported comparison or parsing as type .. could not parse\n\n\n";
+        }
         fix_literal_op_err(cur_stmt_root, res_str, is_debug_info);
     }
     else if (
             findStringIn(res_str, "unsupported binary operator") ||
             (
-                    findStringIn(res_str, "ERROR: could not parse ") &&
+                    findStringIn(res_str, "could not parse ") &&
                     findStringIn(res_str, " as type ")
             )
             ){
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+                    "unsupported binary operator or could not parse ... as type\n\n\n";
+        }
         fix_column_literal_op_err(cur_stmt_root, res_str, is_debug_info);
     }
     else if (findStringIn(res_str, "to be of type")) {
         // Getting error: pq: expected B'111111' to be of type string[], found type varbit
+
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+                    "to be of type\n\n\n";
+        }
 
         string err_str_type = "";
         vector<string> tmp_str_split;
@@ -6394,7 +6413,7 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
         }
         err_str_literal = tmp_str_split.at(0);
 
-        DATAAFFINITYTYPE corr_affi = this->detect_str_affinity(err_str_type);
+        DataAffinity corr_affi = get_data_affinity_by_string(err_str_type);
 
         vector<IR*> v_matched_node = p_oracle->ir_wrapper
                 .get_ir_node_in_stmt_with_type(cur_stmt_root, err_str_literal, false, true);
@@ -6429,13 +6448,19 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
 
         if (is_debug_info) {
             cerr << "DEPENDENCY: Fixing semantic error. Matching rule 'to be of type' from: \n" << res_str
-                 << "\n getting new corr_affi: " << get_string_by_affinity_type(corr_affi) << "\n\n\n";
+                 << "\n getting new corr_affi: " << get_string_by_affinity_type(corr_affi.get_data_affinity()) << "\n\n\n";
         }
 
     }
 
 
-    else if (tmp_err_note.size() >= 3 && trial < 7) {
+    else if (tmp_err_note.size() >= 3
+//             && trial < 7
+             ) {
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG: Fixing column type mismatch, using rule: "
+                    "tmp_err_note.size() >= 3?\n\n\n";
+        }
 
         vector<string> v_err_note;
 
@@ -6482,6 +6507,13 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
             this->instan_dependency(cur_stmt_root, tmp_node_matching, false);
         }
     } else {
+        if (is_debug_info) {
+            cerr << "\n\n\nDEBUG: Fall back to pure whole statement instantiation. \n\n\n";
+        }
+        p_oracle->ir_wrapper.iter_cur_node_with_handler(
+            cur_stmt_root, [](IR *cur_node) -> void {
+              cur_node->set_is_instantiated(false);
+            });
         this->reset_data_library_single_stmt();
         this->validate(cur_stmt_root);
     }
@@ -6554,8 +6586,14 @@ void Mutator::fix_instan_error(IR* cur_stmt_root, string res_str, int trial, boo
     SemanticErrorType cur_error_type = p_oracle->detect_semantic_error_type(res_str);
 
     if (cur_error_type == ColumnTypeRelatedError) {
+        if (is_debug_info) {
+            cerr << "Debug: fix_instan_error: ColumnTypeRelatedError. \n\n\n";
+        }
         this->fix_col_type_rel_errors(cur_stmt_root, res_str, trial, is_debug_info);
     } else {
+        if (is_debug_info) {
+          cerr << "Debug: fix_instan_error: Other types of error. \n\n\n";
+        }
         this->reset_data_library_single_stmt();
         this->validate(cur_stmt_root, is_debug_info);
     }
@@ -6797,7 +6835,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
       run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
       // Analyze the res str.
-      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
       bool is_syntax_error = false;
       label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6835,7 +6873,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
       run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
       // Analyze the res str.
-      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
       is_syntax_error = false;
       label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6870,7 +6908,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
       run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
       // Analyze the res str.
-      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
       bool is_syntax_error = false;
       label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6908,7 +6946,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
       run_target(argv, exec_tmout, updated_stmt, 0, res_str);
 
       // Analyze the res str.
-      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
+//      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
       is_syntax_error = false;
       label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
 
@@ -6974,8 +7012,8 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
   hinted_type_str = v_tmp_str.front();
 
   DataAffinity data_affi = get_data_affinity_by_string(hinted_type_str.substr(1, hinted_type_str.size()-2));
-  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
-  cerr << "DEBUG:: Getting the data_affinity:" << data_affi.get_data_affinity() << ".\n\n\n";
+//  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
+//  cerr << "DEBUG:: Getting the data_affinity:" << data_affi.get_data_affinity() << ".\n\n\n";
 
 #undef fff
 #undef ff

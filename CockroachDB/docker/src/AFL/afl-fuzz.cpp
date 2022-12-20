@@ -6277,6 +6277,7 @@ static u8 fuzz_one(char **argv) {
                  dyn_fix_trial < max_trial) {
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
+            total_instan_num++;
 //
 //            if (dyn_fix_trial == 0) {
 //                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
@@ -6284,7 +6285,6 @@ static u8 fuzz_one(char **argv) {
 //            }
 
             // No need to set up the error flag.
-            // ret_res = FAULT_NONE;
 
             // Iterate the counter.
             dyn_fix_trial++;

@@ -206,9 +206,6 @@ public:
   void remove_type_annotation(IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop);
   void rollback_instan_lib_changes();
 
-
-  DATAAFFINITYTYPE detect_str_affinity(string);
-
   void fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int trial=0, bool is_debug_info = false);
   void fix_instan_error(IR* cur_stmt_root, string res_str, int trial = 0, bool is_debug_info = false);
 
