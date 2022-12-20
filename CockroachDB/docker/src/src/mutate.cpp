@@ -5727,6 +5727,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 cur_stmt_root->swap_node(cur_matched_node, new_node);
                 ir_to_deep_drop.push_back(cur_matched_node);
 
+                this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
+
                 if (is_debug_info) {
                     cerr << ", mutated to node: " << new_node->to_string()
                          << "\n\n\n";
@@ -5908,6 +5910,9 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                     if (old_right_node != NULL) {
                       ir_to_deep_drop.push_back(old_right_node);
                     }
+
+                    this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
+
                     if (is_debug_info) {
                       cerr << "\n\n\nDEBUG::Mutated the unsupported comparison to "
                            << cur_binary_operator->to_string() << "\n\n\n";
@@ -7031,10 +7036,12 @@ void Mutator::instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debu
   vector<IR*> ir_to_deep_drop;
   for (IR* cur_table_node: v_table_nodes) {
        bool dummy_bool = false;
+       cur_table_node->set_is_instantiated(false);
        this->instan_table_name(cur_table_node, dummy_bool, false);
   }
   for (auto cur_column_node: v_column_nodes) {
        bool dummy_bool = false;
+       cur_column_node->set_is_instantiated(false);
        this->instan_column_name(cur_column_node, cur_stmt_root, dummy_bool, ir_to_deep_drop, false);
   }
 
