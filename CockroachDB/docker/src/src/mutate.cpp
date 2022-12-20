@@ -3413,7 +3413,7 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
     }
 
     // Remove the original expressions.
-    if (type_exprs_node->get_left() == nullptr) {
+    if (type_exprs_node == nullptr || type_exprs_node->get_left() == nullptr) {
       // TODO: Dynamic fixing error?
       cerr << "\n\n\nERROR: Getting NULL left node from type_exprs_node. Give up and ignore. \n\n\n";
       return;
