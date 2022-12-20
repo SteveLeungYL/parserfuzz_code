@@ -2533,6 +2533,46 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
 
     ir_to_fix->set_is_instantiated(true);
 
+    if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+      // This is a special context that the Data Affinity type of the
+      // column name node has been pre-defined.
+      // This is used in query dynamic fixing, where the replaced query nodes
+      // are saved in a whole, and the column node data affinity are preserved.
+
+      if (m_datatype2column.count(ir_to_fix->get_data_affinity()) == 0) {
+        // If it cannot find the matching column names, instantiate this node
+        // as an literal.
+        ir_to_fix->type_ = TypeStringLiteral;
+        ir_to_fix->data_type_ = DataUnknownType;
+        ir_to_fix->mutate_literal();
+        return;
+      }
+      string cur_chosen_col = vector_rand_ele(m_datatype2column[ir_to_fix->get_data_affinity()]);
+
+      bool is_col_imported = false;
+      for (string cur_used_table: v_table_names_single) {
+        vector<string> v_imported_col = m_table2columns[cur_used_table];
+        if (find_vector(v_imported_col, cur_chosen_col)) {
+          is_col_imported = true;
+          break;
+        }
+      }
+
+      if (is_col_imported) {
+        ir_to_fix->set_is_instantiated(true);
+        ir_to_fix->set_str_val(cur_chosen_col);
+      } else {
+        // If it cannot find the matching column names, instantiate this node
+        // as an literal.
+        ir_to_fix->type_ = TypeStringLiteral;
+        ir_to_fix->data_type_ = DataUnknownType;
+        ir_to_fix->mutate_literal();
+      }
+
+      return;
+
+    }
+
     IR *name_list =
         p_oracle->ir_wrapper.get_parent_node_with_type(ir_to_fix, TypeNameList);
 
@@ -2682,6 +2722,46 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
     }
 
     ir_to_fix->set_is_instantiated(true);
+
+    if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+      // This is a special context that the Data Affinity type of the
+      // column name node has been pre-defined.
+      // This is used in query dynamic fixing, where the replaced query nodes
+      // are saved in a whole, and the column node data affinity are preserved.
+
+      if (m_datatype2column.count(ir_to_fix->get_data_affinity()) == 0) {
+        // If it cannot find the matching column names, instantiate this node
+        // as an literal.
+        ir_to_fix->type_ = TypeStringLiteral;
+        ir_to_fix->data_type_ = DataUnknownType;
+        ir_to_fix->mutate_literal();
+        return;
+      }
+      string cur_chosen_col = vector_rand_ele(m_datatype2column[ir_to_fix->get_data_affinity()]);
+
+      bool is_col_imported = false;
+      for (string cur_used_table: v_table_names_single) {
+        vector<string> v_imported_col = m_table2columns[cur_used_table];
+        if (find_vector(v_imported_col, cur_chosen_col)) {
+          is_col_imported = true;
+          break;
+        }
+      }
+
+      if (is_col_imported) {
+        ir_to_fix->set_is_instantiated(true);
+        ir_to_fix->set_str_val(cur_chosen_col);
+      } else {
+        // If it cannot find the matching column names, instantiate this node
+        // as an literal.
+        ir_to_fix->type_ = TypeStringLiteral;
+        ir_to_fix->data_type_ = DataUnknownType;
+        ir_to_fix->mutate_literal();
+      }
+
+      return;
+
+    }
 
     // Actual random mutation of the ColumnName. ContextUse.
     string closest_table_name =
@@ -3287,8 +3367,18 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
                              vector<IR *> &ir_to_deep_drop,
                              bool is_debug_info) {
 
-  /* First Loop */
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
+    /*
+       * Should not change any literals inside the TypeOptStorageParams and
+       * TypeSetVar clause. These literals are for Storage Parameters (Storage
+       * Settings) or SET parameters. These values will be fixed by another
+       * fixing function, later in the second ir_to_fix loop.
+       * */
+    return;
+  }
 
+  /* First Loop */
   IRTYPE type = ir_to_fix->get_ir_type();
 
   if ((type == TypeFloatLiteral || type == TypeStringLiteral || type == TypeDBool ||
@@ -3298,17 +3388,6 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
      * The idea is to search for the closest Column Name or fixed literals,
      * and try to match the type of the column name or literal.
      * */
-
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
-        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
-      /*
-       * Should not change any literals inside the TypeOptStorageParams and
-       * TypeSetVar clause. These literals are for Storage Parameters (Storage
-       * Settings) or SET parameters. These values will be fixed by another
-       * fixing function, later in the second ir_to_fix loop.
-       * */
-      return;
-    }
 
     ir_to_fix->set_is_instantiated(true);
 
@@ -3588,17 +3667,6 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
      * Data Affinity.
      * */
 
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
-        p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
-      /*
-       * Should not change any literals inside the TypeOptStorageParams and
-       * TypeSetVar clause. These literals are for Storage Parameters (Storage
-       * Settings) or SET parameters. These values will be fixed by another
-       * fixing function, later in the second ir_to_fix loop.
-       * */
-      return;
-    }
-
     ir_to_fix->set_is_instantiated(true);
 
     if (is_debug_info) {
@@ -3616,25 +3684,47 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
       }
       return;
     }
-    //          if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
-    //              continue;
-    //          }
-
-    if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
-      // Do not mutate the literals inside the SET statement.
-      // The set statement's literal has already been fixed when introduced.
-      return;
-    }
 
     ir_to_fix->set_data_affinity(
         this->get_nearby_data_affinity(ir_to_fix, is_debug_info));
 
     /* After knowing the data affinity of the literal,
-     * we have two choices to instantiate the value.
-     * 1. If the current data affinity is the same as previous
+     * we have three choices to instantiate the value.
+     * 1. If the statement contains one column that matches the
+     * data type, use the column with probability.
+     * 2. If the current data affinity is the same as previous
      * fixed literals, reuse the value.
-     * 2. Mutate to get a new value.
+     * 3. Mutate to get a new value.
      * */
+    if (
+        m_datatype2column.count(ir_to_fix->get_data_affinity()) &&
+        get_rand_int(10) == 0 // 1/10 chance.
+        ) {
+        if (ir_to_fix->get_data_affinity() != AFFIUNKNOWN) {
+          // This is a special context that the Data Affinity type of the
+          // column name node has been pre-defined.
+          // This is used in query dynamic fixing, where the replaced query nodes
+          // are saved in a whole, and the column node data affinity are preserved.
+          string cur_chosen_col = vector_rand_ele(m_datatype2column[ir_to_fix->get_data_affinity()]);
+
+          bool is_col_imported = false;
+          for (string cur_used_table: v_table_names_single) {
+            vector<string> v_imported_col = m_table2columns[cur_used_table];
+            if (find_vector(v_imported_col, cur_chosen_col)) {
+              is_col_imported = true;
+              break;
+            }
+          }
+
+          // Fix as column name.
+          if (is_col_imported) {
+            ir_to_fix->set_is_instantiated(true);
+            ir_to_fix->set_str_val(cur_chosen_col);
+            return;
+          }
+        }
+    }
+
     if (m_datatype2literals[ir_to_fix->get_data_affinity()].size() != 0 &&
         get_rand_int(2) == 0) {
       // Reuse previous defined literals.
@@ -4916,6 +5006,10 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
     auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
+    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+        ir, [](IR *cur_node) -> void {
+          cur_node->set_is_instantiated(false);
+        });
   }
 
   //  if (this->dump_library) {
@@ -4963,6 +5057,10 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
     auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
+    p_oracle->ir_wrapper.iter_cur_node_with_handler(
+        ir, [](IR *cur_node) -> void {
+          cur_node->set_is_instantiated(false);
+        });
   }
 
   // cerr << "Saving str: " << *p_query_str << " to the lib. \n\n\n";
@@ -6920,8 +7018,9 @@ void Mutator::instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debu
    * contain the same table/column names as the current query statement, therefore,
    * all table/column names needs rewrite.
    * */
+  // Note: let's keep the literals unchanged for now.
 
-  // First of all, gather all the function/table/column names from the cur_node.
+  // Gather all the function/table/column names from the cur_node.
   vector<IR*> v_func_expr_nodes = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_node, DataFunctionExpr, false, true);
   vector<IR*> v_table_nodes = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_node, DataTableName, false, true);
   vector<IR*> v_column_nodes = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_node, DataColumnName, false, true);
@@ -6944,43 +7043,5 @@ void Mutator::instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debu
   }
 
   return;
-
-}
-
-void Mutator::label_identifiers_in_func_expr(IR* cur_func_expr, bool is_debug_info) {
-
-  // Given one DataFunctionExpr node, label all the column name data types in the
-  // sub-nodes. So that the instan_column_name function can correctly recognize
-  // the data types.
-
-  // First of all, find the function name node.
-  vector<IR*> tmp_func_name_nodes = p_oracle->ir_wrapper
-       .get_ir_node_in_stmt_with_type(cur_func_expr, DataFunctionName, false);
-  if (tmp_func_name_nodes.size() == 0) {
-       cerr << "ERROR: cannot find function name node inside the function "
-               "expressions. ";
-       return;
-  }
-  IR* func_name = tmp_func_name_nodes.front();
-
-  if (func_str_to_type_map.count(func_name->to_string()) == 0) {
-       cerr << "ERROR: cannot find the function name to function arguments "
-               "mapping, using function name: " << func_name << "\n\n\n";
-       return;
-  }
-
-  vector<IR*> v_func_exprs = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(
-      cur_func_expr, TypeExprs, false
-      );
-  if (v_func_exprs.size() == 0) {
-       cerr << "ERROR: cannot find the v_func_exprs from the function expressions. \n\n\n";
-       return;
-  }
-  v_func_exprs = p_oracle->ir_wrapper.get_expr_vec_from_expr_list(v_func_exprs.front());
-
-  /* TODO:: Code not finished. Changing to another approach, save the IR nodes
-   * instead just the query string, in order to preserve the data type information.
-   */
-//  if (v_func_exprs.size() != )
 
 }
