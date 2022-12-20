@@ -1690,7 +1690,7 @@ func (node *Exprs) LogCurrentNode(depth int) *SQLRightIR {
 				infix = ", "
 			}
 			tmpIR = &SQLRightIR{
-				IRType:   TypeUnknown,
+				IRType:   TypeExprs,
 				DataType: DataNone,
 				LNode:    LNode,
 				RNode:    RNode,
@@ -1710,7 +1710,7 @@ func (node *Exprs) LogCurrentNode(depth int) *SQLRightIR {
 			RNode := n.LogCurrentNode(depth + 1)
 
 			tmpIR = &SQLRightIR{
-				IRType:   TypeUnknown,
+				IRType:   TypeExprs,
 				DataType: DataNone,
 				LNode:    LNode,
 				RNode:    RNode,
