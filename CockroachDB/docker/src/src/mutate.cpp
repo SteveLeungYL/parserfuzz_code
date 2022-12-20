@@ -5716,7 +5716,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 }
             }
             else {
-                cerr << "Does not match successfully. \n\n\n";
+//                cerr << "Does not match successfully. \n";
+//                cerr << "res_str: " << res_str << "\n\n\n";
                 new_node = new IR(TypeStringLiteral, OP0());
                 new_node->set_is_instantiated(true);
                 new_node->mutate_literal(fix_affi);

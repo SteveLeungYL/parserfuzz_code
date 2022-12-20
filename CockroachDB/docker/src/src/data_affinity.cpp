@@ -70,16 +70,22 @@ inline DataAffinity get_tuple_data_affinity_by_string(string& s) {
 
   v_data_affi = string_splitter(s, "{");
   if(v_data_affi.size() < 2) {
-    cerr << "\n\n\nError: Cannot get the list of tuple types in: "
-        << s << "\n\n\n";
-    return DataAffinity(AFFITUPLE);
+    // Cannot find the tuple type list from the given context.
+    DataAffinity res_affi(AFFITUPLE);
+    if (get_rand_int(2)) {
+         res_affi.push_new_v_tuple_types(AFFISTRING);
+    }
+    return res_affi;
   }
   data_affi_str = v_data_affi.back();
   v_data_affi = string_splitter(data_affi_str, "}");
   if(v_data_affi.size() < 2) {
-    cerr << "\n\n\nError: Cannot get the list of tuple types in: "
-         << s << "\n\n\n";
-    return DataAffinity(AFFITUPLE);
+    // Cannot find the tuple type list from the given context.
+    DataAffinity res_affi(AFFITUPLE);
+    if (get_rand_int(2)) {
+      res_affi.push_new_v_tuple_types(AFFISTRING);
+    }
+    return res_affi;
   }
   data_affi_str = v_data_affi.front();
 
