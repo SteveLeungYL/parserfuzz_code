@@ -36,7 +36,7 @@ for subdir, _, files in os.walk("./"):
     for cur_file in files:
         # only instrument .go files.
         if cur_file[-3:] != ".go" or "doc.go" in cur_file or "test" in cur_file:
-            if "covtest" not in cur_file:
+            if "cov_unit_test" not in cur_file:
                 logger.debug("Ignore file: %s %s" % (subdir, cur_file))
                 continue
 
