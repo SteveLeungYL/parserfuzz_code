@@ -36,8 +36,9 @@ for subdir, _, files in os.walk("./"):
     for cur_file in files:
         # only instrument .go files.
         if cur_file[-3:] != ".go" or "doc.go" in cur_file or "test" in cur_file:
-            logger.debug("Ignore file: %s %s" % (subdir, cur_file))
-            continue
+            if "covtest" not in cur_file:
+                logger.debug("Ignore file: %s %s" % (subdir, cur_file))
+                continue
 
         cur_file_dir = os.path.join("./", subdir, cur_file)
 
