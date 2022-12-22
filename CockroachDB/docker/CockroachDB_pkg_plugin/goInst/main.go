@@ -16,6 +16,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+    "time"
 )
 
 // -----------------------------------------------------
@@ -129,6 +130,7 @@ func main() {
 // newCounter creates a new counter expression of the appropriate form.
 func (f *File) newCounter() string {
 	getRndOffset := func() uint32 {
+        rand.Seed(time.Now().UTC().UnixNano())
 		randInt := rand.Intn(1 << instMapSizeLog2)
 		return uint32(randInt)
 	}
