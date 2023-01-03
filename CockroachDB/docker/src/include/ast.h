@@ -88,7 +88,7 @@ public:
       : type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-//    GEN_NAME();
+    this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone,
@@ -96,7 +96,7 @@ public:
       : type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-//    GEN_NAME();
+    this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, unsigned long long_val, DATATYPE data_type = DataNone,
@@ -104,7 +104,7 @@ public:
       : type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-//    GEN_NAME();
+    this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone,
@@ -112,7 +112,7 @@ public:
       : type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-//    GEN_NAME();
+    this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone,
@@ -120,7 +120,7 @@ public:
       : type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), data_type_(data_type),
         data_flag_(flag), data_affinity_type(data_affi) {
-//    GEN_NAME();
+    this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,
@@ -134,15 +134,18 @@ public:
       left_->parent_ = this;
     if (right_)
       right_->parent_ = this;
+    this->set_data_affinity(data_affi);
   }
 
   IR(DATAAFFINITYTYPE data_affi): type_(TypeStringLiteral), str_val_(""), left_(NULL),
     right_(NULL), parent_(NULL) {
+      this->set_data_affinity(data_affi);
       this->mutate_literal(data_affi);
   }
 
   IR(DataAffinity data_affi): type_(TypeStringLiteral), str_val_("") , left_(NULL),
                               right_(NULL), parent_(NULL) {
+      this->set_data_affinity(data_affi);
       this->mutate_literal(data_affi);
   }
 

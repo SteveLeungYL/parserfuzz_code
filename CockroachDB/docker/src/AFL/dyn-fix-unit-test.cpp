@@ -498,6 +498,28 @@ bool unit_test_tuple_instan_2(bool is_show_debug = false) {
 }
 
 
+bool unit_test_literal_instan(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  DATAAFFINITYTYPE cur_affi = AFFIARRAYANY;
+
+  // UNIT TEST the instantiation of the literal.
+  IR* tmp_IR = new IR(TypeStringLiteral, string(""), DataLiteral, ContextUnknown, cur_affi);
+  tmp_IR->mutate_literal();
+
+  if (is_show_debug) {
+    cerr << "\n\n\nDEBUG: when fixing literal with affinity: " << get_string_by_affinity_type(cur_affi)
+    << ", getting literal: " << tmp_IR->to_string() << "\n\n\n";
+  }
+
+  // Always returns true
+  return true;
+
+}
+
+
+
 int main(int argc, char *argv[]) {
 
     if (argc != 1) {
@@ -520,6 +542,7 @@ int main(int argc, char *argv[]) {
     assert(unit_test_jsonb_operator(false));
     assert(unit_test_tuple_instan(false));
     assert(unit_test_tuple_instan_2(false));
+    assert(unit_test_literal_instan(false));
 
     return 0;
 }

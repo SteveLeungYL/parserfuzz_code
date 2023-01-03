@@ -1123,24 +1123,26 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
   DATAAFFINITYTYPE cur_affi = type_in;
   if (cur_affi == AFFIUNKNOWN) {
     cur_affi = this->data_affinity;
+  } else {
+    this->data_affinity = cur_affi;
   }
 
   switch (cur_affi) {
   case AFFIUNKNOWN:
-    //            cerr << "In DataAffinity::get_mutated_literal, getting
-    //            AFIUNKNOWN. \n"; abort();
+    [[fallthrough]];
+  case AFFIANY:
     return this->mutate_affi_string();
 
   case AFFITUPLE:
     return this->mutate_affi_tuple();
 
   case AFFISERIAL:
-    // [[fallthrough]]
+     [[fallthrough]];
   case AFFIINT:
     return this->mutate_affi_int();
 
   case AFFIFLOAT:
-    //[[fallthrough]];
+    [[fallthrough]];
   case AFFIDECIMAL:
     return this->mutate_affi_float();
 
@@ -1182,10 +1184,9 @@ string DataAffinity::get_mutated_literal(DATAAFFINITYTYPE type_in) {
     return this->mutate_affi_onoffauto();
   case AFFIOID:
     return this->mutate_affi_oid();
-  default:
-    // For other types, should be collate.
-//    return this->mutate_affi_array();
-    return this->mutate_affi_string();
+  default: {
+    return this->mutate_affi_array();
+  }
   }
 }
 
@@ -1228,6 +1229,26 @@ DataAffinity::transfer_array_to_normal_type(DATAAFFINITYTYPE in_type) {
   switch (in_type) {
   case AFFIARRAYUNKNOWN:
     return AFFIUNKNOWN;
+
+  case AFFIARRAY:
+    [[fallthrough]];
+  case AFFIARRAYANY:
+  {
+    if (get_rand_int(2)) {
+        return AFFISTRING;
+    } else {
+        int tmp_rand = get_rand_int(2);
+        switch (tmp_rand) {
+        case 0:
+            return AFFIINT;
+        case 1:
+            return AFFIDECIMAL;
+        default:
+            return AFFIDECIMAL;
+        }
+    }
+  }
+
   case AFFIARRAYBIT:
     return AFFIBIT;
   case AFFIARRAYBOOL:

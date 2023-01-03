@@ -425,11 +425,6 @@ void IR::mutate_literal_random_affinity() {
 void IR::mutate_literal() {
     // Upon calling this function, we should assume the Data affinity has been set up correctly.
     if (this->data_affinity_type == AFFIUNKNOWN || this->data_affinity.get_data_affinity() == AFFIUNKNOWN) {
-//        cerr << "\n\n\nTrying to mutate literal on IR that has Unknown data affinity. \n\n\n";
-//        cerr << "this->to_string(): " << this->to_string() << "\n\n\n";
-//        cerr << "this->data_affinity_type: " << get_string_by_affinity_type(this->data_affinity_type);
-//        cerr << ", this->data_affinity.get_data_affinity(): " << get_string_by_affinity_type(this->data_affinity.get_data_affinity());
-//        abort();
         this->set_data_affinity(AFFISTRING);
     }
 
