@@ -4191,7 +4191,7 @@
   }, 
 
   {
-    "enabled": true,
+    "enabled": false,
     "func_name": "prettify_statement",
     "is_type_matched": true,
     "func_type": "FUNCSTRING",
