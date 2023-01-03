@@ -513,6 +513,10 @@ bool unit_test_literal_instan(bool is_show_debug = false) {
     << ", getting literal: " << tmp_IR->to_string() << "\n\n\n";
   }
 
+  if (!findStringIn(tmp_IR->to_string(), "ARRAY")) {
+    return false;
+  }
+
   // Always returns true
   return true;
 
