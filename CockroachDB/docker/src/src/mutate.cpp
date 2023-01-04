@@ -4911,6 +4911,7 @@ vector<IR *> Mutator::extract_statement(IR *root) {
 }
 
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
+void Mutator::set_disable_dyn_instan(bool dis_dyn ) { this->disable_dyn_instan = dis_dyn; }
 
 int Mutator::get_ir_libary_2D_hash_kStatement_size() {
   return this->ir_libary_2D_hash_[TypeStmt].size();
@@ -5026,7 +5027,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_query_pstr_set.insert(new_select);
   all_valid_pstr_vec.push_back(new_select);
 
-  if (run_target != NULL) {
+  if (likely(!this->disable_dyn_instan) && run_target != NULL ) {
 //    cerr << "\n\n\nAuto mark!!!\n\n\n";
     auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
@@ -5077,7 +5078,7 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   //    f.close();
   //  }
 
-  if (run_target != NULL) {
+  if (likely(!this->disable_dyn_instan) && run_target != NULL ) {
 //    cerr << "\n\n\nAuto mark!!!\n\n\n";
     auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
@@ -5119,7 +5120,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     return;
   }
 
-  if (p_type != TypeRoot && ir->get_is_compact_expr()) {
+  if (likely(!this->disable_dyn_instan) && p_type != TypeRoot && ir->get_is_compact_expr()) {
 //      cerr << "\n\n\nSaving to the data affinity library with type: "
 //         << get_string_by_affinity_type(ir->get_data_affinity())
 //        << ", node: \n" << ir->to_string() << ". \n\n\n";

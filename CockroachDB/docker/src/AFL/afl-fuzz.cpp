@@ -204,6 +204,7 @@ static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     dump_library = 0,         /* Dump squirrel libraries          */
+    disable_dyn_instan = 0,         /* Dump squirrel libraries          */
     force_deterministic,      /* Force deterministic stages?      */
     use_splicing,             /* Recombine input files?           */
     dumb_mode,                /* Run in non-instrumented mode?    */
@@ -6273,7 +6274,9 @@ static u8 fuzz_one(char **argv) {
 //          bool is_tried_dyn_fix = false;
           bool is_select_error = false;
 
-          while (p_oracle->is_res_str_error(g_cockroach_output) &&
+          while (
+                 likely(!disable_dyn_instan) &&
+                 p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
@@ -6480,7 +6483,9 @@ static u8 fuzz_one(char **argv) {
           int dyn_fix_trial = 0;
 //          bool is_tried_dyn_fix = false;
 
-          while (p_oracle->is_res_str_error(g_cockroach_output) &&
+          while (
+                 likely(!disable_dyn_instan) &&
+                 p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
@@ -6489,6 +6494,10 @@ static u8 fuzz_one(char **argv) {
 //                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
 //                is_tried_dyn_fix = true;
 //            }
+
+            // Check whether the statement execution contains SQL errors.
+            // If yes, use the dynamic fixing to try to fix the statement.
+            total_instan_num++;
 
             // Setup the error flag first.
             ret_res = FAULT_SQLERROR;
@@ -6553,7 +6562,11 @@ static u8 fuzz_one(char **argv) {
             // Be careful, after the last dyn_fixing, the query could still be
             // semantic error.
             ret_res = FAULT_SQLERROR;
+          } else {
+            total_instan_succeed_num++;
           }
+
+          total_instan_num++;
 //
 //          if (is_tried_dyn_fix) {
 //              cerr << "After dynamic fixing: " << cur_stmt_str << "\nres: \n" << g_cockroach_output << "\n\n\n";
@@ -7839,6 +7852,7 @@ int main(int argc, char **argv) {
 
   p_oracle = nullptr;
   dump_library = 0;
+  disable_dyn_instan = false;
 
   s32 opt;
   u64 prev_queued = 0;
@@ -7859,7 +7873,7 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:X")) > 0)
 
     switch (opt) {
     case 'l': /* initial input list */
@@ -8011,6 +8025,13 @@ int main(int argc, char **argv) {
       }
     } break;
 
+    case 'X': {
+      disable_dyn_instan = true;
+      cout << "\033[1;31m Warning: Disabling query dynamic instantiation based "
+              "on the query error messages. "
+              "\033[0m \n\n\n";
+    } break;
+
     case 'd': /* skip deterministic */
 
       if (skip_deterministic)
@@ -8122,6 +8143,7 @@ int main(int argc, char **argv) {
   g_mutator.set_p_oracle(p_oracle);
 
   g_mutator.set_dump_library(dump_library);
+  g_mutator.set_disable_dyn_instan(disable_dyn_instan);
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);

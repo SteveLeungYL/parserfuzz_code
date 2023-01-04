@@ -149,6 +149,7 @@ public:
   vector<IR *> extract_statement(IR *root);
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
   void set_dump_library(bool);
+  void set_disable_dyn_instan(bool);
   int get_ir_libary_2D_hash_kStatement_size();
   bool is_stripped_str_in_lib(string stripped_str);
 
@@ -329,6 +330,7 @@ public:
   vector<string *> all_cri_valid_pstr_vec;
   set<string *> all_query_pstr_set;
   bool dump_library = false;
+  bool disable_dyn_instan = false;
   SQL_ORACLE *p_oracle;
   map<IRTYPE, set<unsigned long>> ir_libary_2D_hash_;
   set<unsigned long> stripped_string_hash_;
