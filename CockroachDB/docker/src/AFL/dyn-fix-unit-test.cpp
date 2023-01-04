@@ -48,6 +48,8 @@ bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_
     int total_instan_num = 0;
     vector<IR*> tmp_all_pre_trans_vec;
 
+    assert(all_pre_trans_vec.size() == res_vec.size());
+
     for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
         cur_trans_stmt = all_pre_trans_vec[stmt_idx];
         // Move the reset_data_library_single_stmt out in the outer loop.
@@ -72,7 +74,7 @@ bool dyn_fix_stmt_vec(vector<IR*>& all_pre_trans_vec, const vector<string>& res_
             if (p_oracle->is_res_str_error(res_vec[stmt_idx])) {
                 ret_res = FAULT_ERROR;
 
-                if (trial >= max_trial) {
+                if (trial > max_trial) {
                     break;
                 }
 
@@ -517,12 +519,121 @@ bool unit_test_literal_instan(bool is_show_debug = false) {
     return false;
   }
 
-  // Always returns true
   return true;
 
 }
 
+bool unit_test_missing_column(bool is_show_debug = false) {
 
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+      "SELECT * FROM ROWS FROM (BTRIM('gj404usqz', '09-07-51')) WHERE x = '3fa467c5-898c-da8c-4abe-9576f126f949';"
+  };
+
+  vector<string> res_list {
+      "",
+      "pq: column \"x\" does not exist"
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[1], [](IR *cur_node) -> void {
+        if (cur_node->get_ir_type() == TypeStringLiteral) {
+          cur_node->set_is_instantiated(true);
+        }
+      });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR* cur_stmt: ir_list) {
+//    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+//    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  return is_no_error;
+
+}
+
+bool unit_test_missing_column_2(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "SELECT * FROM ROWS FROM (BTRIM('gj404usqz', '09-07-51')) WHERE x = '3fa467c5-898c-da8c-4abe-9576f126f949';"
+  };
+
+  vector<string> res_list {
+      "pq: column \"x\" does not exist"
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[0], [](IR *cur_node) -> void {
+        if (cur_node->get_ir_type() == TypeStringLiteral) {
+          cur_node->set_is_instantiated(true);
+        }
+      });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  return is_no_error;
+
+}
 
 int main(int argc, char *argv[]) {
 
@@ -547,6 +658,10 @@ int main(int argc, char *argv[]) {
     assert(unit_test_tuple_instan(false));
     assert(unit_test_tuple_instan_2(false));
     assert(unit_test_literal_instan(false));
+    for (int i = 0; i < 100; i++) {
+        assert(unit_test_missing_column(true));
+//        assert(unit_test_missing_column_2(false));
+    }
 
     return 0;
 }

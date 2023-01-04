@@ -1452,23 +1452,30 @@ string Mutator::find_cloest_table_name(IR *ir_to_fix, bool is_debug_info) {
     // Finished assigning column name. continue;
     ir_to_fix->set_is_instantiated(true);
     return "";
-  } else if (v_table_names.size() != 0) {
 
-    /* This should be an error.
-    ** 80% chances, keep original.
-    ** 20%, use predefined table name.
-    */
-    if (get_rand_int(5) < 4) {
-      ir_to_fix->set_is_instantiated(true);
-      return "";
-    }
-
-    closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
+// } else if (v_table_names.size() != 0) {
+//
+//    /* This should be an error.
+//    ** 80% chances, keep original.
+//    ** 20%, use predefined table name.
+//    */
+//    if (get_rand_int(5) < 4) {
+//      ir_to_fix->set_is_instantiated(true);
+//      return "";
+//    }
+//
+//    closest_table_name = v_table_names[get_rand_int(v_table_names.size())];
+//    if (is_debug_info) {
+//      cerr << "Dependency Error: In kUse of kDataColumnName, cannot find "
+//              "v_table_names_single. Thus find from v_table_name "
+//              "instead. Use table name: "
+//           << closest_table_name << " for column name origin. \n\n\n"
+//           << endl;
+//    }
+  } else {
     if (is_debug_info) {
-      cerr << "Dependency Error: In kUse of kDataColumnName, cannot find "
-              "v_table_names_single. Thus find from v_table_name "
-              "instead. Use table name: "
-           << closest_table_name << " for column name origin. \n\n\n"
+      cerr << "Dependency Error:  In kUse of kDataColumnName, every table names"
+              "are empty. Return empty. \n\n\n"
            << endl;
     }
   }
@@ -3687,6 +3694,7 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
 
     if (is_debug_info) {
       cerr << "\n\n\nTrying to fix literal: " << ir_to_fix->to_string()
+           << "\n whole stmt: " << cur_stmt_root->to_string()
            << "\n\n\n";
     }
 
@@ -3759,7 +3767,9 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
           ir_to_fix->get_str_val());
       if (is_debug_info) {
           cerr << "\n\n\nDependency: In Fixing literals, getting new literal: "
-               << ir_to_fix->to_string() << "\n\n\n";
+               << ir_to_fix->to_string()
+               << "\n whole stmt: " << cur_stmt_root->to_string()
+               << "\n\n\n";
       }
     }
   }
