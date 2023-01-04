@@ -31,9 +31,16 @@ func LogGlobalCov(curLoc uint32) {
 //	}
 
 	// Prevent overflow.
-	if GCov.buf[offset] != 255 {
-		GCov.buf[offset] += 1
-	}
+
+    // With hit count. 
+//	if GCov.buf[offset] != 255 {
+//		GCov.buf[offset] = 1
+//	}
+
+    // Without hit count.
+    if GCov.buf[offset] == 0 {
+        GCov.buf[offset] = 1
+    }
 }
 
 func ResetGlobalCov() {
