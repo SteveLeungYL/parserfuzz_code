@@ -22,6 +22,13 @@ const initQuery = `
 RESET ALL;
 SET testing_optimizer_disable_rule_probability = 0.0;
 SET sql_safe_updates = false;
+SET CLUSTER SETTING debug.panic_on_failed_assertions = true;
+SET CLUSTER SETTING diagnostics.reporting.enabled    = false;
+SET CLUSTER SETTING diagnostics.reporting.send_crash_reports = false;
+SET CLUSTER SETTING sql.metrics.statement_details.enabled = 'off';
+SET CLUSTER SETTING sql.metrics.statement_details.plan_collection.enabled = 'off';
+SET CLUSTER SETTING sql.stats.automatic_collection.enabled = 'off';
+SET CLUSTER SETTING timeseries.storage.enabled = 'off';
 BEGIN PRIORITY HIGH;
 `
 
