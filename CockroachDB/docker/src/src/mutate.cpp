@@ -2600,9 +2600,8 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
 //        ir_to_fix->set_data_flag(ContextUse);
 //
 //        this->instan_literal(ir_to_fix, cur_stmt_root, ir_to_deep_drop, is_debug_info);
-
-        return;
       }
+      return;
     }
 
     vector<string> v_used_column_str;
@@ -2776,17 +2775,43 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
     }
 
     // Actual random mutation of the ColumnName. ContextUse.
-    string closest_table_name =
-        this->find_cloest_table_name(ir_to_fix, is_debug_info);
 
-    if (closest_table_name == "" || closest_table_name == "x" ||
-        closest_table_name == "y") {
+    bool is_found = false;
+    string closest_table_name = "";
+    if (v_table_alias_names_single.size() != 0) {
+      closest_table_name = vector_rand_ele(v_table_alias_names_single);
       if (is_debug_info) {
-        cerr << "Dependency : Cannot find the closest_table_name from "
-                "the query. closest_table_name is: "
-             << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+        cerr << "Dependency: In column fixing, find table alias name from "
+                "v_table_alias_names_single: "
+             << closest_table_name << ". \n\n\n";
+      }
+      is_found = true;
+    }
+    if (!is_found && v_table_names_single.size() != 0) {
+      closest_table_name = vector_rand_ele(v_table_names_single);
+      if (is_debug_info) {
+        cerr << "Dependency: In column fixing, find table alias name from "
+                "v_table_names_single: "
+             << closest_table_name << ". \n\n\n";
+      }
+      is_found = true;
+    }
 
-        cerr << "Choose to use the literal in this scenario now. \n\n\n";
+    if (!is_found) {
+
+      // Last chance, try to directly search for table name in the tree nodes.
+      closest_table_name =
+          this->find_cloest_table_name(ir_to_fix, is_debug_info);
+
+      if (closest_table_name == "" || closest_table_name == "x" ||
+          closest_table_name == "y") {
+        if (is_debug_info) {
+          cerr << "Dependency : Cannot find the closest_table_name from "
+                  "the query. closest_table_name is: "
+               << closest_table_name << ". In kDataColumnName, kUse. \n\n\n";
+
+          cerr << "Choose to use the literal in this scenario now. \n\n\n";
+        }
 
         ir_to_fix->set_is_instantiated(false);
         ir_to_fix->set_ir_type(TypeStringLiteral);
@@ -2797,36 +2822,10 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR* cur_stmt_root, bool &is_repl
 
         return;
       }
-      bool is_found = false;
-      if (v_table_alias_names_single.size() != 0) {
-        closest_table_name = vector_rand_ele(v_table_alias_names_single);
-        if (is_debug_info) {
-          cerr << "Dependency: In column fixing, find table alias name from "
-                  "v_table_alias_names_single: "
-               << closest_table_name << ". \n\n\n";
-        }
-        is_found = true;
-      }
-      if (!is_found && v_table_names_single.size() != 0) {
-        closest_table_name = vector_rand_ele(v_table_names_single);
-        if (is_debug_info) {
-          cerr << "Dependency: In column fixing, find table alias name from "
-                  "v_table_names_single: "
-               << closest_table_name << ". \n\n\n";
-        }
-        is_found = true;
-      }
 
-      if (!is_found) {
-        ir_to_fix->set_str_val("x");
-        if (is_debug_info) {
-          cerr << "Dependency: In column fixing, failed to find any table "
-                  "inside the statement. "
-                  "dumping random x as column name. \n\n\n";
-        }
-        return;
-      }
     }
+
+
 
     vector<string> cur_mapped_column_name_vec;
     if (m_alias_table2column_single.count(closest_table_name) > 0) {

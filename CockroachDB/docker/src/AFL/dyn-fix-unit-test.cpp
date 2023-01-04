@@ -616,6 +616,7 @@ bool unit_test_missing_column_2(bool is_show_debug = false) {
       });
 
   dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  assert (ir_list.size() == res_list.size());
   bool is_no_error;
   for (IR* cur_stmt: ir_list) {
     if (is_show_debug) {
