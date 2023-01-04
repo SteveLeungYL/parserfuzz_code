@@ -563,9 +563,9 @@ bool unit_test_missing_column(bool is_show_debug = false) {
   dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
   bool is_no_error;
   for (IR* cur_stmt: ir_list) {
-//    if (is_show_debug) {
+    if (is_show_debug) {
       cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
-//    }
+    }
     is_no_error = iden_common_error(cur_stmt);
     if (!is_no_error) {
       break;
@@ -660,8 +660,8 @@ int main(int argc, char *argv[]) {
     assert(unit_test_tuple_instan_2(false));
     assert(unit_test_literal_instan(false));
     for (int i = 0; i < 100; i++) {
-        assert(unit_test_missing_column(true));
-//        assert(unit_test_missing_column_2(false));
+        assert(unit_test_missing_column(false));
+        assert(unit_test_missing_column_2(false));
     }
 
     return 0;
