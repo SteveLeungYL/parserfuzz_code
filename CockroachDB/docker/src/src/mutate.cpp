@@ -888,6 +888,13 @@ Mutator::~Mutator() {
 
 string Mutator::extract_struct(IR *root) {
   string res = "";
+
+  vector<IR*> ir_to_deep_drop;
+  this->remove_type_annotation(root, ir_to_deep_drop);
+  for (auto cur_ir : ir_to_deep_drop) {
+    cur_ir->deep_drop();
+  }
+
   _extract_struct(root);
   res = root->to_string();
   trim_string(res);
