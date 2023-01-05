@@ -5023,7 +5023,26 @@ bool Mutator::add_all_to_library(string whole_query_str,
     }
 
     string uniformed_query = this->extract_struct(root);
-//    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
+
+    // Because the extract_struct changes the IR tree, we need to reparse the query
+    // in order to get the unique_id correct.
+    root->deep_drop();
+
+    ir_set = parse_query_str_get_ir_set(uniformed_query);
+    if (ir_set.size() == 0)
+      continue;
+
+    root = ir_set[ir_set.size() - 1];
+    v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
+    if (v_cur_stmt_ir.size() == 0) {
+      root->deep_drop();
+      continue;
+    }
+    cur_stmt_ir = v_cur_stmt_ir.front();
+
+    // Reparsing of the modified IR tree succeed.
+
+    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
       // if (p_oracle->is_oracle_valid_stmt(current_query)) {
