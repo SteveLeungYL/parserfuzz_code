@@ -5001,8 +5001,13 @@ bool Mutator::add_all_to_library(string whole_query_str,
     }
     IR *cur_stmt_ir = v_cur_stmt_ir.front();
 
-    if (cur_stmt_ir->get_ir_type() == TypeSetVar) {
-      // Do not save the SET VAR statements.
+    if (
+        cur_stmt_ir->get_ir_type() == TypeSetVar ||
+        cur_stmt_ir->get_ir_type() == TypeCommitTransaction ||
+        cur_stmt_ir->get_ir_type() == TypeBeginTransaction ||
+        cur_stmt_ir->get_ir_type() == TypeRollbackTransaction
+        ) {
+      // Do not save the SET VAR statements and the transaction related statements.
       root->deep_drop();
       continue;
     }
