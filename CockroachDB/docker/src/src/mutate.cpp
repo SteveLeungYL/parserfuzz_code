@@ -241,6 +241,7 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
     if (!root->swap_node(ir_to_mutate, new_ir)) {
       new_ir->deep_drop();
       total_mutate_failed++;
+//      cerr << "\n\n\n Not able to swap node in mutate_all. \n\n\n";
       continue;
     }
 
@@ -898,17 +899,17 @@ void Mutator::_extract_struct_deep(IR *root) {
 //  cerr << "Inside _extract_struct_deep\n\n\n";
 
   if (root->get_ir_type() == TypeSetVar) {
-    cerr << "Inside _extract_struct_deep TypeSetVar. \n";
+//    cerr << "Inside _extract_struct_deep TypeSetVar. \n";
     // Remove SET VAR statement.
     IR* parent = root->get_parent();
     if (parent != NULL) {
       parent->swap_node(root, NULL);
       root->deep_drop();
-      cerr << "\n_extract_struct_deep: " << parent->to_string() << "\n\n\n";
+//      cerr << "\n_extract_struct_deep: " << parent->to_string() << "\n\n\n";
       return;
     }
     // Do not continue anyway.
-    cerr << "Error\n\n\n";
+//    cerr << "Error\n\n\n";
     return;
   }
 
@@ -5051,7 +5052,9 @@ bool Mutator::add_all_to_library(string whole_query_str,
 
     // Reparsing of the modified IR tree succeed.
 
-    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
+//    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
+//
+//    cerr << "\n\n\nGetting data_affi_set.size(): " << data_affi_set.size() << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
       // if (p_oracle->is_oracle_valid_stmt(current_query)) {
@@ -5082,10 +5085,14 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
 
   unsigned long p_hash = hash(select);
 
-  if (select_stmt_lib_hash.find(p_hash) != select_stmt_lib_hash.end())
+  if (select_stmt_lib_hash.find(p_hash) != select_stmt_lib_hash.end()) {
+//    cerr << "NOT saving new select: " << select << "\n\n\n";
     return;
+  }
 
   select_stmt_lib_hash[p_hash] = true;
+
+//  cerr << "Saving new select: " << select << "\n\n\n";
 
   string *new_select = new string(select);
 
@@ -5128,9 +5135,12 @@ bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   if (ir_libary_2D_hash_[p_type].find(p_hash) !=
       ir_libary_2D_hash_[p_type].end()) {
     /* query not interesting enough. Ignore it and clean up. */
+//    cerr << "NOT saving new non-select: " << query << "\n\n\n";
     return false;
   }
   ir_libary_2D_hash_[p_type].insert(p_hash);
+
+//  cerr << "Saving new non-select: " << query << "\n\n\n";
 
   string *p_query_str = new string(query);
   all_query_pstr_set.insert(p_query_str);
@@ -5207,6 +5217,17 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
 //      tmp_size += it->second.size();
 //  }
 //  cerr << "total saved: " << tmp_size << "\n\n\n";
+
+//  cerr << "\n\n\nGetting total ir_library_2D_hash_.size(): " << ir_libary_2D_hash_.size() << "\n";
+//  int tmp_size=0;
+//    for (auto it = ir_libary_2D_hash_.begin(); it != ir_libary_2D_hash_.end(); it++) {
+//        tmp_size += it->second.size();
+//    }
+//    cerr << "total saved: " << tmp_size << "\n";
+//    cerr << "TypeSelectExprs saved: " << real_ir_set[TypeSelectExprs].size() << "\n";
+//    if (real_ir_set[TypeSelectExprs].size())
+//  cerr << "TypeSelectExprs saved: " << *(real_ir_set[TypeSelectExprs].back().first) << "\n";
+//  cerr << "ir: " << ir->to_string() << "\n";
 
   if (p_type != TypeRoot)
     ir_libary_2D_hash_[p_type].insert(p_hash);
@@ -5330,8 +5351,12 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     current_ir_root->deep_drop();
 
     if (return_matched_ir_node != NULL) {
-      // cerr << "\n\n\nSuccessfuly with_type: with string: " <<
-      // return_matched_ir_node->to_string() << endl;
+//      cerr << "\n\n\nDEBUG:: mutation get type: " << get_string_by_ir_type(type_)
+//           << " with node: " << return_matched_ir_node->to_string() << "\n\n\n";
+//      if (type_ == TypeExpr) {
+//        cerr << "\n\n\nDEBUG:: mutation get TypeExpr expr type, "
+//             << " with node: " << return_matched_ir_node->to_string() << "\n\n\n";
+//      }
       return return_matched_ir_node;
     }
   }
