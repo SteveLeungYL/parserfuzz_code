@@ -68,14 +68,10 @@ public:
             string file2d = "", string file1d = "", string f_gen_type = "");
   void init_library();
 
-  void init_ir_library(string filename);
   inline void init_value_library();
   void init_common_string(string filename);
   void init_data_library();
   void init_sql_type_alias_2_type();
-  void init_not_mutatable_type(string filename);
-  // void init_safe_generate_type(string filename);
-  void add_ir_to_library(IR *);
 
   string get_a_string();
   unsigned long get_a_val();
@@ -212,8 +208,6 @@ public:
 
   IR *record_ = NULL;
   IR *mutated_root_ = NULL;
-  map<IRTYPE, vector<IR *>> ir_library_;
-  map<IRTYPE, set<unsigned long>> ir_library_hash_;
   set<unsigned long> global_hash_;
 
   // Common data libraries. Can be used globally for instantiation.

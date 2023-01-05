@@ -263,31 +263,6 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
   return res;
 }
 
-void Mutator::add_ir_to_library(IR *cur) {
-  extract_struct(cur);
-  cur = deep_copy(cur);
-  add_ir_to_library_no_deepcopy(cur);
-  return;
-}
-
-void Mutator::add_ir_to_library_no_deepcopy(IR *cur) {
-  if (cur->left_)
-    add_ir_to_library_no_deepcopy(cur->left_);
-  if (cur->right_)
-    add_ir_to_library_no_deepcopy(cur->right_);
-
-  auto type = cur->type_;
-  auto h = hash(cur);
-  if (find(ir_library_hash_[type].begin(), ir_library_hash_[type].end(), h) !=
-      ir_library_hash_[type].end())
-    return;
-
-  ir_library_hash_[type].insert(h);
-  ir_library_[type].push_back(cur);
-
-  return;
-}
-
 void Mutator::init_common_string(string filename) {
   common_string_library_.push_back("DO_NOT_BE_EMPTY");
   if (filename != "") {
@@ -441,26 +416,6 @@ inline void Mutator::init_value_library() {
   value_library_.insert(value_library_.begin(), value_lib_init.begin(),
                         value_lib_init.end());
 
-  return;
-}
-
-void Mutator::init_ir_library(string filename) {
-  ifstream input_file(filename);
-  string line;
-
-  cout << "[*] init ir_library: " << filename << endl;
-  while (getline(input_file, line)) {
-    if (line.empty())
-      continue;
-
-    IR *res = raw_parser(line); // RAW_PARSE_DEFAULT = 0
-    if (res == NULL) {
-      continue;
-    }
-
-    add_ir_to_library(res);
-    deep_delete(res);
-  }
   return;
 }
 
@@ -803,22 +758,45 @@ pair<string, string> Mutator::get_data_2d_by_type(DATATYPE type1,
 //   return tmp_vector[tmp_vector.size() - 1];
 // }
 
-IR *Mutator::get_ir_from_library(IRTYPE type) {
+IR *Mutator::get_ir_from_library(IRTYPE type_) {
 
-  const int generate_prop = 1;
-  const int threshold = 0;
-  static IR *empty_ir = new IR(TypeStringLiteral, "");
-#ifdef USEGENERATE
-  if (ir_library_[type].empty() == true ||
-      (get_rand_int(400) == 0 && type != kUnknown)) {
-    auto ir = generate_ir_by_type(type);
-    add_ir_to_library_no_deepcopy(ir);
-    return ir;
-  }
-#endif
-  if (ir_library_[type].empty())
-    return empty_ir;
-  return vector_rand_ele(ir_library_[type]);
+  /* Given an input type, return a randomly selected prevously seen IR node
+   that share the same IR type. If nothing has found, return NULL.
+*/
+
+  vector<IR *> current_ir_set;
+  IR *current_ir_root;
+  vector<pair<string *, int>> &all_matching_node = real_ir_set[type_];
+  IR *return_matched_ir_node = NULL;
+
+  if (all_matching_node.size() > 0) {
+    /* Pick a random matching node from the library. */
+    int random_idx = get_rand_int(all_matching_node.size());
+    std::pair<string *, int> &selected_matched_node =
+        all_matching_node[random_idx];
+    string *p_current_query_str = selected_matched_node.first;
+    int unique_node_id = selected_matched_node.second;
+
+    /* Reconstruct the IR tree. */
+    current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
+    if (current_ir_set.size() == 0) {
+      return NULL;
+    }
+    current_ir_root = current_ir_set.back();
+
+    /* Retrive the required node, deep copy it, clean up the IR tree and return.
+     */
+    IR *matched_ir_node = current_ir_set[unique_node_id];
+    if (matched_ir_node != NULL) {
+      return_matched_ir_node = matched_ir_node->deep_copy();
+    }
+
+    current_ir_root->deep_drop();
+
+  } // if (all_matching_node.size() > 0)
+
+  return return_matched_ir_node;
+
 }
 
 string Mutator::get_a_string() {
@@ -875,15 +853,17 @@ void Mutator::debug(IR *root, unsigned level) {
 }
 
 Mutator::~Mutator() {
-  for (auto iter = ir_library_.begin(); iter != ir_library_.end(); iter++) {
-    for (IR *cur_ir : iter->second) {
-      cur_ir->deep_drop();
-    }
-  }
 
   for (auto iter : all_query_pstr_set) {
     delete iter;
   }
+
+  for (auto p = data_affi_set.begin(); p != data_affi_set.end(); ++p) {
+    for (auto pi = p->second.begin(); pi != p->second.end(); ++pi) {
+      (*pi)->deep_drop();
+    }
+  }
+
 }
 
 string Mutator::extract_struct(IR *root) {
@@ -3436,7 +3416,9 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
     // Remove the original expressions.
     if (type_exprs_node == nullptr || type_exprs_node->get_left() == nullptr) {
       // TODO: Dynamic fixing error?
-      cerr << "\n\n\nERROR: Getting NULL left node from type_exprs_node. Give up and ignore. \n\n\n";
+      if (is_debug_info) {
+        cerr << "\n\n\nERROR: Getting NULL left node from type_exprs_node. Give up and ignore. \n\n\n";
+      }
       return;
     }
 
