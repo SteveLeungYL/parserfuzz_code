@@ -903,8 +903,13 @@ void Mutator::_extract_struct(IR *root) {
     extract_struct(root->right_);
   }
 
+  if (root->get_data_type() == DataTypeName) {
+    root->set_str_val("INT");
+    return;
+  }
+
   auto type = root->type_;
-  if (root->get_data_type() == DataTypeName ||
+  if (
       root->get_data_type() == DataNone
   ) {
     return;
