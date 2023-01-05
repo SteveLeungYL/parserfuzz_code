@@ -6159,6 +6159,10 @@ static u8 fuzz_one(char **argv) {
 
     for (IR *mutated_ir_root : v_mutated_ir_root) {
 
+      if (stop_soon) {
+        continue;
+      }
+
       if (!mutated_ir_root) {
         continue;
       }

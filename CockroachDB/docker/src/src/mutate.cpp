@@ -681,46 +681,17 @@ IR *Mutator::strategy_insert(IR *cur) {
 IR *Mutator::strategy_replace(IR *cur) {
   assert(cur);
 
-  MUTATESTART
+  auto new_node = get_ir_from_library(cur->type_);
 
-  DOLEFT
-  if (cur->left_ != NULL) {
-    res = deep_copy(cur);
+//  cerr << "DEBUG:: strategy_replace: Mutating " << get_string_by_ir_type(cur->type_);
+//  if (new_node) {
+//    cerr  << " with: " << new_node->to_string() << "\n\n\n";
+//  } else {
+//    cerr << " cannot get new_node. \n\n\n";
+//  }
 
-    auto new_node = get_ir_from_library(res->left_->type_);
-    new_node->data_type_ = res->left_->data_type_;
-    deep_delete(res->left_);
-    res->left_ = deep_copy(new_node);
-  }
-
-  DORIGHT
-  if (cur->right_ != NULL) {
-    res = deep_copy(cur);
-
-    auto new_node = get_ir_from_library(res->right_->type_);
-    new_node->data_type_ = res->right_->data_type_;
-    deep_delete(res->right_);
-    res->right_ = deep_copy(new_node);
-  }
-
-  DOBOTH
-  if (cur->left_ != NULL && cur->right_ != NULL) {
-    res = deep_copy(cur);
-
-    auto new_left = get_ir_from_library(res->left_->type_);
-    auto new_right = get_ir_from_library(res->right_->type_);
-    new_left->data_type_ = res->left_->data_type_;
-    new_right->data_type_ = res->right_->data_type_;
-    deep_delete(res->right_);
-    res->right_ = deep_copy(new_right);
-
-    deep_delete(res->left_);
-    res->left_ = deep_copy(new_left);
-  }
-
-  MUTATEEND
-
-  return res;
+  // Could be NULL.
+  return new_node;
 }
 
 bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times) {
@@ -5197,7 +5168,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     right_type = ir->right_->type_;
     left_lib_set[left_type].push_back(std::make_pair(
         p_query_str, current_unique_id)); // Saving the parent node id. When
-                                          // fetching, use current_node->right.
+                                          // fetching, use current_node->left.
     // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
     //   cerr << "Saving left_type_ ir_node with right type: " <<
     //   get_string_by_ir_type(right_type) << ", unique_id:" <<
