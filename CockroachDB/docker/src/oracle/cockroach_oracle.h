@@ -174,6 +174,8 @@ public:
 
   virtual SemanticErrorType detect_semantic_error_type(string in_str);
 
+  virtual bool is_expr_types_in_where_clause(IRTYPE in);
+
 protected:
   Mutator *g_mutator;
 

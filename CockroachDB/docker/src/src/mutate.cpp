@@ -5117,6 +5117,14 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   if (!is_skip_saving_current_node) {
     real_ir_set[p_type].push_back(
         std::make_pair(p_query_str, current_unique_id));
+
+    if (p_oracle->is_expr_types_in_where_clause(p_type)) {
+      real_ir_set[TypeExpr].push_back(std::make_pair(
+          p_query_str, current_unique_id));
+//       cerr << "\nDEBUG::Saving TypeExpr str: " << ir->to_string() << "\nwith ori type: " <<
+//       get_string_by_ir_type(p_type) << " \n\n\n";
+    }
+
     // cerr << "Saving str: " << *p_query_str << "with type: " <<
     // get_string_by_ir_type(p_type) << " \n\n\n";
   }
@@ -5141,6 +5149,18 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     //   get_string_by_ir_type(left_type) << ", unique_id:" <<
     //   ir->left_->uniq_id_in_tree_ << "\n\n\n";
     // }
+
+    if (p_oracle->is_expr_types_in_where_clause(left_type)) {
+      left_lib_set[TypeExpr].push_back(std::make_pair(
+          p_query_str, current_unique_id)); // Saving the parent node id. When
+                                            // fetching, use current_node->right.
+    }
+    if (p_oracle->is_expr_types_in_where_clause(right_type)) {
+      right_lib_set[TypeExpr].push_back(std::make_pair(
+          p_query_str, current_unique_id)); // Saving the parent node id. When
+                                            // fetching, use current_node->left.
+    }
+
   }
 
   //  if (this->dump_library) {
@@ -5174,6 +5194,10 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
      kStringLiteral.
   */
 
+  if (p_oracle->is_expr_types_in_where_clause(type_)) {
+    type_ = TypeExpr;
+  }
+
   vector<IR *> current_ir_set;
   IR *current_ir_root;
   vector<pair<string *, int>> &all_matching_node = real_ir_set[type_];
@@ -5197,7 +5221,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->type_ != type_) {
+      if (matched_ir_node->type_ != type_ && type_ != TypeExpr) {
         current_ir_root->deep_drop();
         return NULL;
       }
@@ -5223,6 +5247,10 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
      that share the same parent. If nothing has found, return NULL.
   */
 
+  if (p_oracle->is_expr_types_in_where_clause(type_)) {
+    type_ = TypeExpr;
+  }
+
   vector<IR *> current_ir_set;
   IR *current_ir_root;
   vector<pair<string *, int>> &all_matching_node = left_lib_set[type_];
@@ -5246,7 +5274,8 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->left_ == NULL || matched_ir_node->left_->type_ != type_) {
+      if ( (matched_ir_node->left_ == NULL || matched_ir_node->left_->type_ != type_)
+          && type_ != TypeExpr) {
 //        cerr << "\n\n\nERROR::: Type not matched. \n\n\n";
         current_ir_root->deep_drop();
         return NULL;
@@ -5274,6 +5303,10 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
      that share the same parent. If nothing has found, return NULL.
   */
 
+  if (p_oracle->is_expr_types_in_where_clause(type_)) {
+    type_ = TypeExpr;
+  }
+
   vector<IR *> current_ir_set;
   IR *current_ir_root;
   vector<pair<string *, int>> &all_matching_node = right_lib_set[type_];
@@ -5296,7 +5329,8 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->right_ == NULL || matched_ir_node->right_->type_ != type_) {
+      if ( (matched_ir_node->right_ == NULL || matched_ir_node->right_->type_ != type_)
+         && type_ != TypeExpr) {
 //        cerr << "\n\n\nERROR::: Type not matched. \n\n\n";
         current_ir_root->deep_drop();
         return NULL;

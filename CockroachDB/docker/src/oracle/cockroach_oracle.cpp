@@ -446,3 +446,23 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
         return SemanticErrorType::NoSemanticError;
     }
 }
+
+bool SQL_ORACLE::is_expr_types_in_where_clause(IRTYPE in) {
+
+    switch (in) {
+    case TypeSubquery:
+    case TypeAndExpr:
+    case TypeOrExpr:
+    case TypeIsNullExpr:
+    case TypeIsNotNullExpr:
+    case TypeBinaryExpr:
+    case TypeUnaryExpr:
+    case TypeComparisonExpr:
+    case TypeRangeCond:
+    case TypeIsOfTypeExpr:
+        return true;
+    default:
+        return false;
+    }
+
+}

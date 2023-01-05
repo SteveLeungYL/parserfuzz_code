@@ -549,6 +549,7 @@ const (
 	TypeCreateTableAs
 	TypeINExpr
 	TypeSubquery
+	TypeExpr
 )
 
 const (
