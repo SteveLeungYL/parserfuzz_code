@@ -4994,17 +4994,20 @@ void Mutator::add_all_to_library(string whole_query_str,
     }
     IR *cur_stmt_ir = v_cur_stmt_ir.front();
 
+    string uniformed_query = this->extract_struct(cur_stmt_ir);
+    cerr << "\n\n\nDEBUG: Saving uniformed_query: " << uniformed_query << "\n\n\n";
+
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
       // if (p_oracle->is_oracle_valid_stmt(current_query)) {
       if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
-        add_to_valid_lib(root, current_query, true, run_target);
+        add_to_valid_lib(cur_stmt_ir, uniformed_query, true, run_target);
       } else {
-        add_to_valid_lib(root, current_query, false, run_target);
+        add_to_valid_lib(cur_stmt_ir, uniformed_query, false, run_target);
       }
       ++i; // For counting oracle valid stmt IDs.
     } else {
-      add_to_library(root, current_query, run_target);
+      add_to_library(cur_stmt_ir, uniformed_query, run_target);
     }
 
     root->deep_drop();
@@ -5017,10 +5020,10 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
 
   unsigned long p_hash = hash(select);
 
-  if (norec_hash.find(p_hash) != norec_hash.end())
+  if (select_stmt_lib_hash.find(p_hash) != select_stmt_lib_hash.end())
     return;
 
-  norec_hash[p_hash] = true;
+  select_stmt_lib_hash[p_hash] = true;
 
   string *new_select = new string(select);
 

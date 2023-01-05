@@ -325,7 +325,7 @@ public:
 
 
   // added by vancir
-  map<unsigned long, bool> norec_hash;
+  map<unsigned long, bool> select_stmt_lib_hash;
   vector<string *> all_valid_pstr_vec;
   vector<string *> all_cri_valid_pstr_vec;
   set<string *> all_query_pstr_set;
