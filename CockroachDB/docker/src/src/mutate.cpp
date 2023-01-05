@@ -931,10 +931,13 @@ void Mutator::_extract_struct(IR *root) {
     return;
   } else if (root->get_ir_type() == TypeFloatLiteral) {
     root->float_val_ = 0.0;
-    root->str_val_ = "0.0";
+    root->str_val_ = "0";
     return;
   } else if (root->get_ir_type() == TypeStringLiteral) {
-    root->str_val_ = "'x'";
+    root->str_val_ = "0";
+    return;
+  } else if (root->get_ir_type() == TypeDBool) {
+    root->str_val_ = "0";
     return;
   }
 
@@ -948,11 +951,11 @@ void Mutator::_extract_struct(IR *root) {
   }
 
   if (string_types_.find(type) != string_types_.end()) {
-    root->str_val_ = "'x'";
+    root->str_val_ = "0";
   } else if (int_types_.find(type) != int_types_.end()) {
-    root->int_val_ = 1;
+    root->int_val_ = 0;
   } else if (float_types_.find(type) != float_types_.end()) {
-    root->float_val_ = 1.0;
+    root->float_val_ = 0.0;
   }
 }
 
