@@ -86,7 +86,10 @@ public:
   string parse_data(string &);
   string extract_struct(IR *root);
   void _extract_struct(IR *);
-  void extract_struct2(IR *);
+
+  // More in-depth extract function changes.
+  string extract_struct_deep(IR *root);
+  void _extract_struct_deep(IR *root);
 
   vector<IR *> pre_fix_transform(IR *, vector<STMT_TYPE> &);
   vector<vector<vector<IR *>>>

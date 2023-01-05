@@ -70,11 +70,11 @@ void trim_string(string &res) {
   // res.erase(res.find_last_not_of(' ') + 1);
 
   int effect_idx = 0, idx = 0;
-  bool prev_is_space = false, prev_is_minus = false;
+  bool prev_is_space = false, prev_is_minus = false, prev_is_semicolon = false;
   int sz = res.size();
 
-  // skip leading spaces
-  for (; idx < sz && res[idx] == ' '; idx++)
+  // skip leading spaces and leading semicolons
+  for (; idx < sz && (res[idx] == ' ' || res[idx] == ';'); idx++)
     ;
 
   // now idx points to the first non-space character
@@ -88,15 +88,24 @@ void trim_string(string &res) {
         continue;
 
       prev_is_space = true;
+      prev_is_semicolon = false;
       res[effect_idx++] = c;
 
     } else if (c == ';' || c == ',') {
 
       if (prev_is_space)
         res[effect_idx - 1] = c;
+      else if (prev_is_semicolon && c == ';') {
+        continue;
+      }
       else
         res[effect_idx++] = c;
 
+      if (c == ';') {
+        prev_is_semicolon = true;
+      } else {
+        prev_is_semicolon = false;
+      }
       prev_is_space = false;
 
     } else if (c == '-') {
@@ -106,12 +115,15 @@ void trim_string(string &res) {
         }
 
         prev_is_minus = true;
+        prev_is_space = false;
+        prev_is_semicolon = false;
         res[effect_idx++] = c;
 
     } else {
 
       prev_is_minus = false;
       prev_is_space = false;
+      prev_is_semicolon = false;
       res[effect_idx++] = c;
     }
   }

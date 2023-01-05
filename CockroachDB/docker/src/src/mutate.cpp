@@ -211,9 +211,11 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
     // "\n\n\n";
     for (IR *mutated_ir : v_mutated_ir) {
 
-      string tmp = mutated_ir->to_string();
+      IR* extract_struct_root = mutated_ir->deep_copy();
+      string extract_struct_str = extract_struct_deep(extract_struct_root);
+      extract_struct_root->deep_drop();
 
-      unsigned tmp_hash = hash(tmp);
+      unsigned tmp_hash = hash(extract_struct_str);
       if (global_hash_.find(tmp_hash) != global_hash_.end()) {
         mutated_ir->deep_drop();
         // cerr << "Aboard old_ir because tmp_hash being saved before. "
@@ -242,17 +244,23 @@ vector<IR *> Mutator::mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
       continue;
     }
 
-    string tmp = root->to_string();
-
+    IR* extract_struct_root = root->deep_copy();
+    string extract_struct_str = extract_struct_deep(extract_struct_root);
+    extract_struct_root->deep_drop();
     /* Check whether the mutated IR is the same as before */
-    unsigned tmp_hash = hash(tmp);
-    if (global_hash_.find(tmp_hash) != global_hash_.end()) {
+
+//    cerr << "\n\n\nDEBUG: For mutated extract_struct_str: " << extract_struct_str;
+
+    unsigned extract_struct_hash = hash(extract_struct_str);
+    if (global_hash_.find(extract_struct_hash) != global_hash_.end()) {
       root->swap_node(new_ir, ir_to_mutate);
       new_ir->deep_drop();
       total_mutate_failed++;
+//      cerr << "\nduplicated and ignored. \n\n\n";
       continue;
     }
-    global_hash_.insert(tmp_hash);
+//    cerr << "\nsaved. \n\n\n";
+    global_hash_.insert(extract_struct_hash);
 
     /* Mutate successful. Save the mutation and recover the original ir_tree */
     res.push_back(root->deep_copy());
@@ -869,30 +877,119 @@ void Mutator::_extract_struct(IR *root) {
   }
 }
 
-void Mutator::extract_struct2(IR *root) {
-  static int counter = 0;
-  auto type = root->type_;
-  if (root->left_) {
-    extract_struct2(root->left_);
-  }
-  if (root->right_) {
-    extract_struct2(root->right_);
+
+string Mutator::extract_struct_deep(IR *root) {
+  string res = "";
+
+  vector<IR*> ir_to_deep_drop;
+  this->remove_type_annotation(root, ir_to_deep_drop);
+  for (auto cur_ir : ir_to_deep_drop) {
+    cur_ir->deep_drop();
   }
 
-  if (root->left_ || root->right_)
+  _extract_struct_deep(root);
+  res = root->to_string();
+  trim_string(res);
+  return res;
+}
+
+void Mutator::_extract_struct_deep(IR *root) {
+
+//  cerr << "Inside _extract_struct_deep\n\n\n";
+
+  if (root->get_ir_type() == TypeSetVar) {
+    cerr << "Inside _extract_struct_deep TypeSetVar. \n";
+    // Remove SET VAR statement.
+    IR* parent = root->get_parent();
+    if (parent != NULL) {
+      parent->swap_node(root, NULL);
+      root->deep_drop();
+      cerr << "\n_extract_struct_deep: " << parent->to_string() << "\n\n\n";
+      return;
+    }
+    // Do not continue anyway.
+    cerr << "Error\n\n\n";
+    return;
+  }
+
+  if (root->get_ir_type() == TypeArray) {
+    // Reset the array type to a pure literal.
+    root->set_str_val("x");
+    root->op_->prefix_ = "";
+    root->op_->middle_ = "";
+    root->op_->suffix_ = "";
+
+    if (root->get_left()) {
+      root->get_left()->deep_drop();
+      root->update_left(NULL);
+    }
+    if (root->get_right()) {
+      root->get_right()->deep_drop();
+      root->update_right(NULL);
+    }
+
+    // Do not continue;
     return;
 
-  if (root->data_type_ != DataNone && root->data_type_ != DataUnknownType) {
-    root->str_val_ = "x" + to_string(counter++);
+  }
+
+  if (root->left_) {
+    extract_struct_deep(root->left_);
+  }
+  if (root->right_) {
+    extract_struct_deep(root->right_);
+  }
+
+  if (root->get_ir_type() == TypeIdentifier) {
+    root->set_str_val("x");
+  }
+
+  if (root->get_data_type() == DataTypeName) {
+    root->set_str_val("INT");
+    return;
+  }
+
+  auto type = root->type_;
+  if (
+      root->get_data_type() == DataNone
+  ) {
+    return;
+  }
+  //  if (root->get_data_flag() == ContextUnknown) {
+  //    return;
+  //  }
+
+  if (root->get_ir_type() == TypeIntegerLiteral) {
+    root->int_val_ = 0;
+    root->str_val_ = "x";
+    return;
+  } else if (root->get_ir_type() == TypeFloatLiteral) {
+    root->float_val_ = 0.0;
+    root->str_val_ = "x";
+    return;
+  } else if (root->get_ir_type() == TypeStringLiteral) {
+    root->str_val_ = "x";
+    return;
+  } else if (root->get_ir_type() == TypeDBool) {
+    root->str_val_ = "x";
+    return;
+  }
+
+  if (root->left_ || root->right_ || root->data_type_ == DataFunctionName)
+    return;
+
+  if (root->data_type_ != DataUnknownType &&
+      root->data_type_ != DataFunctionName) {
+    root->str_val_ = "x";
     return;
   }
 
   if (string_types_.find(type) != string_types_.end()) {
-    root->str_val_ = "'x'";
+    root->str_val_ = "x";
   } else if (int_types_.find(type) != int_types_.end()) {
-    root->int_val_ = 1;
+    root->int_val_ = 0;
   } else if (float_types_.find(type) != float_types_.end()) {
-    root->float_val_ = 1.0;
+    root->float_val_ = 0.0;
   }
 }
 
