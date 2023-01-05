@@ -5007,22 +5007,22 @@ bool Mutator::add_all_to_library(string whole_query_str,
       continue;
     }
 
-    string uniformed_query = this->extract_struct(cur_stmt_ir);
+    string uniformed_query = this->extract_struct(root);
 //    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
       // if (p_oracle->is_oracle_valid_stmt(current_query)) {
       if (std::find(explain_diff_id.begin(), explain_diff_id.end(), i) !=
           explain_diff_id.end()) {
-        add_to_valid_lib(cur_stmt_ir, uniformed_query, true, run_target);
+        add_to_valid_lib(root, uniformed_query, true, run_target);
       } else {
-        add_to_valid_lib(cur_stmt_ir, uniformed_query, false, run_target);
+        add_to_valid_lib(root, uniformed_query, false, run_target);
       }
       ++i; // For counting oracle valid stmt IDs.
     } else {
       // Only check whether this statement is a new non-select statement.
       // Only if yes, save the query to the fuzzing queue.
-      if(add_to_library(cur_stmt_ir, uniformed_query, run_target)) {
+      if(add_to_library(root, uniformed_query, run_target)) {
         ret_is_add_to_queue = true;
       }
     }
@@ -5300,7 +5300,8 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->left_->type_ != type_) {
+      if (matched_ir_node->left_ == NULL || matched_ir_node->left_->type_ != type_) {
+//        cerr << "\n\n\nERROR::: Type not matched. \n\n\n";
         current_ir_root->deep_drop();
         return NULL;
       }
@@ -5349,7 +5350,8 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->right_->type_ != type_) {
+      if (matched_ir_node->right_ == NULL || matched_ir_node->right_->type_ != type_) {
+//        cerr << "\n\n\nERROR::: Type not matched. \n\n\n";
         current_ir_root->deep_drop();
         return NULL;
       }
