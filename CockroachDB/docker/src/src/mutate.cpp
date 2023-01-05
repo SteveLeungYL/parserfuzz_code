@@ -4931,9 +4931,9 @@ bool Mutator::is_stripped_str_in_lib(string stripped_str) {
  * the current IR tree into single query stmts.
  * This function is not responsible to free the input IR tree.
  */
-void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, u8 (*run_target)(char **, u32, string,
+bool Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, u8 (*run_target)(char **, u32, string,
                                                                                               int, string&)) {
-  add_all_to_library(ir->to_string(), explain_diff_id, run_target);
+  return add_all_to_library(ir->to_string(), explain_diff_id, run_target);
 }
 
 /*  Save an interesting query stmt into the mutator library.
@@ -4950,9 +4950,11 @@ void Mutator::add_all_to_library(IR *ir, const vector<int> &explain_diff_id, u8 
  *
  */
 
-void Mutator::add_all_to_library(string whole_query_str,
+bool Mutator::add_all_to_library(string whole_query_str,
                                  const vector<int> &explain_diff_id, u8 (*run_target)(char **, u32, string,
                                                                                       int, string&)) {
+
+  bool ret_is_add_to_queue = false;
 
   /* If the query_str is empty. Ignored and return. */
   bool is_empty = true;
@@ -4965,7 +4967,7 @@ void Mutator::add_all_to_library(string whole_query_str,
   }
 
   if (is_empty)
-    return;
+    return false; // Do not save the current seed to the queue.
 
   vector<string> queries_vector = string_splitter(whole_query_str, ';');
   int i = 0; // For counting oracle valid stmt IDs.
@@ -4990,12 +4992,12 @@ void Mutator::add_all_to_library(string whole_query_str,
     vector<IR *> v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
     if (v_cur_stmt_ir.size() == 0) {
       root->deep_drop();
-      return;
+      continue;
     }
     IR *cur_stmt_ir = v_cur_stmt_ir.front();
 
     string uniformed_query = this->extract_struct(cur_stmt_ir);
-    cerr << "\n\n\nDEBUG: Saving uniformed_query: " << uniformed_query << "\n\n\n";
+//    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
 
     if (p_oracle->is_oracle_select_stmt(cur_stmt_ir)) {
       // if (p_oracle->is_oracle_valid_stmt(current_query)) {
@@ -5007,11 +5009,17 @@ void Mutator::add_all_to_library(string whole_query_str,
       }
       ++i; // For counting oracle valid stmt IDs.
     } else {
-      add_to_library(cur_stmt_ir, uniformed_query, run_target);
+      // Only check whether this statement is a new non-select statement.
+      // Only if yes, save the query to the fuzzing queue.
+      if(add_to_library(cur_stmt_ir, uniformed_query, run_target)) {
+        ret_is_add_to_queue = true;
+      }
     }
 
     root->deep_drop();
   }
+
+  return ret_is_add_to_queue;
 }
 
 void Mutator::add_to_valid_lib(IR *ir, string &select,
@@ -5054,11 +5062,11 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   return;
 }
 
-void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u32, string,
+bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u32, string,
                                                                      int, string&)) {
 
   if (query == "")
-    return;
+    return false;
 
   IRTYPE p_type = ir->type_;
   unsigned long p_hash = hash(query);
@@ -5066,7 +5074,7 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   if (ir_libary_2D_hash_[p_type].find(p_hash) !=
       ir_libary_2D_hash_[p_type].end()) {
     /* query not interesting enough. Ignore it and clean up. */
-    return;
+    return false;
   }
   ir_libary_2D_hash_[p_type].insert(p_hash);
 
@@ -5097,7 +5105,7 @@ void Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
 
   // get_memory_usage();  // Debug purpose.
 
-  return;
+  return true;
 }
 
 void Mutator::add_to_library_core(IR *ir, string *p_query_str) {

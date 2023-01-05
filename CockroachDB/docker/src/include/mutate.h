@@ -153,23 +153,23 @@ public:
   int get_ir_libary_2D_hash_kStatement_size();
   bool is_stripped_str_in_lib(string stripped_str);
 
-  void add_all_to_library(IR *, const vector<int> &, u8 (*run_target)(char **, u32, string,
+  bool add_all_to_library(IR *, const vector<int> &, u8 (*run_target)(char **, u32, string,
                                                                       int, string&)=NULL);
-  void add_all_to_library(IR *ir, u8 (*run_target)(char **, u32, string,
+  bool add_all_to_library(IR *ir, u8 (*run_target)(char **, u32, string,
                                                    int, string&)=NULL) {
     vector<int> dummy_vec;
-    add_all_to_library(ir, dummy_vec, run_target);
+    return add_all_to_library(ir, dummy_vec, run_target);
   }
-  void add_all_to_library(string, const vector<int> &, u8 (*run_target)(char **, u32, string,
+  bool add_all_to_library(string, const vector<int> &, u8 (*run_target)(char **, u32, string,
                                                                         int, string&)=NULL);
-  void add_all_to_library(string whole_query_str, u8 (*run_target)(char **, u32, string,
+  bool add_all_to_library(string whole_query_str, u8 (*run_target)(char **, u32, string,
                                                                    int, string&)=NULL) {
     vector<int> dummy_vec;
-    add_all_to_library(whole_query_str, dummy_vec, run_target);
+    return add_all_to_library(whole_query_str, dummy_vec, run_target);
   }
   void add_to_valid_lib(IR *, string &, const bool, u8 (*run_target)(char **, u32, string,
                                                                      int, string&)=NULL);
-  void add_to_library(IR *, string &, u8 (*run_target)(char **, u32, string,
+  bool add_to_library(IR *, string &, u8 (*run_target)(char **, u32, string,
                                                        int, string&)=NULL);
   void add_to_library_core(IR *, string *);
   int get_valid_collection_size();

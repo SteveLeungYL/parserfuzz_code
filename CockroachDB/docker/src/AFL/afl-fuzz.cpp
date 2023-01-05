@@ -3980,14 +3980,16 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     // if it is interesting, we update our library with it.
     stage_name = "add_to_library";
 
+    bool is_save_to_queue = false;
+
     vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query_str);
     if (ir_tree.size() > 0) {
       IR *tmp_ir_root = ir_tree.back();
       if (is_auto_detect_data_type) {
-        g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
+        is_save_to_queue = g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
                                      run_target);
       } else {
-        g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
+        is_save_to_queue = g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
                                      NULL); // Do not provide the run_target function.
       }
       ir_tree.back()->deep_drop();
@@ -3999,7 +4001,13 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     stage_name = tmp_name;
     //[modify] end
 
-    if (g_mutator.is_stripped_str_in_lib(query_str))
+//    if (is_save_to_queue) {
+//      cerr << "saving query: " << query_str << "\n\n\n";
+//    } else {
+//      cerr << "ignoring query: " << query_str << "\n\n\n";
+//    }
+
+    if (g_mutator.is_stripped_str_in_lib(query_str) || !is_save_to_queue)
       return keeping;
 
 #ifndef SIMPLE_FILES
