@@ -125,6 +125,7 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
         if (choose_node_trial > 100)
           break;
         choose_node_trial++;
+        ir_tree = this->ir_wrapper.get_all_ir_node(root);
         mutate_ir_node = ir_tree[get_rand_int(
             ir_tree.size() - 1)]; // Do not choose the program_root to mutate.
         if (mutate_ir_node == NULL) {
