@@ -5001,6 +5001,12 @@ bool Mutator::add_all_to_library(string whole_query_str,
     }
     IR *cur_stmt_ir = v_cur_stmt_ir.front();
 
+    if (cur_stmt_ir->get_ir_type() == TypeSetVar) {
+      // Do not save the SET VAR statements.
+      root->deep_drop();
+      continue;
+    }
+
     string uniformed_query = this->extract_struct(cur_stmt_ir);
 //    cerr << "\n\n\nDEBUG: Getting uniformed_query: " << uniformed_query << "\n\n\n";
 
