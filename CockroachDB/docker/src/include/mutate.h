@@ -75,7 +75,6 @@ public:
 
   string get_a_string();
   unsigned long get_a_val();
-  IR *get_ir_from_library(IRTYPE);
   // IR *generate_ir_by_type(IRTYPE);
 
   string get_data_by_type(DATATYPE);

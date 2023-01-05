@@ -681,7 +681,7 @@ IR *Mutator::strategy_insert(IR *cur) {
 IR *Mutator::strategy_replace(IR *cur) {
   assert(cur);
 
-  auto new_node = get_ir_from_library(cur->type_);
+  auto new_node = get_from_libary_with_type(cur->type_);
 
 //  cerr << "DEBUG:: strategy_replace: Mutating " << get_string_by_ir_type(cur->type_);
 //  if (new_node) {
@@ -728,47 +728,6 @@ pair<string, string> Mutator::get_data_2d_by_type(DATATYPE type1,
 
 //   return tmp_vector[tmp_vector.size() - 1];
 // }
-
-IR *Mutator::get_ir_from_library(IRTYPE type_) {
-
-  /* Given an input type, return a randomly selected prevously seen IR node
-   that share the same IR type. If nothing has found, return NULL.
-*/
-
-  vector<IR *> current_ir_set;
-  IR *current_ir_root;
-  vector<pair<string *, int>> &all_matching_node = real_ir_set[type_];
-  IR *return_matched_ir_node = NULL;
-
-  if (all_matching_node.size() > 0) {
-    /* Pick a random matching node from the library. */
-    int random_idx = get_rand_int(all_matching_node.size());
-    std::pair<string *, int> &selected_matched_node =
-        all_matching_node[random_idx];
-    string *p_current_query_str = selected_matched_node.first;
-    int unique_node_id = selected_matched_node.second;
-
-    /* Reconstruct the IR tree. */
-    current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
-    if (current_ir_set.size() == 0) {
-      return NULL;
-    }
-    current_ir_root = current_ir_set.back();
-
-    /* Retrive the required node, deep copy it, clean up the IR tree and return.
-     */
-    IR *matched_ir_node = current_ir_set[unique_node_id];
-    if (matched_ir_node != NULL) {
-      return_matched_ir_node = matched_ir_node->deep_copy();
-    }
-
-    current_ir_root->deep_drop();
-
-  } // if (all_matching_node.size() > 0)
-
-  return return_matched_ir_node;
-
-}
 
 string Mutator::get_a_string() {
   unsigned com_size = common_string_library_.size();
@@ -5168,7 +5127,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     right_type = ir->right_->type_;
     left_lib_set[left_type].push_back(std::make_pair(
         p_query_str, current_unique_id)); // Saving the parent node id. When
-                                          // fetching, use current_node->left.
+                                          // fetching, use current_node->right.
     // if (*p_query_str == "ALTER INDEX x NO DEPENDS ON EXTENSION x;") {
     //   cerr << "Saving left_type_ ir_node with right type: " <<
     //   get_string_by_ir_type(right_type) << ", unique_id:" <<
@@ -5231,7 +5190,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     /* Reconstruct the IR tree. */
     current_ir_set = parse_query_str_get_ir_set(*p_current_query_str);
     if (current_ir_set.size() <= 0)
-      return new IR(TypeStringLiteral, "");
+      return NULL;
     current_ir_root = current_ir_set.back();
 
     /* Retrive the required node, deep copy it, clean up the IR tree and return.
@@ -5240,7 +5199,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     if (matched_ir_node != NULL) {
       if (matched_ir_node->type_ != type_) {
         current_ir_root->deep_drop();
-        return new IR(TypeStringLiteral, "");
+        return NULL;
       }
       // return_matched_ir_node = matched_ir_node->deep_copy();
       return_matched_ir_node = matched_ir_node;
@@ -5256,7 +5215,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
     }
   }
 
-  return new IR(TypeStringLiteral, "");
+  return NULL;
 }
 
 IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
