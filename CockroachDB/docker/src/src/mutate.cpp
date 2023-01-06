@@ -902,8 +902,8 @@ void Mutator::_extract_struct_deep(IR *root) {
 //    cerr << "Inside _extract_struct_deep TypeSetVar. \n";
     // Remove SET VAR statement.
     IR* parent = root->get_parent();
-    if (parent != NULL) {
-      parent->swap_node(root, NULL);
+    if (parent != NULL && parent->get_ir_type() == TypeStmt && parent->get_left() == root) {
+      parent->update_left(NULL);
       root->deep_drop();
 //      cerr << "\n_extract_struct_deep: " << parent->to_string() << "\n\n\n";
       return;
