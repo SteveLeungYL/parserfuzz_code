@@ -460,6 +460,32 @@ bool SQL_ORACLE::is_expr_types_in_where_clause(IRTYPE in) {
     case TypeComparisonExpr:
     case TypeRangeCond:
     case TypeIsOfTypeExpr:
+
+    // newly added
+    // from expr.go
+    case TypeExprFmtWithParen:
+    case TypeBinExprFmtWithParen:
+    case TypeBinExprFmtWithParenAndSubOp:
+    case TypeNotExpr:
+    case TypeParenExpr:
+    case TypeIfErrExpr:
+    case TypeIfExpr:
+    case TypeNullIfExpr:
+    case TypeCoalesceExpr:
+    case TypeFuncExpr:
+    case TypeCaseExpr:
+    case TypeCastExpr:
+    case TypeIndirectionExpr:
+    case TypeAnnotateTypeExpr:
+    case TypeCollateExpr:
+    case TypeColumnAccessExpr:
+
+    // SELECT Table related.
+    // from select.go
+    case TypeJoinTableExpr:
+    case TypeAliasedTableExpr:
+    case TypeParenTableExpr:
+    // End of the list.
         return true;
     default:
         return false;
