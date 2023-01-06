@@ -830,7 +830,11 @@ void Mutator::_extract_struct(IR *root) {
   }
 
   if (root->get_data_type() == DataTypeName) {
-    root->set_str_val("INT");
+    if (!is_str_empty(root->to_string())){
+      root->set_str_val("INT");
+    } else {
+      root->set_str_val("");
+    }
     return;
   }
 
@@ -941,12 +945,17 @@ void Mutator::_extract_struct_deep(IR *root) {
     _extract_struct_deep(root->right_);
   }
 
-  if (root->get_ir_type() == TypeIdentifier) {
-    root->set_str_val("x");
+  if (root->get_data_type() == DataTypeName) {
+    if (!is_str_empty(root->to_string())){
+      root->set_str_val("INT");
+    } else {
+      root->set_str_val("");
+    }
+    return;
   }
 
-  if (root->get_data_type() == DataTypeName) {
-    root->set_str_val("INT");
+  if (root->get_ir_type() == TypeIdentifier) {
+    root->set_str_val("x");
     return;
   }
 
