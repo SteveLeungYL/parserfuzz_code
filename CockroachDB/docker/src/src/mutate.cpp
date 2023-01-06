@@ -6609,6 +6609,10 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
                  << "\n getting new corr_affi: " << get_string_by_affinity_type(corr_affi.get_data_affinity()) << "\n\n\n";
         }
 
+        for (IR* cur_ir: ir_to_deep_drop) {
+            cur_ir->deep_drop();
+        }
+
     }
 
 

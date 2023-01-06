@@ -6215,6 +6215,9 @@ static u8 fuzz_one(char **argv) {
       vector<IR *> all_pre_trans_vec = g_mutator.pre_fix_transform(
           cur_root, stmt_type_vec); // All deep_copied.
 
+      // No need for the original cur_root anymore.
+      cur_root->deep_drop();
+
       /* Build dependency graph, fix ir node, fill in concret values */
 
       // Before fixing all the statements, reset the database data.
