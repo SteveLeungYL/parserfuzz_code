@@ -636,6 +636,39 @@ bool unit_test_missing_column_2(bool is_show_debug = false) {
 
 }
 
+bool unit_test_extract_struct_deep(bool is_show_debug = false) {
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "SELECT * FROM ROWS FROM (BTRIM('gj404usqz', '09-07-51')) WHERE x = '3fa467c5-898c-da8c-4abe-9576f126f949';"
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+      IR* cur_stmt_ext = cur_stmt->deep_copy();
+      IR* cur_stmt_ext_deep = cur_stmt->deep_copy();
+      cerr << "extract_struct: " << g_mutator.extract_struct(cur_stmt_ext) << "\n\n\n";
+      cerr << "extract_struct_deep: " << g_mutator.extract_struct_deep(cur_stmt_ext_deep) << "\n\n\n";
+      cur_stmt_ext->deep_drop();
+      cur_stmt_ext_deep->deep_drop();
+    }
+    cur_stmt->deep_drop();
+  }
+
+  return true;
+
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc != 1) {
@@ -663,6 +696,7 @@ int main(int argc, char *argv[]) {
         assert(unit_test_missing_column(false));
         assert(unit_test_missing_column_2(false));
     }
+    assert(unit_test_extract_struct_deep(true));
 
     return 0;
 }
