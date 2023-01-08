@@ -655,13 +655,32 @@ bool unit_test_extract_struct_deep(bool is_show_debug = false) {
   for (IR* cur_stmt: ir_list) {
     if (is_show_debug) {
       cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
-      IR* cur_stmt_ext = cur_stmt->deep_copy();
-      IR* cur_stmt_ext_deep = cur_stmt->deep_copy();
-      cerr << "extract_struct: " << g_mutator.extract_struct(cur_stmt_ext) << "\n\n\n";
-      cerr << "extract_struct_deep: " << g_mutator.extract_struct_deep(cur_stmt_ext_deep) << "\n\n\n";
-      cur_stmt_ext->deep_drop();
-      cur_stmt_ext_deep->deep_drop();
     }
+    IR *cur_stmt_ext = cur_stmt->deep_copy();
+    IR *cur_stmt_ext_deep = cur_stmt->deep_copy();
+
+    string extract_struct_str =
+        g_mutator.extract_struct(cur_stmt_ext);
+    if (is_show_debug) {
+      cerr << "extract_struct: " << extract_struct_str
+           << "\n\n\n";
+    }
+    if (findStringIn(extract_struct_str, "INT")) {
+      return false;
+    }
+
+    string extract_struct_str_deep =
+        g_mutator.extract_struct_deep(cur_stmt_ext_deep);
+
+    if (is_show_debug) {
+      cerr << "extract_struct_deep: " << extract_struct_str_deep << "\n\n\n";
+    }
+
+    if (findStringIn(extract_struct_str_deep, "INT")) {
+      return false;
+    }
+    cur_stmt_ext->deep_drop();
+    cur_stmt_ext_deep->deep_drop();
     cur_stmt->deep_drop();
   }
 
@@ -696,7 +715,7 @@ int main(int argc, char *argv[]) {
         assert(unit_test_missing_column(false));
         assert(unit_test_missing_column_2(false));
     }
-    assert(unit_test_extract_struct_deep(true));
+    assert(unit_test_extract_struct_deep(false));
 
     return 0;
 }
