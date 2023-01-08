@@ -2612,7 +2612,7 @@ func (node *Window) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *Window) LogCurrentNode(depth int) *SQLRightIR {
 
-	prefix := "WINDOW "
+	prefix := " WINDOW "
 	infix := " AS "
 
 	var windowNodeList []*SQLRightIR
