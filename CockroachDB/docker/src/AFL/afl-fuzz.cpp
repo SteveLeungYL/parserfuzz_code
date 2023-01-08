@@ -6137,9 +6137,6 @@ static u8 fuzz_one(char **argv) {
   // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
   // current_hash = 0;
 
-  /* Get some oracle compatible SELECT stmts.  */
-  v_oracle_select_stmts.clear();
-  get_oracle_select_stmts(v_oracle_select_stmts, 120);
 
   int cur_reparse;
   cur_reparse = 0;
@@ -6188,6 +6185,10 @@ static u8 fuzz_one(char **argv) {
       }
       num_reparse++;
       cur_reparse++;
+
+      /* Get some oracle compatible SELECT stmts.  */
+      v_oracle_select_stmts.clear();
+      get_oracle_select_stmts(v_oracle_select_stmts, 120);
 
       for (IR *app_IR_node : v_oracle_select_stmts) {
         p_oracle->ir_wrapper.set_ir_root(cur_ir_tree.back());
@@ -6637,6 +6638,12 @@ static u8 fuzz_one(char **argv) {
       for (int i = 0; i < all_pre_trans_vec.size(); i++) {
         all_pre_trans_vec[i]->deep_drop();
       }
+
+      /* Free the generated oracle SELECT stmt. */
+      for (IR *app_ir_node : v_oracle_select_stmts) {
+        app_ir_node->deep_drop();
+      }
+      v_oracle_select_stmts.clear();
 
       total_execute++;
       stage_cur++;
