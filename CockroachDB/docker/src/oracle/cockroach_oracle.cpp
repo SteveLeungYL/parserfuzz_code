@@ -63,12 +63,21 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
     IR *cur_ir_stmt = ir_wrapper.get_first_stmt_from_root(root);
 
     if (!this->is_oracle_select_stmt(cur_ir_stmt)) {
-      // cerr << "Error: cur_ir_stmt is not oracle statement.
-      // cur_ir_stmt->to_stirng(): "<<  cur_ir_stmt->to_string() << "  In func:
-      // SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
       root->deep_drop();
       root = NULL;
       continue;
+    }
+
+    bool has_where_clause = true;
+    if (!(ir_wrapper.is_exist_ir_node_in_stmt_with_type(cur_ir_stmt, TypeWhere))) {
+      // If the retrieved IR node is a simple SELECT statement that comes without
+      // WHERE, try not to use it and gives it 80% chances to skip.
+      has_where_clause = false;
+      if (get_rand_int(5)) {
+        root->deep_drop();
+        root = NULL;
+        continue;
+      }
     }
 
     // cerr << "DEBUG: In get_random_mutated_select_stmt: getting
@@ -139,6 +148,19 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
           // cerr << "node strcut is fixed. \n\n\n";
           continue;
         }
+        if (has_where_clause && !ir_wrapper.is_ir_in(mutate_ir_node, TypeWhere)) {
+          // If the SELECT statement comes with the WHERE clause, but
+          // the mutated nodes does not choose the expressions to the where clause,
+          // re-choose the mutated IR with possibility 80%.
+          if (get_rand_int(5)) {
+            // Re-choose mutated IR node.
+            continue;
+          }
+        } else {
+//          cerr << "\n\n\nChoosing to mutate TypeWhere succeed. \n";
+//          cerr << "type: " << get_string_by_ir_type(mutate_ir_node->type_) << "\n\n\n";
+        }
+
         is_mutate_ir_node_chosen = true;
         break;
       }
