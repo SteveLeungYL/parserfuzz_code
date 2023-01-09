@@ -182,4 +182,36 @@ protected:
   virtual bool mark_node_valid(IR *root);
 };
 
+#define ALLEXPRTYPESINWHERE     case TypeSubquery:  \
+                                case TypeAndExpr:  \
+                                case TypeOrExpr:  \
+                                case TypeIsNullExpr:  \
+                                case TypeIsNotNullExpr:  \
+                                case TypeBinaryExpr:  \
+                                case TypeUnaryExpr:  \
+                                case TypeComparisonExpr:  \
+                                case TypeRangeCond:  \
+                                case TypeIsOfTypeExpr:  \
+                                case TypeExprs: \
+                                case TypeExprFmtWithParen:  \
+                                case TypeBinExprFmtWithParen:  \
+                                case TypeBinExprFmtWithParenAndSubOp:  \
+                                case TypeNotExpr:  \
+                                case TypeParenExpr:  \
+                                case TypeIfErrExpr:  \
+                                case TypeIfExpr:  \
+                                case TypeNullIfExpr:  \
+                                case TypeCoalesceExpr:  \
+                                case TypeFuncExpr:  \
+                                case TypeCaseExpr:  \
+                                case TypeCastExpr:  \
+                                case TypeIndirectionExpr:  \
+                                case TypeAnnotateTypeExpr:  \
+                                case TypeCollateExpr:  \
+                                case TypeColumnAccessExpr:  \
+                                case TypeJoinTableExpr:  \
+                                case TypeAliasedTableExpr:  \
+                                case TypeParenTableExpr:
+                                // End of the list.
+
 #endif

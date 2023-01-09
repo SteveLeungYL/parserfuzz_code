@@ -636,6 +636,63 @@ bool unit_test_missing_column_2(bool is_show_debug = false) {
 
 }
 
+
+bool unit_test_nested_functions(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "CREATE TABLE v0 (v1 int);",
+      "SELECT * FROM x WHERE CHECK_TEST( IS_PARTITION_OF( 0, 0), 0, 0, 0, 0);"
+  };
+
+  vector<string> res_list {
+      "",
+      ""
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+    g_mutator.validate(cur_stmt, false);
+    if (is_show_debug) {
+      cerr << "Debug: Getting validated stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  assert (ir_list.size() == res_list.size());
+  bool is_no_error;
+
+  for (IR* cur_stmt: ir_list) {
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+    if (!findStringIn(cur_stmt->to_string(), "CHECK_TEST")) {
+      is_no_error = false;
+    }
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  return is_no_error;
+
+}
+
+
 bool unit_test_extract_struct_deep(bool is_show_debug = false) {
 
   // Succeed with return true,
@@ -716,6 +773,7 @@ int main(int argc, char *argv[]) {
         assert(unit_test_missing_column_2(false));
     }
     assert(unit_test_extract_struct_deep(false));
+    assert(unit_test_nested_functions(false));
 
     return 0;
 }

@@ -456,42 +456,7 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
 bool SQL_ORACLE::is_expr_types_in_where_clause(IRTYPE in) {
 
     switch (in) {
-    case TypeSubquery:
-    case TypeAndExpr:
-    case TypeOrExpr:
-    case TypeIsNullExpr:
-    case TypeIsNotNullExpr:
-    case TypeBinaryExpr:
-    case TypeUnaryExpr:
-    case TypeComparisonExpr:
-    case TypeRangeCond:
-    case TypeIsOfTypeExpr:
-
-    // newly added
-    // from expr.go
-    case TypeExprFmtWithParen:
-    case TypeBinExprFmtWithParen:
-    case TypeBinExprFmtWithParenAndSubOp:
-    case TypeNotExpr:
-    case TypeParenExpr:
-    case TypeIfErrExpr:
-    case TypeIfExpr:
-    case TypeNullIfExpr:
-    case TypeCoalesceExpr:
-    case TypeFuncExpr:
-    case TypeCaseExpr:
-    case TypeCastExpr:
-    case TypeIndirectionExpr:
-    case TypeAnnotateTypeExpr:
-    case TypeCollateExpr:
-    case TypeColumnAccessExpr:
-
-    // SELECT Table related.
-    // from select.go
-    case TypeJoinTableExpr:
-    case TypeAliasedTableExpr:
-    case TypeParenTableExpr:
-    // End of the list.
+    ALLEXPRTYPESINWHERE
         return true;
     default:
         return false;

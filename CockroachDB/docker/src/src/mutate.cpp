@@ -4129,7 +4129,26 @@ void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
 
   /* Fixing for functions.  */
   if (ir_to_fix->get_data_type() == DataFunctionExpr || ir_to_fix->get_ir_type() == TypeFuncObj ) {
+
     if (ir_to_fix->get_data_flag() == ContextNoModi) {
+      return;
+    }
+
+    // Loop through the function expression, do not mutate the current function
+    // if the function contains nested structures.
+    vector<IR*> all_nodes_in_func_expr = p_oracle->ir_wrapper.get_all_ir_node(ir_to_fix);
+    for (IR* cur_node_in_func_expr: all_nodes_in_func_expr) {
+      if (cur_node_in_func_expr == ir_to_fix) {
+          continue;
+      }
+      if (p_oracle->is_expr_types_in_where_clause(cur_node_in_func_expr->get_ir_type())) {
+        ir_to_fix->set_is_instantiated(true);
+        break;
+      }
+    }
+
+    if (ir_to_fix->get_is_instantiated()) {
+      // If true, the function contains nested expressions, skipped.
       return;
     }
 
