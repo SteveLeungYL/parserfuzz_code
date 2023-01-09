@@ -3495,8 +3495,12 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
       if (closet_column_node == nullptr) {
         if (is_debug_info) {
           cerr << "\n\n\nLOGIC ERROR: Inside the IN clause, cannot find the "
-                  "nearby column name. Do not fix. Return. \n\n\n";
+                  "nearby column name. Dummy fix. Return. \n\n\n";
         }
+        IR* new_dummy_node = new IR(TypeIntegerLiteral, OP0(), nullptr, nullptr);
+        new_dummy_node->mutate_literal(AFFIINT);
+        new_dummy_node->set_is_instantiated(true);
+        type_exprs_node->update_left(new_dummy_node);
         return;
       }
 
