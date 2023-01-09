@@ -141,7 +141,7 @@ void IR::to_string_core(string &res) {
     //    return;
   case TypeIdentifier:
     if (str_val_ != "") {
-      if (data_type_ == DataFunctionName) {
+      if (data_type_ == DataFunctionName && str_val_ != "x") {
         std::transform(str_val_.begin(), str_val_.end(), str_val_.begin(),
                        ::toupper);
       }

@@ -106,7 +106,10 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
 
     // cout << "root: " << root->to_string()  << endl;
 
-    string ori_valid_select_struct = g_mutator->extract_struct(root);
+    IR* ori_extract_struct_deep_root = root->deep_copy();
+    string ori_valid_select_struct = g_mutator->extract_struct_deep(ori_extract_struct_deep_root);
+    ori_extract_struct_deep_root->deep_drop();
+    g_mutator->extract_struct(root);
     string new_valid_select_struct = "";
 
     /* For every retrived norec stmt, and its parsed IR tree, give it 100 trials
@@ -192,7 +195,10 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
       new_valid_select_str = root->to_string();
 
       if (new_valid_select_str != ori_valid_select) {
-        new_valid_select_struct = g_mutator->extract_struct(root);
+        g_mutator->extract_struct(root);
+        IR* extract_struct_deep_root = root->deep_copy();
+        new_valid_select_struct = g_mutator->extract_struct_deep(extract_struct_deep_root);
+        extract_struct_deep_root->deep_drop();
       }
 
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
