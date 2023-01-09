@@ -5871,6 +5871,7 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
             IR* new_node = NULL;
             if (
                 this->data_affi_set.count(fix_affi_hash) != 0 &&
+                this->data_affi_set.at(fix_affi_hash).size() != 0 &&
                 get_rand_int(10) < 9
                 ) {
 //                pair<string*, int> cur_chosen_pair =
@@ -5960,16 +5961,58 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
                 IR* new_left_node = new IR(TypeUnknown, OP0(), NULL, NULL);
                 new_left_node->set_is_instantiated(true);
-                if (m_datatype2column.count(AFFISTRING) > 0) {
+
+                DataAffinity fix_affi(AFFISTRING);
+                uint64_t fix_affi_hash = fix_affi.calc_hash();
+                if (
+                    this->data_affi_set.count(fix_affi_hash) != 0 &&
+                    this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+                    get_rand_int(3)
+                    )
+                {
+                  new_left_node->deep_drop();
+                  new_left_node = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+
+                  if (is_debug_info && new_left_node != NULL)
+                  {
+                    cerr << "\nDEBUG:: From data affinity library, "
+                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                         << " getting "
+                         << new_left_node->to_string() << "\n\n\n";
+                  }
+                }
+                else if (m_datatype2column.count(AFFISTRING) > 0) {
                     string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
                     new_left_node->set_str_val(col_str);
                 } else {
                     new_left_node->mutate_literal(AFFISTRING);
                 }
 
-                IR* new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);
+                IR* new_right_node = new IR(TypeUnknown, OP0(), NULL, NULL);;
                 new_right_node->set_is_instantiated(true);
-                new_right_node->mutate_literal(AFFISTRING);
+                if (
+                    this->data_affi_set.count(fix_affi_hash) != 0 &&
+                    this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+                    get_rand_int(3)
+                )
+                {
+                    new_right_node->deep_drop();
+                    new_right_node = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+
+                    if (is_debug_info && new_right_node != NULL)
+                    {
+                    cerr << "\nDEBUG:: From data affinity library, "
+                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                         << " getting "
+                         << new_right_node->to_string() << "\n\n\n";
+                    }
+                }
+                else if (m_datatype2column.count(AFFISTRING) > 0) {
+                    string col_str = vector_rand_ele(m_datatype2column[AFFISTRING]);
+                    new_right_node->set_str_val(col_str);
+                } else {
+                    new_right_node->mutate_literal(AFFISTRING);
+                }
 
                 // Replacing the old nodes.
                 IR* old_left_node = cur_binary_operator->get_left();
@@ -6004,6 +6047,7 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                     findStringIn(cur_binary_operator->get_middle(), "->") ||
                     findStringIn(cur_binary_operator->get_middle(), "->>")
             ) {
+                // TODO:: Update all the operators.
                 // Do not apply operations that is related to the JSON types.
                 cur_binary_operator->op_->middle_ = " = ";
             }
@@ -6053,7 +6097,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 IR* new_node = NULL;
                 if (
                     this->data_affi_set.count(fix_affi_hash) != 0 &&
-                    get_rand_int(10) < 9
+                    this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+                    get_rand_int(10) != 0
                 ) {
 //                    pair<string*, int> cur_chosen_pair =
 //                        vector_rand_ele(this->data_affi_set[fix_affi_hash]);
@@ -6173,7 +6218,27 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
             IR* newLiteralNode = new IR(TypeUnknown, OP0());
             newLiteralNode->set_is_instantiated(true);
-            newLiteralNode->mutate_literal(fix_affi);
+
+            uint64_t fix_affi_hash = fix_affi.calc_hash();
+
+            if (
+                this->data_affi_set.count(fix_affi_hash) != 0 &&
+                this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+                get_rand_int(11) < 9)
+            {
+                newLiteralNode->deep_drop();
+                newLiteralNode = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+
+                if (is_debug_info && newLiteralNode != NULL)
+                {
+                    cerr << "\nDEBUG:: From data affinity library, "
+                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                         << " getting "
+                         << newLiteralNode->to_string() << "\n\n\n";
+                }
+            } else {
+                newLiteralNode->mutate_literal(fix_affi);
+            }
 
             cur_stmt_root->swap_node(cur_match_node, newLiteralNode);
             ir_to_deep_drop.push_back(cur_match_node);
@@ -6277,8 +6342,34 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
             }
 
             IR* new_matched_node = new IR(TypeUnknown, OP0());
+
             new_matched_node->set_is_instantiated(true);
-            new_matched_node->mutate_literal(fix_affi);
+
+            uint64_t fix_affi_hash = fix_affi.calc_hash();
+
+            if (
+                this->data_affi_set.count(fix_affi_hash) != 0 &&
+                this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+                get_rand_int(11) < 9)
+            {
+                new_matched_node->deep_drop();
+                new_matched_node = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+
+                if (is_debug_info && new_matched_node != NULL)
+                {
+                    cerr << "\nDEBUG:: From data affinity library, "
+                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                         << " getting "
+                         << new_matched_node->to_string() << "\n\n\n";
+                }
+            } else {
+                if (is_debug_info && new_matched_node != NULL)
+                {
+                    cerr << "\nDEBUG:: using original mutate_literal." << "\n\n\n";
+                }
+                new_matched_node->mutate_literal(fix_affi);
+            }
+
             cur_stmt_root->swap_node(cur_matched_node, new_matched_node);
             ir_to_deep_drop.push_back(cur_matched_node);
 
@@ -6375,7 +6466,27 @@ void Mutator::fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool 
             }
             IR* new_ir = new IR(TypeUnknown, OP0(), NULL, NULL);
             new_ir->set_is_instantiated(true);
-            new_ir->mutate_literal(fix_affi);
+
+            uint64_t fix_affi_hash = fix_affi.calc_hash();
+
+            if (
+                this->data_affi_set.count(fix_affi_hash) != 0 &&
+                this->data_affi_set.at(fix_affi_hash).size() != 0 &&
+                get_rand_int(11) < 9)
+            {
+                new_ir->deep_drop();
+                new_ir = vector_rand_ele(this->data_affi_set[fix_affi_hash])->deep_copy();
+
+                if (is_debug_info && new_ir != NULL)
+                {
+                    cerr << "\nDEBUG:: From data affinity library, "
+                         << get_string_by_affinity_type(fix_affi.get_data_affinity())
+                         << " getting "
+                         << new_ir->to_string() << "\n\n\n";
+                }
+            } else {
+                new_ir->mutate_literal(fix_affi);
+            }
 
             par_node->swap_node(cur_binary_operator, new_ir);
 

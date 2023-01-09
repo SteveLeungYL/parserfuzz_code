@@ -745,6 +745,88 @@ bool unit_test_extract_struct_deep(bool is_show_debug = false) {
 
 }
 
+
+bool unit_test_simple_select_operator(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "create table v0 (v1 int);",
+      "select * from v0 where v1 > 'abc';"
+  };
+
+
+  vector<string> res_list {
+      "",
+      "ERROR: could not parse \"abc\" as type int: strconv.ParseInt: parsing \"abc\": invalid syntax"
+  };
+
+  IR* tmp_int_expr = new IR(TypeExpr, string("100 + 100"));
+  DataAffinity data_affi(AFFIINT);
+  uint64_t data_affi_hash = data_affi.calc_hash();
+  g_mutator.data_affi_set[data_affi_hash].push_back(tmp_int_expr);
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[1], [](IR *cur_node) -> void {
+        if (cur_node->get_data_type() == DataLiteral) {
+          cur_node->set_is_instantiated(true);
+        }
+      });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+  }
+
+  IR* cur_stmt = ir_list.back();
+  if (!findStringIn(cur_stmt->to_string(), "100 + 100")) {
+    if (is_show_debug) {
+      cerr << "missing the tracked 100 + 100 expr. \n";
+    }
+    is_no_error = false;
+  } else {
+    if (is_show_debug) {
+      cerr << "contains the tracked 100 + 100 expr. \n";
+    }
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  for (auto saved_expr: g_mutator.data_affi_set[data_affi_hash]) {
+    saved_expr->deep_drop();
+  }
+  g_mutator.data_affi_set[data_affi_hash].clear();
+
+  return is_no_error;
+
+}
+
+
 int main(int argc, char *argv[]) {
 
     if (argc != 1) {
@@ -775,5 +857,12 @@ int main(int argc, char *argv[]) {
     assert(unit_test_extract_struct_deep(false));
     assert(unit_test_nested_functions(false));
 
-    return 0;
+    bool is_succeed = false;
+    for (int i = 0; i < 10; i++) {
+        is_succeed = is_succeed || unit_test_simple_select_operator(false);
+        if (is_succeed) break;
+    }
+    assert(is_succeed);
+
+  return 0;
 }
