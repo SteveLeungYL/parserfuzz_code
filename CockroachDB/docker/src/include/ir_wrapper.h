@@ -34,7 +34,6 @@ public:
   bool is_exist_ir_node_in_stmt_with_type(IR *cur_stmt, TYPE ir_type,
                                           bool is_subquery = false,
                                           bool ignore_is_subquery = false);
-  bool is_exist_ir_node_in_stmt_with_type(IR *cur_stmt, IRTYPE ir_type);
 
   /* By default, is_ignore_type_suffix == true.
    * Which means kSelectStmt_1 and kSelectStmt_2 is the same type
