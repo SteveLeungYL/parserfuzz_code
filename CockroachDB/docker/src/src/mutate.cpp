@@ -4108,11 +4108,16 @@ void Mutator::map_create_view_column(IR *ir_to_fix,
 }
 
 void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
+                               bool is_ignore_nested_expr,
                                bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)
   ) {
+      if (is_debug_info) {
+        cerr << "\n\n\nInside instan_func_expr, the statment is inside TypeSetVar or"
+              " inside TypeStorageParams, skippped. \n\n\n";
+      }
       return;
   }
 
@@ -4142,10 +4147,18 @@ void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
     // if the function contains nested structures.
     vector<IR*> all_nodes_in_func_expr = p_oracle->ir_wrapper.get_all_ir_node(ir_to_fix);
     for (IR* cur_node_in_func_expr: all_nodes_in_func_expr) {
+      if (is_ignore_nested_expr) {
+          break;
+      }
+
       if (cur_node_in_func_expr == ir_to_fix) {
           continue;
       }
       if (p_oracle->is_expr_types_in_where_clause(cur_node_in_func_expr->get_ir_type())) {
+          if (is_debug_info) {
+          cerr << "\n\n\nFound ir type: " << get_string_by_ir_type(cur_node_in_func_expr->get_ir_type())
+               << " inside the function expression, matching with where expr types. \n\n\n";
+          }
         ir_to_fix->set_is_instantiated(true);
         break;
       }
@@ -4153,6 +4166,10 @@ void Mutator::instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
 
     if (ir_to_fix->get_is_instantiated()) {
       // If true, the function contains nested expressions, skipped.
+      if (is_debug_info) {
+        cerr << "\n\n\nInside instan_func_expr, the function expression"
+                " contains nested expressions, do not mutate on this func. \n\n\n";
+      }
       return;
     }
 
@@ -4535,7 +4552,7 @@ bool Mutator::instan_dependency(IR *cur_stmt_root,
           continue;
         }
 
-          instan_func_expr(ir_to_fix, ir_to_deep_drop, is_debug_info);
+          instan_func_expr(ir_to_fix, ir_to_deep_drop, false, is_debug_info);
       }
     }
 
@@ -6623,6 +6640,8 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
         findStringIn(res_str, "unknown function") ||
         findStringIn(res_str, "unknown signature")
             ) {
+        // Sample:
+        // res:pq: unknown signature: oid()
 
         if (is_debug_info) {
             cerr << "\n\n\nGetting unknown function(signature), ";
@@ -6639,13 +6658,60 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
             cerr << "\n\n\n";
         }
 
+        vector<string> v_target_func_str = string_splitter(res_str, ": ");
+        string target_func_str;
+        if (v_target_func_str.size() > 3) {
+            target_func_str = v_target_func_str[2];
+        } else {
+            if (is_debug_info) {
+                cerr << "\n\n\nError: cannot find 3 : inside the error message. \n\n\n";
+            }
+        }
+
+        if (target_func_str != "") {
+            v_target_func_str = string_splitter(target_func_str, "(");
+            if (v_target_func_str.size() > 1) {
+              target_func_str = v_target_func_str.front();
+            } else {
+              if (is_debug_info) {
+                    cerr << "\n\n\nError: cannot find the left bracket. \n\n\n";
+              }
+              target_func_str = "";
+            }
+        }
+
 //        for (IR *cur_func_ir : all_func_ir) {
 //            cur_func_ir->set_is_instantiated(false);
 //        }
 
         vector<IR*> ir_to_deep_drop;
         for (IR* cur_func_ir : all_func_ir) {
-            this->instan_func_expr(cur_func_ir, ir_to_deep_drop, is_debug_info);
+
+            if (target_func_str != "") {
+              if ( findStringIn(cur_func_ir->get_str_val(), target_func_str) ) {
+                    if (is_debug_info) {
+                      cerr << "\n\n\nDEBUG: Found cur_func_ir: " << cur_func_ir->to_string() << " matching with error node: "
+                           << target_func_str << "\n\n\n";
+                    }
+                    cur_func_ir->set_is_instantiated(false);
+                    // ignored nested expressions.
+                    this->instan_func_expr(cur_func_ir, ir_to_deep_drop, true, is_debug_info);
+              } else {
+                if (is_debug_info) {
+                  cerr << "\n\n\nDEBUG: Ignoring cur_func_ir: " << cur_func_ir->to_string() << " because not matching with error node: "
+                       << target_func_str << "\n\n\n";
+                }
+                continue;
+              }
+            } else {
+              if (is_debug_info) {
+                cerr << "\n\n\nDEBUG: Cannot match the target_func_ir. Mutating everything. \n\n\n";
+              }
+              cur_func_ir->set_is_instantiated(false);
+              // ignored nested expressions.
+              this->instan_func_expr(cur_func_ir, ir_to_deep_drop, true, is_debug_info);
+            }
+
         }
         for (IR* ir_drop : ir_to_deep_drop) {
             ir_drop->deep_drop();

@@ -192,7 +192,6 @@ protected:
                                 case TypeComparisonExpr:  \
                                 case TypeRangeCond:  \
                                 case TypeIsOfTypeExpr:  \
-                                case TypeExprs: \
                                 case TypeExprFmtWithParen:  \
                                 case TypeBinExprFmtWithParen:  \
                                 case TypeBinExprFmtWithParenAndSubOp:  \
@@ -212,6 +211,7 @@ protected:
                                 case TypeJoinTableExpr:  \
                                 case TypeAliasedTableExpr:  \
                                 case TypeParenTableExpr:
+//                                case TypeExprs:
                                 // End of the list.
 
 #endif

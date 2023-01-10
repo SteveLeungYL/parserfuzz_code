@@ -888,6 +888,74 @@ bool unit_test_VALUES_clause_error(bool is_show_debug = false) {
 
 
 
+bool unit_test_function_undefined(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL);",
+      "SELECT * FROM v0 WHERE c1 = CHECK_TEST( LANGUAGE_IS_TRUSTED( '1h49m33s'::INTERVAL), '1h49m33s'::INTERVAL, '1h49m33s'::INTERVAL, 'P9Y10M26DT16H27M47S'::INTERVAL, c1);",
+      "SELECT * FROM v0 WHERE c1 = SUM( CHECK_TEST( '1h49m33s'::INTERVAL), '1h49m33s'::INTERVAL, '1h49m33s'::INTERVAL, 'P9Y10M26DT16H27M47S'::INTERVAL, c1);"
+  };
+
+  vector<string> res_list {
+      "",
+      "ERROR: unknown function: check_test(): function undefined",
+      "ERROR: unknown function: check_test(): function undefined"
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[1], [](IR *cur_node) -> void {
+        if (cur_node->get_ir_type() == TypeStringLiteral) {
+          cur_node->set_is_instantiated(true);
+        }
+      });
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[2], [](IR *cur_node) -> void {
+        if (cur_node->get_ir_type() == TypeStringLiteral) {
+          cur_node->set_is_instantiated(true);
+        }
+      });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  return is_no_error;
+
+}
+
+
+
+
 int main(int argc, char *argv[]) {
 
     if (argc != 1) {
@@ -926,6 +994,8 @@ int main(int argc, char *argv[]) {
     assert(is_succeed);
 
     assert(unit_test_VALUES_clause_error(false));
+
+    assert(unit_test_function_undefined(false));
 
   return 0;
 }
