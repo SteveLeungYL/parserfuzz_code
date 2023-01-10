@@ -217,7 +217,7 @@
   },
 
   {
-    "enabled": true,
+    "enabled": false,
     "var_name": "inject_retry_errors_enabled",
     "params": 
       {
