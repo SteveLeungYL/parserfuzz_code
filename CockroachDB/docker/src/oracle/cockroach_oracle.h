@@ -189,6 +189,8 @@ public:
 
   virtual void init_operator_supported_types();
 
+  virtual vector<Binary_Operator> get_operator_supported_types(string in) {return this->operator_supported_types_lib[in];}
+
 protected:
   Mutator *g_mutator;
 

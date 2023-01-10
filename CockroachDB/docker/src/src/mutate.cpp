@@ -6231,6 +6231,8 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
             cerr << "DEBUG:: in unsupported comparison operator: Getting str_operator: " << str_operator << "\n\n\n";
         }
 
+        vector<Binary_Operator> tmp_bin_oper = p_oracle->get_operator_supported_types(str_operator);
+
         vector<IR*> ir_to_deep_drop;
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
@@ -6350,28 +6352,115 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
 
             }
 
-            else if (
-                    findStringIn(cur_binary_operator->get_middle(), "@>") ||
-                    findStringIn(cur_binary_operator->get_middle(), "@>") ||
-                    findStringIn(cur_binary_operator->get_middle(), "@<") ||
-                    findStringIn(cur_binary_operator->get_middle(), ">@") ||
-                    findStringIn(cur_binary_operator->get_middle(), "<@") ||
-                    findStringIn(cur_binary_operator->get_middle(), "#>") ||
-                    findStringIn(cur_binary_operator->get_middle(), "#<") ||
-                    findStringIn(cur_binary_operator->get_middle(), "#>>") ||
-                    findStringIn(cur_binary_operator->get_middle(), "#<<") ||
-                    findStringIn(cur_binary_operator->get_middle(), "?") ||
-                    findStringIn(cur_binary_operator->get_middle(), "?&") ||
-                    findStringIn(cur_binary_operator->get_middle(), "?|") ||
-                    findStringIn(cur_binary_operator->get_middle(), "->") ||
-                    findStringIn(cur_binary_operator->get_middle(), "->>")
-            ) {
-                // TODO:: Update all the operators.
-                // Do not apply operations that is related to the JSON types.
-                cur_binary_operator->op_->middle_ = " = ";
+            else if (tmp_bin_oper.size() != 0) {
+
+                if (is_debug_info) {
+                    cerr << "\n\n\nDEBUG: Trying to use the saved operator types "
+                            "to fix the semantic error problem. \n\n\n";
+                }
+
+                // Get left type and right type from the binary operations.
+                string left_type_str, right_type_str;
+
+                v_tmp_str = string_splitter(res_str, " <");
+                if (v_tmp_str.size() < 3) {
+                    return;
+                }
+                left_type_str = v_tmp_str[1];
+                right_type_str = v_tmp_str[2];
+
+                v_tmp_str = string_splitter(left_type_str, "> ");
+                if (v_tmp_str.size() < 2) {
+                    return;
+                }
+                left_type_str = v_tmp_str[0];
+
+                v_tmp_str = string_splitter(right_type_str, ">");
+                if (v_tmp_str.size() < 2) {
+                    return;
+                }
+                right_type_str = v_tmp_str[0];
+
+
+                DATAAFFINITYTYPE left_type = get_data_affinity_by_string(left_type_str).get_data_affinity(),
+                                 right_type = get_data_affinity_by_string(right_type_str).get_data_affinity();
+
+              if (is_debug_info) {
+                cerr << "\n\n\nDEBUG:: Getting binary operator left type: "
+                     << get_string_by_affinity_type(left_type) << " and right type: "
+                         << get_string_by_affinity_type(right_type) << "\n\n\n";
+              }
+
+                vector<Binary_Operator> v_mat_left_types;
+                for (auto tmp_bin_oper : tmp_bin_oper) {
+                    if (tmp_bin_oper.left == left_type) {
+                      v_mat_left_types.push_back(tmp_bin_oper);
+                    }
+                }
+
+                DATAAFFINITYTYPE new_left_type;
+
+                if (v_mat_left_types.size() == 0) {
+                    // The left expression should never be used in this context.
+                    Binary_Operator tmp_choosen_types = vector_rand_ele(tmp_bin_oper);
+                    v_mat_left_types.push_back(tmp_choosen_types);
+
+                    new_left_type = tmp_choosen_types.left;
+
+                    DataAffinity tmp_data_affi(new_left_type);
+                    uint64_t tmp_hash = tmp_data_affi.calc_hash();
+                    if (data_affi_set.count(tmp_hash) != 0 && data_affi_set[tmp_hash].size() != 0) {
+                      IR* new_left_node = vector_rand_ele(data_affi_set[tmp_hash])->deep_copy();
+                      IR* ori_left_node = cur_binary_operator->get_left();
+                      cur_binary_operator->update_left(new_left_node);
+                      ir_to_deep_drop.push_back(ori_left_node);
+                    } else {
+                      IR* new_left_node = new IR(TypeStringLiteral, string(""));
+                      new_left_node->mutate_literal(new_left_type);
+                      IR* ori_left_node = cur_binary_operator->get_left();
+                      cur_binary_operator->update_left(new_left_node);
+                      ir_to_deep_drop.push_back(ori_left_node);
+                    }
+                } else {
+                    new_left_type = left_type;
+                }
+
+                if (v_mat_left_types.size() == 0) {
+                  return;
+                }
+
+                DATAAFFINITYTYPE new_right_type = vector_rand_ele(v_mat_left_types).right;
+                DataAffinity tmp_data_affi(new_right_type);
+                uint64_t tmp_hash = tmp_data_affi.calc_hash();
+                if (data_affi_set.count(tmp_hash) != 0 && data_affi_set[tmp_hash].size() != 0) {
+                  IR* new_right_node = vector_rand_ele(data_affi_set[tmp_hash])->deep_copy();
+                  IR* ori_right_node = cur_binary_operator->get_right();
+                  cur_binary_operator->update_right(new_right_node);
+                  ir_to_deep_drop.push_back(ori_right_node);
+                } else {
+                  IR* new_right_node = new IR(TypeStringLiteral, string(""));
+                  new_right_node->mutate_literal(new_right_type);
+                  IR* ori_right_node = cur_binary_operator->get_right();
+                  cur_binary_operator->update_right(new_right_node);
+                  ir_to_deep_drop.push_back(ori_right_node);
+                }
+
+                if (is_debug_info) {
+                  cerr << "For operator: " << str_operator
+                       << "\nfixing the left type: "
+                       << get_string_by_affinity_type(new_left_type)
+                       << "\n right type: "
+                       << get_string_by_affinity_type(new_right_type)
+                       << "\n new operator: "
+                       << cur_binary_operator->to_string()
+                       << "\n ori res_str: " << res_str
+                       << "\n\n\n";
+                }
+
             }
 
             else {
+                // TODO:: Not accurate any more.
                 /*
                  * If it is other types of comparison, follow the types from the left side.
                  * select * FROM v0 where 123 < 'abc';

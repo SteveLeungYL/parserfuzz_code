@@ -1000,6 +1000,10 @@ bool unit_test_literal_fixing(bool is_show_debug = false) {
     }
   }
 
+  DataAffinity tmp_data_affi(AFFIDECIMAL);
+  IR* tmp_node = new IR(TypeStringLiteral, string("100.0 + 100.0"));
+  g_mutator.data_affi_set[tmp_data_affi.calc_hash()].push_back(tmp_node);
+
   p_oracle->ir_wrapper.iter_cur_node_with_handler(
       ir_list[1], [](IR *cur_node) -> void {
         cur_node->set_is_instantiated(true);
@@ -1120,6 +1124,7 @@ int main(int argc, char *argv[]) {
 
     g_mutator.set_p_oracle(p_oracle);
     p_oracle->set_mutator(&g_mutator);
+    p_oracle->init_operator_supported_types();
 
     assert(unit_test_failure_create(false));
     assert(unit_test_alter_bugs(false));
