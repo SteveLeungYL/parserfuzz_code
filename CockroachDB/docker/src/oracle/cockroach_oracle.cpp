@@ -444,7 +444,7 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
             findStringIn(in_str, "invalid cast") ||
             (
                     findStringIn(in_str, "could not parse") &&
-                    findStringIn(in_str, "as type")
+                    findStringIn(in_str, "as ")
             )
             ) {
 //          cerr << "\n\n\nType error message: " << in_str << "\n\n\n";

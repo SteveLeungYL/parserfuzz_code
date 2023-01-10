@@ -955,6 +955,89 @@ bool unit_test_function_undefined(bool is_show_debug = false) {
 
 
 
+bool unit_test_literal_fixing(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list {
+      "CREATE TABLE v0 (c1 STRING, c2 TIMESTAMPTZ, c3 INTERVAL, c4 SERIAL, c5 DECIMAL);",
+      "SELECT * FROM v3 WHERE NETMASK('9096:8d34:d12d:5e99:c658:6304:9b1b:8185'::INET) = 'jsmx';",
+      "SELECT * from v0 where c4 = ANY ARRAY['2ci10p4', '09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2', '05-08-4034 BC 06:58:13-5', '05-1"
+      "0-3656 14:14:21-3'];",
+      "SELECT COUNT( *) FROM v0 WHERE v0.c5 = B'010' AND v0.c3 > B'10001111101';"
+  };
+
+  vector<string> res_list {
+      "",
+
+      "pq: could not parse \"jsmx\" as inet. invalid IP",
+
+      "ERROR: unsupported comparison operator: c4 = ANY ARRAY['2ci10p4', "
+      "'09-10-66 BC 11:15:40.8179-2', '05-19-81 BC 03:33:31.6577+2', "
+      "'05-08-4034 BC 06:58:13-5', '05-10-3656 14:14:21-3']: could not "
+      "parse \"2ci10p4\" as type int: strconv.ParseInt: parsing \"2ci10p4\": "
+      "invalid syntax",
+
+      "pq: unsupported comparison operator: <decimal> = <varbit>"
+  };
+
+  vector<IR*> ir_list;
+  for (string& cur_stmt: stmt_list) {
+    IR* cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[1], [](IR *cur_node) -> void {
+        cur_node->set_is_instantiated(true);
+      });
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[2], [](IR *cur_node) -> void {
+        cur_node->set_is_instantiated(true);
+      });
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[3], [](IR *cur_node) -> void {
+        cur_node->set_is_instantiated(true);
+      });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR* cur_stmt: ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+
+  }
+
+  string last_stmt_final = ir_list.back()->to_string();
+  if (findStringIn(last_stmt_final, "v0.c5 = B'010'")
+//      || findStringIn(last_stmt_final, "v0.c3 = B'10001111101'")
+      ) {
+    is_no_error = false;
+  }
+
+  for (auto cur_ir: ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  return is_no_error;
+
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -997,5 +1080,7 @@ int main(int argc, char *argv[]) {
 
     assert(unit_test_function_undefined(false));
 
-  return 0;
+    assert(unit_test_literal_fixing(false));
+
+    return 0;
 }
