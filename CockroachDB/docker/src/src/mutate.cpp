@@ -6213,6 +6213,24 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
             cerr << "Inside the unsupported comparison operator: other types. \n\n\n";
         }
 
+        // Get which binary operator is causing the problem. Only fixing the matching
+        // one.
+
+        vector<string> v_tmp_str;
+        v_tmp_str = string_splitter(res_str, "> ");
+        if (v_tmp_str.size() < 2) {
+            return;
+        }
+        string str_operator = v_tmp_str[1];
+        v_tmp_str = string_splitter(str_operator, " <");
+        if (v_tmp_str.size() < 2) {
+            return;
+        }
+        str_operator = v_tmp_str.front();
+        if (is_debug_info) {
+            cerr << "DEBUG:: in unsupported comparison operator: Getting str_operator: " << str_operator << "\n\n\n";
+        }
+
         vector<IR*> ir_to_deep_drop;
 
         vector<IR*> v_binary_operator = p_oracle->ir_wrapper
@@ -6226,6 +6244,26 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                     break;
                 }
             }
+
+            if (is_skip) {
+                continue;
+            }
+
+            string cur_binary_opt_str = cur_binary_operator->get_middle();
+            trim_string(cur_binary_opt_str);
+            if (cur_binary_opt_str != str_operator) {
+                if (is_debug_info) {
+                    cerr << "\n\n\nSkip operator: " << cur_binary_operator->get_middle()
+                         << " because it is not matched with: " << str_operator << "\n\n\n";
+                }
+                is_skip = true;
+            } else {
+              if (is_debug_info) {
+                cerr << "\n\n\n Matching operator: " << cur_binary_operator->get_middle()
+                     << " and it is matched with: " << str_operator << "\n\n\n";
+              }
+            }
+
             if (is_skip) {
                 continue;
             }
