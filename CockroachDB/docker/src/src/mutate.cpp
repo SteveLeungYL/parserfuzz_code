@@ -6795,6 +6795,33 @@ void Mutator::fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int tri
     string ori_str = cur_stmt_root->to_string();
 
     if (
+        findStringIn(res_str, "argument of WHERE must be type ") &&
+        findStringIn(res_str, "not type ")
+        ) {
+        // SELECT * FROM v4 WHERE CURRENT_SETTING('07-18-0056 BC', 'true')
+        // pq: argument of WHERE must be type bool, not type string
+        if (is_debug_info) {
+            cerr << "\n\n\nGetting rule argument of WHERE must be type.. not type... \n\n\n";
+        }
+        vector<IR*> v_type_where = p_oracle->ir_wrapper.get_ir_node_in_stmt_with_type(cur_stmt_root, TypeWhere, false);
+        if (v_type_where.size() == 0) {
+            if (is_debug_info) {
+                cerr << "\n\n\nError: Cannot find TypeWhere inside error: argument of WHERE must be type  \n\n\n";
+            }
+            return;
+        }
+
+        for (IR* type_where : v_type_where) {
+            if (is_debug_info) {
+                cerr << "\n\n\nDebug:: Adding = 0 to type where.  \n\n\n";
+            }
+            type_where->op_->suffix_ = type_where->op_->suffix_ + " = 0";
+        }
+
+        return;
+
+    }
+    else if (
 //        trial < 7 &&
         findStringIn(res_str, "(desired <") &&
         findStringIn(res_str, "unknown function")

@@ -445,7 +445,11 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
             (
                     findStringIn(in_str, "could not parse") &&
                     findStringIn(in_str, "as ")
-            )
+            ) ||
+          (
+          findStringIn(in_str, "argument of WHERE must be type ") &&
+          findStringIn(in_str, "not type ")
+          )
             ) {
 //          cerr << "\n\n\nType error message: " << in_str << "\n\n\n";
         return SemanticErrorType::ColumnTypeRelatedError;
