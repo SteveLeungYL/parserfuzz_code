@@ -24,12 +24,12 @@ enum SemanticErrorType {
 
 struct Binary_Operator {
 public:
-  DATAAFFINITYTYPE left, right, ret;
+  DATAAFFINITYTYPE ret, left, right;
   Binary_Operator(DATAAFFINITYTYPE ret, DATAAFFINITYTYPE left, DATAAFFINITYTYPE right):
     ret(ret), left (left), right (right)
   {}
 
-  Binary_Operator(const Binary_Operator& in): left (in.left), right (in.right), ret(in.ret)
+  Binary_Operator(const Binary_Operator& in): ret(in.ret), left (in.left), right (in.right)
   {}
 };
 
@@ -187,14 +187,14 @@ public:
 
   virtual bool is_expr_types_in_where_clause(IRTYPE in);
 
+  virtual void init_operator_supported_types();
+
 protected:
   Mutator *g_mutator;
 
   virtual bool mark_node_valid(IR *root);
 
   map<string, vector<Binary_Operator>> operator_supported_types_lib;
-
-  virtual void init_operator_supported_types();
 
 };
 
