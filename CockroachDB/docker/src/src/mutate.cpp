@@ -5257,7 +5257,10 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   string ir_str = ir->to_string();
   unsigned long p_hash = hash(ir_str);
 
-  if (likely(!this->disable_dyn_instan) && p_type != TypeRoot && ir->get_is_compact_expr()) {
+  if (
+      likely(!this->disable_dyn_instan) && p_type != TypeRoot && ir->get_is_compact_expr()
+      && this->calc_node(ir) > 13
+      ) {
 
       if (data_affi_set_lib_hash_.count(p_type) != 0) {
         if (data_affi_set_lib_hash_[p_type].count(p_hash) != 0) {
