@@ -5030,6 +5030,8 @@ bool Mutator::add_all_to_library(string whole_query_str,
 
   bool ret_is_add_to_queue = false;
 
+//  cerr << "add_all_to_library entry: \n" << whole_query_str << "\n\n\n";
+
   /* If the query_str is empty. Ignored and return. */
   bool is_empty = true;
   for (int i = 0; i < whole_query_str.size(); i++) {
@@ -5081,7 +5083,7 @@ bool Mutator::add_all_to_library(string whole_query_str,
       continue;
     }
 
-    string uniformed_query = this->extract_struct(root);
+//    cerr << "DEBUG: DEBUG: " << root->to_string() << "\n\n\n";
 
     IR* extract_struct_root_tmp = root->deep_copy();
     string uniformed_query = this->extract_struct(extract_struct_root_tmp);
@@ -5153,7 +5155,7 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
   all_valid_pstr_vec.push_back(new_select);
 
   if (likely(!this->disable_dyn_instan) && run_target != NULL ) {
-//    cerr << "\n\n\nAuto mark!!!\n\n\n";
+//    cerr << "\n\n\nAuto mark select!!!\n" << ir->to_string() << "\n\n";
     auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
@@ -5209,7 +5211,7 @@ bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   //  }
 
   if (likely(!this->disable_dyn_instan) && run_target != NULL ) {
-//    cerr << "\n\n\nAuto mark!!!\n\n\n";
+//    cerr << "\n\n\nAuto mark non-select!!!\n" << ir->to_string() << "\n\n";
     auto_mark_data_types_from_non_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
@@ -5268,6 +5270,9 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
       data_affi_set[data_affi_hash].push_back(
           ir->deep_copy()
           );
+//      cerr << "\n\n\nSaving data_affi_set: " << ir->to_string() << " with type: "
+//           << get_string_by_affinity_type(ir->get_data_affinity())
+//           <<  "\n\n\n";
   }
 //  cerr << "\n\n\nGetting data_affi_set data type size: " << this->data_affi_set.size() << "\n";
 
@@ -5278,9 +5283,15 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
     return;
   }
 
-//  cerr << "\n\n\nGetting total ir_library_2D_hash_.size(): " << ir_libary_2D_hash_.size() << "\n";
 //  int tmp_size=0;
-//    for (auto it = ir_libary_2D_hash_.begin(); it != ir_libary_2D_hash_.end(); it++) {
+//  for (auto it = data_affi_set.begin(); it != data_affi_set.end(); it++) {
+//      tmp_size += it->second.size();
+//  }
+//  cerr << "total saved: " << tmp_size << "\n\n\n";
+
+//  cerr << "\n\n\nGetting total ir_library_2D_hash_.size(): " << real_ir_library_hash_.size() << "\n";
+//  int tmp_size=0;
+//    for (auto it = real_ir_library_hash_.begin(); it != real_ir_library_hash_.end(); it++) {
 //        tmp_size += it->second.size();
 //    }
 //    cerr << "total saved: " << tmp_size << "\n";
@@ -7382,6 +7393,7 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
                 // If the change does not cause a syntax error, then
                 // this modification is succeeded. We can move on to
                 // the next node.
+//                cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
                 return;
             }
 
@@ -7411,6 +7423,8 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
             cerr << "\n\n\nDEBUG:From extra bracket Stmt: " << updated_stmt << ";\n";
             is_syntax_error = false;
             label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+//            cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
 
             // Rollback to the original statement.
             cur_node->op_->prefix_ = ori_prefix_;
@@ -7457,6 +7471,7 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
                 // If the change does not cause a syntax error, then
                 // this modification is succeeded. We can move on to
                 // the next node.
+//                cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
                 return;
             }
 
@@ -7487,6 +7502,8 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
 //            cerr << "\n\n\nDEBUG: From Stmt: " << updated_stmt << ";\n";
             is_syntax_error = false;
             label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+//            cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
 
             // Rollback to the original statement.
             cur_node->op_->prefix_ = ori_prefix_;
@@ -7582,6 +7599,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
         // If the change does not cause a syntax error, then
         // this modification is succeeded. We can move on to
         // the next node.
+//                cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
         return;
       }
 
@@ -7611,6 +7629,8 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
 //      cerr << "\n\n\nDEBUG: From ori stmt: " << cur_stmt_root->to_string() << "\nStmt: " << updated_stmt << ";\n";
       is_syntax_error = false;
       label_ir_data_type_from_err_msg(cur_node, res_str, is_syntax_error);
+
+//      cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
 
       // Rollback to the original statement.
       cur_node->op_->prefix_ = ori_prefix_;
@@ -7654,6 +7674,8 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
         // If the change does not cause a syntax error, then
         // this modification is succeeded. We can move on to
         // the next node.
+
+//        cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
         return;
       }
 
@@ -7688,6 +7710,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
       // Rollback to the original statement.
       cur_node->op_->prefix_ = ori_prefix_;
       cur_node->op_->suffix_ = ori_suffix_;
+//      cerr << "Not syntax error: " << updated_stmt << ", res_str: " << res_str << "\n\n\n";
 
       return;
     }
@@ -7700,6 +7723,7 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
 
 void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error){
 
+//    cerr << "Getting ir type: " << get_string_by_ir_type(ir->get_ir_type()) << "\n\n\n";
     if (
         is_str_empty(err_msg) || // err_msg is empty.
         !p_oracle->is_res_str_error(err_msg) // No error message.
@@ -7748,7 +7772,7 @@ void Mutator::label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_
 
   DataAffinity data_affi = get_data_affinity_by_string(hinted_type_str.substr(1, hinted_type_str.size()-2));
 //  cerr << "DEBUG:: Getting the hinted_type_str:" << hinted_type_str << ".\n";
-//  cerr << "DEBUG:: Getting the data_affinity:" << data_affi.get_data_affinity() << ".\n\n\n";
+//  cerr << "DEBUG:: Getting the data_affinity:" << get_string_by_affinity_type(data_affi.get_data_affinity()) << ".\n\n\n";
 
 #undef fff
 #undef ff
