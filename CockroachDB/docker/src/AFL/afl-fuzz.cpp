@@ -1469,7 +1469,11 @@ static void do_library_initialize() {
   for (auto &f : file_list) {
     string file_path = string(g_library_path) + "/" + f;
     cerr << "init filename: " << file_path << endl;
-    g_mutator.init(file_path, "", "", "", "", run_target);
+    if (!disable_dyn_instan) {
+      g_mutator.init(file_path, "", "", "", "", run_target);
+    } else {
+      g_mutator.init(file_path);
+    }
   }
 
   char *in_dir_str = (char *)in_dir;
@@ -1477,7 +1481,11 @@ static void do_library_initialize() {
   for (auto &f : file_list) {
     string file_path = string(in_dir_str) + "/" + f;
     cerr << "init filename: " << file_path << endl;
-    g_mutator.init(file_path, "", "", "", "", run_target);
+    if (!disable_dyn_instan) {
+      g_mutator.init(file_path, "", "", "", "", run_target);
+    } else {
+      g_mutator.init(file_path);
+    }
   }
 
   g_mutator.init_library();
