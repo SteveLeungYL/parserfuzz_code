@@ -808,11 +808,11 @@ Mutator::~Mutator() {
 string Mutator::extract_struct(IR *root) {
   string res = "";
 
-  vector<IR*> ir_to_deep_drop;
-  this->remove_type_annotation(root, ir_to_deep_drop);
-  for (auto cur_ir : ir_to_deep_drop) {
-    cur_ir->deep_drop();
-  }
+//  vector<IR*> ir_to_deep_drop;
+//  this->remove_type_annotation(root, ir_to_deep_drop);
+//  for (auto cur_ir : ir_to_deep_drop) {
+//    cur_ir->deep_drop();
+//  }
 
   _extract_struct(root);
   res = root->to_string();
@@ -5134,28 +5134,28 @@ bool Mutator::add_all_to_library(string whole_query_str,
   return ret_is_add_to_queue;
 }
 
-void Mutator::add_to_valid_lib(IR *ir, string &select,
+void Mutator::add_to_valid_lib(IR *ir, string &uniformed_select,
                                const bool is_explain_diff, u8 (*run_target)(char **, u32, string,
                                                                             int, string&)) {
 
-  unsigned long p_hash = hash(select);
+  unsigned long p_hash = hash(uniformed_select);
 
   if (select_stmt_lib_hash.find(p_hash) != select_stmt_lib_hash.end()) {
-//    cerr << "NOT saving new select: " << select << "\n\n\n";
+//    cerr << "NOT saving new uniformed_select: " << uniformed_select << "\n\n\n";
     return;
   }
 
   select_stmt_lib_hash[p_hash] = true;
 
-//  cerr << "Saving new select: " << select << "\n\n\n";
+//  cerr << "Saving new uniformed_select: " << uniformed_select << "\n\n\n";
 
-  string *new_select = new string(select);
+  string *new_select = new string(ir->to_string());
 
   all_query_pstr_set.insert(new_select);
   all_valid_pstr_vec.push_back(new_select);
 
   if (likely(!this->disable_dyn_instan) && run_target != NULL ) {
-//    cerr << "\n\n\nAuto mark select!!!\n" << ir->to_string() << "\n\n";
+//    cerr << "\n\n\nAuto mark uniformed_select!!!\n" << ir->to_string() << "\n\n";
     auto_mark_data_types_from_select_stmt(ir, argv_for_run_target,
                                           exec_tmout_for_run_target, 0,
                                           run_target, true);
@@ -5165,41 +5165,41 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
         });
   }
 
-  extract_struct(ir);
+//  extract_struct(ir);
 
   //  if (this->dump_library) {
   //    std::ofstream f;
-  //    f.open("./norec-select", std::ofstream::out | std::ofstream::app);
+  //    f.open("./norec-uniformed_select", std::ofstream::out | std::ofstream::app);
   //    f << *new_select << endl;
   //    f.close();
   //  }
 
-  // cerr << "Saving select str: " << *new_select << " to the lib. \n\n\n";
+  // cerr << "Saving uniformed_select str: " << *new_select << " to the lib. \n\n\n";
   add_to_library_core(ir, new_select);
 
   return;
 }
 
-bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u32, string,
+bool Mutator::add_to_library(IR *ir, string &uniformed_query, u8 (*run_target)(char **, u32, string,
                                                                      int, string&)) {
 
-  if (query == "")
+  if (uniformed_query == "")
     return false;
 
   IRTYPE p_type = ir->type_;
-  unsigned long p_hash = hash(query);
+  unsigned long p_hash = hash(uniformed_query);
 
   if (real_ir_library_hash_[p_type].find(p_hash) !=
       real_ir_library_hash_[p_type].end()) {
-    /* query not interesting enough. Ignore it and clean up. */
-//    cerr << "NOT saving new non-select: " << query << "\n\n\n";
+    /* uniformed_query not interesting enough. Ignore it and clean up. */
+//    cerr << "NOT saving new non-select: " << uniformed_query << "\n\n\n";
     return false;
   }
   real_ir_library_hash_[p_type].insert(p_hash);
 
-//  cerr << "Saving new non-select: " << query << "\n\n\n";
+//  cerr << "Saving new non-select: " << uniformed_query << "\n\n\n";
 
-  string *p_query_str = new string(query);
+  string *p_query_str = new string(ir->to_string());
   all_query_pstr_set.insert(p_query_str);
   // all_valid_pstr_vec.push_back(p_query_str);
 
@@ -5221,7 +5221,7 @@ bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
         });
   }
 
-  extract_struct(ir);
+//  extract_struct(ir);
 
   // cerr << "Saving str: " << *p_query_str << " to the lib. \n\n\n";
   add_to_library_core(ir, p_query_str);
