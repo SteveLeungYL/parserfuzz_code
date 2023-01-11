@@ -31,7 +31,7 @@ UPDATE update_test SET (a,b) = (v.*) FROM (VALUES(21, 101)) AS v(i, j)  WHERE up
 UPDATE update_test AS t SET b = update_test.b + 10 WHERE t.a = 10;
 UPDATE update_test SET c = repeat('x', 10000) WHERE c = 'car';
 SELECT a, b, char_length(c) FROM update_test;
-EXPLAIN (VERBOSE, COSTS OFF)UPDATE update_test t  SET (a, b) = (SELECT b, a FROM update_test s WHERE s.a = t.a)  WHERE CURRENT_USER = SESSION_USER;
+UPDATE update_test t  SET (a, b) = (SELECT b, a FROM update_test s WHERE s.a = t.a)  WHERE CURRENT_USER = SESSION_USER;
 UPDATE update_test t  SET (a, b) = (SELECT b, a FROM update_test s WHERE s.a = t.a)  WHERE CURRENT_USER = SESSION_USER;
 SELECT a, b, char_length(c) FROM update_test;
 INSERT INTO upsert_test VALUES(1, 'Boo'), (3, 'Zoo');
@@ -73,7 +73,7 @@ ALTER TABLE part_b_10_b_20 ATTACH PARTITION part_c_1_100 FOR VALUES FROM (1) TO 
  insert into range_parted VALUES (''a'', 1, 1, 1), (''a'', 10, 200, 1), (''b'', 12, 96, 1), (''b'', 13, 97, 2), (''b'', 15, 105, 16), (''b'', 17, 105, 19)'\set show_data 'select tableoid::regclass::text COLLATE "C" partname, * from range_parted ORDER BY 1, 2, 3, 4, 5, 6':init_range_parted;
  insert into range_parted VALUES (''a'', 1, 1, 1), (''a'', 10, 200, 1), (''b'', 12, 96, 1), (''b'', 13, 97, 2), (''b'', 15, 105, 16), (''b'', 17, 105, 19)'\set show_data 'select tableoid::regclass::text COLLATE "C" partname, * from range_parted ORDER BY 1, 2, 3, 4, 5, 6':init_range_parted;
 :show_data;
-EXPLAIN (costs off) UPDATE range_parted set c = c - 50 WHERE c > 97;
+ UPDATE range_parted set c = c - 50 WHERE c > 97;
 UPDATE part_c_100_200 set c = c - 20, d = c WHERE c = 105;
 UPDATE part_b_10_b_20 set a = 'a';
 UPDATE range_parted set d = d - 10 WHERE d > 10;

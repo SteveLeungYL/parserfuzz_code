@@ -249,7 +249,7 @@ select count(*) from test_range_spgist where ir >> int4range(100,500);
 select count(*) from test_range_spgist where ir &< int4range(100,500);
 select count(*) from test_range_spgist where ir &> int4range(100,500);
 select count(*) from test_range_spgist where ir -|- int4range(100,500);
-explain (costs off)select ir from test_range_spgist where ir -|- int4range(10,20) order by ir;
+select ir from test_range_spgist where ir -|- int4range(10,20) order by ir;
 select ir from test_range_spgist where ir -|- int4range(10,20) order by ir;
 RESET enable_seqscan;
 RESET enable_indexscan;

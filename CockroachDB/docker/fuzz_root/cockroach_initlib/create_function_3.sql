@@ -75,7 +75,7 @@ CREATE FUNCTION voidtest1(a int) RETURNS VOID LANGUAGE SQL AS SELECT a + 1 ;
 SELECT voidtest1(42);
 CREATE FUNCTION voidtest2(a int, b int) RETURNS VOID LANGUAGE SQL AS SELECT voidtest1(a + b) ;
 SELECT voidtest2(11,22);
-EXPLAIN (verbose, costs off) SELECT voidtest2(11,22);
+ SELECT voidtest2(11,22);
 CREATE TEMP TABLE sometable(f1 int);
 CREATE FUNCTION voidtest3(a int) RETURNS VOID LANGUAGE SQL AS INSERT INTO sometable VALUES(a + 1) ;
 SELECT voidtest3(17);

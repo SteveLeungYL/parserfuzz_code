@@ -481,7 +481,7 @@ update pp set f1=f1+1;
 create temp table t1 (a integer primary key, b text);
 create temp table t2 (a integer primary key, b integer references t1);
 create rule r1 as on delete to t1 do delete from t2 where t2.b = old.a;
-explain (costs off) delete from t1 where a = 1;
+ delete from t1 where a = 1;
 delete from t1 where a = 1;
 create table pktable2 (a int, b int, c int, d int, e int, primary key (d, e));
 create table fktable2 (d int, e int, foreign key (d, e) references pktable2);

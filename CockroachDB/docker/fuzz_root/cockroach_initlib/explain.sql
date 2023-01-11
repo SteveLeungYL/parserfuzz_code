@@ -23,7 +23,7 @@ select explain_filter('explain (analyze, buffers, format json) select * from int
 select explain_filter('explain (analyze, buffers, format xml) select * from int8_tbl i8');
 select explain_filter('explain (analyze, buffers, format yaml) select * from int8_tbl i8');
 select explain_filter('explain (buffers, format text) select * from int8_tbl i8');
-select explain_filter('explain (buffers, format json) select * from int8_tbl i8');
+select explain_filter(' select * from int8_tbl i8');
 begin;
 set local plan_cache_mode = force_generic_plan;
 select true as "OK"  from explain_filter('explain (settings) select * from int8_tbl i8') ln  where ln ~ '^ *Settings: .*plan_cache_mode = ''force_generic_plan''';

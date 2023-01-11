@@ -297,5 +297,5 @@ SELECT '2014-10-25 22:00:01 UTC'::timestamptz AT TIME ZONE 'MSK';
 SELECT '2014-10-25 23:00:00 UTC'::timestamptz AT TIME ZONE 'MSK';
 create temp table tmptz (f1 timestamptz primary key);
 insert into tmptz values ('2017-01-18 00:00+00');
-explain (costs off)select * from tmptz where f1 at time zone 'utc' = '2017-01-18 00:00';
+select * from tmptz where f1 at time zone 'utc' = '2017-01-18 00:00';
 select * from tmptz where f1 at time zone 'utc' = '2017-01-18 00:00';
