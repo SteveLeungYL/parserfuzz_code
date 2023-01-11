@@ -4988,7 +4988,7 @@ void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
 void Mutator::set_disable_dyn_instan(bool dis_dyn ) { this->disable_dyn_instan = dis_dyn; }
 
 int Mutator::get_ir_libary_2D_hash_kStatement_size() {
-  return this->ir_libary_2D_hash_[TypeStmt].size();
+  return this->real_ir_library_hash_[TypeStmt].size();
 }
 
 bool Mutator::is_stripped_str_in_lib(string stripped_str) {
@@ -5083,21 +5083,25 @@ bool Mutator::add_all_to_library(string whole_query_str,
 
     string uniformed_query = this->extract_struct(root);
 
-    // Because the extract_struct changes the IR tree, we need to reparse the query
-    // in order to get the unique_id correct.
-    root->deep_drop();
+    IR* extract_struct_root_tmp = root->deep_copy();
+    string uniformed_query = this->extract_struct(extract_struct_root_tmp);
+    extract_struct_root_tmp->deep_drop();
 
-    ir_set = parse_query_str_get_ir_set(uniformed_query);
-    if (ir_set.size() == 0)
-      continue;
-
-    root = ir_set[ir_set.size() - 1];
-    v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
-    if (v_cur_stmt_ir.size() == 0) {
-      root->deep_drop();
-      continue;
-    }
-    cur_stmt_ir = v_cur_stmt_ir.front();
+//    // Because the extract_struct changes the IR tree, we need to reparse the query
+//    // in order to get the unique_id correct.
+//    root->deep_drop();
+//
+//    ir_set = parse_query_str_get_ir_set(uniformed_query);
+//    if (ir_set.size() == 0)
+//      continue;
+//
+//    root = ir_set[ir_set.size() - 1];
+//    v_cur_stmt_ir = p_oracle->ir_wrapper.get_stmt_ir_vec(root);
+//    if (v_cur_stmt_ir.size() == 0) {
+//      root->deep_drop();
+//      continue;
+//    }
+//    cur_stmt_ir = v_cur_stmt_ir.front();
 
     // Reparsing of the modified IR tree succeed.
 
@@ -5159,6 +5163,8 @@ void Mutator::add_to_valid_lib(IR *ir, string &select,
         });
   }
 
+  extract_struct(ir);
+
   //  if (this->dump_library) {
   //    std::ofstream f;
   //    f.open("./norec-select", std::ofstream::out | std::ofstream::app);
@@ -5181,13 +5187,13 @@ bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
   IRTYPE p_type = ir->type_;
   unsigned long p_hash = hash(query);
 
-  if (ir_libary_2D_hash_[p_type].find(p_hash) !=
-      ir_libary_2D_hash_[p_type].end()) {
+  if (real_ir_library_hash_[p_type].find(p_hash) !=
+      real_ir_library_hash_[p_type].end()) {
     /* query not interesting enough. Ignore it and clean up. */
 //    cerr << "NOT saving new non-select: " << query << "\n\n\n";
     return false;
   }
-  ir_libary_2D_hash_[p_type].insert(p_hash);
+  real_ir_library_hash_[p_type].insert(p_hash);
 
 //  cerr << "Saving new non-select: " << query << "\n\n\n";
 
@@ -5213,6 +5219,8 @@ bool Mutator::add_to_library(IR *ir, string &query, u8 (*run_target)(char **, u3
         });
   }
 
+  extract_struct(ir);
+
   // cerr << "Saving str: " << *p_query_str << " to the lib. \n\n\n";
   add_to_library_core(ir, p_query_str);
 
@@ -5226,6 +5234,14 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
    * for Mutator::add_to_library();
    */
 
+  if (ir->left_) {
+    add_to_library_core(ir->left_, p_query_str);
+  }
+
+  if (ir->right_) {
+    add_to_library_core(ir->right_, p_query_str);
+  }
+
   if (*p_query_str == "")
     return;
 
@@ -5237,35 +5253,30 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
 
   string ir_str = ir->to_string();
   unsigned long p_hash = hash(ir_str);
-  if (p_type != TypeRoot && ir_libary_2D_hash_[p_type].find(p_hash) !=
-                                ir_libary_2D_hash_[p_type].end()) {
-    /* current node not interesting enough. Ignore it and clean up. */
-//     cerr << "current node not interesting enough. Ignore it and clean up.\n\n\n";
-    return;
-  }
 
   if (likely(!this->disable_dyn_instan) && p_type != TypeRoot && ir->get_is_compact_expr()) {
-//      cerr << "\n\n\nSaving to the data affinity library with type: "
-//         << get_string_by_affinity_type(ir->get_data_affinity())
-//        << ", node: \n" << ir->to_string() << ". \n\n\n";
+
+      if (data_affi_set_lib_hash_.count(p_type) != 0) {
+        if (data_affi_set_lib_hash_[p_type].count(p_hash) != 0) {
+//          cerr << "\n\n\nDEBUG: Ignoring data_affi_set_lib_hash_ saving. Return\n";
+//          cerr << ir_str << "\n\n\n";
+          return;
+        }
+      }
+
       uint64_t data_affi_hash = ir->data_affinity.calc_hash();
-//      if(data_affi_set.count(data_affi_hash) == 0) {
-//        cerr << "\n\n\nSaving new data affinity type: "
-//           << get_string_by_affinity_type(ir->get_data_affinity()) << ". \n\n\n";
-//      }
-//      data_affi_set[data_affi_hash].push_back(
-//          std::make_pair(p_query_str, current_unique_id)
-//          );
       data_affi_set[data_affi_hash].push_back(
           ir->deep_copy()
           );
   }
 //  cerr << "\n\n\nGetting data_affi_set data type size: " << this->data_affi_set.size() << "\n";
-//  int tmp_size=0;
-//  for (auto it = data_affi_set.begin(); it != data_affi_set.end(); it++) {
-//      tmp_size += it->second.size();
-//  }
-//  cerr << "total saved: " << tmp_size << "\n\n\n";
+
+  if (p_type == TypeRoot || real_ir_library_hash_[p_type].find(p_hash) !=
+                                real_ir_library_hash_[p_type].end()) {
+    /* current node not interesting enough. Ignore it and clean up. */
+//    cerr << "current node not interesting enough. Ignore it and clean up.\n\n\n";
+    return;
+  }
 
 //  cerr << "\n\n\nGetting total ir_library_2D_hash_.size(): " << ir_libary_2D_hash_.size() << "\n";
 //  int tmp_size=0;
@@ -5279,7 +5290,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
 //  cerr << "ir: " << ir->to_string() << "\n";
 
   if (p_type != TypeRoot)
-    ir_libary_2D_hash_[p_type].insert(p_hash);
+      real_ir_library_hash_[p_type].insert(p_hash);
 
   if (!is_skip_saving_current_node) {
     real_ir_set[p_type].push_back(
@@ -5338,13 +5349,6 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   //    f.close();
   //  }
 
-  if (ir->left_) {
-    add_to_library_core(ir->left_, p_query_str);
-  }
-
-  if (ir->right_) {
-    add_to_library_core(ir->right_, p_query_str);
-  }
 
   return;
 }
@@ -7311,16 +7315,32 @@ void Mutator::auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **ar
         // Check whether the current data type matches the following types.
         IRTYPE cur_ir_type = cur_node->get_ir_type();
         if (
+            cur_ir_type == TypeSubquery ||
             cur_ir_type == TypeAndExpr ||
             cur_ir_type == TypeOrExpr ||
-            cur_ir_type == TypeNotExpr ||
             cur_ir_type == TypeIsNullExpr ||
             cur_ir_type == TypeIsNotNullExpr ||
             cur_ir_type == TypeBinaryExpr ||
             cur_ir_type == TypeUnaryExpr ||
             cur_ir_type == TypeComparisonExpr ||
             cur_ir_type == TypeRangeCond ||
-            cur_ir_type == TypeIsOfTypeExpr
+            cur_ir_type == TypeIsOfTypeExpr ||
+            cur_ir_type == TypeExprFmtWithParen ||
+            cur_ir_type == TypeBinExprFmtWithParen ||
+            cur_ir_type == TypeBinExprFmtWithParenAndSubOp ||
+            cur_ir_type == TypeNotExpr ||
+            cur_ir_type == TypeParenExpr ||
+            cur_ir_type == TypeIfErrExpr ||
+            cur_ir_type == TypeIfExpr ||
+            cur_ir_type == TypeNullIfExpr ||
+            cur_ir_type == TypeCoalesceExpr ||
+            cur_ir_type == TypeFuncExpr ||
+            cur_ir_type == TypeCaseExpr ||
+            cur_ir_type == TypeCastExpr ||
+            cur_ir_type == TypeIndirectionExpr ||
+            cur_ir_type == TypeAnnotateTypeExpr ||
+            cur_ir_type == TypeCollateExpr ||
+            cur_ir_type == TypeColumnAccessExpr
         ) {
             // For these expression types, add a bracket to the ir node,
             // and then add the `= true` to the expression.
@@ -7499,16 +7519,32 @@ void Mutator::auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char 
     // Check whether the current data type matches the following types.
     IRTYPE cur_ir_type = cur_node->get_ir_type();
     if (
+        cur_ir_type == TypeSubquery ||
         cur_ir_type == TypeAndExpr ||
         cur_ir_type == TypeOrExpr ||
-        cur_ir_type == TypeNotExpr ||
         cur_ir_type == TypeIsNullExpr ||
         cur_ir_type == TypeIsNotNullExpr ||
         cur_ir_type == TypeBinaryExpr ||
         cur_ir_type == TypeUnaryExpr ||
         cur_ir_type == TypeComparisonExpr ||
         cur_ir_type == TypeRangeCond ||
-        cur_ir_type == TypeIsOfTypeExpr
+        cur_ir_type == TypeIsOfTypeExpr ||
+        cur_ir_type == TypeExprFmtWithParen ||
+        cur_ir_type == TypeBinExprFmtWithParen ||
+        cur_ir_type == TypeBinExprFmtWithParenAndSubOp ||
+        cur_ir_type == TypeNotExpr ||
+        cur_ir_type == TypeParenExpr ||
+        cur_ir_type == TypeIfErrExpr ||
+        cur_ir_type == TypeIfExpr ||
+        cur_ir_type == TypeNullIfExpr ||
+        cur_ir_type == TypeCoalesceExpr ||
+        cur_ir_type == TypeFuncExpr ||
+        cur_ir_type == TypeCaseExpr ||
+        cur_ir_type == TypeCastExpr ||
+        cur_ir_type == TypeIndirectionExpr ||
+        cur_ir_type == TypeAnnotateTypeExpr ||
+        cur_ir_type == TypeCollateExpr ||
+        cur_ir_type == TypeColumnAccessExpr
         ) {
       // For these expression types, add a bracket to the ir node,
       // and then add the `= true` to the expression.

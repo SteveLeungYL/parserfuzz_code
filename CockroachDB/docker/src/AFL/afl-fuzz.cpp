@@ -1480,7 +1480,7 @@ static void do_libary_initialize() {
   g_mutator.init_library();
 
   /* Debug code. */
-  cout << "The size of ir_libary_2D_hash_ for kStatement is: "
+  cout << "The size of real_ir_library_hash_ for kStatement is: "
        << g_mutator.get_ir_libary_2D_hash_kStatement_size() << endl;
   cout << "The size of all_query_pstr_set size: "
        << g_mutator.all_query_pstr_set.size()
@@ -6143,6 +6143,8 @@ static u8 fuzz_one(char **argv) {
 
   for (IR *ir_to_mutate : ori_ir_tree) {
 
+    v_oracle_select_stmts.clear();
+
     if (stop_soon) {
       goto abandon_entry;
     }
@@ -6300,7 +6302,6 @@ static u8 fuzz_one(char **argv) {
 //
 //            if (dyn_fix_trial == 0) {
 //                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
-//                is_tried_dyn_fix = true;
 //            }
 
             // No need to set up the error flag.
@@ -6364,7 +6365,7 @@ static u8 fuzz_one(char **argv) {
             //            \n" << g_cockroach_output << "\n\n\n";
           }
 //
-//          if (is_tried_dyn_fix) {
+//          if (dyn_fix_trial != 0) {
 //              cerr << "After dynamic fixing: " << cur_stmt_str << "\nres: \n" << g_cockroach_output << "\n\n\n";
 //          }
 

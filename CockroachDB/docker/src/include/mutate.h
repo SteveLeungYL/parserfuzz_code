@@ -328,7 +328,8 @@ public:
   bool dump_library = false;
   bool disable_dyn_instan = false;
   SQL_ORACLE *p_oracle;
-  map<IRTYPE, set<unsigned long>> ir_libary_2D_hash_;
+  map<IRTYPE, set<unsigned long>> real_ir_library_hash_;
+  map<IRTYPE, set<unsigned long>> data_affi_set_lib_hash_;
   set<unsigned long> stripped_string_hash_;
 
   /* The interface of saving the required context for the mutator. Giving the
