@@ -1455,18 +1455,21 @@ void debug_parse_query_str_get_ir_set() {
   }
 }
 
-static void do_libary_initialize() {
+static u8 run_target(char **argv, u32 timeout, string cmd_str,
+                     int is_reset_server = 1, string& res_str = g_cockroach_output);
+
+static void do_library_initialize() {
 
   if (g_library_path == NULL)
     g_library_path = INIT_LIB_PATH;
 
-  cerr << "We should initialize the libary" << endl;
+  cerr << "We should initialize the library" << endl;
 
   vector<string> file_list = get_all_files_in_dir(g_library_path);
   for (auto &f : file_list) {
     string file_path = string(g_library_path) + "/" + f;
     cerr << "init filename: " << file_path << endl;
-    g_mutator.init(file_path);
+    g_mutator.init(file_path, "", "", "", "", run_target);
   }
 
   char *in_dir_str = (char *)in_dir;
@@ -1474,7 +1477,7 @@ static void do_libary_initialize() {
   for (auto &f : file_list) {
     string file_path = string(in_dir_str) + "/" + f;
     cerr << "init filename: " << file_path << endl;
-    g_mutator.init(file_path);
+    g_mutator.init(file_path, "", "", "", "", run_target);
   }
 
   g_mutator.init_library();
@@ -1497,7 +1500,7 @@ void debug_get_random_mutated_valid_stmt() {
   p_oracle->set_mutator(&g_mutator);
   g_mutator.set_p_oracle(p_oracle);
 
-  do_libary_initialize();
+  do_library_initialize();
 
   p_oracle->get_random_mutated_select_stmt();
 }
@@ -8263,7 +8266,7 @@ int main(int argc, char **argv) {
   g_mutator.setup_arguments_for_run_target(use_argv, exec_tmout);
 
   u64 start_time = get_cur_time();
-  do_libary_initialize();
+  do_library_initialize();
   cerr << "do_library_initialize() takes "
        << (get_cur_time() - start_time) / 1000 << " seconds\n";
 

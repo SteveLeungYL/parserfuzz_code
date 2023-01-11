@@ -471,7 +471,8 @@ void Mutator::init_library() {
 }
 
 void Mutator::init(string f_testcase, string f_common_string, string file2d,
-                   string file1d, string f_gen_type) {
+                   string file1d, string f_gen_type, u8 (*run_target)(char **, u32, string,
+                                                                      int, string&)) {
 
   // if (!f_testcase.empty());
   //   init_ir_library(f_testcase);
@@ -519,7 +520,7 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
 
     // cerr << "Parsing succeed. \n\n\n";
 
-    add_all_to_library(v_ir.back());
+    add_all_to_library(v_ir.back()->to_string(), {}, run_target);
     v_ir.back()->deep_drop();
   }
 

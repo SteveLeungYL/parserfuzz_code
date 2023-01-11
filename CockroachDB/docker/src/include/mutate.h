@@ -65,7 +65,9 @@ public:
   IR *locate_parent(IR *root, IR *old_ir);
 
   void init(string f_testcase = "", string f_common_string = "",
-            string file2d = "", string file1d = "", string f_gen_type = "");
+            string file2d = "", string file1d = "", string f_gen_type = "",
+            u8 (*run_target)(char **, u32, string,
+                                     int, string&) = NULL);
   void init_library();
 
   inline void init_value_library();
