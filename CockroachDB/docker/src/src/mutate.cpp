@@ -285,9 +285,8 @@ void Mutator::init_common_string(string filename) {
 }
 
 void Mutator::init_sql_type_alias_2_type() {
-  if (sql_type_alias_2_type.size()) {
-    return;
-  }
+
+  sql_type_alias_2_type["AFFINAME"] = "AFFISTRING";
 
   sql_type_alias_2_type["AFFIVARCHAR"] = "AFFISTRING";
   sql_type_alias_2_type["AFFICHAR"] = "AFFISTRING";
@@ -318,14 +317,13 @@ void Mutator::init_sql_type_alias_2_type() {
   sql_type_alias_2_type["AFFITIME WITHOUT TIME ZONE"] = "AFFITIME";
 
   sql_type_alias_2_type["AFFITIME WITH TIME ZONE"] = "AFFITIMETZ";
+  sql_type_alias_2_type["AFFITIME ZONE"] = "AFFITIMETZ";
 
   sql_type_alias_2_type["AFFITIMESTAMP WITHOUT TIME ZONE"] = "AFFITIME";
   sql_type_alias_2_type["AFFITIMESTAMP WITH TIME ZONE"] = "AFFITIMETZ";
 }
 
 void Mutator::init_data_library() {
-
-  this->init_sql_type_alias_2_type();
 
   string func_file_name = FUNCTION_TYPE_PATH;
 
@@ -506,22 +504,22 @@ void Mutator::init(string f_testcase, string f_common_string, string file2d,
     }
 
     IR *v_ir_root = v_ir.back();
-    string strip_sql = extract_struct(v_ir_root);
-    v_ir.back()->deep_drop();
-    v_ir.clear();
-
-    v_ir = parse_query_str_get_ir_set(strip_sql);
-    if (v_ir.size() <= 0) {
+//    string strip_sql = extract_struct(v_ir_root);
+//    v_ir.back()->deep_drop();
+//    v_ir.clear();
+//
+//    v_ir = parse_query_str_get_ir_set(strip_sql);
+//    if (v_ir.size() <= 0) {
 //      cerr << "failed to parse after extract_struct:" << endl
 //           << line << endl
 //           << strip_sql << "\n\n\n";
-      continue;
-    }
+//      continue;
+//    }
 
     // cerr << "Parsing succeed. \n\n\n";
 
-    add_all_to_library(v_ir.back()->to_string(), {}, run_target);
-    v_ir.back()->deep_drop();
+    add_all_to_library(v_ir_root->to_string(), {}, run_target);
+    v_ir_root->deep_drop();
   }
 
   return;

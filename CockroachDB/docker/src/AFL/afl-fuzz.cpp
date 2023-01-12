@@ -1463,6 +1463,8 @@ static u8 run_target(char **argv, u32 timeout, string cmd_str,
 
 static void do_library_initialize() {
 
+  g_mutator.init_sql_type_alias_2_type();
+
   if (g_library_path == NULL)
     g_library_path = INIT_LIB_PATH;
 
