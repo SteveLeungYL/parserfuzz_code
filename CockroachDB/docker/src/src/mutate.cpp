@@ -5413,8 +5413,8 @@ bool Mutator::add_missing_create_table_stmt(IR *ir_root) {
 
   p_oracle->ir_wrapper.set_ir_root(ir_root);
   p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir, 0);
-  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 1);
-  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 2);
+  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_2, 0);
+  p_oracle->ir_wrapper.append_stmt_at_idx(new_stmt_ir_3, 0);
 
   // Get Create Stmt, for the end.
   p_oracle->ir_wrapper.set_ir_root(ir_root);
@@ -6207,10 +6207,10 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str,
         right_type_str = v_tmp_str[0];
 
         DATAAFFINITYTYPE
-            left_type =
-                get_data_affinity_by_string(left_type_str).get_data_affinity(),
-            right_type =
-                get_data_affinity_by_string(right_type_str).get_data_affinity();
+        left_type =
+            get_data_affinity_by_string(left_type_str).get_data_affinity(),
+        right_type =
+            get_data_affinity_by_string(right_type_str).get_data_affinity();
 
         if (is_debug_info) {
           cerr << "\n\n\nDEBUG:: Getting binary operator left type: "

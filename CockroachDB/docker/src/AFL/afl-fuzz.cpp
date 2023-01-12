@@ -5855,7 +5855,7 @@ static u8 fuzz_one(char **argv) {
   for (int app_idx = 0; app_idx < 3; app_idx++) {
     // Randomly append SET statements at the beginning of the query sequence.
     IR *app_stmt = g_mutator.constr_rand_set_stmt();
-    p_oracle->ir_wrapper.append_stmt_at_idx(app_stmt, 0);
+    p_oracle->ir_wrapper.append_stmt_at_idx(app_stmt, -1);
   }
 
   /* Append Create stmts to the queue, if no create table stmts is found. */

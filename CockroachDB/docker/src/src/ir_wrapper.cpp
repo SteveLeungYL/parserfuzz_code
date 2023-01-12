@@ -275,7 +275,7 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx,
 
   vector<IR *> stmt_list_v = this->get_stmtlist_IR_vec();
 
-  if (idx != -1 && idx > stmt_list_v.size()) {
+  if (idx < -1 || idx >= int(stmt_list_v.size())) {
     std::cerr << "Error: Input index exceed total statement number. \n In "
                  "function IRWrapper::append_stmt_at_idx(). \n";
     return false;
@@ -323,7 +323,7 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator &g_mutator) {
   app_IR_node = app_IR_node->deep_copy();
   app_IR_root->deep_drop();
 
-  return this->append_stmt_at_idx(app_IR_node, stmt_list_v.size());
+  return this->append_stmt_at_idx(app_IR_node, stmt_list_v.size() - 1);
 }
 
 bool IRWrapper::append_stmt_at_end(
@@ -357,7 +357,7 @@ bool IRWrapper::append_stmt_at_idx(
     return false;
   }
 
-  if (idx < 0 || idx >= stmt_list_v.size()) {
+  if (idx < -1 || idx >= int(stmt_list_v.size())) {
     std::cerr << "Error: Input index exceed total statement number. \n In "
                  "function IRWrapper::append_stmt_at_idx(). \n";
     std::cerr << "Error: Input index " << to_string(idx)
@@ -368,7 +368,7 @@ bool IRWrapper::append_stmt_at_idx(
 
   app_IR_node = new IR(TypeStmt, OPEND(";"), app_IR_node);
 
-  if (idx < stmt_list_v.size()) {
+  if (idx >= 0) {
     IR *insert_pos_ir = stmt_list_v[idx];
 
     auto new_res = new IR(TypeStmtList, OPMID(" "), NULL, app_IR_node);
@@ -387,7 +387,8 @@ bool IRWrapper::append_stmt_at_idx(
     new_res->update_left(insert_pos_ir);
 
     return true;
-  } else { // idx == 0
+  } else { // idx == -1
+           // Append at the beginning of the statement.
     IR *insert_pos_ir = stmt_list_v[0];
     if (insert_pos_ir->right_ != NULL) {
       std::cerr << "Error: The first stmt_list is having right_ sub-node. In "
@@ -396,6 +397,8 @@ bool IRWrapper::append_stmt_at_idx(
       return false;
     }
 
+    // Switch the left and right node of the original stmtlist,
+    // and attach the new stmtlist to the left node.
     auto new_res = new IR(TypeStmtList, OPMID(""), app_IR_node, NULL);
     insert_pos_ir->update_right(insert_pos_ir->get_left());
     insert_pos_ir->update_left(new_res);
@@ -408,7 +411,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx) {
 
   vector<IR *> stmt_list_v = this->get_stmtlist_IR_vec();
 
-  if (idx >= stmt_list_v.size() || idx < 0) {
+  if (idx >= int(stmt_list_v.size()) || idx < 0) {
     std::cerr << "Error: Input index exceed total statement number. \n In "
                  "function IRWrapper::remove_stmt_at_idx_and_free(). \n";
     return false;
@@ -420,7 +423,7 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx) {
 
   IR *rov_stmt = stmt_list_v[idx];
 
-  if (idx != 0 && idx < stmt_list_v.size()) {
+  if (idx != 0 && idx < int(stmt_list_v.size())) {
     IR *parent_node = rov_stmt->get_parent();
     IR *next_stmt = rov_stmt->left_;
     parent_node->swap_node(rov_stmt, next_stmt);
