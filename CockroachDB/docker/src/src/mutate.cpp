@@ -316,11 +316,11 @@ void Mutator::init_sql_type_alias_2_type() {
 
   sql_type_alias_2_type["AFFITIME WITHOUT TIME ZONE"] = "AFFITIME";
 
-  sql_type_alias_2_type["AFFITIME WITH TIME ZONE"] = "AFFITIMETZ";
-  sql_type_alias_2_type["AFFITIME ZONE"] = "AFFITIMETZ";
+  sql_type_alias_2_type["AFFITIME WITH TIME ZONE"] = "AFFITIME";
+  sql_type_alias_2_type["AFFITIME ZONE"] = "AFFITIME";
 
   sql_type_alias_2_type["AFFITIMESTAMP WITHOUT TIME ZONE"] = "AFFITIME";
-  sql_type_alias_2_type["AFFITIMESTAMP WITH TIME ZONE"] = "AFFITIMETZ";
+  sql_type_alias_2_type["AFFITIMESTAMP WITH TIME ZONE"] = "AFFITIME";
 }
 
 void Mutator::init_data_library() {

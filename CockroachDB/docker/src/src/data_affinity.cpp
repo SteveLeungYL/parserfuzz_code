@@ -21,6 +21,17 @@ inline void rewrite_data_affinity_string_macro(string &in) {
 
   in = str_toupper(in);
   trim_string(in);
+  // Remove new line symbol \n.
+  string tmp_in = "";
+  tmp_in.reserve(in.size());
+  for (auto p = in.begin(); p != in.end(); p++) {
+    if (*p == '\n') {
+      continue;
+    } else {
+      tmp_in += *p;
+    }
+  }
+  in = tmp_in;
 
   if (in.size() > 4 && in.substr(0, 4) == "AFFI") {
     if (sql_type_alias_2_type.count(in) != 0) {
@@ -137,8 +148,8 @@ DataAffinity get_data_affinity_by_string(string s) {
   ALLDATAAFFINITY(DECLARE_CASE);
 #undef DECLARE_CASE
   string err = "\n\n\nError: Cannot find the matching data affinity by"
-               " string: " +
-               s + " \n\n\n";
+               " string: \"" +
+               s + "\" \n\n\n";
   cerr << err;
   return DataAffinity();
 }
