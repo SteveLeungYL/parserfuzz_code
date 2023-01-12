@@ -4097,7 +4097,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
 //      if (!has_new_bits(virgin_tmout, query_str))
 //        return keeping;
-//    }
+    }
 
     unique_tmouts++;
 
@@ -4166,7 +4166,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
 //      if (!has_new_bits(virgin_crash, query_str)) // If no new bits. Return.
 //        return keeping;
-//    }
+    }
+
 
     if (!unique_crashes)
       write_crash_readme();
