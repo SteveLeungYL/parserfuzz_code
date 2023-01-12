@@ -5941,7 +5941,7 @@ void Mutator::fix_literal_op_err(IR *cur_stmt_root, string res_str, bool is_debu
                 this->instan_replaced_node(cur_stmt_root, new_node, is_debug_info);
 
                 if (is_debug_info) {
-                    cerr << ", mutated to node: " << new_node->to_string()
+                    cerr << ", mutated to node: " << cur_stmt_root->to_string()
                          << "\n\n\n";
                 }
             } else {
