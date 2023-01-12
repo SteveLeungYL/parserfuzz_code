@@ -120,15 +120,18 @@ bool try_validate_query(IR *cur_root) {
     } else {
       cout << "Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
     }
-//    string tmp_str = cur_trans_stmt->to_string();
-//    cur_trans_stmt = mutator.parse_query_str_get_ir_set(tmp_str).back();
-//    mutator.reset_data_library_single_stmt();
-//    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info == true;
-//        cerr << "Error: second time g_mutator.validate returns errors. \n\n\n";
-//    } else {
-//        cout << "Second time Validate passing: " << cur_trans_stmt->to_string() << "\n\n\n";
-//    }
-//    mutator.rollback_instan_lib_changes();
+    //    string tmp_str = cur_trans_stmt->to_string();
+    //    cur_trans_stmt = mutator.parse_query_str_get_ir_set(tmp_str).back();
+    //    mutator.reset_data_library_single_stmt();
+    //    if (!mutator.validate(cur_trans_stmt, true)) { // is_debug_info ==
+    //    true;
+    //        cerr << "Error: second time g_mutator.validate returns errors.
+    //        \n\n\n";
+    //    } else {
+    //        cout << "Second time Validate passing: " <<
+    //        cur_trans_stmt->to_string() << "\n\n\n";
+    //    }
+    //    mutator.rollback_instan_lib_changes();
   }
 
   // Clean up allocated resource.
@@ -142,12 +145,12 @@ bool try_validate_query(IR *cur_root) {
     return false;
   }
   string tmp_validity = "";
-  for (auto& it : validity) {
-      if (it == ';') {
-          tmp_validity += "; \n";
-      } else {
-          tmp_validity += it;
-      }
+  for (auto &it : validity) {
+    if (it == ';') {
+      tmp_validity += "; \n";
+    } else {
+      tmp_validity += it;
+    }
   }
   validity = tmp_validity;
 
@@ -245,15 +248,14 @@ int main(int argc, char *argv[]) {
          << cur_mis.second << "\nEnd mismatched\n\n\n";
   }
 
-
-//  // Just unit test the set statment.
-//  for (int i = 0; i < 10; i++) {
-//      // DEBUGGING.
-//      // REMOVE ME.
-//      IR* rand_set_stmt = mutator.constr_rand_set_stmt();
-//      cerr << "\nGetting random set stmt: \n" << rand_set_stmt->to_string() << "\n";
-//      rand_set_stmt->deep_drop();
-//  }
+  //  // Just unit test the set statment.
+  //  for (int i = 0; i < 10; i++) {
+  //      // DEBUGGING.
+  //      // REMOVE ME.
+  //      IR* rand_set_stmt = mutator.constr_rand_set_stmt();
+  //      cerr << "\nGetting random set stmt: \n" << rand_set_stmt->to_string()
+  //      << "\n"; rand_set_stmt->deep_drop();
+  //  }
 
   return 0;
 }
