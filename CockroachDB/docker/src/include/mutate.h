@@ -77,7 +77,6 @@ public:
 
   string get_a_string();
   unsigned long get_a_val();
-  // IR *generate_ir_by_type(IRTYPE);
 
   string get_data_by_type(DATATYPE);
   pair<string, string> get_data_2d_by_type(DATATYPE, DATATYPE);

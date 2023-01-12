@@ -204,7 +204,7 @@ static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     dump_library = 0,         /* Dump squirrel libraries          */
-    disable_dyn_instan = 0,         /* Dump squirrel libraries          */
+    disable_dyn_instan = 0,   /* Dump squirrel libraries          */
     force_deterministic,      /* Force deterministic stages?      */
     use_splicing,             /* Recombine input files?           */
     dumb_mode,                /* Run in non-instrumented mode?    */
@@ -242,9 +242,6 @@ static s32 out_fd, /* Persistent fd for out_file       */
     dev_null_fd = -1,    /* Persistent fd for /dev/null      */
     fsrv_ctl_fd,         /* Fork server control pipe (write) */
     fsrv_st_fd;          /* Fork server status pipe (read)   */
-
-static s32 max_norec =
-    10; /* Number of No-rec compatible selects in one run_through */
 
 static string program_input_str; /* String: query used to test sqlite   */
 static string
@@ -1004,6 +1001,10 @@ void log_map_id(u32 i, u8 byte, const string &cur_seed_str) {
   }
   map_id_seed_output << cur_seed_str;
   map_id_seed_output.close();
+
+  if (actual_idx == 0) {
+    assert(false);
+  }
 }
 
 /* Check if the current execution path brings anything new to the table.
@@ -1459,7 +1460,8 @@ void debug_parse_query_str_get_ir_set() {
 }
 
 static u8 run_target(char **argv, u32 timeout, string cmd_str,
-                     int is_reset_server = 1, string& res_str = g_cockroach_output);
+                     int is_reset_server = 1,
+                     string &res_str = g_cockroach_output);
 
 static void do_library_initialize() {
 
@@ -2582,7 +2584,8 @@ static void restart_cockroachdb(char **argv) {
    information. The called program will update trace_bits[]. */
 
 static u8 run_target(char **argv, u32 timeout, string cmd_str,
-                     int is_reset_server = 1, string& res_str = g_cockroach_output) {
+                     int is_reset_server = 1,
+                     string &res_str = g_cockroach_output) {
 
   //    cerr << "Running stmt: " << cmd_str << "\nis_reset_server: " <<
   //    is_reset_server << "\n\n\n";
@@ -2779,7 +2782,7 @@ inline void reset_database_without_restart(char **argv) {
   return;
 }
 
-inline void print_norec_exec_debug_info() {
+inline void print_fuzzer_exec_debug_info() {
   bool is_debug_info = true;
   if (is_debug_info) {
     // cout << string(30, '\n');
@@ -3092,175 +3095,6 @@ void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   }
 }
 
-u8 execute_cmd_string(vector<string> &cmd_string_vec,
-                      vector<int> &explain_diff_id, ALL_COMP_RES &all_comp_res,
-                      char **argv, u32 tmout = exec_tmout) {
-
-  u8 fault;
-  bool is_crashing =
-      false; // For multi-run queries, if encounter crashing, save the fault.
-
-  string res_str = "";
-
-  for (const string &cmd_string : cmd_string_vec) {
-    if ((cmd_string.find("RANDOM") != std::string::npos) ||
-        (cmd_string.find("random") != std::string::npos)) {
-      return FAULT_ERROR;
-    }
-
-    vector<string> queries_vector = string_splitter(cmd_string, ';');
-    for (string &query : queries_vector) {
-      // ignore the whole query pairs if !... in the stmt,
-      for (auto iter = query.begin(); iter != query.end(); iter++) {
-        if (*iter == '!')
-          return FAULT_ERROR;
-        else if (*iter != ' ')
-          break;
-      }
-    }
-  }
-
-  if (p_oracle->get_mul_run_num() <= 1) {
-    /* Compare results between different validation stmts in a single run. */
-
-    string cmd_string = cmd_string_vec[0];
-
-    trim_string(cmd_string);
-
-    fault = run_target(argv, tmout, cmd_string);
-    if (stop_soon)
-      return fault;
-    if (fault == FAULT_TMOUT) {
-      if (subseq_tmouts++ > TMOUT_LIMIT) {
-        cur_skipped_paths++;
-        return fault;
-      }
-    } else {
-      subseq_tmouts = 0;
-    }
-    /* Users can hit us with SIGUSR1 to request the current input
-         to be abandoned. */
-    if (skip_requested) {
-      skip_requested = 0;
-      cur_skipped_paths++;
-      fault = FAULT_NONE;
-      return fault;
-    }
-    if (fault == FAULT_CRASH) {
-      is_crashing = true;
-    }
-    res_str = g_cockroach_output;
-    all_comp_res.cmd_str = std::move(cmd_string);
-    all_comp_res.res_str = std::move(res_str);
-    compare_query_result(all_comp_res, explain_diff_id);
-  } else {
-    /* Compare results of the same validation stmts in different runs. */
-    for (int idx = 0; idx < cmd_string_vec.size(); idx++) {
-      string cmd_string = cmd_string_vec[idx];
-
-      trim_string(cmd_string);
-
-      /* The trace_bits[] are effectively volatile after calling run_target */
-      fault = run_target(argv, tmout, cmd_string);
-      if (stop_soon)
-        return fault;
-      if (fault == FAULT_TMOUT) {
-        if (subseq_tmouts++ > TMOUT_LIMIT) {
-          cur_skipped_paths++;
-          return fault;
-        }
-      } else {
-        subseq_tmouts = 0;
-      }
-      /* Users can hit us with SIGUSR1 to request the current input
-           to be abandoned. */
-      if (skip_requested) {
-        skip_requested = 0;
-        cur_skipped_paths++;
-        return fault;
-      }
-
-      if (fault == FAULT_CRASH) {
-        is_crashing = true;
-      }
-      res_str = g_cockroach_output;
-
-      all_comp_res.v_cmd_str.push_back(std::move(cmd_string));
-      all_comp_res.v_res_str.push_back(std::move(res_str));
-
-    } // End for run_id loop.
-
-    compare_query_results_cross_run(all_comp_res, explain_diff_id);
-  }
-
-  /* Log the debug_error and debug_good. */
-  for (auto &res : all_comp_res.v_res) {
-    if (res.comp_res == ORA_COMP_RES::Pass) {
-      total_execs++;
-      debug_good++;
-    } else {
-      total_execs++;
-      debug_error++;
-    }
-  }
-
-  /* Some useful debug output. That could show what queries are being tested. */
-  // stream_output_res(all_comp_res, cerr);
-
-  /***********************/
-  /* Debug: output logs for all execs */
-  if (dump_library) {
-    if (!filesystem::exists("./core_" + std::to_string(bind_to_core_id) +
-                            "_log/")) {
-      filesystem::create_directory("./core_" + std::to_string(bind_to_core_id) +
-                                   "_log/");
-    }
-    string all_sql_out_log_str = "./core_" + std::to_string(bind_to_core_id) +
-                                 "_log/log_" + to_string(log_output_id++) +
-                                 "_src_" + to_string(current_entry) + ".txt";
-    ofstream log_output_file;
-    log_output_file.open(all_sql_out_log_str, std::ofstream::out);
-    stream_output_res(all_comp_res, log_output_file);
-    log_output_file.close();
-  }
-
-  /* Debug end.  */
-  /***********************/
-
-  if (all_comp_res.final_res == ORA_COMP_RES::Fail) {
-    ofstream outputfile;
-    bug_output_id++;
-    if (!filesystem::exists("../../../Bug_Analysis/")) {
-      filesystem::create_directory("../../../Bug_Analysis/");
-    }
-    if (!filesystem::exists("../../../Bug_Analysis/bug_samples")) {
-      filesystem::create_directory("../../../Bug_Analysis/bug_samples");
-    }
-
-    string bug_output_dir =
-        "../../../Bug_Analysis/bug_samples/bug:" + to_string(bug_output_id) +
-        ":src:" + to_string(current_entry) +
-        ":core:" + std::to_string(bind_to_core_id) + ".txt";
-    // cerr << "Bug output dir is: " << bug_output_dir << endl;
-    outputfile.open(bug_output_dir, std::ofstream::out | std::ofstream::app);
-    stream_output_res(all_comp_res, outputfile);
-
-    outputfile.close();
-
-  } else if (all_comp_res.final_res == ORA_COMP_RES::Pass) {
-  } else if (all_comp_res.final_res == ORA_COMP_RES::ALL_Error) {
-    /* Query, all select stmts return error results. */
-  } else {
-    /* Query being skipped. */
-  }
-
-  if (is_crashing) {
-    return FAULT_CRASH;
-  } else {
-    return fault;
-  }
-}
-
 /* The same, but with an adjustable gap. Used for trimming. */
 
 static void write_with_gap(void *mem, u32 len, u32 skip_at, u32 skip_len) {
@@ -3350,12 +3184,6 @@ static u8 calibrate_case(char **argv, struct queue_entry *q, u8 *use_mem,
     for (int output_index = 0; output_index < q->len; output_index++) {
       program_input_str += use_mem[output_index];
     }
-    // cerr << program_input_str << endl;
-    //    vector<int> dummy_vec;
-    //    ALL_COMP_RES dummy_all_comp_res;
-    //    vector<string> program_input_str_vec{program_input_str};
-    //    fault = execute_cmd_string(program_input_str_vec, dummy_vec,
-    //                               dummy_all_comp_res, argv, use_tmout);
 
     fault = run_target(argv, exec_tmout, program_input_str, 1);
     record_code_coverage(argv);
@@ -3945,7 +3773,8 @@ static void write_crash_readme(void) {
    entry is saved, 0 otherwise. */
 
 static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
-                              const ALL_COMP_RES &all_comp_res, const bool is_auto_detect_data_type = false,
+                              const ALL_COMP_RES &all_comp_res,
+                              const bool is_auto_detect_data_type = false,
                               const vector<int> &explain_diff_id = {}) {
 
   u8 *fn = "";
@@ -4002,11 +3831,12 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     if (ir_tree.size() > 0) {
       IR *tmp_ir_root = ir_tree.back();
       if (is_auto_detect_data_type) {
-        is_save_to_queue = g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
-                                     run_target);
+        is_save_to_queue = g_mutator.add_all_to_library(
+            tmp_ir_root->to_string(), explain_diff_id, run_target);
       } else {
-        is_save_to_queue = g_mutator.add_all_to_library(tmp_ir_root->to_string(), explain_diff_id,
-                                     NULL); // Do not provide the run_target function.
+        is_save_to_queue = g_mutator.add_all_to_library(
+            tmp_ir_root->to_string(), explain_diff_id,
+            NULL); // Do not provide the run_target function.
       }
       ir_tree.back()->deep_drop();
     } else {
@@ -4017,11 +3847,11 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     stage_name = tmp_name;
     //[modify] end
 
-//    if (is_save_to_queue) {
-//      cerr << "saving query: " << query_str << "\n\n\n";
-//    } else {
-//      cerr << "ignoring query: " << query_str << "\n\n\n";
-//    }
+    //    if (is_save_to_queue) {
+    //      cerr << "saving query: " << query_str << "\n\n\n";
+    //    } else {
+    //      cerr << "ignoring query: " << query_str << "\n\n\n";
+    //    }
 
     if (g_mutator.is_stripped_str_in_lib(query_str) || !is_save_to_queue)
       return keeping;
@@ -4036,12 +3866,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
     fn = alloc_printf("%s/queue/id_%06u", out_dir, queued_paths);
 
 #endif /* ^!SIMPLE_FILES */
-
-    /* Do not save the whole queries with the appended norec select stmt back to
-       the AFL queue. Since we will append new norec select stmt every time we
-       retrive a new seed, we should delete all the norec stmts from the query
-       before adding them to the query.
-    */
 
     add_to_queue(fn, query_str.size(), 0);
 
@@ -4097,8 +3921,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-//      if (!has_new_bits(virgin_tmout, query_str))
-//        return keeping;
+      //      if (!has_new_bits(virgin_tmout, query_str))
+      //        return keeping;
     }
 
     unique_tmouts++;
@@ -4166,10 +3990,10 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-//      if (!has_new_bits(virgin_crash, query_str)) // If no new bits. Return.
-//        return keeping;
+      //      if (!has_new_bits(virgin_crash, query_str)) // If no new bits.
+      //      Return.
+      //        return keeping;
     }
-
 
     if (!unique_crashes)
       write_crash_readme();
@@ -4202,10 +4026,6 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
   /* If we're here, we apparently want to save the crash or hang
      test case, too. */
-
-  /* Do not push the add-on norec compatible select stmt to the queue.
-        To avoid query length explosion.
-    */
 
   //  fd = open(fn, O_WRONLY | O_CREAT | O_EXCL, 0640);
   //  if (fd < 0)
@@ -5346,7 +5166,7 @@ static void show_stats(void) {
   /* Hallelujah! */
 
   // fflush(0);
-  print_norec_exec_debug_info();
+  print_fuzzer_exec_debug_info();
 }
 
 /* Display quick statistics at the end of processing the input directory,
@@ -5476,68 +5296,6 @@ static u32 next_p2(u32 val) {
   while (val > ret)
     ret <<= 1;
   return ret;
-}
-
-// /* Trim all new test cases to save cycles when doing deterministic checks.
-// The
-//    trimmer uses power-of-two increments somewhere between 1/16 and 1/1024 of
-//    file size, to keep the stage short and sweet. */
-
-/* Write a modified test case, run program, process results. Handle
-   error conditions, returning 1 if it's time to bail out. This is
-   a helper function for fuzz_one(). */
-
-EXP_ST u8 common_fuzz_stuff(char **argv, vector<string> &query_str_vec,
-                            vector<string> &query_str_no_marks_vec) {
-
-  u8 fault;
-
-  vector<int> explain_diff_id;
-  ALL_COMP_RES all_comp_res;
-  all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
-
-  fault = execute_cmd_string(query_str_vec, explain_diff_id, all_comp_res, argv,
-                             exec_tmout);
-
-  if ((total_execs % 20) == 0) {
-    // Proactively restart the CockroachDB server.
-    restart_cockroachdb(argv);
-  }
-
-  if (stop_soon)
-    return 1;
-
-  if (fault == FAULT_TMOUT) {
-    if (subseq_tmouts++ > TMOUT_LIMIT) {
-      cur_skipped_paths++;
-      return 1;
-    }
-  } else
-    subseq_tmouts = 0;
-
-  /* Users can hit us with SIGUSR1 to request the current input
-     to be abandoned. */
-
-  if (skip_requested) {
-    skip_requested = 0;
-    cur_skipped_paths++;
-    return 1;
-  }
-
-  /* This handles FAULT_ERROR for us:
-  ** Return 0??? Do we return 0 in order to save the inputs?
-  */
-  if (fault == FAULT_ERROR)
-    return 0;
-
-  int should_keep = save_if_interesting(argv, query_str_no_marks_vec[0], fault,
-                                        all_comp_res, false, explain_diff_id);
-  queued_discovered += should_keep;
-
-  if (!(stage_cur % stats_update_freq) || stage_cur + 1 == stage_max)
-    show_stats();
-
-  return 0;
 }
 
 /* Helper to choose random block len for block operations in fuzz_one().
@@ -5868,14 +5626,14 @@ void get_oracle_select_stmts(vector<IR *> &v_oracle_select_stmts,
   // cout << "get_oracle_select_stmt" << endl;
   // exit(0);
   int trial = 0;
-  int num_norec = 0;
+  int num_select = 0;
   int max_trial =
-      valid_max_num * 10; // For each norec select stmt, we have on average 10
+      valid_max_num * 10; // For each select stmt, we have on average 10
                           // chances to append the stmt and check.
 
   // cerr << "Entering get_oracle_select_stmt func. \n";
 
-  while (num_norec < valid_max_num) {
+  while (num_select < valid_max_num) {
 
     if (trial++ >= max_trial) { // Give on average 3 chances per select stmts.
       // cerr << "Break due to exceeding max_trial. \n";
@@ -5884,13 +5642,11 @@ void get_oracle_select_stmts(vector<IR *> &v_oracle_select_stmts,
     // cout << "get_oracle_select_stmt trial times: " << trial << endl;
     IR *new_oracle_select_stmts = p_oracle->get_random_mutated_select_stmt();
     if (new_oracle_select_stmts == NULL) {
-      // cerr << "new_norec_stmts is empty. \n";
       continue;
     }
-    // ensure_semicolon_at_query_end(new_norec_stmts);
     v_oracle_select_stmts.push_back(std::move(new_oracle_select_stmts));
 
-    num_norec++;
+    num_select++;
     num_valid++;
   }
 
@@ -6067,8 +5823,8 @@ static u8 fuzz_one(char **argv) {
   skip_count = 0;
   input = (const char *)out_buf;
 
-  /* Now we modify the input queries, append multiple norec compatible select
-   * stmt to the end of the queries to achieve better testing efficiency.  */
+  /* Now we modify the input queries, append multiple select
+   * stmts to the end of the queries to achieve better testing efficiency.  */
 
   num_parse++;
 
@@ -6081,6 +5837,7 @@ static u8 fuzz_one(char **argv) {
   IR *cur_root;
   cur_root = ori_ir_tree.back();
 
+  // Remove all SELECT statement or ORACLE related statements from the query.
   p_oracle->remove_oracle_select_stmt_from_ir(cur_root);
   p_oracle->remove_select_stmt_from_ir(cur_root);
   p_oracle->remove_set_stmt_from_ir(cur_root);
@@ -6122,10 +5879,7 @@ static u8 fuzz_one(char **argv) {
   }
 
   if (drop_num >= create_num) {
-    // cerr << "For stmt: " << cur_root->to_string() << "\n\n\n";
     g_mutator.add_missing_create_table_stmt(cur_root);
-    // cerr << "Added missing create table, becomes: " << cur_root->to_string()
-    // << "\n\n\n";
   }
   v_ir_stmts.clear(); // No need to free.
 
@@ -6136,11 +5890,6 @@ static u8 fuzz_one(char **argv) {
 
   stage_max = ori_ir_tree.size();
   stage_cur = 0;
-
-  // cerr << "After initial parsing, the imported input is: \n" <<
-  // ori_ir_tree.back()->to_string() << "\n\n\n";
-
-  // orig_perf = perf_score = calculate_score(queue_cur);
 
   doing_det = 1;
 
@@ -6153,10 +5902,6 @@ static u8 fuzz_one(char **argv) {
   orig_hit_cnt = queued_paths + unique_crashes;
 
   prev_cksum = queue_cur->exec_cksum;
-  // unsigned long prev_hash, current_hash;
-  // prev_hash = g_mutator.hash(ir_set[ir_set.size()-1]);
-  // current_hash = 0;
-
 
   int cur_reparse;
   cur_reparse = 0;
@@ -6168,8 +5913,6 @@ static u8 fuzz_one(char **argv) {
     if (stop_soon) {
       goto abandon_entry;
     }
-
-    auto single_mutation_start_time = std::chrono::system_clock::now();
 
     /* The mutated IR tree is deep_copied() */
     vector<IR *> v_mutated_ir_root =
@@ -6223,7 +5966,7 @@ static u8 fuzz_one(char **argv) {
 
       /*
       ** Pre_Post_fix_transformation from the oracle across runs, build
-      *dependency graph,
+      *  dependency graph,
       ** fix ir node, fill in concret values,
       ** and transform from IR to multi-run strings.
       */
@@ -6241,7 +5984,7 @@ static u8 fuzz_one(char **argv) {
       // No need for the original cur_root anymore.
       cur_root->deep_drop();
 
-      /* Build dependency graph, fix ir node, fill in concret values */
+      /* Build dependency information, fix ir node, fill in concrete values */
 
       // Before fixing all the statements, reset the database data.
       reset_database_without_restart(argv);
@@ -6253,8 +5996,6 @@ static u8 fuzz_one(char **argv) {
       bool is_prev_stmt_error = false;
       constexpr int max_trial = 4;
 
-      //      cerr << "\n\n\nDEBUG:: all_pre_trans_vec.size(): " <<
-      //      all_pre_trans_vec.size() << "\n\n\n";
       for (int stmt_idx = 0; stmt_idx < all_pre_trans_vec.size(); stmt_idx++) {
         // Prepare for a new statement of instantiation.
         // Set the savepoint for instantiation library rollback.
@@ -6278,8 +6019,6 @@ static u8 fuzz_one(char **argv) {
 
           whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
 
-          //          auto single_exec_begin_time =
-          //          std::chrono::system_clock::now();
           if (is_prev_stmt_error) {
             // If the previous statement contains error, we need to reset the
             // server.
@@ -6287,44 +6026,26 @@ static u8 fuzz_one(char **argv) {
                                  whole_query_seq + "SAVEPOINT foo; \n" +
                                      cur_stmt_str + "; \n",
                                  1);
-            //            cerr << "For SELECT stmt: " << whole_query_seq +
-            //            "SAVEPOINT foo; \n" + cur_stmt_str + "; \n"
-            //                 << "\nis_reset: 1\n";
           } else {
             // If the previous statement is OK, we can directly execute the
             // SELECT without resetting.
             ret_res =
                 run_target(argv, exec_tmout,
                            "SAVEPOINT foo; \n" + cur_stmt_str + "; \n", 0);
-            //            cerr << "For SELECT stmt: " << cur_stmt_str <<
-            //            "\nis_reset: 0\n";
           }
 
-          //          auto single_exec_end_time =
-          //          std::chrono::system_clock::now();
-          //          std::chrono::duration<double> single_exec_used_time =
-          //              single_exec_end_time - single_exec_begin_time;
-          //          cerr << "Takes time: " << single_exec_used_time.count() <<
-          //          "\n"; cerr << "Res: " << g_cockroach_output << "\n"; cerr
-          //          << "ret_res: " << ret_res << "\n\n\n";
-
           int dyn_fix_trial = 0;
-//          bool is_tried_dyn_fix = false;
           bool is_select_error = false;
 
-          while (
-                 likely(!disable_dyn_instan) &&
+          while (likely(!disable_dyn_instan) &&
                  p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
             total_instan_num++;
-//
-//            if (dyn_fix_trial == 0) {
-//                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
-//            }
 
-            // No need to set up the error flag.
+            // No need to set up the error flag here.
+            // We always rollback the transaction.
 
             // Iterate the counter.
             dyn_fix_trial++;
@@ -6337,9 +6058,6 @@ static u8 fuzz_one(char **argv) {
               // Ignore current stmt.
               g_mutator.rollback_instan_lib_changes();
               cur_trans_stmt = NULL;
-              //              cerr << "Break because the instantiated query
-              //              cannot be "
-              //                      "re-parsed. \n\n\n";
               break;
             }
 
@@ -6367,27 +6085,16 @@ static u8 fuzz_one(char **argv) {
 
             whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
             // We have to reset the server, because the previous query execution
-            // contains error.
-            //            auto single_exec_begin_time =
-            //            std::chrono::system_clock::now();
+            // is very frequently contains error.
             ret_res =
                 run_target(argv, exec_tmout,
                            "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
-            //            cerr << "For stmt: \n" << "ROLLBACK TO SAVEPOINT FOO;
-            //            \n" + cur_stmt_str
-            //                 << "\nis_reset: 1\n";
-            //            auto single_exec_end_time =
-            //            std::chrono::system_clock::now();
-            //            std::chrono::duration<double> single_exec_used_time =
-            //                single_exec_end_time - single_exec_begin_time;
-            //            cerr << "Takes time: " <<
-            //            single_exec_used_time.count() << "\n"; cerr << "Res:
-            //            \n" << g_cockroach_output << "\n\n\n";
           }
-//
-//          if (dyn_fix_trial != 0) {
-//              cerr << "After dynamic fixing: " << cur_stmt_str << "\nres: \n" << g_cockroach_output << "\n\n\n";
-//          }
+
+          //          if (dyn_fix_trial != 0) {
+          //              cerr << "After dynamic fixing: " << cur_stmt_str <<
+          //              "\nres: \n" << g_cockroach_output << "\n\n\n";
+          //          }
 
           if (p_oracle->is_res_str_error(g_cockroach_output)) {
             // Be careful, after the last dyn_fixing, the query could still be
@@ -6406,7 +6113,6 @@ static u8 fuzz_one(char **argv) {
             // If the query execution triggers an Internal Error,
             // log the buggy query string.
             log_logical_bug(whole_query_seq_with_next);
-            //            ret_res = FAULT_ERROR;
 
             is_select_error = true;
 
@@ -6429,13 +6135,7 @@ static u8 fuzz_one(char **argv) {
             g_mutator.rollback_instan_lib_changes();
           }
 
-          //          single_exec_begin_time = std::chrono::system_clock::now();
           record_code_coverage(argv);
-          //          single_exec_end_time = std::chrono::system_clock::now();
-          //          single_exec_used_time = single_exec_end_time -
-          //          single_exec_begin_time; cerr << "Save coverage takes time:
-          //          " << single_exec_used_time.count()
-          //               << "\n\n\n";
 
           // Check whether the statement contains new code coverage.
           // The save_if_interesting also handles the crashing.
@@ -6446,33 +6146,35 @@ static u8 fuzz_one(char **argv) {
             save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                                 tmp_all_comp_res, true);
           } else {
-            // If the SELECT is causing semantic error, do not auto detect the
+            // If the SELECT is causing semantic error, do not auto-detect the
             // date types from the query expressions or subqueries.
             save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                                 tmp_all_comp_res, false);
           }
 
-          // Here, also test whether the non-OPT version of the query could contain
-          // errors. The non-opt code path of the Cockroach code already causes a lot of bugs in
-          // CockroachDB.
-          string whole_query_seq_no_opt = no_opt_sql_str + whole_query_seq_with_next;
+          // Here, also test whether the non-OPT version of the query could
+          // contain errors. The non-opt code path of the Cockroach code already
+          // causes a lot of bugs in CockroachDB.
+          string whole_query_seq_no_opt =
+              no_opt_sql_str + whole_query_seq_with_next;
           ret_res = run_target(argv, exec_tmout, whole_query_seq_no_opt, 1);
 
           if (ret_res == FAULT_CRASH) {
-              tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
-              tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
-              save_if_interesting(argv, whole_query_seq_no_opt,
-              ret_res, tmp_all_comp_res);
+            tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
+            tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+            save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
+                                tmp_all_comp_res);
           }
 
           if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
-              // If the no opt query execution triggers an Internal Error,
-              // log the buggy query string.
-              log_logical_bug(whole_query_seq_no_opt);
+            // If the no opt query execution triggers an Internal Error,
+            // log the buggy query string.
+            log_logical_bug(whole_query_seq_no_opt);
           }
 
-          // Because we change the setting of the execution, we should rerun the whole query statement
-          // in the next round of the fuzzing. Use is_prev_stmt_error to trigger query rerun for the next round.
+          // Because we change the setting of the execution, we should rerun the
+          // whole query statement in the next round of the fuzzing. Use
+          // is_prev_stmt_error to trigger query rerun for the next round.
           is_prev_stmt_error = true;
 
           total_execs++;
@@ -6493,45 +6195,22 @@ static u8 fuzz_one(char **argv) {
 
           whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
 
-          //          auto single_exec_begin_time =
-          //          std::chrono::system_clock::now();
           if (is_prev_stmt_error) {
             // If the previous statement contains error, we need to reset the
             // server.
             ret_res =
                 run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-            //            cerr << "For stmt: " << whole_query_seq_with_next
-            //                 << "\nis_reset: 1\n";
           } else {
             // If the previous statement is OK, we can directly execute the
             // SELECT without resetting.
             ret_res = run_target(argv, exec_tmout, cur_stmt_str, 0);
-            //            cerr << "For stmt: " << cur_stmt_str << "\nis_reset:
-            //            0\n";
           }
-          //          auto single_exec_end_time =
-          //          std::chrono::system_clock::now();
-          //          std::chrono::duration<double> single_exec_used_time =
-          //              single_exec_end_time - single_exec_begin_time;
-          //          cerr << "Takes time: " << single_exec_used_time.count() <<
-          //          "\n"; cerr << "Res: " << g_cockroach_output << "\n"; cerr
-          //          << "ret_res: " << ret_res << "\n\n\n";
 
           int dyn_fix_trial = 0;
-//          bool is_tried_dyn_fix = false;
 
-          while (
-                 likely(!disable_dyn_instan) &&
+          while (likely(!disable_dyn_instan) &&
                  p_oracle->is_res_str_error(g_cockroach_output) &&
                  dyn_fix_trial < max_trial) {
-            // Check whether the statement execution contains SQL errors.
-            // If yes, use the dynamic fixing to try to fix the statement.
-//
-//            if (dyn_fix_trial == 0) {
-//                cerr << "\n\n\nDEBUG: Before dynamic fixing: " << cur_stmt_str << "\nres:\n" << g_cockroach_output << "\n";
-//                is_tried_dyn_fix = true;
-//            }
-
             // Check whether the statement execution contains SQL errors.
             // If yes, use the dynamic fixing to try to fix the statement.
             total_instan_num++;
@@ -6550,9 +6229,6 @@ static u8 fuzz_one(char **argv) {
               // Ignore current stmt.
               g_mutator.rollback_instan_lib_changes();
               cur_trans_stmt = NULL;
-              //              cerr << "Break because the instantiated query
-              //              cannot be "
-              //                      "reparsed. \n\n\n";
               break;
             }
 
@@ -6584,15 +6260,6 @@ static u8 fuzz_one(char **argv) {
             auto single_exec_begin_time = std::chrono::system_clock::now();
             ret_res =
                 run_target(argv, exec_tmout, whole_query_seq_with_next, 1);
-            //            cerr << "For stmt: " << whole_query_seq_with_next
-            //                 << "\nis_reset: 1\n";
-            //            auto single_exec_end_time =
-            //            std::chrono::system_clock::now();
-            //            std::chrono::duration<double> single_exec_used_time =
-            //                single_exec_end_time - single_exec_begin_time;
-            //            cerr << "Takes time: " <<
-            //            single_exec_used_time.count() << "\n"; cerr << "Res:
-            //            \n" << g_cockroach_output << "\n\n\n";
           }
 
           if (p_oracle->is_res_str_error(g_cockroach_output)) {
@@ -6604,10 +6271,11 @@ static u8 fuzz_one(char **argv) {
           }
 
           total_instan_num++;
-//
-//          if (is_tried_dyn_fix) {
-//              cerr << "After dynamic fixing: " << cur_stmt_str << "\nres: \n" << g_cockroach_output << "\n\n\n";
-//          }
+
+          //          if (is_tried_dyn_fix) {
+          //              cerr << "After dynamic fixing: " << cur_stmt_str <<
+          //              "\nres: \n" << g_cockroach_output << "\n\n\n";
+          //          }
 
           if (p_oracle->is_res_str_internal_error(g_cockroach_output)) {
             // If the query execution triggers an Internal Error,
@@ -6649,10 +6317,8 @@ static u8 fuzz_one(char **argv) {
       } // Finished the whole query sequences (with multiple SELECTs
         // executions).
 
-      //        cerr << "\n\n\nDEBUG: Finished one mutation: total_execs: " <<
-      //        total_execs << "\n\n\n";
-
-      // After executing all the statements, reset the database data.
+      // After executing all the statements from one sequence, reset the
+      // database data. Just for safety purposes.
       reset_database_without_restart(argv);
 
       /* Clean up allocated resource.  */
@@ -6671,13 +6337,6 @@ static u8 fuzz_one(char **argv) {
       show_stats();
 
     } // v_mutated_ir_root
-
-    //      cerr << "\n\n\nDEBUG: Finished one seed: total_execs: " <<
-    //      total_execs << ", cur_path: " << current_entry << "\n\n\n";
-
-    auto single_mutation_end_time = std::chrono::system_clock::now();
-    std::chrono::duration<double> single_mutation_used_time =
-        single_mutation_end_time - single_mutation_start_time;
 
     for (IR *mutated_ir_root : v_mutated_ir_root) {
       mutated_ir_root->deep_drop();
@@ -8154,7 +7813,7 @@ int main(int argc, char **argv) {
 
     case 'O': /* Oracle */
     {
-      /* Default NOREC */
+      /* Default OPT */
       string arg = string(optarg);
       if (arg == "NOREC")
         p_oracle = new SQL_NOREC();
@@ -8168,8 +7827,6 @@ int main(int argc, char **argv) {
       //   p_oracle = new SQL_ROWID();
       else if (arg == "INDEX")
         p_oracle = new SQL_INDEX();
-      // if (arg == "OPT")
-      // p_oracle = new SQL_OPT();
       else
         FATAL("Oracle arguments not supported. ");
     } break;
