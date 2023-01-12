@@ -4082,6 +4082,8 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
 
     total_tmouts++;
 
+    memset(trace_bits, 0, MAP_SIZE);
+
     if (unique_hangs >= KEEP_UNIQUE_HANG)
       return keeping;
 
@@ -4093,9 +4095,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_tmout, query_str))
-        return keeping;
-    }
+//      if (!has_new_bits(virgin_tmout, query_str))
+//        return keeping;
+//    }
 
     unique_tmouts++;
 
@@ -4149,6 +4151,7 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
          cases. */
 
     total_crashes++;
+    memset(trace_bits, 0, MAP_SIZE);
 
     if (unique_crashes >= KEEP_UNIQUE_CRASH) // 5000
       return keeping;
@@ -4161,9 +4164,9 @@ static u8 save_if_interesting(char **argv, string &query_str, u8 fault,
       simplify_trace((u32 *)trace_bits);
 #endif /* ^__x86_64__ */
 
-      if (!has_new_bits(virgin_crash, query_str)) // If no new bits. Return.
-        return keeping;
-    }
+//      if (!has_new_bits(virgin_crash, query_str)) // If no new bits. Return.
+//        return keeping;
+//    }
 
     if (!unique_crashes)
       write_crash_readme();
