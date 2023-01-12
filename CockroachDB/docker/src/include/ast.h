@@ -1,8 +1,8 @@
 #ifndef __AST_H__
 #define __AST_H__
 
-#include "define.h"
 #include "data_affinity.h"
+#include "define.h"
 #include "relopt_generator.h"
 #include <map>
 #include <set>
@@ -33,7 +33,7 @@ enum DATAFLAG {
 
 enum FUNCTIONTYPE {
 #define DECLARE_TYPE(v) v,
-   ALLFUNCTIONTYPES(DECLARE_TYPE)
+  ALLFUNCTIONTYPES(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
@@ -46,15 +46,25 @@ static inline void reset_id_counter() { g_id_counter = 0; }
 static string gen_id_name() { return "v" + to_string(g_id_counter++); }
 static string gen_column_name() { return "c" + to_string(g_id_counter++); }
 static string gen_index_name() { return "i" + to_string(g_id_counter++); }
-static string gen_table_alias_name() { return "ta" + to_string(g_id_counter++); }
-static string gen_column_alias_name() { return "ca" + to_string(g_id_counter++); }
+static string gen_table_alias_name() {
+  return "ta" + to_string(g_id_counter++);
+}
+static string gen_column_alias_name() {
+  return "ca" + to_string(g_id_counter++);
+}
 static string gen_statistic_name() { return "s" + to_string(g_id_counter++); }
 static string gen_sequence_name() { return "seq" + to_string(g_id_counter++); }
 static string gen_view_name() { return "view" + to_string(g_id_counter++); }
-static string gen_view_column_name() { return "view_c" + to_string(g_id_counter++); }
+static string gen_view_column_name() {
+  return "view_c" + to_string(g_id_counter++);
+}
 static string gen_partition_name() { return "par" + to_string(g_id_counter++); }
-static string gen_constraint_name() {return "constraint_" + to_string(g_id_counter++); }
-static string gen_family_name() {return "family_" + to_string(g_id_counter++); }
+static string gen_constraint_name() {
+  return "constraint_" + to_string(g_id_counter++);
+}
+static string gen_family_name() {
+  return "family_" + to_string(g_id_counter++);
+}
 
 string get_string_by_ir_type(IRTYPE type);
 string get_string_by_data_type(DATATYPE type);
@@ -75,8 +85,9 @@ class IR {
 public:
   IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL)
       : type_(type), op_(op), left_(left), right_(right), parent_(NULL),
-        operand_num_((!!right) + (!!left)), data_type_(DataNone), data_affinity_type(AFFIUNKNOWN), data_affinity(AFFIUNKNOWN) {
-//    GEN_NAME();
+        operand_num_((!!right) + (!!left)), data_type_(DataNone),
+        data_affinity_type(AFFIUNKNOWN), data_affinity(AFFIUNKNOWN) {
+    //    GEN_NAME();
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -86,40 +97,40 @@ public:
   IR(IRTYPE type, string str_val, DATATYPE data_type = DataNone,
      DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        data_flag_(flag), data_affinity_type(data_affi) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), data_flag_(flag),
+        data_affinity_type(data_affi) {
     this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, bool b_val, DATATYPE data_type = DataNone,
      DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        data_flag_(flag), data_affinity_type(data_affi) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), data_flag_(flag),
+        data_affinity_type(data_affi) {
     this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, unsigned long long_val, DATATYPE data_type = DataNone,
      DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        data_flag_(flag), data_affinity_type(data_affi) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), data_flag_(flag),
+        data_affinity_type(data_affi) {
     this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, int int_val, DATATYPE data_type = DataNone,
      DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        data_flag_(flag), data_affinity_type(data_affi) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), data_flag_(flag),
+        data_affinity_type(data_affi) {
     this->set_data_affinity(data_affi);
   }
 
   IR(IRTYPE type, double f_val, DATATYPE data_type = DataNone,
      DATAFLAG flag = ContextUnknown, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN)
       : type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), data_type_(data_type),
-        data_flag_(flag), data_affinity_type(data_affi) {
+        parent_(NULL), operand_num_(0), data_type_(data_type), data_flag_(flag),
+        data_affinity_type(data_affi) {
     this->set_data_affinity(data_affi);
   }
 
@@ -137,16 +148,18 @@ public:
     this->set_data_affinity(data_affi);
   }
 
-  IR(DATAAFFINITYTYPE data_affi): type_(TypeStringLiteral), str_val_(""), left_(NULL),
-    right_(NULL), parent_(NULL) {
-      this->set_data_affinity(data_affi);
-      this->mutate_literal(data_affi);
+  IR(DATAAFFINITYTYPE data_affi)
+      : type_(TypeStringLiteral), str_val_(""), left_(NULL), right_(NULL),
+        parent_(NULL) {
+    this->set_data_affinity(data_affi);
+    this->mutate_literal(data_affi);
   }
 
-  IR(DataAffinity data_affi): type_(TypeStringLiteral), str_val_("") , left_(NULL),
-                              right_(NULL), parent_(NULL) {
-      this->set_data_affinity(data_affi);
-      this->mutate_literal(data_affi);
+  IR(DataAffinity data_affi)
+      : type_(TypeStringLiteral), str_val_(""), left_(NULL), right_(NULL),
+        parent_(NULL) {
+    this->set_data_affinity(data_affi);
+    this->mutate_literal(data_affi);
   }
 
   IR(const IR *ir, IR *left, IR *right) {
@@ -211,7 +224,10 @@ public:
   void to_string_core(string &);
 
   bool get_is_instantiated() { return this->is_instantiated; }
-  void set_is_instantiated(const bool& in) {this->is_instantiated = in; return;}
+  void set_is_instantiated(const bool &in) {
+    this->is_instantiated = in;
+    return;
+  }
 
   // delete this IR and necessary clean up
   void drop();
@@ -248,8 +264,14 @@ public:
   RelOptionType get_rel_option_type();
 
   void mutate_literal_random_affinity();
-  void mutate_literal(DATAAFFINITYTYPE data_affi){ this->set_data_affinity(data_affi); this->mutate_literal(); }
-  void mutate_literal(DataAffinity data_affi){ this->set_data_affinity(data_affi); this->mutate_literal(); }
+  void mutate_literal(DATAAFFINITYTYPE data_affi) {
+    this->set_data_affinity(data_affi);
+    this->mutate_literal();
+  }
+  void mutate_literal(DataAffinity data_affi) {
+    this->set_data_affinity(data_affi);
+    this->mutate_literal();
+  }
 
   // Main literal mutate function.
   void mutate_literal();
@@ -264,18 +286,18 @@ public:
   void set_data_affinity(DATAAFFINITYTYPE);
   void set_data_affinity(DataAffinity);
 
-  DATAAFFINITYTYPE detect_cur_data_type(bool is_override = true);
-
   /* helper functions for the IR type */
 
   // Return is_succeed.
-  bool set_type(DATATYPE, DATAFLAG, DATAAFFINITYTYPE data_affi = AFFIUNKNOWN); // Set type regardless of its node type.
+  bool set_type(DATATYPE, DATAFLAG,
+                DATAAFFINITYTYPE data_affi =
+                    AFFIUNKNOWN); // Set type regardless of its node type.
   bool func_name_set_str(string);
 
   bool replace_op(IROperator *);
 
-  void set_is_compact_expr(bool in) {this->is_compact_expr = in;}
-  bool get_is_compact_expr() {return this->is_compact_expr;}
+  void set_is_compact_expr(bool in) { this->is_compact_expr = in; }
+  bool get_is_compact_expr() { return this->is_compact_expr; }
 
   /* From the kTypename ir, return the int representing the Postgres column
    * type.

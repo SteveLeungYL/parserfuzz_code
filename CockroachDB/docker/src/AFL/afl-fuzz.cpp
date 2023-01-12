@@ -5742,8 +5742,6 @@ static u8 fuzz_one(char **argv) {
   int skip_count;
   string input;
 
-  auto fuzz_one_start_time = std::chrono::system_clock::now();
-
 #ifdef IGNORE_FINDS
 
   /* In IGNORE_FINDS mode, skip any entries that weren't in the
@@ -6386,10 +6384,6 @@ abandon_entry:
 
   ck_free(eff_map);
   // ir_set.clear();
-
-  auto fuzz_one_end_time = std::chrono::system_clock::now();
-  std::chrono::duration<double> fuzz_one_used_time =
-      fuzz_one_end_time - fuzz_one_start_time;
 
   return ret_val;
 }

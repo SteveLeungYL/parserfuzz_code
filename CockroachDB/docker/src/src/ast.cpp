@@ -44,24 +44,24 @@ DATATYPE get_datatype_by_string(string s) {
   ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
-  string err = "\n\n\nError: Cannot find the matching data type by"
-               " string: " + s + " \n\n\n";
-  cerr << err;
-//  abort();
+  cerr << "\n\n\nError: Cannot find the matching data type by"
+          " string: " +
+              s + " \n\n\n";
+  //  abort();
   return DataUnknownType;
 }
 
 FUNCTIONTYPE get_functype_by_string(string s) {
-  #define DECLARE_CASE(functiontypename)                                             \
-    if (s == #functiontypename)                                                      \
-      return functiontypename;
-    ALLFUNCTIONTYPES(DECLARE_CASE);
-  #undef DECLARE_CASE
-    string err = "\n\n\nError: Cannot find the matching function type by"
-                 " string: " + s + " \n\n\n";
-    cerr << err;
-//    abort();
-    return FUNCUNKNOWN;
+#define DECLARE_CASE(functiontypename)                                         \
+  if (s == #functiontypename)                                                  \
+    return functiontypename;
+  ALLFUNCTIONTYPES(DECLARE_CASE);
+#undef DECLARE_CASE
+  cerr << "\n\n\nError: Cannot find the matching function type by"
+          " string: " +
+              s + " \n\n\n";
+  //    abort();
+  return FUNCUNKNOWN;
 }
 
 string get_string_by_option_type(RelOptionType type) {
@@ -72,6 +72,8 @@ string get_string_by_option_type(RelOptionType type) {
     return "option_storageParameters";
   case SetConfigurationOptions:
     return "option_setConfigurationOptions";
+  default:
+    break;
   }
   return "option_unknown";
 }
@@ -149,15 +151,11 @@ void IR::to_string_core(string &res) {
     }
     return;
   case TypeStringLiteral:
-//    res += "'" + str_val_ + "'";
     res += str_val_;
     return;
+  default:
+    break;
   }
-
-  // if (type_ == kFuncArgs && str_val_ != "") {
-  //   res += str_val_;
-  //   return;
-  // }
 
   /* If we have str_val setup, directly return the str_val_; */
   if (str_val_ != "") {
@@ -167,22 +165,18 @@ void IR::to_string_core(string &res) {
 
   if (op_) {
     res += op_->prefix_;
-    // res += " ";
   }
 
   if (left_) {
     left_->to_string_core(res);
-    // res += " ";
   }
 
   if (op_) {
     res += op_->middle_;
-    // res += +" ";
   }
 
   if (right_) {
     right_->to_string_core(res);
-    // res += " ";
   }
 
   if (op_)
@@ -342,7 +336,7 @@ DATATYPE IR::get_data_type() { return data_type_; }
 
 DATAFLAG IR::get_data_flag() { return data_flag_; }
 
-DATAAFFINITYTYPE IR::get_data_affinity() {return this->data_affinity_type;}
+DATAAFFINITYTYPE IR::get_data_affinity() { return this->data_affinity_type; }
 
 IR *IR::get_left() { return left_; }
 
@@ -355,19 +349,17 @@ void IR::set_data_type(DATATYPE data_type) { this->data_type_ = data_type; }
 void IR::set_data_flag(DATAFLAG data_flag) { this->data_flag_ = data_flag; }
 
 void IR::set_data_affinity(DATAAFFINITYTYPE data_affinity) {
-//    cerr << "\n\n\nNode: "<< this->to_string() << ", setting data affinity "
-//                          <<  get_string_by_affinity_type(data_affinity) << "AFFIKNONW.\n\n\n";
-    this->data_affinity_type = data_affinity;
-    this->data_affinity.set_data_affinity(data_affinity);
+  this->data_affinity_type = data_affinity;
+  this->data_affinity.set_data_affinity(data_affinity);
 }
 
 void IR::set_data_affinity(DataAffinity data_affinity) {
-//    cerr << "\n\n\nSetting data_affinity: " << get_string_by_affinity_type(data_affinity.get_data_affinity()) << "\n\n\n";
-    this->data_affinity_type = data_affinity.get_data_affinity();
-    this->data_affinity = data_affinity;
+  this->data_affinity_type = data_affinity.get_data_affinity();
+  this->data_affinity = data_affinity;
 }
 
-bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag, DATAAFFINITYTYPE data_affi) {
+bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag,
+                  DATAAFFINITYTYPE data_affi) {
 
   /* Set type regardless of the node type. Do not use this unless necessary. */
   this->set_data_type(data_type);
@@ -375,27 +367,6 @@ bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag, DATAAFFINITYTYPE data_
   this->set_data_affinity(data_affi);
 
   return true;
-}
-
-DATAAFFINITYTYPE IR::detect_cur_data_type(bool is_override) {
-
-    /* TODO::FIXME Not a correct logic. Need to double check on these commented out code. */
-//    if (this->get_ir_type() != TypeStringLiteral && this->get_ir_type() != TypeIdentifier) {
-//        cerr << "Trying the detect data_type on non-string and non-identifier.";
-//        return AFFIUNKNOWN;
-//    }
-
-    // If not overriding, return the already-setup data affinity type.
-    if (!is_override && this->get_data_affinity() != AFFIUNKNOWN) {
-        return this->get_data_affinity();
-    }
-
-    // Actual detection of the data affinity using the str_val_
-    // TODO::FIXME:: Do we need to consider TypeIdentifier here?
-    DATAAFFINITYTYPE detected_affinity = this->data_affinity.recognize_data_type(this->str_val_);
-    this->data_affinity_type = detected_affinity;
-
-    return detected_affinity;
 }
 
 bool IR::func_name_set_str(string in) {
@@ -416,34 +387,36 @@ bool IR::replace_op(IROperator *op_in) {
 }
 
 void IR::mutate_literal_random_affinity() {
-    auto random_affi = get_random_affinity_type();
-    this->set_data_affinity(random_affi);
-    this->mutate_literal();
-    return;
+  auto random_affi = get_random_affinity_type();
+  this->set_data_affinity(random_affi);
+  this->mutate_literal();
+  return;
 }
 // Main literal mutate function.
 void IR::mutate_literal() {
-    // Upon calling this function, we should assume the Data affinity has been set up correctly.
-    if (this->data_affinity_type == AFFIUNKNOWN || this->data_affinity.get_data_affinity() == AFFIUNKNOWN) {
-        this->set_data_affinity(AFFISTRING);
-    }
+  // Upon calling this function, we should assume the Data affinity has been set
+  // up correctly.
+  if (this->data_affinity_type == AFFIUNKNOWN ||
+      this->data_affinity.get_data_affinity() == AFFIUNKNOWN) {
+    this->set_data_affinity(AFFISTRING);
+  }
 
-    this->set_str_val(this->data_affinity.get_mutated_literal());
-    this->float_val_ = 0.0;
-    this->int_val_ = 0;
-    if (this->op_) {
-        this->op_->prefix_ = "";
-        this->op_->suffix_ = "";
-        this->op_->middle_ = "";
-    }
-    if (this->get_left()) {
-        this->get_left()->deep_drop();
-        this->update_left(NULL);
-    }
-    if (this->get_right()) {
-        this->get_right()->deep_drop();
-        this->update_right(NULL);
-    }
+  this->set_str_val(this->data_affinity.get_mutated_literal());
+  this->float_val_ = 0.0;
+  this->int_val_ = 0;
+  if (this->op_) {
+    this->op_->prefix_ = "";
+    this->op_->suffix_ = "";
+    this->op_->middle_ = "";
+  }
+  if (this->get_left()) {
+    this->get_left()->deep_drop();
+    this->update_left(NULL);
+  }
+  if (this->get_right()) {
+    this->get_right()->deep_drop();
+    this->update_right(NULL);
+  }
 
-    return;
+  return;
 }

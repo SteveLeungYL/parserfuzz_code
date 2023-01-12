@@ -8,8 +8,6 @@
 #include <iostream>
 #include <vector>
 
-
-
 bool IRWrapper::is_in_subquery(IR *cur_stmt, IR *check_node,
                                bool output_debug) {
 
@@ -69,8 +67,6 @@ IR *IRWrapper::get_ir_node_for_stmt_with_idx(int idx) {
     return nullptr;
   }
   IR *cur_stmt_list = stmt_list_v[idx];
-  // cerr << "Debug: 136: cur_stmt_list type: " <<
-  // get_string_by_ir_type(cur_stmt_list->get_ir_type()) << "\n";
   IR *cur_stmt = get_stmt_ir_from_stmtlist(cur_stmt_list);
   return cur_stmt;
 }
@@ -232,7 +228,7 @@ IR *IRWrapper::get_last_stmtlist_from_root(IR *cur_root) {
 IR *IRWrapper::get_last_stmt_from_root() {
   IR *last_stmtlist = this->get_last_stmtlist_from_root();
   if (last_stmtlist == NULL) {
-    // cerr << "Getting empty last_stmtlist;\n";
+    // Getting empty last_stmtlist
     return NULL;
   }
 
@@ -294,9 +290,6 @@ bool IRWrapper::append_stmt_at_idx(string app_str, int idx,
     return false;
   }
 
-  // cerr << "Debug: 276: app_stmtlist type: " <<
-  // get_string_by_ir_type(app_stmtlist->get_ir_type()) << "\n";
-
   IR *app_IR_node = get_stmt_ir_from_stmtlist(app_stmtlist);
   if (!app_IR_node) {
     cerr << "Error: get_stmt_ir_from_stmtlist returns NULL. \n";
@@ -321,9 +314,6 @@ bool IRWrapper::append_stmt_at_end(string app_str, Mutator &g_mutator) {
     cerr << "Error: get_first_stmtlist_from_root returns NULL. \n";
     return false;
   }
-
-  // cerr << "Debug: 306: app_stmtmulti type: " <<
-  // get_string_by_ir_type(app_stmtmulti->get_ir_type()) << "\n";
 
   IR *app_IR_node = get_stmt_ir_from_stmtlist(app_stmtmulti);
   if (!app_IR_node) {
@@ -388,8 +378,6 @@ bool IRWrapper::append_stmt_at_idx(
             new_res)) { // swap_node only rewrite the parent of insert_pos_ir,
                         // it will not affect     insert_pos_ir.
       new_res->deep_drop();
-      // FATAL("Error: Swap node failure? In function:
-      // IRWrapper::append_stmt_at_idx. \n");
       std::cerr << "Error: Swap node failure? In function: "
                    "IRWrapper::append_stmt_at_idx. idx = "
                 << idx << "\n";
@@ -427,15 +415,10 @@ bool IRWrapper::remove_stmt_at_idx_and_free(unsigned idx) {
   }
 
   if (stmt_list_v.size() <= 1) {
-    // std::cerr << "Error: Cannot remove stmt becuase there is only one stmt
-    // left in the query. \n In function
-    // IRWrapper::remove_stmt_at_idx_and_free(). \n";
     return false;
   }
 
   IR *rov_stmt = stmt_list_v[idx];
-
-  // cerr << "Removing stmt: " << rov_stmt->to_string() << "\n";
 
   if (idx != 0 && idx < stmt_list_v.size()) {
     IR *parent_node = rov_stmt->get_parent();
@@ -465,26 +448,12 @@ vector<IR *> IRWrapper::get_stmt_ir_vec() {
       cerr << "Error: Found some stmtlist_vec == NULL. Return empty vector. \n";
       continue;
     }
-    // cerr << "Debug: 407: stmtlist_vec type: " <<
-    // get_string_by_ir_type(stmtlist_vec[i]->get_ir_type()) << "\n";
 
     IR *stmt_ir = get_stmt_ir_from_stmtlist(stmtlist_vec[i]);
     if (stmt_ir != NULL) {
       stmt_vec.push_back(stmt_ir);
     }
   }
-
-  // // DEBUG
-  // for (auto stmt : stmt_vec) {
-  //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_:
-  //     " << get_string_by_ir_type(stmt->type_) << "\n";
-  // }
-
-  // cerr << "In get_stmt_ir_vec: we have: \n";
-  // for (IR* stmt: stmt_vec) {
-  //     cerr << stmt->to_string() << "\n";
-  // }
-  // cerr << "get_stmt finished. \n";
 
   return stmt_vec;
 }
@@ -609,18 +578,12 @@ int IRWrapper::get_stmt_idx(IR *cur_stmt) {
 bool IRWrapper::replace_stmt_and_free(IR *old_stmt, IR *new_stmt) {
   int old_stmt_idx = this->get_stmt_idx(old_stmt);
   if (old_stmt_idx < 0) {
-    // cerr << "Error: old_stmt_idx < 0. Old_stmt_idx: " << old_stmt_idx << ".
-    // In func: IRWrapper::replace_stmt_and_free. \n";
     return false;
   }
   if (!this->remove_stmt_at_idx_and_free(old_stmt_idx)) {
-    // cerr << "Error: child function remove_stmt_at_idx_and_free returns error.
-    // In func: IRWrapper::replace_stmt_and_free. \n";
     return false;
   }
   if (!this->append_stmt_at_idx(new_stmt, old_stmt_idx - 1)) {
-    // cerr << "Error: child function append_stmt_after_idx returns error. In
-    // func: IRWrapper::replace_stmt_and_free. \n";
     return false;
   }
   return true;
@@ -641,8 +604,6 @@ bool IRWrapper::compare_ir_type(IRTYPE left, IRTYPE right) {
   if (cut_pos != -1) {
     right_str = right_str.substr(0, cut_pos);
   }
-
-  // cerr << "Debug: Comparing " << left_str << " " << right_str << "\n";
 
   if (left_str == right_str) {
     return true;
@@ -834,7 +795,6 @@ IR *IRWrapper::get_stmt_ir_from_stmtlist(IR *cur_stmtlist) {
              cur_stmtlist->get_left()->get_left()) {
     return cur_stmtlist->get_left()->get_left();
   } else {
-    // cerr << "Error: Cannot find specific stmt from kStmtmulti. \n";
     return NULL;
   }
 }
@@ -853,8 +813,6 @@ bool IRWrapper::is_ir_in(IR *sub_ir, IR *par_ir) {
 bool IRWrapper::is_ir_in(IR *sub_ir, IRTYPE par_type) {
 
   while (sub_ir) {
-    // cerr << "DEBUG: is_ir_in: looking at: " <<
-    // get_string_by_ir_type(sub_ir->get_ir_type()) << "\n";
     if (sub_ir->get_ir_type() == par_type) {
       return true;
     }
@@ -863,58 +821,57 @@ bool IRWrapper::is_ir_in(IR *sub_ir, IRTYPE par_type) {
   return false;
 }
 
-// Given current node, iterate through all its child node and see if it can find matches.
-// Return the matched, otherwise return NULL.
-void IRWrapper::iter_cur_node_with_handler(IR* cur_node, handler_t handler) {
-    // Recursive function.
-    // Depth first search.
-    if (cur_node == NULL || handler == NULL) {
-        return;
-    }
-
-    // Call the handler function to modify all the searched nodes.
-    handler(cur_node);
-
-    // Check its left and right child node.
-    if (cur_node->get_left()) {
-        iter_cur_node_with_handler(cur_node->get_left(), handler);
-    }
-
-    if (cur_node->get_right()) {
-        iter_cur_node_with_handler(cur_node->get_right(), handler);
-    }
-
+// Given current node, iterate through all its child node and see if it can find
+// matches. Return the matched, otherwise return NULL.
+void IRWrapper::iter_cur_node_with_handler(IR *cur_node, handler_t handler) {
+  // Recursive function.
+  // Depth first search.
+  if (cur_node == NULL || handler == NULL) {
     return;
+  }
+
+  // Call the handler function to modify all the searched nodes.
+  handler(cur_node);
+
+  // Check its left and right child node.
+  if (cur_node->get_left()) {
+    iter_cur_node_with_handler(cur_node->get_left(), handler);
+  }
+
+  if (cur_node->get_right()) {
+    iter_cur_node_with_handler(cur_node->get_right(), handler);
+  }
+
+  return;
 }
 
-vector<IR*> IRWrapper::get_expr_vec_from_expr_list(IR* expr_list) {
+vector<IR *> IRWrapper::get_expr_vec_from_expr_list(IR *expr_list) {
 
-    if (expr_list->get_ir_type() != TypeExprs) {
-        cerr << "ERROR: Not getting TypeExprs from get_expr_vec_from_expr_list, "
-                "getting: " << get_string_by_ir_type(expr_list->get_ir_type())
-        << "\n\n\n";
-        return {};
+  if (expr_list->get_ir_type() != TypeExprs) {
+    cerr << "ERROR: Not getting TypeExprs from get_expr_vec_from_expr_list, "
+            "getting: "
+         << get_string_by_ir_type(expr_list->get_ir_type()) << "\n\n\n";
+    return {};
+  }
+
+  vector<IR *> tmp_vec;
+  vector<IR *> res_vec;
+  IR *cur_expr_node = expr_list;
+
+  while (cur_expr_node && cur_expr_node->get_ir_type() == TypeExprs) {
+    tmp_vec.push_back(cur_expr_node);
+    cur_expr_node = cur_expr_node->get_left();
+  }
+
+  res_vec.push_back(cur_expr_node);
+
+  while (tmp_vec.size()) {
+    cur_expr_node = tmp_vec.back();
+    tmp_vec.pop_back();
+    if (cur_expr_node && cur_expr_node->get_right()) {
+      res_vec.push_back(cur_expr_node->get_right());
     }
+  }
 
-    vector<IR*> tmp_vec;
-    vector<IR*> res_vec;
-    IR* cur_expr_node = expr_list;
-
-    while(cur_expr_node && cur_expr_node->get_ir_type() == TypeExprs) {
-        tmp_vec.push_back(cur_expr_node);
-        cur_expr_node = cur_expr_node->get_left();
-    }
-
-    res_vec.push_back(cur_expr_node);
-
-    while (tmp_vec.size()) {
-        cur_expr_node = tmp_vec.back();
-        tmp_vec.pop_back();
-        if (cur_expr_node && cur_expr_node->get_right()) {
-          res_vec.push_back(cur_expr_node->get_right());
-        }
-    }
-
-    return res_vec;
-
+  return res_vec;
 }
