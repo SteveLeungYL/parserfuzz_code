@@ -3360,7 +3360,9 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
           cur_node->set_is_instantiated(true);
           cur_node->set_data_flag(ContextNoModi);
         });
-    ir_to_deep_drop.push_back(type_exprs_left_node);
+    if (type_exprs_left_node != nullptr) {
+      ir_to_deep_drop.push_back(type_exprs_left_node);
+    }
 
     IR *type_exprs_right_node = type_exprs_node->get_right();
     type_exprs_node->update_right(nullptr);
@@ -3370,7 +3372,9 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
           cur_node->set_is_instantiated(true);
           cur_node->set_data_flag(ContextNoModi);
         });
-    ir_to_deep_drop.push_back(type_exprs_right_node);
+    if (type_exprs_right_node != nullptr) {
+      ir_to_deep_drop.push_back(type_exprs_right_node);
+    }
     type_exprs_node->op_->middle_ = "";
 
     /* Reconstruct the new type expressions clause that matched the referenced
