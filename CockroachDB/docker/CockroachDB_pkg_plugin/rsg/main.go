@@ -8,13 +8,13 @@
 // by the Apache License, Version 2.0, included in the file
 // licenses/APL.txt.
 
-package rsg
+package main
 
+import "C"
 import (
 	"fmt"
 	"os"
 	"time"
-	"testing"
 	"strings"
 )
 
@@ -24,11 +24,11 @@ type TestCase struct {
 	repetitions int
 }
 
-func getRSG(t *testing.T, yaccExample []byte) *RSG {
+func getRSG(yaccExample []byte) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
 	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), false)
 	if err != nil {
-		t.Fatal(err)
+		os.Exit(1);
 	}
 	return r
 }
@@ -46,73 +46,47 @@ func generateSelect(r *RSG, tc TestCase) string {
 	return s
 }
 
-func TestGenerate(t *testing.T) {
-	tests := []TestCase {
-		{
-			root:        "select_stmt",
+//export Generate
+func Generate(genType string)  (*C.char, int) {
+	tc := TestCase {
+			root:        genType,
 			depth:       2000, // Increase from default 20 to 2000.
-			repetitions: 1000,
-		},
-	}
+			repetitions: 1,
+		}
 
 	yaccExample, err := os.ReadFile("./sql.y")
 	if err != nil {
-		t.Fatalf("error reading grammar: %v", err)
+		fmt.Printf("error reading grammar: %v", err)
+		os.Exit(1)
 	}
 
-	for _, tc := range tests {
-		t.Run(fmt.Sprintf("%s-%d-%d", tc.root, tc.depth, tc.repetitions), func(t *testing.T) {
-
-			if _, err := os.Stat("./generated_queries.log"); err == nil {
-				os.Remove("./generated_queries.log")
-                        }
-
-			f, err := os.OpenFile("./generated_queries.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				os.Exit(3);
-			}
-			defer f.Close();
-
-			r := getRSG(t, yaccExample)
-
-			out := make([]string, tc.repetitions)
-			i := 0
-			for i < tc.repetitions {
+			r := getRSG(yaccExample)
 
 				var s = ""
 				if !strings.Contains(tc.root, "select_stmt") {
-					fmt.Fprintf(f, "\nNORMAL stmt: \n")
 					s = generateNormal(r, tc)
 				} else {
-					fmt.Fprintf(f, "\nSELECT stmt: \n")
 					s = generateSelect(r, tc)
 				}
 
 				if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {
-					continue;
-					//return errors.New("transactions are unsupported")
+					return nil, 0
 				}
 				if strings.HasPrefix(s, "SET SESSION CHARACTERISTICS AS TRANSACTION") {
-					continue;
-					//return errors.New("setting session characteristics is unsupported")
+					return nil, 0
 				}
 				if strings.Contains(s, "READ ONLY") || strings.Contains(s, "read_only") {
-					continue;
-					//return errors.New("READ ONLY settings are unsupported")
+					return nil, 0
 				}
 				if strings.Contains(s, "REVOKE") || strings.Contains(s, "GRANT") {
-					continue;
-					//return errors.New("REVOKE and GRANT are unsupported")
+					return nil, 0
 				}
 				if strings.Contains(s, "EXPERIMENTAL SCRUB DATABASE SYSTEM") {
-					continue;
-					//return errors.New("See #43693")
+					return nil, 0
 				}
-				out[i] = s
-				fmt.Fprintf(f, "\nout[%d]: %v\n", i, s)
-				i += 1
-			}
-
-		})
+				return C.CString(s), len(s)
 	}
+
+
+func main() {
 }
