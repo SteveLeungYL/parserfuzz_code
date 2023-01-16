@@ -1,0 +1,26 @@
+load("//build/bazelutil/unused_checker:unused.bzl", "get_x_data")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "rsg",
+    srcs = ["rsg.go"],
+    importpath = "github.com/cockroachdb/cockroach/pkg/internal/rsg",
+    visibility = ["//pkg:__subpackages__"],
+    deps = [
+        "//pkg/internal/rsg/yacc",
+        "//pkg/sql/randgen",
+        "//pkg/sql/sem/tree",
+        "//pkg/sql/types",
+        "//pkg/util/syncutil",
+    ],
+)
+
+go_test(
+    name = "rsg_test",
+    size = "small",
+    srcs = ["rsg_test.go"],
+    args = ["-test.timeout=55s"],
+    embed = [":rsg"],
+)
+
+get_x_data(name = "get_x_data")
