@@ -128,8 +128,8 @@ WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/int
 RUN rm -rf ./*
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg/* ./
 RUN bash ./build.sh
-RUN mv ./rsg.h /home/cockroach/CockroachDB_pkg_plugin
-RUN mv ./rsg.so /home/cockroach/CockroachDB_pkg_plugin
+RUN mv ./rsg_helper.h /home/cockroach/CockroachDB_pkg_plugin
+RUN mv ./rsg_helper.so /home/cockroach/CockroachDB_pkg_plugin
 
 # -----------------------------------------------
 
@@ -220,8 +220,8 @@ USER cockroach
 WORKDIR /home/cockroach/src
 # Copy the built parser_helper.so
 RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.* ./parser/
-# Copy the built rsg.so
-RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg.* ./rsg/
+# Copy the built rsg_helper.so
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg_helper.* ./rsg/
 RUN make
 
 #
@@ -253,7 +253,7 @@ WORKDIR /home/cockroach/fuzzing/fuzz_root
 RUN mkdir -p parser
 RUN mkdir -p rsg
 RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.so ./parser/parser_helper.so
-RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg.so ./rsg/rsg.so
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg_helper.so ./rsg/rsg_helper.so
 
 # Final entry
 USER root

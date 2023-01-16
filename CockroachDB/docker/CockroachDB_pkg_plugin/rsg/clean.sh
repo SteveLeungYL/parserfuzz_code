@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm rsg.h rsg.so test_binary &> /dev/null
+rm ./rsg_helper.h ./rsg_helper.so ./test_binary &> /dev/null

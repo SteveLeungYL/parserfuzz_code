@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "rsg.h"
+#include "rsg_helper.h"
 
 using namespace std;
 
