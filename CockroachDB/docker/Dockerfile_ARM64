@@ -118,6 +118,18 @@ WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql
 RUN bash ./build.sh
 RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 
+# Clean up the parser_helper files.
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
+RUN git clean -xdf && git checkout .
+RUN make; exit 0
+
+# From the uninstrumented DBMS, we can also compile the RSG (Random Statement Generator)
+WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/internal/rsg/
+RUN rm -rf ./*
+RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg/* ./
+RUN bash ./build.sh
+RUN mv ./rsg.h /home/cockroach/CockroachDB_pkg_plugin
+RUN mv ./rsg.so /home/cockroach/CockroachDB_pkg_plugin
 
 # -----------------------------------------------
 
@@ -135,6 +147,7 @@ RUN make build; exit 0
 # Actual build. After the build, the cockroach binary should be in 
 # /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/cockroach
 RUN make build
+
 
 
 # Import the covtest unit test entry
@@ -205,8 +218,10 @@ RUN chown -R cockroach:cockroach /home/cockroach/src
 
 USER cockroach
 WORKDIR /home/cockroach/src
-# Copy the built parser .so
+# Copy the built parser_helper.so
 RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.* ./parser/
+# Copy the built rsg.so
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg.* ./rsg/
 RUN make
 
 #
@@ -236,7 +251,9 @@ RUN chown -R cockroach:cockroach /home/cockroach/scripts
 USER cockroach
 WORKDIR /home/cockroach/fuzzing/fuzz_root
 RUN mkdir -p parser
+RUN mkdir -p rsg
 RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.so ./parser/parser_helper.so
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg.so ./rsg/rsg.so
 
 # Final entry
 USER root
