@@ -18,6 +18,12 @@ import (
 	"strings"
 )
 
+type TestCase struct {
+	root        string
+	depth       int
+	repetitions int
+}
+
 func getRSG(t *testing.T, yaccExample []byte) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
 	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), false)
@@ -27,12 +33,21 @@ func getRSG(t *testing.T, yaccExample []byte) *RSG {
 	return r
 }
 
+func generateNormal(r *RSG, tc TestCase) string {
+	return r.Generate(tc.root, tc.depth)
+}
+
+func generateSelect(r *RSG, tc TestCase) string {
+	targets := r.Generate("target_list", 300)
+	where := r.Generate("where_clause", 300)
+	from := r.Generate("from_clause", 300)
+
+	s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
+	return s
+}
+
 func TestGenerate(t *testing.T) {
-	tests := []struct {
-		root        string
-		depth       int
-		repetitions int
-	}{
+	tests := []TestCase {
 		{
 			root:        "select_stmt",
 			depth:       2000, // Increase from default 20 to 2000.
@@ -63,7 +78,16 @@ func TestGenerate(t *testing.T) {
 			out := make([]string, tc.repetitions)
 			i := 0
 			for i < tc.repetitions {
-				s := r.Generate(tc.root, tc.depth)
+
+				var s = ""
+				if !strings.Contains(tc.root, "select_stmt") {
+					fmt.Fprintf(f, "\nNORMAL stmt: \n")
+					s = generateNormal(r, tc)
+				} else {
+					fmt.Fprintf(f, "\nSELECT stmt: \n")
+					s = generateSelect(r, tc)
+				}
+
 				if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {
 					continue;
 					//return errors.New("transactions are unsupported")
