@@ -40,9 +40,9 @@ func generateNormal(tc TestCase) string {
 }
 
 func generateSelect(tc TestCase) string {
-	targets := r.Generate("target_list", 300)
-	where := r.Generate("where_clause", 300)
-	from := r.Generate("from_clause", 300)
+	targets := r.Generate("target_list", 30)
+	where := r.Generate("where_clause", 30)
+	from := r.Generate("from_clause", 30)
 
 	s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
 	return s
@@ -59,7 +59,7 @@ func RSGInitialize() {
 
 	r = getRSG(yaccExample)
 
-    return
+	return
 
 }
 
@@ -84,7 +84,10 @@ func RSGQueryGenerate(genType string) (*C.char, int) {
 	if strings.HasPrefix(s, "SET SESSION CHARACTERISTICS AS TRANSACTION") {
 		return nil, 0
 	}
-	if strings.Contains(s, "READ ONLY") || strings.Contains(s, "read_only") {
+	if strings.Contains(s, "READ ONLY") {
+		strings.Replace(s, "READ ONLY", "READ WRITE", -1)
+	}
+	if strings.Contains(s, "read_only") {
 		return nil, 0
 	}
 	if strings.Contains(s, "REVOKE") || strings.Contains(s, "GRANT") {
@@ -93,6 +96,7 @@ func RSGQueryGenerate(genType string) (*C.char, int) {
 	if strings.Contains(s, "EXPERIMENTAL SCRUB DATABASE SYSTEM") {
 		return nil, 0
 	}
+
 	return C.CString(s), len(s)
 }
 

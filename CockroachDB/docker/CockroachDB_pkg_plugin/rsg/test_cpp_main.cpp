@@ -13,20 +13,25 @@ int main() {
 
     RSGInitialize();
 
-    auto gores = RSGQueryGenerate(genTypeInput);
+    for (int i = 0; i < 10; i++) {
 
-    if (gores.r0 == NULL || gores.r1 == 0) {
-      cout <<  "RSG Generate function returns NULL. RSG generation failed. \n";
+      auto gores = RSGQueryGenerate(genTypeInput);
+
+      if (gores.r0 == NULL || gores.r1 == 0) {
+        cerr <<  "RSG Generate function returns NULL. RSG generation failed. \n";
+        continue;
+      }
+
+      string res_str = "";
+      res_str.reserve(gores.r1+1);
+      for (int i = 0; i < gores.r1; i++) {
+          res_str += gores.r0[i];
+      }
+
+      free(gores.r0);
+
+      cout << "In c++ code: generated idx: " << i << ": \n" << res_str << "\n\n\n";
+
     }
-
-    string res_str = "";
-    res_str.reserve(gores.r1+1);
-    for (int i = 0; i < gores.r1; i++) {
-        res_str += gores.r0[i];
-    }
-
-    free(gores.r0);
-
-    cout << "In c++ code: generated \n" << res_str << "\n\n\n";
     return 0;
 }
