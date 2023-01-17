@@ -47,7 +47,7 @@ private:
     vector<string> v_enum_str;
 
     /* For various data types inside the Tuple.  */
-    vector<shared_ptr<DataAffinity>> v_tuple_types;
+    vector<shared_ptr<DataAffinity> > v_tuple_types;
 
     /* Helper functions. */
     bool is_str_collation (const string& str_in);
@@ -139,7 +139,7 @@ public:
     void set_v_enum_str(const vector<string>& in) {this->v_enum_str = in;}
     vector<string> get_v_enum_str() const {return this->v_enum_str;}
 
-    vector<shared_ptr<DataAffinity>> get_v_tuple_type() const {return this->v_tuple_types;}
+    vector<shared_ptr<DataAffinity> > get_v_tuple_type() const {return this->v_tuple_types;}
 
     void set_int_range(long long min, long long max) { this->int_min = min; this->int_max = max;}
     long long get_int_max() const {return this->int_max;}
@@ -174,7 +174,7 @@ public:
         }
     }
 
-    vector<shared_ptr<DataAffinity>> get_v_tuple_types() {
+    vector<shared_ptr<DataAffinity> > get_v_tuple_types() {
         return this->v_tuple_types;
     }
 

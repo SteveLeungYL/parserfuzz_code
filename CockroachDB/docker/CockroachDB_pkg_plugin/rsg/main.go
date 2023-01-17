@@ -46,8 +46,8 @@ func generateSelect(r *RSG, tc TestCase) string {
 	return s
 }
 
-//export Generate
-func Generate(genType string)  (*C.char, int) {
+//export RSGQueryGenerate
+func RSGQueryGenerate(genType string)  (*C.char, int) {
 	tc := TestCase {
 			root:        genType,
 			depth:       2000, // Increase from default 20 to 2000.

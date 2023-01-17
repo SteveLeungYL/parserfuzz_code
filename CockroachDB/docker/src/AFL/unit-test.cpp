@@ -1078,7 +1078,7 @@ bool unit_test_type_where_mismatch(bool is_show_debug = false) {
 int main(int argc, char *argv[]) {
 
   if (argc != 1) {
-    cout << "./unit_test_dyn_fix" << endl;
+    cout << "./unit_test" << endl;
     return -1;
   }
 

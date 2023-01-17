@@ -4,6 +4,9 @@ PARSER_SRCS := $(wildcard parser/*.cpp)
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
 COMM_OBJS += parser/parser_helper.so
+COMM_OBJS += rsg/rsg_helper.so
+
+RSGTEST_OBJS := rsg/rsg.o
 
 DEPEN_PATH  = ../src/*.cpp  
 
@@ -13,6 +16,7 @@ TMIN_OBJS:= AFL/afl-tmin.o $(COMM_OBJS)
 GEN_OBJS:= AFL/generate_inputs.o $(COMM_OBJS)
 SETTING_OBJS:= AFL/afl-setting-mutator.o $(COMM_OBJS)
 UNITTEST_OBJS:= AFL/unit-test.o $(COMM_OBJS)
+RSGTEST_OBJS += AFL/rsg-unit-test.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -24,12 +28,15 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl
 
 
-all: afl-fuzz test-parser generate_inputs afl-tmin afl-setting-mutator unit-test
+all: afl-fuzz test-parser generate_inputs afl-tmin afl-setting-mutator unit-test rsg-unit-test
 
 parser:
 	@$(MAKE) -C $@
 
-$(SUB_DIRS): parser
+rsg:
+	@$(MAKE) -C $@
+
+$(SUB_DIRS): parser rsg
 	@$(MAKE) -C $@
 
 afl-fuzz: $(SUB_DIRS)
@@ -50,6 +57,9 @@ afl-setting-mutator: $(SUB_DIRS)
 unit-test: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(UNITTEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 
+rsg-unit-test: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(RSGTEST_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+
 debug: DEBUG = -g
 debug: OPT = -O0
 debug:
@@ -61,11 +71,12 @@ asan: OPT = -O0
 asan:
 	$(MAKE) -e
 
-.PHONY: parser $(SUB_DIRS)
+.PHONY: parser rsg $(SUB_DIRS)
 
 clean:
 	@make clean -C parser
 	@make clean -C src
 	@make clean -C oracle
 	@make clean -C AFL
-	rm -rf afl-fuzz test-parser afl-tmin afl-setting-mutator generate_inputs unit-test
+	@make clean -C rsg
+	rm -rf afl-fuzz test-parser afl-tmin afl-setting-mutator generate_inputs unit-test rsg-unit-test

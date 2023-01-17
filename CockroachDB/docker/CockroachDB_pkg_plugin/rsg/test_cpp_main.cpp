@@ -11,7 +11,7 @@ int main() {
     // Convert the test string to GoString format.
     GoString genTypeInput = {genType.c_str(), long(genType.size())};
 
-    auto gores = Generate(genTypeInput);
+    auto gores = RSGQueryGenerate(genTypeInput);
 
     if (gores.r0 == NULL || gores.r1 == 0) {
       cout <<  "RSG Generate function returns NULL. RSG generation failed. \n";

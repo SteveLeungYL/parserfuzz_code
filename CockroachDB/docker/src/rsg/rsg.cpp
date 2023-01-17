@@ -2,7 +2,6 @@
 #include <cstdlib>
 
 #include "rsg_helper.h"
-#include "rsg.h"
 #include "../include/ast.h"
 
 using std::string;
@@ -19,9 +18,9 @@ string rsg_generate(const IRTYPE type) {
   GoString gostr_input = {input_str.c_str(), long(input_str.size())};
 
   // Actual Parsing.
-  Generate_return gores = Generate(gostr_input);
+  RSGQueryGenerate_return gores = RSGQueryGenerate(gostr_input);
   if (gores.r0 == NULL) {
-    return NULL;
+    return "";
   }
 
   // Extract the parsed JSON string. Free the char array memory.
