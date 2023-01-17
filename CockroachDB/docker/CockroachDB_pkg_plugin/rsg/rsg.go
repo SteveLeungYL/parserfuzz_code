@@ -92,6 +92,13 @@ func (r *RSG) generate(root string, depth int) []string {
 
 		tmpProd := prods[r.Intn(len(prods))]
 
+		if strings.Contains(tmpProd.Command, "unimplemented") && !strings.Contains(tmpProd.Command, "FORCE DOC") {
+			continue
+		}
+		if strings.Contains(tmpProd.Command, "SKIP DOC") {
+			continue
+		}
+
 		isError := false
 		for _, item := range tmpProd.Items {
 			if item.Value == "error" {
@@ -129,8 +136,7 @@ func (r *RSG) generate(root string, depth int) []string {
 			case "b_expr":
 				fallthrough
 			case "c_expr":
-				//fmt.Printf("\nGetting c_expr\n\n\n")
-				if depth > 30 {
+				if depth > 28 {
 					v = r.generate(item.Value, depth-1)
 				} else if depth > 0 {
 					v = r.generate("d_expr", depth-1)
@@ -142,8 +148,10 @@ func (r *RSG) generate(root string, depth int) []string {
 					v = []string{`'string'`}
 				}
 
+				//fmt.Printf("\nGetting abc_expr\n\n\n")
+
 			case "d_expr":
-				if depth > 10 {
+				if depth > 5 {
 					v = r.generate(item.Value, depth-1)
 				} else {
 					v = []string{`'string'`}
@@ -152,6 +160,8 @@ func (r *RSG) generate(root string, depth int) []string {
 				if v == nil {
 					v = []string{`'string'`}
 				}
+
+				//fmt.Printf("\nGetting d_expr\n\n\n")
 
 			case "SCONST":
 				v = []string{`'string'`}
