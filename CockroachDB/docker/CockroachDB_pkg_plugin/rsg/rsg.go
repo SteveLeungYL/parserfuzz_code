@@ -58,7 +58,6 @@ func NewRSG(seed int64, y string, allowDuplicates bool) (*RSG, error) {
 // goroutines. If Generate is called more times than it can generate unique
 // output, it will block forever.
 func (r *RSG) Generate(root string, depth int) string {
-	//fmt.Printf("Begin running on file. \n\n\n")
 	for i := 0; i < 100000; i++ {
 		s := strings.Join(r.generate(root, depth), " ")
 		if r.seen != nil {
@@ -73,7 +72,6 @@ func (r *RSG) Generate(root string, depth int) string {
 		if s != "" {
 			s = strings.Replace(s, "_LA", "", -1)
 			s = strings.Replace(s, " AS OF SYSTEM TIME \"string\"", "", -1)
-			//fmt.Printf("\nGenerate: %s\n\n\n", s)
 			return s
 		}
 	}
@@ -83,18 +81,41 @@ func (r *RSG) Generate(root string, depth int) string {
 func (r *RSG) generate(root string, depth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
-	//fmt.Printf("\ngenerate loop: %v, depth: %d\n\n\n", root, depth)
 	ret := make([]string, 0)
 	prods := r.prods[root]
 	if len(prods) == 0 {
 		return []string{root}
 	}
-	prod := prods[r.Intn(len(prods))]
+
+	var prod *yacc.ExpressionNode = nil
+	for idx := 0; idx < 10; idx++ {
+
+		tmpProd := prods[r.Intn(len(prods))]
+
+		isError := false
+		for _, item := range tmpProd.Items {
+			if item.Value == "error" {
+				//fmt.Printf("\n\n\nFinding error node from root: %s", root)
+				isError = true
+				break
+			}
+		}
+		if !isError {
+			prod = tmpProd
+			break
+		}
+
+		continue
+	}
+
+	if prod == nil {
+		return nil
+	}
+
 	for _, item := range prod.Items {
 		switch item.Typ {
 		case yacc.TypLiteral:
 			v := item.Value[1 : len(item.Value)-1]
-			//fmt.Printf("Getting TypLiteral: %s\n\n\n", v)
 			ret = append(ret, v)
 			continue
 		case yacc.TypToken:
@@ -117,10 +138,18 @@ func (r *RSG) generate(root string, depth int) []string {
 					v = []string{`'string'`}
 				}
 
+				if v == nil {
+					v = []string{`'string'`}
+				}
+
 			case "d_expr":
 				if depth > 10 {
 					v = r.generate(item.Value, depth-1)
 				} else {
+					v = []string{`'string'`}
+				}
+
+				if v == nil {
 					v = []string{`'string'`}
 				}
 
@@ -151,8 +180,7 @@ func (r *RSG) generate(root string, depth int) []string {
 			if v == nil {
 				//fmt.Printf("\n\nv == nil: Getting %s, depth %d\n", item.Value, depth)
 				//v = r.generate("ICONST", depth-1)
-				//return v
-				continue
+				return nil
 			}
 			ret = append(ret, v...)
 		default:
