@@ -59,7 +59,7 @@ func NewRSG(seed int64, y string, allowDuplicates bool) (*RSG, error) {
 // output, it will block forever.
 func (r *RSG) Generate(root string, depth int) string {
 	for i := 0; i < 100000; i++ {
-		s := strings.Join(r.generate(root, depth), " ")
+		s := strings.Join(r.generate(root, depth, depth), " ")
 		if r.seen != nil {
 			r.lock.Lock()
 			if !r.seen[s] {
@@ -78,7 +78,7 @@ func (r *RSG) Generate(root string, depth int) string {
 	panic("couldn't find unique string")
 }
 
-func (r *RSG) generate(root string, depth int) []string {
+func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 	// Initialize to an empty slice instead of nil because nil is the signal
 	// that the depth has been exceeded.
 	ret := make([]string, 0)
@@ -136,10 +136,11 @@ func (r *RSG) generate(root string, depth int) []string {
 			case "b_expr":
 				fallthrough
 			case "c_expr":
-				if depth > 28 {
-					v = r.generate(item.Value, depth-1)
+				if (rootDepth-3) > 0 &&
+					depth > (rootDepth-3) {
+					v = r.generate(item.Value, depth-1, rootDepth)
 				} else if depth > 0 {
-					v = r.generate("d_expr", depth-1)
+					v = r.generate("d_expr", depth-1, rootDepth)
 				} else {
 					v = []string{`'string'`}
 				}
@@ -151,8 +152,9 @@ func (r *RSG) generate(root string, depth int) []string {
 				//fmt.Printf("\nGetting abc_expr\n\n\n")
 
 			case "d_expr":
-				if depth > 5 {
-					v = r.generate(item.Value, depth-1)
+				if (rootDepth-5) > 0 &&
+					depth > (rootDepth-5) {
+					v = r.generate(item.Value, depth-1, rootDepth)
 				} else {
 					v = []string{`'string'`}
 				}
@@ -185,7 +187,7 @@ func (r *RSG) generate(root string, depth int) []string {
 					//v = r.generate("ICONST", depth-1)
 					return nil
 				}
-				v = r.generate(item.Value, depth-1)
+				v = r.generate(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
 				//fmt.Printf("\n\nv == nil: Getting %s, depth %d\n", item.Value, depth)
