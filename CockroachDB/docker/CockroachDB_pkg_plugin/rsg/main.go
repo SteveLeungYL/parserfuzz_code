@@ -14,9 +14,11 @@ import "C"
 import (
 	"fmt"
 	"os"
-	"time"
 	"strings"
+	"time"
 )
+
+var r *RSG
 
 type TestCase struct {
 	root        string
@@ -28,16 +30,16 @@ func getRSG(yaccExample []byte) *RSG {
 	// The Random number generation seed is set to UnixNano. Always different.
 	r, err := NewRSG(time.Now().UTC().UnixNano(), string(yaccExample), false)
 	if err != nil {
-		os.Exit(1);
+		os.Exit(1)
 	}
 	return r
 }
 
-func generateNormal(r *RSG, tc TestCase) string {
+func generateNormal(tc TestCase) string {
 	return r.Generate(tc.root, tc.depth)
 }
 
-func generateSelect(r *RSG, tc TestCase) string {
+func generateSelect(tc TestCase) string {
 	targets := r.Generate("target_list", 300)
 	where := r.Generate("where_clause", 300)
 	from := r.Generate("from_clause", 300)
@@ -46,13 +48,8 @@ func generateSelect(r *RSG, tc TestCase) string {
 	return s
 }
 
-//export RSGQueryGenerate
-func RSGQueryGenerate(genType string)  (*C.char, int) {
-	tc := TestCase {
-			root:        genType,
-			depth:       2000, // Increase from default 20 to 2000.
-			repetitions: 1,
-		}
+//export RSGInitialize
+func RSGInitialize() {
 
 	yaccExample, err := os.ReadFile("./sql.y")
 	if err != nil {
@@ -60,33 +57,43 @@ func RSGQueryGenerate(genType string)  (*C.char, int) {
 		os.Exit(1)
 	}
 
-			r := getRSG(yaccExample)
+	r = getRSG(yaccExample)
 
-				var s = ""
-				if !strings.Contains(tc.root, "select_stmt") {
-					s = generateNormal(r, tc)
-				} else {
-					s = generateSelect(r, tc)
-				}
+    return
 
-				if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {
-					return nil, 0
-				}
-				if strings.HasPrefix(s, "SET SESSION CHARACTERISTICS AS TRANSACTION") {
-					return nil, 0
-				}
-				if strings.Contains(s, "READ ONLY") || strings.Contains(s, "read_only") {
-					return nil, 0
-				}
-				if strings.Contains(s, "REVOKE") || strings.Contains(s, "GRANT") {
-					return nil, 0
-				}
-				if strings.Contains(s, "EXPERIMENTAL SCRUB DATABASE SYSTEM") {
-					return nil, 0
-				}
-				return C.CString(s), len(s)
+}
+
+//export RSGQueryGenerate
+func RSGQueryGenerate(genType string) (*C.char, int) {
+	tc := TestCase{
+		root:        genType,
+		depth:       2000, // Increase from default 20 to 2000.
+		repetitions: 1,
 	}
 
+	var s = ""
+	if !strings.Contains(tc.root, "select_stmt") {
+		s = generateNormal(tc)
+	} else {
+		s = generateSelect(tc)
+	}
 
-func main() {
+	if strings.HasPrefix(s, "BEGIN") || strings.HasPrefix(s, "START") {
+		return nil, 0
+	}
+	if strings.HasPrefix(s, "SET SESSION CHARACTERISTICS AS TRANSACTION") {
+		return nil, 0
+	}
+	if strings.Contains(s, "READ ONLY") || strings.Contains(s, "read_only") {
+		return nil, 0
+	}
+	if strings.Contains(s, "REVOKE") || strings.Contains(s, "GRANT") {
+		return nil, 0
+	}
+	if strings.Contains(s, "EXPERIMENTAL SCRUB DATABASE SYSTEM") {
+		return nil, 0
+	}
+	return C.CString(s), len(s)
 }
+
+func main() {}

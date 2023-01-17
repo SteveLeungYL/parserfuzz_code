@@ -7,6 +7,15 @@
 using std::string;
 
 /*
+ * Initialize the RSG structure. 
+ */
+
+void rsg_initialize() {
+    RSGInitialize();
+    return;
+}
+
+/*
  * From the RSG, generate one random query statement.
  */
 string rsg_generate(const IRTYPE type) {

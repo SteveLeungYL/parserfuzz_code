@@ -26,6 +26,8 @@ bool unit_test_rsg_behavior(bool is_debug_info) {
 
     int total_succeed = 0, total_exec = 0;
 
+    rsg_initialize();
+
     for (int i = 0; i < 100; i++) {
         total_exec++;
         
