@@ -184,8 +184,8 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 			default:
 				if depth == 0 {
 					//fmt.Printf("\n\nDepth reached: Getting %s, depth %d\n", item.Value, depth)
-					//v = r.generate("ICONST", depth-1)
-					return nil
+					v = r.generate(item.Value, depth-1, rootDepth)
+					//return nil
 				}
 				v = r.generate(item.Value, depth-1, rootDepth)
 			}

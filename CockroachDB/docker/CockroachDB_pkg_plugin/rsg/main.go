@@ -40,9 +40,9 @@ func generateNormal(tc TestCase) string {
 }
 
 func generateSelect(tc TestCase) string {
-	targets := r.Generate("target_list", 30)
-	where := r.Generate("where_clause", 30)
-	from := r.Generate("from_clause", 30)
+	targets := r.Generate("target_list", 10)
+	where := r.Generate("where_clause", 10)
+	from := r.Generate("from_clause", 10)
 
 	s := fmt.Sprintf("SELECT %s %s %s", targets, from, where)
 	return s
