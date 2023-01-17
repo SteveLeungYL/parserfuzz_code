@@ -255,6 +255,9 @@ RUN mkdir -p rsg
 RUN cp /home/cockroach/CockroachDB_pkg_plugin/parser_helper.so ./parser/parser_helper.so
 RUN cp /home/cockroach/CockroachDB_pkg_plugin/rsg_helper.so ./rsg/rsg_helper.so
 
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/sql.y /home/cockroach/src/sql.y
+RUN cp /home/cockroach/CockroachDB_pkg_plugin/sql.y /home/cockroach/fuzzing/fuzz_root
+
 # Final entry
 USER root
 WORKDIR /home/cockroach/fuzzing/fuzz_root
