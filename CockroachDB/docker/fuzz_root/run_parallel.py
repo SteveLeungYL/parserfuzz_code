@@ -62,12 +62,14 @@ for cur_inst_id in range(starting_core_id, starting_core_id + parallel_num, 1):
     # Copy everything to the working dir. 
     shutil.copy2("./afl-fuzz", os.path.join(cur_workdir, "afl-fuzz"))
     shutil.copy2("./covtest.test", os.path.join(cur_workdir, "covtest.test"))
+    shutil.copy2("./sql.y", os.path.join(cur_workdir, "sql.y"))
     shutil.copyfile("./function_type_lib.json", os.path.join(cur_workdir, "./function_type_lib.json"))
     shutil.copyfile("./set_session_variables.json", os.path.join(cur_workdir, "./set_session_variables.json"))
     shutil.copyfile("./storage_parameter.json", os.path.join(cur_workdir, "./storage_parameter.json"))
     shutil.copytree("./inputs", os.path.join(cur_workdir, "inputs"))
     shutil.copytree("./cockroach_initlib", os.path.join(cur_workdir, "./cockroach_initlib"))
     shutil.copytree("./parser", os.path.join(cur_workdir, "./parser"))
+    shutil.copytree("./rsg", os.path.join(cur_workdir, "./rsg"))
 
     cur_output_file = os.path.join(cur_workdir, "output.txt")
     cur_output_file = open(cur_output_file, "w")
