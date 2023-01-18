@@ -89,6 +89,8 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 
 	var prod *yacc.ExpressionNode = nil
 	for idx := 0; idx < 10; idx++ {
+		// Check whether the chosen prod contains unimplemented or error related
+		// rule. If yes, do not choose this path.
 
 		tmpProd := prods[r.Intn(len(prods))]
 
@@ -102,7 +104,6 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 		isError := false
 		for _, item := range tmpProd.Items {
 			if item.Value == "error" {
-				//fmt.Printf("\n\n\nFinding error node from root: %s", root)
 				isError = true
 				break
 			}
@@ -131,10 +132,16 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 			case "IDENT":
 				v = []string{"ident"}
 
-				//case "a_expr":
-				//fallthrough
-				//case "b_expr":
-				//fallthrough
+				// Skip through a_expr and b_expr. Seems changing a_expr and b_expr
+				// to d_expr would cause a lot of syntax errors.
+				/*
+				   //case "a_expr":
+				       //fallthrough
+				   //case "b_expr":
+				       //fallthrough
+				*/
+				// If the recursion reaches specific depth, do not expand on `c_expr`,
+				// directly refer to `d_expr`.
 			case "c_expr":
 				if (rootDepth-3) > 0 &&
 					depth > (rootDepth-3) {
@@ -149,8 +156,8 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 					v = []string{`'string'`}
 				}
 
-				//fmt.Printf("\nGetting abc_expr\n\n\n")
-
+			// If the recursion reaches specific depth, do not expand on `d_expr`,
+			// directly use string literals.
 			case "d_expr":
 				if (rootDepth-5) > 0 &&
 					depth > (rootDepth-5) {
@@ -162,8 +169,6 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 				if v == nil {
 					v = []string{`'string'`}
 				}
-
-				//fmt.Printf("\nGetting d_expr\n\n\n")
 
 			case "SCONST":
 				v = []string{`'string'`}
@@ -183,15 +188,11 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 				v = []string{"PLACING", `'string'`}
 			default:
 				if depth == 0 {
-					//fmt.Printf("\n\nDepth reached: Getting %s, depth %d\n", item.Value, depth)
-					//v = r.generate(item.Value, depth-1, rootDepth)
 					return nil
 				}
 				v = r.generate(item.Value, depth-1, rootDepth)
 			}
 			if v == nil {
-				//fmt.Printf("\n\nv == nil: Getting %s, depth %d\n", item.Value, depth)
-				//v = r.generate("ICONST", depth-1)
 				return nil
 			}
 			ret = append(ret, v...)

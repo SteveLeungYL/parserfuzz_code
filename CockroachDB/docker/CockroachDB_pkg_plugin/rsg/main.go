@@ -67,7 +67,7 @@ func RSGInitialize() {
 func RSGQueryGenerate(genType string) (*C.char, int) {
 	tc := TestCase{
 		root:        genType,
-		depth:       2000, // Increase from default 20 to 2000.
+		depth:       30, // Increase from default 20 to 30.
 		repetitions: 1,
 	}
 
