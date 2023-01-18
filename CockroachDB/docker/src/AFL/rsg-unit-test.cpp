@@ -31,7 +31,7 @@ bool unit_test_rsg_behavior(bool is_debug_info) {
     for (int i = 0; i < 100; i++) {
         total_exec++;
         
-        string tmp_query_str = rsg_generate();    
+        string tmp_query_str = rsg_generate(TypeSelect);
         if (is_debug_info) {
             cerr << "Getting origin query str: " << tmp_query_str << "\n";
         }

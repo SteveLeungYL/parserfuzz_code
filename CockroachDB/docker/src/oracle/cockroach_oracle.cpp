@@ -39,16 +39,12 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
   while (!is_success) {
 
     string ori_valid_select = "";
-    use_temp = g_mutator->get_valid_str_from_lib(ori_valid_select);
-
-    // cerr << "Inside the loop \n\n\n";
+    use_temp = g_mutator->get_select_str_from_lib(ori_valid_select);
 
     ir_tree.clear();
     ir_tree = g_mutator->parse_query_str_get_ir_set(ori_valid_select);
 
     if (ir_tree.size() == 0) {
-      // cerr << "Error: string: " << ori_valid_select << "parsing failed in
-      // Func: SQL_ORACLE::get_random_mutated_valid_stmt. \n\n\n";
       continue;
     }
 
@@ -80,20 +76,6 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
       }
     }
 
-    // cerr << "DEBUG: In get_random_mutated_select_stmt: getting
-    // ori_valid_select: \n" << ori_valid_select << " \nGetting cur_ir_stmt: \n"
-    // << cur_ir_stmt->to_string() << "\n\n\n\n";
-
-    // if (!g_mutator->check_node_num(root, 400)) {
-    //   /* The retrived norec stmt is too complicated to mutate, directly
-    //   return
-    //    * the retrived query. */
-    //   IR* returned_stmt_ir = cur_ir_stmt -> deep_copy();
-    //   root->deep_drop();
-    //   // cerr << "Directly return oracle select because it is too
-    //   complicated. \n"; return returned_stmt_ir;
-    // }
-
     /* If we are using a non template valid stmt from the p_oracle lib:
      *  2/3 of chances to return the stmt immediate without mutation.
      *  1/3 of chances to return with further mutation.
@@ -102,18 +84,12 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
     if (!use_temp && get_rand_int(3) < 2) {
       IR *returned_stmt_ir = cur_ir_stmt->deep_copy();
       root->deep_drop();
-      // cerr << "Successfully return original select: " << returned_stmt_ir <<
-      // "\n\n\n";
       return returned_stmt_ir;
     }
-
-    // cerr << "################################################\n";
 
     /* Restrict changes on the signiture norec select components. Could increase
      * mutation efficiency. */
     mark_all_valid_node(ir_tree.back());
-
-    // cout << "root: " << root->to_string()  << endl;
 
     IR* ori_extract_struct_deep_root = root->deep_copy();
     string ori_valid_select_struct = g_mutator->extract_struct_deep(ori_extract_struct_deep_root);
@@ -141,11 +117,9 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
         mutate_ir_node = ir_tree[get_rand_int(
             ir_tree.size() - 1)]; // Do not choose the program_root to mutate.
         if (mutate_ir_node == NULL) {
-          // cerr << "chosen mutate_ir_node is NULL\n\n\n";
           continue;
         }
         if (mutate_ir_node->is_node_struct_fixed) {
-          // cerr << "node strcut is fixed. \n\n\n";
           continue;
         }
         if (has_where_clause && !ir_wrapper.is_ir_in(mutate_ir_node, TypeWhere)) {
@@ -156,9 +130,6 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
             // Re-choose mutated IR node.
             continue;
           }
-        } else {
-//          cerr << "\n\n\nChoosing to mutate TypeWhere succeed. \n";
-//          cerr << "type: " << get_string_by_ir_type(mutate_ir_node->type_) << "\n\n\n";
         }
 
         is_mutate_ir_node_chosen = true;
@@ -168,51 +139,31 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
       if (!is_mutate_ir_node_chosen)
         break; // The current ir tree cannot even find the node to mutate.
                // Ignored and retrive new norec stmt from lib or from library.
-      // cout << "\n################################" << endl;
-      // cout << "before_strategy: " << root->to_string() << endl;
-      /* Pick random mutation methods. */
-      // cerr << "The chosen IR node type_: " << mutate_ir_node->type_ << "
-      // string: " << mutate_ir_node->to_string() << "\n\n\n";
       switch (get_rand_int(3)) {
-      // switch (1) {
       case 0: {
 
         new_mutated_ir_node = g_mutator->strategy_delete(mutate_ir_node);
-        // if (new_mutated_ir_node!=NULL)
-        //   cout << "strategy_delete: " << new_mutated_ir_node->to_string() <<
-        //   endl;
 
         break;
       }
       case 1: {
         new_mutated_ir_node = g_mutator->strategy_insert(mutate_ir_node);
-        // if (new_mutated_ir_node!=NULL)
-        //   cout << "strategy_insert: " << new_mutated_ir_node->to_string() <<
-        //   endl;
-
         break;
       }
       case 2: {
         new_mutated_ir_node = g_mutator->strategy_replace(mutate_ir_node);
-        // if (new_mutated_ir_node!=NULL)
-        //   cout << "strategy_replace: " << new_mutated_ir_node->to_string() <<
-        //   endl;
         break;
       }
       }
 
       if (new_mutated_ir_node == NULL) {
-        // cerr << "new_mutated_ir_node is NULL\n\n\n";
         continue;
       }
 
       if (!root->swap_node(mutate_ir_node, new_mutated_ir_node)) {
         new_mutated_ir_node->deep_drop();
-        // cerr << "swap node to new_mutated_ir_node failure. \n";
         continue;
       }
-      // cout << "mutated query: " <<  root->to_string() << "\n";
-      // cout << "################################" << endl;
 
       new_valid_select_str = root->to_string();
 
@@ -224,11 +175,8 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
       }
 
       root->swap_node(new_mutated_ir_node, mutate_ir_node);
-      // cout << "mutated query to_string(): "<<  new_valid_select_str <<
-      // "\n\n\n\n"; cout << "ori query: " << root->to_string() << endl;
       new_mutated_ir_node->deep_drop();
       if (new_valid_select_str == ori_valid_select) {
-        // cerr << "Mutated string is the same as before. \n";
         continue;
       }
 
@@ -237,31 +185,12 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
           g_mutator->parse_query_str_get_ir_set(new_valid_select_str);
 
       if (new_ir_verified.size() <= 0) {
-        // cerr << "new_ir_verified cannot pass the parser: ";
         continue;
       }
 
       // Make sure the mutated structure is different.
       IR *new_ir_verified_stmt =
           ir_wrapper.get_first_stmt_from_root(new_ir_verified.back());
-
-      // /* Debug outputs.  */
-      // cerr << "ori_valid_select_struct is: " << ori_valid_select_struct <<
-      // "\n"; cerr << "new_valid_select_struct is: " << new_valid_select_struct
-      // << "\n"; if (new_ir_verified_stmt) {
-      //   cerr << "Getting mutated query: " <<
-      //   new_ir_verified_stmt->to_string() << "\n";
-      // } else {
-      //   cerr << "Empty new_ir_verified_stmt. \n";
-      //   cerr << "The new_ir_verified.back() is: " << new_ir_verified.back()
-      //   << "\n";
-      // }
-      // cerr << "is_oracle_select_stmt: " <<
-      // is_oracle_select_stmt(new_ir_verified_stmt) << "\n";
-
-      // cerr << "Debug new_ir_verrified struct: ";
-      // g_mutator->debug(new_ir_verified.back(), 0);
-      // cerr << "\n\n\n\n\n\n";
 
       if (this->is_oracle_select_stmt(new_ir_verified_stmt) &&
           new_valid_select_struct != ori_valid_select_struct) {
@@ -273,14 +202,9 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
 
         IR *returned_stmt_ir = new_ir_verified_stmt->deep_copy();
         new_ir_verified.back()->deep_drop();
-        // cerr << "ori_valid_select is: " << ori_valid_select << "\n";
-        // cerr << "Successfully return: " << returned_stmt_ir->to_string() <<
-        // "\n\n\n";
         num_oracle_select_succeed++;
         return returned_stmt_ir;
       } else {
-        // cerr << "Mutated query is the same as before. Or mutation doesn't
-        // change the query. \n\n\n";
         new_ir_verified.back()->deep_drop();
       }
 
@@ -292,13 +216,9 @@ IR *SQL_ORACLE::get_random_mutated_select_stmt() {
      * Grab another norec select stmt from the lib or from the template, try
      * again.
      */
-    // cerr << "Mutation Failed. Failed to return Oracle SELECT in 100 trials.
-    // \n"
     root->deep_drop();
     root = NULL;
   }
-  // FATAL("Unexpected code execution in '%s'",
-  // "SQL_ORACLE::get_random_mutated_valid_stmt()");
   return nullptr;
 }
 
@@ -451,28 +371,24 @@ SemanticErrorType SQL_ORACLE::detect_semantic_error_type(string in_str) {
           findStringIn(in_str, "not type ")
           )
             ) {
-//          cerr << "\n\n\nType error message: " << in_str << "\n\n\n";
         return SemanticErrorType::ColumnTypeRelatedError;
     } else if (
             findStringIn(in_str, "ERROR: source") ||
             findStringIn(in_str, "pq: source") ||
             findStringIn(in_str, "pq: column")
     ) {
-//          cerr << "\n\n\nAlias error message: " << in_str << "\n\n\n";
         return SemanticErrorType::AliasRelatedError;
     } else if (
             findStringIn(in_str, "invalid syntax") ||
             findStringIn(in_str, "syntax error") ||
             findStringIn(in_str, "invalid syntax")
             ) {
-//          cerr << "\n\n\nInstan error message: " << in_str << "\n\n\n";
         return SemanticErrorType::SyntaxRelatedError;
     } else if (
             findStringIn(in_str, "Error") ||
             findStringIn(in_str, "ERROR") ||
             findStringIn(in_str, "pq: ")
             ) {
-//          cerr << "\n\n\nOther types error message: " << in_str << "\n\n\n";
         return SemanticErrorType::OtherUndefinedError;
     } else {
         return SemanticErrorType::NoSemanticError;
@@ -885,7 +801,7 @@ void SQL_ORACLE::init_operator_supported_types() {
   addType(AFFIBOOL, AFFISTRING, AFFISTRING);
   save("ILIKE");
 
-  // TODO:: Skip IN and IS NOT DISTINCT FROM for now. ADD back later.
+  // Skip IN and IS NOT DISTINCT FROM for now. ADD back later.
 
   addType(AFFIBOOL, AFFISTRING, AFFISTRING);
   save("LIKE");
@@ -905,7 +821,7 @@ void SQL_ORACLE::init_operator_supported_types() {
   addType(AFFIBIT, AFFIBIT, AFFIBIT);
   save("|");
 
-  // TODO:: Skip |/ because it is a unary operator.
+  // Skip |/ because it is a unary operator.
 
   addType(AFFIARRAYBOOL, AFFIBOOL, AFFIARRAYBOOL);
   addType(AFFISTRING, AFFIBOOL, AFFISTRING);
@@ -981,22 +897,12 @@ void SQL_ORACLE::init_operator_supported_types() {
   addType(AFFIBIT, AFFIBIT, AFFIBIT);
   save("||");
 
-  // TODO:: SKIP ||/ because it is a unary operator.
+  // SKIP ||/ because it is a unary operator.
 
   addType(AFFIBOOL, AFFISTRING, AFFISTRING);
   save("~*");
 
 #undef addType
 #undef save
-
-//  cerr << "\n\n\nDEBUG: Saving operator: \n";
-//  for (auto p = this->operator_supported_types_lib.begin(); p != this->operator_supported_types_lib.end(); p++) {
-//        cerr << "Looking at operator: " << p->first << "\n";
-//        for (auto pe = p->second.begin(); pe!= p->second.end(); pe++) {
-//          cerr << "ret: " << get_string_by_affinity_type(pe->ret) << ", left: "
-//          << get_string_by_affinity_type(pe->left) << ", right: " << get_string_by_affinity_type(pe->right) << "\n";
-//        }
-//        cerr << "\n\n\n";
-//  }
 
 }

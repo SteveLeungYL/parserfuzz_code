@@ -1,18 +1,19 @@
-#include <string>
 #include <cstdlib>
+#include <string>
 
-#include "rsg_helper.h"
 #include "../include/ast.h"
+#include "rsg.h"
+#include "rsg_helper.h"
 
 using std::string;
 
 /*
- * Initialize the RSG structure. 
+ * Initialize the RSG structure.
  */
 
 void rsg_initialize() {
-    RSGInitialize();
-    return;
+  RSGInitialize();
+  return;
 }
 
 /*
@@ -21,23 +22,35 @@ void rsg_initialize() {
 string rsg_generate(const IRTYPE type) {
 
   // Convert the test string to GoString format.
-
-  // TODO:: FOR DEBUGGING purpose.
-  string input_str = "select_stmt";
-  GoString gostr_input = {input_str.c_str(), long(input_str.size())};
-
-  // Actual Parsing.
-  RSGQueryGenerate_return gores = RSGQueryGenerate(gostr_input);
-  if (gores.r0 == NULL) {
-    return "";
+  // Only supporting TypeSelect and TypeStmt.
+  string input_str = "";
+  if (type == TypeSelect) {
+    input_str = "select_stmt";
+  } else {
+    input_str = "stmt";
   }
 
-  // Extract the parsed JSON string. Free the char array memory.
   string res_str = "";
-  for (int i = 0; i < gores.r1; i++) {
-    res_str += gores.r0[i];
-  }
-  free(gores.r0);
+  int gen_trial = 0;
+  const int gen_trial_max = 100;
+
+  do {
+
+    GoString gostr_input = {input_str.c_str(), long(input_str.size())};
+
+    // Actual Parsing.
+    RSGQueryGenerate_return gores = RSGQueryGenerate(gostr_input);
+    if (gores.r0 == NULL) {
+      return "";
+    }
+
+    // Extract the parsed JSON string. Free the char array memory.
+    for (int i = 0; i < gores.r1; i++) {
+      res_str += gores.r0[i];
+    }
+    free(gores.r0);
+
+  } while (res_str == "" && gen_trial++ < gen_trial_max);
 
   return res_str;
 }

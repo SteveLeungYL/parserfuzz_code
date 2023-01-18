@@ -1683,19 +1683,6 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
       }
     }
 
-    // TODO: FIXME: Create AS.
-    //        if (cur_stmt_root->get_ir_type() == TypeCreateTable &&
-    //            p_oracle->ir_wrapper.is_ir_in(ir_to_fix,
-    //            kTableLikeClause)) {
-    //
-    //            if (v_create_table_names_single.size() > 0) {
-    //              string newly_create_table_str =
-    //              v_create_table_names_single.front();
-    //              m_table2columns[newly_create_table_str] =
-    //              m_table2columns[ir_to_fix->get_str_val()];
-    //            }
-    //
-    //        }
   }
 
   else if (ir_to_fix->data_type_ == DataTableName &&
@@ -4798,8 +4785,8 @@ IR *Mutator::find_closest_node(IR *stmt_root, IR *node, DATATYPE type) {
 // added by vancir.
 
 // Return use_temp or not.
-bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
-  /* For 1/2 chance, grab one query from the norec library, and return.
+bool Mutator::get_select_str_from_lib(string &select_str) {
+  /* For 1/2 chance, grab one query from the SELECT library, and return.
    * For 1/2 chance, take the template from the p_oracle and return.
    */
   bool is_succeed = false;
@@ -4807,26 +4794,31 @@ bool Mutator::get_valid_str_from_lib(string &ori_norec_select) {
   while (!is_succeed) { // Potential dead loop. Only escape through return.
     bool use_temp = false;
     int query_method = get_rand_int(2);
-    if (all_valid_pstr_vec.size() > 0 && query_method < 1) {
+    if (all_valid_pstr_vec.size() > 0 && query_method == 0) {
       /* Pick the query from the lib, pass to the mutator. */
-      ori_norec_select =
+      select_str =
           *(all_valid_pstr_vec[get_rand_int(all_valid_pstr_vec.size())]);
 
-      if (ori_norec_select == "" ||
-          !p_oracle->is_oracle_select_stmt(ori_norec_select))
+      if (select_str == "" || !p_oracle->is_oracle_select_stmt(select_str))
         continue;
       use_temp = false;
     } else {
-      /* Pick the query from the template, pass to the mutator. */
-      ori_norec_select = p_oracle->get_template_select_stmts();
-      use_temp = true;
+      /* get on randomly generated query from the RSG module. */
+      select_str = this->rsg_generate_valid(TypeSelect);
+
+      if (select_str == "") {
+        // If RSG doesn't work, fall back to original template.
+        select_str = p_oracle->get_template_select_stmts();
+        use_temp = true;
+      }
     }
 
-    trim_string(ori_norec_select);
+    trim_string(select_str);
     return use_temp;
   }
+
   fprintf(stderr, "*** FATAL ERROR: Unexpected code execution in the "
-                  "Mutator::get_valid_str_from_lib function. \n");
+                  "Mutator::get_select_str_from_lib function. \n");
   fflush(stderr);
   abort();
 }
@@ -7676,4 +7668,19 @@ void Mutator::instan_replaced_node(IR *cur_stmt_root, IR *cur_node,
   }
 
   return;
+}
+
+string Mutator::rsg_generate_valid(const IRTYPE type) {
+
+  for (int i = 0; i < 100; i++) {
+    string tmp_query_str = rsg_generate(TypeSelect);
+    vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
+    ir_vec.back()->deep_drop();
+    if (ir_vec.size() != 0) {
+      return tmp_query_str;
+    }
+    ir_vec.clear();
+  }
+
+  return "";
 }

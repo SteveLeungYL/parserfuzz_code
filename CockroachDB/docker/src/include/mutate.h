@@ -5,6 +5,7 @@
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
+#include "../rsg/rsg.h"
 
 #include <map>
 #include <set>
@@ -39,7 +40,7 @@ enum DEF_ARG_TYPE {
 class Mutator {
 
 public:
-  Mutator() { srand(time(nullptr)); }
+  Mutator() { srand(time(nullptr)); rsg_initialize(); }
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);
@@ -137,12 +138,10 @@ public:
   ~Mutator();
   void debug(IR *root);
   void debug(IR *root, unsigned level);
-  // int try_fix(char *buf, int len, char *&new_buf, int &new_len);
 
   void add_ir_to_library_no_deepcopy(IR *);
 
-  // added by vancir
-  bool get_valid_str_from_lib(string &);
+  bool get_select_str_from_lib(string &);
   vector<IR *> parse_query_str_get_ir_set(string &query_str) const;
   bool check_node_num(IR *root, unsigned int limit);
   vector<IR *> extract_statement(IR *root);
@@ -354,6 +353,8 @@ public:
   static set<IR *> visited;
 
   void setup_arguments_for_run_target(char** in_argv, u32 exec_tmout_in) {this->argv_for_run_target = in_argv; this->exec_tmout_for_run_target = exec_tmout_in; }
+
+  string rsg_generate_valid(const IRTYPE type = TypeUnknown);
 
 private:
 
