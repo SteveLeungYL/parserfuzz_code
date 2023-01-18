@@ -1509,7 +1509,9 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
                                 bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
+      ) {
     return;
   }
 
@@ -1796,6 +1798,10 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
    * The Alias name will be saved into the
    */
 
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+      return;
+  }
+
   if (ir_to_fix->data_type_ == DataTableAliasName) {
 
     ir_to_fix->set_is_instantiated(true);
@@ -1924,7 +1930,9 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 void Mutator::instan_view_name(IR *ir_to_fix, bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
+      ) {
     return;
   }
 
@@ -2240,7 +2248,9 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
                                  bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams)) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
+      ) {
     return;
   }
 
@@ -2799,6 +2809,10 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
                                        vector<IR *> &ir_to_deep_drop,
                                        bool is_debug_info) {
 
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+      return;
+  }
+
   if (ir_to_fix->data_type_ == DataColumnAliasName) {
 
     if (is_debug_info) {
@@ -3042,6 +3056,10 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 }
 
 void Mutator::instan_sql_type_name(IR *ir_to_fix, bool is_debug_info) {
+
+  if(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+      return;
+  }
 
   IRTYPE type = ir_to_fix->get_ir_type();
   DATATYPE data_type = ir_to_fix->get_data_type();
@@ -3292,7 +3310,9 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
                              bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar)) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
+      ) {
     /*
      * Should not change any literals inside the TypeOptStorageParams and
      * TypeSetVar clause. These literals are for Storage Parameters (Storage
