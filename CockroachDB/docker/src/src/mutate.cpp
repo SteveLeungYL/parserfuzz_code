@@ -7673,13 +7673,13 @@ void Mutator::instan_replaced_node(IR *cur_stmt_root, IR *cur_node,
 string Mutator::rsg_generate_valid(const IRTYPE type) {
 
   for (int i = 0; i < 100; i++) {
-    string tmp_query_str = rsg_generate(TypeSelect);
+    string tmp_query_str = rsg_generate(type);
     vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
-    ir_vec.back()->deep_drop();
-    if (ir_vec.size() != 0) {
-      return tmp_query_str;
+    if (ir_vec.size() == 0) {
+        continue;
     }
-    ir_vec.clear();
+    ir_vec.back()->deep_drop();
+    return tmp_query_str;
   }
 
   return "";
