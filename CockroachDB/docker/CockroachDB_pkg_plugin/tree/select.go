@@ -1232,8 +1232,9 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 		prefix += "{"
 		var rootIR *SQLRightIR
 
+		sep := ""
+
 		if node.Index != "" || node.IndexID != 0 {
-			prefix += ", "
 
 			tmpPrefix := "FORCE_INDEX="
 			var indexNode *SQLRightIR
@@ -1275,6 +1276,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 			}
 
 			var directionNode *SQLRightIR
+			infix := ""
 			if node.Direction != 0 {
 				directionStr := fmt.Sprintf("%s", node.Direction)
 				tmpDirectionNode := &SQLRightIR{
@@ -1289,6 +1291,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 					Str:    directionStr,
 				}
 				directionNode = tmpDirectionNode
+				infix = ", "
 			}
 
 			rootIR = &SQLRightIR{
@@ -1297,27 +1300,25 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    indexNode,
 				RNode:    directionNode,
 				Prefix:   tmpPrefix,
+				Infix:    infix,
+				Suffix:   "",
+				Depth:    depth,
+			}
+
+			rootIR = &SQLRightIR{
+				IRType:   TypeUnknown,
+				DataType: DataNone,
+				LNode:    rootIR,
+				Prefix:   "",
 				Infix:    "",
 				Suffix:   "",
 				Depth:    depth,
 			}
 
-			// Use the prefix. '{,'
-			rootIR = &SQLRightIR{
-				IRType:   TypeUnknown,
-				DataType: DataNone,
-				LNode:    rootIR,
-				//RNode:    directionNode,
-				Prefix: prefix,
-				Infix:  "",
-				Suffix: "",
-				Depth:  depth,
-			}
-			prefix = ""
+			sep = ", "
 		}
 
 		if node.NoIndexJoin {
-			infix := ", "
 			indexFlagNode := &SQLRightIR{
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
@@ -1334,14 +1335,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    indexFlagNode,
 				Prefix:   "",
-				Infix:    infix,
+				Infix:    sep,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			sep = ", "
 		}
 
 		if node.NoZigzagJoin {
-			infix := ", "
 			indexFlagNode := &SQLRightIR{
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
@@ -1358,14 +1359,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    indexFlagNode,
 				Prefix:   "",
-				Infix:    infix,
+				Infix:    sep,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			sep = ", "
 		}
 
 		if node.NoFullScan {
-			infix := ", "
 			indexFlagNode := &SQLRightIR{
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
@@ -1382,14 +1383,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    indexFlagNode,
 				Prefix:   "",
-				Infix:    infix,
+				Infix:    sep,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			sep = ", "
 		}
 
 		if node.IgnoreForeignKeys {
-			infix := ", "
 			indexFlagNode := &SQLRightIR{
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
@@ -1406,14 +1407,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    indexFlagNode,
 				Prefix:   "",
-				Infix:    infix,
+				Infix:    sep,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			sep = ", "
 		}
 
 		if node.IgnoreUniqueWithoutIndexKeys {
-			infix := ", "
 			indexFlagNode := &SQLRightIR{
 				IRType:   TypeIndexFlag,
 				DataType: DataNone,
@@ -1430,14 +1431,14 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    indexFlagNode,
 				Prefix:   "",
-				Infix:    infix,
+				Infix:    sep,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			sep = ", "
 		}
 
 		if node.ForceZigzag || len(node.ZigzagIndexes) > 0 || len(node.ZigzagIndexIDs) > 0 {
-			infix := ", "
 			if node.ForceZigzag {
 				indexFlagNode := &SQLRightIR{
 					IRType:   TypeIndexFlag,
@@ -1455,13 +1456,12 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 					LNode:    rootIR,
 					RNode:    indexFlagNode,
 					Prefix:   "",
-					Infix:    infix,
+					Infix:    sep,
 					Suffix:   "",
 					Depth:    depth,
 				}
 			} else {
-				//needSep := false
-				infix = ", "
+				infix := ""
 				for _, name := range node.ZigzagIndexes {
 					indexName := name.String()
 					indexNameNode := &SQLRightIR{
@@ -1494,8 +1494,10 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 						Suffix:   "",
 						Depth:    depth,
 					}
-					//needSep = true
+					infix = ", "
 				}
+
+				infix = ""
 				for _, id := range node.ZigzagIndexIDs {
 
 					intLiteral := &SQLRightIR{
@@ -1528,10 +1530,12 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 						Suffix:   "",
 						Depth:    depth,
 					}
+					infix = ", "
 				}
 			}
 		}
 
+		rootIR.Prefix = prefix
 		rootIR.Suffix = "}"
 		rootIR.IRType = TypeIndexFlags
 		return rootIR

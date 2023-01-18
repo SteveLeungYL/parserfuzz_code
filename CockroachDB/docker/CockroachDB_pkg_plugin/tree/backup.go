@@ -426,12 +426,12 @@ func (node *KVOption) LogCurrentNode(depth int) *SQLRightIR {
 	}
 	LNode := tmpNode
 
-    var RNode *SQLRightIR = nil
-    infix := ""
-    if node.Value != nil {
-        RNode = node.Value.LogCurrentNode(depth + 1)
-        infix = " = "
-    }
+	var RNode *SQLRightIR = nil
+	infix := ""
+	if node.Value != nil {
+		RNode = node.Value.LogCurrentNode(depth + 1)
+		infix = " = "
+	}
 	rootIR := &SQLRightIR{
 		IRType:   TypeKVOption,
 		DataType: node.DataType,
