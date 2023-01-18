@@ -1461,7 +1461,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 					Depth:    depth,
 				}
 			} else {
-				infix := ""
+				infix := sep
 				for _, name := range node.ZigzagIndexes {
 					indexName := name.String()
 					indexNameNode := &SQLRightIR{
@@ -1497,7 +1497,7 @@ func (node *IndexFlags) LogCurrentNode(depth int) *SQLRightIR {
 					infix = ", "
 				}
 
-				infix = ""
+				infix = sep
 				for _, id := range node.ZigzagIndexIDs {
 
 					intLiteral := &SQLRightIR{
