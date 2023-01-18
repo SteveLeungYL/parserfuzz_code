@@ -131,10 +131,10 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 			case "IDENT":
 				v = []string{"ident"}
 
-			case "a_expr":
-				fallthrough
-			case "b_expr":
-				fallthrough
+				//case "a_expr":
+				//fallthrough
+				//case "b_expr":
+				//fallthrough
 			case "c_expr":
 				if (rootDepth-3) > 0 &&
 					depth > (rootDepth-3) {
@@ -184,8 +184,8 @@ func (r *RSG) generate(root string, depth int, rootDepth int) []string {
 			default:
 				if depth == 0 {
 					//fmt.Printf("\n\nDepth reached: Getting %s, depth %d\n", item.Value, depth)
-					v = r.generate(item.Value, depth-1, rootDepth)
-					//return nil
+					//v = r.generate(item.Value, depth-1, rootDepth)
+					return nil
 				}
 				v = r.generate(item.Value, depth-1, rootDepth)
 			}
