@@ -288,14 +288,20 @@ func (node *Execute) LogCurrentNode(depth int) *SQLRightIR {
 		}
 	}
 
+	infix := ""
+	suffix := ""
+	if curParamListRoot != nil {
+		infix = "("
+		suffix = ")"
+	}
 	rootIR = &SQLRightIR{
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    rootIR,
 		RNode:    curParamListRoot,
 		Prefix:   "",
-		Infix:    "(",
-		Suffix:   ")",
+		Infix:    infix,
+		Suffix:   suffix,
 		Depth:    depth,
 	}
 
