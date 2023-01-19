@@ -145,6 +145,9 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
 }
 
 vector<IR *> Mutator::mutate_stmtlist(IR *root) {
+
+  // Mutate on TypeStmtlist node. Only do strategy_insert and strategy_delete.
+
   IR *cur_root = nullptr;
   vector<IR *> res_vec;
 
@@ -169,7 +172,22 @@ vector<IR *> Mutator::mutate_stmtlist(IR *root) {
   /* Get new insert statement. However, do not insert kSelectStatement */
   IR *new_stmt_ir = NULL;
   while (new_stmt_ir == NULL) {
-    new_stmt_ir = get_from_libary_with_type(TypeStmt);
+    if (!disable_rsg_generator && get_rand_int(2)) {
+      // For 1/2 chance, insert one new stmt from RSG.
+      string tmp_stmt_str = rsg_generate_valid(TypeStmt);
+      vector<IR *> v_tmp_ir = this->parse_query_str_get_ir_set(tmp_stmt_str);
+      if (v_tmp_ir.size() == 0) {
+        new_stmt_ir = nullptr;
+        continue;
+      } else {
+        IR *tmp_root = v_tmp_ir.back();
+        new_stmt_ir = p_oracle->ir_wrapper.get_first_stmt_from_root(tmp_root);
+        tmp_root->detach_node(new_stmt_ir);
+        tmp_root->deep_drop();
+      }
+    } else {
+      new_stmt_ir = get_from_libary_with_type(TypeStmt);
+    }
     if (new_stmt_ir == nullptr || new_stmt_ir->left_ == nullptr) {
       // kStmt is empty
       cur_root->deep_drop();
@@ -1510,8 +1528,7 @@ void Mutator::instan_table_name(IR *ir_to_fix, bool &is_replace_table,
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
-      ) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
     return;
   }
 
@@ -1799,7 +1816,7 @@ void Mutator::instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
    */
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
-      return;
+    return;
   }
 
   if (ir_to_fix->data_type_ == DataTableAliasName) {
@@ -1931,8 +1948,7 @@ void Mutator::instan_view_name(IR *ir_to_fix, bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
-      ) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
     return;
   }
 
@@ -2249,8 +2265,7 @@ void Mutator::instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeStorageParams) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
-      ) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
     return;
   }
 
@@ -2810,7 +2825,7 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
                                        bool is_debug_info) {
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
-      return;
+    return;
   }
 
   if (ir_to_fix->data_type_ == DataColumnAliasName) {
@@ -3057,8 +3072,8 @@ void Mutator::instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
 
 void Mutator::instan_sql_type_name(IR *ir_to_fix, bool is_debug_info) {
 
-  if(p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
-      return;
+  if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
+    return;
   }
 
   IRTYPE type = ir_to_fix->get_ir_type();
@@ -3311,8 +3326,7 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
 
   if (p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeOptStorageParams) ||
       p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeSetVar) ||
-      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)
-      ) {
+      p_oracle->ir_wrapper.is_ir_in(ir_to_fix, TypeIndexFlags)) {
     /*
      * Should not change any literals inside the TypeOptStorageParams and
      * TypeSetVar clause. These literals are for Storage Parameters (Storage
@@ -3639,26 +3653,25 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
            << "\n whole stmt: " << cur_stmt_root->to_string() << "\n\n\n";
     }
 
-    // Do not change the Data Affinity type for IS / IS NOT `TRUE/FALSE`. 
-    if (
-            ir_to_fix->get_ir_type() == TypeDBool &&
+    // Do not change the Data Affinity type for IS / IS NOT `TRUE/FALSE`.
+    if (ir_to_fix->get_ir_type() == TypeDBool &&
             ir_to_fix->get_parent() != nullptr &&
             ir_to_fix->get_parent()->get_parent() != nullptr &&
-            ir_to_fix->get_parent()->get_parent()->get_ir_type() == TypeBinExprFmtWithParen &&
+            ir_to_fix->get_parent()->get_parent()->get_ir_type() ==
+                TypeBinExprFmtWithParen &&
             ir_to_fix->get_parent()->get_parent()->get_middle() == " IS " ||
-            ir_to_fix->get_parent()->get_parent()->get_middle() == " IS NOT "
-        ) {
-        if (is_debug_info) {
-            cerr << "\n\n\nDebug: Instantiate Boolean in IS or IS NOT statement. \n\n\n";
-        }
-        if(get_rand_int(2)) {
-            ir_to_fix->set_str_val("TRUE");
-        } else {
-            ir_to_fix->set_str_val("FALSE");
-        }
-        return;
+        ir_to_fix->get_parent()->get_parent()->get_middle() == " IS NOT ") {
+      if (is_debug_info) {
+        cerr << "\n\n\nDebug: Instantiate Boolean in IS or IS NOT statement. "
+                "\n\n\n";
+      }
+      if (get_rand_int(2)) {
+        ir_to_fix->set_str_val("TRUE");
+      } else {
+        ir_to_fix->set_str_val("FALSE");
+      }
+      return;
     }
-
 
     // If the literal already has fixed data affinity type, skip the
     // mutation.
@@ -4845,7 +4858,9 @@ bool Mutator::get_select_str_from_lib(string &select_str) {
       use_temp = false;
     } else {
       /* get on randomly generated query from the RSG module. */
-      select_str = this->rsg_generate_valid(TypeSelect);
+      if (!disable_rsg_generator) {
+        select_str = this->rsg_generate_valid(TypeSelect);
+      }
 
       if (select_str == "") {
         // If RSG doesn't work, fall back to original template.
@@ -4934,6 +4949,10 @@ vector<IR *> Mutator::extract_statement(IR *root) {
 void Mutator::set_dump_library(bool to_dump) { this->dump_library = to_dump; }
 void Mutator::set_disable_dyn_instan(bool dis_dyn) {
   this->disable_dyn_instan = dis_dyn;
+}
+
+void Mutator::set_disable_rsg_generator(bool in) {
+  this->disable_rsg_generator = in;
 }
 
 int Mutator::get_ir_libary_2D_hash_kStatement_size() {
@@ -7717,7 +7736,7 @@ string Mutator::rsg_generate_valid(const IRTYPE type) {
     string tmp_query_str = rsg_generate(type);
     vector<IR *> ir_vec = this->parse_query_str_get_ir_set(tmp_query_str);
     if (ir_vec.size() == 0) {
-        continue;
+      continue;
     }
     ir_vec.back()->deep_drop();
     return tmp_query_str;

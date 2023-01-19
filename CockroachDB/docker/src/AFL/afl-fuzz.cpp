@@ -204,31 +204,34 @@ static u32 stats_update_freq = 1; /* Stats update frequency (execs)   */
 
 EXP_ST u8 skip_deterministic, /* Skip deterministic stages?       */
     dump_library = 0,         /* Dump squirrel libraries          */
-    disable_dyn_instan = 0,   /* Dump squirrel libraries          */
-    force_deterministic,      /* Force deterministic stages?      */
-    use_splicing,             /* Recombine input files?           */
-    dumb_mode,                /* Run in non-instrumented mode?    */
-    score_changed,            /* Scoring for favorites changed?   */
-    kill_signal,              /* Signal that killed the child     */
-    resuming_fuzz,            /* Resuming an older fuzzing job?   */
-    timeout_given,            /* Specific timeout given?          */
-    not_on_tty,               /* stdout is not a tty              */
-    term_too_small,           /* terminal dimensions too small    */
-    uses_asan,                /* Target uses ASAN?                */
-    no_forkserver,            /* Disable forkserver?              */
-    crash_mode,               /* Crash mode! Yeah!                */
-    in_place_resume,          /* Attempt in-place resume?         */
-    auto_changed,             /* Auto-generated tokens changed?   */
-    no_cpu_meter_red,         /* Feng shui on the status screen   */
-    no_arith,                 /* Skip most arithmetic ops         */
-    shuffle_queue,            /* Shuffle input queue?             */
-    bitmap_changed = 1,       /* Time to update bitmap?           */
-    qemu_mode,                /* Running in QEMU mode?            */
-    skip_requested,           /* Skip request, via SIGUSR1        */
-    run_over10m,              /* Run time over 10 minutes?        */
-    persistent_mode,          /* Running in persistent mode?      */
-    deferred_mode,            /* Deferred forkserver mode?        */
-    fast_cal;                 /* Try to calibrate faster?         */
+    disable_dyn_instan =
+        0, /* Disable Dynamic Instantiation based on error messages.          */
+    disable_rsg_generator =
+        0, /* Dump use RSG to generate new SQL statements          */
+    force_deterministic, /* Force deterministic stages?      */
+    use_splicing,        /* Recombine input files?           */
+    dumb_mode,           /* Run in non-instrumented mode?    */
+    score_changed,       /* Scoring for favorites changed?   */
+    kill_signal,         /* Signal that killed the child     */
+    resuming_fuzz,       /* Resuming an older fuzzing job?   */
+    timeout_given,       /* Specific timeout given?          */
+    not_on_tty,          /* stdout is not a tty              */
+    term_too_small,      /* terminal dimensions too small    */
+    uses_asan,           /* Target uses ASAN?                */
+    no_forkserver,       /* Disable forkserver?              */
+    crash_mode,          /* Crash mode! Yeah!                */
+    in_place_resume,     /* Attempt in-place resume?         */
+    auto_changed,        /* Auto-generated tokens changed?   */
+    no_cpu_meter_red,    /* Feng shui on the status screen   */
+    no_arith,            /* Skip most arithmetic ops         */
+    shuffle_queue,       /* Shuffle input queue?             */
+    bitmap_changed = 1,  /* Time to update bitmap?           */
+    qemu_mode,           /* Running in QEMU mode?            */
+    skip_requested,      /* Skip request, via SIGUSR1        */
+    run_over10m,         /* Run time over 10 minutes?        */
+    persistent_mode,     /* Running in persistent mode?      */
+    deferred_mode,       /* Deferred forkserver mode?        */
+    fast_cal;            /* Try to calibrate faster?         */
 
 EXP_ST u8 disable_coverage_feedback = 0;
 /* 0: not disabled,
@@ -7549,6 +7552,7 @@ int main(int argc, char **argv) {
   p_oracle = nullptr;
   dump_library = 0;
   disable_dyn_instan = false;
+  disable_rsg_generator = false;
 
   s32 opt;
   u64 prev_queued = 0;
@@ -7569,7 +7573,8 @@ int main(int argc, char **argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:X")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:XR")) >
+         0)
 
     switch (opt) {
     case 'l': /* initial input list */
@@ -7728,6 +7733,12 @@ int main(int argc, char **argv) {
               "\033[0m \n\n\n";
     } break;
 
+    case 'R': {
+      disable_rsg_generator = true;
+      cout << "\033[1;31m Warning: Disabling RSG (Random Statement Generator). "
+              "\033[0m \n\n\n";
+    } break;
+
     case 'd': /* skip deterministic */
 
       if (skip_deterministic)
@@ -7839,6 +7850,7 @@ int main(int argc, char **argv) {
 
   g_mutator.set_dump_library(dump_library);
   g_mutator.set_disable_dyn_instan(disable_dyn_instan);
+  g_mutator.set_disable_rsg_generator(disable_rsg_generator);
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);

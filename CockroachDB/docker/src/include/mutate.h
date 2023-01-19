@@ -2,10 +2,10 @@
 #define __MUTATOR_H__
 
 #include "../AFL/types.h"
+#include "../rsg/rsg.h"
 #include "ast.h"
 #include "define.h"
 #include "utils.h"
-#include "../rsg/rsg.h"
 
 #include <map>
 #include <set>
@@ -40,7 +40,10 @@ enum DEF_ARG_TYPE {
 class Mutator {
 
 public:
-  Mutator() { srand(time(nullptr)); rsg_initialize(); }
+  Mutator() {
+    srand(time(nullptr));
+    rsg_initialize();
+  }
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);
@@ -48,9 +51,10 @@ public:
 
   IR *ir_random_generator(vector<IR *> v_ir_collector);
 
-  IR* constr_rand_set_stmt();
-  IR* constr_rand_storage_param(int param_num = 3);
-  IR* constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi, bool is_debug_info = false);
+  IR *constr_rand_set_stmt();
+  IR *constr_rand_storage_param(int param_num = 3);
+  IR *constr_rand_func_with_affinity(DATAAFFINITYTYPE in_affi,
+                                     bool is_debug_info = false);
 
   vector<IR *> mutate_all(IR *ori_ir_root, IR *ir_to_mutate,
                           u64 &total_mutate_failed, u64 &total_mutate_num);
@@ -67,8 +71,7 @@ public:
 
   void init(string f_testcase = "", string f_common_string = "",
             string file2d = "", string file1d = "", string f_gen_type = "",
-            u8 (*run_target)(char **, u32, string,
-                                     int, string&) = NULL);
+            u8 (*run_target)(char **, u32, string, int, string &) = NULL);
   void init_library();
 
   inline void init_value_library();
@@ -108,9 +111,9 @@ public:
                                 set<IRTYPE> &split_set);
   bool connect_back(map<IR *, pair<bool, IR *>> &m_save);
 
-  void instan_preprocessing(IR *stmt_root, vector<IR *> &ordered_all_subquery_ir);
-  string find_cloest_table_name(IR* ir_to_fix, bool is_debug_info);
-
+  void instan_preprocessing(IR *stmt_root,
+                            vector<IR *> &ordered_all_subquery_ir);
+  string find_cloest_table_name(IR *ir_to_fix, bool is_debug_info);
 
   void reset_scope_library(bool clear_define);
   IR *find_closest_node(IR *stmt_root, IR *node, DATATYPE type);
@@ -121,9 +124,9 @@ public:
   bool validate(IR *&root, bool is_debug_info = false);
   string validate(string query, bool is_debug_info = false);
 
-  pair<string, string>
-  ir_to_string(IR *root, vector<vector<IR *>> all_post_trans_vec,
-               const vector<STMT_TYPE> &all_stmt_type_vec);
+  pair<string, string> ir_to_string(IR *root,
+                                    vector<vector<IR *>> all_post_trans_vec,
+                                    const vector<STMT_TYPE> &all_stmt_type_vec);
 
   unsigned int calc_node(IR *root);
   bool replace_one_value_from_datalibray_2d(DATATYPE p_datatype,
@@ -148,27 +151,33 @@ public:
   void set_p_oracle(SQL_ORACLE *oracle) { this->p_oracle = oracle; }
   void set_dump_library(bool);
   void set_disable_dyn_instan(bool);
+  void set_disable_rsg_generator(bool);
   int get_ir_libary_2D_hash_kStatement_size();
   bool is_stripped_str_in_lib(string stripped_str);
 
-  bool add_all_to_library(IR *, const vector<int> &, u8 (*run_target)(char **, u32, string,
-                                                                      int, string&)=NULL);
-  bool add_all_to_library(IR *ir, u8 (*run_target)(char **, u32, string,
-                                                   int, string&)=NULL) {
+  bool add_all_to_library(IR *, const vector<int> &,
+                          u8 (*run_target)(char **, u32, string, int,
+                                           string &) = NULL);
+  bool add_all_to_library(IR *ir, u8 (*run_target)(char **, u32, string, int,
+                                                   string &) = NULL) {
     vector<int> dummy_vec;
     return add_all_to_library(ir, dummy_vec, run_target);
   }
-  bool add_all_to_library(string, const vector<int> &, u8 (*run_target)(char **, u32, string,
-                                                                        int, string&)=NULL);
-  bool add_all_to_library(string whole_query_str, u8 (*run_target)(char **, u32, string,
-                                                                   int, string&)=NULL) {
+  bool add_all_to_library(string, const vector<int> &,
+                          u8 (*run_target)(char **, u32, string, int,
+                                           string &) = NULL);
+  bool add_all_to_library(string whole_query_str,
+                          u8 (*run_target)(char **, u32, string, int,
+                                           string &) = NULL) {
     vector<int> dummy_vec;
     return add_all_to_library(whole_query_str, dummy_vec, run_target);
   }
-  void add_to_valid_lib(IR *, string &, const bool, u8 (*run_target)(char **, u32, string,
-                                                                     int, string&)=NULL);
-  bool add_to_library(IR *, string &, u8 (*run_target)(char **, u32, string,
-                                                       int, string&)=NULL);
+  void add_to_valid_lib(IR *, string &, const bool,
+                        u8 (*run_target)(char **, u32, string, int,
+                                         string &) = NULL);
+  bool add_to_library(IR *, string &,
+                      u8 (*run_target)(char **, u32, string, int,
+                                       string &) = NULL);
   void add_to_library_core(IR *, string *);
   int get_valid_collection_size();
   int get_cri_valid_collection_size();
@@ -179,34 +188,49 @@ public:
   IR *get_ir_with_type(const IRTYPE type_);
   bool add_missing_create_table_stmt(IR *);
 
-  DATAAFFINITYTYPE get_nearby_data_affinity(IR* ir_to_fix, bool is_debug_info);
-  bool instan_dependency(IR *cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
+  DATAAFFINITYTYPE get_nearby_data_affinity(IR *ir_to_fix, bool is_debug_info);
+  bool instan_dependency(IR *cur_stmt_root,
+                         const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
                          bool is_debug_info = false);
-  void instan_database_schema_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_table_name(IR* ir_to_fix, bool& is_replace_table, bool is_debug_info);
-  void instan_table_alias_name(IR* ir_to_fix, IR* cur_stmt_root, bool is_alias_optional, bool is_debug_info);
-  void instan_view_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_partition_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_index_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_column_name(IR* ir_to_fix, IR* cur_stmt_root, bool& is_replace_column, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
-  void instan_column_alias_name(IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
-  void instan_sql_type_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_foreign_table_name(IR* ir_to_fix, bool is_debug_info);
-  void instan_statistic_name (IR* ir_to_fix, bool is_debug_info);
-  void instan_sequence_name (IR* ir_to_fix, bool is_debug_info);
-  void instan_constraint_name (IR* ir_to_fix, bool is_debug_info);
-  void instan_family_name (IR* ir_to_fix, bool is_debug_info);
-  void instan_literal (IR* ir_to_fix, IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
-  void instan_storage_param (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
-  void instan_func_expr (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_ignore_nested_expr, bool is_debug_info);
-  void map_create_view (IR* ir_to_fix, IR* cur_stmt_root, const vector<vector<IR *>> cur_stmt_ir_to_fix_vec, bool is_debug_info);
-  void map_create_view_column (IR* ir_to_fix, vector<IR*>& ir_to_deep_drop, bool is_debug_info);
+  void instan_database_schema_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_table_name(IR *ir_to_fix, bool &is_replace_table,
+                         bool is_debug_info);
+  void instan_table_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
+                               bool is_alias_optional, bool is_debug_info);
+  void instan_view_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_partition_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_index_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_column_name(IR *ir_to_fix, IR *cur_stmt_root,
+                          bool &is_replace_column,
+                          vector<IR *> &ir_to_deep_drop, bool is_debug_info);
+  void instan_column_alias_name(IR *ir_to_fix, IR *cur_stmt_root,
+                                vector<IR *> &ir_to_deep_drop,
+                                bool is_debug_info);
+  void instan_sql_type_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_foreign_table_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_statistic_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_sequence_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_constraint_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_family_name(IR *ir_to_fix, bool is_debug_info);
+  void instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
+                      vector<IR *> &ir_to_deep_drop, bool is_debug_info);
+  void instan_storage_param(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
+                            bool is_debug_info);
+  void instan_func_expr(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
+                        bool is_ignore_nested_expr, bool is_debug_info);
+  void map_create_view(IR *ir_to_fix, IR *cur_stmt_root,
+                       const vector<vector<IR *>> cur_stmt_ir_to_fix_vec,
+                       bool is_debug_info);
+  void map_create_view_column(IR *ir_to_fix, vector<IR *> &ir_to_deep_drop,
+                              bool is_debug_info);
 
-  void remove_type_annotation(IR* cur_stmt_root, vector<IR*>& ir_to_deep_drop);
+  void remove_type_annotation(IR *cur_stmt_root, vector<IR *> &ir_to_deep_drop);
   void rollback_instan_lib_changes();
 
-  void fix_col_type_rel_errors(IR* cur_stmt_root, string res_str, int trial=0, bool is_debug_info = false);
-  void fix_instan_error(IR* cur_stmt_root, string res_str, int trial = 0, bool is_debug_info = false);
+  void fix_col_type_rel_errors(IR *cur_stmt_root, string res_str, int trial = 0,
+                               bool is_debug_info = false);
+  void fix_instan_error(IR *cur_stmt_root, string res_str, int trial = 0,
+                        bool is_debug_info = false);
 
   IR *record_ = NULL;
   IR *mutated_root_ = NULL;
@@ -248,27 +272,26 @@ public:
   static vector<string> all_storage_param;
 
   /* New data library. SQLRight CockroachDB data instantiation. */
-  static map<string, vector<string>>
-      m_table2columns, m_table2columns_snapshot; // Global Table name to column name mapping.
-  static map<string, vector<string>>
-      m_table2index, m_table2index_snapshot;                   // Global table name to index mapping.
-      // We do not save the index to column mapping because it seems unnecessary.
-  static vector<string> v_table_names, v_table_names_snapshot; // All saved table names from previous statements.
+  static map<string, vector<string>> m_table2columns,
+      m_table2columns_snapshot; // Global Table name to column name mapping.
+  static map<string, vector<string>> m_table2index,
+      m_table2index_snapshot; // Global table name to index mapping.
+  // We do not save the index to column mapping because it seems unnecessary.
+  static vector<string> v_table_names,
+      v_table_names_snapshot; // All saved table names from previous statements.
 
-  // All used table and view names in one query statement. The table names are typically defined in
+  // All used table and view names in one query statement. The table names are
+  // typically defined in
   //    `FROM` statement.
-  static vector<string>
-      v_table_names_single;
-  // All used column names in one query statement. The column names can be used to identify number
-  // of parameters required for the VALUES clause etc.
+  static vector<string> v_table_names_single;
+  // All used column names in one query statement. The column names can be used
+  // to identify number of parameters required for the VALUES clause etc.
   static vector<string> v_column_names_single;
 
   // All table names just created in the
   // current stmt but yet to be transmitted into v_table_names.
-  static vector<string>
-      v_create_table_names_single;
-  static vector<string>
-      v_create_view_names_single;
+  static vector<string> v_create_table_names_single;
+  static vector<string> v_create_view_names_single;
   /* Alias names are always local to one statement. */
 
   // All alias name local to one query statement.
@@ -281,44 +304,53 @@ public:
   static map<string, string> m_alias2table_single;
   static map<string, vector<string>> m_enforced_table2alias_single;
   static map<string, vector<string>> m_alias_table2column_single;
-  // The column alias is used in limited situations, such as GROUP BY columns AS column_alias, or `SELECT SUM(column) AS c ...`
-  // Maybe also from `WITH` clause?
+  // The column alias is used in limited situations, such as GROUP BY columns AS
+  // column_alias, or `SELECT SUM(column) AS c ...` Maybe also from `WITH`
+  // clause?
   static map<string, string> m_alias2column_single;
 
   // A mapping from the column name to the datatype class.
   // The datatype class is also responsible to handle literal mutation.
-  static map<string, DataAffinity> m_column2datatype, m_column2datatype_snapshot;
-  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2column, m_datatype2column_snapshot;
+  static map<string, DataAffinity> m_column2datatype,
+      m_column2datatype_snapshot;
+  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2column,
+      m_datatype2column_snapshot;
 
   // A mapping to save all literals that is used inside the
   // whole SQL sequence. It maps the data type to pre-defined
   // literal string.
-  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2literals, m_datatype2literals_snapshot;
+  static map<DATAAFFINITYTYPE, vector<string>> m_datatype2literals,
+      m_datatype2literals_snapshot;
 
   // All used table names follow type in one query stmt.
-  static vector<string>
-      v_statistics_name, v_statistics_name_snapshot; // All statistic names defined in the current SQL.
-  static vector<string>
-      v_sequence_name, v_sequence_name_snapshot; // All sequence names defined in the current SQL.
-  static vector<string>
-      v_constraint_name, v_constraint_name_snapshot; // All constraint names defined in the current SQL.
-  static vector<string>
-      v_family_name, v_family_name_snapshot; // All family names defined in the current SQL.
+  static vector<string> v_statistics_name,
+      v_statistics_name_snapshot; // All statistic names defined in the current
+                                  // SQL.
+  static vector<string> v_sequence_name,
+      v_sequence_name_snapshot; // All sequence names defined in the current
+                                // SQL.
+  static vector<string> v_constraint_name,
+      v_constraint_name_snapshot; // All constraint names defined in the current
+                                  // SQL.
+  static vector<string> v_family_name,
+      v_family_name_snapshot; // All family names defined in the current SQL.
 
   // The purpose to have a vector of view names is because for DROP statement,
   // ALTER stmts etc, mixed with view names and table names are not appropriate.
-  static vector<string> v_view_name, v_view_name_snapshot; // All saved view names.
-  static vector<string> v_foreign_table_name, v_foreign_table_name_snapshot; // All foreign table names defined
-                                              // inthe current SQL.
-  static vector<string>
-      v_table_with_partition, v_table_with_partition_snapshot; // All table names that contiains TABLE
-                                   // PARTITIONING.
-  static map<string, vector<string>> m_table2partition, m_table2partition_snapshot;
+  static vector<string> v_view_name,
+      v_view_name_snapshot; // All saved view names.
+  static vector<string> v_foreign_table_name,
+      v_foreign_table_name_snapshot; // All foreign table names defined
+                                     // inthe current SQL.
+  static vector<string> v_table_with_partition,
+      v_table_with_partition_snapshot; // All table names that contiains TABLE
+                                       // PARTITIONING.
+  static map<string, vector<string>> m_table2partition,
+      m_table2partition_snapshot;
 
   static vector<int> v_int_literals, v_int_literals_snapshot;
   static vector<double> v_float_literals, v_float_literals_snapshot;
   static vector<string> v_string_literals, v_string_literals_snapshot;
-
 
   // added by vancir
   map<unsigned long, bool> select_stmt_lib_hash;
@@ -327,6 +359,7 @@ public:
   set<string *> all_query_pstr_set;
   bool dump_library = false;
   bool disable_dyn_instan = false;
+  bool disable_rsg_generator = false;
   SQL_ORACLE *p_oracle;
   map<IRTYPE, set<unsigned long>> real_ir_library_hash_;
   map<IRTYPE, set<unsigned long>> data_affi_set_lib_hash_;
@@ -348,32 +381,43 @@ public:
    * IR mutation, as shown above. And it reuses the saving string* to
    * save the extra memory space.
    * */
-  map<uint64_t, vector<IR*>> data_affi_set;
+  map<uint64_t, vector<IR *>> data_affi_set;
 
   static set<IR *> visited;
 
-  void setup_arguments_for_run_target(char** in_argv, u32 exec_tmout_in) {this->argv_for_run_target = in_argv; this->exec_tmout_for_run_target = exec_tmout_in; }
+  void setup_arguments_for_run_target(char **in_argv, u32 exec_tmout_in) {
+    this->argv_for_run_target = in_argv;
+    this->exec_tmout_for_run_target = exec_tmout_in;
+  }
 
   string rsg_generate_valid(const IRTYPE type = TypeUnknown);
 
 private:
+  // Some helper function to fix the instantiation problems from the error
+  // messages.
+  void fix_literal_op_err(IR *cur_stmt_root, string res_str,
+                          bool is_debug_info = false);
+  void fix_column_literal_op_err(IR *cur_stmt_root, string res_str,
+                                 bool is_debug_info = false);
+  char **argv_for_run_target;
+  u32 exec_tmout_for_run_target;
 
-    // Some helper function to fix the instantiation problems from the error messages.
-    void fix_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
-    void fix_column_literal_op_err(IR* cur_stmt_root, string res_str, bool is_debug_info = false);
-    char** argv_for_run_target;
-    u32 exec_tmout_for_run_target;
+  // Auto-detect the data types from any query expressions or subqueries.
+  void auto_mark_data_types_from_select_stmt(
+      IR *cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server,
+      u8 (*run_target)(char **, u32, string, int, string &),
+      bool is_debug_info = false);
+  void auto_mark_data_types_from_non_select_stmt(
+      IR *cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server,
+      u8 (*run_target)(char **, u32, string, int, string &),
+      bool is_debug_info = false);
+  void label_ir_data_type_from_err_msg(IR *ir, string &err_msg,
+                                       bool &is_syntax_error);
 
-    // Auto-detect the data types from any query expressions or subqueries.
-    void auto_mark_data_types_from_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                                     int, string&), bool is_debug_info = false);
-    void auto_mark_data_types_from_non_select_stmt(IR* cur_stmt_root, char **argv, u32 exec_tmout, int is_reset_server, u8 (*run_target)(char **, u32, string,
-                                                                                                                                     int, string&), bool is_debug_info = false);
-    void label_ir_data_type_from_err_msg(IR* ir, string& err_msg, bool& is_syntax_error);
+  inline IR *get_ir_node_from_data_affi_pair(const pair<string *, int> &);
 
-    inline IR* get_ir_node_from_data_affi_pair(const pair<string*, int>&);
-
-    void instan_replaced_node(IR* cur_stmt_root, IR* cur_node, bool is_debug_info);
+  void instan_replaced_node(IR *cur_stmt_root, IR *cur_node,
+                            bool is_debug_info);
 };
 
 #endif
