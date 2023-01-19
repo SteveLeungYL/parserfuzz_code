@@ -906,7 +906,7 @@ func (node *IsOfTypeExpr) LogCurrentNode(depth int) *SQLRightIR {
 
 	exprWithParen := LogCurrentNodeExprFmtWithParen(depth+1, node.Expr)
 
-	infix := ""
+	infix := " IS"
 	if node.Not {
 		infix += " NOT"
 	}
