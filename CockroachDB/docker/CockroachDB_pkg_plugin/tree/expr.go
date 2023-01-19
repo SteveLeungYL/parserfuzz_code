@@ -1461,15 +1461,7 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 
 	exprNode := node.Exprs.LogCurrentNode(depth + 1)
 
-	infix := ""
-
-	//if len(node.Exprs) == 1 {
-	//	// Ensure the pretty-printed 1-value tuple is not ambiguous with
-	//	// the equivalent value enclosed in grouping parentheses.
-	//	infix = ","
-	//}
-
-	infix += ")"
+	infix := ")"
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
@@ -1483,8 +1475,7 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 	}
 
 	if len(node.Labels) > 0 {
-		infix += " AS "
-		comma := ""
+		infix = " AS "
 		for i := range node.Labels {
 			nameStr := (*Name)(&node.Labels[i]).String()
 			nameNode := &SQLRightIR{
@@ -1503,11 +1494,11 @@ func (node *Tuple) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    nameNode,
 				Prefix:   "",
-				Infix:    comma,
-				Suffix:   "",
+				Infix:    infix,
+				Suffix:   ", ",
 				Depth:    depth,
 			}
-			comma = ", "
+			infix = ""
 		}
 		rootIR.Suffix = ")"
 	}
