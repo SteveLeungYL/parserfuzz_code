@@ -165,23 +165,31 @@ func (node *Explain) Format(ctx *FmtCtx) {
 // SQLRight Code Injection.
 func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 
-	prefix := "EXPLAIN ("
+	prefix := "EXPLAIN "
+	infix := ""
+	suffix := ""
 
-	explainMode := &SQLRightIR{
-		IRType:   TypeExplainMode,
-		DataType: DataNone,
-		Prefix:   node.Mode.String(),
-		Infix:    "",
-		Suffix:   "",
-		Depth:    depth,
+	var explainMode *SQLRightIR
+	if node.Mode != ExplainPlan {
+		explainMode = &SQLRightIR{
+			IRType:   TypeExplainMode,
+			DataType: DataNone,
+			Prefix:   node.Mode.String(),
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+		prefix = "EXPLAIN ("
+		infix = ", "
+		suffix = ")"
 	}
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    explainMode,
-		Prefix:   prefix,
-		Infix:    ", ",
+		Prefix:   "",
+		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,
 	}
@@ -202,14 +210,18 @@ func (node *Explain) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    explainFlagNode,
 				Prefix:   "",
-				Infix:    ", ",
+				Infix:    infix,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			prefix = "EXPLAIN ("
+			infix = ", "
+			suffix = ")"
 		}
 	}
 
-	rootIR.Suffix = ")" // Remove ',' change it to ')'
+	rootIR.Prefix = prefix
+	rootIR.Suffix = suffix
 
 	statementNode := node.Statement.LogCurrentNode(depth + 1)
 
@@ -272,22 +284,30 @@ func (node *ExplainAnalyze) Format(ctx *FmtCtx) {
 func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 
 	prefix := "EXPLAIN ANALYZE "
+	infix := ""
+	suffix := ""
 
-	explainMode := &SQLRightIR{
-		IRType:   TypeExplainMode,
-		DataType: DataNone,
-		Prefix:   node.Mode.String(),
-		Infix:    "",
-		Suffix:   "",
-		Depth:    depth,
+	var explainMode *SQLRightIR
+	if node.Mode != ExplainPlan {
+		explainMode = &SQLRightIR{
+			IRType:   TypeExplainMode,
+			DataType: DataNone,
+			Prefix:   node.Mode.String(),
+			Infix:    "",
+			Suffix:   "",
+			Depth:    depth,
+		}
+		prefix = "EXPLAIN ANALYZE ("
+		suffix = ")"
+		infix = ", "
 	}
 
 	rootIR := &SQLRightIR{
 		IRType:   TypeUnknown,
 		DataType: DataNone,
 		LNode:    explainMode,
-		Prefix:   prefix,
-		Infix:    ", ",
+		Prefix:   "",
+		Infix:    "",
 		Suffix:   "",
 		Depth:    depth,
 	}
@@ -308,14 +328,18 @@ func (node *ExplainAnalyze) LogCurrentNode(depth int) *SQLRightIR {
 				LNode:    rootIR,
 				RNode:    explainFlagNode,
 				Prefix:   "",
-				Infix:    ", ",
+				Infix:    infix,
 				Suffix:   "",
 				Depth:    depth,
 			}
+			infix = ", "
+			prefix = "EXPLAIN ANALYZE ("
+			suffix = ")"
 		}
 	}
 
-	rootIR.Suffix = ")" // Remove ',' change it to ')'
+	rootIR.Prefix = prefix
+	rootIR.Suffix = suffix
 
 	statementNode := node.Statement.LogCurrentNode(depth + 1)
 
