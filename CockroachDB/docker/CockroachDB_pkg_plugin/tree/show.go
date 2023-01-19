@@ -2194,9 +2194,9 @@ func (node ScheduleState) LogCurrentNode(depth int) *SQLRightIR {
 	prefix := ""
 	switch node {
 	case ActiveSchedules:
-		prefix = "RUNNING"
+		prefix = "RUNNING "
 	case PausedSchedules:
-		prefix = "PAUSED"
+		prefix = "PAUSED "
 	default:
 		prefix = ""
 	}
