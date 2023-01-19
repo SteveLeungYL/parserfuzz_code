@@ -1838,7 +1838,7 @@ func (node *JoinTableExpr) LogCurrentNode(depth int) *SQLRightIR {
 				}
 			}
 		}
-		infix = "JOIN "
+		infix = " JOIN "
 		joinRightNode := node.Right.LogCurrentNode(depth + 1)
 
 		rootIR = &SQLRightIR{
