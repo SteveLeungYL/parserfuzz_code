@@ -2178,6 +2178,9 @@ void Mutator::instan_partition_name(IR *ir_to_fix, bool is_debug_info) {
 void Mutator::instan_index_name(IR *ir_to_fix, bool is_debug_info) {
 
   if (ir_to_fix->get_data_type() == DataIndexName) {
+    if (is_debug_info) {
+      cerr << "\n\n\nDEBUG: Inside the instan_index_name function \n\n\n";
+    }
     if (ir_to_fix->get_data_flag() == ContextDefine) {
       string tmp_index_name = gen_index_name();
       ir_to_fix->set_str_val(tmp_index_name);
@@ -2237,9 +2240,11 @@ void Mutator::instan_index_name(IR *ir_to_fix, bool is_debug_info) {
       if (v_table_names_single.size() != 0) {
         string tmp_table_name = v_table_names_single[0];
         vector<string> &v_index_name = m_table2index[tmp_table_name];
-        if (!v_index_name.size())
-          return;
-        tmp_index_name = vector_rand_ele(v_index_name);
+        if (!v_index_name.size()) {
+          tmp_index_name = "y";
+        } else {
+          tmp_index_name = vector_rand_ele(v_index_name);
+        }
       } else {
         for (auto it = m_table2index.begin(); it != m_table2index.end(); it++) {
           vector<string> &v_index_name = it->second;
@@ -2251,6 +2256,13 @@ void Mutator::instan_index_name(IR *ir_to_fix, bool is_debug_info) {
       if (tmp_index_name != "y") {
         ir_to_fix->set_str_val(tmp_index_name);
         ir_to_fix->set_is_instantiated(true);
+      } else {
+        if (ir_to_fix->get_parent() != nullptr &&
+            ir_to_fix->get_parent()->get_ir_type() == TypeIndexFlags) {
+          ir_to_fix->get_parent()->op_->prefix_ = "";
+          ir_to_fix->set_str_val("");
+          ir_to_fix->set_is_instantiated(true);
+        }
       }
     }
   }
