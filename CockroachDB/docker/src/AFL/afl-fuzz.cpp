@@ -2832,212 +2832,6 @@ inline void print_fuzzer_exec_debug_info() {
   return;
 }
 
-void extract_query_result(const string &res, vector<string> &res_vec_out,
-                          const string &begin_sign, const string &end_sign) {
-  res_vec_out.clear();
-
-  if (is_str_empty(res)) {
-    return -1;
-  }
-
-  size_t begin_idx = res.find(begin_sign, 0);
-  size_t end_idx = res.find(end_sign, 0);
-
-  while (begin_idx != string::npos) {
-    if (end_idx != string::npos) {
-      string cur_res_str =
-          res.substr(begin_idx + begin_sign.size(),
-                     (end_idx - begin_idx - begin_sign.size()));
-      begin_idx = res.find(begin_sign, begin_idx + begin_sign.size());
-      end_idx = res.find(end_sign, end_idx + end_sign.size());
-
-      if (cur_res_str.find("Error") != string::npos) {
-        res_vec_out.push_back("Error");
-        continue;
-      } // If "Error" is found, return "Error" as result.
-      else {
-        // cur_res_str = trim(cur_res_str);
-        trim_string(cur_res_str);
-        // cout << "cur_res_str: " << cur_res_str << endl;
-        res_vec_out.push_back(cur_res_str);
-      }
-    } else {
-      break; // For the current begin_idx, we cannot find the end_idx. Ignore
-             // the current output.
-    }
-  }
-}
-
-void compare_query_results_cross_run(ALL_COMP_RES &all_comp_res,
-                                     vector<int> &explain_diff_id) {
-
-  if (p_oracle->get_mul_run_num() <= 1) {
-    cerr << "Error: calling cross_run compare results function, when "
-            "mul_run_num <= 1. Code logic error. \n";
-    abort();
-  }
-
-  all_comp_res.final_res = ORA_COMP_RES::Pass;
-  explain_diff_id.clear();
-
-  vector<vector<string>> res_vec, exp_vec;
-
-  for (int idx = 0; idx < all_comp_res.v_res_str.size(); idx++) {
-
-    const string &res_str = all_comp_res.v_res_str[idx];
-    const string &cmd_str = all_comp_res.v_cmd_str[idx];
-
-    if (is_str_empty(res_str)) {
-      all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
-      return;
-    }
-
-    vector<string> cur_res_vec, cur_exp_vec;
-    /* Only takes one type of validation at a time in the query. */
-    extract_query_result(res_str, cur_res_vec, "BEGIN VERI 0", "END VERI 0");
-
-    // cerr << "For results: \n" << res_str << "\n, we get :" << endl;
-    // for (int i = 0; i < cur_res_vec.size(); i++){
-    //   cerr << "cur_res_vec: " << cur_res_vec[i] << endl;
-    // }
-
-    res_vec.push_back(std::move(cur_res_vec));
-    exp_vec.push_back(std::move(cur_exp_vec));
-  }
-
-  /* Compare valid stat by valid stat between different runs. */
-  for (int j = 0; j < res_vec[0].size(); j++) {
-    COMP_RES comp_res;
-    for (int i = 0; i < res_vec.size(); i++) {
-      if (j < res_vec[i].size()) {
-        comp_res.v_res_str.push_back(res_vec[i][j]);
-      } else {
-        comp_res.comp_res = ORA_COMP_RES::ALL_Error;
-      }
-      if (j < exp_vec[0].size() && j < exp_vec[i].size() &&
-          exp_vec[0][j] != exp_vec[i][j]) {
-        comp_res.explain_diff_id.push_back(j);
-        explain_diff_id.push_back(
-            j); /* Might contains duplicated IDs. But it should be OK. */
-      }
-    }
-    all_comp_res.v_res.push_back(std::move(comp_res));
-  }
-
-  p_oracle->compare_results(all_comp_res);
-
-  for (COMP_RES &res : all_comp_res.v_res) {
-    if (res.v_res_str.size() == 0) {
-      continue;
-    }
-    SemanticErrorType err_type =
-        p_oracle->detect_semantic_error_type(res.v_res_str[0]);
-    if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
-      total_data_type_error_num++;
-      total_select_error_num++;
-    } else if (err_type == SemanticErrorType::AliasRelatedError) {
-      total_alias_type_error_num++;
-      total_select_error_num++;
-    } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
-      total_instan_caused_error_num++;
-      total_select_error_num++;
-    } else if (err_type == SemanticErrorType::OtherUndefinedError) {
-      total_select_error_num++;
-    }
-  }
-
-  return;
-}
-
-void compare_query_result(ALL_COMP_RES &all_comp_res,
-                          vector<int> &explain_diff_id) {
-
-  all_comp_res.final_res = ORA_COMP_RES::Pass;
-  explain_diff_id.clear();
-
-  const string &res_str = all_comp_res.res_str;
-  if (is_str_empty(res_str)) {
-    all_comp_res.final_res = ORA_COMP_RES::ALL_Error;
-    return;
-  }
-
-  vector<string> res_vec_0, res_vec_1, res_vec_2, res_vec_3, exp_vec_0,
-      exp_vec_1, exp_vec_2, exp_vec_3;
-
-  /* Look throught first validation stmt's res_0 first */
-  extract_query_result(res_str, res_vec_0, "BEGIN VERI 0", "END VERI 0");
-
-  /* Second validation stmt... etc*/
-  extract_query_result(res_str, res_vec_1, "BEGIN VERI 1", "END VERI 1");
-
-  extract_query_result(res_str, res_vec_2, "BEGIN VERI 2", "END VERI 2");
-
-  extract_query_result(res_str, res_vec_3, "BEGIN VERI 3", "END VERI 3");
-
-  // cout << "command: " << all_comp_res.cmd_str << endl;
-
-  // for (string tmp_str : res_vec_0) {
-  //   cout << "res_vec_0: " << tmp_str <<  endl;
-  // }
-
-  // for (string tmp_str : res_vec_1) {
-  //   cout << "res_vec_1: " << tmp_str <<  endl;
-  // }
-
-  // cerr << "Size of res_vec_0: " << res_vec_0.size() << "   1: " <<
-  // res_vec_1.size() << endl;
-
-  for (int idx = 0; idx < max({res_vec_0.size(), res_vec_1.size(),
-                               res_vec_2.size(), res_vec_3.size()});
-       idx++) {
-    COMP_RES comp_res;
-    if (idx < res_vec_0.size()) {
-      comp_res.res_str_0 = res_vec_0[idx];
-    }
-    if (idx < res_vec_1.size()) {
-      comp_res.res_str_1 = res_vec_1[idx];
-    }
-    if (idx < res_vec_2.size()) {
-      comp_res.res_str_2 = res_vec_2[idx];
-    }
-    if (idx < res_vec_3.size()) {
-      comp_res.res_str_3 = res_vec_3[idx];
-    }
-
-    if (idx < exp_vec_0.size()) {
-      if ((idx < exp_vec_1.size() && exp_vec_0[idx] != exp_vec_1[idx]) ||
-          (idx < exp_vec_2.size() && exp_vec_0[idx] != exp_vec_2[idx]) ||
-          (idx < exp_vec_3.size() && exp_vec_0[idx] != exp_vec_3[idx])) {
-        comp_res.explain_diff_id.push_back(idx);
-        explain_diff_id.push_back(idx);
-      }
-    }
-    all_comp_res.v_res.push_back(std::move(comp_res));
-  }
-
-  /* Now we can compare the results and find whether there are inconsistant. */
-  p_oracle->compare_results(all_comp_res);
-
-  for (COMP_RES &res : all_comp_res.v_res) {
-    SemanticErrorType err_type =
-        p_oracle->detect_semantic_error_type(res.res_str_0);
-    if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
-      total_data_type_error_num++;
-      total_select_error_num++;
-    } else if (err_type == SemanticErrorType::AliasRelatedError) {
-      total_alias_type_error_num++;
-      total_select_error_num++;
-    } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
-      total_instan_caused_error_num++;
-      total_select_error_num++;
-    } else if (err_type == SemanticErrorType::OtherUndefinedError) {
-      total_select_error_num++;
-    }
-  }
-
-  return;
-}
-
 void stream_output_res(const ALL_COMP_RES &all_comp_res, ostream &out) {
   if (p_oracle->get_mul_run_num() <= 1) {
     out << "Query: \n";
@@ -6101,6 +5895,22 @@ static u8 fuzz_one(char **argv) {
             // Be careful, after the last dyn_fixing, the query could still be
             // semantic error.
             is_select_error = true;
+
+            SemanticErrorType err_type =
+                p_oracle->detect_semantic_error_type(g_cockroach_output);
+            if (err_type == SemanticErrorType::ColumnTypeRelatedError) {
+              total_data_type_error_num++;
+              total_select_error_num++;
+            } else if (err_type == SemanticErrorType::AliasRelatedError) {
+              total_alias_type_error_num++;
+              total_select_error_num++;
+            } else if (err_type == SemanticErrorType::SyntaxRelatedError) {
+              total_instan_caused_error_num++;
+              total_select_error_num++;
+            } else if (err_type == SemanticErrorType::OtherUndefinedError) {
+              total_select_error_num++;
+            }
+
             ret_res = run_target(argv, exec_tmout,
                                  "ROLLBACK TO SAVEPOINT FOO; \n", 0);
             debug_error++;
@@ -7496,49 +7306,49 @@ static void save_cmdline(u32 argc, char **argv) {
   *buf = 0;
 }
 
-void debug_cockroach_oracle_compare_results(char **argv) {
-  p_oracle = new SQL_OPT();
-  string cmd_string = "CREATE TABLE v0 ( v1 INTEGER );"
-                      "CREATE VIEW v2 AS SELECT * FROM v0;"
-                      "INSERT INTO v0 (v1) VALUES (8);"
-                      "INSERT INTO v0 (v1) VALUES (8);"
-                      "INSERT INTO v0 (v1) VALUES (9);"
-                      "SELECT * FROM v2;"
-                      "SELECT 'BEGIN VERI 0';"
-                      "SELECT COUNT ( * ) FROM v0 WHERE v1 = 9;"
-                      "SELECT 'END VERI 0';"
-                      "SELECT 'BEGIN VERI 1';"
-                      "SELECT SUM(count) FROM ( SELECT ALL( v1 = 8)::INT as "
-                      "count FROM v0 ) as res;;"
-                      "SELECT 'END VERI 1';";
-  trim_string(cmd_string);
-
-  run_target(argv, exec_tmout, cmd_string);
-
-  string res_str = g_cockroach_output;
-  ALL_COMP_RES all_comp_res;
-  all_comp_res.cmd_str = std::move(cmd_string);
-  all_comp_res.res_str = std::move(res_str);
-
-  vector<int> explain_diff_id;
-  compare_query_result(all_comp_res, explain_diff_id);
-
-  for (auto &res : all_comp_res.v_res) {
-    if (res.comp_res == ORA_COMP_RES::Pass) {
-      cout << "debug good" << endl;
-      debug_good++;
-    } else {
-      cout << "debug error" << endl;
-      debug_error++;
-    }
-  }
-
-  if (all_comp_res.final_res == ORA_COMP_RES::Fail) {
-    cout << "found bug." << endl;
-  } else {
-    cout << "not found bug. " << endl;
-  }
-}
+//void debug_cockroach_oracle_compare_results(char **argv) {
+//  p_oracle = new SQL_OPT();
+//  string cmd_string = "CREATE TABLE v0 ( v1 INTEGER );"
+//                      "CREATE VIEW v2 AS SELECT * FROM v0;"
+//                      "INSERT INTO v0 (v1) VALUES (8);"
+//                      "INSERT INTO v0 (v1) VALUES (8);"
+//                      "INSERT INTO v0 (v1) VALUES (9);"
+//                      "SELECT * FROM v2;"
+//                      "SELECT 'BEGIN VERI 0';"
+//                      "SELECT COUNT ( * ) FROM v0 WHERE v1 = 9;"
+//                      "SELECT 'END VERI 0';"
+//                      "SELECT 'BEGIN VERI 1';"
+//                      "SELECT SUM(count) FROM ( SELECT ALL( v1 = 8)::INT as "
+//                      "count FROM v0 ) as res;;"
+//                      "SELECT 'END VERI 1';";
+//  trim_string(cmd_string);
+//
+//  run_target(argv, exec_tmout, cmd_string);
+//
+//  string res_str = g_cockroach_output;
+//  ALL_COMP_RES all_comp_res;
+//  all_comp_res.cmd_str = std::move(cmd_string);
+//  all_comp_res.res_str = std::move(res_str);
+//
+//  vector<int> explain_diff_id;
+//  compare_query_result(all_comp_res, explain_diff_id);
+//
+//  for (auto &res : all_comp_res.v_res) {
+//    if (res.comp_res == ORA_COMP_RES::Pass) {
+//      cout << "debug good" << endl;
+//      debug_good++;
+//    } else {
+//      cout << "debug error" << endl;
+//      debug_error++;
+//    }
+//  }
+//
+//  if (all_comp_res.final_res == ORA_COMP_RES::Fail) {
+//    cout << "found bug." << endl;
+//  } else {
+//    cout << "not found bug. " << endl;
+//  }
+//}
 
 static void load_map_id() {
   if (dump_library) {
