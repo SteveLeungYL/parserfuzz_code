@@ -5839,6 +5839,14 @@ static u8 fuzz_one(char **argv) {
             // If yes, use the dynamic fixing to try to fix the statement.
             total_instan_num++;
 
+#ifdef DEBUG
+            cerr << "\n\n\nDEBUG: getting stmt: \n"
+                 << cur_stmt_str << "\n, getting result: \n"
+                 << g_cockroach_output << "\n";
+            cerr << "debug_error: " << debug_error
+                 << ", debug_good: " << debug_good << "\n\n\n";
+#endif /* DEBUG */
+
             // No need to set up the error flag here.
             // We always rollback the transaction.
 
@@ -5911,10 +5919,29 @@ static u8 fuzz_one(char **argv) {
               total_select_error_num++;
             }
 
+#ifdef DEBUG
+            if (dyn_fix_trial != 0) {
+              cerr << "DEBUG: For ERROR AFTER FIXING stmt: \n"
+                   << cur_stmt_str << ", after fixing, getting result: \n"
+                   << g_cockroach_output << "\n";
+              cerr << "debug_error: " << debug_error
+                   << ", debug_good: " << debug_good << "\n\n\n";
+            }
+#endif /* DEBUG */
+
             ret_res = run_target(argv, exec_tmout,
                                  "ROLLBACK TO SAVEPOINT FOO; \n", 0);
             debug_error++;
           } else {
+#ifdef DEBUG
+            if (dyn_fix_trial != 0) {
+              cerr << "DEBUG: For GOOD AFTER FIXING stmt: \n"
+                   << cur_stmt_str << ", after fixing, getting result: \n"
+                   << g_cockroach_output << "\n";
+              cerr << "debug_error: " << debug_error
+                   << ", debug_good: " << debug_good << "\n\n\n";
+            }
+#endif /* DEBUG */
             total_instan_succeed_num++;
             debug_good++;
           }
@@ -7306,7 +7333,7 @@ static void save_cmdline(u32 argc, char **argv) {
   *buf = 0;
 }
 
-//void debug_cockroach_oracle_compare_results(char **argv) {
+// void debug_cockroach_oracle_compare_results(char **argv) {
 //  p_oracle = new SQL_OPT();
 //  string cmd_string = "CREATE TABLE v0 ( v1 INTEGER );"
 //                      "CREATE VIEW v2 AS SELECT * FROM v0;"
