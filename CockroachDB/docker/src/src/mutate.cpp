@@ -3655,12 +3655,12 @@ void Mutator::instan_literal(IR *ir_to_fix, IR *cur_stmt_root,
 
     // Do not change the Data Affinity type for IS / IS NOT `TRUE/FALSE`.
     if (ir_to_fix->get_ir_type() == TypeDBool &&
-            ir_to_fix->get_parent() != nullptr &&
-            ir_to_fix->get_parent()->get_parent() != nullptr &&
-            ir_to_fix->get_parent()->get_parent()->get_ir_type() ==
-                TypeBinExprFmtWithParen &&
-            ir_to_fix->get_parent()->get_parent()->get_middle() == " IS " ||
-        ir_to_fix->get_parent()->get_parent()->get_middle() == " IS NOT ") {
+        ir_to_fix->get_parent() != nullptr &&
+        ir_to_fix->get_parent()->get_parent() != nullptr &&
+        ir_to_fix->get_parent()->get_parent()->get_ir_type() ==
+            TypeBinExprFmtWithParen &&
+        (ir_to_fix->get_parent()->get_parent()->get_middle() == " IS " ||
+         ir_to_fix->get_parent()->get_parent()->get_middle() == " IS NOT ")) {
       if (is_debug_info) {
         cerr << "\n\n\nDebug: Instantiate Boolean in IS or IS NOT statement. "
                 "\n\n\n";
