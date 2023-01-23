@@ -5916,9 +5916,13 @@ static u8 fuzz_one(char **argv) {
               total_instan_caused_error_num++;
               total_select_error_num++;
             } else if (err_type == SemanticErrorType::OtherUndefinedError) {
+#ifdef DEBUG
+                cerr << "DEBUG: Getting other types of semantic error: \n" << cur_stmt_str << "\n, res: \n" << g_cockroach_output << "\n\n\n";
+#endif
               total_select_error_num++;
             }
 
+            debug_error++;
 #ifdef DEBUG
             if (dyn_fix_trial != 0) {
               cerr << "DEBUG: For ERROR AFTER FIXING stmt: \n"
@@ -5931,8 +5935,9 @@ static u8 fuzz_one(char **argv) {
 
             ret_res = run_target(argv, exec_tmout,
                                  "ROLLBACK TO SAVEPOINT FOO; \n", 0);
-            debug_error++;
           } else {
+            debug_good++;
+            total_instan_succeed_num++;
 #ifdef DEBUG
             if (dyn_fix_trial != 0) {
               cerr << "DEBUG: For GOOD AFTER FIXING stmt: \n"
@@ -5942,8 +5947,6 @@ static u8 fuzz_one(char **argv) {
                    << ", debug_good: " << debug_good << "\n\n\n";
             }
 #endif /* DEBUG */
-            total_instan_succeed_num++;
-            debug_good++;
           }
           total_instan_num++;
 
