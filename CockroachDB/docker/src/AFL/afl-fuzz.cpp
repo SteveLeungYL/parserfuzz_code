@@ -5889,9 +5889,11 @@ static u8 fuzz_one(char **argv) {
             whole_query_seq_with_next = whole_query_seq + cur_stmt_str + "; \n";
             // We have to reset the server, because the previous query execution
             // is very frequently contains error.
+            string tmp_g_cockroach_output_backup = g_cockroach_output;
             ret_res =
                 run_target(argv, exec_tmout,
                            "ROLLBACK TO SAVEPOINT FOO; \n" + cur_stmt_str, 0);
+            g_cockroach_output = tmp_g_cockroach_output_backup;
           }
 
           //          if (dyn_fix_trial != 0) {
@@ -5933,8 +5935,10 @@ static u8 fuzz_one(char **argv) {
             }
 #endif /* DEBUG */
 
+            string tmp_g_cockroach_output_backup = g_cockroach_output;
             ret_res = run_target(argv, exec_tmout,
                                  "ROLLBACK TO SAVEPOINT FOO; \n", 0);
+            g_cockroach_output = tmp_g_cockroach_output_backup;
           } else {
             debug_good++;
             total_instan_succeed_num++;
@@ -5959,8 +5963,10 @@ static u8 fuzz_one(char **argv) {
 
             // Rollback to the previous savepoint, so no need to worry about the
             // is_prv_stmt_error.
+            string tmp_g_cockroach_output_backup = g_cockroach_output;
             ret_res = run_target(argv, exec_tmout,
                                  "ROLLBACK TO SAVEPOINT FOO; \n", 0);
+            g_cockroach_output = tmp_g_cockroach_output_backup;
             is_prev_stmt_error = false;
           }
 
@@ -5983,6 +5989,8 @@ static u8 fuzz_one(char **argv) {
           ALL_COMP_RES tmp_all_comp_res;
           tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
           tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+          tmp_all_comp_res.res_str = g_cockroach_output;
+          tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
           if (!is_select_error) {
             save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                                 tmp_all_comp_res, true);
@@ -6003,6 +6011,8 @@ static u8 fuzz_one(char **argv) {
           if (ret_res == FAULT_CRASH) {
             tmp_all_comp_res.cmd_str = whole_query_seq_no_opt;
             tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_no_opt);
+            tmp_all_comp_res.res_str = g_cockroach_output;
+            tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
             save_if_interesting(argv, whole_query_seq_no_opt, ret_res,
                                 tmp_all_comp_res);
           }
@@ -6142,6 +6152,8 @@ static u8 fuzz_one(char **argv) {
             ALL_COMP_RES tmp_all_comp_res;
             tmp_all_comp_res.cmd_str = whole_query_seq_with_next;
             tmp_all_comp_res.v_cmd_str.push_back(whole_query_seq_with_next);
+            tmp_all_comp_res.res_str = g_cockroach_output;
+            tmp_all_comp_res.v_res_str.push_back(g_cockroach_output);
             save_if_interesting(argv, whole_query_seq_with_next, ret_res,
                                 tmp_all_comp_res);
           }
