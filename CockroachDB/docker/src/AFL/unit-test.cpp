@@ -1075,6 +1075,62 @@ bool unit_test_type_where_mismatch(bool is_show_debug = false) {
   return is_no_error;
 }
 
+
+bool unit_test_function_dynamic_instan(bool is_show_debug = false) {
+
+  g_mutator.pre_validate();
+
+  // Succeed with return true,
+  // Failed with return false.
+
+  vector<string> stmt_list{
+      "CREATE TABLE v0 (c1 STRING);",
+      "SELECT ABBREV('414d:f731:acc2:32a7:cefb:a951:0833:9dfe'::INET), XOR_AGG(b'\\x93\\x57\\x39\\x19\\x79\\x97'), LOCALTIMESTAMP(9223372036854775807), AGE('08-21-2130 BC 15:39:51-6'::"
+      "TIMESTAMPTZ, '11-07-49 BC 22:42:53.8134-11'::TIMESTAMPTZ), CURRENT_TIMESTAMP(), BOOL_AND(false) FROM v16 WHERE c18 IN (b'c7eaa1cebddfa593')"
+  };
+
+  vector<string> res_list{
+      "",
+      "pq: localtimestamp(): precision -1 out of range"
+  };
+
+  vector<IR *> ir_list;
+  for (string &cur_stmt : stmt_list) {
+    IR *cur_root = g_mutator.parse_query_str_get_ir_set(cur_stmt).back();
+    ir_list.push_back(
+        p_oracle->ir_wrapper.get_first_stmt_from_root(cur_root)->deep_copy());
+    cur_root->deep_drop();
+  }
+
+  for (IR *cur_stmt : ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting parsed stmt: " << cur_stmt->to_string() << "\n";
+    }
+  }
+
+  p_oracle->ir_wrapper.iter_cur_node_with_handler(
+      ir_list[1],
+      [](IR *cur_node) -> void { cur_node->set_is_instantiated(true); });
+
+  dyn_fix_stmt_vec(ir_list, res_list, is_show_debug);
+  bool is_no_error;
+  for (IR *cur_stmt : ir_list) {
+    if (is_show_debug) {
+      cerr << "Debug: Getting final stmt: " << cur_stmt->to_string() << "\n";
+    }
+    is_no_error = iden_common_error(cur_stmt);
+    if (!is_no_error) {
+      break;
+    }
+  }
+
+  for (auto cur_ir : ir_list) {
+    cur_ir->deep_drop();
+  }
+
+  return is_no_error;
+}
+
 int main(int argc, char *argv[]) {
 
   if (argc != 1) {
@@ -1121,6 +1177,8 @@ int main(int argc, char *argv[]) {
   assert(unit_test_literal_fixing(false));
 
   assert(unit_test_type_where_mismatch(false));
+
+  assert(unit_test_function_dynamic_instan(true));
 
   return 0;
 }
