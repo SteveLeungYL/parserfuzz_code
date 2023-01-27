@@ -2722,9 +2722,15 @@ BEGIN:
       int length = res_in.tellg();
       res_in.seekg(0, res_in.beg);
 
-      char tmp_res[length];
+      if (length > 50000) {
+        // If the length is larger than 50KB, do not read more.
+        length = 50000;
+      }
+
+      char* tmp_res = new char[length];
       res_in.read(tmp_res, length);
       res_str = string(tmp_res, length);
+      delete[] tmp_res;
     }
     res_in.close();
     // Remove the file. Ignore the returned value.
