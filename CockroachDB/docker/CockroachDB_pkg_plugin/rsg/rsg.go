@@ -16,18 +16,13 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/cockroachdb/cockroach/pkg/internal/rsg/yacc"
-	"github.com/cockroachdb/cockroach/pkg/sql/randgen"
-	"github.com/cockroachdb/cockroach/pkg/sql/sem/tree"
-	"github.com/cockroachdb/cockroach/pkg/sql/types"
-	"github.com/cockroachdb/cockroach/pkg/util/syncutil"
+	"github.com/rsg/yacc"
 )
 
 // RSG is a random syntax generator.
 type RSG struct {
 	Rnd *rand.Rand
 
-	lock  syncutil.Mutex
 	seen  map[string]bool
 	prods map[string][]*yacc.ExpressionNode
 }
@@ -61,13 +56,11 @@ func (r *RSG) Generate(root string, depth int) string {
 	for i := 0; i < 100000; i++ {
 		s := strings.Join(r.generate(root, depth, depth), " ")
 		if r.seen != nil {
-			r.lock.Lock()
 			if !r.seen[s] {
 				r.seen[s] = true
 			} else {
 				s = ""
 			}
-			r.lock.Unlock()
 		}
 		if s != "" {
 			s = strings.Replace(s, "_LA", "", -1)
@@ -236,48 +229,21 @@ func (r *RSG) Float64() float64 {
 	return v
 }
 
-// GenerateRandomArg generates a random, valid, SQL function argument of
-// the specified type.
-func (r *RSG) GenerateRandomArg(typ *types.T) string {
-	switch r.Intn(20) {
-	case 0:
-		return "NULL"
-	case 1:
-		return fmt.Sprintf("NULL::%s", typ)
-	case 2:
-		return fmt.Sprintf("(SELECT NULL)::%s", typ)
-	}
-
-	r.lock.Lock()
-	datum := randgen.RandDatumWithNullChance(r.Rnd, typ, 0, /* nullChance */
-		false /* favorCommonData */, false /* targetColumnIsUnique */)
-	r.lock.Unlock()
-
-	return tree.Serialize(datum)
-}
-
 // lockedSource is a thread safe math/rand.Source. See math/rand/rand.go.
 type lockedSource struct {
-	lk  syncutil.Mutex
 	src rand.Source64
 }
 
 func (r *lockedSource) Int63() (n int64) {
-	r.lk.Lock()
 	n = r.src.Int63()
-	r.lk.Unlock()
 	return
 }
 
 func (r *lockedSource) Uint64() (n uint64) {
-	r.lk.Lock()
 	n = r.src.Uint64()
-	r.lk.Unlock()
 	return
 }
 
 func (r *lockedSource) Seed(seed int64) {
-	r.lk.Lock()
 	r.src.Seed(seed)
-	r.lk.Unlock()
 }

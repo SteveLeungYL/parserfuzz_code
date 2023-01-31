@@ -23,8 +23,6 @@ package yacc
 import (
 	"fmt"
 	"runtime"
-
-	"github.com/cockroachdb/errors"
 )
 
 // Tree is the representation of a single parsed file.
@@ -83,8 +81,8 @@ func New(name string) *Tree {
 // errorf formats the error and terminates processing.
 func (t *Tree) errorf(format string, args ...interface{}) {
 	err := fmt.Errorf(format, args...)
-	err = errors.Wrapf(err, "parse: %s:%d", t.Name, t.lex.lineNumber())
-	panic(err)
+	errStr := fmt.Sprintf(err.Error()+" parse: %s:%d", t.Name, t.lex.lineNumber())
+	panic(errStr)
 }
 
 // expect consumes the next token and guarantees it has the required type.
