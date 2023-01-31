@@ -118,15 +118,10 @@ WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql
 RUN bash ./build.sh
 RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 
-# Clean up the parser_helper files.
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/
-RUN git clean -xdf && git checkout .
-RUN make; exit 0
-
-# From the uninstrumented DBMS, we can also compile the RSG (Random Statement Generator)
-WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/internal/rsg/
-RUN rm -rf ./*
-RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg/* ./
+# We should also compile the RSG (Random Statement Generator)
+WORKDIR /home/cockroach/go_projects/src/github.com/
+RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg ./
+WORKDIR /home/cockroach/go_projects/src/github.com/rsg
 RUN bash ./build.sh
 RUN mv ./rsg_helper.h /home/cockroach/CockroachDB_pkg_plugin
 RUN mv ./rsg_helper.so /home/cockroach/CockroachDB_pkg_plugin
