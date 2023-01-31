@@ -114,7 +114,7 @@ RUN cmake . -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 RUN make clean && make -j $(nproc)
 
 WORKDIR /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/parser_helper
-RUN bash ./build.sh &> /dev/null
+RUN bash ./build.sh
 RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 
 # We should also compile the RSG (Random Statement Generator)
@@ -122,7 +122,7 @@ WORKDIR /home/cockroach/go_projects/src/github.com/
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg ./
 WORKDIR /home/cockroach/go_projects/src/github.com/rsg
 RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y ./
-RUN bash ./build.sh
+RUN bash ./build.sh &> /dev/null
 RUN mv ./rsg_helper.h /home/cockroach/CockroachDB_pkg_plugin
 RUN mv ./rsg_helper.so /home/cockroach/CockroachDB_pkg_plugin
 RUN mv ./sql.y /home/cockroach/CockroachDB_pkg_plugin
