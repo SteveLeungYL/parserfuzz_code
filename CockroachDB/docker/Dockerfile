@@ -121,6 +121,7 @@ RUN mv ./parser_helper.* /home/cockroach/CockroachDB_pkg_plugin
 WORKDIR /home/cockroach/go_projects/src/github.com/
 RUN cp -r /home/cockroach/CockroachDB_pkg_plugin/rsg ./
 WORKDIR /home/cockroach/go_projects/src/github.com/rsg
+RUN cp /home/cockroach/go_projects/src/github.com/cockroachdb/cockroach/pkg/sql/parser/sql.y ./
 RUN bash ./build.sh
 RUN mv ./rsg_helper.h /home/cockroach/CockroachDB_pkg_plugin
 RUN mv ./rsg_helper.so /home/cockroach/CockroachDB_pkg_plugin
