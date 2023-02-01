@@ -14,8 +14,9 @@ RUN apt -y install git
 RUN apt -y install make 
 RUN apt -y install cmake 
 RUN apt -y install build-essential 
-RUN apt -y install gcc-multilib 
-RUN apt -y install g++-multilib 
+RUN apt -y install aptitude
+RUN aptitude -y install gcc-9
+RUN aptitude -y install g++-9
 RUN apt -y install clang
 RUN apt -y install xinetd 
 RUN apt -y install libreadline-dev 
@@ -42,17 +43,16 @@ RUN apt -y install clang
 RUN apt install -y g++-9
 RUN apt install -y gcc-9
 
-
 RUN useradd -ms /bin/bash postgres
 
 # Download the original Go library. Set it up.
 USER postgres
 WORKDIR /home/postgres
-RUN wget https://go.dev/dl/go1.19.linux-amd64.tar.gz
-RUN tar -xf go1.19.linux-amd64.tar.gz
+RUN wget https://go.dev/dl/go1.19.linux-arm64.tar.gz
+RUN tar -xf go1.19.linux-arm64.tar.gz
 USER root
 RUN cp -r go /usr/local/
-USER postgres
+USER postgres 
 RUN echo 'export PATH="/usr/local/go/bin:$PATH"' >> ~/.bashrc
 ENV PATH="/usr/local/go/bin:$PATH"
 
@@ -82,7 +82,7 @@ RUN git clone https://github.com/google/AFL.git
 
 WORKDIR /home/postgres/AFL
 RUN sed -i  's/#define MAP_SIZE_POW2       16/#define MAP_SIZE_POW2       18/' config.h
-RUN make
+RUN AFL_NO_X86=1 make
 WORKDIR /home/postgres/AFL/llvm_mode
 # ENV LLVM_CONFIG=llvm-config-6.0
 RUN make
@@ -111,6 +111,15 @@ WORKDIR /home/postgres/postgres_ori/bld
 ENV CXX=g++-9
 ENV CC=gcc-9
 RUN ../configure --enable-debug --prefix=$(pwd) --exec-prefix=$(pwd) && make -j$(nproc) && make install
+
+# Setup Postgres. 
+# RUN ./bin/initdb -D ./data
+# RUN ./bin/pg_ctl -D ./data start 
+# RUN ./bin/createdb x
+# RUN ./bin/pg_ctl -D ./data stop
+# RUN mkdir -p data_all
+# RUN mv data data_all/ori_data 
+
 
 ENV CXX=g++-9
 ENV CC=gcc-9
