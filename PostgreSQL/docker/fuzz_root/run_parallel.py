@@ -41,7 +41,7 @@ def check_pid(pid:int):
 
 # Parse the command line arguments:
 output_dir_str = ""
-oracle_str = "NOREC"
+oracle_str = "OPT"
 feedback_str = ""
 
 try:
