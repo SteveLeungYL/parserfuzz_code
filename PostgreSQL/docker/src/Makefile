@@ -5,6 +5,9 @@ PARSER_SRCS += $(patsubst %.y,%.cpp,$(wildcard parser/*.y))
 PARSER_SRCS += $(patsubst %.l,%.cpp,$(wildcard parser/*.l))
 LIB_SRCS := $(wildcard src/*.cpp) $(wildcard oracle/*.cpp) $(PARSER_SRCS)
 COMM_OBJS := $(patsubst %.cpp,%.o,$(LIB_SRCS))
+COMM_OBJS += rsg/rsg.o
+COMM_OBJS += rsg/rsg_helper.so
+
 DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
@@ -26,7 +29,10 @@ all: afl-fuzz test-parser generate_inputs
 parser:
 	@$(MAKE) -C $@
 
-$(SUB_DIRS): parser
+rsg:
+	@$(MAKE) -C $@
+
+$(SUB_DIRS): parser rsg
 	@$(MAKE) -C $@
 
 afl-fuzz: $(SUB_DIRS)
@@ -49,11 +55,12 @@ asan: OPT = -O0
 asan:
 	$(MAKE) -e
 
-.PHONY: parser $(SUB_DIRS)
+.PHONY: parser rsg $(SUB_DIRS)
 
 clean:
 	@make clean -C parser
 	@make clean -C src
 	@make clean -C oracle
 	@make clean -C AFL
+	@make clean -C rsg
 	rm -rf afl-fuzz test-parser

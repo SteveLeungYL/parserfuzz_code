@@ -525,6 +525,7 @@ EXP_ST u8 disable_coverage_feedback = 0;
                                * 1: Drop all queries. 
                                * 2: Randomly save queries. 
                                * 3: Save all queries. */
+EXP_ST u8 disable_rsg_generator = 0; /* Dump use RSG to generate new SQL statements          */
 
 static s32 out_fd, /* Persistent fd for out_file       */
     program_output_fd,
@@ -7960,9 +7961,7 @@ static void load_map_id() {
 #ifndef AFL_LIB
 int main(int argc, char **argv)
 {
-  // debug_main_entry();
-  // debug_postgre_oracle_compare_results();
-  // exit(0);
+  disable_rsg_generator = false;
 
   p_oracle = nullptr;
 
@@ -7985,7 +7984,7 @@ int main(int argc, char **argv)
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:QDc:lO:P:F:R")) > 0)
 
     switch (opt)
     {
@@ -8032,6 +8031,16 @@ int main(int argc, char **argv)
       }
 
       force_deterministic = 1;
+    }
+
+    break;
+
+    case 'R':
+    {
+
+      disable_rsg_generator = true;
+      cout << "\033[1;31m Warning: Disabling RSG (Random Statement Generator). "
+              "\033[0m \n\n\n";
     }
 
     break;
@@ -8251,6 +8260,7 @@ int main(int argc, char **argv)
   g_mutator.set_p_oracle(p_oracle);
   
   g_mutator.set_dump_library(dump_library);
+  g_mutator.set_disable_rsg_generator(disable_rsg_generator);
 
   if (optind == argc || !in_dir || !out_dir)
     usage(argv[0]);

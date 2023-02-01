@@ -5,6 +5,7 @@
 #include "define.h"
 #include "utils.h"
 #include "../AFL/types.h"
+#include "../rsg/rsg.h"
 
 #include <map>
 #include <set>
@@ -39,7 +40,9 @@ enum DEF_ARG_TYPE {
 class Mutator {
 
 public:
-  Mutator() { srand(time(nullptr)); }
+  Mutator() { srand(time(nullptr)); rsg_initialize(); }
+
+  void set_disable_rsg_generator(u8 in) { this->disable_rsg_generator = in; return; }
 
   IR *deep_copy_with_record(const IR *root, const IR *record);
   unsigned long hash(IR *);
@@ -254,6 +257,10 @@ public:
   map<IRTYPE, vector<pair<string *, int>>> right_lib_set;
 
   static set<IR *> visited;
+
+  u8 disable_rsg_generator = 0;
+
+  string rsg_generate_valid(const IRTYPE type);
 
 };
 
