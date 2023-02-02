@@ -31,9 +31,9 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
     // Begin iterating. 
     while (!is_finished_search) {
         ir_vec_iter.push_back(cur_IR);
-        if (!ignore_type_suffix && cur_IR->type_ == ir_type) {
+        if (!ignore_type_suffix && cur_IR->ir_type_ == ir_type) {
             ir_vec_matching_type.push_back(cur_IR);
-        } else if (ignore_type_suffix && compare_ir_type(cur_IR->type_, ir_type)) {
+        } else if (ignore_type_suffix && compare_ir_type(cur_IR->ir_type_, ir_type)) {
             ir_vec_matching_type.push_back(cur_IR);
         }
 
@@ -56,7 +56,7 @@ vector<IR*> IRWrapper::get_ir_node_in_stmt_with_type(IR* cur_stmt,
 
     // cerr << "We have ir_vec_matching_type.size()" << ir_vec_matching_type.size() << "\n\n\n";
     // if (ir_vec_matching_type.size() > 0 ) {
-    //     cerr << "We have ir_vec_matching_type.type_, parent->type_, parent->parent->type_: " << ir_vec_matching_type[0] ->type_ << "  "
+    //     cerr << "We have ir_vec_matching_type.ir_type_, parent->ir_type_, parent->parent->ir_type_: " << ir_vec_matching_type[0] ->ir_type_ << "  "
     //          << get_parent_type(ir_vec_matching_type[0], 3)  << "   " << get_parent_type(ir_vec_matching_type[0], 4) << "\n\n\n";
     //     cerr << "is_sub_query: " << this->is_in_subquery(cur_stmt, ir_vec_matching_type[0]) << "\n\n\n";
     //     cerr << "ir_vec_matching_type->to_string: " << ir_vec_matching_type[0]->to_string() << "\n\n\n";
@@ -92,7 +92,7 @@ bool IRWrapper::is_in_subquery(IR* cur_stmt, IR* check_node,
         else if (cur_iter == cur_stmt) { // Iter to the cur_stmt node already. Not in a  subquery.
             return false;
         }
-        else if (cur_iter->type_ == kStmtmulti) { // Iter to the parent node. This is Not a subquery.
+        else if (cur_iter->ir_type_ == kStmtmulti) { // Iter to the parent node. This is Not a subquery.
             return false;
         }
         else if (
@@ -199,7 +199,7 @@ vector<IRTYPE> IRWrapper::get_all_stmt_ir_type(){
 
     vector<IRTYPE> all_types;
     for (auto iter = stmt_list_v.begin(); iter != stmt_list_v.end(); iter++){
-        all_types.push_back((**iter).type_);
+        all_types.push_back((**iter).ir_type_);
     }
     return all_types;
 
@@ -210,7 +210,7 @@ int IRWrapper::get_stmt_num(){
 }
 
 int IRWrapper::get_stmt_num(IR* cur_root) {
-    if (cur_root->type_ != kParseToplevel) {
+    if (cur_root->ir_type_ != kParseToplevel) {
         cerr << "Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n";
         FATAL("Error: Receiving NON-kProgram root. Func: IRWrapper::get_stmt_num(IR* cur_root). Aboard!\n");
     }
@@ -519,7 +519,7 @@ vector<IR*> IRWrapper::get_stmt_ir_vec() {
     
     // // DEBUG
     // for (auto stmt : stmt_vec) {
-    //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec type_: " << get_string_by_ir_type(stmt->type_) << "\n";
+    //     cerr << "In func: IRWrapper::get_stmt_ir_vec(), we have stmt_vec ir_type_: " << get_string_by_ir_type(stmt->ir_type_) << "\n";
     // }
 
     // cerr << "In get_stmt_ir_vec: we have: \n";
@@ -601,7 +601,7 @@ vector<IR*> IRWrapper::get_all_ir_node() {
     // Begin iterating. 
     while (!is_finished_search) {
         ir_vec_iter.push_back(cur_IR);
-        if (cur_IR->type_ != kParseToplevel)
+        if (cur_IR->ir_type_ != kParseToplevel)
             {all_ir_node_vec.push_back(cur_IR);} // Ignore kParserTopLevel at the moment, put it at the end of the vector.
 
         if (cur_IR->left_ != nullptr){
@@ -794,7 +794,7 @@ bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
  * They are too complicated to use.
  * */
 // vector<IR*> IRWrapper::get_selectclauselist_vec(IR* cur_stmt){
-//     if (cur_stmt->type_ != kSelectStmt) {
+//     if (cur_stmt->ir_type_ != kSelectStmt) {
 //         // cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::get_selectcore_vec(). \n";
 //         vector<IR*> tmp; return tmp;
 //     }
@@ -815,7 +815,7 @@ bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
 //             continue;
 //         }
 //         if (select_clause_ir->left_ &&
-//             select_clause_ir->left_->type_ == kUnknown &&
+//             select_clause_ir->left_->ir_type_ == kUnknown &&
 //             select_clause_ir->left_->op_ &&
 //             select_clause_ir->left_->left_ &&
 //             (
@@ -833,11 +833,11 @@ bool IRWrapper::is_exist_set_operator(IR* cur_stmt) {
 // }
 
 // bool IRWrapper::append_selectclause_clause_at_idx(IR* cur_stmt, IR* app_ir, string set_oper_str, int idx){
-//     if (app_ir->type_ != kSelectClause) {
+//     if (app_ir->ir_type_ != kSelectClause) {
 //         cerr << "Error: Not receiving kSelectCore in the func: IRWrapper::append_selectcore_clause(). \n";
 //         return false;
 //     }
-//     if (cur_stmt->type_ != kSelectStmt) {
+//     if (cur_stmt->ir_type_ != kSelectStmt) {
 //         cerr << "Error: Not receiving kSelectStatement in the func: IRWrapper::append_selectcore_clause(). \n";
 //         return false;
 //     }
@@ -931,17 +931,17 @@ vector<IR*> IRWrapper::get_target_el_in_select_target(IR* cur_stmt){
 
 IRTYPE IRWrapper::get_cur_stmt_type_from_sub_ir(IR* cur_ir) {
     while (cur_ir->parent_ != nullptr) {
-        if (cur_ir->type_ == kStmt) {
-            return cur_ir->left_->type_;
+        if (cur_ir->ir_type_ == kStmt) {
+            return cur_ir->left_->ir_type_;
         }
-        if (cur_ir->type_ == kStmtmulti) {
+        if (cur_ir->ir_type_ == kStmtmulti) {
             if (cur_ir->right_ == nullptr) {
-                if (cur_ir->left_->type_ == kStmt) {return cur_ir->left_->left_->type_;}
-                else {return cur_ir->left_->type_;}
+                if (cur_ir->left_->ir_type_ == kStmt) {return cur_ir->left_->left_->ir_type_;}
+                else {return cur_ir->left_->ir_type_;}
             }
             else {
-                if (cur_ir->right_->type_ == kStmt) {return cur_ir->right_->left_->type_;}
-                else {return cur_ir->right_->type_;}
+                if (cur_ir->right_->ir_type_ == kStmt) {return cur_ir->right_->left_->ir_type_;}
+                else {return cur_ir->right_->ir_type_;}
             }
         }
         cur_ir = cur_ir->parent_;

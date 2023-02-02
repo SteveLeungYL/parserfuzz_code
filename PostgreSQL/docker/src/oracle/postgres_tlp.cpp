@@ -217,8 +217,8 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
   res_a_int = 0;
   res_b_int = 0;
 
-  vector<string> v_res_a = string_splitter(res_a, '\n');
-  vector<string> v_res_b = string_splitter(res_b, '\n');
+  vector<string> v_res_a = string_splitter(res_a, "\n");
+  vector<string> v_res_b = string_splitter(res_b, "\n");
 
   if (v_res_a.size() > 50 || v_res_b.size() > 50) {
     res.comp_res = ORA_COMP_RES::Error;
@@ -239,8 +239,8 @@ bool SQL_TLP::compare_norm(COMP_RES &res) {
   v_res_a.clear();
   v_res_b.clear();
 
-  res_a_int += std::count(res_a.begin(), res_a.end(), '\n');
-  res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
+  res_a_int += std::count(res_a.begin(), res_a.end(), "\n");
+  res_b_int += std::count(res_b.begin(), res_b.end(), "\n");
 
   /* For case that the first stmt return NULL, but the second stmt returns all 0. */
   if (res_a_int == 0) {
@@ -285,8 +285,8 @@ bool SQL_TLP::compare_uniq(COMP_RES &res) {
   res_a_int = 0;
   res_b_int = 0;
 
-  vector<string> v_res_a = string_splitter(res_a, '\n');
-  vector<string> v_res_b = string_splitter(res_b, '\n');
+  vector<string> v_res_a = string_splitter(res_a, "\n");
+  vector<string> v_res_b = string_splitter(res_b, "\n");
 
   if (v_res_a.size() > 50 || v_res_b.size() > 50) {
     res.comp_res = ORA_COMP_RES::Error;
@@ -320,8 +320,8 @@ bool SQL_TLP::compare_uniq(COMP_RES &res) {
   }
   uniq_rows.clear();
 
-  res_a_int += std::count(res_a.begin(), res_a.end(), '\n');
-  res_b_int += std::count(res_b.begin(), res_b.end(), '\n');
+  res_a_int += std::count(res_a.begin(), res_a.end(), "\n");
+  res_b_int += std::count(res_b.begin(), res_b.end(), "\n");
 
   /* For case that the first stmt return NULL, but the second stmt returns all 0. */
   if (res_a_int == 0) {

@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <algorithm>
 
 
 using namespace std;
@@ -107,7 +108,7 @@ vector<string> get_all_files_in_dir(const char *dir_name);
 string magic_string_generator(string &s);
 void ensure_semicolon_at_query_end(string &);
 std::vector<string> string_splitter(const string &input_string,
-                                     const char delimiter_re);
+                                    string delimiter_re);
 bool is_str_empty(string input_str);
 
 string::const_iterator findStringIter(const std::string &strHaystack,
@@ -148,6 +149,13 @@ int gen_int();
 inline bool is_digits(string str) {
   if (str == "NaN") return true;
   return str.find_first_not_of("0123456789. ") == std::string::npos;
+}
+
+string str_toupper(string str_in) {
+  std::transform(str_in.begin(), str_in.end(), str_in.begin(),
+                 [](unsigned char c){ return std::toupper(c); });
+
+  return str_in;
 }
 
 #endif

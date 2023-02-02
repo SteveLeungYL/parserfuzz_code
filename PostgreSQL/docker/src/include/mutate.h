@@ -81,8 +81,8 @@ public:
   IR *get_ir_from_library(IRTYPE); 
   // IR *generate_ir_by_type(IRTYPE); 
 
-  string get_data_by_type(DATATYPE);
-  pair<string, string> get_data_2d_by_type(DATATYPE, DATATYPE); 
+  string get_data_by_type(CONTEXTTYPE);
+  pair<string, string> get_data_2d_by_type(CONTEXTTYPE, CONTEXTTYPE);
 
   void reset_data_library(); 
   void reset_data_library_single_stmt();
@@ -107,7 +107,7 @@ public:
                      vector<IR*> &ordered_all_subquery_ir);
   bool fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> ir_to_fix, bool is_debug_info = false);   
   void reset_scope_library(bool clear_define);                      
-  IR *find_closest_node(IR *stmt_root, IR *node, DATATYPE type);    
+  IR *find_closest_node(IR *stmt_root, IR *node, CONTEXTTYPE type);
   bool fill_one(IR *parent);                                        
   // bool fill_one_pair(IR *parent, IR *child);                        
   // bool fill_stmt_graph_one(map<IR *, vector<IR *>> &graph, IR *ir); 
@@ -118,15 +118,15 @@ public:
   pair<string, string> ir_to_string(IR* root, vector<vector<IR*>> all_post_trans_vec, const vector<STMT_TYPE>& stmt_type_vec);
 
   unsigned int calc_node(IR *root);
-  bool replace_one_value_from_datalibray_2d(DATATYPE p_datatype,
-                                            DATATYPE c_data_type, string &p_key,
+  bool replace_one_value_from_datalibray_2d(CONTEXTTYPE p_datatype,
+                                            CONTEXTTYPE c_data_type, string &p_key,
                                             string &old_c_value,
                                             string &new_c_value);
-  bool remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype,
-                                           DATATYPE c_data_type, string &p_key);
-  bool replace_one_from_datalibrary(DATATYPE datatype, string &old_str,
+  bool remove_one_pair_from_datalibrary_2d(CONTEXTTYPE p_datatype,
+                                           CONTEXTTYPE c_data_type, string &p_key);
+  bool replace_one_from_datalibrary(CONTEXTTYPE datatype, string &old_str,
                                     string &new_str);
-  bool remove_one_from_datalibrary(DATATYPE datatype, string &key);
+  bool remove_one_from_datalibrary(CONTEXTTYPE datatype, string &key);
   ~Mutator();
   void debug(IR *root);
   void debug(IR *root, unsigned level);
@@ -175,7 +175,7 @@ public:
   set<unsigned long> string_library_hash_;
   vector<unsigned long> value_library_;
 
-  map<DATATYPE, map<DATATYPE, RELATIONTYPE>> relationmap_;
+  map<CONTEXTTYPE, map<CONTEXTTYPE, RELATIONTYPE>> relationmap_;
 
   vector<string> common_string_library_;
   set<IRTYPE> not_mutatable_types_;
@@ -187,20 +187,20 @@ public:
   set<IRTYPE> split_stmt_types_;
   set<IRTYPE> split_substmt_types_;
 
-  map<DATATYPE, vector<string>> data_library_;
-  map<DATATYPE, map<string, map<DATATYPE, vector<string>>>> data_library_2d_;
+  map<CONTEXTTYPE, vector<string>> data_library_;
+  map<CONTEXTTYPE, map<string, map<CONTEXTTYPE, vector<string>>>> data_library_2d_;
 
-  map<DATATYPE, vector<string>> g_data_library_;
-  map<DATATYPE, set<unsigned long>> g_data_library_hash_;
-  map<DATATYPE, map<string, map<DATATYPE, vector<string>>>> g_data_library_2d_;
-  map<DATATYPE, map<string, map<DATATYPE, vector<string>>>>
+  map<CONTEXTTYPE, vector<string>> g_data_library_;
+  map<CONTEXTTYPE, set<unsigned long>> g_data_library_hash_;
+  map<CONTEXTTYPE, map<string, map<CONTEXTTYPE, vector<string>>>> g_data_library_2d_;
+  map<CONTEXTTYPE, map<string, map<CONTEXTTYPE, vector<string>>>>
       g_data_library_2d_hash_;
 
   /*
   ** Not sure its usage yet. Might delete later. 
-  ** Save all scope -> DATATYPE -> pIR in one query sequence. 
+  ** Save all scope -> CONTEXTTYPE -> pIR in one query sequence.
   */
-  map<int, map<DATATYPE, vector<IR *>>> scope_library_;
+  map<int, map<CONTEXTTYPE, vector<IR *>>> scope_library_;
 
   set<unsigned long> global_hash_;
 

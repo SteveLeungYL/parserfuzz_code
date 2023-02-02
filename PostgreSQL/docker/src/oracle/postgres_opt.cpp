@@ -68,9 +68,9 @@ void SQL_OPT::compare_results(ALL_COMP_RES &res_out) {
       continue;
     }
 
-    vector<string> v_res_a = string_splitter(res.v_res_str[0], '\n');
-    vector<string> v_res_b = string_splitter(res.v_res_str[1], '\n');
-    vector<string> v_res_c = string_splitter(res.v_res_str[2], '\n');
+    vector<string> v_res_a = string_splitter(res.v_res_str[0], "\n");
+    vector<string> v_res_b = string_splitter(res.v_res_str[1], "\n");
+    vector<string> v_res_c = string_splitter(res.v_res_str[2], "\n");
 
       if (v_res_a.size() > 50 || v_res_b.size() > 50) {
           res.comp_res = ORA_COMP_RES::Error;

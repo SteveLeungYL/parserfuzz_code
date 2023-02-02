@@ -35,7 +35,7 @@ string get_string_by_option_type(RelOptionType type) {
   return "option_unknown";
 }
 
-string get_string_by_data_type(DATATYPE type) {
+string get_string_by_context_type(CONTEXTTYPE type) {
 
   switch (type) {
   case kDataWhatever:
@@ -117,7 +117,7 @@ string get_string_by_data_type(DATATYPE type) {
   }
 }
 
-string get_string_by_data_flag(DATAFLAG flag_type_) {
+string get_string_by_context_flag(CONTEXTFLAG flag_type_) {
 
   switch (flag_type_) {
   case kUse:
@@ -143,21 +143,10 @@ string get_string_by_data_flag(DATAFLAG flag_type_) {
   }
 }
 
-string get_string_by_datatype(DATATYPE tt) {
-#define DECLARE_CASE(datatypename)                                             \
-  if (tt == k##datatypename)                                                   \
-    return string(#datatypename);
-
-  ALLCONTEXTTYPE(DECLARE_CASE);
-
-#undef DECLARE_CASE
-  return string("");
-}
-
-DATATYPE get_datatype_by_string(string s) {
-#define DECLARE_CASE(datatypename)                                             \
-  if (s == #datatypename)                                                      \
-    return k##datatypename;
+CONTEXTTYPE get_context_type_by_string(string s) {
+#define DECLARE_CASE(contexttypename)                                             \
+  if (s == #contexttypename)                                                      \
+    return k##contexttypename;
 
   ALLCONTEXTTYPE(DECLARE_CASE);
 
@@ -201,12 +190,12 @@ string IR::to_string() {
 /* Very frequently called. Must be very fast. */
 void IR::to_string_core(string& res) {
 
-  if (data_type_ == kDataCollate) {
+  if (context_type_ == kDataCollate) {
     res += "\"" + str_val_ + "\"";
     return;
   }
 
-  switch (type_) {
+  switch (ir_type_) {
   case kIntLiteral:
     if (str_val_ != "") {
       res += str_val_;
@@ -243,7 +232,7 @@ void IR::to_string_core(string& res) {
   }
 
 
-  // if (type_ == kFuncArgs && str_val_ != "") {
+  // if (ir_type_ == kFuncArgs && str_val_ != "") {
   //   res += str_val_;
   //   return;
   // }
@@ -374,10 +363,10 @@ IR *IR::deep_copy() {
   if (this->op_)
     op = OP3(this->op_->prefix_, this->op_->middle_, this->op_->suffix_);
 
-  copy_res = new IR(this->type_, op, left, right, this->float_val_,
+  copy_res = new IR(this->ir_type_, op, left, right, this->float_val_,
                     this->str_val_, this->name_, this->mutated_times_);
-  copy_res->data_type_ = this->data_type_;
-  copy_res->data_flag_ = this->data_flag_;
+  copy_res->context_type_ = this->context_type_;
+  copy_res->context_flag_ = this->context_flag_;
   copy_res->option_type_ = this->option_type_;
 
   return copy_res;
@@ -428,15 +417,15 @@ void IR::set_str_val(string in) {
 }
 
 IRTYPE IR::get_ir_type() {
-  return type_;
+  return ir_type_;
 }
 
-DATATYPE IR::get_data_type() {
-  return data_type_;
+CONTEXTTYPE IR::get_data_type() {
+  return context_type_;
 }
 
-DATAFLAG IR::get_data_flag() {
-  return data_flag_;
+CONTEXTFLAG IR::get_data_flag() {
+  return context_flag_;
 }
 
 IR* IR::get_left() {
@@ -448,18 +437,18 @@ IR* IR::get_right() {
 }
 
 void IR::set_ir_type(IRTYPE type) {
-  this->type_ = type;
+  this->ir_type_ = type;
 }
 
-void IR::set_data_type(DATATYPE data_type) {
-  this->data_type_ = data_type;
+void IR::set_data_type(CONTEXTTYPE data_type) {
+  this->context_type_ = data_type;
 }
 
-void IR::set_data_flag(DATAFLAG data_flag) {
-  this->data_flag_ = data_flag;
+void IR::set_data_flag(CONTEXTFLAG data_flag) {
+  this->context_flag_ = data_flag;
 }
 
-bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_qualified_name_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
   assert(this->get_ir_type() == kQualifiedName);
   assert(this->get_left() && this->get_left()->get_ir_type() == kIdentifier);
@@ -481,7 +470,8 @@ bool IR::set_qualified_name_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_qualified_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_qualified_name_list_type(CONTEXTTYPE data_type,
+                                      CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kQualifiedNameList);
 
   IR* qualified_name_ir = NULL;
@@ -500,7 +490,7 @@ bool IR::set_qualified_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
 
   /* Set type regardless of the node type. Do not use this unless necessary. */
   this->set_data_type(data_type);
@@ -510,7 +500,7 @@ bool IR::set_type(DATATYPE data_type, DATAFLAG data_flag) {
 }
 
 
-bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_iden_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   // cerr << get_string_by_ir_type(this->get_parent()->get_ir_type()) << "\n";
   assert(this->get_ir_type() == kIdentifier);
 
@@ -520,7 +510,7 @@ bool IR::set_iden_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_reloption_elem_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_reloption_elem_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kReloptionElem);
 
   this->set_data_type(data_type);
@@ -529,7 +519,7 @@ bool IR::set_reloption_elem_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_any_name_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_any_name_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kAnyName);
 
   IR* iden = this->get_left();
@@ -540,7 +530,7 @@ bool IR::set_any_name_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_any_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_any_name_list_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kAnyNameList);
 
   IR* anyname_ir = NULL;
@@ -559,7 +549,7 @@ bool IR::set_any_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_opt_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_opt_columnlist_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kOptColumnList);
 
   IR* columnlist_ir = this->get_left();
@@ -569,7 +559,7 @@ bool IR::set_opt_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
   return true;
 }
 
-bool IR::set_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_columnlist_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kColumnList);
 
   IR* column_elem_ir = NULL;
@@ -591,7 +581,8 @@ bool IR::set_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
 }
 
 
-bool IR::set_insert_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_insert_columnlist_type(CONTEXTTYPE data_type,
+                                    CONTEXTFLAG data_flag) {
 
   assert(this->get_ir_type() == kInsertColumnList);
 
@@ -613,7 +604,7 @@ bool IR::set_insert_columnlist_type(DATATYPE data_type, DATAFLAG data_flag) {
 
 }
 
-bool IR::set_rolelist_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_rolelist_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kRoleList);
 
   IR* iden = NULL;
@@ -777,17 +768,17 @@ bool IR::set_rel_option_type(RelOptionType type) {
   return true;
 }
 
-bool IR::set_generic_set_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_generic_set_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(this->get_ir_type() == kGenericSet);
 
-  this->data_type_ = data_type;
-  this->data_flag_ = data_flag;
+  this->context_type_ = data_type;
+  this->context_flag_ = data_flag;
 
   return true;
 
 }
 
-bool IR::set_opt_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_opt_name_list_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(get_ir_type() == kOptNameList);
 
   if (!get_left()) return false;
@@ -798,7 +789,7 @@ bool IR::set_opt_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
 
 }
 
-bool IR::set_name_list_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_name_list_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(get_ir_type() == kNameList);
 
   if (get_right()) {
@@ -857,7 +848,8 @@ bool IR::set_reloption_elem_option_type(RelOptionType type) {
   return set_rel_option_type(type);
 }
 
-bool IR::set_cluster_index_specification_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_cluster_index_specification_type(CONTEXTTYPE data_type,
+                                              CONTEXTFLAG data_flag) {
   assert(get_ir_type() == kClusterIndexSpecification);
 
   if (!get_left()) return false;
@@ -866,7 +858,7 @@ bool IR::set_cluster_index_specification_type(DATATYPE data_type, DATAFLAG data_
   return iden->set_iden_type(data_type, data_flag);
 }
 
-bool IR::set_relation_expr_type(DATATYPE data_type, DATAFLAG data_flag) {
+bool IR::set_relation_expr_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
   assert(get_ir_type() == kRelationExpr);
 
   if (!get_left()) return false;

@@ -71,16 +71,16 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
     right = deep_copy_with_record(root->right_, record);
 
   if (root->op_)
-    copy_res = new IR(root->type_,
+    copy_res = new IR(root->ir_type_,
                OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_),
                left, right, root->float_val_, root->str_val_, root->name_,
-               root->mutated_times_, root->scope_, root->data_flag_);
+               root->mutated_times_, root->scope_, root->context_flag_);
   else
-    copy_res = new IR(root->type_, NULL, left, right, root->float_val_,
+    copy_res = new IR(root->ir_type_, NULL, left, right, root->float_val_,
                       root->str_val_, root->name_, root->mutated_times_,
-                      root->scope_, root->data_flag_);
+                      root->scope_, root->context_flag_);
 
-  copy_res->data_type_ = root->data_type_;
+  copy_res->context_type_ = root->context_type_;
 
   if (root == record && record != NULL) {
     this->record_ = copy_res;
@@ -244,7 +244,7 @@ void Mutator::add_ir_to_library_no_deepcopy(IR *cur) {
   if (cur->right_)
     add_ir_to_library_no_deepcopy(cur->right_);
 
-  auto type = cur->type_;
+  auto type = cur->ir_type_;
   auto h = hash(cur);
   if (find(ir_library_hash_[type].begin(), ir_library_hash_[type].end(), h) !=
       ir_library_hash_[type].end())
@@ -283,8 +283,8 @@ void Mutator::init_data_library_2d(string filename) {
     }
     v_strbuf.push_back(s.substr(prev_pos + 1, s.size() - prev_pos - 1));
 
-    auto data_type1 = get_datatype_by_string(v_strbuf[0]);
-    auto data_type2 = get_datatype_by_string(v_strbuf[2]);
+    auto data_type1 = get_context_type_by_string(v_strbuf[0]);
+    auto data_type2 = get_context_type_by_string(v_strbuf[2]);
     g_data_library_2d_[data_type1][v_strbuf[1]][data_type2].push_back(
         v_strbuf[3]);
   }
@@ -301,7 +301,7 @@ void Mutator::init_data_library(string filename) {
     auto pos = s.find(" ");
     if (pos == string::npos)
       continue;
-    auto data_type = get_datatype_by_string(s.substr(0, pos));
+    auto data_type = get_context_type_by_string(s.substr(0, pos));
     auto v = s.substr(pos + 1, s.size() - pos - 1);
     g_data_library_[data_type].push_back(v);
   }
@@ -710,23 +710,23 @@ IR *Mutator::strategy_insert(IR *cur) {
   assert(cur);
 
   // auto res = deep_copy(cur);
-  // auto parent_type = cur->type_;
+  // auto parent_type = cur->ir_type_;
 
   // if (res->right_ == NULL && res->left_ != NULL) {
-  //   auto left_type = res->left_->type_;
+  //   auto left_type = res->left_->ir_type_;
   //   for (int k = 0; k < 4; k++) {
   //     auto fetch_ir = get_ir_from_library(parent_type);
-  //     if (fetch_ir->left_ != NULL && fetch_ir->left_->type_ == left_type &&
+  //     if (fetch_ir->left_ != NULL && fetch_ir->left_->ir_type_ == left_type &&
   //         fetch_ir->right_ != NULL) {
   //       res->right_ = deep_copy(fetch_ir->right_);
   //       return res;
   //     }
   //   }
   // } else if (res->right_ != NULL && res->left_ == NULL) {
-  //   auto right_type = res->left_->type_;
+  //   auto right_type = res->left_->ir_type_;
   //   for (int k = 0; k < 4; k++) {
   //     auto fetch_ir = get_ir_from_library(parent_type);
-  //     if (fetch_ir->right_ != NULL && fetch_ir->right_->type_ == right_type &&
+  //     if (fetch_ir->right_ != NULL && fetch_ir->right_->ir_type_ == right_type &&
   //         fetch_ir->left_ != NULL) {
   //       res->left_ = deep_copy(fetch_ir->left_);
   //       return res;
@@ -745,8 +745,8 @@ IR *Mutator::strategy_insert(IR *cur) {
 
   // return res;
 
-  if (cur->type_ == kStmtlist) {
-    auto new_right = get_from_libary_with_left_type(cur->type_);
+  if (cur->ir_type_ == kStmtlist) {
+    auto new_right = get_from_libary_with_left_type(cur->ir_type_);
     if (new_right != NULL) {
       auto res = cur->deep_copy();
       auto new_res = new IR(kStmtlist, OPMID(";"), res, new_right);
@@ -755,7 +755,7 @@ IR *Mutator::strategy_insert(IR *cur) {
   }
 
   else if (cur->right_ == NULL && cur->left_ != NULL) {
-    auto left_type = cur->left_->type_;
+    auto left_type = cur->left_->ir_type_;
     auto new_right = get_from_libary_with_left_type(left_type);
     if (new_right != NULL) {
       auto res = cur->deep_copy();
@@ -765,7 +765,7 @@ IR *Mutator::strategy_insert(IR *cur) {
   }
 
   else if (cur->right_ != NULL && cur->left_ == NULL) {
-    auto right_type = cur->right_->type_;
+    auto right_type = cur->right_->ir_type_;
     auto new_left = get_from_libary_with_right_type(right_type);
     if (new_left != NULL) {
       auto res = cur->deep_copy();
@@ -774,7 +774,7 @@ IR *Mutator::strategy_insert(IR *cur) {
     }
   }
 
-  return get_from_libary_with_type(cur->type_);
+  return get_from_libary_with_type(cur->ir_type_);
 }
 
 IR *Mutator::strategy_replace(IR *cur) {
@@ -786,8 +786,8 @@ IR *Mutator::strategy_replace(IR *cur) {
   if (cur->left_ != NULL) {
     res = deep_copy(cur);
 
-    auto new_node = get_ir_from_library(res->left_->type_);
-    new_node->data_type_ = res->left_->data_type_;
+    auto new_node = get_ir_from_library(res->left_->ir_type_);
+    new_node->context_type_ = res->left_->context_type_;
     deep_delete(res->left_);
     res->left_ = deep_copy(new_node);
   }
@@ -796,8 +796,8 @@ IR *Mutator::strategy_replace(IR *cur) {
   if (cur->right_ != NULL) {
     res = deep_copy(cur);
 
-    auto new_node = get_ir_from_library(res->right_->type_);
-    new_node->data_type_ = res->right_->data_type_;
+    auto new_node = get_ir_from_library(res->right_->ir_type_);
+    new_node->context_type_ = res->right_->context_type_;
     deep_delete(res->right_);
     res->right_ = deep_copy(new_node);
   }
@@ -806,10 +806,10 @@ IR *Mutator::strategy_replace(IR *cur) {
   if (cur->left_ != NULL && cur->right_ != NULL) {
     res = deep_copy(cur);
 
-    auto new_left = get_ir_from_library(res->left_->type_);
-    auto new_right = get_ir_from_library(res->right_->type_);
-    new_left->data_type_ = res->left_->data_type_;
-    new_right->data_type_ = res->right_->data_type_;
+    auto new_left = get_ir_from_library(res->left_->ir_type_);
+    auto new_right = get_ir_from_library(res->right_->ir_type_);
+    new_left->context_type_ = res->left_->context_type_;
+    new_right->context_type_ = res->right_->context_type_;
     deep_delete(res->right_);
     res->right_ = deep_copy(new_right);
 
@@ -829,8 +829,8 @@ bool Mutator::lucky_enough_to_be_mutated(unsigned int mutated_times) {
   return false;
 }
 
-pair<string, string> Mutator::get_data_2d_by_type(DATATYPE type1,
-                                                  DATATYPE type2) {
+pair<string, string> Mutator::get_data_2d_by_type(CONTEXTTYPE type1,
+                                                  CONTEXTTYPE type2) {
   pair<string, string> res("", "");
   auto size = data_library_2d_[type1].size();
 
@@ -921,9 +921,9 @@ void Mutator::debug(IR *root, unsigned level) {
     cout << " ";
 
   cout << level << ": "
-       << get_string_by_ir_type(root->type_) << ": "
-       << get_string_by_data_type(root->data_type_) << ": "
-       << get_string_by_data_flag(root->data_flag_) << ": "
+       << get_string_by_ir_type(root->ir_type_) << ": "
+       << get_string_by_context_type(root->context_type_) << ": "
+       << get_string_by_context_flag(root->context_flag_) << ": "
        << get_string_by_option_type(root->option_type_) << ": "
        << root->uniq_id_in_tree_ << ": "
        << root -> to_string() 
@@ -966,7 +966,7 @@ void Mutator::_extract_struct(IR *root) {
   if (root->get_data_type() == kDataFixLater) {return;}
   if (root->get_data_type() == kDataLiteral) {return;}
 
-  auto type = root->type_;
+  auto type = root->ir_type_;
   if (root->left_) {
     extract_struct(root->left_);
   }
@@ -993,10 +993,10 @@ void Mutator::_extract_struct(IR *root) {
   // }
 
 
-  if (root->left_ || root->right_ || root->data_type_ == kDataFunctionName)
+  if (root->left_ || root->right_ || root->context_type_ == kDataFunctionName)
     return;
 
-  if (root->data_type_ != kDataWhatever && root->data_type_ != kDataFunctionName) {
+  if (root->context_type_ != kDataWhatever && root->context_type_ != kDataFunctionName) {
 
     root->str_val_ = "x";
     return;
@@ -1013,7 +1013,7 @@ void Mutator::_extract_struct(IR *root) {
 
 void Mutator::extract_struct2(IR *root) {
   static int counter = 0;
-  auto type = root->type_;
+  auto type = root->ir_type_;
   if (root->left_) {
     extract_struct2(root->left_);
   }
@@ -1024,7 +1024,7 @@ void Mutator::extract_struct2(IR *root) {
   if (root->left_ || root->right_)
     return;
 
-  if (root->data_type_ != kDataWhatever) {
+  if (root->context_type_ != kDataWhatever) {
 
     root->str_val_ = "x" + to_string(counter++);
     return;
@@ -1070,7 +1070,7 @@ void Mutator::pre_validate() {
 bool Mutator::validate(IR *&cur_stmt, bool is_debug_info) {
 
   bool res = true;
-  if (cur_stmt->type_ == kProgram) {
+  if (cur_stmt->ir_type_ == kProgram) {
     vector<IR*> cur_stmt_vec = p_oracle->ir_wrapper.get_stmt_ir_vec(cur_stmt);
     for (IR* cur_stmt_tmp : cur_stmt_vec) {
       res = this->validate(cur_stmt_tmp, is_debug_info) && res;
@@ -1105,7 +1105,7 @@ string Mutator::validate(string query, bool is_debug_info) {
     return "";
 
   IR *root = ir_set.back();
-  if (root->type_ != kParseToplevel) {
+  if (root->ir_type_ != kParseToplevel) {
     root->deep_drop();
     return "";
   }
@@ -1285,7 +1285,7 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR *, pair<bool, IR*>> 
 
     /* See if current node type is matching split_set. If yes, disconnect node->left and node->right. */
     if (node->left_ &&
-        find(split_set.begin(), split_set.end(), node->left_->type_) != split_set.end() && 
+        find(split_set.begin(), split_set.end(), node->left_->ir_type_) != split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->left_)
     ) {
       res.push_back(node->left_);
@@ -1293,7 +1293,7 @@ vector<IR *> Mutator::split_to_substmt(IR *cur_stmt, map<IR *, pair<bool, IR*>> 
       m_save[node] = cur_m_save;
     }
     if (node->right_ &&
-        find(split_set.begin(), split_set.end(), node->right_->type_) != split_set.end() && 
+        find(split_set.begin(), split_set.end(), node->right_->ir_type_) != split_set.end() &&
         p_oracle->ir_wrapper.is_in_subquery(cur_stmt, node->right_)
       ) {
       res.push_back(node->right_);
@@ -1354,7 +1354,7 @@ void Mutator::analyze_scope(IR *stmt_root) {
     analyze_scope(stmt_root->right_);
   }
 
-  auto data_type = stmt_root->data_type_;
+  auto data_type = stmt_root->context_type_;
   if (data_type == kDataWhatever)
     return;
 
@@ -1365,9 +1365,9 @@ void Mutator::analyze_scope(IR *stmt_root) {
 //
 // NOTE: identifier type is different from IR type
 //
-static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
+static void collect_ir(IR *root, set<CONTEXTTYPE> &type_to_fix,
                        vector<IR *> &ir_to_fix) {
-  DATATYPE idtype = root->data_type_;
+  CONTEXTTYPE idtype = root->context_type_;
 
   if (root->left_) {
     collect_ir(root->left_, type_to_fix, ir_to_fix);
@@ -1391,7 +1391,7 @@ static void collect_ir(IR *root, set<DATATYPE> &type_to_fix,
 void
 Mutator::fix_preprocessing(IR *stmt_root,
                      vector<IR*> &ordered_all_subquery_ir) {
-  set<DATATYPE> type_to_fix = {
+  set<CONTEXTTYPE> type_to_fix = {
     kDataColumnName, kDataTableName, kDataPragmaKey,
     kDataPragmaValue, kDataLiteral, kDataRelOption,
     kDataIndexName, kDataAliasName, kDataTableNameFollow,
@@ -1430,16 +1430,16 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
       if (
         (
-          ir_to_fix->data_type_ == kDataTableName ||
-          ir_to_fix->data_type_ == kDataForeignTableName
+          ir_to_fix->context_type_ == kDataTableName ||
+          ir_to_fix->context_type_ == kDataForeignTableName
         ) &&
-        (ir_to_fix->data_flag_ == kDefine))
+        (ir_to_fix->context_flag_ == kDefine))
       {
         string new_name = gen_id_name();
         ir_to_fix->str_val_ = new_name;
         fixed_ir.push_back(ir_to_fix);
 
-        if (ir_to_fix->data_type_ == kDataForeignTableName) {
+        if (ir_to_fix->context_type_ == kDataForeignTableName) {
           v_create_foreign_table_names_single.push_back(new_name);
         }
 
@@ -1462,9 +1462,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
       if (
         (
-          ir_to_fix->data_type_ == kDataTableName
+          ir_to_fix->context_type_ == kDataTableName
         ) &&
-        ir_to_fix->data_flag_ == kUndefine)
+        ir_to_fix->context_flag_ == kUndefine)
       {
         if (v_table_names.size() > 0 ) {
           string removed_table_name = v_table_names[get_rand_int(v_table_names.size())];
@@ -1487,9 +1487,9 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
       } else if (
         (
-          ir_to_fix->data_type_ == kDataForeignTableName
+          ir_to_fix->context_type_ == kDataForeignTableName
         ) &&
-        ir_to_fix->data_flag_ == kUndefine)
+        ir_to_fix->context_flag_ == kUndefine)
       {
         if (v_foreign_table_name.size() > 0 ) {
           /* Find table name in the foreign table vector, not normal table vec.  */
@@ -1527,7 +1527,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataTableName && ir_to_fix->data_flag_ == kUse) {
+      if (ir_to_fix->context_type_ == kDataTableName && ir_to_fix->context_flag_ == kUse) {
 
         /* If the original SQL is using the system catalogs,
          * gives just 10% chance to fix it.
@@ -1623,7 +1623,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kDefine) {
+      if (ir_to_fix->context_type_ == kDataViewName && ir_to_fix->context_flag_ == kDefine) {
         string new_view_name_str = gen_view_name();
         ir_to_fix->set_str_val(new_view_name_str);
         fixed_ir.push_back(ir_to_fix);
@@ -1643,7 +1643,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUndefine) {
+      if (ir_to_fix->context_type_ == kDataViewName && ir_to_fix->context_flag_ == kUndefine) {
         if (!v_view_name.size()) {
           if (is_debug_info) {
             cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
@@ -1665,7 +1665,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
 
       /* kUse of kDataViewName */
-      if (ir_to_fix->data_type_ == kDataViewName && ir_to_fix->data_flag_ == kUse) {
+      if (ir_to_fix->context_type_ == kDataViewName && ir_to_fix->context_flag_ == kUse) {
         if (!v_view_name.size()) {
           if (is_debug_info) {
             cerr << "Dependency Error: In kUndefine of kDataViewname, cannot find view name defined before. \n\n\n";
@@ -1689,7 +1689,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataAliasTableName && ir_to_fix->data_flag_ == kDefine) {
+      if (ir_to_fix->context_type_ == kDataAliasTableName && ir_to_fix->context_flag_ == kDefine) {
         string new_alias_table_name_str = gen_alias_name();
         ir_to_fix->set_str_val(new_alias_table_name_str);
         fixed_ir.push_back(ir_to_fix);
@@ -1714,7 +1714,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
 
       /* Assume all kAlias are alias to Table name.  */
-      if (ir_to_fix->data_type_ == kDataAliasName) {
+      if (ir_to_fix->context_type_ == kDataAliasName) {
 
         string closest_table_name = "";
 
@@ -1793,8 +1793,8 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataColumnName && (ir_to_fix->data_flag_ == kDefine || ir_to_fix->data_flag_ == kReplace)) {
-        if (ir_to_fix->data_flag_ == kReplace) {
+      if (ir_to_fix->context_type_ == kDataColumnName && (ir_to_fix->context_flag_ == kDefine || ir_to_fix->context_flag_ == kReplace)) {
+        if (ir_to_fix->context_flag_ == kReplace) {
           is_replace_column = true;
         }
         string new_name = gen_column_name();
@@ -1848,7 +1848,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
 
         /* Next, we save the column type to the mapping */
-        if (ir_to_fix->data_flag_ == kDefine) {
+        if (ir_to_fix->context_flag_ == kDefine) {
           /* For normal tables, we need to save its column type. */
           if (ir_to_fix ->get_parent() ->get_right() && ir_to_fix->get_parent()->get_right()->get_ir_type() == kTypename ) {
 
@@ -1868,7 +1868,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         } else { // kReplace for type mapping
           /* This is a ALTER replace column statment. Find the previous column name type, map it to the new one. */
           vector<IR*> column_name_ir;
-          set<DATATYPE> type_to_search = {kDataColumnName};
+          set<CONTEXTTYPE> type_to_search = {kDataColumnName};
           collect_ir(cur_stmt_root, type_to_search, column_name_ir);
           string prev_column_name = column_name_ir[0]->str_val_;
           COLTYPE column_data_type = m_column2datatype[prev_column_name];
@@ -1880,7 +1880,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
         /* Finished mapping algorithm. */
 
-      } else if (ir_to_fix->data_type_ == kDataColumnName && ir_to_fix->data_flag_ == kUndefine) {
+      } else if (ir_to_fix->context_type_ == kDataColumnName && ir_to_fix->context_flag_ == kUndefine) {
         /* Find the table_name in the query first. */
         string closest_table_name = "";
         if (v_table_names_single.size() != 0) {
@@ -1941,7 +1941,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       }
 
 
-      if (ir_to_fix->data_type_ == kDataColumnName && ir_to_fix->data_flag_ == kUse) {
+      if (ir_to_fix->context_type_ == kDataColumnName && ir_to_fix->context_flag_ == kUse) {
         if (is_debug_info) {
           cerr << "Dependency: ori column name: " << ir_to_fix->str_val_ << "\n\n\n";
           cerr << "In the kDataColumnName with kUse, found v_alias_names_single.size: " << v_alias_names_single.size() << "\n\n\n";
@@ -2226,7 +2226,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         continue;
       }
 
-      if (ir_to_fix->data_type_ == kDataLiteral) {
+      if (ir_to_fix->context_type_ == kDataLiteral) {
         fixed_ir.push_back(ir_to_fix);
 
         if (is_debug_info) {
@@ -2567,7 +2567,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
           //   ir_to_fix->str_val_ = "'" + ir_to_fix->str_val_ + "'";
           // }
 
-          ir_to_fix->type_ = kIntLiteral;
+          ir_to_fix->ir_type_ = kIntLiteral;
         }
 
         /* FLOAT */
@@ -2581,7 +2581,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               cerr << "Dependency: Fixing float literal with previously seen float literals: " << ir_to_fix->str_val_ << "\n\n\n";
             }
 
-            ir_to_fix->type_ = kFloatLiteral;
+            ir_to_fix->ir_type_ = kFloatLiteral;
             continue;
           }
 
@@ -2596,14 +2596,14 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               /* Mutate based on random generation */
               ir_to_fix->float_val_ = (double)(get_rand_double(DBL_MAX));
               ir_to_fix->str_val_ = to_string(ir_to_fix->float_val_);
-              ir_to_fix->type_ = kFloatLiteral;
+              ir_to_fix->ir_type_ = kFloatLiteral;
 
               v_float_literals.push_back(ir_to_fix->float_val_);
               if (is_debug_info) {
                 cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
               }
 
-              ir_to_fix->type_ = kFloatLiteral;
+              ir_to_fix->ir_type_ = kFloatLiteral;
               continue;
             }
 
@@ -2618,7 +2618,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                   cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
                 }
 
-                ir_to_fix->type_ = kFloatLiteral;
+                ir_to_fix->ir_type_ = kFloatLiteral;
                 continue;
               } else {
                 double new_float = get_rand_double(-10000.0, 10000.0);
@@ -2630,7 +2630,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                   cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
                 }
 
-                ir_to_fix->type_ = kFloatLiteral;
+                ir_to_fix->ir_type_ = kFloatLiteral;
                 continue;
               }
             }
@@ -2644,7 +2644,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
               }
 
-              ir_to_fix->type_ = kFloatLiteral;
+              ir_to_fix->ir_type_ = kFloatLiteral;
               continue;
             } else if (ori_float < 0.0) {
               double new_float = get_rand_double(-10.0, 0.0);
@@ -2656,7 +2656,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
               }
 
-              ir_to_fix->type_ = kFloatLiteral;
+              ir_to_fix->ir_type_ = kFloatLiteral;
               continue;
             } else if (ori_float < 10.0) {
               double new_float = get_rand_double(0.0, 10.0);
@@ -2668,7 +2668,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
               }
 
-              ir_to_fix->type_ = kFloatLiteral;
+              ir_to_fix->ir_type_ = kFloatLiteral;
               continue;
             } else if (ori_float < 10000.0) {
               double new_float = get_rand_double(10.0, 10000.0);
@@ -2680,7 +2680,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                 cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
               }
 
-              ir_to_fix->type_ = kFloatLiteral;
+              ir_to_fix->ir_type_ = kFloatLiteral;
               continue;
             } else {
               if (get_rand_int(2) < 1) {
@@ -2693,7 +2693,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                   cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
                 }
 
-                ir_to_fix->type_ = kFloatLiteral;
+                ir_to_fix->ir_type_ = kFloatLiteral;
                 continue;
               } else {
                 double new_float = get_rand_double(-10000.0, 10000.0);
@@ -2705,7 +2705,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
                   cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
                 }
 
-                ir_to_fix->type_ = kFloatLiteral;
+                ir_to_fix->ir_type_ = kFloatLiteral;
                 continue;
               }
             }
@@ -2720,7 +2720,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
               cerr << "Dependency: Saved float literals: " << ir_to_fix->float_val_ << "\n\n\n";
             }
 
-            ir_to_fix->type_ = kFloatLiteral;
+            ir_to_fix->ir_type_ = kFloatLiteral;
             continue;
 
           }
@@ -2735,7 +2735,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             ir_to_fix->str_val_ = "FALSE";
           }
 
-          ir_to_fix->type_ = kBoolLiteral;
+          ir_to_fix->ir_type_ = kBoolLiteral;
         }
 
         /* STRING */
@@ -2761,7 +2761,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: Fixing string literal with: " << ir_to_fix->str_val_ << "\n\n\n";
           }
 
-          ir_to_fix->type_ = kStringLiteral;
+          ir_to_fix->ir_type_ = kStringLiteral;
         }
       }
     }  /* for (IR* ir_to_fix : ir_to_fix_vec) */
@@ -3007,10 +3007,10 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     /* Added mapping for Inheritance.  */
     for (IR* ir_to_fix : ir_to_fix_vec) {
       if (
-        ir_to_fix->data_type_ == kDataTableName &&
+        ir_to_fix->context_type_ == kDataTableName &&
         cur_stmt_root->get_ir_type() == kCreateStmt &&
         p_oracle->ir_wrapper.is_ir_in(ir_to_fix, kOptInherit) &&
-        ir_to_fix->data_flag_ == kUse
+        ir_to_fix->context_flag_ == kUse
         ) {
         if (v_create_table_names_single.size() > 0) {
           string cur_new_table_name_str = v_create_table_names_single.front();
@@ -3026,7 +3026,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
     }
 
     for (IR* ir_to_fix : ir_to_fix_vec){
-      if (ir_to_fix->data_type_ != kDataTableName && ir_to_fix->data_type_ != kDataViewName) {
+      if (ir_to_fix->context_type_ != kDataTableName && ir_to_fix->context_type_ != kDataViewName) {
         continue;
       }
 
@@ -3035,10 +3035,10 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
       IR* cur_ir = ir_to_fix;
       bool is_in_create_view = false;
       while (cur_ir != nullptr) {
-        if (cur_ir->type_ == kStmt) {
+        if (cur_ir->ir_type_ == kStmt) {
           break;
         }
-        if (cur_ir->type_ == kCreateViewStmt || cur_ir->type_ == kViewStmt) {
+        if (cur_ir->ir_type_ == kCreateViewStmt || cur_ir->ir_type_ == kViewStmt) {
           is_in_create_view = true;
           if (is_debug_info) {
             cerr << "Dependency: We are in a kCreateViewStmt. \n\n\n";
@@ -3077,12 +3077,12 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         }
         // id_column_name should be in the subqueries and already been resolved in the previous loop. 
         vector<IR*> all_mentioned_column_vec;
-        set<DATATYPE> column_type_set = {kDataColumnName};
+        set<CONTEXTTYPE> column_type_set = {kDataColumnName};
         collect_ir(cur_stmt_root, column_type_set, all_mentioned_column_vec);
 
         /* Fix: also, add alias name defined here to the table */
         vector<IR*> all_mentioned_alias_vec;
-        set<DATATYPE> alias_type_set = {kDataAliasName};
+        set<CONTEXTTYPE> alias_type_set = {kDataAliasName};
         collect_ir(cur_stmt_root, alias_type_set, all_mentioned_alias_vec);
 
         all_mentioned_column_vec.insert(all_mentioned_column_vec.end(), all_mentioned_alias_vec.begin(), all_mentioned_alias_vec.end());
@@ -3095,7 +3095,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
         for (const IR* const cur_men_column_ir : all_mentioned_column_vec) {
           string cur_men_column_str = cur_men_column_ir->str_val_;
           if (findStringIn(cur_men_column_str, ".")) {
-            cur_men_column_str = string_splitter(cur_men_column_str, '.')[1];
+            cur_men_column_str = string_splitter(cur_men_column_str, ".")[1];
           }
           vector<string>& cur_m_table  = m_tables[ir_to_fix->str_val_];
           if (std::find(cur_m_table.begin(), cur_m_table.end(), cur_men_column_str) == cur_m_table.end()) {
@@ -3112,10 +3112,10 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
             cerr << "Dependency: For mapping CREATE VIEW, cannot find column name in the current subqueries. Thus, see if we can find table names, and map from there. \n\n\n";
           }
           vector<IR*> all_mentioned_table_vec, all_mentioned_table_kUsed_vec;
-          set<DATATYPE> table_type_set = {kDataTableName};
+          set<CONTEXTTYPE> table_type_set = {kDataTableName};
           collect_ir(cur_stmt_root, table_type_set, all_mentioned_table_vec);
           for (IR* mentioned_table_ir : all_mentioned_table_vec ) {
-            if (mentioned_table_ir->data_flag_ == kUse) {
+            if (mentioned_table_ir->context_flag_ == kUse) {
               all_mentioned_table_kUsed_vec.push_back(mentioned_table_ir);
               if (is_debug_info) {
                 cerr << "Dependency: For mapping CREATE VIEW, getting mentioned table name: " << mentioned_table_ir->str_val_ << ". \n\n\n";
@@ -3158,7 +3158,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 //     return true;
 
 //   bool res = true;
-//   auto type = ir->data_type_;
+//   auto type = ir->context_type_;
 //   auto &vec = graph[ir];
 
 //   if (!vec.empty()) {
@@ -3191,17 +3191,17 @@ static bool remove_in_vector(string &str_to_remove, vector<string> &victim) {
   return false;
 }
 
-bool Mutator::remove_one_from_datalibrary(DATATYPE datatype, string &key) {
+bool Mutator::remove_one_from_datalibrary(CONTEXTTYPE datatype, string &key) {
   return remove_in_vector(key, data_library_[datatype]);
 }
 
-bool Mutator::replace_one_from_datalibrary(DATATYPE datatype, string &old_str,
+bool Mutator::replace_one_from_datalibrary(CONTEXTTYPE datatype, string &old_str,
                                            string &new_str) {
   return replace_in_vector(old_str, new_str, data_library_[datatype]);
 }
 
-bool Mutator::remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype,
-                                                  DATATYPE c_data_type,
+bool Mutator::remove_one_pair_from_datalibrary_2d(CONTEXTTYPE p_datatype,
+                                                  CONTEXTTYPE c_data_type,
                                                   string &p_key) {
   for (auto &value : data_library_2d_[p_datatype][p_key][c_data_type]) {
     remove_one_from_datalibrary(c_data_type, value);
@@ -3219,8 +3219,8 @@ bool Mutator::remove_one_pair_from_datalibrary_2d(DATATYPE p_datatype,
 #define has_element(a, b) (find(a.begin(), a.end(), b) != (a).end())
 #define has_key(a, b) ((a).find(b) != (a).end())
 
-bool Mutator::replace_one_value_from_datalibray_2d(DATATYPE p_datatype,
-                                                   DATATYPE c_data_type,
+bool Mutator::replace_one_value_from_datalibray_2d(CONTEXTTYPE p_datatype,
+                                                   CONTEXTTYPE c_data_type,
                                                    string &p_key,
                                                    string &old_c_value,
                                                    string &new_c_value) {
@@ -3231,9 +3231,9 @@ bool Mutator::replace_one_value_from_datalibray_2d(DATATYPE p_datatype,
 }
 
 bool Mutator::fill_one(IR *ir) {
-  auto type = ir->data_type_;
+  auto type = ir->context_type_;
   visited.insert(ir);
-  if (isDefine(ir->data_flag_)) {
+  if (isDefine(ir->context_flag_)) {
     string new_name = gen_id_name();
     data_library_[type].push_back(new_name);
     ir->str_val_ = new_name;
@@ -3246,7 +3246,7 @@ bool Mutator::fill_one(IR *ir) {
       }
     }
     return true;
-  } else if (isAlias(ir->data_flag_)) {
+  } else if (isAlias(ir->context_flag_)) {
     string alias_target;
     if (data_library_[type].size() != 0)
       alias_target = vector_rand_ele(data_library_[type]);
@@ -3272,8 +3272,8 @@ bool Mutator::fill_one(IR *ir) {
       return false;
     }
     ir->str_val_ = vector_rand_ele(data_library_[type]);
-    if (isUndefine(ir->data_flag_)) {
-      remove_one_from_datalibrary(ir->data_type_, ir->str_val_);
+    if (isUndefine(ir->context_flag_)) {
+      remove_one_from_datalibrary(ir->context_type_, ir->str_val_);
       if (has_key(data_library_2d_, type) &&
           has_key(data_library_2d_[type], ir->str_val_)) {
         for (auto itr = data_library_2d_[type][ir->str_val_].begin();
@@ -3314,18 +3314,18 @@ bool Mutator::fill_one(IR *ir) {
 // bool Mutator::fill_one_pair(IR *parent, IR *child) {
 //   visited.insert(child);
 
-//   bool is_define = isDefine(child->data_flag_);
-//   bool is_replace = isReplace(child->data_flag_);
-//   bool is_undefine = isUndefine(child->data_flag_);
-//   bool is_alias = isAlias(child->data_flag_);
+//   bool is_define = isDefine(child->context_flag_);
+//   bool is_replace = isReplace(child->context_flag_);
+//   bool is_undefine = isUndefine(child->context_flag_);
+//   bool is_alias = isAlias(child->context_flag_);
 
 //   string new_name = "";
 //   if (is_define || is_replace || is_alias) {
 //     new_name = gen_id_name();
 //   }
 
-//   auto p_type = parent->data_type_;
-//   auto c_type = child->data_type_;
+//   auto p_type = parent->context_type_;
+//   auto c_type = child->context_type_;
 //   auto p_str = parent->str_val_;
 
 //   auto r_type = relationmap_[c_type][p_type];
@@ -3473,13 +3473,13 @@ void Mutator::reset_data_library() {
   v_string_literals.clear();
 }
 
-static IR *search_mapped_ir(IR *ir, DATATYPE type) {
+static IR *search_mapped_ir(IR *ir, CONTEXTTYPE type) {
   vector<IR *> to_search;
   vector<IR *> backup;
   to_search.push_back(ir);
   while (!to_search.empty()) {
     for (auto i : to_search) {
-      if (i->data_type_ == type) {
+      if (i->context_type_ == type) {
         return i;
       }
       if (i->left_) {
@@ -3495,7 +3495,7 @@ static IR *search_mapped_ir(IR *ir, DATATYPE type) {
   return NULL;
 }
 
-IR *Mutator::find_closest_node(IR *stmt_root, IR *node, DATATYPE type) {
+IR *Mutator::find_closest_node(IR *stmt_root, IR *node, CONTEXTTYPE type) {
   auto cur = node;
   while (true) {
     auto parent = locate_parent(stmt_root, cur);
@@ -3655,7 +3655,7 @@ vector<IR *> Mutator::extract_statement(IR *root) {
     auto node = bfs.front();
     bfs.pop_front();
 
-    if (node->type_ == kStmt)
+    if (node->ir_type_ == kStmt)
       res.push_back(node);
     if (node->left_)
       bfs.push_back(node->left_);
@@ -3720,7 +3720,7 @@ void Mutator::add_all_to_library(string whole_query_str,
   if (is_empty)
     return;
 
-  vector<string> queries_vector = string_splitter(whole_query_str, ';');
+  vector<string> queries_vector = string_splitter(whole_query_str, ";");
   int i = 0; // For counting oracle valid stmt IDs.
   for (auto current_query : queries_vector) {
     trim_string(current_query);
@@ -3798,7 +3798,7 @@ void Mutator::add_to_library(IR *ir, string &query) {
   if (query == "")
     return;
 
-  IRTYPE p_type = ir->type_;
+  IRTYPE p_type = ir->ir_type_;
   unsigned long p_hash = hash(query);
 
   if (ir_libary_2D_hash_[p_type].find(p_hash) !=
@@ -3838,7 +3838,7 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
   int current_unique_id = ir->uniq_id_in_tree_;
   bool is_skip_saving_current_node = false; //
 
-  IRTYPE p_type = ir->type_;
+  IRTYPE p_type = ir->ir_type_;
   IRTYPE left_type = kEmpty, right_type = kEmpty;
   
   string ir_str = ir->to_string();
@@ -3861,8 +3861,8 @@ void Mutator::add_to_library_core(IR *ir, string *p_query_str) {
 
   // Update right_lib, left_lib
   if (ir->right_ != NULL && ir->left_ != NULL && !is_skip_saving_current_node) {
-    left_type = ir->left_->type_;
-    right_type = ir->right_->type_;
+    left_type = ir->left_->ir_type_;
+    right_type = ir->right_->ir_type_;
     left_lib_set[left_type].push_back(std::make_pair(
         p_query_str, current_unique_id)); // Saving the parent node id. When
                                           // fetching, use current_node->right.
@@ -3932,7 +3932,7 @@ IR *Mutator::get_from_libary_with_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->type_ != type_) {
+      if (matched_ir_node->ir_type_ != type_) {
         current_ir_root->deep_drop();
         return new IR(kStringLiteral, "");
       }
@@ -3981,7 +3981,7 @@ IR *Mutator::get_from_libary_with_left_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->left_->type_ != type_) {
+      if (matched_ir_node->left_->ir_type_ != type_) {
         current_ir_root->deep_drop();
         return NULL;
       }
@@ -4030,7 +4030,7 @@ IR *Mutator::get_from_libary_with_right_type(IRTYPE type_) {
      */
     IR *matched_ir_node = current_ir_set[unique_node_id];
     if (matched_ir_node != NULL) {
-      if (matched_ir_node->right_->type_ != type_) {
+      if (matched_ir_node->right_->ir_type_ != type_) {
         current_ir_root->deep_drop();
         return NULL;
       }
@@ -4057,7 +4057,7 @@ IR* Mutator::get_ir_with_type(const IRTYPE type_) {
   if (new_ir == NULL) {
     return NULL;
   } else if (new_ir->get_ir_type() != type_) {
-    cerr << "get_from_libary_with_type(type_) type doesn't matched! Return type: " << get_string_by_ir_type(new_ir->get_ir_type()) << ", requested type: " << get_string_by_ir_type(type_) << ". \n\n\n";
+    cerr << "get_from_libary_with_type(ir_type_) type doesn't matched! Return type: " << get_string_by_ir_type(new_ir->get_ir_type()) << ", requested type: " << get_string_by_ir_type(type_) << ". \n\n\n";
     new_ir->deep_drop();
     return NULL;
   }

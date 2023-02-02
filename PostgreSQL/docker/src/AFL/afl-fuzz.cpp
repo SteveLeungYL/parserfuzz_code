@@ -269,7 +269,7 @@ public:
 
     postgre_execute_total += 1;
 
-    vector<string> cmd_vec = string_splitter(cmd, ';');
+    vector<string> cmd_vec = string_splitter(cmd, ";");
     vector<string> timeout_cmd_vec = {"set statement_timeout to 200; "};
     timeout_cmd_vec.insert(timeout_cmd_vec.end(), cmd_vec.begin(), cmd_vec.end());
     cmd_vec = timeout_cmd_vec;
@@ -468,8 +468,8 @@ extern int errno;
 Mutator g_mutator;
 SQL_ORACLE *p_oracle;
 
-map<DATATYPE, DATATYPE> relationmap;
-map<DATATYPE, DATATYPE> crossmap;
+map<CONTEXTTYPE, CONTEXTTYPE> relationmap;
+map<CONTEXTTYPE, CONTEXTTYPE> crossmap;
 
 char *g_current_input = NULL;
 string g_postgre_output = "";
@@ -3287,7 +3287,7 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
       return FAULT_ERROR;
     }
 
-    vector<string> queries_vector = string_splitter(cmd_string, ';');
+    vector<string> queries_vector = string_splitter(cmd_string, ";");
     for (string &query : queries_vector) {
       // ignore the whole query pairs if !... in the stmt,
       for (auto iter = query.begin(); iter != query.end(); iter++) {
@@ -6208,7 +6208,7 @@ void split_queries_into_small_pieces(string &large_query, vector<string> &v_smal
   string database_queries = "";
   vector<string> oracle_queries;
 
-  vector<string> queries = string_splitter(large_query, ';');
+  vector<string> queries = string_splitter(large_query, ";");
   for (string tmp_str : queries) {
     if (p_oracle->is_oracle_select_stmt(tmp_str)) {
       oracle_queries.push_back(tmp_str+";");

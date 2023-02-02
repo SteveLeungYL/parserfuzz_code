@@ -2,6 +2,11 @@
 #ifndef __DEFINE_H__
 #define __DEFINE_H__
 
+#include <map>
+#include <string>
+
+using std::map, std::string;
+
 #define ALLIRTYPE(V)                                                           \
   /* New one here!!! */                                                        \
   V(kParseToplevel)                                                            \
@@ -1506,47 +1511,50 @@
   V(DataForeignTableName)
 
 #define ALLDATATYPE(V)                                                         \
-  V(TypeBitInt)                                                                \
-  V(TypeBigSerial)                                                             \
-  V(TypeBit)                                                                   \
-  V(TypeBitVarying)                                                            \
-  V(TypeBoolean)                                                               \
-  V(TypeBox)                                                                   \
-  V(TypeBytea)                                                                 \
-  V(TypeCharacter)                                                             \
-  V(TypeCharacterVarying)                                                      \
-  V(TypeCidr)                                                                  \
-  V(TypeCircle)                                                                \
-  V(TypeDate)                                                                  \
-  V(TypeDoublePrecision)                                                       \
-  V(TypeInet)                                                                  \
-  V(TypeInteger)                                                               \
-  V(TypeInterval)                                                              \
-  V(TypeJson)                                                                  \
-  V(TypeJsonB)                                                                 \
-  V(TypeLine)                                                                  \
-  V(TypeLseg)                                                                  \
-  V(TypeMacAddr)                                                               \
-  V(TypeMacAddr8)                                                              \
-  V(TypeMoney)                                                                 \
-  V(TypeNumeric)                                                               \
-  V(TypePath)                                                                  \
-  V(TypePgLsn)                                                                 \
-  V(TypePgSnapshot)                                                            \
-  V(TypePoint)                                                                 \
-  V(TypePolygon)                                                               \
-  V(TypeReal)                                                                  \
-  V(TypeSmallInt)                                                              \
-  V(TypeSmallSerial)                                                           \
-  V(TypeSerial)                                                                \
-  V(TypeText)                                                                  \
-  V(TypeTime)                                                                  \
-  V(TypeTimeWithTimeZone)                                                      \
-  V(TypeTsQuery)                                                               \
-  V(TypeTsVector)                                                              \
-  V(TypeTxidSnapshot)                                                          \
-  V(TypeUUID)                                                                  \
-  V(TypeXml)
+  V(TYPEUNKNOWN)                                                               \
+  V(TYPEBIGINT)                                                                \
+  V(TYPEBIGSERIAL)                                                             \
+  V(TYPEBIT)                                                                   \
+  V(TYPEVARBIT)                                                                \
+  V(TYPEBOOL)                                                                  \
+  V(TYPEBOX)                                                                   \
+  V(TYPEBYTEA)                                                                 \
+  V(TYPECHAR)                                                                  \
+  V(TYPEVARCHAR)                                                               \
+  V(TYPECIDR)                                                                  \
+  V(TYPECIRCLE)                                                                \
+  V(TYPEDATE)                                                                  \
+  V(TYPEFLOAT8)                                                                \
+  V(TYPEINET)                                                                  \
+  V(TYPEINTEGER)                                                               \
+  V(TYPEINTERVAL)                                                              \
+  V(TYPEJSON)                                                                  \
+  V(TYPEJSONB)                                                                 \
+  V(TYPELINE)                                                                  \
+  V(TYPELSEG)                                                                  \
+  V(TYPEMACADDR)                                                               \
+  V(TYPEMACADDR8)                                                              \
+  V(TYPEMONEY)                                                                 \
+  V(TYPENUMERIC)                                                               \
+  V(TYPEPATH)                                                                  \
+  V(TYPEPGLSN)                                                                 \
+  V(TYPEPGSNAPSHOT)                                                            \
+  V(TYPEPOINT)                                                                 \
+  V(TYPEPOLYGON)                                                               \
+  V(TYPEREAL)                                                                  \
+  V(TYPESMALLINT)                                                              \
+  V(TYPESMALLSERIAL)                                                           \
+  V(TYPESERIAL)                                                                \
+  V(TYPETEXT)                                                                  \
+  V(TYPETIME)                                                                  \
+  V(TYPETIMETZ)                                                                \
+  V(TYPETIMESTAMP)                                                             \
+  V(TYPETIMESTAMPTZ)                                                           \
+  V(TYPETSQUERY)                                                               \
+  V(TYPETSVECTOR)                                                              \
+  V(TYPETXIDSNAPSHOT)                                                          \
+  V(TYPEUUID)                                                                  \
+  V(TYPEXML)
 
 #define OP1(a) new IROperator(a)
 
