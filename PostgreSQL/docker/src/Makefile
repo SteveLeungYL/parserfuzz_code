@@ -63,4 +63,4 @@ clean:
 	@make clean -C oracle
 	@make clean -C AFL
 	@make clean -C rsg
-	rm -rf afl-fuzz test-parser
+	rm -rf afl-fuzz test-parser generate_inputs
