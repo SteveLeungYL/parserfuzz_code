@@ -139,6 +139,8 @@ u64 num_validate = 0;
 
 u64 num_syntax_error = 0;
 u64 num_semantic_error = 0;
+u64 num_semantic_data_error = 0;
+u64 num_semantic_other_error = 0;
 
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
@@ -3400,6 +3402,13 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
           num_syntax_error++;
         } else {
           num_semantic_error++;
+          if (findStringIn(tmp_res_check, "type") ||
+              (findStringIn(tmp_res_check, "function") &&
+               findStringIn(tmp_res_check, "does not exist"))) {
+            num_semantic_data_error++;
+          } else {
+            num_semantic_other_error++;
+          }
         }
       }
     }
@@ -4675,6 +4684,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           /* Format */
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
           "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%"
+          "%llu,%llu,%0.02f%%,%0.02f%%"
           "\n", 
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
@@ -4685,7 +4695,10 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           debug_error, (debug_good * 100.0 / (debug_error + debug_good)), postgre_execute_ok, postgre_execute_error, postgre_execute_total,
           (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate,
           num_syntax_error, num_semantic_error,
-          (float(num_syntax_error) / float(num_syntax_error+num_semantic_error) * 100.0), (float(num_semantic_error) / float(num_syntax_error+num_semantic_error) * 100.0)
+          (float(num_syntax_error) / float(num_syntax_error+num_semantic_error) * 100.0), (float(num_semantic_error) / float(num_syntax_error+num_semantic_error) * 100.0),
+          num_semantic_data_error, num_semantic_other_error,
+          (float(num_semantic_data_error) / float(num_semantic_error) * 100.0),
+          (float(num_semantic_other_error) / float(num_semantic_error) * 100.0)
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -7293,7 +7306,8 @@ EXP_ST void setup_dirs_fds(void)
                      "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
                      "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
                      "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate,"
-                     "num_syntax_err,num_semantic_err,percent_syntax_err,percent_semantic_error\n"
+                     "num_syntax_err,num_semantic_err,percent_syntax_err,percent_semantic_error"
+                     "num_semantic_data_err,num_semantic_other_err,percent_semantic_data_err,percent_semantic_other_error\n"
                      );
 
   /* ignore errors */
