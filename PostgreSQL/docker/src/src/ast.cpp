@@ -17,7 +17,7 @@ string get_string_by_ir_type(IRTYPE type) {
   if (type == classname)     \
     return #classname;
 
-  ALLTYPE(DECLARE_CASE);
+  ALLIRTYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
   return "";
@@ -148,7 +148,7 @@ string get_string_by_datatype(DATATYPE tt) {
   if (tt == k##datatypename)                                                   \
     return string(#datatypename);
 
-  ALLDATATYPE(DECLARE_CASE);
+  ALLCONTEXTTYPE(DECLARE_CASE);
 
 #undef DECLARE_CASE
   return string("");
@@ -159,7 +159,7 @@ DATATYPE get_datatype_by_string(string s) {
   if (s == #datatypename)                                                      \
     return k##datatypename;
 
-  ALLDATATYPE(DECLARE_CASE);
+  ALLCONTEXTTYPE(DECLARE_CASE);
 
 #undef DECLARE_CASE
   return kDataWhatever;

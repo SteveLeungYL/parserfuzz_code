@@ -12,7 +12,7 @@ using namespace std;
 
 // enum NODETYPE {
 // #define DECLARE_TYPE(v) v,
-//   ALLTYPE(DECLARE_TYPE)
+//   ALLIRTYPE(DECLARE_TYPE)
 // #undef DECLARE_TYPE
 // };
 
@@ -21,7 +21,7 @@ enum IRTYPE {
   kconst_int,
   kconst_float,
 #define DECLARE_TYPE(v) v,
-  ALLTYPE(DECLARE_TYPE)
+  ALLIRTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
@@ -35,7 +35,7 @@ STRING_T
 
 enum DATATYPE {
 #define DECLARE_TYPE(v) k##v,
-  ALLDATATYPE(DECLARE_TYPE)
+  ALLCONTEXTTYPE(DECLARE_TYPE)
 #undef DECLARE_TYPE
 };
 
