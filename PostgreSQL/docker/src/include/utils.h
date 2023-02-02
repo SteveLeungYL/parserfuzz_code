@@ -21,9 +21,6 @@ using namespace std;
   (a.size() != 0 ? a[get_rand_int(a.size())] : gen_id_name())
 
 #define vector_rand_ele(a) (a[get_rand_int(a.size())])
-// #define vector_rand_ele(a)                                                     \
-//   (a.size() != 0 ? a[get_rand_int(a.size())]                                   \
-//                  : (*a.insert(a.begin(), gen_id_name())))
 
 static std::random_device rd; // random device engine, usually based on
                               // /dev/random on UNIX-like systems
@@ -151,7 +148,7 @@ inline bool is_digits(string str) {
   return str.find_first_not_of("0123456789. ") == std::string::npos;
 }
 
-string str_toupper(string str_in) {
+inline string str_toupper(string str_in) {
   std::transform(str_in.begin(), str_in.end(), str_in.begin(),
                  [](unsigned char c){ return std::toupper(c); });
 
