@@ -137,6 +137,9 @@ u64 num_reparse = 0;
 u64 num_append = 0;
 u64 num_validate = 0;
 
+u64 num_syntax_error = 0;
+u64 num_semantic_error = 0;
+
 int bind_to_port = 5432;
 int bind_to_core_id = -1;
 
@@ -1761,71 +1764,7 @@ static void update_bitmap_score(struct queue_entry *q)
     }
 }
 
-
-// void debug_oracle_rewrite() {
-//   string query = " SELECT t0.c0 FROM t3*, t0* INNER JOIN ONLY t1 ON (initcap('YY') SIMILAR TO upper((('')||(B'1110110010011100100000011000')))) WHERE NOT (((NOT (pg_is_other_temp_schema()))OR(((0.7888163054438270815893474718905054032802581787109375)=(t1.c0)))));";
-//   string expect = "SELECT SUM(count) FROM (SELECT ALL (NOT (((NOT (pg_is_other_temp_schema()))OR(((0.7888163054438270815893474718905054032802581787109375)=(t1.c0))))))::INT as count FROM t3*, t0* JOIN ONLY t1 ON (initcap('YY') SIMILAR TO upper((('')||(B'1110110010011100100000011000'))))) as res;";
-//   int mul_run_id =1;
-//   string rew_1 = "", rew_2 = "", rew_3 = "";
-
-//   p_oracle->post_fix_transfrom_select_stmt(query, 0);
-//   cout << "############" << endl;
-//   cout << "rewrite query: " << endl;
-//   cout << rew_1 << endl;
-//   cout << "############" << endl;
-//   cout << "expected query: " << endl;
-//   cout << expect << endl;
-// }
-
-void debug_postgre_output() {
-  auto result = g_psql_client.execute("select 'asd';SELECT 'BEGIN VERI 0';");
-  cout << "123123" << endl;
-  cout << result.outputs << endl;
-  cout << "123123123" << endl;
-}
-
-void debug_parse_query_str_get_ir_set() {
-  string query = "SELECT ALL ( * ) FROM x WHERE x;";
-  vector<IR *> ir_tree = g_mutator.parse_query_str_get_ir_set(query);
-  if (ir_tree.size() == 0) {
-    cout << "invalid query string: " << query << endl;
-  }
-  else {
-    cout << "valid query string: " << query <<endl;
-  }
-
-  query = "SELECT DISTINCT ( * ) FROM x WHERE x;";
-  ir_tree = g_mutator.parse_query_str_get_ir_set(query);
-  if (ir_tree.size() == 0) {
-    cout << "invalid query string: " << query << endl;
-  }
-  else {
-    cout << "valid query string: " << query <<endl;
-  }
-
-
-  query = "SELECT COUNT ( * ) FROM x WHERE x;";
-  ir_tree = g_mutator.parse_query_str_get_ir_set(query);
-  if (ir_tree.size() == 0) {
-    cout << "invalid query string: " << query << endl;
-  }
-  else {
-    cout << "valid query string: " << query <<endl;
-  }
-
-
-  query = "SELECT COUNT  *  FROM x WHERE x;";
-  ir_tree = g_mutator.parse_query_str_get_ir_set(query);
-  if (ir_tree.size() == 0) {
-    cout << "invalid query string: " << query << endl;
-  }
-  else {
-    cout << "valid query string: " << query <<endl;
-  }
-}
-
-
-static void do_libary_initialize()
+static void do_library_initialize()
 {
 
   if (g_library_path == NULL)
@@ -1867,28 +1806,6 @@ static void do_libary_initialize()
   // g_mutator.init_data_library(GLOBAL_TYPE_PATH);
   // g_mutator.init_safe_generate_type(SAFE_GENERATE_PATH);
   cout << "init_lib done" << endl;
-}
-
-
-void debug_get_random_mutated_valid_stmt() {
-  p_oracle = new SQL_NOREC();
-  p_oracle->set_mutator(&g_mutator);
-  g_mutator.set_p_oracle(p_oracle);
-
-  do_libary_initialize();
-
-  p_oracle->get_random_mutated_select_stmt();
-}
-
-
-
-void debug_main_entry() {
-  // debug_postgre_output();
-  // debug_oracle_rewrite();
-  // debug_parse_query_str_get_ir_set();
-  // debug_get_random_mutated_valid_stmt();
-  // debug_postgre_oracle_compare_results();
-  exit(0);
 }
 
 /* The second part of the mechanism discussed above is a routine that
@@ -3477,6 +3394,14 @@ u8 execute_cmd_string(vector<string>& cmd_string_vec, vector<int> &explain_diff_
     else
     {
       debug_error++;
+      if (res.v_res_str.size()) {
+        string tmp_res_check = res.v_res_str.front();
+        if (findStringIn(tmp_res_check, "syntax error")) {
+          num_syntax_error++;
+        } else {
+          num_semantic_error++;
+        }
+      }
     }
   }
 
@@ -4749,7 +4674,7 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
   fprintf(plot_file,
           /* Format */
           "%llu,%llu,%u,%u,%u,%u,%0.02f%%,%llu,%llu,%u,%0.02f,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,"
-          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu"
+          "%0.02f%%,%llu,%llu,%llu,%0.02f%%,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%0.02f%%,%0.02f%%"
           "\n", 
           /* Data */
           get_cur_time() / 1000, queue_cycle - 1, current_entry, queued_paths,
@@ -4758,7 +4683,9 @@ static void maybe_update_plot_file(double bitmap_cvg, double eps)
           total_input_failed, p_oracle->total_temp * 100.0 / p_oracle->total_rand_valid, total_add_to_queue,
           total_mutate_all_failed, total_mutate_failed, total_append_failed,  g_mutator.get_cri_valid_collection_size(),
           debug_error, (debug_good * 100.0 / (debug_error + debug_good)), postgre_execute_ok, postgre_execute_error, postgre_execute_total,
-          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate
+          (float(total_mutate_failed) / float(total_mutate_num) * 100.0), num_valid, num_parse, num_mutate_all, num_reparse, num_append, num_validate,
+          num_syntax_error, num_semantic_error,
+          (float(num_syntax_error) / float(num_syntax_error+num_semantic_error) * 100.0), (float(num_semantic_error) / float(num_syntax_error+num_semantic_error) * 100.0)
           ); /* ignore errors */
   fflush(plot_file);
 }
@@ -7365,7 +7292,8 @@ EXP_ST void setup_dirs_fds(void)
                      "total_input_failed,total_random_VALID,total_add_to_queue,total_mutate_all_failed,"
                      "total_mutate_failed_num,total_append_failed,total_cri_valid_stmts,"
                      "total_valid_stmts,total_good_queries,postgre_execute_ok,postgre_execute_error,postgre_execute_total,"
-                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate\n"
+                     "mutate_failed_per,num_valid,num_parse,num_mutate_all,num_reparse,num_append,num_validate,"
+                     "num_syntax_err,num_semantic_err,percent_syntax_err,percent_semantic_error\n"
                      );
 
   /* ignore errors */
@@ -8358,7 +8286,7 @@ int main(int argc, char **argv)
     use_argv = argv + optind;
 
   u64 start_time = get_cur_time();
-  do_libary_initialize();
+  do_library_initialize();
   cerr << "do_library_initialize() takes "
        << (get_cur_time() - start_time) / 1000 << " seconds\n";
 
