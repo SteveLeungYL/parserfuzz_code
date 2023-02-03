@@ -1513,19 +1513,15 @@ using std::string;
 
 #define ALLDATATYPE(V)                                                         \
   V(TYPEUNKNOWN)                                                               \
-  V(TYPETUPLE)                                                                 \
-  V(TYPEENUM)                                                                  \
   V(TYPEBIGINT)                                                                \
   V(TYPEBIGSERIAL)                                                             \
   V(TYPEBIT)                                                                   \
   V(TYPEVARBIT)                                                                \
   V(TYPEBOOL)                                                                  \
-  V(TYPEBOX)                                                                   \
   V(TYPEBYTEA)                                                                 \
   V(TYPECHAR)                                                                  \
   V(TYPEVARCHAR)                                                               \
   V(TYPECIDR)                                                                  \
-  V(TYPECIRCLE)                                                                \
   V(TYPEDATE)                                                                  \
   V(TYPEFLOAT8)                                                                \
   V(TYPEINET)                                                                  \
@@ -1533,17 +1529,10 @@ using std::string;
   V(TYPEINTERVAL)                                                              \
   V(TYPEJSON)                                                                  \
   V(TYPEJSONB)                                                                 \
-  V(TYPELINE)                                                                  \
-  V(TYPELSEG)                                                                  \
   V(TYPEMACADDR)                                                               \
   V(TYPEMACADDR8)                                                              \
   V(TYPEMONEY)                                                                 \
   V(TYPENUMERIC)                                                               \
-  V(TYPEPATH)                                                                  \
-  V(TYPEPGLSN)                                                                 \
-  V(TYPEPGSNAPSHOT)                                                            \
-  V(TYPEPOINT)                                                                 \
-  V(TYPEPOLYGON)                                                               \
   V(TYPEREAL)                                                                  \
   V(TYPESMALLINT)                                                              \
   V(TYPESMALLSERIAL)                                                           \
@@ -1555,9 +1544,20 @@ using std::string;
   V(TYPETIMESTAMPTZ)                                                           \
   V(TYPETSQUERY)                                                               \
   V(TYPETSVECTOR)                                                              \
-  V(TYPETXIDSNAPSHOT)                                                          \
   V(TYPEUUID)                                                                  \
-  V(TYPEXML)
+  V(TYPETXIDSNAPSHOT)                                                          \
+  V(TYPEXML)                                                                   \
+  V(TYPEENUM)                                                                  \
+  V(TYPETUPLE)                                                                 \
+  V(TYPEBOX)                                                                   \
+  V(TYPECIRCLE)                                                                \
+  V(TYPELINE)                                                                  \
+  V(TYPELSEG)                                                                  \
+  V(TYPEPATH)                                                                  \
+  V(TYPEPGLSN)                                                                 \
+  V(TYPEPGSNAPSHOT)                                                            \
+  V(TYPEPOINT)                                                                 \
+  V(TYPEPOLYGON)
 
 #define OP1(a) new IROperator(a)
 

@@ -11,12 +11,6 @@
 
 using namespace std;
 
-// enum NODETYPE {
-// #define DECLARE_TYPE(v) v,
-//   ALLIRTYPE(DECLARE_TYPE)
-// #undef DECLARE_TYPE
-// };
-
 enum IRTYPE {
   kconst_str,
   kconst_int,
