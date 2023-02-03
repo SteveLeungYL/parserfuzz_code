@@ -3,6 +3,7 @@
 
 #include "define.h"
 #include "relopt_generator.h"
+#include "data_types.h"
 #include <map>
 #include <set>
 #include <string>
@@ -118,57 +119,53 @@ public:
       right_->parent_ = this;
   }
 
-  IR(IRTYPE type, string str_val, CONTEXTTYPE data_type = kDataWhatever,
-     int scope = -1, CONTEXTFLAG flag = kUse)
+  IR(IRTYPE type, string str_val, CONTEXTTYPE context_type = kDataWhatever,
+     CONTEXTFLAG flag = kUse)
       : ir_type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), context_type_(data_type), scope_(scope),
+        parent_(NULL), operand_num_(0), context_type_(context_type),
         context_flag_(flag) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, bool b_val, CONTEXTTYPE data_type = kDataWhatever,
-     int scope = -1, CONTEXTFLAG flag = kUse)
+  IR(IRTYPE type, bool b_val, CONTEXTTYPE context_type = kDataWhatever,
+     CONTEXTFLAG flag = kUse)
       : ir_type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), context_type_(data_type),
-        scope_(scope),
+        parent_(NULL), operand_num_(0), context_type_(context_type),
         context_flag_(flag) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, unsigned long long_val, CONTEXTTYPE data_type = kDataWhatever,
-     int scope = -1, CONTEXTFLAG flag = kUse)
+  IR(IRTYPE type, unsigned long long_val, CONTEXTTYPE context_type = kDataWhatever,
+     CONTEXTFLAG flag = kUse)
       : ir_type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), context_type_(data_type),
-        scope_(scope),
+        parent_(NULL), operand_num_(0), context_type_(context_type),
         context_flag_(flag) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, int int_val, CONTEXTTYPE data_type = kDataWhatever,
-     int scope = -1, CONTEXTFLAG flag = kUse)
+  IR(IRTYPE type, int int_val, CONTEXTTYPE context_type = kDataWhatever,
+     CONTEXTFLAG flag = kUse)
       : ir_type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), context_type_(data_type),
-        scope_(scope),
+        parent_(NULL), operand_num_(0), context_type_(context_type),
         context_flag_(flag) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, double f_val, CONTEXTTYPE data_type = kDataWhatever,
-     int scope = -1, CONTEXTFLAG flag = kUse)
+     CONTEXTFLAG flag = kUse)
       : ir_type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), context_type_(data_type),
-        scope_(scope),
         context_flag_(flag) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,
-     string str_val, string name, unsigned int mutated_times, int scope = -1,
+     string str_val, string name, unsigned int mutated_times,
      CONTEXTFLAG flag = kUse)
       : ir_type_(type), op_(op), left_(left), right_(right),
         operand_num_((!!right) + (!!left)), name_(name), str_val_(str_val),
         float_val_(f_val), mutated_times_(mutated_times),
-        context_type_(kDataWhatever), scope_(scope), context_flag_(flag) {
+        context_type_(kDataWhatever), context_flag_(flag) {
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -193,12 +190,12 @@ public:
     this->str_val_ = ir->str_val_;
     this->long_val_ = ir->long_val_;
     this->context_type_ = ir->context_type_;
-    this->scope_ = ir->scope_;
     this->context_flag_ = ir->context_flag_;
     this->option_type_ = ir->option_type_;
     this->name_ = ir->name_;
     this->operand_num_ = ir->operand_num_;
     this->mutated_times_ = ir->mutated_times_;
+    this->data_type_ = ir->data_type_;
   }
 
   union {
@@ -208,10 +205,10 @@ public:
     bool bool_val_;
   };
 
-  int scope_;
   int uniq_id_in_tree_ = -1;
   CONTEXTFLAG context_flag_ = CONTEXTFLAG::kFlagUnknown;
   CONTEXTTYPE context_type_ = CONTEXTTYPE::kDataWhatever;
+  DataType data_type_;
   RelOptionType option_type_ = RelOptionType::Unknown;
   IRTYPE ir_type_;
   string name_;

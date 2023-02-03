@@ -74,11 +74,11 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
     copy_res = new IR(root->ir_type_,
                OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_),
                left, right, root->float_val_, root->str_val_, root->name_,
-               root->mutated_times_, root->scope_, root->context_flag_);
+               root->mutated_times_, root->context_flag_);
   else
     copy_res = new IR(root->ir_type_, NULL, left, right, root->float_val_,
                       root->str_val_, root->name_, root->mutated_times_,
-                      root->scope_, root->context_flag_);
+                      root->context_flag_);
 
   copy_res->context_type_ = root->context_type_;
 
@@ -901,7 +901,7 @@ unsigned long Mutator::get_a_val() {
 }
 
 unsigned long Mutator::hash(string &sql) {
-  return fuzzing_hash(sql.c_str(), sql.size());
+  return get_str_hash(sql.c_str(), sql.size());
 }
 
 unsigned long Mutator::hash(IR *root) {
@@ -1344,21 +1344,6 @@ pair<string, string> Mutator::ir_to_string(IR* root, vector<vector<IR*>> all_pos
   }
   pair<string, string> output_str_pair =  make_pair(output_str_mark, output_str_no_mark); 
   return output_str_pair;
-}
-
-void Mutator::analyze_scope(IR *stmt_root) {
-  if (stmt_root->left_) {
-    analyze_scope(stmt_root->left_);
-  }
-  if (stmt_root->right_) {
-    analyze_scope(stmt_root->right_);
-  }
-
-  auto data_type = stmt_root->context_type_;
-  if (data_type == kDataWhatever)
-    return;
-
-  scope_library_[stmt_root->scope_][data_type].push_back(stmt_root);
 }
 
 // find tree node whose identifier type can be handled

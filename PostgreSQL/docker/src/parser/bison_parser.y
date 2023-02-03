@@ -1758,7 +1758,7 @@ CallStmt:
 CreateRoleStmt:
 
     CREATE ROLE RoleId opt_with OptRoleList {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -1845,7 +1845,7 @@ AlterOptRoleList:
 AlterOptRoleElem:
 
     PASSWORD Sconst {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kAlterOptRoleElem, OP3("PASSWORD", "", ""), tmp1);
@@ -1860,7 +1860,7 @@ AlterOptRoleElem:
     }
 
     | ENCRYPTED PASSWORD Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
@@ -1870,7 +1870,7 @@ AlterOptRoleElem:
 
     | UNENCRYPTED PASSWORD Sconst {
         /* Yu: Force change it to ENCRYPTED PASSWORD. UNENCRYPTED PASSWORD is not supported anymore. */
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterOptRoleElem, OP3("ENCRYPTED PASSWORD", "", ""), tmp1);
@@ -1892,7 +1892,7 @@ AlterOptRoleElem:
     }
 
     | VALID UNTIL Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterOptRoleElem, OP3("VALID UNTIL", "", ""), tmp1);
@@ -2005,7 +2005,7 @@ CreateOptRoleElem:
 CreateUserStmt:
 
     CREATE USER RoleId opt_with OptRoleList {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2030,7 +2030,7 @@ CreateUserStmt:
 AlterRoleStmt:
 
     ALTER ROLE RoleSpec opt_with AlterOptRoleList {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2043,7 +2043,7 @@ AlterRoleStmt:
     }
 
     | ALTER USER RoleSpec opt_with AlterOptRoleList {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2067,7 +2067,7 @@ opt_in_database:
     }
 
     | IN_P DATABASE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kOptInDatabase, OP3("IN DATABASE", "", ""), tmp1);
@@ -2081,7 +2081,7 @@ opt_in_database:
 AlterRoleSetStmt:
 
     ALTER ROLE RoleSpec opt_in_database SetResetClause {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2102,7 +2102,7 @@ AlterRoleSetStmt:
     }
 
     | ALTER USER RoleSpec opt_in_database SetResetClause {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2196,7 +2196,7 @@ DropRoleStmt:
 CreateGroupStmt:
 
     CREATE GROUP_P RoleId opt_with OptRoleList {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2223,7 +2223,7 @@ CreateGroupStmt:
 AlterGroupStmt:
 
     ALTER GROUP_P RoleSpec add_drop USER role_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2269,7 +2269,7 @@ CreateSchemaStmt:
 
     CREATE SCHEMA OptSchemaName AUTHORIZATION RoleSpec OptSchemaEltList {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kCreateSchemaStmt_1, OP3("CREATE SCHEMA", "AUTHORIZATION", ""), tmp1, tmp2);
@@ -2281,7 +2281,7 @@ CreateSchemaStmt:
     }
 
     | CREATE SCHEMA ColId OptSchemaEltList {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -2297,7 +2297,7 @@ CreateSchemaStmt:
             rov_ir.push_back($9);
         }
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "AUTHORIZATION", ""), tmp1, tmp2);
@@ -2311,7 +2311,7 @@ CreateSchemaStmt:
             /* $7 -> deep_drop(); */
             rov_ir.push_back($7);
         }
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
         res = new IR(kCreateSchemaStmt, OP3("CREATE SCHEMA IF NOT EXISTS", "", ""), tmp1);
@@ -2325,7 +2325,7 @@ CreateSchemaStmt:
 OptSchemaName:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOptSchemaName, OP3("", "", ""), tmp1);
@@ -2477,7 +2477,7 @@ set_rest:
 generic_set:
 
     var_name TO var_list {
-        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back(tmp1);
         free($1);
         auto tmp2 = $3;
@@ -2490,7 +2490,7 @@ generic_set:
     }
 
     | var_name '=' var_list {
-        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back(tmp1);
         free($1);
         auto tmp2 = $3;
@@ -2503,7 +2503,7 @@ generic_set:
     }
 
     | var_name TO DEFAULT {
-        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back(tmp1);
         free($1);
         res = new IR(kGenericSet, OP3("", "TO DEFAULT", ""), tmp1);
@@ -2515,7 +2515,7 @@ generic_set:
     }
 
     | var_name '=' DEFAULT {
-        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back(tmp1);
         free($1);
         res = new IR(kGenericSet, OP3("", "= DEFAULT", ""), tmp1);
@@ -2540,7 +2540,7 @@ set_rest_more:
     }
 
     | var_name FROM CURRENT_P {
-        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back(tmp1);
         free($1);
         res = new IR(kSetRestMore, OP3("", "FROM CURRENT", ""), tmp1);
@@ -2556,7 +2556,7 @@ set_rest_more:
     }
 
     | CATALOG_P Sconst {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kSetRestMore, OP3("CATALOG", "", ""), tmp1);
@@ -2565,7 +2565,7 @@ set_rest_more:
     }
 
     | SCHEMA Sconst {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kSetRestMore, OP3("SCHEMA", "", ""), tmp1);
@@ -2582,7 +2582,7 @@ set_rest_more:
 
     | ROLE NonReservedWord_or_Sconst {
         /* Yu: Cannot find exact example shown on the documentation. Use it as kUse of Role. */
-        IR* tmp1 = new IR(kIdentifier, string($2), kDataRoleName, 0, kUse);
+        IR* tmp1 = new IR(kIdentifier, string($2), kDataRoleName, kUse);
         all_gen_ir.push_back(tmp1);
         free($2);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
@@ -2592,7 +2592,7 @@ set_rest_more:
 
     | SESSION AUTHORIZATION NonReservedWord_or_Sconst {
         /* Yu: This is username. This is just the wrapper for Role. */
-        IR* tmp1 = new IR(kIdentifier, string($3), kDataRoleName, 0, kUse);
+        IR* tmp1 = new IR(kIdentifier, string($3), kDataRoleName, kUse);
         all_gen_ir.push_back(tmp1);
         free($3);
         res = new IR(kSetRestMore, OP3("ROLE", "", ""), tmp1);
@@ -2614,7 +2614,7 @@ set_rest_more:
     }
 
     | TRANSACTION SNAPSHOT Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kSetRestMore, OP3("TRANSACTION SNAPSHOT", "", ""), tmp1);
@@ -2660,7 +2660,7 @@ var_list:
 var_value:
 
     opt_boolean_or_string {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kVarValue, OP3("", "", ""), tmp1);
@@ -2737,7 +2737,7 @@ opt_boolean_or_string:
 zone_value:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kZoneValue, OP3("", "", ""), tmp1);
@@ -2755,7 +2755,7 @@ zone_value:
 
     | ConstInterval Sconst opt_interval {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kZoneValue_1, OP3("", "", ""), tmp1, tmp2);
@@ -2771,7 +2771,7 @@ zone_value:
         auto tmp2 = $3;
         res = new IR(kZoneValue_2, OP3("", "(", ")"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($5);
         res = new IR(kZoneValue, OP3("", "", ""), res, tmp3);
@@ -2804,7 +2804,7 @@ zone_value:
 opt_encoding:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOptEncoding, OP3("", "", ""), tmp1);
@@ -2879,7 +2879,7 @@ reset_rest:
 generic_reset:
 
     var_name {
-        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         free($1);
         all_gen_ir.push_back(tmp1);
         res = new IR(kGenericReset, OP3("", "", ""), tmp1);
@@ -2940,7 +2940,7 @@ FunctionSetResetClause:
 VariableShowStmt:
 
     SHOW var_name {
-        IR* tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        IR* tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back(tmp1);
         free($2);
         res = new IR(kVariableShowStmt, OP3("SHOW", "", ""), tmp1);
@@ -3135,10 +3135,10 @@ AlterTableStmt:
     }
 
     | ALTER TABLE ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kAlterTableStmt_1, OP3("ALTER TABLE ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
@@ -3153,13 +3153,13 @@ AlterTableStmt:
     }
 
     | ALTER TABLE ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
         auto tmp2 = $9;
         res = new IR(kAlterTableStmt_2, OP3("ALTER TABLE ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($12), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($12), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($12);
         res = new IR(kAlterTableStmt_3, OP3("", "", ""), res, tmp3);
@@ -3204,10 +3204,10 @@ AlterTableStmt:
     }
 
     | ALTER INDEX ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kAlterTableStmt_4, OP3("ALTER INDEX ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
@@ -3222,13 +3222,13 @@ AlterTableStmt:
     }
 
     | ALTER INDEX ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
         auto tmp2 = $9;
         res = new IR(kAlterTableStmt_5, OP3("ALTER INDEX ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($12), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($12), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($12);
         res = new IR(kAlterTableStmt_6, OP3("", "", ""), res, tmp3);
@@ -3304,10 +3304,10 @@ AlterTableStmt:
     }
 
     | ALTER MATERIALIZED VIEW ALL IN_P TABLESPACE name SET TABLESPACE name opt_nowait {
-        auto tmp1 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($7);
-        auto tmp2 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($10);
         res = new IR(kAlterTableStmt_7, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "SET TABLESPACE", ""), tmp1, tmp2);
@@ -3322,13 +3322,13 @@ AlterTableStmt:
     }
 
     | ALTER MATERIALIZED VIEW ALL IN_P TABLESPACE name OWNED BY role_list SET TABLESPACE name opt_nowait {
-        auto tmp1 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($7);
         auto tmp2 = $10;
         res = new IR(kAlterTableStmt_8, OP3("ALTER MATERIALIZED VIEW ALL IN TABLESPACE", "OWNED BY", "SET TABLESPACE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($13), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($13), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($13);
         res = new IR(kAlterTableStmt_9, OP3("", "", ""), res, tmp3);
@@ -3464,7 +3464,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId alter_column_default {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_1, OP3("ALTER", "", ""), tmp1, tmp2);
@@ -3477,7 +3477,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP NOT NULL_P {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP NOT NULL"), tmp1, tmp2);
@@ -3487,7 +3487,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET NOT NULL_P {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "SET NOT NULL"), tmp1, tmp2);
@@ -3497,7 +3497,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP EXPRESSION {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP EXPRESSION"), tmp1, tmp2);
@@ -3507,7 +3507,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP EXPRESSION IF_P EXISTS {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP EXPRESSION IF EXISTS"), tmp1, tmp2);
@@ -3517,7 +3517,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET STATISTICS SignedIconst {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_2, OP3("ALTER", "", "SET STATISTICS"), tmp1, tmp2);
@@ -3541,7 +3541,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET reloptions {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_4, OP3("ALTER", "", "SET"), tmp1, tmp2);
@@ -3556,7 +3556,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId RESET reloptions {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_5, OP3("ALTER", "", "RESET"), tmp1, tmp2);
@@ -3571,12 +3571,12 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET STORAGE ColId {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_6, OP3("ALTER", "", "SET STORAGE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kAlterTableCmd, OP3("", "", ""), res, tmp3);
@@ -3586,7 +3586,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId SET column_compression {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_7, OP3("ALTER", "", "SET"), tmp1, tmp2);
@@ -3599,7 +3599,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId ADD_P GENERATED generated_when AS IDENTITY_P OptParenthesizedSeqOptList {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_8, OP3("ALTER", "", "ADD GENERATED"), tmp1, tmp2);
@@ -3615,7 +3615,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId alter_identity_column_option_list {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_10, OP3("ALTER", "", ""), tmp1, tmp2);
@@ -3628,7 +3628,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP IDENTITY_P {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY"), tmp1, tmp2);
@@ -3638,7 +3638,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId DROP IDENTITY_P IF_P EXISTS {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ALTER", "", "DROP IDENTITY IF EXISTS"), tmp1, tmp2);
@@ -3648,7 +3648,7 @@ alter_table_cmd:
 
     | DROP opt_column IF_P EXISTS ColId opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kAlterTableCmd_11, OP3("DROP", "IF EXISTS", ""), tmp1, tmp2);
@@ -3661,7 +3661,7 @@ alter_table_cmd:
 
     | DROP opt_column ColId opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_12, OP3("DROP", "", ""), tmp1, tmp2);
@@ -3674,7 +3674,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId opt_set_data TYPE_P Typename opt_collate_clause alter_using {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_13, OP3("ALTER", "", ""), tmp1, tmp2);
@@ -3696,7 +3696,7 @@ alter_table_cmd:
 
     | ALTER opt_column ColId alter_generic_options {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAlterTableCmd_17, OP3("ALTER", "", ""), tmp1, tmp2);
@@ -3715,7 +3715,7 @@ alter_table_cmd:
     }
 
     | ALTER CONSTRAINT name ConstraintAttributeSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -3725,7 +3725,7 @@ alter_table_cmd:
     }
 
     | VALIDATE CONSTRAINT name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("VALIDATE CONSTRAINT", "", ""), tmp1);
@@ -3734,7 +3734,7 @@ alter_table_cmd:
     }
 
     | DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -3744,7 +3744,7 @@ alter_table_cmd:
     }
 
     | DROP CONSTRAINT name opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -3760,7 +3760,7 @@ alter_table_cmd:
     }
 
     | CLUSTER ON name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("CLUSTER ON", "", ""), tmp1);
@@ -3787,7 +3787,7 @@ alter_table_cmd:
     }
 
     | ENABLE_P TRIGGER name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ENABLE TRIGGER", "", ""), tmp1);
@@ -3796,7 +3796,7 @@ alter_table_cmd:
     }
 
     | ENABLE_P ALWAYS TRIGGER name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE ALWAYS TRIGGER", "", ""), tmp1);
@@ -3805,7 +3805,7 @@ alter_table_cmd:
     }
 
     | ENABLE_P REPLICA TRIGGER name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE REPLICA TRIGGER", "", ""), tmp1);
@@ -3826,7 +3826,7 @@ alter_table_cmd:
     }
 
     | DISABLE_P TRIGGER name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("DISABLE TRIGGER", "", ""), tmp1);
@@ -3847,7 +3847,7 @@ alter_table_cmd:
     }
 
     | ENABLE_P RULE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("ENABLE RULE", "", ""), tmp1);
@@ -3856,7 +3856,7 @@ alter_table_cmd:
     }
 
     | ENABLE_P ALWAYS RULE name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE ALWAYS RULE", "", ""), tmp1);
@@ -3865,7 +3865,7 @@ alter_table_cmd:
     }
 
     | ENABLE_P REPLICA RULE name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kAlterTableCmd, OP3("ENABLE REPLICA RULE", "", ""), tmp1);
@@ -3874,7 +3874,7 @@ alter_table_cmd:
     }
 
     | DISABLE_P RULE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("DISABLE RULE", "", ""), tmp1);
@@ -3910,7 +3910,7 @@ alter_table_cmd:
     }
 
     | OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("OWNER TO", "", ""), tmp1);
@@ -3919,7 +3919,7 @@ alter_table_cmd:
     }
 
     | SET TABLESPACE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterTableCmd, OP3("SET TABLESPACE", "", ""), tmp1);
@@ -4082,7 +4082,7 @@ replica_identity:
     }
 
     | USING INDEX name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kReplicaIdentity, OP3("USING INDEX", "", ""), tmp1);
@@ -4147,7 +4147,7 @@ reloption_list:
 reloption_elem:
 
     ColLabel '=' def_arg {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -4160,7 +4160,7 @@ reloption_elem:
     }
 
     | ColLabel {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kReloptionElem, OP3("", "", ""), tmp1);
@@ -4172,10 +4172,10 @@ reloption_elem:
     }
 
     | ColLabel '.' ColLabel '=' def_arg {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kReloptionElem_1, OP3("", ".", "="), tmp1, tmp2);
@@ -4190,10 +4190,10 @@ reloption_elem:
     }
 
     | ColLabel '.' ColLabel {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kReloptionElem, OP3("", ".", ""), tmp1, tmp2);
@@ -4392,7 +4392,7 @@ alter_type_cmd:
     }
 
     | DROP ATTRIBUTE IF_P EXISTS ColId opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -4402,7 +4402,7 @@ alter_type_cmd:
     }
 
     | DROP ATTRIBUTE ColId opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -4412,7 +4412,7 @@ alter_type_cmd:
     }
 
     | ALTER ATTRIBUTE ColId opt_set_data TYPE_P Typename opt_collate_clause opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -4444,7 +4444,7 @@ alter_type_cmd:
 ClosePortalStmt:
 
     CLOSE cursor_name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kClosePortalStmt, OP3("CLOSE", "", ""), tmp1);
@@ -4607,7 +4607,7 @@ opt_program:
 copy_file_name:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kCopyFileName, OP3("", "", ""), tmp1);
@@ -4685,7 +4685,7 @@ copy_opt_item:
 
     | DELIMITER opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kCopyOptItem, OP3("DELIMITER", "", ""), tmp1, tmp2);
@@ -4695,7 +4695,7 @@ copy_opt_item:
 
     | NULL_P opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kCopyOptItem, OP3("NULL", "", ""), tmp1, tmp2);
@@ -4717,7 +4717,7 @@ copy_opt_item:
 
     | QUOTE opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kCopyOptItem, OP3("QUOTE", "", ""), tmp1, tmp2);
@@ -4727,7 +4727,7 @@ copy_opt_item:
 
     | ESCAPE opt_as Sconst {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kCopyOptItem, OP3("ESCAPE", "", ""), tmp1, tmp2);
@@ -4763,7 +4763,7 @@ copy_opt_item:
     }
 
     | ENCODING Sconst {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kCopyOptItem, OP3("ENCODING", "", ""), tmp1);
@@ -4797,7 +4797,7 @@ copy_delimiter:
 
     opt_using DELIMITERS Sconst {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kCopyDelimiter, OP3("", "DELIMITERS", ""), tmp1, tmp2);
@@ -4855,7 +4855,7 @@ copy_generic_opt_list:
 copy_generic_opt_elem:
 
     ColLabel copy_generic_opt_arg {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -4870,7 +4870,7 @@ copy_generic_opt_elem:
 copy_generic_opt_arg:
 
     opt_boolean_or_string {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kCopyGenericOptArg, OP3("", "", ""), tmp1);
@@ -4931,7 +4931,7 @@ copy_generic_opt_arg_list:
 copy_generic_opt_arg_list_item:
 
     opt_boolean_or_string {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kCopyGenericOptArgListItem, OP3("", "", ""), tmp1);
@@ -5341,7 +5341,7 @@ TypedTableElement:
 columnDef:
 
     ColId Typename opt_column_compression create_generic_options ColQualList {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -5367,7 +5367,7 @@ columnDef:
 columnOptions:
 
     ColId ColQualList {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -5379,7 +5379,7 @@ columnOptions:
     }
 
     | ColId WITH OPTIONS ColQualList {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $4;
@@ -5396,7 +5396,7 @@ columnOptions:
 column_compression:
 
     COMPRESSION ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kColumnCompression, OP3("COMPRESSION", "", ""), tmp1);
@@ -5453,7 +5453,7 @@ ColQualList:
 ColConstraint:
 
     CONSTRAINT name ColConstraintElem {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -5767,7 +5767,7 @@ TableLikeOption:
 TableConstraint:
 
     CONSTRAINT name ConstraintElem {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -5960,7 +5960,7 @@ columnList:
 columnElem:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kColumnElem, OP3("", "", ""), tmp1);
@@ -6228,7 +6228,7 @@ OptPartitionSpec:
 PartitionSpec:
 
     PARTITION BY ColId '(' part_params ')' {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -6265,7 +6265,7 @@ part_params:
 part_elem:
 
     ColId opt_collate opt_class {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -6307,7 +6307,7 @@ part_elem:
 table_access_method_clause:
 
     USING name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kTableAccessMethodClause, OP3("USING", "", ""), tmp1);
@@ -6381,7 +6381,7 @@ OnCommitOption:
 OptTableSpace:
 
     TABLESPACE name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kOptTableSpace, OP3("TABLESPACE", "", ""), tmp1);
@@ -6403,7 +6403,7 @@ OptTableSpace:
 OptConsTableSpace:
 
     USING INDEX TABLESPACE name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kOptConsTableSpace, OP3("USING INDEX TABLESPACE", "", ""), tmp1);
@@ -6423,7 +6423,7 @@ OptConsTableSpace:
 ExistingIndex:
 
     USING INDEX name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kExistingIndex, OP3("USING INDEX", "", ""), tmp1);
@@ -6517,7 +6517,7 @@ stats_params:
 stats_param:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kStatsParam, OP3("", "", ""), tmp1);
@@ -7013,7 +7013,7 @@ opt_by:
 NumericOnly:
 
     FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kNumericOnly, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -7022,7 +7022,7 @@ NumericOnly:
     }
 
     | '+' FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kFloatLiteral, string($2), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kNumericOnly, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -7031,7 +7031,7 @@ NumericOnly:
     }
 
     | '-' FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($2), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kFloatLiteral, string($2), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kNumericOnly, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -7087,7 +7087,7 @@ CreatePLangStmt:
         auto tmp3 = $4;
         res = new IR(kCreatePLangStmt_2, OP3("", "", "LANGUAGE"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($6);
         res = new IR(kCreatePLangStmt, OP3("", "", ""), res, tmp4);
@@ -7103,7 +7103,7 @@ CreatePLangStmt:
         auto tmp3 = $4;
         res = new IR(kCreatePLangStmt_4, OP3("", "", "LANGUAGE"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($6);
         res = new IR(kCreatePLangStmt_5, OP3("", "", "HANDLER"), res, tmp4);
@@ -7147,7 +7147,7 @@ opt_trusted:
 handler_name:
 
     name {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kHandlerName, OP3("", "", ""), tmp1);
@@ -7156,7 +7156,7 @@ handler_name:
     }
 
     | name attrs {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -7249,13 +7249,13 @@ opt_procedural:
 CreateTableSpaceStmt:
 
     CREATE TABLESPACE name OptTableSpaceOwner LOCATION Sconst opt_reloptions {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
         res = new IR(kCreateTableSpaceStmt_1, OP3("CREATE TABLESPACE", "", "LOCATION"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kCreateTableSpaceStmt_2, OP3("", "", ""), res, tmp3);
@@ -7272,7 +7272,7 @@ CreateTableSpaceStmt:
 OptTableSpaceOwner:
 
     OWNER RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kOptTableSpaceOwner, OP3("OWNER", "", ""), tmp1);
@@ -7302,7 +7302,7 @@ OptTableSpaceOwner:
 DropTableSpaceStmt:
 
     DROP TABLESPACE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kDropTableSpaceStmt, OP3("DROP TABLESPACE", "", ""), tmp1);
@@ -7311,7 +7311,7 @@ DropTableSpaceStmt:
     }
 
     | DROP TABLESPACE IF_P EXISTS name {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         res = new IR(kDropTableSpaceStmt, OP3("DROP TABLESPACE IF EXISTS", "", ""), tmp1);
@@ -7333,7 +7333,7 @@ DropTableSpaceStmt:
 CreateExtensionStmt:
 
     CREATE EXTENSION name opt_with create_extension_opt_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7346,7 +7346,7 @@ CreateExtensionStmt:
     }
 
     | CREATE EXTENSION IF_P NOT EXISTS name opt_with create_extension_opt_list {
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
         auto tmp2 = $7;
@@ -7383,7 +7383,7 @@ create_extension_opt_list:
 create_extension_opt_item:
 
     SCHEMA name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kCreateExtensionOptItem, OP3("SCHEMA", "", ""), tmp1);
@@ -7394,7 +7394,7 @@ create_extension_opt_item:
     | VERSION_P NonReservedWord_or_Sconst {
         /* Yu: The version string of the extension. No need to mutate I guess. */
         /* FixLater: Can we just input $2 into the OP3?*/
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kCreateExtensionOptItem, OP3("VERSION", "", ""), tmp1);
@@ -7428,7 +7428,7 @@ create_extension_opt_item:
 AlterExtensionStmt:
 
     ALTER EXTENSION name UPDATE alter_extension_opt_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -7464,7 +7464,7 @@ alter_extension_opt_item:
     TO NonReservedWord_or_Sconst {
         /* Yu: This is again, just the verion name for the extension. No need to mutate.  */
         /* FixLater: Can we give $2 to OP3 directly? */
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kAlterExtensionOptItem, OP3("TO", "", ""), tmp1);
@@ -7484,7 +7484,7 @@ alter_extension_opt_item:
 AlterExtensionContentsStmt:
 
     ALTER EXTENSION name add_drop object_type_name name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7493,7 +7493,7 @@ AlterExtensionContentsStmt:
         auto tmp3 = $5;
         res = new IR(kAlterExtensionContentsStmt_2, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($6);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
@@ -7502,7 +7502,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop object_type_any_name any_name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7518,7 +7518,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop AGGREGATE aggregate_with_argtypes {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7531,7 +7531,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop CAST '(' Typename AS Typename ')' {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7547,7 +7547,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop DOMAIN_P Typename {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7560,7 +7560,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop FUNCTION function_with_argtypes {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7573,7 +7573,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop OPERATOR operator_with_argtypes {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7586,7 +7586,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop OPERATOR CLASS any_name USING name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7595,7 +7595,7 @@ AlterExtensionContentsStmt:
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_12, OP3("", "", "USING"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
@@ -7604,7 +7604,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop OPERATOR FAMILY any_name USING name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7613,7 +7613,7 @@ AlterExtensionContentsStmt:
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_14, OP3("", "", "USING"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
@@ -7622,7 +7622,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop PROCEDURE function_with_argtypes {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7635,7 +7635,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop ROUTINE function_with_argtypes {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7648,7 +7648,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop TRANSFORM FOR Typename LANGUAGE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7657,7 +7657,7 @@ AlterExtensionContentsStmt:
         auto tmp3 = $7;
         res = new IR(kAlterExtensionContentsStmt_18, OP3("", "", "LANGUAGE"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kAlterExtensionContentsStmt, OP3("", "", ""), res, tmp4);
@@ -7666,7 +7666,7 @@ AlterExtensionContentsStmt:
     }
 
     | ALTER EXTENSION name add_drop TYPE_P Typename {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7691,7 +7691,7 @@ AlterExtensionContentsStmt:
 CreateFdwStmt:
 
     CREATE FOREIGN DATA_P WRAPPER name opt_fdw_options create_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -7785,7 +7785,7 @@ opt_fdw_options:
 AlterFdwStmt:
 
     ALTER FOREIGN DATA_P WRAPPER name opt_fdw_options alter_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -7798,7 +7798,7 @@ AlterFdwStmt:
     }
 
     | ALTER FOREIGN DATA_P WRAPPER name fdw_options {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -7906,7 +7906,7 @@ alter_generic_option_elem:
     }
 
     | DROP generic_option_name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kAlterGenericOptionElem, OP3("DROP", "", ""), tmp1);
@@ -7920,7 +7920,7 @@ alter_generic_option_elem:
 generic_option_elem:
 
     generic_option_name generic_option_arg {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -7941,7 +7941,7 @@ generic_option_name:
 generic_option_arg:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kGenericOptionArg, OP3("", "", ""), tmp1);
@@ -7962,7 +7962,7 @@ generic_option_arg:
 CreateForeignServerStmt:
 
     CREATE SERVER name opt_type opt_foreign_server_version FOREIGN DATA_P WRAPPER name create_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -7971,7 +7971,7 @@ CreateForeignServerStmt:
         auto tmp3 = $5;
         res = new IR(kCreateForeignServerStmt_2, OP3("", "", "FOREIGN DATA WRAPPER"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kCreateForeignServerStmt_3, OP3("", "", ""), res, tmp4);
@@ -7983,7 +7983,7 @@ CreateForeignServerStmt:
     }
 
     | CREATE SERVER IF_P NOT EXISTS name opt_type opt_foreign_server_version FOREIGN DATA_P WRAPPER name create_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($6);
         auto tmp2 = $7;
@@ -7992,7 +7992,7 @@ CreateForeignServerStmt:
         auto tmp3 = $8;
         res = new IR(kCreateForeignServerStmt_5, OP3("", "", "FOREIGN DATA WRAPPER"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($12), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($12), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($12);
         res = new IR(kCreateForeignServerStmt_6, OP3("", "", ""), res, tmp4);
@@ -8009,7 +8009,7 @@ CreateForeignServerStmt:
 opt_type:
 
     TYPE_P Sconst {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kOptType, OP3("TYPE", "", ""), tmp1);
@@ -8030,7 +8030,7 @@ opt_type:
 foreign_server_version:
 
     VERSION_P Sconst {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kForeignServerVersion, OP3("VERSION", "", ""), tmp1);
@@ -8075,7 +8075,7 @@ opt_foreign_server_version:
 AlterForeignServerStmt:
 
     ALTER SERVER name foreign_server_version alter_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -8088,7 +8088,7 @@ AlterForeignServerStmt:
     }
 
     | ALTER SERVER name foreign_server_version {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -8098,7 +8098,7 @@ AlterForeignServerStmt:
     }
 
     | ALTER SERVER name alter_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -8127,7 +8127,7 @@ CreateForeignTableStmt:
         auto tmp3 = $8;
         res = new IR(kCreateForeignTableStmt_2, OP3("", "", "SERVER"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($10);
         res = new IR(kCreateForeignTableStmt_3, OP3("", "", ""), res, tmp4);
@@ -8149,7 +8149,7 @@ CreateForeignTableStmt:
         auto tmp3 = $11;
         res = new IR(kCreateForeignTableStmt_5, OP3("", "", "SERVER"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($13), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($13), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($13);
         res = new IR(kCreateForeignTableStmt_6, OP3("", "", ""), res, tmp4);
@@ -8174,7 +8174,7 @@ CreateForeignTableStmt:
         auto tmp4 = $9;
         res = new IR(kCreateForeignTableStmt_9, OP3("", "", "SERVER"), res, tmp4);
         all_gen_ir.push_back(res);
-        auto tmp5 = new IR(kIdentifier, string($11), kDataFixLater, 0, kFlagUnknown);
+        auto tmp5 = new IR(kIdentifier, string($11), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp5 );
         free($11);
         res = new IR(kCreateForeignTableStmt_10, OP3("", "", ""), res, tmp5);
@@ -8199,7 +8199,7 @@ CreateForeignTableStmt:
         auto tmp4 = $12;
         res = new IR(kCreateForeignTableStmt_13, OP3("", "", "SERVER"), res, tmp4);
         all_gen_ir.push_back(res);
-        auto tmp5 = new IR(kIdentifier, string($14), kDataFixLater, 0, kFlagUnknown);
+        auto tmp5 = new IR(kIdentifier, string($14), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp5 );
         free($14);
         res = new IR(kCreateForeignTableStmt_14, OP3("", "", ""), res, tmp5);
@@ -8228,18 +8228,18 @@ CreateForeignTableStmt:
 ImportForeignSchemaStmt:
 
     IMPORT_P FOREIGN SCHEMA name import_qualification FROM SERVER name INTO name create_generic_options {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $5;
         res = new IR(kImportForeignSchemaStmt_1, OP3("IMPORT FOREIGN SCHEMA", "", "FROM SERVER"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kImportForeignSchemaStmt_2, OP3("", "", "INTO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($10);
         res = new IR(kImportForeignSchemaStmt_3, OP3("", "", ""), res, tmp4);
@@ -8300,7 +8300,7 @@ CreateUserMappingStmt:
 
     CREATE USER MAPPING FOR auth_ident SERVER name create_generic_options {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kCreateUserMappingStmt_1, OP3("CREATE USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
@@ -8313,7 +8313,7 @@ CreateUserMappingStmt:
 
     | CREATE USER MAPPING IF_P NOT EXISTS FOR auth_ident SERVER name create_generic_options {
         auto tmp1 = $8;
-        auto tmp2 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($10);
         res = new IR(kCreateUserMappingStmt_2, OP3("CREATE USER MAPPING IF NOT EXISTS FOR", "SERVER", ""), tmp1, tmp2);
@@ -8331,7 +8331,7 @@ CreateUserMappingStmt:
 auth_ident:
 
     RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kAuthIdent, OP3("", "", ""), tmp1);
@@ -8361,7 +8361,7 @@ DropUserMappingStmt:
 
     DROP USER MAPPING FOR auth_ident SERVER name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kDropUserMappingStmt, OP3("DROP USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
@@ -8371,7 +8371,7 @@ DropUserMappingStmt:
 
     | DROP USER MAPPING IF_P EXISTS FOR auth_ident SERVER name {
         auto tmp1 = $7;
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kDropUserMappingStmt, OP3("DROP USER MAPPING IF EXISTS FOR", "SERVER", ""), tmp1, tmp2);
@@ -8393,7 +8393,7 @@ AlterUserMappingStmt:
 
     ALTER USER MAPPING FOR auth_ident SERVER name alter_generic_options {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kAlterUserMappingStmt_1, OP3("ALTER USER MAPPING FOR", "SERVER", ""), tmp1, tmp2);
@@ -8423,7 +8423,7 @@ AlterUserMappingStmt:
 CreatePolicyStmt:
 
     CREATE POLICY name ON qualified_name RowSecurityDefaultPermissive RowSecurityDefaultForCmd RowSecurityDefaultToRole RowSecurityOptionalExpr RowSecurityOptionalWithCheck {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -8453,7 +8453,7 @@ CreatePolicyStmt:
 AlterPolicyStmt:
 
     ALTER POLICY name ON qualified_name RowSecurityOptionalToRole RowSecurityOptionalExpr RowSecurityOptionalWithCheck {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -8642,7 +8642,7 @@ row_security_cmd:
 CreateAmStmt:
 
     CREATE ACCESS METHOD name TYPE_P am_type HANDLER handler_name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $6;
@@ -8685,7 +8685,7 @@ CreateTrigStmt:
 
     CREATE opt_or_replace TRIGGER name TriggerActionTime TriggerEvents ON qualified_name TriggerReferencing TriggerForSpec TriggerWhen EXECUTE FUNCTION_or_PROCEDURE func_name '(' TriggerFuncArgs ')' {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kCreateTrigStmt_1, OP3("CREATE", "TRIGGER", ""), tmp1, tmp2);
@@ -8729,7 +8729,7 @@ CreateTrigStmt:
             tmp1 = new IR(kOptOrReplace, OP3("", "", ""));
             all_gen_ir.push_back(tmp1);
         }
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kCreateTrigStmt_10, OP3("CREATE", "CONSTRAINT TRIGGER", "AFTER"), tmp1, tmp2);
@@ -8937,7 +8937,7 @@ TransitionRowOrTable:
 TransitionRelName:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kTransitionRelName, OP3("", "", ""), tmp1);
@@ -9072,7 +9072,7 @@ TriggerFuncArg:
     }
 
     | FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kTriggerFuncArg, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -9081,7 +9081,7 @@ TriggerFuncArg:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
@@ -9090,7 +9090,7 @@ TriggerFuncArg:
     }
 
     | ColLabel {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kTriggerFuncArg, OP3("", "", ""), tmp1);
@@ -9191,10 +9191,10 @@ ConstraintAttributeElem:
 CreateEventTrigStmt:
 
     CREATE EVENT TRIGGER name ON ColLabel EXECUTE FUNCTION_or_PROCEDURE func_name '(' ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCreateEventTrigStmt_1, OP3("CREATE EVENT TRIGGER", "ON", "EXECUTE"), tmp1, tmp2);
@@ -9209,10 +9209,10 @@ CreateEventTrigStmt:
     }
 
     | CREATE EVENT TRIGGER name ON ColLabel WHEN event_trigger_when_list EXECUTE FUNCTION_or_PROCEDURE func_name '(' ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCreateEventTrigStmt_3, OP3("CREATE EVENT TRIGGER", "ON", "WHEN"), tmp1, tmp2);
@@ -9255,7 +9255,7 @@ event_trigger_when_list:
 event_trigger_when_item:
 
     ColId IN_P '(' event_trigger_value_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $4;
@@ -9294,7 +9294,7 @@ event_trigger_value_list:
 AlterEventTrigStmt:
 
     ALTER EVENT TRIGGER name enable_trigger {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $5;
@@ -9545,7 +9545,7 @@ def_elem:
 
     ColLabel '=' def_arg {
         /* Yu: Treat this as reloption type. Will fix later in the validate functions */
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -9559,7 +9559,7 @@ def_elem:
     }
 
     | ColLabel {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kDefElem, OP3("", "", ""), tmp1);
@@ -9585,7 +9585,7 @@ def_arg:
 
     | reserved_keyword {
         /* This is a specitial use, we are using a read-only char to initialize the string! */
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -9607,7 +9607,7 @@ def_arg:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kDefArg, OP3("", "", ""), tmp1);
@@ -9726,7 +9726,7 @@ opt_enum_val_list:
 enum_val_list:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kEnumValList, OP3("", "", ""), tmp1);
@@ -9736,7 +9736,7 @@ enum_val_list:
 
     | enum_val_list ',' Sconst {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kEnumValList, OP3("", ",", ""), tmp1, tmp2);
@@ -9760,7 +9760,7 @@ AlterEnumStmt:
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_1, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
@@ -9773,12 +9773,12 @@ AlterEnumStmt:
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_2, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kAlterEnumStmt_3, OP3("", "", "BEFORE"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp4);
@@ -9791,12 +9791,12 @@ AlterEnumStmt:
         auto tmp2 = $6;
         res = new IR(kAlterEnumStmt_4, OP3("ALTER TYPE", "ADD VALUE", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kAlterEnumStmt_5, OP3("", "", "AFTER"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp4);
@@ -9806,12 +9806,12 @@ AlterEnumStmt:
 
     | ALTER TYPE_P any_name RENAME VALUE_P Sconst TO Sconst {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterEnumStmt_6, OP3("ALTER TYPE", "RENAME VALUE", "TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kAlterEnumStmt, OP3("", "", ""), res, tmp3);
@@ -9861,7 +9861,7 @@ CreateOpClassStmt:
         auto tmp3 = $8;
         res = new IR(kCreateOpClassStmt_2, OP3("", "", "USING"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($10);
         res = new IR(kCreateOpClassStmt_3, OP3("", "", ""), res, tmp4);
@@ -10039,7 +10039,7 @@ CreateOpFamilyStmt:
 
     CREATE OPERATOR FAMILY any_name USING name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCreateOpFamilyStmt, OP3("CREATE OPERATOR FAMILY", "USING", ""), tmp1, tmp2);
@@ -10054,7 +10054,7 @@ AlterOpFamilyStmt:
 
     ALTER OPERATOR FAMILY any_name USING name ADD_P opclass_item_list {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOpFamilyStmt_1, OP3("ALTER OPERATOR FAMILY", "USING", "ADD"), tmp1, tmp2);
@@ -10067,7 +10067,7 @@ AlterOpFamilyStmt:
 
     | ALTER OPERATOR FAMILY any_name USING name DROP opclass_drop_list {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOpFamilyStmt_2, OP3("ALTER OPERATOR FAMILY", "USING", "DROP"), tmp1, tmp2);
@@ -10127,7 +10127,7 @@ DropOpClassStmt:
 
     DROP OPERATOR CLASS any_name USING name opt_drop_behavior {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kDropOpClassStmt_1, OP3("DROP OPERATOR CLASS", "USING", ""), tmp1, tmp2);
@@ -10140,7 +10140,7 @@ DropOpClassStmt:
 
     | DROP OPERATOR CLASS IF_P EXISTS any_name USING name opt_drop_behavior {
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kDropOpClassStmt_2, OP3("DROP OPERATOR CLASS IF EXISTS", "USING", ""), tmp1, tmp2);
@@ -10158,7 +10158,7 @@ DropOpFamilyStmt:
 
     DROP OPERATOR FAMILY any_name USING name opt_drop_behavior {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kDropOpFamilyStmt_1, OP3("DROP OPERATOR FAMILY", "USING", ""), tmp1, tmp2);
@@ -10171,7 +10171,7 @@ DropOpFamilyStmt:
 
     | DROP OPERATOR FAMILY IF_P EXISTS any_name USING name opt_drop_behavior {
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kDropOpFamilyStmt_2, OP3("DROP OPERATOR FAMILY IF EXISTS", "USING", ""), tmp1, tmp2);
@@ -10211,7 +10211,7 @@ ReassignOwnedStmt:
 
     REASSIGN OWNED BY role_list TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kReassignOwnedStmt, OP3("REASSIGN OWNED BY", "TO", ""), tmp1, tmp2);
@@ -10302,7 +10302,7 @@ DropStmt:
 
     | DROP object_type_name_on_any_name name ON any_name opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kDropStmt_5, OP3("DROP", "", "ON"), tmp1, tmp2);
@@ -10318,7 +10318,7 @@ DropStmt:
 
     | DROP object_type_name_on_any_name IF_P EXISTS name ON any_name opt_drop_behavior {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kDropStmt_7, OP3("DROP", "IF EXISTS", "ON"), tmp1, tmp2);
@@ -10614,7 +10614,7 @@ any_name_list:
 any_name:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kAnyName, OP3("", "", ""), tmp1);
@@ -10623,7 +10623,7 @@ any_name:
     }
 
     | ColId attrs {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -10638,7 +10638,7 @@ any_name:
 attrs:
 
     '.' attr_name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kAttrs, OP3(".", "", ""), tmp1);
@@ -10648,7 +10648,7 @@ attrs:
 
     | attrs '.' attr_name {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kAttrs, OP3("", ".", ""), tmp1, tmp2);
@@ -10741,7 +10741,7 @@ CommentStmt:
         auto tmp2 = $4;
         res = new IR(kCommentStmt_1, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10764,7 +10764,7 @@ CommentStmt:
 
     | COMMENT ON COLUMN any_name IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON COLUMN", "IS", ""), tmp1, tmp2);
@@ -10777,12 +10777,12 @@ CommentStmt:
 
     | COMMENT ON object_type_name name IS comment_text {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kCommentStmt_2, OP3("COMMENT ON", "", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10801,7 +10801,7 @@ CommentStmt:
 
     | COMMENT ON TYPE_P Typename IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON TYPE", "IS", ""), tmp1, tmp2);
@@ -10811,7 +10811,7 @@ CommentStmt:
 
     | COMMENT ON DOMAIN_P Typename IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON DOMAIN", "IS", ""), tmp1, tmp2);
@@ -10821,7 +10821,7 @@ CommentStmt:
 
     | COMMENT ON AGGREGATE aggregate_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON AGGREGATE", "IS", ""), tmp1, tmp2);
@@ -10831,7 +10831,7 @@ CommentStmt:
 
     | COMMENT ON FUNCTION function_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON FUNCTION", "IS", ""), tmp1, tmp2);
@@ -10841,7 +10841,7 @@ CommentStmt:
 
     | COMMENT ON OPERATOR operator_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON OPERATOR", "IS", ""), tmp1, tmp2);
@@ -10850,13 +10850,13 @@ CommentStmt:
     }
 
     | COMMENT ON CONSTRAINT name ON any_name IS comment_text {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $6;
         res = new IR(kCommentStmt_3, OP3("COMMENT ON CONSTRAINT", "ON", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10865,13 +10865,13 @@ CommentStmt:
     }
 
     | COMMENT ON CONSTRAINT name ON DOMAIN_P any_name IS comment_text {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $7;
         res = new IR(kCommentStmt_4, OP3("COMMENT ON CONSTRAINT", "ON DOMAIN", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10881,7 +10881,7 @@ CommentStmt:
 
     | COMMENT ON object_type_name_on_any_name name ON any_name IS comment_text {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kCommentStmt_5, OP3("COMMENT ON", "", "ON"), tmp1, tmp2);
@@ -10889,7 +10889,7 @@ CommentStmt:
         auto tmp3 = $6;
         res = new IR(kCommentStmt_6, OP3("", "", "IS"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($8);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp4);
@@ -10899,7 +10899,7 @@ CommentStmt:
 
     | COMMENT ON PROCEDURE function_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON PROCEDURE", "IS", ""), tmp1, tmp2);
@@ -10909,7 +10909,7 @@ CommentStmt:
 
     | COMMENT ON ROUTINE function_with_argtypes IS comment_text {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kCommentStmt, OP3("COMMENT ON ROUTINE", "IS", ""), tmp1, tmp2);
@@ -10919,12 +10919,12 @@ CommentStmt:
 
     | COMMENT ON TRANSFORM FOR Typename LANGUAGE name IS comment_text {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kCommentStmt_7, OP3("COMMENT ON TRANSFORM FOR", "LANGUAGE", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10934,12 +10934,12 @@ CommentStmt:
 
     | COMMENT ON OPERATOR CLASS any_name USING name IS comment_text {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kCommentStmt_8, OP3("COMMENT ON OPERATOR CLASS", "USING", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10949,12 +10949,12 @@ CommentStmt:
 
     | COMMENT ON OPERATOR FAMILY any_name USING name IS comment_text {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kCommentStmt_9, OP3("COMMENT ON OPERATOR FAMILY", "USING", "IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -10964,7 +10964,7 @@ CommentStmt:
 
     | COMMENT ON LARGE_P OBJECT_P NumericOnly IS comment_text {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kCommentStmt, OP3("COMMENT ON LARGE OBJECT", "IS", ""), tmp1, tmp2);
@@ -10977,7 +10977,7 @@ CommentStmt:
         auto tmp2 = $7;
         res = new IR(kCommentStmt_10, OP3("COMMENT ON CAST (", "AS", ") IS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($10);
         res = new IR(kCommentStmt, OP3("", "", ""), res, tmp3);
@@ -11039,7 +11039,7 @@ SecLabelStmt:
         auto tmp2 = $5;
         res = new IR(kSecLabelStmt_4, OP3("SECURITY LABEL", "ON", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kSecLabelStmt_5, OP3("", "", "IS"), res, tmp3);
@@ -11137,7 +11137,7 @@ opt_provider:
         ** Do not mutate it for now.
         ** FixLater: $2 into OP3.
         */
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kOptProvider, OP3("FOR", "", ""), tmp1);
@@ -11157,7 +11157,7 @@ opt_provider:
 security_label:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kSecurityLabel, OP3("", "", ""), tmp1);
@@ -11203,7 +11203,7 @@ FetchStmt:
 fetch_args:
 
     cursor_name {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kFetchArgs, OP3("", "", ""), tmp1);
@@ -11213,7 +11213,7 @@ fetch_args:
 
     | from_in cursor_name {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kFetchArgs, OP3("", "", ""), tmp1, tmp2);
@@ -11223,7 +11223,7 @@ fetch_args:
 
     | NEXT opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("NEXT", "", ""), tmp1, tmp2);
@@ -11233,7 +11233,7 @@ fetch_args:
 
     | PRIOR opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("PRIOR", "", ""), tmp1, tmp2);
@@ -11243,7 +11243,7 @@ fetch_args:
 
     | FIRST_P opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("FIRST", "", ""), tmp1, tmp2);
@@ -11253,7 +11253,7 @@ fetch_args:
 
     | LAST_P opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("LAST", "", ""), tmp1, tmp2);
@@ -11266,7 +11266,7 @@ fetch_args:
         auto tmp2 = $3;
         res = new IR(kFetchArgs_1, OP3("ABSOLUTE", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
@@ -11279,7 +11279,7 @@ fetch_args:
         auto tmp2 = $3;
         res = new IR(kFetchArgs_2, OP3("RELATIVE", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
@@ -11292,7 +11292,7 @@ fetch_args:
         auto tmp2 = $2;
         res = new IR(kFetchArgs_3, OP3("", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($3);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
@@ -11302,7 +11302,7 @@ fetch_args:
 
     | ALL opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("ALL", "", ""), tmp1, tmp2);
@@ -11312,7 +11312,7 @@ fetch_args:
 
     | FORWARD opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("FORWARD", "", ""), tmp1, tmp2);
@@ -11325,7 +11325,7 @@ fetch_args:
         auto tmp2 = $3;
         res = new IR(kFetchArgs_4, OP3("FORWARD", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
@@ -11335,7 +11335,7 @@ fetch_args:
 
     | FORWARD ALL opt_from_in cursor_name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kFetchArgs, OP3("FORWARD ALL", "", ""), tmp1, tmp2);
@@ -11345,7 +11345,7 @@ fetch_args:
 
     | BACKWARD opt_from_in cursor_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFetchArgs, OP3("BACKWARD", "", ""), tmp1, tmp2);
@@ -11358,7 +11358,7 @@ fetch_args:
         auto tmp2 = $3;
         res = new IR(kFetchArgs_5, OP3("BACKWARD", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($4);
         res = new IR(kFetchArgs, OP3("", "", ""), res, tmp3);
@@ -11368,7 +11368,7 @@ fetch_args:
 
     | BACKWARD ALL opt_from_in cursor_name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kFetchArgs, OP3("BACKWARD ALL", "", ""), tmp1, tmp2);
@@ -11574,7 +11574,7 @@ privilege:
     }
 
     | ColId opt_column_list {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -11759,7 +11759,7 @@ grantee_list:
 grantee:
 
     RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kGrantee, OP3("", "", ""), tmp1);
@@ -11768,7 +11768,7 @@ grantee:
     }
 
     | GROUP_P RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kGrantee, OP3("GROUP", "", ""), tmp1);
@@ -11875,7 +11875,7 @@ opt_grant_admin_option:
 opt_granted_by:
 
     GRANTED BY RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kOptGrantedBy, OP3("GRANTED BY", "", ""), tmp1);
@@ -12096,7 +12096,7 @@ IndexStmt:
         auto tmp2 = $4;
         res = new IR(kIndexStmt_9, OP3("CREATE", "INDEX", "IF NOT EXISTS"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kIndexStmt_10, OP3("", "", "ON"), res, tmp3);
@@ -12168,7 +12168,7 @@ opt_concurrently:
 opt_index_name:
 
     name {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOptIndexName, OP3("", "", ""), tmp1);
@@ -12190,7 +12190,7 @@ opt_index_name:
 access_method_clause:
 
     USING name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kAccessMethodClause, OP3("USING", "", ""), tmp1);
@@ -12272,7 +12272,7 @@ index_elem_options:
 index_elem:
 
     ColId index_elem_options {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -12604,7 +12604,7 @@ function_with_argtypes:
 
     | type_func_name_keyword {
         /* This is a specitial use, we are using a read-only char to initialize the string! */
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -12612,7 +12612,7 @@ function_with_argtypes:
     }
 
     | ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kFunctionWithArgtypes, OP3("", "", ""), tmp1);
@@ -12621,7 +12621,7 @@ function_with_argtypes:
     }
 
     | ColId indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -12689,7 +12689,7 @@ func_arg:
 
     arg_class param_name func_type {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kFuncArg_1, OP3("", "", ""), tmp1, tmp2);
@@ -12701,7 +12701,7 @@ func_arg:
     }
 
     | param_name arg_class func_type {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -12714,7 +12714,7 @@ func_arg:
     }
 
     | param_name func_type {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -12812,7 +12812,7 @@ func_type:
     }
 
     | type_function_name attrs '%' TYPE_P {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -12822,7 +12822,7 @@ func_type:
     }
 
     | SETOF type_function_name attrs '%' TYPE_P {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -13134,7 +13134,7 @@ common_func_opt_item:
     }
 
     | PARALLEL ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kCommonFuncOptItem, OP3("PARALLEL", "", ""), tmp1);
@@ -13160,7 +13160,7 @@ createfunc_opt_item:
         ** FixLater: $2 to OP3
         */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
-            auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+            auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
             res = new IR(kCreatefuncOptItem, OP3("LANGUAGE", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -13198,7 +13198,7 @@ createfunc_opt_item:
 func_as:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kFuncAs, OP3("", "", ""), tmp1);
@@ -13207,10 +13207,10 @@ func_as:
     }
 
     | Sconst ',' Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kFuncAs, OP3("", ",", ""), tmp1, tmp2);
@@ -13337,7 +13337,7 @@ opt_definition:
 table_func_column:
 
     param_name func_type {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -13606,7 +13606,7 @@ any_operator:
     }
 
     | ColId '.' any_operator {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -13695,7 +13695,7 @@ dostmt_opt_list:
 dostmt_opt_item:
 
     Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kDostmtOptItem, OP3("", "", ""), tmp1);
@@ -13707,7 +13707,7 @@ dostmt_opt_item:
         /* Yu: Programming language used for the DO stmt. Do not mutate.  */
         /* FixLater: $2 into OP3 */
         if ($2 && strcmp($2, "c") == 0 || strcmp($2, "sql") == 0 || strcmp($2, "internal") == 0 || strcmp($2, "plpgsql") == 0) {
-            auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+            auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
             res = new IR(kDostmtOptItem, OP3("LANGUAGE", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -13843,7 +13843,7 @@ CreateTransformStmt:
         auto tmp2 = $5;
         res = new IR(kCreateTransformStmt_1, OP3("CREATE", "TRANSFORM FOR", "LANGUAGE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kCreateTransformStmt_2, OP3("", "", "("), res, tmp3);
@@ -13900,7 +13900,7 @@ DropTransformStmt:
         auto tmp2 = $5;
         res = new IR(kDropTransformStmt_1, OP3("DROP TRANSFORM", "FOR", "LANGUAGE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kDropTransformStmt_2, OP3("", "", ""), res, tmp3);
@@ -13946,7 +13946,7 @@ ReindexStmt:
         auto tmp2 = $3;
         res = new IR(kReindexStmt_2, OP3("REINDEX", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($4);
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp3);
@@ -13989,7 +13989,7 @@ ReindexStmt:
         auto tmp3 = $6;
         res = new IR(kReindexStmt_6, OP3("", "", ""), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($7);
         res = new IR(kReindexStmt, OP3("", "", ""), res, tmp4);
@@ -14054,7 +14054,7 @@ reindex_target_multitable:
 AlterTblSpcStmt:
 
     ALTER TABLESPACE name SET reloptions {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -14064,7 +14064,7 @@ AlterTblSpcStmt:
     }
 
     | ALTER TABLESPACE name RESET reloptions {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -14086,7 +14086,7 @@ RenameStmt:
 
     ALTER AGGREGATE aggregate_with_argtypes RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER AGGREGATE", "RENAME TO", ""), tmp1, tmp2);
@@ -14096,7 +14096,7 @@ RenameStmt:
 
     | ALTER COLLATION any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER COLLATION", "RENAME TO", ""), tmp1, tmp2);
@@ -14106,7 +14106,7 @@ RenameStmt:
 
     | ALTER CONVERSION_P any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kRenameStmt, OP3("ALTER CONVERSION", "RENAME TO", ""), tmp1, tmp2);
@@ -14115,10 +14115,10 @@ RenameStmt:
     }
 
     | ALTER DATABASE name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER DATABASE", "RENAME TO", ""), tmp1, tmp2);
@@ -14128,7 +14128,7 @@ RenameStmt:
 
     | ALTER DOMAIN_P any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER DOMAIN", "RENAME TO", ""), tmp1, tmp2);
@@ -14138,12 +14138,12 @@ RenameStmt:
 
     | ALTER DOMAIN_P any_name RENAME CONSTRAINT name TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt_1, OP3("ALTER DOMAIN", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14152,10 +14152,10 @@ RenameStmt:
     }
 
     | ALTER FOREIGN DATA_P WRAPPER name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN DATA WRAPPER", "RENAME TO", ""), tmp1, tmp2);
@@ -14165,7 +14165,7 @@ RenameStmt:
 
     | ALTER FUNCTION function_with_argtypes RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER FUNCTION", "RENAME TO", ""), tmp1, tmp2);
@@ -14174,10 +14174,10 @@ RenameStmt:
     }
 
     | ALTER GROUP_P RoleId RENAME TO RoleId {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER GROUP", "RENAME TO", ""), tmp1, tmp2);
@@ -14190,12 +14190,12 @@ RenameStmt:
 
     | ALTER opt_procedural LANGUAGE name RENAME TO name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kRenameStmt_2, OP3("ALTER", "LANGUAGE", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14205,12 +14205,12 @@ RenameStmt:
 
     | ALTER OPERATOR CLASS any_name USING name RENAME TO name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt_3, OP3("ALTER OPERATOR CLASS", "USING", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14220,12 +14220,12 @@ RenameStmt:
 
     | ALTER OPERATOR FAMILY any_name USING name RENAME TO name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt_4, OP3("ALTER OPERATOR FAMILY", "USING", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14234,13 +14234,13 @@ RenameStmt:
     }
 
     | ALTER POLICY name ON qualified_name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
         res = new IR(kRenameStmt_5, OP3("ALTER POLICY", "ON", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14249,13 +14249,13 @@ RenameStmt:
     }
 
     | ALTER POLICY IF_P EXISTS name ON qualified_name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $7;
         res = new IR(kRenameStmt_6, OP3("ALTER POLICY IF EXISTS", "ON", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14265,7 +14265,7 @@ RenameStmt:
 
     | ALTER PROCEDURE function_with_argtypes RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER PROCEDURE", "RENAME TO", ""), tmp1, tmp2);
@@ -14274,10 +14274,10 @@ RenameStmt:
     }
 
     | ALTER PUBLICATION name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER PUBLICATION", "RENAME TO", ""), tmp1, tmp2);
@@ -14287,7 +14287,7 @@ RenameStmt:
 
     | ALTER ROUTINE function_with_argtypes RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER ROUTINE", "RENAME TO", ""), tmp1, tmp2);
@@ -14296,10 +14296,10 @@ RenameStmt:
     }
 
     | ALTER SCHEMA name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SCHEMA", "RENAME TO", ""), tmp1, tmp2);
@@ -14308,10 +14308,10 @@ RenameStmt:
     }
 
     | ALTER SERVER name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SERVER", "RENAME TO", ""), tmp1, tmp2);
@@ -14320,10 +14320,10 @@ RenameStmt:
     }
 
     | ALTER SUBSCRIPTION name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SUBSCRIPTION", "RENAME TO", ""), tmp1, tmp2);
@@ -14333,7 +14333,7 @@ RenameStmt:
 
     | ALTER TABLE relation_expr RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER TABLE", "RENAME TO", ""), tmp1, tmp2);
@@ -14347,7 +14347,7 @@ RenameStmt:
 
     | ALTER TABLE IF_P EXISTS relation_expr RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
@@ -14361,7 +14361,7 @@ RenameStmt:
 
     | ALTER SEQUENCE qualified_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE", "RENAME TO", ""), tmp1, tmp2);
@@ -14374,7 +14374,7 @@ RenameStmt:
 
     | ALTER SEQUENCE IF_P EXISTS qualified_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER SEQUENCE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
@@ -14388,7 +14388,7 @@ RenameStmt:
 
     | ALTER VIEW qualified_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER VIEW", "RENAME TO", ""), tmp1, tmp2);
@@ -14401,7 +14401,7 @@ RenameStmt:
 
     | ALTER VIEW IF_P EXISTS qualified_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER VIEW IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
@@ -14414,7 +14414,7 @@ RenameStmt:
 
     | ALTER MATERIALIZED VIEW qualified_name RENAME TO name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kRenameStmt, OP3("ALTER MATERIALIZED VIEW", "RENAME TO", ""), tmp1, tmp2);
@@ -14424,7 +14424,7 @@ RenameStmt:
 
     | ALTER MATERIALIZED VIEW IF_P EXISTS qualified_name RENAME TO name {
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kRenameStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
@@ -14434,7 +14434,7 @@ RenameStmt:
 
     | ALTER INDEX qualified_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER INDEX", "RENAME TO", ""), tmp1, tmp2);
@@ -14447,7 +14447,7 @@ RenameStmt:
 
     | ALTER INDEX IF_P EXISTS qualified_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER INDEX IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
@@ -14460,7 +14460,7 @@ RenameStmt:
 
     | ALTER FOREIGN TABLE relation_expr RENAME TO name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE", "RENAME TO", ""), tmp1, tmp2);
@@ -14474,7 +14474,7 @@ RenameStmt:
 
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr RENAME TO name {
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kRenameStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME TO", ""), tmp1, tmp2);
@@ -14491,12 +14491,12 @@ RenameStmt:
         auto tmp2 = $5;
         res = new IR(kRenameStmt_7, OP3("ALTER TABLE", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kRenameStmt_8, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14513,12 +14513,12 @@ RenameStmt:
         auto tmp2 = $7;
         res = new IR(kRenameStmt_9, OP3("ALTER TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt_10, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14534,12 +14534,12 @@ RenameStmt:
         auto tmp2 = $5;
         res = new IR(kRenameStmt_11, OP3("ALTER VIEW", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kRenameStmt_12, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14556,12 +14556,12 @@ RenameStmt:
         auto tmp2 = $7;
         res = new IR(kRenameStmt_13, OP3("ALTER VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt_14, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14578,12 +14578,12 @@ RenameStmt:
         auto tmp2 = $6;
         res = new IR(kRenameStmt_15, OP3("ALTER MATERIALIZED VIEW", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kRenameStmt_16, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14601,12 +14601,12 @@ RenameStmt:
         auto tmp2 = $8;
         res = new IR(kRenameStmt_17, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kRenameStmt_18, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($11), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($11), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($11);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14621,12 +14621,12 @@ RenameStmt:
 
     | ALTER TABLE relation_expr RENAME CONSTRAINT name TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt_19, OP3("ALTER TABLE", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14640,12 +14640,12 @@ RenameStmt:
 
     | ALTER TABLE IF_P EXISTS relation_expr RENAME CONSTRAINT name TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt_20, OP3("ALTER TABLE IF EXISTS", "RENAME CONSTRAINT", "TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($10);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14662,12 +14662,12 @@ RenameStmt:
         auto tmp2 = $6;
         res = new IR(kRenameStmt_21, OP3("ALTER FOREIGN TABLE", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kRenameStmt_22, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($9);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14683,12 +14683,12 @@ RenameStmt:
         auto tmp2 = $8;
         res = new IR(kRenameStmt_23, OP3("ALTER FOREIGN TABLE IF EXISTS", "RENAME", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kRenameStmt_24, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($11), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($11), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($11);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp4);
@@ -14701,13 +14701,13 @@ RenameStmt:
     }
 
     | ALTER RULE name ON qualified_name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
         res = new IR(kRenameStmt_25, OP3("ALTER RULE", "ON", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14716,13 +14716,13 @@ RenameStmt:
     }
 
     | ALTER TRIGGER name ON qualified_name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
         res = new IR(kRenameStmt_26, OP3("ALTER TRIGGER", "ON", "RENAME TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt, OP3("", "", ""), res, tmp3);
@@ -14731,10 +14731,10 @@ RenameStmt:
     }
 
     | ALTER EVENT TRIGGER name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kRenameStmt, OP3("ALTER EVENT TRIGGER", "RENAME TO", ""), tmp1, tmp2);
@@ -14743,10 +14743,10 @@ RenameStmt:
     }
 
     | ALTER ROLE RoleId RENAME TO RoleId {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER ROLE", "RENAME TO", ""), tmp1, tmp2);
@@ -14755,10 +14755,10 @@ RenameStmt:
     }
 
     | ALTER USER RoleId RENAME TO RoleId {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER USER", "RENAME TO", ""), tmp1, tmp2);
@@ -14767,10 +14767,10 @@ RenameStmt:
     }
 
     | ALTER TABLESPACE name RENAME TO name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER TABLESPACE", "RENAME TO", ""), tmp1, tmp2);
@@ -14780,7 +14780,7 @@ RenameStmt:
 
     | ALTER STATISTICS any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER STATISTICS", "RENAME TO", ""), tmp1, tmp2);
@@ -14790,7 +14790,7 @@ RenameStmt:
 
     | ALTER TEXT_P SEARCH PARSER any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH PARSER", "RENAME TO", ""), tmp1, tmp2);
@@ -14800,7 +14800,7 @@ RenameStmt:
 
     | ALTER TEXT_P SEARCH DICTIONARY any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "RENAME TO", ""), tmp1, tmp2);
@@ -14810,7 +14810,7 @@ RenameStmt:
 
     | ALTER TEXT_P SEARCH TEMPLATE any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH TEMPLATE", "RENAME TO", ""), tmp1, tmp2);
@@ -14820,7 +14820,7 @@ RenameStmt:
 
     | ALTER TEXT_P SEARCH CONFIGURATION any_name RENAME TO name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kRenameStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "RENAME TO", ""), tmp1, tmp2);
@@ -14830,7 +14830,7 @@ RenameStmt:
 
     | ALTER TYPE_P any_name RENAME TO name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt, OP3("ALTER TYPE", "RENAME TO", ""), tmp1, tmp2);
@@ -14840,12 +14840,12 @@ RenameStmt:
 
     | ALTER TYPE_P any_name RENAME ATTRIBUTE name TO name opt_drop_behavior {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kRenameStmt_27, OP3("ALTER TYPE", "RENAME ATTRIBUTE", "TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kRenameStmt_28, OP3("", "", ""), res, tmp3);
@@ -14906,7 +14906,7 @@ AlterObjectDependsStmt:
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_1, OP3("ALTER FUNCTION", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
@@ -14919,7 +14919,7 @@ AlterObjectDependsStmt:
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_2, OP3("ALTER PROCEDURE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
@@ -14932,7 +14932,7 @@ AlterObjectDependsStmt:
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_3, OP3("ALTER ROUTINE", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
@@ -14941,7 +14941,7 @@ AlterObjectDependsStmt:
     }
 
     | ALTER TRIGGER name ON qualified_name opt_no DEPENDS ON EXTENSION name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -14950,7 +14950,7 @@ AlterObjectDependsStmt:
         auto tmp3 = $6;
         res = new IR(kAlterObjectDependsStmt_5, OP3("", "", "DEPENDS ON EXTENSION"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($10);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp4);
@@ -14963,7 +14963,7 @@ AlterObjectDependsStmt:
         auto tmp2 = $5;
         res = new IR(kAlterObjectDependsStmt_6, OP3("ALTER MATERIALIZED VIEW", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
@@ -14976,7 +14976,7 @@ AlterObjectDependsStmt:
         auto tmp2 = $4;
         res = new IR(kAlterObjectDependsStmt_7, OP3("ALTER INDEX", "", "DEPENDS ON EXTENSION"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($8);
         res = new IR(kAlterObjectDependsStmt, OP3("", "", ""), res, tmp3);
@@ -15017,7 +15017,7 @@ AlterObjectSchemaStmt:
 
     ALTER AGGREGATE aggregate_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER AGGREGATE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15027,7 +15027,7 @@ AlterObjectSchemaStmt:
 
     | ALTER COLLATION any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER COLLATION", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15037,7 +15037,7 @@ AlterObjectSchemaStmt:
 
     | ALTER CONVERSION_P any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER CONVERSION", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15047,7 +15047,7 @@ AlterObjectSchemaStmt:
 
     | ALTER DOMAIN_P any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER DOMAIN", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15056,10 +15056,10 @@ AlterObjectSchemaStmt:
     }
 
     | ALTER EXTENSION name SET SCHEMA name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER EXTENSION", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15069,7 +15069,7 @@ AlterObjectSchemaStmt:
 
     | ALTER FUNCTION function_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FUNCTION", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15079,7 +15079,7 @@ AlterObjectSchemaStmt:
 
     | ALTER OPERATOR operator_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER OPERATOR", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15089,12 +15089,12 @@ AlterObjectSchemaStmt:
 
     | ALTER OPERATOR CLASS any_name USING name SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt_1, OP3("ALTER OPERATOR CLASS", "USING", "SET SCHEMA"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
@@ -15104,12 +15104,12 @@ AlterObjectSchemaStmt:
 
     | ALTER OPERATOR FAMILY any_name USING name SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt_2, OP3("ALTER OPERATOR FAMILY", "USING", "SET SCHEMA"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("", "", ""), res, tmp3);
@@ -15119,7 +15119,7 @@ AlterObjectSchemaStmt:
 
     | ALTER PROCEDURE function_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER PROCEDURE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15129,7 +15129,7 @@ AlterObjectSchemaStmt:
 
     | ALTER ROUTINE function_with_argtypes SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER ROUTINE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15139,7 +15139,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TABLE relation_expr SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15149,7 +15149,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TABLE IF_P EXISTS relation_expr SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15159,7 +15159,7 @@ AlterObjectSchemaStmt:
 
     | ALTER STATISTICS any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER STATISTICS", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15169,7 +15169,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TEXT_P SEARCH PARSER any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH PARSER", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15179,7 +15179,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TEXT_P SEARCH DICTIONARY any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15189,7 +15189,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TEXT_P SEARCH TEMPLATE any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH TEMPLATE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15199,7 +15199,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TEXT_P SEARCH CONFIGURATION any_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15209,7 +15209,7 @@ AlterObjectSchemaStmt:
 
     | ALTER SEQUENCE qualified_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15219,7 +15219,7 @@ AlterObjectSchemaStmt:
 
     | ALTER SEQUENCE IF_P EXISTS qualified_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER SEQUENCE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15229,7 +15229,7 @@ AlterObjectSchemaStmt:
 
     | ALTER VIEW qualified_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15242,7 +15242,7 @@ AlterObjectSchemaStmt:
 
     | ALTER VIEW IF_P EXISTS qualified_name SET SCHEMA name {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15255,7 +15255,7 @@ AlterObjectSchemaStmt:
 
     | ALTER MATERIALIZED VIEW qualified_name SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER MATERIALIZED VIEW", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15265,7 +15265,7 @@ AlterObjectSchemaStmt:
 
     | ALTER MATERIALIZED VIEW IF_P EXISTS qualified_name SET SCHEMA name {
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER MATERIALIZED VIEW IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15275,7 +15275,7 @@ AlterObjectSchemaStmt:
 
     | ALTER FOREIGN TABLE relation_expr SET SCHEMA name {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FOREIGN TABLE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15285,7 +15285,7 @@ AlterObjectSchemaStmt:
 
     | ALTER FOREIGN TABLE IF_P EXISTS relation_expr SET SCHEMA name {
         auto tmp1 = $6;
-        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($9);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER FOREIGN TABLE IF EXISTS", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15295,7 +15295,7 @@ AlterObjectSchemaStmt:
 
     | ALTER TYPE_P any_name SET SCHEMA name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterObjectSchemaStmt, OP3("ALTER TYPE", "SET SCHEMA", ""), tmp1, tmp2);
@@ -15348,7 +15348,7 @@ operator_def_list:
 operator_def_elem:
 
     ColLabel '=' NONE {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOperatorDefElem, OP3("", "= NONE", ""), tmp1);
@@ -15357,7 +15357,7 @@ operator_def_elem:
     }
 
     | ColLabel '=' operator_def_arg {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -15381,7 +15381,7 @@ operator_def_arg:
 
     | reserved_keyword {
         /* This is a specitial use, we are using a read-only char to initialize the string! */
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
         all_gen_ir.push_back(res);
@@ -15403,7 +15403,7 @@ operator_def_arg:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOperatorDefArg, OP3("", "", ""), tmp1);
@@ -15445,7 +15445,7 @@ AlterOwnerStmt:
 
     ALTER AGGREGATE aggregate_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER AGGREGATE", "OWNER TO", ""), tmp1, tmp2);
@@ -15455,7 +15455,7 @@ AlterOwnerStmt:
 
     | ALTER COLLATION any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER COLLATION", "OWNER TO", ""), tmp1, tmp2);
@@ -15465,7 +15465,7 @@ AlterOwnerStmt:
 
     | ALTER CONVERSION_P any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER CONVERSION", "OWNER TO", ""), tmp1, tmp2);
@@ -15474,10 +15474,10 @@ AlterOwnerStmt:
     }
 
     | ALTER DATABASE name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DATABASE", "OWNER TO", ""), tmp1, tmp2);
@@ -15487,7 +15487,7 @@ AlterOwnerStmt:
 
     | ALTER DOMAIN_P any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER DOMAIN", "OWNER TO", ""), tmp1, tmp2);
@@ -15497,7 +15497,7 @@ AlterOwnerStmt:
 
     | ALTER FUNCTION function_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FUNCTION", "OWNER TO", ""), tmp1, tmp2);
@@ -15507,12 +15507,12 @@ AlterOwnerStmt:
 
     | ALTER opt_procedural LANGUAGE name OWNER TO RoleSpec {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kAlterOwnerStmt_1, OP3("ALTER", "LANGUAGE", "OWNER TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
@@ -15522,7 +15522,7 @@ AlterOwnerStmt:
 
     | ALTER LARGE_P OBJECT_P NumericOnly OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER LARGE OBJECT", "OWNER TO", ""), tmp1, tmp2);
@@ -15532,7 +15532,7 @@ AlterOwnerStmt:
 
     | ALTER OPERATOR operator_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER OPERATOR", "OWNER TO", ""), tmp1, tmp2);
@@ -15542,12 +15542,12 @@ AlterOwnerStmt:
 
     | ALTER OPERATOR CLASS any_name USING name OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt_2, OP3("ALTER OPERATOR CLASS", "USING", "OWNER TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
@@ -15557,12 +15557,12 @@ AlterOwnerStmt:
 
     | ALTER OPERATOR FAMILY any_name USING name OWNER TO RoleSpec {
         auto tmp1 = $4;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt_3, OP3("ALTER OPERATOR FAMILY", "USING", "OWNER TO"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($9), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($9);
         res = new IR(kAlterOwnerStmt, OP3("", "", ""), res, tmp3);
@@ -15572,7 +15572,7 @@ AlterOwnerStmt:
 
     | ALTER PROCEDURE function_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PROCEDURE", "OWNER TO", ""), tmp1, tmp2);
@@ -15582,7 +15582,7 @@ AlterOwnerStmt:
 
     | ALTER ROUTINE function_with_argtypes OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER ROUTINE", "OWNER TO", ""), tmp1, tmp2);
@@ -15591,10 +15591,10 @@ AlterOwnerStmt:
     }
 
     | ALTER SCHEMA name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SCHEMA", "OWNER TO", ""), tmp1, tmp2);
@@ -15604,7 +15604,7 @@ AlterOwnerStmt:
 
     | ALTER TYPE_P any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TYPE", "OWNER TO", ""), tmp1, tmp2);
@@ -15613,10 +15613,10 @@ AlterOwnerStmt:
     }
 
     | ALTER TABLESPACE name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TABLESPACE", "OWNER TO", ""), tmp1, tmp2);
@@ -15626,7 +15626,7 @@ AlterOwnerStmt:
 
     | ALTER STATISTICS any_name OWNER TO RoleSpec {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER STATISTICS", "OWNER TO", ""), tmp1, tmp2);
@@ -15636,7 +15636,7 @@ AlterOwnerStmt:
 
     | ALTER TEXT_P SEARCH DICTIONARY any_name OWNER TO RoleSpec {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TEXT SEARCH DICTIONARY", "OWNER TO", ""), tmp1, tmp2);
@@ -15646,7 +15646,7 @@ AlterOwnerStmt:
 
     | ALTER TEXT_P SEARCH CONFIGURATION any_name OWNER TO RoleSpec {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER TEXT SEARCH CONFIGURATION", "OWNER TO", ""), tmp1, tmp2);
@@ -15655,10 +15655,10 @@ AlterOwnerStmt:
     }
 
     | ALTER FOREIGN DATA_P WRAPPER name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterOwnerStmt, OP3("ALTER FOREIGN DATA WRAPPER", "OWNER TO", ""), tmp1, tmp2);
@@ -15667,10 +15667,10 @@ AlterOwnerStmt:
     }
 
     | ALTER SERVER name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SERVER", "OWNER TO", ""), tmp1, tmp2);
@@ -15679,10 +15679,10 @@ AlterOwnerStmt:
     }
 
     | ALTER EVENT TRIGGER name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kAlterOwnerStmt, OP3("ALTER EVENT TRIGGER", "OWNER TO", ""), tmp1, tmp2);
@@ -15691,10 +15691,10 @@ AlterOwnerStmt:
     }
 
     | ALTER PUBLICATION name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER PUBLICATION", "OWNER TO", ""), tmp1, tmp2);
@@ -15703,10 +15703,10 @@ AlterOwnerStmt:
     }
 
     | ALTER SUBSCRIPTION name OWNER TO RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterOwnerStmt, OP3("ALTER SUBSCRIPTION", "OWNER TO", ""), tmp1, tmp2);
@@ -15727,7 +15727,7 @@ AlterOwnerStmt:
 CreatePublicationStmt:
 
     CREATE PUBLICATION name opt_publication_for_tables opt_definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -15794,7 +15794,7 @@ publication_for_tables:
 AlterPublicationStmt:
 
     ALTER PUBLICATION name SET definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -15804,7 +15804,7 @@ AlterPublicationStmt:
     }
 
     | ALTER PUBLICATION name ADD_P TABLE relation_expr_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15814,7 +15814,7 @@ AlterPublicationStmt:
     }
 
     | ALTER PUBLICATION name SET TABLE relation_expr_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15824,7 +15824,7 @@ AlterPublicationStmt:
     }
 
     | ALTER PUBLICATION name DROP TABLE relation_expr_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15845,10 +15845,10 @@ AlterPublicationStmt:
 CreateSubscriptionStmt:
 
     CREATE SUBSCRIPTION name CONNECTION Sconst PUBLICATION name_list opt_definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kCreateSubscriptionStmt_1, OP3("CREATE SUBSCRIPTION", "CONNECTION", "PUBLICATION"), tmp1, tmp2);
@@ -15874,7 +15874,7 @@ CreateSubscriptionStmt:
 AlterSubscriptionStmt:
 
     ALTER SUBSCRIPTION name SET definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -15884,10 +15884,10 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name CONNECTION Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "CONNECTION", ""), tmp1, tmp2);
@@ -15896,7 +15896,7 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name REFRESH PUBLICATION opt_definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15906,7 +15906,7 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name ADD_P PUBLICATION name_list opt_definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15919,7 +15919,7 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name DROP PUBLICATION name_list opt_definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15932,7 +15932,7 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name SET PUBLICATION name_list opt_definition {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $6;
@@ -15945,7 +15945,7 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name ENABLE_P {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "ENABLE", ""), tmp1);
@@ -15954,7 +15954,7 @@ AlterSubscriptionStmt:
     }
 
     | ALTER SUBSCRIPTION name DISABLE_P {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kAlterSubscriptionStmt, OP3("ALTER SUBSCRIPTION", "DISABLE", ""), tmp1);
@@ -15974,7 +15974,7 @@ AlterSubscriptionStmt:
 DropSubscriptionStmt:
 
     DROP SUBSCRIPTION name opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -15984,7 +15984,7 @@ DropSubscriptionStmt:
     }
 
     | DROP SUBSCRIPTION IF_P EXISTS name opt_drop_behavior {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -16006,7 +16006,7 @@ RuleStmt:
 
     CREATE opt_or_replace RULE name AS ON event TO qualified_name where_clause DO opt_instead RuleActionList {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kRuleStmt_1, OP3("CREATE", "RULE", "AS ON"), tmp1, tmp2);
@@ -16200,10 +16200,10 @@ opt_instead:
 NotifyStmt:
 
     NOTIFY ColId notify_payload {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kNotifyStmt, OP3("NOTIFY", "", ""), tmp1, tmp2);
@@ -16233,7 +16233,7 @@ notify_payload:
 ListenStmt:
 
     LISTEN ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kListenStmt, OP3("LISTEN", "", ""), tmp1);
@@ -16247,7 +16247,7 @@ ListenStmt:
 UnlistenStmt:
 
     UNLISTEN ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kUnlistenStmt, OP3("UNLISTEN", "", ""), tmp1);
@@ -16308,7 +16308,7 @@ TransactionStmt:
     }
 
     | SAVEPOINT ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kTransactionStmt, OP3("SAVEPOINT", "", ""), tmp1);
@@ -16317,7 +16317,7 @@ TransactionStmt:
     }
 
     | RELEASE SAVEPOINT ColId {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kTransactionStmt, OP3("RELEASE SAVEPOINT", "", ""), tmp1);
@@ -16326,7 +16326,7 @@ TransactionStmt:
     }
 
     | RELEASE ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kTransactionStmt, OP3("RELEASE", "", ""), tmp1);
@@ -16336,7 +16336,7 @@ TransactionStmt:
 
     | ROLLBACK opt_transaction TO SAVEPOINT ColId {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($5);
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "TO SAVEPOINT", ""), tmp1, tmp2);
@@ -16346,7 +16346,7 @@ TransactionStmt:
 
     | ROLLBACK opt_transaction TO ColId {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kTransactionStmt, OP3("ROLLBACK", "TO", ""), tmp1, tmp2);
@@ -16355,7 +16355,7 @@ TransactionStmt:
     }
 
     | PREPARE TRANSACTION Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kTransactionStmt, OP3("PREPARE TRANSACTION", "", ""), tmp1);
@@ -16364,7 +16364,7 @@ TransactionStmt:
     }
 
     | COMMIT PREPARED Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kTransactionStmt, OP3("COMMIT PREPARED", "", ""), tmp1);
@@ -16373,7 +16373,7 @@ TransactionStmt:
     }
 
     | ROLLBACK PREPARED Sconst {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kTransactionStmt, OP3("ROLLBACK PREPARED", "", ""), tmp1);
@@ -16692,7 +16692,7 @@ opt_check_option:
 LoadStmt:
 
     LOAD file_name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kLoadStmt, OP3("LOAD", "", ""), tmp1);
@@ -16713,7 +16713,7 @@ LoadStmt:
 CreatedbStmt:
 
     CREATE DATABASE name opt_with createdb_opt_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -16784,7 +16784,7 @@ createdb_opt_item:
         auto tmp2 = $2;
         res = new IR(kCreatedbOptItem_2, OP3("", "", ""), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($3);
         res = new IR(kCreatedbOptItem, OP3("", "", ""), res, tmp3);
@@ -16894,7 +16894,7 @@ opt_equal:
 AlterDatabaseStmt:
 
     ALTER DATABASE name WITH createdb_opt_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $5;
@@ -16904,7 +16904,7 @@ AlterDatabaseStmt:
     }
 
     | ALTER DATABASE name createdb_opt_list {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -16914,10 +16914,10 @@ AlterDatabaseStmt:
     }
 
     | ALTER DATABASE name SET TABLESPACE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterDatabaseStmt, OP3("ALTER DATABASE", "SET TABLESPACE", ""), tmp1, tmp2);
@@ -16931,7 +16931,7 @@ AlterDatabaseStmt:
 AlterDatabaseSetStmt:
 
     ALTER DATABASE name SetResetClause {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -16954,7 +16954,7 @@ AlterDatabaseSetStmt:
 DropdbStmt:
 
     DROP DATABASE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kDropdbStmt, OP3("DROP DATABASE", "", ""), tmp1);
@@ -16963,7 +16963,7 @@ DropdbStmt:
     }
 
     | DROP DATABASE IF_P EXISTS name {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         res = new IR(kDropdbStmt, OP3("DROP DATABASE IF EXISTS", "", ""), tmp1);
@@ -16972,7 +16972,7 @@ DropdbStmt:
     }
 
     | DROP DATABASE name opt_with '(' drop_option_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         auto tmp2 = $4;
@@ -16985,7 +16985,7 @@ DropdbStmt:
     }
 
     | DROP DATABASE IF_P EXISTS name opt_with '(' drop_option_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($5);
         auto tmp2 = $6;
@@ -17140,7 +17140,7 @@ AlterDomainStmt:
 
     | ALTER DOMAIN_P any_name DROP CONSTRAINT name opt_drop_behavior {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterDomainStmt_1, OP3("ALTER DOMAIN", "DROP CONSTRAINT", ""), tmp1, tmp2);
@@ -17153,7 +17153,7 @@ AlterDomainStmt:
 
     | ALTER DOMAIN_P any_name DROP CONSTRAINT IF_P EXISTS name opt_drop_behavior {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($8);
         res = new IR(kAlterDomainStmt_2, OP3("ALTER DOMAIN", "DROP CONSTRAINT IF EXISTS", ""), tmp1, tmp2);
@@ -17166,7 +17166,7 @@ AlterDomainStmt:
 
     | ALTER DOMAIN_P any_name VALIDATE CONSTRAINT name {
         auto tmp1 = $3;
-        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($6);
         res = new IR(kAlterDomainStmt, OP3("ALTER DOMAIN", "VALIDATE CONSTRAINT", ""), tmp1, tmp2);
@@ -17329,12 +17329,12 @@ CreateConversionStmt:
         auto tmp2 = $4;
         res = new IR(kCreateConversionStmt_1, OP3("CREATE", "CONVERSION", "FOR"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kCreateConversionStmt_2, OP3("", "", "TO"), res, tmp3);
         all_gen_ir.push_back(res);
-        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($8), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($8);
         res = new IR(kCreateConversionStmt_3, OP3("", "", "FROM"), res, tmp4);
@@ -17398,7 +17398,7 @@ ClusterStmt:
 
     | CLUSTER opt_verbose name ON qualified_name {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kClusterStmt_3, OP3("CLUSTER", "", "ON"), tmp1, tmp2);
@@ -17418,7 +17418,7 @@ ClusterStmt:
 cluster_index_specification:
 
     USING name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kClusterIndexSpecification, OP3("USING", "", ""), tmp1);
@@ -17479,7 +17479,7 @@ VacuumStmt:
 AnalyzeStmt:
 
     analyze_keyword opt_verbose opt_vacuum_relation_list {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -17492,7 +17492,7 @@ AnalyzeStmt:
     }
 
     | analyze_keyword '(' utility_option_list ')' opt_vacuum_relation_list {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -17547,7 +17547,7 @@ utility_option_elem:
         ** Do not change it to kIdentifier.
         ** FixLater: $1 into OP3
         */
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         auto tmp2 = $2;
         res = new IR(kUtilityOptionElem, OP3("", "", ""), tmp1, tmp2);
@@ -17569,7 +17569,7 @@ utility_option_name:
 utility_option_arg:
 
     opt_boolean_or_string {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kUtilityOptionArg, OP3("", "", ""), tmp1);
@@ -17596,7 +17596,7 @@ utility_option_arg:
 opt_analyze:
 
     analyze_keyword {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOptAnalyze, OP3("", "", ""), tmp1);
@@ -17756,7 +17756,7 @@ ExplainStmt:
     }
 
     | EXPLAIN analyze_keyword opt_verbose ExplainableStmt {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -17864,7 +17864,7 @@ ExplainableStmt:
 PrepareStmt:
 
     PREPARE name prep_type_clause AS PreparableStmt {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -17940,7 +17940,7 @@ PreparableStmt:
 ExecuteStmt:
 
     EXECUTE name execute_param_clause {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -17954,7 +17954,7 @@ ExecuteStmt:
         auto tmp2 = $4;
         res = new IR(kExecuteStmt_1, OP3("CREATE", "TABLE", "AS EXECUTE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($7);
         res = new IR(kExecuteStmt_2, OP3("", "", ""), res, tmp3);
@@ -17973,7 +17973,7 @@ ExecuteStmt:
         auto tmp2 = $7;
         res = new IR(kExecuteStmt_4, OP3("CREATE", "TABLE IF NOT EXISTS", "AS EXECUTE"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($10);
         res = new IR(kExecuteStmt_5, OP3("", "", ""), res, tmp3);
@@ -18018,7 +18018,7 @@ execute_param_clause:
 DeallocateStmt:
 
     DEALLOCATE name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE", "", ""), tmp1);
@@ -18027,7 +18027,7 @@ DeallocateStmt:
     }
 
     | DEALLOCATE PREPARE name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kDeallocateStmt, OP3("DEALLOCATE PREPARE", "", ""), tmp1);
@@ -18099,7 +18099,7 @@ insert_target:
 
     | qualified_name AS ColId {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataAliasName, 0, kDefine);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataAliasName, kDefine);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kInsertTarget, OP3("", "AS", ""), tmp1, tmp2);
@@ -18201,7 +18201,7 @@ insert_column_list:
 insert_column_item:
 
     ColId opt_indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -18255,7 +18255,7 @@ opt_conf_expr:
     }
 
     | ON CONSTRAINT name {
-        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($3);
         res = new IR(kOptConfExpr, OP3("ON CONSTRAINT", "", ""), tmp1);
@@ -18555,7 +18555,7 @@ set_clause:
 set_target:
 
     ColId opt_indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -18597,7 +18597,7 @@ set_target_list:
 DeclareCursorStmt:
 
     DECLARE cursor_name cursor_options CURSOR opt_hold FOR SelectStmt {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $3;
@@ -19092,7 +19092,7 @@ cte_list:
 common_table_expr:
 
     name opt_name_list AS opt_materialized '(' PreparableStmt ')' opt_search_clause opt_cycle_clause {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -19150,7 +19150,7 @@ opt_search_clause:
 
     SEARCH DEPTH FIRST_P BY columnList SET ColId {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kOptSearchClause, OP3("SEARCH DEPTH FIRST BY", "SET", ""), tmp1, tmp2);
@@ -19160,7 +19160,7 @@ opt_search_clause:
 
     | SEARCH BREADTH FIRST_P BY columnList SET ColId {
         auto tmp1 = $5;
-        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($7), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($7);
         res = new IR(kOptSearchClause, OP3("SEARCH BREADTH FIRST BY", "SET", ""), tmp1, tmp2);
@@ -19181,7 +19181,7 @@ opt_cycle_clause:
 
     CYCLE columnList SET ColId TO AexprConst DEFAULT AexprConst USING ColId {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kOptCycleClause_1, OP3("CYCLE", "SET", "TO"), tmp1, tmp2);
@@ -19192,7 +19192,7 @@ opt_cycle_clause:
         auto tmp4 = $8;
         res = new IR(kOptCycleClause_3, OP3("", "", "USING"), res, tmp4);
         all_gen_ir.push_back(res);
-        auto tmp5 = new IR(kIdentifier, string($10), kDataFixLater, 0, kFlagUnknown);
+        auto tmp5 = new IR(kIdentifier, string($10), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp5 );
         free($10);
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp5);
@@ -19202,12 +19202,12 @@ opt_cycle_clause:
 
     | CYCLE columnList SET ColId USING ColId {
         auto tmp1 = $2;
-        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($4);
         res = new IR(kOptCycleClause_4, OP3("CYCLE", "SET", "USING"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($6);
         res = new IR(kOptCycleClause, OP3("", "", ""), res, tmp3);
@@ -19752,7 +19752,7 @@ I_or_F_const:
     }
 
     | FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kIOrFConst, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -20337,7 +20337,7 @@ joined_table:
 alias_clause:
 
     AS ColId '(' name_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $4;
@@ -20350,7 +20350,7 @@ alias_clause:
     }
 
     | AS ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kAliasClause, OP3("AS", "", ""), tmp1);
@@ -20361,7 +20361,7 @@ alias_clause:
     }
 
     | ColId '(' name_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -20375,7 +20375,7 @@ alias_clause:
     }
 
     | ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kAliasClause, OP3("", "", ""), tmp1);
@@ -20416,7 +20416,7 @@ opt_alias_clause:
 opt_alias_clause_for_join_using:
 
     AS ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kOptAliasClauseForJoinUsing, OP3("AS", "", ""), tmp1);
@@ -20454,7 +20454,7 @@ func_alias_clause:
     }
 
     | AS ColId '(' TableFuncElementList ')' {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         auto tmp2 = $4;
@@ -20466,7 +20466,7 @@ func_alias_clause:
     }
 
     | ColId '(' TableFuncElementList ')' {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -20652,7 +20652,7 @@ relation_expr_opt_alias:
 
     | relation_expr ColId {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kRelationExprOptAlias, OP3("", "", ""), tmp1, tmp2);
@@ -20662,7 +20662,7 @@ relation_expr_opt_alias:
 
     | relation_expr AS ColId {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kRelationExprOptAlias, OP3("", "AS", ""), tmp1, tmp2);
@@ -20841,7 +20841,7 @@ where_or_current_clause:
     }
 
     | WHERE CURRENT_P OF cursor_name {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kWhereOrCurrentClause, OP3("WHERE CURRENT OF", "", ""), tmp1);
@@ -20900,7 +20900,7 @@ TableFuncElementList:
 TableFuncElement:
 
     ColId Typename opt_collate_clause {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -20971,7 +20971,7 @@ xmltable_column_list:
 xmltable_column_el:
 
     ColId Typename {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -20983,7 +20983,7 @@ xmltable_column_el:
     }
 
     | ColId Typename xmltable_column_option_list {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -20998,7 +20998,7 @@ xmltable_column_el:
     }
 
     | ColId FOR ORDINALITY {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kXmltableColumnEl, OP3("", "FOR ORDINALITY", ""), tmp1);
@@ -21087,7 +21087,7 @@ xml_namespace_el:
 
     b_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kXmlNamespaceEl, OP3("", "AS", ""), tmp1, tmp2);
@@ -21302,7 +21302,7 @@ ConstTypename:
 GenericType:
 
     type_function_name opt_type_modifiers {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -21314,7 +21314,7 @@ GenericType:
     }
 
     | type_function_name attrs opt_type_modifiers {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -23099,7 +23099,7 @@ func_expr_common_subexpr:
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLELEMENT ( NAME", ")", ""), tmp1);
@@ -23108,7 +23108,7 @@ func_expr_common_subexpr:
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ',' xml_attributes ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $6;
@@ -23118,7 +23118,7 @@ func_expr_common_subexpr:
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ',' expr_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $6;
@@ -23128,7 +23128,7 @@ func_expr_common_subexpr:
     }
 
     | XMLELEMENT '(' NAME_P ColLabel ',' xml_attributes ',' expr_list ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $6;
@@ -23167,7 +23167,7 @@ func_expr_common_subexpr:
     }
 
     | XMLPI '(' NAME_P ColLabel ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         res = new IR(kFuncExprCommonSubexpr, OP3("XMLPI ( NAME", ")", ""), tmp1);
@@ -23176,7 +23176,7 @@ func_expr_common_subexpr:
     }
 
     | XMLPI '(' NAME_P ColLabel ',' a_expr ')' {
-        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($4), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($4);
         auto tmp2 = $6;
@@ -23296,7 +23296,7 @@ xml_attribute_el:
 
     a_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kXmlAttributeEl, OP3("", "AS", ""), tmp1, tmp2);
@@ -23496,7 +23496,7 @@ window_definition_list:
 window_definition:
 
     ColId AS window_specification {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -23518,7 +23518,7 @@ over_clause:
     }
 
     | OVER ColId {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kOverClause, OP3("OVER", "", ""), tmp1);
@@ -23567,7 +23567,7 @@ window_specification:
 opt_existing_window_name:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kOptExistingWindowName, OP3("", "", ""), tmp1);
@@ -24066,7 +24066,7 @@ func_arg_expr:
     }
 
     | param_name COLON_EQUALS a_expr {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -24076,7 +24076,7 @@ func_arg_expr:
     }
 
     | param_name EQUALS_GREATER a_expr {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $3;
@@ -24238,7 +24238,7 @@ extract_arg:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kExtractArg, OP3("", "", ""), tmp1);
@@ -24535,7 +24535,7 @@ case_arg:
 columnref:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kColumnref, OP3("", "", ""), tmp1);
@@ -24546,7 +24546,7 @@ columnref:
     }
 
     | ColId indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -24563,7 +24563,7 @@ columnref:
 indirection_el:
 
     '.' attr_name {
-        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($2);
         res = new IR(kIndirectionEl, OP3(".", "", ""), tmp1);
@@ -24720,7 +24720,7 @@ target_el:
 
     a_expr AS ColLabel {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kTargetEl, OP3("", "AS", ""), tmp1, tmp2);
@@ -24732,7 +24732,7 @@ target_el:
 
     | a_expr BareColLabel {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kTargetEl, OP3("", "", ""), tmp1, tmp2);
@@ -24793,7 +24793,7 @@ qualified_name_list:
 qualified_name:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kQualifiedName, OP3("", "", ""), tmp1);
@@ -24802,7 +24802,7 @@ qualified_name:
     }
 
     | ColId indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -24817,7 +24817,7 @@ qualified_name:
 name_list:
 
     name {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kNameList, OP3("", "", ""), tmp1);
@@ -24827,7 +24827,7 @@ name_list:
 
     | name_list ',' name {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kNameList, OP3("", ",", ""), tmp1, tmp2);
@@ -24866,7 +24866,7 @@ func_name:
 
     type_function_name {
         if ($1) {
-            auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, 0, kFlagUnknown);
+            auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, kFlagUnknown);
             all_gen_ir.push_back( tmp1 );
             res = new IR(kFuncName, OP3("", "", ""), tmp1);
             all_gen_ir.push_back(res);
@@ -24874,7 +24874,7 @@ func_name:
             free($1);
         } else {
             /* Yu: Unexpected. Use dummy SUM */
-            auto tmp1 = new IR(kIdentifier, string("SUM"), kDataFunctionName, 0, kFlagUnknown);
+            auto tmp1 = new IR(kIdentifier, string("SUM"), kDataFunctionName, kFlagUnknown);
             all_gen_ir.push_back( tmp1 );
             res = new IR(kFuncName, OP3("", "", ""), tmp1);
             all_gen_ir.push_back(res);
@@ -24883,7 +24883,7 @@ func_name:
     }
 
     | ColId indirection {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFunctionName, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         auto tmp2 = $2;
@@ -24909,7 +24909,7 @@ AexprConst:
     }
 
     | FCONST {
-        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kFloatLiteral, string($1), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
         all_gen_ir.push_back(res);
@@ -24918,7 +24918,7 @@ AexprConst:
     }
 
     | Sconst {
-        auto tmp1 = new IR(kStringLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kStringLiteral, string($1), kDataLiteral, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1);
@@ -24927,7 +24927,7 @@ AexprConst:
     }
 
     | BCONST {
-        auto tmp1 = new IR(kBoolLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kBoolLiteral, string($1), kDataLiteral, kFlagUnknown);
         free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
@@ -24937,7 +24937,7 @@ AexprConst:
 
     | XCONST {
         /* Yu: This is actually deximal numberical string. */
-        auto tmp1 = new IR(kIntLiteral, string($1), kDataLiteral, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIntLiteral, string($1), kDataLiteral, kFlagUnknown);
         free($1);
         all_gen_ir.push_back( tmp1 );
         res = new IR(kAexprConst, OP0(), tmp1);
@@ -24947,7 +24947,7 @@ AexprConst:
 
     | func_name Sconst {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
@@ -24966,7 +24966,7 @@ AexprConst:
         /* all_gen_ir.push_back(res); */
         /* $4 -> deep_drop(); */
         rov_ir.push_back($4);
-        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, 0, kFlagUnknown);
+        auto tmp4 = new IR(kIdentifier, string($6), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp4 );
         free($6);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp4);
@@ -24976,7 +24976,7 @@ AexprConst:
 
     | ConstTypename Sconst {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kAexprConst, OP3("", "", ""), tmp1, tmp2);
@@ -24986,7 +24986,7 @@ AexprConst:
 
     | ConstInterval Sconst opt_interval {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($2), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($2);
         res = new IR(kAexprConst_3, OP3("", "", ""), tmp1, tmp2);
@@ -25002,7 +25002,7 @@ AexprConst:
         auto tmp2 = $3;
         res = new IR(kAexprConst_4, OP3("", "(", ")"), tmp1, tmp2);
         all_gen_ir.push_back(res);
-        auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, 0, kFlagUnknown);
+        auto tmp3 = new IR(kIdentifier, string($5), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp3 );
         free($5);
         res = new IR(kAexprConst, OP3("", "", ""), res, tmp3);
@@ -25034,7 +25034,7 @@ AexprConst:
 Iconst:
 
     ICONST {
-        res = new IR(kIntLiteral, to_string($1), kDataLiteral, 0, kFlagUnknown);
+        res = new IR(kIntLiteral, to_string($1), kDataLiteral, kFlagUnknown);
         /* free((void*)($1)); */
         all_gen_ir.push_back(res);
         $$ = res;
@@ -25110,7 +25110,7 @@ RoleSpec:
 role_list:
 
     RoleSpec {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kRoleList, OP3("", "", ""), tmp1);
@@ -25120,7 +25120,7 @@ role_list:
 
     | role_list ',' RoleSpec {
         auto tmp1 = $1;
-        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, 0, kFlagUnknown);
+        auto tmp2 = new IR(kIdentifier, string($3), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp2 );
         free($3);
         res = new IR(kRoleList, OP3("", ",", ""), tmp1, tmp2);
@@ -25204,7 +25204,7 @@ PLAssignStmt:
 plassign_target:
 
     ColId {
-        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, 0, kFlagUnknown);
+        auto tmp1 = new IR(kIdentifier, string($1), kDataFixLater, kFlagUnknown);
         all_gen_ir.push_back( tmp1 );
         free($1);
         res = new IR(kPlassignTarget, OP3("", "", ""), tmp1);

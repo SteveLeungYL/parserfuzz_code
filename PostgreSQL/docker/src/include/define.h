@@ -5,7 +5,8 @@
 #include <map>
 #include <string>
 
-using std::map, std::string;
+using std::map;
+using std::string;
 
 #define ALLIRTYPE(V)                                                           \
   /* New one here!!! */                                                        \

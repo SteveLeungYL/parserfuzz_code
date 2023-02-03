@@ -714,7 +714,7 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
       }
       else {
         /* We cannot find the existing alias, create our own */
-        IR *alias_id = new IR(kIdentifier, string("aggr"), kDataAliasName, 0, kDefine);
+        IR *alias_id = new IR(kIdentifier, string("aggr"), kDataAliasName, kDefine);
         IR* res = new IR(kTargetEl, OP3("AS", "", ""), alias_id);
         res = new IR(kTargetEl, OP0(), NULL, res);
 
@@ -760,13 +760,13 @@ IR* SQL_TLP::transform_aggr(IR* cur_stmt, bool is_UNION_ALL, VALID_STMT_TYPE_TLP
         /* Cannot find existing alias, create our own */
         func_name_ir->func_name_set_str("SUM");
 
-        IR *alias_id_0 = new IR(kIdentifier, string("s"), kDataAliasName, 0, kDefine);
+        IR *alias_id_0 = new IR(kIdentifier, string("s"), kDataAliasName, kDefine);
         res_0 = new IR(kTargetEl, OP3("AS", "", ""), alias_id_0);
         res_0 = new IR(kTargetEl, OP0(), targetel->deep_copy(), res_0);
 
 
         func_name_ir->func_name_set_str("COUNT");
-        IR *alias_id_1 = new IR(kIdentifier, string("c"), kDataAliasName, 0, kDefine);
+        IR *alias_id_1 = new IR(kIdentifier, string("c"), kDataAliasName, kDefine);
         res_1 = new IR(kTargetEl, OP3("AS", "", ""), alias_id_1);
         res_1 = new IR(kTargetEl, OP0(), targetel->deep_copy(), res_1);
 

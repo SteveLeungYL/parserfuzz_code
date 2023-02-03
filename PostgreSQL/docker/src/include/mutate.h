@@ -102,7 +102,6 @@ public:
                              set<IRTYPE> &split_set); 
   bool connect_back(map<IR *, pair<bool, IR*>> &m_save);
 
-  void analyze_scope(IR *stmt_root);
   void fix_preprocessing(IR *stmt_root,
                      vector<IR*> &ordered_all_subquery_ir);
   bool fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> ir_to_fix, bool is_debug_info = false);   
