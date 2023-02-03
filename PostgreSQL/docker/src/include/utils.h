@@ -98,7 +98,7 @@ inline double get_rand_double(double max) {
 
 
 
-uint64_t fuzzing_hash(const void *key, int len);
+uint64_t get_str_hash(const void *key, int len);
 void trim_string(string &);
 std::string trim(const std::string &s);
 vector<string> get_all_files_in_dir(const char *dir_name);

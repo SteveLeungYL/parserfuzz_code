@@ -26,7 +26,6 @@ private:
   // Data Structure.
   DATATYPE data_type;
   bool is_range;
-  bool is_enum;
   long long int_min;
   long long int_max;
   double float_min;
@@ -38,30 +37,15 @@ private:
   vector<int> v_array_size; // Support multiple dimensional array.
 
   /* For various data types inside the Tuple.  */
-  vector<shared_ptr<DATATYPE> > v_tuple_types;
-
-  /* Helper functions. */
-  bool is_str_collation(const string &str_in);
-  string get_rand_collation_str();
-
-  DATATYPE detect_numerical_type(const string &);
-  DATATYPE detect_string_type(const string &);
-
-  /* Basic data types */
-  string mutate_integer_type();
-
-  string get_rand_alphabet_num();
-  string get_rand_hex_num();
-  string add_random_time_zone();
-  DATATYPE transfer_array_to_normal_type(DATATYPE in_type);
+  vector<shared_ptr<DataType> > v_tuple_types;
 
 public:
   DataType()
-      : data_type(kTYPEUNKNOWN), is_range(false), is_enum(false), int_min(0),
+      : data_type(kTYPEUNKNOWN), is_range(false), int_min(0),
         int_max(0), float_min(0.0), float_max(0.0), varying_size(VaryingArraySizeNone) {}
 
   DataType(const DATATYPE type_in)
-      : data_type(type_in), is_range(false), is_enum(false), int_min(0),
+      : data_type(type_in), is_range(false), int_min(0),
         int_max(0), float_min(0.0), float_max(0.0), varying_size(VaryingArraySizeNone) {}
 
   DataType(const string &type_str) { init_data_type_with_str(type_str); }
@@ -69,7 +53,7 @@ public:
   // Copy constructor.
   DataType(const DataType &copy_in)
       : data_type(copy_in.get_data_type()), is_range(copy_in.get_is_range()),
-        is_enum(copy_in.get_is_enum()), int_min(copy_in.get_int_min()),
+        int_min(copy_in.get_int_min()),
         int_max(copy_in.get_int_max()), float_min(copy_in.get_float_min()),
         float_max(copy_in.get_float_max()),
         v_enum_str(copy_in.get_v_enum_str()),
@@ -77,21 +61,16 @@ public:
         v_array_size(copy_in.get_v_array_size()),
         v_tuple_types(copy_in.get_v_tuple_type()) {}
 
-  DATATYPE recognize_data_type(const string &str_in); // Return `this` pointer.
-
   DATATYPE get_data_type() const { return this->data_type; }
   void set_data_type(DATATYPE in) { this->data_type = in; }
 
   void set_is_range(bool in) { this->is_range = in; }
   bool get_is_range() const { return this->is_range; }
 
-  void set_is_enum(bool in) { this->is_enum = in; }
-  bool get_is_enum() const { return this->is_enum; }
-
   void set_v_enum_str(const vector<string> &in) { this->v_enum_str = in; }
   vector<string> get_v_enum_str() const { return this->v_enum_str; }
 
-  vector<shared_ptr<DATATYPE> > get_v_tuple_type() const {
+  vector<shared_ptr<DataType> > get_v_tuple_type() const {
     return this->v_tuple_types;
   }
 
@@ -111,8 +90,6 @@ public:
 
   int get_varying_size() const { return this->varying_size; }
   vector<int> get_v_array_size() const { return this->v_array_size; }
-
-  string get_mutated_literal(DATATYPE type_in = kTYPEUNKNOWN);
 
   template <typename T>
   void set_range(T min, T max, DATATYPE data_type = kTYPEINTEGER) {
@@ -138,25 +115,13 @@ public:
     }
   }
 
-  vector<shared_ptr<DATATYPE> > get_v_tuple_types() {
-    return this->v_tuple_types;
-  }
-
-  void push_new_v_tuple_types(const DATATYPE &data_type_in) {
-    this->v_tuple_types.push_back(
-        make_shared<DATATYPE>(DATATYPE(data_type_in)));
-    return;
-  }
-
-  void clean_up_v_tuple_types() {
-    this->v_tuple_types.clear();
-    return;
-  }
-
   unsigned long long calc_hash();
 
   void init_data_type_with_str(string in);
   DATATYPE get_data_type_from_simple_str(string in);
+  string get_str_from_data_type();
+
+  vector<int> get_v_array_size() {return this->v_array_size;}
 };
 
 #endif // SRC_DATA_TYPES_H

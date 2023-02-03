@@ -161,3 +161,52 @@ void DataType::init_data_type_with_str(string in) {
   return;
 
 }
+
+unsigned long long DataType::calc_hash() {
+
+  string res_str;
+
+  // Handle the Tuple type first. XOR on each hash.
+  if (this->data_type == kTYPETUPLE) {
+    if (this->get_v_tuple_type().size() == 0) {
+      assert(false);
+      return 0;
+    }
+    unsigned long long res_hash = v_tuple_types.front()->calc_hash();
+
+    for (int idx = 1; idx < v_tuple_types.size(); idx++) {
+      auto cur_tuple_type = v_tuple_types[idx];
+      unsigned long long cur_tuple_hash = cur_tuple_type->calc_hash();
+      res_hash = res_hash ^ cur_tuple_hash;
+    }
+
+    return res_hash;
+  }
+
+  // Handle the array type.
+  if (this->get_v_array_size().size() != 0 &&
+      this->get_v_array_size().front() > VaryingArraySizeNone
+      ) {
+    // Ignore the varying size for each array elements.
+    res_str = get_string_by_data_type(this->get_data_type());
+    for (int i = 0; i < get_v_array_size().size(); i++) {
+      res_str += "_" + to_string(get_v_array_size()[i]);
+    }
+
+    return get_str_hash(res_str.c_str(), res_str.size());
+  }
+
+  // Handle rest of the normal types. Also need to care about the varying size.
+  res_str = get_string_by_data_type(this->get_data_type());
+  if (varying_size != VaryingArraySizeNone) {
+    res_str += to_string(varying_size);
+  }
+  return get_str_hash(res_str.c_str(), res_str.size());
+
+}
+
+string DataType::get_str_from_data_type() {
+
+  return get_string_by_data_type(this->data_type);
+
+}

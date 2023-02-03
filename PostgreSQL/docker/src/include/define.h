@@ -1512,6 +1512,8 @@ using std::map, std::string;
 
 #define ALLDATATYPE(V)                                                         \
   V(TYPEUNKNOWN)                                                               \
+  V(TYPETUPLE)                                                                 \
+  V(TYPEENUM)                                                                  \
   V(TYPEBIGINT)                                                                \
   V(TYPEBIGSERIAL)                                                             \
   V(TYPEBIT)                                                                   \
