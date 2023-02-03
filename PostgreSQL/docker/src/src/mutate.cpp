@@ -74,11 +74,11 @@ IR *Mutator::deep_copy_with_record(const IR *root, const IR *record) {
     copy_res = new IR(root->ir_type_,
                OP3(root->op_->prefix_, root->op_->middle_, root->op_->suffix_),
                left, right, root->float_val_, root->str_val_, root->name_,
-               root->mutated_times_, root->context_flag_);
+               root->mutated_times_);
   else
     copy_res = new IR(root->ir_type_, NULL, left, right, root->float_val_,
-                      root->str_val_, root->name_, root->mutated_times_,
-                      root->context_flag_);
+                      root->str_val_, root->name_, root->mutated_times_
+                      );
 
   copy_res->context_type_ = root->context_type_;
 

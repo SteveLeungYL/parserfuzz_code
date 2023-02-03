@@ -111,7 +111,8 @@ class IR {
 public:
   IR(IRTYPE type, IROperator *op, IR *left = NULL, IR *right = NULL)
       : ir_type_(type), op_(op), left_(left), right_(right), parent_(NULL),
-        operand_num_((!!right) + (!!left)), context_type_(kDataWhatever) {
+        operand_num_((!!right) + (!!left)), context_type_(kDataWhatever)
+  {
     GEN_NAME();
     if (left_)
       left_->parent_ = this;
@@ -120,52 +121,53 @@ public:
   }
 
   IR(IRTYPE type, string str_val, CONTEXTTYPE context_type = kDataWhatever,
-     CONTEXTFLAG flag = kUse)
+     CONTEXTFLAG flag = kUse, DataType data_type = DataType())
       : ir_type_(type), str_val_(str_val), op_(NULL), left_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), context_type_(context_type),
-        context_flag_(flag) {
+        context_flag_(flag), data_type_(data_type) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, bool b_val, CONTEXTTYPE context_type = kDataWhatever,
-     CONTEXTFLAG flag = kUse)
+     CONTEXTFLAG flag = kUse, DataType data_type = DataType())
       : ir_type_(type), bool_val_(b_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), context_type_(context_type),
-        context_flag_(flag) {
+        context_flag_(flag), data_type_(data_type) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, unsigned long long_val, CONTEXTTYPE context_type = kDataWhatever,
-     CONTEXTFLAG flag = kUse)
+     CONTEXTFLAG flag = kUse, DataType data_type = DataType())
       : ir_type_(type), long_val_(long_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), context_type_(context_type),
-        context_flag_(flag) {
+        context_flag_(flag), data_type_(data_type) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, int int_val, CONTEXTTYPE context_type = kDataWhatever,
-     CONTEXTFLAG flag = kUse)
+     CONTEXTFLAG flag = kUse, DataType data_type = DataType())
       : ir_type_(type), int_val_(int_val), left_(NULL), op_(NULL), right_(NULL),
         parent_(NULL), operand_num_(0), context_type_(context_type),
-        context_flag_(flag) {
+        context_flag_(flag), data_type_(data_type) {
     GEN_NAME();
   }
 
-  IR(IRTYPE type, double f_val, CONTEXTTYPE data_type = kDataWhatever,
-     CONTEXTFLAG flag = kUse)
+  IR(IRTYPE type, double f_val, CONTEXTTYPE context_type = kDataWhatever,
+     CONTEXTFLAG flag = kUse, DataType data_type = DataType())
       : ir_type_(type), float_val_(f_val), left_(NULL), op_(NULL), right_(NULL),
-        parent_(NULL), operand_num_(0), context_type_(data_type),
-        context_flag_(flag) {
+        parent_(NULL), operand_num_(0), context_type_(context_type),
+        context_flag_(flag), data_type_(data_type) {
     GEN_NAME();
   }
 
   IR(IRTYPE type, IROperator *op, IR *left, IR *right, double f_val,
-     string str_val, string name, unsigned int mutated_times,
-     CONTEXTFLAG flag = kUse)
+     string str_val, string name, unsigned int mutated_times)
       : ir_type_(type), op_(op), left_(left), right_(right),
         operand_num_((!!right) + (!!left)), name_(name), str_val_(str_val),
         float_val_(f_val), mutated_times_(mutated_times),
-        context_type_(kDataWhatever), context_flag_(flag) {
+        context_type_(kDataWhatever), context_flag_(kUse),
+        data_type_(DataType())
+  {
     if (left_)
       left_->parent_ = this;
     if (right_)
@@ -245,8 +247,6 @@ public:
 
   void update_left(IR *);
   void update_right(IR *);
-
-  void print_ir();
 
   const char* get_prefix();
   const char* get_middle();
