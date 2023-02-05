@@ -39,6 +39,9 @@ private:
   /* For various data types inside the Tuple.  */
   vector<shared_ptr<DataType> > v_tuple_types;
 
+  string get_rand_alphabet_num();
+  string get_rand_hex_num();
+
 public:
   DataType()
       : data_type(kTYPEUNKNOWN), is_range(false), int_min(0),
@@ -106,7 +109,7 @@ public:
     case kTYPEMONEY:
     case kTYPENUMERIC:
     case kTYPEREAL:
-    case kTYPEFLOAT8:
+    case kTYPEFLOAT:
       set_float_range(min, max);
       return;
     default:
@@ -122,6 +125,23 @@ public:
   string get_str_from_data_type();
 
   vector<int> get_v_array_size() {return this->v_array_size;}
+
+  // Mutation methods for the different data types.
+  string mutate_type_int();
+  string mutate_type_bigint();
+  string mutate_type_bigserial() {return mutate_type_bigint(); }
+  string mutate_type_serial() {return mutate_type_int(); }
+  string mutate_type_bit();
+  string mutate_type_varbit() {return mutate_type_varbit(); }
+  string mutate_type_bool();
+  string mutate_type_bytea();
+  string mutate_type_char();
+  string mutate_type_varchar();
+  string mutate_type_cidr();
+  string mutate_type_inet() {return mutate_type_cidr(); }
+  string mutate_type_date();
+  string mutate_type_float();
+  string mutate_type_integer();
 };
 
 #endif // SRC_DATA_TYPES_H

@@ -8,7 +8,8 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"BOOLEAN", "BOOL"},
     {"CHARACTER", "CHAR"},
     {"CHARACTER VARYING", "VARCHAR"},
-    {"DOUBLE PRECISION", "FLOAT8"},
+    {"DOUBLE PRECISION", "FLOAT"},
+    {"FLOAT8", "FLOAT"},
     {"INT", "INTEGER"},
     {"INT4", "INTEGER"},
     {"DECIMAL", "NUMERIC"},
@@ -210,3 +211,386 @@ string DataType::get_str_from_data_type() {
   return get_string_by_data_type(this->data_type);
 
 }
+
+string DataType::get_rand_alphabet_num() {
+  // no capital letters;
+  // Pure helper function for random mutations.
+  // Generate random 0~9 number or alphabet character.
+  int rand_int = get_rand_int(36);
+  if (rand_int >= 26) {
+    return to_string(rand_int - 26);
+  } else {
+    char cch = 'a' + rand_int;
+    string ret_str(1, cch);
+    return ret_str;
+  }
+}
+
+string DataType::get_rand_hex_num() {
+  // no capital letters;
+  // Pure helper function for random mutations.
+  // Generate 16 bit characters from 0 ~ f.
+  int rand_int = get_rand_int(16);
+  if (rand_int < 10) {
+    return to_string(rand_int);
+  } else {
+    char cch = 'a' + (rand_int - 10);
+    string ret_str(1, cch);
+    return ret_str;
+  }
+}
+
+// The implementations for the mutation methods.
+
+string DataType::mutate_type_int() {
+  // and also for serial.
+  // This is actually 64 bits integers.
+
+
+  if (this->is_range) {
+    auto rand_int = get_rand_long_long(9223372036854775807); // Max long long.
+    auto range = int_max - int_min;
+    rand_int = (rand_int % range) + int_min;
+    string rand_int_str = to_string(rand_int);
+    return rand_int_str;
+  }
+
+  if (get_rand_int(3) == 0) { // 1/3 chance, choose special value.
+    auto rand_choice = get_rand_int(3);
+    switch (rand_choice) {
+    case 0:
+      return "-2147483648";
+    case 1:
+      return "2147483647";
+    case 2:
+      return "0";
+    }
+    return "0";
+  } else {
+    // Randomly mutate the number.
+    auto rand_int = get_rand_long_long(9223372036854775807);
+    rand_int = rand_int % 2147483649;
+    string rand_int_str = to_string(rand_int);
+    if (get_rand_int(2)) {
+      return rand_int_str;
+    } else {
+      return "-" + rand_int_str;
+    }
+  }
+}
+
+string DataType::mutate_type_bigint() {
+  // and also for serial.
+  // This is actually 64 bits integers.
+
+  if (this->is_range) {
+    auto rand_int = get_rand_long_long(9223372036854775807); // Max long long.
+    auto range = int_max - int_min;
+    rand_int = (rand_int % range) + int_min;
+    string rand_int_str = to_string(rand_int);
+    return rand_int_str;
+  }
+
+  if (get_rand_int(3) == 0) { // 1/3 chance, choose special value.
+    auto rand_choice = get_rand_int(3);
+    switch (rand_choice) {
+    case 0:
+      return "-9223372036854775808";
+    case 1:
+      return "9223372036854775807";
+    case 2:
+      return "0";
+    }
+    return "0";
+  } else {
+    // Randomly mutate the number.
+    auto rand_int = get_rand_long_long(9223372036854775807);
+    string rand_int_str = to_string(rand_int);
+    if (get_rand_int(2)) {
+      return rand_int_str;
+    } else {
+      return "-" + rand_int_str;
+    }
+  }
+}
+
+string DataType::mutate_type_bit() {
+
+  string ret_str = "B'";
+
+  int length = 1;
+  if (varying_size == VaryingArraySizeAny || varying_size == VaryingArraySizeNone) {
+    length = get_rand_int(17) + 1; // do not use 0;
+  } else {
+    length = varying_size;
+  }
+
+  for (int i = 0; i < length; i++) {
+    if (get_rand_int(2)) {
+      ret_str += "1";
+    } else {
+      ret_str += "0";
+    }
+  }
+  ret_str += "'";
+
+  return ret_str;
+}
+
+string DataType::mutate_type_bool() {
+  if (get_rand_int(2)) {
+    return "true";
+  } else {
+    return "false";
+  }
+}
+
+string DataType::mutate_type_bytea() {
+
+  int len = 1;
+  if (varying_size == VaryingArraySizeAny || varying_size == VaryingArraySizeNone) {
+    len = get_rand_int(17) + 1; // do not use 0;
+  } else {
+    len = varying_size;
+  }
+
+  string ret_str = "b'";
+
+  int format_choice = get_rand_int(3);
+  switch (format_choice) {
+  case 0:
+    // b'abc'
+    for (int i = 0; i < len; i++) {
+      ret_str += get_rand_alphabet_num();
+    }
+    break;
+  case 1:
+    // b'\141\142\143'
+    for (int i = 0; i < len; i++) {
+      //        int rand_int = get_rand_int(256);
+      int rand_int = get_rand_int(100);
+      if (rand_int >= 100) {
+        ret_str += "\\" + to_string(rand_int);
+      } else if (rand_int >= 10) {
+        ret_str += "\\x" + to_string(rand_int);
+      } else { // rand_int < 10
+        ret_str += "\\x0" + to_string(rand_int);
+      }
+    }
+    break;
+  case 2:
+    // b'00001111'
+    for (int i = 0; i < len; i++) {
+      if (get_rand_int(2)) {
+        ret_str += "1";
+      } else {
+        ret_str += "0";
+      }
+    }
+    break;
+  }
+
+  ret_str += "'";
+  return ret_str;
+}
+
+string DataType::mutate_type_char() {
+
+  int len = 1;
+  if (varying_size == VaryingArraySizeAny || varying_size == VaryingArraySizeNone) {
+    len = get_rand_int(10) + 1; // do not use 0;
+  } else {
+    len = varying_size;
+  }
+  string ret_str = "'";
+  ret_str.reserve(len+1);
+
+    for (int i = 0; i < len; i++) {
+      ret_str += get_rand_alphabet_num();
+    }
+
+  ret_str += "'";
+  return ret_str;
+
+}
+
+string DataType::mutate_type_varchar() {
+
+  int len = 1;
+  if (varying_size == VaryingArraySizeAny || varying_size == VaryingArraySizeNone) {
+    len = get_rand_int(10) + 1; // do not use 0;
+  } else {
+    len = get_rand_int(varying_size) + 1; // Range from 1 to the varying size.
+  }
+  string ret_str = "'";
+  ret_str.reserve(len+1);
+
+  for (int i = 0; i < len; i++) {
+    ret_str += get_rand_alphabet_num();
+  }
+
+  ret_str += "'";
+  return ret_str;
+
+}
+
+string DataType::mutate_type_cidr() {
+
+    string ret_str = "";
+    int format = get_rand_int(2);
+
+    if (format == 0) {
+      // ipv 4.
+      // Typical ipv4 address.
+      switch (get_rand_int(6)) {
+      case 0:
+        ret_str = "192.168.0.0/24";
+        break;
+      case 1:
+        ret_str = "192.168.0.1";
+        break;
+      case 2:
+        ret_str = "172.0.0.0/8"; // loopback
+        break;
+      case 3:
+        ret_str = "169.254.0.0/16"; // link local
+        break;
+      case 4:
+        ret_str = "127.0.0.1"; // localhost
+        break;
+      case 5:
+        ret_str = "127.0.0.1/26257"; // localhost to CockroachDB/PostgreSQL port.
+        break;
+      }
+    } else {
+      // Random ipv 6 address.
+      // Example: 2001:db88:3333:4444:5555:6666:7777:8888
+      for (int i = 0; i < 32; i++) {
+        if ((i % 4) == 0 && i != 0) {
+          ret_str += ":";
+        }
+        ret_str += get_rand_hex_num();
+      }
+    }
+    ret_str = "'" + ret_str + "'";
+
+    return ret_str;
+
+}
+
+string DataType::mutate_type_date() {
+
+     int month = get_rand_int(12) + 1;
+     string month_str = "";
+     if (month < 10) {
+       month_str = "0" + to_string(month);
+     } else {
+       month_str = to_string(month);
+     }
+
+     int day = get_rand_int(32) + 1;
+     string day_str = "";
+     if (day < 10) {
+       day_str = "0" + to_string(day);
+     } else {
+       day_str = to_string(day);
+     }
+
+     // For year, do not use the 1980 begin line.
+     // range from 4713 BC to 294276 AD.
+     bool is_BC = get_rand_int(2);
+
+     int year = 0;
+     if (is_BC) {
+       year = get_rand_int(4714);
+     } else {
+       year = get_rand_int(5874898);
+     }
+     string year_str = "";
+
+     // Add padding 0.
+     if (year < 10) {
+       year_str = "000" + to_string(year);
+     } else if (year < 100) {
+       year_str = "00" + to_string(year);
+     } else if (year < 1000) {
+       year_str = "0" + to_string(year);
+     } else {
+       year_str = to_string(year);
+     }
+
+     if (get_rand_int(2)) {
+       year_str = year_str.substr(2, 2);
+     }
+
+     // Always use the default format of the date.
+     // YYYY-DD-MM (default)
+     string ret_str = "'" + year_str + "-" + month_str + "-" + day_str;
+     if (is_BC) {
+        ret_str += " BC";
+     }
+     ret_str += "'";
+
+     return ret_str;
+}
+
+string mutate_type_float() {
+
+     int format = get_rand_int(3);
+     switch (format) {
+     case 0: {
+        int value = get_rand_int(3);
+        if (value == 0) {
+        return "'NaN'";
+        } else if (value == 1) {
+        return "'Infinity'";
+        } else {
+        return "'-Infinity'";
+        }
+        break;
+     }
+     case 1: {
+        return to_string(get_rand_double(1e-37, 1e37));
+     }
+     }
+
+     assert(false);
+     return "";
+
+}
+
+string DataType::mutate_type_integer () {
+  // and also for serial.
+  // This is actually 32 bits integers.
+
+  if (this->is_range) {
+    auto rand_int = get_rand_long_long(9223372036854775807 + 9223372036854775808); // Max long long.
+    auto range = int_max - int_min;
+    rand_int = (rand_int % range) + int_min;
+    string rand_int_str = to_string(rand_int);
+    return rand_int_str;
+  }
+
+  if (get_rand_int(3) == 0) { // 1/3 chance, choose special value.
+    auto rand_choice = get_rand_int(3);
+    switch (rand_choice) {
+    case 0:
+      return "-9223372036854775808";
+    case 1:
+      return "9223372036854775807";
+    case 2:
+      return "0";
+    }
+    return "0";
+  } else {
+    // Randomly mutate the number.
+    auto rand_int = get_rand_long_long(9223372036854775807 + 9223372036854775808);
+    string rand_int_str = to_string(rand_int - 9223372036854775808);
+    return rand_int_str;
+  }
+
+  assert(false);
+  return "";
+
+}
+

@@ -1523,7 +1523,7 @@ using std::string;
   V(TYPEVARCHAR)                                                               \
   V(TYPECIDR)                                                                  \
   V(TYPEDATE)                                                                  \
-  V(TYPEFLOAT8)                                                                \
+  V(TYPEFLOAT)                                                                 \
   V(TYPEINET)                                                                  \
   V(TYPEINTEGER)                                                               \
   V(TYPEINTERVAL)                                                              \
