@@ -1542,9 +1542,9 @@ using std::string;
   V(TYPETIMETZ)                                                                \
   V(TYPETIMESTAMP)                                                             \
   V(TYPETIMESTAMPTZ)                                                           \
+  V(TYPEUUID)                                                                  \
   V(TYPETSQUERY)                                                               \
   V(TYPETSVECTOR)                                                              \
-  V(TYPEUUID)                                                                  \
   V(TYPETXIDSNAPSHOT)                                                          \
   V(TYPEXML)                                                                   \
   V(TYPEENUM)                                                                  \

@@ -142,6 +142,22 @@ public:
   string mutate_type_date();
   string mutate_type_float();
   string mutate_type_integer();
+  string mutate_type_interval();
+  string mutate_type_json();
+  string mutate_type_jsonb() {return mutate_type_json(); }
+  string mutate_type_macaddr();
+  string mutate_type_macaddr8();
+  string mutate_type_money();
+  string mutate_type_numeric() {return mutate_type_float(); }
+  string mutate_type_real();
+  string mutate_type_smallint();
+  string mutate_type_smallserial() {return mutate_type_serial(); }
+  string mutate_type_text() {return mutate_type_varchar(); }
+  string mutate_type_time();
+  string mutate_type_timetz() {return mutate_type_time();}
+  string mutate_type_timestamp();
+  string mutate_type_timestamptz() {return mutate_type_timestamp();}
+  string mutate_type_uuid();
 };
 
 #endif // SRC_DATA_TYPES_H
