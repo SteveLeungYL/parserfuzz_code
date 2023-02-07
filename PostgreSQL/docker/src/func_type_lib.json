@@ -2878,7 +2878,7 @@
   {
     "enable": true,
     "func_name": "abbrev",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2895,7 +2895,7 @@
   {
     "enable": true,
     "func_name": "broadcast",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2908,7 +2908,7 @@
   {
     "enable": true,
     "func_name": "family",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2921,7 +2921,7 @@
   {
     "enable": true,
     "func_name": "host",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2934,7 +2934,7 @@
   {
     "enable": true,
     "func_name": "hostmask",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2947,7 +2947,7 @@
   {
     "enable": true,
     "func_name": "inet_merge",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2961,7 +2961,7 @@
   {
     "enable": true,
     "func_name": "inet_same_family",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2975,7 +2975,7 @@
   {
     "enable": true,
     "func_name": "masklen",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -2988,7 +2988,7 @@
   {
     "enable": true,
     "func_name": "netmask",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -3001,7 +3001,7 @@
   {
     "enable": true,
     "func_name": "network",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -3014,7 +3014,7 @@
   {
     "enable": true,
     "func_name": "set_masklen",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -3033,7 +3033,7 @@
   {
     "enable": true,
     "func_name": "text",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -3046,7 +3046,7 @@
   {
     "enable": true,
     "func_name": "trunc",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
@@ -3063,12 +3063,24 @@
   {
     "enable": true,
     "func_name": "macaddr8_set7bit",
-    "func_type": "TYPEINET",
+    "func_type": "FUNCINET",
     "is_type_matched": true,
     "params": [
       {
         "arg_type_0": "TYPEMACADDR8",
         "ret_type": "TYPEMACADDR8"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "gen_random_uuid",
+    "func_type": "FUNCUUID",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEUUID"
       }
     ]
   }
