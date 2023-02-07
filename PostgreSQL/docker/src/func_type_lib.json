@@ -2356,5 +2356,720 @@
         "ret_type": "TYPETIMESTAMP"
       }
     ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "age",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETIMESTAMP",
+        "arg_type_1": "TYPETIMESTAMP",
+        "ret_type": "TYPEINTERVAL"
+      },
+      {
+        "arg_type_0": "TYPETIMESTAMP",
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "clock_timestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "current_time",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETIMETZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "current_timestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "date_bin",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "arg_type_1": "TYPETIMESTAMP",
+        "arg_type_2": "TYPETIMESTAMP",
+        "ret_type": "TYPETIMESTAMP"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "date_part",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETIMESTAMP",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINTERVAL",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "date_trunc",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETIMESTAMP",
+        "ret_type": "TYPETIMESTAMP"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETIMESTAMPTZ",
+        "ret_type": "TYPETIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINTERVAL",
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "extract",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          "century",
+          "day",
+          "decade",
+          "dow",
+          "doy",
+          "epoch",
+          "hour",
+          "isodow",
+          "isoyear",
+          "julian",
+          "microseconds",
+          "millennium",
+          "milliseconds",
+          "minute",
+          "month",
+          "quarter",
+          "second",
+          "timezone",
+          "timezone_hour",
+          "timezone_minute",
+          "week",
+          "year"
+        ],
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " FROM TIMESTAMP "
+        ],
+        "arg_type_2": "TYPTETIMESTAMP",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          "century",
+          "day",
+          "decade",
+          "dow",
+          "doy",
+          "epoch",
+          "hour",
+          "isodow",
+          "isoyear",
+          "julian",
+          "microseconds",
+          "millennium",
+          "milliseconds",
+          "minute",
+          "month",
+          "quarter",
+          "second",
+          "timezone",
+          "timezone_hour",
+          "timezone_minute",
+          "week",
+          "year"
+        ],
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " FROM TIMESTAMP "
+        ],
+        "arg_type_2": "TYPEINTERVAL",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "isfinite",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEDATE",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "TYPETIMESTAMP",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "justify_days",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "justify_hours",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "justify_interval",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "localtime",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETIME"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "localtimestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETIMESTAMP"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "make_date",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 4000
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 1,
+          "max": 12
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 1,
+          "max": 31
+        },
+        "ret_type": "TYPEDATE"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "make_interval",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 4000
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 1,
+          "max": 12
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 1,
+          "max": 31
+        },
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "make_time",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 4000
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 59
+        },
+        "arg_type_2": "TYPEFLOAT",
+        "arg_type_2_range": {
+          "min": 0.01,
+          "max": 59.99
+        },
+        "ret_type": "TYPETIME"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "make_timestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 4000
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 1,
+          "max": 12
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 1,
+          "max": 31
+        },
+        "arg_type_3": "TYPEINT",
+        "arg_type_3_range": {
+          "min": 0,
+          "max": 23
+        },
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 59
+        },
+        "arg_type_5": "TYPEFLOAT",
+        "arg_type_5_range": {
+          "min": 0.01,
+          "max": 59.99
+        },
+        "ret_type": "TYPETIMESTAMP"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "make_timestamptz",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 4000
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 1,
+          "max": 12
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 1,
+          "max": 31
+        },
+        "arg_type_3": "TYPEINT",
+        "arg_type_3_range": {
+          "min": 0,
+          "max": 23
+        },
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 59
+        },
+        "arg_type_5": "TYPEFLOAT",
+        "arg_type_5_range": {
+          "min": 0.01,
+          "max": 59.99
+        },
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "now",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "statement_timestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "timeofday",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "transaction_timestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "to_timestamp",
+    "func_type": "FUNCDATETIME",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPETIMESTAMP"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "abbrev",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPECIDR",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "broadcast",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPEINET"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "family",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "host",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "hostmask",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPEINET"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "inet_merge",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "arg_type_1": "TYPEINET",
+        "ret_type": "TYPECIDR"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "inet_same_family",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "arg_type_1": "TYPEINET",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "masklen",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "netmask",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPEINET"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "network",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPECIDR"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "set_masklen",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPEINET"
+      },
+      {
+        "arg_type_0": "TYPECIDR",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPECIDR"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "text",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINET",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "trunc",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEMACADDR",
+        "ret_type": "TYPEMACADDR"
+      },
+      {
+        "arg_type_0": "TYPEMACADDR8",
+        "ret_type": "TYPEMACADDR8"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "macaddr8_set7bit",
+    "func_type": "TYPEINET",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEMACADDR8",
+        "ret_type": "TYPEMACADDR8"
+      }
+    ]
   }
 ]
