@@ -48,6 +48,14 @@ enum CONTEXTFLAG {
   kFlagUnknown = 0x0
 };
 
+enum FUNCTIONTYPE {
+#define DECLARE_TYPE(v) v,
+  ALLFUNCTIONTYPES(DECLARE_TYPE)
+#undef DECLARE_TYPE
+};
+
+FUNCTIONTYPE get_func_type_by_string(const string& s);
+
 #define GEN_NAME() name_ = gen_id_name();
 
 static unsigned long g_id_counter;

@@ -1513,6 +1513,8 @@ using std::string;
 
 #define ALLDATATYPE(V)                                                         \
   V(TYPEUNKNOWN)                                                               \
+  V(TYPEANY)                                                                   \
+  V(TYPEVOID)                                                                  \
   V(TYPEBIGINT)                                                                \
   V(TYPEBIGSERIAL)                                                             \
   V(TYPEBIT)                                                                   \
@@ -1525,7 +1527,7 @@ using std::string;
   V(TYPEDATE)                                                                  \
   V(TYPEFLOAT)                                                                 \
   V(TYPEINET)                                                                  \
-  V(TYPEINTEGER)                                                               \
+  V(TYPEINT)                                                                   \
   V(TYPEINTERVAL)                                                              \
   V(TYPEJSON)                                                                  \
   V(TYPEJSONB)                                                                 \
@@ -1558,6 +1560,34 @@ using std::string;
   V(TYPEPGSNAPSHOT)                                                            \
   V(TYPEPOINT)                                                                 \
   V(TYPEPOLYGON)
+
+#define ALLFUNCTIONTYPES(V)                                                    \
+  V(FUNCUNKNOWN)                                                               \
+  V(FUNCAGGR)                                                                  \
+  V(FUNCWINDOW)                                                                \
+  V(FUNCCOMP)                                                                  \
+  V(FUNCMATH)                                                                  \
+  V(FUNCSTR)                                                                   \
+  V(FUNCBINSTR)                                                                \
+  V(FUNCREG)                                                                   \
+  V(FUNCDATATYPE)                                                              \
+  V(FUNCDATETIME)                                                              \
+  V(FUNCENUM)                                                                  \
+  V(FUNCGEO)                                                                   \
+  V(FUNCINET)                                                                  \
+  V(FUNCTEXTSEARCH)                                                            \
+  V(FUNCUUID)                                                                  \
+  V(FUNCXML)                                                                   \
+  V(FUNCJSON)                                                                  \
+  V(FUNCSEQ)                                                                   \
+  V(FUNCARRAY)                                                                 \
+  V(FUNCRANGE)                                                                 \
+  V(FUNCSETRETURN)                                                             \
+  V(FUNCSYSINFO)                                                               \
+  V(FUNCSYSADMIN)                                                              \
+  V(FUNCTRIGGER)                                                               \
+  V(FUNCEVENTTRIGGER)                                                          \
+  V(FUNCSTAT)
 
 #define OP1(a) new IROperator(a)
 

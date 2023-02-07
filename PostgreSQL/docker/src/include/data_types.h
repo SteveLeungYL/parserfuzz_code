@@ -55,7 +55,7 @@ public:
 
   // Copy constructor.
   DataType(const DataType &copy_in)
-      : data_type(copy_in.get_data_type()), is_range(copy_in.get_is_range()),
+      : data_type(copy_in.get_data_type_enum()), is_range(copy_in.get_is_range()),
         int_min(copy_in.get_int_min()),
         int_max(copy_in.get_int_max()), float_min(copy_in.get_float_min()),
         float_max(copy_in.get_float_max()),
@@ -64,7 +64,7 @@ public:
         v_array_size(copy_in.get_v_array_size()),
         v_tuple_types(copy_in.get_v_tuple_type()) {}
 
-  DATATYPE get_data_type() const { return this->data_type; }
+  DATATYPE get_data_type_enum() const { return this->data_type; }
   void set_data_type(DATATYPE in) { this->data_type = in; }
 
   void set_is_range(bool in) { this->is_range = in; }
@@ -95,9 +95,9 @@ public:
   vector<int> get_v_array_size() const { return this->v_array_size; }
 
   template <typename T>
-  void set_range(T min, T max, DATATYPE data_type = kTYPEINTEGER) {
+  void set_range(T min, T max, DATATYPE data_type = kTYPEINT) {
     switch (data_type) {
-    case kTYPEINTEGER:
+    case kTYPEINT:
     case kTYPEBIGINT:
     case kTYPEBIGSERIAL:
     case kTYPEPGLSN:

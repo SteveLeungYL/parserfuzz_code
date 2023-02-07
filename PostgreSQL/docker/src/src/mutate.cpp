@@ -2824,7 +2824,7 @@ bool Mutator::fix_dependency(IR* cur_stmt_root, const vector<vector<IR*>> cur_st
 
       /* Dont' fix for functions for now.  */
       // /* Fixing for functions.  */
-      // if (ir_to_fix->get_data_type() == kDataFunctionName) {
+      // if (ir_to_fix->get_data_type_enum() == kDataFunctionName) {
       //   if (ir_to_fix->get_data_flag() == kNoModi) {
       //     continue;
       //   }

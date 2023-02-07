@@ -10,8 +10,8 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"CHARACTER VARYING", "VARCHAR"},
     {"DOUBLE PRECISION", "FLOAT"},
     {"FLOAT8", "FLOAT"},
-    {"INT", "INTEGER"},
-    {"INT4", "INTEGER"},
+    {"INTEGER", "INT"},
+    {"INT4", "INT"},
     {"DECIMAL", "NUMERIC"},
     {"FLOAT4", "REAL"},
     {"INT2", "SMALLINT"},
@@ -42,7 +42,6 @@ DATATYPE DataType::get_data_type_from_simple_str(string in) {
           " string: \"" +
               in + "\" \n\n\n";
   assert(false);
-  return kTYPEUNKNOWN;
 }
 
 void DataType::init_data_type_with_str(string in) {
@@ -188,7 +187,7 @@ unsigned long long DataType::calc_hash() {
   if (this->get_v_array_size().size() != 0 &&
       this->get_v_array_size().front() > VaryingArraySizeNone) {
     // Ignore the varying size for each array elements.
-    res_str = get_string_by_data_type(this->get_data_type());
+    res_str = get_string_by_data_type(this->get_data_type_enum());
     for (int i = 0; i < get_v_array_size().size(); i++) {
       res_str += "_" + to_string(get_v_array_size()[i]);
     }
@@ -197,7 +196,7 @@ unsigned long long DataType::calc_hash() {
   }
 
   // Handle rest of the normal types. Also need to care about the varying size.
-  res_str = get_string_by_data_type(this->get_data_type());
+  res_str = get_string_by_data_type(this->get_data_type_enum());
   if (varying_size != VaryingArraySizeNone) {
     res_str += to_string(varying_size);
   }

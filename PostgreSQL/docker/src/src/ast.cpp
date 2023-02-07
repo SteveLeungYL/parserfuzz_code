@@ -867,3 +867,16 @@ bool IR::set_relation_expr_type(CONTEXTTYPE data_type, CONTEXTFLAG data_flag) {
 
   return qualified_name->set_qualified_name_type(data_type, data_flag);
 }
+
+FUNCTIONTYPE get_func_type_by_string(const string& s) {
+#define DECLARE_CASE(functiontypename)                                         \
+  if (s == #functiontypename)                                                  \
+    return functiontypename;
+  ALLFUNCTIONTYPES(DECLARE_CASE);
+#undef DECLARE_CASE
+  cerr << "\n\n\nError: Cannot find the matching function type by"
+          " string: " +
+              s + " \n\n\n";
+  //    abort();
+  return FUNCUNKNOWN;
+}
