@@ -559,9 +559,8 @@ string DataType::mutate_type_integer() {
   // This is actually 32 bits integers.
 
   if (this->is_range) {
-    auto rand_int = get_rand_long_long(9223372036854775807 +
-                                       9223372036854775808); // Max long long.
     auto range = int_max - int_min;
+    auto rand_int = get_rand_long_long(range); // Max long long.
     rand_int = (rand_int % range) + int_min;
     string rand_int_str = to_string(rand_int);
     return rand_int_str;
@@ -581,8 +580,11 @@ string DataType::mutate_type_integer() {
   } else {
     // Randomly mutate the number.
     auto rand_int =
-        get_rand_long_long(9223372036854775807 + 9223372036854775808);
-    string rand_int_str = to_string(rand_int - 9223372036854775808);
+        get_rand_long_long(9223372036854775807L);
+    if(get_rand_int(1)) {
+      rand_int = - rand_int - 1;
+    }
+    string rand_int_str = to_string(rand_int);
     return rand_int_str;
   }
 
