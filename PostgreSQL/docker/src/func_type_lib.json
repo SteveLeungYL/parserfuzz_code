@@ -807,6 +807,14 @@
       {
         "arg_type_0": "TYPETEXT",
         "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEINT"
       }
     ]
   },
@@ -883,6 +891,14 @@
       {
         "arg_type_0": "TYPECHAR",
         "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEINT"
       }
     ]
   },
@@ -937,6 +953,33 @@
           "max": 10
         },
         "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " PLACING "
+        ],
+        "arg_type_2": "TYPEBIT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_enum": [
+          " FROM "
+        ],
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_5": "TYPEENUM",
+        "arg_type_5_enum": [
+          " FOR "
+        ],
+        "arg_type_6": "TYPEINT",
+        "arg_type_6_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEBIT"
       }
     ]
   },
@@ -954,6 +997,24 @@
           " IN "
         ],
         "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " IN "
+        ],
+        "arg_type_2": "TYPEBYTEA",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " IN "
+        ],
+        "arg_type_2": "TYPEBIT",
         "ret_type": "TYPEINT"
       }
     ]
@@ -976,7 +1037,7 @@
           "min": 0,
           "max": 10
         },
-        "ret_type": "TYPEINT"
+        "ret_type": "TYPETEXT"
       },
       {
         "arg_type_0": "TYPETEXT",
@@ -1011,7 +1072,7 @@
           "min": 0,
           "max": 10
         },
-        "ret_type": "TYPEINT"
+        "ret_type": "TYPETEXT"
       },
       {
         "arg_type_0": "TYPETEXT",
@@ -1048,7 +1109,35 @@
           " FOR "
         ],
         "arg_type_4": "TYPETEXT",
+        "ret_type": "TYPEBYTEA"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FROM "
+        ],
+        "arg_type_2": "TYPEINT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_ENUM": [
+          " FOR "
+        ],
+        "arg_type_4": "TYPEINT",
         "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FROM "
+        ],
+        "arg_type_2": "TYPEINT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_ENUM": [
+          " FOR "
+        ],
+        "arg_type_4": "TYPEINT",
+        "ret_type": "TYPEBIT"
       }
     ]
   },
@@ -1090,6 +1179,38 @@
         ],
         "arg_type_3": "TYPETEXT",
         "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          " LEADING ",
+          " TRAILING ",
+          " BOTH "
+        ],
+
+        "arg_type_1": "TYPEBYTEA",
+        "arg_type_2": "TYPEENUM",
+        "arg_type_2_enum": [
+          " FROM "
+        ],
+        "arg_type_3": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
+      },
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          " LEADING ",
+          " TRAILING ",
+          " BOTH "
+        ],
+
+        "arg_type_1": "TYPEBYTEA",
+        "arg_type_2": "TYPEENUM",
+        "arg_type_2_enum": [
+          ", "
+        ],
+        "arg_type_3": "TYPEBYTEA",
+        "ret_type": "TYPETEXT"
       }
     ]
   },
@@ -1130,6 +1251,11 @@
         "arg_type_0": "TYPETEXT",
         "arg_type_1": "TYPETEXT",
         "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
       }
     ]
   },
@@ -1256,6 +1382,10 @@
       {
         "arg_type_0": "TYPETEXT",
         "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEINT"
       }
     ]
   },
@@ -1289,6 +1419,11 @@
         "arg_type_0": "TYPETEXT",
         "arg_type_1": "TYPETEXT",
         "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
       }
     ]
   },
@@ -1661,6 +1796,11 @@
         "arg_type_0": "TYPETEXT",
         "arg_type_1": "TYPETEXT",
         "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
       }
     ]
   },
@@ -1768,6 +1908,20 @@
           "max": 10
         },
         "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEBYTEA"
       }
     ]
   },
@@ -1828,5 +1982,303 @@
         "ret_type": "TYPETEXT"
       }
     ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bit_count",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "get_bit",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "get_byte",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "length",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "'UTF8'"
+        ],
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "md5",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "set_bit",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEBIGINT",
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEBYTEA"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEBIT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "set_byte",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPEBIGINT",
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sha224",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sha256",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sha384",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sha512",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "convert",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "UTF8",
+          "LATIN1"
+        ],
+        "arg_type_2": "TYPEENUM",
+        "arg_type_2_enum": [
+          "UTF8",
+          "LATIN1"
+        ],
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "convert_from",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "UTF8",
+          "LATIN1"
+        ],
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "convert_to",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "UTF8",
+          "LATIN1"
+        ],
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "encode",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "'base64'",
+          "'escape'",
+          "'hex'"
+        ],
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "decode",
+    "func_type": "FUNCBINSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "'base64'",
+          "'escape'",
+          "'hex'"
+        ],
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
   }
+
 ]
