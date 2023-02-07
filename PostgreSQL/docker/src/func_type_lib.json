@@ -1,0 +1,1832 @@
+[
+  {
+    "enable": true,
+    "func_name": "num_nonnulls",
+    "func_type": "FUNCCOMP",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "arg_type_2": "TYPEANY",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "num_nulls",
+    "func_type": "FUNCCOMP",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "arg_type_2": "TYPEANY",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "abs",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cbrt",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "ceil",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "ceiling",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "degrees",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "div",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "exp",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "factorial",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "floor",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "gcd",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lcm",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "ln",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "log",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "log10",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "log",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "min_scale",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "mod",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pi",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "power",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "radians",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "round",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "scale",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sign",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sqrt",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "trim_scale",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "trunc",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "width_bucket",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "arg_type_2": "TYPENUMERIC",
+        "arg_type_3": "TYPEINT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPENUMERIC",
+        "arg_type_2": "TYPENUMERIC",
+        "arg_type_3": "TYPEINT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "ARRAYTYPEANY",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "random",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "setseed",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEVOID"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "acos",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "acosd",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "asin",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "asind",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "atan",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "atand",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "atand2",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "atand2d",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cos",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cosd",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cot",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cotd",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sin",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sind",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "tan",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "tand",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sinh",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cosh",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "tanh",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "asinh",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "acosh",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "atanh",
+    "func_type": "FUNCMATH",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bit_length",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "char_length",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "character_length",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lower",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "normalize",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "NFC",
+          "NFD",
+          "NFKC",
+          "NFKD"
+        ],
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "octet_length",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPECHAR",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "overlay",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "PLACING"
+        ],
+        "arg_type_2": "TYPETEXT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_enum": [
+          "FROM"
+        ],
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " PLACING "
+        ],
+        "arg_type_2": "TYPETEXT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_enum": [
+          " FROM "
+        ],
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_5": "TYPEENUM",
+        "arg_type_5_enum": [
+          " FOR "
+        ],
+        "arg_type_6": "TYPEINT",
+        "arg_type_6_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "position",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          " IN "
+        ],
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "substring",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FROM "
+        ],
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FOR "
+        ],
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FROM "
+        ],
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_ENUM": [
+          " FOR "
+        ],
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FROM "
+        ],
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " SIMILAR "
+        ],
+        "arg_type_2": "TYPETEXT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_ENUM": [
+          " ESCAPE "
+        ],
+        "arg_type_4": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_ENUM": [
+          " FROM "
+        ],
+        "arg_type_2": "TYPETEXT",
+        "arg_type_3": "TYPEENUM",
+        "arg_type_3_ENUM": [
+          " FOR "
+        ],
+        "arg_type_4": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "trim",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          " LEADING ",
+          " TRAILING ",
+          " BOTH "
+        ],
+
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEENUM",
+        "arg_type_2_enum": [
+          " FROM "
+        ],
+        "arg_type_3": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          " LEADING ",
+          " TRAILING ",
+          " BOTH "
+        ],
+
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEENUM",
+        "arg_type_2_enum": [
+          ", "
+        ],
+        "arg_type_3": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "upper",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "ascii",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "btrim",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "chr",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "concat",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "arg_type_2": "TYPEANY",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "concatws",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEANY",
+        "arg_type_2": "TYPEANY",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEANY",
+        "arg_type_2": "TYPEANY",
+        "arg_type_3": "TYPEANY",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "format",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPETEXT",
+        "arg_type_3": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "initcap",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "left",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "length",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lpad",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "ltrim",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "md5",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "parse_ident",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_client_encoding",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "quote_ident",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "quote_literal",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "quote_nullable",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_count",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "regexp_instr",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_3": "TYPEINT",
+        "arg_type_3_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_5": "TYPEENUM",
+        "arg_type_5_ENUM": [
+          " 'i' "
+        ],
+        "arg_type_6": "TYPEINT",
+        "arg_type_6_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_like",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEENUM",
+        "arg_type_2_ENUM": [
+          " 'i' "
+        ],
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_match",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_matches",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_replace",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPETEXT",
+        "arg_type_3": "TYPEINT",
+        "arg_type_3_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_4": "TYPEINT",
+        "arg_type_4_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_split_to_array",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_split_to_table",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regexp_substr",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_3": "TYPEINT",
+        "arg_type_3_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_4": "TYPEENUM",
+        "arg_type_4_ENUM": [
+          " 'i' "
+        ],
+        "arg_type_5": "TYPEINT",
+        "arg_type_5_range": {
+          "min": 0,
+          "max": 3
+        },
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "repeat",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "replace",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "reverse",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "right",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "rpad",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "rtrim",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "split_part",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "starts_with",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "string_to_array",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "string_to_table",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "strpos",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "substr",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "to_ascii",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "to_hex",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "translate",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "arg_type_2": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "unistr",
+    "func_type": "FUNCSTR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  }
+]
