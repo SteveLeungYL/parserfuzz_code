@@ -2279,6 +2279,82 @@
         "ret_type": "TYPEBYTEA"
       }
     ]
-  }
+  },
 
+  {
+    "enable": true,
+    "func_name": "to_char",
+    "func_type": "FUNCDATATYPE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETIMESTAMP",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPETIMESTAMPTZ",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEINTEVAL",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "to_date",
+    "func_type": "FUNCDATATYPE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEDATE",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "YYYY-DD-Mon"
+        ],
+        "ret_type": "TYPEDATE"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "to_number",
+    "func_type": "FUNCDATATYPE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPENUMERIC"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "to_timestamp",
+    "func_type": "FUNCDATATYPE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEDATE",
+        "arg_type_1": "TYPEENUM",
+        "arg_type_1_enum": [
+          "YYYY-DD-Mon"
+        ],
+        "ret_type": "TYPETIMESTAMP"
+      }
+    ]
+  }
 ]
