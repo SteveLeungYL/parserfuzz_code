@@ -4978,5 +4978,389 @@
         "ret_type": "TYPEINT"
       }
     ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "current_database",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "current_query",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "current_schema",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "current_schemas",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBOOL",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "inet_client_addr",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINET"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "inet_client_port",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "inet_server_addr",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINET"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "inet_server_port",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_backend_pid",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_backend_pids",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "ARRAYTYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_current_load_time",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_current_logfile",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_my_temp_schema",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_is_other_temp_schema",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_jit_available",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_listening_channels",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "ARRAYTYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_notification_queue_usage",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_postmaster_start_time",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_safe_snapshot_blocking_pids",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "ARRAYTYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_trigger_depth",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "version",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_get_serial_sequence",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_typeof",
+    "func_type": "FUNCSYSINFO",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_is_in_recovery",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_is_wal_replay_paused",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_column_size",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_column_compression",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_database_size",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "pg_size_bytes",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "pg_size_pretty",
+    "func_type": "FUNCSYSADMIN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "pg_event_trigger_table_rewrite_reason",
+    "func_type": "FUNCEVENTTRIGGER",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEINT"
+      }
+    ]
   }
 ]
