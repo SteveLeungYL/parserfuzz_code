@@ -3406,5 +3406,467 @@
         "ret_type": "TYPETEXT"
       }
     ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "nextval",
+    "func_type": "FUNCSEQ",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "setval",
+    "func_type": "FUNCSEQ",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "currval",
+    "func_type": "FUNCSEQ",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lastval",
+    "func_type": "FUNCSEQ",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_append",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_cat",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "ARRAYTYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_dims",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_fill",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "ARRAYTYPEINT",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_length",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_lower",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_ndims",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_position",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_positions",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "ARRAYTYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_prepend",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "ARRAYTYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_remove",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "ARRAYTYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_replace",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEANY",
+        "arg_type_2": "TYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_to_string",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_upper",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cardinality",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "trim_array",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPETYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "trim_array",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEINT",
+        "ret_type": "TYPETYPEANY"
+      }
+    ]
+  },
+
+
+  {
+    "enable": true,
+    "func_name": "unnest",
+    "func_type": "FUNCARRAY",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "TYPEANY"
+      },
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "ARRAYTYPEANY",
+        "ret_type": "TYPEANY"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "RANGETYPEANY"
+      }
+    ]
+  },
+
+
+  {
+    "enable": true,
+    "func_name": "lower",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEANY"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "upper",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEANY"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "isempty",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lower_inc",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "upper_inc",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lower_inf",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "upper_inf",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "range_merge",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "arg_type_1": "RANGETYPEANY",
+        "ret_type": "RANGETYPEANY"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "RANGETYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "multirange",
+    "func_type": "FUNCRANGE",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "MULTIRANGETYPEANY"
+      }
+    ]
   }
 ]
