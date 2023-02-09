@@ -1514,6 +1514,7 @@ using std::string;
 #define ALLDATATYPE(V)                                                         \
   V(TYPEUNKNOWN)                                                               \
   V(TYPEANY)                                                                   \
+  V(TYPEIDENT)                                                                 \
   V(TYPEVOID)                                                                  \
   V(TYPEBIGINT)                                                                \
   V(TYPEBIGSERIAL)                                                             \
@@ -1564,6 +1565,8 @@ using std::string;
 #define ALLFUNCTIONTYPES(V)                                                    \
   V(FUNCUNKNOWN)                                                               \
   V(FUNCAGGR)                                                                  \
+  V(FUNCORDERAGGR)                                                             \
+  V(FUNCHYPOTHETICALAGGR)                                                      \
   V(FUNCWINDOW)                                                                \
   V(FUNCCOMP)                                                                  \
   V(FUNCMATH)                                                                  \
