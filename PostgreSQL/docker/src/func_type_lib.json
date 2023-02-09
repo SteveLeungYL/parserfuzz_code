@@ -4820,5 +4820,163 @@
         "ret_type": "TYPEANY"
       }
     ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "generate_series",
+    "func_type": "FUNCSETRETURN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 1
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 1
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 1
+        },
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 1
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 1
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 1
+        },
+        "arg_type_1": "TYPEBIGINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 1
+        },
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "arg_type_0_range": {
+          "min": 0,
+          "max": 1
+        },
+        "arg_type_1": "TYPEBIGINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 1
+        },
+        "arg_type_2": "TYPEBIGINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 1
+        },
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "arg_type_1": "TYPENUMERIC",
+        "arg_type_1_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "arg_type_1": "TYPENUMERIC",
+        "arg_type_1_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "arg_type_2": "TYPENUMERIC",
+        "arg_type_2_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "ret_type": "TYPENUMERIC"
+      },
+
+      {
+        "arg_type_0": "TYPETIMESTAMP",
+        "arg_type_1": "TYPETIMESTAMP",
+        "ret_type": "TYPETIMESTAMP"
+      },
+      {
+        "arg_type_0": "TYPETIMESTAMP",
+        "arg_type_1": "TYPETIMESTAMP",
+        "arg_type_2": "TYPETIMESTAMP",
+        "ret_type": "TYPETIMESTAMP"
+      },
+
+      {
+        "arg_type_0": "TYPETIMESTAMPTZ",
+        "arg_type_1": "TYPETIMESTAMPTZ",
+        "ret_type": "TYPETIMESTAMPTZ"
+      },
+      {
+        "arg_type_0": "TYPETIMESTAMPTZ",
+        "arg_type_1": "TYPETIMESTAMPTZ",
+        "arg_type_2": "TYPETIMESTAMPTZ",
+        "ret_type": "TYPETIMESTAMPTZ"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "generate_subscripts",
+    "func_type": "FUNCSETRETURN",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "arg_type_2": "TYPEINT",
+        "arg_type_2_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEINT"
+      }
+    ]
   }
 ]
