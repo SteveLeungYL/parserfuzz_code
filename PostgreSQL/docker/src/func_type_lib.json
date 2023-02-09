@@ -3868,5 +3868,957 @@
         "ret_type": "MULTIRANGETYPEANY"
       }
     ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      },
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "avg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPESMALLINT",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEREAL",
+        "ret_type": "TYPEREAL"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "ret_type": "TYPEINTERVAL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bit_and",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPESMALLINT",
+        "ret_type": "TYPESMALLINT"
+      },
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEBIT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bit_or",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPESMALLINT",
+        "ret_type": "TYPESMALLINT"
+      },
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEBIT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bit_xor",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPESMALLINT",
+        "ret_type": "TYPESMALLINT"
+      },
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEBIT",
+        "ret_type": "TYPEBIT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bool_and",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBOOL",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bool_or",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBOOL",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "bool_or",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBOOL",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "count",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEBOOL"
+      },
+      {
+        "arg_type_0": "TYPEENUM",
+        "arg_type_0_enum": [
+          "*"
+        ],
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "every",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEBOOL",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "JSONB_AGG",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_object_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYEPTEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_object_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYEPTEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "max",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "min",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "range_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "MULTIRANGETYPEANY"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "MULTIRANGETYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "range_intersect_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "RANGETYPEANY",
+        "ret_type": "RANGETYPEANY"
+      },
+      {
+        "arg_type_0": "MULTIRANGETYPEANY",
+        "ret_type": "MULTIRANGETYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "string_agg",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "ret_type": "TYPETEXT"
+      },
+      {
+        "arg_type_0": "TYPEBYTEA",
+        "ret_type": "TYPEBYTEA"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "sum",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPESMALLINT",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPEBIGINT",
+        "ret_type": "TYPEBIGINT"
+      },
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPENUMERIC"
+      },
+      {
+        "arg_type_0": "TYPEREAL",
+        "ret_type": "TYPEREAL"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "TYPEINTERVAL",
+        "ret_type": "TYPEINTERVAL"
+      },
+      {
+        "arg_type_0": "TYPEMONEY",
+        "ret_type": "TYPEMONEY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "corr",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "covar_pop",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "covar_samp",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_avgx",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_avgy",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_count",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_intercept",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_r2",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_slope",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_sxx",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_sxy",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_syy",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "regr_syy",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_1": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "stddev",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "stddev_pop",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "stddev_samp",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "variance",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "var_pop",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "var_samp",
+    "func_type": "FUNCAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPENUMERIC",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "mode",
+    "func_type": "FUNCORDERAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "order_by_arg_0": "TYPEANY",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "percentile_cont",
+    "func_type": "FUNCORDERAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "order_by_arg_0": "TYPEFLOAT",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "order_by_arg_0": "TYPEINTERVAL",
+        "ret_type": "TYPEFLOAT"
+      },
+      {
+        "arg_type_0": "ARRAYTYPEFLOAT",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "order_by_arg_0": "TYPEFLOAT",
+        "ret_type": "ARRAYTYPEFLOAT"
+      },
+      {
+        "arg_type_0": "ARRAYTYPEFLOAT",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "order_by_arg_0": "TYPEINTERVAL",
+        "ret_type": "ARRAYTYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "percentile_disc",
+    "func_type": "FUNCORDERAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEFLOAT",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "order_by_arg_0": "TYPEANY",
+        "ret_type": "TYPEANY"
+      },
+      {
+        "arg_type_0": "ARRAYTYPEFLOAT",
+        "arg_type_0_range": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "order_by_arg_0": "TYPEANY",
+        "ret_type": "ARRAYTYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "rank",
+    "func_type": "FUNCHYPOTHETICALAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "order_by_arg_0": "TYPEIDENT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "dense_rank",
+    "func_type": "FUNCHYPOTHETICALAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "order_by_arg_0": "TYPEIDENT",
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "percent_rank",
+    "func_type": "FUNCHYPOTHETICALAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "order_by_arg_0": "TYPEIDENT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cume_dist",
+    "func_type": "FUNCHYPOTHETICALAGGR",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "order_by_arg_0": "TYPEIDENT",
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "row_number",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "rank",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "dense_rank",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEBIGINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "percent_rank",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "cume_dist",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "ret_type": "TYPEFLOAT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "ntile",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEINT",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lag",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEIDENT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lead",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEIDENT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "lead",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEINT"
+      },
+      {
+        "arg_type_0": "TYPEIDENT",
+        "arg_type_1": "TYPEINT",
+        "arg_type_1_range": {
+          "min": 0,
+          "max": 10
+        },
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "first_value",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "last_value",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEANY"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "nth_value",
+    "func_type": "FUNCWINDOW",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEIDENT",
+        "ret_type": "TYPEANY"
+      }
+    ]
   }
 ]
