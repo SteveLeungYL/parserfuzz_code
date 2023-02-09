@@ -3083,6 +3083,328 @@
         "ret_type": "TYPEUUID"
       }
     ]
-  }
+  },
 
+  {
+    "enable": true,
+    "func_name": "to_json",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "to_jsonb",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "array_to_json",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": false,
+    "func_name": "row_to_json",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "ARRAYTYPEANY",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_build_array",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_build_array",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_build_object",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_build_object",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEANY",
+        "arg_type_1": "TYPEANY",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_object",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSON",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_object",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSON",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_object",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_object",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPETEXT",
+        "arg_type_1": "TYPETEXT",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_array_length",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSON",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_array_length",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "ret_type": "TYPEINT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_strip_nulls",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSON",
+        "ret_type": "TYPEJSON"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_strip_nulls",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_path_exists",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "arg_type_1": "TYPEJSONB",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_path_match",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "arg_type_1": "TYPEJSONB",
+        "ret_type": "TYPEBOOL"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_path_query",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "arg_type_1": "TYPEJSONB",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_path_query_array",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "arg_type_1": "TYPEJSONB",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_path_query_first",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "arg_type_1": "TYPEJSONB",
+        "ret_type": "TYPEJSONB"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_pretty",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "json_typeof",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSON",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  },
+
+  {
+    "enable": true,
+    "func_name": "jsonb_typeof",
+    "func_type": "FUNCJSON",
+    "is_type_matched": true,
+    "params": [
+      {
+        "arg_type_0": "TYPEJSONB",
+        "ret_type": "TYPETEXT"
+      }
+    ]
+  }
 ]
