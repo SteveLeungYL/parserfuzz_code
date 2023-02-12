@@ -29,7 +29,8 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"REGROLE", "OID"},
     {"REGNAMESPACE", "OID"},
     {"REGCONFIG", "OID"},
-    {"REGDICTIONARY", "OID"}
+    {"REGDICTIONARY", "OID"},
+    {"NAME", "TEXT"} // May not be accurate. May contains a few enum.
 //    {"TID", "OID"}, // Not accurate.
 //    {"XID", "OID"}, // Not accurate.
 //    {"CID", "OID"}, // Not accurate.
