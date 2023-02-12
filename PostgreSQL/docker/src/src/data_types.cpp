@@ -8,6 +8,8 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"BOOLEAN", "BOOL"},
     {"CHARACTER", "CHAR"},
     {"CHARACTER VARYING", "VARCHAR"},
+    {"\"CHAR\"", "TEXT"},
+    {"CSTRING", "TEXT" },
     {"DOUBLE PRECISION", "FLOAT"},
     {"FLOAT8", "FLOAT"},
     {"INTEGER", "INT"},
@@ -18,7 +20,20 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"SERIAL2", "SMALLSERIAL"},
     {"SERIAL4", "SERIAL"},
     {"TIME WITH TIME ZONE", "TIMETZ"},
-    {"TIMESTAMP WITH TIME ZONE", "TIMESTAMPTZ"}};
+    {"TIMESTAMP WITH TIME ZONE", "TIMESTAMPTZ"},
+    {"REGPROC", "OID"},
+    {"REGPROCEDURE", "OID"},
+    {"REGOPERATOR", "OID"},
+    {"REGCLASS", "OID"},
+    {"REGTYPE", "OID"},
+    {"REGROLE", "OID"},
+    {"REGNAMESPACE", "OID"},
+    {"REGCONFIG", "OID"},
+    {"REGDICTIONARY", "OID"}
+//    {"TID", "OID"}, // Not accurate.
+//    {"XID", "OID"}, // Not accurate.
+//    {"CID", "OID"}, // Not accurate.
+};
 
 string get_string_by_data_type(DATATYPE type) {
 #define DECLARE_CASE(classname)                                                \
@@ -57,14 +72,24 @@ void DataType::init_data_type_with_str(string in) {
   in = str_toupper(in);
 
   // Spot the ARRAY keyword. Remove it.
-  bool is_keyword_array = false;
   vector<string> v_in_split = string_splitter(in, "ARRAY");
   if (v_in_split.size() > 1) {
     in = "";
     for (int idx = 0; idx < v_in_split.size(); idx++) {
       in += v_in_split[idx];
     }
-    is_keyword_array = true;
+    is_array = true;
+  }
+
+  // Spot the VECTOR keyword. Remove it.
+  this->is_vector = false;
+  v_in_split = string_splitter(in, "VECTOR");
+  if (v_in_split.size() > 1) {
+    in = "";
+    for (int idx = 0; idx < v_in_split.size(); idx++) {
+      in += v_in_split[idx];
+    }
+    this->is_vector = true;
   }
 
   trim_string(in);
@@ -155,7 +180,7 @@ void DataType::init_data_type_with_str(string in) {
 
   // If the ARRAY keyword has been provided, but the varying size is not,
   // create one dimensional any size array.
-  if (v_array_size.size() == 0 && is_keyword_array) {
+  if (v_array_size.size() == 0 && is_array) {
     this->v_array_size.push_back(VaryingArraySizeAny);
   }
 
