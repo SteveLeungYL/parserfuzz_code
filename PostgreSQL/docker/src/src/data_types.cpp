@@ -56,9 +56,11 @@ DATATYPE DataType::get_data_type_from_simple_str(string in) {
   ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
+#ifdef DEBUG
   cerr << "\n\n\nError: Cannot find the matching data affinity by"
           " string: \"" +
               in + "\" \n\n\n";
+#endif
 //  assert(false);
   return kTYPEUNKNOWN;
 }

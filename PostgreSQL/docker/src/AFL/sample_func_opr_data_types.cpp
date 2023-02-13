@@ -330,8 +330,10 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
       DataType cur_arg_type(cur_arg_str);
       if (cur_arg_type.get_data_type_enum() == kTYPEUNKNOWN) {
         is_skip = true;
+#ifdef DEBUG
         cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
              << "\n because arguments parsing failed. \n\n\n";
+#endif
         parse_failed++;
         break;
       }
@@ -346,8 +348,10 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     DataType ret_type(ret_type_str);
     if (ret_type.get_data_type_enum() == kTYPEUNKNOWN) {
       is_skip = true;
+#ifdef DEBUG
       cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
            << "\n because arguments parsing failed. \n\n\n";
+#endif
       parse_failed++;
       continue;
     }
