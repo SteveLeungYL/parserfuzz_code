@@ -135,8 +135,13 @@ public:
 
   vector<int> get_v_array_size() {return this->v_array_size;}
 
+  // Mutation method entry.
+  string mutate_type_entry();
+  string mutate_type_entry_helper();
+  string mutate_array_type_helper(int depth = 0);
   // Mutation methods for the different data types.
   string mutate_type_int();
+  string mutate_type_oid() {return mutate_type_int(); }
   string mutate_type_bigint();
   string mutate_type_bigserial() {return mutate_type_bigint(); }
   string mutate_type_serial() {return mutate_type_int(); }
@@ -150,7 +155,6 @@ public:
   string mutate_type_inet() {return mutate_type_cidr(); }
   string mutate_type_date();
   string mutate_type_float();
-  string mutate_type_integer();
   string mutate_type_interval();
   string mutate_type_json();
   string mutate_type_jsonb() {return mutate_type_json(); }

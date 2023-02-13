@@ -9,7 +9,7 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"CHARACTER", "CHAR"},
     {"CHARACTER VARYING", "VARCHAR"},
     {"\"CHAR\"", "TEXT"},
-    {"CSTRING", "TEXT" },
+    {"CSTRING", "TEXT"},
     {"DOUBLE PRECISION", "FLOAT"},
     {"FLOAT8", "FLOAT"},
     {"INTEGER", "INT"},
@@ -31,9 +31,9 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"REGCONFIG", "OID"},
     {"REGDICTIONARY", "OID"},
     {"NAME", "TEXT"} // May not be accurate. May contains a few enum.
-//    {"TID", "OID"}, // Not accurate.
-//    {"XID", "OID"}, // Not accurate.
-//    {"CID", "OID"}, // Not accurate.
+                     //    {"TID", "OID"}, // Not accurate.
+                     //    {"XID", "OID"}, // Not accurate.
+                     //    {"CID", "OID"}, // Not accurate.
 };
 
 string get_string_by_data_type(DATATYPE type) {
@@ -580,44 +580,6 @@ string mutate_type_float() {
   return "";
 }
 
-string DataType::mutate_type_integer() {
-  // and also for serial.
-  // This is actually 32 bits integers.
-
-  if (this->is_range) {
-    auto range = int_max - int_min;
-    auto rand_int = get_rand_long_long(range); // Max long long.
-    rand_int = (rand_int % range) + int_min;
-    string rand_int_str = to_string(rand_int);
-    return rand_int_str;
-  }
-
-  if (get_rand_int(3) == 0) { // 1/3 chance, choose special value.
-    auto rand_choice = get_rand_int(3);
-    switch (rand_choice) {
-    case 0:
-      return "-9223372036854775808";
-    case 1:
-      return "9223372036854775807";
-    case 2:
-      return "0";
-    }
-    return "0";
-  } else {
-    // Randomly mutate the number.
-    auto rand_int =
-        get_rand_long_long(9223372036854775807L);
-    if(get_rand_int(1)) {
-      rand_int = - rand_int - 1;
-    }
-    string rand_int_str = to_string(rand_int);
-    return rand_int_str;
-  }
-
-  assert(false);
-  return "";
-}
-
 string DataType::mutate_type_interval() {
   // INTERVAL '1 year 2 months 3 days 4 hours 5 minutes 6 seconds'
 
@@ -832,4 +794,160 @@ string DataType::mutate_type_uuid() {
   }
 
   return ret_str;
+}
+
+string DataType::mutate_array_type_helper(int depth) {
+  // Recursive function to instantiate one ARRAY type constant.
+
+  string ret_str;
+  if (depth == 0) {
+    ret_str = "ARRAY";
+  }
+
+  ret_str += "[";
+  for (int i = 0; i < v_array_size[depth]; i++) {
+    if (depth != v_array_size.size() - 1) {
+      ret_str += this->mutate_array_type_helper(depth + 1);
+    } else {
+      ret_str += this->mutate_type_entry_helper();
+    }
+    if (i != v_array_size[depth] - 1) {
+      ret_str += ",";
+    }
+  }
+  ret_str += "]";
+
+  return ret_str;
+}
+
+string DataType::mutate_type_entry() {
+  // Main mutate type entry. Also handles the ARRAY, TUPLE and VECTOR types.
+
+  string ret_str;
+
+  // Tuple type.
+  if (this->v_tuple_types.size() != 0) {
+    ret_str += "(";
+    for (int i = 0; i < v_tuple_types.size(); i++) {
+      ret_str += v_tuple_types[i]->mutate_type_entry_helper();
+      if (i != v_tuple_types.size()-1) {
+        ret_str += ",";
+      }
+    }
+    ret_str += ")";
+    return ret_str;
+  }
+
+  // Vector type.
+  if (this->is_vector) {
+    DATATYPE type_enum = this->get_data_type_enum();
+#define comp(x) type_enum == x
+    if (comp(kTYPEINT) || comp(kTYPEBIGINT) || comp(kTYPEBIGSERIAL) ||
+        comp(kTYPEBOOL) || comp(kTYPEOID) || comp(kTYPEFLOAT) ||
+        comp(kTYPEREAL) || comp(kTYPESMALLINT) || comp(kTYPESMALLSERIAL)) {
+      int num_vec = get_rand_int(3) + 1; // Avoid 0
+      ret_str += "'";
+      for (int i = 0; i < num_vec; i++) {
+        ret_str += mutate_type_entry_helper() + " "; // Separated by space.
+      }
+      string type_str = get_str_from_data_type();
+      // the substr function removes the TYPE prefix.
+      ret_str += "'::" + type_str.substr(4, type_str.size() - 4) + "VECTOR";
+      return ret_str;
+#undef comp
+    } else {
+      cerr << "\n\n\nERROR: Type: " << get_str_from_data_type()
+           << " cannot be used"
+              " to construct vector type. Not support. \n\n\n";
+      assert(false);
+    }
+  }
+
+  // Array type.
+  if (this->is_array) {
+    if (this->v_array_size.size() == 0) {
+      cerr << "\n\n\nError: Detect empty v_array_size when is_array is true. "
+              "\n\n\n";
+      assert(false);
+    }
+    return mutate_array_type_helper(); // depth = 0;
+  }
+
+  // Not array, not vector.
+  // Normal constant type entry.
+  return mutate_type_entry_helper();
+}
+
+string DataType::mutate_type_entry_helper() {
+
+  switch (this->get_data_type_enum()) {
+  case kTYPEINT:
+    return mutate_type_int();
+  case kTYPEBIGINT:
+    return mutate_type_bigint();
+  case kTYPEBIGSERIAL:
+    return mutate_type_serial();
+  case kTYPEBIT:
+    return mutate_type_bit();
+  case kTYPEVARBIT:
+    return mutate_type_varbit();
+  case kTYPEBOOL:
+    return mutate_type_bool();
+  case kTYPEBYTEA:
+    return mutate_type_bytea();
+  case kTYPECHAR:
+    return mutate_type_char();
+  case kTYPEVARCHAR:
+    return mutate_type_varchar();
+  case kTYPECIDR:
+    return mutate_type_cidr();
+  case kTYPEINET:
+    return mutate_type_inet();
+  case kTYPEDATE:
+    return mutate_type_date();
+  case kTYPEFLOAT:
+    return mutate_type_float();
+  case kTYPEINTERVAL:
+    return mutate_type_interval();
+  case kTYPEJSON:
+    return mutate_type_json();
+  case kTYPEJSONB:
+    return mutate_type_jsonb();
+  case kTYPEMACADDR:
+    return mutate_type_macaddr();
+  case kTYPEMACADDR8:
+    return mutate_type_macaddr8();
+  case kTYPEMONEY:
+    return mutate_type_money();
+  case kTYPENUMERIC:
+    return mutate_type_numeric();
+  case kTYPEREAL:
+    return mutate_type_real();
+  case kTYPESMALLINT:
+    return mutate_type_smallint();
+  case kTYPESMALLSERIAL:
+    return mutate_type_smallserial();
+  case kTYPETEXT:
+    return mutate_type_text();
+  case kTYPETIME:
+    return mutate_type_time();
+  case kTYPETIMETZ:
+    return mutate_type_timetz();
+  case kTYPETIMESTAMP:
+    return mutate_type_timestamp();
+  case kTYPETIMESTAMPTZ:
+    return mutate_type_timestamptz();
+  case kTYPEUUID:
+    return mutate_type_uuid();
+  case kTYPEOID:
+    return mutate_type_oid();
+  default:
+    cerr << "\n\n\nERROR: For type: " << get_str_from_data_type()
+         << ", cannot find"
+            " the mutate function. \n\n\n";
+    assert(false);
+  }
+
+  assert(false);
+  return "";
 }

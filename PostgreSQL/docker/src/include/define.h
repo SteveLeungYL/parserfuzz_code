@@ -1560,7 +1560,8 @@ using std::string;
   V(TYPEPGLSN)                                                                 \
   V(TYPEPGSNAPSHOT)                                                            \
   V(TYPEPOINT)                                                                 \
-  V(TYPEPOLYGON)
+  V(TYPEPOLYGON)                                                               \
+  V(TYPEOID)
 
 #define ALLFUNCTIONTYPES(V)                                                    \
   V(FUNCUNKNOWN)                                                               \
