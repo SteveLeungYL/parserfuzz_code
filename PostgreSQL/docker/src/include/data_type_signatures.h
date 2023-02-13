@@ -8,6 +8,12 @@
 #include "data_types.h"
 #include <utility>
 
+enum FuncCatalog {
+  Normal = 0,
+  Aggregate,
+  Window
+};
+
 class FuncSig {
   // store the function signature information
 public:
@@ -21,7 +27,19 @@ public:
 
   void set_func_name(const string func_name) {this->func_name = func_name;}
   void set_arg_types(const vector<DataType> arg_types) {this->arg_types = arg_types;}
+  void push_arg_type(const DataType arg_type) {this->arg_types.push_back(arg_type);}
   void set_ret_type(const DataType ret_type) {this->ret_type = ret_type;}
+  void set_func_catalog(FuncCatalog in) {this->func_catalog = in;}
+  void set_func_catalog(const string& in) {
+    if (in == "f") {
+      this->func_catalog = Normal;
+    } else if (in == "a") {
+      this->func_catalog = Aggregate;
+    } else {
+      this->func_catalog = Window;
+    }
+    return;
+  }
 
   void increment_execute_success() {execute_success++;}
   void increment_execute_error() {execute_error++;}
@@ -43,6 +61,7 @@ private:
   vector<DataType> arg_types;
   DataType ret_type;
   int execute_success, execute_error;
+  FuncCatalog func_catalog;
 };
 
 class OprSig {

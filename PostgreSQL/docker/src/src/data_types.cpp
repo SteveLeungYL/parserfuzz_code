@@ -300,6 +300,11 @@ string DataType::mutate_type_int() {
   }
 }
 
+string DataType::mutate_type_float(){
+  double value = get_rand_double(1e-37, 1e37);
+  return to_string(value);
+}
+
 string DataType::mutate_type_bigint() {
   // and also for serial.
   // This is actually 64 bits integers.
@@ -886,7 +891,7 @@ string DataType::mutate_type_entry_helper() {
   case kTYPEBIGINT:
     return mutate_type_bigint();
   case kTYPEBIGSERIAL:
-    return mutate_type_serial();
+    return mutate_type_bigserial();
   case kTYPEBIT:
     return mutate_type_bit();
   case kTYPEVARBIT:

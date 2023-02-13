@@ -5,6 +5,7 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 
@@ -261,8 +262,89 @@ private:
 
 PostgresClient g_psql_client;
 
+char* FUNC_TYPE_LIB_PATH = "./func_type_lib";
 
+void init_all_func_sig(vector<FuncSig>& v_func_sig) {
+
+  std::ifstream t(FUNC_TYPE_LIB_PATH);
+  std::stringstream buffer;
+  buffer << t.rdbuf();
+
+  string func_type_str = buffer.str();
+
+  vector<string> func_type_split = string_splitter(func_type_str, "\n");
+
+  for (int i = 2; i < func_type_split.size() - 1; i++) {
+    // Skip the first 2 lines and the last line.
+    // The first two lines are name and separators, the last line is the row number
+
+    vector<string> line_split = string_splitter(func_type_split[i], "|");
+    if (line_split.size() != 3) {
+      cerr << "\n\n\nERROR: For line break for line: " << func_type_split[i]
+           << ", cannot split to three parts. \n\n\n";
+      assert(false);
+    }
+    string func_sig_str = line_split[0];
+    trim_string(func_sig_str);
+    string ret_type_str =  line_split[1];
+    trim_string(ret_type_str);
+    string func_category_flag = line_split[2];
+    trim_string(func_category_flag);
+
+    FuncSig cur_func_sig;
+
+    vector<string> tmp_line_break;
+    string tmp_str;
+    // Handle the func_sig_str
+    tmp_line_break = string_splitter(func_sig_str, "(");
+    if (tmp_line_break.size() != 2) {
+      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at size 2. Str: "
+           << func_sig_str << " \n\n\n";
+      assert(false);
+    }
+    tmp_str = tmp_line_break.front();
+    cur_func_sig.set_func_name(tmp_str);
+
+    // Handle the function argument list.
+    // remove right bracket ")".
+    tmp_str = tmp_line_break[1];
+    tmp_line_break = string_splitter(tmp_str, ")");
+    if (tmp_line_break.size() != 2) {
+      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at size 2. Str: "
+           << tmp_str << " \n\n\n";
+      assert(false);
+    }
+    tmp_str = tmp_line_break.front();
+
+    // separate the function arguments.
+    tmp_line_break = string_splitter(tmp_str, ",");
+    if (tmp_line_break.size() < 1) {
+      cerr << "\n\n\nERROR: cannot separate the , symbol from the function signature"
+              " strings. \n\n\n";
+      assert(false);
+    }
+    for (string cur_arg_str: tmp_line_break) {
+      DataType cur_arg_type(cur_arg_str);
+      cur_func_sig.push_arg_type(cur_arg_type);
+    }
+
+    // And then, parse the return type string.
+    DataType ret_type(ret_type_str);
+    cur_func_sig.set_ret_type(ret_type);
+
+    // At last, identify the function type. Normal, Aggregate or Window function.
+    cur_func_sig.set_func_catalog(func_category_flag);
+
+    v_func_sig.push_back(cur_func_sig);
+  }
+
+  return;
+}
 
 int main() {
+
+  vector<FuncSig> v_func_sig;
+  init_all_func_sig(v_func_sig);
+
   return 0;
 }
