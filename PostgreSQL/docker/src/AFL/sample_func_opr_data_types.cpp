@@ -53,7 +53,6 @@ public:
   PGconn *connect()
   {
     string conninfo = "postgresql://localhost?port=" + to_string(bind_to_port) + "&dbname=x";
-    // const char conninfo[] = "postgresql://localhost?port=5432&dbname=x";
     return PQconnectdb(conninfo.c_str());
   }
 
@@ -278,6 +277,8 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     // Skip the first 2 lines and the last line.
     // The first two lines are name and separators, the last line is the row number
 
+    bool is_skip = false;
+
     vector<string> line_split = string_splitter(func_type_split[i], "|");
     if (line_split.size() != 3) {
       cerr << "\n\n\nERROR: For line break for line: " << func_type_split[i]
@@ -318,18 +319,32 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
 
     // separate the function arguments.
     tmp_line_break = string_splitter(tmp_str, ",");
-    if (tmp_line_break.size() < 1) {
-      cerr << "\n\n\nERROR: cannot separate the , symbol from the function signature"
-              " strings. \n\n\n";
-      assert(false);
-    }
     for (string cur_arg_str: tmp_line_break) {
+      if (cur_arg_str == "") {
+        continue;
+      }
       DataType cur_arg_type(cur_arg_str);
+      if (cur_arg_type.get_data_type_enum() == kTYPEUNKNOWN) {
+        is_skip = true;
+        cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
+             << "\n because arguments parsing failed. \n\n\n";
+        break;
+      }
       cur_func_sig.push_arg_type(cur_arg_type);
+    }
+
+    if (is_skip) {
+      continue;
     }
 
     // And then, parse the return type string.
     DataType ret_type(ret_type_str);
+    if (ret_type.get_data_type_enum() == kTYPEUNKNOWN) {
+      is_skip = true;
+      cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
+           << "\n because arguments parsing failed. \n\n\n";
+      continue;
+    }
     cur_func_sig.set_ret_type(ret_type);
 
     // At last, identify the function type. Normal, Aggregate or Window function.

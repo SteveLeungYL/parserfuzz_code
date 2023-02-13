@@ -57,7 +57,8 @@ DATATYPE DataType::get_data_type_from_simple_str(string in) {
   cerr << "\n\n\nError: Cannot find the matching data affinity by"
           " string: \"" +
               in + "\" \n\n\n";
-  assert(false);
+//  assert(false);
+  return kTYPEUNKNOWN;
 }
 
 void DataType::init_data_type_with_str(string in) {
@@ -71,6 +72,15 @@ void DataType::init_data_type_with_str(string in) {
   // second and third `[]` stands for array size.
 
   in = str_toupper(in);
+
+  string tmp;
+  tmp.reserve(in.size());
+  for (int idx = 0; idx < in.size(); idx++) {
+    if (in[idx] != '"') {
+      tmp += in[idx];
+    }
+  }
+  in = tmp;
 
   // Spot the ARRAY keyword. Remove it.
   vector<string> v_in_split = string_splitter(in, "ARRAY");
@@ -129,6 +139,9 @@ void DataType::init_data_type_with_str(string in) {
     simple_str = DataTypeAlias2TypeStr[simple_str];
   }
 
+  if (!findStringIn(simple_str, "TYPE")) {
+    simple_str = "TYPE" + simple_str;
+  }
   this->data_type = this->get_data_type_from_simple_str(simple_str);
 
   if (sep == "(") {
