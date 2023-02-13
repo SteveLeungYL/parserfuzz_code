@@ -23,7 +23,7 @@ enum FuncCatalog {
 class FuncSig {
   // store the function signature information
 public:
-  double get_success_rate () const {return double(execute_success) / double(execute_success + execute_error); }
+  double get_success_rate () const {return 100.0 * double(execute_success) / double(execute_success + execute_error); }
   int get_execute_success() const {return execute_success;}
   int get_execute_error() const {return execute_error;}
   int get_total_execute() const {return (execute_success + execute_error);}

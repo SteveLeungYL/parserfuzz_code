@@ -124,13 +124,13 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
   return;
 }
 
-void constr_func_sample_testing(vector<FuncSig>& v_func_sig) {
+void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
   // For every saved functions, sample the function from running them in the
   // PostgreSQL DBMS. Log the validity rate.
   // Ad-hoc implementation. Please make it mature before moving it to the main
   // afl-fuzz fuzzer.
 
-  for (FuncSig cur_func: v_func_sig) {
+  for (FuncSig& cur_func: v_func_sig) {
     for (int trial = 0; trial < 100; trial++) {
 
       string cmd_str;
@@ -170,12 +170,33 @@ void constr_func_sample_testing(vector<FuncSig>& v_func_sig) {
 
 }
 
+void print_func_sample_testing(const vector<FuncSig>& v_func_sig) {
+
+  int total_success = 0, total_fail = 0;
+
+  cout << "\n\n\nRES: \n";
+  for (FuncSig cur_func: v_func_sig) {
+    cout << "For func: " << cur_func.get_func_name() << ", getting success rate: "
+         << to_string(cur_func.get_success_rate()) << "%\n\n";
+    total_success += cur_func.get_execute_success();
+    total_fail += cur_func.get_execute_error();
+  }
+
+  cout << "\n\n\nIn total, success: " << total_success << ", error: " << total_fail
+       << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+       << "\n\n\n";
+
+  return;
+
+}
+
 int main() {
 
   vector<FuncSig> v_func_sig;
   init_all_func_sig(v_func_sig);
 
-  constr_func_sample_testing(v_func_sig);
+  do_func_sample_testing(v_func_sig);
+  print_func_sample_testing(v_func_sig);
 
   return 0;
 }
