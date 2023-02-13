@@ -1546,6 +1546,8 @@ using std::string;
   V(TYPETIMESTAMP)                                                             \
   V(TYPETIMESTAMPTZ)                                                           \
   V(TYPEUUID)                                                                  \
+  V(TYPEOID)                                                                   \
+  /* Separator line. Do not use the types below this line. */                  \
   V(TYPETSQUERY)                                                               \
   V(TYPETSVECTOR)                                                              \
   V(TYPETXIDSNAPSHOT)                                                          \
@@ -1560,8 +1562,7 @@ using std::string;
   V(TYPEPGLSN)                                                                 \
   V(TYPEPGSNAPSHOT)                                                            \
   V(TYPEPOINT)                                                                 \
-  V(TYPEPOLYGON)                                                               \
-  V(TYPEOID)
+  V(TYPEPOLYGON)
 
 #define ALLFUNCTIONTYPES(V)                                                    \
   V(FUNCUNKNOWN)                                                               \

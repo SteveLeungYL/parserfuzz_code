@@ -3,13 +3,15 @@
 // operator_type_lib, test them in the DBMS, and retrive the testing information
 // into a JSON file.
 
+#define DEBUG
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
 
-#include "../include/data_type_signatures.h"
+#include "../include/data_type_sig.h"
 #include "../include/postgres_connector.h"
 
 PostgresClient g_psql_client;
@@ -129,19 +131,39 @@ void constr_func_sample_testing(vector<FuncSig>& v_func_sig) {
   // afl-fuzz fuzzer.
 
   for (FuncSig cur_func: v_func_sig) {
+    for (int trial = 0; trial < 100; trial++) {
 
-    string cmd_str;
-    // Ad-hoc create table statement.
-    cmd_str +=
-        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
-        "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
-        "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
-        "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
-        "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
-        "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
-        //             "c33 txidsnapshot, " // Not existed.
-        "c34 xml, c35 box, c36 circle, c37 line, "
-        "c38 point, c39 polygon, c40 oid);";
+      string cmd_str;
+      // Ad-hoc create table statement.
+      cmd_str +=
+          "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
+          "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
+          "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
+          "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
+          "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
+          "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
+          //             "c33 txidsnapshot, " // Not existed.
+          "c34 xml, c35 box, c36 circle, c37 line, "
+          "c38 point, c39 polygon, c40 oid); \n";
+
+      string func_str = cur_func.get_mutated_func_str();
+#ifdef DEBUG
+      cerr << "\n\n\nDEBUG: running with func_str: " << func_str << "\n";
+#endif
+      cmd_str += "SELECT " + func_str + " FROM v0;\n";
+      string res_str = g_psql_client.execute(cmd_str).outputs;
+
+#ifdef DEBUG
+      cerr << "Get res string: " << res_str << "\n\n\n";
+#endif
+
+      if (findStringIn(res_str, "ERROR")) {
+        cur_func.increment_execute_error();
+      } else {
+        cur_func.increment_execute_success();
+      }
+
+    }
   }
 
   return;

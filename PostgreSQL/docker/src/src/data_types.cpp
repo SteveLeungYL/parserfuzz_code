@@ -50,9 +50,15 @@ string get_string_by_data_type(DATATYPE type) {
 
 DATATYPE DataType::get_data_type_from_simple_str(string in) {
 
+  // Do not parse any data type that is larger than TYPEOID in the define.h
 #define DECLARE_CASE(dataTypeName)                                             \
-  if (str_toupper(in) == #dataTypeName)                                        \
-    return k##dataTypeName;
+  if (str_toupper(in) == #dataTypeName) {                                      \
+    if ((k##dataTypeName - kTYPEUNKNOWN) > (kTYPEOID - kTYPEUNKNOWN)) {        \
+      return kTYPEUNKNOWN;                                                                           \
+    } else {                                                                         \
+      return k##dataTypeName;                                                    \
+    }                                                                              \
+  }
   ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
 
@@ -87,13 +93,14 @@ void DataType::init_data_type_with_str(string in) {
   in = tmp;
 
   // Spot the ARRAY keyword. Remove it.
+  this->is_array = false;
   vector<string> v_in_split = string_splitter(in, "ARRAY");
   if (v_in_split.size() > 1) {
     in = "";
     for (int idx = 0; idx < v_in_split.size(); idx++) {
       in += v_in_split[idx];
     }
-    is_array = true;
+    this->is_array = true;
   }
 
   // Spot the VECTOR keyword. Remove it.
@@ -804,7 +811,7 @@ string DataType::mutate_type_time() {
 }
 
 string DataType::mutate_type_timestamp() {
-  return mutate_type_date() + " " + mutate_type_timestamp();
+  return mutate_type_date() + " " + mutate_type_time();
 }
 
 string DataType::mutate_type_uuid() {
@@ -859,8 +866,18 @@ string DataType::mutate_array_type_helper(int depth) {
   return ret_str;
 }
 
-string DataType::mutate_type_entry() {
+DATATYPE DataType::gen_rand_any_type() {
+  DATATYPE start_type = kTYPEIDENT;
+  DATATYPE end_type = kTYPEOID;
+  return DATATYPE(start_type + (end_type - start_type));
+}
+
+string DataType::mutate_type_entry(DATATYPE default_type) {
   // Main mutate type entry. Also handles the ARRAY, TUPLE and VECTOR types.
+
+  if (default_type != kTYPEUNKNOWN) {
+    this->data_type = default_type;
+  }
 
   string ret_str;
 

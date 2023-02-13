@@ -2,12 +2,15 @@
 // Created by Yu Liang on 2/12/23.
 //
 
-#ifndef SRC_DATA_TYPE_SIGNATURES_H
-#define SRC_DATA_TYPE_SIGNATURES_H
+#ifndef SRC_DATA_TYPE_SIG_H
+#define SRC_DATA_TYPE_SIG_H
 
 #include "data_types.h"
+#include <iostream>
 #include <utility>
 #include <cassert>
+
+using std::cerr;
 
 enum FuncCatalog {
   Normal = 0,
@@ -27,6 +30,9 @@ public:
   vector<DataType> get_arg_types() const {return arg_types;}
   DataType get_ret_type() const {return ret_type;}
   string get_func_name() const {return func_name;}
+  FuncCatalog get_func_catalog() const {return func_catalog;}
+
+  string get_mutated_func_str();
 
   void set_func_name(const string func_name) {this->func_name = func_name;}
   void set_arg_types(const vector<DataType> arg_types) {this->arg_types = arg_types;}
@@ -113,4 +119,4 @@ private:
   int execute_success, execute_error;
 };
 
-#endif // SRC_DATA_TYPE_SIGNATURES_H
+#endif // SRC_DATA_TYPE_SIG_H

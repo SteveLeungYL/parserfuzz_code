@@ -57,7 +57,9 @@ public:
         is_array(false), is_vector(false),
         varying_size(VaryingArraySizeNone) {}
 
-  DataType(const string &type_str) { init_data_type_with_str(type_str); }
+  DataType(const string &type_str): is_range(false), int_min(0),
+                                    int_max(0), float_min(0.0), float_max(0.0),
+                                    varying_size(VaryingArraySizeAny) { init_data_type_with_str(type_str); }
 
   // Copy constructor.
   DataType(const DataType &copy_in)
@@ -135,8 +137,9 @@ public:
 
   vector<int> get_v_array_size() {return this->v_array_size;}
 
+  DATATYPE gen_rand_any_type();
   // Mutation method entry.
-  string mutate_type_entry();
+  string mutate_type_entry(DATATYPE default_type = kTYPEUNKNOWN);
   string mutate_type_entry_helper();
   string mutate_array_type_helper(int depth = 0);
   // Mutation methods for the different data types.
