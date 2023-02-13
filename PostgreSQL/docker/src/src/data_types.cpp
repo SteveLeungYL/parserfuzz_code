@@ -997,6 +997,9 @@ string DataType::mutate_type_entry_helper() {
     return mutate_type_uuid();
   case kTYPEOID:
     return mutate_type_oid();
+  case kTYPEVOID:
+    // For VOID, do not instantiate anything.
+    return "";
   default:
     cerr << "\n\n\nERROR: For type: " << get_str_from_data_type()
          << ", cannot find"

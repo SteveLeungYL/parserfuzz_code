@@ -149,7 +149,7 @@ public:
   string mutate_type_bigserial() {return mutate_type_bigint(); }
   string mutate_type_serial() {return mutate_type_int(); }
   string mutate_type_bit();
-  string mutate_type_varbit() {return mutate_type_varbit(); }
+  string mutate_type_varbit() {return mutate_type_bit(); }
   string mutate_type_bool();
   string mutate_type_bytea();
   string mutate_type_char();

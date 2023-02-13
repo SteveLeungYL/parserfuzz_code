@@ -4,6 +4,28 @@ string FuncSig::get_mutated_func_str() {
   string res_str;
   DATATYPE rand_any_type = kTYPEUNKNOWN;
 
+  // If the arg_types is specified as TYPEANY, randomly generate one type
+  // and then assigned to it.
+  // Additionally, keep all the ANY types in one function consistent.
+  for (int i = 0; i < this->arg_types.size(); i++) {
+    if (this->arg_types[i].get_data_type_enum() == kTYPEANY) {
+      if (rand_any_type == kTYPEUNKNOWN) {
+        rand_any_type = this->arg_types[i].gen_rand_any_type();
+        this->arg_types[i].set_data_type(rand_any_type);
+      } else {
+        this->arg_types[i].set_data_type(rand_any_type);
+      }
+    }
+  }
+  if (this->ret_type.get_data_type_enum() == kTYPEANY) {
+    if (rand_any_type == kTYPEUNKNOWN) {
+      rand_any_type = this->ret_type.gen_rand_any_type();
+      this->ret_type.set_data_type(rand_any_type);
+    } else {
+      this->ret_type.set_data_type(rand_any_type);
+    }
+  }
+
   res_str += get_func_name() + "(";
 
   int end_idx = this->arg_types.size();
