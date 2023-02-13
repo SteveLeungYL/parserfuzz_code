@@ -131,7 +131,7 @@ public:
 
   void init_data_type_with_str(string in);
   DATATYPE get_data_type_from_simple_str(string in);
-  string get_str_from_data_type();
+  string get_str_from_data_type() const;
 
   vector<int> get_v_array_size() {return this->v_array_size;}
 

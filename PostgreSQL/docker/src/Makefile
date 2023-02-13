@@ -13,6 +13,7 @@ DEPEN_PATH  = ../src/*.cpp  ../parser/bison_parser.cpp ../parser/flex_lexer.cpp
 AFL_OBJS := AFL/afl-fuzz.o $(COMM_OBJS)
 TEST_OBJS:= AFL/test-parser.o $(COMM_OBJS)
 GEN_OBJS:= AFL/generate_inputs.o $(COMM_OBJS)
+SAMPLE_OBJS:= AFL/sample_func_opr_data_types.o $(COMM_OBJS)
 
 PGSQL_INCLUDE_PATH = /usr/local/pgsql/include
 PGSQL_LIB_PATH = /usr/local/pgsql/lib
@@ -24,7 +25,7 @@ export CFLAGS = -std=c++17 -fpermissive -static-libstdc++ $(DEBUG) $(OPT) $(ASAN
 LDFLAGS = -ldl -lpq
 
 
-all: afl-fuzz test-parser generate_inputs
+all: afl-fuzz test-parser generate_inputs sample_func_opr_data_types
 
 parser:
 	@$(MAKE) -C $@
@@ -43,6 +44,9 @@ test-parser: $(SUB_DIRS)
 
 generate_inputs: $(SUB_DIRS)
 	$(CC) $(CFLAGS) $(GEN_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
+
+sample_func_opr_data_types: $(SUB_DIRS)
+	$(CC) $(CFLAGS) $(SAMPLE_OBJS) -I$(PGSQL_INCLUDE_PATH) -L$(PGSQL_LIB_PATH) -o $@ $(LDFLAGS)
 
 debug: DEBUG = -g
 debug: OPT = -O0
@@ -63,4 +67,4 @@ clean:
 	@make clean -C oracle
 	@make clean -C AFL
 	@make clean -C rsg
-	rm -rf afl-fuzz test-parser generate_inputs
+	rm -rf afl-fuzz test-parser generate_inputs sample_func_opr_data_types

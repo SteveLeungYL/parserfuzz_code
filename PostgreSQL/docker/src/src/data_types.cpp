@@ -229,7 +229,7 @@ unsigned long long DataType::calc_hash() {
   return get_str_hash(res_str.c_str(), res_str.size());
 }
 
-string DataType::get_str_from_data_type() {
+string DataType::get_str_from_data_type() const {
 
   return get_string_by_data_type(this->data_type);
 }
