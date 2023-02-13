@@ -20,7 +20,9 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"SERIAL2", "SMALLSERIAL"},
     {"SERIAL4", "SERIAL"},
     {"TIME WITH TIME ZONE", "TIMETZ"},
+    {"TIME WITHOUT TIME ZONE", "TIME"},
     {"TIMESTAMP WITH TIME ZONE", "TIMESTAMPTZ"},
+    {"TIMESTAMP WITHOUT TIME ZONE", "TIMESTAMP"},
     {"REGPROC", "OID"},
     {"REGPROCEDURE", "OID"},
     {"REGOPERATOR", "OID"},
@@ -101,6 +103,23 @@ void DataType::init_data_type_with_str(string in) {
       in += v_in_split[idx];
     }
     this->is_vector = true;
+  }
+
+  // Change the ANYCOMPATIBLE to ANY, remove the compatible.
+  v_in_split = string_splitter(in, "COMPATIBLE");
+  if (v_in_split.size() > 1) {
+    in = "";
+    for (int idx = 0; idx < v_in_split.size(); idx++) {
+      in += v_in_split[idx];
+    }
+  }
+  // ANYELEMENT -> ANY
+  v_in_split = string_splitter(in, "ELEMENT");
+  if (v_in_split.size() > 1) {
+    in = "";
+    for (int idx = 0; idx < v_in_split.size(); idx++) {
+      in += v_in_split[idx];
+    }
   }
 
   trim_string(in);

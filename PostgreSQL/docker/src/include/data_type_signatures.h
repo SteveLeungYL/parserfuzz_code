@@ -7,10 +7,13 @@
 
 #include "data_types.h"
 #include <utility>
+#include <cassert>
 
 enum FuncCatalog {
   Normal = 0,
   Aggregate,
+  AggregateOrder,
+  Aggregatehypothetical,
   Window
 };
 
@@ -30,11 +33,21 @@ public:
   void push_arg_type(const DataType arg_type) {this->arg_types.push_back(arg_type);}
   void set_ret_type(const DataType ret_type) {this->ret_type = ret_type;}
   void set_func_catalog(FuncCatalog in) {this->func_catalog = in;}
-  void set_func_catalog(const string& in) {
+  void set_func_catalog(const string& in, const string& agg_in) {
     if (in == "f") {
       this->func_catalog = Normal;
     } else if (in == "a") {
-      this->func_catalog = Aggregate;
+      if (agg_in == "n") {
+        this->func_catalog = Aggregate;
+      } else if (agg_in == "o") {
+        this->func_catalog = AggregateOrder;
+      } else if (agg_in == "h"){
+        this->func_catalog = Aggregatehypothetical;
+      } else {
+        cerr << "\n\n\nERROR: Cannot detect the aggregate function type: "
+             << agg_in << " \n\n\n";
+        assert(false);
+      }
     } else {
       this->func_catalog = Window;
     }

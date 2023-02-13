@@ -265,6 +265,8 @@ char* FUNC_TYPE_LIB_PATH = "./func_type_lib";
 
 void init_all_func_sig(vector<FuncSig>& v_func_sig) {
 
+  int parse_succeed = 0, parse_failed = 0;
+
   std::ifstream t(FUNC_TYPE_LIB_PATH);
   std::stringstream buffer;
   buffer << t.rdbuf();
@@ -280,9 +282,9 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     bool is_skip = false;
 
     vector<string> line_split = string_splitter(func_type_split[i], "|");
-    if (line_split.size() != 3) {
+    if (line_split.size() != 4) {
       cerr << "\n\n\nERROR: For line break for line: " << func_type_split[i]
-           << ", cannot split to three parts. \n\n\n";
+           << ", cannot split to four parts. \n\n\n";
       assert(false);
     }
     string func_sig_str = line_split[0];
@@ -291,6 +293,8 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     trim_string(ret_type_str);
     string func_category_flag = line_split[2];
     trim_string(func_category_flag);
+    string func_aggregate_type = line_split[3];
+    trim_string(func_aggregate_type);
 
     FuncSig cur_func_sig;
 
@@ -328,6 +332,7 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
         is_skip = true;
         cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
              << "\n because arguments parsing failed. \n\n\n";
+        parse_failed++;
         break;
       }
       cur_func_sig.push_arg_type(cur_arg_type);
@@ -343,16 +348,20 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
       is_skip = true;
       cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
            << "\n because arguments parsing failed. \n\n\n";
+      parse_failed++;
       continue;
     }
     cur_func_sig.set_ret_type(ret_type);
 
     // At last, identify the function type. Normal, Aggregate or Window function.
-    cur_func_sig.set_func_catalog(func_category_flag);
+    cur_func_sig.set_func_catalog(func_category_flag, func_aggregate_type);
 
     v_func_sig.push_back(cur_func_sig);
+    parse_succeed++;
   }
 
+  cout << "\n\n\nLog: Successfully parse function: " << parse_succeed
+      << ", failed: " << parse_failed << "\n\n\n";
   return;
 }
 
