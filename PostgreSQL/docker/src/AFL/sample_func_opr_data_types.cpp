@@ -121,7 +121,7 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
   }
 
 #ifdef LOGGING
-  cout << "\n\n\nLog: Successfully parse function: " << parse_succeed
+  cerr << "\n\n\nLog: Successfully parse function: " << parse_succeed
       << ", failed: " << parse_failed << "\n\n\n";
 #endif
 
@@ -133,6 +133,8 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
   // PostgreSQL DBMS. Log the validity rate.
   // Ad-hoc implementation. Please make it mature before moving it to the main
   // afl-fuzz fuzzer.
+
+  int total_success = 0, total_fail = 0;
 
   for (FuncSig& cur_func: v_func_sig) {
     for (int trial = 0; trial < 100; trial++) {
@@ -170,8 +172,13 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
     }
 
 #ifdef LOGGING
-    cout << "For func: " << cur_func.get_func_signature() << ", getting success rate: "
-      << to_string(cur_func.get_success_rate()) << "%\n\n";
+    cerr << "For func: " << cur_func.get_func_signature() << ", getting success rate: "
+      << to_string(cur_func.get_success_rate()) << "%\n";
+    total_success += cur_func.get_execute_success();
+    total_fail += cur_func.get_execute_error();
+    cerr << "\n\n\nUp to now, in total, success: " << total_success << ", error: " << total_fail
+         << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+         << "\n\n\n";
 #endif
 
   }
