@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __DEFINE_H__
-#define __DEFINE_H__
+#ifndef __DEFINE_CUSTOM_H__
+#define __DEFINE_CUSTOM_H__
 
 #include <map>
 #include <string>
@@ -1514,6 +1514,7 @@ using std::string;
 #define ALLDATATYPE(V)                                                         \
   V(TYPEUNKNOWN)                                                               \
   V(TYPEANY)                                                                   \
+  V(TYPENONE)                                                                  \
   V(TYPEIDENT)                                                                 \
   V(TYPEVOID)                                                                  \
   V(TYPEBIGINT)                                                                \
