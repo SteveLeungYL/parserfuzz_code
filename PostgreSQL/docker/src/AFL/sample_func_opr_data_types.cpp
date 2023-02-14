@@ -79,8 +79,8 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
 
     // separate the function arguments.
     tmp_line_break = string_splitter(tmp_str, ",");
-    for (string cur_arg_str: tmp_line_break) {
-      if (cur_arg_str == "") {
+    for (const string& cur_arg_str: tmp_line_break) {
+      if (cur_arg_str.empty()) {
         continue;
       }
       DataType cur_arg_type(cur_arg_str);
@@ -103,7 +103,6 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     // And then, parse the return type string.
     DataType ret_type(ret_type_str);
     if (ret_type.get_data_type_enum() == kTYPEUNKNOWN) {
-      is_skip = true;
 #ifdef DEBUG
       cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
            << "\n because arguments parsing failed. \n\n\n";
@@ -125,7 +124,6 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
       << ", failed: " << parse_failed << "\n\n\n";
 #endif
 
-  return;
 }
 
 void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
@@ -183,8 +181,6 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
 
   }
 
-  return;
-
 }
 
 void print_func_sample_testing(const vector<FuncSig>& v_func_sig) {
@@ -192,7 +188,7 @@ void print_func_sample_testing(const vector<FuncSig>& v_func_sig) {
   int total_success = 0, total_fail = 0;
 
   cout << "\n\n\nRES: \n";
-  for (FuncSig cur_func: v_func_sig) {
+  for (const FuncSig& cur_func: v_func_sig) {
     cout << "For func: " << cur_func.get_func_name() << ", getting success rate: "
          << to_string(cur_func.get_success_rate()) << "%\n\n";
     total_success += cur_func.get_execute_success();
@@ -202,8 +198,6 @@ void print_func_sample_testing(const vector<FuncSig>& v_func_sig) {
   cout << "\n\n\nIn total, success: " << total_success << ", error: " << total_fail
        << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
        << "\n\n\n";
-
-  return;
 
 }
 
