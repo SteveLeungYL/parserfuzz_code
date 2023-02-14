@@ -3,7 +3,8 @@
 // operator_type_lib, test them in the DBMS, and retrive the testing information
 // into a JSON file.
 
-#define DEBUG
+//#define DEBUG
+#define LOGGING
 
 #include <string>
 #include <iostream>
@@ -119,8 +120,11 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     parse_succeed++;
   }
 
+#ifdef LOGGING
   cout << "\n\n\nLog: Successfully parse function: " << parse_succeed
       << ", failed: " << parse_failed << "\n\n\n";
+#endif
+
   return;
 }
 
@@ -164,6 +168,12 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
       }
 
     }
+
+#ifdef LOGGING
+    cout << "For func: " << cur_func.get_func_signature() << ", getting success rate: "
+      << to_string(cur_func.get_success_rate()) << "%\n\n";
+#endif
+
   }
 
   return;
