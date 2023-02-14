@@ -14,6 +14,12 @@ using namespace std;
 
 extern map<string, string> DataTypeAlias2TypeStr;
 
+enum RangeType {
+  range_none = 0,
+  single_range,
+  multi_range
+};
+
 enum DATATYPE {
 #define DECLARE_TYPE(v) k##v,
   ALLDATATYPE(DECLARE_TYPE)
@@ -33,6 +39,7 @@ private:
   vector<string> v_enum_str;
   bool is_array;
   bool is_vector;
+  RangeType range_type;
 
   int varying_size; // Determine the varying size of one data, e.g. 3 for
                     // VARCHAR[3]
@@ -49,26 +56,32 @@ public:
       : data_type(kTYPEUNKNOWN), is_range(false), int_min(0),
         int_max(0), float_min(0.0), float_max(0.0),
         is_array(false), is_vector(false),
+        range_type(range_none),
         varying_size(VaryingArraySizeNone) {}
 
   DataType(const DATATYPE type_in)
       : data_type(type_in), is_range(false), int_min(0),
         int_max(0), float_min(0.0), float_max(0.0),
         is_array(false), is_vector(false),
+        range_type(range_none),
         varying_size(VaryingArraySizeNone) {}
 
-  DataType(const string &type_str): is_range(false), int_min(0),
-                                    int_max(0), float_min(0.0), float_max(0.0),
-                                    varying_size(VaryingArraySizeAny) { init_data_type_with_str(type_str); }
+  DataType(const string &type_str): is_range(false),
+                                     int_min(0),
+                                     int_max(0), float_min(0.0), float_max(0.0),
+                                     range_type(range_none),
+                                     varying_size(VaryingArraySizeAny) { init_data_type_with_str(type_str); }
 
   // Copy constructor.
   DataType(const DataType &copy_in)
-      : data_type(copy_in.get_data_type_enum()), is_range(copy_in.get_is_range()),
+      : data_type(copy_in.get_data_type_enum()),
+        is_range(false),
         int_min(copy_in.get_int_min()),
         int_max(copy_in.get_int_max()), float_min(copy_in.get_float_min()),
         float_max(copy_in.get_float_max()),
         v_enum_str(copy_in.get_v_enum_str()),
         is_array(copy_in.get_is_array()), is_vector(copy_in.get_is_vector()),
+        range_type(range_none),
         varying_size(copy_in.get_varying_size()),
         v_array_size(copy_in.get_v_array_size()),
         v_tuple_types(copy_in.get_v_tuple_type()) {}
@@ -76,8 +89,11 @@ public:
   DATATYPE get_data_type_enum() const { return this->data_type; }
   void set_data_type(DATATYPE in) { this->data_type = in; }
 
-  void set_is_range(bool in) { this->is_range = in; }
-  bool get_is_range() const { return this->is_range; }
+  void set_is_range(bool in) {this->is_range = in;}
+  bool get_is_range() const {return this->is_range;}
+
+  void set_range_type(RangeType in) { this->range_type = in; }
+  RangeType get_range_type() const { return this->range_type; }
 
   void set_v_enum_str(const vector<string> &in) { this->v_enum_str = in; }
   vector<string> get_v_enum_str() const { return this->v_enum_str; }

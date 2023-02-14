@@ -805,4 +805,3 @@
  >>(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
  >>(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
 (804 rows)
-

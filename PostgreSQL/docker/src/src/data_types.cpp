@@ -83,6 +83,24 @@ void DataType::init_data_type_with_str(string in) {
 
   in = str_toupper(in);
 
+
+  // Special handling for ANYRANGE and ANYMULTIRANGE.
+  if (in == "ANYRANGE") {
+    this->set_data_type(kTYPEANY);
+    this->set_range_type(RangeType::single_range);
+    return;
+  } else if (in == "ANYMULTIRANGE") {
+    this->set_data_type(kTYPEANY);
+    this->set_range_type(RangeType::multi_range);
+    return;
+  }
+
+  // Special handling for - (stands for kTYPENONE)
+  else if (in == "-") {
+    this->set_data_type(kTYPENONE);
+    return;
+  }
+
   string tmp;
   tmp.reserve(in.size());
   for (int idx = 0; idx < in.size(); idx++) {
@@ -309,7 +327,7 @@ string DataType::mutate_type_int() {
   // and also for serial.
   // This is actually 64 bits integers.
 
-  if (this->is_range) {
+  if (this->get_is_range()) {
     auto rand_int = get_rand_long_long(9223372036854775807); // Max long long.
     auto range = int_max - int_min;
     rand_int = (rand_int % range) + int_min;
@@ -350,7 +368,7 @@ string DataType::mutate_type_bigint() {
   // and also for serial.
   // This is actually 64 bits integers.
 
-  if (this->is_range) {
+  if (this->get_is_range()) {
     auto rand_int = get_rand_long_long(9223372036854775807); // Max long long.
     auto range = int_max - int_min;
     rand_int = (rand_int % range) + int_min;
@@ -876,7 +894,14 @@ string DataType::mutate_type_entry(DATATYPE default_type) {
   // Main mutate type entry. Also handles the ARRAY, TUPLE and VECTOR types.
 
   if (default_type != kTYPEUNKNOWN) {
-    this->data_type = default_type;
+    this->set_data_type(default_type);
+  }
+
+  if (this->get_data_type_enum() == kTYPENONE ||
+      this->get_data_type_enum() == kTYPEVOID
+      ) {
+    // If the type is TYPENONE or TYPEVOID, just return empty string.
+    return "";
   }
 
   string ret_str;
@@ -997,9 +1022,6 @@ string DataType::mutate_type_entry_helper() {
     return mutate_type_uuid();
   case kTYPEOID:
     return mutate_type_oid();
-  case kTYPEVOID:
-    // For VOID, do not instantiate anything.
-    return "";
   default:
     cerr << "\n\n\nERROR: For type: " << get_str_from_data_type()
          << ", cannot find"
