@@ -134,6 +134,7 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
   // afl-fuzz fuzzer.
 
   int total_success = 0, total_fail = 0;
+  int cur_process_idx = 1;
 
   for (FuncSig& cur_func: v_func_sig) {
 
@@ -177,7 +178,9 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
     total_fail += cur_func.get_execute_error();
     cerr << "\n\n\nUp to now, in total, success: " << total_success << ", error: " << total_fail
          << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+         << "\nProcess: " << cur_process_idx << "/" << v_func_sig.size()
          << "\n\n\n";
+    cur_process_idx++;
 #endif
 
   }
@@ -287,6 +290,7 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
   // afl-fuzz fuzzer.
 
   int total_success = 0, total_fail = 0;
+  int cur_process_idx = 1;
   for (OprSig& cur_opr: v_opr_sig) {
 
     // Refresh the Database for every function only.
@@ -329,8 +333,10 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
     total_fail += cur_opr.get_execute_error();
     cerr << "\n\n\nUp to now, in total, success: " << total_success << ", error: " << total_fail
          << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+         << "\nProcess: " << cur_process_idx << "/" << v_opr_sig.size()
          << "\n\n\n";
 #endif
+    cur_process_idx++;
 
   }
 
