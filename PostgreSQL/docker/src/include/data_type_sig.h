@@ -91,8 +91,12 @@ public:
   int get_execute_error() const {return execute_error;}
   int get_total_execute() const {return (execute_success + execute_error);}
   pair<DataType, DataType> get_arg_types() const {return pair<DataType, DataType> (left_type, right_type);}
+  DataType get_arg_left_type() const {return left_type;}
+  DataType get_arg_right_type() const {return right_type;}
   DataType get_ret_type() const {return ret_type;}
   string get_opr_name() const {return operator_name;}
+
+  inline bool is_unary_opr() const {return (this->left_type.get_data_type_enum()==kTYPENONE);}
 
   void set_opr_name(const string opr_name) {this->operator_name = opr_name;}
   void set_left_type(const DataType arg_type) {this->left_type = arg_type;}
@@ -101,6 +105,8 @@ public:
 
   void increment_execute_success() {execute_success++;}
   void increment_execute_error() {execute_error++;}
+
+  string get_mutated_opr_str();
 
   string get_opr_signature() const {
     string res_signature;

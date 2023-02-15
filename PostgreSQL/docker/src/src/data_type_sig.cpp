@@ -80,3 +80,36 @@ string FuncSig::get_mutated_func_str() {
   return res_str;
 
 }
+
+string OprSig::get_mutated_opr_str() {
+
+  string res_str;
+  DATATYPE rand_any_type = kTYPEUNKNOWN;
+
+  // If the arg_types is specified as TYPEANY, randomly generate one type
+  // and then assigned to it.
+  // Additionally, keep all the ANY types in one function consistent.
+  DataType tmp_data_type;
+  if (this->get_arg_left_type().get_data_type_enum() == kTYPEANY){
+    rand_any_type = tmp_data_type.gen_rand_any_type();
+    this->left_type.set_data_type(rand_any_type);
+  }
+  if (this->get_arg_right_type().get_data_type_enum() == kTYPEANY) {
+    if (rand_any_type == kTYPEUNKNOWN) {
+      rand_any_type = tmp_data_type.gen_rand_any_type();
+    }
+    this->right_type.set_data_type(rand_any_type);
+  }
+  if (this->get_ret_type().get_data_type_enum() == kTYPEANY) {
+    if (rand_any_type == kTYPEUNKNOWN) {
+      rand_any_type = tmp_data_type.gen_rand_any_type();
+    }
+    this->ret_type.set_data_type(rand_any_type);
+  }
+
+  res_str = get_arg_left_type().mutate_type_entry() + " " + get_opr_name()
+             + " " + get_arg_right_type().mutate_type_entry();
+
+  return res_str;
+
+}
