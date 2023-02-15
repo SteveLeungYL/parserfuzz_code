@@ -1,4 +1,5 @@
 #include "../include/data_type_sig.h"
+#include "../include/utils.h"
 
 string FuncSig::get_mutated_func_str() {
   string res_str;
@@ -80,6 +81,62 @@ string FuncSig::get_mutated_func_str() {
   return res_str;
 
 }
+
+void FuncSig::setup_mutation_hints() {
+    // This function is used for rewriting type rules from the hints.
+    // e.g. adding integer range. (can be binary search)
+    // e.g., rewrite the
+
+    this->setup_cstring_hint();
+
+}
+
+void FuncSig::setup_cstring_hint() {
+  // Special handling for CSTRING
+  // CSTRING is commonly used for construct TEXT based (null ending) representation
+  // of an underlying type. For example, boolin('true') -> t.
+  vector<string> tmp_str_split;
+  if (this->find_types(kTYPECSTRING)) {
+    string tmp_str;
+    string cur_func_name = this->get_func_name();
+    tmp_str_split = string_splitter(cur_func_name, "_in");
+    for (const string& cur_tmp_str: tmp_str_split) {
+      tmp_str += cur_tmp_str;
+    }
+
+    tmp_str_split = string_splitter(tmp_str, "in");
+    tmp_str.clear();
+    for (const string& cur_tmp_str: tmp_str_split) {
+      tmp_str += cur_tmp_str;
+    }
+
+    // Try to scan for the func name without the "_in", see if it matches.
+    DataType matched_data_type(tmp_str);
+    if (matched_data_type.get_data_type_enum() == kTYPEUNKNOWN) {
+#ifdef DEBUG
+      cerr << "\n\n\nERROR: Cannot find the matching type for CSTRING. \n"
+              "Func signature: " << get_func_signature() <<"\n\n\n";
+#endif
+      this->set_arg_types({matched_data_type});
+      this->set_ret_type(matched_data_type);
+      return;
+    }
+
+    for (int i = 0; i < this->arg_types.size(); i++) {
+      if (this->arg_types[i].get_data_type_enum()==kTYPECSTRING) {
+        // Copy constructor.
+        this->arg_types[i] = matched_data_type;
+        this->arg_types[i].set_is_text_bounded(true);
+      }
+    }
+    if (this->ret_type.get_data_type_enum() == kTYPECSTRING) {
+      // Copy constructor.
+      this->ret_type = matched_data_type;
+      this->ret_type.set_is_text_bounded(true);
+    }
+  }
+}
+
 
 string OprSig::get_mutated_opr_str() {
 

@@ -3,13 +3,13 @@
 // opr_type_lib, test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
-//#define DEBUG
+#define DEBUG
 #define LOGGING
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #include "../include/data_type_sig.h"
@@ -17,10 +17,10 @@
 
 PostgresClient g_psql_client;
 
-char* FUNC_TYPE_LIB_PATH = "./func_type_lib";
-char* OPR_TYPE_LIB_PATH = "./opr_type_lib";
+char *FUNC_TYPE_LIB_PATH = "./func_type_lib";
+char *OPR_TYPE_LIB_PATH = "./opr_type_lib";
 
-void init_all_func_sig(vector<FuncSig>& v_func_sig) {
+void init_all_func_sig(vector<FuncSig> &v_func_sig) {
 
   int parse_succeed = 0, parse_failed = 0;
 
@@ -34,7 +34,8 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
 
   for (int i = 2; i < func_type_split.size() - 1; i++) {
     // Skip the first 2 lines and the last line.
-    // The first two lines are name and separators, the last line is the row number
+    // The first two lines are name and separators, the last line is the row
+    // number
 
     bool is_skip = false;
 
@@ -46,33 +47,33 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     }
     string func_sig_str = line_split[0];
     trim_string(func_sig_str);
-    string ret_type_str =  line_split[1];
+    string ret_type_str = line_split[1];
     trim_string(ret_type_str);
     string func_category_flag = line_split[2];
     trim_string(func_category_flag);
     string func_aggregate_type = line_split[3];
     trim_string(func_aggregate_type);
 
-    FuncSig cur_func_sig;
-
     vector<string> tmp_line_break;
     string tmp_str;
     // Handle the func_sig_str
     tmp_line_break = string_splitter(func_sig_str, "(");
     if (tmp_line_break.size() != 2) {
-      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at size 2. Str: "
+      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at "
+              "size 2. Str: "
            << func_sig_str << " \n\n\n";
       assert(false);
     }
-    tmp_str = tmp_line_break.front();
-    cur_func_sig.set_func_name(tmp_str);
+    string cur_func_name = tmp_line_break.front();
 
+    vector<DataType> v_arg_type;
     // Handle the function argument list.
     // remove right bracket ")".
     tmp_str = tmp_line_break[1];
     tmp_line_break = string_splitter(tmp_str, ")");
     if (tmp_line_break.size() != 2) {
-      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at size 2. Str: "
+      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at "
+              "size 2. Str: "
            << tmp_str << " \n\n\n";
       assert(false);
     }
@@ -80,7 +81,7 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
 
     // separate the function arguments.
     tmp_line_break = string_splitter(tmp_str, ",");
-    for (const string& cur_arg_str: tmp_line_break) {
+    for (const string &cur_arg_str : tmp_line_break) {
       if (cur_arg_str.empty()) {
         continue;
       }
@@ -88,13 +89,14 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
       if (cur_arg_type.get_data_type_enum() == kTYPEUNKNOWN) {
         is_skip = true;
 #ifdef DEBUG
-        cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
+        cerr << "\n\n\nSkip function signature: \n"
+             << func_type_split[i]
              << "\n because arguments parsing failed. \n\n\n";
 #endif
         parse_failed++;
         break;
       }
-      cur_func_sig.push_arg_type(cur_arg_type);
+      v_arg_type.push_back(cur_arg_type);
     }
 
     if (is_skip) {
@@ -105,16 +107,16 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
     DataType ret_type(ret_type_str);
     if (ret_type.get_data_type_enum() == kTYPEUNKNOWN) {
 #ifdef DEBUG
-      cerr << "\n\n\nSkip function signature: \n" << func_type_split[i]
+      cerr << "\n\n\nSkip function signature: \n"
+           << func_type_split[i]
            << "\n because arguments parsing failed. \n\n\n";
 #endif
       parse_failed++;
       continue;
     }
-    cur_func_sig.set_ret_type(ret_type);
 
-    // At last, identify the function type. Normal, Aggregate or Window function.
-    cur_func_sig.set_func_catalog(func_category_flag, func_aggregate_type);
+    FuncSig cur_func_sig(cur_func_name, v_arg_type, ret_type,
+                         func_category_flag, func_aggregate_type);
 
     v_func_sig.push_back(cur_func_sig);
     parse_succeed++;
@@ -122,12 +124,11 @@ void init_all_func_sig(vector<FuncSig>& v_func_sig) {
 
 #ifdef LOGGING
   cerr << "\n\n\nLog: Successfully parse function: " << parse_succeed
-      << ", failed: " << parse_failed << "\n\n\n";
+       << ", failed: " << parse_failed << "\n\n\n";
 #endif
-
 }
 
-void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
+void do_func_sample_testing(vector<FuncSig> &v_func_sig) {
   // For every saved functions, sample the function from running them in the
   // PostgreSQL DBMS. Log the validity rate.
   // Ad-hoc implementation. Please make it mature before moving it to the main
@@ -136,11 +137,12 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
   int total_success = 0, total_fail = 0;
   int cur_process_idx = 1;
 
-  for (FuncSig& cur_func: v_func_sig) {
+  for (FuncSig &cur_func : v_func_sig) {
 
     // Refresh the Database for every function only.
     string cmd_str =
-        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
+        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 "
+        "varbit[5], "
         "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
         "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
         "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
@@ -153,10 +155,10 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
     for (int trial = 0; trial < 100; trial++) {
 
       string func_str = cur_func.get_mutated_func_str();
-#ifdef DEBUG
-      cerr << "\n\n\nDEBUG: running with func_str: " << func_str << "\n";
-#endif
       cmd_str = "SELECT " + func_str + " FROM v0;\n";
+#ifdef DEBUG
+      cerr << "\n\n\nDEBUG: running with func_str: " << cmd_str << "\n";
+#endif
       string res_str = g_psql_client.execute(cmd_str, false).outputs;
 
 #ifdef DEBUG
@@ -168,44 +170,46 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
       } else {
         cur_func.increment_execute_success();
       }
-
     }
 
 #ifdef LOGGING
-    cerr << "For func: " << cur_func.get_func_signature() << ", getting success rate: "
-      << to_string(cur_func.get_success_rate()) << "%\n";
+    cerr << "For func: " << cur_func.get_func_signature()
+         << ", getting success rate: " << to_string(cur_func.get_success_rate())
+         << "%\n";
     total_success += cur_func.get_execute_success();
     total_fail += cur_func.get_execute_error();
-    cerr << "\n\n\nUp to now, in total, success: " << total_success << ", error: " << total_fail
-         << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+    cerr << "\n\n\nUp to now, in total, success: " << total_success
+         << ", error: " << total_fail << ", success rate: "
+         << to_string(100.0 * double(total_success) /
+                      double(total_success + total_fail))
          << "\nProcess: " << cur_process_idx << "/" << v_func_sig.size()
          << "\n\n\n";
     cur_process_idx++;
 #endif
-
   }
-
 }
 
-void print_func_sample_testing(const vector<FuncSig>& v_func_sig) {
+void print_func_sample_testing(const vector<FuncSig> &v_func_sig) {
 
   int total_success = 0, total_fail = 0;
 
   cout << "\n\n\nRES: \n";
-  for (const FuncSig& cur_func: v_func_sig) {
-    cout << "For func: " << cur_func.get_func_name() << ", getting success rate: "
-         << to_string(cur_func.get_success_rate()) << "%\n\n";
+  for (const FuncSig &cur_func : v_func_sig) {
+    cout << "For func: " << cur_func.get_func_name()
+         << ", getting success rate: " << to_string(cur_func.get_success_rate())
+         << "%\n\n";
     total_success += cur_func.get_execute_success();
     total_fail += cur_func.get_execute_error();
   }
 
-  cout << "\n\n\nIn total, success: " << total_success << ", error: " << total_fail
-       << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+  cout << "\n\n\nIn total, success: " << total_success
+       << ", error: " << total_fail << ", success rate: "
+       << to_string(100.0 * double(total_success) /
+                    double(total_success + total_fail))
        << "\n\n\n";
-
 }
 
-void init_all_opr_sig(vector<OprSig>& v_opr_sig) {
+void init_all_opr_sig(vector<OprSig> &v_opr_sig) {
 
   int parse_succeed = 0, parse_failed = 0;
 
@@ -219,7 +223,8 @@ void init_all_opr_sig(vector<OprSig>& v_opr_sig) {
 
   for (int i = 2; i < opr_type_split.size() - 1; i++) {
     // Skip the first 2 lines and the last line.
-    // The first two lines are name and separators, the last line is the row number
+    // The first two lines are name and separators, the last line is the row
+    // number
 
     vector<string> line_split = string_splitter(opr_type_split[i], "| ");
     if (line_split.size() != 4) {
@@ -233,7 +238,7 @@ void init_all_opr_sig(vector<OprSig>& v_opr_sig) {
     trim_string(left_type_str);
     string right_type_str = line_split[2];
     trim_string(right_type_str);
-    string ret_type_str =  line_split[3];
+    string ret_type_str = line_split[3];
     trim_string(ret_type_str);
 
     OprSig cur_opr_sig;
@@ -243,7 +248,8 @@ void init_all_opr_sig(vector<OprSig>& v_opr_sig) {
     // Handle the opr_func_str
     tmp_line_break = string_splitter(opr_sig_str, "(");
     if (tmp_line_break.size() != 2) {
-      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at size 2. Str: "
+      cerr << "\n\n\nERROR: for func_sig_str, the tmp_line_break is not at "
+              "size 2. Str: "
            << opr_sig_str << " \n\n\n";
       assert(false);
     }
@@ -258,13 +264,12 @@ void init_all_opr_sig(vector<OprSig>& v_opr_sig) {
     DataType ret_type(ret_type_str);
     cur_opr_sig.set_ret_type(ret_type);
 
-    if (
-        left_type.get_data_type_enum() == kTYPEUNKNOWN ||
+    if (left_type.get_data_type_enum() == kTYPEUNKNOWN ||
         right_type.get_data_type_enum() == kTYPEUNKNOWN ||
-        ret_type.get_data_type_enum() == kTYPEUNKNOWN
-        ) {
+        ret_type.get_data_type_enum() == kTYPEUNKNOWN) {
 #ifdef DEBUG
-      cerr << "\n\n\nSkip oprator signature: \n" << opr_type_split[i]
+      cerr << "\n\n\nSkip oprator signature: \n"
+           << opr_type_split[i]
            << "\n because arguments parsing failed. \n\n\n";
 #endif
       parse_failed++;
@@ -279,10 +284,9 @@ void init_all_opr_sig(vector<OprSig>& v_opr_sig) {
   cerr << "\n\n\nLog: Successfully parse oprator: " << parse_succeed
        << ", failed: " << parse_failed << "\n\n\n";
 #endif
-
 }
 
-void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
+void do_opr_sample_testing(vector<OprSig> &v_opr_sig) {
 
   // For every saved oprators, sample the oprator from running them in the
   // PostgreSQL DBMS. Log the validity rate.
@@ -291,11 +295,12 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
 
   int total_success = 0, total_fail = 0;
   int cur_process_idx = 1;
-  for (OprSig& cur_opr: v_opr_sig) {
+  for (OprSig &cur_opr : v_opr_sig) {
 
-    // Refresh the Database for every function only.
+    // Refresh the Database for every operator only.
     string cmd_str =
-        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
+        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 "
+        "varbit[5], "
         "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
         "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
         "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
@@ -308,10 +313,10 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
 
     for (int trial = 0; trial < 100; trial++) {
       string opr_str = cur_opr.get_mutated_opr_str();
-#ifdef DEBUG
-      cerr << "\n\n\nDEBUG: running with opr_str: " << opr_str << "\n";
-#endif
       cmd_str = "SELECT " + opr_str + " FROM v0;\n";
+#ifdef DEBUG
+      cerr << "\n\n\nDEBUG: running with opr_str: " << cmd_str << "\n";
+#endif
       string res_str = g_psql_client.execute(cmd_str, false).outputs;
 
 #ifdef DEBUG
@@ -323,41 +328,43 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
       } else {
         cur_opr.increment_execute_success();
       }
-
     }
 
 #ifdef LOGGING
-    cerr << "For oprator: " << cur_opr.get_opr_signature() << ", getting success rate: "
-         << to_string(cur_opr.get_success_rate()) << "%\n";
+    cerr << "For oprator: " << cur_opr.get_opr_signature()
+         << ", getting success rate: " << to_string(cur_opr.get_success_rate())
+         << "%\n";
     total_success += cur_opr.get_execute_success();
     total_fail += cur_opr.get_execute_error();
-    cerr << "\n\n\nUp to now, in total, success: " << total_success << ", error: " << total_fail
-         << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+    cerr << "\n\n\nUp to now, in total, success: " << total_success
+         << ", error: " << total_fail << ", success rate: "
+         << to_string(100.0 * double(total_success) /
+                      double(total_success + total_fail))
          << "\nProcess: " << cur_process_idx << "/" << v_opr_sig.size()
          << "\n\n\n";
 #endif
     cur_process_idx++;
-
   }
-
 }
 
-void print_opr_sample_testing(const vector<OprSig>& v_opr_sig) {
+void print_opr_sample_testing(const vector<OprSig> &v_opr_sig) {
 
   int total_success = 0, total_fail = 0;
 
   cout << "\n\n\nRES: \n";
-  for (const OprSig& cur_opr: v_opr_sig) {
-    cout << "For operator: " << cur_opr.get_opr_name() << ", getting success rate: "
-         << to_string(cur_opr.get_success_rate()) << "%\n\n";
+  for (const OprSig &cur_opr : v_opr_sig) {
+    cout << "For operator: " << cur_opr.get_opr_name()
+         << ", getting success rate: " << to_string(cur_opr.get_success_rate())
+         << "%\n\n";
     total_success += cur_opr.get_execute_success();
     total_fail += cur_opr.get_execute_error();
   }
 
-  cout << "\n\n\nIn total, operator, success: " << total_success << ", error: " << total_fail
-       << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+  cout << "\n\n\nIn total, operator, success: " << total_success
+       << ", error: " << total_fail << ", success rate: "
+       << to_string(100.0 * double(total_success) /
+                    double(total_success + total_fail))
        << "\n\n\n";
-
 }
 
 int main() {

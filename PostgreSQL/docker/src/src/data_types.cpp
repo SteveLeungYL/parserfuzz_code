@@ -9,7 +9,9 @@ map<string, string> DataTypeAlias2TypeStr = {
     {"CHARACTER", "CHAR"},
     {"CHARACTER VARYING", "VARCHAR"},
     {"\"CHAR\"", "TEXT"},
-    {"CSTRING", "TEXT"},
+//    {"CSTRING", "TEXT"}, // CSTRING is not a simple text. It represent a
+    // text for a specific type. Create this type and special handing for
+    // this type.
     {"DOUBLE PRECISION", "FLOAT"},
     {"FLOAT8", "FLOAT"},
     {"INTEGER", "INT"},
@@ -50,14 +52,15 @@ string get_string_by_data_type(DATATYPE type) {
 
 DATATYPE DataType::get_data_type_from_simple_str(string in) {
 
-  // Do not parse any data type that is larger than TYPEOID in the define.h
+  // Do not parse any data type that is larger than TYPENOTSUPPORT in the define.h
 #define DECLARE_CASE(dataTypeName)                                             \
   if (str_toupper(in) == #dataTypeName) {                                      \
-    if ((k##dataTypeName - kTYPEUNKNOWN) > (kTYPEOID - kTYPEUNKNOWN)) {        \
-      return kTYPEUNKNOWN;                                                                           \
-    } else {                                                                         \
-      return k##dataTypeName;                                                    \
-    }                                                                              \
+    if ((k##dataTypeName - kTYPEUNKNOWN) >                                     \
+        (kTYPENOTSUPPORT - kTYPEUNKNOWN - 1)) {                                \
+      return kTYPEUNKNOWN;                                                     \
+    } else {                                                                   \
+      return k##dataTypeName;                                                  \
+    }                                                                          \
   }
   ALLDATATYPE(DECLARE_CASE);
 #undef DECLARE_CASE
@@ -67,7 +70,7 @@ DATATYPE DataType::get_data_type_from_simple_str(string in) {
           " string: \"" +
               in + "\" \n\n\n";
 #endif
-//  assert(false);
+  //  assert(false);
   return kTYPEUNKNOWN;
 }
 
@@ -82,7 +85,6 @@ void DataType::init_data_type_with_str(string in) {
   // second and third `[]` stands for array size.
 
   in = str_toupper(in);
-
 
   // Special handling for ANYRANGE and ANYMULTIRANGE.
   if (in == "ANYRANGE") {
@@ -359,7 +361,7 @@ string DataType::mutate_type_int() {
   }
 }
 
-string DataType::mutate_type_float(){
+string DataType::mutate_type_float() {
   double value = get_rand_double(1e-37, 1e37);
   return to_string(value);
 }
@@ -885,7 +887,7 @@ string DataType::mutate_array_type_helper(int depth) {
 }
 
 DATATYPE DataType::gen_rand_any_type() {
-  DATATYPE start_type = kTYPEIDENT;
+  DATATYPE start_type = kTYPEBIGINT;
   DATATYPE end_type = kTYPEOID;
   return DATATYPE(start_type + (end_type - start_type));
 }
@@ -898,20 +900,19 @@ string DataType::mutate_type_entry(DATATYPE default_type) {
   }
 
   if (this->get_data_type_enum() == kTYPENONE ||
-      this->get_data_type_enum() == kTYPEVOID
-      ) {
+      this->get_data_type_enum() == kTYPEVOID) {
     // If the type is TYPENONE or TYPEVOID, just return empty string.
     return "";
   }
 
   string ret_str;
 
-  // Tuple type.
+  // Tuple type. No need to consider is_text_bounded.
   if (this->v_tuple_types.size() != 0) {
     ret_str += "(";
     for (int i = 0; i < v_tuple_types.size(); i++) {
       ret_str += v_tuple_types[i]->mutate_type_entry_helper();
-      if (i != v_tuple_types.size()-1) {
+      if (i != v_tuple_types.size() - 1) {
         ret_str += ",";
       }
     }
@@ -919,7 +920,7 @@ string DataType::mutate_type_entry(DATATYPE default_type) {
     return ret_str;
   }
 
-  // Vector type.
+  // Vector type. NEED to consider is_text_bounded.
   if (this->is_vector) {
     DATATYPE type_enum = this->get_data_type_enum();
 #define comp(x) type_enum == x
@@ -934,7 +935,11 @@ string DataType::mutate_type_entry(DATATYPE default_type) {
       string type_str = get_str_from_data_type();
       // the substr function removes the TYPE prefix.
       ret_str += "'::" + type_str.substr(4, type_str.size() - 4) + "VECTOR";
-      return ret_str;
+      if (this->get_is_text_bounded() && this->is_number_related_type()) {
+        return "'" + ret_str + "'";
+      } else {
+        return ret_str;
+      }
 #undef comp
     } else {
       cerr << "\n\n\nERROR: Type: " << get_str_from_data_type()
@@ -951,12 +956,20 @@ string DataType::mutate_type_entry(DATATYPE default_type) {
               "\n\n\n";
       assert(false);
     }
-    return mutate_array_type_helper(); // depth = 0;
+    if (this->get_is_text_bounded() && this->is_number_related_type()) {
+      return "'" + mutate_array_type_helper() + "'"; // depth = 0;
+    } else {
+      return mutate_array_type_helper(); // depth = 0;
+    }
   }
 
   // Not array, not vector.
   // Normal constant type entry.
-  return mutate_type_entry_helper();
+  if (this->get_is_text_bounded() && this->is_number_related_type()) {
+    return "'" + mutate_type_entry_helper() + "'";
+  } else {
+    return mutate_type_entry_helper();
+  }
 }
 
 string DataType::mutate_type_entry_helper() {
@@ -1031,4 +1044,31 @@ string DataType::mutate_type_entry_helper() {
 
   assert(false);
   return "";
+}
+
+bool DataType::is_number_related_type() {
+
+  if (is_text_bounded) {
+    return false;
+  }
+
+  switch (this->get_data_type_enum()) {
+  case kTYPEINT:
+  case kTYPEBIGINT:
+  case kTYPEBIGSERIAL:
+  case kTYPEFLOAT:
+    //  case kTYPEMONEY:
+  case kTYPENUMERIC:
+  case kTYPEREAL:
+  case kTYPESMALLINT:
+  case kTYPESMALLSERIAL:
+  case kTYPEOID:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool DataType::is_text_related_type() {
+  return !(this->is_number_related_type());
 }
