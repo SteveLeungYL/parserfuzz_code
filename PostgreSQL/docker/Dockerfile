@@ -124,7 +124,6 @@ RUN chown -R postgres:postgres /home/postgres/src
 USER postgres
 WORKDIR /home/postgres/src
 RUN cp /home/postgres/go_projects/src/github.com/rsg/rsg_helper.* /home/postgres/src/rsg/
-RUN cp /home/postgres/go_projects/src/github.com/rsg/sql.y /home/postgres/src/sql.y
 RUN make -j$(nproc)
 
 ## Finished setup of the SQLRight Validity Configurations.
@@ -141,7 +140,6 @@ COPY fuzz_root/inputs /home/postgres/fuzzing/fuzz_root/inputs
 COPY fuzz_root/run_parallel.py /home/postgres/fuzzing/fuzz_root/
 RUN mkdir -p /home/postgres/fuzzing/fuzz_root/rsg
 RUN cp /home/postgres/go_projects/src/github.com/rsg/rsg_helper.* /home/postgres/fuzzing/fuzz_root/rsg
-RUN cp /home/postgres/src/sql.y /home/postgres/fuzzing/fuzz_root/sql.y
 RUN mkdir /home/postgres/fuzzing/Bug_Analysis
 RUN mkdir /home/postgres/fuzzing/Bug_Analysis/bug_samples
 
@@ -153,8 +151,7 @@ RUN chown -R postgres:postgres /home/postgres/fuzzing/
 USER root
 COPY scripts /home/postgres/scripts
 RUN chown -R postgres:postgres /home/postgres/scripts
-
-#ENTRYPOINT ../afl-fuzz -t 2000 -m 2000 -i ./crashes -o ../output /usr/local/pgsql/bin/postgres --single -D /usr/local/pgsql/data main 
+RUN bash /home/postgres/scripts/setup_sqlright_postgres_fuzzing_helper.sh
 
 USER root
 WORKDIR /home/postgres/fuzzing/
