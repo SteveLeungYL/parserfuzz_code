@@ -56,7 +56,7 @@ public:
     counter_++;
   }
 
-  POSTGRES_OUTPUT execute(string cmd)
+  POSTGRES_OUTPUT execute(string cmd, bool is_reset_database = true)
   {
     PGresult *res;
     POSTGRES_OUTPUT result;
@@ -79,7 +79,9 @@ public:
     }
     // }
 
-    reset_database(conn);
+    if (is_reset_database) {
+      reset_database(conn);
+    }
 
     vector<string> cmd_vec = string_splitter(cmd, ";");
     vector<string> timeout_cmd_vec = {"set statement_timeout to 200; "};

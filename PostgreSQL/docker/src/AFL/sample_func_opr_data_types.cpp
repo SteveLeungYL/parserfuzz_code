@@ -136,27 +136,27 @@ void do_func_sample_testing(vector<FuncSig>& v_func_sig) {
   int total_success = 0, total_fail = 0;
 
   for (FuncSig& cur_func: v_func_sig) {
-    for (int trial = 0; trial < 100; trial++) {
 
-      string cmd_str;
-      // Ad-hoc create table statement.
-      cmd_str +=
-          "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
-          "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
-          "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
-          "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
-          "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
-          "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
-          //             "c33 txidsnapshot, " // Not existed.
-          "c34 xml, c35 box, c36 circle, c37 line, "
-          "c38 point, c39 polygon, c40 oid); \n";
+    // Refresh the Database for every function only.
+    string cmd_str =
+        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
+        "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
+        "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
+        "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
+        "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
+        "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
+        //             "c33 txidsnapshot, " // Not existed.
+        "c34 xml, c35 box, c36 circle, c37 line, "
+        "c38 point, c39 polygon, c40 oid); \n";
+    g_psql_client.execute(cmd_str, true).outputs;
+    for (int trial = 0; trial < 100; trial++) {
 
       string func_str = cur_func.get_mutated_func_str();
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with func_str: " << func_str << "\n";
 #endif
-      cmd_str += "SELECT " + func_str + " FROM v0;\n";
-      string res_str = g_psql_client.execute(cmd_str).outputs;
+      cmd_str = "SELECT " + func_str + " FROM v0;\n";
+      string res_str = g_psql_client.execute(cmd_str, false).outputs;
 
 #ifdef DEBUG
       cerr << "Get res string: " << res_str << "\n\n\n";
@@ -287,29 +287,28 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
   // afl-fuzz fuzzer.
 
   int total_success = 0, total_fail = 0;
-
   for (OprSig& cur_opr: v_opr_sig) {
+
+    // Refresh the Database for every function only.
+    string cmd_str =
+        "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
+        "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
+        "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
+        "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
+        "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
+        "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
+        //             "c33 txidsnapshot, " // Not existed.
+        "c34 xml, c35 box, c36 circle, c37 line, "
+        "c38 point, c39 polygon, c40 oid); \n";
+    g_psql_client.execute(cmd_str, true).outputs;
+
     for (int trial = 0; trial < 100; trial++) {
-
-      string cmd_str;
-      // Ad-hoc create table statement.
-      cmd_str +=
-          "CREATE TABLE v0 (c1 int, c2 bigint, c3 bigserial, c4 bit[3], c5 varbit[5], "
-          "c6 bool, c7 bytea, c8 char[3], c9 varchar[5], c10 cidr, c11 date, "
-          "c12 float, c13 inet, c14 interval, c15 json, c16 jsonb, c17 macaddr, "
-          "c18 macaddr8, c19 money, c20 numeric, c21 real, c22 smallint, "
-          "c23 smallserial, c24 serial, c25 text, c26 time, c27 timetz, "
-          "c28 timestamp, c29 timestamptz, c30 uuid, c31 tsquery, c32 tsvector, "
-          //             "c33 txidsnapshot, " // Not existed.
-          "c34 xml, c35 box, c36 circle, c37 line, "
-          "c38 point, c39 polygon, c40 oid); \n";
-
       string opr_str = cur_opr.get_mutated_opr_str();
 #ifdef DEBUG
       cerr << "\n\n\nDEBUG: running with opr_str: " << opr_str << "\n";
 #endif
-      cmd_str += "SELECT " + opr_str + " FROM v0;\n";
-      string res_str = g_psql_client.execute(cmd_str).outputs;
+      cmd_str = "SELECT " + opr_str + " FROM v0;\n";
+      string res_str = g_psql_client.execute(cmd_str, false).outputs;
 
 #ifdef DEBUG
       cerr << "Get res string: " << res_str << "\n\n\n";

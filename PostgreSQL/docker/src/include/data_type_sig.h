@@ -66,8 +66,12 @@ public:
   string get_func_signature() const {
     string res_signature;
     res_signature += get_func_name() + "(";
-    for (auto cur_arg : arg_types) {
-      res_signature += cur_arg.get_str_from_data_type() + ",";
+    for (int i = 0; i < arg_types.size(); i++) {
+      const DataType& cur_arg = arg_types[i];
+      res_signature += cur_arg.get_str_from_data_type();
+      if (i != arg_types.size() - 1) {
+        res_signature += ", ";
+      }
     }
     res_signature += ")->" + get_ret_type().get_str_from_data_type();
     return res_signature;
