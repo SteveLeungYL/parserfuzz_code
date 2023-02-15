@@ -342,6 +342,24 @@ void do_opr_sample_testing(vector<OprSig>& v_opr_sig) {
 
 }
 
+void print_opr_sample_testing(const vector<OprSig>& v_opr_sig) {
+
+  int total_success = 0, total_fail = 0;
+
+  cout << "\n\n\nRES: \n";
+  for (const OprSig& cur_opr: v_opr_sig) {
+    cout << "For operator: " << cur_opr.get_opr_name() << ", getting success rate: "
+         << to_string(cur_opr.get_success_rate()) << "%\n\n";
+    total_success += cur_opr.get_execute_success();
+    total_fail += cur_opr.get_execute_error();
+  }
+
+  cout << "\n\n\nIn total, operator, success: " << total_success << ", error: " << total_fail
+       << ", success rate: " << to_string(100.0 * double(total_success) / double(total_success+total_fail))
+       << "\n\n\n";
+
+}
+
 int main() {
 
   vector<FuncSig> v_func_sig;
@@ -353,6 +371,8 @@ int main() {
 
   init_all_opr_sig(v_opr_sig);
   do_opr_sample_testing(v_opr_sig);
+
+  print_opr_sample_testing(v_opr_sig);
 
   return 0;
 }
