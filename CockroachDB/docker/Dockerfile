@@ -6,45 +6,43 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN chmod 777 /tmp
 
-RUN apt -y upgrade
-RUN apt -y update
-RUN apt -y install bison 
-RUN apt -y install flex 
-RUN apt -y install git 
-RUN apt -y install make 
-RUN apt -y install cmake 
-RUN apt -y install build-essential 
-RUN apt -y install gcc-multilib 
-RUN apt -y install g++-multilib 
-RUN apt -y install clang
-RUN apt -y install xinetd 
-RUN apt -y install libreadline-dev 
-RUN apt -y install zlib1g-dev 
-RUN apt -y install gdb 
-RUN apt -y install vim 
-RUN apt -y install tmux 
-RUN apt -y install python3
-RUN apt -y install python3-pip
-RUN apt -y install libxml2-dev 
-RUN apt -y install libxslt-dev 
-RUN apt -y install libssl-dev 
-RUN apt -y install libxml2-utils 
-RUN apt -y install xsltproc
-RUN apt install -y libpq-dev
-RUN apt -y install screen
-RUN apt -y install watch
-RUN apt -y install unzip
-RUN apt -y install wget
-RUN apt -y install curl
-RUN apt -y install autoconf
-RUN apt -y install yarn
-RUN apt -y install npm
-
-RUN apt -y install llvm
-RUN apt -y install clang
-
-RUN apt install -y g++-9
-RUN apt install -y gcc-9
+RUN apt -y upgrade \
+&& apt -y update\
+&& apt -y install bison \
+&& apt -y install flex \
+&& apt -y install git \
+&& apt -y install make \
+&& apt -y install cmake \
+&& apt -y install build-essential \
+&& apt -y install gcc-multilib \
+&& apt -y install g++-multilib \
+&& apt -y install clang\
+&& apt -y install xinetd \
+&& apt -y install libreadline-dev \
+&& apt -y install zlib1g-dev \
+&& apt -y install gdb \
+&& apt -y install vim \
+&& apt -y install tmux \
+&& apt -y install python3\
+&& apt -y install python3-pip \
+&& apt -y install libxml2-dev \
+&& apt -y install libxslt-dev \
+&& apt -y install libssl-dev \
+&& apt -y install libxml2-utils \
+&& apt -y install xsltproc \
+&& apt install -y libpq-dev \
+&& apt -y install screen \
+&& apt -y install watch \
+&& apt -y install unzip \
+&& apt -y install wget \
+&& apt -y install curl \
+&& apt -y install autoconf \
+&& apt -y install yarn \
+&& apt -y install npm \
+&& apt -y install llvm \
+&& apt -y install clang \
+&& apt install -y g++-9 \
+&& apt install -y gcc-9
 
 RUN useradd -ms /bin/bash cockroach
 USER cockroach
