@@ -118,8 +118,22 @@ void init_all_func_sig(vector<FuncSig> &v_func_sig) {
     FuncSig cur_func_sig(cur_func_name, v_arg_type, ret_type,
                          func_category_flag, func_aggregate_type);
 
-    v_func_sig.push_back(cur_func_sig);
-    parse_succeed++;
+#ifdef DEBUG
+    cerr << "Parsing with signature: " << cur_func_sig.get_func_signature() << "\n";
+#endif
+    if (!cur_func_sig.is_contain_unsupported()) {
+      // No unsupported arguments or ret type.
+      v_func_sig.push_back(cur_func_sig);
+      parse_succeed++;
+      #ifdef DEBUG
+            cerr << "Parsing succeed\n\n\n";
+      #endif
+    } else {
+      parse_failed++;
+      #ifdef DEBUG
+            cerr << "Parsing failed\n\n\n";
+      #endif
+    }
   }
 
 #ifdef LOGGING

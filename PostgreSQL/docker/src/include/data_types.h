@@ -126,6 +126,20 @@ public:
   int get_varying_size() const { return this->varying_size; }
   vector<int> get_v_array_size() const { return this->v_array_size; }
 
+  bool is_contain_unsupported(DATATYPE in = kTYPEUNKNOWN) {
+    if (in == kTYPEUNKNOWN) {
+      in = this->get_data_type_enum();
+    }
+    if (in == kTYPEUNKNOWN) {
+      return true;
+    } else if (in >= kTYPENOTSUPPORT) { // All other unsupported types.
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+
   template <typename T>
   void set_range(T min, T max, DATATYPE data_type = kTYPEINT) {
     switch (data_type) {

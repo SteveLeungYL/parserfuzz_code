@@ -23,6 +23,16 @@ enum FuncCatalog {
 class FuncSig {
   // store the function signature information
 public:
+  bool is_contain_unsupported() {
+    bool res = false;
+    for (DataType& cur_arg_type : this->get_arg_types()) {
+      res = res || cur_arg_type.is_contain_unsupported();
+    }
+    res = res || ret_type.is_contain_unsupported();
+
+    return res;
+  }
+
   double get_success_rate() const {
     return 100.0 * double(execute_success) /
            double(execute_success + execute_error);

@@ -99,27 +99,37 @@ void FuncSig::setup_cstring_hint() {
   if (this->find_types(kTYPECSTRING)) {
     string tmp_str;
     string cur_func_name = this->get_func_name();
-    tmp_str_split = string_splitter(cur_func_name, "_in");
-    for (const string& cur_tmp_str: tmp_str_split) {
-      tmp_str += cur_tmp_str;
+
+    // Remove the in&out suffix.
+    tmp_str = cur_func_name;
+    if (tmp_str.size() > 3 && tmp_str.substr(tmp_str.size()-3, 3) == "_in") {
+      tmp_str = tmp_str.substr(0, tmp_str.size() - 3);
+    }
+    if (tmp_str.size() > 2 && tmp_str.substr(tmp_str.size()-2, 2) == "in") {
+      tmp_str = tmp_str.substr(0, tmp_str.size() - 2);
+    }
+    if (tmp_str.size() > 4 && tmp_str.substr(tmp_str.size()-4, 4) == "_out") {
+      tmp_str = tmp_str.substr(0, tmp_str.size() - 4);
+    }
+    if (tmp_str.size() > 3 && tmp_str.substr(tmp_str.size()-3, 3) == "out") {
+      tmp_str = tmp_str.substr(0, tmp_str.size() - 3);
     }
 
-    tmp_str_split = string_splitter(tmp_str, "in");
-    tmp_str.clear();
-    for (const string& cur_tmp_str: tmp_str_split) {
-      tmp_str += cur_tmp_str;
-    }
-
-    // Try to scan for the func name without the "_in", see if it matches.
+    // Try to scan for the func name without the "_in", "_out", see if it matches.
     DataType matched_data_type(tmp_str);
     if (matched_data_type.get_data_type_enum() == kTYPEUNKNOWN) {
 #ifdef DEBUG
       cerr << "\n\n\nERROR: Cannot find the matching type for CSTRING. \n"
               "Func signature: " << get_func_signature() <<"\n\n\n";
 #endif
-      this->set_arg_types({matched_data_type});
-      this->set_ret_type(matched_data_type);
+      this->set_arg_types({kTYPEUNKNOWN});
+      this->set_ret_type(kTYPEUNKNOWN);
       return;
+    }
+
+    // If the hinted type is pure CSTRING, use TEXT instead.
+    if (matched_data_type.get_data_type_enum() == kTYPECSTRING) {
+      matched_data_type.set_data_type(kTYPETEXT);
     }
 
     for (int i = 0; i < this->arg_types.size(); i++) {
