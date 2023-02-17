@@ -143,7 +143,7 @@ class OprSig {
   // store the operator signature information
 public:
   double get_success_rate() const {
-    return double(execute_success) / double(execute_success + execute_error);
+    return 100.0 * double(execute_success) / double(execute_success + execute_error);
   }
   int get_execute_success() const { return execute_success; }
   int get_execute_error() const { return execute_error; }

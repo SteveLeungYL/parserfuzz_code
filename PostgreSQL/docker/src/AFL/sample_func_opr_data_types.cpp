@@ -3,7 +3,7 @@
 // opr_type_lib, test them in the DBMS, and retrieve the testing information
 // into a JSON file.
 
-#define DEBUG
+//#define DEBUG
 #define LOGGING
 
 #include <fstream>
@@ -210,7 +210,7 @@ void print_func_sample_testing(const vector<FuncSig> &v_func_sig) {
   cout << "\n\n\nRES: \n";
   for (const FuncSig &cur_func : v_func_sig) {
     cout << "For func: " << cur_func.get_func_name()
-         << ", getting success rate: " << to_string(cur_func.get_success_rate())
+         << ", getting success rate: " << to_string( cur_func.get_success_rate())
          << "%\n\n";
     total_success += cur_func.get_execute_success();
     total_fail += cur_func.get_execute_error();
@@ -345,7 +345,7 @@ void do_opr_sample_testing(vector<OprSig> &v_opr_sig) {
     }
 
 #ifdef LOGGING
-    cerr << "For oprator: " << cur_opr.get_opr_signature()
+    cerr << "For operator: " << cur_opr.get_opr_signature()
          << ", getting success rate: " << to_string(cur_opr.get_success_rate())
          << "%\n";
     total_success += cur_opr.get_execute_success();
