@@ -1549,11 +1549,11 @@ using std::string;
   V(TYPEUUID)                                                                  \
   V(TYPEOID)                                                                   \
   /* Separator line. Do not auto generate the types below this line. */        \
-  V(TYPETSQUERY)                                                               \
-  V(TYPETSVECTOR)                                                              \
   V(TYPECSTRING)                                                               \
   /* Separator line. Do not support the types below this line. */              \
-  V(TYPENOTSUPPORT)                                                                             \
+  V(TYPENOTSUPPORT)                                                            \
+  V(TYPETSQUERY)                                                               \
+  V(TYPETSVECTOR)                                                              \
   V(TYPETXIDSNAPSHOT)                                                          \
   V(TYPEXML)                                                                   \
   V(TYPEENUM)                                                                  \
