@@ -1,0 +1,332 @@
+help_category_id	grab_signature(description)
+5	asymmetric_decrypt(algorithm, crypt_str, key_str)
+5	asymmetric_derive(pub_key_str, priv_key_str)
+5	asymmetric_encrypt(algorithm, str, key_str)
+5	asymmetric_sign(algorithm, digest_str, priv_key_str, digest_type)
+5	asymmetric_verify(algorithm, digest_str, sig_str, pub_key_str,
+5	create_asymmetric_priv_key(algorithm, {key_len|dh_secret})
+5	create_asymmetric_pub_key(algorithm, priv_key_str)
+5	create_dh_parameters(key_len)
+5	create_digest(digest_type, str)
+10	=
+10	<=>
+10	<>, !=
+10	<=
+10	<
+10	>=
+10	>
+10	expr BETWEEN min AND max
+10	expr NOT BETWEEN min AND max
+10	COALESCE(value,...)
+10	GREATEST(value1,value2,...)
+10	expr IN (value,...)
+10	expr NOT IN (value,...)
+10	INTERVAL(N,N1,N2,N3,...)
+10	IS boolean_value
+10	IS NOT boolean_value
+10	IS NULL
+10	IS NOT NULL
+10	ISNULL(expr)
+10	LEAST(value1,value2,...)
+11	NOT, !
+11	AND, &&
+11	OR, ||
+11	XOR
+11	:=
+11	=
+12	CASE value WHEN compare_value THEN result [WHEN compare_value THEN
+12	IF(expr1,expr2,expr3)
+12	IFNULL(expr1,expr2)
+12	NULLIF(expr1,expr2)
+13	+
+13	-
+13	-
+13	*
+13	/
+13	DIV
+13	N % M, N MOD M
+13	ABS(X)
+13	ACOS(X)
+13	ASIN(X)
+13	ATAN(X)
+13	ATAN(Y,X), ATAN2(Y,X)
+13	CEIL(X)
+13	CEILING(X)
+13	CONV(N,from_base,to_base)
+13	COS(X)
+13	COT(X)
+13	CRC32(expr)
+13	DEGREES(X)
+13	EXP(X)
+13	FLOOR(X)
+13	LN(X)
+13	LOG(X), LOG(B,X)
+13	LOG2(X)
+13	LOG10(X)
+13	MOD(N,M), N % M, N MOD M
+13	PI()
+13	POW(X,Y)
+13	POWER(X,Y)
+13	RADIANS(X)
+13	RAND([N])
+13	ROUND(X), ROUND(X,D)
+13	SIGN(X)
+13	SIN(X)
+13	SQRT(X)
+13	TAN(X)
+13	TRUNCATE(X,D)
+14	ADDDATE(date,INTERVAL expr unit), ADDDATE(date,days)
+14	ADDTIME(expr1,expr2)
+14	CONVERT_TZ(dt,from_tz,to_tz)
+14	CURDATE()
+14	CURRENT_DATE, CURRENT_DATE()
+14	CURRENT_TIME, CURRENT_TIME([fsp])
+14	CURRENT_TIMESTAMP, CURRENT_TIMESTAMP([fsp])
+14	CURTIME([fsp])
+14	DATE(expr)
+14	DATEDIFF(expr1,expr2)
+14	DATE_ADD(date,INTERVAL expr unit), DATE_SUB(date,INTERVAL expr unit)
+14	DATE_FORMAT(date,format)
+14	DATE_SUB(date,INTERVAL expr unit)
+14	DAY(date)
+14	DAYNAME(date)
+14	DAYOFMONTH(date)
+14	DAYOFWEEK(date)
+14	DAYOFYEAR(date)
+14	EXTRACT(unit FROM date)
+14	FROM_DAYS(N)
+14	FROM_UNIXTIME(unix_timestamp[,format])
+14	GET_FORMAT({DATE|TIME|DATETIME}, {'EUR'|'USA'|'JIS'|'ISO'|'INTERNAL'})
+14	HOUR(time)
+14	LAST_DAY(date)
+14	LOCALTIME, LOCALTIME([fsp])
+14	LOCALTIMESTAMP, LOCALTIMESTAMP([fsp])
+14	MAKEDATE(year,dayofyear)
+14	MAKETIME(hour,minute,second)
+14	MICROSECOND(expr)
+14	MINUTE(time)
+14	MONTH(date)
+14	MONTHNAME(date)
+14	NOW([fsp])
+14	PERIOD_ADD(P,N)
+14	PERIOD_DIFF(P1,P2)
+14	QUARTER(date)
+14	SECOND(time)
+14	SEC_TO_TIME(seconds)
+14	STR_TO_DATE(str,format)
+14	SUBDATE(date,INTERVAL expr unit), SUBDATE(expr,days)
+14	SUBTIME(expr1,expr2)
+14	SYSDATE([fsp])
+14	TIME(expr)
+14	TIMEDIFF(expr1,expr2)
+14	TIMESTAMP(expr), TIMESTAMP(expr1,expr2)
+14	TIMESTAMPADD(unit,interval,datetime_expr)
+14	TIMESTAMPDIFF(unit,datetime_expr1,datetime_expr2)
+14	TIME_FORMAT(time,format)
+14	TIME_TO_SEC(time)
+14	TO_DAYS(date)
+14	TO_SECONDS(expr)
+14	UNIX_TIMESTAMP([date])
+14	UTC_DATE, UTC_DATE()
+14	UTC_TIME, UTC_TIME([fsp])
+14	UTC_TIMESTAMP, UTC_TIMESTAMP([fsp])
+14	WEEK(date[,mode])
+14	WEEKDAY(date)
+14	WEEKOFYEAR(date)
+14	YEAR(date)
+14	YEARWEEK(date), YEARWEEK(date,mode)
+15	ASCII(str)
+15	BIN(N)
+15	BIT_LENGTH(str)
+15	CHAR(N,... [USING charset_name])
+15	CHAR_LENGTH(str)
+15	CHARACTER_LENGTH(str)
+15	CONCAT(str1,str2,...)
+15	CONCAT_WS(separator,str1,str2,...)
+15	ELT(N,str1,str2,str3,...)
+15	EXPORT_SET(bits,on,off[,separator[,number_of_bits]])
+15	FIELD(str,str1,str2,str3,...)
+15	FIND_IN_SET(str,strlist)
+15	FORMAT(X,D[,locale])
+15	FROM_BASE64(str)
+15	HEX(str), HEX(N)
+15	INSERT(str,pos,len,newstr)
+15	INSTR(str,substr)
+15	LCASE(str)
+15	LEFT(str,len)
+15	LENGTH(str)
+15	LOAD_FILE(file_name)
+15	LOCATE(substr,str), LOCATE(substr,str,pos)
+15	LOWER(str)
+15	LPAD(str,len,padstr)
+15	LTRIM(str)
+15	MAKE_SET(bits,str1,str2,...)
+15	MID(str,pos,len)
+15	OCT(N)
+15	OCTET_LENGTH(str)
+15	ORD(str)
+15	POSITION(substr IN str)
+15	QUOTE(str)
+15	REPEAT(str,count)
+15	REPLACE(str,from_str,to_str)
+15	REVERSE(str)
+15	RIGHT(str,len)
+15	RPAD(str,len,padstr)
+15	RTRIM(str)
+15	SOUNDEX(str)
+15	expr1 SOUNDS LIKE expr2
+15	SPACE(N)
+15	SUBSTR(str,pos), SUBSTR(str FROM pos), SUBSTR(str,pos,len), SUBSTR(str
+15	SUBSTRING(str,pos), SUBSTRING(str FROM pos), SUBSTRING(str,pos,len),
+15	SUBSTRING_INDEX(str,delim,count)
+15	TO_BASE64(str)
+15	TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str), TRIM([remstr
+15	UCASE(str)
+15	UNHEX(str)
+15	UPPER(str)
+15	WEIGHT_STRING(str [AS {CHAR|BINARY}(N)] [flags])
+15	expr LIKE pat [ESCAPE 'escape_char']
+15	expr NOT LIKE pat [ESCAPE 'escape_char']
+15	STRCMP(expr1,expr2)
+15	expr NOT REGEXP pat, expr NOT RLIKE pat
+15	expr REGEXP pat, expr RLIKE pat
+15	REGEXP_INSTR(expr, pat[, pos[, occurrence[, return_option[,
+15	REGEXP_LIKE(expr, pat[, match_type])
+15	REGEXP_REPLACE(expr, pat, repl[, pos[, occurrence[, match_type]]])
+15	REGEXP_SUBSTR(expr, pat[, pos[, occurrence[, match_type]]])
+15	MATCH (col1,col2,...) AGAINST (expr [search_modifier])
+16	BINARY expr
+16	CAST(expr AS type [ARRAY])
+16	CONVERT(expr USING transcoding_name)
+17	ExtractValue(xml_frag, xpath_expr)
+17	UpdateXML(xml_target, xpath_expr, new_xml)
+18	|
+18	&
+18	^
+18	<<
+18	>>
+18	~
+18	BIT_COUNT(N)
+19	AES_DECRYPT(crypt_str,key_str[,init_vector])
+19	AES_ENCRYPT(str,key_str[,init_vector])
+19	COMPRESS(string_to_compress)
+19	MD5(str)
+19	RANDOM_BYTES(len)
+19	SHA1(str), SHA(str)
+19	SHA2(str, hash_length)
+19	STATEMENT_DIGEST(statement)
+19	STATEMENT_DIGEST_TEXT(statement)
+19	UNCOMPRESS(string_to_uncompress)
+19	UNCOMPRESSED_LENGTH(compressed_string)
+19	VALIDATE_PASSWORD_STRENGTH(str)
+20	GET_LOCK(str,timeout)
+20	IS_FREE_LOCK(str)
+20	IS_USED_LOCK(str)
+20	RELEASE_ALL_LOCKS()
+20	RELEASE_LOCK(str)
+21	BENCHMARK(count,expr)
+21	CHARSET(str)
+21	COERCIBILITY(str)
+21	COLLATION(str)
+21	CONNECTION_ID()
+21	CURRENT_ROLE()
+21	CURRENT_USER, CURRENT_USER()
+21	DATABASE()
+21	FOUND_ROWS()
+21	ICU_VERSION()
+21	LAST_INSERT_ID(), LAST_INSERT_ID(expr)
+21	ROLES_GRAPHML()
+21	ROW_COUNT()
+21	SCHEMA()
+21	SESSION_USER()
+21	SYSTEM_USER()
+21	USER()
+21	VERSION()
+33	GTID_SUBSET(set1,set2)
+33	GTID_SUBTRACT(set1,set2)
+33	WAIT_FOR_EXECUTED_GTID_SET(gtid_set[, timeout])
+33	WAIT_UNTIL_SQL_THREAD_AFTER_GTIDS(gtid_set[, timeout][,channel])
+34	AVG([DISTINCT] expr) [over_clause]
+34	BIT_AND(expr) [over_clause]
+34	BIT_OR(expr) [over_clause]
+34	BIT_XOR(expr) [over_clause]
+34	COUNT(expr) [over_clause]
+34	COUNT(DISTINCT expr,[expr...])
+34	GROUP_CONCAT(expr)
+34	JSON_ARRAYAGG(col_or_expr) [over_clause]
+34	JSON_OBJECTAGG(key, value) [over_clause]
+34	MAX([DISTINCT] expr) [over_clause]
+34	MIN([DISTINCT] expr) [over_clause]
+34	STD(expr) [over_clause]
+34	STDDEV(expr) [over_clause]
+34	STDDEV_POP(expr) [over_clause]
+34	STDDEV_SAMP(expr) [over_clause]
+34	SUM([DISTINCT] expr) [over_clause]
+34	VAR_POP(expr) [over_clause]
+34	VAR_SAMP(expr) [over_clause]
+34	VARIANCE(expr) [over_clause]
+36	CUME_DIST() over_clause
+36	DENSE_RANK() over_clause
+36	FIRST_VALUE(expr) [null_treatment] over_clause
+36	LAG(expr [, N[, default]]) [null_treatment] over_clause
+36	LAST_VALUE(expr) [null_treatment] over_clause
+36	LEAD(expr [, N[, default]]) [null_treatment] over_clause
+36	NTH_VALUE(expr, N) [from_first_last] [null_treatment] over_clause
+36	NTILE(N) over_clause
+36	PERCENT_RANK() over_clause
+36	RANK() over_clause
+36	ROW_NUMBER() over_clause
+37	FORMAT_BYTES(count)
+37	FORMAT_PICO_TIME(time_val)
+37	PS_CURRENT_THREAD_ID()
+37	PS_THREAD_ID(connection_id)
+38	CAN_ACCESS_COLUMN(ARGS)
+38	CAN_ACCESS_DATABASE(ARGS)
+38	CAN_ACCESS_TABLE(ARGS)
+38	CAN_ACCESS_USER(ARGS)
+38	CAN_ACCESS_VIEW(ARGS)
+38	GET_DD_COLUMN_PRIVILEGES(ARGS)
+38	GET_DD_CREATE_OPTIONS(ARGS)
+38	GET_DD_INDEX_SUB_PART_LENGTH(ARGS)
+38	INTERNAL_AUTO_INCREMENT(ARGS)
+38	INTERNAL_AVG_ROW_LENGTH(ARGS)
+38	INTERNAL_CHECK_TIME(ARGS)
+38	INTERNAL_CHECKSUM(ARGS)
+38	INTERNAL_DATA_FREE(ARGS)
+38	INTERNAL_DATA_LENGTH(ARGS)
+38	INTERNAL_DD_CHAR_LENGTH(ARGS)
+38	INTERNAL_GET_COMMENT_OR_ERROR(ARGS)
+38	INTERNAL_GET_ENABLED_ROLE_JSON(ARGS)
+38	INTERNAL_GET_HOSTNAME(ARGS)
+38	INTERNAL_GET_USERNAME(ARGS)
+38	INTERNAL_GET_VIEW_WARNING_OR_ERROR(ARGS)
+38	INTERNAL_INDEX_COLUMN_CARDINALITY(ARGS)
+38	INTERNAL_INDEX_LENGTH(ARGS)
+38	INTERNAL_IS_ENABLED_ROLE(ARGS)
+38	INTERNAL_IS_MANDATORY_ROLE(ARGS)
+38	INTERNAL_KEYS_DISABLED(ARGS)
+38	INTERNAL_MAX_DATA_LENGTH(ARGS)
+38	INTERNAL_TABLE_ROWS(ARGS)
+38	INTERNAL_UPDATE_TIME(ARGS)
+38	IS_VISIBLE_DD_OBJECT(ARGS)
+39	ANY_VALUE(arg)
+39	BIN_TO_UUID(binary_uuid), BIN_TO_UUID(binary_uuid, swap_flag)
+39	DEFAULT(col_name)
+39	GROUPING(expr [, expr] ...)
+39	INET_ATON(expr)
+39	INET_NTOA(expr)
+39	INET6_ATON(expr)
+39	INET6_NTOA(expr)
+39	IS_IPV4(expr)
+39	IS_IPV4_COMPAT(expr)
+39	IS_IPV4_MAPPED(expr)
+39	IS_IPV6(expr)
+39	IS_UUID(string_uuid)
+39	MASTER_POS_WAIT(log_name,log_pos[,timeout][,channel])
+39	NAME_CONST(name,value)
+39	SLEEP(duration)
+39	SOURCE_POS_WAIT(log_name,log_pos[,timeout][,channel])
+39	UUID()
+39	UUID_SHORT()
+39	UUID_TO_BIN(string_uuid), UUID_TO_BIN(string_uuid, swap_flag)
+39	VALUES(col_name)
