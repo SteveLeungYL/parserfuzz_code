@@ -24,7 +24,7 @@ void init_all_sig(vector<FuncSig> &v_func_sig) {
 
   int parse_succeed = 0, parse_failed = 0;
 
-  std::ifstream t(FUNC_TYPE_LIB_PATH);
+  std::ifstream t(FUNC_OPER_TYPE_LIB_PATH);
   std::stringstream buffer;
   buffer << t.rdbuf();
 
