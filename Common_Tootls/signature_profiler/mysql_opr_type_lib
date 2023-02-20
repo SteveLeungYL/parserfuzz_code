@@ -1,0 +1,807 @@
+                             oid                             |           oprleft           |          oprright           |          oprresult          
+-------------------------------------------------------------+-----------------------------+-----------------------------+-----------------------------
+ =(integer,bigint)                                           | integer                     | bigint                      | boolean
+ <>(integer,bigint)                                          | integer                     | bigint                      | boolean
+ <(integer,bigint)                                           | integer                     | bigint                      | boolean
+ >(integer,bigint)                                           | integer                     | bigint                      | boolean
+ <=(integer,bigint)                                          | integer                     | bigint                      | boolean
+ >=(integer,bigint)                                          | integer                     | bigint                      | boolean
+ <(boolean,boolean)                                          | boolean                     | boolean                     | boolean
+ >(boolean,boolean)                                          | boolean                     | boolean                     | boolean
+ <>(boolean,boolean)                                         | boolean                     | boolean                     | boolean
+ =(boolean,boolean)                                          | boolean                     | boolean                     | boolean
+ <=(boolean,boolean)                                         | boolean                     | boolean                     | boolean
+ >=(boolean,boolean)                                         | boolean                     | boolean                     | boolean
+ =("char","char")                                            | "char"                      | "char"                      | boolean
+ =(name,name)                                                | name                        | name                        | boolean
+ =(smallint,smallint)                                        | smallint                    | smallint                    | boolean
+ <(smallint,smallint)                                        | smallint                    | smallint                    | boolean
+ =(integer,integer)                                          | integer                     | integer                     | boolean
+ <(integer,integer)                                          | integer                     | integer                     | boolean
+ =(text,text)                                                | text                        | text                        | boolean
+ ^@(text,text)                                               | text                        | text                        | boolean
+ =(name,text)                                                | name                        | text                        | boolean
+ <(name,text)                                                | name                        | text                        | boolean
+ <=(name,text)                                               | name                        | text                        | boolean
+ >=(name,text)                                               | name                        | text                        | boolean
+ >(name,text)                                                | name                        | text                        | boolean
+ <>(name,text)                                               | name                        | text                        | boolean
+ =(text,name)                                                | text                        | name                        | boolean
+ <(text,name)                                                | text                        | name                        | boolean
+ <=(text,name)                                               | text                        | name                        | boolean
+ >=(text,name)                                               | text                        | name                        | boolean
+ >(text,name)                                                | text                        | name                        | boolean
+ <>(text,name)                                               | text                        | name                        | boolean
+ ||(anycompatiblearray,anycompatible)                        | anycompatiblearray          | anycompatible               | anycompatiblearray
+ ||(anycompatible,anycompatiblearray)                        | anycompatible               | anycompatiblearray          | anycompatiblearray
+ ||(anycompatiblearray,anycompatiblearray)                   | anycompatiblearray          | anycompatiblearray          | anycompatiblearray
+ =(xid,xid)                                                  | xid                         | xid                         | boolean
+ =(xid,integer)                                              | xid                         | integer                     | boolean
+ <>(xid,xid)                                                 | xid                         | xid                         | boolean
+ <>(xid,integer)                                             | xid                         | integer                     | boolean
+ =(xid8,xid8)                                                | xid8                        | xid8                        | boolean
+ <>(xid8,xid8)                                               | xid8                        | xid8                        | boolean
+ <(xid8,xid8)                                                | xid8                        | xid8                        | boolean
+ >(xid8,xid8)                                                | xid8                        | xid8                        | boolean
+ <=(xid8,xid8)                                               | xid8                        | xid8                        | boolean
+ >=(xid8,xid8)                                               | xid8                        | xid8                        | boolean
+ =(cid,cid)                                                  | cid                         | cid                         | boolean
+ =(tid,tid)                                                  | tid                         | tid                         | boolean
+ <>(tid,tid)                                                 | tid                         | tid                         | boolean
+ <(tid,tid)                                                  | tid                         | tid                         | boolean
+ >(tid,tid)                                                  | tid                         | tid                         | boolean
+ <=(tid,tid)                                                 | tid                         | tid                         | boolean
+ >=(tid,tid)                                                 | tid                         | tid                         | boolean
+ =(bigint,bigint)                                            | bigint                      | bigint                      | boolean
+ <>(bigint,bigint)                                           | bigint                      | bigint                      | boolean
+ <(bigint,bigint)                                            | bigint                      | bigint                      | boolean
+ >(bigint,bigint)                                            | bigint                      | bigint                      | boolean
+ <=(bigint,bigint)                                           | bigint                      | bigint                      | boolean
+ >=(bigint,bigint)                                           | bigint                      | bigint                      | boolean
+ =(bigint,integer)                                           | bigint                      | integer                     | boolean
+ <>(bigint,integer)                                          | bigint                      | integer                     | boolean
+ <(bigint,integer)                                           | bigint                      | integer                     | boolean
+ >(bigint,integer)                                           | bigint                      | integer                     | boolean
+ <=(bigint,integer)                                          | bigint                      | integer                     | boolean
+ >=(bigint,integer)                                          | bigint                      | integer                     | boolean
+ %(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ @(NONE,bigint)                                              | -                           | bigint                      | bigint
+ -(NONE,bigint)                                              | -                           | bigint                      | bigint
+ <<(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ &<(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ &>(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ >>(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ <@(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ @>(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ ~=(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ &&(polygon,polygon)                                         | polygon                     | polygon                     | boolean
+ <<(box,box)                                                 | box                         | box                         | boolean
+ &<(box,box)                                                 | box                         | box                         | boolean
+ &>(box,box)                                                 | box                         | box                         | boolean
+ >>(box,box)                                                 | box                         | box                         | boolean
+ <@(box,box)                                                 | box                         | box                         | boolean
+ @>(box,box)                                                 | box                         | box                         | boolean
+ ~=(box,box)                                                 | box                         | box                         | boolean
+ &&(box,box)                                                 | box                         | box                         | boolean
+ >=(box,box)                                                 | box                         | box                         | boolean
+ >(box,box)                                                  | box                         | box                         | boolean
+ =(box,box)                                                  | box                         | box                         | boolean
+ <(box,box)                                                  | box                         | box                         | boolean
+ <=(box,box)                                                 | box                         | box                         | boolean
+ >^(point,point)                                             | point                       | point                       | boolean
+ <<(point,point)                                             | point                       | point                       | boolean
+ >>(point,point)                                             | point                       | point                       | boolean
+ <^(point,point)                                             | point                       | point                       | boolean
+ ~=(point,point)                                             | point                       | point                       | boolean
+ <@(point,box)                                               | point                       | box                         | boolean
+ @>(box,point)                                               | box                         | point                       | boolean
+ <@(point,path)                                              | point                       | path                        | boolean
+ @@(NONE,box)                                                | -                           | box                         | point
+ *(integer,integer)                                          | integer                     | integer                     | integer
+ <->(point,point)                                            | point                       | point                       | double precision
+ <>(integer,integer)                                         | integer                     | integer                     | boolean
+ <>(smallint,smallint)                                       | smallint                    | smallint                    | boolean
+ >(smallint,smallint)                                        | smallint                    | smallint                    | boolean
+ >(integer,integer)                                          | integer                     | integer                     | boolean
+ <=(smallint,smallint)                                       | smallint                    | smallint                    | boolean
+ <=(integer,integer)                                         | integer                     | integer                     | boolean
+ >=(smallint,smallint)                                       | smallint                    | smallint                    | boolean
+ >=(integer,integer)                                         | integer                     | integer                     | boolean
+ *(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ /(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ /(integer,integer)                                          | integer                     | integer                     | integer
+ %(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ %(integer,integer)                                          | integer                     | integer                     | integer
+ <>(text,text)                                               | text                        | text                        | boolean
+ =(smallint,integer)                                         | smallint                    | integer                     | boolean
+ =(integer,smallint)                                         | integer                     | smallint                    | boolean
+ <(smallint,integer)                                         | smallint                    | integer                     | boolean
+ <(integer,smallint)                                         | integer                     | smallint                    | boolean
+ >(smallint,integer)                                         | smallint                    | integer                     | boolean
+ >(integer,smallint)                                         | integer                     | smallint                    | boolean
+ <>(smallint,integer)                                        | smallint                    | integer                     | boolean
+ <>(integer,smallint)                                        | integer                     | smallint                    | boolean
+ <=(smallint,integer)                                        | smallint                    | integer                     | boolean
+ <=(integer,smallint)                                        | integer                     | smallint                    | boolean
+ >=(smallint,integer)                                        | smallint                    | integer                     | boolean
+ >=(integer,smallint)                                        | integer                     | smallint                    | boolean
+ *(smallint,integer)                                         | smallint                    | integer                     | integer
+ *(integer,smallint)                                         | integer                     | smallint                    | integer
+ /(smallint,integer)                                         | smallint                    | integer                     | integer
+ /(integer,smallint)                                         | integer                     | smallint                    | integer
+ +(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ +(integer,integer)                                          | integer                     | integer                     | integer
+ +(smallint,integer)                                         | smallint                    | integer                     | integer
+ +(integer,smallint)                                         | integer                     | smallint                    | integer
+ -(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ -(integer,integer)                                          | integer                     | integer                     | integer
+ -(smallint,integer)                                         | smallint                    | integer                     | integer
+ -(integer,smallint)                                         | integer                     | smallint                    | integer
+ -(NONE,integer)                                             | -                           | integer                     | integer
+ -(NONE,smallint)                                            | -                           | smallint                    | smallint
+ -(NONE,real)                                                | -                           | real                        | real
+ -(NONE,double precision)                                    | -                           | double precision            | double precision
+ +(real,real)                                                | real                        | real                        | real
+ -(real,real)                                                | real                        | real                        | real
+ /(real,real)                                                | real                        | real                        | real
+ *(real,real)                                                | real                        | real                        | real
+ @(NONE,real)                                                | -                           | real                        | real
+ +(double precision,double precision)                        | double precision            | double precision            | double precision
+ -(double precision,double precision)                        | double precision            | double precision            | double precision
+ /(double precision,double precision)                        | double precision            | double precision            | double precision
+ *(double precision,double precision)                        | double precision            | double precision            | double precision
+ @(NONE,double precision)                                    | -                           | double precision            | double precision
+ |/(NONE,double precision)                                   | -                           | double precision            | double precision
+ ||/(NONE,double precision)                                  | -                           | double precision            | double precision
+ =(oid,oid)                                                  | oid                         | oid                         | boolean
+ <>(oid,oid)                                                 | oid                         | oid                         | boolean
+ <(oid,oid)                                                  | oid                         | oid                         | boolean
+ >(oid,oid)                                                  | oid                         | oid                         | boolean
+ <=(oid,oid)                                                 | oid                         | oid                         | boolean
+ >=(oid,oid)                                                 | oid                         | oid                         | boolean
+ <>(oidvector,oidvector)                                     | oidvector                   | oidvector                   | boolean
+ <(oidvector,oidvector)                                      | oidvector                   | oidvector                   | boolean
+ >(oidvector,oidvector)                                      | oidvector                   | oidvector                   | boolean
+ <=(oidvector,oidvector)                                     | oidvector                   | oidvector                   | boolean
+ >=(oidvector,oidvector)                                     | oidvector                   | oidvector                   | boolean
+ =(oidvector,oidvector)                                      | oidvector                   | oidvector                   | boolean
+ <->(point,line)                                             | point                       | line                        | double precision
+ <->(line,point)                                             | line                        | point                       | double precision
+ <->(point,lseg)                                             | point                       | lseg                        | double precision
+ <->(lseg,point)                                             | lseg                        | point                       | double precision
+ <->(point,box)                                              | point                       | box                         | double precision
+ <->(box,point)                                              | box                         | point                       | double precision
+ <->(lseg,line)                                              | lseg                        | line                        | double precision
+ <->(line,lseg)                                              | line                        | lseg                        | double precision
+ <->(lseg,box)                                               | lseg                        | box                         | double precision
+ <->(box,lseg)                                               | box                         | lseg                        | double precision
+ <->(point,path)                                             | point                       | path                        | double precision
+ <->(path,point)                                             | path                        | point                       | double precision
+ =(real,real)                                                | real                        | real                        | boolean
+ <>(real,real)                                               | real                        | real                        | boolean
+ <(real,real)                                                | real                        | real                        | boolean
+ >(real,real)                                                | real                        | real                        | boolean
+ <=(real,real)                                               | real                        | real                        | boolean
+ >=(real,real)                                               | real                        | real                        | boolean
+ <>("char","char")                                           | "char"                      | "char"                      | boolean
+ <("char","char")                                            | "char"                      | "char"                      | boolean
+ <=("char","char")                                           | "char"                      | "char"                      | boolean
+ >("char","char")                                            | "char"                      | "char"                      | boolean
+ >=("char","char")                                           | "char"                      | "char"                      | boolean
+ ~(name,text)                                                | name                        | text                        | boolean
+ !~(name,text)                                               | name                        | text                        | boolean
+ ~(text,text)                                                | text                        | text                        | boolean
+ !~(text,text)                                               | text                        | text                        | boolean
+ <>(name,name)                                               | name                        | name                        | boolean
+ ||(text,text)                                               | text                        | text                        | text
+ <(name,name)                                                | name                        | name                        | boolean
+ <=(name,name)                                               | name                        | name                        | boolean
+ >(name,name)                                                | name                        | name                        | boolean
+ >=(name,name)                                               | name                        | name                        | boolean
+ <(text,text)                                                | text                        | text                        | boolean
+ <=(text,text)                                               | text                        | text                        | boolean
+ >(text,text)                                                | text                        | text                        | boolean
+ >=(text,text)                                               | text                        | text                        | boolean
+ =(double precision,double precision)                        | double precision            | double precision            | boolean
+ <>(double precision,double precision)                       | double precision            | double precision            | boolean
+ <(double precision,double precision)                        | double precision            | double precision            | boolean
+ <=(double precision,double precision)                       | double precision            | double precision            | boolean
+ >(double precision,double precision)                        | double precision            | double precision            | boolean
+ >=(double precision,double precision)                       | double precision            | double precision            | boolean
+ @(NONE,smallint)                                            | -                           | smallint                    | smallint
+ +(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ -(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ *(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ /(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ +(bigint,integer)                                           | bigint                      | integer                     | bigint
+ -(bigint,integer)                                           | bigint                      | integer                     | bigint
+ *(bigint,integer)                                           | bigint                      | integer                     | bigint
+ /(bigint,integer)                                           | bigint                      | integer                     | bigint
+ +(integer,bigint)                                           | integer                     | bigint                      | bigint
+ -(integer,bigint)                                           | integer                     | bigint                      | bigint
+ *(integer,bigint)                                           | integer                     | bigint                      | bigint
+ /(integer,bigint)                                           | integer                     | bigint                      | bigint
+ +(bigint,smallint)                                          | bigint                      | smallint                    | bigint
+ -(bigint,smallint)                                          | bigint                      | smallint                    | bigint
+ *(bigint,smallint)                                          | bigint                      | smallint                    | bigint
+ /(bigint,smallint)                                          | bigint                      | smallint                    | bigint
+ +(smallint,bigint)                                          | smallint                    | bigint                      | bigint
+ -(smallint,bigint)                                          | smallint                    | bigint                      | bigint
+ *(smallint,bigint)                                          | smallint                    | bigint                      | bigint
+ /(smallint,bigint)                                          | smallint                    | bigint                      | bigint
+ <->(box,box)                                                | box                         | box                         | double precision
+ <->(path,path)                                              | path                        | path                        | double precision
+ <->(line,line)                                              | line                        | line                        | double precision
+ <->(lseg,lseg)                                              | lseg                        | lseg                        | double precision
+ <->(polygon,polygon)                                        | polygon                     | polygon                     | double precision
+ <>(point,point)                                             | point                       | point                       | boolean
+ +(point,point)                                              | point                       | point                       | point
+ -(point,point)                                              | point                       | point                       | point
+ *(point,point)                                              | point                       | point                       | point
+ /(point,point)                                              | point                       | point                       | point
+ +(path,path)                                                | path                        | path                        | path
+ +(path,point)                                               | path                        | point                       | path
+ -(path,point)                                               | path                        | point                       | path
+ *(path,point)                                               | path                        | point                       | path
+ /(path,point)                                               | path                        | point                       | path
+ @>(path,point)                                              | path                        | point                       | boolean
+ <@(point,polygon)                                           | point                       | polygon                     | boolean
+ @>(polygon,point)                                           | polygon                     | point                       | boolean
+ <@(point,circle)                                            | point                       | circle                      | boolean
+ @>(circle,point)                                            | circle                      | point                       | boolean
+ @(NONE,integer)                                             | -                           | integer                     | integer
+ =(path,path)                                                | path                        | path                        | boolean
+ <(path,path)                                                | path                        | path                        | boolean
+ >(path,path)                                                | path                        | path                        | boolean
+ <=(path,path)                                               | path                        | path                        | boolean
+ >=(path,path)                                               | path                        | path                        | boolean
+ #(NONE,path)                                                | -                           | path                        | integer
+ ?#(path,path)                                               | path                        | path                        | boolean
+ @-@(NONE,path)                                              | -                           | path                        | double precision
+ >^(box,box)                                                 | box                         | box                         | boolean
+ <^(box,box)                                                 | box                         | box                         | boolean
+ ?#(box,box)                                                 | box                         | box                         | boolean
+ #(box,box)                                                  | box                         | box                         | box
+ +(box,point)                                                | box                         | point                       | box
+ -(box,point)                                                | box                         | point                       | box
+ *(box,point)                                                | box                         | point                       | box
+ /(box,point)                                                | box                         | point                       | box
+ ?-(point,point)                                             | point                       | point                       | boolean
+ ?|(point,point)                                             | point                       | point                       | boolean
+ *(money,real)                                               | money                       | real                        | money
+ /(money,real)                                               | money                       | real                        | money
+ *(real,money)                                               | real                        | money                       | money
+ =(money,money)                                              | money                       | money                       | boolean
+ <>(money,money)                                             | money                       | money                       | boolean
+ <(money,money)                                              | money                       | money                       | boolean
+ >(money,money)                                              | money                       | money                       | boolean
+ <=(money,money)                                             | money                       | money                       | boolean
+ >=(money,money)                                             | money                       | money                       | boolean
+ +(money,money)                                              | money                       | money                       | money
+ -(money,money)                                              | money                       | money                       | money
+ *(money,double precision)                                   | money                       | double precision            | money
+ /(money,double precision)                                   | money                       | double precision            | money
+ *(money,bigint)                                             | money                       | bigint                      | money
+ /(money,bigint)                                             | money                       | bigint                      | money
+ *(money,integer)                                            | money                       | integer                     | money
+ /(money,integer)                                            | money                       | integer                     | money
+ *(money,smallint)                                           | money                       | smallint                    | money
+ /(money,smallint)                                           | money                       | smallint                    | money
+ *(double precision,money)                                   | double precision            | money                       | money
+ *(bigint,money)                                             | bigint                      | money                       | money
+ *(integer,money)                                            | integer                     | money                       | money
+ *(smallint,money)                                           | smallint                    | money                       | money
+ /(money,money)                                              | money                       | money                       | double precision
+ ^(double precision,double precision)                        | double precision            | double precision            | double precision
+ +(aclitem[],aclitem)                                        | aclitem[]                   | aclitem                     | aclitem[]
+ -(aclitem[],aclitem)                                        | aclitem[]                   | aclitem                     | aclitem[]
+ @>(aclitem[],aclitem)                                       | aclitem[]                   | aclitem                     | boolean
+ =(aclitem,aclitem)                                          | aclitem                     | aclitem                     | boolean
+ @@(NONE,lseg)                                               | -                           | lseg                        | point
+ @@(NONE,path)                                               | -                           | path                        | point
+ @@(NONE,polygon)                                            | -                           | polygon                     | point
+ =(character,character)                                      | character                   | character                   | boolean
+ ~(character,text)                                           | character                   | text                        | boolean
+ !~(character,text)                                          | character                   | text                        | boolean
+ <>(character,character)                                     | character                   | character                   | boolean
+ <(character,character)                                      | character                   | character                   | boolean
+ <=(character,character)                                     | character                   | character                   | boolean
+ >(character,character)                                      | character                   | character                   | boolean
+ >=(character,character)                                     | character                   | character                   | boolean
+ =(anyarray,anyarray)                                        | anyarray                    | anyarray                    | boolean
+ <>(anyarray,anyarray)                                       | anyarray                    | anyarray                    | boolean
+ <(anyarray,anyarray)                                        | anyarray                    | anyarray                    | boolean
+ >(anyarray,anyarray)                                        | anyarray                    | anyarray                    | boolean
+ <=(anyarray,anyarray)                                       | anyarray                    | anyarray                    | boolean
+ >=(anyarray,anyarray)                                       | anyarray                    | anyarray                    | boolean
+ +(date,interval)                                            | date                        | interval                    | timestamp without time zone
+ -(date,interval)                                            | date                        | interval                    | timestamp without time zone
+ =(date,date)                                                | date                        | date                        | boolean
+ <>(date,date)                                               | date                        | date                        | boolean
+ <(date,date)                                                | date                        | date                        | boolean
+ <=(date,date)                                               | date                        | date                        | boolean
+ >(date,date)                                                | date                        | date                        | boolean
+ >=(date,date)                                               | date                        | date                        | boolean
+ -(date,date)                                                | date                        | date                        | integer
+ +(date,integer)                                             | date                        | integer                     | date
+ -(date,integer)                                             | date                        | integer                     | date
+ =(time without time zone,time without time zone)            | time without time zone      | time without time zone      | boolean
+ <>(time without time zone,time without time zone)           | time without time zone      | time without time zone      | boolean
+ <(time without time zone,time without time zone)            | time without time zone      | time without time zone      | boolean
+ <=(time without time zone,time without time zone)           | time without time zone      | time without time zone      | boolean
+ >(time without time zone,time without time zone)            | time without time zone      | time without time zone      | boolean
+ >=(time without time zone,time without time zone)           | time without time zone      | time without time zone      | boolean
+ =(time with time zone,time with time zone)                  | time with time zone         | time with time zone         | boolean
+ <>(time with time zone,time with time zone)                 | time with time zone         | time with time zone         | boolean
+ <(time with time zone,time with time zone)                  | time with time zone         | time with time zone         | boolean
+ <=(time with time zone,time with time zone)                 | time with time zone         | time with time zone         | boolean
+ >(time with time zone,time with time zone)                  | time with time zone         | time with time zone         | boolean
+ >=(time with time zone,time with time zone)                 | time with time zone         | time with time zone         | boolean
+ +(real,double precision)                                    | real                        | double precision            | double precision
+ -(real,double precision)                                    | real                        | double precision            | double precision
+ /(real,double precision)                                    | real                        | double precision            | double precision
+ *(real,double precision)                                    | real                        | double precision            | double precision
+ =(real,double precision)                                    | real                        | double precision            | boolean
+ <>(real,double precision)                                   | real                        | double precision            | boolean
+ <(real,double precision)                                    | real                        | double precision            | boolean
+ >(real,double precision)                                    | real                        | double precision            | boolean
+ <=(real,double precision)                                   | real                        | double precision            | boolean
+ >=(real,double precision)                                   | real                        | double precision            | boolean
+ +(double precision,real)                                    | double precision            | real                        | double precision
+ -(double precision,real)                                    | double precision            | real                        | double precision
+ /(double precision,real)                                    | double precision            | real                        | double precision
+ *(double precision,real)                                    | double precision            | real                        | double precision
+ =(double precision,real)                                    | double precision            | real                        | boolean
+ <>(double precision,real)                                   | double precision            | real                        | boolean
+ <(double precision,real)                                    | double precision            | real                        | boolean
+ >(double precision,real)                                    | double precision            | real                        | boolean
+ <=(double precision,real)                                   | double precision            | real                        | boolean
+ >=(double precision,real)                                   | double precision            | real                        | boolean
+ ~~(name,text)                                               | name                        | text                        | boolean
+ !~~(name,text)                                              | name                        | text                        | boolean
+ ~~(text,text)                                               | text                        | text                        | boolean
+ !~~(text,text)                                              | text                        | text                        | boolean
+ ~~(character,text)                                          | character                   | text                        | boolean
+ !~~(character,text)                                         | character                   | text                        | boolean
+ ~*(name,text)                                               | name                        | text                        | boolean
+ !~*(name,text)                                              | name                        | text                        | boolean
+ ~*(text,text)                                               | text                        | text                        | boolean
+ !~*(text,text)                                              | text                        | text                        | boolean
+ ~*(character,text)                                          | character                   | text                        | boolean
+ !~*(character,text)                                         | character                   | text                        | boolean
+ =(timestamp with time zone,timestamp with time zone)        | timestamp with time zone    | timestamp with time zone    | boolean
+ <>(timestamp with time zone,timestamp with time zone)       | timestamp with time zone    | timestamp with time zone    | boolean
+ <(timestamp with time zone,timestamp with time zone)        | timestamp with time zone    | timestamp with time zone    | boolean
+ <=(timestamp with time zone,timestamp with time zone)       | timestamp with time zone    | timestamp with time zone    | boolean
+ >(timestamp with time zone,timestamp with time zone)        | timestamp with time zone    | timestamp with time zone    | boolean
+ >=(timestamp with time zone,timestamp with time zone)       | timestamp with time zone    | timestamp with time zone    | boolean
+ +(timestamp with time zone,interval)                        | timestamp with time zone    | interval                    | timestamp with time zone
+ -(timestamp with time zone,timestamp with time zone)        | timestamp with time zone    | timestamp with time zone    | interval
+ -(timestamp with time zone,interval)                        | timestamp with time zone    | interval                    | timestamp with time zone
+ =(interval,interval)                                        | interval                    | interval                    | boolean
+ <>(interval,interval)                                       | interval                    | interval                    | boolean
+ <(interval,interval)                                        | interval                    | interval                    | boolean
+ <=(interval,interval)                                       | interval                    | interval                    | boolean
+ >(interval,interval)                                        | interval                    | interval                    | boolean
+ >=(interval,interval)                                       | interval                    | interval                    | boolean
+ -(NONE,interval)                                            | -                           | interval                    | interval
+ +(interval,interval)                                        | interval                    | interval                    | interval
+ -(interval,interval)                                        | interval                    | interval                    | interval
+ +(date,time without time zone)                              | date                        | time without time zone      | timestamp without time zone
+ +(date,time with time zone)                                 | date                        | time with time zone         | timestamp with time zone
+ +(time without time zone,date)                              | time without time zone      | date                        | timestamp without time zone
+ +(time with time zone,date)                                 | time with time zone         | date                        | timestamp with time zone
+ -(time without time zone,time without time zone)            | time without time zone      | time without time zone      | interval
+ @@(NONE,circle)                                             | -                           | circle                      | point
+ =(circle,circle)                                            | circle                      | circle                      | boolean
+ <>(circle,circle)                                           | circle                      | circle                      | boolean
+ <(circle,circle)                                            | circle                      | circle                      | boolean
+ >(circle,circle)                                            | circle                      | circle                      | boolean
+ <=(circle,circle)                                           | circle                      | circle                      | boolean
+ >=(circle,circle)                                           | circle                      | circle                      | boolean
+ <<(circle,circle)                                           | circle                      | circle                      | boolean
+ &<(circle,circle)                                           | circle                      | circle                      | boolean
+ &>(circle,circle)                                           | circle                      | circle                      | boolean
+ >>(circle,circle)                                           | circle                      | circle                      | boolean
+ <@(circle,circle)                                           | circle                      | circle                      | boolean
+ @>(circle,circle)                                           | circle                      | circle                      | boolean
+ ~=(circle,circle)                                           | circle                      | circle                      | boolean
+ &&(circle,circle)                                           | circle                      | circle                      | boolean
+ |>>(circle,circle)                                          | circle                      | circle                      | boolean
+ <<|(circle,circle)                                          | circle                      | circle                      | boolean
+ +(circle,point)                                             | circle                      | point                       | circle
+ -(circle,point)                                             | circle                      | point                       | circle
+ *(circle,point)                                             | circle                      | point                       | circle
+ /(circle,point)                                             | circle                      | point                       | circle
+ <->(circle,circle)                                          | circle                      | circle                      | double precision
+ #(NONE,polygon)                                             | -                           | polygon                     | integer
+ <->(point,circle)                                           | point                       | circle                      | double precision
+ <->(circle,point)                                           | circle                      | point                       | double precision
+ <->(point,polygon)                                          | point                       | polygon                     | double precision
+ <->(polygon,point)                                          | polygon                     | point                       | double precision
+ <->(circle,polygon)                                         | circle                      | polygon                     | double precision
+ <->(polygon,circle)                                         | polygon                     | circle                      | double precision
+ <->(line,box)                                               | line                        | box                         | double precision
+ <->(box,line)                                               | box                         | line                        | double precision
+ ?#(lseg,lseg)                                               | lseg                        | lseg                        | boolean
+ ?||(lseg,lseg)                                              | lseg                        | lseg                        | boolean
+ ?-|(lseg,lseg)                                              | lseg                        | lseg                        | boolean
+ ?-(NONE,lseg)                                               | -                           | lseg                        | boolean
+ ?|(NONE,lseg)                                               | -                           | lseg                        | boolean
+ =(lseg,lseg)                                                | lseg                        | lseg                        | boolean
+ #(lseg,lseg)                                                | lseg                        | lseg                        | point
+ ?#(lseg,line)                                               | lseg                        | line                        | boolean
+ ?#(lseg,box)                                                | lseg                        | box                         | boolean
+ ?#(line,box)                                                | line                        | box                         | boolean
+ <@(point,line)                                              | point                       | line                        | boolean
+ <@(point,lseg)                                              | point                       | lseg                        | boolean
+ <@(lseg,line)                                               | lseg                        | line                        | boolean
+ <@(lseg,box)                                                | lseg                        | box                         | boolean
+ ##(point,line)                                              | point                       | line                        | point
+ ##(point,lseg)                                              | point                       | lseg                        | point
+ ##(point,box)                                               | point                       | box                         | point
+ ##(lseg,line)                                               | lseg                        | line                        | point
+ ##(lseg,box)                                                | lseg                        | box                         | point
+ ##(line,box)                                                | line                        | box                         | point
+ ##(line,lseg)                                               | line                        | lseg                        | point
+ ##(lseg,lseg)                                               | lseg                        | lseg                        | point
+ *(interval,double precision)                                | interval                    | double precision            | interval
+ *(double precision,interval)                                | double precision            | interval                    | interval
+ /(interval,double precision)                                | interval                    | double precision            | interval
+ <>(lseg,lseg)                                               | lseg                        | lseg                        | boolean
+ <(lseg,lseg)                                                | lseg                        | lseg                        | boolean
+ <=(lseg,lseg)                                               | lseg                        | lseg                        | boolean
+ >(lseg,lseg)                                                | lseg                        | lseg                        | boolean
+ >=(lseg,lseg)                                               | lseg                        | lseg                        | boolean
+ @-@(NONE,lseg)                                              | -                           | lseg                        | double precision
+ ?#(line,line)                                               | line                        | line                        | boolean
+ ?||(line,line)                                              | line                        | line                        | boolean
+ ?-|(line,line)                                              | line                        | line                        | boolean
+ ?-(NONE,line)                                               | -                           | line                        | boolean
+ ?|(NONE,line)                                               | -                           | line                        | boolean
+ =(line,line)                                                | line                        | line                        | boolean
+ #(line,line)                                                | line                        | line                        | point
+ |>>(point,point)                                            | point                       | point                       | boolean
+ <<|(point,point)                                            | point                       | point                       | boolean
+ =(macaddr,macaddr)                                          | macaddr                     | macaddr                     | boolean
+ <>(macaddr,macaddr)                                         | macaddr                     | macaddr                     | boolean
+ <(macaddr,macaddr)                                          | macaddr                     | macaddr                     | boolean
+ <=(macaddr,macaddr)                                         | macaddr                     | macaddr                     | boolean
+ >(macaddr,macaddr)                                          | macaddr                     | macaddr                     | boolean
+ >=(macaddr,macaddr)                                         | macaddr                     | macaddr                     | boolean
+ ~(NONE,macaddr)                                             | -                           | macaddr                     | macaddr
+ &(macaddr,macaddr)                                          | macaddr                     | macaddr                     | macaddr
+ |(macaddr,macaddr)                                          | macaddr                     | macaddr                     | macaddr
+ =(macaddr8,macaddr8)                                        | macaddr8                    | macaddr8                    | boolean
+ <>(macaddr8,macaddr8)                                       | macaddr8                    | macaddr8                    | boolean
+ <(macaddr8,macaddr8)                                        | macaddr8                    | macaddr8                    | boolean
+ <=(macaddr8,macaddr8)                                       | macaddr8                    | macaddr8                    | boolean
+ >(macaddr8,macaddr8)                                        | macaddr8                    | macaddr8                    | boolean
+ >=(macaddr8,macaddr8)                                       | macaddr8                    | macaddr8                    | boolean
+ ~(NONE,macaddr8)                                            | -                           | macaddr8                    | macaddr8
+ &(macaddr8,macaddr8)                                        | macaddr8                    | macaddr8                    | macaddr8
+ |(macaddr8,macaddr8)                                        | macaddr8                    | macaddr8                    | macaddr8
+ =(inet,inet)                                                | inet                        | inet                        | boolean
+ <>(inet,inet)                                               | inet                        | inet                        | boolean
+ <(inet,inet)                                                | inet                        | inet                        | boolean
+ <=(inet,inet)                                               | inet                        | inet                        | boolean
+ >(inet,inet)                                                | inet                        | inet                        | boolean
+ >=(inet,inet)                                               | inet                        | inet                        | boolean
+ <<(inet,inet)                                               | inet                        | inet                        | boolean
+ <<=(inet,inet)                                              | inet                        | inet                        | boolean
+ >>(inet,inet)                                               | inet                        | inet                        | boolean
+ >>=(inet,inet)                                              | inet                        | inet                        | boolean
+ &&(inet,inet)                                               | inet                        | inet                        | boolean
+ ~(NONE,inet)                                                | -                           | inet                        | inet
+ &(inet,inet)                                                | inet                        | inet                        | inet
+ |(inet,inet)                                                | inet                        | inet                        | inet
+ +(inet,bigint)                                              | inet                        | bigint                      | inet
+ +(bigint,inet)                                              | bigint                      | inet                        | inet
+ -(inet,bigint)                                              | inet                        | bigint                      | inet
+ -(inet,inet)                                                | inet                        | inet                        | bigint
+ ~~*(name,text)                                              | name                        | text                        | boolean
+ !~~*(name,text)                                             | name                        | text                        | boolean
+ ~~*(text,text)                                              | text                        | text                        | boolean
+ !~~*(text,text)                                             | text                        | text                        | boolean
+ ~~*(character,text)                                         | character                   | text                        | boolean
+ !~~*(character,text)                                        | character                   | text                        | boolean
+ -(NONE,numeric)                                             | -                           | numeric                     | numeric
+ =(numeric,numeric)                                          | numeric                     | numeric                     | boolean
+ <>(numeric,numeric)                                         | numeric                     | numeric                     | boolean
+ <(numeric,numeric)                                          | numeric                     | numeric                     | boolean
+ <=(numeric,numeric)                                         | numeric                     | numeric                     | boolean
+ >(numeric,numeric)                                          | numeric                     | numeric                     | boolean
+ >=(numeric,numeric)                                         | numeric                     | numeric                     | boolean
+ +(numeric,numeric)                                          | numeric                     | numeric                     | numeric
+ -(numeric,numeric)                                          | numeric                     | numeric                     | numeric
+ *(numeric,numeric)                                          | numeric                     | numeric                     | numeric
+ /(numeric,numeric)                                          | numeric                     | numeric                     | numeric
+ %(numeric,numeric)                                          | numeric                     | numeric                     | numeric
+ ^(numeric,numeric)                                          | numeric                     | numeric                     | numeric
+ @(NONE,numeric)                                             | -                           | numeric                     | numeric
+ =(bit,bit)                                                  | bit                         | bit                         | boolean
+ <>(bit,bit)                                                 | bit                         | bit                         | boolean
+ <(bit,bit)                                                  | bit                         | bit                         | boolean
+ >(bit,bit)                                                  | bit                         | bit                         | boolean
+ <=(bit,bit)                                                 | bit                         | bit                         | boolean
+ >=(bit,bit)                                                 | bit                         | bit                         | boolean
+ &(bit,bit)                                                  | bit                         | bit                         | bit
+ |(bit,bit)                                                  | bit                         | bit                         | bit
+ #(bit,bit)                                                  | bit                         | bit                         | bit
+ ~(NONE,bit)                                                 | -                           | bit                         | bit
+ <<(bit,integer)                                             | bit                         | integer                     | bit
+ >>(bit,integer)                                             | bit                         | integer                     | bit
+ ||(bit varying,bit varying)                                 | bit varying                 | bit varying                 | bit varying
+ +(time without time zone,interval)                          | time without time zone      | interval                    | time without time zone
+ -(time without time zone,interval)                          | time without time zone      | interval                    | time without time zone
+ +(time with time zone,interval)                             | time with time zone         | interval                    | time with time zone
+ -(time with time zone,interval)                             | time with time zone         | interval                    | time with time zone
+ =(bit varying,bit varying)                                  | bit varying                 | bit varying                 | boolean
+ <>(bit varying,bit varying)                                 | bit varying                 | bit varying                 | boolean
+ <(bit varying,bit varying)                                  | bit varying                 | bit varying                 | boolean
+ >(bit varying,bit varying)                                  | bit varying                 | bit varying                 | boolean
+ <=(bit varying,bit varying)                                 | bit varying                 | bit varying                 | boolean
+ >=(bit varying,bit varying)                                 | bit varying                 | bit varying                 | boolean
+ +(interval,time without time zone)                          | interval                    | time without time zone      | time without time zone
+ =(smallint,bigint)                                          | smallint                    | bigint                      | boolean
+ <>(smallint,bigint)                                         | smallint                    | bigint                      | boolean
+ <(smallint,bigint)                                          | smallint                    | bigint                      | boolean
+ >(smallint,bigint)                                          | smallint                    | bigint                      | boolean
+ <=(smallint,bigint)                                         | smallint                    | bigint                      | boolean
+ >=(smallint,bigint)                                         | smallint                    | bigint                      | boolean
+ =(bigint,smallint)                                          | bigint                      | smallint                    | boolean
+ <>(bigint,smallint)                                         | bigint                      | smallint                    | boolean
+ <(bigint,smallint)                                          | bigint                      | smallint                    | boolean
+ >(bigint,smallint)                                          | bigint                      | smallint                    | boolean
+ <=(bigint,smallint)                                         | bigint                      | smallint                    | boolean
+ >=(bigint,smallint)                                         | bigint                      | smallint                    | boolean
+ &(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ |(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ #(smallint,smallint)                                        | smallint                    | smallint                    | smallint
+ ~(NONE,smallint)                                            | -                           | smallint                    | smallint
+ <<(smallint,integer)                                        | smallint                    | integer                     | smallint
+ >>(smallint,integer)                                        | smallint                    | integer                     | smallint
+ &(integer,integer)                                          | integer                     | integer                     | integer
+ |(integer,integer)                                          | integer                     | integer                     | integer
+ #(integer,integer)                                          | integer                     | integer                     | integer
+ ~(NONE,integer)                                             | -                           | integer                     | integer
+ <<(integer,integer)                                         | integer                     | integer                     | integer
+ >>(integer,integer)                                         | integer                     | integer                     | integer
+ &(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ |(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ #(bigint,bigint)                                            | bigint                      | bigint                      | bigint
+ ~(NONE,bigint)                                              | -                           | bigint                      | bigint
+ <<(bigint,integer)                                          | bigint                      | integer                     | bigint
+ >>(bigint,integer)                                          | bigint                      | integer                     | bigint
+ +(NONE,bigint)                                              | -                           | bigint                      | bigint
+ +(NONE,smallint)                                            | -                           | smallint                    | smallint
+ +(NONE,integer)                                             | -                           | integer                     | integer
+ +(NONE,real)                                                | -                           | real                        | real
+ +(NONE,double precision)                                    | -                           | double precision            | double precision
+ +(NONE,numeric)                                             | -                           | numeric                     | numeric
+ =(bytea,bytea)                                              | bytea                       | bytea                       | boolean
+ <>(bytea,bytea)                                             | bytea                       | bytea                       | boolean
+ <(bytea,bytea)                                              | bytea                       | bytea                       | boolean
+ <=(bytea,bytea)                                             | bytea                       | bytea                       | boolean
+ >(bytea,bytea)                                              | bytea                       | bytea                       | boolean
+ >=(bytea,bytea)                                             | bytea                       | bytea                       | boolean
+ ~~(bytea,bytea)                                             | bytea                       | bytea                       | boolean
+ !~~(bytea,bytea)                                            | bytea                       | bytea                       | boolean
+ ||(bytea,bytea)                                             | bytea                       | bytea                       | bytea
+ =(timestamp without time zone,timestamp without time zone)  | timestamp without time zone | timestamp without time zone | boolean
+ <>(timestamp without time zone,timestamp without time zone) | timestamp without time zone | timestamp without time zone | boolean
+ <(timestamp without time zone,timestamp without time zone)  | timestamp without time zone | timestamp without time zone | boolean
+ <=(timestamp without time zone,timestamp without time zone) | timestamp without time zone | timestamp without time zone | boolean
+ >(timestamp without time zone,timestamp without time zone)  | timestamp without time zone | timestamp without time zone | boolean
+ >=(timestamp without time zone,timestamp without time zone) | timestamp without time zone | timestamp without time zone | boolean
+ +(timestamp without time zone,interval)                     | timestamp without time zone | interval                    | timestamp without time zone
+ -(timestamp without time zone,timestamp without time zone)  | timestamp without time zone | timestamp without time zone | interval
+ -(timestamp without time zone,interval)                     | timestamp without time zone | interval                    | timestamp without time zone
+ ~<~(text,text)                                              | text                        | text                        | boolean
+ ~<=~(text,text)                                             | text                        | text                        | boolean
+ ~>=~(text,text)                                             | text                        | text                        | boolean
+ ~>~(text,text)                                              | text                        | text                        | boolean
+ ~<~(character,character)                                    | character                   | character                   | boolean
+ ~<=~(character,character)                                   | character                   | character                   | boolean
+ ~>=~(character,character)                                   | character                   | character                   | boolean
+ ~>~(character,character)                                    | character                   | character                   | boolean
+ <(date,timestamp without time zone)                         | date                        | timestamp without time zone | boolean
+ <=(date,timestamp without time zone)                        | date                        | timestamp without time zone | boolean
+ =(date,timestamp without time zone)                         | date                        | timestamp without time zone | boolean
+ >=(date,timestamp without time zone)                        | date                        | timestamp without time zone | boolean
+ >(date,timestamp without time zone)                         | date                        | timestamp without time zone | boolean
+ <>(date,timestamp without time zone)                        | date                        | timestamp without time zone | boolean
+ <(date,timestamp with time zone)                            | date                        | timestamp with time zone    | boolean
+ <=(date,timestamp with time zone)                           | date                        | timestamp with time zone    | boolean
+ =(date,timestamp with time zone)                            | date                        | timestamp with time zone    | boolean
+ >=(date,timestamp with time zone)                           | date                        | timestamp with time zone    | boolean
+ >(date,timestamp with time zone)                            | date                        | timestamp with time zone    | boolean
+ <>(date,timestamp with time zone)                           | date                        | timestamp with time zone    | boolean
+ <(timestamp without time zone,date)                         | timestamp without time zone | date                        | boolean
+ <=(timestamp without time zone,date)                        | timestamp without time zone | date                        | boolean
+ =(timestamp without time zone,date)                         | timestamp without time zone | date                        | boolean
+ >=(timestamp without time zone,date)                        | timestamp without time zone | date                        | boolean
+ >(timestamp without time zone,date)                         | timestamp without time zone | date                        | boolean
+ <>(timestamp without time zone,date)                        | timestamp without time zone | date                        | boolean
+ <(timestamp with time zone,date)                            | timestamp with time zone    | date                        | boolean
+ <=(timestamp with time zone,date)                           | timestamp with time zone    | date                        | boolean
+ =(timestamp with time zone,date)                            | timestamp with time zone    | date                        | boolean
+ >=(timestamp with time zone,date)                           | timestamp with time zone    | date                        | boolean
+ >(timestamp with time zone,date)                            | timestamp with time zone    | date                        | boolean
+ <>(timestamp with time zone,date)                           | timestamp with time zone    | date                        | boolean
+ <(timestamp without time zone,timestamp with time zone)     | timestamp without time zone | timestamp with time zone    | boolean
+ <=(timestamp without time zone,timestamp with time zone)    | timestamp without time zone | timestamp with time zone    | boolean
+ =(timestamp without time zone,timestamp with time zone)     | timestamp without time zone | timestamp with time zone    | boolean
+ >=(timestamp without time zone,timestamp with time zone)    | timestamp without time zone | timestamp with time zone    | boolean
+ >(timestamp without time zone,timestamp with time zone)     | timestamp without time zone | timestamp with time zone    | boolean
+ <>(timestamp without time zone,timestamp with time zone)    | timestamp without time zone | timestamp with time zone    | boolean
+ <(timestamp with time zone,timestamp without time zone)     | timestamp with time zone    | timestamp without time zone | boolean
+ <=(timestamp with time zone,timestamp without time zone)    | timestamp with time zone    | timestamp without time zone | boolean
+ =(timestamp with time zone,timestamp without time zone)     | timestamp with time zone    | timestamp without time zone | boolean
+ >=(timestamp with time zone,timestamp without time zone)    | timestamp with time zone    | timestamp without time zone | boolean
+ >(timestamp with time zone,timestamp without time zone)     | timestamp with time zone    | timestamp without time zone | boolean
+ <>(timestamp with time zone,timestamp without time zone)    | timestamp with time zone    | timestamp without time zone | boolean
+ +(interval,date)                                            | interval                    | date                        | timestamp without time zone
+ +(interval,time with time zone)                             | interval                    | time with time zone         | time with time zone
+ +(interval,timestamp without time zone)                     | interval                    | timestamp without time zone | timestamp without time zone
+ +(interval,timestamp with time zone)                        | interval                    | timestamp with time zone    | timestamp with time zone
+ +(integer,date)                                             | integer                     | date                        | date
+ <<|(box,box)                                                | box                         | box                         | boolean
+ &<|(box,box)                                                | box                         | box                         | boolean
+ |&>(box,box)                                                | box                         | box                         | boolean
+ |>>(box,box)                                                | box                         | box                         | boolean
+ <<|(polygon,polygon)                                        | polygon                     | polygon                     | boolean
+ &<|(polygon,polygon)                                        | polygon                     | polygon                     | boolean
+ |&>(polygon,polygon)                                        | polygon                     | polygon                     | boolean
+ |>>(polygon,polygon)                                        | polygon                     | polygon                     | boolean
+ &<|(circle,circle)                                          | circle                      | circle                      | boolean
+ |&>(circle,circle)                                          | circle                      | circle                      | boolean
+ &&(anyarray,anyarray)                                       | anyarray                    | anyarray                    | boolean
+ @>(anyarray,anyarray)                                       | anyarray                    | anyarray                    | boolean
+ <@(anyarray,anyarray)                                       | anyarray                    | anyarray                    | boolean
+ ||(text,anynonarray)                                        | text                        | anynonarray                 | text
+ ||(anynonarray,text)                                        | anynonarray                 | text                        | text
+ =(uuid,uuid)                                                | uuid                        | uuid                        | boolean
+ <>(uuid,uuid)                                               | uuid                        | uuid                        | boolean
+ <(uuid,uuid)                                                | uuid                        | uuid                        | boolean
+ >(uuid,uuid)                                                | uuid                        | uuid                        | boolean
+ <=(uuid,uuid)                                               | uuid                        | uuid                        | boolean
+ >=(uuid,uuid)                                               | uuid                        | uuid                        | boolean
+ =(pg_lsn,pg_lsn)                                            | pg_lsn                      | pg_lsn                      | boolean
+ <>(pg_lsn,pg_lsn)                                           | pg_lsn                      | pg_lsn                      | boolean
+ <(pg_lsn,pg_lsn)                                            | pg_lsn                      | pg_lsn                      | boolean
+ >(pg_lsn,pg_lsn)                                            | pg_lsn                      | pg_lsn                      | boolean
+ <=(pg_lsn,pg_lsn)                                           | pg_lsn                      | pg_lsn                      | boolean
+ >=(pg_lsn,pg_lsn)                                           | pg_lsn                      | pg_lsn                      | boolean
+ -(pg_lsn,pg_lsn)                                            | pg_lsn                      | pg_lsn                      | numeric
+ +(pg_lsn,numeric)                                           | pg_lsn                      | numeric                     | pg_lsn
+ +(numeric,pg_lsn)                                           | numeric                     | pg_lsn                      | pg_lsn
+ -(pg_lsn,numeric)                                           | pg_lsn                      | numeric                     | pg_lsn
+ =(anyenum,anyenum)                                          | anyenum                     | anyenum                     | boolean
+ <>(anyenum,anyenum)                                         | anyenum                     | anyenum                     | boolean
+ <(anyenum,anyenum)                                          | anyenum                     | anyenum                     | boolean
+ >(anyenum,anyenum)                                          | anyenum                     | anyenum                     | boolean
+ <=(anyenum,anyenum)                                         | anyenum                     | anyenum                     | boolean
+ >=(anyenum,anyenum)                                         | anyenum                     | anyenum                     | boolean
+ <(tsvector,tsvector)                                        | tsvector                    | tsvector                    | boolean
+ <=(tsvector,tsvector)                                       | tsvector                    | tsvector                    | boolean
+ =(tsvector,tsvector)                                        | tsvector                    | tsvector                    | boolean
+ <>(tsvector,tsvector)                                       | tsvector                    | tsvector                    | boolean
+ >=(tsvector,tsvector)                                       | tsvector                    | tsvector                    | boolean
+ >(tsvector,tsvector)                                        | tsvector                    | tsvector                    | boolean
+ ||(tsvector,tsvector)                                       | tsvector                    | tsvector                    | tsvector
+ @@(tsvector,tsquery)                                        | tsvector                    | tsquery                     | boolean
+ @@(tsquery,tsvector)                                        | tsquery                     | tsvector                    | boolean
+ @@@(tsvector,tsquery)                                       | tsvector                    | tsquery                     | boolean
+ @@@(tsquery,tsvector)                                       | tsquery                     | tsvector                    | boolean
+ <(tsquery,tsquery)                                          | tsquery                     | tsquery                     | boolean
+ <=(tsquery,tsquery)                                         | tsquery                     | tsquery                     | boolean
+ =(tsquery,tsquery)                                          | tsquery                     | tsquery                     | boolean
+ <>(tsquery,tsquery)                                         | tsquery                     | tsquery                     | boolean
+ >=(tsquery,tsquery)                                         | tsquery                     | tsquery                     | boolean
+ >(tsquery,tsquery)                                          | tsquery                     | tsquery                     | boolean
+ &&(tsquery,tsquery)                                         | tsquery                     | tsquery                     | tsquery
+ ||(tsquery,tsquery)                                         | tsquery                     | tsquery                     | tsquery
+ <->(tsquery,tsquery)                                        | tsquery                     | tsquery                     | tsquery
+ !!(NONE,tsquery)                                            | -                           | tsquery                     | tsquery
+ @>(tsquery,tsquery)                                         | tsquery                     | tsquery                     | boolean
+ <@(tsquery,tsquery)                                         | tsquery                     | tsquery                     | boolean
+ @@(text,text)                                               | text                        | text                        | boolean
+ @@(text,tsquery)                                            | text                        | tsquery                     | boolean
+ =(record,record)                                            | record                      | record                      | boolean
+ <>(record,record)                                           | record                      | record                      | boolean
+ <(record,record)                                            | record                      | record                      | boolean
+ >(record,record)                                            | record                      | record                      | boolean
+ <=(record,record)                                           | record                      | record                      | boolean
+ >=(record,record)                                           | record                      | record                      | boolean
+ *=(record,record)                                           | record                      | record                      | boolean
+ *<>(record,record)                                          | record                      | record                      | boolean
+ *<(record,record)                                           | record                      | record                      | boolean
+ *>(record,record)                                           | record                      | record                      | boolean
+ *<=(record,record)                                          | record                      | record                      | boolean
+ *>=(record,record)                                          | record                      | record                      | boolean
+ =(anyrange,anyrange)                                        | anyrange                    | anyrange                    | boolean
+ <>(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ <(anyrange,anyrange)                                        | anyrange                    | anyrange                    | boolean
+ <=(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ >=(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ >(anyrange,anyrange)                                        | anyrange                    | anyrange                    | boolean
+ &&(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ @>(anyrange,anyelement)                                     | anyrange                    | anyelement                  | boolean
+ @>(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ <@(anyelement,anyrange)                                     | anyelement                  | anyrange                    | boolean
+ <@(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ <<(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ >>(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ &<(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ &>(anyrange,anyrange)                                       | anyrange                    | anyrange                    | boolean
+ -|-(anyrange,anyrange)                                      | anyrange                    | anyrange                    | boolean
+ +(anyrange,anyrange)                                        | anyrange                    | anyrange                    | anyrange
+ -(anyrange,anyrange)                                        | anyrange                    | anyrange                    | anyrange
+ *(anyrange,anyrange)                                        | anyrange                    | anyrange                    | anyrange
+ ->(json,text)                                               | json                        | text                        | json
+ ->>(json,text)                                              | json                        | text                        | text
+ ->(json,integer)                                            | json                        | integer                     | json
+ ->>(json,integer)                                           | json                        | integer                     | text
+ #>(json,text[])                                             | json                        | text[]                      | json
+ #>>(json,text[])                                            | json                        | text[]                      | text
+ ->(jsonb,text)                                              | jsonb                       | text                        | jsonb
+ ->>(jsonb,text)                                             | jsonb                       | text                        | text
+ ->(jsonb,integer)                                           | jsonb                       | integer                     | jsonb
+ ->>(jsonb,integer)                                          | jsonb                       | integer                     | text
+ #>(jsonb,text[])                                            | jsonb                       | text[]                      | jsonb
+ #>>(jsonb,text[])                                           | jsonb                       | text[]                      | text
+ =(jsonb,jsonb)                                              | jsonb                       | jsonb                       | boolean
+ <>(jsonb,jsonb)                                             | jsonb                       | jsonb                       | boolean
+ <(jsonb,jsonb)                                              | jsonb                       | jsonb                       | boolean
+ >(jsonb,jsonb)                                              | jsonb                       | jsonb                       | boolean
+ <=(jsonb,jsonb)                                             | jsonb                       | jsonb                       | boolean
+ >=(jsonb,jsonb)                                             | jsonb                       | jsonb                       | boolean
+ @>(jsonb,jsonb)                                             | jsonb                       | jsonb                       | boolean
+ ?(jsonb,text)                                               | jsonb                       | text                        | boolean
+ ?|(jsonb,text[])                                            | jsonb                       | text[]                      | boolean
+ ?&(jsonb,text[])                                            | jsonb                       | text[]                      | boolean
+ <@(jsonb,jsonb)                                             | jsonb                       | jsonb                       | boolean
+ ||(jsonb,jsonb)                                             | jsonb                       | jsonb                       | jsonb
+ -(jsonb,text)                                               | jsonb                       | text                        | jsonb
+ -(jsonb,text[])                                             | jsonb                       | text[]                      | jsonb
+ -(jsonb,integer)                                            | jsonb                       | integer                     | jsonb
+ #-(jsonb,text[])                                            | jsonb                       | text[]                      | jsonb
+ @?(jsonb,jsonpath)                                          | jsonb                       | jsonpath                    | boolean
+ @@(jsonb,jsonpath)                                          | jsonb                       | jsonpath                    | boolean
+ =(anymultirange,anymultirange)                              | anymultirange               | anymultirange               | boolean
+ <>(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ <(anymultirange,anymultirange)                              | anymultirange               | anymultirange               | boolean
+ <=(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ >=(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ >(anymultirange,anymultirange)                              | anymultirange               | anymultirange               | boolean
+ &&(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ &&(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ &&(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ @>(anymultirange,anyelement)                                | anymultirange               | anyelement                  | boolean
+ @>(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ @>(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ <@(anyelement,anymultirange)                                | anyelement                  | anymultirange               | boolean
+ <@(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ <@(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ @>(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ <@(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ &<(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ &<(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ &<(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ &>(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ &>(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ &>(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ -|-(anyrange,anymultirange)                                 | anyrange                    | anymultirange               | boolean
+ -|-(anymultirange,anyrange)                                 | anymultirange               | anyrange                    | boolean
+ -|-(anymultirange,anymultirange)                            | anymultirange               | anymultirange               | boolean
+ +(anymultirange,anymultirange)                              | anymultirange               | anymultirange               | anymultirange
+ -(anymultirange,anymultirange)                              | anymultirange               | anymultirange               | anymultirange
+ *(anymultirange,anymultirange)                              | anymultirange               | anymultirange               | anymultirange
+ <<(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ <<(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ <<(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+ >>(anyrange,anymultirange)                                  | anyrange                    | anymultirange               | boolean
+ >>(anymultirange,anyrange)                                  | anymultirange               | anyrange                    | boolean
+ >>(anymultirange,anymultirange)                             | anymultirange               | anymultirange               | boolean
+(804 rows)
