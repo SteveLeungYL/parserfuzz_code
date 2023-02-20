@@ -36,3 +36,4 @@ flex_lexer.h
 peda-session-*
 gmon.out
 .tasks
+.idea
