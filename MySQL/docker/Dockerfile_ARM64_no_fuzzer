@@ -104,12 +104,6 @@ RUN bin/mysql_ssl_rsa_setup --datadir=data
 RUN mkdir data_all
 RUN mv data data_all/ori_data
 
-# Further setup the database info
-USER mysql
-WORKDIR /home/mysql/scripts
-RUN python3 setup_database.py
-
-
 USER root
 WORKDIR /home/mysql/fuzzing/fuzz_root
 
